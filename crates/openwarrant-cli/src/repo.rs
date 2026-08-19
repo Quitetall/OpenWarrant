@@ -305,10 +305,10 @@ impl Repository {
     ///
     /// Returns parse failures rather than aborting, so `war check` reports every
     /// malformed ADR in one run instead of one per invocation.
-    pub fn load_adrs(&self) -> Result<(Vec<AdrRecord>, Vec<(String, AdrError)>), RepoError> {
+    pub fn load_adrs(&self) -> Result<AdrCorpus, RepoError> {
         let dir = self.adr_atoms_dir();
         if !dir.is_dir() {
-            return Ok((vec![], vec![]));
+            return Ok(AdrCorpus::default());
         }
         let mut paths = Vec::new();
         for entry in fs::read_dir(&dir).map_err(|source| RepoError::Io {
@@ -342,7 +342,7 @@ impl Repository {
                 Err(err) => failures.push((relative, err)),
             }
         }
-        Ok((records, failures))
+        Ok(AdrCorpus { records, failures })
     }
 
     /// A repository-relative path, for diagnostics and for the IR.
@@ -356,6 +356,18 @@ impl Repository {
             .as_str()
             .to_owned()
     }
+}
+
+/// The ADR corpus as read from disk.
+///
+/// Parse failures travel alongside the records rather than replacing them: one
+/// malformed ADR must not hide the other twenty, and `war check` reports every
+/// problem in a single run.
+#[derive(Debug, Default)]
+pub struct AdrCorpus {
+    pub records: Vec<AdrRecord>,
+    /// `(repository-relative path, why it would not parse)`.
+    pub failures: Vec<(String, AdrError)>,
 }
 
 /// A Warrant read from disk, with whatever went wrong while reading it.

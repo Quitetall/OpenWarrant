@@ -35,8 +35,8 @@ pub fn projections(
 /// same rules, since §19.7 forbids a manually maintained index for the same
 /// reason §17.2 forbids an authoritative parent.
 pub fn adr_overview(repo: &Repository) -> Result<(camino::Utf8PathBuf, String), RepoError> {
-    let (records, _failures) = repo.load_adrs()?;
-    Ok((repo.adr_overview_path(), render_adr_overview(&records)))
+    let adrs = repo.load_adrs()?;
+    Ok((repo.adr_overview_path(), render_adr_overview(&adrs.records)))
 }
 
 /// Compile one Warrant, or all of them, writing into each `generated/`.

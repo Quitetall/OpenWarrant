@@ -29,9 +29,13 @@ one 0.x version are not guaranteed to be reproducible by another.
 - Parent contract-digest verification: a child citing a parent whose contract has
   since changed is reported as resting on a basis it was never authorized
   against (§20.2).
-- `cargo xtask gate` — the aggregate gate of §92: fmt, clippy, tests, licenses,
-  and a planted-violation battery that asserts each control rejects for its
-  intended reason.
+- First-class ADR atoms and a **generated ADR Overview** (§19.6, RQ-021): the
+  Appendix A shape with a summary table, lifecycle buckets, and the complete
+  decision bodies concatenated as one audit document. Drift-checked like any
+  other projection, because §19.7 forbids a manually maintained index.
+- `cargo xtask gate` — the aggregate gate of §92: SPDX headers, build, fmt,
+  clippy, tests, licenses, and a planted-violation battery that asserts each
+  control rejects for its intended reason.
 
 ### Decisions
 
@@ -53,5 +57,9 @@ Stated rather than left to be discovered:
 - Two of the nine projections in §17.5 are implemented (`full_warrant`,
   `canonical_json`).
 - Contract revisions are not implemented; every compilation is revision 1.
+- ADR supersession is not modelled at all — `AdrRecord` has no `supersedes`
+  field — so §91.4 test 25 (supersession is acyclic) is not covered. The
+  `superseded` status exists as a lifecycle state, but nothing records what
+  superseded what.
 - Conformance runs on one host, so §91.1 test 1's "two supported hosts" is
   satisfied by two runs rather than two architectures.

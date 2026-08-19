@@ -85,18 +85,18 @@ pub fn run(
 
     // ADR corpus (§19). A malformed ADR is an error; the Overview is a
     // projection and drift-checks exactly like a Warrant parent (§19.7).
-    let (records, failures) = repo.load_adrs()?;
-    for (path, err) in &failures {
+    let adrs = repo.load_adrs()?;
+    for (path, err) in &adrs.failures {
         report.push(Diagnostic::error(
             "adr.malformed",
             path.clone(),
             err.to_string(),
         ));
     }
-    if failures.is_empty() && !records.is_empty() {
+    if adrs.failures.is_empty() && !adrs.records.is_empty() {
         report.push(Diagnostic::pass(
             "adr.parsed",
-            format!("{} ADR(s) parsed", records.len()),
+            format!("{} ADR(s) parsed", adrs.records.len()),
         ));
     }
     if check_generated && repo.config.generated.verify_drift {
