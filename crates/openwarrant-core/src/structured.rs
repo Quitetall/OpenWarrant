@@ -196,10 +196,41 @@ fn parse_flow_list(raw: &str, line: usize) -> Result<Vec<String>, StructuredErro
     if inner.trim().is_empty() {
         return Ok(vec![]);
     }
-    inner
-        .split(',')
+    split_flow_items(inner, line)?
+        .iter()
         .map(|item| unquote(item, line))
         .collect::<Result<Vec<_>, _>>()
+}
+
+/// Split a flow sequence on commas that are OUTSIDE quotes.
+///
+/// A plain `split(',')` here read `["a (Phase 6, OW-WAR-0020)"]` as two items,
+/// the second of which had an opening quote and no closing one, and reported the
+/// whole list as an unterminated quoted value. The format documents quoted
+/// scalars, so a comma inside one is legal input and mis-splitting it is a
+/// parser defect rather than a limitation to write around.
+fn split_flow_items(inner: &str, line: usize) -> Result<Vec<String>, StructuredError> {
+    let mut items = Vec::new();
+    let mut current = String::new();
+    let mut in_quote = false;
+    for ch in inner.chars() {
+        match ch {
+            '"' => {
+                in_quote = !in_quote;
+                current.push(ch);
+            }
+            ',' if !in_quote => items.push(std::mem::take(&mut current)),
+            _ => current.push(ch),
+        }
+    }
+    if in_quote {
+        return Err(StructuredError::Malformed {
+            line,
+            found: inner.trim().to_owned(),
+        });
+    }
+    items.push(current);
+    Ok(items)
 }
 
 /// Parse one `key: value` pair, choosing the value shape.
@@ -407,6 +438,32 @@ stages:
             Some("1.10"),
             "version strings must not become floats"
         );
+    }
+
+    /// Regression: a comma inside a quoted list item is data, not a separator.
+    /// The gate definitions of OW-WAR-0019 were the first documents to contain
+    /// one, and the whole list reported as an unterminated quoted value.
+    #[test]
+    fn a_comma_inside_a_quoted_flow_item_is_not_a_separator() {
+        let doc = parse("k: [\"a (Phase 6, OW-WAR-0020)\", \"b, c, d\", \"e\"]\n").expect("valid");
+        assert_eq!(
+            doc.get("k").and_then(StructuredValue::as_list),
+            Some(
+                [
+                    "a (Phase 6, OW-WAR-0020)".to_owned(),
+                    "b, c, d".to_owned(),
+                    "e".to_owned(),
+                ]
+                .as_slice()
+            )
+        );
+    }
+
+    /// An actually-unterminated quote must still be refused, so the fix above
+    /// cannot be mistaken for "accept anything".
+    #[test]
+    fn an_unterminated_quote_in_a_flow_list_is_still_refused() {
+        assert!(parse("k: [\"a, \"b\", \"c]\n").is_err());
     }
 
     #[test]

@@ -58,8 +58,19 @@ pub fn run(
     };
     let parent_digests = contract_digests(&corpus);
 
+    // §43.1 — local gate candidates. Loaded once for the corpus so an obligation
+    // citing a gate can be resolved rather than taken on trust.
+    let gates = load_gate_registry(repo, &mut report);
+
     for one in &loaded {
-        check_one(repo, one, check_generated, &parent_digests, &mut report);
+        check_one(
+            repo,
+            one,
+            check_generated,
+            &parent_digests,
+            &gates,
+            &mut report,
+        );
         if let Some(basis) = &one.basis {
             total_warrants += 1;
             let fully_undisposed = basis
@@ -234,11 +245,77 @@ fn contract_digests(corpus: &[Loaded]) -> BTreeMap<String, String> {
     out
 }
 
+/// Load `docs/gates/*.yaml` as §43.1 local candidates.
+///
+/// A malformed definition is an ERROR rather than a skip. A registry that
+/// quietly drops the file it could not read would let every citation of that
+/// gate report unresolved, or worse, let a later valid-looking file take its
+/// place unnoticed.
+fn load_gate_registry(repo: &Repository, report: &mut Report) -> openwarrant_core::GateRegistry {
+    let mut registry = openwarrant_core::GateRegistry::default();
+    let dir = repo.root.join(&repo.config.paths.gates);
+    let Ok(entries) = dir.read_dir_utf8() else {
+        // No gates directory is a legitimate state: a repository may declare no
+        // gates. It is reported as a note so it cannot be mistaken for a
+        // registry that was read and found empty.
+        report.note(format!(
+            "gate registry — {} does not exist, so no gate citation can be \
+             resolved. §43.1 local candidates live there",
+            repo.config.paths.gates
+        ));
+        return registry;
+    };
+
+    let mut paths: Vec<_> = entries
+        .filter_map(Result::ok)
+        .map(|e| e.into_path())
+        .filter(|p| p.extension().is_some_and(|e| e == "yaml" || e == "yml"))
+        .collect();
+    paths.sort();
+
+    for path in paths {
+        let rel = repo.relative(&path);
+        let Ok(text) = std::fs::read_to_string(&path) else {
+            report.push(Diagnostic::error(
+                "gate.unreadable",
+                rel,
+                "gate definition could not be read".to_owned(),
+            ));
+            continue;
+        };
+        let doc = match openwarrant_core::structured::parse(&text) {
+            Ok(d) => d,
+            Err(err) => {
+                report.push(Diagnostic::error("gate.malformed", rel, format!("{err}")));
+                continue;
+            }
+        };
+        match openwarrant_core::gate::definition_from_structured(&doc) {
+            Ok(def) => {
+                let key = def.key();
+                let provenance = def.provenance;
+                match registry.insert(def) {
+                    Ok(()) => report.push(Diagnostic::pass(
+                        "gate.registered",
+                        format!("{key}: {provenance}, qualified against its declared fault model"),
+                    )),
+                    Err(err) => {
+                        report.push(Diagnostic::error("gate.duplicate", rel, format!("{err}")));
+                    }
+                }
+            }
+            Err(err) => report.push(Diagnostic::error("gate.invalid", rel, format!("{err}"))),
+        }
+    }
+    registry
+}
+
 fn check_one(
     repo: &Repository,
     one: &Loaded,
     check_generated: bool,
     parent_digests: &BTreeMap<String, String>,
+    gates: &openwarrant_core::GateRegistry,
     report: &mut Report,
 ) {
     let alias = one.alias();
@@ -270,6 +347,44 @@ fn check_one(
             repo.relative(&one.dir.join("manifest.toml")),
             format!("{alias}: atom ordinals are not in ascending order; the parent renders in declared order"),
         ));
+    }
+
+    // §43 / RQ-056: a gate cited by an obligation must resolve to a registered,
+    // bindable definition.
+    //
+    // OW-WAR-0019's Intent records why: in the parent project's corpus, 23 of 94
+    // declared gates named a tool, script, or crate that was not in the tree.
+    // Nothing read those strings, so nothing noticed.
+    for atom in basis.atoms.iter().filter(|a| a.role == "assurance") {
+        let text = String::from_utf8_lossy(&atom.bytes);
+        let file = repo.relative(&one.dir.join(&atom.source));
+        let cited = openwarrant_core::gate::cited_gate_uris(&text);
+        let mut resolved = 0usize;
+        for uri in &cited {
+            match gates.resolve_citation(&alias, uri) {
+                Ok(def) if def.lifecycle.is_bindable() => resolved += 1,
+                Ok(def) => report.push(Diagnostic::error(
+                    "gate.not-bindable",
+                    file.clone(),
+                    format!(
+                        "{alias}: cites {uri}, whose lifecycle is {}. §43.4 permits \
+                         binding only a qualified gate",
+                        def.lifecycle
+                    ),
+                )),
+                Err(err) => report.push(Diagnostic::error(
+                    "gate.unresolved",
+                    file.clone(),
+                    format!("{alias}: {err}"),
+                )),
+            }
+        }
+        if resolved > 0 && resolved == cited.len() {
+            report.push(Diagnostic::pass(
+                "gate.resolved",
+                format!("{alias}: {resolved} cited gate(s) resolve to a bindable definition"),
+            ));
+        }
     }
 
     // §39 / RQ-055: contract-adequacy review, STRUCTURALLY checked.

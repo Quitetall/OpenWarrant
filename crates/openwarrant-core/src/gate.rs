@@ -545,21 +545,143 @@ impl GateRegistry {
     }
 }
 
-/// Extract every `gate://…` citation from a body of text.
+/// Parse one Gate Definition from a restricted-reader document.
+///
+/// # Why the keys are flat
+///
+/// OW-ADR-0003 chose a restricted reader over a YAML dependency. It reads
+/// scalars, lists, and records — a list of flat maps — and nothing nested inside
+/// a record. §43.4's qualification is therefore spelled with `qualification_`
+/// prefixes rather than as a nested block. That is a cost of the ADR, paid
+/// visibly here rather than by quietly adding a YAML parser to satisfy one file
+/// format.
+pub fn definition_from_structured(
+    doc: &crate::structured::StructuredDoc,
+) -> Result<GateDefinition, GateError> {
+    let scalar = |k: &str| doc.scalar(k).unwrap_or_default().to_owned();
+    let list = |k: &str| {
+        doc.get(k)
+            .and_then(StructuredValueExt::list)
+            .unwrap_or_default()
+    };
+
+    let gate_id = scalar("gate_id");
+    let version = scalar("version");
+
+    let lifecycle = match doc.scalar("lifecycle") {
+        Some(s) => GateLifecycle::from_str(s)?,
+        None => GateLifecycle::Draft,
+    };
+
+    let detection_results = doc
+        .records("detection_results")
+        .unwrap_or_default()
+        .iter()
+        .map(|r| DetectionResult {
+            fault_class: r
+                .get("fault_class")
+                .and_then(|v| v.as_scalar())
+                .unwrap_or_default()
+                .to_owned(),
+            mutation: r
+                .get("mutation")
+                .and_then(|v| v.as_scalar())
+                .unwrap_or_default()
+                .to_owned(),
+            // Anything that is not literally `true` is not a detection. A typo
+            // must not read as success.
+            detected: r
+                .get("detected")
+                .and_then(|v| v.as_scalar())
+                .is_some_and(|s| s.eq_ignore_ascii_case("true")),
+        })
+        .collect::<Vec<_>>();
+
+    let qualifier = scalar("qualification_qualifier");
+    let qualification = if qualifier.is_empty() && detection_results.is_empty() {
+        None
+    } else {
+        Some(Qualification {
+            positive_controls: list("qualification_positive_controls"),
+            negative_controls: list("qualification_negative_controls"),
+            mutation_classes: list("qualification_mutation_classes"),
+            environments: list("qualification_environments"),
+            detection_results,
+            limitations: list("qualification_limitations"),
+            qualifier,
+            qualification_digest: scalar("qualification_digest"),
+        })
+    };
+
+    let provenance = match doc.scalar("provenance") {
+        Some("institutional_projection") => GateProvenance::InstitutionalProjection,
+        _ => GateProvenance::LocalCandidate,
+    };
+
+    let def = GateDefinition {
+        gate_id,
+        version,
+        digest: scalar("digest"),
+        lifecycle,
+        implementation_ref: scalar("implementation_ref"),
+        input_kinds: list("input_kinds"),
+        output_schema_ref: scalar("output_schema_ref"),
+        fault_model: list("fault_model"),
+        known_blind_spots: list("known_blind_spots"),
+        qualification,
+        provenance,
+    };
+    def.validate()?;
+    Ok(def)
+}
+
+/// Small helper so `definition_from_structured` can ask a value for a list
+/// without importing the reader's whole surface.
+trait StructuredValueExt {
+    fn list(&self) -> Option<Vec<String>>;
+}
+
+impl StructuredValueExt for crate::structured::StructuredValue {
+    fn list(&self) -> Option<Vec<String>> {
+        self.as_list().map(<[String]>::to_vec)
+    }
+}
+
+/// Extract an obligation's gate citations from `- **gate:**` bullets.
+///
+/// # Why not scan the prose
+///
+/// The first version of this searched the whole assurance atom for `gate://`.
+/// It immediately flagged OW-WAR-0019's own sentence — "evidence: a plant citing
+/// `gate://does-not-exist`, refused by name" — which describes a plant rather
+/// than citing a gate.
+///
+/// That is not a tuning problem. A gate identified by pattern-matching prose IS
+/// the "string, not a gate" failure §43 exists to end; §43.5 makes a binding an
+/// object with a subject and a pinned digest, not a phrase someone wrote. So a
+/// citation is a declared field, in the same `- **key:**` form the surrounding
+/// obligations already use for scope and evidence, and prose that merely
+/// mentions a URI is prose.
 #[must_use]
 pub fn cited_gate_uris(text: &str) -> Vec<String> {
     let mut out = Vec::new();
-    let mut rest = text;
-    while let Some(i) = rest.find("gate://") {
-        let tail = &rest[i..];
-        let end = tail
-            .find(|c: char| c.is_whitespace() || matches!(c, '`' | ')' | ',' | ';' | '"' | '\''))
-            .unwrap_or(tail.len());
-        let uri = tail[..end].trim_end_matches('.');
-        if !uri.is_empty() && !out.iter().any(|u| u == uri) {
-            out.push(uri.to_owned());
+    for line in text.lines() {
+        let trimmed = line.trim();
+        let Some(rest) = trimmed
+            .strip_prefix("- **gate:**")
+            .or_else(|| trimmed.strip_prefix("- **gates:**"))
+        else {
+            continue;
+        };
+        for token in rest.split(',') {
+            let uri = token.trim().trim_matches('`').trim_end_matches('.').trim();
+            if uri.is_empty() {
+                continue;
+            }
+            if !out.iter().any(|u| u == uri) {
+                out.push(uri.to_owned());
+            }
         }
-        rest = &tail[end.max(1)..];
     }
     out
 }
@@ -830,16 +952,36 @@ mod tests {
     }
 
     #[test]
-    fn citations_are_extracted_from_prose() {
-        let text =
-            "evidence: `gate://a.b@1.0.0` and gate://c.d@2.1.0, plus gate://a.b@1.0.0 again.";
-        let found = cited_gate_uris(text);
-        assert_eq!(found, vec!["gate://a.b@1.0.0", "gate://c.d@2.1.0"]);
+    fn citations_are_read_from_declared_bullets() {
+        let text = "### OBL-001 — something\n\
+                    - **scope:** bounded.\n\
+                    - **gate:** `gate://a.b@1.0.0`, gate://c.d@2.1.0\n\
+                    - **evidence:** the run.\n";
+        assert_eq!(
+            cited_gate_uris(text),
+            vec!["gate://a.b@1.0.0", "gate://c.d@2.1.0"]
+        );
     }
 
+    /// Regression: prose describing a plant is not a citation.
+    ///
+    /// OW-WAR-0019's own OBL-003 reads "a plant citing `gate://does-not-exist`,
+    /// refused by name". Scanning prose flagged that sentence as an unresolved
+    /// gate the first time this ran against the real corpus — a gate identified
+    /// by pattern-matching prose is the "string, not a gate" failure §43 exists
+    /// to end.
     #[test]
-    fn a_citation_with_no_gates_finds_none() {
-        assert!(cited_gate_uris("evidence: cargo xtask gate exit status").is_empty());
+    fn prose_mentioning_a_gate_uri_is_not_a_citation() {
+        for prose in [
+            "- **evidence:** a plant citing `gate://does-not-exist`, refused by name.",
+            "The parent project declared gate://software.fake@1.0.0 and never shipped it.",
+            "- **evidence:** cargo xtask gate exit status",
+        ] {
+            assert!(
+                cited_gate_uris(prose).is_empty(),
+                "prose was read as a citation: {prose:?}"
+            );
+        }
     }
 
     /// §43.1 — the distinction that OW-ADR-0005 turns into a field.
