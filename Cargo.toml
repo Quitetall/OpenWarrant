@@ -20,7 +20,7 @@ repository = "https://github.com/Quitetall/OpenWarrant"
 homepage = "https://github.com/Quitetall/OpenWarrant"
 authors = ["Brian Lam <briankhanglam@gmail.com>"]
 readme = "README.md"
-keywords = ["warrant", "provenance", "audit", "governance", "rfc8785"]
+keywords = ["warrant", "provenance", "audit", "governance", "jcs"]
 categories = ["development-tools", "command-line-utilities"]
 
 # WAR SAS v0.1.0-draft.1 §80 lists these as NONBINDING recommendations, and says
