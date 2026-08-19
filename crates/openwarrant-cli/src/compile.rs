@@ -3,6 +3,7 @@
 
 use std::fs;
 
+use openwarrant_compiler::render_adr_overview;
 use openwarrant_compiler::{
     CanonicalError, CompilationBasis, View, canonical_json, full_warrant, lower,
 };
@@ -25,6 +26,17 @@ pub fn projections(
         (View::FullWarrant, full_warrant(&ir, basis)),
         (View::CanonicalJson, canonical_json(&ir)?),
     ])
+}
+
+/// Compile the ADR Overview (§19.6, RQ-021), returning its path and contents.
+///
+/// Separate from the Warrant projections because it is a projection of the ADR
+/// corpus, not of any one Warrant — but written and drift-checked by exactly the
+/// same rules, since §19.7 forbids a manually maintained index for the same
+/// reason §17.2 forbids an authoritative parent.
+pub fn adr_overview(repo: &Repository) -> Result<(camino::Utf8PathBuf, String), RepoError> {
+    let adrs = repo.load_adrs()?;
+    Ok((repo.adr_overview_path(), render_adr_overview(&adrs.records)))
 }
 
 /// Compile one Warrant, or all of them, writing into each `generated/`.
@@ -91,6 +103,29 @@ pub fn run(repo: &Repository, only: Option<&str>) -> Result<(), RepoError> {
         // Never silent. A Warrant skipped without a word reads as compiled.
         eprintln!("\nnot compiled ({}): {}", skipped.len(), skipped.join(", "));
         eprintln!("run `war check` for the reason.");
+    }
+
+    // The ADR Overview covers the whole corpus, so it is compiled once rather
+    // than per Warrant, and only on a full run.
+    if only.is_none() {
+        let (path, contents) = adr_overview(repo)?;
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent).map_err(|source| RepoError::Io {
+                context: format!("could not create {parent}"),
+                source,
+            })?;
+        }
+        let unchanged = fs::read_to_string(&path)
+            .map(|existing| existing == contents)
+            .unwrap_or(false);
+        if !unchanged {
+            fs::write(&path, &contents).map_err(|source| RepoError::Io {
+                context: format!("could not write {path}"),
+                source,
+            })?;
+            written += 1;
+        }
+        println!("compiled ADR Overview");
     }
 
     println!(

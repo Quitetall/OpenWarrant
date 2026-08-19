@@ -11,12 +11,14 @@
 
 #![forbid(unsafe_code)]
 
+pub mod adr;
 pub mod config;
 pub mod frontmatter;
 pub mod identity;
 pub mod manifest;
 pub mod role;
 
+pub use adr::{AdrError, AdrRecord, AdrStatus};
 pub use config::{ConfigError, GeneratedPolicy, Namespace, Paths, RepositoryConfig};
 pub use frontmatter::{Frontmatter, FrontmatterError, Value};
 pub use identity::{IdentityError, LocalAlias, WarUuid};

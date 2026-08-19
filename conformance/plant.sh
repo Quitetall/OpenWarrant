@@ -35,8 +35,8 @@ fi
 # never run, which is the whole failure this battery exists to disprove. Editing
 # Rust while the plants run is fine; editing docs/warrants/ is not, because the
 # restore is `git checkout` and would discard that work.
-if ! git diff --quiet -- docs/warrants/ || ! git diff --cached --quiet -- docs/warrants/; then
-    echo "docs/warrants/ has uncommitted changes." >&2
+if ! git diff --quiet -- docs/warrants/ docs/adr/ || ! git diff --cached --quiet -- docs/warrants/ docs/adr/; then
+    echo "docs/warrants/ or docs/adr/ has uncommitted changes." >&2
     echo "Plants mutate those files and restore with 'git checkout', which would" >&2
     echo "discard your work. Commit or stash docs/warrants/ first." >&2
     exit 1
@@ -46,7 +46,7 @@ PASSED=0
 FAILED=0
 
 restore() {
-    git checkout -- docs/warrants/ 2>/dev/null || true
+    git checkout -- docs/warrants/ docs/adr/ 2>/dev/null || true
 }
 trap restore EXIT
 
@@ -136,6 +136,16 @@ plant "generated view deleted" "generated.missing" "WAR.json is missing" 2 \
 
 plant "frontmatter anchor injected" "atom.frontmatter" "YAML anchor" 2 \
     "sed -i 's|^role: intent|role: \&anchor intent|' docs/warrants/OW-WAR-0001/atoms/10-intent.md"
+
+plant "ADR with an unknown status" "adr.malformed" "unknown ADR status" 2 \
+    "sed -i 's|^status: accepted|status: probably-fine|' docs/adr/atoms/OW-ADR-0001-canonical-json-implementation.md"
+
+plant "ADR missing a required key" "adr.malformed" "missing required frontmatter key" 2 \
+    "sed -i '/^adr_uuid:/d' docs/adr/atoms/OW-ADR-0002-frontmatter-subset.md"
+
+plant "ADR Overview edited by hand" "adr.overview-drift" "edited by hand" 2 \
+    "sed -i 's|^# Architecture Decision Record Overview|# Architecture Decision Record Overview TAMPERED|' docs/adr/generated/ADR_OVERVIEW.md" \
+    --generated
 
 echo
 echo "$PASSED passed, $FAILED failed"

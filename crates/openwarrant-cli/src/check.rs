@@ -9,7 +9,7 @@ use std::collections::BTreeMap;
 use openwarrant_compiler::lower;
 use openwarrant_core::{ValidatedManifest, detect_parent_cycles};
 
-use crate::compile::projections;
+use crate::compile::{adr_overview, projections};
 use crate::diagnostic::{Diagnostic, Report, Severity};
 use crate::repo::{Loaded, RepoError, Repository};
 
@@ -80,6 +80,54 @@ pub fn run(
                 repo.config.paths.warrants.clone(),
                 format!("parent cycle: {}", cycle.path.join(" → ")),
             ));
+        }
+    }
+
+    // ADR corpus (§19). A malformed ADR is an error; the Overview is a
+    // projection and drift-checks exactly like a Warrant parent (§19.7).
+    let adrs = repo.load_adrs()?;
+    for (path, err) in &adrs.failures {
+        report.push(Diagnostic::error(
+            "adr.malformed",
+            path.clone(),
+            err.to_string(),
+        ));
+    }
+    if adrs.failures.is_empty() && !adrs.records.is_empty() {
+        report.push(Diagnostic::pass(
+            "adr.parsed",
+            format!("{} ADR(s) parsed", adrs.records.len()),
+        ));
+    }
+    if check_generated && repo.config.generated.verify_drift {
+        match adr_overview(repo) {
+            Ok((path, expected)) => {
+                let relative = repo.relative(&path);
+                match std::fs::read_to_string(&path) {
+                    Ok(actual) if actual == expected => report.push(Diagnostic::pass(
+                        "adr.overview-drift",
+                        "ADR Overview matches a fresh compilation",
+                    )),
+                    Ok(_) => report.push(Diagnostic::error(
+                        "adr.overview-drift",
+                        relative,
+                        "the committed ADR Overview differs from a fresh compilation; \
+                         it was edited by hand or an ADR changed without recompiling",
+                    )),
+                    Err(_) if repo.config.generated.commit => report.push(Diagnostic::error(
+                        "adr.overview-missing",
+                        relative,
+                        "the ADR Overview is missing and this repository commits \
+                         generated views; run `war compile`",
+                    )),
+                    Err(_) => {}
+                }
+            }
+            Err(err) => report.push(Diagnostic::error(
+                "adr.overview-compile",
+                repo.config.paths.adrs.clone(),
+                err.to_string(),
+            )),
         }
     }
 
