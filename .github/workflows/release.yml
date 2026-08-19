@@ -70,7 +70,7 @@ jobs:
             (cd dist && shasum -a 256 "$name.tar.gz" > "$name.tar.gz.sha256")
           fi
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.target }}
           path: dist/*.tar.gz*
