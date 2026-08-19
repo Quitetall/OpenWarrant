@@ -13,6 +13,10 @@ name = "war"
 path = "src/main.rs"
 
 [dependencies]
+# Removed in 811e0f3 as an unused dependency and restored here for its first
+# real use: `war compile` lowers and renders. OW-WAR-0004 predicted exactly this,
+# which is why the removal was correct at the time rather than churn.
+openwarrant-compiler = { path = "../openwarrant-compiler" }
 openwarrant-core = { path = "../openwarrant-core" }
 camino = { workspace = true }
 clap = { workspace = true }

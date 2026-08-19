@@ -17,8 +17,14 @@
 
 pub mod canonical;
 pub mod digest;
+pub mod ir;
+pub mod lower;
+pub mod render;
 
 pub use canonical::{
     CanonicalError, preimage_bytes, sha256_digest, to_canonical_bytes, to_canonical_string,
 };
 pub use digest::{DigestDomain, sha256_hex};
+pub use ir::{API_VERSION, KIND, SCHEMA_PACK_ID, SCHEMA_PACK_VERSION, WarIr};
+pub use lower::{AtomSource, CompilationBasis, lower};
+pub use render::{View, canonical_json, full_warrant};

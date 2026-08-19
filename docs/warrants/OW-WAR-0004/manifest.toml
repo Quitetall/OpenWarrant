@@ -24,6 +24,10 @@ ref = "roadmap://OW-PHASE-1/compiler"
 [[parents]]
 ref = "war://01a018db-19fc-7f2a-8e39-69730f255e33"
 contract_revision = 1
+# Pins the exact parent basis this child was authorized against (SAS §20.2).
+# `war check` recomputes it: if OW-WAR-0001 changes, this stops matching and the
+# child is reported as resting on a basis that no longer exists.
+contract_digest = "sha256:a539e3c05da4f4870315f07aeb688bcfbba01bff1dd2c56bb6f2db2d3886dd78"
 
 [[atoms]]
 ordinal = 10
