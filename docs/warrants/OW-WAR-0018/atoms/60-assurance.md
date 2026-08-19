@@ -29,13 +29,25 @@ classification: internal
 
 Required at `controlled`.
 
-**Could this pass while adequacy is still theatre?** Yes. A structured review can
-record a shallow question, a trivial attack, and a confident outcome. §39 cannot
-make a reviewer adversarial. What it CAN do — and what OBL-002 forces — is make
-the absence of executed attacks visible, which is the state this repository is
-actually in today.
+**Adversarial question: could this pass while adequacy is still theatre?** Yes,
+and the honest answer has two halves. A structured review can record a shallow
+question, a trivial attack, and a confident outcome; §39 cannot make a reviewer
+adversarial, and §39.5 says so directly. What the check CAN do is make the
+absence of a question and the absence of executed attacks visible, which is the
+state most of this repository is actually in.
 
-**Executed attacks:** recorded here when run.
+- **outcome:** counterexample_found, gate_strengthened
+
+The counterexample was not constructed. It was already here: OW-WAR-0023 carries
+a `## Gate Adequacy` section that states a conclusion and never asks §39.1's
+question. It passed the substring check for two weeks because it contains the
+word. It fails this one, unplanted, on real data.
+
+**Executed attacks:**
+- deleted the `## Gate Adequacy` section from a `controlled` Warrant; refused by `assurance.adequacy-review` (§39.4)
+- replaced a review body with confident prose containing no question; refused by `assurance.adequacy-review` (§39.1)
+- retitled the section `## Notes On Adequacy`; the section no longer opens a review, so the missing-review rule fires rather than a substring match passing
+- ran the new check against all 40 Warrants unmodified: 1 real error, 28 real warnings, 0 grandfathered
 
 ## Residual Risk
 

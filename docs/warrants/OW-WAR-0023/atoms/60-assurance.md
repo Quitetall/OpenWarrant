@@ -26,7 +26,22 @@ classification: internal
 
 ## Gate Adequacy
 
-Required at `controlled` when executed — a Dispatch grants authority. Asked: a Dispatch can be complete and still authorize more than intended, because the capability list is authored. Nothing derives least privilege automatically.
+Required at `controlled` — a Dispatch grants authority.
+
+**Adversarial question: could a Dispatch pass every declared gate while
+authorizing more than was intended?** Yes. The capability list is authored, and
+nothing derives least privilege automatically, so a Dispatch that is structurally
+complete can still over-grant. Completeness is checkable; minimality is not.
+
+- **outcome:** gap_accepted
+
+Accepted with the gap named rather than closed: least-privilege derivation is
+beta work against a live runtime, and claiming it here would be the kind of
+unearned assurance this Warrant exists to prevent.
+
+**Executed attacks:** none yet — the capability model does not exist until this
+Warrant is executed, so there is nothing to attack. Recorded as absent rather
+than omitted.
 
 ## Residual Risk
 

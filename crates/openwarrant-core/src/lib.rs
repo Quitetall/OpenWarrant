@@ -11,6 +11,7 @@
 
 #![forbid(unsafe_code)]
 
+pub mod adequacy;
 pub mod adr;
 pub mod config;
 pub mod contract;
@@ -24,6 +25,7 @@ pub mod role;
 pub mod state;
 pub mod structured;
 
+pub use adequacy::{AdequacyError, AdequacyOutcome, AdequacyRequirement, AdequacyReview};
 pub use adr::{AdrError, AdrRecord, AdrStatus};
 pub use config::{ConfigError, GeneratedPolicy, Namespace, Paths, RepositoryConfig};
 pub use contract::{
