@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       # No toolchain is named here on purpose. `rust-toolchain.toml` pins
       # 1.97.1 exactly, and rustup honours it; naming a version in the workflow
