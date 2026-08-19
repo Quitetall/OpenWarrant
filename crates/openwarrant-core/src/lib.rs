@@ -17,6 +17,7 @@ pub mod config;
 pub mod contract;
 pub mod epistemic;
 pub mod frontmatter;
+pub mod gate;
 pub mod identity;
 pub mod manifest;
 pub mod milestones;
@@ -37,6 +38,10 @@ pub use epistemic::{
     InferenceKind, Judgment, JudgmentAuthority, Observation, PROHIBITED_SUBSTITUTIONS,
 };
 pub use frontmatter::{Frontmatter, FrontmatterError, Value};
+pub use gate::{
+    DetectionResult, EvidencePolicy, Fixture, GateBinding, GateDefinition, GateError,
+    GateLifecycle, GateProvenance, GateRef, GateRegistry, Qualification,
+};
 pub use identity::{IdentityError, LocalAlias, WarUuid};
 pub use manifest::{
     AssuranceLevel, AtomEntry, MANIFEST_SCHEMA, Manifest, ManifestError, ParentCycle,
