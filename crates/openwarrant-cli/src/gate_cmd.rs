@@ -36,8 +36,15 @@ use crate::repo::{RepoError, Repository};
 /// The deadline used when a gate declares none.
 const DEFAULT_GATE_TIMEOUT: Duration = Duration::from_secs(600);
 
-/// How often the deadline is checked while a gate runs.
-const POLL_INTERVAL: Duration = Duration::from_millis(50);
+/// How often the deadline is checked at first, and the ceiling it backs off to.
+///
+/// A flat 50ms wakes 2,400 times across a 120-second gate to learn nothing.
+/// Backing off keeps a fast gate responsive and a slow one cheap.
+const POLL_INTERVAL_MIN: Duration = Duration::from_millis(10);
+const POLL_INTERVAL_MAX: Duration = Duration::from_millis(250);
+
+/// How long to wait for a killed child to be reaped before giving up on it.
+const REAP_GRACE: Duration = Duration::from_secs(5);
 
 /// Why a gate cannot be asked, or `None` if it can.
 ///
@@ -181,6 +188,8 @@ pub fn run_gate(def: &GateDefinition, repo: &Repository) -> GateRun {
         }
     };
 
+    let mut poll = POLL_INTERVAL_MIN;
+
     // A real deadline. The previous version compared elapsed time AFTER
     // `output()` had already blocked to completion, which meant a gate running
     // 601 seconds and exiting 0 was reported `timeout` + `unknown` — discarding
@@ -205,7 +214,20 @@ pub fn run_gate(def: &GateDefinition, repo: &Repository) -> GateRun {
             }
             Ok(None) if started.elapsed() >= deadline => {
                 let _ = child.kill();
-                let _ = child.wait();
+                // Reap, but never unboundedly. A plain `wait()` here blocks
+                // forever if the child is in uninterruptible sleep and cannot
+                // take the signal yet — and a runner whose whole purpose is a
+                // deadline must not be the thing that hangs. SIGKILL is not
+                // blockable, so the child dies once its I/O completes; if it
+                // outlasts this window it is left to be reaped at exit rather
+                // than held onto.
+                let reap_until = Instant::now() + REAP_GRACE;
+                while Instant::now() < reap_until {
+                    match child.try_wait() {
+                        Ok(Some(_)) | Err(_) => break,
+                        Ok(None) => std::thread::sleep(POLL_INTERVAL_MIN),
+                    }
+                }
                 return GateRun {
                     id,
                     gate: def.key(),
@@ -215,7 +237,10 @@ pub fn run_gate(def: &GateDefinition, repo: &Repository) -> GateRun {
                     reason_code: Some(ReasonCode::Timeout),
                 };
             }
-            Ok(None) => std::thread::sleep(POLL_INTERVAL),
+            Ok(None) => {
+                std::thread::sleep(poll);
+                poll = (poll * 2).min(POLL_INTERVAL_MAX);
+            }
             Err(_) => {
                 return GateRun {
                     id,
