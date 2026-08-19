@@ -7,6 +7,9 @@ rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 authors.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 # SAS §79.1: "Avoid I/O where practical." This crate defines and validates
 # meaning; reading and writing files is the CLI's job and compiling is the

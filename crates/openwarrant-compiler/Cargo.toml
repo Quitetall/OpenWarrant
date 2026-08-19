@@ -7,9 +7,12 @@ rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 authors.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 [dependencies]
-openwarrant-core = { path = "../openwarrant-core" }
+openwarrant-core = { path = "../openwarrant-core", version = "0.0.1" }
 serde = { workspace = true }
 serde_jcs = { workspace = true }
 serde_json = { workspace = true }

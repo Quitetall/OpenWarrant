@@ -12,9 +12,16 @@ members = [
 version = "0.0.1"
 edition = "2024"
 rust-version = "1.97.1"
+# Relicensing to Apache-2.0 is intended when this goes public; see RELICENSING.md
+# for the two preconditions and the exact procedure. This string is one of the
+# things that changes, so it lives in exactly one place.
 license = "AGPL-3.0-or-later"
 repository = "https://github.com/Quitetall/OpenWarrant"
+homepage = "https://github.com/Quitetall/OpenWarrant"
 authors = ["Brian Lam <briankhanglam@gmail.com>"]
+readme = "README.md"
+keywords = ["warrant", "provenance", "audit", "governance", "rfc8785"]
+categories = ["development-tools", "command-line-utilities"]
 
 # WAR SAS v0.1.0-draft.1 §80 lists these as NONBINDING recommendations, and says
 # "Library selection is an implementation ADR when it becomes binding." Nothing
