@@ -22,7 +22,7 @@
 /// Modelled as data, never as an action. A proposal describes atoms it would
 /// like to exist; it cannot describe a write, because §74.4 requires validation
 /// before application and §74.5 forbids direct model mutation.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum ProposalKind {
     /// Create a new authored atom in a role.
@@ -35,21 +35,45 @@ pub enum ProposalKind {
     DecisionDetected,
 }
 
+impl ProposalKind {
+    /// Whether this variant describes only an intent, carrying no write target.
+    ///
+    /// The match is exhaustive on purpose. `ProposalKind` is `#[non_exhaustive]`
+    /// for downstream crates, but inside this crate a new variant makes this
+    /// function fail to compile until someone classifies it — which is the point.
+    /// A variant that would answer `false` here is a protocol change and belongs
+    /// in an ADR, not in a patch.
+    #[must_use]
+    pub const fn describes_only_intent(self) -> bool {
+        match self {
+            Self::CreateAtom | Self::ReplaceAtom | Self::Question | Self::DecisionDetected => true,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    /// The proposal vocabulary must not grow a variant that names a write
-    /// target. If a future variant needs one, that is a protocol change and
-    /// belongs in an ADR, not in a patch.
+    /// §74.5: an agent never mutates repository files directly.
+    ///
+    /// An earlier version of this test asserted only `kinds.len() == 4`, which
+    /// would have permitted exactly the thing it claimed to guard: adding a
+    /// `WriteFile` variant while deleting another keeps the count at four. The
+    /// count proved nothing. This version routes every variant through an
+    /// exhaustive classifier, so the guard cannot be satisfied by arithmetic.
     #[test]
-    fn proposal_kinds_are_declarative() {
-        let kinds = [
+    fn no_proposal_kind_names_a_write_target() {
+        for kind in [
             ProposalKind::CreateAtom,
             ProposalKind::ReplaceAtom,
             ProposalKind::Question,
             ProposalKind::DecisionDetected,
-        ];
-        assert_eq!(kinds.len(), 4);
+        ] {
+            assert!(
+                kind.describes_only_intent(),
+                "{kind:?} carries a write target; §74.5 forbids direct model mutation"
+            );
+        }
     }
 }

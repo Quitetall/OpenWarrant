@@ -287,7 +287,6 @@ version = "0.0.1"
 dependencies = [
  "camino",
  "clap",
- "openwarrant-compiler",
  "openwarrant-core",
  "toml",
 ]

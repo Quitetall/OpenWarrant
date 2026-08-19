@@ -119,6 +119,11 @@ pub struct LocalAlias(String);
 
 impl LocalAlias {
     /// Parse an alias of the form `<NAMESPACE>-WAR-<NNNN>`.
+    ///
+    /// Surrounding whitespace is **trimmed, not rejected**, matching
+    /// [`crate::Namespace::parse`]. The stored value is the trimmed form, so an
+    /// alias read from a hand-edited manifest with a stray trailing space
+    /// compares equal to the same alias written by the tool.
     pub fn parse(raw: &str) -> Result<Self, IdentityError> {
         let alias = raw.trim();
         if alias.is_empty() {

@@ -36,6 +36,13 @@ pub enum ConfigError {
 pub struct Namespace(String);
 
 impl Namespace {
+    /// Parse a namespace.
+    ///
+    /// Surrounding whitespace is **trimmed, not rejected**: `" OW "` is accepted
+    /// and stored as `"OW"`. This matches [`crate::LocalAlias::parse`], and the
+    /// two must agree — a namespace that normalised differently from the alias
+    /// prefix it is compared against would make
+    /// [`crate::LocalAlias::parse_in`] reject correct input.
     pub fn parse(raw: &str) -> Result<Self, ConfigError> {
         let value = raw.trim();
         if value.is_empty() {
@@ -111,6 +118,16 @@ impl Paths {
             }
             // An absolute path in repository configuration makes the repository
             // unclonable: it would resolve to one machine's layout.
+            //
+            // The `:` test catches a Windows drive prefix (`C:\...`). It is
+            // deliberately coarse and will also reject a *relative* POSIX path
+            // containing a colon, such as `docs:v2` — legal on Unix, and refused
+            // here anyway. That trade is taken knowingly: a colon in a
+            // configured document path is far more likely to be a drive letter
+            // or a URI fragment than an intended directory name, and being
+            // wrong in this direction costs a rename, while being wrong in the
+            // other direction produces a repository that only builds on one
+            // machine.
             if value.starts_with('/') || value.contains(':') {
                 return Err(ConfigError::PathNotRelative {
                     field,
