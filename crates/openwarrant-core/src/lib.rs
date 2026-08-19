@@ -18,6 +18,7 @@ pub mod contract;
 pub mod epistemic;
 pub mod frontmatter;
 pub mod gate;
+pub mod gate_run;
 pub mod identity;
 pub mod manifest;
 pub mod milestones;
@@ -41,6 +42,10 @@ pub use frontmatter::{Frontmatter, FrontmatterError, Value};
 pub use gate::{
     DetectionResult, EvidencePolicy, Fixture, GateBinding, GateDefinition, GateError,
     GateLifecycle, GateProvenance, GateRef, GateRegistry, Qualification,
+};
+pub use gate_run::{
+    Askability, DependentResolution, ExecutionStatus, GateReceipt, GateRun, GateRunError,
+    Invocation, MIGRATION_CLASSES, MutationDeclaration, ReasonCode, Verdict,
 };
 pub use identity::{IdentityError, LocalAlias, WarUuid};
 pub use manifest::{

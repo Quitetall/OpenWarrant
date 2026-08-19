@@ -363,6 +363,20 @@ pub struct GateDefinition {
     pub qualification: Option<Qualification>,
     #[serde(default)]
     pub provenance: GateProvenance,
+    /// §44.7 — the structured argument vector this gate runs. Preferred over a
+    /// raw shell string, which §44.7 permits only through a gate that explicitly
+    /// owns shell parsing.
+    #[serde(default)]
+    pub argv: Vec<String>,
+    /// §44.8 — whether this gate changes state while measuring it. A mutating
+    /// gate is quarantined from routine runs however completely it is declared.
+    #[serde(default)]
+    pub mutating: bool,
+    /// Seconds before §44.2's `timeout`. A gate knows its own runtime better
+    /// than the runner does, and a single global deadline is either too short
+    /// for the slowest gate or too long to be a deadline at all.
+    #[serde(default)]
+    pub timeout_secs: Option<u64>,
 }
 
 impl GateDefinition {
@@ -665,6 +679,13 @@ pub fn definition_from_structured(
         known_blind_spots: list("known_blind_spots"),
         qualification,
         provenance,
+        argv: list("argv"),
+        mutating: doc
+            .scalar("mutating")
+            .is_some_and(|s| s.eq_ignore_ascii_case("true")),
+        timeout_secs: doc
+            .scalar("timeout_secs")
+            .and_then(|s| s.trim().parse().ok()),
     };
     def.validate()?;
     Ok(def)
@@ -774,6 +795,9 @@ mod tests {
             known_blind_spots: vec!["does not detect timing differences".into()],
             qualification: Some(good_qualification()),
             provenance: GateProvenance::LocalCandidate,
+            argv: vec!["true".into()],
+            mutating: false,
+            timeout_secs: None,
         }
     }
 

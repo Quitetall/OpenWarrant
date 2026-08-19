@@ -168,7 +168,7 @@ pub fn run(
     // diagnostic: a report that answers "ok" while whole classes of check go
     // unasked reads as full coverage, but a scope note that blocked readiness
     // would make the verdict permanently negative and therefore meaningless.
-    report.note("gate execution — a Warrant's acceptance gates are never run (Phase 6)");
+    report.note("gate execution — `war gate --run` executes a registered gate (§44), but `war check` does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run");
     report.note("Preflight readiness (§32.7) — 'well-formed' is a claim about the record only");
     report.note("bound-atom resolution — `ref =` atoms cannot be fetched offline");
     report.note("Source Holder ambiguity and classification propagation (§91.2 tests 14, 15)");
@@ -251,7 +251,10 @@ fn contract_digests(corpus: &[Loaded]) -> BTreeMap<String, String> {
 /// quietly drops the file it could not read would let every citation of that
 /// gate report unresolved, or worse, let a later valid-looking file take its
 /// place unnoticed.
-fn load_gate_registry(repo: &Repository, report: &mut Report) -> openwarrant_core::GateRegistry {
+pub(crate) fn load_gate_registry(
+    repo: &Repository,
+    report: &mut Report,
+) -> openwarrant_core::GateRegistry {
     let mut registry = openwarrant_core::GateRegistry::default();
     let dir = repo.root.join(&repo.config.paths.gates);
     let Ok(entries) = dir.read_dir_utf8() else {

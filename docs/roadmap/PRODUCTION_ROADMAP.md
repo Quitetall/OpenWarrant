@@ -40,6 +40,7 @@ protocol proven only against a mock is not proven.
 | — epistemic classes (OW-WAR-0017) | alpha | **resolved** 2026-08-19 |
 | — contract-adequacy review (OW-WAR-0018) | alpha | **resolved** 2026-08-19 |
 | — gate registry, qualification, binding (OW-WAR-0019) | alpha | **resolved** 2026-08-19 |
+| — gate run semantics + invalidation (OW-WAR-0020) | alpha | **resolved** 2026-08-19 |
 | 2 — Agent planner | alpha | not started |
 | 3 — ADR federation | alpha | partial |
 | 4 — Knowledge Fabric registration | alpha (protocol) / beta (live) | not started |
@@ -93,7 +94,7 @@ here. `roadmap://` refs in manifests resolve to the identifiers in this table.
 | ~~OW-WAR-0017~~ | ~~Epistemic classes: evidence, observation, inference, judgment, resolution~~ **RESOLVED** | §40, §41, §42 | RQ-052 |
 | ~~OW-WAR-0018~~ | ~~Contract-adequacy review, structurally checked~~ **RESOLVED** | §39 | RQ-055 |
 | ~~OW-WAR-0019~~ | ~~Gate Registry: definitions, qualification, bindings~~ **RESOLVED** | §43 | RQ-056 |
-| OW-WAR-0020 | Gate Run semantics, askability, and invalidation | §44, §45 | RQ-054, RQ-057 |
+| ~~OW-WAR-0020~~ | ~~Gate Run semantics, askability, and invalidation~~ **RESOLVED** | §44, §45 | RQ-054, RQ-057 |
 | OW-WAR-0021 | Verifier independence | §46 | RQ-053 |
 | OW-WAR-0022 | Resolution, dispute, and annulment | §56, §57 | RQ-058, RQ-059 |
 

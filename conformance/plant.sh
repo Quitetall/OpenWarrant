@@ -53,6 +53,42 @@ restore() {
 }
 trap restore EXIT
 
+# plant_gate <name> <expected-rule> <expected-detail> <expected-exit> <mutation>
+#
+# Same assertions as plant(), driving `war gate --run` instead of `war check`.
+# §44's statuses are only observable when a gate is actually executed, and
+# OW-WAR-0020's OBL-002 wants each status reported AS ITSELF — so the detail
+# string carries the reason code, which is the thing that must not collapse.
+plant_gate() {
+    local name="$1" rule="$2" detail="$3" want_exit="$4" mutate="$5"
+
+    restore
+    eval "$mutate"
+
+    local out status
+    out="$("$WAR" gate --run 2>&1)"
+    status=$?
+    restore
+
+    if [[ "$status" -ne "$want_exit" ]]; then
+        printf 'FAIL  %-34s exit %s, wanted %s\n' "$name" "$status" "$want_exit"
+        FAILED=$((FAILED + 1))
+        return
+    fi
+    if ! grep -q -- "$rule" <<<"$out"; then
+        printf 'FAIL  %-34s exited %s but rule %s never fired\n' "$name" "$status" "$rule"
+        FAILED=$((FAILED + 1))
+        return
+    fi
+    if ! grep -q -- "$detail" <<<"$out"; then
+        printf 'FAIL  %-34s rule %s fired but not for %s\n' "$name" "$rule" "$detail"
+        FAILED=$((FAILED + 1))
+        return
+    fi
+    printf 'ok    %-34s rejected by %s (%s)\n' "$name" "$rule" "$detail"
+    PASSED=$((PASSED + 1))
+}
+
 # plant <name> <expected-rule> <expected-detail> <expected-exit> <mutation> [check-args...]
 #
 # `expected-detail` is what makes this a real check. Four of the plants below all
@@ -227,6 +263,37 @@ plant "a declared fault class that was not detected" "gate.invalid" "records no 
 
 plant "a placeholder where a digest belongs" "gate.invalid" "which is not a digest" 2 \
     "sed -i 's|^qualification_digest: \"\"|qualification_digest: \"sha256:pending\"|' docs/gates/software.repo.war-check@1.0.0.yaml"
+
+# ---------------------------------------------------------------------------
+# §44 gate-run statuses. OW-WAR-0020 OBL-002: each is reported AS ITSELF, and
+# `missing_tool` specifically must not be reported as `failed`. The parent
+# project lost 51 gates to exactly that collapse.
+# ---------------------------------------------------------------------------
+
+plant_gate "a gate whose tool is absent" "gate-run.unaskable" "missing_tool" 2 \
+    "sed -i 's|^argv: .*|argv: [\"definitely-not-a-real-tool\"]|' docs/gates/software.repo.war-check@1.0.0.yaml"
+
+plant_gate "a gate whose script is absent" "gate-run.unaskable" "missing_script" 2 \
+    "sed -i 's|^argv: .*|argv: [\"./tools/does-not-exist.sh\"]|' docs/gates/software.repo.war-check@1.0.0.yaml"
+
+plant_gate "a gate that declares no command" "gate-run.unaskable" "malformed" 2 \
+    "sed -i 's|^argv: .*|argv: []|' docs/gates/software.repo.war-check@1.0.0.yaml"
+
+plant_gate "a mutating gate in a routine run" "gate-run.unaskable" "mutating" 2 \
+    "sed -i 's|^mutating: \"false\"|mutating: \"true\"|' docs/gates/software.repo.war-check@1.0.0.yaml"
+
+# The other side of the same coin: a gate that WAS asked and answered no must
+# report as a failure, not as an unknown. If this and the missing-tool plant
+# above ever produce the same rule, the two have collapsed into one.
+# A timeout is NOT "could not ask". This gate is asked, starts, and never
+# answers; it must land on its own rule rather than borrowing the unaskable one.
+# Keyed on the verdict being unknown instead of on askability, the runner told
+# the reader "could not ask" about a gate it had just spawned.
+plant_gate "a gate that never answers" "gate-run.no-result" "asked, but produced no result" 2 \
+    "sed -i 's|^argv: .*|argv: [\"sleep\", \"30\"]|; s|^timeout_secs: .*|timeout_secs: \"1\"|' docs/gates/software.repo.war-check@1.0.0.yaml"
+
+plant_gate "a gate that runs and fails" "gate-run.fail" "verdict fail" 2 \
+    "sed -i 's|^argv: .*|argv: [\"false\"]|' docs/gates/software.repo.war-check@1.0.0.yaml"
 
 plant "milestone carrying a stage field" "milestones.invalid" "belongs to a stage" 2 \
     "python3 - <<'EOF'

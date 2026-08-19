@@ -12,6 +12,7 @@ use openwarrant_core::Profile;
 mod check;
 mod compile;
 mod diagnostic;
+mod gate_cmd;
 mod init;
 mod new;
 mod repo;
@@ -67,6 +68,15 @@ enum Command {
         #[arg(long)]
         generated: bool,
     },
+    /// Inspect or run local gate definitions (§44).
+    Gate {
+        /// Execute the gates rather than listing them.
+        #[arg(long)]
+        run: bool,
+        /// A single gate id or `<id>@<version>`. Defaults to every gate.
+        #[arg(long)]
+        gate: Option<String>,
+    },
     /// Compile the configured projections (§71.8).
     Compile {
         /// A single Warrant's local alias. Defaults to the whole corpus.
@@ -106,6 +116,19 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             Ok(EXIT_OK)
         }
 
+        Command::Gate { run, gate } => {
+            let repository = repo::Repository::discover(None)?;
+            let report = gate_cmd::run(&repository, run, gate.as_deref())?;
+            check::print(&report);
+            // §44.1 and RQ-054: an unaskable gate is NOT a pass, and is not a
+            // failure either. `is_ready()` blocks on unknowns, so both land on a
+            // non-zero exit without the two being conflated in the report.
+            Ok(if report.is_ready() {
+                EXIT_OK
+            } else {
+                EXIT_NOT_READY
+            })
+        }
         Command::Check { alias, generated } => {
             let repository = repo::Repository::discover(None)?;
             let report = check::run(&repository, alias.as_deref(), generated)?;
