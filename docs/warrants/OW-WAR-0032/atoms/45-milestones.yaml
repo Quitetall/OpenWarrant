@@ -1,0 +1,46 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "JSON Schema generates from the Rust types"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "The pack digests transitively and FormatBasis pins it"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002"]
+
+  - id: "M3"
+    title: "Generated schemas drift-check against the types"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-003"]
+
+  - id: "M4"
+    title: "TypeScript types generate for KF"
+    depends_on: ['M2']
+    stage_refs: ["STAGE-004"]
+    obligation_refs: ["OBL-004"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Select a generator by ADR and wire it"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-002"
+    title: "Assemble and digest the pack"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-003"
+    title: "Add the drift check"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-004"
+    title: "Emit TS from the same source"
+    executor_kind: "human"
+    responsibility_tier: "T2"

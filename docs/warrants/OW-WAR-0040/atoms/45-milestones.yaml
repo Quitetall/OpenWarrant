@@ -1,0 +1,46 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M0"
+    title: "Liminal is checked out and its profile is understood"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-000"]
+
+  - id: "M1"
+    title: "The Liminal adapter produces canonical IR"
+    depends_on: ['M0']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "Parity is measured over the whole corpus"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-002"]
+
+  - id: "M3"
+    title: "Cutover happens only on measured parity"
+    depends_on: ['M2']
+    stage_refs: ["STAGE-004"]
+    obligation_refs: ["OBL-003"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Obtain a checkout; without it this Warrant cannot proceed"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-002"
+    title: "Implement §82.2"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-003"
+    title: "Run both adapters, compare byte-for-byte"
+    executor_kind: "service"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-004"
+    title: "Apply the stated cutover criterion"
+    executor_kind: "human"
+    responsibility_tier: "T1"

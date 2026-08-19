@@ -1,0 +1,48 @@
+schema = "oh.war/manifest/v1"
+uuid = "01a01bd7-eb6b-7e8f-88ff-6849c6e49e2f"
+local_alias = "OW-WAR-0026"
+enterprise_id = ""
+title = "Implement the Katana runtime seam, capabilities, and receipts"
+profile = "delivery"
+assurance_level = "basic"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-044"
+contribution = "complete"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-062"
+contribution = "complete"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-5/katana"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true

@@ -1,0 +1,48 @@
+schema = "oh.war/manifest/v1"
+uuid = "01a01bd5-a42a-766a-916c-656c6b37998b"
+local_alias = "OW-WAR-0020"
+enterprise_id = ""
+title = "Implement Gate Run semantics, askability, and invalidation"
+profile = "delivery"
+assurance_level = "controlled"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-054"
+contribution = "complete"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-057"
+contribution = "complete"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-6/gate-runs"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true

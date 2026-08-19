@@ -1,0 +1,46 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "The obligation schema fits the existing 21 obligations"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "Unbounded universal claims are refused"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002"]
+
+  - id: "M3"
+    title: "obligation_refs resolve and dangling ones fail"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-003"]
+
+  - id: "M4"
+    title: "Resolution aggregates dispositions rather than asserting a verdict"
+    depends_on: ['M2', 'M3']
+    stage_refs: ["STAGE-004"]
+    obligation_refs: ["OBL-004"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Design against the real corpus, not in the abstract"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-002"
+    title: "Plant an unbounded claim"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-003"
+    title: "Wire milestone-to-obligation resolution"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-004"
+    title: "Implement §38.6 aggregation"
+    executor_kind: "human"
+    responsibility_tier: "T1"

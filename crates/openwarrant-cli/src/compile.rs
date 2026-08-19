@@ -3,10 +3,10 @@
 
 use std::fs;
 
-use openwarrant_compiler::render_adr_overview;
 use openwarrant_compiler::{
     CanonicalError, CompilationBasis, View, canonical_json, full_warrant, lower,
 };
+use openwarrant_compiler::{WarrantSummary, render_adr_overview, render_warrant_overview};
 use openwarrant_core::ValidatedManifest;
 
 use crate::repo::{RepoError, Repository};
@@ -37,6 +37,69 @@ pub fn projections(
 pub fn adr_overview(repo: &Repository) -> Result<(camino::Utf8PathBuf, String), RepoError> {
     let adrs = repo.load_adrs()?;
     Ok((repo.adr_overview_path(), render_adr_overview(&adrs.records)))
+}
+
+/// Compile the Warrant Overview (§17.5 `status`), returning its path and contents.
+pub fn warrant_overview(repo: &Repository) -> Result<(camino::Utf8PathBuf, String), RepoError> {
+    let mut summaries = Vec::new();
+    // Resolve parent UUIDs to aliases where the parent is in this corpus, so the
+    // Relations section reads as names rather than as opaque identifiers.
+    let mut alias_by_uuid = std::collections::BTreeMap::new();
+    let mut loaded = Vec::new();
+    for dir in repo.warrant_dirs()? {
+        let one = repo.load_warrant(&dir)?;
+        if let Some(v) = &one.validated {
+            alias_by_uuid.insert(v.uuid.to_string(), v.alias.to_string());
+        }
+        loaded.push(one);
+    }
+
+    for one in &loaded {
+        // A Warrant that would not validate is OMITTED rather than rendered with
+        // blank fields — an entry that looks like a Warrant but describes nothing
+        // is worse than a missing one. `war check` reports it separately.
+        let (Some(basis), Some(validated)) = (&one.basis, &one.validated) else {
+            continue;
+        };
+        summaries.push(WarrantSummary {
+            alias: validated.alias.to_string(),
+            uuid: validated.uuid.to_string(),
+            title: basis.manifest.title.clone(),
+            profile: validated.profile.to_string(),
+            assurance_level: validated.assurance_level.to_string(),
+            implements: basis
+                .manifest
+                .implements
+                .iter()
+                .map(|i| i.r#ref.clone())
+                .collect(),
+            roadmap: basis
+                .manifest
+                .roadmap
+                .iter()
+                .map(|r| r.r#ref.clone())
+                .collect(),
+            parents: basis
+                .manifest
+                .parents
+                .iter()
+                .map(|p| {
+                    let uuid = p.r#ref.strip_prefix("war://").unwrap_or(&p.r#ref);
+                    alias_by_uuid
+                        .get(uuid)
+                        .cloned()
+                        .unwrap_or_else(|| p.r#ref.clone())
+                })
+                .collect(),
+            atom_count: basis.atoms.len(),
+            source: basis.manifest_source.clone(),
+            declares_milestones: basis.atoms.iter().any(|a| a.role == "milestones"),
+        });
+    }
+    Ok((
+        repo.warrant_overview_path(),
+        render_warrant_overview(&summaries),
+    ))
 }
 
 /// Compile one Warrant, or all of them, writing into each `generated/`.
@@ -108,24 +171,25 @@ pub fn run(repo: &Repository, only: Option<&str>) -> Result<(), RepoError> {
     // The ADR Overview covers the whole corpus, so it is compiled once rather
     // than per Warrant, and only on a full run.
     if only.is_none() {
-        let (path, contents) = adr_overview(repo)?;
-        if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent).map_err(|source| RepoError::Io {
-                context: format!("could not create {parent}"),
-                source,
-            })?;
+        for (path, contents) in [warrant_overview(repo)?, adr_overview(repo)?] {
+            if let Some(parent) = path.parent() {
+                fs::create_dir_all(parent).map_err(|source| RepoError::Io {
+                    context: format!("could not create {parent}"),
+                    source,
+                })?;
+            }
+            let unchanged = fs::read_to_string(&path)
+                .map(|existing| existing == contents)
+                .unwrap_or(false);
+            if !unchanged {
+                fs::write(&path, &contents).map_err(|source| RepoError::Io {
+                    context: format!("could not write {path}"),
+                    source,
+                })?;
+                written += 1;
+            }
+            println!("compiled {}", path.file_name().unwrap_or("overview"));
         }
-        let unchanged = fs::read_to_string(&path)
-            .map(|existing| existing == contents)
-            .unwrap_or(false);
-        if !unchanged {
-            fs::write(&path, &contents).map_err(|source| RepoError::Io {
-                context: format!("could not write {path}"),
-                source,
-            })?;
-            written += 1;
-        }
-        println!("compiled ADR Overview");
     }
 
     println!(

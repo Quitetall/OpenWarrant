@@ -1,0 +1,41 @@
+schema = "oh.war/manifest/v1"
+uuid = "01a01bd3-caf4-7b46-8ed4-7e9634593bec"
+local_alias = "OW-WAR-0014"
+enterprise_id = ""
+title = "Implement the rationale model, assumptions, and unknowns"
+profile = "delivery"
+assurance_level = "basic"
+
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-1/rationale"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true

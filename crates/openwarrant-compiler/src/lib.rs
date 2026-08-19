@@ -21,6 +21,7 @@ pub mod digest;
 pub mod ir;
 pub mod lower;
 pub mod render;
+pub mod warrant_overview;
 
 pub use adr_overview::render as render_adr_overview;
 pub use canonical::{
@@ -30,3 +31,4 @@ pub use digest::{DigestDomain, sha256_hex};
 pub use ir::{API_VERSION, KIND, SCHEMA_PACK_ID, SCHEMA_PACK_VERSION, WarIr};
 pub use lower::{AtomSource, CompilationBasis, lower};
 pub use render::{View, canonical_json, full_warrant};
+pub use warrant_overview::{WarrantSummary, render as render_warrant_overview};
