@@ -1,0 +1,35 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "The proposal protocol and atom operations exist"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "A proposal is validated before anything is written"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002"]
+
+  - id: "M3"
+    title: "No agent type can name a write target"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-003"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Implement §74.1-§74.3"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-002"
+    title: "Plant an invalid proposal"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-003"
+    title: "Assert structurally, extending the existing test"
+    executor_kind: "human"
+    responsibility_tier: "T1"
