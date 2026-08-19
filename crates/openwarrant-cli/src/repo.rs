@@ -6,7 +6,9 @@ use std::fs;
 
 use camino::{Utf8Path, Utf8PathBuf};
 use openwarrant_compiler::{AtomSource, CompilationBasis};
-use openwarrant_core::{Manifest, RepositoryConfig, ValidatedManifest, frontmatter};
+use openwarrant_core::{
+    AdrError, AdrRecord, Manifest, RepositoryConfig, ValidatedManifest, frontmatter,
+};
 
 use crate::diagnostic::{Diagnostic, Report};
 use crate::init::CONFIG_FILE;
@@ -282,6 +284,65 @@ impl Repository {
             validated: Some(validated),
             report,
         })
+    }
+
+    /// The configured ADR atoms directory.
+    #[must_use]
+    pub fn adr_atoms_dir(&self) -> Utf8PathBuf {
+        self.root.join(&self.config.paths.adrs).join("atoms")
+    }
+
+    /// Where the generated ADR Overview is written (§19.6).
+    #[must_use]
+    pub fn adr_overview_path(&self) -> Utf8PathBuf {
+        self.root
+            .join(&self.config.paths.adrs)
+            .join("generated")
+            .join("ADR_OVERVIEW.md")
+    }
+
+    /// Load every ADR atom, plus whatever failed to parse.
+    ///
+    /// Returns parse failures rather than aborting, so `war check` reports every
+    /// malformed ADR in one run instead of one per invocation.
+    pub fn load_adrs(&self) -> Result<(Vec<AdrRecord>, Vec<(String, AdrError)>), RepoError> {
+        let dir = self.adr_atoms_dir();
+        if !dir.is_dir() {
+            return Ok((vec![], vec![]));
+        }
+        let mut paths = Vec::new();
+        for entry in fs::read_dir(&dir).map_err(|source| RepoError::Io {
+            context: format!("could not read {dir}"),
+            source,
+        })? {
+            let entry = entry.map_err(|source| RepoError::Io {
+                context: format!("could not read an entry in {dir}"),
+                source,
+            })?;
+            let Ok(path) = Utf8PathBuf::from_path_buf(entry.path()) else {
+                continue;
+            };
+            if path.extension() == Some("md") {
+                paths.push(path);
+            }
+        }
+        // Deterministic order: the overview must not depend on readdir order.
+        paths.sort();
+
+        let mut records = Vec::new();
+        let mut failures = Vec::new();
+        for path in paths {
+            let relative = self.relative(&path);
+            let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
+                context: format!("could not read {path}"),
+                source,
+            })?;
+            match AdrRecord::parse(&relative, &text) {
+                Ok(record) => records.push(record),
+                Err(err) => failures.push((relative, err)),
+            }
+        }
+        Ok((records, failures))
     }
 
     /// A repository-relative path, for diagnostics and for the IR.

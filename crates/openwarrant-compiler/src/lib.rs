@@ -15,12 +15,14 @@
 
 #![forbid(unsafe_code)]
 
+pub mod adr_overview;
 pub mod canonical;
 pub mod digest;
 pub mod ir;
 pub mod lower;
 pub mod render;
 
+pub use adr_overview::render as render_adr_overview;
 pub use canonical::{
     CanonicalError, preimage_bytes, sha256_digest, to_canonical_bytes, to_canonical_string,
 };
