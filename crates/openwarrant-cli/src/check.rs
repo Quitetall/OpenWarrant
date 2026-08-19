@@ -111,6 +111,24 @@ pub fn run(
         drift_check(repo, adr_overview(repo), "adr-overview", &mut report);
     }
 
+    // §28.5 coverage, reported once for the corpus. A contract digest covering
+    // 8 of 17 elements is not a §28.5 contract digest, and saying so on every
+    // run is what stops it being mistaken for one (OW-ADR-0004).
+    let coverage = openwarrant_compiler::WarIr::current_coverage();
+    if !coverage.is_complete() {
+        report.note(format!(
+            "contract digest covers {} of {} §28.5 elements — missing: {}",
+            coverage.len(),
+            openwarrant_core::ContractElement::ALL.len(),
+            coverage
+                .missing()
+                .iter()
+                .map(ToString::to_string)
+                .collect::<Vec<_>>()
+                .join(", ")
+        ));
+    }
+
     // Printed on every run including a clean one, and deliberately NOT a
     // diagnostic: a report that answers "ok" while whole classes of check go
     // unasked reads as full coverage, but a scope note that blocked readiness

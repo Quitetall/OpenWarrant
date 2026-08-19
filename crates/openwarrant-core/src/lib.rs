@@ -13,6 +13,7 @@
 
 pub mod adr;
 pub mod config;
+pub mod contract;
 pub mod frontmatter;
 pub mod identity;
 pub mod manifest;
@@ -23,6 +24,10 @@ pub mod structured;
 
 pub use adr::{AdrError, AdrRecord, AdrStatus};
 pub use config::{ConfigError, GeneratedPolicy, Namespace, Paths, RepositoryConfig};
+pub use contract::{
+    ActorKind, Authorization, ContractCoverage, ContractElement, ContractError, ContractRevision,
+    Independence, RevisionState,
+};
 pub use frontmatter::{Frontmatter, FrontmatterError, Value};
 pub use identity::{IdentityError, LocalAlias, WarUuid};
 pub use manifest::{

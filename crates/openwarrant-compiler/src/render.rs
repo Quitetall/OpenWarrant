@@ -12,14 +12,6 @@ use crate::canonical::{CanonicalError, to_canonical_string};
 use crate::ir::WarIr;
 use crate::lower::CompilationBasis;
 
-/// Phase 1 has no contract-revision machinery, so every compilation is
-/// revision 1.
-///
-/// Stated as a named constant rather than an inline `1` so that the day
-/// revisions arrive, the compiler fails to build here instead of silently
-/// stamping every document with a revision it no longer has.
-pub const PHASE_1_CONTRACT_REVISION: u32 = 1;
-
 /// The projections §17.5 names. Phase 1 implements two of the nine.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum View {
@@ -51,7 +43,7 @@ fn generated_header(ir: &WarIr) -> String {
          -->\n",
         alias = ir.identity.local_alias,
         basis = ir.integrity.workspace_basis_digest,
-        revision = PHASE_1_CONTRACT_REVISION,
+        revision = ir.contract_revision,
         manifest = ir.source_and_composition.manifest_source,
     )
 }

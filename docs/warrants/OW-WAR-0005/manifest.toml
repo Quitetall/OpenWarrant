@@ -28,7 +28,12 @@ contract_revision = 1
 # Pins the exact parent basis this child was authorized against (SAS §20.2).
 # `war check` recomputes it: if OW-WAR-0001 changes, this stops matching and the
 # child is reported as resting on a basis that no longer exists.
-contract_digest = "sha256:a539e3c05da4f4870315f07aeb688bcfbba01bff1dd2c56bb6f2db2d3886dd78"
+#
+# Re-pinned 2026-08-19 (OW-WAR-0009). The contract digest moved because §28.5
+# coverage joined the preimage (OW-ADR-0004) — the parent's contract genuinely
+# became a different object, so the old pin was correctly reported stale by all
+# four children at once. That was the control working, not churn to be silenced.
+contract_digest = "sha256:e991039609865e28fc8a80239c3d1f78bd63e252e7e10a68f48359de38b75736"
 
 [[atoms]]
 ordinal = 10

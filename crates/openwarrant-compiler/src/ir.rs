@@ -118,6 +118,10 @@ pub struct WarIr {
     pub source_and_composition: SourceAndComposition,
     pub relations: Relations,
     pub integrity: Integrity,
+    /// Which §28.5 elements the contract digest covers (OW-ADR-0004).
+    pub contract_coverage: openwarrant_core::ContractCoverage,
+    /// The contract revision this compilation represents (§28).
+    pub contract_revision: u32,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub execution: Option<serde_json::Value>,
@@ -140,6 +144,11 @@ impl WarIr {
     pub fn contract_digest(&self) -> Result<String, CanonicalError> {
         #[derive(Serialize)]
         struct ContractView<'a> {
+            /// OW-ADR-0004: the §28.5 elements this digest actually covers, IN
+            /// the preimage. A digest over five elements and one over seventeen
+            /// are therefore different values even for identical content, so a
+            /// partial digest can never be mistaken for a complete one.
+            coverage: &'a openwarrant_core::ContractCoverage,
             format_basis: &'a FormatBasis,
             identity: &'a Identity,
             source_and_composition: &'a SourceAndComposition,
@@ -148,12 +157,36 @@ impl WarIr {
         sha256_digest(
             DigestDomain::Contract,
             &ContractView {
+                coverage: &self.contract_coverage,
                 format_basis: &self.format_basis,
                 identity: &self.identity,
                 source_and_composition: &self.source_and_composition,
                 relations: &self.relations,
             },
         )
+    }
+
+    /// The §28.5 elements a compilation can cover today.
+    ///
+    /// Deliberately a function rather than a constant: each element joins as its
+    /// Warrant lands (deliverables OW-WAR-0015, obligations OW-WAR-0016, gates
+    /// OW-WAR-0019, capabilities OW-WAR-0023), and every addition MOVES the
+    /// contract digest. That churn is the point — a Warrant authorized under a
+    /// five-element contract was authorized over less than one authorized under
+    /// seventeen, and the digest must say so.
+    #[must_use]
+    pub fn current_coverage() -> openwarrant_core::ContractCoverage {
+        use openwarrant_core::ContractElement as E;
+        openwarrant_core::ContractCoverage::new([
+            E::Intent,
+            E::Scope,
+            E::BasisRequirements,
+            E::Assumptions,
+            E::Constraints,
+            E::AdrReferences,
+            E::Milestones,
+            E::Stages,
+        ])
     }
 }
 
@@ -195,6 +228,8 @@ mod tests {
                 workspace_basis_digest: "1".repeat(64),
                 composition_revision_digest: "2".repeat(64),
             },
+            contract_coverage: WarIr::current_coverage(),
+            contract_revision: 1,
             execution: None,
             assurance_case: None,
             resolution: None,

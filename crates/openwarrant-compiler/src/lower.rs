@@ -152,6 +152,10 @@ pub fn lower(
         identity,
         source_and_composition,
         relations,
+        contract_coverage: WarIr::current_coverage(),
+        // §28.1: identity persists across revisions. Revision 1 until
+        // authorization exists to create a second (OW-ADR-0004).
+        contract_revision: 1,
         integrity: Integrity {
             algorithm: "sha256".to_owned(),
             workspace_basis_digest,
