@@ -212,13 +212,27 @@ impl AdequacyReview {
     }
 }
 
+/// The section heading §39 reviews are recorded under.
+pub const ADEQUACY_HEADING: &str = "Gate Adequacy";
+
+/// Phrases that state the absence of executed attacks rather than reporting one.
+///
+/// Each of these has appeared in this repository's own corpus. "recorded here
+/// when run" is a plan; "none yet" is an admission. Both mean zero attacks were
+/// executed, and reading either as an attack turns the §39.3 warning off for
+/// exactly the Warrants that most need it.
+const ABSENCE_PHRASES: [&str; 5] = [
+    "when run",
+    "to be recorded",
+    "none yet",
+    "none —",
+    "no attacks",
+];
+
 /// Extract the adequacy review from an assurance atom.
 ///
 /// Reads the `## Gate Adequacy` section: the adversarial question, any
 /// `- **outcome:**` bullets, and the executed-attacks statement.
-/// The section heading §39 reviews are recorded under.
-pub const ADEQUACY_HEADING: &str = "Gate Adequacy";
-
 #[must_use]
 pub fn parse(source: &str) -> AdequacyReview {
     let mut review = AdequacyReview::default();
@@ -257,21 +271,26 @@ pub fn parse(source: &str) -> AdequacyReview {
             continue;
         }
 
-        // The adversarial question. Recognised by the SAS's own phrasing or by
-        // an explicit label.
-        if review.question.is_empty()
-            && (lower.contains("adversarial question")
-                || lower.contains("could ")
-                || lower.contains("passes every declared gate"))
-        {
+        // The adversarial question. An explicit label, the SAS's own phrasing,
+        // or a bolded interrogative.
+        //
+        // Deliberately NOT "any line containing `could`": ordinary prose in this
+        // section says "this could be improved" constantly, and a bare
+        // substring would accept the first such sentence as the review's
+        // question — the same substring failure this module replaces, moved
+        // inside it.
+        let is_question = lower.contains("adversarial question")
+            || lower.contains("passes every declared gate")
+            || (trimmed.starts_with("**") && trimmed.contains('?'));
+        if review.question.is_empty() && is_question {
             review.question = trimmed.to_owned();
             continue;
         }
 
         if lower.starts_with("**executed attacks") || lower.starts_with("executed attacks") {
             in_attacks = true;
-            // "recorded here when run" is a PLAN, not an executed attack.
-            if !(lower.contains("when run") || lower.contains("to be recorded")) {
+            // A statement of absence is not an attack. See ABSENCE_PHRASES.
+            if !ABSENCE_PHRASES.iter().any(|p| lower.contains(p)) {
                 // `**Executed attacks:**` splits to a bare `**`, which is
                 // emphasis, not an attack. Strip the markup before deciding
                 // whether anything was actually recorded on this line.
@@ -364,6 +383,61 @@ Something.
     fn an_absent_section_is_absent() {
         let r = parse("# Assurance\n\n## Acceptance Obligations\n\nNothing.\n");
         assert!(!r.present);
+    }
+
+    /// Regression: OW-WAR-0023 writes `**Executed attacks:** none yet — …`.
+    /// Reading that as an attack turned OFF the §39.3 warning for the one
+    /// Warrant most honest about having run none. External review caught this
+    /// on real corpus data after the check had already shipped in a commit.
+    #[test]
+    fn a_stated_absence_of_attacks_is_not_an_attack() {
+        for body in [
+            "**Executed attacks:** none yet — the capability model does not exist.",
+            "**Executed attacks:** recorded here when run (§39.3).",
+            "**Executed attacks:** none — nothing to attack.",
+            "**Executed attacks:** no attacks have been run.",
+            "**Executed attacks:** to be recorded.",
+        ] {
+            let r = parse(&format!(
+                "## Gate Adequacy\n\n**Adversarial question: could this pass?**\n\n{body}\n"
+            ));
+            assert!(
+                !r.has_executed_attacks(),
+                "{body:?} states an absence; parsed {:?}",
+                r.executed_attacks
+            );
+        }
+    }
+
+    /// The question detector must not accept ordinary prose. A bare `could`
+    /// substring is the failure this module exists to replace, moved inside it.
+    #[test]
+    fn ordinary_prose_is_not_mistaken_for_the_adversarial_question() {
+        let r = parse(
+            "## Gate Adequacy\n\nThis section could be improved later. We could \
+             also consider more controls.\n",
+        );
+        assert!(
+            r.question.is_empty(),
+            "accepted prose as the review's question: {:?}",
+            r.question
+        );
+        assert_eq!(
+            r.validate(AdequacyRequirement::BlindAdversarial, "controlled"),
+            Err(AdequacyError::QuestionMissing)
+        );
+    }
+
+    /// Both forms the corpus actually uses are still recognised.
+    #[test]
+    fn both_corpus_question_forms_are_recognised() {
+        for q in [
+            "**Adversarial question: could a Dispatch over-grant?**",
+            "**Could this pass while adequacy is still theatre?**",
+        ] {
+            let r = parse(&format!("## Gate Adequacy\n\n{q}\n"));
+            assert!(!r.question.is_empty(), "{q:?} not recognised");
+        }
     }
 
     /// A heading that merely mentions the word does not open a review section.
