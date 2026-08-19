@@ -37,6 +37,7 @@ protocol proven only against a mock is not proven.
 | — state model (OW-WAR-0008) | alpha | **resolved** 2026-08-19 |
 | — contract revisions (OW-WAR-0009) | alpha | **resolved** 2026-08-19 |
 | — acceptance obligations (OW-WAR-0016) | alpha | **resolved** 2026-08-19 |
+| — epistemic classes (OW-WAR-0017) | alpha | **resolved** 2026-08-19 |
 | 2 — Agent planner | alpha | not started |
 | 3 — ADR federation | alpha | partial |
 | 4 — Knowledge Fabric registration | alpha (protocol) / beta (live) | not started |
@@ -87,7 +88,7 @@ here. `roadmap://` refs in manifests resolve to the identifiers in this table.
 | WAR | Title | SAS | Requirements |
 |---|---|---|---|
 | ~~OW-WAR-0016~~ | ~~Acceptance obligations and bounded claims~~ **RESOLVED** | §38 | RQ-050, RQ-051 |
-| OW-WAR-0017 | Epistemic classes: evidence, observation, inference, judgment, resolution | §40, §41, §42 | RQ-052 |
+| ~~OW-WAR-0017~~ | ~~Epistemic classes: evidence, observation, inference, judgment, resolution~~ **RESOLVED** | §40, §41, §42 | RQ-052 |
 | OW-WAR-0018 | Contract-adequacy review, structurally checked | §39 | RQ-055 |
 | OW-WAR-0019 | Gate Registry: definitions, qualification, bindings | §43 | RQ-056 |
 | OW-WAR-0020 | Gate Run semantics, askability, and invalidation | §44, §45 | RQ-054, RQ-057 |

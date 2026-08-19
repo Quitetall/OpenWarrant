@@ -14,6 +14,7 @@
 pub mod adr;
 pub mod config;
 pub mod contract;
+pub mod epistemic;
 pub mod frontmatter;
 pub mod identity;
 pub mod manifest;
@@ -28,6 +29,10 @@ pub use config::{ConfigError, GeneratedPolicy, Namespace, Paths, RepositoryConfi
 pub use contract::{
     ActorKind, Authorization, ContractCoverage, ContractElement, ContractError, ContractRevision,
     Independence, RevisionState,
+};
+pub use epistemic::{
+    Adjudication, Admissibility, Claim, EpistemicError, EvidenceItem, EvidenceOrigin, Inference,
+    InferenceKind, Judgment, JudgmentAuthority, Observation, PROHIBITED_SUBSTITUTIONS,
 };
 pub use frontmatter::{Frontmatter, FrontmatterError, Value};
 pub use identity::{IdentityError, LocalAlias, WarUuid};
