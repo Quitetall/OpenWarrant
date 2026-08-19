@@ -10,13 +10,17 @@
 //! passes every positive fixture ever written. The planted-violation half exists
 //! because this fleet has three times shipped a green gate that compared nothing.
 //!
-//! Planted violations currently live as `#[test]` cases asserting a refusal
-//! (`init_refuses_to_overwrite`, `non_v7_uuid_is_refused`, `unknown_schema_fails_closed`,
-//! and the rest). That is sufficient while every control is in-process. When
-//! OW-WAR-0005 lands `war check`, the plants move to `conformance/` as real
-//! source trees mutated on disk, because at that point the control being tested
-//! is a binary reading files rather than a function taking a value.
+//! Planted violations live in two places, and both are needed:
+//!
+//! - `#[test]` cases asserting a refusal from a function given a value
+//!   (`non_v7_uuid_is_refused`, `duplicate_ordinal_is_refused`, and the rest);
+//! - `conformance/plant.sh`, which mutates real files and runs the SHIPPED
+//!   BINARY, then asserts the right rule fired for the right reason.
+//!
+//! The second exists because the first cannot catch a control that is correct in
+//! isolation and never reached in the real code path.
 
+use std::path::Path;
 use std::process::{Command, ExitCode};
 
 fn main() -> ExitCode {
@@ -39,6 +43,56 @@ struct Step {
     label: &'static str,
     program: &'static str,
     args: &'static [&'static str],
+}
+
+/// The SPDX identifier every Rust source file must declare.
+///
+/// Checked mechanically because the Apache-2.0 relicense rewrites exactly this
+/// line in every file (see RELICENSING.md). A file that never carried a header
+/// would be silently skipped by that rewrite and would keep asserting the old
+/// licence — or none at all — after the flip.
+const EXPECTED_SPDX: &str = "// SPDX-License-Identifier: AGPL-3.0-or-later";
+
+/// Walk `.rs` files and report every one missing its SPDX header.
+fn check_spdx() -> Result<usize, std::io::Error> {
+    fn walk(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> Result<(), std::io::Error> {
+        for entry in std::fs::read_dir(dir)? {
+            let path = entry?.path();
+            if path.is_dir() {
+                if path.file_name().is_some_and(|n| n == "target") {
+                    continue;
+                }
+                walk(&path, out)?;
+            } else if path.extension().is_some_and(|e| e == "rs") {
+                out.push(path);
+            }
+        }
+        Ok(())
+    }
+
+    let mut files = Vec::new();
+    for root in ["crates", "xtask"] {
+        let dir = Path::new(root);
+        if dir.is_dir() {
+            walk(dir, &mut files)?;
+        }
+    }
+    files.sort();
+
+    let mut missing = 0usize;
+    for file in &files {
+        let text = std::fs::read_to_string(file)?;
+        if !text.starts_with(EXPECTED_SPDX) {
+            // Report every one, not the first: otherwise the fix is one
+            // re-run per file.
+            println!("   missing SPDX header: {}", file.display());
+            missing += 1;
+        }
+    }
+    if missing == 0 {
+        println!("   {} file(s) carry the SPDX header", files.len());
+    }
+    Ok(missing)
 }
 
 fn gate() -> ExitCode {
@@ -86,6 +140,21 @@ fn gate() -> ExitCode {
 
     let mut failed = Vec::new();
 
+    // An in-process step, run first because it is instant and its failure is
+    // always actionable.
+    println!("== spdx headers ==");
+    match check_spdx() {
+        Ok(0) => println!("   ok"),
+        Ok(n) => {
+            println!("   FAILED ({n} file(s) missing a header)");
+            failed.push("spdx headers");
+        }
+        Err(err) => {
+            println!("   COULD NOT RUN: {err}");
+            failed.push("spdx headers");
+        }
+    }
+
     for step in &steps {
         println!("== {} ==", step.label);
         let status = Command::new(step.program).args(step.args).status();
@@ -108,13 +177,13 @@ fn gate() -> ExitCode {
     // Report every failing step, not the first. A gate that stops at the first
     // failure makes the operator re-run it once per defect.
     if failed.is_empty() {
-        println!("\ngate: PASS — {} step(s) green", steps.len());
+        println!("\ngate: PASS — {} step(s) green", steps.len() + 1);
         ExitCode::SUCCESS
     } else {
         println!(
             "\ngate: FAIL — {}/{} step(s) failed:",
             failed.len(),
-            steps.len()
+            steps.len() + 1
         );
         for label in &failed {
             println!("  - {label}");

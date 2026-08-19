@@ -1,0 +1,105 @@
+name: Release
+
+# Fires only on a version tag. Never on push — building release artifacts on
+# every commit is the spending pattern ADR 0179 measured turning a $20 month into
+# three and a half pushes.
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # The tag must not be able to ship something that would fail CI. Running the
+  # same single gate command means a release cannot be greener than main.
+  gate:
+    name: gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: Swatinem/rust-cache@v2
+      - name: Install cargo-deny
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-deny
+      - run: cargo xtask gate
+
+  build:
+    name: build ${{ matrix.target }}
+    needs: gate
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: macos-latest
+            target: aarch64-apple-darwin
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }} -p openwarrant-cli
+
+      # A published binary nobody can verify is a binary nobody should run.
+      # SHA-256 travels with it, matching the algorithm the protocol itself uses
+      # for every other digest (§65.1).
+      - name: Package
+        shell: bash
+        run: |
+          set -euo pipefail
+          name="war-${{ github.ref_name }}-${{ matrix.target }}"
+          mkdir -p "dist/$name"
+          cp "target/${{ matrix.target }}/release/war" "dist/$name/"
+          cp LICENSE README.md CHANGELOG.md "dist/$name/"
+          tar -C dist -czf "dist/$name.tar.gz" "$name"
+          if command -v sha256sum >/dev/null; then
+            (cd dist && sha256sum "$name.tar.gz" > "$name.tar.gz.sha256")
+          else
+            (cd dist && shasum -a 256 "$name.tar.gz" > "$name.tar.gz.sha256")
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}
+          path: dist/*.tar.gz*
+
+  publish:
+    name: publish
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # Pre-1.0 and prerelease tags are marked as such, so nobody installs a
+          # 0.x build believing the wire format is stable. It is not.
+          prerelease=""
+          case "${{ github.ref_name }}" in
+            v0.*|*-*) prerelease="--prerelease" ;;
+          esac
+          gh release create "${{ github.ref_name }}" \
+            --title "${{ github.ref_name }}" \
+            --notes-file CHANGELOG.md \
+            $prerelease \
+            dist/*

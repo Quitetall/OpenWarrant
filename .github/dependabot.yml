@@ -1,0 +1,25 @@
+version: 2
+
+# Weekly, not daily. This repository is private today, so every Actions minute is
+# billed (ADR 0182); a daily cadence on a graph of ~70 crates spends the budget
+# on noise. Grouped into one pull request for the same reason.
+#
+# Every bump still has to clear the full gate, including `cargo deny check
+# licenses` — so a dependency update that would close off the Apache-2.0
+# relicense fails automatically rather than in review.
+updates:
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      cargo:
+        patterns:
+          - "*"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 2
