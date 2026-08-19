@@ -18,6 +18,7 @@ pub mod identity;
 pub mod manifest;
 pub mod milestones;
 pub mod role;
+pub mod state;
 pub mod structured;
 
 pub use adr::{AdrError, AdrRecord, AdrStatus};
@@ -33,4 +34,8 @@ pub use milestones::{
     ResponsibilityTier, Stage,
 };
 pub use role::{AtomRole, Jurisdiction, Profile, RoleError, is_namespaced_extension_role};
+pub use state::{
+    CommonOutcome, Currency, ExecutionCondition, Phase, Provenance, ResolutionStanding, StateError,
+    WarrantState,
+};
 pub use structured::{StructuredDoc, StructuredError, StructuredValue};

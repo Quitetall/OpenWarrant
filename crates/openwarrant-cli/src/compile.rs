@@ -39,6 +39,21 @@ pub fn adr_overview(repo: &Repository) -> Result<(camino::Utf8PathBuf, String), 
     Ok((repo.adr_overview_path(), render_adr_overview(&adrs.records)))
 }
 
+/// Derive a Warrant's state from the record's shape (SAS §24).
+///
+/// Every Warrant derives to `draft`, and that is not a placeholder — it is the
+/// truthful answer. §24.7's `draft → proposed → authorized` chain requires an
+/// AUTHORIZATION, and contract revisions do not exist until OW-WAR-0009. Nothing
+/// in this repository has been authorized by anything, so nothing has left draft.
+///
+/// Deriving a later phase from "the work looks done" is exactly the fabrication
+/// this system exists to prevent: it would let a tool award itself a lifecycle it
+/// never transitioned through. The provenance marker says `derived` so no reader
+/// mistakes this for a recorded transition.
+fn derive_state() -> openwarrant_core::WarrantState {
+    openwarrant_core::WarrantState::draft(openwarrant_core::Provenance::Derived)
+}
+
 /// Compile the Warrant Overview (§17.5 `status`), returning its path and contents.
 pub fn warrant_overview(repo: &Repository) -> Result<(camino::Utf8PathBuf, String), RepoError> {
     let mut summaries = Vec::new();
@@ -93,6 +108,7 @@ pub fn warrant_overview(repo: &Repository) -> Result<(camino::Utf8PathBuf, Strin
                 .collect(),
             atom_count: basis.atoms.len(),
             source: basis.manifest_source.clone(),
+            state: derive_state(),
             milestone_count: basis
                 .atoms
                 .iter()

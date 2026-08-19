@@ -34,6 +34,7 @@ protocol proven only against a mock is not proven.
 | 0 — Telemetry shim | alpha | not started |
 | 1 — File-native WAR compiler | alpha | **resolved** (partial — see below) |
 | — milestones and stages (OW-WAR-0007) | alpha | **resolved** 2026-08-19 |
+| — state model (OW-WAR-0008) | alpha | **resolved** 2026-08-19 |
 | 2 — Agent planner | alpha | not started |
 | 3 — ADR federation | alpha | partial |
 | 4 — Knowledge Fabric registration | alpha (protocol) / beta (live) | not started |
@@ -70,7 +71,7 @@ here. `roadmap://` refs in manifests resolve to the identifiers in this table.
 |---|---|---|---|
 | OW-WAR-0006 | Complete ADR federation: relations, supersession, currency | §19.4, §21 | RQ-024, RQ-025 |
 | ~~OW-WAR-0007~~ | ~~Milestones and stages: parse, validate, named typed ports~~ **RESOLVED** | §23 | RQ-040, RQ-041 |
-| OW-WAR-0008 | The state model: phase, condition, outcome, currency, standing | §24 | RQ-032 |
+| ~~OW-WAR-0008~~ | ~~The state model: phase, condition, outcome, currency, standing~~ **RESOLVED** | §24 | RQ-032 |
 | OW-WAR-0009 | Contract revisions and immutability | §28, §29 | RQ-030, RQ-031, RQ-033, RQ-034 |
 | OW-WAR-0010 | Autonomy envelope and amendment records | §30, §31 | — |
 | OW-WAR-0011 | Prerequisites and Preflight | §32 | RQ-035 |

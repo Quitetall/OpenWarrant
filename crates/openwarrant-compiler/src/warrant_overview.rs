@@ -6,13 +6,14 @@
 //! themselves, so it cannot claim a Warrant exists that does not, or omit one
 //! that does — which is exactly the failure a hand-maintained roadmap has.
 //!
-//! # What it deliberately does NOT report
+//! # Status is real, and it is derived
 //!
-//! **Lifecycle state.** §24 decomposes state into phase, condition, outcome,
-//! currency, and standing, and none of that is implemented yet (OW-WAR-0008).
-//! Rendering a "status" column now would mean inventing one — most likely by
-//! guessing from whether files exist — and a status column that is guessed is
-//! worse than absent, because a reader will act on it.
+//! §24's five dimensions are implemented (OW-WAR-0008), so the status column is
+//! no longer absent. It reports `derived` rather than `recorded` because nothing
+//! journals transitions yet (OW-WAR-0031), and every Warrant derives to `draft`
+//! because authorization does not exist until OW-WAR-0009.
+//!
+//! Forty Warrants all reading `draft` is the honest answer, not a bug.
 //!
 //! **Milestone progress.** Milestones now parse (OW-WAR-0007), so the column
 //! reports how many are DECLARED — never how many are met. Completion needs the
@@ -44,6 +45,8 @@ pub struct WarrantSummary {
     /// milestone is MET — that needs the state model (OW-WAR-0008) and gate runs
     /// (OW-WAR-0020). A count of declarations is not a count of achievements.
     pub milestone_count: Option<(usize, usize)>,
+    /// The five §24 dimensions, with provenance. Derived until OW-WAR-0031.
+    pub state: openwarrant_core::WarrantState,
 }
 
 /// Render the Warrant Overview.
@@ -65,31 +68,39 @@ pub fn render(summaries: &[WarrantSummary]) -> String {
     let _ = writeln!(out, "{} Warrant(s) in this repository.\n", sorted.len());
 
     out.push_str("## Summary\n\n");
-    out.push_str("| Warrant | Title | Profile | Assurance | Atoms | Milestones | Implements |\n");
-    out.push_str("|---|---|---|---|---:|---|---|\n");
+    out.push_str("| Warrant | Title | Phase | Currency | Standing | Assurance | Milestones |\n");
+    out.push_str("|---|---|---|---|---|---|---|\n");
     for w in &sorted {
-        let implements = if w.implements.is_empty() {
-            "—".to_owned()
-        } else {
-            w.implements
-                .iter()
-                .map(|r| r.trim_start_matches("sas://").to_owned())
-                .collect::<Vec<_>>()
-                .join(", ")
-        };
         let _ = writeln!(
             out,
-            "| [{alias}]({source}) | {title} | `{profile}` | `{assurance}` | {atoms} | {ms} | {implements} |",
+            "| [{alias}]({source}) | {title} | `{phase}` | `{currency}` | `{standing}` | `{assurance}` | {ms} |",
             alias = w.alias,
             source = w.source,
             title = w.title,
-            profile = w.profile,
+            phase = w.state.phase,
+            currency = w.state.currency,
+            standing = w.state.standing,
             assurance = w.assurance_level,
-            atoms = w.atom_count,
             ms = match w.milestone_count {
                 Some((m, st)) => format!("{m}M / {st}S"),
                 None => "—".to_owned(),
             },
+        );
+    }
+
+    // State provenance, stated once rather than repeated per row.
+    let derived = sorted
+        .iter()
+        .filter(|w| w.state.provenance == openwarrant_core::Provenance::Derived)
+        .count();
+    if derived > 0 {
+        let _ = write!(
+            out,
+            "\n> **{derived} of {} states are DERIVED, not recorded.** Nothing journals \
+             transitions yet (OW-WAR-0031), and authorization does not exist until \
+             OW-WAR-0009 — so no Warrant has left `draft`. A later phase would have to \
+             be invented.\n",
+            sorted.len()
         );
     }
 
@@ -144,9 +155,8 @@ pub fn render(summaries: &[WarrantSummary]) -> String {
 
     out.push_str(
         "\n## Not reported here\n\n\
-         - **Lifecycle state** (§24: phase, condition, outcome, currency, standing) \
-         is not implemented, so no Warrant has a status. A guessed status column \
-         would be acted on.\n\
+         - **Recorded state.** The phase column is DERIVED from the record's shape, \
+         never read from a journalled transition.\n\
          - **Milestone progress** — the column counts DECLARED milestones and \
          stages. Nothing here says any of them is met.\n\
          - **Resolution** — nothing here says a Warrant is done.\n",
@@ -172,6 +182,7 @@ mod tests {
             atom_count: 5,
             source: format!("docs/warrants/{alias}/manifest.toml"),
             milestone_count: Some((3, 3)),
+            state: openwarrant_core::WarrantState::draft(openwarrant_core::Provenance::Derived),
         }
     }
 
@@ -205,17 +216,31 @@ mod tests {
         assert!(out.contains("Claimed, not verified"));
     }
 
-    /// A status column would be invented, so it must not appear at all.
+    /// The status column is real now (OW-WAR-0008), and its DERIVED provenance
+    /// must be stated — otherwise a derived phase reads as a recorded one.
+    ///
+    /// This test replaced `no_lifecycle_status_is_rendered`, which asserted the
+    /// column's absence. That test failed the moment the column arrived, which
+    /// is a test doing its job: the behaviour changed, so the assertion had to.
     #[test]
-    fn no_lifecycle_status_is_rendered() {
+    fn derived_state_is_reported_and_labelled_derived() {
         let out = render(&[w("OW-WAR-0001", &["RQ-070"])]);
+        assert!(out.contains("| `draft` |"), "the phase is reported");
         assert!(
-            !out.contains("| Status |"),
-            "a status column would be guessed; §24 is not implemented"
+            out.contains("DERIVED, not recorded"),
+            "provenance must be stated, or a derived phase reads as recorded"
         );
+    }
+
+    /// A recorded state must not carry the derived banner.
+    #[test]
+    fn recorded_state_is_not_labelled_derived() {
+        let mut only = w("OW-WAR-0001", &["RQ-070"]);
+        only.state = openwarrant_core::WarrantState::draft(openwarrant_core::Provenance::Recorded);
+        let out = render(&[only]);
         assert!(
-            out.contains("Lifecycle state"),
-            "the absence must be stated"
+            !out.contains("DERIVED, not recorded"),
+            "a recorded state must not be disclaimed as derived"
         );
     }
 
