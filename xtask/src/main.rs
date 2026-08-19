@@ -97,6 +97,21 @@ fn check_spdx() -> Result<usize, std::io::Error> {
 
 fn gate() -> ExitCode {
     let steps = [
+        // FIRST, and not merely for speed. `conformance/plant.sh` runs the
+        // SHIPPED BINARY at target/debug/war, and `cargo test` does not produce
+        // it — test harnesses land at target/debug/deps/war-<hash> instead.
+        //
+        // Without this step the gate passed on any machine where someone had
+        // previously run `cargo build` and failed on a clean checkout, which is
+        // exactly what happened: green locally, red in CI, with the plant step
+        // reporting "build first". A gate whose result depends on leftover build
+        // state is not a gate, and CONTRIBUTING.md promises that green-locally
+        // and green-in-CI cannot come to mean different things.
+        Step {
+            label: "build (plants run the shipped binary, so it must exist)",
+            program: "cargo",
+            args: &["build", "--workspace"],
+        },
         Step {
             label: "format",
             program: "cargo",
