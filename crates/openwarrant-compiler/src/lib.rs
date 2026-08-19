@@ -5,19 +5,20 @@
 //!
 //! # Status
 //!
-//! OW-WAR-0001 establishes this crate; OW-WAR-0003 and OW-WAR-0004 fill it. What
-//! exists today is the interface from §81 and the digest-domain vocabulary from
-//! §65, which are the two things later work must not be free to redefine
-//! casually.
+//! Canonicalization and domain-separated digesting are implemented and pinned
+//! against the official RFC 8785 vectors in `conformance/rfc8785/`. The
+//! implementation was selected by OW-ADR-0001 on measured conformance, not on
+//! reputation.
 //!
-//! The canonicalization implementation (RFC 8785, §65.2) is deliberately ABSENT.
-//! It decides the exact bytes every cross-system digest is computed over, so the
-//! library choice binds the wire format and requires an implementation ADR first
-//! (§80). Guessing now and correcting later would silently invalidate every
-//! digest minted in between.
+//! Still to come: lowering a Compilation Basis to the §63 IR, and the
+//! projections of §17.5.
 
 #![forbid(unsafe_code)]
 
+pub mod canonical;
 pub mod digest;
 
-pub use digest::DigestDomain;
+pub use canonical::{
+    CanonicalError, preimage_bytes, sha256_digest, to_canonical_bytes, to_canonical_string,
+};
+pub use digest::{DigestDomain, sha256_hex};

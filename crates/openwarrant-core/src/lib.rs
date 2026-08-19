@@ -6,12 +6,22 @@
 //! Section references in this crate cite that document.
 //!
 //! This crate holds no I/O (SAS §79.1). Everything here is a value, a parse, or
-//! a validation over values.
+//! a validation over values — which is what lets the validators be tested against
+//! in-memory fixtures instead of against a scratch directory.
 
 #![forbid(unsafe_code)]
 
 pub mod config;
+pub mod frontmatter;
 pub mod identity;
+pub mod manifest;
+pub mod role;
 
 pub use config::{ConfigError, GeneratedPolicy, Namespace, Paths, RepositoryConfig};
+pub use frontmatter::{Frontmatter, FrontmatterError, Value};
 pub use identity::{IdentityError, LocalAlias, WarUuid};
+pub use manifest::{
+    AssuranceLevel, AtomEntry, MANIFEST_SCHEMA, Manifest, ManifestError, ParentCycle,
+    ValidatedManifest, detect_parent_cycles,
+};
+pub use role::{AtomRole, Jurisdiction, Profile, RoleError, is_namespaced_extension_role};

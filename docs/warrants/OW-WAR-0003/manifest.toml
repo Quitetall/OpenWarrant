@@ -44,6 +44,16 @@ role = "basis"
 path = "atoms/20-basis.md"
 required = true
 
+# The decision this Warrant depends on, transcluded into its Decisions section
+# (§18.4, §19.4). Referenced by path rather than by `adr://<uuid>` because this
+# repository is file-native and offline; the UUID in the atom's frontmatter is
+# the identity, and the path is how it is resolved until federation exists.
+[[atoms]]
+ordinal = 30
+role = "adr"
+path = "../../adr/atoms/OW-ADR-0001-canonical-json-implementation.md"
+required = true
+
 [[atoms]]
 ordinal = 40
 role = "work_order"

@@ -31,6 +31,11 @@ authors = ["Brian Lam <briankhanglam@gmail.com>"]
 camino = "1"
 clap = { version = "4", features = ["derive"] }
 serde = { version = "1", features = ["derive"] }
+# RFC 8785 canonical JSON. Selected by OW-ADR-0001 after both realistic
+# candidates were run against the official cyberphone/json-canonicalization
+# vectors and the ES6 number boundary cases; they tied at 23/23, so the dual
+# MIT OR Apache-2.0 license decided it. See docs/adr/atoms/OW-ADR-0001-*.md.
+serde_jcs = "0.2"
 serde_json = { version = "1", features = ["preserve_order"] }
 sha2 = "0.10"
 thiserror = "2"
