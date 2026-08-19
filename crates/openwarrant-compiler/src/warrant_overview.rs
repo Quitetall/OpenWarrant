@@ -14,8 +14,10 @@
 //! guessing from whether files exist — and a status column that is guessed is
 //! worse than absent, because a reader will act on it.
 //!
-//! **Milestone progress.** Milestones are not parsed yet (OW-WAR-0007), so the
-//! count below is of DECLARED milestone atoms, not of met milestones.
+//! **Milestone progress.** Milestones now parse (OW-WAR-0007), so the column
+//! reports how many are DECLARED — never how many are met. Completion needs the
+//! state model and gate runs, and a column that looked like progress would be
+//! read as progress.
 
 use std::collections::BTreeSet;
 use std::fmt::Write as _;
@@ -38,9 +40,10 @@ pub struct WarrantSummary {
     pub parents: Vec<String>,
     pub atom_count: usize,
     pub source: String,
-    /// Whether this Warrant carries a milestones atom at all. Not whether any
-    /// milestone is met — nothing can answer that yet.
-    pub declares_milestones: bool,
+    /// `(milestones, stages)` when the graph parses. Still NOT whether any
+    /// milestone is MET — that needs the state model (OW-WAR-0008) and gate runs
+    /// (OW-WAR-0020). A count of declarations is not a count of achievements.
+    pub milestone_count: Option<(usize, usize)>,
 }
 
 /// Render the Warrant Overview.
@@ -83,10 +86,9 @@ pub fn render(summaries: &[WarrantSummary]) -> String {
             profile = w.profile,
             assurance = w.assurance_level,
             atoms = w.atom_count,
-            ms = if w.declares_milestones {
-                "declared"
-            } else {
-                "—"
+            ms = match w.milestone_count {
+                Some((m, st)) => format!("{m}M / {st}S"),
+                None => "—".to_owned(),
             },
         );
     }
@@ -145,8 +147,8 @@ pub fn render(summaries: &[WarrantSummary]) -> String {
          - **Lifecycle state** (§24: phase, condition, outcome, currency, standing) \
          is not implemented, so no Warrant has a status. A guessed status column \
          would be acted on.\n\
-         - **Milestone progress** — milestones are not parsed, so the column above \
-         says only whether a milestones atom is DECLARED.\n\
+         - **Milestone progress** — the column counts DECLARED milestones and \
+         stages. Nothing here says any of them is met.\n\
          - **Resolution** — nothing here says a Warrant is done.\n",
     );
 
@@ -169,7 +171,7 @@ mod tests {
             parents: vec![],
             atom_count: 5,
             source: format!("docs/warrants/{alias}/manifest.toml"),
-            declares_milestones: true,
+            milestone_count: Some((3, 3)),
         }
     }
 

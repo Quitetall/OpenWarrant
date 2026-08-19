@@ -16,7 +16,9 @@ pub mod config;
 pub mod frontmatter;
 pub mod identity;
 pub mod manifest;
+pub mod milestones;
 pub mod role;
+pub mod structured;
 
 pub use adr::{AdrError, AdrRecord, AdrStatus};
 pub use config::{ConfigError, GeneratedPolicy, Namespace, Paths, RepositoryConfig};
@@ -26,4 +28,9 @@ pub use manifest::{
     AssuranceLevel, AtomEntry, MANIFEST_SCHEMA, Manifest, ManifestError, ParentCycle,
     ValidatedManifest, detect_parent_cycles,
 };
+pub use milestones::{
+    ExecutorKind, MILESTONES_SCHEMA, Milestone, MilestoneError, MilestoneGraph, Port,
+    ResponsibilityTier, Stage,
+};
 pub use role::{AtomRole, Jurisdiction, Profile, RoleError, is_namespaced_extension_role};
+pub use structured::{StructuredDoc, StructuredError, StructuredValue};

@@ -7,7 +7,7 @@
 use std::collections::BTreeMap;
 
 use openwarrant_compiler::lower;
-use openwarrant_core::{ValidatedManifest, detect_parent_cycles};
+use openwarrant_core::{ValidatedManifest, detect_parent_cycles, milestones};
 
 use crate::compile::{adr_overview, projections, warrant_overview};
 use crate::diagnostic::{Diagnostic, Report, Severity};
@@ -259,6 +259,44 @@ fn check_one(
                     validated.assurance_level
                 ),
             ));
+        }
+    }
+
+    // §23: the milestone graph is parsed and validated, not merely carried.
+    // Until OW-WAR-0007 this atom's bytes were hashed and rendered while nothing
+    // read them, so a dangling stage_ref or a dependency cycle passed unnoticed.
+    for atom in basis.atoms.iter().filter(|a| a.role == "milestones") {
+        let text = String::from_utf8_lossy(&atom.bytes);
+        match milestones::parse(&text) {
+            Ok(graph) => {
+                report.push(Diagnostic::pass(
+                    "milestones.valid",
+                    format!(
+                        "{alias}: {} milestone(s), {} stage(s), acyclic with no dangling refs",
+                        graph.milestones.len(),
+                        graph.stages.len()
+                    ),
+                ));
+                // Not errors — a checkpoint may rest on obligations alone, and a
+                // stage may be defined ahead of the milestone that will need it.
+                // Both are worth seeing.
+                let orphans = graph.unreferenced_stages();
+                if !orphans.is_empty() {
+                    report.push(Diagnostic::warn(
+                        "milestones.unreferenced-stage",
+                        repo.relative(&one.dir.join(&atom.source)),
+                        format!(
+                            "{alias}: stage(s) no milestone references: {}",
+                            orphans.join(", ")
+                        ),
+                    ));
+                }
+            }
+            Err(err) => report.push(Diagnostic::error(
+                "milestones.invalid",
+                repo.relative(&one.dir.join(&atom.source)),
+                format!("{alias}: {err}"),
+            )),
         }
     }
 

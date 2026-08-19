@@ -33,6 +33,7 @@ protocol proven only against a mock is not proven.
 |---|---|---|
 | 0 — Telemetry shim | alpha | not started |
 | 1 — File-native WAR compiler | alpha | **resolved** (partial — see below) |
+| — milestones and stages (OW-WAR-0007) | alpha | **resolved** 2026-08-19 |
 | 2 — Agent planner | alpha | not started |
 | 3 — ADR federation | alpha | partial |
 | 4 — Knowledge Fabric registration | alpha (protocol) / beta (live) | not started |
@@ -49,8 +50,9 @@ Recorded here rather than left implied. Three milestones in the Phase 1 Warrants
 are **not met**, and they are carried forward as scope of the alpha Warrants
 below rather than quietly dropped:
 
-- **OW-WAR-0002 M2** — §91.2 test 12 (composition cycle) has unit tests but no
-  plant against the shipped binary.
+- ~~**OW-WAR-0002 M2** — §91.2 test 12 (composition cycle) has unit tests but no
+  plant against the shipped binary.~~ **CLOSED 2026-08-19** by the
+  `composition cycle (self-parent)` plant.
 - **OW-WAR-0005 M2** — §91.2 test 10 (a generated atom cannot be edited through
   an authored-source command) is not implemented.
 - **OW-WAR-0005 M4** — bootstrap closure was declared, then the very next unit of
@@ -67,7 +69,7 @@ here. `roadmap://` refs in manifests resolve to the identifiers in this table.
 | WAR | Title | SAS | Requirements |
 |---|---|---|---|
 | OW-WAR-0006 | Complete ADR federation: relations, supersession, currency | §19.4, §21 | RQ-024, RQ-025 |
-| OW-WAR-0007 | Milestones and stages: parse, validate, named typed ports | §23 | RQ-040, RQ-041 |
+| ~~OW-WAR-0007~~ | ~~Milestones and stages: parse, validate, named typed ports~~ **RESOLVED** | §23 | RQ-040, RQ-041 |
 | OW-WAR-0008 | The state model: phase, condition, outcome, currency, standing | §24 | RQ-032 |
 | OW-WAR-0009 | Contract revisions and immutability | §28, §29 | RQ-030, RQ-031, RQ-033, RQ-034 |
 | OW-WAR-0010 | Autonomy envelope and amendment records | §30, §31 | — |

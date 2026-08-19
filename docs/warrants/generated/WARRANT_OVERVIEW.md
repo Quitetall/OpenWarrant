@@ -11,46 +11,46 @@ Source: the Warrants under the configured warrants path.
 
 | Warrant | Title | Profile | Assurance | Atoms | Milestones | Implements |
 |---|---|---|---|---:|---|---|
-| [OW-WAR-0001](docs/warrants/OW-WAR-0001/manifest.toml) | Establish the OpenWarrant repository and Rust workspace | `delivery` | `basic` | 5 | declared | WAR-SAS-RQ-064, WAR-SAS-RQ-070 |
-| [OW-WAR-0002](docs/warrants/OW-WAR-0002/manifest.toml) | Implement the file-native manifest and atom parser | `delivery` | `basic` | 5 | declared | WAR-SAS-RQ-010, WAR-SAS-RQ-011, WAR-SAS-RQ-012, WAR-SAS-RQ-013, WAR-SAS-RQ-015 |
-| [OW-WAR-0003](docs/warrants/OW-WAR-0003/manifest.toml) | Implement the canonical WAR IR and RFC 8785 digesting | `delivery` | `controlled` | 6 | declared | WAR-SAS-RQ-014, WAR-SAS-RQ-080, WAR-SAS-RQ-081 |
-| [OW-WAR-0004](docs/warrants/OW-WAR-0004/manifest.toml) | Implement the generated parent document and drift checking | `delivery` | `basic` | 5 | declared | WAR-SAS-RQ-012, WAR-SAS-RQ-014, WAR-SAS-RQ-075 |
-| [OW-WAR-0005](docs/warrants/OW-WAR-0005/manifest.toml) | Implement deterministic war check and close the Phase 1 bootstrap | `delivery` | `controlled` | 6 | declared | WAR-SAS-RQ-074, WAR-SAS-RQ-015 |
-| [OW-WAR-0006](docs/warrants/OW-WAR-0006/manifest.toml) | Complete ADR federation: relations, supersession, and currency | `delivery` | `basic` | 5 | declared | WAR-SAS-RQ-024, WAR-SAS-RQ-025 |
-| [OW-WAR-0007](docs/warrants/OW-WAR-0007/manifest.toml) | Parse and validate milestones, stages, and named typed ports | `delivery` | `controlled` | 5 | declared | WAR-SAS-RQ-040, WAR-SAS-RQ-041 |
-| [OW-WAR-0008](docs/warrants/OW-WAR-0008/manifest.toml) | Implement the state model: phase, condition, outcome, currency, standing | `delivery` | `controlled` | 5 | declared | WAR-SAS-RQ-032 |
-| [OW-WAR-0009](docs/warrants/OW-WAR-0009/manifest.toml) | Implement contract revisions and their immutability | `delivery` | `controlled` | 5 | declared | WAR-SAS-RQ-030, WAR-SAS-RQ-031, WAR-SAS-RQ-033, WAR-SAS-RQ-034 |
-| [OW-WAR-0010](docs/warrants/OW-WAR-0010/manifest.toml) | Implement the autonomy envelope and amendment records | `delivery` | `basic` | 5 | declared | — |
-| [OW-WAR-0011](docs/warrants/OW-WAR-0011/manifest.toml) | Implement prerequisites and Preflight | `delivery` | `basic` | 5 | declared | WAR-SAS-RQ-035 |
-| [OW-WAR-0012](docs/warrants/OW-WAR-0012/manifest.toml) | Implement the context model, context manifest, and trust classes | `delivery` | `basic` | 5 | declared | — |
-| [OW-WAR-0013](docs/warrants/OW-WAR-0013/manifest.toml) | Validate SAS and Roadmap traceability | `delivery` | `basic` | 5 | declared | WAR-SAS-RQ-022 |
-| [OW-WAR-0014](docs/warrants/OW-WAR-0014/manifest.toml) | Implement the rationale model, assumptions, and unknowns | `delivery` | `basic` | 5 | declared | — |
-| [OW-WAR-0015](docs/warrants/OW-WAR-0015/manifest.toml) | Implement deliverables, artifacts, and artifact provenance | `delivery` | `basic` | 5 | declared | — |
-| [OW-WAR-0016](docs/warrants/OW-WAR-0016/manifest.toml) | Implement acceptance obligations and bounded claims | `delivery` | `controlled` | 5 | declared | WAR-SAS-RQ-050, WAR-SAS-RQ-051 |
-| [OW-WAR-0017](docs/warrants/OW-WAR-0017/manifest.toml) | Implement the epistemic classes: evidence, observation, inference, judgment, resolution | `delivery` | `controlled` | 5 | declared | WAR-SAS-RQ-052 |
-| [OW-WAR-0018](docs/warrants/OW-WAR-0018/manifest.toml) | Implement contract-adequacy review, structurally checked | `delivery` | `controlled` | 5 | declared | WAR-SAS-RQ-055 |
-| [OW-WAR-0019](docs/warrants/OW-WAR-0019/manifest.toml) | Implement the Gate Registry: definitions, qualification, and bindings | `delivery` | `controlled` | 5 | declared | WAR-SAS-RQ-056 |
-| [OW-WAR-0020](docs/warrants/OW-WAR-0020/manifest.toml) | Implement Gate Run semantics, askability, and invalidation | `delivery` | `controlled` | 5 | declared | WAR-SAS-RQ-054, WAR-SAS-RQ-057 |
-| [OW-WAR-0021](docs/warrants/OW-WAR-0021/manifest.toml) | Implement verifier independence | `delivery` | `basic` | 5 | declared | WAR-SAS-RQ-053 |
-| [OW-WAR-0022](docs/warrants/OW-WAR-0022/manifest.toml) | Implement resolution, dispute, and annulment | `delivery` | `controlled` | 5 | declared | WAR-SAS-RQ-058, WAR-SAS-RQ-059 |
-| [OW-WAR-0023](docs/warrants/OW-WAR-0023/manifest.toml) | Implement Stage Dispatch compilation and actor-specific projection | `delivery` | `controlled` | 5 | declared | WAR-SAS-RQ-042, WAR-SAS-RQ-043 |
-| [OW-WAR-0024](docs/warrants/OW-WAR-0024/manifest.toml) | Implement Stage Submission and attempt semantics | `delivery` | `basic` | 5 | declared | WAR-SAS-RQ-045 |
-| [OW-WAR-0025](docs/warrants/OW-WAR-0025/manifest.toml) | Implement blockers, deviations, decision proposals, and discovered gaps | `delivery` | `basic` | 5 | declared | — |
-| [OW-WAR-0026](docs/warrants/OW-WAR-0026/manifest.toml) | Implement the Katana runtime seam, capabilities, and receipts | `delivery` | `basic` | 5 | declared | WAR-SAS-RQ-044, WAR-SAS-RQ-062 |
-| [OW-WAR-0027](docs/warrants/OW-WAR-0027/manifest.toml) | Implement the BLUT adapter: PlanSpec lowering and lineage receipt | `delivery` | `basic` | 5 | declared | WAR-SAS-RQ-063 |
-| [OW-WAR-0028](docs/warrants/OW-WAR-0028/manifest.toml) | Implement Knowledge Fabric typed actions and the controlled-action envelope | `delivery` | `basic` | 5 | declared | WAR-SAS-RQ-076 |
-| [OW-WAR-0029](docs/warrants/OW-WAR-0029/manifest.toml) | Implement KF registration, global identity allocation, and federation | `delivery` | `basic` | 5 | declared | WAR-SAS-RQ-003, WAR-SAS-RQ-004, WAR-SAS-RQ-005 |
-| [OW-WAR-0030](docs/warrants/OW-WAR-0030/manifest.toml) | Implement portable preservation: one-file export and round trip | `delivery` | `basic` | 5 | declared | WAR-SAS-RQ-082, WAR-SAS-RQ-083, WAR-SAS-RQ-084 |
-| [OW-WAR-0031](docs/warrants/OW-WAR-0031/manifest.toml) | Implement the local draft journal | `delivery` | `basic` | 5 | declared | — |
-| [OW-WAR-0032](docs/warrants/OW-WAR-0032/manifest.toml) | Generate the schema pack and implement protocol versioning | `delivery` | `basic` | 5 | declared | — |
-| [OW-WAR-0033](docs/warrants/OW-WAR-0033/manifest.toml) | Implement the remaining read projections | `delivery` | `basic` | 5 | declared | — |
-| [OW-WAR-0034](docs/warrants/OW-WAR-0034/manifest.toml) | Implement the agent protocol and Draft Proposal validation | `delivery` | `basic` | 5 | declared | WAR-SAS-RQ-072 |
-| [OW-WAR-0035](docs/warrants/OW-WAR-0035/manifest.toml) | Implement `war plan` and the interview loop | `delivery` | `basic` | 5 | declared | WAR-SAS-RQ-071 |
-| [OW-WAR-0036](docs/warrants/OW-WAR-0036/manifest.toml) | Implement normative-decision detection and proposed-ADR generation | `delivery` | `basic` | 5 | declared | WAR-SAS-RQ-020, WAR-SAS-RQ-073 |
-| [OW-WAR-0037](docs/warrants/OW-WAR-0037/manifest.toml) | Implement `war diff`: semantic difference between revisions | `delivery` | `basic` | 5 | declared | — |
-| [OW-WAR-0038](docs/warrants/OW-WAR-0038/manifest.toml) | Implement the existing-ADR importer, preserving unknown classes | `delivery` | `controlled` | 5 | declared | — |
-| [OW-WAR-0039](docs/warrants/OW-WAR-0039/manifest.toml) | Implement telemetry, unit economics, and untracked-work detection | `delivery` | `basic` | 5 | declared | — |
-| [OW-WAR-0040](docs/warrants/OW-WAR-0040/manifest.toml) | Implement the Liminal adapter and measured parity harness | `delivery` | `controlled` | 5 | declared | WAR-SAS-RQ-061 |
+| [OW-WAR-0001](docs/warrants/OW-WAR-0001/manifest.toml) | Establish the OpenWarrant repository and Rust workspace | `delivery` | `basic` | 5 | 3M / 3S | WAR-SAS-RQ-064, WAR-SAS-RQ-070 |
+| [OW-WAR-0002](docs/warrants/OW-WAR-0002/manifest.toml) | Implement the file-native manifest and atom parser | `delivery` | `basic` | 5 | 4M / 4S | WAR-SAS-RQ-010, WAR-SAS-RQ-011, WAR-SAS-RQ-012, WAR-SAS-RQ-013, WAR-SAS-RQ-015 |
+| [OW-WAR-0003](docs/warrants/OW-WAR-0003/manifest.toml) | Implement the canonical WAR IR and RFC 8785 digesting | `delivery` | `controlled` | 6 | 4M / 4S | WAR-SAS-RQ-014, WAR-SAS-RQ-080, WAR-SAS-RQ-081 |
+| [OW-WAR-0004](docs/warrants/OW-WAR-0004/manifest.toml) | Implement the generated parent document and drift checking | `delivery` | `basic` | 5 | 3M / 3S | WAR-SAS-RQ-012, WAR-SAS-RQ-014, WAR-SAS-RQ-075 |
+| [OW-WAR-0005](docs/warrants/OW-WAR-0005/manifest.toml) | Implement deterministic war check and close the Phase 1 bootstrap | `delivery` | `controlled` | 6 | 4M / 4S | WAR-SAS-RQ-074, WAR-SAS-RQ-015 |
+| [OW-WAR-0006](docs/warrants/OW-WAR-0006/manifest.toml) | Complete ADR federation: relations, supersession, and currency | `delivery` | `basic` | 5 | 3M / 3S | WAR-SAS-RQ-024, WAR-SAS-RQ-025 |
+| [OW-WAR-0007](docs/warrants/OW-WAR-0007/manifest.toml) | Parse and validate milestones, stages, and named typed ports | `delivery` | `controlled` | 5 | 4M / 4S | WAR-SAS-RQ-040, WAR-SAS-RQ-041 |
+| [OW-WAR-0008](docs/warrants/OW-WAR-0008/manifest.toml) | Implement the state model: phase, condition, outcome, currency, standing | `delivery` | `controlled` | 5 | 3M / 3S | WAR-SAS-RQ-032 |
+| [OW-WAR-0009](docs/warrants/OW-WAR-0009/manifest.toml) | Implement contract revisions and their immutability | `delivery` | `controlled` | 5 | 4M / 4S | WAR-SAS-RQ-030, WAR-SAS-RQ-031, WAR-SAS-RQ-033, WAR-SAS-RQ-034 |
+| [OW-WAR-0010](docs/warrants/OW-WAR-0010/manifest.toml) | Implement the autonomy envelope and amendment records | `delivery` | `basic` | 5 | 3M / 3S | — |
+| [OW-WAR-0011](docs/warrants/OW-WAR-0011/manifest.toml) | Implement prerequisites and Preflight | `delivery` | `basic` | 5 | 3M / 3S | WAR-SAS-RQ-035 |
+| [OW-WAR-0012](docs/warrants/OW-WAR-0012/manifest.toml) | Implement the context model, context manifest, and trust classes | `delivery` | `basic` | 5 | 3M / 3S | — |
+| [OW-WAR-0013](docs/warrants/OW-WAR-0013/manifest.toml) | Validate SAS and Roadmap traceability | `delivery` | `basic` | 5 | 3M / 3S | WAR-SAS-RQ-022 |
+| [OW-WAR-0014](docs/warrants/OW-WAR-0014/manifest.toml) | Implement the rationale model, assumptions, and unknowns | `delivery` | `basic` | 5 | 2M / 2S | — |
+| [OW-WAR-0015](docs/warrants/OW-WAR-0015/manifest.toml) | Implement deliverables, artifacts, and artifact provenance | `delivery` | `basic` | 5 | 2M / 2S | — |
+| [OW-WAR-0016](docs/warrants/OW-WAR-0016/manifest.toml) | Implement acceptance obligations and bounded claims | `delivery` | `controlled` | 5 | 4M / 4S | WAR-SAS-RQ-050, WAR-SAS-RQ-051 |
+| [OW-WAR-0017](docs/warrants/OW-WAR-0017/manifest.toml) | Implement the epistemic classes: evidence, observation, inference, judgment, resolution | `delivery` | `controlled` | 5 | 4M / 4S | WAR-SAS-RQ-052 |
+| [OW-WAR-0018](docs/warrants/OW-WAR-0018/manifest.toml) | Implement contract-adequacy review, structurally checked | `delivery` | `controlled` | 5 | 3M / 3S | WAR-SAS-RQ-055 |
+| [OW-WAR-0019](docs/warrants/OW-WAR-0019/manifest.toml) | Implement the Gate Registry: definitions, qualification, and bindings | `delivery` | `controlled` | 5 | 4M / 4S | WAR-SAS-RQ-056 |
+| [OW-WAR-0020](docs/warrants/OW-WAR-0020/manifest.toml) | Implement Gate Run semantics, askability, and invalidation | `delivery` | `controlled` | 5 | 5M / 5S | WAR-SAS-RQ-054, WAR-SAS-RQ-057 |
+| [OW-WAR-0021](docs/warrants/OW-WAR-0021/manifest.toml) | Implement verifier independence | `delivery` | `basic` | 5 | 3M / 3S | WAR-SAS-RQ-053 |
+| [OW-WAR-0022](docs/warrants/OW-WAR-0022/manifest.toml) | Implement resolution, dispute, and annulment | `delivery` | `controlled` | 5 | 4M / 4S | WAR-SAS-RQ-058, WAR-SAS-RQ-059 |
+| [OW-WAR-0023](docs/warrants/OW-WAR-0023/manifest.toml) | Implement Stage Dispatch compilation and actor-specific projection | `delivery` | `controlled` | 5 | 3M / 3S | WAR-SAS-RQ-042, WAR-SAS-RQ-043 |
+| [OW-WAR-0024](docs/warrants/OW-WAR-0024/manifest.toml) | Implement Stage Submission and attempt semantics | `delivery` | `basic` | 5 | 3M / 3S | WAR-SAS-RQ-045 |
+| [OW-WAR-0025](docs/warrants/OW-WAR-0025/manifest.toml) | Implement blockers, deviations, decision proposals, and discovered gaps | `delivery` | `basic` | 5 | 2M / 2S | — |
+| [OW-WAR-0026](docs/warrants/OW-WAR-0026/manifest.toml) | Implement the Katana runtime seam, capabilities, and receipts | `delivery` | `basic` | 5 | 3M / 3S | WAR-SAS-RQ-044, WAR-SAS-RQ-062 |
+| [OW-WAR-0027](docs/warrants/OW-WAR-0027/manifest.toml) | Implement the BLUT adapter: PlanSpec lowering and lineage receipt | `delivery` | `basic` | 5 | 3M / 3S | WAR-SAS-RQ-063 |
+| [OW-WAR-0028](docs/warrants/OW-WAR-0028/manifest.toml) | Implement Knowledge Fabric typed actions and the controlled-action envelope | `delivery` | `basic` | 5 | 3M / 3S | WAR-SAS-RQ-076 |
+| [OW-WAR-0029](docs/warrants/OW-WAR-0029/manifest.toml) | Implement KF registration, global identity allocation, and federation | `delivery` | `basic` | 5 | 4M / 4S | WAR-SAS-RQ-003, WAR-SAS-RQ-004, WAR-SAS-RQ-005 |
+| [OW-WAR-0030](docs/warrants/OW-WAR-0030/manifest.toml) | Implement portable preservation: one-file export and round trip | `delivery` | `basic` | 5 | 3M / 3S | WAR-SAS-RQ-082, WAR-SAS-RQ-083, WAR-SAS-RQ-084 |
+| [OW-WAR-0031](docs/warrants/OW-WAR-0031/manifest.toml) | Implement the local draft journal | `delivery` | `basic` | 5 | 3M / 3S | — |
+| [OW-WAR-0032](docs/warrants/OW-WAR-0032/manifest.toml) | Generate the schema pack and implement protocol versioning | `delivery` | `basic` | 5 | 4M / 4S | — |
+| [OW-WAR-0033](docs/warrants/OW-WAR-0033/manifest.toml) | Implement the remaining read projections | `delivery` | `basic` | 5 | 3M / 3S | — |
+| [OW-WAR-0034](docs/warrants/OW-WAR-0034/manifest.toml) | Implement the agent protocol and Draft Proposal validation | `delivery` | `basic` | 5 | 3M / 3S | WAR-SAS-RQ-072 |
+| [OW-WAR-0035](docs/warrants/OW-WAR-0035/manifest.toml) | Implement `war plan` and the interview loop | `delivery` | `basic` | 5 | 3M / 3S | WAR-SAS-RQ-071 |
+| [OW-WAR-0036](docs/warrants/OW-WAR-0036/manifest.toml) | Implement normative-decision detection and proposed-ADR generation | `delivery` | `basic` | 5 | 3M / 3S | WAR-SAS-RQ-020, WAR-SAS-RQ-073 |
+| [OW-WAR-0037](docs/warrants/OW-WAR-0037/manifest.toml) | Implement `war diff`: semantic difference between revisions | `delivery` | `basic` | 5 | 2M / 2S | — |
+| [OW-WAR-0038](docs/warrants/OW-WAR-0038/manifest.toml) | Implement the existing-ADR importer, preserving unknown classes | `delivery` | `controlled` | 5 | 4M / 4S | — |
+| [OW-WAR-0039](docs/warrants/OW-WAR-0039/manifest.toml) | Implement telemetry, unit economics, and untracked-work detection | `delivery` | `basic` | 5 | 3M / 3S | — |
+| [OW-WAR-0040](docs/warrants/OW-WAR-0040/manifest.toml) | Implement the Liminal adapter and measured parity harness | `delivery` | `controlled` | 5 | 4M / 4S | WAR-SAS-RQ-061 |
 
 ## Claimed SAS requirement coverage
 
@@ -156,5 +156,5 @@ Source: the Warrants under the configured warrants path.
 ## Not reported here
 
 - **Lifecycle state** (§24: phase, condition, outcome, currency, standing) is not implemented, so no Warrant has a status. A guessed status column would be acted on.
-- **Milestone progress** — milestones are not parsed, so the column above says only whether a milestones atom is DECLARED.
+- **Milestone progress** — the column counts DECLARED milestones and stages. Nothing here says any of them is met.
 - **Resolution** — nothing here says a Warrant is done.

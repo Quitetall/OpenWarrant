@@ -151,6 +151,37 @@ plant "Warrant Overview edited by hand" "warrant-overview.drift" "edited by hand
     "sed -i 's|^# Warrant Overview|# Warrant Overview TAMPERED|' docs/warrants/generated/WARRANT_OVERVIEW.md" \
     --generated
 
+# §91.2 test 12 — a composition cycle. This closes OW-WAR-0002 M2, which was
+# unmet because the cycle detector had unit tests but was never exercised through
+# the shipped binary.
+plant "composition cycle (self-parent)" "composition.cycle" "OW-WAR-0002" 2 \
+    "python3 - <<'EOF'
+import pathlib
+p = pathlib.Path('docs/warrants/OW-WAR-0002/manifest.toml')
+s = p.read_text()
+p.write_text(s.replace('ref = \"war://01a018db-19fc-7f2a-8e39-69730f255e33\"',
+                       'ref = \"war://01a018db-19fc-7f34-92db-54b2dca5446d\"'))
+EOF"
+
+plant "milestone dangling stage_ref" "milestones.invalid" "which is not declared" 2 \
+    "sed -i 's|stage_refs: \[\"STAGE-001\"\]|stage_refs: [\"STAGE-999\"]|' docs/warrants/OW-WAR-0001/atoms/45-milestones.yaml"
+
+plant "milestone dependency cycle" "milestones.invalid" "dependency cycle" 2 \
+    "python3 - <<'EOF'
+import pathlib
+p = pathlib.Path('docs/warrants/OW-WAR-0001/atoms/45-milestones.yaml')
+s = p.read_text()
+p.write_text(s.replace('  - id: \"M1\"\n    title:', '  - id: \"M1\"\n    depends_on: [\"M3\"]\n    title:', 1))
+EOF"
+
+plant "milestone carrying a stage field" "milestones.invalid" "belongs to a stage" 2 \
+    "python3 - <<'EOF'
+import pathlib
+p = pathlib.Path('docs/warrants/OW-WAR-0001/atoms/45-milestones.yaml')
+s = p.read_text()
+p.write_text(s.replace('  - id: \"M1\"\n    title:', '  - id: \"M1\"\n    executor_kind: \"human\"\n    title:', 1))
+EOF"
+
 echo
 echo "$PASSED passed, $FAILED failed"
 [[ "$FAILED" -eq 0 ]]

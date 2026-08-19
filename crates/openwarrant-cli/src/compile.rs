@@ -93,7 +93,14 @@ pub fn warrant_overview(repo: &Repository) -> Result<(camino::Utf8PathBuf, Strin
                 .collect(),
             atom_count: basis.atoms.len(),
             source: basis.manifest_source.clone(),
-            declares_milestones: basis.atoms.iter().any(|a| a.role == "milestones"),
+            milestone_count: basis
+                .atoms
+                .iter()
+                .filter(|a| a.role == "milestones")
+                .find_map(|a| {
+                    openwarrant_core::milestones::parse(&String::from_utf8_lossy(&a.bytes)).ok()
+                })
+                .map(|g| (g.milestones.len(), g.stages.len())),
         });
     }
     Ok((
