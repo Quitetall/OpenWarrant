@@ -272,35 +272,65 @@ fn check_one(
         ));
     }
 
-    // §39.4 / RQ-055: controlled and high assurance require an adequacy review.
-    // Checked structurally — the assurance atom must actually contain one.
-    if validated.assurance_level.requires_adequacy_review() {
-        let has_review = basis
-            .atoms
-            .iter()
-            .filter(|a| a.role == "assurance")
-            .any(|a| {
-                let text = String::from_utf8_lossy(&a.bytes).to_lowercase();
-                text.contains("adequacy")
-            });
-        if has_review {
-            report.push(Diagnostic::pass(
+    // §39 / RQ-055: contract-adequacy review, STRUCTURALLY checked.
+    //
+    // This replaced a substring search that passed any assurance atom merely
+    // containing the word. That search is deleted in the same commit that adds
+    // this check: two checks for one rule means the weak one decides. The word
+    // is deliberately not written as a string literal anywhere in this crate, so
+    // a repository-wide grep for the old call site returns nothing.
+    let requirement =
+        openwarrant_core::AdequacyRequirement::for_level(&validated.assurance_level.to_string());
+    for atom in basis.atoms.iter().filter(|a| a.role == "assurance") {
+        let review = openwarrant_core::adequacy::parse(&String::from_utf8_lossy(&atom.bytes));
+        let file = repo.relative(&one.dir.join(&atom.source));
+
+        match review.validate(requirement, &validated.assurance_level.to_string()) {
+            Ok(()) if requirement.requires_review() => {
+                report.push(Diagnostic::pass(
+                    "assurance.adequacy-review",
+                    format!(
+                        "{alias}: {} assurance carries an adequacy review with an \
+                         adversarial question",
+                        validated.assurance_level
+                    ),
+                ));
+            }
+            Ok(()) => {}
+            Err(err) => report.push(Diagnostic::error(
                 "assurance.adequacy-review",
-                format!(
-                    "{alias}: {} assurance carries an adequacy review",
-                    validated.assurance_level
-                ),
-            ));
-        } else {
-            report.push(Diagnostic::error(
-                "assurance.adequacy-review",
-                repo.relative(&one.dir.join("manifest.toml")),
-                format!(
-                    "{alias}: assurance_level is {} and §39.4 requires a contract-adequacy \
-                     review, but no assurance atom mentions one",
-                    validated.assurance_level
-                ),
-            ));
+                file.clone(),
+                format!("{alias}: {err}"),
+            )),
+        }
+
+        if requirement.requires_review() {
+            // §39.3 is a SHOULD ("where economical"), so an unexecuted attack set
+            // is a warning — except at high assurance, where §39.4 requires
+            // executed negative controls outright.
+            if !review.has_executed_attacks() {
+                let severity_is_error = requirement.requires_executed_controls();
+                let message = format!(
+                    "{alias}: the adequacy review has executed no attacks. §39.3 wants \
+                     violating artifacts planted and run; 'recorded here when run' is a \
+                     plan, not evidence"
+                );
+                report.push(if severity_is_error {
+                    Diagnostic::error("assurance.executed-attacks", file.clone(), message)
+                } else {
+                    Diagnostic::warn("assurance.executed-attacks", file.clone(), message)
+                });
+            }
+            if !review.has_outcome() {
+                report.push(Diagnostic::warn(
+                    "assurance.adequacy-outcome",
+                    file.clone(),
+                    format!(
+                        "{alias}: the adequacy review records no §39.2 outcome; a review \
+                         that reaches no outcome is a question, not a review"
+                    ),
+                ));
+            }
         }
     }
 

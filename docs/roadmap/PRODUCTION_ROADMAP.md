@@ -38,6 +38,7 @@ protocol proven only against a mock is not proven.
 | — contract revisions (OW-WAR-0009) | alpha | **resolved** 2026-08-19 |
 | — acceptance obligations (OW-WAR-0016) | alpha | **resolved** 2026-08-19 |
 | — epistemic classes (OW-WAR-0017) | alpha | **resolved** 2026-08-19 |
+| — contract-adequacy review (OW-WAR-0018) | alpha | **resolved** 2026-08-19 |
 | 2 — Agent planner | alpha | not started |
 | 3 — ADR federation | alpha | partial |
 | 4 — Knowledge Fabric registration | alpha (protocol) / beta (live) | not started |
@@ -89,7 +90,7 @@ here. `roadmap://` refs in manifests resolve to the identifiers in this table.
 |---|---|---|---|
 | ~~OW-WAR-0016~~ | ~~Acceptance obligations and bounded claims~~ **RESOLVED** | §38 | RQ-050, RQ-051 |
 | ~~OW-WAR-0017~~ | ~~Epistemic classes: evidence, observation, inference, judgment, resolution~~ **RESOLVED** | §40, §41, §42 | RQ-052 |
-| OW-WAR-0018 | Contract-adequacy review, structurally checked | §39 | RQ-055 |
+| ~~OW-WAR-0018~~ | ~~Contract-adequacy review, structurally checked~~ **RESOLVED** | §39 | RQ-055 |
 | OW-WAR-0019 | Gate Registry: definitions, qualification, bindings | §43 | RQ-056 |
 | OW-WAR-0020 | Gate Run semantics, askability, and invalidation | §44, §45 | RQ-054, RQ-057 |
 | OW-WAR-0021 | Verifier independence | §46 | RQ-053 |
@@ -151,6 +152,24 @@ Written when alpha closes, not before. Scope, so it is not rediscovered:
 - Phase 10: contractor Work Order profile, gated on the legal, finance and QMS
   decisions §98 names — not an engineering decision.
 - The AGPL-3.0 → Apache-2.0 relicense and public launch (`RELICENSING.md`).
+
+
+### Known gap, recorded rather than closed (OW-WAR-0018)
+
+`war check` now reports, on this repository's own corpus:
+
+- **12 of 14** `controlled` Warrants carry an adequacy review that records no
+  §39.2 outcome and has executed no §39.3 attacks. Both are WARN, not ERROR:
+  §39.3 says attacks SHOULD be run "where economical", and a SHOULD promoted to
+  a hard failure is the first rule anyone disables.
+- These 12 are Warrants whose work has not been executed yet. There is nothing
+  to attack until there is an implementation, so the honest record is a review
+  that asked its question and stopped. They close as their Warrants resolve.
+- The rule was written to catch this repository first. It did: OW-WAR-0023 had
+  passed RQ-055 for two weeks with a section that never asked §39.1's question,
+  because the old check was a substring search for the word "adequacy". That
+  substring search is deleted, and a repository-wide grep for its call site
+  returns nothing.
 
 ## How this document stays true
 

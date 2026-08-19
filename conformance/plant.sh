@@ -187,6 +187,26 @@ EOF"
 plant "dangling obligation_refs" "obligations.dangling-ref" "which is not declared" 2 \
     "sed -i 's|obligation_refs: \[\"OBL-001\"\]|obligation_refs: [\"OBL-999\"]|' docs/warrants/OW-WAR-0001/atoms/45-milestones.yaml"
 
+plant "controlled Warrant with no adequacy review" "assurance.adequacy-review" "requires a contract-adequacy review" 2 \
+    "python3 - <<'EOF'
+import pathlib
+p = pathlib.Path('docs/warrants/OW-WAR-0003/atoms/60-assurance.md')
+s = p.read_text()
+i = s.index('## Gate Adequacy')
+j = s.index('## ', i + 3)
+p.write_text(s[:i] + s[j:])
+EOF"
+
+plant "adequacy review with no adversarial question" "assurance.adequacy-review" "records no adversarial question" 2 \
+    "python3 - <<'EOF'
+import pathlib
+p = pathlib.Path('docs/warrants/OW-WAR-0003/atoms/60-assurance.md')
+s = p.read_text()
+i = s.index('## Gate Adequacy')
+j = s.index('## ', i + 3)
+p.write_text(s[:i] + '## Gate Adequacy\n\nRequired at the declared level. Reviewed and found satisfactory.\n\n' + s[j:])
+EOF"
+
 plant "milestone carrying a stage field" "milestones.invalid" "belongs to a stage" 2 \
     "python3 - <<'EOF'
 import pathlib
