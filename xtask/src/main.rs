@@ -73,6 +73,15 @@ fn gate() -> ExitCode {
             program: "cargo",
             args: &["deny", "check", "licenses"],
         },
+        // §92's second half, and the reason the first half means anything: every
+        // planted violation must be rejected BY ITS INTENDED CONTROL. The unit
+        // tests above prove the code does what it says; this proves the shipped
+        // binary refuses what it should, on real files, for the stated reason.
+        Step {
+            label: "planted violations (§92 — each rejected by its intended control)",
+            program: "bash",
+            args: &["conformance/plant.sh"],
+        },
     ];
 
     let mut failed = Vec::new();
