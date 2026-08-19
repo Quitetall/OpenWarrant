@@ -201,7 +201,7 @@ impl Report {
     #[must_use]
     pub fn verdict_line(&self) -> String {
         if self.is_ready() {
-            "WELL-FORMED (record only — Preflight and gate execution are not implemented)"
+            "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)"
                 .to_owned()
         } else {
             "NOT READY".to_owned()

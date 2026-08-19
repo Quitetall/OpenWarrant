@@ -18,6 +18,24 @@ output_schema_ref: "schema://war-check-report/v1"
 provenance: "local_candidate"
 input_kinds: ["warrant-corpus"]
 
+# §44.7 — a structured argument vector, not a shell string. This gate IS
+# `war check`; running it does not recurse, because `war check` validates the
+# record and never executes gates (that limit is in known_blind_spots below).
+# The built binary rather than `war` on PATH: this repository is a source
+# checkout, and `cargo xtask gate` builds the workspace before running anything.
+# A released install would say ["war", "check", "--generated"], and pointing at
+# PATH here would make this gate permanently not_askable(missing_tool) in the one
+# environment it is supposed to run in.
+argv: ["./target/debug/war", "check", "--generated"]
+
+# §44.8 — this gate reads; it changes nothing.
+mutating: "false"
+
+# §44.2 — this gate's own deadline. `war check` on a 40-Warrant corpus takes
+# under a second; 120 leaves room for a much larger one without the deadline
+# becoming decorative.
+timeout_secs: "120"
+
 # What this gate claims to detect. Every entry has a recorded detection result
 # below, because §43.4 qualification is about DECLARED fault classes.
 fault_model: ["manifest-malformed", "atom-missing", "stale-parent-contract-digest", "generated-view-drift", "frontmatter-injection", "adr-malformed", "composition-cycle", "milestone-graph-invalid", "obligation-malformed", "adequacy-review-absent"]
