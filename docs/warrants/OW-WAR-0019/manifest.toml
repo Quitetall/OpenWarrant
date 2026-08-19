@@ -1,0 +1,44 @@
+schema = "oh.war/manifest/v1"
+uuid = "01a01bd5-a42a-7dc9-819f-8ca614dc87eb"
+local_alias = "OW-WAR-0019"
+enterprise_id = ""
+title = "Implement the Gate Registry: definitions, qualification, and bindings"
+profile = "delivery"
+assurance_level = "controlled"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-056"
+contribution = "complete"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-6/gate-registry"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true

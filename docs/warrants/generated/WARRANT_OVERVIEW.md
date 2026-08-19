@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-13 Warrant(s) in this repository.
+20 Warrant(s) in this repository.
 
 ## Summary
 
@@ -24,10 +24,17 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0011](docs/warrants/OW-WAR-0011/manifest.toml) | Implement prerequisites and Preflight | `delivery` | `basic` | 5 | declared | WAR-SAS-RQ-035 |
 | [OW-WAR-0012](docs/warrants/OW-WAR-0012/manifest.toml) | Implement the context model, context manifest, and trust classes | `delivery` | `basic` | 5 | declared | — |
 | [OW-WAR-0013](docs/warrants/OW-WAR-0013/manifest.toml) | Validate SAS and Roadmap traceability | `delivery` | `basic` | 5 | declared | WAR-SAS-RQ-022 |
+| [OW-WAR-0014](docs/warrants/OW-WAR-0014/manifest.toml) | Implement the rationale model, assumptions, and unknowns | `delivery` | `basic` | 5 | declared | — |
+| [OW-WAR-0015](docs/warrants/OW-WAR-0015/manifest.toml) | Implement deliverables, artifacts, and artifact provenance | `delivery` | `basic` | 5 | declared | — |
+| [OW-WAR-0016](docs/warrants/OW-WAR-0016/manifest.toml) | Implement acceptance obligations and bounded claims | `delivery` | `controlled` | 5 | declared | WAR-SAS-RQ-050, WAR-SAS-RQ-051 |
+| [OW-WAR-0017](docs/warrants/OW-WAR-0017/manifest.toml) | Implement the epistemic classes: evidence, observation, inference, judgment, resolution | `delivery` | `controlled` | 5 | declared | WAR-SAS-RQ-052 |
+| [OW-WAR-0018](docs/warrants/OW-WAR-0018/manifest.toml) | Implement contract-adequacy review, structurally checked | `delivery` | `controlled` | 5 | declared | WAR-SAS-RQ-055 |
+| [OW-WAR-0019](docs/warrants/OW-WAR-0019/manifest.toml) | Implement the Gate Registry: definitions, qualification, and bindings | `delivery` | `controlled` | 5 | declared | WAR-SAS-RQ-056 |
+| [OW-WAR-0020](docs/warrants/OW-WAR-0020/manifest.toml) | Implement Gate Run semantics, askability, and invalidation | `delivery` | `controlled` | 5 | declared | WAR-SAS-RQ-054, WAR-SAS-RQ-057 |
 
 ## Claimed SAS requirement coverage
 
-23 distinct requirement(s) are claimed by at least one Warrant.
+30 distinct requirement(s) are claimed by at least one Warrant.
 
 > **Claimed, not verified.** A Warrant declaring `[[implements]]` is an assertion by its author. §34.3 treats requirement status as a separate record; nothing here checks that the requirement is actually met.
 
@@ -48,6 +55,13 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-035` — OW-WAR-0011
 - `WAR-SAS-RQ-040` — OW-WAR-0007
 - `WAR-SAS-RQ-041` — OW-WAR-0007
+- `WAR-SAS-RQ-050` — OW-WAR-0016
+- `WAR-SAS-RQ-051` — OW-WAR-0016
+- `WAR-SAS-RQ-052` — OW-WAR-0017
+- `WAR-SAS-RQ-054` — OW-WAR-0020
+- `WAR-SAS-RQ-055` — OW-WAR-0018
+- `WAR-SAS-RQ-056` — OW-WAR-0019
+- `WAR-SAS-RQ-057` — OW-WAR-0020
 - `WAR-SAS-RQ-064` — OW-WAR-0001
 - `WAR-SAS-RQ-070` — OW-WAR-0001
 - `WAR-SAS-RQ-074` — OW-WAR-0005
@@ -70,6 +84,13 @@ Source: the Warrants under the configured warrants path.
 - **OW-WAR-0011** · roadmap: roadmap://OW-PHASE-5/preflight
 - **OW-WAR-0012** · roadmap: roadmap://OW-PHASE-1/context
 - **OW-WAR-0013** · roadmap: roadmap://OW-PHASE-1/traceability
+- **OW-WAR-0014** · roadmap: roadmap://OW-PHASE-1/rationale
+- **OW-WAR-0015** · roadmap: roadmap://OW-PHASE-5/artifacts
+- **OW-WAR-0016** · roadmap: roadmap://OW-PHASE-6/obligations
+- **OW-WAR-0017** · roadmap: roadmap://OW-PHASE-6/epistemic
+- **OW-WAR-0018** · roadmap: roadmap://OW-PHASE-6/adequacy
+- **OW-WAR-0019** · roadmap: roadmap://OW-PHASE-6/gate-registry
+- **OW-WAR-0020** · roadmap: roadmap://OW-PHASE-6/gate-runs
 
 ## Not reported here
 

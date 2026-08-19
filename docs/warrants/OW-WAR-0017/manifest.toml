@@ -1,0 +1,44 @@
+schema = "oh.war/manifest/v1"
+uuid = "01a01bd4-ab15-7fcf-9b6b-25f71a48d7c5"
+local_alias = "OW-WAR-0017"
+enterprise_id = ""
+title = "Implement the epistemic classes: evidence, observation, inference, judgment, resolution"
+profile = "delivery"
+assurance_level = "controlled"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-052"
+contribution = "complete"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-6/epistemic"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true
