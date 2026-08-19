@@ -7,7 +7,7 @@
 use std::collections::BTreeMap;
 
 use openwarrant_compiler::lower;
-use openwarrant_core::{ValidatedManifest, detect_parent_cycles, milestones};
+use openwarrant_core::{ValidatedManifest, detect_parent_cycles, milestones, obligation};
 
 use crate::compile::{adr_overview, projections, warrant_overview};
 use crate::diagnostic::{Diagnostic, Report, Severity};
@@ -25,6 +25,8 @@ pub fn run(
     };
 
     let mut report = Report::default();
+    let mut undisposed_warrants = 0usize;
+    let mut total_warrants = 0usize;
 
     if dirs.is_empty() {
         report.push(Diagnostic::warn(
@@ -58,6 +60,20 @@ pub fn run(
 
     for one in &loaded {
         check_one(repo, one, check_generated, &parent_digests, &mut report);
+        if let Some(basis) = &one.basis {
+            total_warrants += 1;
+            let fully_undisposed = basis
+                .atoms
+                .iter()
+                .filter(|a| a.role == "assurance")
+                .filter_map(|a| obligation::parse(&String::from_utf8_lossy(&a.bytes)).ok())
+                .any(|set| {
+                    !set.obligations.is_empty() && set.undisposed().len() == set.obligations.len()
+                });
+            if fully_undisposed {
+                undisposed_warrants += 1;
+            }
+        }
     }
 
     // Cross-Warrant checks need the whole corpus, so they run after the loop.
@@ -109,6 +125,14 @@ pub fn run(
             &mut report,
         );
         drift_check(repo, adr_overview(repo), "adr-overview", &mut report);
+    }
+
+    // §38.6 disposition status, aggregated once for the corpus rather than
+    // blocking each Warrant. Undisposed is the normal state of planned work.
+    if undisposed_warrants > 0 {
+        report.note(format!(
+            "{undisposed_warrants} of {total_warrants} Warrant(s) have no disposed              obligations — §38.6 yields no resolution verdict for them, which is the              expected state of work that has not been assessed"
+        ));
     }
 
     // §28.5 coverage, reported once for the corpus. A contract digest covering
@@ -312,6 +336,62 @@ fn check_one(
             }
             Err(err) => report.push(Diagnostic::error(
                 "milestones.invalid",
+                repo.relative(&one.dir.join(&atom.source)),
+                format!("{alias}: {err}"),
+            )),
+        }
+    }
+
+    // §38: obligations are parsed, and milestone `obligation_refs` are resolved
+    // against them. Those references dangled unchecked until OW-WAR-0016 — a
+    // milestone could cite proof nobody ever wrote.
+    let obligations = basis
+        .atoms
+        .iter()
+        .filter(|a| a.role == "assurance")
+        .map(|a| (a, obligation::parse(&String::from_utf8_lossy(&a.bytes))))
+        .collect::<Vec<_>>();
+    for (atom, parsed) in &obligations {
+        match parsed {
+            Ok(set) => {
+                report.push(Diagnostic::pass(
+                    "obligations.valid",
+                    format!(
+                        "{alias}: {} obligation(s), each with a bounded scope and evidence",
+                        set.obligations.len()
+                    ),
+                ));
+                // Cross-check the milestone graph's obligation_refs.
+                let refs: std::collections::BTreeMap<String, Vec<String>> = basis
+                    .atoms
+                    .iter()
+                    .filter(|a| a.role == "milestones")
+                    .find_map(|a| milestones::parse(&String::from_utf8_lossy(&a.bytes)).ok())
+                    .map(|g| {
+                        g.milestones
+                            .iter()
+                            .map(|m| (m.id.clone(), m.obligation_refs.clone()))
+                            .collect()
+                    })
+                    .unwrap_or_default();
+                if let Err(err) = set.check_references(&refs) {
+                    report.push(Diagnostic::error(
+                        "obligations.dangling-ref",
+                        repo.relative(&one.dir.join(&atom.source)),
+                        format!("{alias}: {err}"),
+                    ));
+                }
+                // §38.6 yields no verdict without full disposition — but that
+                // bears on RESOLUTION readiness, not on whether the record is
+                // well-formed, which is what this verdict is about.
+                //
+                // Reporting it as a blocking UNKNOWN would make every unstarted
+                // Warrant permanently NOT READY. That is the same defect the
+                // Phase 1 scope note had: a verdict that never changes carries
+                // no information. It is counted and noted at corpus level below.
+            }
+            Err(err) => report.push(Diagnostic::error(
+                "obligations.invalid",
                 repo.relative(&one.dir.join(&atom.source)),
                 format!("{alias}: {err}"),
             )),

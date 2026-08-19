@@ -174,6 +174,19 @@ s = p.read_text()
 p.write_text(s.replace('  - id: \"M1\"\n    title:', '  - id: \"M1\"\n    depends_on: [\"M3\"]\n    title:', 1))
 EOF"
 
+plant "obligation with no scope" "obligations.invalid" "declares no scope" 2 \
+    "python3 - <<'EOF'
+import pathlib
+p = pathlib.Path('docs/warrants/OW-WAR-0001/atoms/60-assurance.md')
+s = p.read_text()
+i = s.index('- **scope:**')
+j = s.index('\n', i)
+p.write_text(s[:i] + s[j+1:])
+EOF"
+
+plant "dangling obligation_refs" "obligations.dangling-ref" "which is not declared" 2 \
+    "sed -i 's|obligation_refs: \[\"OBL-001\"\]|obligation_refs: [\"OBL-999\"]|' docs/warrants/OW-WAR-0001/atoms/45-milestones.yaml"
+
 plant "milestone carrying a stage field" "milestones.invalid" "belongs to a stage" 2 \
     "python3 - <<'EOF'
 import pathlib

@@ -18,6 +18,7 @@ pub mod frontmatter;
 pub mod identity;
 pub mod manifest;
 pub mod milestones;
+pub mod obligation;
 pub mod role;
 pub mod state;
 pub mod structured;
@@ -38,6 +39,7 @@ pub use milestones::{
     ExecutorKind, MILESTONES_SCHEMA, Milestone, MilestoneError, MilestoneGraph, Port,
     ResponsibilityTier, Stage,
 };
+pub use obligation::{Disposition, Obligation, ObligationError, ObligationSet, ScopeKind};
 pub use role::{AtomRole, Jurisdiction, Profile, RoleError, is_namespaced_extension_role};
 pub use state::{
     CommonOutcome, Currency, ExecutionCondition, Phase, Provenance, ResolutionStanding, StateError,

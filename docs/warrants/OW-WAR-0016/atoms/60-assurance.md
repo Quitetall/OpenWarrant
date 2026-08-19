@@ -12,7 +12,7 @@ classification: internal
 ## Acceptance Obligations
 
 ### OBL-001 — the schema fits the real corpus
-- **scope:** all 21 obligations currently written in this repository.
+- **scope:** all obligations currently written in this repository. Stated as 21 when this Warrant was authored; the corpus grew to 134 when the roadmap Warrants were written, and the count is measured at run time rather than hard-coded.
 - **evidence:** each migrates without losing its bounded-scope statement.
 
 ### OBL-002 — an unbounded universal claim is REFUSED
