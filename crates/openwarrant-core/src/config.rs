@@ -90,6 +90,11 @@ pub struct Paths {
     pub adrs: String,
     #[serde(default = "Paths::default_warrants")]
     pub warrants: String,
+    /// §43.1 — local gate candidates and cached registry projections. The
+    /// authoritative institutional registry is Knowledge Fabric's; this
+    /// directory never holds it (OW-ADR-0005).
+    #[serde(default = "Paths::default_gates")]
+    pub gates: String,
 }
 
 impl Paths {
@@ -105,6 +110,9 @@ impl Paths {
     fn default_warrants() -> String {
         "docs/warrants".to_owned()
     }
+    fn default_gates() -> String {
+        "docs/gates".to_owned()
+    }
 
     fn validate(&self) -> Result<(), ConfigError> {
         for (field, value) in [
@@ -112,6 +120,7 @@ impl Paths {
             ("roadmap", &self.roadmap),
             ("adrs", &self.adrs),
             ("warrants", &self.warrants),
+            ("gates", &self.gates),
         ] {
             if value.trim().is_empty() {
                 return Err(ConfigError::PathEmpty { field });
@@ -146,6 +155,7 @@ impl Default for Paths {
             roadmap: Self::default_roadmap(),
             adrs: Self::default_adrs(),
             warrants: Self::default_warrants(),
+            gates: Self::default_gates(),
         }
     }
 }

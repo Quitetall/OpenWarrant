@@ -34,11 +34,14 @@ fi
 # development — and a gate step that is usually skipped is a gate step that is
 # never run, which is the whole failure this battery exists to disprove. Editing
 # Rust while the plants run is fine; editing docs/warrants/ is not, because the
-# restore is `git checkout` and would discard that work.
-if ! git diff --quiet -- docs/warrants/ docs/adr/ || ! git diff --cached --quiet -- docs/warrants/ docs/adr/; then
-    echo "docs/warrants/ or docs/adr/ has uncommitted changes." >&2
+# restore is `git checkout` and would discard that work. docs/gates/ joined this
+# list when gate plants landed: the guard and the restore must name the same
+# paths, or a plant silently deletes work the guard said it was protecting.
+if ! git diff --quiet -- docs/warrants/ docs/adr/ docs/gates/ \
+    || ! git diff --cached --quiet -- docs/warrants/ docs/adr/ docs/gates/; then
+    echo "docs/warrants/, docs/adr/ or docs/gates/ has uncommitted changes." >&2
     echo "Plants mutate those files and restore with 'git checkout', which would" >&2
-    echo "discard your work. Commit or stash docs/warrants/ first." >&2
+    echo "discard your work. Commit or stash those first." >&2
     exit 1
 fi
 
@@ -46,7 +49,7 @@ PASSED=0
 FAILED=0
 
 restore() {
-    git checkout -- docs/warrants/ docs/adr/ 2>/dev/null || true
+    git checkout -- docs/warrants/ docs/adr/ docs/gates/ 2>/dev/null || true
 }
 trap restore EXIT
 
@@ -206,6 +209,24 @@ i = s.index('## Gate Adequacy')
 j = s.index('## ', i + 3)
 p.write_text(s[:i] + '## Gate Adequacy\n\nRequired at the declared level. Reviewed and found satisfactory.\n\n' + s[j:])
 EOF"
+
+plant "obligation citing an unregistered gate" "gate.unresolved" "not in the registry" 2 \
+    "sed -i 's|- \\*\\*gate:\\*\\* \`gate://software.repo.war-check@1.0.0\`|- **gate:** \`gate://does-not-exist@1.0.0\`|' docs/warrants/OW-WAR-0019/atoms/60-assurance.md"
+
+plant "citing a draft (unqualified) gate" "gate.not-bindable" "permits binding only a qualified gate" 2 \
+    "sed -i 's|^lifecycle: \"qualified\"|lifecycle: \"draft\"|' docs/gates/software.repo.war-check@1.0.0.yaml"
+
+plant "gate definition with no version" "gate.invalid" "declares no version" 2 \
+    "sed -i 's|^version: \"1.0.0\"|version: \"\"|' docs/gates/software.repo.war-check@1.0.0.yaml"
+
+plant "qualification with no negative control" "gate.invalid" "no negative controls" 2 \
+    "sed -i 's|^qualification_negative_controls: .*|qualification_negative_controls: []|' docs/gates/software.repo.war-check@1.0.0.yaml"
+
+plant "a declared fault class that was not detected" "gate.invalid" "records no detection result" 2 \
+    "sed -i '0,/    detected: \"true\"/s//    detected: \"false\"/' docs/gates/software.repo.war-check@1.0.0.yaml"
+
+plant "a placeholder where a digest belongs" "gate.invalid" "which is not a digest" 2 \
+    "sed -i 's|^qualification_digest: \"\"|qualification_digest: \"sha256:pending\"|' docs/gates/software.repo.war-check@1.0.0.yaml"
 
 plant "milestone carrying a stage field" "milestones.invalid" "belongs to a stage" 2 \
     "python3 - <<'EOF'
