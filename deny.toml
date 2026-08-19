@@ -1,0 +1,78 @@
+# cargo-deny configuration.
+#
+# The licenses section is the load-bearing one. OpenWarrant ships AGPL-3.0-or-later
+# today and is intended to become Apache-2.0 when it is made public. That relicense
+# is only possible if:
+#
+#   1. the copyright is ours to relicense, and
+#   2. no dependency imposes terms Apache-2.0 cannot satisfy.
+#
+# (2) is what this file enforces, and it has to be enforced from the first commit
+# rather than audited at v0.1 -- a GPL/AGPL/LGPL crate discovered late means
+# rewriting whatever depends on it, and the deeper it sits the more expensive that
+# is. The allowlist is therefore permissive-only. It is not a style rule.
+#
+# Adding a license here is a decision about whether OpenWarrant can still be
+# relicensed afterwards. Weak-copyleft licenses (MPL-2.0, EPL-2.0) are absent
+# deliberately: they do not infect our source, but they carry per-file source
+# disclosure obligations that a permissive redistribution story should not
+# silently inherit. If one is ever genuinely needed, add it as a narrow
+# `exceptions` entry naming the crate, never to the blanket `allow` list.
+
+[licenses]
+version = 2
+# The allowlist is deliberately broader than the current dependency set: it
+# states which licenses are ACCEPTABLE, not which happen to be present today.
+# Warning on the difference would make the gate noisy on every run, and a gate
+# whose output is routinely ignored stops being read at all.
+unused-allowed-license = "allow"
+allow = [
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "MIT",
+    "MIT-0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "Unicode-3.0",
+    "Unicode-DFS-2016",
+    "CC0-1.0",
+]
+confidence-threshold = 0.93
+
+# Our own crates are AGPL-3.0-or-later, which is correct and must not be
+# confused with a dependency being AGPL. Exempt them by name so the allowlist
+# above stays a statement purely about third-party code.
+[[licenses.exceptions]]
+name = "openwarrant-core"
+allow = ["AGPL-3.0-or-later"]
+
+[[licenses.exceptions]]
+name = "openwarrant-compiler"
+allow = ["AGPL-3.0-or-later"]
+
+[[licenses.exceptions]]
+name = "openwarrant-agent"
+allow = ["AGPL-3.0-or-later"]
+
+[[licenses.exceptions]]
+name = "openwarrant-cli"
+allow = ["AGPL-3.0-or-later"]
+
+[[licenses.exceptions]]
+name = "xtask"
+allow = ["AGPL-3.0-or-later"]
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+
+[advisories]
+version = 2
+yanked = "deny"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

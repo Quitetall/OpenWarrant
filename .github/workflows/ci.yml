@@ -1,0 +1,75 @@
+name: CI
+
+# Cost discipline is deliberate, not incidental. ADR 0179 measured what the
+# alternative costs on this account: an unfiltered four-platform matrix with two
+# macOS legs at 10x billing ran roughly $5.52 per push and exhausted a $20 month
+# in about three and a half pushes, and one job with no `timeout-minutes`
+# inherited GitHub's 360-minute default for ~$288 of exposure from a single hang.
+# Every job below therefore declares a timeout, and the workflow declares a
+# concurrency group so a rapid push sequence cancels its own superseded runs.
+#
+# RUNNER TIER (ADR 0182). OpenWarrant is PRIVATE, so its minutes are billed and
+# it cannot receive a pull request from an untrusted fork. Both facts point the
+# same way: this workflow belongs on a self-hosted runner on the workstation.
+# That runner does not exist yet, so `ubuntu-latest` is used in the interim and
+# this comment is the record of what it is waiting for. When the runner is
+# registered, change `runs-on` here and nowhere else.
+#
+# If OpenWarrant is ever made public, this decision INVERTS and the reason is
+# security rather than cost: a fork pull request against a public repository
+# with a self-hosted runner executes attacker-supplied code on the workstation.
+# Public means GitHub-hosted, always.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+
+jobs:
+  # `gate` is the single required status check for this repository (ADR 0182).
+  #
+  # Required checks are matched BY NAME. A matrix leg's name changes when the
+  # matrix changes, and a required check whose name no longer exists is silently
+  # not enforced while still appearing configured. One stable aggregator makes
+  # the required set immune to CI reorganisation: adding work to the gate is an
+  # edit to `cargo xtask gate`, not a new branch-protection rule.
+  gate:
+    name: gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      # No toolchain is named here on purpose. `rust-toolchain.toml` pins
+      # 1.97.1 exactly, and rustup honours it; naming a version in the workflow
+      # too would create a second source of truth that can disagree with the
+      # file. ADR 0092's lesson, applied to toolchains.
+      - name: Show toolchain
+        run: |
+          rustc --version
+          cargo --version
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-deny
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-deny
+
+      # One command. The gate is defined in the repository, in Rust, and runs
+      # identically here and on a developer machine -- so "green in CI" and
+      # "green locally" cannot mean different things.
+      - name: cargo xtask gate
+        run: cargo xtask gate

@@ -1,0 +1,15 @@
+schema = "oh.war/repository-config/v1"
+
+[project]
+name = "OpenWarrant"
+namespace = "OW"
+
+[paths]
+sas = "docs/sas"
+roadmap = "docs/roadmap"
+adrs = "docs/adr"
+warrants = "docs/warrants"
+
+[generated]
+commit = true
+verify_drift = true

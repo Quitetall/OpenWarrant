@@ -1,0 +1,12 @@
+[package]
+name = "openwarrant-agent"
+description = "Agent request/response protocol for WAR draft proposals. No model provider, no agent loop."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+serde = { workspace = true }

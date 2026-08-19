@@ -1,0 +1,11 @@
+/target
+**/*.rs.bk
+
+# SAS §59.1 "disposable": caches and derived state that must never be a source.
+.openwarrant/cache/
+.openwarrant/state/
+
+# Generated views are NOT listed here on purpose. This repository sets
+# `[generated] commit = true, verify_drift = true` (§59.2), so compiled parents
+# are tracked and `war check --generated` fails when a committed view differs
+# from a fresh compilation. Ignoring them would delete the drift signal.

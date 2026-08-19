@@ -1,0 +1,42 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/openwarrant-core",
+    "crates/openwarrant-compiler",
+    "crates/openwarrant-agent",
+    "crates/openwarrant-cli",
+    "xtask",
+]
+
+[workspace.package]
+version = "0.0.1"
+edition = "2024"
+rust-version = "1.97.1"
+license = "AGPL-3.0-or-later"
+repository = "https://github.com/Quitetall/OpenWarrant"
+authors = ["Brian Lam <briankhanglam@gmail.com>"]
+
+# WAR SAS v0.1.0-draft.1 §80 lists these as NONBINDING recommendations, and says
+# "Library selection is an implementation ADR when it becomes binding." Nothing
+# here is pinned into the wire format yet. The one choice that WILL bind is the
+# RFC 8785 canonical-JSON implementation (§65.2) -- it decides the bytes every
+# cross-system digest is computed over -- so it is deliberately ABSENT from this
+# list until OW-ADR-0001 selects it.
+#
+# Every entry is MIT and/or Apache-2.0. That is a hard constraint, not a
+# preference: this repository ships AGPL-3.0 today and is intended to become
+# Apache-2.0 when it goes public. A GPL/AGPL/LGPL dependency adopted now could
+# not be relicensed later, so `cargo deny check licenses` gates it in CI.
+[workspace.dependencies]
+camino = "1"
+clap = { version = "4", features = ["derive"] }
+miette = "7"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+sha2 = "0.10"
+thiserror = "2"
+toml = "0.9"
+uuid = { version = "1", features = ["v7", "serde"] }
+
+[profile.release]
+lto = "thin"

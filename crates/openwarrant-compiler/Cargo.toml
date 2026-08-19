@@ -1,0 +1,16 @@
+[package]
+name = "openwarrant-compiler"
+description = "Compiles Work Authorization Records from source atoms to canonical IR and projections."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+openwarrant-core = { path = "../openwarrant-core" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+thiserror = { workspace = true }

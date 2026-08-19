@@ -1,0 +1,45 @@
+# Repository configuration (SAS §60).
+#
+# `war init --namespace <NS>` writes this file. It is shown here annotated.
+
+schema = "oh.war/repository-config/v1"
+
+[project]
+# Free-text project name.
+name = "OpenWarrant"
+
+# Prefixes every local alias in this repository: `OW` gives `OW-WAR-0001`.
+#
+# A local alias is NOT a global identifier (§12.3, RQ-002). Two repositories may
+# both hold `OW-WAR-0001` and they are different records; only the UUIDv7
+# distinguishes them. Changing this after warrants exist orphans their aliases,
+# which is why `war init` refuses to overwrite an initialized repository.
+namespace = "OW"
+
+# Set once the project is registered with Knowledge Fabric. Registration adds
+# global authority; it does not transfer source authority away from Git (§12.5,
+# RQ-004).
+# knowledge_fabric_project_ref = "project://openwarrant"
+
+[paths]
+# Semantics are NOT inferred from paths (§59). A directory is the warrant tree
+# because this field says so, not because of what it is called. Paths are
+# relative to the repository root; absolute paths are refused because they would
+# resolve to one machine's layout.
+sas = "docs/sas"
+roadmap = "docs/roadmap"
+adrs = "docs/adr"
+warrants = "docs/warrants"
+
+[generated]
+# Generated-view policy (§59.2).
+#
+# `commit = true` tracks compiled parents in Git, which is what makes
+# `verify_drift` possible: a fresh compilation can be compared against what was
+# committed, and §17.3 requires that comparison to FAIL on a difference.
+#
+# Setting `commit = false` is permitted and removes the comparison. The authority
+# of the source atoms is unchanged either way — a generated parent is never
+# authoritative merely because it is in Git (§17.2).
+commit = true
+verify_drift = true

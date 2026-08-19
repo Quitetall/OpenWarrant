@@ -1,0 +1,13 @@
+[toolchain]
+# Pinned EXACTLY, not floated to `stable`.
+#
+# This fleet has already paid for the alternative. `cargo clippy` on 1.97 reported
+# clean while CI was red on the pinned 1.88 for twelve consecutive runs: a newer
+# clippy is not a superset of an older one, because lints are added, removed, and
+# renamed in both directions. A toolchain claim is only meaningful when the
+# toolchain is named, so every gate result for this repository is stated as
+# "green on 1.97.1" or it is not stated at all.
+#
+# Bumping this is a deliberate act with its own gate run, never a side effect.
+channel = "1.97.1"
+components = ["rustfmt", "clippy"]

@@ -1,0 +1,18 @@
+[package]
+name = "openwarrant-core"
+description = "Pure domain types and validators for Work Authorization Records (WAR)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+# SAS §79.1: "Avoid I/O where practical." This crate defines and validates
+# meaning; reading and writing files is the CLI's job and compiling is the
+# compiler's. Keeping `std::fs` out of here is what makes the validators
+# testable against in-memory fixtures rather than against a scratch directory.
+[dependencies]
+serde = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true }
