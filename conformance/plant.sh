@@ -143,8 +143,12 @@ plant "ADR with an unknown status" "adr.malformed" "unknown ADR status" 2 \
 plant "ADR missing a required key" "adr.malformed" "missing required frontmatter key" 2 \
     "sed -i '/^adr_uuid:/d' docs/adr/atoms/OW-ADR-0002-frontmatter-subset.md"
 
-plant "ADR Overview edited by hand" "adr.overview-drift" "edited by hand" 2 \
+plant "ADR Overview edited by hand" "adr-overview.drift" "edited by hand" 2 \
     "sed -i 's|^# Architecture Decision Record Overview|# Architecture Decision Record Overview TAMPERED|' docs/adr/generated/ADR_OVERVIEW.md" \
+    --generated
+
+plant "Warrant Overview edited by hand" "warrant-overview.drift" "edited by hand" 2 \
+    "sed -i 's|^# Warrant Overview|# Warrant Overview TAMPERED|' docs/warrants/generated/WARRANT_OVERVIEW.md" \
     --generated
 
 echo

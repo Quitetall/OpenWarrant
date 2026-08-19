@@ -9,7 +9,7 @@ use std::collections::BTreeMap;
 use openwarrant_compiler::lower;
 use openwarrant_core::{ValidatedManifest, detect_parent_cycles};
 
-use crate::compile::{adr_overview, projections};
+use crate::compile::{adr_overview, projections, warrant_overview};
 use crate::diagnostic::{Diagnostic, Report, Severity};
 use crate::repo::{Loaded, RepoError, Repository};
 
@@ -99,36 +99,16 @@ pub fn run(
             format!("{} ADR(s) parsed", adrs.records.len()),
         ));
     }
+    // Both corpus-wide projections drift-check through the same function, so
+    // they cannot come to report drift differently.
     if check_generated && repo.config.generated.verify_drift {
-        match adr_overview(repo) {
-            Ok((path, expected)) => {
-                let relative = repo.relative(&path);
-                match std::fs::read_to_string(&path) {
-                    Ok(actual) if actual == expected => report.push(Diagnostic::pass(
-                        "adr.overview-drift",
-                        "ADR Overview matches a fresh compilation",
-                    )),
-                    Ok(_) => report.push(Diagnostic::error(
-                        "adr.overview-drift",
-                        relative,
-                        "the committed ADR Overview differs from a fresh compilation; \
-                         it was edited by hand or an ADR changed without recompiling",
-                    )),
-                    Err(_) if repo.config.generated.commit => report.push(Diagnostic::error(
-                        "adr.overview-missing",
-                        relative,
-                        "the ADR Overview is missing and this repository commits \
-                         generated views; run `war compile`",
-                    )),
-                    Err(_) => {}
-                }
-            }
-            Err(err) => report.push(Diagnostic::error(
-                "adr.overview-compile",
-                repo.config.paths.adrs.clone(),
-                err.to_string(),
-            )),
-        }
+        drift_check(
+            repo,
+            warrant_overview(repo),
+            "warrant-overview",
+            &mut report,
+        );
+        drift_check(repo, adr_overview(repo), "adr-overview", &mut report);
     }
 
     // Printed on every run including a clean one, and deliberately NOT a
@@ -144,6 +124,52 @@ pub fn run(
     }
 
     Ok(report)
+}
+
+/// Compare one generated corpus-wide projection against a fresh compilation.
+///
+/// Shared by the Warrant and ADR overviews so the two cannot drift apart in how
+/// they report drift — a duplicated check is a check that gets fixed in one place.
+fn drift_check(
+    repo: &Repository,
+    compiled: Result<(camino::Utf8PathBuf, String), RepoError>,
+    rule: &str,
+    report: &mut Report,
+) {
+    match compiled {
+        Ok((path, expected)) => {
+            let relative = repo.relative(&path);
+            let name = path.file_name().unwrap_or("overview").to_owned();
+            match std::fs::read_to_string(&path) {
+                Ok(actual) if actual == expected => report.push(Diagnostic::pass(
+                    format!("{rule}.drift"),
+                    format!("{name} matches a fresh compilation"),
+                )),
+                Ok(_) => report.push(Diagnostic::error(
+                    format!("{rule}.drift"),
+                    relative,
+                    format!(
+                        "the committed {name} differs from a fresh compilation; it was \
+                         edited by hand or its sources changed without recompiling"
+                    ),
+                )),
+                Err(_) if repo.config.generated.commit => report.push(Diagnostic::error(
+                    format!("{rule}.missing"),
+                    relative,
+                    format!(
+                        "{name} is missing and this repository commits generated views; \
+                         run `war compile`"
+                    ),
+                )),
+                Err(_) => {}
+            }
+        }
+        Err(err) => report.push(Diagnostic::error(
+            format!("{rule}.compile"),
+            repo.config.paths.warrants.clone(),
+            err.to_string(),
+        )),
+    }
 }
 
 /// Contract digest per Warrant UUID, for verifying children's citations.

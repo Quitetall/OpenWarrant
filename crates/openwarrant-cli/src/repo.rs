@@ -292,6 +292,15 @@ impl Repository {
         self.root.join(&self.config.paths.adrs).join("atoms")
     }
 
+    /// Where the generated Warrant Overview is written (§17.5 `status`).
+    #[must_use]
+    pub fn warrant_overview_path(&self) -> Utf8PathBuf {
+        self.root
+            .join(&self.config.paths.warrants)
+            .join("generated")
+            .join("WARRANT_OVERVIEW.md")
+    }
+
     /// Where the generated ADR Overview is written (§19.6).
     #[must_use]
     pub fn adr_overview_path(&self) -> Utf8PathBuf {

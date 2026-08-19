@@ -1,0 +1,46 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M0"
+    title: "The authorization-without-authority question is answered in writing"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-000"]
+
+  - id: "M1"
+    title: "Revisions carry ancestry and freeze at authorization"
+    depends_on: ['M0']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "In-place amendment and progress-as-amendment are refused"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-002"]
+
+  - id: "M3"
+    title: "A prior attempt retains its original basis across an amendment"
+    depends_on: ['M2']
+    stage_refs: ["STAGE-004"]
+    obligation_refs: ["OBL-003"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Decide and record how local authorization is represented"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-002"
+    title: "Implement ContractRevision and freezing"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-003"
+    title: "Plant both and observe the refusals"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-004"
+    title: "Amend forward, assert the old attempt is unchanged"
+    executor_kind: "service"
+    responsibility_tier: "T1"
