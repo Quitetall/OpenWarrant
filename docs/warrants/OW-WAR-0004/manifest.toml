@@ -1,0 +1,56 @@
+schema = "oh.war/manifest/v1"
+uuid = "01a018db-19fc-75b4-9586-0aae240f38bc"
+local_alias = "OW-WAR-0004"
+enterprise_id = ""
+title = "Implement the generated parent document and drift checking"
+profile = "delivery"
+assurance_level = "basic"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-012"
+contribution = "complete"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-014"
+contribution = "complete"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-075"
+contribution = "complete"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-1/compiler"
+
+[[parents]]
+ref = "war://01a018db-19fc-7f2a-8e39-69730f255e33"
+contract_revision = 1
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true

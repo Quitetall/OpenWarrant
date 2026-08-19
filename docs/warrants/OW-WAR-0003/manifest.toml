@@ -1,0 +1,63 @@
+schema = "oh.war/manifest/v1"
+uuid = "01a018db-19fc-72ba-87b3-c1bd1aec86a8"
+local_alias = "OW-WAR-0003"
+enterprise_id = ""
+title = "Implement the canonical WAR IR and RFC 8785 digesting"
+profile = "delivery"
+
+# `controlled`, not `basic`, and the reason is §25.4's risk-derived floor rather
+# than a preference. This Warrant fixes the exact bytes every cross-system WAR
+# digest is computed over. A defect here is not a bug that gets fixed — it
+# silently invalidates every digest minted before the fix, including those
+# already exported or signed. Controlled brings the adequacy review of §39 with
+# it (RQ-055).
+assurance_level = "controlled"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-014"
+contribution = "partial"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-080"
+contribution = "complete"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-081"
+contribution = "complete"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-1/compiler"
+
+[[parents]]
+ref = "war://01a018db-19fc-7f2a-8e39-69730f255e33"
+contract_revision = 1
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true
