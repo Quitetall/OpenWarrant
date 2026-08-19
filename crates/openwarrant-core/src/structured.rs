@@ -466,6 +466,25 @@ stages:
         assert!(parse("k: [\"a, \"b\", \"c]\n").is_err());
     }
 
+    /// The reader has NO backslash escape anywhere — `unquote` strips one layer
+    /// of quoting and nothing else. `split_flow_items` toggles on every `"` for
+    /// exactly that reason, so the two agree. This test pins that contract, which
+    /// external review correctly noted was real but undocumented.
+    #[test]
+    fn backslash_is_not_an_escape_in_this_grammar() {
+        // A backslash before a quote does NOT protect it; the quote still closes.
+        let doc = parse("k: [\"a\\\\\", \"b\"]\n").expect("parses under the no-escape rule");
+        let items = doc
+            .get("k")
+            .and_then(StructuredValue::as_list)
+            .expect("list");
+        assert_eq!(items.len(), 2, "got {items:?}");
+        assert!(
+            items[0].contains('\\'),
+            "the backslash is ordinary data: {items:?}"
+        );
+    }
+
     #[test]
     fn empty_flow_lists_parse() {
         let doc = parse("k:\n  - id: \"A\"\n    refs: []\n").expect("valid");

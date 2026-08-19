@@ -225,6 +225,9 @@ plant "qualification with no negative control" "gate.invalid" "no negative contr
 plant "a declared fault class that was not detected" "gate.invalid" "records no detection result" 2 \
     "sed -i '0,/    detected: \"true\"/s//    detected: \"false\"/' docs/gates/software.repo.war-check@1.0.0.yaml"
 
+plant "a placeholder where a digest belongs" "gate.invalid" "which is not a digest" 2 \
+    "sed -i 's|^qualification_digest: \"\"|qualification_digest: \"sha256:pending\"|' docs/gates/software.repo.war-check@1.0.0.yaml"
+
 plant "milestone carrying a stage field" "milestones.invalid" "belongs to a stage" 2 \
     "python3 - <<'EOF'
 import pathlib

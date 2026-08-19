@@ -109,6 +109,16 @@ pub enum GateError {
     #[error("gate {gate_id}@{version} records a qualification with no qualifier (§43.4)")]
     QualificationNoQualifier { gate_id: String, version: String },
     #[error(
+        "gate {gate_id}@{version} records qualification_digest {found:?}, which is not \
+         a digest. A placeholder in a digest field renders as though it were real; \
+         leave it empty until it can be computed"
+    )]
+    QualificationDigestNotADigest {
+        gate_id: String,
+        version: String,
+        found: String,
+    },
+    #[error(
         "gate {gate_id}@{version} is lifecycle {lifecycle} but carries no \
          qualification record; §43.3 places `qualified` after `draft` for a reason"
     )]
@@ -296,6 +306,17 @@ impl Qualification {
                 version: version.to_owned(),
             });
         }
+        // Empty is honest — the digest is not computed yet. A non-digest that
+        // LOOKS like one is not: `sha256:pending` renders in a report exactly
+        // where a reader expects an integrity value.
+        let d = self.qualification_digest.trim();
+        if !d.is_empty() && !is_sha256(d) {
+            return Err(GateError::QualificationDigestNotADigest {
+                gate_id: gate_id.to_owned(),
+                version: version.to_owned(),
+                found: d.to_owned(),
+            });
+        }
         let detected = self.detected_fault_classes();
         for class in fault_model {
             if !detected.contains(class.as_str()) {
@@ -308,6 +329,12 @@ impl Qualification {
         }
         Ok(())
     }
+}
+
+/// Whether a string is a `sha256:` digest and not something shaped like one.
+fn is_sha256(s: &str) -> bool {
+    s.strip_prefix("sha256:")
+        .is_some_and(|h| h.len() == 64 && h.bytes().all(|b| b.is_ascii_hexdigit()))
 }
 
 /// §43.2's Gate Definition.
@@ -598,7 +625,15 @@ pub fn definition_from_structured(
         .collect::<Vec<_>>();
 
     let qualifier = scalar("qualification_qualifier");
-    let qualification = if qualifier.is_empty() && detection_results.is_empty() {
+
+    // A qualification exists if the author wrote ANY part of one. Keying this on
+    // qualifier-plus-detection-results alone meant a gate carrying real positive
+    // and negative controls, but no qualifier yet, parsed as `qualification:
+    // None` — and a draft lifecycle then skipped validation entirely, silently
+    // discarding the controls the author did provide. Absence has to mean the
+    // author wrote nothing, not that they wrote the wrong two fields.
+    let declared_any_qualification = QUALIFICATION_KEYS.iter().any(|k| doc.get(k).is_some());
+    let qualification = if !declared_any_qualification {
         None
     } else {
         Some(Qualification {
@@ -634,6 +669,20 @@ pub fn definition_from_structured(
     def.validate()?;
     Ok(def)
 }
+
+/// Every key that contributes to a §43.4 qualification record. If any one of
+/// them is present the author is declaring a qualification, however partial, and
+/// it gets validated rather than dropped.
+const QUALIFICATION_KEYS: [&str; 8] = [
+    "qualification_qualifier",
+    "qualification_positive_controls",
+    "qualification_negative_controls",
+    "qualification_mutation_classes",
+    "qualification_environments",
+    "qualification_limitations",
+    "qualification_digest",
+    "detection_results",
+];
 
 /// Small helper so `definition_from_structured` can ask a value for a list
 /// without importing the reader's whole surface.
@@ -673,7 +722,10 @@ pub fn cited_gate_uris(text: &str) -> Vec<String> {
         else {
             continue;
         };
-        for token in rest.split(',') {
+        // Split on commas AND whitespace. A URI cannot contain either, so
+        // accepting both costs nothing and avoids reading
+        // `- **gate:** gate://a@1 gate://b@1` as one unresolvable token.
+        for token in rest.split([',', ' ', '\t']) {
             let uri = token.trim().trim_matches('`').trim_end_matches('.').trim();
             if uri.is_empty() {
                 continue;
@@ -703,7 +755,9 @@ mod tests {
             }],
             limitations: vec!["single-byte mutations only".into()],
             qualifier: "QuiteTall".into(),
-            qualification_digest: "sha256:0".into(),
+            // A real 64-hex digest. The first version of this fixture said
+            // "sha256:0", and the placeholder rule caught it the moment it landed.
+            qualification_digest: format!("sha256:{}", "0".repeat(64)),
         }
     }
 
@@ -982,6 +1036,72 @@ mod tests {
                 "prose was read as a citation: {prose:?}"
             );
         }
+    }
+
+    /// Regression: controls without a qualifier must not vanish.
+    ///
+    /// Keyed on qualifier-plus-detection-results, a draft gate carrying real
+    /// positive and negative controls parsed as `qualification: None` and skipped
+    /// validation entirely — silently discarding what the author wrote.
+    #[test]
+    fn a_partial_qualification_is_validated_not_dropped() {
+        let doc = crate::structured::parse(
+            "gate_id: \"a.b\"\nversion: \"1.0.0\"\nlifecycle: \"draft\"\n\
+             qualification_positive_controls: [\"a planted fault\"]\n\
+             qualification_negative_controls: [\"the clean corpus\"]\n",
+        )
+        .expect("parses");
+        let err = definition_from_structured(&doc)
+            .expect_err("a qualification with no qualifier must be refused, not dropped");
+        assert!(
+            matches!(err, GateError::QualificationNoQualifier { .. }),
+            "{err}"
+        );
+    }
+
+    /// A gate that declares no qualification at all is still a legal draft.
+    #[test]
+    fn a_gate_declaring_no_qualification_at_all_is_a_legal_draft() {
+        let doc = crate::structured::parse(
+            "gate_id: \"a.b\"\nversion: \"1.0.0\"\nlifecycle: \"draft\"\n",
+        )
+        .expect("parses");
+        let def = definition_from_structured(&doc).expect("a bare draft is legal");
+        assert!(def.qualification.is_none());
+        assert_eq!(def.lifecycle, GateLifecycle::Draft);
+    }
+
+    /// A placeholder in a digest field renders where a reader expects integrity.
+    #[test]
+    fn a_placeholder_qualification_digest_is_refused() {
+        let mut def = good_definition();
+        for fake in ["sha256:pending", "sha256:TBD", "pending", "sha256:abc"] {
+            def.qualification.as_mut().unwrap().qualification_digest = fake.to_owned();
+            assert!(
+                matches!(
+                    def.validate(),
+                    Err(GateError::QualificationDigestNotADigest { .. })
+                ),
+                "{fake:?} was accepted as a digest"
+            );
+        }
+        // Empty is honest: not computed yet.
+        def.qualification.as_mut().unwrap().qualification_digest = String::new();
+        assert_eq!(def.validate(), Ok(()));
+        // A real one passes.
+        def.qualification.as_mut().unwrap().qualification_digest =
+            format!("sha256:{}", "a".repeat(64));
+        assert_eq!(def.validate(), Ok(()));
+    }
+
+    /// Space-separated citations resolve; a URI contains neither commas nor
+    /// spaces, so accepting both separators costs nothing.
+    #[test]
+    fn citations_split_on_whitespace_as_well_as_commas() {
+        assert_eq!(
+            cited_gate_uris("- **gate:** gate://a.b@1.0.0 gate://c.d@2.1.0"),
+            vec!["gate://a.b@1.0.0", "gate://c.d@2.1.0"]
+        );
     }
 
     /// §43.1 — the distinction that OW-ADR-0005 turns into a field.
