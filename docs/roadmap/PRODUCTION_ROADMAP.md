@@ -217,23 +217,31 @@ Written when alpha closes, not before. Scope, so it is not rediscovered:
 - The AGPL-3.0 → Apache-2.0 relicense and public launch (`RELICENSING.md`).
 
 
-### Known gap, recorded rather than closed (OW-WAR-0018)
+### Adequacy reviews — the state as of 2026-08-20
 
-`war check` now reports, on this repository's own corpus:
+This section said "12 of 14 controlled Warrants record no §39.2 outcome" from
+2026-08-19 until this correction. That was true when written and false by the
+time alpha closed, which is the failure mode the whole document is about. The
+numbers below are what `war check` reports today; if they disagree with the tool,
+the tool is right.
 
-- **12 of 14** `controlled` Warrants carry an adequacy review that records no
-  §39.2 outcome and has executed no §39.3 attacks. Both are WARN, not ERROR:
-  §39.3 says attacks SHOULD be run "where economical", and a SHOULD promoted to
-  a hard failure is the first rule anyone disables.
-- These 12 are Warrants whose work has not been executed yet. There is nothing
-  to attack until there is an implementation, so the honest record is a review
-  that asked its question and stopped. They close as their Warrants resolve.
-- The rule was written to catch this repository first. It did: OW-WAR-0023 had
-  passed RQ-055 for two weeks with a section that never asked §39.1's question,
-  because the old check was a substring search for the word "adequacy". That
-  substring search is deleted, and a repository-wide grep for its call site
-  returns nothing.
+- **0 of 14** `controlled` Warrants lack a §39.2 outcome. All fourteen now record
+  one.
+- **2 of 14** have executed no §39.3 attacks: OW-WAR-0008 (state model) and
+  OW-WAR-0017 (epistemic classes). Both say so in their reviews and explain why —
+  there is nothing to attack until real authorizations and judgments exist. These
+  are the only two warnings `war check` emits.
 
+Missing attacks stay a WARN rather than an ERROR: §39.3 says attacks SHOULD be
+run "where economical", and a SHOULD promoted to a hard failure is the first rule
+anyone disables.
+
+The rule was written to catch this repository first, and it did — twice.
+OW-WAR-0023 had passed RQ-055 for two weeks with a section that never asked
+§39.1's question, because the old check was a substring search for the word
+"adequacy". Then the replacement's own absence-phrase allowlist was wrong three
+times, hiding warnings for the Warrants being most honest, until attacks were
+counted structurally instead.
 
 ### What "resolved" means for a module the corpus cannot yet exercise
 
