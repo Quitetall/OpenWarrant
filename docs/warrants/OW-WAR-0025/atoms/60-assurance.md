@@ -13,10 +13,12 @@ classification: internal
 
 ### OBL-001 — the four types are distinct with distinct remedies
 - **scope:** §53.1–§53.5.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** each routes differently; no two share a remedy.
 
 ### OBL-002 — a blocker does not erase phase
 - **scope:** §91.6 test 37.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a plant; phase survives.
 
 ## Gate Adequacy

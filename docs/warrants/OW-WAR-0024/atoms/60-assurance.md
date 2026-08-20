@@ -13,14 +13,17 @@ classification: internal
 
 ### OBL-001 — a Submission cannot assert completion
 - **scope:** §51.2.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a plant asserting success, refused.
 
 ### OBL-002 — the four attempt kinds are distinct
 - **scope:** §52.1–§52.4.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** each classified and none collapsing into another.
 
 ### OBL-003 — each attempt keeps its own basis
 - **scope:** RQ-034.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** amend forward; the prior attempt still cites the old digest.
 
 ## Gate Adequacy

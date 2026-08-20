@@ -24,6 +24,7 @@ pub mod adr;
 pub mod config;
 pub mod contract;
 pub mod epistemic;
+pub mod execution;
 pub mod frontmatter;
 pub mod gate;
 pub mod gate_run;

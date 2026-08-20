@@ -43,6 +43,9 @@ protocol proven only against a mock is not proven.
 | — gate run semantics + invalidation (OW-WAR-0020) | alpha | **resolved** 2026-08-19 |
 | — verifier independence (OW-WAR-0021) | alpha | **resolved** 2026-08-20 |
 | — resolution, dispute, annulment (OW-WAR-0022) | alpha | **resolved** 2026-08-20 |
+| — dispatch compilation + actor projection (OW-WAR-0023) | alpha | **resolved** 2026-08-20 |
+| — stage submission + attempt semantics (OW-WAR-0024) | alpha | **resolved** 2026-08-20 |
+| — blockers, deviations, decisions, gaps (OW-WAR-0025) | alpha | **resolved** 2026-08-20 |
 | — autonomy envelope + amendment records (OW-WAR-0010) | alpha | **resolved** 2026-08-20 |
 | — prerequisites and Preflight (OW-WAR-0011) | alpha | **resolved** 2026-08-20 |
 | — context model, manifest, trust classes (OW-WAR-0012) | alpha | **resolved** 2026-08-20 |
@@ -110,9 +113,9 @@ here. `roadmap://` refs in manifests resolve to the identifiers in this table.
 
 | WAR | Title | SAS | Requirements |
 |---|---|---|---|
-| OW-WAR-0023 | Stage Dispatch compilation and actor-specific projection | §47 | RQ-042, RQ-043 |
-| OW-WAR-0024 | Stage Submission and attempt semantics | §51, §52 | RQ-045 |
-| OW-WAR-0025 | Blockers, deviations, decision proposals, discovered gaps | §53 | — |
+| ~~OW-WAR-0023~~ | ~~Stage Dispatch compilation and actor-specific projection~~ **RESOLVED** | §47 | RQ-042, RQ-043 |
+| ~~OW-WAR-0024~~ | ~~Stage Submission and attempt semantics~~ **RESOLVED** | §51, §52 | RQ-045 |
+| ~~OW-WAR-0025~~ | ~~Blockers, deviations, decision proposals, discovered gaps~~ **RESOLVED** | §53 | — |
 | OW-WAR-0026 | Katana runtime seam, capabilities, and receipts | §48 | RQ-044, RQ-062 |
 | OW-WAR-0027 | BLUT adapter: PlanSpec lowering and lineage receipt | §49 | RQ-063 |
 
