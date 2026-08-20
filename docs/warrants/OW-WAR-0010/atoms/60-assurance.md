@@ -13,14 +13,17 @@ classification: internal
 
 ### OBL-001 — the envelope parses and classifies
 - **scope:** the three classes of §30.1.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** classification asserted per class.
 
 ### OBL-002 — ambiguity ESCALATES
 - **scope:** a change matching no class cleanly.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a plant; the classifier must escalate, never default to local.
 
 ### OBL-003 — an unjustified amendment is refused
 - **scope:** an amendment record with a class and no justification.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a plant and its refusal.
 
 ## Gate Adequacy

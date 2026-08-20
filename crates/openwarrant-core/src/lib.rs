@@ -11,6 +11,14 @@
 
 #![forbid(unsafe_code)]
 
+pub mod autonomy;
+pub mod context;
+pub mod deliverable;
+pub mod preflight;
+pub mod rationale;
+pub mod traceability;
+mod vocab;
+
 pub mod adequacy;
 pub mod adr;
 pub mod config;

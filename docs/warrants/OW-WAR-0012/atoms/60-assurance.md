@@ -13,15 +13,18 @@ classification: internal
 
 ### OBL-001 — context items carry role and trust class
 - **scope:** the vocabularies of §33.2 and §33.3.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** parsed values asserted per class.
 
 ### OBL-002 — conflicts and unsourced summaries are REFUSED
 - **scope:** two context items conflicting with no precedence; a summary with no
+- **gate:** `gate://software.repo.war-check@1.0.0`
   named source.
 - **evidence:** two plants, two refusals.
 
 ### OBL-003 — the context manifest has a digest
 - **scope:** `oh.war/context-manifest/v1`.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a digest computed under that domain, distinct from every other.
 
 ## Gate Adequacy

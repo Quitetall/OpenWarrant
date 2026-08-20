@@ -41,6 +41,12 @@ protocol proven only against a mock is not proven.
 | — contract-adequacy review (OW-WAR-0018) | alpha | **resolved** 2026-08-19 |
 | — gate registry, qualification, binding (OW-WAR-0019) | alpha | **resolved** 2026-08-19 |
 | — gate run semantics + invalidation (OW-WAR-0020) | alpha | **resolved** 2026-08-19 |
+| — autonomy envelope + amendment records (OW-WAR-0010) | alpha | **resolved** 2026-08-20 |
+| — prerequisites and Preflight (OW-WAR-0011) | alpha | **resolved** 2026-08-20 |
+| — context model, manifest, trust classes (OW-WAR-0012) | alpha | **resolved** 2026-08-20 |
+| — SAS + Roadmap traceability (OW-WAR-0013) | alpha | **resolved** 2026-08-20 |
+| — rationale model, assumptions, unknowns (OW-WAR-0014) | alpha | **resolved** 2026-08-20 |
+| — deliverables, artifacts, provenance (OW-WAR-0015) | alpha | **resolved** 2026-08-20 |
 | 2 — Agent planner | alpha | not started |
 | 3 — ADR federation | alpha | partial |
 | 4 — Knowledge Fabric registration | alpha (protocol) / beta (live) | not started |
@@ -79,12 +85,12 @@ here. `roadmap://` refs in manifests resolve to the identifiers in this table.
 | ~~OW-WAR-0007~~ | ~~Milestones and stages: parse, validate, named typed ports~~ **RESOLVED** | §23 | RQ-040, RQ-041 |
 | ~~OW-WAR-0008~~ | ~~The state model: phase, condition, outcome, currency, standing~~ **RESOLVED** | §24 | RQ-032 |
 | ~~OW-WAR-0009~~ | ~~Contract revisions and immutability~~ **RESOLVED** | §28, §29 | RQ-030, RQ-031, RQ-033, RQ-034 |
-| OW-WAR-0010 | Autonomy envelope and amendment records | §30, §31 | — |
-| OW-WAR-0011 | Prerequisites and Preflight | §32 | RQ-035 |
-| OW-WAR-0012 | Context model, context manifest, trust classes | §33 | — |
-| OW-WAR-0013 | SAS and Roadmap traceability validation | §34 | RQ-022 |
-| OW-WAR-0014 | Rationale model, assumptions, and unknowns | §35, §36 | — |
-| OW-WAR-0015 | Deliverables, artifacts, and provenance | §37 | — |
+| ~~OW-WAR-0010~~ | ~~Autonomy envelope and amendment records~~ **RESOLVED** | §30, §31 | — |
+| ~~OW-WAR-0011~~ | ~~Prerequisites and Preflight~~ **RESOLVED** | §32 | RQ-035 |
+| ~~OW-WAR-0012~~ | ~~Context model, context manifest, trust classes~~ **RESOLVED** | §33 | — |
+| ~~OW-WAR-0013~~ | ~~SAS and Roadmap traceability validation~~ **RESOLVED** | §34 | RQ-022 |
+| ~~OW-WAR-0014~~ | ~~Rationale model, assumptions, and unknowns~~ **RESOLVED** | §35, §36 | — |
+| ~~OW-WAR-0015~~ | ~~Deliverables, artifacts, and provenance~~ **RESOLVED** | §37 | — |
 
 ### Assurance — the reason the system exists
 

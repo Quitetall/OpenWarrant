@@ -13,14 +13,17 @@ classification: internal
 
 ### OBL-001 — references resolve
 - **scope:** every `sas://` and `roadmap://` ref in this repository.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** resolution against §106 and the Production Roadmap.
 
 ### OBL-002 — an unresolvable reference is REFUSED
 - **scope:** a `sas://WAR-SAS-RQ-999`.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a plant and its refusal.
 
 ### OBL-003 — requirements with no Warrant are reported
 - **scope:** all 57 requirements in §106.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** the Overview lists the uncovered ones by identifier.
 
 ## Gate Adequacy

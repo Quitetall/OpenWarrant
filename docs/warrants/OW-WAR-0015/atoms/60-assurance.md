@@ -13,10 +13,12 @@ classification: internal
 
 ### OBL-001 — artifacts carry provenance and a digest
 - **scope:** `oh.war/artifact/v1`.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** digests computed and bound to deliverables.
 
 ### OBL-002 — a derived report is REFUSED as an artifact
 - **scope:** a report submitted where an artifact is required.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a plant and its refusal.
 
 ## Gate Adequacy
