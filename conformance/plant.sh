@@ -303,7 +303,8 @@ plant "a placeholder where a digest belongs" "gate.invalid" "which is not a dige
 # ---------------------------------------------------------------------------
 # §44 gate-run statuses. OW-WAR-0020 OBL-002: each is reported AS ITSELF, and
 # `missing_tool` specifically must not be reported as `failed`. The parent
-# project lost 51 gates to exactly that collapse.
+# project lost 51 gates to exactly that collapse (measured once at LamQuant
+# 5369da81, 2026-08-17; historical, and being repaired -- see the README).
 # ---------------------------------------------------------------------------
 
 plant_gate "a gate whose tool is absent" "gate-run.unaskable" "missing_tool" 2 \

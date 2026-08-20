@@ -139,6 +139,32 @@ planning (`war plan`), Knowledge Fabric registration, Stage Dispatch, the Katana
 and BLUT adapters, the Liminal compiler, and seven of the nine projections in
 §17.5. See [`CHANGELOG.md`](CHANGELOG.md) for the full list.
 
+## About the LamQuant figures
+
+Several Warrants cite measurements from LamQuant, the project OpenWarrant was
+built for and is meant to succeed — "of 94 declared gates, 23 invoke a tool,
+script, or crate that is not in the tree", and similar. They are quoted rather
+than summarised because they are the *evidence* for why particular controls here
+exist. A control justified by "gates can be wrong in principle" is a preference;
+one justified by a count is a response to something that happened.
+
+Three things about those numbers:
+
+**They are a single measurement, at one commit, on one day.** LamQuant
+`5369da81`, 2026-08-17. They were never a running metric.
+
+**They are already stale, provably.** That measurement recorded 167 ADRs. Three
+days later the same corpus held 173. The figures describe a corpus at a moment
+and should not be read as a current defect count.
+
+**LamQuant is being repaired against exactly these findings.** That is the point
+of the exercise — the audit that produced these numbers is what OpenWarrant was
+commissioned to make unnecessary, and the repairs are in progress. Citing a
+project's own worst measurement is not a criticism of it; it is the reason the
+tool exists, and no honest case for OpenWarrant can be made without it.
+
+If you want the current state of LamQuant, measure LamQuant. Do not use these.
+
 ## License
 
 **AGPL-3.0-or-later** today; **Apache-2.0** intended when this goes public.

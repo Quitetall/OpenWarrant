@@ -19,7 +19,7 @@ OW-WAR-0019 resolved.
 
 ## Assumptions and Unknowns
 
-- **Evidenced premise.** The parent project has a measured corpus of exactly
+- **Evidenced premise.** The parent project had, when measured (measured once at LamQuant `5369da81`, 2026-08-17, and historical — see the README; LamQuant is being repaired against these findings), a corpus of exactly
   these statuses — 43 PASS, 26 FAIL, 12 MISSING-TOOL, 7 MISSING-SCRIPT, 4
   MISSING-CRATE, 1 MUTATING, 1 TIMEOUT — which is a real distribution to design
   against rather than a hypothetical.

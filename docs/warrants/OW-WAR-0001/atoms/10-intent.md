@@ -16,7 +16,7 @@ repository, no workspace, and no executable that can read a manifest, so every
 statement in the SAS is currently unfalsifiable by running anything.
 
 The decision-record system it replaces is measurably failing in the meantime: of
-94 declared gates in the LamQuant corpus, 43 pass and 23 invoke a tool, script,
+94 declared gates in the LamQuant corpus (measured once at LamQuant `5369da81`, 2026-08-17, and historical — see the README; LamQuant is being repaired against these findings), 43 pass and 23 invoke a tool, script,
 or crate that is not in the tree. Those are not failing checks; they are
 sentences shaped like checks. The SAS was written to make that class of claim
 impossible, and it cannot do so from a Markdown file.

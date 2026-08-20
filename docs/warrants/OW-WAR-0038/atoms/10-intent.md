@@ -11,7 +11,7 @@ classification: internal
 
 ## Problem
 
-The LamQuant repository holds 167 ADRs that OpenWarrant is meant to succeed.
+The LamQuant repository held 167 ADRs (measured once at LamQuant `5369da81`, 2026-08-17, and historical — see the README; LamQuant is being repaired against these findings) that OpenWarrant is meant to succeed. It holds more now; the figure is a snapshot, not a running count.
 Importing them is the entire point of Phase 3, and it is the most dangerous
 operation in the roadmap: §96.3 forbids fabricating proof, and the corpus is full
 of exactly the claims that would tempt an importer to fabricate.
