@@ -46,12 +46,14 @@ pub fn run(repo: &Repository, alias: &str, view_name: &str) -> Result<String, Re
     let ir = openwarrant_compiler::lower::lower(basis, validated)
         .map_err(|e| RepoError::Message(format!("{alias}: {e}")))?;
 
-    render::render_view(view, &ir, basis).ok_or_else(|| {
-        RepoError::Message(format!(
-            "`{view}` is a projection of the ADR corpus rather than of one \
-             Warrant; see the generated ADR overview"
-        ))
-    })
+    render::render_view(view, &ir, basis)
+        .map_err(|e| RepoError::Message(format!("{alias}: {view} did not render: {e}")))?
+        .ok_or_else(|| {
+            RepoError::Message(format!(
+                "`{view}` is a projection of the ADR corpus rather than of one \
+                 Warrant; see the generated ADR overview"
+            ))
+        })
 }
 
 /// One semantic difference between two compilations (§71.10).
@@ -143,11 +145,13 @@ fn walk(path: &str, a: &serde_json::Value, b: &serde_json::Value, out: &mut Vec<
 fn compact(v: &serde_json::Value) -> String {
     const MAX_CHARS: usize = 119;
     let s = v.to_string();
-    if s.chars().count() <= MAX_CHARS + 1 {
-        return s;
+    // Single pass: find the byte offset of character MAX_CHARS, if there is one.
+    // `chars().count()` would walk the whole string just to decide whether to
+    // walk it again, which matters on the pathological long value.
+    match s.char_indices().nth(MAX_CHARS) {
+        None => s,
+        Some((byte_offset, _)) => format!("{}…", &s[..byte_offset]),
     }
-    let truncated: String = s.chars().take(MAX_CHARS).collect();
-    format!("{truncated}…")
 }
 
 /// `war diff <alias> --from <file> --to <file>`, over canonical JSON.

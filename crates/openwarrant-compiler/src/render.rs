@@ -275,13 +275,21 @@ pub fn audit(ir: &WarIr) -> String {
 
 /// Render any §17.5 view.
 ///
-/// `AdrOverview` returns `None`: it is a projection of the ADR corpus, not of a
-/// single Warrant, and is emitted separately by the ADR compiler. Returning
-/// `None` rather than an empty string keeps the caller from rendering a blank
-/// page and calling it an overview.
-#[must_use]
-pub fn render_view(view: View, ir: &WarIr, basis: &CompilationBasis) -> Option<String> {
-    Some(match view {
+/// `Ok(None)` means the view is a projection of the ADR CORPUS rather than of one
+/// Warrant — `AdrOverview` is the only such view, and returning `None` rather
+/// than an empty string keeps a caller from rendering a blank page and calling it
+/// an overview.
+///
+/// `Err` is a real serialization failure. The two were briefly conflated here:
+/// `canonical_json(ir).ok()?` turned an error into `None`, and the caller then
+/// reported a JSON failure as "this is an ADR corpus projection" — a wrong
+/// message for a wrong cause. Different outcomes need different types.
+pub fn render_view(
+    view: View,
+    ir: &WarIr,
+    basis: &CompilationBasis,
+) -> Result<Option<String>, CanonicalError> {
+    Ok(Some(match view {
         View::FullWarrant => full_warrant(ir, basis),
         View::WorkOrder => work_order(ir, basis),
         View::AdrSection => adr_section(ir, basis),
@@ -289,9 +297,9 @@ pub fn render_view(view: View, ir: &WarIr, basis: &CompilationBasis) -> Option<S
         View::AssuranceCase => assurance_case(ir, basis),
         View::Status => status(ir),
         View::Audit => audit(ir),
-        View::CanonicalJson => canonical_json(ir).ok()?,
-        View::AdrOverview => return None,
-    })
+        View::CanonicalJson => canonical_json(ir)?,
+        View::AdrOverview => return Ok(None),
+    }))
 }
 
 /// The machine-readable and human-visible banner every generated file carries

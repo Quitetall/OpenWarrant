@@ -223,7 +223,8 @@ pub const ADEQUACY_HEADING: &str = "Gate Adequacy";
 /// honest phrasing slipped past and turned the §39.3 warning off for exactly the
 /// Warrants being most honest. An allowlist of ways to say "no" cannot be
 /// completed, so attacks are now counted STRUCTURALLY — see [`parse`].
-pub const KNOWN_ABSENCE_PHRASINGS: [&str; 5] = [
+#[cfg(test)]
+const KNOWN_ABSENCE_PHRASINGS: [&str; 5] = [
     "recorded here when run",
     "to be recorded",
     "none yet",
