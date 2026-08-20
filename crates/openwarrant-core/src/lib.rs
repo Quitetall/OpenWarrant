@@ -35,6 +35,7 @@ pub mod milestones;
 pub mod obligation;
 pub mod resolution;
 pub mod role;
+pub mod seam;
 pub mod state;
 pub mod structured;
 

@@ -46,6 +46,10 @@ protocol proven only against a mock is not proven.
 | — dispatch compilation + actor projection (OW-WAR-0023) | alpha | **resolved** 2026-08-20 |
 | — stage submission + attempt semantics (OW-WAR-0024) | alpha | **resolved** 2026-08-20 |
 | — blockers, deviations, decisions, gaps (OW-WAR-0025) | alpha | **resolved** 2026-08-20 |
+| — Katana runtime seam + receipts (OW-WAR-0026) | alpha | **resolved** 2026-08-20 |
+| — BLUT adapter: lowering + lineage receipt (OW-WAR-0027) | alpha | **resolved** 2026-08-20 |
+| — KF typed actions + controlled envelope (OW-WAR-0028) | alpha | **resolved** 2026-08-20 |
+| — Liminal adapter + measured parity (OW-WAR-0040) | alpha | **resolved** 2026-08-20 |
 | — autonomy envelope + amendment records (OW-WAR-0010) | alpha | **resolved** 2026-08-20 |
 | — prerequisites and Preflight (OW-WAR-0011) | alpha | **resolved** 2026-08-20 |
 | — context model, manifest, trust classes (OW-WAR-0012) | alpha | **resolved** 2026-08-20 |
@@ -116,14 +120,14 @@ here. `roadmap://` refs in manifests resolve to the identifiers in this table.
 | ~~OW-WAR-0023~~ | ~~Stage Dispatch compilation and actor-specific projection~~ **RESOLVED** | §47 | RQ-042, RQ-043 |
 | ~~OW-WAR-0024~~ | ~~Stage Submission and attempt semantics~~ **RESOLVED** | §51, §52 | RQ-045 |
 | ~~OW-WAR-0025~~ | ~~Blockers, deviations, decision proposals, discovered gaps~~ **RESOLVED** | §53 | — |
-| OW-WAR-0026 | Katana runtime seam, capabilities, and receipts | §48 | RQ-044, RQ-062 |
-| OW-WAR-0027 | BLUT adapter: PlanSpec lowering and lineage receipt | §49 | RQ-063 |
+| ~~OW-WAR-0026~~ | ~~Katana runtime seam, capabilities, and receipts~~ **RESOLVED** | §48 | RQ-044, RQ-062 |
+| ~~OW-WAR-0027~~ | ~~BLUT adapter: PlanSpec lowering and lineage receipt~~ **RESOLVED** | §49 | RQ-063 |
 
 ### Federation and preservation
 
 | WAR | Title | SAS | Requirements |
 |---|---|---|---|
-| OW-WAR-0028 | Knowledge Fabric typed actions and controlled-action envelope | §67 | RQ-076 |
+| ~~OW-WAR-0028~~ | ~~Knowledge Fabric typed actions and controlled-action envelope~~ **RESOLVED** | §67 | RQ-076 |
 | OW-WAR-0029 | KF registration, global identity allocation, federation | §12, §83 | RQ-003, RQ-004, RQ-005 |
 | OW-WAR-0030 | Portable preservation: one-file export and round trip | §68 | RQ-082, RQ-083, RQ-084 |
 | OW-WAR-0031 | Local draft journal | §66 | — |
@@ -140,7 +144,7 @@ here. `roadmap://` refs in manifests resolve to the identifiers in this table.
 | OW-WAR-0037 | `war diff`: semantic difference between revisions | §71.10 | — |
 | OW-WAR-0038 | Existing ADR importer, preserving unknown classes | §96, §97 | — |
 | OW-WAR-0039 | Telemetry, unit economics, and untracked-work detection | §94, §95 | — |
-| OW-WAR-0040 | Liminal adapter and measured parity harness | §82 | RQ-061 |
+| ~~OW-WAR-0040~~ | ~~Liminal adapter and measured parity harness~~ **RESOLVED** | §82 | RQ-061 |
 
 **Alpha = OW-WAR-0006 through OW-WAR-0040 resolved, plus the three carried-forward
 Phase 1 milestones.** 35 Warrants.
