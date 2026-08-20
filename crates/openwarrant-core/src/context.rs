@@ -648,6 +648,25 @@ mod tests {
         assert_eq!(s.validate(), Ok(()));
     }
 
+    /// A summary with NO sources inherits nothing and so launders nothing.
+    ///
+    /// This is deliberate rather than an oversight: §33.8 constrains what a
+    /// summary may claim RELATIVE to its sources, and with no source set there is
+    /// no relation to violate. A summary that cites no sources is a different
+    /// problem — it is an unsourced assertion, which §35.2 handles.
+    #[test]
+    fn a_summary_with_no_sources_inherits_nothing() {
+        let s = Summary {
+            id: "SUM-002".into(),
+            claimed_trust: TrustClass::AuthoritativeInternal,
+            claimed_taints: vec![],
+            source_trust: vec![],
+            source_taints: vec![],
+        };
+        assert_eq!(s.inherited_trust(), None);
+        assert_eq!(s.validate(), Ok(()));
+    }
+
     #[test]
     fn weakest_of_nothing_is_nothing() {
         assert_eq!(TrustClass::weakest(&[]), None);

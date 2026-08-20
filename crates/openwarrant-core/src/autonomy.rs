@@ -218,9 +218,12 @@ pub struct SemanticChange {
 
 impl AmendmentRecord {
     pub fn validate(&self) -> Result<(), AutonomyError> {
-        let required: [(&'static str, &str); 6] = [
+        // `governing_adr_or_policy` is deliberately NOT in this list. It has its
+        // own error below that names the band and says why the authority is
+        // required; checking it here first would shadow that with a generic
+        // "field missing" and leave the specific variant unreachable.
+        let required: [(&'static str, &str); 5] = [
             ("reason", &self.reason),
-            ("governing_adr_or_policy", &self.governing_adr_or_policy),
             (
                 "restart_or_repair_instruction",
                 &self.restart_or_repair_instruction,
@@ -380,9 +383,8 @@ mod tests {
                 "reason",
                 (|a: &mut AmendmentRecord| a.reason.clear()) as fn(&mut AmendmentRecord),
             ),
-            ("governing_adr_or_policy", |a| {
-                a.governing_adr_or_policy.clear()
-            }),
+            // `governing_adr_or_policy` is NOT here: it has its own error, and
+            // `a_revision_without_a_named_authority_is_refused_by_band` covers it.
             ("restart_or_repair_instruction", |a| {
                 a.restart_or_repair_instruction.clear()
             }),
@@ -396,8 +398,6 @@ mod tests {
                 Err(AutonomyError::AmendmentIncomplete { field, .. }) => {
                     assert_eq!(field, name);
                 }
-                Err(AutonomyError::AmendmentWithoutAuthority { .. })
-                    if name == "governing_adr_or_policy" => {}
                 other => panic!("blanking {name} was accepted: {other:?}"),
             }
         }
@@ -405,6 +405,32 @@ mod tests {
 
     /// §31 — an amendment that voids prior work has changed the contract
     /// materially, so readiness must be re-established.
+    /// A revision with no named authority is a change nobody authorized. This
+    /// has its own error rather than a generic missing-field one, because the
+    /// band is what makes the authority necessary.
+    #[test]
+    fn a_revision_without_a_named_authority_is_refused_by_band() {
+        for band in [
+            AutonomyBand::AutoAuthorizedRevision,
+            AutonomyBand::ManualRevision,
+        ] {
+            let mut a = amendment();
+            a.band = band;
+            a.governing_adr_or_policy.clear();
+            match a.validate() {
+                Err(AutonomyError::AmendmentWithoutAuthority { band: b, .. }) => {
+                    assert_eq!(b, band);
+                }
+                other => panic!("{band} with no authority was accepted: {other:?}"),
+            }
+        }
+        // A local choice creates no revision, so it needs no governing authority.
+        let mut local = amendment();
+        local.band = AutonomyBand::LocalChoice;
+        local.governing_adr_or_policy.clear();
+        assert_eq!(local.validate(), Ok(()));
+    }
+
     #[test]
     fn declaring_prior_artifacts_inadmissible_forces_a_re_preflight() {
         let mut a = amendment();

@@ -41,6 +41,8 @@ protocol proven only against a mock is not proven.
 | — contract-adequacy review (OW-WAR-0018) | alpha | **resolved** 2026-08-19 |
 | — gate registry, qualification, binding (OW-WAR-0019) | alpha | **resolved** 2026-08-19 |
 | — gate run semantics + invalidation (OW-WAR-0020) | alpha | **resolved** 2026-08-19 |
+| — verifier independence (OW-WAR-0021) | alpha | **resolved** 2026-08-20 |
+| — resolution, dispute, annulment (OW-WAR-0022) | alpha | **resolved** 2026-08-20 |
 | — autonomy envelope + amendment records (OW-WAR-0010) | alpha | **resolved** 2026-08-20 |
 | — prerequisites and Preflight (OW-WAR-0011) | alpha | **resolved** 2026-08-20 |
 | — context model, manifest, trust classes (OW-WAR-0012) | alpha | **resolved** 2026-08-20 |
@@ -101,8 +103,8 @@ here. `roadmap://` refs in manifests resolve to the identifiers in this table.
 | ~~OW-WAR-0018~~ | ~~Contract-adequacy review, structurally checked~~ **RESOLVED** | §39 | RQ-055 |
 | ~~OW-WAR-0019~~ | ~~Gate Registry: definitions, qualification, bindings~~ **RESOLVED** | §43 | RQ-056 |
 | ~~OW-WAR-0020~~ | ~~Gate Run semantics, askability, and invalidation~~ **RESOLVED** | §44, §45 | RQ-054, RQ-057 |
-| OW-WAR-0021 | Verifier independence | §46 | RQ-053 |
-| OW-WAR-0022 | Resolution, dispute, and annulment | §56, §57 | RQ-058, RQ-059 |
+| ~~OW-WAR-0021~~ | ~~Verifier independence~~ **RESOLVED** | §46 | RQ-053 |
+| ~~OW-WAR-0022~~ | ~~Resolution, dispute, and annulment~~ **RESOLVED** | §56, §57 | RQ-058, RQ-059 |
 
 ### Execution
 
@@ -178,6 +180,25 @@ Written when alpha closes, not before. Scope, so it is not rediscovered:
   because the old check was a substring search for the word "adequacy". That
   substring search is deleted, and a repository-wide grep for its call site
   returns nothing.
+
+
+### What "resolved" means for a module the corpus cannot yet exercise
+
+Several alpha Warrants deliver machinery that `war check` does not yet consult,
+because the record it would govern does not exist in this repository. Independence
+declarations, authorization records, resolutions, disputes and monitors all arrive
+as DATA with the local journal (OW-WAR-0031) and Knowledge Fabric federation
+(OW-WAR-0028).
+
+Those Warrants are resolved in the alpha sense — the capability exists, is typed,
+and is unit-tested against the SAS's own vocabulary — and are NOT resolved in the
+sense of being exercised on real records. The plant battery is the honest measure
+here: a rule with no plant is a rule nothing has tried to break. Current plants
+cover the record-level rules (§16, §19, §23, §28, §38, §39, §43, §44); the
+execution-plane rules are unit-tested only.
+
+Beta is where these meet real data. Until then, no gate count should be read as
+evidence that resolution semantics have been exercised end to end.
 
 ## How this document stays true
 

@@ -13,14 +13,17 @@ classification: internal
 
 ### OBL-001 — dimensions are declared per verification
 - **scope:** §46.1.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a verification with no declared independence is refused.
 
 ### OBL-002 — self-verification is REFUSED
 - **scope:** RQ-053.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a plant where performer and verifier are the same actor.
 
 ### OBL-003 — single-actor independence reports as NONE
 - **scope:** this repository today.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** every verification reports independence: none, on every
   dimension, rather than silently passing the minimum.
 

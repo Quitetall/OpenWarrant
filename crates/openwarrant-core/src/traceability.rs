@@ -33,7 +33,9 @@ pub enum TraceabilityError {
     },
     #[error(
         "malformed requirement reference {found:?}; §34.1 requires a stable \
-         identifier of the form <PREFIX>-SAS-RQ-<NNN>, optionally as sas://<id>"
+         identifier of the form <PREFIX>-SAS-RQ-<NNN>, optionally as sas://<id>: \
+         an uppercase prefix and a number zero-padded to at least three digits, so \
+         that RQ-1 and RQ-001 cannot be two spellings of one requirement"
     )]
     MalformedRequirementRef { found: String },
     #[error(
