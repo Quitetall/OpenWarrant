@@ -12,22 +12,286 @@ use crate::canonical::{CanonicalError, to_canonical_string};
 use crate::ir::WarIr;
 use crate::lower::CompilationBasis;
 
-/// The projections §17.5 names. Phase 1 implements two of the nine.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// The projections §17.5 names.
+///
+/// §17.5 says the compiler "SHALL support at least" these. Support and
+/// COMMITMENT are different things: every view here is renderable on demand, and
+/// [`View::is_committed`] decides which are written to disk. Emitting all nine
+/// per Warrant would put 360 generated files in a 40-Warrant repository, every
+/// one of them drift-checked, to serve views a reader asks for occasionally.
+///
+/// `AdrOverview` is a corpus-level projection of the ADR set rather than of one
+/// Warrant, so it renders from the ADR corpus and has no per-Warrant file.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum View {
     FullWarrant,
+    WorkOrder,
+    AdrSection,
+    AdrOverview,
+    StageDispatch,
+    AssuranceCase,
+    Status,
+    Audit,
     CanonicalJson,
 }
 
 impl View {
-    /// The file this view is written to, relative to a Warrant's directory.
+    /// §17.5's nine, in the specification's order.
+    pub const ALL: [Self; 9] = [
+        Self::FullWarrant,
+        Self::WorkOrder,
+        Self::AdrSection,
+        Self::AdrOverview,
+        Self::StageDispatch,
+        Self::AssuranceCase,
+        Self::Status,
+        Self::Audit,
+        Self::CanonicalJson,
+    ];
+
     #[must_use]
-    pub const fn filename(self) -> &'static str {
+    pub const fn as_str(self) -> &'static str {
         match self {
-            Self::FullWarrant => "generated/WAR.md",
-            Self::CanonicalJson => "generated/WAR.json",
+            Self::FullWarrant => "full_warrant",
+            Self::WorkOrder => "work_order",
+            Self::AdrSection => "adr_section",
+            Self::AdrOverview => "adr_overview",
+            Self::StageDispatch => "stage_dispatch",
+            Self::AssuranceCase => "assurance_case",
+            Self::Status => "status",
+            Self::Audit => "audit",
+            Self::CanonicalJson => "canonical_json",
         }
     }
+
+    pub fn parse(name: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|v| v.as_str() == name)
+    }
+
+    /// Whether this view is written to disk and drift-checked.
+    #[must_use]
+    pub const fn is_committed(self) -> bool {
+        matches!(self, Self::FullWarrant | Self::CanonicalJson)
+    }
+
+    /// The file a committed view is written to, relative to a Warrant's
+    /// directory. `None` for a view rendered on demand.
+    #[must_use]
+    pub const fn filename(self) -> Option<&'static str> {
+        match self {
+            Self::FullWarrant => Some("generated/WAR.md"),
+            Self::CanonicalJson => Some("generated/WAR.json"),
+            _ => None,
+        }
+    }
+
+    /// The filename of a view already known to be committed.
+    ///
+    /// `projections()` yields only committed views, so callers there have a
+    /// filename by construction. This keeps that guarantee in one place instead
+    /// of an `unwrap` at every use, and names what would be wrong if it failed.
+    #[must_use]
+    pub const fn committed_filename(self) -> &'static str {
+        match self.filename() {
+            Some(f) => f,
+            None => panic!(
+                "a view without a file was yielded as a committed projection; \
+                 View::is_committed and View::filename must agree"
+            ),
+        }
+    }
+}
+
+impl std::fmt::Display for View {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+/// Render only the atoms whose role is in `roles`, in manifest order.
+fn atoms_by_role(basis: &CompilationBasis, roles: &[&str]) -> String {
+    let mut out = String::new();
+    for atom in basis
+        .atoms
+        .iter()
+        .filter(|a| roles.contains(&a.role.as_str()))
+    {
+        let body = atom_body(&atom.bytes);
+        if body.trim().is_empty() {
+            continue;
+        }
+        out.push('\n');
+        out.push_str(body.trim_end());
+        out.push('\n');
+    }
+    out
+}
+
+/// A short header naming the view, so a rendered projection cannot be mistaken
+/// for the full Warrant.
+fn view_header(ir: &WarIr, view: View) -> String {
+    format!(
+        "{}\n# {}: {} — `{}` projection\n\n\
+         *This is one projection of the Warrant, not the Warrant. \
+         See `generated/WAR.md` for the full record.*\n",
+        generated_header(ir),
+        ir.identity.local_alias,
+        ir.identity.title,
+        view
+    )
+}
+
+/// §22 — the Work Order projection: what to do, without the rationale.
+#[must_use]
+pub fn work_order(ir: &WarIr, basis: &CompilationBasis) -> String {
+    let mut out = view_header(ir, View::WorkOrder);
+    out.push_str(&atoms_by_role(basis, &["work_order", "milestones"]));
+    out
+}
+
+/// §19 — the ADRs this Warrant is governed by or implements.
+#[must_use]
+pub fn adr_section(ir: &WarIr, basis: &CompilationBasis) -> String {
+    let mut out = view_header(ir, View::AdrSection);
+    out.push_str(&atoms_by_role(basis, &["adr", "decisions"]));
+    if ir.relations.implements.is_empty() && out.lines().count() < 8 {
+        out.push_str("\nNo ADR relations are declared for this Warrant.\n");
+    }
+    out
+}
+
+/// §47 — the stage-level view a dispatch compiler starts from.
+///
+/// This renders the stage graph. It is NOT a Stage Dispatch: a dispatch is
+/// compiled per stage per attempt with a context manifest and an attempt basis,
+/// and calling this one would overstate what a projection can produce.
+#[must_use]
+pub fn stage_dispatch(ir: &WarIr, basis: &CompilationBasis) -> String {
+    let mut out = view_header(ir, View::StageDispatch);
+    out.push_str(
+        "\n*The stage graph, not a Stage Dispatch. A dispatch is compiled per \
+         stage per attempt against a context manifest and an attempt basis \
+         (§47.1).*\n",
+    );
+    out.push_str(&atoms_by_role(basis, &["milestones", "work_order"]));
+    out
+}
+
+/// §38 — the acceptance argument on its own.
+#[must_use]
+pub fn assurance_case(ir: &WarIr, basis: &CompilationBasis) -> String {
+    let mut out = view_header(ir, View::AssuranceCase);
+    out.push_str(&atoms_by_role(basis, &["assurance", "basis"]));
+    out
+}
+
+/// §24 — the five-dimension state, and where it came from.
+#[must_use]
+pub fn status(ir: &WarIr) -> String {
+    let mut out = view_header(ir, View::Status);
+    let _ = writeln!(out, "\n| Field | Value |");
+    let _ = writeln!(out, "|---|---|");
+    let _ = writeln!(out, "| Local alias | `{}` |", ir.identity.local_alias);
+    let _ = writeln!(out, "| Profile | `{}` |", ir.identity.profile);
+    let _ = writeln!(
+        out,
+        "| Assurance level | `{}` |",
+        ir.identity.assurance_level
+    );
+    let _ = writeln!(out, "| Contract revision | {} |", ir.contract_revision);
+    let _ = writeln!(
+        out,
+        "| Enterprise ID | {} |",
+        ir.identity
+            .enterprise_id
+            .as_deref()
+            .map(|id| format!("`{id}`"))
+            .unwrap_or_else(|| "*not allocated*".to_owned())
+    );
+    let _ = writeln!(
+        out,
+        "| Resolution | {} |",
+        if ir.resolution.is_some() {
+            "recorded"
+        } else {
+            "*none*"
+        }
+    );
+    out.push_str(
+        "\n*State shown here is DERIVED from the record. Nothing in this \
+         repository records a §24 state directly until the local journal exists \
+         (OW-WAR-0031).*\n",
+    );
+    out
+}
+
+/// The audit projection: digests and provenance, nothing else.
+#[must_use]
+pub fn audit(ir: &WarIr) -> String {
+    let mut out = view_header(ir, View::Audit);
+    let _ = writeln!(out, "\n## Integrity\n");
+    let _ = writeln!(out, "- **algorithm:** `{}`", ir.integrity.algorithm);
+    let _ = writeln!(
+        out,
+        "- **manifest digest:** `sha256:{}`",
+        ir.source_and_composition.manifest_digest
+    );
+    let _ = writeln!(
+        out,
+        "- **composition revision digest:** `sha256:{}`",
+        ir.integrity.composition_revision_digest
+    );
+    let _ = writeln!(
+        out,
+        "- **workspace basis digest:** `sha256:{}`",
+        ir.integrity.workspace_basis_digest
+    );
+
+    let _ = writeln!(out, "\n## Contract coverage (§28.5)\n");
+    let covered: Vec<String> = ir
+        .contract_coverage
+        .covered()
+        .map(|e| format!("`{e}`"))
+        .collect();
+    let _ = writeln!(
+        out,
+        "Covers {} of 17 elements: {}",
+        covered.len(),
+        covered.join(", ")
+    );
+
+    let _ = writeln!(out, "\n## Source atoms\n");
+    let _ = writeln!(out, "| Ordinal | Role | Jurisdiction | Source | Digest |");
+    let _ = writeln!(out, "|---:|---|---|---|---|");
+    for atom in &ir.source_and_composition.atoms {
+        let _ = writeln!(
+            out,
+            "| {} | `{}` | `{}` | `{}` | `sha256:{}` |",
+            atom.ordinal, atom.role, atom.jurisdiction, atom.source, atom.atom_source_digest
+        );
+    }
+    out
+}
+
+/// Render any §17.5 view.
+///
+/// `AdrOverview` returns `None`: it is a projection of the ADR corpus, not of a
+/// single Warrant, and is emitted separately by the ADR compiler. Returning
+/// `None` rather than an empty string keeps the caller from rendering a blank
+/// page and calling it an overview.
+#[must_use]
+pub fn render_view(view: View, ir: &WarIr, basis: &CompilationBasis) -> Option<String> {
+    Some(match view {
+        View::FullWarrant => full_warrant(ir, basis),
+        View::WorkOrder => work_order(ir, basis),
+        View::AdrSection => adr_section(ir, basis),
+        View::StageDispatch => stage_dispatch(ir, basis),
+        View::AssuranceCase => assurance_case(ir, basis),
+        View::Status => status(ir),
+        View::Audit => audit(ir),
+        View::CanonicalJson => canonical_json(ir).ok()?,
+        View::AdrOverview => return None,
+    })
 }
 
 /// The machine-readable and human-visible banner every generated file carries

@@ -215,18 +215,20 @@ impl AdequacyReview {
 /// The section heading §39 reviews are recorded under.
 pub const ADEQUACY_HEADING: &str = "Gate Adequacy";
 
-/// Phrases that state the absence of executed attacks rather than reporting one.
+/// Phrasings that state the ABSENCE of executed attacks. Kept for tests and for
+/// the next reader, not for the parser.
 ///
-/// Each of these has appeared in this repository's own corpus. "recorded here
-/// when run" is a plan; "none yet" is an admission. Both mean zero attacks were
-/// executed, and reading either as an attack turns the §39.3 warning off for
-/// exactly the Warrants that most need it.
-const ABSENCE_PHRASES: [&str; 5] = [
-    "when run",
+/// The parser used to match this list, and the list was wrong three times: "none
+/// yet", then "none. The state model…", then "none against the corpus". Each new
+/// honest phrasing slipped past and turned the §39.3 warning off for exactly the
+/// Warrants being most honest. An allowlist of ways to say "no" cannot be
+/// completed, so attacks are now counted STRUCTURALLY — see [`parse`].
+pub const KNOWN_ABSENCE_PHRASINGS: [&str; 5] = [
+    "recorded here when run",
     "to be recorded",
     "none yet",
-    "none —",
-    "no attacks",
+    "none. ",
+    "none against",
 ];
 
 /// Extract the adequacy review from an assurance atom.
@@ -288,20 +290,17 @@ pub fn parse(source: &str) -> AdequacyReview {
         }
 
         if lower.starts_with("**executed attacks") || lower.starts_with("executed attacks") {
+            // The LABEL line is never an attack, whatever follows the colon.
+            //
+            // This used to read the inline remainder and skip it only when it
+            // matched a list of absence phrasings. That list was wrong three
+            // times — "none yet", "none. The state model…", "none against the
+            // corpus" — each time turning the §39.3 warning off for a Warrant
+            // being honest about having run nothing. An allowlist of ways to say
+            // "no" cannot be completed; a list of attacks can be counted. So an
+            // executed attack is a BULLET under this heading, and a sentence on
+            // the label line is prose either way.
             in_attacks = true;
-            // A statement of absence is not an attack. See ABSENCE_PHRASES.
-            if !ABSENCE_PHRASES.iter().any(|p| lower.contains(p)) {
-                // `**Executed attacks:**` splits to a bare `**`, which is
-                // emphasis, not an attack. Strip the markup before deciding
-                // whether anything was actually recorded on this line.
-                let rest = trimmed
-                    .split_once(':')
-                    .map(|(_, r)| r.trim().trim_matches('*').trim())
-                    .unwrap_or_default();
-                if !rest.is_empty() {
-                    review.executed_attacks.push(rest.to_owned());
-                }
-            }
             continue;
         }
 
@@ -383,6 +382,33 @@ Something.
     fn an_absent_section_is_absent() {
         let r = parse("# Assurance\n\n## Acceptance Obligations\n\nNothing.\n");
         assert!(!r.present);
+    }
+
+    /// Every way this corpus has said "no attacks", including the two that
+    /// slipped past the old allowlist. Counting bullets instead of matching
+    /// phrases makes the list below documentation rather than logic.
+    #[test]
+    fn no_inline_sentence_counts_as_an_executed_attack() {
+        for phrasing in KNOWN_ABSENCE_PHRASINGS {
+            let r = parse(&format!(
+                "## Gate Adequacy\n\n**Adversarial question: could this pass?**\n\n\
+                 **Executed attacks:** {phrasing} some trailing explanation.\n"
+            ));
+            assert!(
+                !r.has_executed_attacks(),
+                "{phrasing:?} was counted as an attack: {:?}",
+                r.executed_attacks
+            );
+        }
+        // Even a sentence that sounds like an attack is prose on the label line.
+        let r = parse(
+            "## Gate Adequacy\n\n**Adversarial question: could this pass?**\n\n\
+             **Executed attacks:** we planted several violations and they were caught.\n",
+        );
+        assert!(
+            !r.has_executed_attacks(),
+            "§39.3 wants a list of what ran, not an assurance that something did"
+        );
     }
 
     /// Regression: OW-WAR-0023 writes `**Executed attacks:** none yet — …`.

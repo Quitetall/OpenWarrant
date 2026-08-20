@@ -13,14 +13,17 @@ classification: internal
 
 ### OBL-001 — nine projections exist
 - **scope:** §17.5.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** each renders; none returns unimplemented.
 
 ### OBL-002 — projections do not affect the contract
 - **scope:** §91.1 test 3.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** the digest is unchanged across all nine.
 
 ### OBL-003 — every committed projection drift-checks
 - **scope:** the generated tree.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a plant per committed view.
 
 ## Gate Adequacy

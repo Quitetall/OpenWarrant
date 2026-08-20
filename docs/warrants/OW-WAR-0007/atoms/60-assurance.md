@@ -44,7 +44,13 @@ needs the state model and gate runs. Anyone reading a parsed milestone list may
 reasonably assume the tool knows whether it is done. It does not, and the
 Overview must say so until OW-WAR-0020 lands.
 
-**Executed attacks:** recorded here when run (§39.3).
+- **outcome:** no_counterexample_found, gap_accepted
+
+**Executed attacks:**
+- planted a `stage_ref` naming a stage that is not declared; refused by `milestones.invalid`
+- planted a dependency cycle among milestones; refused by `milestones.invalid`
+- planted a milestone carrying a stage-only field; refused by `milestones.invalid`
+- each of the three asserts a distinct detail string, so one branch cannot answer for another
 
 ## Residual Risk
 

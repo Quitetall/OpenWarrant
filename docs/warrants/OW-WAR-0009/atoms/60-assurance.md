@@ -42,7 +42,11 @@ prevents the edit. True immutability needs either KF custody or signatures, both
 of which are later. This Warrant delivers detection, not prevention, and must say
 so where a reader will see it.
 
-**Executed attacks:** recorded here when run.
+- **outcome:** no_counterexample_found, gap_accepted
+
+**Executed attacks:**
+- planted a stale parent contract digest; refused by `relations.parent-digest`
+- and unplanted, on real data: adding §28.5 coverage to the preimage moved OW-WAR-0001's contract digest, and all four children reported the error without anyone arranging it. That is the check firing on a change nobody was testing, which is better evidence than the plant
 
 ## Residual Risk
 

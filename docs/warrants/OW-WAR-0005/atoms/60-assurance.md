@@ -67,7 +67,12 @@ Yes, in three ways, all accepted and named:
    ambiguity, classification propagation, parent-edit mapping. A Warrant
    malformed in one of those ways passes.
 
-**Executed attacks:** recorded here when run, per §39.3.
+- **outcome:** no_counterexample_found, gap_accepted
+
+**Executed attacks:**
+- the whole plant battery IS an attack on `war check`: 36 planted violations, each expected to be rejected by a NAMED rule and a NAMED detail
+- the `pass` plant is the negative control: the unmodified 40-Warrant corpus must exit 0, without which a checker that rejects everything would score identically
+- four plants share the rule `manifest.invalid`, so matching the rule alone would let the duplicate-ordinal plant 'pass' while actually being caught by the unknown-role branch; the detail string is what distinguishes them
 
 ## Residual Risk
 

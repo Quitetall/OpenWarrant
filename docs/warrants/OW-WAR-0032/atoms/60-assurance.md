@@ -13,18 +13,22 @@ classification: internal
 
 ### OBL-001 — schemas generate from the types
 - **scope:** the IR, manifest, Dispatch, Submission, and gate schemas.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** generated output validates the existing corpus.
 
 ### OBL-002 — the pack is digested and pinned
 - **scope:** §64.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** `FormatBasis.digest` matches the assembled pack.
 
 ### OBL-003 — generated schemas cannot drift
 - **scope:** the generation step.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a plant editing a generated schema by hand, refused.
 
 ### OBL-004 — TypeScript consumes rather than reimplements
 - **scope:** §83.4.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** generated TS types exist and KF imports them.
 
 ## Gate Adequacy

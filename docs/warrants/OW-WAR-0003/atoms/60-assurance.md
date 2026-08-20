@@ -77,6 +77,14 @@ Two ways survive, both accepted with mitigations rather than dismissed:
 **Executed attacks:** to be recorded here when run, per §39.3. An adequacy
 review that lists questions without answers is a plan, not a review.
 
+- **outcome:** no_counterexample_found, gap_accepted
+
+**Executed attacks:**
+- hand-edited a committed generated view; refused by `generated.drift`
+- deleted a committed generated view; refused by `generated.missing`
+- ran the six vendored RFC 8785 official vector pairs in `conformance/rfc8785/`; all serialise to the published canonical form
+- pinned the absent-versus-empty distinction with a test, which is the failure named above and the easiest to forget
+
 ## Residual Risk
 
 - Same-host determinism only, per OBL-004's limitation.

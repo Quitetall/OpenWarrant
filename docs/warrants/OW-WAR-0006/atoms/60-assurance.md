@@ -13,15 +13,18 @@ classification: internal
 
 ### OBL-001 — relations parse and survive a round trip
 - **scope:** ADR atoms in this repository declaring `supersedes` or `superseded_by`.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** parse results plus a canonical round trip.
 
 ### OBL-002 — cycles and conflicts are REFUSED
 - **scope:** a planted supersession cycle, and a planted ADR declaring
+- **gate:** `gate://software.repo.war-check@1.0.0`
   `status: accepted` while another supersedes it.
 - **evidence:** two plants, two observed refusals naming the specific rule.
 
 ### OBL-003 — the untracked work is recorded
 - **scope:** the ADR Overview shipped in `3678455`.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a Progress Log entry naming the commit and the obligation it
   violated. Not a fix — a record, because §95 forbids fabricating the relation
   that should have existed.

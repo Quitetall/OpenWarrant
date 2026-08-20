@@ -13,14 +13,17 @@ classification: internal
 
 ### OBL-001 — one classifier, not two
 - **scope:** OW-WAR-0010 and this Warrant.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** both call the same function; a test asserts it.
 
 ### OBL-002 — an undocumented normative decision FAILS
 - **scope:** §91.4 test 23.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a plant and its refusal.
 
 ### OBL-003 — execution choices are NOT flagged
 - **scope:** §19.2.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a plant of an in-envelope choice, which must pass. Over-detection is the failure mode that gets the whole feature disabled.
 
 ## Gate Adequacy
