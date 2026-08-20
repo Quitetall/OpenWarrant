@@ -50,6 +50,8 @@ protocol proven only against a mock is not proven.
 | — BLUT adapter: lowering + lineage receipt (OW-WAR-0027) | alpha | **resolved** 2026-08-20 |
 | — KF typed actions + controlled envelope (OW-WAR-0028) | alpha | **resolved** 2026-08-20 |
 | — Liminal adapter + measured parity (OW-WAR-0040) | alpha | **resolved** 2026-08-20 |
+| — portable preservation + round trip (OW-WAR-0030) | alpha | **resolved** 2026-08-20 |
+| — local draft journal (OW-WAR-0031) | alpha | **resolved** 2026-08-20 |
 | — autonomy envelope + amendment records (OW-WAR-0010) | alpha | **resolved** 2026-08-20 |
 | — prerequisites and Preflight (OW-WAR-0011) | alpha | **resolved** 2026-08-20 |
 | — context model, manifest, trust classes (OW-WAR-0012) | alpha | **resolved** 2026-08-20 |
@@ -129,8 +131,8 @@ here. `roadmap://` refs in manifests resolve to the identifiers in this table.
 |---|---|---|---|
 | ~~OW-WAR-0028~~ | ~~Knowledge Fabric typed actions and controlled-action envelope~~ **RESOLVED** | §67 | RQ-076 |
 | OW-WAR-0029 | KF registration, global identity allocation, federation | §12, §83 | RQ-003, RQ-004, RQ-005 |
-| OW-WAR-0030 | Portable preservation: one-file export and round trip | §68 | RQ-082, RQ-083, RQ-084 |
-| OW-WAR-0031 | Local draft journal | §66 | — |
+| ~~OW-WAR-0030~~ | ~~Portable preservation: one-file export and round trip~~ **RESOLVED** | §68 | RQ-082, RQ-083, RQ-084 |
+| ~~OW-WAR-0031~~ | ~~Local draft journal~~ **RESOLVED** | §66 | — |
 | OW-WAR-0032 | Schema pack generation and protocol versioning | §64, §69, §83.4 | — |
 | OW-WAR-0033 | The remaining read projections | §17.5 | — |
 

@@ -17,18 +17,23 @@
 /// `ALL` is in declaration order, which must be the specification's order — the
 /// per-module "matches the SAS" tests compare against it.
 ///
+/// Variants may carry their own doc comments; several vocabularies have terms
+/// whose meaning is not obvious from the name (§66.2's two authority regimes,
+/// for instance), and a comment at the variant is where a reader looks.
+///
 /// `$err` is an `ident` rather than a `path` deliberately: `<$err>::Variant` in
 /// expression position is an unstable qualified path, so the error type has to be
 /// nameable as a plain identifier in the calling module's scope.
 macro_rules! vocabulary {
     (
         $(#[$meta:meta])*
-        $name:ident, $label:literal, $err:ident, { $($variant:ident => $text:literal),+ $(,)? }
+        $name:ident, $label:literal, $err:ident,
+        { $($(#[$vmeta:meta])* $variant:ident => $text:literal),+ $(,)? }
     ) => {
         $(#[$meta])*
         #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize)]
         #[serde(rename_all = "snake_case")]
-        pub enum $name { $($variant),+ }
+        pub enum $name { $($(#[$vmeta])* $variant),+ }
 
         impl $name {
             /// Every term, in the specification's order.

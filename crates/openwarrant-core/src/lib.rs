@@ -30,6 +30,7 @@ pub mod gate;
 pub mod gate_run;
 pub mod identity;
 pub mod independence;
+pub mod journal;
 pub mod manifest;
 pub mod milestones;
 pub mod obligation;
