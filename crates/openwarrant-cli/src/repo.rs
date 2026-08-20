@@ -15,6 +15,10 @@ use crate::init::CONFIG_FILE;
 
 #[derive(Debug)]
 pub enum RepoError {
+    /// A command-level failure that is not about locating or parsing the
+    /// repository — an unknown view name, an uncompilable Warrant. Kept
+    /// separate from the structured variants so it cannot absorb them.
+    Message(String),
     NotFound {
         from: Utf8PathBuf,
     },
@@ -49,6 +53,7 @@ impl fmt::Display for RepoError {
                 "no {CONFIG_FILE} found in {from} or any parent directory. \
                  Run `war init --namespace <NS>` to create one."
             ),
+            Self::Message(m) => write!(f, "{m}"),
             Self::NonUtf8Path => write!(f, "the current directory is not valid UTF-8"),
             Self::Io { context, source } => write!(f, "{context}: {source}"),
             Self::ConfigParse { path, source } => write!(f, "{path}: {source}"),

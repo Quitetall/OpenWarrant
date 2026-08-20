@@ -38,7 +38,8 @@ classification: internal
   must not be able to reach `missing_tool`.
 - Each reason code that can be reached locally gets a plant, and `missing_tool`
   and `failed` must land on different rules. This is where the parent project
-  lost 51 gates.
+  lost 51 gates (measured once at LamQuant `5369da81`, 2026-08-17, and
+  historical — see the README).
 
 ## Autonomy and Escalation
 

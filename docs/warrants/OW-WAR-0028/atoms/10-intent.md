@@ -11,7 +11,7 @@ classification: internal
 
 ## Problem
 
-Nothing can talk to Knowledge Fabric. §67 requires state change through TYPED ACTIONS rather than direct status edits (RQ-076) — the rule that stops a client from writing a lifecycle field directly. KF is checked out locally at `/mnt/4tb/openhuman-knowledge-fabric`, so this is buildable and partly testable.
+Nothing can talk to Knowledge Fabric. §67 requires state change through TYPED ACTIONS rather than direct status edits (RQ-076) — the rule that stops a client from writing a lifecycle field directly. A Knowledge Fabric checkout is available on the development host, so this is buildable and partly testable. The path is deliberately not recorded here: where a developer keeps a checkout is not a fact about the Warrant.
 
 ## Desired Outcome
 

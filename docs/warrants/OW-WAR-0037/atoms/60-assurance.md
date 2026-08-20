@@ -13,10 +13,12 @@ classification: internal
 
 ### OBL-001 — diff is semantic, not textual
 - **scope:** two revisions differing only in rendering.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** the diff reports NO semantic change.
 
 ### OBL-002 — digest movement is attributed
 - **scope:** a revision whose contract digest moved.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** the causing field is named.
 
 ## Gate Adequacy

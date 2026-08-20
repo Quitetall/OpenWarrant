@@ -13,18 +13,22 @@ classification: internal
 
 ### OBL-001 — allocation preserves the UUID
 - **scope:** §91.3 test 17.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** UUID before and after are identical.
 
 ### OBL-002 — Source Holder is not transferred
 - **scope:** RQ-004, §91.3 test 21.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** post-registration, Git remains Source Holder.
 
 ### OBL-003 — offline still works
 - **scope:** RQ-070.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** the full local flow with KF unreachable.
 
 ### OBL-004 — fabrication is still refused
 - **scope:** §91.3 test 20.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** the existing plant still passes.
 
 ## Gate Adequacy

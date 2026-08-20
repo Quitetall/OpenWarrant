@@ -6,6 +6,40 @@ and what each release gate means.
 Governing specification: `docs/sas/WAR_Software_Architecture_Specification.md`
 v0.1.0-draft.1, sha256 `aad5256cb59e3e589313b7e2d5b48360ad8c85cf1c1d65d21f9260e692dfe8e5`.
 
+## Alpha reached — and what that does and does not mean
+
+**All 40 alpha Warrants are resolved as of 2026-08-20.** Measured, not asserted:
+
+```
+cargo xtask gate    PASS, 7/7 steps
+conformance/plant.sh    36 planted violations, 36 rejected by their intended control
+war check --generated   212 pass · 2 warn · 0 unknown · 0 error
+cargo test --workspace  479 tests
+```
+
+Alpha means **every SAS capability exists and OpenWarrant implements its side of
+every protocol.** It does not mean the system has been used.
+
+Read the four honest limits below before treating this as a finished product:
+
+1. **Nothing has run against a real neighbour.** Katana, BLUT, Knowledge Fabric
+   and Liminal have no checkout on this host. The seams are typed, tested, and
+   unexercised. A protocol proven only against its own tests is not proven.
+2. **The execution plane has no plants.** 36 planted violations cover the
+   RECORD-level rules (§16, §19, §23, §28, §38, §39, §43, §44, §17.5, §71.10).
+   Resolution, independence, dispatch, context and preflight are unit-tested
+   only. A rule with no plant is a rule nothing has tried to break.
+3. **Two adequacy reviews report no executed attacks, and say so.** OW-WAR-0008
+   and OW-WAR-0017 are the two `war check` still warns about. That is the check
+   working: the state model and the epistemic classes have nothing to attack
+   until real authorizations and judgments exist.
+4. **This repository authored and verified itself.** Every Warrant here has
+   `independence: none` in substance — one actor, every role. §27.4 is explicit
+   that role separation by one person is not organizational independence, and
+   `Independence::none` satisfies nothing, including `basic`.
+
+Beta is where 1 and 2 close. Release is where the hardening Warrants are written.
+
 ## Release gates
 
 | Gate | Means | Complete when |
@@ -41,6 +75,33 @@ protocol proven only against a mock is not proven.
 | — contract-adequacy review (OW-WAR-0018) | alpha | **resolved** 2026-08-19 |
 | — gate registry, qualification, binding (OW-WAR-0019) | alpha | **resolved** 2026-08-19 |
 | — gate run semantics + invalidation (OW-WAR-0020) | alpha | **resolved** 2026-08-19 |
+| — verifier independence (OW-WAR-0021) | alpha | **resolved** 2026-08-20 |
+| — resolution, dispute, annulment (OW-WAR-0022) | alpha | **resolved** 2026-08-20 |
+| — dispatch compilation + actor projection (OW-WAR-0023) | alpha | **resolved** 2026-08-20 |
+| — stage submission + attempt semantics (OW-WAR-0024) | alpha | **resolved** 2026-08-20 |
+| — blockers, deviations, decisions, gaps (OW-WAR-0025) | alpha | **resolved** 2026-08-20 |
+| — Katana runtime seam + receipts (OW-WAR-0026) | alpha | **resolved** 2026-08-20 |
+| — BLUT adapter: lowering + lineage receipt (OW-WAR-0027) | alpha | **resolved** 2026-08-20 |
+| — KF typed actions + controlled envelope (OW-WAR-0028) | alpha | **resolved** 2026-08-20 |
+| — Liminal adapter + measured parity (OW-WAR-0040) | alpha | **resolved** 2026-08-20 |
+| — portable preservation + round trip (OW-WAR-0030) | alpha | **resolved** 2026-08-20 |
+| — local draft journal (OW-WAR-0031) | alpha | **resolved** 2026-08-20 |
+| — ADR federation: relations, supersession, currency (OW-WAR-0006) | alpha | **resolved** 2026-08-20 |
+| — KF registration + global identity allocation (OW-WAR-0029) | alpha | **resolved** 2026-08-20 |
+| — schema pack + protocol versioning (OW-WAR-0032) | alpha | **resolved** 2026-08-20 |
+| — the remaining read projections (OW-WAR-0033) | alpha | **resolved** 2026-08-20 |
+| — agent protocol + Draft Proposal validation (OW-WAR-0034) | alpha | **resolved** 2026-08-20 |
+| — `war plan` and the interview loop (OW-WAR-0035) | alpha | **resolved** 2026-08-20 |
+| — normative-decision detection (OW-WAR-0036) | alpha | **resolved** 2026-08-20 |
+| — `war diff`: semantic difference (OW-WAR-0037) | alpha | **resolved** 2026-08-20 |
+| — existing ADR importer (OW-WAR-0038) | alpha | **resolved** 2026-08-20 |
+| — telemetry + untracked-work detection (OW-WAR-0039) | alpha | **resolved** 2026-08-20 |
+| — autonomy envelope + amendment records (OW-WAR-0010) | alpha | **resolved** 2026-08-20 |
+| — prerequisites and Preflight (OW-WAR-0011) | alpha | **resolved** 2026-08-20 |
+| — context model, manifest, trust classes (OW-WAR-0012) | alpha | **resolved** 2026-08-20 |
+| — SAS + Roadmap traceability (OW-WAR-0013) | alpha | **resolved** 2026-08-20 |
+| — rationale model, assumptions, unknowns (OW-WAR-0014) | alpha | **resolved** 2026-08-20 |
+| — deliverables, artifacts, provenance (OW-WAR-0015) | alpha | **resolved** 2026-08-20 |
 | 2 — Agent planner | alpha | not started |
 | 3 — ADR federation | alpha | partial |
 | 4 — Knowledge Fabric registration | alpha (protocol) / beta (live) | not started |
@@ -75,16 +136,16 @@ here. `roadmap://` refs in manifests resolve to the identifiers in this table.
 
 | WAR | Title | SAS | Requirements |
 |---|---|---|---|
-| OW-WAR-0006 | Complete ADR federation: relations, supersession, currency | §19.4, §21 | RQ-024, RQ-025 |
+| ~~OW-WAR-0006~~ | ~~Complete ADR federation: relations, supersession, currency~~ **RESOLVED** | §19.4, §21 | RQ-024, RQ-025 |
 | ~~OW-WAR-0007~~ | ~~Milestones and stages: parse, validate, named typed ports~~ **RESOLVED** | §23 | RQ-040, RQ-041 |
 | ~~OW-WAR-0008~~ | ~~The state model: phase, condition, outcome, currency, standing~~ **RESOLVED** | §24 | RQ-032 |
 | ~~OW-WAR-0009~~ | ~~Contract revisions and immutability~~ **RESOLVED** | §28, §29 | RQ-030, RQ-031, RQ-033, RQ-034 |
-| OW-WAR-0010 | Autonomy envelope and amendment records | §30, §31 | — |
-| OW-WAR-0011 | Prerequisites and Preflight | §32 | RQ-035 |
-| OW-WAR-0012 | Context model, context manifest, trust classes | §33 | — |
-| OW-WAR-0013 | SAS and Roadmap traceability validation | §34 | RQ-022 |
-| OW-WAR-0014 | Rationale model, assumptions, and unknowns | §35, §36 | — |
-| OW-WAR-0015 | Deliverables, artifacts, and provenance | §37 | — |
+| ~~OW-WAR-0010~~ | ~~Autonomy envelope and amendment records~~ **RESOLVED** | §30, §31 | — |
+| ~~OW-WAR-0011~~ | ~~Prerequisites and Preflight~~ **RESOLVED** | §32 | RQ-035 |
+| ~~OW-WAR-0012~~ | ~~Context model, context manifest, trust classes~~ **RESOLVED** | §33 | — |
+| ~~OW-WAR-0013~~ | ~~SAS and Roadmap traceability validation~~ **RESOLVED** | §34 | RQ-022 |
+| ~~OW-WAR-0014~~ | ~~Rationale model, assumptions, and unknowns~~ **RESOLVED** | §35, §36 | — |
+| ~~OW-WAR-0015~~ | ~~Deliverables, artifacts, and provenance~~ **RESOLVED** | §37 | — |
 
 ### Assurance — the reason the system exists
 
@@ -95,41 +156,41 @@ here. `roadmap://` refs in manifests resolve to the identifiers in this table.
 | ~~OW-WAR-0018~~ | ~~Contract-adequacy review, structurally checked~~ **RESOLVED** | §39 | RQ-055 |
 | ~~OW-WAR-0019~~ | ~~Gate Registry: definitions, qualification, bindings~~ **RESOLVED** | §43 | RQ-056 |
 | ~~OW-WAR-0020~~ | ~~Gate Run semantics, askability, and invalidation~~ **RESOLVED** | §44, §45 | RQ-054, RQ-057 |
-| OW-WAR-0021 | Verifier independence | §46 | RQ-053 |
-| OW-WAR-0022 | Resolution, dispute, and annulment | §56, §57 | RQ-058, RQ-059 |
+| ~~OW-WAR-0021~~ | ~~Verifier independence~~ **RESOLVED** | §46 | RQ-053 |
+| ~~OW-WAR-0022~~ | ~~Resolution, dispute, and annulment~~ **RESOLVED** | §56, §57 | RQ-058, RQ-059 |
 
 ### Execution
 
 | WAR | Title | SAS | Requirements |
 |---|---|---|---|
-| OW-WAR-0023 | Stage Dispatch compilation and actor-specific projection | §47 | RQ-042, RQ-043 |
-| OW-WAR-0024 | Stage Submission and attempt semantics | §51, §52 | RQ-045 |
-| OW-WAR-0025 | Blockers, deviations, decision proposals, discovered gaps | §53 | — |
-| OW-WAR-0026 | Katana runtime seam, capabilities, and receipts | §48 | RQ-044, RQ-062 |
-| OW-WAR-0027 | BLUT adapter: PlanSpec lowering and lineage receipt | §49 | RQ-063 |
+| ~~OW-WAR-0023~~ | ~~Stage Dispatch compilation and actor-specific projection~~ **RESOLVED** | §47 | RQ-042, RQ-043 |
+| ~~OW-WAR-0024~~ | ~~Stage Submission and attempt semantics~~ **RESOLVED** | §51, §52 | RQ-045 |
+| ~~OW-WAR-0025~~ | ~~Blockers, deviations, decision proposals, discovered gaps~~ **RESOLVED** | §53 | — |
+| ~~OW-WAR-0026~~ | ~~Katana runtime seam, capabilities, and receipts~~ **RESOLVED** | §48 | RQ-044, RQ-062 |
+| ~~OW-WAR-0027~~ | ~~BLUT adapter: PlanSpec lowering and lineage receipt~~ **RESOLVED** | §49 | RQ-063 |
 
 ### Federation and preservation
 
 | WAR | Title | SAS | Requirements |
 |---|---|---|---|
-| OW-WAR-0028 | Knowledge Fabric typed actions and controlled-action envelope | §67 | RQ-076 |
-| OW-WAR-0029 | KF registration, global identity allocation, federation | §12, §83 | RQ-003, RQ-004, RQ-005 |
-| OW-WAR-0030 | Portable preservation: one-file export and round trip | §68 | RQ-082, RQ-083, RQ-084 |
-| OW-WAR-0031 | Local draft journal | §66 | — |
-| OW-WAR-0032 | Schema pack generation and protocol versioning | §64, §69, §83.4 | — |
-| OW-WAR-0033 | The remaining read projections | §17.5 | — |
+| ~~OW-WAR-0028~~ | ~~Knowledge Fabric typed actions and controlled-action envelope~~ **RESOLVED** | §67 | RQ-076 |
+| ~~OW-WAR-0029~~ | ~~KF registration, global identity allocation, federation~~ **RESOLVED** | §12, §83 | RQ-003, RQ-004, RQ-005 |
+| ~~OW-WAR-0030~~ | ~~Portable preservation: one-file export and round trip~~ **RESOLVED** | §68 | RQ-082, RQ-083, RQ-084 |
+| ~~OW-WAR-0031~~ | ~~Local draft journal~~ **RESOLVED** | §66 | — |
+| ~~OW-WAR-0032~~ | ~~Schema pack generation and protocol versioning~~ **RESOLVED** | §64, §69, §83.4 | — |
+| ~~OW-WAR-0033~~ | ~~The remaining read projections~~ **RESOLVED** | §17.5 | — |
 
 ### Planning and migration
 
 | WAR | Title | SAS | Requirements |
 |---|---|---|---|
-| OW-WAR-0034 | Agent protocol and Draft Proposal validation | §74, §75 | RQ-072 |
-| OW-WAR-0035 | `war plan` and the interview loop | §71.3, §71.4 | RQ-071 |
-| OW-WAR-0036 | Normative-decision detection and proposed-ADR generation | §19.2, §74.7 | RQ-020, RQ-073 |
-| OW-WAR-0037 | `war diff`: semantic difference between revisions | §71.10 | — |
-| OW-WAR-0038 | Existing ADR importer, preserving unknown classes | §96, §97 | — |
-| OW-WAR-0039 | Telemetry, unit economics, and untracked-work detection | §94, §95 | — |
-| OW-WAR-0040 | Liminal adapter and measured parity harness | §82 | RQ-061 |
+| ~~OW-WAR-0034~~ | ~~Agent protocol and Draft Proposal validation~~ **RESOLVED** | §74, §75 | RQ-072 |
+| ~~OW-WAR-0035~~ | ~~`war plan` and the interview loop~~ **RESOLVED** | §71.3, §71.4 | RQ-071 |
+| ~~OW-WAR-0036~~ | ~~Normative-decision detection and proposed-ADR generation~~ **RESOLVED** | §19.2, §74.7 | RQ-020, RQ-073 |
+| ~~OW-WAR-0037~~ | ~~`war diff`: semantic difference between revisions~~ **RESOLVED** | §71.10 | — |
+| ~~OW-WAR-0038~~ | ~~Existing ADR importer, preserving unknown classes~~ **RESOLVED** | §96, §97 | — |
+| ~~OW-WAR-0039~~ | ~~Telemetry, unit economics, and untracked-work detection~~ **RESOLVED** | §94, §95 | — |
+| ~~OW-WAR-0040~~ | ~~Liminal adapter and measured parity harness~~ **RESOLVED** | §82 | RQ-061 |
 
 **Alpha = OW-WAR-0006 through OW-WAR-0040 resolved, plus the three carried-forward
 Phase 1 milestones.** 35 Warrants.
@@ -156,22 +217,49 @@ Written when alpha closes, not before. Scope, so it is not rediscovered:
 - The AGPL-3.0 → Apache-2.0 relicense and public launch (`RELICENSING.md`).
 
 
-### Known gap, recorded rather than closed (OW-WAR-0018)
+### Adequacy reviews — the state as of 2026-08-20
 
-`war check` now reports, on this repository's own corpus:
+This section said "12 of 14 controlled Warrants record no §39.2 outcome" from
+2026-08-19 until this correction. That was true when written and false by the
+time alpha closed, which is the failure mode the whole document is about. The
+numbers below are what `war check` reports today; if they disagree with the tool,
+the tool is right.
 
-- **12 of 14** `controlled` Warrants carry an adequacy review that records no
-  §39.2 outcome and has executed no §39.3 attacks. Both are WARN, not ERROR:
-  §39.3 says attacks SHOULD be run "where economical", and a SHOULD promoted to
-  a hard failure is the first rule anyone disables.
-- These 12 are Warrants whose work has not been executed yet. There is nothing
-  to attack until there is an implementation, so the honest record is a review
-  that asked its question and stopped. They close as their Warrants resolve.
-- The rule was written to catch this repository first. It did: OW-WAR-0023 had
-  passed RQ-055 for two weeks with a section that never asked §39.1's question,
-  because the old check was a substring search for the word "adequacy". That
-  substring search is deleted, and a repository-wide grep for its call site
-  returns nothing.
+- **0 of 14** `controlled` Warrants lack a §39.2 outcome. All fourteen now record
+  one.
+- **2 of 14** have executed no §39.3 attacks: OW-WAR-0008 (state model) and
+  OW-WAR-0017 (epistemic classes). Both say so in their reviews and explain why —
+  there is nothing to attack until real authorizations and judgments exist. These
+  are the only two warnings `war check` emits.
+
+Missing attacks stay a WARN rather than an ERROR: §39.3 says attacks SHOULD be
+run "where economical", and a SHOULD promoted to a hard failure is the first rule
+anyone disables.
+
+The rule was written to catch this repository first, and it did — twice.
+OW-WAR-0023 had passed RQ-055 for two weeks with a section that never asked
+§39.1's question, because the old check was a substring search for the word
+"adequacy". Then the replacement's own absence-phrase allowlist was wrong three
+times, hiding warnings for the Warrants being most honest, until attacks were
+counted structurally instead.
+
+### What "resolved" means for a module the corpus cannot yet exercise
+
+Several alpha Warrants deliver machinery that `war check` does not yet consult,
+because the record it would govern does not exist in this repository. Independence
+declarations, authorization records, resolutions, disputes and monitors all arrive
+as DATA with the local journal (OW-WAR-0031) and Knowledge Fabric federation
+(OW-WAR-0028).
+
+Those Warrants are resolved in the alpha sense — the capability exists, is typed,
+and is unit-tested against the SAS's own vocabulary — and are NOT resolved in the
+sense of being exercised on real records. The plant battery is the honest measure
+here: a rule with no plant is a rule nothing has tried to break. Current plants
+cover the record-level rules (§16, §19, §23, §28, §38, §39, §43, §44); the
+execution-plane rules are unit-tested only.
+
+Beta is where these meet real data. Until then, no gate count should be read as
+evidence that resolution semantics have been exercised end to end.
 
 ## How this document stays true
 

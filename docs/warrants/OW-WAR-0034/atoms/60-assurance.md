@@ -13,14 +13,17 @@ classification: internal
 
 ### OBL-001 — proposals are typed
 - **scope:** §74.2-§74.3.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** each operation kind round trips.
 
 ### OBL-002 — validation precedes application
 - **scope:** §74.4.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** an invalid proposal is refused with nothing written; the working tree is unchanged, asserted rather than assumed.
 
 ### OBL-003 — no write path in the agent crate
 - **scope:** §74.5.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** the existing `no_proposal_kind_names_a_write_target` test, extended to every type in the crate.
 
 ## Gate Adequacy

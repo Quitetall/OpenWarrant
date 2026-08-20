@@ -294,6 +294,8 @@ dependencies = [
  "clap",
  "openwarrant-compiler",
  "openwarrant-core",
+ "serde",
+ "serde_json",
  "toml",
 ]
 

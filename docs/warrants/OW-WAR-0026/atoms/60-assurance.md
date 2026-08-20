@@ -13,14 +13,17 @@ classification: internal
 
 ### OBL-001 — a Dispatch maps to a Katana request without a PromptIR
 - **scope:** §48.2.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** no PromptIR construction anywhere in the crate; grep proves it.
 
 ### OBL-002 — receipts are consumed, never minted
 - **scope:** §48.4.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a plant where OpenWarrant fabricates a receipt, refused.
 
 ### OBL-003 — the seam declares itself unverified
 - **scope:** the absence of a live Katana.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** every run against the seam reports that it has not been exercised
   against a real runtime. This is UNKNOWN, not PASS.
 

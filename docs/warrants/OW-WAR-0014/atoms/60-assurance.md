@@ -13,10 +13,12 @@ classification: internal
 
 ### OBL-001 — the rationale graph parses
 - **scope:** §35's node classes and edge types.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** parsed values asserted per class.
 
 ### OBL-002 — blocking unknowns and circular validation are REFUSED
 - **scope:** a Warrant authorized with an unresolved blocking unknown; a premise
+- **gate:** `gate://software.repo.war-check@1.0.0`
   whose support chain returns to itself.
 - **evidence:** two plants, two refusals naming their rules.
 

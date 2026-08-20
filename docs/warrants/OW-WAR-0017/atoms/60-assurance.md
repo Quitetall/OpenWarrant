@@ -39,7 +39,14 @@ well-formed, admissible, correctly attributed, and simply WRONG — a measuremen
 of the wrong thing. §38.4's bounded scope and OW-WAR-0021's verifier independence
 reduce that; nothing eliminates it.
 
-**Executed attacks:** recorded here when run (§39.3).
+- **outcome:** gap_accepted
+
+**Executed attacks:** none against the corpus. The epistemic classes are enforced
+in types and unit tests — §40.7's six prohibited substitutions each have a test
+asserting they are refused — but no plant exercises them, because no Warrant in
+this repository yet records an inference or a judgment to substitute. The
+distinction between a tested rule and a planted one is real, and the roadmap
+states it: a rule with no plant is a rule nothing has tried to break.
 
 ## Residual Risk
 

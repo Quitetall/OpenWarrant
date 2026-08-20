@@ -643,7 +643,7 @@ fn check_drift(
 
     let mut compared = 0usize;
     for (view, expected) in &fresh {
-        let path = one.dir.join(view.filename());
+        let path = one.dir.join(view.committed_filename());
         let relative = repo.relative(&path);
         match std::fs::read_to_string(&path) {
             Ok(actual) if actual == *expected => compared += 1,
@@ -653,7 +653,7 @@ fn check_drift(
                 format!(
                     "{alias}: committed {} differs from a fresh compilation; \
                      it was edited by hand or its sources changed without recompiling",
-                    view.filename()
+                    view.committed_filename()
                 ),
             )),
             Err(_) if repo.config.generated.commit => report.push(Diagnostic::error(
@@ -662,7 +662,7 @@ fn check_drift(
                 format!(
                     "{alias}: {} is missing and this repository commits generated views; \
                      run `war compile {alias}`",
-                    view.filename()
+                    view.committed_filename()
                 ),
             )),
             Err(_) => compared += 1,

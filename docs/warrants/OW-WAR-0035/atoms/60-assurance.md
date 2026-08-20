@@ -13,14 +13,17 @@ classification: internal
 
 ### OBL-001 — a sentence produces a valid draft
 - **scope:** §99 criterion 1.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** the draft passes `war check`.
 
 ### OBL-002 — questions are counted
 - **scope:** §99 criterion 2.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a clarification count is recorded per plan. The count is the evidence; 'high-value' is a judgement made against it, not asserted.
 
 ### OBL-003 — planning never authorizes
 - **scope:** §27.2.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a plant; the draft remains unauthorized.
 
 ## Gate Adequacy

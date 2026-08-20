@@ -13,14 +13,17 @@ classification: internal
 
 ### OBL-001 — actions are typed and enveloped
 - **scope:** §67.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** every state change goes through an action.
 
 ### OBL-002 — direct status edits are REFUSED
 - **scope:** RQ-076.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a plant; ideally it does not compile.
 
 ### OBL-003 — concurrency and idempotency hold
 - **scope:** §67.3, §67.4.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a stale write refused; a duplicated action applied once.
 
 ## Gate Adequacy

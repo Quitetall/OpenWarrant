@@ -16,6 +16,7 @@ mod gate_cmd;
 mod init;
 mod new;
 mod repo;
+mod show;
 
 /// Exit codes. §76.4 wants machine-usable output; a caller distinguishing
 /// "your input was wrong" from "the Warrant is not sound" needs more than 0/1.
@@ -77,6 +78,40 @@ enum Command {
         #[arg(long)]
         gate: Option<String>,
     },
+    /// Build a drafting request for an agent (§71.3, §75.2).
+    ///
+    /// Emits the canonical request and stops: this build ships no agent, and a
+    /// seam with nothing on the other side should say so rather than pretend.
+    Plan {
+        /// What the Warrant should accomplish.
+        request: String,
+        #[arg(long, default_value = "delivery")]
+        profile: String,
+        #[arg(long, default_value = "basic")]
+        assurance: String,
+        /// A Draft Proposal returned by an agent, to validate against §74.4.
+        #[arg(long)]
+        proposal: Option<Utf8PathBuf>,
+        /// Record that §74.4 steps 5 and 6 (semantic diff, review) happened.
+        #[arg(long)]
+        reviewed: bool,
+    },
+    /// Render one of §17.5's projections (§17.5).
+    Show {
+        /// The Warrant's local alias.
+        alias: String,
+        /// Which projection. Defaults to the full Warrant.
+        #[arg(long, default_value = "full_warrant")]
+        view: String,
+    },
+    /// Semantic difference between the committed compilation and a fresh one (§71.10).
+    Diff {
+        /// The Warrant's local alias.
+        alias: String,
+        /// A canonical JSON file to compare against. Defaults to the committed one.
+        #[arg(long)]
+        from: Option<Utf8PathBuf>,
+    },
     /// Compile the configured projections (§71.8).
     Compile {
         /// A single Warrant's local alias. Defaults to the whole corpus.
@@ -128,6 +163,79 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             } else {
                 EXIT_NOT_READY
             })
+        }
+        Command::Plan {
+            request,
+            profile,
+            assurance,
+            proposal,
+            reviewed,
+        } => {
+            let repository = repo::Repository::discover(None)?;
+
+            // The return half of §75.2's seam: validate what an agent sent back.
+            if let Some(path) = proposal {
+                let json = std::fs::read_to_string(&path)
+                    .map_err(|e| repo::RepoError::Message(format!("cannot read {path}: {e}")))?;
+                let (parsed, pipeline) = show::plan::validate_proposal(&json, reviewed)?;
+                match pipeline.may_apply() {
+                    Ok(()) => {
+                        println!(
+                            "draft proposal is applicable: {} atom operation(s), \
+                             {} ADR draft(s)",
+                            parsed.atom_operations.len(),
+                            parsed.proposed_adr_drafts.len()
+                        );
+                        Ok(EXIT_OK)
+                    }
+                    Err(e) => {
+                        // NOT an error exit for a well-formed proposal awaiting
+                        // review: §74.4 step 6 is a human step, and reporting
+                        // "not yet reviewed" as a failure would train people to
+                        // pass --reviewed to make the message go away.
+                        println!("draft proposal parsed and validated, but not applicable yet");
+                        println!("  {e}");
+                        Ok(EXIT_NOT_READY)
+                    }
+                }
+            } else {
+                let req = show::plan::DraftRequest {
+                    api_version: "oh.war/draft-request/v1".to_owned(),
+                    user_request: request,
+                    namespace: repository.config.project.namespace.as_str().to_owned(),
+                    profile,
+                    assurance,
+                    existing_warrants: repository
+                        .warrant_dirs()?
+                        .iter()
+                        .filter_map(|d| d.file_name().map(ToOwned::to_owned))
+                        .collect(),
+                    existing_adrs: vec![],
+                };
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&req).expect("request serializes")
+                );
+                eprintln!(
+                    "\nThis build ships no drafting agent. Pipe this request to one \
+                 speaking `war-agent --protocol oh.war/agent-drafter/v1` (§75.2), \
+                 then return its Draft Proposal with `war plan --proposal <file>`; \
+                 it must clear §74.4's eight steps before anything is written."
+                );
+                Ok(EXIT_OK)
+            }
+        }
+        Command::Show { alias, view } => {
+            let repository = repo::Repository::discover(None)?;
+            let rendered = show::run(&repository, &alias, &view)?;
+            println!("{rendered}");
+            Ok(EXIT_OK)
+        }
+        Command::Diff { alias, from } => {
+            let repository = repo::Repository::discover(None)?;
+            let report = show::diff(&repository, &alias, from.as_ref())?;
+            check::print(&report);
+            Ok(EXIT_OK)
         }
         Command::Check { alias, generated } => {
             let repository = repo::Repository::discover(None)?;

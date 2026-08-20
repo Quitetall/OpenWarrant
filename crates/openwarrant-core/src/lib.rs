@@ -11,19 +11,35 @@
 
 #![forbid(unsafe_code)]
 
+pub mod autonomy;
+pub mod context;
+pub mod deliverable;
+pub mod preflight;
+pub mod rationale;
+pub mod traceability;
+mod vocab;
+
 pub mod adequacy;
 pub mod adr;
 pub mod config;
 pub mod contract;
+pub mod drafting;
 pub mod epistemic;
+pub mod execution;
 pub mod frontmatter;
 pub mod gate;
 pub mod gate_run;
 pub mod identity;
+pub mod independence;
+pub mod journal;
+pub mod lifecycle;
 pub mod manifest;
+pub mod migration;
 pub mod milestones;
 pub mod obligation;
+pub mod resolution;
 pub mod role;
+pub mod seam;
 pub mod state;
 pub mod structured;
 

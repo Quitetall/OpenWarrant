@@ -13,14 +13,17 @@ classification: internal
 
 ### OBL-001 — the export is complete
 - **scope:** §68.2's five categories, for sections that exist.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a missing populated section fails.
 
 ### OBL-002 — the round trip is byte-stable
 - **scope:** RQ-083.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** export, import, re-export; bytes identical.
 
 ### OBL-003 — history survives
 - **scope:** RQ-084.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** superseded, disputed, and annulled records present after export.
 
 ## Gate Adequacy

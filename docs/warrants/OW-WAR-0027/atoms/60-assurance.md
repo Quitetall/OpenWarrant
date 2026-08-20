@@ -13,14 +13,17 @@ classification: internal
 
 ### OBL-001 — lowering produces a valid PlanSpec
 - **scope:** WAR stage graphs using named typed ports.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** BLUT accepts the lowered PlanSpec.
 
 ### OBL-002 — lineage receipts are consumed
 - **scope:** §49.2.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a plant fabricating a receipt, refused.
 
 ### OBL-003 — verified against real BLUT
 - **scope:** the checkout at `training/engine`.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** an integration run, not a mock. This adapter has no excuse for being unverified.
 
 ## Gate Adequacy

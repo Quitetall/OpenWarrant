@@ -20,7 +20,8 @@
 //! and sandboxing is beta hardening, not something this alpha claims.
 //!
 //! OW-WAR-0020's Intent records the cost of getting this wrong: the parent
-//! project's corpus contains 12 missing-tool, 7 missing-script and 4
+//! project's corpus contained, when measured once at LamQuant `5369da81` on
+//! 2026-08-17, 12 missing-tool, 7 missing-script and 4
 //! missing-crate gates. Collapsed into `failed`, those 23 would have read as
 //! measured failures of the subject rather than as gates that never ran.
 

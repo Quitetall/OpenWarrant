@@ -53,6 +53,42 @@ restore() {
 }
 trap restore EXIT
 
+# plant_cmd <name> <expected-rule> <expected-detail> <expected-exit> <mutation> <args...>
+#
+# The general form: run any `war` subcommand rather than `check` or `gate --run`.
+# plant() and plant_gate() predate it and are kept because their call sites read
+# better; new plants for new subcommands use this.
+plant_cmd() {
+    local name="$1" rule="$2" detail="$3" want_exit="$4" mutate="$5"
+    shift 5
+
+    restore
+    eval "$mutate"
+
+    local out status
+    out="$("$WAR" "$@" 2>&1)"
+    status=$?
+    restore
+
+    if [[ "$status" -ne "$want_exit" ]]; then
+        printf 'FAIL  %-34s exit %s, wanted %s\n' "$name" "$status" "$want_exit"
+        FAILED=$((FAILED + 1))
+        return
+    fi
+    if ! grep -q -- "$rule" <<<"$out"; then
+        printf 'FAIL  %-34s exited %s but %s never appeared\n' "$name" "$status" "$rule"
+        FAILED=$((FAILED + 1))
+        return
+    fi
+    if ! grep -q -- "$detail" <<<"$out"; then
+        printf 'FAIL  %-34s %s appeared but not for %s\n' "$name" "$rule" "$detail"
+        FAILED=$((FAILED + 1))
+        return
+    fi
+    printf 'ok    %-34s rejected by %s (%s)\n' "$name" "$rule" "$detail"
+    PASSED=$((PASSED + 1))
+}
+
 # plant_gate <name> <expected-rule> <expected-detail> <expected-exit> <mutation>
 #
 # Same assertions as plant(), driving `war gate --run` instead of `war check`.
@@ -267,7 +303,8 @@ plant "a placeholder where a digest belongs" "gate.invalid" "which is not a dige
 # ---------------------------------------------------------------------------
 # §44 gate-run statuses. OW-WAR-0020 OBL-002: each is reported AS ITSELF, and
 # `missing_tool` specifically must not be reported as `failed`. The parent
-# project lost 51 gates to exactly that collapse.
+# project lost 51 gates to exactly that collapse (measured once at LamQuant
+# 5369da81, 2026-08-17; historical, and being repaired -- see the README).
 # ---------------------------------------------------------------------------
 
 plant_gate "a gate whose tool is absent" "gate-run.unaskable" "missing_tool" 2 \
@@ -294,6 +331,22 @@ plant_gate "a gate that never answers" "gate-run.no-result" "asked, but produced
 
 plant_gate "a gate that runs and fails" "gate-run.fail" "verdict fail" 2 \
     "sed -i 's|^argv: .*|argv: [\"false\"]|' docs/gates/software.repo.war-check@1.0.0.yaml"
+
+# ---------------------------------------------------------------------------
+# §17.5 projections, §71.10 diff, §74.4 planning gate.
+# ---------------------------------------------------------------------------
+
+plant_cmd "an unknown projection name" "17.5 defines" "full_warrant" 1 \
+    "true" show OW-WAR-0001 --view pretty_print
+
+plant_cmd "a hand-edited canonical JSON" "diff.changed" "contract_revision" 0 \
+    "python3 - <<'EOF'
+import pathlib, json
+p = pathlib.Path('docs/warrants/OW-WAR-0001/generated/WAR.json')
+d = json.loads(p.read_text())
+d['contract_revision'] = 99
+p.write_text(json.dumps(d, indent=2))
+EOF" diff OW-WAR-0001
 
 plant "milestone carrying a stage field" "milestones.invalid" "belongs to a stage" 2 \
     "python3 - <<'EOF'

@@ -13,7 +13,8 @@
 //!
 //! OW-WAR-0019's Intent records the cautionary case: in the parent project's
 //! corpus, 23 of 94 declared gates invoked a tool, script, or crate that was not
-//! in the tree. Those were strings someone typed, carried in prose, never
+//! in the tree. (One measurement, LamQuant `5369da81`, 2026-08-17. Historical,
+//! and being repaired — see the README.) Those were strings someone typed, carried in prose, never
 //! resolved. §43.4's qualification is what separates a gate shown to work from
 //! one written down.
 //!

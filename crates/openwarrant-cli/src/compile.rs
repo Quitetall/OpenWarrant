@@ -162,7 +162,7 @@ pub fn run(repo: &Repository, only: Option<&str>) -> Result<(), RepoError> {
         };
 
         for (view, contents) in views {
-            let path = dir.join(view.filename());
+            let path = dir.join(view.committed_filename());
             if let Some(parent) = path.parent() {
                 fs::create_dir_all(parent).map_err(|source| RepoError::Io {
                     context: format!("could not create {parent}"),

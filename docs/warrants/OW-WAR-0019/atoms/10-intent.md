@@ -16,7 +16,7 @@ not exist as an object. §43 defines a Gate Definition as separately governed an
 versioned, qualified before use, and BOUND to a subject — which is what stops a
 gate command from being a string somebody typed once.
 
-The parent project's corpus is the cautionary case: of 94 declared gates, 23
+The parent project's corpus is the cautionary case (measured once at LamQuant `5369da81`, 2026-08-17, and historical — see the README; LamQuant is being repaired against these findings): of 94 declared gates, 23
 invoked a tool, script, or crate that was not in the tree. Those were strings,
 not gates.
 

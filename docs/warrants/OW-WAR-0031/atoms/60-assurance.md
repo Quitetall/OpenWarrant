@@ -13,14 +13,17 @@ classification: internal
 
 ### OBL-001 — material events are journalled
 - **scope:** §66.4.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** each material event produces an entry.
 
 ### OBL-002 — append-only
 - **scope:** §66.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a plant attempting rewrite, refused.
 
 ### OBL-003 — state stops being derived
 - **scope:** OW-WAR-0008 OBL-003.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** the Overview reports recorded state for journalled Warrants.
 
 ## Gate Adequacy

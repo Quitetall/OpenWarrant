@@ -37,7 +37,14 @@ authority model until OW-WAR-0028. So "authorized" will mean "looks authorized"
 until KF actions exist. OBL-003's derived/recorded distinction is the mitigation
 and it is a label, not a control.
 
-**Executed attacks:** recorded here when run.
+- **outcome:** gap_accepted
+
+**Executed attacks:** none. The state model is derived from the record's shape,
+and this repository has no authorization or resolution records to shape it — those
+arrive with OW-WAR-0028 and OW-WAR-0031. Planting a false state means planting a
+false authorization, which cannot be done here yet. Recorded as absent rather than
+omitted, and the roadmap says the same thing in one place for every Warrant in
+this position.
 
 ## Residual Risk
 

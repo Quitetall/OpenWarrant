@@ -38,7 +38,12 @@ evidence that does not actually support it. Structure makes the claim legible;
 only verifier independence (OW-WAR-0021) and gate runs (OW-WAR-0020) make it
 sound.
 
-**Executed attacks:** recorded here when run.
+- **outcome:** no_counterexample_found, gap_accepted
+
+**Executed attacks:**
+- planted an obligation with no declared scope; refused by `obligations.invalid`
+- planted `obligation_refs: ["OBL-999"]` on a milestone; refused by `obligations.dangling-ref`
+- the second is the one that matters: a milestone citing proof nobody wrote passed unnoticed until this Warrant
 
 ## Residual Risk
 
