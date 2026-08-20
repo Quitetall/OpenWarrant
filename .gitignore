@@ -9,3 +9,7 @@
 # `[generated] commit = true, verify_drift = true` (§59.2), so compiled parents
 # are tracked and `war check --generated` fails when a committed view differs
 # from a fresh compilation. Ignoring them would delete the drift signal.
+
+# Python bytecode: build output, not source.
+__pycache__/
+*.pyc

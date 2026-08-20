@@ -278,12 +278,12 @@ mod tests {
     #[test]
     fn absolute_paths_are_refused() {
         let mut config = valid();
-        config.paths.warrants = "/mnt/4tb/OpenWarrant/docs/warrants".to_owned();
+        config.paths.warrants = "/absolute/elsewhere/docs/warrants".to_owned();
         assert_eq!(
             config.validate(),
             Err(ConfigError::PathNotRelative {
                 field: "warrants",
-                value: "/mnt/4tb/OpenWarrant/docs/warrants".to_owned(),
+                value: "/absolute/elsewhere/docs/warrants".to_owned(),
             })
         );
     }
