@@ -27,6 +27,32 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum EpistemicError {
+    #[error(
+        "record {id:?} declares class {class:?}, which is not one of §40's record \
+         kinds: evidence, observation, inference, judgment"
+    )]
+    UnknownRecordClass { id: String, class: String },
+    #[error(
+        "evidence {id:?} supplies its own `recorded at`. §40.2 — recorded_at is \
+         assigned by the authority that received the record, never by its author. \
+         Refused rather than ignored, so the author cannot believe it was accepted"
+    )]
+    AuthorSuppliedRecordedAt { id: String },
+    #[error(
+        "inference {id:?} rests on premise {premise:?}, which is not a declared \
+         record. An inference resting on a premise nobody wrote is the defect \
+         OW-WAR-0016 caught for milestones citing obligations nobody wrote"
+    )]
+    DanglingPremise { id: String, premise: String },
+    #[error("judgment {id:?} cites basis {basis:?}, which is not a declared record")]
+    DanglingBasis { id: String, basis: String },
+    #[error(
+        "inference {id:?} declares no premises. §40.4 — a reasoning step from \
+         premises to a claim that names no premise has not reasoned from anything"
+    )]
+    InferenceWithoutPremises { id: String },
+    #[error("inference {id:?} names no claim it supports (§40.4)")]
+    InferenceWithoutClaim { id: String },
     #[error("unknown {kind} {found:?}; expected one of {known}")]
     Unknown {
         kind: &'static str,
@@ -285,6 +311,41 @@ pub struct Inference {
     pub statement: String,
     pub premise_refs: Vec<String>,
     pub claim_ref: String,
+}
+
+impl Inference {
+    /// §40.4 / §91.11 test 78 — an inference with no premises is an assertion.
+    ///
+    /// This validation did not exist: `Inference` was a struct with no rules, so
+    /// "inference with no premises fails" had nothing to fail it. A reasoning
+    /// step whose premises are empty has not reasoned from anything.
+    pub fn validate(&self) -> Result<(), EpistemicError> {
+        if self.premise_refs.is_empty() {
+            return Err(EpistemicError::InferenceWithoutPremises {
+                id: self.id.clone(),
+            });
+        }
+        if self.claim_ref.trim().is_empty() {
+            return Err(EpistemicError::InferenceWithoutClaim {
+                id: self.id.clone(),
+            });
+        }
+        Ok(())
+    }
+}
+
+impl JudgmentAuthority {
+    /// Parse §42's two authorities by name.
+    pub fn parse(raw: &str) -> Result<Self, EpistemicError> {
+        match raw.trim() {
+            "agent_recommendation" => Ok(Self::AgentRecommendation),
+            "authorized" => Ok(Self::Authorized),
+            other => Err(EpistemicError::UnknownRecordClass {
+                id: "judgment".to_owned(),
+                class: format!("authority {other:?}; §42 defines agent_recommendation, authorized"),
+            }),
+        }
+    }
 }
 
 /// Who is making a judgment (§42).
@@ -733,5 +794,232 @@ mod tests {
         assert!(!obs.method.is_empty());
         assert!(obs.admissibility.is_independent());
         assert!(!obs.evidence_refs.is_empty());
+    }
+}
+
+/// Parse §40's evidence records from an assurance atom's `## Evidence` section.
+///
+/// # Why they live in the assurance atom
+///
+/// §40's classes exist to keep an acceptance argument honest, and the acceptance
+/// argument is the assurance atom. Putting evidence anywhere else would let an
+/// obligation cite a record a reader of the obligation cannot see.
+///
+/// The record shape is the one the corpus already uses for obligations —
+/// `### ID — statement` followed by `- **key:** value` bullets — so an author who
+/// can write an obligation can write evidence without learning a second format,
+/// and the same declared-bullet discipline applies: a channel is a declared
+/// field, never prose that happens to contain a word.
+pub mod records {
+    use super::{
+        Admissibility, EpistemicError, EvidenceItem, EvidenceOrigin, Inference, InferenceKind,
+        Judgment, JudgmentAuthority, Observation,
+    };
+    use std::str::FromStr;
+
+    /// Everything §40 lets an assurance atom record.
+    #[derive(Debug, Clone, Default, PartialEq, Eq)]
+    pub struct EvidenceSection {
+        pub evidence: Vec<EvidenceItem>,
+        pub observations: Vec<Observation>,
+        pub inferences: Vec<Inference>,
+        pub judgments: Vec<Judgment>,
+    }
+
+    impl EvidenceSection {
+        #[must_use]
+        pub fn is_empty(&self) -> bool {
+            self.evidence.is_empty()
+                && self.observations.is_empty()
+                && self.inferences.is_empty()
+                && self.judgments.is_empty()
+        }
+
+        #[must_use]
+        pub fn len(&self) -> usize {
+            self.evidence.len()
+                + self.observations.len()
+                + self.inferences.len()
+                + self.judgments.len()
+        }
+
+        /// §40.4 — an inference's premises must resolve to records that exist.
+        ///
+        /// An inference resting on a premise nobody wrote is the same defect as a
+        /// milestone citing an obligation nobody wrote, which OW-WAR-0016 caught
+        /// in this corpus.
+        pub fn validate_references(&self) -> Result<(), EpistemicError> {
+            let known: std::collections::BTreeSet<&str> = self
+                .evidence
+                .iter()
+                .map(|e| e.id.as_str())
+                .chain(self.observations.iter().map(|o| o.id.as_str()))
+                .chain(self.inferences.iter().map(|i| i.id.as_str()))
+                .collect();
+
+            for inference in &self.inferences {
+                for premise in &inference.premise_refs {
+                    if !known.contains(premise.as_str()) {
+                        return Err(EpistemicError::DanglingPremise {
+                            id: inference.id.clone(),
+                            premise: premise.clone(),
+                        });
+                    }
+                }
+            }
+            for judgment in &self.judgments {
+                for basis in &judgment.basis_refs {
+                    if !known.contains(basis.as_str()) {
+                        return Err(EpistemicError::DanglingBasis {
+                            id: judgment.id.clone(),
+                            basis: basis.clone(),
+                        });
+                    }
+                }
+            }
+            Ok(())
+        }
+    }
+
+    fn bullet(line: &str) -> Option<(String, String)> {
+        let t = line.trim().strip_prefix("- **")?;
+        let (key, rest) = t.split_once(":**")?;
+        Some((key.trim().to_lowercase(), rest.trim().to_owned()))
+    }
+
+    pub(crate) fn list(value: &str) -> Vec<String> {
+        value
+            .split(',')
+            .map(|s| s.trim().trim_matches('`').to_owned())
+            .filter(|s| !s.is_empty())
+            .collect()
+    }
+
+    /// Read the `## Evidence` section, if the atom has one.
+    ///
+    /// An atom without the section yields an empty set, not an error: §40 records
+    /// are optional, and the 49 Warrants authored before this existed must keep
+    /// parsing unchanged.
+    pub fn parse(source: &str) -> Result<EvidenceSection, EpistemicError> {
+        let mut out = EvidenceSection::default();
+        let mut in_section = false;
+        let mut id = String::new();
+        let mut statement = String::new();
+        let mut fields: std::collections::BTreeMap<String, String> =
+            std::collections::BTreeMap::new();
+
+        // A record is complete when the next heading or the section ends.
+        fn flush(
+            out: &mut EvidenceSection,
+            id: &str,
+            statement: &str,
+            fields: &std::collections::BTreeMap<String, String>,
+        ) -> Result<(), EpistemicError> {
+            if id.is_empty() {
+                return Ok(());
+            }
+            let get = |k: &str| fields.get(k).cloned().unwrap_or_default();
+            let class = get("class");
+
+            match class.as_str() {
+                "evidence" => {
+                    let item = EvidenceItem {
+                        id: id.to_owned(),
+                        kind: get("kind"),
+                        origin: EvidenceOrigin::from_str(&get("origin"))?,
+                        admissibility: Admissibility::from_str(&get("admissibility"))?,
+                        content_digest: Some(get("digest")).filter(|d| !d.is_empty()),
+                        collection_method: Some(get("method")).filter(|m| !m.is_empty()),
+                        occurred_at: Some(get("occurred at")).filter(|o| !o.is_empty()),
+                        // §40.2 / §91.11 test 81 — `recorded_at` is assigned by the
+                        // authority that received the record, never by its author.
+                        // An author-supplied value is REFUSED here rather than
+                        // ignored, because ignoring it silently would leave the
+                        // author believing it was accepted.
+                        recorded_at: None,
+                    };
+                    if fields.contains_key("recorded at") {
+                        return Err(EpistemicError::AuthorSuppliedRecordedAt { id: id.to_owned() });
+                    }
+                    item.validate()?;
+                    out.evidence.push(item);
+                }
+                "observation" => {
+                    let o = Observation {
+                        id: id.to_owned(),
+                        statement: statement.to_owned(),
+                        evidence_refs: list(&get("evidence")),
+                        method: get("method"),
+                        admissibility: Admissibility::from_str(&get("admissibility"))?,
+                    };
+                    o.validate()?;
+                    out.observations.push(o);
+                }
+                "inference" => {
+                    let i = Inference {
+                        id: id.to_owned(),
+                        kind: InferenceKind::from_str(&get("kind"))?,
+                        statement: statement.to_owned(),
+                        premise_refs: list(&get("premises")),
+                        claim_ref: get("claim"),
+                    };
+                    i.validate()?;
+                    out.inferences.push(i);
+                }
+                "judgment" => {
+                    let j = Judgment {
+                        id: id.to_owned(),
+                        kind: get("kind"),
+                        statement: statement.to_owned(),
+                        actor: get("actor"),
+                        acting_role: get("acting role"),
+                        meaning: get("meaning"),
+                        basis_refs: list(&get("basis")),
+                        authority: JudgmentAuthority::parse(&get("authority"))?,
+                        limitations: super::records::list(&get("limitations")),
+                    };
+                    j.validate()?;
+                    out.judgments.push(j);
+                }
+                other => {
+                    return Err(EpistemicError::UnknownRecordClass {
+                        id: id.to_owned(),
+                        class: other.to_owned(),
+                    });
+                }
+            }
+            Ok(())
+        }
+
+        for line in source.lines() {
+            let trimmed = line.trim();
+            if let Some(heading) = trimmed.strip_prefix("## ") {
+                flush(&mut out, &id, &statement, &fields)?;
+                id.clear();
+                fields.clear();
+                in_section = heading.trim().eq_ignore_ascii_case("Evidence");
+                continue;
+            }
+            if !in_section {
+                continue;
+            }
+            if let Some(rest) = trimmed.strip_prefix("### ") {
+                flush(&mut out, &id, &statement, &fields)?;
+                fields.clear();
+                let (head, tail) = rest
+                    .split_once(" — ")
+                    .or_else(|| rest.split_once(" - "))
+                    .unwrap_or((rest, ""));
+                id = head.trim().to_owned();
+                statement = tail.trim().to_owned();
+                continue;
+            }
+            if let Some((k, v)) = bullet(trimmed) {
+                fields.insert(k, v);
+            }
+        }
+        flush(&mut out, &id, &statement, &fields)?;
+        out.validate_references()?;
+        Ok(out)
     }
 }

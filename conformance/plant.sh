@@ -422,6 +422,41 @@ plant "an amendment with no authorizer" "amendment.invalid" "authorizer" 2 \
 plant "an amendment diffing a non-element" "amendment.invalid" "28.5 element" 2 \
     "sed -i 's|element: \"deliverables\"|element: \"vibes\"|' docs/warrants/OW-WAR-0046/amendments/AM-001.yaml"
 
+# §91.11 — evidence integrity, tests 76 through 81. Five separate plants rather
+# than one, because a single rule covering five omissions cannot tell you which
+# fired, and "evidence is malformed" is not an actionable finding.
+
+# test 76 — evidence with no digest cannot be checked for corruption.
+plant "evidence with no content digest" "evidence.invalid" "digest" 2 \
+    "sed -i '0,/^- \\*\\*digest:\\*\\* /{s|^- \\*\\*digest:\\*\\* .*|- **digest:** |}' docs/warrants/OW-WAR-0046/atoms/60-assurance.md"
+
+# test 77 — an observation with no method is an assertion about a method.
+plant "an observation with no method" "evidence.invalid" "method" 2 \
+    "sed -i 's|^- \\*\\*method:\\*\\* each plant asserts.*|- **method:** |' docs/warrants/OW-WAR-0046/atoms/60-assurance.md"
+
+# test 78 — an inference with no premises has not reasoned from anything.
+plant "an inference with no premises" "evidence.invalid" "no premises" 2 \
+    "sed -i 's|^- \\*\\*premises:\\*\\* OBS-002|- **premises:** |' docs/warrants/OW-WAR-0046/atoms/60-assurance.md"
+
+# test 79 — a judgment with no stated meaning. §42: "An approval with no stated
+# meaning is invalid."
+plant "a judgment with no stated meaning" "evidence.invalid" "meaning" 2 \
+    "python3 - <<'EOF'
+import pathlib, re
+p = pathlib.Path('docs/warrants/OW-WAR-0046/atoms/60-assurance.md')
+s = p.read_text()
+p.write_text(re.sub(r'- \\*\\*meaning:\\*\\* .*?(?=\\n- \\*\\*basis)', '- **meaning:** ', s, flags=re.S))
+EOF"
+
+# test 81 — an author supplying its own recorded_at. §40.2 assigns it elsewhere.
+plant "an author supplying recorded_at" "evidence.invalid" "recorded" 2 \
+    "sed -i '0,/^- \\*\\*occurred at:\\*\\*/{s|^- \\*\\*occurred at:\\*\\*|- **recorded at:** 2026-01-01\\n- **occurred at:**|}' docs/warrants/OW-WAR-0046/atoms/60-assurance.md"
+
+# A premise naming a record nobody wrote — the §40.4 analogue of the dangling
+# obligation_ref OW-WAR-0016 caught.
+plant "an inference on a premise nobody wrote" "evidence.invalid" "not a declared record" 2 \
+    "sed -i 's|^- \\*\\*premises:\\*\\* OBS-002|- **premises:** OBS-999|' docs/warrants/OW-WAR-0046/atoms/60-assurance.md"
+
 plant "milestone carrying a stage field" "milestones.invalid" "belongs to a stage" 2 \
     "python3 - <<'EOF'
 import pathlib
