@@ -9,6 +9,7 @@ use camino::Utf8PathBuf;
 use clap::{Parser, Subcommand};
 use openwarrant_core::Profile;
 
+mod blut;
 mod check;
 mod compile;
 mod diagnostic;
@@ -96,6 +97,11 @@ enum Command {
         /// Record that §74.4 steps 5 and 6 (semantic diff, review) happened.
         #[arg(long)]
         reviewed: bool,
+    },
+    /// Lower a computational Warrant's stage graph into a BLUT PlanSpec (§49).
+    Blut {
+        /// The Warrant's local alias.
+        alias: String,
     },
     /// Evaluate §56.1's thirteen resolution requirements without recording one.
     Resolve {
@@ -234,6 +240,16 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 );
                 Ok(EXIT_OK)
             }
+        }
+        Command::Blut { alias } => {
+            let repository = repo::Repository::discover(None)?;
+            let report = blut::lower(&repository, &alias)?;
+            check::print(&report);
+            Ok(if report.is_ready() {
+                EXIT_OK
+            } else {
+                EXIT_NOT_READY
+            })
         }
         Command::Resolve { alias, dry_run } => {
             if !dry_run {

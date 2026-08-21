@@ -476,6 +476,19 @@ plant "a universal claim resting on a sample" "obligations.invalid" "sampling al
 plant_gate "a gate that selects nothing" "gate-run.unaskable" "malformed" 2 \
     "sed -i 's|^argv: .*|argv: []|' docs/gates/software.repo.war-check@1.0.0.yaml"
 
+# §49.2 / §91.7 test 47 — an unsupported lowering FAILS rather than degrades.
+#
+# Degradation is silent by nature: a PlanSpec that quietly dropped a stage still
+# runs, and still produces artifacts. The refusal is the evidence; a successful
+# lowering is not.
+plant_cmd "a lowering with no computational stage" "blut.not-computational" "reject, not degrade" 0 \
+    "sed -i 's|executor_kind: \"blut\"|executor_kind: \"human\"|' docs/warrants/OW-WAR-0047/atoms/45-milestones.yaml" blut OW-WAR-0047
+
+# §49.3 — BLUT's authority is not duplicated. The lowering carries a pinned
+# registry identity, never BLUT's lineage.
+plant_cmd "a lowering against no pinned registry" "blut.lowered" "pinned registry" 0 \
+    "true" blut OW-WAR-0047
+
 plant "milestone carrying a stage field" "milestones.invalid" "belongs to a stage" 2 \
     "python3 - <<'EOF'
 import pathlib

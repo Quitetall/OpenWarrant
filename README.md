@@ -66,7 +66,12 @@ are read from a `## Evidence` section in the assurance atom and validated, so
 `ClaimGraph` detects a cycle in the claim/evidence graph, so §36.4's
 prohibition applies to a graph that is actually built.
 
-**Nine remain.** OW-WAR-0046 owns the rest.
+`BlutLowering` is exercised by `war blut`, which lowers a computational
+Warrant's stage graph into a `PlanSpec` matching BLUT's schema at a pinned
+commit — and refuses to lower a Warrant that declares no `blut` stage rather
+than degrading it.
+
+**Eight remain.**
 
 Pre-1.0 and the protocol is **not stable**: the canonical JSON shape, the digest
 domains, and the manifest schema may change in any 0.x release. There is no
