@@ -102,6 +102,12 @@ enum Command {
     Blut {
         /// The Warrant's local alias.
         alias: String,
+        /// Path to a real BLUT binary. When given, the lowered PlanSpec is
+        /// handed to `<binary> plan check --json` and BLUT's own verdict is
+        /// reported. Without it the lowering is only structurally faithful to
+        /// a schema, which is a weaker claim.
+        #[arg(long, value_name = "BLUT_BINARY")]
+        verify: Option<camino::Utf8PathBuf>,
     },
     /// Evaluate §56.1's thirteen resolution requirements without recording one.
     Resolve {
@@ -241,9 +247,9 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 Ok(EXIT_OK)
             }
         }
-        Command::Blut { alias } => {
+        Command::Blut { alias, verify } => {
             let repository = repo::Repository::discover(None)?;
-            let report = blut::lower(&repository, &alias)?;
+            let report = blut::lower(&repository, &alias, verify.as_deref())?;
             check::print(&report);
             Ok(if report.is_ready() {
                 EXIT_OK

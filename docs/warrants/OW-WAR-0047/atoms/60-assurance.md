@@ -32,6 +32,76 @@ classification: internal
   its committed bytes finds no lineage events or graph. A second copy of an
   authoritative fact is the defect being tested for.
 
+## Evidence
+
+§40's records for what this Warrant has actually done. The first entry is the
+first thing in this repository whose origin is not this repository.
+
+### EV-001 — BLUT's verdict on a lowering OpenWarrant generated
+- **class:** evidence
+- **kind:** external_tool_verdict
+- **origin:** blut
+- **admissibility:** authoritative_external
+- **digest:** sha256:pending-receipt-binding
+- **method:** `war blut OW-WAR-0047 --verify <blut-binary>` wrote the lowered
+  PlanSpec to a file and ran `<binary> plan check --json` on it; the verdict and
+  exit status were read from that process's output
+- **occurred at:** 2026-08-21
+
+### EV-002 — the neighbour-trust plant battery
+- **class:** evidence
+- **kind:** gate_run_output
+- **origin:** gate_runner
+- **admissibility:** controlled_measurement
+- **digest:** sha256:pending-receipt-binding
+- **method:** conformance/plant.sh, executed by cargo xtask gate — five plants
+  supply a missing, lying, mute and mumbling neighbour
+- **occurred at:** 2026-08-21
+
+### OBS-001 — BLUT refused the lowering, naming the unresolvable stage
+- **class:** observation
+- **evidence:** EV-001
+- **method:** BLUT reported `accepted: false` and exit 1 with the message
+  "stage 'STAGE-002' is not in any registered cookbook"; the exit status and the
+  verdict agreed, which is separately checked before either is recorded
+- **admissibility:** authoritative_external
+
+### OBS-002 — a verdict OpenWarrant cannot attribute is refused, not recorded
+- **class:** observation
+- **evidence:** EV-002
+- **method:** four plants each assert an exit code, a named rule and a named
+  detail; the exit-code cross-check was additionally disabled and the
+  corresponding plant then failed, so the battery is known to be able to fail
+- **admissibility:** controlled_measurement
+
+### INF-001 — the refusal is the correct answer, not a defect in the adapter
+- **class:** inference
+- **kind:** deductive
+- **premises:** OBS-001
+- **claim:** roadmap-limit-1
+- **reasoning:** BLUT forbids dynamic stage loading, so a stage name resolves
+  only if some cookbook compiles it in. Every stage this repository names is a
+  `STAGE-NNN` identifier from the milestones grammar, which no cookbook has. A
+  lowering of these Warrants is therefore unacceptable to any BLUT binary, and
+  an acceptance would mean the pinned-registry rule had stopped applying.
+- **admissibility:** authoritative_external
+
+### JDG-001 — OBL-001 remains open, and this does not narrow it
+- **class:** judgment
+- **kind:** scope_holding
+- **actor:** QuiteTall
+- **acting role:** author
+- **meaning:** OBL-001 asks for status, artifact and lineage receipts returned
+  by BLUT from a real execution. A typecheck returns none of those. Recording
+  this verdict against OBL-001 would substitute a cheaper measurement for the
+  one required (§40.7), so it is recorded against the Warrant and not against
+  the obligation. The obligation is left open rather than narrowed to fit what
+  was achieved.
+- **basis:** OBS-001, INF-001
+- **authority:** authorized
+- **limitations:** one actor, so this judgment is not independently reviewed —
+  §27.4 says role separation by one person is not organizational independence
+
 ## Gate Adequacy
 
 Required at `basic` only, so §39.4 does not compel a review. Asked

@@ -489,6 +489,59 @@ plant_cmd "a lowering with no computational stage" "blut.not-computational" "rej
 plant_cmd "a lowering against no pinned registry" "blut.lowered" "pinned registry" 0 \
     "true" blut OW-WAR-0047
 
+# §46 / §51.3 — what happens when the NEIGHBOUR is the untrustworthy part.
+#
+# `war blut --verify` invokes a real BLUT binary and records its verdict as
+# `authoritative_external`. That upgrade is only sound if OpenWarrant refuses a
+# verdict it cannot actually attribute. The failure these five guard against is
+# the one that looks like success: a --verify that silently reports PASS when
+# the binary is missing, or that believes whatever JSON it is handed, is worse
+# than no --verify at all, because it manufactures external evidence out of
+# nothing while looking exactly like the real thing.
+#
+# The fake binaries stand in for a broken or hostile neighbour. They are testing
+# OUR controls, not BLUT — a stand-in is never evidence ABOUT BLUT, and none of
+# these plants claims to be.
+FAKE="${TMPDIR:-/tmp}/war-plant-fake-blut"
+
+plant_cmd "a --verify naming a missing binary" "could not run" "refusal to guess" 1 \
+    "true" blut OW-WAR-0047 --verify /nonexistent/blut-binary
+
+plant_cmd "a neighbour accepting while exiting nonzero" "disagrees with its own exit status" "not recordable" 1 \
+    "cat > \"$FAKE\" <<'SH'
+#!/bin/sh
+echo '{\"accepted\":true,\"fingerprint\":\"deadbeef\",\"recipes_registered\":9}'
+exit 1
+SH
+chmod +x \"$FAKE\"" blut OW-WAR-0047 --verify "$FAKE"
+
+plant_cmd "a neighbour printing no JSON at all" "did not print JSON" "stdout:" 1 \
+    "cat > \"$FAKE\" <<'SH'
+#!/bin/sh
+echo 'accepted, trust me'
+exit 0
+SH
+chmod +x \"$FAKE\"" blut OW-WAR-0047 --verify "$FAKE"
+
+plant_cmd "a neighbour printing JSON with no verdict" "no \`accepted\` field" "no verdict to record" 1 \
+    "cat > \"$FAKE\" <<'SH'
+#!/bin/sh
+echo '{\"recipes_registered\":3}'
+exit 0
+SH
+chmod +x \"$FAKE\"" blut OW-WAR-0047 --verify "$FAKE"
+
+# The refusal PATH itself: BLUT's own words must reach the report verbatim. A
+# refusal summarised into "BLUT said no" would lose the stage name, which is the
+# only part an author can act on.
+plant_cmd "a neighbour refusing an unknown stage" "blut.refused" "is not in any registered cookbook" 2 \
+    "cat > \"$FAKE\" <<'SH'
+#!/bin/sh
+echo '{\"accepted\":false,\"error\":\"PlanSpec does not typecheck: stage '\"'\"'STAGE-002'\"'\"' is not in any registered cookbook\",\"recipes_registered\":8}'
+exit 1
+SH
+chmod +x \"$FAKE\"" blut OW-WAR-0047 --verify "$FAKE"
+
 plant "milestone carrying a stage field" "milestones.invalid" "belongs to a stage" 2 \
     "python3 - <<'EOF'
 import pathlib

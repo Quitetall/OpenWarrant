@@ -10,19 +10,30 @@
 //! rejected. The adapter cannot drift into a private dialect without BLUT
 //! saying so.
 //!
-//! # What this deliberately does not claim
+//! # Two corrections to what this file used to say
 //!
-//! BLUT ships no verb that deserializes a `PlanSpec` JSON, so nothing here has
-//! been through BLUT's parser. The lowering is structurally faithful to a schema
-//! read at a pinned commit, which is a different and weaker claim than "BLUT
-//! accepted it", and OW-WAR-0047's OBL-001 stays open on exactly that
-//! distinction.
+//! It claimed "BLUT ships no verb that deserializes a `PlanSpec` JSON". That was
+//! wrong when written: `blut plan publish` has always parsed one and typechecked
+//! it fail-closed before inserting a deployment row. What BLUT lacked was a
+//! verb that did so *without* writing — which is a much narrower gap, and
+//! stating the wide version made a missing feature look like a missing
+//! capability. `blut plan check` (BLUT `7b60d21e`, refined in `d6822563`) closes
+//! the narrow gap.
 //!
-//! BLUT additionally refuses a stage name that is in no registered cookbook
-//! (`PlanSpecError::UnknownStage` — "dynamic loading is forbidden"). So a real
-//! acceptance needs both a BLUT-side verb AND a stage this repository's Warrants
-//! do not currently name.
+//! It also implied that lowering was unverifiable here. With `--verify` it is
+//! not: [`lower`] can hand the generated JSON to a real BLUT binary and report
+//! what BLUT says. See [`verify`] for what that does and does not establish.
+//!
+//! # What is still not claimed
+//!
+//! BLUT refuses a stage name that is in no registered cookbook
+//! (`PlanSpecError::UnknownStage` — "dynamic loading is forbidden"). Every stage
+//! this repository's Warrants name is a `STAGE-NNN` identifier that no cookbook
+//! compiles in, so a real BLUT binary refuses these lowerings — correctly.
+//! Acceptance is not the goal of `--verify`; getting an *authoritative* answer
+//! is, and a refusal for a nameable reason is one.
 
+use camino::Utf8Path;
 use openwarrant_core::seam::{BlutLowering, PortMapping};
 
 use crate::diagnostic::{Diagnostic, Report};
@@ -50,6 +61,129 @@ struct SpecNode {
     args: serde_json::Value,
 }
 
+/// What a real BLUT binary said about a lowering.
+///
+/// §46.1's point is that a verdict is only worth what the thing that produced
+/// it is worth, so this carries the identity of the binary alongside the
+/// answer. A verdict with no attributable producer is not external evidence,
+/// it is a string.
+#[derive(Debug)]
+pub struct BlutVerdict {
+    /// Whether BLUT typechecked the spec.
+    pub accepted: bool,
+    /// BLUT's own words. On refusal this is the `PlanSpecError`.
+    pub detail: String,
+    /// The ADR-0078 fingerprint BLUT computed, present only on acceptance.
+    pub fingerprint: Option<String>,
+    /// How many recipes the invoked binary had registered. A refusal from a
+    /// binary with none means "this build has no cookbooks", not "the spec is
+    /// wrong", and those are not distinguishable from the message.
+    pub recipes_registered: u64,
+    /// The binary that answered, and its process exit status.
+    pub binary: String,
+    pub exit_code: Option<i32>,
+}
+
+/// Hand a lowered `PlanSpec` to a real BLUT binary and report what it says.
+///
+/// # Why this is `authoritative_external` and not a self-report
+///
+/// §51.3 says a performer's structured claim about its own work is not
+/// evidence. The verdict here is not OpenWarrant's claim about OpenWarrant —
+/// it is BLUT's claim about OpenWarrant's output, produced by a separate
+/// program this repository does not control, whose refusal messages this
+/// repository cannot author. That is what `Admissibility::AuthoritativeExternal`
+/// names, and it is the first thing in this repository to earn it.
+///
+/// # What it establishes, exactly
+///
+/// That a named binary, run at a known path, read these bytes and returned this
+/// verdict and this exit code. That is a claim about the adapter's output being
+/// well-formed as far as BLUT is concerned.
+///
+/// It is **not** an execution. OW-WAR-0047's OBL-001 asks for status, artifact
+/// and lineage receipts returned by BLUT from a real run, and a typecheck
+/// produces none of those. Nothing here discharges it, and reporting acceptance
+/// as though it did would be §40.7's substitution of a cheaper measurement for
+/// the one that was required.
+fn verify(binary: &Utf8Path, spec_json: &str) -> Result<BlutVerdict, RepoError> {
+    // A temp file rather than stdin: BLUT's verb takes a path, and inventing a
+    // stdin mode in the neighbour to suit this caller would be the tail wagging
+    // the dog. The file is named per-process so two concurrent runs cannot read
+    // each other's spec.
+    let path = std::env::temp_dir().join(format!("war-blut-{}.json", std::process::id()));
+    std::fs::write(&path, spec_json)
+        .map_err(|e| RepoError::Message(format!("write {}: {e}", path.display())))?;
+
+    let out = std::process::Command::new(binary.as_std_path())
+        .args(["plan", "check"])
+        .arg(&path)
+        .arg("--json")
+        .output();
+
+    // Remove the spec whether or not the invocation worked — a failed run
+    // should not leave the next one reading a stale file.
+    let _ = std::fs::remove_file(&path);
+
+    let out = out.map_err(|e| {
+        RepoError::Message(format!(
+            "could not run `{binary} plan check`: {e}. \
+             --verify names a BLUT binary; if that binary does not exist or is \
+             not executable, this is a refusal to guess rather than a verdict."
+        ))
+    })?;
+
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    let parsed: serde_json::Value = serde_json::from_str(stdout.trim()).map_err(|e| {
+        RepoError::Message(format!(
+            "`{binary} plan check --json` did not print JSON ({e}). stdout: {}, stderr: {}",
+            stdout.trim(),
+            String::from_utf8_lossy(&out.stderr).trim()
+        ))
+    })?;
+
+    // Every field is read from BLUT's output or absent. Nothing is defaulted to
+    // a value that would flatter the result: a missing `accepted` is not
+    // acceptance.
+    let accepted = parsed.get("accepted").and_then(serde_json::Value::as_bool);
+    let Some(accepted) = accepted else {
+        return Err(RepoError::Message(format!(
+            "`{binary} plan check --json` printed JSON with no `accepted` field, \
+             so there is no verdict to record: {parsed}"
+        )));
+    };
+
+    // The exit code must agree with the verdict. If they ever disagree, one of
+    // them is lying about what happened and neither can be trusted.
+    let exit_code = out.status.code();
+    if accepted != (exit_code == Some(0)) {
+        return Err(RepoError::Message(format!(
+            "`{binary} plan check` reported accepted={accepted} but exited with \
+             {exit_code:?}. A verdict that disagrees with its own exit status is \
+             not recordable."
+        )));
+    }
+
+    Ok(BlutVerdict {
+        accepted,
+        detail: parsed
+            .get(if accepted { "name" } else { "error" })
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("<BLUT printed no detail>")
+            .to_owned(),
+        fingerprint: parsed
+            .get("fingerprint")
+            .and_then(serde_json::Value::as_str)
+            .map(ToOwned::to_owned),
+        recipes_registered: parsed
+            .get("recipes_registered")
+            .and_then(serde_json::Value::as_u64)
+            .unwrap_or(0),
+        binary: binary.to_string(),
+        exit_code,
+    })
+}
+
 /// Lower one Warrant's milestone graph into a `PlanSpec`.
 ///
 /// §49.2's duties, each discharged or explicitly refused:
@@ -57,7 +191,11 @@ struct SpecNode {
 /// inputs and outputs; reject incompatible kinds; reject unsupported
 /// conditions; pin backend and stage identities; map resource envelopes; record
 /// plan provenance.
-pub fn lower(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
+pub fn lower(
+    repo: &Repository,
+    alias: &str,
+    verify_with: Option<&Utf8Path>,
+) -> Result<Report, RepoError> {
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
     let mut report = Report::default();
@@ -159,13 +297,61 @@ pub fn lower(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
             &BLUT_PIN[..12]
         ),
     ));
+
+    let Some(binary) = verify_with else {
+        report.note(format!(
+            "This PlanSpec is structurally faithful to a schema read from BLUT at \
+             {}, and has NOT been through BLUT's parser — no binary was named. \
+             Pass --verify <blut-binary> to get BLUT's own verdict; \"BLUT \
+             accepted this\" is a strictly stronger claim than anything here \
+             establishes.\n\n{json}",
+            &BLUT_PIN[..12]
+        ));
+        return Ok(report);
+    };
+
+    let verdict = verify(binary, &json)?;
+
+    if verdict.accepted {
+        report.push(Diagnostic::pass(
+            "blut.accepted",
+            format!(
+                "{alias}: BLUT accepted the lowering (fingerprint {}, {} recipes registered, \
+                 exit {:?}) — reported by {}",
+                verdict
+                    .fingerprint
+                    .as_deref()
+                    .map_or("<none reported>", |f| &f[..f.len().min(12)]),
+                verdict.recipes_registered,
+                verdict.exit_code,
+                verdict.binary
+            ),
+        ));
+    } else {
+        // A refusal is not a failure of this command. The command's job is to
+        // obtain an authoritative answer, and it obtained one. Recording a
+        // refusal as an ERROR would push a future author toward suppressing it.
+        report.push(Diagnostic::unknown(
+            "blut.refused",
+            repo.relative(&dir.join("atoms/45-milestones.yaml")),
+            format!(
+                "{alias}: BLUT refused the lowering (exit {:?}, {} recipes registered) — {}",
+                verdict.exit_code, verdict.recipes_registered, verdict.detail
+            ),
+        ));
+    }
+
     report.note(format!(
-        "This PlanSpec is structurally faithful to a schema read from BLUT at \
-         {}, and has NOT been through BLUT's parser. BLUT ships no verb that \
-         deserializes a PlanSpec JSON, and its `UnknownStage` rule additionally \
-         requires a stage compiled into a registered cookbook. \"BLUT accepted \
-         this\" is a strictly stronger claim than anything here establishes.\n\n{json}",
-        &BLUT_PIN[..12]
+        "Verdict obtained from {} — a separate program this repository does not \
+         control, whose refusal messages it cannot author. That is what makes it \
+         `authoritative_external` (§40.2) rather than a self-report (§51.3).\n\n\
+         It is NOT an execution. OW-WAR-0047's OBL-001 asks for status, artifact \
+         and lineage receipts from a real BLUT run; a typecheck produces none of \
+         those, so this does not discharge it.\n\n\
+         Note that every stage this repository names is a `STAGE-NNN` identifier \
+         that no cookbook compiles in, so a refusal naming an unknown stage is \
+         the expected and correct answer, not a defect in the lowering.\n\n{json}",
+        verdict.binary
     ));
     Ok(report)
 }
