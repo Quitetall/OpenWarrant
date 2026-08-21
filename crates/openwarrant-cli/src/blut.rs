@@ -209,6 +209,11 @@ fn run_with_timeout(
             Ok(Some(s)) => break s,
             Ok(None) => {}
             Err(e) => {
+                // Dropping a Child does not terminate it, so returning here
+                // without killing would leave the neighbour running with
+                // nobody left to read it.
+                let _ = child.kill();
+                let _ = child.wait();
                 return Err(RepoError::Message(format!(
                     "could not wait on `{binary} plan check`: {e}"
                 )));
@@ -270,6 +275,19 @@ fn verify(binary: &Utf8Path, spec_json: &str) -> Result<BlutVerdict, RepoError> 
 
     let out = out?;
 
+    // Asked FIRST, before anything BLUT printed is read. A process killed by a
+    // signal has no exit code and never finished answering, so its output is
+    // not a partial verdict — it is the middle of a sentence. Checking this
+    // after the JSON parse would have refused the same runs, but usually with
+    // "did not print JSON", which names the symptom and hides the cause.
+    let Some(exit_code) = out.status.code() else {
+        return Err(RepoError::Message(format!(
+            "`{binary} plan check` was killed by a signal and never exited \
+             normally, so it produced no verdict. Whatever it printed first is \
+             not an answer."
+        )));
+    };
+
     let stdout = String::from_utf8_lossy(&out.stdout);
     let parsed: serde_json::Value = serde_json::from_str(stdout.trim()).map_err(|e| {
         RepoError::Message(format!(
@@ -287,18 +305,6 @@ fn verify(binary: &Utf8Path, spec_json: &str) -> Result<BlutVerdict, RepoError> 
         return Err(RepoError::Message(format!(
             "`{binary} plan check --json` printed JSON with no `accepted` field, \
              so there is no verdict to record: {parsed}"
-        )));
-    };
-
-    // A process killed by a signal has no exit code, and did not finish. §44.5
-    // will not accept a gate run that merely stopped, and the same reasoning
-    // applies to a neighbour: whatever it printed before it died is not the
-    // answer to the question, because it never got to the end of answering.
-    let Some(exit_code) = out.status.code() else {
-        return Err(RepoError::Message(format!(
-            "`{binary} plan check` was killed by a signal and never exited \
-             normally, so it produced no verdict. Whatever it printed first is \
-             not an answer."
         )));
     };
 
