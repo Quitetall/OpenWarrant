@@ -588,10 +588,14 @@ fn check_one(
                 "lineage.reproduced",
                 repo.relative(&one.dir.join(&atom.source)),
                 format!(
-                    "{alias}: {}:{line} carries BLUT's `{key}`. §49.3 — lineage stays \
-                     authoritative in BLUT and the Warrant stores a reference. A second \
-                     copy is a second answer to a question that should have one, and it \
-                     is the copy that goes stale.",
+                    // Says ATOM and LINE, where `SeamError::LineageReproduced`
+                    // says RECEIPT. Two paths reach the same rule, and sharing
+                    // one sentence would leave a reader unable to tell which
+                    // one fired or where to look.
+                    "{alias}: atom {}, line {line} carries BLUT's `{key}` as a key with a \
+                     value. §49.3 — lineage stays authoritative in BLUT and the Warrant \
+                     stores a reference. Write the shape inline in backticks if you need \
+                     to show it; prose naming the field is not a copy.",
                     atom.source
                 ),
             ));

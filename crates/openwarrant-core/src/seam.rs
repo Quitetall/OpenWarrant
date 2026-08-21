@@ -51,6 +51,12 @@ pub enum SeamError {
          is a second answer to a question that should have one"
     )]
     LineageReproduced { detail: String },
+    #[error(
+        "BLUT lineage receipt omits {field}; §49.3 stores a REFERENCE, and a \
+         receipt missing one references nothing. This is a missing reference, \
+         not a reproduced one"
+    )]
+    LineageReferenceMissing { field: &'static str },
     #[error("Katana receipt {id:?} omits {field}, which §48.4 requires at minimum")]
     KatanaReceiptIncomplete { id: String, field: &'static str },
     #[error(
@@ -475,6 +481,18 @@ pub const BLUT_LINEAGE_KEYS: &[&str] = &[
 /// "node_idx is never copied here" is not a reproduction and is not flagged,
 /// which lets a Warrant document the rule it obeys.
 ///
+/// # Fenced blocks ARE matched, and inline code is the escape hatch
+///
+/// A fenced block is where a real paste lands — someone copies BLUT output and
+/// wraps it in ```` ``` ````. Exempting fences to allow "what not to do"
+/// examples would put the hole exactly where the copies arrive, so they are
+/// matched like any other line.
+///
+/// A Warrant that needs to SHOW the shape can write it inline in backticks,
+/// which is not matched because the backtick is not stripped. Prose and
+/// markdown headings are not matched either. So documenting the rule stays
+/// possible without opening the hole.
+///
 /// Returns the offending `(line number, key)` pairs, because "lineage was
 /// reproduced" sends an author to read the whole atom.
 #[must_use]
@@ -514,17 +532,18 @@ impl BlutLineageReceipt {
     /// a receipt that did. A rule stated only in a comment is a rule the
     /// compiler and the test suite both agree is optional.
     pub fn validate(&self) -> Result<(), SeamError> {
+        // An empty field is a MISSING reference, not a reproduced one. Reporting
+        // it through `LineageReproduced` would name the wrong failure — the same
+        // defect as reporting a bad §42 authority through `UnknownRecordClass`,
+        // fixed earlier in this campaign. A reader told "lineage was reproduced"
+        // goes looking for a copy that is not there.
         for (field, value) in [
             ("status", &self.status),
             ("lineage_ref", &self.lineage_ref),
             ("receipt_digest", &self.receipt_digest),
         ] {
             if value.trim().is_empty() {
-                return Err(SeamError::LineageReproduced {
-                    detail: format!(
-                        "{field} is empty; a receipt that references nothing is not a reference"
-                    ),
-                });
+                return Err(SeamError::LineageReferenceMissing { field });
             }
         }
         // The reference must be a reference. A lineage_ref holding a structure
@@ -641,6 +660,36 @@ legacy_output_hash and node_idx are BLUT's to own.
         assert_eq!(reproduced_lineage("stage: STAGE-002"), Vec::new());
         assert_eq!(reproduced_lineage("  - cached: true"), Vec::new());
         assert_eq!(reproduced_lineage("elapsed: 4s"), Vec::new());
+    }
+
+    /// Everything the detector must NOT match, pinned by measurement rather
+    /// than by argument. A future change to the stripping logic that starts
+    /// catching one of these has widened the rule silently.
+    #[test]
+    fn headings_prefixes_and_inline_code_are_not_copies() {
+        for (label, text) in [
+            // A heading is prose with decoration.
+            ("heading", "### node_idx: 3"),
+            // `:` is the boundary check — `node_idx_old` is a different key.
+            ("prefix collision", "node_idx_old: 3"),
+            // The documented escape hatch: show the shape without carrying it.
+            ("inline code", "`node_idx: 3` is what we must not write"),
+        ] {
+            assert_eq!(
+                reproduced_lineage(text),
+                Vec::new(),
+                "{label} must not match"
+            );
+        }
+    }
+
+    /// Fenced blocks ARE matched, deliberately. This is where a real paste
+    /// lands, so exempting fences would put the hole exactly where the copies
+    /// arrive. Pinned so the choice stays a choice.
+    #[test]
+    fn a_fenced_block_is_still_a_copy() {
+        let found = reproduced_lineage("```yaml\nnode_idx: 3\n```");
+        assert_eq!(found, vec![(2, "node_idx")]);
     }
 
     /// The type shipped with no validate() at all — the rule lived in a doc

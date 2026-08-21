@@ -497,6 +497,13 @@ plant_cmd "a lowering against no pinned registry" "blut.lowered" "pinned registr
 plant "lineage copied into a Warrant" "lineage.reproduced" "node_idx" 2 \
     "printf '\n- node_idx: 3\n- output_content_id: sha256:deadbeef\n' >> docs/warrants/OW-WAR-0047/atoms/60-assurance.md"
 
+# A fenced block is where a REAL paste lands — someone copies BLUT output and
+# wraps it in a code fence. Exempting fences to allow "what not to do" examples
+# would put the hole exactly where the copies arrive, so they are matched like
+# any other line. This plant pins that choice.
+plant "lineage pasted inside a code fence" "lineage.reproduced" "output_content_id" 2 \
+    "printf '\n\`\`\`yaml\noutput_content_id: sha256:deadbeef\n\`\`\`\n' >> docs/warrants/OW-WAR-0047/atoms/60-assurance.md"
+
 # The negative control, and the one that matters most here.
 #
 # OW-ADR-0005 records a prose scan for \`gate://\` firing on OW-WAR-0019's own
