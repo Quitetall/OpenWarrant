@@ -34,6 +34,7 @@
 //! is, and a refusal for a nameable reason is one.
 
 use camino::Utf8Path;
+use openwarrant_core::milestones::ExecutorKind;
 use openwarrant_core::seam::{BlutLowering, PortMapping};
 
 use crate::diagnostic::{Diagnostic, Report};
@@ -456,13 +457,17 @@ pub fn lower(
     // §49.2 — reject rather than degrade. A stage whose executor is not `blut`
     // is not a computational stage, and lowering it anyway would produce a
     // PlanSpec that runs and means something else.
+    // Compared as the ENUM, not as its rendered name. `to_string() == "blut"`
+    // reads the same and fails silently: if the Display impl ever changed, every
+    // Warrant would classify as non-computational and `war blut` would refuse
+    // the whole corpus while looking like it had checked something.
     let lowerable: Vec<&openwarrant_core::milestones::Stage> = stages
         .iter()
-        .filter(|s| s.executor_kind.to_string() == "blut")
+        .filter(|s| s.executor_kind == ExecutorKind::Blut)
         .collect();
     let foreign: Vec<&str> = stages
         .iter()
-        .filter(|s| s.executor_kind.to_string() != "blut")
+        .filter(|s| s.executor_kind != ExecutorKind::Blut)
         .map(|s| s.id.as_str())
         .collect();
 
@@ -498,7 +503,11 @@ pub fn lower(
     // check, and that silence reads exactly like a kind check that succeeded.
     // Say which it was. This is the same failure the hardcoded
     // `compatible: true` had — a control reporting success without doing work.
-    if lowering.port_mappings.is_empty() {
+    let declared_ports = lowerable
+        .iter()
+        .map(|s| s.inputs.len() + s.outputs.len())
+        .sum::<usize>();
+    if declared_ports == 0 {
         report.push(Diagnostic::warn(
             "blut.no-ports",
             repo.relative(&dir.join("atoms/45-milestones.yaml")),
