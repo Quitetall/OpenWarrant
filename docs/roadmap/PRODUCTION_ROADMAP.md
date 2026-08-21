@@ -39,11 +39,14 @@ Read the four honest limits below before treating this as a finished product:
    But a reader could reasonably infer that `war check` enforces these rules on
    a corpus, and it did not.
 
-   **Two closed 2026-08-21.** `EvidenceOrigin` and `Admissibility` are now parsed
+   **Three closed 2026-08-21.** `EvidenceOrigin` and `Admissibility` are parsed
    from declared obligation bullets and enforced at read time, so §40.7's first
    prohibited substitution is reached by the shipped binary and planted
-   (`a performer report admitted as independent`). Eighteen remain, and
-   OW-WAR-0046 owns them.
+   (`a performer report admitted as independent`). `GateReceipt` is minted by
+   `war gate --run` — a completed run writes a §44.6 receipt with a sealing
+   digest, and an unaskable run writes none, which is planted too.
+
+   **Seventeen remain**, and OW-WAR-0046 owns them.
 3. **Two adequacy reviews report no executed attacks, and say so.** OW-WAR-0008
    and OW-WAR-0017 are the two `war check` still warns about. That is the check
    working: the state model and the epistemic classes have nothing to attack

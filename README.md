@@ -35,12 +35,16 @@ types implementing §40's epistemic classes, §46 independence, §56 resolution 
 §44.6 receipts, **twenty were referenced by no code in `war` or the compiler.**
 They are implemented and unit-tested; `war check` did not call them.
 
-**Two are now wired.** As of 2026-08-21, `EvidenceOrigin` and `Admissibility` are
-read from `- **origin:**` and `- **admissibility:**` bullets and enforced during
-obligation parsing, so §40.7's first prohibited substitution — a performer's own
-report admitted as independent evidence — is a corpus rule reached by the shipped
-binary, with a plant proving it. **Eighteen remain.** OW-WAR-0046 owns the rest,
-and it is the first beta task.
+**Three are now wired**, as of 2026-08-21. `EvidenceOrigin` and `Admissibility`
+are read from `- **origin:**` and `- **admissibility:**` bullets and enforced at
+obligation parse time, so §40.7's first prohibited substitution — a performer's
+own report admitted as independent evidence — is a corpus rule reached by the
+shipped binary, with a plant proving it. `GateReceipt` is minted by
+`war gate --run`: a completed run now writes a §44.6 receipt with all eighteen
+required records and a digest that seals them, and a run that was never askable
+writes none.
+
+**Seventeen remain.** OW-WAR-0046 owns the rest.
 
 Pre-1.0 and the protocol is **not stable**: the canonical JSON shape, the digest
 domains, and the manifest schema may change in any 0.x release. There is no
