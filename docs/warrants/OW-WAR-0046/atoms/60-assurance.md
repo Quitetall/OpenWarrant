@@ -49,6 +49,63 @@ classification: internal
   shipped binary, each rejected by a named rule with a named detail. Tests 73 and
   74 are planted first.
 
+## Evidence
+
+§40's records for the work this Warrant has actually done. Every one describes
+something that happened; none describes something planned.
+
+### EV-001 — the plant battery's output
+- **class:** evidence
+- **kind:** gate_run_output
+- **origin:** gate_runner
+- **admissibility:** controlled_measurement
+- **digest:** sha256:pending-receipt-binding
+- **method:** conformance/plant.sh, executed by cargo xtask gate
+- **occurred at:** 2026-08-21
+
+### EV-002 — the reachability measurement
+- **class:** evidence
+- **kind:** static_analysis
+- **origin:** performer
+- **admissibility:** performer_report_only
+- **digest:** sha256:pending-receipt-binding
+- **method:** grep for type names across the CLI and compiler crates, then
+  confirmation that the validation executes on a `war check` run
+- **occurred at:** 2026-08-20
+
+### OBS-001 — every planted violation was rejected by its intended control
+- **class:** observation
+- **evidence:** EV-001
+- **method:** each plant asserts an exit code, a named rule, AND a named detail
+  string, so a rejection for the wrong reason fails
+- **admissibility:** controlled_measurement
+
+### OBS-002 — six of twenty sampled alpha types are executed by a war command
+- **class:** observation
+- **evidence:** EV-002
+- **method:** counted by hand against the twenty sampled in the 2026-08-20
+  measurement; the grep alone undercounted twice and is not the basis
+- **admissibility:** performer_report_only
+
+### INF-001 — the validators alpha shipped were not enforcing anything
+- **class:** inference
+- **kind:** deductive
+- **premises:** OBS-002
+- **claim:** roadmap-limit-2
+
+### JDG-001 — deliverable 3 is unachievable and is narrowed rather than pursued
+- **class:** judgment
+- **kind:** scope_narrowing
+- **actor:** QuiteTall
+- **acting role:** author
+- **meaning:** §56.1 requirement 10 cannot hold while one actor holds every role,
+  so the deliverable is narrowed to computing and reporting the thirteen. This
+  accepts that no Warrant here will be resolved, and says so.
+- **basis:** OBS-002, INF-001
+- **authority:** authorized
+- **limitations:** one actor, so this judgment is not independently reviewed —
+  §27.4 says role separation by one person is not organizational independence
+
 ## Gate Adequacy
 
 Required at `controlled`, and this is the Warrant where a defect is

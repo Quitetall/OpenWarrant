@@ -440,6 +440,33 @@ fn check_one(
         }
     }
 
+    // §40 — evidence, observations, inferences and judgments, if the assurance
+    // atom records any. §40.7's six prohibited substitutions live here, and until
+    // now nothing in any binary read a record they could apply to.
+    for atom in basis.atoms.iter().filter(|a| a.role == "assurance") {
+        let file = repo.relative(&one.dir.join(&atom.source));
+        match openwarrant_core::epistemic::records::parse(&String::from_utf8_lossy(&atom.bytes)) {
+            Ok(section) if section.is_empty() => {}
+            Ok(section) => report.push(Diagnostic::pass(
+                "evidence.valid",
+                format!(
+                    "{alias}: {} §40 record(s) — {} evidence, {} observation(s), \
+                     {} inference(s), {} judgment(s)",
+                    section.len(),
+                    section.evidence.len(),
+                    section.observations.len(),
+                    section.inferences.len(),
+                    section.judgments.len()
+                ),
+            )),
+            Err(err) => report.push(Diagnostic::error(
+                "evidence.invalid",
+                file,
+                format!("{alias}: {err}"),
+            )),
+        }
+    }
+
     // §31 — amendment records, if this Warrant has any.
     //
     // §31 binds revisions AFTER authorization and nothing here is authorized, so

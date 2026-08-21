@@ -59,7 +59,11 @@ which is the Phase 6 exit behaving correctly, not a defect.
 directory, so a §31 record that explains why a claim changed is checked rather
 than decorative.
 
-**Fourteen remain.** OW-WAR-0046 owns the rest.
+§40's evidence records — `EvidenceItem`, `Observation`, `Inference`, `Judgment` —
+are read from a `## Evidence` section in the assurance atom and validated, so
+§40.7's prohibited substitutions apply to records a reader can see.
+
+**Ten remain.** OW-WAR-0046 owns the rest.
 
 Pre-1.0 and the protocol is **not stable**: the canonical JSON shape, the digest
 domains, and the manifest schema may change in any 0.x release. There is no
