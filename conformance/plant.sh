@@ -457,6 +457,24 @@ plant "an author supplying recorded_at" "evidence.invalid" "recorded" 2 \
 plant "an inference on a premise nobody wrote" "evidence.invalid" "not a declared record" 2 \
     "sed -i 's|^- \\*\\*premises:\\*\\* OBS-002|- **premises:** OBS-999|' docs/warrants/OW-WAR-0046/atoms/60-assurance.md"
 
+# §91.10 tests 64, 65, 73, 74. Tests 66, 67 and 69 are planted above as
+# `a gate whose tool is absent`, `a gate that never answers`, and `a performer
+# report admitted as independent`.
+
+# test 74 — a claim/evidence graph with a cycle. A record citing ITSELF as its
+# own premise resolves perfectly well, and supports nothing.
+plant "evidence that rests only on itself" "evidence.invalid" "Circular" 2 \
+    "sed -i 's|^- [*][*]premises:[*][*] OBS-002|- **premises:** INF-001|' docs/warrants/OW-WAR-0046/atoms/60-assurance.md"
+
+# test 73 — a sampled result cannot establish a universal claim (§38.4).
+plant "a universal claim resting on a sample" "obligations.invalid" "sampling alone is insufficient" 2 \
+    "sed -i '0,/^- [*][*]scope:[*][*]/s||- **scope kind:** universal\n- **evidence:** a representative sample of runs.\n- **scope:**|' docs/warrants/OW-WAR-0046/atoms/60-assurance.md"
+
+# test 65 — a gate that can select nothing is INVALID, not a pass. A run that
+# selected nothing and exited zero has measured nothing.
+plant_gate "a gate that selects nothing" "gate-run.unaskable" "malformed" 2 \
+    "sed -i 's|^argv: .*|argv: []|' docs/gates/software.repo.war-check@1.0.0.yaml"
+
 plant "milestone carrying a stage field" "milestones.invalid" "belongs to a stage" 2 \
     "python3 - <<'EOF'
 import pathlib
