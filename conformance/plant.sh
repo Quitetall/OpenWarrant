@@ -395,6 +395,21 @@ s = p.read_text()
 p.write_text(s.replace('= false', '= true'))
 EOF" check --generated
 
+# §56.1 — resolution refuses while its thirteen requirements are unmet.
+#
+# No mutation: this asserts the CURRENT behaviour of a real corpus, which makes
+# it a regression guard rather than a planted fault. It is here because the
+# failure it guards against is silent — a resolver that started closing Warrants
+# would look like progress.
+plant_cmd "resolution blocked by unmet requirements" "resolution.requirement-unmet" "independence requirements are met" 2 \
+    "true" resolve OW-WAR-0001 --dry-run
+
+# §56.2 — recording a resolution needs an authorizer and a stated meaning, and
+# no authority model exists to supply them. Asking for a real resolution must be
+# refused rather than quietly downgraded to a dry run.
+plant_cmd "a resolution recorded with no authority" "authorizer" "OW-WAR-0044" 1 \
+    "true" resolve OW-WAR-0001
+
 plant "milestone carrying a stage field" "milestones.invalid" "belongs to a stage" 2 \
     "python3 - <<'EOF'
 import pathlib

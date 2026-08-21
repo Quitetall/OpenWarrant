@@ -50,7 +50,12 @@ dimensions false, because one actor authors and verifies everything, and
 `war check` therefore reports that no Warrant here meets §46.3's minimum for its
 level. That report is correct, not a misconfiguration.
 
-**Sixteen remain.** OW-WAR-0046 owns the rest.
+`ResolutionChecks` is computed by `war resolve --dry-run`, which evaluates
+§56.1's thirteen requirements against the corpus as it actually is. Today it
+reports **11 of 13 unmet** for every Warrant and refuses to close any of them —
+which is the Phase 6 exit behaving correctly, not a defect.
+
+**Fifteen remain.** OW-WAR-0046 owns the rest.
 
 Pre-1.0 and the protocol is **not stable**: the canonical JSON shape, the digest
 domains, and the manifest schema may change in any 0.x release. There is no
