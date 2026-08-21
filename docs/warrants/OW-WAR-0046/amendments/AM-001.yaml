@@ -1,0 +1,19 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-001"
+band: "manual_revision"
+reason: "Deliverable 3 required one Warrant resolved through §56.1's thirteen requirements. Requirement 10 is `independence requirements are met`, and §46.3's minimum cannot be satisfied by one actor holding every role. It does not close by effort, so the deliverable was unachievable as written rather than merely unfinished."
+governing_adr_or_policy: "sas://WAR-SAS-46.3"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. No work is invalidated: the §56.1 machinery is delivered and measured, and only the closure claim is narrowed."
+re_preflight_required: "false"
+authorizer: "QuiteTall"
+effective_time: "2026-08-21"
+
+semantic_diff:
+  - element: "deliverables"
+    before: "One Warrant resolved through §56.1's thirteen requirements, each verified."
+    after: "§56.1's thirteen requirements computed and reported for every Warrant, with each unmet requirement named. Recording a resolution is deferred to a Warrant that can satisfy requirement 10."
+
+affected_stages: ["STAGE-003"]
+affected_milestones: ["M3"]

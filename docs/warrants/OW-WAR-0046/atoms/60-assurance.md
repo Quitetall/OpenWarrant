@@ -25,12 +25,15 @@ classification: internal
   naming what was planted and which control rejected it. This closes roadmap
   limit 3 for one Warrant.
 
-### OBL-003 — one Warrant resolved through all thirteen requirements
-- **scope:** §56.1, for exactly one Warrant.
+### OBL-003 — all thirteen requirements are computed, and each unmet one is named
+- **scope:** §56.1, for every Warrant in this corpus. NARROWED by
+  `amendments/AM-001.yaml`: the original required one Warrant to be RESOLVED,
+  which requirement 10 makes unreachable while one actor holds every role.
 - **gate:** `gate://software.repo.war-check@1.0.0`
-- **evidence:** a §56.2 resolution record with every field populated
-  including `meaning`, plus a recorded run in which each of the thirteen is
-  unset in turn and each blocks alone and is named.
+- **evidence:** `war resolve --dry-run` reporting all thirteen individually, met
+  and unmet alike, plus a recorded run in which each of the thirteen is unset in
+  turn and each blocks alone and is named. Recording a §56.2 resolution is out of
+  scope and stays out until requirement 10 can hold.
 
 ### OBL-004 — dispute and annulment preserved history
 - **scope:** §56.4 and §56.5, for the resolved Warrant.
