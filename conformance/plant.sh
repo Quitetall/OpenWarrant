@@ -521,8 +521,31 @@ plant "prose naming lineage fields is not a copy" "0 error" "worst: WARN" 0 \
 # to the WAR id: lowering `STAGE-002` under its own id produces a PlanSpec naming
 # a stage the author never chose, and BLUT then refuses it for a reason that
 # looks like the pinned-registry rule working.
-plant_cmd "a blut stage bound to no executor stage" "blut.unbound-stage" "never chose" 0 \
-    "sed -i '/executor_ref: \"materialize_dataset_path\"/d' docs/warrants/OW-WAR-0047/atoms/45-milestones.yaml" blut OW-WAR-0047
+# The mutation VERIFIES ITSELF. A sed whose pattern stops matching after a
+# formatting change deletes nothing, the corpus stays valid, and the plant then
+# exercises the untouched happy path while reporting a pass — a silent probe
+# read as a passing guard, which has cost this fleet twice.
+#
+# `assert_gone` makes that loud. Tested by pointing the sed at a pattern that
+# cannot match: the battery stops with "PLANT MUTATION WAS A NO-OP" rather than
+# scoring it. The exit-code assertion happens to catch this one too, but only
+# because an unmutated corpus lowers cleanly; a plant whose unmutated state
+# already failed for another reason would score green on a dead sed.
+# -F: a fixed-string check, which is what the name promises. Without it a
+# future caller passing a pattern containing `.` or `[` gets regex semantics
+# and a guard that quietly matches the wrong thing.
+assert_gone() {
+    if grep -Fq -- "$1" "$2"; then
+        printf 'PLANT MUTATION WAS A NO-OP: %s still present in %s\n' "$1" "$2" >&2
+        printf 'The plant would have scored the UNMUTATED corpus. Fix the pattern.\n' >&2
+        restore
+        exit 9
+    fi
+}
+
+plant_cmd "a blut stage bound to no executor stage" "blut.unbound-stage" "never chose" 2 \
+    "sed -i '/executor_ref: \"materialize_dataset_path\"/d' docs/warrants/OW-WAR-0047/atoms/45-milestones.yaml
+     assert_gone materialize_dataset_path docs/warrants/OW-WAR-0047/atoms/45-milestones.yaml" blut OW-WAR-0047
 
 # §49.2 / §91.7 test 47 — an INCOMPATIBLE PORT KIND is refused, naming the port.
 #
