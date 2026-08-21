@@ -10,6 +10,24 @@ one 0.x version are not guaranteed to be reproducible by another.
 
 ## [Unreleased]
 
+### Beta opened — 2026-08-21
+
+Alpha closed with all 40 Warrants resolved and OpenWarrant public. Beta is the
+act of running it against real systems; nine Warrants (OW-WAR-0041–0049) are
+authored against the SAS's own §98 phase-exit criteria, and none is discharged.
+
+Recorded here because it changes how the alpha claim should be read: measured
+2026-08-20, of twenty types implementing §40's epistemic classes, §46
+independence, §56 resolution and §44.6 receipts, **twenty are referenced by no
+code in `war` or the compiler.** They are implemented and unit-tested; no command
+calls them. The capability exists — which is what alpha claimed — but `war check`
+does not enforce these rules on a corpus, and a reader could reasonably have
+inferred it did. OW-WAR-0046 wires them in and is the first beta task.
+
+The README's "Not implemented" section was stale in both directions and is
+replaced by three explicit categories: reachable from the binary, implemented but
+unreachable, and not implemented at all.
+
 ### Added — Phase 1: the file-native compiler
 
 - `war init` — initialize repository configuration and directories (SAS §71.1).

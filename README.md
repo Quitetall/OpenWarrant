@@ -14,8 +14,33 @@ rather than a trail of documents that disagree.
 
 ## Status
 
-**Phase 1 complete.** The file-native compiler works and OpenWarrant is built
-through its own Warrants.
+**Alpha complete. Beta open.**
+
+Alpha means every SAS capability exists and OpenWarrant implements its side of
+every protocol — 49 Warrants, 40 of them resolved. It does **not** mean the
+system has been used, and the distinction is the whole point of the next
+paragraph.
+
+Beta is the act of running it against real systems. Nine Warrants
+(OW-WAR-0041–0049) are authored against the SAS's own phase-exit criteria and
+none is discharged. Two limits are worth knowing before you evaluate anything
+here:
+
+**Nothing has run against a real neighbour.** Katana, BLUT, Knowledge Fabric and
+Liminal each have a typed, tested adapter on this side and have never been
+spoken to.
+
+**Most rules are not reachable from the binary.** Measured 2026-08-20: of twenty
+types implementing §40's epistemic classes, §46 independence, §56 resolution and
+§44.6 receipts, **twenty were referenced by no code in `war` or the compiler.**
+They are implemented and unit-tested; `war check` did not call them.
+
+**Two are now wired.** As of 2026-08-21, `EvidenceOrigin` and `Admissibility` are
+read from `- **origin:**` and `- **admissibility:**` bullets and enforced during
+obligation parsing, so §40.7's first prohibited substitution — a performer's own
+report admitted as independent evidence — is a corpus rule reached by the shipped
+binary, with a plant proving it. **Eighteen remain.** OW-WAR-0046 owns the rest,
+and it is the first beta task.
 
 Pre-1.0 and the protocol is **not stable**: the canonical JSON shape, the digest
 domains, and the manifest schema may change in any 0.x release. There is no
@@ -42,7 +67,8 @@ PASS composition.acyclic                parent graph is acyclic across 1 Warrant
 4 pass · 0 warn · 0 unknown · 0 error   (worst: PASS)
 
 NOT CHECKED:
-  · gate execution — a Warrant's acceptance gates are never run (Phase 6)
+  · gate execution — `war gate --run` runs a registered gate, but `war check`
+    does not invoke it, so nothing here is evidence a Warrant's gates were run
   · Preflight readiness (§32.7) — 'well-formed' is a claim about the record only
   · bound-atom resolution — `ref =` atoms cannot be fetched offline
   · Source Holder ambiguity and classification propagation (§91.2 tests 14, 15)
@@ -132,12 +158,29 @@ docs/sas/                      the governing specification
 docs/warrants/                 this repository's own Warrants
 ```
 
-## Not implemented
+## What exists, and what has never run
 
-Named so the scope cannot be mistaken: gate execution, Preflight, agent-assisted
-planning (`war plan`), Knowledge Fabric registration, Stage Dispatch, the Katana
-and BLUT adapters, the Liminal compiler, and seven of the nine projections in
-§17.5. See [`CHANGELOG.md`](CHANGELOG.md) for the full list.
+This section was stale in both directions until beta opened, so it now separates
+three things a reader would otherwise conflate.
+
+**Implemented and reachable from the binary.** The compiler, `war check`,
+`war compile`, all nine §17.5 projections (`war show`), `war diff`, `war plan`'s
+two-way agent seam, the Gate Registry, and gate execution — `war gate --run`
+really runs a gate and reports §44's askability, execution status and verdict
+separately.
+
+**Implemented, tested, and NOT reachable from the binary.** §40's epistemic
+classes and their six prohibited substitutions, §46 independence, §56.1's
+thirteen resolution requirements, §44.6 receipts, §32 Preflight, §33 context
+manifests, §66 the local journal, §67 the Knowledge Fabric action envelope, §68
+portable export. These are real code with real tests that no `war` command calls.
+OW-WAR-0046 wires them in.
+
+**Not implemented at all.** Preflight execution, and any live conversation with
+Katana, BLUT, Knowledge Fabric or Liminal.
+
+See [`CHANGELOG.md`](CHANGELOG.md) and
+[`docs/roadmap/PRODUCTION_ROADMAP.md`](docs/roadmap/PRODUCTION_ROADMAP.md).
 
 ## About the LamQuant figures
 

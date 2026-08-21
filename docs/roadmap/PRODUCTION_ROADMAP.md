@@ -6,9 +6,10 @@ and what each release gate means.
 Governing specification: `docs/sas/WAR_Software_Architecture_Specification.md`
 v0.1.0-draft.1, sha256 `aad5256cb59e3e589313b7e2d5b48360ad8c85cf1c1d65d21f9260e692dfe8e5`.
 
-## Alpha reached — and what that does and does not mean
+## Beta opened 2026-08-21 — alpha reached, and what that does and does not mean
 
-**All 40 alpha Warrants are resolved as of 2026-08-20.** Measured, not asserted:
+**All 40 alpha Warrants are resolved as of 2026-08-20, and beta opened
+2026-08-21.** Measured, not asserted:
 
 ```
 cargo xtask gate    PASS, 7/7 steps
@@ -36,8 +37,13 @@ Read the four honest limits below before treating this as a finished product:
 
    The alpha claim stands as worded: the capability exists, typed and tested.
    But a reader could reasonably infer that `war check` enforces these rules on
-   a corpus, and it does not. Wiring them into the check path, and putting a
-   plant on each, is OW-WAR-0046's first deliverable.
+   a corpus, and it did not.
+
+   **Two closed 2026-08-21.** `EvidenceOrigin` and `Admissibility` are now parsed
+   from declared obligation bullets and enforced at read time, so §40.7's first
+   prohibited substitution is reached by the shipped binary and planted
+   (`a performer report admitted as independent`). Eighteen remain, and
+   OW-WAR-0046 owns them.
 3. **Two adequacy reviews report no executed attacks, and say so.** OW-WAR-0008
    and OW-WAR-0017 are the two `war check` still warns about. That is the check
    working: the state model and the epistemic classes have nothing to attack

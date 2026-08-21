@@ -348,6 +348,20 @@ d['contract_revision'] = 99
 p.write_text(json.dumps(d, indent=2))
 EOF" diff OW-WAR-0001
 
+# §40.7 #1 — a performer's own report admitted as independent evidence. This
+# rule existed through the whole of alpha in epistemic.rs and was called by
+# NOTHING in the check path; OW-WAR-0046 wired it into obligation parsing, and
+# this plant is what proves it is now reached by the shipped binary rather than
+# only by a #[test].
+plant "a performer report admitted as independent" "obligations.invalid" "performer assertion" 2 \
+    "python3 - <<'EOF'
+import pathlib
+p = pathlib.Path('docs/warrants/OW-WAR-0001/atoms/60-assurance.md')
+s = p.read_text()
+i = s.index('- **scope:**')
+p.write_text(s[:i] + '- **origin:** performer\n- **admissibility:** independent\n' + s[i:])
+EOF"
+
 plant "milestone carrying a stage field" "milestones.invalid" "belongs to a stage" 2 \
     "python3 - <<'EOF'
 import pathlib
