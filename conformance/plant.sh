@@ -489,6 +489,22 @@ plant_cmd "a lowering with no computational stage" "blut.not-computational" "rej
 plant_cmd "a lowering against no pinned registry" "blut.lowered" "pinned registry" 0 \
     "true" blut OW-WAR-0047
 
+# §49.2 / §91.7 test 47 — an INCOMPATIBLE PORT KIND is refused, naming the port.
+#
+# This is the plant OBL-002 asks for, and until now it could not exist: the
+# adapter hardcoded `compatible: true` on every mapping, so
+# `BlutLowering::validate`'s incompatible-kind branch was unreachable from the
+# shipped binary no matter what a Warrant declared. The rule was unit-tested and
+# enforcing nothing — the same shape as the twenty alpha types that no command
+# called.
+plant_cmd "a port typed outside the §49.2 map" "incompatible kind" "STAGE-002.corpus" 1 \
+    "sed -i 's|inputs: \[\"corpus:war/corpus\"\]|inputs: [\"corpus:war/not-a-kind\"]|' docs/warrants/OW-WAR-0047/atoms/45-milestones.yaml" blut OW-WAR-0047
+
+# The mapped case must still pass, or the plant above would also fire for a
+# correctly typed port and prove nothing about the kind check.
+plant_cmd "a correctly typed port maps" "blut.ports-mapped" "2 port(s)" 0 \
+    "true" blut OW-WAR-0047
+
 # §46 / §51.3 — what happens when the NEIGHBOUR is the untrustworthy part.
 #
 # `war blut --verify` invokes a real BLUT binary and records its verdict as

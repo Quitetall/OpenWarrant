@@ -383,6 +383,11 @@ pub struct BlutLowering {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PortMapping {
     pub war_port: String,
+    /// The BLUT kind this port maps to — EXCEPT when `compatible` is false, in
+    /// which case there is no BLUT kind and this carries the unmapped WAR type
+    /// instead, so the diagnostic can name what the author actually wrote.
+    /// Naming a BLUT kind here on the failure path would assert a
+    /// correspondence that does not exist.
     pub blut_kind: String,
     /// Whether the two kinds are compatible. §49.2 requires the adapter to
     /// REJECT incompatible kinds rather than lower them into something that runs

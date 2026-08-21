@@ -28,3 +28,5 @@ stages:
     title: "Execute in BLUT"
     executor_kind: "blut"
     responsibility_tier: "T1"
+    inputs: ["corpus:war/corpus"]
+    outputs: ["report:war/report"]
