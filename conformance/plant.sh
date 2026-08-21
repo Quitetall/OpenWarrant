@@ -468,7 +468,8 @@ plant "evidence that rests only on itself" "evidence.invalid" "Circular" 2 \
 
 # test 73 — a sampled result cannot establish a universal claim (§38.4).
 plant "a universal claim resting on a sample" "obligations.invalid" "sampling alone is insufficient" 2 \
-    "sed -i '0,/^- [*][*]scope:[*][*]/s||- **scope kind:** universal\n- **evidence:** a representative sample of runs.\n- **scope:**|' docs/warrants/OW-WAR-0046/atoms/60-assurance.md"
+    "sed -i -e '0,/^- [*][*]scope:[*][*]/s||- **scope kind:** universal\n- **scope:**|' \
+        -e '0,/^- [*][*]evidence:[*][*] a §44.6 receipt/s||- **evidence:** a representative sample of receipts|' docs/warrants/OW-WAR-0046/atoms/60-assurance.md"
 
 # test 65 — a gate that can select nothing is INVALID, not a pass. A run that
 # selected nothing and exited zero has measured nothing.

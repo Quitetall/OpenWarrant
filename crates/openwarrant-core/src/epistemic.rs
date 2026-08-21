@@ -53,6 +53,12 @@ pub enum EpistemicError {
     InferenceWithoutPremises { id: String },
     #[error("inference {id:?} names no claim it supports (§40.4)")]
     InferenceWithoutClaim { id: String },
+    #[error(
+        "Circular claim/evidence graph — {detail}. Two records that cite each \
+         other both RESOLVE and together support nothing: each rests only on the \
+         other. §36.4 requires the graph to be acyclic"
+    )]
+    CircularEvidence { detail: String },
     #[error("unknown {kind} {found:?}; expected one of {known}")]
     Unknown {
         kind: &'static str,
@@ -877,6 +883,34 @@ pub mod records {
                     }
                 }
             }
+
+            // §36.4 / §91.10 test 74 — the claim/evidence graph SHALL be acyclic.
+            //
+            // Resolving every premise is NOT sufficient, and that is the whole
+            // point of this check. Two records that cite each other both resolve
+            // and together support nothing: each rests only on the other. A
+            // record citing itself resolves too.
+            //
+            // `ClaimGraph` implemented this detection during alpha and was
+            // reached by nothing, so the §36.4 prohibition applied to a graph
+            // nobody built.
+            let mut graph = crate::rationale::ClaimGraph::default();
+            for inference in &self.inferences {
+                for premise in &inference.premise_refs {
+                    graph.add(&inference.id, premise);
+                }
+            }
+            for judgment in &self.judgments {
+                for basis in &judgment.basis_refs {
+                    graph.add(&judgment.id, basis);
+                }
+            }
+            graph
+                .validate()
+                .map_err(|e| EpistemicError::CircularEvidence {
+                    detail: e.to_string(),
+                })?;
+
             Ok(())
         }
     }

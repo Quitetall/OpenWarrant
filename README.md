@@ -63,7 +63,10 @@ than decorative.
 are read from a `## Evidence` section in the assurance atom and validated, so
 §40.7's prohibited substitutions apply to records a reader can see.
 
-**Ten remain.** OW-WAR-0046 owns the rest.
+`ClaimGraph` detects a cycle in the claim/evidence graph, so §36.4's
+prohibition applies to a graph that is actually built.
+
+**Nine remain.** OW-WAR-0046 owns the rest.
 
 Pre-1.0 and the protocol is **not stable**: the canonical JSON shape, the digest
 domains, and the manifest schema may change in any 0.x release. There is no
