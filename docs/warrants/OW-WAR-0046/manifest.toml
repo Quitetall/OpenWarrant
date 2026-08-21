@@ -1,0 +1,60 @@
+schema = "oh.war/manifest/v1"
+uuid = "01a021a6-0dfc-7c2c-b61a-06b3aad19004"
+local_alias = "OW-WAR-0046"
+enterprise_id = ""
+title = "Discharge the Phase 6 exit: a delivery closes only through bounded proof"
+profile = "delivery"
+assurance_level = "controlled"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-053"
+contribution = "complete"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-054"
+contribution = "complete"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-055"
+contribution = "complete"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-057"
+contribution = "complete"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-058"
+contribution = "complete"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-6/exit"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true

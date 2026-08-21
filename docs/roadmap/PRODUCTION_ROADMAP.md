@@ -25,10 +25,19 @@ Read the four honest limits below before treating this as a finished product:
 1. **Nothing has run against a real neighbour.** Katana, BLUT, Knowledge Fabric
    and Liminal have no checkout on this host. The seams are typed, tested, and
    unexercised. A protocol proven only against its own tests is not proven.
-2. **The execution plane has no plants.** 36 planted violations cover the
-   RECORD-level rules (§16, §19, §23, §28, §38, §39, §43, §44, §17.5, §71.10).
-   Resolution, independence, dispatch, context and preflight are unit-tested
-   only. A rule with no plant is a rule nothing has tried to break.
+2. **The execution plane is not wired into the binary at all.** This is
+   stronger than "has no plants", and it was measured on 2026-08-20 rather than
+   assumed: of twenty alpha types sampled — `Admissibility`, `Independence`,
+   `EvidenceItem`, `Observation`, `Judgment`, `GateReceipt`, `KatanaReceipt`,
+   `ResolutionChecks`, `PreflightReceipt`, `ClaimGraph`, `ActionEnvelope`,
+   `PortableExport` and the rest — **twenty are unreachable from `war` and the
+   compiler.** §40.7's six prohibited substitutions are enforced by a function
+   nothing calls.
+
+   The alpha claim stands as worded: the capability exists, typed and tested.
+   But a reader could reasonably infer that `war check` enforces these rules on
+   a corpus, and it does not. Wiring them into the check path, and putting a
+   plant on each, is OW-WAR-0046's first deliverable.
 3. **Two adequacy reviews report no executed attacks, and say so.** OW-WAR-0008
    and OW-WAR-0017 are the two `war check` still warns about. That is the check
    working: the state model and the epistemic classes have nothing to attack
@@ -65,7 +74,7 @@ protocol proven only against a mock is not proven.
 
 | Phase | Gate | Status |
 |---|---|---|
-| 0 — Telemetry shim | alpha | not started |
+| 0 — Telemetry shim | alpha (vocabulary) / beta (measured) | **resolved** 2026-08-20 (OW-WAR-0039); exit open, see OW-WAR-0041 |
 | 1 — File-native WAR compiler | alpha | **resolved** (partial — see below) |
 | — milestones and stages (OW-WAR-0007) | alpha | **resolved** 2026-08-19 |
 | — state model (OW-WAR-0008) | alpha | **resolved** 2026-08-19 |
@@ -102,11 +111,11 @@ protocol proven only against a mock is not proven.
 | — SAS + Roadmap traceability (OW-WAR-0013) | alpha | **resolved** 2026-08-20 |
 | — rationale model, assumptions, unknowns (OW-WAR-0014) | alpha | **resolved** 2026-08-20 |
 | — deliverables, artifacts, provenance (OW-WAR-0015) | alpha | **resolved** 2026-08-20 |
-| 2 — Agent planner | alpha | not started |
+| 2 — Agent planner | alpha (protocol) / beta (live) | **resolved** 2026-08-20 (OW-WAR-0034, 0035); exit open, see OW-WAR-0042 |
 | 3 — ADR federation | alpha | partial |
 | 4 — Knowledge Fabric registration | alpha (protocol) / beta (live) | not started |
 | 5 — Dispatch and Katana execution | alpha (protocol) / beta (live) | not started |
-| 6 — Gate Registry and assurance case | alpha | not started |
+| 6 — Gate Registry and assurance case | alpha | **resolved** 2026-08-20 (OW-WAR-0019, 0020); exit open, see OW-WAR-0046 |
 | 7 — BLUT adapter | alpha (protocol) / beta (live) | not started |
 | 8 — Liminal production compiler | alpha (protocol) / beta (live) | not started |
 | 9 — High-assurance controls | release | not started |
@@ -197,13 +206,43 @@ Phase 1 milestones.** 35 Warrants.
 
 ## Beta Warrants
 
-Written when alpha closes, not before. Scope, so it is not rediscovered:
+Nine, authored 2026-08-20. The spine is the SAS's own §98 phase **Exit**
+criteria: alpha built every phase's Deliver list, and the Exits are behavioural
+claims that require a real run. None has been discharged.
 
-- Live integration against Katana, BLUT, Knowledge Fabric, and Liminal.
-- §91.1 test 1 on two genuinely different hosts, not two runs on one.
-- The full upstream `es6-numbers` corpus rather than the pinned boundary cases.
-- Conformance across the whole §91 suite — 95 tests.
-- Migration of the LamQuant ADR corpus, executed and verified.
+| WAR | Title | SAS | Exit discharged |
+|---|---|---|---|
+| OW-WAR-0041 | Real telemetry distributions, with a baseline | §94, §95, §100 | Phase 0 |
+| OW-WAR-0042 | A vague request becomes a reviewable draft | §74, §75, §91.8 | Phase 2 |
+| OW-WAR-0043 | Migrate the LamQuant ADR corpus, fabricating nothing | §96, §97, §91.5 | Phase 3 |
+| OW-WAR-0044 | KF is institutional authority, Git stays Source Holder | §67, §83, §91.13 | Phase 4 |
+| OW-WAR-0045 | A stateless actor executes one Dispatch | §47, §48, §51, §91.7, §91.9 | Phase 5 |
+| OW-WAR-0046 | A delivery closes only through bounded proof | §43, §44, §56, §91.10–§91.12 | Phase 6 |
+| OW-WAR-0047 | Compatible WARs execute without duplicating BLUT | §49, §91.7 | Phase 7 |
+| OW-WAR-0048 | Measured adapter parity and the two-host canonical run | §82, §91.1 | Phase 8 |
+| OW-WAR-0049 | Close the alpha residue and one false claim | §91.2, §28, §31 | — |
+
+Every one of §91's 95 conformance tests now has an owning Warrant. §91 runs
+§91.1 through **§91.13**; subsections §91.7–§91.13 (tests 43–95) had zero
+citations anywhere when beta was authored.
+
+**Sequencing.** OW-WAR-0046 is numbered sixth and should run first: while the
+validators are unreachable from the binary, every other beta obligation is
+unverifiable and a plant against an unreachable rule cannot fail. OW-WAR-0041 is
+the only time-critical one — §100 says "measurably reduces", and a baseline not
+taken at the alpha commit cannot be taken later.
+
+**What is actionable now.** BLUT (`training/engine`) and Knowledge Fabric are
+both checked out on the development host, so OW-WAR-0043, 0044 and 0047 need no
+new infrastructure. Katana and Liminal are repositories under the same owner but
+are not cloned; OW-WAR-0045 and OW-WAR-0048 carry §36.3 blocking unknowns naming
+exactly what is missing, so they block readiness rather than passing quietly.
+
+**One thing going public already fixed.** §91.1 test 1 ("two hosts →
+byte-identical canonical IR") was reported as blocked on hardware. It is not:
+`release.yml` already carries `x86_64-unknown-linux-gnu` and
+`aarch64-apple-darwin`, and public repositories get free minutes. Different OS,
+different architecture, zero cost. OW-WAR-0048 owns it.
 
 ## Release Warrants
 
@@ -225,9 +264,10 @@ time alpha closed, which is the failure mode the whole document is about. The
 numbers below are what `war check` reports today; if they disagree with the tool,
 the tool is right.
 
-- **0 of 14** `controlled` Warrants lack a §39.2 outcome. All fourteen now record
-  one.
-- **2 of 14** have executed no §39.3 attacks: OW-WAR-0008 (state model) and
+- **8 of 22** `controlled` Warrants lack a §39.2 outcome — the eight beta
+  Warrants authored 2026-08-20, whose reviews have not happened yet.
+- **10 of 22** have executed no §39.3 attacks: the eight beta Warrants, plus
+  OW-WAR-0008 (state model) and
   OW-WAR-0017 (epistemic classes). Both say so in their reviews and explain why —
   there is nothing to attack until real authorizations and judgments exist. These
   are the only two warnings `war check` emits.

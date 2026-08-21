@@ -1,0 +1,41 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "A LamQuant commit is named and frozen"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "Every ADR imports with its bytes preserved"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002"]
+
+  - id: "M3"
+    title: "No completion claim became a resolution"
+    depends_on: ['M2']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-003"]
+
+  - id: "M4"
+    title: "§91.4 and §91.5 are planted"
+    depends_on: ['M2']
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-004"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Freeze the source commit"
+    executor_kind: "human"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-002"
+    title: "Run the import"
+    executor_kind: "service"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-003"
+    title: "Plant §91.4 and §91.5"
+    executor_kind: "human"
+    responsibility_tier: "T1"

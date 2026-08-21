@@ -1,0 +1,52 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "A gate is qualified with both control directions and run for real"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "An adequacy review executes attacks"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002"]
+
+  - id: "M3"
+    title: "One Warrant resolves through all thirteen requirements"
+    depends_on: ['M1', 'M2']
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-003"]
+
+  - id: "M4"
+    title: "Dispute and annulment preserve history"
+    depends_on: ['M3']
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-004"]
+
+  - id: "M5"
+    title: "§91.10, §91.11 and §91.12 are planted"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-004"]
+    obligation_refs: ["OBL-005"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Qualify and run a real gate"
+    executor_kind: "service"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-002"
+    title: "Execute adversarial attacks"
+    executor_kind: "human"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-003"
+    title: "Resolve, dispute, annul"
+    executor_kind: "human"
+    responsibility_tier: "T3"
+
+  - id: "STAGE-004"
+    title: "Plant §91.10 through §91.12"
+    executor_kind: "human"
+    responsibility_tier: "T1"
