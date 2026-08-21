@@ -88,6 +88,70 @@ pub struct BlutVerdict {
     pub exit_code: i32,
 }
 
+/// §49.2's port-kind map: WAR port types on the left, BLUT artifact kinds at
+/// [`BLUT_PIN`] on the right.
+///
+/// # Why a table and not a membership check
+///
+/// The tempting simplification is to have WAR ports name BLUT kinds directly,
+/// so the adapter only confirms the kind exists. That would couple the WAR
+/// vocabulary to one executor: a port on a `katana` or `laboratory` stage has
+/// no business being typed in BLUT's namespace, and §23.5 types ports on every
+/// stage regardless of who runs them. So the WAR side keeps a neutral `war/*`
+/// vocabulary and this is the seam that translates it — which is exactly what
+/// §49.2 means by "map named ports to typed inputs and outputs".
+///
+/// The right-hand column is not invented. Each is a real `const KIND` read from
+/// the engine tree at [`BLUT_PIN`], production kinds only — not the `test.*` and
+/// `spec.*` fixtures BLUT's own tests define.
+///
+/// The table is deliberately short. A WAR type with no entry is INCOMPATIBLE,
+/// not passed through: an adapter that forwards types it does not understand
+/// produces a PlanSpec that runs and means something else, which is the exact
+/// degradation §49.2 exists to forbid.
+const PORT_KIND_MAP: &[(&str, &str)] = &[
+    ("war/corpus", "dataset.jsonl"),
+    ("war/preferences", "dataset.preferences"),
+    ("war/split", "dataset.split"),
+    ("war/checkpoint", "checkpoint.hf"),
+    ("war/model", "model.gguf"),
+    ("war/report", "eval.report"),
+    ("war/checks", "checks.jsonl"),
+];
+
+/// Map a stage's declared ports onto BLUT kinds (§49.2).
+///
+/// Compatibility is DERIVED here, not asserted. This previously built one
+/// mapping per stage id with `blut_kind: "artifact/bytes"` and
+/// `compatible: true` hardcoded, which was wrong twice: it mapped stages rather
+/// than ports, and it made [`BlutLowering::validate`]'s incompatible-kind
+/// rejection unreachable from the binary. A rule the shipped tool cannot reach
+/// is not enforcing anything, however well unit-tested.
+///
+/// An unmapped WAR type is marked incompatible rather than dropped or coerced,
+/// so `validate` refuses the lowering and names the port.
+fn map_ports(stage: &openwarrant_core::milestones::Stage) -> Vec<PortMapping> {
+    stage
+        .inputs
+        .iter()
+        .chain(stage.outputs.iter())
+        .map(|port| {
+            let mapped = PORT_KIND_MAP
+                .iter()
+                .find(|(war, _)| *war == port.type_name)
+                .map(|(_, blut)| *blut);
+            PortMapping {
+                war_port: format!("{}.{}", stage.id, port.name),
+                // On failure the WAR type is reported rather than a BLUT kind,
+                // because there is no BLUT kind — and printing one would name a
+                // correspondence that does not exist.
+                blut_kind: mapped.unwrap_or(port.type_name.as_str()).to_owned(),
+                compatible: mapped.is_some(),
+            }
+        })
+        .collect()
+}
+
 /// Render a count BLUT may not have reported. "unstated" is deliberately not
 /// "0": a reader who sees zero concludes the binary has no cookbooks, which is
 /// a fact nobody established.
@@ -372,14 +436,12 @@ pub fn lower(
 
     // Stages come from the milestones atom, which is already parsed and
     // validated — §23's graph is the thing being lowered.
-    let mut stages: Vec<(String, String)> = Vec::new();
+    let mut stages: Vec<openwarrant_core::milestones::Stage> = Vec::new();
     for atom in basis.atoms.iter().filter(|a| a.role == "milestones") {
         let text = String::from_utf8_lossy(&atom.bytes);
         let parsed = openwarrant_core::milestones::parse(&text)
             .map_err(|e| RepoError::Message(format!("{alias}: {e}")))?;
-        for stage in &parsed.stages {
-            stages.push((stage.id.clone(), stage.executor_kind.to_string()));
-        }
+        stages.extend(parsed.stages.iter().cloned());
     }
 
     if stages.is_empty() {
@@ -394,11 +456,14 @@ pub fn lower(
     // §49.2 — reject rather than degrade. A stage whose executor is not `blut`
     // is not a computational stage, and lowering it anyway would produce a
     // PlanSpec that runs and means something else.
-    let lowerable: Vec<&(String, String)> = stages.iter().filter(|(_, k)| k == "blut").collect();
+    let lowerable: Vec<&openwarrant_core::milestones::Stage> = stages
+        .iter()
+        .filter(|s| s.executor_kind.to_string() == "blut")
+        .collect();
     let foreign: Vec<&str> = stages
         .iter()
-        .filter(|(_, k)| k != "blut")
-        .map(|(id, _)| id.as_str())
+        .filter(|s| s.executor_kind.to_string() != "blut")
+        .map(|s| s.id.as_str())
         .collect();
 
     if lowerable.is_empty() {
@@ -418,14 +483,7 @@ pub fn lower(
     let lowering = BlutLowering {
         stage: alias.to_owned(),
         registry_digest: format!("blut@{BLUT_PIN}"),
-        port_mappings: lowerable
-            .iter()
-            .map(|(id, _)| PortMapping {
-                war_port: id.clone(),
-                blut_kind: "artifact/bytes".to_owned(),
-                compatible: true,
-            })
-            .collect(),
+        port_mappings: lowerable.iter().flat_map(|s| map_ports(s)).collect(),
         backend_identity: format!("blut://backend@{BLUT_PIN}"),
         stage_identity: format!("war://{alias}"),
         resource_envelope_mapped: true,
@@ -436,12 +494,38 @@ pub fn lower(
         .validate()
         .map_err(|e| RepoError::Message(format!("{alias}: {e}")))?;
 
+    // A lowering with no ports passes the kind check by having nothing to
+    // check, and that silence reads exactly like a kind check that succeeded.
+    // Say which it was. This is the same failure the hardcoded
+    // `compatible: true` had — a control reporting success without doing work.
+    if lowering.port_mappings.is_empty() {
+        report.push(Diagnostic::warn(
+            "blut.no-ports",
+            repo.relative(&dir.join("atoms/45-milestones.yaml")),
+            format!(
+                "{alias}: {} lowerable stage(s) declare no inputs or outputs, so §49.2's \
+                 port-kind check had nothing to check. This is not a passed check — the \
+                 PlanSpec below carries no typed edges at all.",
+                lowerable.len()
+            ),
+        ));
+    } else {
+        report.push(Diagnostic::pass(
+            "blut.ports-mapped",
+            format!(
+                "{alias}: {} port(s) map to kinds BLUT declares at {}",
+                lowering.port_mappings.len(),
+                &BLUT_PIN[..12]
+            ),
+        ));
+    }
+
     let spec = PlanSpec {
         name: alias.to_owned(),
         nodes: lowerable
             .iter()
-            .map(|(id, _)| SpecNode {
-                stage: id.clone(),
+            .map(|s| SpecNode {
+                stage: s.id.clone(),
                 args: serde_json::Value::Object(serde_json::Map::new()),
             })
             .collect(),
