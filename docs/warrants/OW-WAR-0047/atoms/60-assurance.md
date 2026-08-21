@@ -58,6 +58,17 @@ first thing in this repository whose origin is not this repository.
   supply a missing, lying, mute and mumbling neighbour
 - **occurred at:** 2026-08-21
 
+### EV-003 — the §49.3 lineage plants
+- **class:** evidence
+- **kind:** gate_run_output
+- **origin:** gate_runner
+- **admissibility:** controlled_measurement
+- **digest:** sha256:pending-receipt-binding
+- **method:** conformance/plant.sh — one plant pastes BLUT lineage keys into an
+  atom and requires `lineage.reproduced`; a second appends prose naming the same
+  fields and requires that NOTHING fires
+- **occurred at:** 2026-08-21
+
 ### OBS-001 — BLUT refused the lowering, naming the unresolvable stage
 - **class:** observation
 - **evidence:** EV-001
@@ -72,6 +83,14 @@ first thing in this repository whose origin is not this repository.
 - **method:** four plants each assert an exit code, a named rule and a named
   detail; the exit-code cross-check was additionally disabled and the
   corresponding plant then failed, so the battery is known to be able to fail
+- **admissibility:** controlled_measurement
+
+### OBS-003 — a Warrant restating BLUT's lineage is refused; one describing the rule is not
+- **class:** observation
+- **evidence:** EV-003
+- **method:** both directions are planted, and both were falsified before being
+  trusted — regressing the detector to a substring scan makes the prose control
+  fail, and removing the key-position requirement makes it fail the same way
 - **admissibility:** controlled_measurement
 
 ### INF-001 — the refusal is the correct answer, not a defect in the adapter

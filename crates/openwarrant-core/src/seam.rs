@@ -45,6 +45,18 @@ pub enum SeamError {
         found: String,
         known: String,
     },
+    #[error(
+        "§49.3 — BLUT's execution lineage stays authoritative in BLUT; this \
+         Warrant restates it: {detail}. A second copy of an authoritative fact \
+         is a second answer to a question that should have one"
+    )]
+    LineageReproduced { detail: String },
+    #[error(
+        "BLUT lineage receipt omits {field}; §49.3 stores a REFERENCE, and a \
+         receipt missing one references nothing. This is a missing reference, \
+         not a reproduced one"
+    )]
+    LineageReferenceMissing { field: &'static str },
     #[error("Katana receipt {id:?} omits {field}, which §48.4 requires at minimum")]
     KatanaReceiptIncomplete { id: String, field: &'static str },
     #[error(
@@ -439,6 +451,116 @@ pub struct BlutLineageReceipt {
     pub receipt_digest: String,
 }
 
+/// BLUT lineage field names that identify a REPRODUCTION rather than a
+/// reference (§49.3).
+///
+/// Read from `LineageNode` in the engine tree. Deliberately excludes `stage`,
+/// `cached` and `elapsed`, which are ordinary words a Warrant may use for its
+/// own purposes; each name here is BLUT-internal node identity with no
+/// legitimate reason to appear as a key in a Warrant. That is why ONE is enough
+/// to flag — a Warrant carrying `output_content_id:` is answering a question
+/// §49.3 says BLUT owns.
+pub const BLUT_LINEAGE_KEYS: &[&str] = &[
+    "node_idx",
+    "input_content_ids",
+    "output_content_id",
+    "legacy_output_hash",
+];
+
+/// §49.3 — BLUT lineage reproduced inside a Warrant's own bytes.
+///
+/// # Why this matches key POSITIONS and not mentions
+///
+/// The obvious implementation greps for the names. OW-ADR-0005 records what
+/// that costs: a prose scan for `gate://` flagged OW-WAR-0019's own sentence
+/// explaining the rule, so the check fired on the document describing it. The
+/// rule has to distinguish *using* a structure from *talking about* one.
+///
+/// So a line counts only when the name is in key position — `node_idx:`,
+/// `- node_idx:`, or `"node_idx":`, with a value after it. A sentence reading
+/// "node_idx is never copied here" is not a reproduction and is not flagged,
+/// which lets a Warrant document the rule it obeys.
+///
+/// # Fenced blocks ARE matched, and inline code is the escape hatch
+///
+/// A fenced block is where a real paste lands — someone copies BLUT output and
+/// wraps it in ```` ``` ````. Exempting fences to allow "what not to do"
+/// examples would put the hole exactly where the copies arrive, so they are
+/// matched like any other line.
+///
+/// A Warrant that needs to SHOW the shape can write it inline in backticks,
+/// which is not matched because the backtick is not stripped. Prose and
+/// markdown headings are not matched either. So documenting the rule stays
+/// possible without opening the hole.
+///
+/// Returns the offending `(line number, key)` pairs, because "lineage was
+/// reproduced" sends an author to read the whole atom.
+#[must_use]
+pub fn reproduced_lineage(text: &str) -> Vec<(usize, &'static str)> {
+    let mut found = Vec::new();
+    for (index, raw) in text.lines().enumerate() {
+        // Strip list markers and quoting so YAML, JSON and markdown bullets all
+        // reduce to the same "key: value" shape.
+        let line = raw.trim_start().trim_start_matches("- ").trim_start();
+        let line = line.trim_start_matches(['"', '\'', '*']);
+        for key in BLUT_LINEAGE_KEYS {
+            let Some(rest) = line.strip_prefix(key) else {
+                continue;
+            };
+            // Tolerate a closing quote or bold marker between key and colon.
+            let rest = rest.trim_start_matches(['"', '\'', '*']);
+            let Some(value) = rest.strip_prefix(':') else {
+                continue;
+            };
+            // A key with no value is a mention of a field name, not a copy of
+            // one. "output_content_id:" alone at the end of a line reproduces
+            // nothing.
+            if !value.trim().is_empty() {
+                found.push((index + 1, *key));
+                break;
+            }
+        }
+    }
+    found
+}
+
+impl BlutLineageReceipt {
+    /// §49.3 — a receipt must REFER to BLUT's lineage and must not restate it.
+    ///
+    /// This type shipped with no validation at all: four fields, a doc comment
+    /// saying copying lineage here would be wrong, and nothing that could refuse
+    /// a receipt that did. A rule stated only in a comment is a rule the
+    /// compiler and the test suite both agree is optional.
+    pub fn validate(&self) -> Result<(), SeamError> {
+        // An empty field is a MISSING reference, not a reproduced one. Reporting
+        // it through `LineageReproduced` would name the wrong failure — the same
+        // defect as reporting a bad §42 authority through `UnknownRecordClass`,
+        // fixed earlier in this campaign. A reader told "lineage was reproduced"
+        // goes looking for a copy that is not there.
+        for (field, value) in [
+            ("status", &self.status),
+            ("lineage_ref", &self.lineage_ref),
+            ("receipt_digest", &self.receipt_digest),
+        ] {
+            if value.trim().is_empty() {
+                return Err(SeamError::LineageReferenceMissing { field });
+            }
+        }
+        // The reference must be a reference. A lineage_ref holding a structure
+        // is the reproduction this whole type exists to prevent, wearing the
+        // name of the thing that prevents it.
+        let copied = reproduced_lineage(&self.lineage_ref);
+        if let Some((_, key)) = copied.first() {
+            return Err(SeamError::LineageReproduced {
+                detail: format!(
+                    "lineage_ref carries BLUT's own {key}, so it restates lineage rather than pointing at it"
+                ),
+            });
+        }
+        Ok(())
+    }
+}
+
 /// §82.3's parity comparison between two source adapters.
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct AdapterParity {
@@ -487,6 +609,119 @@ impl AdapterParity {
 mod tests {
     use super::*;
     use std::str::FromStr;
+
+    /// The false positive OW-ADR-0005 was written about, in its §49.3 form.
+    ///
+    /// A prose scan for `gate://` once flagged OW-WAR-0019's own sentence
+    /// explaining the rule. A Warrant MUST be able to document that it does not
+    /// copy lineage without that documentation counting as copying lineage.
+    #[test]
+    fn prose_about_lineage_is_not_lineage() {
+        let text = "\
+BLUT's lineage stays in BLUT. This Warrant carries no node_idx, no
+output_content_id, and no input_content_ids — a second copy of an
+authoritative fact is the defect being tested for. The fields
+legacy_output_hash and node_idx are BLUT's to own.
+";
+        assert_eq!(
+            reproduced_lineage(text),
+            Vec::new(),
+            "documenting the rule must not violate it"
+        );
+    }
+
+    /// The rule has to actually fire, in every shape a copy would arrive in.
+    #[test]
+    fn lineage_in_key_position_is_caught_in_yaml_json_and_markdown() {
+        for (label, line) in [
+            ("yaml", "node_idx: 3"),
+            ("yaml-indented", "    node_idx: 3"),
+            ("yaml-list", "  - node_idx: 3"),
+            ("json", "  \"node_idx\": 3,"),
+            ("markdown-bullet", "- output_content_id: sha256:abc"),
+            ("markdown-bold", "- **legacy_output_hash:** sha256:abc"),
+        ] {
+            let found = reproduced_lineage(line);
+            assert_eq!(found.len(), 1, "{label} not caught: {line:?}");
+        }
+    }
+
+    /// A field NAME with no value is a mention. Copying requires a value.
+    #[test]
+    fn a_bare_key_with_no_value_reproduces_nothing() {
+        assert_eq!(reproduced_lineage("node_idx:"), Vec::new());
+        assert_eq!(reproduced_lineage("node_idx:   "), Vec::new());
+    }
+
+    /// Generic words are deliberately NOT in the key list. A Warrant with a
+    /// `stage:` key is describing its own §23 stage, not BLUT's lineage.
+    #[test]
+    fn a_warrants_own_stage_key_is_not_bluts_lineage() {
+        assert_eq!(reproduced_lineage("stage: STAGE-002"), Vec::new());
+        assert_eq!(reproduced_lineage("  - cached: true"), Vec::new());
+        assert_eq!(reproduced_lineage("elapsed: 4s"), Vec::new());
+    }
+
+    /// Everything the detector must NOT match, pinned by measurement rather
+    /// than by argument. A future change to the stripping logic that starts
+    /// catching one of these has widened the rule silently.
+    #[test]
+    fn headings_prefixes_and_inline_code_are_not_copies() {
+        for (label, text) in [
+            // A heading is prose with decoration.
+            ("heading", "### node_idx: 3"),
+            // `:` is the boundary check — `node_idx_old` is a different key.
+            ("prefix collision", "node_idx_old: 3"),
+            // The documented escape hatch: show the shape without carrying it.
+            ("inline code", "`node_idx: 3` is what we must not write"),
+        ] {
+            assert_eq!(
+                reproduced_lineage(text),
+                Vec::new(),
+                "{label} must not match"
+            );
+        }
+    }
+
+    /// Fenced blocks ARE matched, deliberately. This is where a real paste
+    /// lands, so exempting fences would put the hole exactly where the copies
+    /// arrive. Pinned so the choice stays a choice.
+    #[test]
+    fn a_fenced_block_is_still_a_copy() {
+        let found = reproduced_lineage("```yaml\nnode_idx: 3\n```");
+        assert_eq!(found, vec![(2, "node_idx")]);
+    }
+
+    /// The type shipped with no validate() at all — the rule lived in a doc
+    /// comment, which the compiler and the test suite both treat as optional.
+    #[test]
+    fn a_receipt_that_references_nothing_is_refused() {
+        let mut r = BlutLineageReceipt {
+            status: "completed".to_owned(),
+            artifact_refs: Vec::new(),
+            lineage_ref: String::new(),
+            receipt_digest: "sha256:abc".to_owned(),
+        };
+        assert!(
+            r.validate().is_err(),
+            "an empty lineage_ref references nothing"
+        );
+        r.lineage_ref = "blut://job/abc123".to_owned();
+        assert!(r.validate().is_ok(), "a real reference is fine");
+    }
+
+    /// The reference must not BE the thing it refers to.
+    #[test]
+    fn a_lineage_ref_holding_lineage_is_refused() {
+        let r = BlutLineageReceipt {
+            status: "completed".to_owned(),
+            artifact_refs: Vec::new(),
+            lineage_ref: "node_idx: 3, output_content_id: sha256:abc".to_owned(),
+            receipt_digest: "sha256:abc".to_owned(),
+        };
+        let err = r.validate().expect_err("a ref carrying lineage is a copy");
+        assert!(err.to_string().contains("node_idx"), "{err}");
+    }
 
     /// §67's four groups, transcribed. 32 actions in total.
     #[test]

@@ -23,18 +23,33 @@ OW-WAR-0027 resolved.
   `/mnt/4tb/LamQuant/training/engine`, and its `PlanSpec` schema is readable at a
   pinned commit. The lowering is therefore written against a real schema rather
   than an invented one.
-- **Blocking unknown.** BLUT ships no verb that DESERIALIZES a `PlanSpec` JSON.
-  Its binaries are `blut-dsl` (Starlark to PlanSpec, the authoring direction),
-  the operator, TUI, notify, metrics and web. So nothing OpenWarrant emits has
-  been through BLUT's parser, and "BLUT accepted this" cannot be claimed.
-  *Resolution requirement:* a BLUT-side verb that reads a `PlanSpec` JSON and
-  reports acceptance, plus a stage name compiled into a registered cookbook —
-  `PlanSpecError::UnknownStage` refuses anything else, and this repository's
-  Warrants name stages like `STAGE-002` that no cookbook has.
+- **Resolved unknown (2026-08-21).** This Basis previously said "BLUT ships no
+  verb that DESERIALIZES a `PlanSpec` JSON". That was wrong when written —
+  `blut plan publish` has always parsed one and typechecked it fail-closed. The
+  real gap was narrower: no verb did it *without writing a deployment row*.
+  Stating the wide version made a missing feature look like a missing
+  capability, which is how a solvable blocker comes to read as a permanent one.
 
-  This corrects what this Basis said when authored: "actionable today without
-  new infrastructure". Structurally faithful lowering is actionable; acceptance
-  by BLUT is not, and the two were run together.
+  The narrow gap is closed. `blut plan check` landed on BLUT `main`
+  (`7b60d21e`, refined `d6822563`), and `war blut --verify <binary>` now hands
+  the lowered spec to a real BLUT binary and reports its verdict.
+
+  This is the second correction to this Basis. The first retracted "actionable
+  today without new infrastructure", which ran two claims together.
+- **Blocking unknown.** No stage this repository names is compiled into any BLUT
+  cookbook, so a real binary REFUSES every lowering here — verified, naming
+  `STAGE-002`. That refusal is the correct answer and is recorded as evidence,
+  but it means nothing has EXECUTED. *Resolution requirement:* a stage name a
+  registered cookbook actually compiles in (`PlanSpecError::UnknownStage`
+  refuses anything else), and then a run that produces status, artifact and
+  lineage receipts. Until then OBL-001 has no receipts to point at.
+- **Blocking unknown.** OBL-003 asks the Warrant to carry a `lineage_ref`, and
+  there is no lineage to reference because nothing has run. The *prohibition*
+  half is discharged — `lineage.reproduced` refuses a Warrant that restates
+  BLUT's lineage, and it is planted in both directions — but a reference to a
+  job that never existed would be a fabricated identifier, which is the
+  substitution §40.7 forbids. *Resolution requirement:* the same execution
+  OBL-001 needs. The two unblock together or not at all.
 - **Accepted residual risk.** BLUT's PlanSpec may drift. The adapter pins a
   registry digest, so drift surfaces as a refusal rather than a silent remap.
   *Consequence if false:* a stage name resolves to different work on different

@@ -7,7 +7,7 @@
 use std::collections::BTreeMap;
 
 use openwarrant_compiler::lower;
-use openwarrant_core::{ValidatedManifest, detect_parent_cycles, milestones, obligation};
+use openwarrant_core::{ValidatedManifest, detect_parent_cycles, milestones, obligation, seam};
 
 use crate::compile::{adr_overview, projections, warrant_overview};
 use crate::diagnostic::{Diagnostic, Report, Severity};
@@ -573,6 +573,32 @@ fn check_one(
                     ),
                 ));
             }
+        }
+    }
+
+    // §49.3 — BLUT's execution lineage stays authoritative in BLUT. Run over
+    // EVERY atom, not just the ones a BLUT-shaped Warrant would use: lineage is
+    // copied by hand, into whatever file the author was editing, and a rule that
+    // only inspects the atoms where the copy *ought* to appear is one an
+    // accidental paste walks straight past.
+    for atom in &basis.atoms {
+        let text = String::from_utf8_lossy(&atom.bytes);
+        for (line, key) in seam::reproduced_lineage(&text) {
+            report.push(Diagnostic::error(
+                "lineage.reproduced",
+                repo.relative(&one.dir.join(&atom.source)),
+                format!(
+                    // Says ATOM and LINE, where `SeamError::LineageReproduced`
+                    // says RECEIPT. Two paths reach the same rule, and sharing
+                    // one sentence would leave a reader unable to tell which
+                    // one fired or where to look.
+                    "{alias}: atom {}, line {line} carries BLUT's `{key}` as a key with a \
+                     value. §49.3 — lineage stays authoritative in BLUT and the Warrant \
+                     stores a reference. Write the shape inline in backticks if you need \
+                     to show it; prose naming the field is not a copy.",
+                    atom.source
+                ),
+            ));
         }
     }
 

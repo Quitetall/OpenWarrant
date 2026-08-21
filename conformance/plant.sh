@@ -489,6 +489,33 @@ plant_cmd "a lowering with no computational stage" "blut.not-computational" "rej
 plant_cmd "a lowering against no pinned registry" "blut.lowered" "pinned registry" 0 \
     "true" blut OW-WAR-0047
 
+# §49.3 — BLUT's lineage stays authoritative in BLUT. This is OBL-003's plant.
+#
+# `BlutLineageReceipt` shipped with a doc comment saying a copy would be wrong
+# and NO validate() at all, and no command inspected a Warrant's bytes for one.
+# The rule lived entirely in prose.
+plant "lineage copied into a Warrant" "lineage.reproduced" "node_idx" 2 \
+    "printf '\n- node_idx: 3\n- output_content_id: sha256:deadbeef\n' >> docs/warrants/OW-WAR-0047/atoms/60-assurance.md"
+
+# A fenced block is where a REAL paste lands — someone copies BLUT output and
+# wraps it in a code fence. Exempting fences to allow "what not to do" examples
+# would put the hole exactly where the copies arrive, so they are matched like
+# any other line. This plant pins that choice.
+plant "lineage pasted inside a code fence" "lineage.reproduced" "output_content_id" 2 \
+    "printf '\n\`\`\`yaml\noutput_content_id: sha256:deadbeef\n\`\`\`\n' >> docs/warrants/OW-WAR-0047/atoms/60-assurance.md"
+
+# The negative control, and the one that matters most here.
+#
+# OW-ADR-0005 records a prose scan for \`gate://\` firing on OW-WAR-0019's own
+# sentence explaining the rule. A Warrant MUST be able to say "this carries no
+# node_idx" without that sentence counting as carrying one. If this plant ever
+# fails, the detector went back to matching mentions instead of key positions.
+# Deliberately NOT --generated: mutating an atom always drifts the committed
+# projection, so a --generated run would fail for a reason unrelated to lineage
+# and this control would pass while proving nothing about the detector.
+plant "prose naming lineage fields is not a copy" "0 error" "worst: WARN" 0 \
+    "printf '\nThis Warrant carries no node_idx and no output_content_id; BLUT owns them.\n' >> docs/warrants/OW-WAR-0047/atoms/60-assurance.md"
+
 # §49.2 / §91.7 test 47 — an INCOMPATIBLE PORT KIND is refused, naming the port.
 #
 # This is the plant OBL-002 asks for, and until now it could not exist: the
