@@ -76,6 +76,28 @@ first thing in this repository whose origin is not this repository.
   "stage 'STAGE-002' is not in any registered cookbook"; the exit status and the
   verdict agreed, which is separately checked before either is recorded
 - **admissibility:** authoritative_external
+- **superseded by:** OBS-004. The observation is kept because it happened and is
+  what INF-001 reasoned from. What it did NOT establish, and was read as
+  establishing, is *why* — see INF-001.
+
+### EV-004 — BLUT's verdict after the adapter stopped guessing stage names
+- **class:** evidence
+- **kind:** external_tool_verdict
+- **origin:** blut
+- **admissibility:** authoritative_external
+- **digest:** sha256:pending-receipt-binding
+- **method:** `war blut OW-WAR-0047 --verify <blut-binary>` after `executor_ref`
+  bound each computational stage to a stage a registered cookbook compiles in
+- **occurred at:** 2026-08-21
+
+### OBS-004 — BLUT ACCEPTED a two-stage lowering
+- **class:** observation
+- **evidence:** EV-004
+- **method:** BLUT reported `accepted: true`, exit 0, fingerprint
+  `a2005e3c9535…` for a graph of `materialize_dataset_path` -> `filter_dataset`.
+  Both the stage names and the graph typecheck: the root takes `()` and the edge
+  carries `dataset.jsonl` to a stage expecting `dataset.jsonl`.
+- **admissibility:** authoritative_external
 
 ### OBS-002 — a verdict OpenWarrant cannot attribute is refused, not recorded
 - **class:** observation
@@ -103,6 +125,24 @@ first thing in this repository whose origin is not this repository.
   `STAGE-NNN` identifier from the milestones grammar, which no cookbook has. A
   lowering of these Warrants is therefore unacceptable to any BLUT binary, and
   an acceptance would mean the pinned-registry rule had stopped applying.
+- **admissibility:** authoritative_external
+- **falsified by:** OBS-004, INF-002. Kept rather than deleted: a recorded
+  inference that later evidence overturned is the record working, and removing
+  it would hide that the conclusion was once believed.
+
+### INF-002 — the refusal was the adapter's defect, misread as the registry rule
+- **class:** inference
+- **kind:** deductive
+- **premises:** OBS-001, OBS-004
+- **claim:** roadmap-limit-1
+- **reasoning:** INF-001 concluded that no lowering here could be accepted, from
+  the true premise that no cookbook compiles a `STAGE-NNN`. The step it skipped
+  is that a WAR stage id was never required to BE the BLUT stage name. The
+  adapter used the id because nothing else was available, so every lowering
+  named `STAGE-NNN` and was refused — and the refusal was then read as the
+  pinned-registry rule working correctly. Once a stage could declare the name
+  its executor knows it by (`executor_ref`), BLUT accepted (OBS-004). The
+  registry rule was never the obstacle; the adapter's guess was.
 - **admissibility:** authoritative_external
 
 ### JDG-001 — OBL-001 remains open, and this does not narrow it

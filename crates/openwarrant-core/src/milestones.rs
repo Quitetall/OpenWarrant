@@ -187,6 +187,23 @@ pub struct Stage {
     pub inputs: Vec<Port>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub outputs: Vec<Port>,
+    /// The name this stage's EXECUTOR knows it by (§49.2).
+    ///
+    /// A WAR stage id (`STAGE-002`) is an identifier inside this Warrant. It is
+    /// not what BLUT, Katana or a laboratory calls the thing that runs. The
+    /// adapter used the id as the BLUT stage name, which meant every lowering
+    /// named `STAGE-NNN` and was refused for naming a stage no cookbook has —
+    /// a refusal that looked like the pinned-registry rule working, when in fact
+    /// the question "which executor stage is this?" had never been asked.
+    ///
+    /// Deliberately executor-NEUTRAL. `katana` and `laboratory` stages have the
+    /// same problem and get the same field, rather than each seam growing a
+    /// private one.
+    ///
+    /// `None` is honest for a stage nobody has bound yet; the adapter refuses to
+    /// lower it rather than guessing.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub executor_ref: Option<String>,
 }
 
 /// A validated milestone graph.
@@ -264,7 +281,13 @@ pub fn parse(source: &str) -> Result<MilestoneGraph, MilestoneError> {
     }
 
     // §23.6: fields that belong to the other kind are refused, not ignored.
-    const STAGE_ONLY: [&str; 4] = ["executor_kind", "responsibility_tier", "inputs", "outputs"];
+    const STAGE_ONLY: [&str; 5] = [
+        "executor_kind",
+        "responsibility_tier",
+        "inputs",
+        "outputs",
+        "executor_ref",
+    ];
     const MILESTONE_ONLY: [&str; 3] = ["depends_on", "stage_refs", "obligation_refs"];
 
     let mut milestones = Vec::new();
@@ -359,6 +382,7 @@ pub fn parse(source: &str) -> Result<MilestoneGraph, MilestoneError> {
             responsibility_tier,
             inputs: ports("inputs")?,
             outputs: ports("outputs")?,
+            executor_ref: scalar(record, "executor_ref").filter(|v| !v.trim().is_empty()),
             id,
         });
     }

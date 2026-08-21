@@ -57,7 +57,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0044](docs/warrants/OW-WAR-0044/manifest.toml) | Discharge the Phase 4 exit: KF is institutional authority, Git stays Source Holder | `draft` | `current` | `valid` | `controlled` | 5M / 3S |
 | [OW-WAR-0045](docs/warrants/OW-WAR-0045/manifest.toml) | Discharge the Phase 5 exit: a stateless actor executes one Dispatch | `draft` | `current` | `valid` | `controlled` | 5M / 3S |
 | [OW-WAR-0046](docs/warrants/OW-WAR-0046/manifest.toml) | Discharge the Phase 6 exit: a delivery closes only through bounded proof | `draft` | `current` | `valid` | `controlled` | 5M / 4S |
-| [OW-WAR-0047](docs/warrants/OW-WAR-0047/manifest.toml) | Discharge the Phase 7 exit: compatible WARs execute without duplicating BLUT | `draft` | `current` | `valid` | `basic` | 3M / 2S |
+| [OW-WAR-0047](docs/warrants/OW-WAR-0047/manifest.toml) | Discharge the Phase 7 exit: compatible WARs execute without duplicating BLUT | `draft` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0048](docs/warrants/OW-WAR-0048/manifest.toml) | Discharge the Phase 8 exit: measured adapter parity and the two-host canonical run | `draft` | `current` | `valid` | `controlled` | 4M / 3S |
 | [OW-WAR-0049](docs/warrants/OW-WAR-0049/manifest.toml) | Close the alpha residue: the gaps alpha carried forward and one false claim | `draft` | `current` | `valid` | `controlled` | 4M / 2S |
 

@@ -516,6 +516,14 @@ plant "lineage pasted inside a code fence" "lineage.reproduced" "output_content_
 plant "prose naming lineage fields is not a copy" "0 error" "worst: WARN" 0 \
     "printf '\nThis Warrant carries no node_idx and no output_content_id; BLUT owns them.\n' >> docs/warrants/OW-WAR-0047/atoms/60-assurance.md"
 
+# §49.2 — a stage NAME must resolve against the pinned registry, and a WAR stage
+# id is not that name. Dropping `executor_ref` must refuse rather than fall back
+# to the WAR id: lowering `STAGE-002` under its own id produces a PlanSpec naming
+# a stage the author never chose, and BLUT then refuses it for a reason that
+# looks like the pinned-registry rule working.
+plant_cmd "a blut stage bound to no executor stage" "blut.unbound-stage" "never chose" 0 \
+    "sed -i '/executor_ref: \"materialize_dataset_path\"/d' docs/warrants/OW-WAR-0047/atoms/45-milestones.yaml" blut OW-WAR-0047
+
 # §49.2 / §91.7 test 47 — an INCOMPATIBLE PORT KIND is refused, naming the port.
 #
 # This is the plant OBL-002 asks for, and until now it could not exist: the
@@ -524,12 +532,12 @@ plant "prose naming lineage fields is not a copy" "0 error" "worst: WARN" 0 \
 # shipped binary no matter what a Warrant declared. The rule was unit-tested and
 # enforcing nothing — the same shape as the twenty alpha types that no command
 # called.
-plant_cmd "a port typed outside the §49.2 map" "incompatible kind" "STAGE-002.corpus" 1 \
+plant_cmd "a port typed outside the §49.2 map" "incompatible kind" "STAGE-003.corpus" 1 \
     "sed -i 's|inputs: \[\"corpus:war/corpus\"\]|inputs: [\"corpus:war/not-a-kind\"]|' docs/warrants/OW-WAR-0047/atoms/45-milestones.yaml" blut OW-WAR-0047
 
 # The mapped case must still pass, or the plant above would also fire for a
 # correctly typed port and prove nothing about the kind check.
-plant_cmd "a correctly typed port maps" "blut.ports-mapped" "2 port(s)" 0 \
+plant_cmd "a correctly typed port maps" "blut.ports-mapped" "3 port(s)" 0 \
     "true" blut OW-WAR-0047
 
 # §46 / §51.3 — what happens when the NEIGHBOUR is the untrustworthy part.

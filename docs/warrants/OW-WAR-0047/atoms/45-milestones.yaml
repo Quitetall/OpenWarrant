@@ -15,7 +15,7 @@ milestones:
   - id: "M3"
     title: "Lineage is referenced, never copied"
     depends_on: ['M1']
-    stage_refs: ["STAGE-002"]
+    stage_refs: ["STAGE-002", "STAGE-003"]
     obligation_refs: ["OBL-003"]
 
 stages:
@@ -25,8 +25,16 @@ stages:
     responsibility_tier: "T1"
 
   - id: "STAGE-002"
-    title: "Execute in BLUT"
+    title: "Materialize a corpus in BLUT"
     executor_kind: "blut"
     responsibility_tier: "T1"
+    executor_ref: "materialize_dataset_path"
+    outputs: ["corpus:war/corpus"]
+
+  - id: "STAGE-003"
+    title: "Filter that corpus in BLUT"
+    executor_kind: "blut"
+    responsibility_tier: "T1"
+    executor_ref: "filter_dataset"
     inputs: ["corpus:war/corpus"]
-    outputs: ["report:war/report"]
+    outputs: ["filtered:war/corpus"]
