@@ -95,6 +95,10 @@ pub struct Paths {
     /// directory never holds it (OW-ADR-0005).
     #[serde(default = "Paths::default_gates")]
     pub gates: String,
+    /// §44.6 gate-run receipts. Evidence, so it is preserved rather than
+    /// written to a temporary directory and lost.
+    #[serde(default = "Paths::default_receipts")]
+    pub receipts: String,
 }
 
 impl Paths {
@@ -113,6 +117,9 @@ impl Paths {
     fn default_gates() -> String {
         "docs/gates".to_owned()
     }
+    fn default_receipts() -> String {
+        "docs/receipts".to_owned()
+    }
 
     fn validate(&self) -> Result<(), ConfigError> {
         for (field, value) in [
@@ -121,6 +128,7 @@ impl Paths {
             ("adrs", &self.adrs),
             ("warrants", &self.warrants),
             ("gates", &self.gates),
+            ("receipts", &self.receipts),
         ] {
             if value.trim().is_empty() {
                 return Err(ConfigError::PathEmpty { field });
@@ -156,6 +164,7 @@ impl Default for Paths {
             adrs: Self::default_adrs(),
             warrants: Self::default_warrants(),
             gates: Self::default_gates(),
+            receipts: Self::default_receipts(),
         }
     }
 }

@@ -13,3 +13,9 @@
 # Python bytecode: build output, not source.
 __pycache__/
 *.pyc
+
+# §44.6 gate-run receipts. Produced BY a run, with wall-clock timestamps that
+# change every execution — committing them would dirty the tree on every
+# `cargo xtask gate`. A receipt becomes committed evidence deliberately, as part
+# of a resolution (OW-WAR-0046 deliverable 3), not as a side effect of running.
+docs/receipts/

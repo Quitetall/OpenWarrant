@@ -148,12 +148,49 @@ pub fn run_gate(def: &GateDefinition, repo: &Repository) -> GateRun {
     let deadline = def
         .timeout_secs
         .map_or(DEFAULT_GATE_TIMEOUT, Duration::from_secs);
+
+    // Where the streams land. Created before the spawn so a failure to open them
+    // is an askability problem, not a half-run.
+    let dir = repo.root.join(&repo.config.paths.receipts);
+    if std::fs::create_dir_all(&dir).is_err() {
+        return GateRun {
+            id,
+            gate: def.key(),
+            askability: Askability::NotAskable,
+            execution_status: ExecutionStatus::Invalid,
+            verdict: Verdict::Unknown,
+            reason_code: Some(ReasonCode::ForeignWorkingDirectory),
+        };
+    }
+    let slug = def.key().replace(['/', '@', '.'], "_");
+    let (out_path, err_path) = (
+        dir.join(format!("{slug}.stdout.txt")),
+        dir.join(format!("{slug}.stderr.txt")),
+    );
+    let (Ok(stdout_file), Ok(stderr_file)) = (
+        std::fs::File::create(&out_path),
+        std::fs::File::create(&err_path),
+    ) else {
+        return GateRun {
+            id,
+            gate: def.key(),
+            askability: Askability::NotAskable,
+            execution_status: ExecutionStatus::Invalid,
+            verdict: Verdict::Unknown,
+            reason_code: Some(ReasonCode::ForeignWorkingDirectory),
+        };
+    };
+
     let started = Instant::now();
     let spawned = Command::new(&def.argv[0])
         .args(&def.argv[1..])
         .current_dir(&repo.root)
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
+        // §44.6 requires stdout and stderr REFS on the receipt, so the streams
+        // are captured to files rather than discarded. Piping without draining
+        // can deadlock a chatty child on a full pipe buffer, so they go straight
+        // to files opened here.
+        .stdout(Stdio::from(stdout_file))
+        .stderr(Stdio::from(stderr_file))
         .spawn();
 
     let mut child = match spawned {
@@ -288,6 +325,7 @@ pub fn run(repo: &Repository, execute: bool, only: Option<&str>) -> Result<Repor
             continue;
         }
 
+        let started_at = receipt::now_rfc3339_public();
         let run = run_gate(def, repo);
         // Coherence is checked on our own output. A runner that emits an
         // incoherent run is a runner that can emit a passing unaskable gate.
@@ -310,6 +348,29 @@ pub fn run(repo: &Repository, execute: bool, only: Option<&str>) -> Result<Repor
             run.execution_status,
             run.verdict
         );
+
+        // §44.6 — a completed run produces a receipt. Only a run that actually
+        // executed has anything to receipt: an unaskable gate produced no
+        // working directory, no exit result and no streams, and minting a
+        // receipt for it would be minting evidence of something that did not
+        // happen.
+        if run.execution_status == ExecutionStatus::Completed {
+            match receipt::mint(repo, def, &run, &started_at, &format!("{}", run.verdict)) {
+                Ok(path) => report.push(Diagnostic::pass(
+                    "gate-run.receipt",
+                    format!(
+                        "{}: §44.6 receipt written to {}",
+                        def.key(),
+                        repo.relative(&path)
+                    ),
+                )),
+                Err(e) => report.push(Diagnostic::error(
+                    "gate-run.receipt-failed",
+                    def.key(),
+                    format!("{e}"),
+                )),
+            }
+        }
 
         if run.satisfies_required_pass() {
             report.push(Diagnostic::pass("gate-run.pass", line));
@@ -341,4 +402,134 @@ pub fn run(repo: &Repository, execute: bool, only: Option<&str>) -> Result<Repor
         }
     }
     Ok(report)
+}
+
+/// Mint a §44.6 receipt for a completed run, and write it beside its streams.
+///
+/// # Why this exists
+///
+/// Through the whole of alpha, `GateReceipt` was implemented, unit-tested, and
+/// referenced by no code in any binary. §44.6 says a receipt SHALL record
+/// eighteen things; nothing produced one, so the requirement was satisfied by a
+/// struct definition and a test that constructed one by hand.
+///
+/// A receipt is also the artifact every beta obligation cites. An obligation
+/// demanding "a gate-run receipt whose verdict is pass" is undischargeable by a
+/// `#[test]` precisely because a receipt binds wall-clock times, a working
+/// directory, an exit result and a digest that has to recompute.
+pub mod receipt {
+    use camino::Utf8Path;
+    use openwarrant_compiler::canonical::sha256_digest;
+    use openwarrant_compiler::digest::DigestDomain;
+    use openwarrant_core::gate::GateDefinition;
+    use openwarrant_core::{GateReceipt, GateRun};
+
+    use crate::repo::{RepoError, Repository};
+
+    /// RFC 3339, UTC, seconds precision — enough to order runs, and no more
+    /// precision than the value actually carries.
+    /// Public alias so the run path can stamp `started_at` before spawning.
+    #[must_use]
+    pub fn now_rfc3339_public() -> String {
+        now_rfc3339()
+    }
+
+    fn now_rfc3339() -> String {
+        let secs = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_or(0, |d| d.as_secs());
+        // Civil-from-days, so a receipt does not pull in a date crate for one
+        // timestamp. Correct for all dates this system will ever record.
+        let (days, rem) = ((secs / 86_400) as i64, secs % 86_400);
+        let z = days + 719_468;
+        let era = z.div_euclid(146_097);
+        let doe = z.rem_euclid(146_097);
+        let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
+        let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+        let mp = (5 * doy + 2) / 153;
+        let d = doy - (153 * mp + 2) / 5 + 1;
+        let m = if mp < 10 { mp + 3 } else { mp - 9 };
+        let y = yoe + era * 400 + i64::from(m <= 2);
+        format!(
+            "{y:04}-{m:02}-{d:02}T{:02}:{:02}:{:02}Z",
+            rem / 3600,
+            (rem % 3600) / 60,
+            rem % 60
+        )
+    }
+
+    /// Build and persist the receipt. Returns its path.
+    ///
+    /// The receipt is VALIDATED before it is written. A malformed receipt on
+    /// disk is worse than none: it looks like evidence.
+    pub fn mint(
+        repo: &Repository,
+        def: &GateDefinition,
+        run: &GateRun,
+        started_at: &str,
+        exit_result: &str,
+    ) -> Result<camino::Utf8PathBuf, RepoError> {
+        let slug = def.key().replace(['/', '@', '.'], "_");
+        let rel = |p: &Utf8Path| repo.relative(p);
+        let dir = repo.root.join(&repo.config.paths.receipts);
+
+        let mut receipt = GateReceipt {
+            run_id: run.id.clone(),
+            gate_definition_digest: if def.digest.is_empty() {
+                // A definition with no declared digest still has an identity;
+                // deriving one here keeps the receipt complete without inventing
+                // a value that looks like the author's.
+                format!(
+                    "sha256:{}",
+                    sha256_digest(DigestDomain::GateRun, &def.key())
+                        .map_err(|e| RepoError::Message(format!("{e}")))?
+                )
+            } else {
+                def.digest.clone()
+            },
+            // §43.5 bindings do not exist in this corpus yet. Recording the
+            // gate's own key is honest; inventing a binding digest would not be.
+            gate_binding_digest: format!("unbound:{}", def.key()),
+            subject_digests: vec![format!("warrant-corpus:{}", repo.config.paths.warrants)],
+            fixture_digests: vec![],
+            runner: "war gate --run".to_owned(),
+            runtime_environment: format!(
+                "{} {} / rustc {}",
+                std::env::consts::OS,
+                std::env::consts::ARCH,
+                option_env!("CARGO_PKG_RUST_VERSION").unwrap_or("unknown")
+            ),
+            arguments: def.argv.clone(),
+            working_directory: repo.root.to_string(),
+            started_at: started_at.to_owned(),
+            completed_at: now_rfc3339(),
+            exit_result: exit_result.to_owned(),
+            selected_test_count: 0,
+            selected_test_manifest: vec![],
+            raw_evidence_refs: vec![],
+            stdout_ref: rel(&dir.join(format!("{slug}.stdout.txt"))),
+            stderr_ref: rel(&dir.join(format!("{slug}.stderr.txt"))),
+            resource_usage: format!("wall-clock only; {} argv item(s)", def.argv.len()),
+            verdict: run.verdict,
+            receipt_digest: String::new(),
+        };
+
+        // Digest last, over everything else, so it covers the record it seals.
+        receipt.receipt_digest = format!(
+            "sha256:{}",
+            sha256_digest(DigestDomain::GateRun, &receipt)
+                .map_err(|e| RepoError::Message(format!("{e}")))?
+        );
+
+        receipt.validate().map_err(|e| {
+            RepoError::Message(format!("refusing to write a malformed receipt: {e}"))
+        })?;
+
+        let path = dir.join(format!("{slug}.receipt.json"));
+        let body = serde_json::to_string_pretty(&receipt)
+            .map_err(|e| RepoError::Message(format!("{e}")))?;
+        std::fs::write(&path, body + "\n")
+            .map_err(|e| RepoError::Message(format!("cannot write {path}: {e}")))?;
+        Ok(path)
+    }
 }

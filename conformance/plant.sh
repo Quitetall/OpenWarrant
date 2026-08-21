@@ -362,6 +362,13 @@ i = s.index('- **scope:**')
 p.write_text(s[:i] + '- **origin:** performer\n- **admissibility:** independent\n' + s[i:])
 EOF"
 
+# §44.6 — a run that completes produces a receipt. Blank the gate's argv so the
+# run is `not_askable` and confirm NO receipt is minted: a receipt for a gate
+# that never executed would be evidence of something that did not happen.
+plant_gate "a receipt for a run that never happened" "gate-run.unaskable" "malformed" 2 \
+    "sed -i 's|^argv: .*|argv: []|' docs/gates/software.repo.war-check@1.0.0.yaml
+     rm -f docs/receipts/software_repo_war-check_1_0_0.receipt.json"
+
 plant "milestone carrying a stage field" "milestones.invalid" "belongs to a stage" 2 \
     "python3 - <<'EOF'
 import pathlib
