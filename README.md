@@ -27,9 +27,9 @@ none is discharged. Two limits are worth knowing before you evaluate anything
 here:
 
 **One neighbour has answered; three have not.** On 2026-08-21 a real BLUT binary
-read a PlanSpec OpenWarrant generated and refused it, naming the stage it could
-not resolve — the first verdict here that OpenWarrant did not produce about
-itself. Katana, Liminal and the Knowledge Fabric each still have a typed, tested
+read a PlanSpec OpenWarrant generated and accepted it — the first verdict here
+that OpenWarrant did not produce about itself. It refused the first few, for
+reasons that turned out to be the adapter's rather than the Warrant's. Katana, Liminal and the Knowledge Fabric each still have a typed, tested
 adapter on this side and have never been spoken to. A refusal is a real answer,
 but it is a typecheck and not an execution: no neighbour has yet returned
 status, artifact or lineage receipts from actually running anything.

@@ -36,15 +36,27 @@ OW-WAR-0027 resolved.
 
   This is the second correction to this Basis. The first retracted "actionable
   today without new infrastructure", which ran two claims together.
-- **Blocking unknown.** No stage this repository names is compiled into any BLUT
-  cookbook, so a real binary REFUSES every lowering here — verified, naming
-  `STAGE-002`. That refusal is the correct answer and is recorded as evidence,
-  but it means nothing has EXECUTED. *Resolution requirement:* a stage name a
-  registered cookbook actually compiles in (`PlanSpecError::UnknownStage`
-  refuses anything else), and then a run that produces status, artifact and
-  lineage receipts. Until then OBL-001 has no receipts to point at.
+- **Resolved unknown (2026-08-21, later the same day).** This said "no stage
+  this repository names is compiled into any BLUT cookbook, so a real binary
+  REFUSES every lowering here". The premise was true and the conclusion was
+  wrong, because a WAR stage id was never required to BE the BLUT stage name.
+  The adapter used the id for want of anything else, so every lowering named
+  `STAGE-NNN` — and the refusal was read as the pinned-registry rule working
+  when it was the adapter guessing. With `executor_ref`, BLUT ACCEPTED a
+  two-stage lowering (fingerprint `a2005e3c9535…`, exit 0).
+
+  Recorded because the mistake is instructive: a correct refusal, from a real
+  external tool, for a real reason, still supported the wrong conclusion about
+  what was possible.
+- **Blocking unknown.** Acceptance is not execution. BLUT typechecked the plan;
+  nothing ran it, so there are no status, artifact or lineage receipts.
+  *Resolution requirement:* a BLUT run of this accepted plan, which needs a real
+  corpus for `materialize_dataset_path` and a decision about whether this
+  repository should be launching training jobs to satisfy its own Warrant.
+  Until then OBL-001 has no receipts to point at.
 - **Blocking unknown.** OBL-003 asks the Warrant to carry a `lineage_ref`, and
-  there is no lineage to reference because nothing has run. The *prohibition*
+  there is no lineage to reference because nothing has run — unchanged by the
+  acceptance above, since a typecheck produces no lineage. The *prohibition*
   half is discharged — `lineage.reproduced` refuses a Warrant that restates
   BLUT's lineage, and it is planted in both directions — but a reference to a
   job that never existed would be a fabricated identifier, which is the

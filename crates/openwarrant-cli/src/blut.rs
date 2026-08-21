@@ -27,11 +27,13 @@
 //! # What is still not claimed
 //!
 //! BLUT refuses a stage name that is in no registered cookbook
-//! (`PlanSpecError::UnknownStage` — "dynamic loading is forbidden"). Every stage
-//! this repository's Warrants name is a `STAGE-NNN` identifier that no cookbook
-//! compiles in, so a real BLUT binary refuses these lowerings — correctly.
-//! Acceptance is not the goal of `--verify`; getting an *authoritative* answer
-//! is, and a refusal for a nameable reason is one.
+//! (`PlanSpecError::UnknownStage` — "dynamic loading is forbidden"). A stage now
+//! declares the name its executor knows it by, via `executor_ref`, so a Warrant
+//! can name a stage a cookbook actually compiles in. A stage that declares none
+//! is refused rather than lowered under its WAR id.
+//!
+//! Acceptance is still not the goal of `--verify`; getting an *authoritative*
+//! answer is, and a refusal for a nameable reason is one.
 
 use camino::Utf8Path;
 use openwarrant_core::milestones::ExecutorKind;
@@ -529,12 +531,55 @@ pub fn lower(
         ));
     }
 
+    // §49.2 — resolve stage NAMES against the pinned registry. A WAR stage id is
+    // an identifier inside this Warrant; it is not what BLUT calls the thing
+    // that runs. Using the id meant every lowering named `STAGE-NNN` and was
+    // refused for naming a stage no cookbook has — a refusal that read like the
+    // pinned-registry rule working, while the question "which BLUT stage is
+    // this?" had never been asked.
+    // Blank counts as absent. The milestones parser already maps an empty
+    // `executor_ref:` to None, but a `Stage` built in Rust could carry
+    // `Some("")` — and that would pass an `is_none()` check and then lower to a
+    // node named "", which BLUT would refuse for a reason naming nothing.
+    let unbound: Vec<&str> = lowerable
+        .iter()
+        .filter(|s| {
+            s.executor_ref
+                .as_deref()
+                .unwrap_or_default()
+                .trim()
+                .is_empty()
+        })
+        .map(|s| s.id.as_str())
+        .collect();
+    if !unbound.is_empty() {
+        // ERROR, not warn — unlike `blut.not-computational`, which reports the
+        // legitimate case of a Warrant that simply is not computational. This is
+        // an authoring defect: the Warrant declares a computational stage and
+        // then does not say what it runs. A warning would exit 0, telling a
+        // caller the lowering succeeded when the command just refused to
+        // produce one.
+        report.push(Diagnostic::error(
+            "blut.unbound-stage",
+            repo.relative(&dir.join("atoms/45-milestones.yaml")),
+            format!(
+                "{alias}: stage(s) {} declare `executor_kind: blut` but no `executor_ref`, \
+                 so nothing says which BLUT stage they are. Refused rather than lowered \
+                 under the WAR id — guessing produces a PlanSpec that names a stage the \
+                 author never chose.",
+                unbound.join(", ")
+            ),
+        ));
+        return Ok(report);
+    }
+
     let spec = PlanSpec {
         name: alias.to_owned(),
         nodes: lowerable
             .iter()
             .map(|s| SpecNode {
-                stage: s.id.clone(),
+                // Safe: `unbound` is empty, so every lowerable stage has one.
+                stage: s.executor_ref.clone().unwrap_or_default(),
                 args: serde_json::Value::Object(serde_json::Map::new()),
             })
             .collect(),
