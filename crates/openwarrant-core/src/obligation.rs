@@ -43,6 +43,19 @@ pub enum ObligationError {
          scope — sampling alone is insufficient"
     )]
     UniversalBySampling { id: String, method: String },
+    #[error("obligation {id:?}: {detail}")]
+    UnknownEpistemicTerm { id: String, detail: String },
+    #[error(
+        "obligation {id:?} declares origin {origin} but admissibility {admissibility}. \
+         §40.7 forbids the substitution `performer assertion → independent \
+         observation`: a performer's report is admissible only as \
+         `performer_report_only` or `informative`"
+    )]
+    PerformerAdmittedAsIndependent {
+        id: String,
+        origin: crate::epistemic::EvidenceOrigin,
+        admissibility: crate::epistemic::Admissibility,
+    },
     #[error("obligation {id:?} is disposed not_applicable with no authorized reason (§38.5)")]
     NotApplicableWithoutReason { id: String },
     #[error("milestone {milestone:?} references obligation {obligation:?}, which is not declared")]
@@ -220,6 +233,13 @@ pub struct Obligation {
     pub evidence: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub scope_kind: Option<ScopeKind>,
+    /// §40.6 — where this obligation's evidence comes from. Optional so the 134
+    /// obligations authored before beta keep parsing unchanged.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub origin: Option<crate::epistemic::EvidenceOrigin>,
+    /// §40.6 — how far that evidence may be relied on.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub admissibility: Option<crate::epistemic::Admissibility>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -238,6 +258,21 @@ impl Obligation {
                 id: self.id.clone(),
             });
         }
+        // §40.7 #1 — a performer's own report cannot be admitted as independent
+        // evidence. This rule was implemented in `epistemic.rs` during alpha and
+        // called by nothing; wiring it here is what turns it from a unit test
+        // into a corpus rule (OW-WAR-0046).
+        if let (Some(origin), Some(admissibility)) = (self.origin, self.admissibility)
+            && !origin.can_be_independent()
+            && admissibility.is_independent()
+        {
+            return Err(ObligationError::PerformerAdmittedAsIndependent {
+                id: self.id.clone(),
+                origin,
+                admissibility,
+            });
+        }
+
         // §38.4 — a universal claim cannot rest on sampling.
         if self.scope_kind == Some(ScopeKind::Universal) {
             let lower = self.evidence.to_lowercase();
@@ -387,6 +422,8 @@ pub fn parse(source: &str) -> Result<ObligationSet, ObligationError> {
                 scope: String::new(),
                 evidence: String::new(),
                 scope_kind: None,
+                origin: None,
+                admissibility: None,
                 note: None,
                 disposition: None,
             });
@@ -426,6 +463,28 @@ pub fn parse(source: &str) -> Result<ObligationSet, ObligationError> {
                         o.disposition = Some(Disposition::from_str(&value)?);
                         None
                     }
+                    "origin" => {
+                        o.origin = Some(
+                            crate::epistemic::EvidenceOrigin::from_str(value.trim()).map_err(
+                                |e| ObligationError::UnknownEpistemicTerm {
+                                    id: o.id.clone(),
+                                    detail: e.to_string(),
+                                },
+                            )?,
+                        );
+                        None
+                    }
+                    "admissibility" => {
+                        o.admissibility = Some(
+                            crate::epistemic::Admissibility::from_str(value.trim()).map_err(
+                                |e| ObligationError::UnknownEpistemicTerm {
+                                    id: o.id.clone(),
+                                    detail: e.to_string(),
+                                },
+                            )?,
+                        );
+                        None
+                    }
                     "scope kind" | "scope_kind" => {
                         o.scope_kind = Some(ScopeKind::from_str(&value)?);
                         None
@@ -461,6 +520,66 @@ pub fn parse(source: &str) -> Result<ObligationSet, ObligationError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// §40.7 #1, now reachable from a parsed corpus rather than only from a
+    /// unit test on `EvidenceItem`.
+    ///
+    /// A performer reporting on its own work cannot admit that report as
+    /// independent evidence. Before OW-WAR-0046 this rule lived in
+    /// `epistemic.rs` and was called by nothing in the check path.
+    #[test]
+    fn a_performer_report_cannot_be_admitted_as_independent() {
+        let src = "### OBL-001 — the thing works\n\
+                   - **scope:** bounded.\n\
+                   - **origin:** performer\n\
+                   - **admissibility:** independent\n\
+                   - **evidence:** we ran it and it worked.\n";
+        // `parse` validates as it reads, so the refusal happens at read time and
+        // an offending obligation never becomes a usable record at all.
+        match parse(src) {
+            Err(ObligationError::PerformerAdmittedAsIndependent { id, .. }) => {
+                assert_eq!(id, "OBL-001");
+            }
+            other => panic!("a performer self-report was admitted as independent: {other:?}"),
+        }
+    }
+
+    /// The honest pairing parses and validates.
+    #[test]
+    fn a_performer_report_admitted_as_a_performer_report_is_fine() {
+        let src = "### OBL-001 — the thing works\n\
+                   - **scope:** bounded.\n\
+                   - **origin:** performer\n\
+                   - **admissibility:** performer_report_only\n\
+                   - **evidence:** we ran it and it worked.\n";
+        let set = parse(src).expect("parses");
+        assert_eq!(set.obligations[0].validate(), Ok(()));
+    }
+
+    /// An independent origin may be admitted as independent.
+    #[test]
+    fn an_external_origin_may_be_admitted_as_independent() {
+        let src = "### OBL-001 — BLUT accepted the lowering\n\
+                   - **scope:** one PlanSpec.\n\
+                   - **origin:** external_authority\n\
+                   - **admissibility:** authoritative_external\n\
+                   - **evidence:** BLUT returned an acceptance receipt.\n";
+        let set = parse(src).expect("parses");
+        assert_eq!(set.obligations[0].validate(), Ok(()));
+    }
+
+    /// The 134 obligations authored before beta declare neither channel and must
+    /// keep parsing and validating unchanged.
+    #[test]
+    fn obligations_without_the_new_channels_are_unaffected() {
+        let src = "### OBL-001 — the thing works\n\
+                   - **scope:** bounded.\n\
+                   - **evidence:** a recorded run.\n";
+        let set = parse(src).expect("parses");
+        assert_eq!(set.obligations[0].origin, None);
+        assert_eq!(set.obligations[0].admissibility, None);
+        assert_eq!(set.obligations[0].validate(), Ok(()));
+    }
 
     const SAMPLE: &str = r"# Assurance
 
@@ -593,6 +712,8 @@ Not required at basic.
                     scope: "s".to_owned(),
                     evidence: "e".to_owned(),
                     scope_kind: None,
+                    origin: None,
+                    admissibility: None,
                     note: None,
                     disposition: *d,
                 })
