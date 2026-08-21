@@ -61,6 +61,7 @@ pub fn run(
     // §43.1 — local gate candidates. Loaded once for the corpus so an obligation
     // citing a gate can be resolved rather than taken on trust.
     let gates = load_gate_registry(repo, &mut report);
+    report_independence(repo, &loaded, &mut report);
 
     for one in &loaded {
         check_one(
@@ -243,6 +244,55 @@ fn contract_digests(corpus: &[Loaded]) -> BTreeMap<String, String> {
         }
     }
     out
+}
+
+/// §46.3 — report, ONCE, whether verification here meets each level's minimum.
+///
+/// Independence is declared per repository, so reporting it per Warrant says the
+/// same sentence forty-nine times. A finding repeated once per record is a
+/// finding nobody reads, which would defeat the point of surfacing it at all.
+///
+/// Never fatal at draft. §46.3's minimum binds when a resolution is recorded
+/// (§56.1 requirement 10). A repository that could not pass its own gate on day
+/// one would have the rule deleted rather than the gap closed — but silence is
+/// worse, and silence is what alpha shipped: "this repository authored and
+/// verified itself" was a paragraph in the roadmap that no tool could act on.
+fn report_independence(repo: &Repository, loaded: &[Loaded], report: &mut Report) {
+    let config_path = repo.relative(&repo.root.join("openwarrant.toml"));
+
+    let Some(independence) = &repo.config.independence else {
+        report.push(Diagnostic::warn(
+            "independence.undeclared",
+            config_path,
+            "no independence is declared for this repository, so §46.3's minimums \
+             cannot be evaluated for any Warrant. Absent is not the same as none — \
+             `none` reads as examined and absent, absent reads as unexamined"
+                .to_owned(),
+        ));
+        return;
+    };
+
+    // Group by the level actually declared, since the minimum differs per level.
+    let mut by_level: BTreeMap<String, usize> = BTreeMap::new();
+    for one in loaded {
+        if let Some(v) = &one.validated {
+            *by_level.entry(v.assurance_level.to_string()).or_insert(0) += 1;
+        }
+    }
+
+    for (level, count) in by_level {
+        match independence.meets(&level) {
+            Ok(()) => report.push(Diagnostic::pass(
+                "independence.sufficient",
+                format!("{count} {level} Warrant(s): declared independence meets §46.3's minimum"),
+            )),
+            Err(err) => report.push(Diagnostic::warn(
+                "independence.insufficient",
+                config_path.clone(),
+                format!("{count} {level} Warrant(s): {err}"),
+            )),
+        }
+    }
 }
 
 /// Load `docs/gates/*.yaml` as §43.1 local candidates.

@@ -13,3 +13,26 @@ warrants = "docs/warrants"
 [generated]
 commit = true
 verify_drift = true
+
+# §46.1's nine dimensions, for verification performed in this repository.
+#
+# Every value here is false, and that is not a placeholder. OpenWarrant is
+# authored and verified by one actor, so there is no blind reviewer, no separate
+# workspace, and no separate context compilation. §27.4 is explicit that role
+# separation by one person is not organizational independence, and OW-ADR-0004
+# required this to be RECORDED rather than omitted — an absent field reads as
+# unexamined, `false` reads as examined and absent.
+#
+# `war check` therefore reports every `controlled` Warrant here as not meeting
+# §46.3's minimum. That is the correct report, not a misconfiguration, and it is
+# roadmap limit 4 stated where a machine can see it instead of only in prose.
+[independence]
+performer_transcript_blind = false
+performer_rationale_blind = false
+separate_writable_workspace = false
+cannot_modify_subject_artifacts = false
+cannot_modify_gate_definition = false
+cannot_modify_gate_fixtures = false
+separate_context_compilation = false
+distinct_model_required = false
+distinct_human_required = false

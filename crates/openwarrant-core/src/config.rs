@@ -207,6 +207,16 @@ pub struct RepositoryConfig {
     pub paths: Paths,
     #[serde(default)]
     pub generated: GeneratedPolicy,
+    /// §46.1's nine independence dimensions, for verification performed in this
+    /// repository.
+    ///
+    /// `Option`, and deliberately NOT defaulted to [`crate::Independence::default`].
+    /// §46.1's own defaults are mostly `true`, so a repository that never
+    /// declared independence would inherit a claim that its verification is
+    /// blind and separately workspaced. Absent means UNDECLARED, and `war check`
+    /// reports it as such rather than assuming the flattering answer.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub independence: Option<crate::independence::Independence>,
 }
 
 impl RepositoryConfig {
@@ -222,6 +232,7 @@ impl RepositoryConfig {
             },
             paths: Paths::default(),
             generated: GeneratedPolicy::default(),
+            independence: None,
         }
     }
 
