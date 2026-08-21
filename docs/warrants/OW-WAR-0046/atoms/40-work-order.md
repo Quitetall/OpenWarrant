@@ -17,7 +17,9 @@ classification: internal
    `openwarrant-cli` or `openwarrant-compiler`.
 2. A gate qualified against declared fault classes with BOTH control
    directions, run for real, producing a §44.6 receipt with every required field.
-3. One Warrant resolved through §56.1's thirteen requirements, each verified.
+3. §56.1's thirteen requirements computed and reported for every Warrant, with
+   each unmet requirement named. Recording a resolution is deferred to a Warrant
+   that can satisfy requirement 10 — see `amendments/AM-001.yaml`.
 4. An adequacy review with EXECUTED attacks, closing roadmap limit 3.
 5. Plants for §91.10 tests 64–75, §91.11 tests 76–81, §91.12 tests 82–90.
 6. A recorded dispute and annulment, proving history survives both.

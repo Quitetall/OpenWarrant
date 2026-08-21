@@ -440,6 +440,53 @@ fn check_one(
         }
     }
 
+    // §31 — amendment records, if this Warrant has any.
+    //
+    // §31 binds revisions AFTER authorization and nothing here is authorized, so
+    // an amendment is not compelled. One that exists anyway is still validated:
+    // a record of why a claim was narrowed is worthless if it is malformed, and
+    // worse than worthless if it is malformed and nobody checks.
+    let amendments = one.dir.join("amendments");
+    if let Ok(entries) = amendments.read_dir_utf8() {
+        let mut paths: Vec<_> = entries
+            .filter_map(Result::ok)
+            .map(|e| e.into_path())
+            .filter(|p| p.extension().is_some_and(|e| e == "yaml" || e == "yml"))
+            .collect();
+        paths.sort();
+        for path in paths {
+            let rel = repo.relative(&path);
+            let Ok(text) = std::fs::read_to_string(&path) else {
+                report.push(Diagnostic::error(
+                    "amendment.unreadable",
+                    rel,
+                    format!("{alias}: amendment could not be read"),
+                ));
+                continue;
+            };
+            match openwarrant_core::structured::parse(&text)
+                .map_err(|e| e.to_string())
+                .and_then(|doc| {
+                    openwarrant_core::autonomy::from_structured(&doc).map_err(|e| e.to_string())
+                }) {
+                Ok(record) => report.push(Diagnostic::pass(
+                    "amendment.valid",
+                    format!(
+                        "{alias}: amendment {} is a {} carrying {} semantic change(s)",
+                        record.id,
+                        record.band,
+                        record.semantic_diff.len()
+                    ),
+                )),
+                Err(e) => report.push(Diagnostic::error(
+                    "amendment.invalid",
+                    rel,
+                    format!("{alias}: {e}"),
+                )),
+            }
+        }
+    }
+
     // §39 / RQ-055: contract-adequacy review, STRUCTURALLY checked.
     //
     // This replaced a substring search that passed any assurance atom merely

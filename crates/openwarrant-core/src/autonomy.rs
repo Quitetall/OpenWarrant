@@ -266,6 +266,89 @@ impl AmendmentRecord {
     }
 }
 
+/// Parse a §31 amendment record from a restricted-reader document.
+///
+/// # Why an amendment exists for a DRAFT Warrant
+///
+/// §31 binds "every revision after authorization", and nothing in this
+/// repository has been authorized — that is §56.1 requirement 1, measured as
+/// unmet. So §31 does not compel a record here, and editing a draft is
+/// legitimate.
+///
+/// It is written anyway because the REASON is the part worth keeping. §30.3
+/// classifies a completion-claim change as a manual revision, and a deliverable
+/// that turned out to be unachievable is exactly the kind of fact that
+/// disappears when a document is quietly edited into agreement with what
+/// happened.
+pub fn from_structured(
+    doc: &crate::structured::StructuredDoc,
+) -> Result<AmendmentRecord, AutonomyError> {
+    let scalar = |k: &str| doc.scalar(k).unwrap_or_default().trim().to_owned();
+    let list = |k: &str| {
+        doc.get(k)
+            .and_then(crate::structured::StructuredValue::as_list)
+            .map(<[String]>::to_vec)
+            .unwrap_or_default()
+    };
+
+    let band = AmendmentRecord::parse_band(&scalar("band"))?;
+
+    let semantic_diff = doc
+        .records("semantic_diff")
+        .unwrap_or_default()
+        .iter()
+        .map(|r| {
+            let get = |k: &str| {
+                r.get(k)
+                    .and_then(crate::structured::StructuredValue::as_scalar)
+                    .unwrap_or_default()
+                    .to_owned()
+            };
+            let element =
+                crate::contract::ContractElement::parse(&get("element")).ok_or_else(|| {
+                    AutonomyError::AmendmentIncomplete {
+                        id: scalar("id"),
+                        field: "semantic_diff.element (not a §28.5 element)",
+                    }
+                })?;
+            Ok(SemanticChange {
+                element,
+                before: get("before"),
+                after: get("after"),
+            })
+        })
+        .collect::<Result<Vec<_>, AutonomyError>>()?;
+
+    let record = AmendmentRecord {
+        id: scalar("id"),
+        band,
+        semantic_diff,
+        reason: scalar("reason"),
+        governing_adr_or_policy: scalar("governing_adr_or_policy"),
+        affected_stages: list("affected_stages"),
+        affected_milestones: list("affected_milestones"),
+        affected_attempts: list("affected_attempts"),
+        affected_gate_runs: list("affected_gate_runs"),
+        artifact_admissibility: if scalar("artifact_admissibility") == "inadmissible" {
+            ArtifactAdmissibility::Inadmissible
+        } else {
+            ArtifactAdmissibility::RemainAdmissible
+        },
+        restart_or_repair_instruction: scalar("restart_or_repair_instruction"),
+        re_preflight_required: scalar("re_preflight_required").eq_ignore_ascii_case("true"),
+        authorizer: scalar("authorizer"),
+        effective_time: scalar("effective_time"),
+    };
+    record.validate()?;
+    Ok(record)
+}
+
+impl AmendmentRecord {
+    fn parse_band(raw: &str) -> Result<AutonomyBand, AutonomyError> {
+        raw.parse()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

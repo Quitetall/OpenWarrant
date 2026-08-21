@@ -55,7 +55,11 @@ level. That report is correct, not a misconfiguration.
 reports **11 of 13 unmet** for every Warrant and refuses to close any of them —
 which is the Phase 6 exit behaving correctly, not a defect.
 
-**Fifteen remain.** OW-WAR-0046 owns the rest.
+`AmendmentRecord` is parsed and validated from a Warrant's `amendments/`
+directory, so a §31 record that explains why a claim changed is checked rather
+than decorative.
+
+**Fourteen remain.** OW-WAR-0046 owns the rest.
 
 Pre-1.0 and the protocol is **not stable**: the canonical JSON shape, the digest
 domains, and the manifest schema may change in any 0.x release. There is no

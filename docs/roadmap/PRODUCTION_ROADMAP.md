@@ -49,7 +49,9 @@ Read the four honest limits below before treating this as a finished product:
    **Five closed.** `Independence` is read from `openwarrant.toml` and checked
    against §46.3 per level; `ResolutionChecks` is computed by
    `war resolve --dry-run`, which reports 11 of 13 requirements unmet and
-   refuses to close any Warrant. **Fifteen remain**, and OW-WAR-0046 owns them.
+   refuses to close any Warrant; `AmendmentRecord` is parsed and validated from a
+   Warrant's `amendments/` directory. **Fourteen remain**, and OW-WAR-0046 owns
+   them.
 3. **Two adequacy reviews report no executed attacks, and say so.** OW-WAR-0008
    and OW-WAR-0017 are the two `war check` still warns about. That is the check
    working: the state model and the epistemic classes have nothing to attack

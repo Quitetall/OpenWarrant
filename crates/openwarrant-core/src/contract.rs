@@ -180,6 +180,16 @@ impl ContractElement {
         Self::AssuranceRequirements,
     ];
 
+    /// Parse one of §28.5's seventeen by name.
+    ///
+    /// Returns `None` for anything else rather than guessing: a semantic diff
+    /// naming an element the contract does not have is a diff about something
+    /// else.
+    #[must_use]
+    pub fn parse(name: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|e| e.as_str() == name.trim())
+    }
+
     #[must_use]
     pub const fn as_str(self) -> &'static str {
         match self {

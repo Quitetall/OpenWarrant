@@ -410,6 +410,18 @@ plant_cmd "resolution blocked by unmet requirements" "resolution.requirement-unm
 plant_cmd "a resolution recorded with no authority" "authorizer" "OW-WAR-0044" 1 \
     "true" resolve OW-WAR-0001
 
+# §31 — an amendment record that is malformed is worse than none, because it
+# looks like a reason. Three plants: no reason, no authorizer, and a semantic
+# diff naming something that is not a §28.5 contract element.
+plant "an amendment with no stated reason" "amendment.invalid" "reason" 2 \
+    "sed -i 's|^reason: .*|reason: \"\"|' docs/warrants/OW-WAR-0046/amendments/AM-001.yaml"
+
+plant "an amendment with no authorizer" "amendment.invalid" "authorizer" 2 \
+    "sed -i 's|^authorizer: .*|authorizer: \"\"|' docs/warrants/OW-WAR-0046/amendments/AM-001.yaml"
+
+plant "an amendment diffing a non-element" "amendment.invalid" "28.5 element" 2 \
+    "sed -i 's|element: \"deliverables\"|element: \"vibes\"|' docs/warrants/OW-WAR-0046/amendments/AM-001.yaml"
+
 plant "milestone carrying a stage field" "milestones.invalid" "belongs to a stage" 2 \
     "python3 - <<'EOF'
 import pathlib

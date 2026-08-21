@@ -13,7 +13,7 @@ milestones:
     obligation_refs: ["OBL-002"]
 
   - id: "M3"
-    title: "One Warrant resolves through all thirteen requirements"
+    title: "All thirteen requirements are computed and reported (narrowed by AM-001)"
     depends_on: ['M1', 'M2']
     stage_refs: ["STAGE-003"]
     obligation_refs: ["OBL-003"]
