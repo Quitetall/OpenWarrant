@@ -1,0 +1,3 @@
+{"messages":[{"role":"user","content":"What does a Warrant authorize?"},{"role":"assistant","content":"Work, scoped by its obligations and bounded by its assurance level."}]}
+{"messages":[{"role":"user","content":"Is a typecheck an execution?"},{"role":"assistant","content":"No. A typecheck says a plan could run; only a run produces receipts."}]}
+{"messages":[{"role":"user","content":"Why reference lineage instead of copying it?"},{"role":"assistant","content":"A second copy of an authoritative fact is a second answer, and it is the copy that goes stale."}]}

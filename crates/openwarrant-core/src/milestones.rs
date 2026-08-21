@@ -64,6 +64,11 @@ pub enum MilestoneError {
     UnknownTier { id: String, found: String },
     #[error("stage {id:?} declares port {port:?} with no type; §23.5 requires ports to be typed")]
     UntypedPort { id: String, port: String },
+    #[error(
+        "stage {id:?} has malformed `executor_args`: {detail}. It is a JSON \
+         object written as a string scalar, e.g. '{{\"path\": \"corpus.jsonl\"}}'"
+    )]
+    BadExecutorArgs { id: String, detail: String },
 }
 
 /// Who executes a stage (SAS §23.4).
@@ -204,6 +209,25 @@ pub struct Stage {
     /// lower it rather than guessing.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub executor_ref: Option<String>,
+    /// Arguments the executor's stage takes, as a JSON object.
+    ///
+    /// Written as a JSON string scalar rather than nested YAML because the atom
+    /// reader is a restricted subset (OW-ADR-0003) that refuses a mapping under
+    /// a sequence item — deliberately, so an atom cannot grow arbitrary YAML.
+    /// A scalar carrying JSON keeps the args expressible without widening the
+    /// grammar, and it is the same shape BLUT's own `--args` takes.
+    ///
+    /// `None` lowers to `{}`, which is correct for a stage whose arguments are
+    /// all optional and wrong for one whose are not — the executor decides, and
+    /// says so. This does not try to know which.
+    ///
+    /// Held as the RAW scalar. Parsing it needs `serde_json`, and this crate's
+    /// production dependencies are deliberately serde, thiserror and uuid; the
+    /// seam that lowers a stage already has a JSON parser, so the string
+    /// crosses the boundary and is parsed there rather than widening core to
+    /// hold a `Value`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub executor_args: Option<String>,
 }
 
 /// A validated milestone graph.
@@ -281,12 +305,13 @@ pub fn parse(source: &str) -> Result<MilestoneGraph, MilestoneError> {
     }
 
     // §23.6: fields that belong to the other kind are refused, not ignored.
-    const STAGE_ONLY: [&str; 5] = [
+    const STAGE_ONLY: [&str; 6] = [
         "executor_kind",
         "responsibility_tier",
         "inputs",
         "outputs",
         "executor_ref",
+        "executor_args",
     ];
     const MILESTONE_ONLY: [&str; 3] = ["depends_on", "stage_refs", "obligation_refs"];
 
@@ -383,6 +408,7 @@ pub fn parse(source: &str) -> Result<MilestoneGraph, MilestoneError> {
             inputs: ports("inputs")?,
             outputs: ports("outputs")?,
             executor_ref: scalar(record, "executor_ref").filter(|v| !v.trim().is_empty()),
+            executor_args: scalar(record, "executor_args").filter(|v| !v.trim().is_empty()),
             id,
         });
     }

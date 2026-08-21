@@ -122,6 +122,34 @@ const PORT_KIND_MAP: &[(&str, &str)] = &[
     ("war/checks", "checks.jsonl"),
 ];
 
+/// Parse a stage's `executor_args` scalar into the object a `SpecNode` carries.
+///
+/// ONE parse point, called by the lowering and by `war check`, so an author
+/// finds out at check time rather than at lowering time and both agree on what
+/// counts as valid. `None` becomes `{}` — correct for a stage whose arguments
+/// are all optional, and wrong for one whose are not, which the executor is the
+/// one to decide.
+///
+/// A non-object is refused here rather than passed down. Lowered into
+/// `SpecNode.args` it would come back as a complaint about the stage, sending
+/// the author to read BLUT's source instead of their own line.
+pub fn parse_executor_args(
+    stage: &openwarrant_core::milestones::Stage,
+) -> Result<serde_json::Value, String> {
+    let Some(raw) = stage.executor_args.as_deref() else {
+        return Ok(serde_json::Value::Object(serde_json::Map::new()));
+    };
+    let parsed: serde_json::Value = serde_json::from_str(raw)
+        .map_err(|e| format!("stage {}: `executor_args` is not JSON: {e}", stage.id))?;
+    if !parsed.is_object() {
+        return Err(format!(
+            "stage {}: `executor_args` must be a JSON object — stage arguments are named",
+            stage.id
+        ));
+    }
+    Ok(parsed)
+}
+
 /// Map a stage's declared ports onto BLUT kinds (§49.2).
 ///
 /// Compatibility is DERIVED here, not asserted. This previously built one
@@ -428,6 +456,7 @@ pub fn lower(
     repo: &Repository,
     alias: &str,
     verify_with: Option<&Utf8Path>,
+    emit_to: Option<&Utf8Path>,
 ) -> Result<Report, RepoError> {
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
@@ -577,12 +606,14 @@ pub fn lower(
         name: alias.to_owned(),
         nodes: lowerable
             .iter()
-            .map(|s| SpecNode {
-                // Safe: `unbound` is empty, so every lowerable stage has one.
-                stage: s.executor_ref.clone().unwrap_or_default(),
-                args: serde_json::Value::Object(serde_json::Map::new()),
+            .map(|s| {
+                Ok(SpecNode {
+                    // Safe: `unbound` is empty, so every lowerable stage has one.
+                    stage: s.executor_ref.clone().unwrap_or_default(),
+                    args: parse_executor_args(s).map_err(RepoError::Message)?,
+                })
             })
-            .collect(),
+            .collect::<Result<Vec<_>, RepoError>>()?,
         edges: (1..lowerable.len())
             .map(|i| u32::try_from(i - 1).unwrap_or(0))
             .zip((1..lowerable.len()).map(|i| u32::try_from(i).unwrap_or(0)))
@@ -601,6 +632,18 @@ pub fn lower(
             &BLUT_PIN[..12]
         ),
     ));
+
+    // Written BEFORE the verdict is sought, so the bytes on disk are the bytes
+    // BLUT was asked about. Emitting afterwards, only on success, would leave
+    // nothing to inspect in exactly the case where someone wants to look.
+    if let Some(path) = emit_to {
+        std::fs::write(path.as_std_path(), &json)
+            .map_err(|e| RepoError::Message(format!("write {path}: {e}")))?;
+        report.push(Diagnostic::pass(
+            "blut.emitted",
+            format!("{alias}: PlanSpec written to {path}"),
+        ));
+    }
 
     let Some(binary) = verify_with else {
         report.note(format!(

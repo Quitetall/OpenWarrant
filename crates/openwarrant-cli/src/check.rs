@@ -609,6 +609,21 @@ fn check_one(
         let text = String::from_utf8_lossy(&atom.bytes);
         match milestones::parse(&text) {
             Ok(graph) => {
+                // §49.2 — `executor_args` is a JSON scalar the milestones
+                // grammar cannot validate: core holds it as a raw string
+                // because parsing needs a JSON crate its dependency surface
+                // deliberately excludes. Checked HERE so a malformed value is
+                // an authoring error found by `war check`, not a surprise the
+                // first time someone lowers the Warrant.
+                for stage in &graph.stages {
+                    if let Err(why) = crate::blut::parse_executor_args(stage) {
+                        report.push(Diagnostic::error(
+                            "milestones.bad-executor-args",
+                            repo.relative(&one.dir.join(&atom.source)),
+                            format!("{alias}: {why}"),
+                        ));
+                    }
+                }
                 report.push(Diagnostic::pass(
                     "milestones.valid",
                     format!(

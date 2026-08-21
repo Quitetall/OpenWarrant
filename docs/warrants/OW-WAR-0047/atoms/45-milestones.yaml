@@ -29,6 +29,7 @@ stages:
     executor_kind: "blut"
     responsibility_tier: "T1"
     executor_ref: "materialize_dataset_path"
+    executor_args: '{"path": "conformance/fixtures/ow-war-0047-corpus.jsonl"}'
     outputs: ["corpus:war/corpus"]
 
   - id: "STAGE-003"
@@ -36,5 +37,6 @@ stages:
     executor_kind: "blut"
     responsibility_tier: "T1"
     executor_ref: "filter_dataset"
+    executor_args: '{"min_turns": 2, "drop_errors": true}'
     inputs: ["corpus:war/corpus"]
     outputs: ["filtered:war/corpus"]

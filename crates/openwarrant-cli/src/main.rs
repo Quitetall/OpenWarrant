@@ -108,6 +108,11 @@ enum Command {
         /// a schema, which is a weaker claim.
         #[arg(long, value_name = "BLUT_BINARY")]
         verify: Option<camino::Utf8PathBuf>,
+        /// Write the lowered PlanSpec here, so it can be handed to
+        /// `blut plan run`. Without this the spec exists only inside the
+        /// report, and running it means copying JSON out of prose.
+        #[arg(long, value_name = "PATH")]
+        emit: Option<camino::Utf8PathBuf>,
     },
     /// Evaluate §56.1's thirteen resolution requirements without recording one.
     Resolve {
@@ -247,9 +252,13 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 Ok(EXIT_OK)
             }
         }
-        Command::Blut { alias, verify } => {
+        Command::Blut {
+            alias,
+            verify,
+            emit,
+        } => {
             let repository = repo::Repository::discover(None)?;
-            let report = blut::lower(&repository, &alias, verify.as_deref())?;
+            let report = blut::lower(&repository, &alias, verify.as_deref(), emit.as_deref())?;
             check::print(&report);
             Ok(if report.is_ready() {
                 EXIT_OK
