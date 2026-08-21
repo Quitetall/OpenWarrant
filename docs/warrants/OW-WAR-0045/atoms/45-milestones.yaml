@@ -1,0 +1,47 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "A Katana adapter is reachable and version-pinned"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "One Dispatch executes and returns a valid receipt"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002"]
+
+  - id: "M3"
+    title: "The agent could not resolve, and did not"
+    depends_on: ['M2']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-003"]
+
+  - id: "M4"
+    title: "Realized capability never exceeded authorization"
+    depends_on: ['M2']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-004"]
+
+  - id: "M5"
+    title: "§91.7 and §91.9 are planted"
+    depends_on: ['M2']
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-005"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Stand up the Katana adapter"
+    executor_kind: "human"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-002"
+    title: "Execute one Dispatch"
+    executor_kind: "katana"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-003"
+    title: "Plant §91.7 and §91.9"
+    executor_kind: "human"
+    responsibility_tier: "T1"

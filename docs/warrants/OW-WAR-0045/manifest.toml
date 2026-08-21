@@ -1,0 +1,56 @@
+schema = "oh.war/manifest/v1"
+uuid = "01a021a4-be74-73ce-8f9d-105d80ab82fc"
+local_alias = "OW-WAR-0045"
+enterprise_id = ""
+title = "Discharge the Phase 5 exit: a stateless actor executes one Dispatch"
+profile = "delivery"
+assurance_level = "controlled"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-042"
+contribution = "complete"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-043"
+contribution = "complete"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-044"
+contribution = "complete"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-045"
+contribution = "complete"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-5/exit"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true

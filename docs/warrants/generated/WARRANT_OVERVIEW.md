@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-40 Warrant(s) in this repository.
+49 Warrant(s) in this repository.
 
 ## Summary
 
@@ -51,8 +51,17 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0038](docs/warrants/OW-WAR-0038/manifest.toml) | Implement the existing-ADR importer, preserving unknown classes | `draft` | `current` | `valid` | `controlled` | 4M / 4S |
 | [OW-WAR-0039](docs/warrants/OW-WAR-0039/manifest.toml) | Implement telemetry, unit economics, and untracked-work detection | `draft` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0040](docs/warrants/OW-WAR-0040/manifest.toml) | Implement the Liminal adapter and measured parity harness | `draft` | `current` | `valid` | `controlled` | 4M / 4S |
+| [OW-WAR-0041](docs/warrants/OW-WAR-0041/manifest.toml) | Discharge the Phase 0 exit: real telemetry distributions, with a baseline | `draft` | `current` | `valid` | `controlled` | 4M / 2S |
+| [OW-WAR-0042](docs/warrants/OW-WAR-0042/manifest.toml) | Discharge the Phase 2 exit: a vague request becomes a reviewable draft | `draft` | `current` | `valid` | `controlled` | 4M / 3S |
+| [OW-WAR-0043](docs/warrants/OW-WAR-0043/manifest.toml) | Discharge the Phase 3 exit: migrate the LamQuant ADR corpus, fabricating nothing | `draft` | `current` | `valid` | `controlled` | 4M / 3S |
+| [OW-WAR-0044](docs/warrants/OW-WAR-0044/manifest.toml) | Discharge the Phase 4 exit: KF is institutional authority, Git stays Source Holder | `draft` | `current` | `valid` | `controlled` | 5M / 3S |
+| [OW-WAR-0045](docs/warrants/OW-WAR-0045/manifest.toml) | Discharge the Phase 5 exit: a stateless actor executes one Dispatch | `draft` | `current` | `valid` | `controlled` | 5M / 3S |
+| [OW-WAR-0046](docs/warrants/OW-WAR-0046/manifest.toml) | Discharge the Phase 6 exit: a delivery closes only through bounded proof | `draft` | `current` | `valid` | `controlled` | 5M / 4S |
+| [OW-WAR-0047](docs/warrants/OW-WAR-0047/manifest.toml) | Discharge the Phase 7 exit: compatible WARs execute without duplicating BLUT | `draft` | `current` | `valid` | `basic` | 3M / 2S |
+| [OW-WAR-0048](docs/warrants/OW-WAR-0048/manifest.toml) | Discharge the Phase 8 exit: measured adapter parity and the two-host canonical run | `draft` | `current` | `valid` | `controlled` | 4M / 3S |
+| [OW-WAR-0049](docs/warrants/OW-WAR-0049/manifest.toml) | Close the alpha residue: the gaps alpha carried forward and one false claim | `draft` | `current` | `valid` | `controlled` | 4M / 2S |
 
-> **40 of 40 states are DERIVED, not recorded.** Nothing journals transitions yet (OW-WAR-0031), and authorization does not exist until OW-WAR-0009 — so no Warrant has left `draft`. A later phase would have to be invented.
+> **49 of 49 states are DERIVED, not recorded.** Nothing journals transitions yet (OW-WAR-0031), and authorization does not exist until OW-WAR-0009 — so no Warrant has left `draft`. A later phase would have to be invented.
 
 ## Claimed SAS requirement coverage
 
@@ -60,9 +69,9 @@ Source: the Warrants under the configured warrants path.
 
 > **Claimed, not verified.** A Warrant declaring `[[implements]]` is an assertion by its author. §34.3 treats requirement status as a separate record; nothing here checks that the requirement is actually met.
 
-- `WAR-SAS-RQ-003` — OW-WAR-0029
-- `WAR-SAS-RQ-004` — OW-WAR-0029
-- `WAR-SAS-RQ-005` — OW-WAR-0029
+- `WAR-SAS-RQ-003` — OW-WAR-0029, OW-WAR-0044
+- `WAR-SAS-RQ-004` — OW-WAR-0029, OW-WAR-0044
+- `WAR-SAS-RQ-005` — OW-WAR-0029, OW-WAR-0044
 - `WAR-SAS-RQ-010` — OW-WAR-0002
 - `WAR-SAS-RQ-011` — OW-WAR-0002
 - `WAR-SAS-RQ-012` — OW-WAR-0002, OW-WAR-0004
@@ -81,27 +90,27 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-035` — OW-WAR-0011
 - `WAR-SAS-RQ-040` — OW-WAR-0007
 - `WAR-SAS-RQ-041` — OW-WAR-0007
-- `WAR-SAS-RQ-042` — OW-WAR-0023
-- `WAR-SAS-RQ-043` — OW-WAR-0023
-- `WAR-SAS-RQ-044` — OW-WAR-0026
-- `WAR-SAS-RQ-045` — OW-WAR-0024
+- `WAR-SAS-RQ-042` — OW-WAR-0023, OW-WAR-0045
+- `WAR-SAS-RQ-043` — OW-WAR-0023, OW-WAR-0045
+- `WAR-SAS-RQ-044` — OW-WAR-0026, OW-WAR-0045
+- `WAR-SAS-RQ-045` — OW-WAR-0024, OW-WAR-0045
 - `WAR-SAS-RQ-050` — OW-WAR-0016
 - `WAR-SAS-RQ-051` — OW-WAR-0016
 - `WAR-SAS-RQ-052` — OW-WAR-0017
-- `WAR-SAS-RQ-053` — OW-WAR-0021
-- `WAR-SAS-RQ-054` — OW-WAR-0020
-- `WAR-SAS-RQ-055` — OW-WAR-0018
+- `WAR-SAS-RQ-053` — OW-WAR-0021, OW-WAR-0046
+- `WAR-SAS-RQ-054` — OW-WAR-0020, OW-WAR-0046
+- `WAR-SAS-RQ-055` — OW-WAR-0018, OW-WAR-0046
 - `WAR-SAS-RQ-056` — OW-WAR-0019
-- `WAR-SAS-RQ-057` — OW-WAR-0020
-- `WAR-SAS-RQ-058` — OW-WAR-0022
+- `WAR-SAS-RQ-057` — OW-WAR-0020, OW-WAR-0046
+- `WAR-SAS-RQ-058` — OW-WAR-0022, OW-WAR-0046
 - `WAR-SAS-RQ-059` — OW-WAR-0022
-- `WAR-SAS-RQ-061` — OW-WAR-0040
+- `WAR-SAS-RQ-061` — OW-WAR-0040, OW-WAR-0048
 - `WAR-SAS-RQ-062` — OW-WAR-0026
-- `WAR-SAS-RQ-063` — OW-WAR-0027
+- `WAR-SAS-RQ-063` — OW-WAR-0027, OW-WAR-0047
 - `WAR-SAS-RQ-064` — OW-WAR-0001
 - `WAR-SAS-RQ-070` — OW-WAR-0001
-- `WAR-SAS-RQ-071` — OW-WAR-0035
-- `WAR-SAS-RQ-072` — OW-WAR-0034
+- `WAR-SAS-RQ-071` — OW-WAR-0035, OW-WAR-0042
+- `WAR-SAS-RQ-072` — OW-WAR-0034, OW-WAR-0042
 - `WAR-SAS-RQ-073` — OW-WAR-0036
 - `WAR-SAS-RQ-074` — OW-WAR-0005
 - `WAR-SAS-RQ-075` — OW-WAR-0004
@@ -154,6 +163,15 @@ Source: the Warrants under the configured warrants path.
 - **OW-WAR-0038** · roadmap: roadmap://OW-PHASE-3/importer
 - **OW-WAR-0039** · roadmap: roadmap://OW-PHASE-0/telemetry
 - **OW-WAR-0040** · roadmap: roadmap://OW-PHASE-8/liminal
+- **OW-WAR-0041** · roadmap: roadmap://OW-PHASE-0/exit
+- **OW-WAR-0042** · roadmap: roadmap://OW-PHASE-2/exit
+- **OW-WAR-0043** · roadmap: roadmap://OW-PHASE-3/exit
+- **OW-WAR-0044** · roadmap: roadmap://OW-PHASE-4/exit
+- **OW-WAR-0045** · roadmap: roadmap://OW-PHASE-5/exit
+- **OW-WAR-0046** · roadmap: roadmap://OW-PHASE-6/exit
+- **OW-WAR-0047** · roadmap: roadmap://OW-PHASE-7/exit
+- **OW-WAR-0048** · roadmap: roadmap://OW-PHASE-8/exit
+- **OW-WAR-0049** · roadmap: roadmap://OW-PHASE-1/residue
 
 ## Not reported here
 

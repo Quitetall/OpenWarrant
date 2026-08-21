@@ -1,0 +1,40 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "§91.1 test 1 runs on two genuinely different hosts"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "The stale runner-tier decision is corrected"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-002"]
+
+  - id: "M3"
+    title: "A Liminal profile compiles the corpus"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-003"]
+
+  - id: "M4"
+    title: "Parity is measured across the whole corpus"
+    depends_on: ['M3']
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-004"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Two-host canonical run"
+    executor_kind: "service"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-002"
+    title: "Stand up the Liminal profile"
+    executor_kind: "human"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-003"
+    title: "Measure parity"
+    executor_kind: "service"
+    responsibility_tier: "T2"

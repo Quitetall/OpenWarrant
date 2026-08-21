@@ -1,0 +1,30 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "A compatible stage graph lowers against a pinned registry"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "An incompatible lowering is refused, not degraded"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-002"]
+
+  - id: "M3"
+    title: "Lineage is referenced, never copied"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-003"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Lower into PlanSpec"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-002"
+    title: "Execute in BLUT"
+    executor_kind: "blut"
+    responsibility_tier: "T1"

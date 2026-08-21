@@ -1,0 +1,35 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "The false test-10 claim in OW-WAR-0005 is corrected by amendment"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "The §91.2 residue is implemented or explicitly narrowed"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002"]
+
+  - id: "M3"
+    title: "The check.rs note matches reality"
+    depends_on: ['M2']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-003"]
+
+  - id: "M4"
+    title: "OW-WAR-0005 M4's untracked work is dispositioned"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-004"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Amend and disposition"
+    executor_kind: "human"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-002"
+    title: "Close the §91.2 residue"
+    executor_kind: "human"
+    responsibility_tier: "T1"
