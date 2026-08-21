@@ -51,6 +51,28 @@ FAILED=0
 restore() {
     git checkout -- docs/warrants/ docs/adr/ docs/gates/ openwarrant.toml 2>/dev/null || true
 }
+
+# The mirror of `assert_gone`, for a mutation that ADDS rather than removes.
+# Same reason: a sed that matched nothing leaves the corpus valid and the plant
+# then scores the untouched happy path.
+assert_present() {
+    if ! grep -Fq -- "$1" "$2"; then
+        printf 'PLANT MUTATION WAS A NO-OP: %s never appeared in %s\n' "$1" "$2" >&2
+        printf 'The plant would have scored the UNMUTATED corpus. Fix the pattern.\n' >&2
+        restore
+        exit 9
+    fi
+}
+
+assert_gone() {
+    if grep -Fq -- "$1" "$2"; then
+        printf 'PLANT MUTATION WAS A NO-OP: %s still present in %s\n' "$1" "$2" >&2
+        printf 'The plant would have scored the UNMUTATED corpus. Fix the pattern.\n' >&2
+        restore
+        exit 9
+    fi
+}
+
 trap restore EXIT
 
 # plant_cmd <name> <expected-rule> <expected-detail> <expected-exit> <mutation> <args...>
@@ -516,6 +538,21 @@ plant "lineage pasted inside a code fence" "lineage.reproduced" "output_content_
 plant "prose naming lineage fields is not a copy" "0 error" "worst: WARN" 0 \
     "printf '\nThis Warrant carries no node_idx and no output_content_id; BLUT owns them.\n' >> docs/warrants/OW-WAR-0047/atoms/60-assurance.md"
 
+# §49.2 — `executor_args` is a JSON scalar the milestones grammar cannot check:
+# openwarrant-core holds it as a raw string because parsing needs a JSON crate
+# its production dependency surface deliberately excludes. So the check lives in
+# the CLI, and these prove it RUNS rather than merely existing.
+plant "executor_args that is not JSON" "milestones.bad-executor-args" "not JSON" 2 \
+    "sed -i 's|executor_args: .{\"min_turns\": 2, \"drop_errors\": true}.|executor_args: \"{not json\"|' docs/warrants/OW-WAR-0047/atoms/45-milestones.yaml
+     assert_present 'not json' docs/warrants/OW-WAR-0047/atoms/45-milestones.yaml"
+
+# A JSON scalar that parses but is not an OBJECT. Lowered into `SpecNode.args`
+# it would come back as a complaint about the stage, sending the author to read
+# BLUT's source instead of their own line.
+plant "executor_args that is not an object" "milestones.bad-executor-args" "must be a JSON object" 2 \
+    "sed -i 's|executor_args: .{\"min_turns\": 2, \"drop_errors\": true}.|executor_args: \"[1, 2, 3]\"|' docs/warrants/OW-WAR-0047/atoms/45-milestones.yaml
+     assert_present '[1, 2, 3]' docs/warrants/OW-WAR-0047/atoms/45-milestones.yaml"
+
 # §49.2 — a stage NAME must resolve against the pinned registry, and a WAR stage
 # id is not that name. Dropping `executor_ref` must refuse rather than fall back
 # to the WAR id: lowering `STAGE-002` under its own id produces a PlanSpec naming
@@ -534,15 +571,6 @@ plant "prose naming lineage fields is not a copy" "0 error" "worst: WARN" 0 \
 # -F: a fixed-string check, which is what the name promises. Without it a
 # future caller passing a pattern containing `.` or `[` gets regex semantics
 # and a guard that quietly matches the wrong thing.
-assert_gone() {
-    if grep -Fq -- "$1" "$2"; then
-        printf 'PLANT MUTATION WAS A NO-OP: %s still present in %s\n' "$1" "$2" >&2
-        printf 'The plant would have scored the UNMUTATED corpus. Fix the pattern.\n' >&2
-        restore
-        exit 9
-    fi
-}
-
 plant_cmd "a blut stage bound to no executor stage" "blut.unbound-stage" "never chose" 2 \
     "sed -i '/executor_ref: \"materialize_dataset_path\"/d' docs/warrants/OW-WAR-0047/atoms/45-milestones.yaml
      assert_gone materialize_dataset_path docs/warrants/OW-WAR-0047/atoms/45-milestones.yaml" blut OW-WAR-0047
