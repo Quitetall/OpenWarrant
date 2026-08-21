@@ -16,6 +16,7 @@ mod gate_cmd;
 mod init;
 mod new;
 mod repo;
+mod resolve;
 mod show;
 
 /// Exit codes. §76.4 wants machine-usable output; a caller distinguishing
@@ -95,6 +96,15 @@ enum Command {
         /// Record that §74.4 steps 5 and 6 (semantic diff, review) happened.
         #[arg(long)]
         reviewed: bool,
+    },
+    /// Evaluate §56.1's thirteen resolution requirements without recording one.
+    Resolve {
+        /// The Warrant's local alias.
+        alias: String,
+        /// Required. Recording a resolution needs an authorizer and a stated
+        /// meaning, which this command may not invent.
+        #[arg(long)]
+        dry_run: bool,
     },
     /// Render one of §17.5's projections (§17.5).
     Show {
@@ -224,6 +234,24 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 );
                 Ok(EXIT_OK)
             }
+        }
+        Command::Resolve { alias, dry_run } => {
+            if !dry_run {
+                return Err(Box::new(repo::RepoError::Message(
+                    "recording a resolution requires --dry-run today. §56.2's record \
+                     needs an authorizer, an acting role and a stated meaning, and this \
+                     build has no authority model to supply them (OW-WAR-0044)."
+                        .to_owned(),
+                )));
+            }
+            let repository = repo::Repository::discover(None)?;
+            let report = resolve::run(&repository, &alias)?;
+            check::print(&report);
+            Ok(if report.is_ready() {
+                EXIT_OK
+            } else {
+                EXIT_NOT_READY
+            })
         }
         Command::Show { alias, view } => {
             let repository = repo::Repository::discover(None)?;

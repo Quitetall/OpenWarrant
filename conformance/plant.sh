@@ -37,9 +37,9 @@ fi
 # restore is `git checkout` and would discard that work. docs/gates/ joined this
 # list when gate plants landed: the guard and the restore must name the same
 # paths, or a plant silently deletes work the guard said it was protecting.
-if ! git diff --quiet -- docs/warrants/ docs/adr/ docs/gates/ \
-    || ! git diff --cached --quiet -- docs/warrants/ docs/adr/ docs/gates/; then
-    echo "docs/warrants/, docs/adr/ or docs/gates/ has uncommitted changes." >&2
+if ! git diff --quiet -- docs/warrants/ docs/adr/ docs/gates/ openwarrant.toml \
+    || ! git diff --cached --quiet -- docs/warrants/ docs/adr/ docs/gates/ openwarrant.toml; then
+    echo "docs/warrants/, docs/adr/, docs/gates/ or openwarrant.toml has uncommitted changes." >&2
     echo "Plants mutate those files and restore with 'git checkout', which would" >&2
     echo "discard your work. Commit or stash those first." >&2
     exit 1
@@ -49,7 +49,7 @@ PASSED=0
 FAILED=0
 
 restore() {
-    git checkout -- docs/warrants/ docs/adr/ docs/gates/ 2>/dev/null || true
+    git checkout -- docs/warrants/ docs/adr/ docs/gates/ openwarrant.toml 2>/dev/null || true
 }
 trap restore EXIT
 
@@ -368,6 +368,47 @@ EOF"
 plant_gate "a receipt for a run that never happened" "gate-run.unaskable" "malformed" 2 \
     "sed -i 's|^argv: .*|argv: []|' docs/gates/software.repo.war-check@1.0.0.yaml
      rm -f docs/receipts/software_repo_war-check_1_0_0.receipt.json"
+
+# §46.3 independence. Two plants, because one direction proves nothing.
+#
+# Expected exit is 0, not 2: both outcomes are WARNINGS, and `war check` exits
+# non-zero only on an unknown or an error. The rule and detail assertions are
+# what carry the weight here, which is exactly why the harness checks all three.
+#
+# A checker that always warns scores identically to one that works, so the second
+# plant asserts the check can also PASS when independence is actually declared
+# sufficient. That is the same negative-control logic §43.4 qualification
+# requires of a gate, applied to a diagnostic.
+plant_cmd "independence not declared at all" "independence.undeclared" "not the same as none" 0 \
+    "python3 - <<'EOF'
+import pathlib
+p = pathlib.Path('openwarrant.toml')
+s = p.read_text()
+p.write_text(s[:s.index('[independence]')])
+EOF" check --generated
+
+plant_cmd "independence declared sufficient" "independence.sufficient" "meets §46.3" 0 \
+    "python3 - <<'EOF'
+import pathlib
+p = pathlib.Path('openwarrant.toml')
+s = p.read_text()
+p.write_text(s.replace('= false', '= true'))
+EOF" check --generated
+
+# §56.1 — resolution refuses while its thirteen requirements are unmet.
+#
+# No mutation: this asserts the CURRENT behaviour of a real corpus, which makes
+# it a regression guard rather than a planted fault. It is here because the
+# failure it guards against is silent — a resolver that started closing Warrants
+# would look like progress.
+plant_cmd "resolution blocked by unmet requirements" "resolution.requirement-unmet" "independence requirements are met" 2 \
+    "true" resolve OW-WAR-0001 --dry-run
+
+# §56.2 — recording a resolution needs an authorizer and a stated meaning, and
+# no authority model exists to supply them. Asking for a real resolution must be
+# refused rather than quietly downgraded to a dry run.
+plant_cmd "a resolution recorded with no authority" "authorizer" "OW-WAR-0044" 1 \
+    "true" resolve OW-WAR-0001
 
 plant "milestone carrying a stage field" "milestones.invalid" "belongs to a stage" 2 \
     "python3 - <<'EOF'

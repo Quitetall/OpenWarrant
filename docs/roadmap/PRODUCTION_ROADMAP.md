@@ -46,15 +46,19 @@ Read the four honest limits below before treating this as a finished product:
    `war gate --run` — a completed run writes a §44.6 receipt with a sealing
    digest, and an unaskable run writes none, which is planted too.
 
-   **Seventeen remain**, and OW-WAR-0046 owns them.
+   **Five closed.** `Independence` is read from `openwarrant.toml` and checked
+   against §46.3 per level; `ResolutionChecks` is computed by
+   `war resolve --dry-run`, which reports 11 of 13 requirements unmet and
+   refuses to close any Warrant. **Fifteen remain**, and OW-WAR-0046 owns them.
 3. **Two adequacy reviews report no executed attacks, and say so.** OW-WAR-0008
    and OW-WAR-0017 are the two `war check` still warns about. That is the check
    working: the state model and the epistemic classes have nothing to attack
    until real authorizations and judgments exist.
-4. **This repository authored and verified itself.** Every Warrant here has
-   `independence: none` in substance — one actor, every role. §27.4 is explicit
-   that role separation by one person is not organizational independence, and
-   `Independence::none` satisfies nothing, including `basic`.
+4. **This repository authored and verified itself**, and now says so where a
+   machine can read it. `openwarrant.toml` declares all nine §46.1 dimensions
+   false, and `war check` reports that 27 basic and 22 controlled Warrants fail
+   §46.3's minimum, naming the missing dimensions. Until 2026-08-21 this limit
+   was a paragraph in this file that no tool could act on.
 
 Beta is where 1 and 2 close. Release is where the hardening Warrants are written.
 
