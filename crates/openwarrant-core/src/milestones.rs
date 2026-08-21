@@ -64,11 +64,6 @@ pub enum MilestoneError {
     UnknownTier { id: String, found: String },
     #[error("stage {id:?} declares port {port:?} with no type; §23.5 requires ports to be typed")]
     UntypedPort { id: String, port: String },
-    #[error(
-        "stage {id:?} has malformed `executor_args`: {detail}. It is a JSON \
-         object written as a string scalar, e.g. '{{\"path\": \"corpus.jsonl\"}}'"
-    )]
-    BadExecutorArgs { id: String, detail: String },
 }
 
 /// Who executes a stage (SAS §23.4).

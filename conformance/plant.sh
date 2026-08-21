@@ -51,6 +51,28 @@ FAILED=0
 restore() {
     git checkout -- docs/warrants/ docs/adr/ docs/gates/ openwarrant.toml 2>/dev/null || true
 }
+
+# The mirror of `assert_gone`, for a mutation that ADDS rather than removes.
+# Same reason: a sed that matched nothing leaves the corpus valid and the plant
+# then scores the untouched happy path.
+assert_present() {
+    if ! grep -Fq -- "$1" "$2"; then
+        printf 'PLANT MUTATION WAS A NO-OP: %s never appeared in %s\n' "$1" "$2" >&2
+        printf 'The plant would have scored the UNMUTATED corpus. Fix the pattern.\n' >&2
+        restore
+        exit 9
+    fi
+}
+
+assert_gone() {
+    if grep -Fq -- "$1" "$2"; then
+        printf 'PLANT MUTATION WAS A NO-OP: %s still present in %s\n' "$1" "$2" >&2
+        printf 'The plant would have scored the UNMUTATED corpus. Fix the pattern.\n' >&2
+        restore
+        exit 9
+    fi
+}
+
 trap restore EXIT
 
 # plant_cmd <name> <expected-rule> <expected-detail> <expected-exit> <mutation> <args...>
@@ -529,7 +551,7 @@ plant "executor_args that is not JSON" "milestones.bad-executor-args" "not JSON"
 # BLUT's source instead of their own line.
 plant "executor_args that is not an object" "milestones.bad-executor-args" "must be a JSON object" 2 \
     "sed -i 's|executor_args: .{\"min_turns\": 2, \"drop_errors\": true}.|executor_args: \"[1, 2, 3]\"|' docs/warrants/OW-WAR-0047/atoms/45-milestones.yaml
-     assert_present '\[1, 2, 3\]' docs/warrants/OW-WAR-0047/atoms/45-milestones.yaml"
+     assert_present '[1, 2, 3]' docs/warrants/OW-WAR-0047/atoms/45-milestones.yaml"
 
 # §49.2 — a stage NAME must resolve against the pinned registry, and a WAR stage
 # id is not that name. Dropping `executor_ref` must refuse rather than fall back
@@ -549,27 +571,6 @@ plant "executor_args that is not an object" "milestones.bad-executor-args" "must
 # -F: a fixed-string check, which is what the name promises. Without it a
 # future caller passing a pattern containing `.` or `[` gets regex semantics
 # and a guard that quietly matches the wrong thing.
-# The mirror of `assert_gone`, for a mutation that ADDS rather than removes.
-# Same reason: a sed that matched nothing leaves the corpus valid and the plant
-# then scores the untouched happy path.
-assert_present() {
-    if ! grep -Fq -- "$1" "$2"; then
-        printf 'PLANT MUTATION WAS A NO-OP: %s never appeared in %s\n' "$1" "$2" >&2
-        printf 'The plant would have scored the UNMUTATED corpus. Fix the pattern.\n' >&2
-        restore
-        exit 9
-    fi
-}
-
-assert_gone() {
-    if grep -Fq -- "$1" "$2"; then
-        printf 'PLANT MUTATION WAS A NO-OP: %s still present in %s\n' "$1" "$2" >&2
-        printf 'The plant would have scored the UNMUTATED corpus. Fix the pattern.\n' >&2
-        restore
-        exit 9
-    fi
-}
-
 plant_cmd "a blut stage bound to no executor stage" "blut.unbound-stage" "never chose" 2 \
     "sed -i '/executor_ref: \"materialize_dataset_path\"/d' docs/warrants/OW-WAR-0047/atoms/45-milestones.yaml
      assert_gone materialize_dataset_path docs/warrants/OW-WAR-0047/atoms/45-milestones.yaml" blut OW-WAR-0047
