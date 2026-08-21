@@ -75,13 +75,163 @@ pub struct BlutVerdict {
     pub detail: String,
     /// The ADR-0078 fingerprint BLUT computed, present only on acceptance.
     pub fingerprint: Option<String>,
-    /// How many recipes the invoked binary had registered. A refusal from a
-    /// binary with none means "this build has no cookbooks", not "the spec is
-    /// wrong", and those are not distinguishable from the message.
-    pub recipes_registered: u64,
-    /// The binary that answered, and its process exit status.
+    /// How many recipes the invoked binary had registered, if it said. A
+    /// refusal from a binary with none means "this build has no cookbooks", not
+    /// "the spec is wrong", and those are not distinguishable from the message.
+    /// `None` means BLUT did not report a count — which is not the same as
+    /// reporting zero, and is not flattened into it.
+    pub recipes_registered: Option<u64>,
+    /// The binary that answered, and the code it exited with. Not optional:
+    /// a signal-killed neighbour is refused before a verdict is built, so
+    /// "answered but has no exit code" is not a state this type can hold.
     pub binary: String,
-    pub exit_code: Option<i32>,
+    pub exit_code: i32,
+}
+
+/// Render a count BLUT may not have reported. "unstated" is deliberately not
+/// "0": a reader who sees zero concludes the binary has no cookbooks, which is
+/// a fact nobody established.
+fn describe_count(n: Option<u64>) -> String {
+    n.map_or_else(|| "an unstated number of".to_owned(), |n| n.to_string())
+}
+
+/// How long a neighbour gets to answer before the question is withdrawn.
+///
+/// A neighbour that never returns is a fourth way for `--verify` to be
+/// untrustworthy, alongside missing, lying and mute — and it is the only one
+/// with no natural bound. Without this, a BLUT binary that blocks on a lock or
+/// waits for input hangs `war blut` until someone notices, and "the tool hung"
+/// is not a verdict.
+const VERIFY_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
+
+/// Write the spec somewhere only this process can have created.
+///
+/// `std::fs::write` opens with `O_CREAT|O_TRUNC` and follows symlinks, so on a
+/// shared `/tmp` anyone who can guess the path can pre-place a symlink and
+/// redirect the write to a file of their choosing. `create_new` adds `O_EXCL`,
+/// which fails on anything already at the path — symlink included — so the
+/// write either lands on a file this call just created or does not happen.
+///
+/// The nanosecond component is not the security control; `O_EXCL` is. It exists
+/// so two calls from the same process cannot pick the same name, which a
+/// pid-only name could.
+fn write_spec_exclusively(spec_json: &str) -> Result<std::path::PathBuf, RepoError> {
+    use std::io::Write;
+
+    let dir = std::env::temp_dir();
+    let mut last = String::new();
+    for _ in 0..8 {
+        let nonce = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.subsec_nanos())
+            .unwrap_or(0);
+        let path = dir.join(format!("war-blut-{}-{nonce}.json", std::process::id()));
+        match std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&path)
+        {
+            Ok(mut f) => {
+                f.write_all(spec_json.as_bytes())
+                    .map_err(|e| RepoError::Message(format!("write {}: {e}", path.display())))?;
+                return Ok(path);
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
+                last = format!("{} already exists", path.display());
+            }
+            Err(e) => {
+                return Err(RepoError::Message(format!(
+                    "create {}: {e}",
+                    path.display()
+                )));
+            }
+        }
+    }
+    Err(RepoError::Message(format!(
+        "could not create a spec file nothing else owns after 8 attempts ({last}). \
+         Refusing to write to a path this process did not create."
+    )))
+}
+
+/// Run `<binary> plan check <path> --json`, killing it if it outstays
+/// [`VERIFY_TIMEOUT`].
+///
+/// stdout and stderr are drained on their own threads rather than after the
+/// wait: a child that fills a pipe buffer blocks writing, and a parent that is
+/// waiting for exit before reading would then wait forever. That deadlock looks
+/// exactly like the hang this function exists to bound.
+fn run_with_timeout(
+    binary: &Utf8Path,
+    path: &std::path::Path,
+) -> Result<std::process::Output, RepoError> {
+    use std::io::Read;
+
+    let mut child = std::process::Command::new(binary.as_std_path())
+        .args(["plan", "check"])
+        .arg(path)
+        .arg("--json")
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .map_err(|e| {
+            RepoError::Message(format!(
+                "could not run `{binary} plan check`: {e}. \
+                 --verify names a BLUT binary; if that binary does not exist or is \
+                 not executable, this is a refusal to guess rather than a verdict."
+            ))
+        })?;
+
+    let drain = |mut s: Option<Box<dyn Read + Send>>| {
+        std::thread::spawn(move || {
+            let mut buf = Vec::new();
+            if let Some(h) = s.as_mut() {
+                let _ = h.read_to_end(&mut buf);
+            }
+            buf
+        })
+    };
+    let so = drain(
+        child
+            .stdout
+            .take()
+            .map(|h| Box::new(h) as Box<dyn Read + Send>),
+    );
+    let se = drain(
+        child
+            .stderr
+            .take()
+            .map(|h| Box::new(h) as Box<dyn Read + Send>),
+    );
+
+    let deadline = std::time::Instant::now() + VERIFY_TIMEOUT;
+    let status = loop {
+        match child.try_wait() {
+            Ok(Some(s)) => break s,
+            Ok(None) => {}
+            Err(e) => {
+                return Err(RepoError::Message(format!(
+                    "could not wait on `{binary} plan check`: {e}"
+                )));
+            }
+        }
+        if std::time::Instant::now() >= deadline {
+            let _ = child.kill();
+            let _ = child.wait();
+            return Err(RepoError::Message(format!(
+                "`{binary} plan check` did not answer within {}s and was killed. \
+                 A neighbour that never returns has given no verdict, and a \
+                 timeout is not a refusal — nothing is recorded either way.",
+                VERIFY_TIMEOUT.as_secs()
+            )));
+        }
+        std::thread::sleep(std::time::Duration::from_millis(20));
+    };
+
+    Ok(std::process::Output {
+        status,
+        stdout: so.join().unwrap_or_default(),
+        stderr: se.join().unwrap_or_default(),
+    })
 }
 
 /// Hand a lowered `PlanSpec` to a real BLUT binary and report what it says.
@@ -109,29 +259,16 @@ pub struct BlutVerdict {
 fn verify(binary: &Utf8Path, spec_json: &str) -> Result<BlutVerdict, RepoError> {
     // A temp file rather than stdin: BLUT's verb takes a path, and inventing a
     // stdin mode in the neighbour to suit this caller would be the tail wagging
-    // the dog. The file is named per-process so two concurrent runs cannot read
-    // each other's spec.
-    let path = std::env::temp_dir().join(format!("war-blut-{}.json", std::process::id()));
-    std::fs::write(&path, spec_json)
-        .map_err(|e| RepoError::Message(format!("write {}: {e}", path.display())))?;
+    // the dog.
+    let path = write_spec_exclusively(spec_json)?;
 
-    let out = std::process::Command::new(binary.as_std_path())
-        .args(["plan", "check"])
-        .arg(&path)
-        .arg("--json")
-        .output();
+    let out = run_with_timeout(binary, &path);
 
     // Remove the spec whether or not the invocation worked — a failed run
     // should not leave the next one reading a stale file.
     let _ = std::fs::remove_file(&path);
 
-    let out = out.map_err(|e| {
-        RepoError::Message(format!(
-            "could not run `{binary} plan check`: {e}. \
-             --verify names a BLUT binary; if that binary does not exist or is \
-             not executable, this is a refusal to guess rather than a verdict."
-        ))
-    })?;
+    let out = out?;
 
     let stdout = String::from_utf8_lossy(&out.stdout);
     let parsed: serde_json::Value = serde_json::from_str(stdout.trim()).map_err(|e| {
@@ -153,32 +290,55 @@ fn verify(binary: &Utf8Path, spec_json: &str) -> Result<BlutVerdict, RepoError> 
         )));
     };
 
+    // A process killed by a signal has no exit code, and did not finish. §44.5
+    // will not accept a gate run that merely stopped, and the same reasoning
+    // applies to a neighbour: whatever it printed before it died is not the
+    // answer to the question, because it never got to the end of answering.
+    let Some(exit_code) = out.status.code() else {
+        return Err(RepoError::Message(format!(
+            "`{binary} plan check` was killed by a signal and never exited \
+             normally, so it produced no verdict. Whatever it printed first is \
+             not an answer."
+        )));
+    };
+
     // The exit code must agree with the verdict. If they ever disagree, one of
     // them is lying about what happened and neither can be trusted.
-    let exit_code = out.status.code();
-    if accepted != (exit_code == Some(0)) {
+    if accepted != (exit_code == 0) {
         return Err(RepoError::Message(format!(
             "`{binary} plan check` reported accepted={accepted} but exited with \
-             {exit_code:?}. A verdict that disagrees with its own exit status is \
+             {exit_code}. A verdict that disagrees with its own exit status is \
              not recordable."
         )));
     }
 
+    // On acceptance the detail is the plan name, and BLUT always emits one.
+    // Substituting a placeholder for it would put a string this repository
+    // wrote into a record whose origin is `blut` — small, but it is exactly the
+    // seam where a fabricated detail would enter external evidence.
+    let detail_key = if accepted { "name" } else { "error" };
+    let detail = parsed.get(detail_key).and_then(serde_json::Value::as_str);
+    let Some(detail) = detail else {
+        return Err(RepoError::Message(format!(
+            "`{binary} plan check --json` reported accepted={accepted} but no \
+             `{detail_key}` field, so there is nothing to record but a string \
+             this repository made up: {parsed}"
+        )));
+    };
+
     Ok(BlutVerdict {
         accepted,
-        detail: parsed
-            .get(if accepted { "name" } else { "error" })
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or("<BLUT printed no detail>")
-            .to_owned(),
+        detail: detail.to_owned(),
         fingerprint: parsed
             .get("fingerprint")
             .and_then(serde_json::Value::as_str)
             .map(ToOwned::to_owned),
+        // Absent is not zero. "BLUT registered no cookbooks" and "BLUT did not
+        // say how many" are different facts, and defaulting the second to the
+        // first would report a bare registry that was never observed.
         recipes_registered: parsed
             .get("recipes_registered")
-            .and_then(serde_json::Value::as_u64)
-            .unwrap_or(0),
+            .and_then(serde_json::Value::as_u64),
         binary: binary.to_string(),
         exit_code,
     })
@@ -317,12 +477,12 @@ pub fn lower(
             "blut.accepted",
             format!(
                 "{alias}: BLUT accepted the lowering (fingerprint {}, {} recipes registered, \
-                 exit {:?}) — reported by {}",
+                 exit {}) — reported by {}",
                 verdict
                     .fingerprint
                     .as_deref()
                     .map_or("<none reported>", |f| &f[..f.len().min(12)]),
-                verdict.recipes_registered,
+                describe_count(verdict.recipes_registered),
                 verdict.exit_code,
                 verdict.binary
             ),
@@ -335,8 +495,10 @@ pub fn lower(
             "blut.refused",
             repo.relative(&dir.join("atoms/45-milestones.yaml")),
             format!(
-                "{alias}: BLUT refused the lowering (exit {:?}, {} recipes registered) — {}",
-                verdict.exit_code, verdict.recipes_registered, verdict.detail
+                "{alias}: BLUT refused the lowering (exit {}, {} recipes registered) — {}",
+                verdict.exit_code,
+                describe_count(verdict.recipes_registered),
+                verdict.detail
             ),
         ));
     }

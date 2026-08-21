@@ -502,7 +502,7 @@ plant_cmd "a lowering against no pinned registry" "blut.lowered" "pinned registr
 # The fake binaries stand in for a broken or hostile neighbour. They are testing
 # OUR controls, not BLUT — a stand-in is never evidence ABOUT BLUT, and none of
 # these plants claims to be.
-FAKE="${TMPDIR:-/tmp}/war-plant-fake-blut"
+FAKE="${TMPDIR:-/tmp}/war-plant-fake-blut-$$"
 
 plant_cmd "a --verify naming a missing binary" "could not run" "refusal to guess" 1 \
     "true" blut OW-WAR-0047 --verify /nonexistent/blut-binary
@@ -541,6 +541,20 @@ echo '{\"accepted\":false,\"error\":\"PlanSpec does not typecheck: stage '\"'\"'
 exit 1
 SH
 chmod +x \"$FAKE\"" blut OW-WAR-0047 --verify "$FAKE"
+
+# A neighbour that never answers. The timeout is 30s by design, so running this
+# on every gate would add 30s to every gate run — and a gate people skip because
+# it is slow is a gate that does not run. Set WAR_PLANT_SLOW=1 to include it.
+if [[ "${WAR_PLANT_SLOW:-0}" == "1" ]]; then
+    plant_cmd "a neighbour that never answers" "did not answer within" "not a refusal" 1 \
+        "cat > \"$FAKE\" <<'SH'
+#!/bin/sh
+sleep 3600
+SH
+chmod +x \"$FAKE\"" blut OW-WAR-0047 --verify "$FAKE"
+else
+    echo "skip  a neighbour that never answers      (WAR_PLANT_SLOW=1 to run; 30s timeout)"
+fi
 
 plant "milestone carrying a stage field" "milestones.invalid" "belongs to a stage" 2 \
     "python3 - <<'EOF'
