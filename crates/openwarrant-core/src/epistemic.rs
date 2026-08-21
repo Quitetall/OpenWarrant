@@ -32,6 +32,21 @@ pub enum EpistemicError {
          kinds: evidence, observation, inference, judgment"
     )]
     UnknownRecordClass { id: String, class: String },
+    /// §42's authority, wrong or missing.
+    ///
+    /// This has its own variant because it used to borrow
+    /// [`Self::UnknownRecordClass`], packing an explanation into the `class`
+    /// field. The resulting message told the author their *class* was not one
+    /// of §40's four — while the class was fine and the authority was the
+    /// problem — and pointed at the wrong line of their record. A diagnostic
+    /// that misnames the failing field is worse than a vague one: it spends the
+    /// reader's attention on the part that was already correct.
+    #[error(
+        "judgment {id:?} declares authority {authority:?}. §42 defines two: \
+         agent_recommendation, authorized. An empty value usually means the \
+         `- **authority:**` bullet is missing"
+    )]
+    UnknownJudgmentAuthority { id: String, authority: String },
     #[error(
         "evidence {id:?} supplies its own `recorded at`. §40.2 — recorded_at is \
          assigned by the authority that received the record, never by its author. \
@@ -340,15 +355,45 @@ impl Inference {
     }
 }
 
+#[cfg(test)]
+mod judgment_authority_tests {
+    use super::*;
+
+    /// The failing field must be named correctly. This previously reported a
+    /// bad authority through the record-CLASS error, so an author with a
+    /// missing `- **authority:**` bullet was told their `- **class:**` was not
+    /// one of §40's four — sending them to a line that was already right.
+    #[test]
+    fn a_bad_authority_is_not_reported_as_a_bad_class() {
+        let err = JudgmentAuthority::parse("").expect_err("empty is not an authority");
+        let msg = err.to_string();
+        assert!(msg.contains("authority"), "{msg}");
+        assert!(
+            !msg.contains("record class") && !msg.contains("§40's record"),
+            "a bad authority must not be reported as a bad class: {msg}"
+        );
+        assert!(
+            msg.contains("bullet is missing"),
+            "an empty value should say what is actually missing: {msg}"
+        );
+    }
+
+    #[test]
+    fn both_of_42s_authorities_parse() {
+        assert!(JudgmentAuthority::parse("authorized").is_ok());
+        assert!(JudgmentAuthority::parse("agent_recommendation").is_ok());
+    }
+}
+
 impl JudgmentAuthority {
     /// Parse §42's two authorities by name.
     pub fn parse(raw: &str) -> Result<Self, EpistemicError> {
         match raw.trim() {
             "agent_recommendation" => Ok(Self::AgentRecommendation),
             "authorized" => Ok(Self::Authorized),
-            other => Err(EpistemicError::UnknownRecordClass {
+            other => Err(EpistemicError::UnknownJudgmentAuthority {
                 id: "judgment".to_owned(),
-                class: format!("authority {other:?}; §42 defines agent_recommendation, authorized"),
+                authority: other.to_owned(),
             }),
         }
     }

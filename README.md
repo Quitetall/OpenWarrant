@@ -26,9 +26,13 @@ Beta is the act of running it against real systems. Nine Warrants
 none is discharged. Two limits are worth knowing before you evaluate anything
 here:
 
-**Nothing has run against a real neighbour.** Katana, BLUT, Knowledge Fabric and
-Liminal each have a typed, tested adapter on this side and have never been
-spoken to.
+**One neighbour has answered; three have not.** On 2026-08-21 a real BLUT binary
+read a PlanSpec OpenWarrant generated and refused it, naming the stage it could
+not resolve — the first verdict here that OpenWarrant did not produce about
+itself. Katana, Liminal and the Knowledge Fabric each still have a typed, tested
+adapter on this side and have never been spoken to. A refusal is a real answer,
+but it is a typecheck and not an execution: no neighbour has yet returned
+status, artifact or lineage receipts from actually running anything.
 
 **Most rules are not reachable from the binary.** Measured 2026-08-20: of twenty
 types implementing §40's epistemic classes, §46 independence, §56 resolution and

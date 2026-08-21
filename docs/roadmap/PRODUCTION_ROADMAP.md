@@ -23,9 +23,31 @@ every protocol.** It does not mean the system has been used.
 
 Read the four honest limits below before treating this as a finished product:
 
-1. **Nothing has run against a real neighbour.** Katana, BLUT, Knowledge Fabric
-   and Liminal have no checkout on this host. The seams are typed, tested, and
-   unexercised. A protocol proven only against its own tests is not proven.
+1. **One neighbour has now answered; three have not.** Corrected 2026-08-21 —
+   this limit previously said all four had "no checkout on this host", which was
+   false for two of them: BLUT is at `training/engine` in the LamQuant tree and
+   the Knowledge Fabric at `/mnt/4tb/openhuman-knowledge-fabric`. Only Katana and
+   Liminal are genuinely absent. The sentence overstated the limit, which is the
+   less common direction for a claim to rot but still rot.
+
+   BLUT has since answered for real. `war blut <alias> --verify <blut-binary>`
+   writes the lowered PlanSpec to a file and runs `blut plan check --json` on it;
+   on 2026-08-21 a cookbook binary read OpenWarrant's bytes and **refused** them,
+   naming the unresolvable stage: *"stage 'STAGE-002' is not in any registered
+   cookbook"*. That is the first verdict in this repository whose origin is not
+   this repository, and it is recorded as `authoritative_external` in
+   OW-WAR-0047's assurance atom.
+
+   The refusal is the correct answer, not a defect. BLUT forbids dynamic stage
+   loading, and every stage these Warrants name is a `STAGE-NNN` identifier no
+   cookbook compiles in. Acceptance would mean the pinned-registry rule had
+   stopped applying.
+
+   What this does **not** establish: an execution. OW-WAR-0047's OBL-001 wants
+   status, artifact and lineage receipts from a real BLUT run, and a typecheck
+   produces none. The obligation stays open. Katana and Liminal remain
+   unexercised, and the KF adapter has still never been spoken to despite the
+   checkout being right there.
 2. **The execution plane is not wired into the binary at all.** This is
    stronger than "has no plants", and it was measured on 2026-08-20 rather than
    assumed: of twenty alpha types sampled — `Admissibility`, `Independence`,
