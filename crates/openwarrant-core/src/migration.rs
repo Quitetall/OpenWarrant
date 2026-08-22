@@ -67,6 +67,17 @@ pub enum MigrationError {
     )]
     OriginalNotPreserved { adr_source: String },
     #[error(
+        "migration of {adr_source:?} carries a preserved body whose digest is not the \
+         digest OF that body: recorded {recorded:?}, recomputed {recomputed:?}. §96.1 \
+         is a claim about bytes, and a claim about bytes is only checkable by \
+         recomputing them"
+    )]
+    PreservedBodyDigestMismatch {
+        adr_source: String,
+        recorded: String,
+        recomputed: String,
+    },
+    #[error(
         "unknown REQUIRED extension {extension:?} at protocol {version}. §69.4: \
          unknown required extensions fail closed — this build does not understand \
          part of the contract it was handed"
@@ -266,10 +277,41 @@ pub struct MigratedAdr {
 }
 
 impl MigratedAdr {
-    pub fn validate(&self) -> Result<(), MigrationError> {
+    /// Check §96.1 by RECOMPUTING the preserved body's digest.
+    ///
+    /// This used to check only that `preserved_body` and `preserved_body_digest`
+    /// were non-blank, never that the second was the digest OF the first. A body
+    /// of `"hello"` beside a digest of `"deadbeef"` validated clean, so a run
+    /// reporting "0 validation failures" was not a preservation proof — it was a
+    /// non-emptiness proof wearing §96.1's name. That is the difference OW-WAR-0043
+    /// OBL-002 turns on, and LamQuant ADR 0186 clause 2 restates it for the corpus
+    /// this importer is about to read.
+    ///
+    /// `digest_of` is INJECTED rather than computed here on purpose. This crate's
+    /// production dependency surface is deliberately serde, thiserror and uuid;
+    /// pulling `sha2` in to satisfy one assertion would widen it for every
+    /// consumer. The caller already has the workspace's domain-separated digest
+    /// and passes it, which also lets a test drive the mismatch branch without
+    /// hand-crafting a real hash.
+    ///
+    /// Taking the function as a required argument, rather than offering a second
+    /// `validate_digest()` beside the old one, is the point: there is no longer a
+    /// spelling of "validate" that quietly skips the byte check.
+    pub fn validate<F>(&self, digest_of: F) -> Result<(), MigrationError>
+    where
+        F: FnOnce(&str) -> String,
+    {
         if self.preserved_body.trim().is_empty() || self.preserved_body_digest.trim().is_empty() {
             return Err(MigrationError::OriginalNotPreserved {
                 adr_source: self.source.clone(),
+            });
+        }
+        let recomputed = digest_of(&self.preserved_body);
+        if recomputed != self.preserved_body_digest {
+            return Err(MigrationError::PreservedBodyDigestMismatch {
+                adr_source: self.source.clone(),
+                recorded: self.preserved_body_digest.clone(),
+                recomputed,
             });
         }
         Ok(())
@@ -516,23 +558,92 @@ mod tests {
         }
     }
 
-    /// §96.1 — migration preserves the original body.
-    #[test]
-    fn migration_preserves_the_original_body() {
-        let mut m = MigratedAdr {
+    /// A stand-in digest: length-prefixed so any edit to the body changes it.
+    /// Not sha2 — this crate does not depend on it, and the assertion under test
+    /// is "the recorded digest is recomputed and compared", not which hash.
+    fn fake_digest(body: &str) -> String {
+        format!(
+            "fake:{}:{}",
+            body.len(),
+            body.chars().filter(|c| *c == '\n').count()
+        )
+    }
+
+    fn preserved_adr() -> MigratedAdr {
+        let body = "# ADR 0042\n\nOriginal text.\n";
+        MigratedAdr {
             source: "docs/decisions/0042.md".into(),
-            preserved_body: "# ADR 0042\n\nOriginal text.\n".into(),
-            preserved_body_digest: "sha256:b".into(),
+            preserved_body: body.into(),
+            preserved_body_digest: fake_digest(body),
             mapped_elements: BTreeMap::new(),
             unmapped_elements: vec![],
             legacy_gates: vec![],
             historical_claims: vec![],
-        };
-        assert_eq!(m.validate(), Ok(()));
+        }
+    }
+
+    /// §96.1 — migration preserves the original body.
+    #[test]
+    fn migration_preserves_the_original_body() {
+        let mut m = preserved_adr();
+        assert_eq!(m.validate(fake_digest), Ok(()));
 
         m.preserved_body.clear();
         assert!(matches!(
-            m.validate(),
+            m.validate(fake_digest),
+            Err(MigrationError::OriginalNotPreserved { .. })
+        ));
+    }
+
+    /// §96.1 is a claim about BYTES, so the digest must be recomputed.
+    ///
+    /// Planted: a body that was edited after its digest was recorded. The old
+    /// `validate()` accepted this — both fields are non-blank — which is why
+    /// "0 validation failures" could never have been a preservation proof.
+    #[test]
+    fn an_edited_body_no_longer_matches_its_recorded_digest() {
+        let mut m = preserved_adr();
+        m.preserved_body.push_str("a line the original never had\n");
+
+        let err = m
+            .validate(fake_digest)
+            .expect_err("an edited body must be rejected");
+
+        match err {
+            MigrationError::PreservedBodyDigestMismatch {
+                adr_source,
+                recorded,
+                recomputed,
+            } => {
+                assert_eq!(adr_source, "docs/decisions/0042.md");
+                assert_ne!(recorded, recomputed, "the error must name both digests");
+            }
+            other => panic!("wrong error: {other}"),
+        }
+    }
+
+    /// The inverse plant: bytes untouched, digest wrong. Catches a record whose
+    /// digest was copied from a different ADR.
+    #[test]
+    fn a_digest_from_some_other_body_is_rejected() {
+        let mut m = preserved_adr();
+        m.preserved_body_digest = fake_digest("a completely different ADR body\n");
+
+        assert!(matches!(
+            m.validate(fake_digest),
+            Err(MigrationError::PreservedBodyDigestMismatch { .. })
+        ));
+    }
+
+    /// Non-emptiness is checked BEFORE the digest, so an empty body reports the
+    /// missing original rather than a mismatch it would also trivially fail.
+    #[test]
+    fn an_empty_body_reports_the_original_not_preserved_not_a_mismatch() {
+        let mut m = preserved_adr();
+        m.preserved_body.clear();
+
+        assert!(matches!(
+            m.validate(fake_digest),
             Err(MigrationError::OriginalNotPreserved { .. })
         ));
     }

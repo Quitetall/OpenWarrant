@@ -239,6 +239,44 @@ impl ReasonCode {
         }
     }
 
+    /// Translate one LamQuant `adr_exec` label into a §96.4 class.
+    ///
+    /// §96.4 names its ten classes in snake_case. The corpus about to be
+    /// imported does not: `tools/adr_exec.py` writes SCREAMING-KEBAB, and those
+    /// labels are what `tools/adr-gate-ceilings.json` records. Without a stated
+    /// translation an importer has to guess at that seam, and guessing is what
+    /// §96.4 exists to stop — so the mapping is written down, once, here.
+    ///
+    /// Measured against LamQuant at `ee950b80`: `adr_exec.py` emits exactly nine
+    /// labels — PASS, FAIL, TIMEOUT, MALFORMED, MUTATING, FOREIGN-CWD,
+    /// MISSING-TOOL, MISSING-SCRIPT, MISSING-CRATE — and all nine appear below.
+    ///
+    /// §96.4's tenth, `not_run`, has NO legacy label, deliberately. `adr_exec`
+    /// cannot emit it: a tool that ran produced one of the nine. `not_run` is the
+    /// class for a gate that was declared and never executed at all, which per
+    /// LamQuant ADR 0186 finding F2 was the state of every gate in that corpus
+    /// for months. The importer must supply it from the ABSENCE of a result,
+    /// never from a label — which is exactly why it is missing from this table.
+    ///
+    /// Returns `None` for an unrecognised label rather than a default. An
+    /// importer that cannot name a result reports it; §96.4 forbids folding the
+    /// unknown into `failed`.
+    #[must_use]
+    pub fn from_legacy_execution_label(label: &str) -> Option<Self> {
+        Some(match label {
+            "PASS" => Self::Passed,
+            "FAIL" => Self::Failed,
+            "TIMEOUT" => Self::Timeout,
+            "MALFORMED" => Self::Malformed,
+            "MUTATING" => Self::Mutating,
+            "FOREIGN-CWD" => Self::ForeignWorkingDirectory,
+            "MISSING-TOOL" => Self::MissingTool,
+            "MISSING-SCRIPT" => Self::MissingScript,
+            "MISSING-CRATE" => Self::MissingCrate,
+            _ => return None,
+        })
+    }
+
     /// The §44 triple this legacy class migrates to.
     ///
     /// Defined on ALL variants, not only the ten migration classes, so that
@@ -1134,5 +1172,98 @@ mod tests {
         let t = tally_by_status(&runs);
         assert_eq!(t[&ExecutionStatus::Completed], 2);
         assert_eq!(t[&ExecutionStatus::Timeout], 1);
+    }
+
+    /// LamQuant's nine `adr_exec` labels, verbatim from `tools/adr_exec.py`.
+    const LEGACY_LABELS: [&str; 9] = [
+        "PASS",
+        "FAIL",
+        "TIMEOUT",
+        "MALFORMED",
+        "MUTATING",
+        "FOREIGN-CWD",
+        "MISSING-TOOL",
+        "MISSING-SCRIPT",
+        "MISSING-CRATE",
+    ];
+
+    /// Every legacy label resolves, and every one lands inside §96.4's ten.
+    #[test]
+    fn every_legacy_label_maps_into_a_migration_class() {
+        for label in LEGACY_LABELS {
+            let class = ReasonCode::from_legacy_execution_label(label)
+                .unwrap_or_else(|| panic!("{label} does not map"));
+            assert!(
+                class.is_migration_class(),
+                "{label} mapped to {class}, which §96.4 does not preserve"
+            );
+        }
+    }
+
+    /// The nine labels plus `not_run` cover §96.4's ten EXACTLY — no class left
+    /// unreachable, none reachable twice. Folded to a canonical set rather than
+    /// re-listing the ten, so the test cannot drift from MIGRATION_CLASSES.
+    #[test]
+    fn the_labels_plus_not_run_cover_the_ten_classes_exactly() {
+        let mut mapped: Vec<ReasonCode> = LEGACY_LABELS
+            .iter()
+            .filter_map(|l| ReasonCode::from_legacy_execution_label(l))
+            .collect();
+        assert_eq!(mapped.len(), 9, "a label mapped to the same class twice");
+        mapped.push(ReasonCode::NotRun);
+
+        let mut expected = MIGRATION_CLASSES.to_vec();
+        mapped.sort_by_key(|c| c.to_string());
+        expected.sort_by_key(|c| c.to_string());
+        assert_eq!(mapped, expected);
+    }
+
+    /// `not_run` is reachable from NO label — it comes from an absent result.
+    #[test]
+    fn not_run_has_no_legacy_label() {
+        for label in LEGACY_LABELS {
+            assert_ne!(
+                ReasonCode::from_legacy_execution_label(label),
+                Some(ReasonCode::NotRun),
+                "{label} must not manufacture not_run"
+            );
+        }
+        assert_eq!(ReasonCode::from_legacy_execution_label("NOT-RUN"), None);
+    }
+
+    /// An unrecognised label is reported, never guessed — and in particular
+    /// never folded into `failed`, which is §96.4's named prohibition.
+    #[test]
+    fn an_unknown_label_is_not_quietly_failed() {
+        for label in ["", "pass", "SKIP", "MISSING-BINARY", "OK"] {
+            assert_eq!(
+                ReasonCode::from_legacy_execution_label(label),
+                None,
+                "{label:?} was given a meaning it does not have"
+            );
+        }
+    }
+
+    /// §96.4: "could not ask" must not collapse into "failed". Asserted for the
+    /// LamQuant vocabulary specifically, since that is the corpus being read.
+    #[test]
+    fn could_not_ask_labels_do_not_migrate_to_failed() {
+        for label in [
+            "MALFORMED",
+            "MUTATING",
+            "FOREIGN-CWD",
+            "MISSING-TOOL",
+            "MISSING-SCRIPT",
+            "MISSING-CRATE",
+        ] {
+            let class = ReasonCode::from_legacy_execution_label(label).expect("maps");
+            assert!(class.is_could_not_ask(), "{label} is a could-not-ask class");
+            assert_ne!(class, ReasonCode::Failed, "{label} collapsed into failed");
+        }
+        // ...and the two that WERE asked and answered stay on the other side.
+        for label in ["PASS", "FAIL"] {
+            let class = ReasonCode::from_legacy_execution_label(label).expect("maps");
+            assert!(!class.is_could_not_ask(), "{label} was asked and answered");
+        }
     }
 }
