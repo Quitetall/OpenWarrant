@@ -6,7 +6,7 @@ role: adr
 jurisdiction: bound
 order: 30
 classification: internal
-status: accepted
+status: falsified
 decided: 2026-08-22
 governs:
   - "war://OW-WAR-0049"
@@ -16,7 +16,28 @@ governs:
 
 ## Status
 
-`Accepted 2026-08-22`
+`FALSIFIED 2026-08-22`, the same day it was accepted. Superseded by OW-ADR-0008.
+
+## Why this is falsified rather than superseded
+
+Its central premise was false. This ADR narrowed §91.2 test 11 as "UNREADABLE —
+its definition does not exist in this repository", and narrowed tests 14 and 15
+as blocked on decisions nobody had made.
+
+**The specification is in this repository.** `docs/sas/WAR_Software_Architecture_Specification.md`,
+138 KB, tracked by git, containing §91.2 in full. Test 11 reads: *"Parent edit is
+refused or maps unambiguously to an authored atom."* Tests 14 and 15 read
+*"Source Holder ambiguity fails"* and *"Higher-classification input raises
+effective classification."*
+
+I searched `docs/*SAS*` and `docs/spec*` and concluded from two failed globs that
+the file did not exist, then wrote that conclusion into an accepted decision
+governing a Warrant whose entire subject is claims that are not true. `ls docs/`
+would have shown it.
+
+Kept in full, and marked at the top rather than edited, because a decision made
+on a false premise is worth more as a record than as a gap. OW-ADR-0008 restates
+the dispositions against the text.
 
 Governs OW-WAR-0049. Its OBL-002 requires each of §91.2 tests 10, 11, 13, 14 and
 15 to end in "either a plant against the shipped binary, or a recorded narrowing
