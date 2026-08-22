@@ -160,6 +160,86 @@ pub fn map_legacy_element(element: &str) -> Option<LegacyMapping> {
         .map(|(_, m)| *m)
 }
 
+/// Aliases declared by OW-WAR-0043 AM-001, normalised key -> §96.2 row.
+///
+/// Three, and each one is a spelling of a row that already exists — not a new
+/// meaning. `Related Decisions` is the prose form of the relation row whose
+/// frontmatter form is `supersedes/amends/extends`.
+const AM_001_ALIASES: [(&str, &str); 3] = [
+    ("alternatives considered", "Alternatives"),
+    ("completion / resolution", "Completion"),
+    ("related decisions", "supersedes/amends/extends"),
+];
+
+/// Reduce a heading to the form §96.2's table is written in (OW-WAR-0043 AM-001).
+///
+/// §96.2 is a frozen surface and `map_legacy_element` compares by equality, so
+/// against a real corpus the table is only as good as the strings it is handed.
+/// Measured on LamQuant at `ee950b80` — 173 ADRs, 1568 heading occurrences —
+/// exact matching reached 681, or 43%. The shortfall was spelling, not meaning:
+/// `## Alternatives Considered` IS the `Alternatives` row, and
+/// `## Implementation Plan  *(the contract — write once; ...)*` IS the
+/// `Implementation Plan` row carrying an editor's note. With this rule, 1301 of
+/// 1568, or 82%.
+///
+/// The rule is deliberately small and stated in the amendment rather than
+/// invented here: strip a trailing parenthetical, strip a trailing em-dash
+/// gloss, fold case. It adds no row and gives no row a new meaning.
+///
+/// What it does NOT do is guess. A heading that still matches nothing after
+/// normalisation stays unmapped and reaches a human, which is what tier T2
+/// requires and what the nine recurring invented sections — `Gate`,
+/// `Reversal triggers`, `Rollback` and the rest — are left to.
+#[must_use]
+pub fn normalise_legacy_element(heading: &str) -> String {
+    let mut text = heading.trim();
+
+    // ` *(...)*` — the emphasised editorial note the house template grew.
+    // Applied before the bare form so `*(...)*` does not leave a stray `*`.
+    for _ in 0..2 {
+        text = strip_trailing_wrapped(text, "*(", ")*").unwrap_or(text);
+        text = strip_trailing_wrapped(text, "(", ")").unwrap_or(text);
+    }
+
+    // A trailing em-dash gloss: `Context — the problem`. The separator must be
+    // followed by space, so an em-dash inside a word is left alone.
+    let mut out = text.trim().to_owned();
+    for dash in ["— ", "– ", "-- "] {
+        if let Some(at) = out.find(dash) {
+            out.truncate(at);
+        }
+    }
+    out.trim().to_owned()
+}
+
+fn strip_trailing_wrapped<'a>(text: &'a str, open: &str, close: &str) -> Option<&'a str> {
+    let trimmed = text.trim_end();
+    let body = trimmed.strip_suffix(close)?;
+    let at = body.rfind(open)?;
+    Some(trimmed[..at].trim_end())
+}
+
+/// Map a heading as it is actually written to its §96.2 row (AM-001).
+///
+/// [`map_legacy_element`] is left exactly as it was — the frozen surface,
+/// matched verbatim — so a caller that wants the unamended behaviour still has
+/// it, and the amendment is visible as an addition rather than an edit.
+#[must_use]
+pub fn map_legacy_heading(heading: &str) -> Option<LegacyMapping> {
+    let normalised = normalise_legacy_element(heading);
+    if let Some(mapping) = map_legacy_element(&normalised) {
+        return Some(mapping);
+    }
+    let folded = normalised.to_lowercase();
+    if let Some((_, row)) = AM_001_ALIASES.iter().find(|(from, _)| *from == folded) {
+        return map_legacy_element(row);
+    }
+    LEGACY_MAP
+        .iter()
+        .find(|(name, _)| name.to_lowercase() == folded)
+        .map(|(_, m)| *m)
+}
+
 /// The state a legacy gate command lands in (§96.3).
 ///
 /// A unit struct rather than a string, so it cannot be compared equal to a
@@ -593,6 +673,135 @@ mod tests {
             m.validate(fake_digest),
             Err(MigrationError::OriginalNotPreserved { .. })
         ));
+    }
+
+    /// AM-001: headings as LamQuant actually writes them reach their row.
+    ///
+    /// Every left-hand side below is a verbatim heading counted in the corpus at
+    /// ee950b80, with its occurrence count, so these are the real shapes rather
+    /// than shapes chosen to pass.
+    #[test]
+    fn am_001_normalisation_reaches_the_row_a_heading_means() {
+        let cases: [(&str, LegacyMapping, u32); 8] = [
+            ("Status", LegacyMapping::HistoricalLifecycleEvidence, 133),
+            (
+                "Alternatives Considered",
+                LegacyMapping::OptionCandidate,
+                96,
+            ),
+            ("Alternatives considered", LegacyMapping::OptionCandidate, 6),
+            ("Related Decisions", LegacyMapping::TypedAdrRelation, 117),
+            (
+                "Implementation Plan  *(the contract — write once; amend only by a dated Progress Log entry)*",
+                LegacyMapping::CandidateWorkOrderContract,
+                27,
+            ),
+            (
+                "Progress Log  *(append-only; newest last)*",
+                LegacyMapping::ProgressEventOrObservation,
+                19,
+            ),
+            (
+                "Completion / Resolution  *(fill once)*",
+                LegacyMapping::HistoricalResolutionClaim,
+                11,
+            ),
+            (
+                "Validation  *(ongoing)*",
+                LegacyMapping::OngoingValidationCandidate,
+                17,
+            ),
+        ];
+        for (heading, expected, occurrences) in cases {
+            assert_eq!(
+                map_legacy_heading(heading),
+                Some(expected),
+                "{heading:?} ({occurrences} occurrences) did not reach its row"
+            );
+        }
+    }
+
+    /// The frozen surface is untouched: `map_legacy_element` still matches
+    /// verbatim, so the amendment is visible as an addition and a caller wanting
+    /// the unamended behaviour still has it.
+    #[test]
+    fn the_frozen_exact_matcher_is_unchanged_by_the_amendment() {
+        for heading in ["Status", "Alternatives Considered", "Related Decisions"] {
+            assert_eq!(
+                map_legacy_element(heading),
+                None,
+                "{heading} now matches exactly"
+            );
+            assert!(
+                map_legacy_heading(heading).is_some(),
+                "{heading} does not normalise"
+            );
+        }
+        // ...and a row that always matched still does, through both.
+        assert_eq!(
+            map_legacy_element("Context"),
+            Some(LegacyMapping::FactAndContextCandidate)
+        );
+        assert_eq!(
+            map_legacy_heading("Context"),
+            Some(LegacyMapping::FactAndContextCandidate)
+        );
+    }
+
+    /// The nine sections the corpus INVENTED stay unmapped. Normalisation must
+    /// not quietly acquire them: tier T2 sends them to a human, and a heading
+    /// that merely LOOKS like a gate is exactly what guessing would capture.
+    #[test]
+    fn the_invented_sections_are_not_swept_up_by_normalisation() {
+        let invented = [
+            "Reversal triggers",
+            "Gate",
+            "Reservation",
+            "Build gate",
+            "Cross-references",
+            "Anti-reinvention",
+            "Anti-re-litigation clause",
+            "Rollback",
+            "Non-goals / stays forbidden",
+        ];
+        for heading in invented {
+            assert_eq!(
+                map_legacy_heading(heading),
+                None,
+                "{heading:?} was given a meaning §96.2 does not define"
+            );
+        }
+    }
+
+    /// Normalisation is a reduction, never an invention: it only ever removes a
+    /// trailing note, so the result is a prefix of the input once trimmed.
+    #[test]
+    fn normalisation_only_ever_shortens() {
+        for heading in [
+            "Context",
+            "Context (direction only)",
+            "Context — the problem",
+            "Validation  *(ongoing — distinct from the completion gate)*",
+            "Completion / Resolution  *(frozen 2026-08-12)*",
+        ] {
+            let out = normalise_legacy_element(heading);
+            assert!(
+                heading.trim().starts_with(&out),
+                "{heading:?} normalised to {out:?}, which is not a prefix of it"
+            );
+        }
+    }
+
+    /// An empty or note-only heading does not become a match for anything.
+    #[test]
+    fn a_heading_that_is_only_a_note_maps_to_nothing() {
+        for heading in ["", "   ", "*(fill once)*", "(direction only)"] {
+            assert_eq!(
+                map_legacy_heading(heading),
+                None,
+                "{heading:?} matched a row"
+            );
+        }
     }
 
     /// §96.1 is a claim about BYTES, so the digest must be recomputed.

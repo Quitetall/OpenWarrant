@@ -4,12 +4,44 @@
 use std::fs;
 
 use openwarrant_compiler::{
-    CanonicalError, CompilationBasis, View, canonical_json, full_warrant, lower,
+    CanonicalError, ChildRef, CompilationBasis, View, canonical_json, full_warrant, lower,
 };
 use openwarrant_compiler::{WarrantSummary, render_adr_overview, render_warrant_overview};
 use openwarrant_core::ValidatedManifest;
 
 use crate::repo::{RepoError, Repository};
+
+/// §20.4's child list for one Warrant, computed from the whole corpus.
+///
+/// Lives here rather than in the compiler because it needs every manifest, and
+/// `lower` is deliberately pure and single-Warrant. Sorted by alias so the
+/// rendered view is stable — an unsorted list would make every recompile look
+/// like drift.
+#[must_use]
+pub fn children_of(uuid: &str, corpus: &[crate::repo::Loaded]) -> Vec<ChildRef> {
+    let mut out: Vec<ChildRef> = corpus
+        .iter()
+        .filter_map(|one| {
+            let validated = one.validated.as_ref()?;
+            let claims = validated
+                .raw
+                .parents
+                .iter()
+                .any(|p| p.r#ref.trim_start_matches("war://") == uuid);
+            claims.then(|| ChildRef {
+                alias: validated.alias.to_string(),
+                r#ref: format!("war://{}", validated.raw.uuid),
+                state: validated
+                    .raw
+                    .currency
+                    .clone()
+                    .unwrap_or_else(|| "current".to_owned()),
+            })
+        })
+        .collect();
+    out.sort_by(|a, b| a.alias.cmp(&b.alias));
+    out
+}
 
 /// Compile every projection this build implements.
 ///
@@ -20,10 +52,11 @@ use crate::repo::{RepoError, Repository};
 pub fn projections(
     basis: &CompilationBasis,
     validated: &ValidatedManifest,
+    children: &[ChildRef],
 ) -> Result<Vec<(View, String)>, CanonicalError> {
     let ir = lower(basis, validated)?;
     Ok(vec![
-        (View::FullWarrant, full_warrant(&ir, basis)),
+        (View::FullWarrant, full_warrant(&ir, basis, children)),
         (View::CanonicalJson, canonical_json(&ir)?),
     ])
 }
@@ -140,6 +173,15 @@ pub fn run(repo: &Repository, only: Option<&str>) -> Result<(), RepoError> {
     let mut written = 0usize;
     let mut skipped = Vec::new();
 
+    // §20.4's child list needs every manifest, so load the corpus once even when
+    // only one Warrant was asked for: a parent rendered without its children is
+    // a projection that quietly under-reports the family.
+    let corpus: Vec<crate::repo::Loaded> = repo
+        .warrant_dirs()?
+        .iter()
+        .filter_map(|d| repo.load_warrant(d).ok())
+        .collect();
+
     for dir in &dirs {
         let loaded = repo.load_warrant(dir)?;
         let alias = loaded.alias();
@@ -153,7 +195,8 @@ pub fn run(repo: &Repository, only: Option<&str>) -> Result<(), RepoError> {
             continue;
         };
 
-        let views = match projections(basis, validated) {
+        let children = children_of(&validated.raw.uuid, &corpus);
+        let views = match projections(basis, validated, &children) {
             Ok(views) => views,
             Err(err) => {
                 skipped.push(format!("{alias} ({err})"));

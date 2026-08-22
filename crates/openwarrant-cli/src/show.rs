@@ -46,7 +46,15 @@ pub fn run(repo: &Repository, alias: &str, view_name: &str) -> Result<String, Re
     let ir = openwarrant_compiler::lower::lower(basis, validated)
         .map_err(|e| RepoError::Message(format!("{alias}: {e}")))?;
 
-    render::render_view(view, &ir, basis)
+    // §20.4 — a rendered parent shows its children, so the corpus is needed even
+    // to show ONE Warrant.
+    let corpus: Vec<crate::repo::Loaded> = repo
+        .warrant_dirs()?
+        .iter()
+        .filter_map(|d| repo.load_warrant(d).ok())
+        .collect();
+    let children = crate::compile::children_of(&validated.raw.uuid, &corpus);
+    render::render_view(view, &ir, basis, &children)
         .map_err(|e| RepoError::Message(format!("{alias}: {view} did not render: {e}")))?
         .ok_or_else(|| {
             RepoError::Message(format!(

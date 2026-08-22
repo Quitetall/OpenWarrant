@@ -15,7 +15,9 @@ mod compile;
 mod diagnostic;
 mod gate_cmd;
 mod init;
+mod migrate;
 mod new;
+mod relations;
 mod repo;
 mod resolve;
 mod show;
@@ -139,6 +141,28 @@ enum Command {
         #[arg(long)]
         from: Option<Utf8PathBuf>,
     },
+    /// Import a legacy ADR corpus (§96), discharging OW-WAR-0043.
+    Migrate {
+        /// Directory of ADR files named `NNNN-*.md`.
+        #[arg(long)]
+        corpus: Utf8PathBuf,
+        /// The one named, frozen commit the corpus is read at (OBL-001).
+        #[arg(long)]
+        commit: String,
+        /// Where to write the import artifact.
+        #[arg(long, default_value = "artifacts/lamquant-adr-import.json")]
+        out: Utf8PathBuf,
+        /// Compare against the existing artifact instead of writing it — OBL-001's
+        /// "a re-run at that SHA producing byte-identical output".
+        #[arg(long)]
+        verify: bool,
+        /// NEGATIVE CONTROL. Attempt to promote each completion line to a
+        /// resolution, so §96.3's refusal is observable from outside the binary.
+        /// It must always fail; a build where this succeeds is the defect.
+        #[arg(long)]
+        attempt_promotion: bool,
+    },
+
     /// Compile the configured projections (§71.8).
     Compile {
         /// A single Warrant's local alias. Defaults to the whole corpus.
@@ -176,6 +200,26 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             println!("created {}", repository.relative(&dir));
             println!("edit its atoms, then run `war check`");
             Ok(EXIT_OK)
+        }
+
+        Command::Migrate {
+            corpus,
+            commit,
+            out,
+            verify,
+            attempt_promotion,
+        } => {
+            let artifact = migrate::import(&corpus, &commit, attempt_promotion)?;
+            migrate::write_or_verify(&artifact, &out, verify)?;
+            migrate::print(&artifact);
+            // OBL-002 and OBL-003 are countable, so they decide the exit code.
+            // §96.3's other half — that a gate cannot arrive qualified — is a type
+            // invariant rather than a count, and has no way to be violated here.
+            Ok(if migrate::obligations_met(&artifact) {
+                EXIT_OK
+            } else {
+                EXIT_NOT_READY
+            })
         }
 
         Command::Gate { run, gate } => {

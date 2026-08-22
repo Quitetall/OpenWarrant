@@ -172,6 +172,23 @@ pub struct ParentRef {
     pub contract_digest: Option<String>,
 }
 
+/// A supersession relation (SAS §21.1).
+///
+/// `reason` is REQUIRED by §21.1 and is not `Option`: a replacement that does
+/// not say what it replaces and why is the silent carry-forward §21.5 forbids,
+/// wearing a relation's clothes.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SupersedesRef {
+    pub r#ref: String,
+    pub reason: String,
+    /// §21.5 — which unresolved children, deliverables, evidence or obligations
+    /// this replacement adopts. Empty is a legitimate answer ("none"), but it
+    /// must be STATED, which is why the field exists rather than being inferred
+    /// from absence.
+    #[serde(default)]
+    pub adopts: Vec<String>,
+}
+
 /// A WAR manifest (SAS §61).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Manifest {
@@ -190,7 +207,12 @@ pub struct Manifest {
     pub roadmap: Vec<RoadmapRef>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub parents: Vec<ParentRef>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub supersedes: Vec<SupersedesRef>,
+    /// §21.2 / §21.3 — `superseded` or `deprecated` once retired. Absent means
+    /// current; the vocabulary itself lives in `lifecycle::Currency`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub currency: Option<String>,
     pub atoms: Vec<AtomEntry>,
 }
 
@@ -436,6 +458,8 @@ mod tests {
             implements: vec![],
             roadmap: vec![],
             parents: vec![],
+            supersedes: vec![],
+            currency: None,
             atoms: vec![
                 atom(10, "intent"),
                 atom(20, "basis"),

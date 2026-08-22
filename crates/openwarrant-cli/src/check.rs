@@ -6,7 +6,7 @@
 
 use std::collections::BTreeMap;
 
-use openwarrant_compiler::lower;
+use openwarrant_compiler::{ChildRef, lower};
 use openwarrant_core::{ValidatedManifest, detect_parent_cycles, milestones, obligation, seam};
 
 use crate::compile::{adr_overview, projections, warrant_overview};
@@ -63,10 +63,41 @@ pub fn run(
     let gates = load_gate_registry(repo, &mut report);
     report_independence(repo, &loaded, &mut report);
 
+    // §20 and §21 relation conformance (OW-WAR-0043 OBL-004, §91.5 tests 30-35).
+    // Built over the WHOLE corpus for the same reason parent digests are: a
+    // parent/child claim is not checkable from one side of the relation.
+    {
+        let related: Vec<crate::relations::Related<'_>> = corpus
+            .iter()
+            .filter_map(|one| {
+                let validated = one.validated.as_ref()?;
+                let basis = one.basis.as_ref()?;
+                let atom_source = basis
+                    .atoms
+                    .iter()
+                    .map(|a| String::from_utf8_lossy(&a.bytes).into_owned())
+                    .collect::<Vec<_>>()
+                    .join("\n");
+                Some(crate::relations::Related {
+                    alias: one.alias().to_string(),
+                    manifest: validated,
+                    manifest_file: one.dir.join("manifest.toml").to_string(),
+                    generated_view: std::fs::read_to_string(
+                        one.dir.join("generated").join("WAR.md"),
+                    )
+                    .ok(),
+                    atom_source,
+                })
+            })
+            .collect();
+        crate::relations::check(&related, &mut report);
+    }
+
     for one in &loaded {
         check_one(
             repo,
             one,
+            &corpus,
             check_generated,
             &parent_digests,
             &gates,
@@ -363,9 +394,11 @@ pub(crate) fn load_gate_registry(
     registry
 }
 
+#[allow(clippy::too_many_arguments)]
 fn check_one(
     repo: &Repository,
     one: &Loaded,
+    corpus: &[Loaded],
     check_generated: bool,
     parent_digests: &BTreeMap<String, String>,
     gates: &openwarrant_core::GateRegistry,
@@ -772,13 +805,16 @@ fn check_one(
     }
 
     if check_generated {
-        check_drift(repo, one, basis, validated, &alias, report);
+        let children = crate::compile::children_of(&validated.raw.uuid, corpus);
+        check_drift(repo, &children, one, basis, validated, &alias, report);
     }
 }
 
 /// §17.3 / RQ-075: committed generated views must match a fresh compilation.
+#[allow(clippy::too_many_arguments)]
 fn check_drift(
     repo: &Repository,
+    children: &[ChildRef],
     one: &Loaded,
     basis: &openwarrant_compiler::CompilationBasis,
     validated: &ValidatedManifest,
@@ -794,7 +830,7 @@ fn check_drift(
         return;
     }
 
-    let fresh = match projections(basis, validated) {
+    let fresh = match projections(basis, validated, children) {
         Ok(fresh) => fresh,
         Err(err) => {
             report.push(Diagnostic::error(

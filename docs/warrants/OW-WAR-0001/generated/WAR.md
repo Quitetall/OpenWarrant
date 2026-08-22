@@ -264,6 +264,13 @@ OW-WAR-0002 is where it stops being true.
 - `sas://WAR-SAS-RQ-064` — partial
 - `sas://WAR-SAS-RQ-070` — partial
 
+### Children
+
+- `war://01a018db-19fc-7f34-92db-54b2dca5446d` — OW-WAR-0002 (current)
+- `war://01a018db-19fc-72ba-87b3-c1bd1aec86a8` — OW-WAR-0003 (current)
+- `war://01a018db-19fc-75b4-9586-0aae240f38bc` — OW-WAR-0004 (current)
+- `war://01a018db-19fc-71ab-a5db-0f2c062305af` — OW-WAR-0005 (current)
+
 ### Roadmap
 
 - `roadmap://OW-PHASE-1/bootstrap`

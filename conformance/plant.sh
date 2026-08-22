@@ -50,6 +50,12 @@ FAILED=0
 
 restore() {
     git checkout -- docs/warrants/ docs/adr/ docs/gates/ openwarrant.toml 2>/dev/null || true
+    # `git checkout` restores TRACKED files and leaves untracked ones behind, so
+    # a plant that CREATES a file is not undone by it. AM-999 is exactly that —
+    # the §91.4 test 24 positive fixture — and it leaked into a commit once
+    # before this line existed. Named explicitly rather than `git clean`, which
+    # would delete a developer's untracked work.
+    rm -f docs/warrants/OW-WAR-0046/amendments/AM-999.yaml
 }
 
 # The mirror of `assert_gone`, for a mutation that ADDS rather than removes.
@@ -665,6 +671,107 @@ p = pathlib.Path('docs/warrants/OW-WAR-0001/atoms/45-milestones.yaml')
 s = p.read_text()
 p.write_text(s.replace('  - id: \"M1\"\n    title:', '  - id: \"M1\"\n    executor_kind: \"human\"\n    title:', 1))
 EOF"
+
+# ── §20/§21 parent, child and supersession (OW-WAR-0043 OBL-004) ────────────
+#
+# §91.4 test 24 and §91.5 tests 30-35, plus §21.1's required `reason`.
+#
+# Each mutation is a script in conformance/plants/ rather than an inline
+# one-liner. The inline version needed five levels of shell-inside-python-inside
+# heredoc escaping and was unreadable AND wrong; a plant nobody can read is a
+# plant nobody can check.
+#
+# P1 is OW-WAR-0001's uuid, read from the manifest rather than pasted, so these
+# survive a re-mint.
+P1="$(grep '^uuid' docs/warrants/OW-WAR-0001/manifest.toml | cut -d'"' -f2)"
+PLANTS="python3 conformance/plants"
+
+plant_cmd "child missing from parent view" "relations.child-listed" \
+    "OW-WAR-0005" 2 "$PLANTS/31-child-missing-from-view.py" check
+
+plant_cmd "child state in parent source" "relations.parent-source" \
+    "OW-WAR-0002" 2 "$PLANTS/30-child-state-in-parent-source.py" check
+
+plant_cmd "supersession without currency" "relations.currency" \
+    "21.2" 2 "$PLANTS/33-supersession-without-currency.py $P1" check
+
+plant_cmd "retired Warrant emptied" "relations.retired-available" \
+    "21.4" 2 "$PLANTS/34-retired-warrant-emptied.py" check
+
+plant_cmd "silent carry-forward" "relations.adoption" \
+    "21.5" 2 "$PLANTS/35-silent-carry-forward.py $P1" check
+
+# §21.1 makes `reason` part of the relation's SHAPE, so its absence is refused
+# by the manifest parser. That IS the intended control: a required field beats a
+# rule that has to remember to look.
+# Exit 1, not 2: a manifest that does not PARSE is a diagnostic, and §76.2
+# keeps that distinct from a Warrant that parsed and then failed a rule. The
+# first version of this entry wanted 2 and also forgot to pass $P1, so the
+# mutation script crashed and the plant ran against a clean tree — it reported
+# "exit 0, wanted 2", which is the harness catching its own broken plant.
+plant_cmd "supersession with no reason" "missing field" \
+    "reason" 1 "$PLANTS/21-supersession-without-reason.py $P1" check
+
+# POSITIVE (§91.4 test 24). "Does not require an ADR" is only demonstrable by
+# the rule PASSING on an amendment that names no governing ADR. Expected exit 0.
+plant_cmd "local choice needs no ADR" "amendment.valid" \
+    "AM-999" 0 "$PLANTS/24-local-choice-needs-no-adr.py" check
+
+# ── §96 import (OW-WAR-0043) ────────────────────────────────────────────────
+#
+# These mutate NOTHING tracked. Each builds its own scratch corpus under
+# $MIGRATE_TMP and passes it with --corpus, so the guard and restore above stay
+# irrelevant to them — a plant that needs the tree clean is a plant people learn
+# to skip.
+MIGRATE_TMP="$(mktemp -d)"
+trap 'restore; rm -rf "$MIGRATE_TMP"' EXIT
+mkdir -p "$MIGRATE_TMP/corpus"
+cat > "$MIGRATE_TMP/corpus/0001-planted.md" <<'ADR'
+---
+status: accepted
+---
+
+## Decision
+
+Something was decided.
+
+## Completion / Resolution
+
+- **verdict:** `passed`
+ADR
+mkdir -p "$MIGRATE_TMP/empty"
+FROZEN="ba9ed833faa9a52940d5e9d424566466e9066867"
+
+# OBL-001. A branch is not a frozen commit, and neither is an abbreviation.
+plant_cmd "import at a branch name" "not a full 40-character" \
+    "ONE NAMED, FROZEN commit" 1 ":" \
+    migrate --corpus "$MIGRATE_TMP/corpus" --commit main --out "$MIGRATE_TMP/a.json"
+
+plant_cmd "import at an abbreviated sha" "not a full 40-character" \
+    "moving target" 1 ":" \
+    migrate --corpus "$MIGRATE_TMP/corpus" --commit ba9ed83 --out "$MIGRATE_TMP/a.json"
+
+# An empty import satisfies every count while importing nothing, so it is an
+# error rather than a clean run of zero.
+plant_cmd "import of an empty corpus" "contains no ADR files" \
+    "importing nothing" 1 ":" \
+    migrate --corpus "$MIGRATE_TMP/empty" --commit "$FROZEN" --out "$MIGRATE_TMP/a.json"
+
+# OBL-003, the one the assurance atom names: a Complete line with no admissible
+# evidence cannot be promoted, and the refusal is observable from OUTSIDE the
+# binary rather than only in a unit test.
+plant_cmd "promoting a legacy Complete line" "HISTORICAL CLAIM" \
+    "0001-planted.md" 1 ":" \
+    migrate --corpus "$MIGRATE_TMP/corpus" --commit "$FROZEN" \
+    --out "$MIGRATE_TMP/a.json" --attempt-promotion
+
+# OBL-001's other half: "a re-run at that SHA producing byte-identical output".
+# Tamper the artifact and the verify must refuse.
+plant_cmd "a tampered import artifact" "not reproducible" \
+    "byte-identical output" 1 \
+    "\"$WAR\" migrate --corpus \"$MIGRATE_TMP/corpus\" --commit \"$FROZEN\" --out \"$MIGRATE_TMP/t.json\" >/dev/null 2>&1; \
+     python3 -c \"import pathlib,sys; p=pathlib.Path(sys.argv[1]); p.write_text(p.read_text().replace('\\\"adr_count\\\": 1','\\\"adr_count\\\": 2',1))\" \"$MIGRATE_TMP/t.json\"" \
+    migrate --corpus "$MIGRATE_TMP/corpus" --commit "$FROZEN" --out "$MIGRATE_TMP/t.json" --verify
 
 echo
 echo "$PASSED passed, $FAILED failed"
