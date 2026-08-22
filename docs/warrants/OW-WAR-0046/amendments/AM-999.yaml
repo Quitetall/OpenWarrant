@@ -1,0 +1,16 @@
+schema: "oh.war/amendment/v1"
+id: "AM-999"
+band: "local_choice"
+reason: "A local choice inside declared autonomy (§91.4 test 24)."
+governing_adr_or_policy: ""
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue."
+re_preflight_required: "false"
+authorizer: "conformance"
+effective_time: "2026-08-21"
+semantic_diff:
+  - element: "resources"
+    before: "a"
+    after: "b"
+affected_stages: []
+affected_milestones: []
