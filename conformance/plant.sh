@@ -666,6 +666,62 @@ s = p.read_text()
 p.write_text(s.replace('  - id: \"M1\"\n    title:', '  - id: \"M1\"\n    executor_kind: \"human\"\n    title:', 1))
 EOF"
 
+# ── §96 import (OW-WAR-0043) ────────────────────────────────────────────────
+#
+# These mutate NOTHING tracked. Each builds its own scratch corpus under
+# $MIGRATE_TMP and passes it with --corpus, so the guard and restore above stay
+# irrelevant to them — a plant that needs the tree clean is a plant people learn
+# to skip.
+MIGRATE_TMP="$(mktemp -d)"
+trap 'restore; rm -rf "$MIGRATE_TMP"' EXIT
+mkdir -p "$MIGRATE_TMP/corpus"
+cat > "$MIGRATE_TMP/corpus/0001-planted.md" <<'ADR'
+---
+status: accepted
+---
+
+## Decision
+
+Something was decided.
+
+## Completion / Resolution
+
+- **verdict:** `passed`
+ADR
+mkdir -p "$MIGRATE_TMP/empty"
+FROZEN="ba9ed833faa9a52940d5e9d424566466e9066867"
+
+# OBL-001. A branch is not a frozen commit, and neither is an abbreviation.
+plant_cmd "import at a branch name" "not a full 40-character" \
+    "ONE NAMED, FROZEN commit" 1 ":" \
+    migrate --corpus "$MIGRATE_TMP/corpus" --commit main --out "$MIGRATE_TMP/a.json"
+
+plant_cmd "import at an abbreviated sha" "not a full 40-character" \
+    "moving target" 1 ":" \
+    migrate --corpus "$MIGRATE_TMP/corpus" --commit ba9ed83 --out "$MIGRATE_TMP/a.json"
+
+# An empty import satisfies every count while importing nothing, so it is an
+# error rather than a clean run of zero.
+plant_cmd "import of an empty corpus" "contains no ADR files" \
+    "importing nothing" 1 ":" \
+    migrate --corpus "$MIGRATE_TMP/empty" --commit "$FROZEN" --out "$MIGRATE_TMP/a.json"
+
+# OBL-003, the one the assurance atom names: a Complete line with no admissible
+# evidence cannot be promoted, and the refusal is observable from OUTSIDE the
+# binary rather than only in a unit test.
+plant_cmd "promoting a legacy Complete line" "HISTORICAL CLAIM" \
+    "0001-planted.md" 1 ":" \
+    migrate --corpus "$MIGRATE_TMP/corpus" --commit "$FROZEN" \
+    --out "$MIGRATE_TMP/a.json" --attempt-promotion
+
+# OBL-001's other half: "a re-run at that SHA producing byte-identical output".
+# Tamper the artifact and the verify must refuse.
+plant_cmd "a tampered import artifact" "not reproducible" \
+    "byte-identical output" 1 \
+    "\"$WAR\" migrate --corpus \"$MIGRATE_TMP/corpus\" --commit \"$FROZEN\" --out \"$MIGRATE_TMP/t.json\" >/dev/null 2>&1; \
+     python3 -c \"import pathlib,sys; p=pathlib.Path(sys.argv[1]); p.write_text(p.read_text().replace('\\\"adr_count\\\": 1','\\\"adr_count\\\": 2',1))\" \"$MIGRATE_TMP/t.json\"" \
+    migrate --corpus "$MIGRATE_TMP/corpus" --commit "$FROZEN" --out "$MIGRATE_TMP/t.json" --verify
+
 echo
 echo "$PASSED passed, $FAILED failed"
 [[ "$FAILED" -eq 0 ]]
