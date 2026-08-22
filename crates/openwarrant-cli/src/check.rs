@@ -657,7 +657,18 @@ fn check_one(
         // was wrong: it and the role check below cannot both hold for an ADR
         // atom, which §16.1 places under `bound` and which a Warrant does bind.
         // The conflict is what showed the rule was too broad.
-        let owned_by_this_warrant = !atom.source.starts_with("..");
+        // Resolved, not string-matched. `!source.starts_with("..")` reads the
+        // same and misclassifies an absolute path, or any relative path that
+        // leaves the directory without a leading `..` — both would be called
+        // "owned" and then wrongly refused for declaring `bound`.
+        let resolved = one.dir.join(&atom.source);
+        let owned_by_this_warrant = match (resolved.canonicalize(), one.dir.canonicalize()) {
+            (Ok(atom_path), Ok(dir)) => atom_path.starts_with(&dir),
+            // Unresolvable means the file is missing, which `atom.missing`
+            // already reports. Treat it as NOT owned so this rule stays quiet
+            // rather than adding a second complaint about the same absence.
+            _ => false,
+        };
         if owned_by_this_warrant && !declared.is_directly_editable() {
             report.push(Diagnostic::error(
                 "atom.generated-as-source",
