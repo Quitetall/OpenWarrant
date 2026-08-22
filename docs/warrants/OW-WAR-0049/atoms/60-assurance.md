@@ -41,6 +41,77 @@ classification: internal
   relation with an empty reviewer is refused, which is the control being relied
   on here.
 
+## Evidence
+
+§40's records for what this Warrant has done. The first one is the reason it
+exists.
+
+### EV-001 — the §91.2 test 10 plants
+- **class:** evidence
+- **kind:** gate_run_output
+- **origin:** gate_runner
+- **admissibility:** controlled_measurement
+- **digest:** sha256:pending-receipt-binding
+- **method:** conformance/plant.sh — three plants, one per sub-rule:
+  `atom.generated-as-source`, `atom.unknown-jurisdiction`,
+  `atom.jurisdiction-mismatch`
+- **occurred at:** 2026-08-22
+
+### EV-002 — the misclassified ADR atoms
+- **class:** evidence
+- **kind:** static_analysis
+- **origin:** verifier
+- **admissibility:** independent
+- **digest:** sha256:pending-receipt-binding
+- **method:** the test 10 implementation, run against the corpus for the first
+  time; the finding is the checker's output, not a search made to confirm it
+- **occurred at:** 2026-08-22
+
+### OBS-001 — all six ADR atoms claimed they could be written by a binding Warrant
+- **class:** observation
+- **evidence:** EV-002
+- **method:** §16.1 places the `adr` role under `bound`; every ADR atom declared
+  `authored`, and the scaffold fixture in `adr.rs` emitted `authored` too, so the
+  misclassification reproduced on every new decision
+- **admissibility:** independent
+
+### OBS-002 — test 10 is implemented, not narrowed
+- **class:** observation
+- **evidence:** EV-001
+- **method:** three plants against the shipped binary, each asserting an exit
+  code, a named rule and a named detail
+- **admissibility:** controlled_measurement
+
+### INF-001 — the claim in OW-WAR-0005 is now true, so there is nothing to amend
+- **class:** inference
+- **kind:** deductive
+- **premises:** OBS-002
+- **claim:** ow-war-0005-obl-002
+- **reasoning:** OBL-001 asks for the false claim to be corrected by amendment
+  rather than by editing. A §31 amendment records a semantic diff — a change to
+  what an obligation says. Nothing about OW-WAR-0005's OBL-002 changed: it
+  enumerates §91.2 items 7, 8, 9, 10, 12 and 16, and item 10 is now implemented.
+  The claim was false because the implementation was missing, and supplying the
+  implementation is the stronger correction. Amending the scope to remove 10
+  would have made the record true by shrinking what it promised.
+- **admissibility:** controlled_measurement
+
+### JDG-001 — four tests are narrowed, each for a different reason
+- **class:** judgment
+- **kind:** scope_narrowing
+- **actor:** QuiteTall
+- **acting role:** author
+- **meaning:** §91.2 tests 11, 13, 14 and 15 are narrowed by OW-ADR-0007. Test 11
+  is unreadable — its definition is in no file in this repository. Test 13 is
+  schema-blocked — `AtomEntry` has no revision field to check. Tests 14 and 15
+  are blocked on a decision nobody has made. Implementing something against an
+  unread specification, a missing field or an undecided question would produce a
+  rule that passes its own tests and certifies nothing.
+- **basis:** OBS-002, INF-001
+- **authority:** authorized
+- **limitations:** one actor, so this judgment is not independently reviewed —
+  §27.4 says role separation by one person is not organizational independence
+
 ## Gate Adequacy
 
 Required at `controlled`, because this Warrant amends a resolved Warrant's

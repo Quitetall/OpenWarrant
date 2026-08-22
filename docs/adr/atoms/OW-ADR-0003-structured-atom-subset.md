@@ -3,7 +3,7 @@ schema: oh.war/atom/v1
 adr_uuid: 01a01bde-3277-7196-9d60-40e98711eeb8
 local_alias: OW-ADR-0003
 role: adr
-jurisdiction: authored
+jurisdiction: bound
 order: 30
 classification: internal
 status: accepted

@@ -21,6 +21,20 @@ OW-WAR-0002 and OW-WAR-0005 resolved.
 
 - **Evidenced premise.** The gaps are already written down, with file and
   line references. This Warrant discovers nothing; it closes what was recorded.
+- **Blocking unknown.** OBL-004's §95 disposition is not recorded. The machinery
+  exists and is unreachable: `LifecycleRelation::attach_relation(warrant,
+  reviewer)` refuses an empty reviewer — the exact control OBL-004 says it relies
+  on — and no `war` command calls it, so the refusal has never run. *Resolution
+  requirement:* a command that attaches a §95 relation, then a disposition of
+  OW-WAR-0005 M4 through it. That is a new verb, not a record, which is why it
+  did not ride along with the three obligations this Warrant did discharge.
+
+  The harder half is not the verb. §95 wants a REVIEWER, and this repository has
+  one actor. Naming that actor is permitted — §95 asks for a recorded reviewer,
+  not an independent one — but it produces a disposition whose review is worth
+  what §27.4 says it is worth, and that should be visible in the record rather
+  than discovered later.
+
 - **Blocking unknown.** Whether test 10's claim in OW-WAR-0005 should be narrowed
   or the feature implemented. Narrowing is honest and cheaper; implementing keeps
   the original promise.

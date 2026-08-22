@@ -173,8 +173,13 @@ below rather than quietly dropped:
 - ~~**OW-WAR-0002 M2** — §91.2 test 12 (composition cycle) has unit tests but no
   plant against the shipped binary.~~ **CLOSED 2026-08-19** by the
   `composition cycle (self-parent)` plant.
-- **OW-WAR-0005 M2** — §91.2 test 10 (a generated atom cannot be edited through
-  an authored-source command) is not implemented.
+- ~~**OW-WAR-0005 M2** — §91.2 test 10 (a generated atom cannot be edited through
+  an authored-source command) is not implemented.~~ **CLOSED 2026-08-22** —
+  implemented as three rules in `war check` and planted three ways. Its first run
+  against the corpus found all six ADR atoms declaring `authored` where §16.1
+  places the `adr` role under `bound`, so a Warrant binding a decision claimed
+  the right to rewrite it. OW-WAR-0005's OBL-002 claim about test 10 is now TRUE
+  rather than amended.
 - **OW-WAR-0005 M4** — bootstrap closure was declared, then the very next unit of
   work (the ADR Overview, commit `3678455`) shipped with no Warrant. That is
   untracked work under §95, committed against this repository's own obligation.
