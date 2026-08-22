@@ -17,6 +17,7 @@ mod gate_cmd;
 mod init;
 mod migrate;
 mod new;
+mod relations;
 mod repo;
 mod resolve;
 mod show;

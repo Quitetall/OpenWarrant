@@ -189,6 +189,8 @@ mod tests {
             }],
             roadmap: vec![],
             parents: vec![],
+            supersedes: vec![],
+            currency: None,
             atoms: ["intent", "basis", "work_order", "milestones", "assurance"]
                 .iter()
                 .enumerate()
