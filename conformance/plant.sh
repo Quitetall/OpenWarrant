@@ -50,6 +50,12 @@ FAILED=0
 
 restore() {
     git checkout -- docs/warrants/ docs/adr/ docs/gates/ openwarrant.toml 2>/dev/null || true
+    # `git checkout` restores TRACKED files and leaves untracked ones behind, so
+    # a plant that CREATES a file is not undone by it. AM-999 is exactly that —
+    # the §91.4 test 24 positive fixture — and it leaked into a commit once
+    # before this line existed. Named explicitly rather than `git clean`, which
+    # would delete a developer's untracked work.
+    rm -f docs/warrants/OW-WAR-0046/amendments/AM-999.yaml
 }
 
 # The mirror of `assert_gone`, for a mutation that ADDS rather than removes.
