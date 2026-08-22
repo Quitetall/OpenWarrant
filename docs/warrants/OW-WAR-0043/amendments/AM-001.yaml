@@ -1,0 +1,23 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-001"
+band: "manual_revision"
+reason: "OW-WAR-0043 freezes §96.2's twelve-row mapping table, and `map_legacy_element` matches a row by exact string equality. Measured against the corpus this Warrant imports — LamQuant at ee950b80, 173 ADRs — that reaches 681 of 1568 heading occurrences, 43%. The shortfall is not semantic: `## Alternatives Considered` (96 occurrences) means §96.2's `Alternatives` row and is spelled differently; `## Status` (133) differs from the `status` row by case; `## Implementation Plan  *(the contract — write once; amend only by a dated Progress Log entry)*` (27) is the `Implementation Plan` row wearing an editorial suffix. Four of the twelve literals match ZERO headings. Without a stated normalisation the importer either escalates 887 occurrences as unmapped, which is not a review anyone performs, or someone widens the match informally at the keyboard, which is the guessing T2 forbids. This amendment states the rule instead."
+governing_adr_or_policy: "sas://WAR-SAS-96.2"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. No work is invalidated and no import has run. The twelve rows and their twelve meanings are unchanged; only the function from a heading to a row is stated."
+re_preflight_required: "false"
+authorizer: "QuiteTall"
+effective_time: "2026-08-21"
+
+semantic_diff:
+  - element: "constraints"
+    before: "§96.2's twelve-row mapping table and §96.4's ten preserved classes."
+    after: "§96.2's twelve-row mapping table and §96.4's ten preserved classes. A heading is NORMALISED before the table is consulted: strip a trailing editorial suffix in ` *(...)*` or `(...)` form, strip a trailing em-dash gloss, then compare case-insensitively. Three aliases are declared: `Alternatives Considered` -> `Alternatives`, `Completion / Resolution` -> `Completion`, `Related Decisions` -> `supersedes/amends/extends`. No row is added, removed, or given a new meaning."
+
+  - element: "deliverables"
+    before: "A list of unmapped elements, with a human disposition for each."
+    after: "A list of unmapped elements, with a human disposition for each. Elements recurring across three or more ADRs are dispositioned as a NAMED BATCH rather than per occurrence; singletons keep one disposition each. Measured after normalisation: 9 recurring headings (Reversal triggers 7, Gate 7, Reservation 6, Build gate 5, Cross-references 4, Anti-reinvention 4, Anti-re-litigation clause 4, Rollback 3, Non-goals / stays forbidden 3) and 212 singletons. These are sections the corpus INVENTED; §96.2 has no row for them and this amendment does not create one."
+
+affected_stages: []
+affected_milestones: []
