@@ -203,7 +203,17 @@ pub fn run(
     report.note("gate execution — `war gate --run` executes a registered gate (§44), but `war check` does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run");
     report.note("Preflight readiness (§32.7) — 'well-formed' is a claim about the record only");
     report.note("bound-atom resolution — `ref =` atoms cannot be fetched offline");
-    report.note("Source Holder ambiguity and classification propagation (§91.2 tests 14, 15)");
+    // Kept, and now says WHY rather than only that. OW-WAR-0049's OBL-003 asks
+    // this note to match reality: the tests are not merely unimplemented, they
+    // are blocked on a decision this repository has not made, and OW-ADR-0007
+    // records which decision. A note that says "unchecked" without saying what
+    // would change it reads as a backlog item; this one names the blocker.
+    report.note(
+        "Source Holder ambiguity and classification propagation (§91.2 tests 14, 15) — \
+         narrowed by OW-ADR-0007, not merely unimplemented: both need a rule nobody has \
+         decided (which holder wins a contested source; what a composition's \
+         classification becomes when its atoms disagree)",
+    );
     if !check_generated {
         report.note("generated-view drift — pass --generated to compare committed projections");
     }
@@ -606,6 +616,88 @@ fn check_one(
                     ),
                 ));
             }
+        }
+    }
+
+    // §91.2 test 10 — a GENERATED atom cannot be edited through an
+    // authored-source command.
+    //
+    // The types for this shipped in alpha and answered no question. `Jurisdiction`
+    // exists, `is_directly_editable` exists to answer "may I write this?", and
+    // `Jurisdiction::from_str` was referenced by exactly one unit test — the atom's
+    // declared jurisdiction travelled from frontmatter to the IR as a plain String
+    // and was never parsed. So the class that decides whether an atom may be
+    // hand-edited was never consulted about any atom.
+    //
+    // An atom listed in a manifest IS an authored source: a file in the Warrant
+    // directory that a person edits and the compiler reads. Declaring it `generated`
+    // or `bound` says it is a projection or someone else's record, and carrying it
+    // as an editable source anyway is precisely the edit §13.3 forbids.
+    for atom in &basis.atoms {
+        let declared = atom.jurisdiction.parse::<openwarrant_core::Jurisdiction>();
+        let Ok(declared) = declared else {
+            report.push(Diagnostic::error(
+                "atom.unknown-jurisdiction",
+                repo.relative(&one.dir.join(&atom.source)),
+                format!(
+                    "{alias}: atom {} declares jurisdiction {:?}, which is not one of \
+                     §13.3's three: authored, bound, generated",
+                    atom.source, atom.jurisdiction
+                ),
+            ));
+            continue;
+        };
+        // "Here" in §13.3's "may be READ here, may not be written here" is THIS
+        // Warrant. An atom under the Warrant's own directory is its authored
+        // source and must be editable; one referenced from outside — the ADR
+        // corpus, say — is exactly what `bound` is for, and demanding it be
+        // editable would forbid binding anything.
+        //
+        // A first version of this rule applied to every atom in the manifest and
+        // was wrong: it and the role check below cannot both hold for an ADR
+        // atom, which §16.1 places under `bound` and which a Warrant does bind.
+        // The conflict is what showed the rule was too broad.
+        // Resolved, not string-matched. `!source.starts_with("..")` reads the
+        // same and misclassifies an absolute path, or any relative path that
+        // leaves the directory without a leading `..` — both would be called
+        // "owned" and then wrongly refused for declaring `bound`.
+        let resolved = one.dir.join(&atom.source);
+        let owned_by_this_warrant = match (resolved.canonicalize(), one.dir.canonicalize()) {
+            (Ok(atom_path), Ok(dir)) => atom_path.starts_with(&dir),
+            // Unresolvable means the file is missing, which `atom.missing`
+            // already reports. Treat it as NOT owned so this rule stays quiet
+            // rather than adding a second complaint about the same absence.
+            _ => false,
+        };
+        if owned_by_this_warrant && !declared.is_directly_editable() {
+            report.push(Diagnostic::error(
+                "atom.generated-as-source",
+                repo.relative(&one.dir.join(&atom.source)),
+                format!(
+                    "{alias}: atom {} lives in this Warrant's own directory but is \
+                     declared `{declared}`, which §13.3 says is not directly editable. \
+                     A projection that is hand-edited is no longer a projection.",
+                    atom.source
+                ),
+            ));
+        }
+        // §16.1 assigns some roles one jurisdiction and others several. Where it
+        // named one, disagreeing with it is an authoring error; where it named
+        // more than one, `typical_jurisdiction` returns None and no rule applies
+        // — inventing one there would be a rule the specification declined to make.
+        if let Ok(role) = atom.role.parse::<openwarrant_core::AtomRole>()
+            && let Some(expected) = role.typical_jurisdiction()
+            && expected != declared
+        {
+            report.push(Diagnostic::error(
+                "atom.jurisdiction-mismatch",
+                repo.relative(&one.dir.join(&atom.source)),
+                format!(
+                    "{alias}: atom {} has role `{role}`, which §16.1 places under \
+                     `{expected}`, but declares `{declared}`",
+                    atom.source
+                ),
+            ));
         }
     }
 

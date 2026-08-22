@@ -177,7 +177,7 @@ schema: oh.war/atom/v1\n\
 adr_uuid: 01a01927-8855-7046-9876-ef13ae754180\n\
 local_alias: OW-ADR-0001\n\
 role: adr\n\
-jurisdiction: authored\n\
+jurisdiction: bound\n\
 status: accepted\n\
 decided: 2026-08-19\n\
 governs:\n  - \"war://01a0-abc\"\n\

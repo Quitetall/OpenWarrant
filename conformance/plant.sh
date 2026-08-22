@@ -517,6 +517,30 @@ plant_cmd "a lowering with no computational stage" "blut.not-computational" "rej
 plant_cmd "a lowering against no pinned registry" "blut.lowered" "pinned registry" 0 \
     "true" blut OW-WAR-0047
 
+# §91.2 test 10 — a GENERATED atom cannot be edited through an authored-source
+# command. OW-WAR-0005's OBL-002 claimed this test as in scope while the roadmap
+# recorded it unimplemented and no implementation existed: a resolved Warrant
+# claiming coverage it did not have, in the repository built to prevent that.
+#
+# The types shipped in alpha. `Jurisdiction::is_directly_editable` exists to
+# answer "may I write this?", and `Jurisdiction::from_str` was referenced by one
+# unit test — the declared jurisdiction reached the IR as a plain String and the
+# class was never consulted about any atom.
+plant "an own atom declared not directly editable" "atom.generated-as-source" "no longer a projection" 2 \
+    "sed -i '0,/^jurisdiction: authored$/s//jurisdiction: generated/' docs/warrants/OW-WAR-0049/atoms/10-intent.md
+     assert_present 'jurisdiction: generated' docs/warrants/OW-WAR-0049/atoms/10-intent.md"
+
+plant "an atom jurisdiction outside §13.3" "atom.unknown-jurisdiction" "not one of" 2 \
+    "sed -i '0,/^jurisdiction: authored$/s//jurisdiction: editable/' docs/warrants/OW-WAR-0049/atoms/10-intent.md
+     assert_present 'jurisdiction: editable' docs/warrants/OW-WAR-0049/atoms/10-intent.md"
+
+# §16.1 assigns the `adr` role to `bound`. The FIRST run of this rule caught a
+# real one: all six ADR atoms declared `authored`, so a Warrant binding a
+# decision claimed the right to rewrite it.
+plant "an adr atom claiming it may be written here" "atom.jurisdiction-mismatch" "places under" 2 \
+    "sed -i '0,/^jurisdiction: bound$/s//jurisdiction: authored/' docs/adr/atoms/OW-ADR-0001-canonical-json-implementation.md
+     assert_present 'jurisdiction: authored' docs/adr/atoms/OW-ADR-0001-canonical-json-implementation.md"
+
 # §49.3 — BLUT's lineage stays authoritative in BLUT. This is OBL-003's plant.
 #
 # `BlutLineageReceipt` shipped with a doc comment saying a copy would be wrong
