@@ -210,9 +210,9 @@ pub fn run(
     // would change it reads as a backlog item; this one names the blocker.
     report.note(
         "Source Holder ambiguity and classification propagation (§91.2 tests 14, 15) — \
-         narrowed by OW-ADR-0007, not merely unimplemented: both need a rule nobody has \
-         decided (which holder wins a contested source; what a composition's \
-         classification becomes when its atoms disagree)",
+         narrowed by OW-ADR-0008: test 14 needs a `source_holder` on atoms, which §13 \
+         requires and none declares; test 15 needs a classification ordering, which \
+         the SAS does not give. Neither is undecided — both are undeclared",
     );
     if !check_generated {
         report.note("generated-view drift — pass --generated to compare committed projections");

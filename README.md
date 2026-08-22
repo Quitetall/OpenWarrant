@@ -121,6 +121,18 @@ actually established and names the exclusion inline.
 **The NOT CHECKED block prints on every run, including a clean one.** A report
 that answers "ok" while whole classes of check go unasked reads as full coverage.
 
+## The specification
+
+The WAR Software Architecture Specification is vendored at
+**`docs/sas/WAR_Software_Architecture_Specification.md`**. Every `§n` in this
+repository — obligations, ADRs, conformance test numbers — refers to it, and the
+§91 conformance tests are one line each in §91.1 through §91.13.
+
+Stated here because it was not stated anywhere, and on 2026-08-22 an ADR was
+accepted that narrowed four conformance tests as "unreadable" after two failed
+globs failed to find this file. A repository whose subject is verifiable claims
+should not make its own source of truth hard to locate.
+
 ## How a Warrant is stored
 
 Authored atoms are the editable sources. The parent is a projection and is never
