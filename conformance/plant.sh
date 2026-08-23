@@ -517,6 +517,24 @@ plant_cmd "a lowering with no computational stage" "blut.not-computational" "rej
 plant_cmd "a lowering against no pinned registry" "blut.lowered" "pinned registry" 0 \
     "true" blut OW-WAR-0047
 
+# §95 — a relation attached after the fact WITHOUT REVIEW is a fabrication.
+#
+# `UntrackedWork::attach_relation` refuses an empty reviewer and shipped in
+# alpha; no command called it, so the refusal had never run outside a unit test.
+# This is OW-WAR-0041's OBL-003 and OW-WAR-0049's OBL-004, which wanted the same
+# verb.
+#
+# The danger is specific: a tool that attributed orphan commits to whichever
+# Warrant was open at the time would turn a diagnostic into a fabrication, and it
+# would look like tidying up.
+plant_cmd "a relation attached with no reviewer" "no recorded reviewer" "fabricate a relationship" 1 \
+    "true" telemetry --commit x --attach "commit abc123" --warrant OW-WAR-0041
+
+# The positive control. Without it, a build that refused EVERY attachment would
+# satisfy the plant above and look like a working review requirement.
+plant_cmd "a relation attached with a reviewer" "related to" "reviewed by" 0 \
+    "true" telemetry --commit x --attach "commit abc123" --warrant OW-WAR-0041 --reviewer QuiteTall
+
 # §91.8 tests 52-58 — the agent-drafting seam (§74, §75.2).
 #
 # These plants feed COMMITTED FIXTURES to the shipped binary rather than mutating

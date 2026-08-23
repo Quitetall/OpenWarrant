@@ -21,6 +21,7 @@ mod relations;
 mod repo;
 mod resolve;
 mod show;
+mod telemetry;
 
 /// Exit codes. §76.4 wants machine-usable output; a caller distinguishing
 /// "your input was wrong" from "the Warrant is not sound" needs more than 0/1.
@@ -163,6 +164,31 @@ enum Command {
         attempt_promotion: bool,
     },
 
+    /// §94 telemetry baseline, §95 untracked-work candidates, §100 metrics.
+    Telemetry {
+        /// The commit this baseline is taken at (§94, OBL-001).
+        #[arg(long)]
+        commit: String,
+        /// Where to write the baseline artifact.
+        #[arg(long, default_value = "artifacts/telemetry-baseline.json")]
+        out: camino::Utf8PathBuf,
+        /// Compare against the existing artifact instead of writing it.
+        #[arg(long)]
+        verify: bool,
+        /// §95 — relate an untracked-work candidate to a Warrant. Requires
+        /// --reviewer; an empty one is refused as a fabrication.
+        #[arg(long, value_name = "SCOPE")]
+        attach: Option<String>,
+        /// The Warrant the candidate belongs to.
+        #[arg(long, value_name = "ALIAS", default_value = "")]
+        warrant: String,
+        /// Who reviewed the attribution. §95 will not accept an empty one —
+        /// pass `--reviewer <name>`. It is not defaulted to the acting user on
+        /// purpose: a review nobody performed is the fabrication §95 forbids.
+        #[arg(long, default_value = "")]
+        reviewer: String,
+    },
+
     /// Compile the configured projections (§71.8).
     Compile {
         /// A single Warrant's local alias. Defaults to the whole corpus.
@@ -235,6 +261,61 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 EXIT_NOT_READY
             })
         }
+        Command::Telemetry {
+            commit,
+            out,
+            verify,
+            attach,
+            warrant,
+            reviewer,
+        } => {
+            let repository = repo::Repository::discover(None)?;
+            if let Some(scope) = attach {
+                println!("{}", telemetry::attach(&scope, &warrant, &reviewer)?);
+                return Ok(EXIT_OK);
+            }
+            let baseline = telemetry::take(&repository, &commit)?;
+            let rendered = telemetry::render(&baseline)?;
+            if verify {
+                let existing = std::fs::read_to_string(&out)
+                    .map_err(|e| repo::RepoError::Message(format!("cannot read {out}: {e}")))?;
+                // Compared EXACTLY. Trimming would let whitespace drift through
+                // while the doc claims byte-for-byte agreement.
+                if existing == rendered {
+                    println!("telemetry baseline at {commit} is unchanged");
+                    return Ok(EXIT_OK);
+                }
+                return Err(Box::new(repo::RepoError::Message(format!(
+                    "the committed baseline differs from a fresh one at {commit}. A baseline \
+                     is a record of one moment; if the corpus moved, take a NEW one rather \
+                     than overwriting the old."
+                ))));
+            }
+            if let Some(parent) = out.parent() {
+                std::fs::create_dir_all(parent).map_err(|e| {
+                    repo::RepoError::Message(format!("cannot create {parent}: {e}"))
+                })?;
+            }
+            std::fs::write(&out, &rendered)
+                .map_err(|e| repo::RepoError::Message(format!("cannot write {out}: {e}")))?;
+            let untaken = baseline
+                .measures
+                .values()
+                .filter(|m| matches!(m, telemetry::Measure::NotYet { .. }))
+                .count();
+            println!(
+                "telemetry baseline written to {out}\n  {} of {} §94 measures taken; {untaken} \
+                 recorded `not_measurable_yet` with a reason\n  {} §95 untracked-work \
+                 candidate(s)\n  {} §100 metrics, every one `no baseline` — one measurement \
+                 supports no delta",
+                baseline.measures.len() - untaken,
+                baseline.measures.len(),
+                baseline.untracked_work_candidates.len(),
+                baseline.success_metrics.len()
+            );
+            Ok(EXIT_OK)
+        }
+
         Command::Plan {
             request,
             profile,

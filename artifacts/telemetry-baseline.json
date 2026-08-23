@@ -1,0 +1,159 @@
+{
+  "schema": "oh.war/telemetry-baseline/v1",
+  "commit": "b54310897a72320b475e1da8d7d20f26972cce45",
+  "measures": {
+    "adequacy counterexamples": {
+      "value": 51,
+      "method": "executed attacks, via the same adequacy::parse `war check` uses"
+    },
+    "amendments": {
+      "value": 2,
+      "method": "amendment records under docs/warrants/*/amendments/"
+    },
+    "auto-authorizable fraction": {
+      "value": 0,
+      "method": "Warrants authorizable without human action: zero, and MEASURED zero — §56.1 requirement 10 is unmet for every Warrant, so none is auto-authorizable"
+    },
+    "clarification count": {
+      "not_measurable_yet": "§74.6's interview has never run — `war plan` has no agent on the other side of the §75.2 seam, so no question has been asked to count"
+    },
+    "compute and model cost": {
+      "not_measurable_yet": "no cost is metered for any run in this repository"
+    },
+    "escalation count and class": {
+      "not_measurable_yet": "no §31 escalation has occurred; the count is unknown rather than zero because nothing records escalations even when they do"
+    },
+    "evidence and gate reuse": {
+      "value": 129,
+      "method": "gate:// citations across all atoms"
+    },
+    "gate failure cause": {
+      "not_measurable_yet": "gate runs mint receipts but nothing aggregates causes across them, so a cause distribution cannot be reported"
+    },
+    "gate library reuse": {
+      "value": 1,
+      "method": "gate definitions in the registry; reuse is citations over definitions"
+    },
+    "human authoring minutes": {
+      "not_measurable_yet": "no instrumented authoring session; a git repository records commits, not elapsed human or wall time"
+    },
+    "interview questions": {
+      "not_measurable_yet": "§74.6's interview has never run — `war plan` has no agent on the other side of the §75.2 seam, so no question has been asked to count"
+    },
+    "post-resolution escapes": {
+      "not_measurable_yet": "no Warrant has been resolved; an escape after resolution is undefined while the count of resolutions is zero"
+    },
+    "reopenings": {
+      "not_measurable_yet": "no Warrant has been resolved, so none can have been reopened. This is a consequence of §56.1 requirement 10, not of missing instrumentation"
+    },
+    "replay, repair, restart": {
+      "not_measurable_yet": "no execution has been replayed, repaired or restarted, and no receipt store exists to have recorded one"
+    },
+    "time to first usable artifact": {
+      "not_measurable_yet": "no instrumented authoring session; a git repository records commits, not elapsed human or wall time"
+    },
+    "untracked commits or artifacts": {
+      "value": 46,
+      "method": "commits whose message cites no Warrant alias (§95 candidates)"
+    },
+    "wall time": {
+      "not_measurable_yet": "no instrumented authoring session; a git repository records commits, not elapsed human or wall time"
+    },
+    "work completed outside WAR": {
+      "value": 46,
+      "method": "commits whose message cites no Warrant alias (§95 candidates)"
+    }
+  },
+  "derived": {
+    "adequacy-review catch rate": {
+      "not_measurable_yet": "derived from measures that are not all takeable yet; a ratio over an unmeasured term is not a ratio"
+    },
+    "amendments per WAR": {
+      "not_measurable_yet": "derived from measures that are not all takeable yet; a ratio over an unmeasured term is not a ratio"
+    },
+    "gate-failure-to-repair success rate": {
+      "not_measurable_yet": "derived from measures that are not all takeable yet; a ratio over an unmeasured term is not a ratio"
+    },
+    "gate-library reuse rate": {
+      "not_measurable_yet": "derived from measures that are not all takeable yet; a ratio over an unmeasured term is not a ratio"
+    },
+    "human control minutes per accepted WAR": {
+      "not_measurable_yet": "derived from measures that are not all takeable yet; a ratio over an unmeasured term is not a ratio"
+    },
+    "post-resolution escape rate": {
+      "not_measurable_yet": "derived from measures that are not all takeable yet; a ratio over an unmeasured term is not a ratio"
+    },
+    "safe auto-amendment fraction": {
+      "not_measurable_yet": "derived from measures that are not all takeable yet; a ratio over an unmeasured term is not a ratio"
+    },
+    "untracked-work rate": {
+      "not_measurable_yet": "derived from measures that are not all takeable yet; a ratio over an unmeasured term is not a ratio"
+    }
+  },
+  "untracked_work_candidates": [
+    "b543108 feat(0041): take the §94 baseline — and a private counter would have published a zero for 51",
+    "da45481 feat(0042): an agent could allocate an enterprise ID and nothing said no (#22)",
+    "0b96233 feat(0043): import the LamQuant ADR corpus for real — 173 ADRs, zero promoted (#21)",
+    "1abc207 fix(0049): OW-ADR-0007 was accepted on a false premise — the SAS is in this repo (#20)",
+    "77440e2 Merge pull request #18 from Quitetall/feat/ow-war-0043-war-migrate",
+    "8ee32b2 Merge branch 'main' into feat/ow-war-0043-war-migrate",
+    "8c00cd5 Merge pull request #17 from Quitetall/docs/ow-war-0043-am-001-normalisation",
+    "19d375b Merge branch 'main' into docs/ow-war-0043-am-001-normalisation",
+    "a37c14b Merge pull request #16 from Quitetall/fix/ow-war-0043-preservation-digest",
+    "ca55a18 Merge branch 'main' into fix/ow-war-0043-preservation-digest",
+    "3b757c0 Merge pull request #15 from Quitetall/docs/ow-war-0043-basis-shaf",
+    "4642b12 docs(0043): resolve the blocking unknown — LamQuant's corpus is frozen at SHA-F",
+    "485a907 fix(conformance): a plant that CREATES a file was not undone by restore",
+    "cdf4fc0 test(0043): OBL-004 — seven conformance entries for §91.4 t24 and §91.5 t30-35",
+    "a3f3f1c feat(0043): implement §20.4 and wire §20/§21 relation rules into war check",
+    "cbe760b feat(0043): war migrate — import the LamQuant ADR corpus, fabricating nothing",
+    "db14b85 feat(0043): write down the translation from LamQuant's gate labels to §96.4's classes",
+    "0d57cf6 fix(0043): make §96.1 checkable — recompute the preserved body's digest",
+    "1205dff docs(0043): AM-001 — state how a heading finds its §96.2 row",
+    "0832ee3 feat(0047): lower a stage graph into BLUT's PlanSpec, and name what that is not (#9)",
+    "8ec30ef feat(0046): §40 evidence records live in the assurance atom, and are checked (#7)",
+    "c5d9aaf feat(0046): narrow deliverable 3 by amendment, and make §31 records checkable (#6)",
+    "e8e546b feat(0046): mint §44.6 receipts, so a gate run leaves evidence (#4)",
+    "bfebf14 feat(beta): open beta, and wire the first unreachable rule into the binary (#3)",
+    "263c353 Alpha complete: all 40 OpenWarrant Warrants resolved (#1)",
+    "a869765 feat(ow-war-0017): the six epistemic classes and §40.7's prohibited substitutions (#12)",
+    "c769b40 feat(ow-war-0016): acceptance obligations, bounded claims, and §38.6 aggregation (#11)",
+    "1043470 feat(ow-war-0009): contract revisions, structural immutability, declared coverage (#10)",
+    "4120043 feat(ow-war-0008): implement the §24 state model — five dimensions, derived provenance (#9)",
+    "9b7b1c9 feat(ow-war-0007): parse and validate milestones, stages, and typed ports (#8)",
+    "cd43a07 feat(roadmap): the complete alpha Warrant set — 35 Warrants to feature completion (#7)",
+    "246e941 feat(adr): generated ADR Overview, drift-checked like any other projection (#6)",
+    "620403a fix(release): pair the artifact actions, and make the pipeline runnable without a tag (#5)",
+    "e922e71 build(deps): bump the cargo group across 1 directory with 2 updates (#3)",
+    "6413fa6 build(deps): bump actions/upload-artifact from 4 to 7 (#2)",
+    "a083dc9 build(deps): bump actions/checkout from 5 to 7 (#1)",
+    "8159bf5 docs(publishing): record the forced publish order, and finish the crate metadata (#4)",
+    "816f36a build: make the workspace publishable, and record the crate-name situation",
+    "e355457 fix(xtask): the gate depended on leftover build state, so it was green locally and red in CI",
+    "dc0256b docs: launch documentation set, and stage the Apache-2.0 relicense",
+    "e0c894d test(conformance): planted-violation battery, wired into the gate",
+    "dd86587 feat(ow-war-0004,0005): war check, war compile, war new — Phase 1 bootstrap closes",
+    "eea842d feat(ow-war-0002,0003): manifest and atom parsing, RFC 8785 canonicalization, digests",
+    "9b7116a docs(warrants): record corpus conventions the review had to ask about",
+    "97540b6 fix(ow-war-0001): apply external review findings; drop unused deps, harden a vacuous test",
+    "32d7fc4 feat(ow-war-0001): establish the OpenWarrant repository and Rust workspace"
+  ],
+  "success_metrics": {
+    "ability to hand work between agents and humans": "no baseline",
+    "clarification turns": "no baseline",
+    "context lost between humans and agents": "no baseline",
+    "evidence reuse": "no baseline",
+    "false completion claims": "no baseline",
+    "gate reuse": "no baseline",
+    "human time per accepted unit": "no baseline",
+    "manual document synchronization": "no baseline",
+    "post-resolution surprises": "no baseline",
+    "repair success": "no baseline",
+    "repeated context assembly": "no baseline",
+    "stage completion rate": "no baseline",
+    "stale gate commands": "no baseline",
+    "traceability from SAS to artifact": "no baseline",
+    "truthful unknown reporting": "no baseline",
+    "untracked implementation decisions": "no baseline"
+  }
+}
