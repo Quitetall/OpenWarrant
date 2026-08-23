@@ -1,0 +1,1 @@
+{"api_version":"oh.war/draft-proposal/v1","proposed_identity":"OW-WAR-9001","durable_choices":[{"statement":"use PostgreSQL over SQLite","alternatives":["SQLite"],"proposed_adr_draft":""}],"risk_assessment":"low"}

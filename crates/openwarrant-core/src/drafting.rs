@@ -181,7 +181,20 @@ pub struct DurableChoice {
 }
 
 /// §74.2's Draft Proposal — the agent's entire output surface.
+///
+/// `deny_unknown_fields` is the whole of §91.8 tests 53 and 54.
+///
+/// "Agent cannot authorize" and "agent cannot allocate enterprise ID" are not
+/// enforced by a check that looks for those fields — they are enforced by this
+/// struct being the agent's ENTIRE output surface, so a field it does not name
+/// cannot travel. Without the attribute a proposal carrying
+/// `enterprise_id: "ENT-0001"` and `authorized_by: "the agent itself"` parsed
+/// and validated clean: serde dropped both silently, and the agent had no way to
+/// learn that the identifier it believed it allocated went nowhere. Silently
+/// ignoring an attempt to exceed authority is worse than refusing it, because
+/// nothing on either side records that it happened.
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct DraftProposal {
     pub api_version: String,
     #[serde(default)]

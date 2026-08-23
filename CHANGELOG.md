@@ -10,6 +10,23 @@ one 0.x version are not guaranteed to be reproducible by another.
 
 ## [Unreleased]
 
+### Changed — BREAKING for agents that emit Draft Proposals
+
+`DraftProposal` (`oh.war/draft-proposal/v1`) now carries
+`#[serde(deny_unknown_fields)]`. A proposal containing any field outside §74.2's
+surface is REFUSED at parse rather than silently ignored.
+
+This is deliberate and is §91.8 tests 53 and 54. Previously an agent could send
+`enterprise_id` or `authorized_by` and serde dropped them without a word, so an
+agent that believed it had allocated an identifier had no way to learn otherwise.
+Silently ignoring an attempt to exceed authority is worse than refusing it.
+
+The protocol version is unchanged because the accepted field set is unchanged —
+what changed is that fields outside it are now an error. An agent emitting only
+§74.2 fields is unaffected.
+
+
+
 ### Beta opened — 2026-08-21
 
 Alpha closed with all 40 Warrants resolved and OpenWarrant public. Beta is the

@@ -1,0 +1,1 @@
+{"api_version":"oh.war/draft-proposal/v1","proposed_identity":"OW-WAR-9001","atom_operations":[{"write_file":{"path":"/etc/passwd","bytes":"pwned"}}],"risk_assessment":"low"}
