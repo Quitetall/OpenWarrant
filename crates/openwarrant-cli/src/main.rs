@@ -15,6 +15,7 @@ mod compile;
 mod diagnostic;
 mod gate_cmd;
 mod init;
+mod kf;
 mod migrate;
 mod new;
 mod relations;
@@ -22,6 +23,43 @@ mod repo;
 mod resolve;
 mod show;
 mod telemetry;
+
+#[derive(clap::Subcommand, Debug)]
+enum KfCommand {
+    /// Read KF's health. The only call here that cannot mutate.
+    Health {
+        #[arg(long, default_value = "http://127.0.0.1:4000")]
+        base: String,
+    },
+    /// POST a §67 typed action. WRITES to an authoritative external record.
+    Act {
+        #[arg(long, default_value = "http://127.0.0.1:4000")]
+        base: String,
+        /// e.g. `document.create`.
+        action_type: String,
+        #[arg(long)]
+        actor: String,
+        #[arg(long)]
+        acting_role: String,
+        #[arg(long)]
+        organization: String,
+        #[arg(long)]
+        reason: String,
+        /// Supplied by the CALLER; KF refuses fewer than 8 characters.
+        #[arg(long)]
+        idempotency_key: String,
+        /// What the action targets. KF validates these; an empty envelope
+        /// would 400 at the server, which tells the caller nothing useful.
+        #[arg(long = "target-id")]
+        target_ids: Vec<String>,
+        /// The action payload, as JSON.
+        #[arg(long, default_value = "{}")]
+        payload: String,
+        /// Required. Without it this refuses rather than writes.
+        #[arg(long)]
+        confirm_write: bool,
+    },
+}
 
 /// Exit codes. §76.4 wants machine-usable output; a caller distinguishing
 /// "your input was wrong" from "the Warrant is not sound" needs more than 0/1.
@@ -164,6 +202,13 @@ enum Command {
         attempt_promotion: bool,
     },
 
+    /// §67 Knowledge Fabric seam. `health` reads; `act` WRITES and needs
+    /// --confirm-write.
+    Kf {
+        #[command(subcommand)]
+        cmd: KfCommand,
+    },
+
     /// §94 telemetry baseline, §95 untracked-work candidates, §100 metrics.
     Telemetry {
         /// The commit this baseline is taken at (§94, OBL-001).
@@ -261,6 +306,54 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 EXIT_NOT_READY
             })
         }
+        Command::Kf { cmd } => match cmd {
+            KfCommand::Health { base } => {
+                let client = kf::Client::new(&base)?;
+                println!("{}", client.health()?);
+                Ok(EXIT_OK)
+            }
+            KfCommand::Act {
+                base,
+                action_type,
+                actor,
+                acting_role,
+                organization,
+                reason,
+                idempotency_key,
+                target_ids,
+                payload,
+                confirm_write,
+            } => {
+                if !confirm_write {
+                    return Err(Box::new(repo::RepoError::Message(
+                        "refusing to POST a §67 action without --confirm-write. This writes \
+                         to an authoritative external record, and a seam that is easy to \
+                         reach by accident is how a diagnostic becomes a fabrication."
+                            .to_owned(),
+                    )));
+                }
+                let client = kf::Client::new(&base)?;
+                let body = client.post_action(
+                    &action_type,
+                    &kf::Actor {
+                        actor,
+                        acting_role,
+                        organization,
+                    },
+                    &kf::ActionEnvelope {
+                        target_ids,
+                        payload: serde_json::from_str(&payload).map_err(|e| {
+                            repo::RepoError::Message(format!("--payload is not JSON: {e}"))
+                        })?,
+                        reason,
+                        idempotency_key,
+                    },
+                )?;
+                println!("{body}");
+                Ok(EXIT_OK)
+            }
+        },
+
         Command::Telemetry {
             commit,
             out,

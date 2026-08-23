@@ -47,6 +47,18 @@ serde_json = { version = "1", features = ["preserve_order"] }
 sha2 = "0.11"
 thiserror = "2"
 toml = "1.1"
+# The first network dependency in this workspace, added for the §67 Knowledge
+# Fabric seam (OW-WAR-0044). Blocking and runtime-free on purpose: `war` is a
+# CLI with no async anywhere, and pulling tokio in to make one HTTP request
+# would be a larger change to this tool than the feature justifies.
+#
+# NO TLS BACKEND, deliberately. Every TLS configuration of ureq 3.4 — `rustls`,
+# `platform-verifier`, `native-tls` — pulls Mozilla's CA bundle
+# (`webpki-roots` / `webpki-root-certs`) under CDLA-Permissive-2.0, which
+# `deny.toml`'s permissive-only allowlist rejects. Measured: 144 / 166 / 160
+# crates and rejected, against 121 and clean without. `war kf` refuses an
+# `https://` URL rather than failing in transport; see `kf.rs`.
+ureq = { version = "3", default-features = false, features = ["json"] }
 uuid = { version = "1", features = ["v7", "serde"] }
 
 [profile.release]
