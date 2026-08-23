@@ -378,9 +378,14 @@ pub mod plan {
     /// review) to the caller, because they need a human. `may_apply` then
     /// refuses while either is outstanding, so `--apply` cannot skip the review
     /// that §74.4 requires.
+    /// `known_refs` are the references this repository can actually resolve.
+    /// Pass an empty set only where no corpus is available; an empty set means
+    /// every `war://` the agent names is unresolvable, which is correct for a
+    /// caller that has nothing to resolve against.
     pub fn validate_proposal(
         json: &str,
         reviewed: bool,
+        known_refs: &std::collections::BTreeSet<String>,
     ) -> Result<(DraftProposal, ApplicationPipeline), RepoError> {
         let mut pipeline = ApplicationPipeline::default();
 
@@ -401,6 +406,56 @@ pub mod plan {
             .validate()
             .map_err(|e| RepoError::Message(format!("{e}")))?;
         pipeline.complete(APPLICATION_STEPS[2]);
+
+        // §91.8 test 58 — "Noninteractive missing clarification fails closed."
+        //
+        // `require_blockers_answered` was written, is correct, and was called
+        // from nowhere: a proposal carrying an unanswered `removes_blocker`
+        // question validated clean and reported itself APPLICABLE. The rule
+        // existed and the shipped binary never asked it.
+        //
+        // The answered set is empty because this path is noninteractive by
+        // construction — `war plan` takes a proposal file and no answers. That is
+        // the point of the test: with nobody to ask, an outstanding blocker must
+        // stop the run rather than be assumed away.
+        openwarrant_core::drafting::require_blockers_answered(
+            &proposal.unresolved_questions,
+            &std::collections::BTreeSet::new(),
+        )
+        .map_err(|e| RepoError::Message(format!("{e}")))?;
+
+        // §91.8 test 55 — "Agent-invented source reference is unresolved and
+        // blocks." A planner that cites `war://01a0-…` for a Warrant that does
+        // not exist has invented a source, and the invention is indistinguishable
+        // from a real citation by SHAPE — only resolution tells them apart. Until
+        // now an invented reference validated clean.
+        //
+        // Only `war://` is resolved. `sas://` and `roadmap://` name documents
+        // this repository does not index, and refusing them would refuse every
+        // honest proposal.
+        let invented: Vec<&str> = proposal
+            .proposed_relations
+            .iter()
+            .map(String::as_str)
+            .filter(|r| r.starts_with("war://") && !known_refs.contains(*r))
+            .collect();
+        if !invented.is_empty() {
+            return Err(RepoError::Message(format!(
+                "the proposal cites {} source reference(s) this repository cannot \
+                 resolve: {}. §74.4 step 3 — an invented citation has the same shape \
+                 as a real one, so an unresolved reference blocks rather than warns",
+                invented.len(),
+                // Debug-quoted: a reference is agent-supplied text, and a raw
+                // newline or terminal escape in an error message is the agent
+                // choosing what the operator's terminal does.
+                invented
+                    .iter()
+                    .map(|r| format!("{r:?}"))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )));
+        }
+
         pipeline.complete(APPLICATION_STEPS[3]);
 
         // §74.4 steps 5 and 6 need a human. Recording them only when review has
@@ -421,25 +476,27 @@ pub mod plan {
         /// §74.4 — an unreviewed proposal cannot be applied, however valid.
         #[test]
         fn a_valid_but_unreviewed_proposal_cannot_be_applied() {
-            let (_, pipeline) = validate_proposal(MINIMAL, false).expect("valid");
+            let (_, pipeline) =
+                validate_proposal(MINIMAL, false, &Default::default()).expect("valid");
             assert!(
                 pipeline.may_apply().is_err(),
                 "a proposal was applicable without the review §74.4 requires"
             );
 
-            let (_, reviewed) = validate_proposal(MINIMAL, true).expect("valid");
+            let (_, reviewed) =
+                validate_proposal(MINIMAL, true, &Default::default()).expect("valid");
             assert_eq!(reviewed.may_apply(), Ok(()));
         }
 
         #[test]
         fn a_proposal_from_another_protocol_version_is_refused() {
             let other = r#"{"api_version":"oh.war/draft-proposal/v2"}"#;
-            assert!(validate_proposal(other, true).is_err());
+            assert!(validate_proposal(other, true, &Default::default()).is_err());
         }
 
         #[test]
         fn a_malformed_proposal_is_refused_at_the_parse_step() {
-            assert!(validate_proposal("{not json", true).is_err());
+            assert!(validate_proposal("{not json", true, &Default::default()).is_err());
         }
 
         /// §74.7 travels through the seam: a buried durable choice is refused
@@ -451,7 +508,9 @@ pub mod plan {
                 "durable_choices":[{"statement":"format choice","alternatives":["a","b"],
                                     "proposed_adr_draft":""}]
             }"#;
-            let err = validate_proposal(buried, true).unwrap_err().to_string();
+            let err = validate_proposal(buried, true, &Default::default())
+                .unwrap_err()
+                .to_string();
             assert!(err.contains("durable alternatives"), "{err}");
         }
     }

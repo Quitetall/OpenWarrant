@@ -42,6 +42,71 @@ classification: internal
   and 54 in particular must refuse an agent that attempts to authorize or to
   allocate an enterprise identifier.
 
+## Evidence
+
+### EV-001 — the §91.8 plant battery
+- **class:** evidence
+- **kind:** gate_run_output
+- **origin:** gate_runner
+- **admissibility:** controlled_measurement
+- **digest:** sha256:pending-receipt-binding
+- **method:** conformance/plant.sh — seven plants feeding committed Draft
+  Proposal fixtures to the shipped `war plan`, six for §91.8 tests 52-56 and 58
+  and one for §74.3
+- **occurred at:** 2026-08-22
+
+### OBS-001 — two of §91.8's controls did not exist and two were unreachable
+- **class:** observation
+- **evidence:** EV-001
+- **method:** probed before implementing. A proposal carrying
+  `enterprise_id: "ENT-0001-ALLOCATED-BY-THE-AGENT"` and
+  `authorized_by: "the agent itself"` parsed and validated CLEAN — serde dropped
+  both silently. A proposal with an unanswered `removes_blocker` question
+  reported itself APPLICABLE. A proposal citing
+  `war://01a0-does-not-exist-anywhere` validated clean.
+- **admissibility:** controlled_measurement
+
+### OBS-002 — the fixtures use no corpus mutation, so no plant can silently no-op
+- **class:** observation
+- **evidence:** EV-001
+- **method:** each plant feeds a committed fixture file rather than editing the
+  corpus with `sed`, so there is no pattern that can stop matching. Both
+  implemented controls were additionally falsified: removing
+  `deny_unknown_fields` fails exactly two plants, removing the
+  `require_blockers_answered` call fails exactly one.
+- **admissibility:** controlled_measurement
+
+### INF-001 — tests 53 and 54 are enforced by shape, not by a check
+- **class:** inference
+- **kind:** deductive
+- **premises:** OBS-001, OBS-002
+- **claim:** agent-cannot-exceed-authority
+- **reasoning:** "Agent cannot authorize" and "agent cannot allocate enterprise
+  ID" are not enforced by looking for those fields. `DraftProposal` is the
+  agent's entire output surface, so with `deny_unknown_fields` a field it does
+  not name cannot travel at all. The same holds for §74.3: `write_file` is not a
+  forbidden operation but an unrepresentable one, and the refusal names all seven
+  alternatives. A vocabulary that cannot express the dangerous thing is stronger
+  than a check that looks for it, because it needs no list of what to look for.
+- **admissibility:** controlled_measurement
+
+### JDG-001 — OBL-001, OBL-002 and test 57 are open, and none is narrowed
+- **class:** judgment
+- **kind:** scope_holding
+- **actor:** QuiteTall
+- **acting role:** author
+- **meaning:** OBL-001 and OBL-002 require a real drafting agent answering over
+  §75.2 as a SEPARATE PROCESS — "a proposal constructed in-process is this
+  project grading itself", which is the obligation's own phrasing and is right.
+  No agent has been invoked. §91.8 test 57 ("Agent proposal diff is deterministic
+  from response bytes") needs a diff-emitting path, and `war plan` emits none
+  because §74.4 steps 5 and 6 are human. All three are recorded as open rather
+  than narrowed: each needs work, not a decision that it cannot be done.
+- **basis:** OBS-001
+- **authority:** authorized
+- **limitations:** one actor, so this judgment is not independently reviewed —
+  §27.4 says role separation by one person is not organizational independence
+
 ## Gate Adequacy
 
 Required at `controlled`.

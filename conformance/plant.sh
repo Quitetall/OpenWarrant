@@ -517,6 +517,51 @@ plant_cmd "a lowering with no computational stage" "blut.not-computational" "rej
 plant_cmd "a lowering against no pinned registry" "blut.lowered" "pinned registry" 0 \
     "true" blut OW-WAR-0047
 
+# §91.8 tests 52-58 — the agent-drafting seam (§74, §75.2).
+#
+# These plants feed COMMITTED FIXTURES to the shipped binary rather than mutating
+# the corpus, so there is no sed to become a no-op — the input is the artefact.
+# Each fixture is a Draft Proposal an agent could plausibly return.
+#
+# F=conformance/fixtures/proposals
+plant_cmd "52: a malformed Draft Proposal" "did not parse" "key must be a string" 1 \
+    "true" plan "t" --proposal conformance/fixtures/proposals/52-malformed.json --reviewed
+
+# 53 and 54 are enforced by the SHAPE of the proposal, not by a check that looks
+# for these fields. `DraftProposal` is the agent's entire output surface and now
+# carries `deny_unknown_fields`, so a field it does not name cannot travel.
+# Before that, both of these parsed and validated CLEAN — serde dropped them
+# silently, and the agent had no way to learn that the identifier it believed it
+# allocated went nowhere.
+plant_cmd "53: an agent authorizing itself" "unknown field" "authorized_by" 1 \
+    "true" plan "t" --proposal conformance/fixtures/proposals/53-self-authorized.json --reviewed
+
+plant_cmd "54: an agent allocating an enterprise ID" "unknown field" "enterprise_id" 1 \
+    "true" plan "t" --proposal conformance/fixtures/proposals/54-enterprise-id.json --reviewed
+
+# An invented citation has the same SHAPE as a real one. Only resolution tells
+# them apart, and until now nothing resolved them.
+plant_cmd "55: an agent-invented source reference" "cannot resolve" "blocks rather than warns" 1 \
+    "true" plan "t" --proposal conformance/fixtures/proposals/55-invented-ref.json --reviewed
+
+plant_cmd "56: a durable choice with no ADR draft" "74.7" "bury the choice" 1 \
+    "true" plan "t" --proposal conformance/fixtures/proposals/56-choice-no-adr.json --reviewed
+
+# `require_blockers_answered` was written, correct, and called from nowhere: a
+# proposal with an unanswered blocker-removing question reported itself
+# APPLICABLE. The rule existed and the binary never asked it.
+plant_cmd "58: an unanswered blocking question" "74.6" "MINIMUM set" 1 \
+    "true" plan "t" --proposal conformance/fixtures/proposals/58-unanswered-blocker.json --reviewed
+
+# §74.3 / OBL-003 — the model writes no file, and cannot ask to.
+#
+# `AtomOperation` is an enum of exactly §74.3's seven operations, so `write_file`
+# is not a forbidden operation — it is an unrepresentable one, and the refusal
+# names all seven alternatives. A vocabulary that cannot express the dangerous
+# thing beats a check that looks for it.
+plant_cmd "an agent asking to write a file" "unknown variant" "write_file" 1 \
+    "true" plan "t" --proposal conformance/fixtures/proposals/74-3-write-file.json --reviewed
+
 # §91.5 test 31 — the parent's generated view LISTS ITS CHILD.
 #
 # §20.4's child list is rendered from the corpus, not written by hand. Deleting

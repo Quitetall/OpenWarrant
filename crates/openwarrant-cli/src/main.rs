@@ -248,7 +248,42 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             if let Some(path) = proposal {
                 let json = std::fs::read_to_string(&path)
                     .map_err(|e| repo::RepoError::Message(format!("cannot read {path}: {e}")))?;
-                let (parsed, pipeline) = show::plan::validate_proposal(&json, reviewed)?;
+                // Every `war://` this corpus can resolve, so an invented one can
+                // be told from a real one by more than its shape.
+                //
+                // Built only when the proposal actually cites something. Loading
+                // the whole corpus to answer a question nobody asked is a cost
+                // every `war plan` would pay for the benefit of the few that
+                // carry relations.
+                let cites_relations = serde_json::from_str::<serde_json::Value>(&json)
+                    .ok()
+                    .and_then(|v| {
+                        v.get("proposed_relations")
+                            .and_then(|r| r.as_array().map(|a| !a.is_empty()))
+                    })
+                    .unwrap_or(false);
+
+                let mut known = std::collections::BTreeSet::new();
+                if cites_relations {
+                    for dir in repository.warrant_dirs()? {
+                        // A Warrant that fails to LOAD is not a Warrant that does
+                        // not exist. Swallowing the error here would report a real
+                        // reference as invented — the wrong diagnosis, and the
+                        // more alarming one, for a corrupt file.
+                        let loaded = repository.load_warrant(&dir).map_err(|e| {
+                            repo::RepoError::Message(format!(
+                                "cannot resolve proposal references: {} failed to load \
+                                 ({e}). Refusing to report a reference as invented when \
+                                 the corpus could not be read.",
+                                repository.relative(&dir)
+                            ))
+                        })?;
+                        if let Some(v) = loaded.validated {
+                            known.insert(format!("war://{}", v.uuid));
+                        }
+                    }
+                }
+                let (parsed, pipeline) = show::plan::validate_proposal(&json, reviewed, &known)?;
                 match pipeline.may_apply() {
                     Ok(()) => {
                         println!(
