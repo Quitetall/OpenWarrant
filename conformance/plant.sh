@@ -517,6 +517,23 @@ plant_cmd "a lowering with no computational stage" "blut.not-computational" "rej
 plant_cmd "a lowering against no pinned registry" "blut.lowered" "pinned registry" 0 \
     "true" blut OW-WAR-0047
 
+# §67 — the Knowledge Fabric seam WRITES, and must be hard to reach by accident.
+#
+# `war kf act` POSTs a typed action to an authoritative external record. A seam
+# that is easy to trigger is how a diagnostic becomes a fabrication, so the write
+# needs --confirm-write and refuses without it.
+plant_cmd "a §67 action without --confirm-write" "refusing to POST" "fabrication" 1 \
+    "true" kf act document.create --actor t --acting-role r --organization o \
+    --reason t --idempotency-key abcdefgh
+
+# This build has no TLS backend, because every TLS configuration of ureq 3.4
+# pulls Mozilla's CA bundle under CDLA-Permissive-2.0 and deny.toml's
+# permissive-only allowlist rejects it. An https:// URL must be refused with a
+# message about THIS BUILD — a client that accepts the URL and fails in transport
+# teaches the operator that KF is down.
+plant_cmd "an https KF url this build cannot serve" "without a TLS backend" "CDLA-Permissive-2.0" 1 \
+    "true" kf health --base https://kf.example.org
+
 # §95 — a relation attached after the fact WITHOUT REVIEW is a fabrication.
 #
 # `UntrackedWork::attach_relation` refuses an empty reviewer and shipped in

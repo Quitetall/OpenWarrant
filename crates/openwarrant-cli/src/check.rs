@@ -3,6 +3,12 @@
 //!
 //! No model, no network, no clock. Reproducibility is not a nicety here: a
 //! checker whose verdict can vary is not a control.
+//!
+//! That was once guaranteed by the binary having no HTTP client at all. Since
+//! OW-WAR-0044 it is guaranteed by this module not using the one it has: `ureq`
+//! is linked for the §67 Knowledge Fabric seam, and `war kf` is the only
+//! command that dials. `war check` reaching the network would make its verdict
+//! depend on someone else's uptime, which is the opposite of a control.
 
 use std::collections::BTreeMap;
 
