@@ -101,12 +101,16 @@ exists.
 - **kind:** scope_narrowing
 - **actor:** QuiteTall
 - **acting role:** author
-- **meaning:** §91.2 tests 11, 13, 14 and 15 are narrowed by OW-ADR-0007. Test 11
-  is unreadable — its definition is in no file in this repository. Test 13 is
-  schema-blocked — `AtomEntry` has no revision field to check. Tests 14 and 15
-  are blocked on a decision nobody has made. Implementing something against an
-  unread specification, a missing field or an undecided question would produce a
-  rule that passes its own tests and certifies nothing.
+- **meaning:** §91.2 tests 11, 13, 14 and 15 are dispositioned by OW-ADR-0008,
+  which supersedes the falsified OW-ADR-0007. Test 11 is IMPLEMENTABLE and moves
+  to OW-WAR-0043. Test 13 is schema-blocked — `AtomEntry` has no revision field.
+  Test 14 is blocked on a `source_holder` that §13 requires and no atom declares.
+  Test 15 is blocked on a classification ordering the SAS does not give.
+
+  OW-ADR-0007 said three of these were unreadable or undecided, on the premise
+  that the SAS was not in this repository. It is, at `docs/sas/`. That judgment
+  was made from two failed globs rather than a directory listing, and is recorded
+  as falsified rather than removed.
 - **basis:** OBS-002, INF-001
 - **authority:** authorized
 - **limitations:** one actor, so this judgment is not independently reviewed —
