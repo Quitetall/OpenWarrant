@@ -41,6 +41,103 @@ classification: internal
 - **evidence:** seven entries in `conformance/`, each rejected by a
   named rule with a named detail string.
 
+## Evidence
+
+§40's records for the import, which ran for real against the LamQuant corpus.
+
+### EV-001 — the import artifact
+- **class:** evidence
+- **kind:** migration_artifact
+- **origin:** performer
+- **admissibility:** performer_report_only
+- **digest:** sha256:pending-receipt-binding
+- **method:** `war migrate --corpus /mnt/4tb/LamQuant/docs/decisions --commit
+  0e0e04a7a6cff7901c073c27cc233d9af9f11664`, written to
+  `artifacts/lamquant-adr-import.json`
+- **occurred at:** 2026-08-22
+
+### EV-002 — the determinism re-run
+- **class:** evidence
+- **kind:** gate_run_output
+- **origin:** gate_runner
+- **admissibility:** controlled_measurement
+- **digest:** sha256:pending-receipt-binding
+- **method:** the same command with `--verify`, which compares against the
+  committed artifact instead of writing it; exit 0
+- **occurred at:** 2026-08-22
+
+### EV-003 — the promotion refusal
+- **class:** evidence
+- **kind:** negative_control
+- **origin:** gate_runner
+- **admissibility:** controlled_measurement
+- **digest:** sha256:pending-receipt-binding
+- **method:** the same command with `--attempt-promotion`, which tries to promote
+  every completion line and must always fail
+- **occurred at:** 2026-08-22
+
+### OBS-001 — 173 ADRs imported at one frozen commit, zero preservation failures
+- **class:** observation
+- **evidence:** EV-001
+- **method:** counted by the importer across the whole frozen corpus, not a
+  sample. The corpus directory holds 175 `.md` files; `README.md` and
+  `TEMPLATE.md` are not ADRs and are not matched by the `NNNN-*.md` rule, which
+  accounts for the difference exactly — the two were checked by name rather than
+  assumed to be the gap.
+- **admissibility:** performer_report_only
+
+### OBS-002 — a re-run at the same SHA is byte-identical
+- **class:** observation
+- **evidence:** EV-002
+- **method:** `--verify` exited 0 against the committed artifact
+- **admissibility:** controlled_measurement
+
+### OBS-003 — zero completion claims became resolutions, and promotion is refused by name
+- **class:** observation
+- **evidence:** EV-001, EV-003
+- **method:** the artifact records 82 historical claims and 0 promoted
+  resolutions; `--attempt-promotion` exits 1 with `LegacyCompletionPromoted`
+  naming `0057-training-campaign-plan.md`. The count alone would not be evidence
+  — a build that promoted nothing because it tried nothing looks identical — so
+  the negative control is what makes the zero mean something.
+- **admissibility:** controlled_measurement
+
+### EV-004 — the test 31 plant
+- **class:** evidence
+- **kind:** gate_run_output
+- **origin:** gate_runner
+- **admissibility:** controlled_measurement
+- **digest:** sha256:pending-receipt-binding
+- **method:** conformance/plant.sh, executed by cargo xtask gate
+- **occurred at:** 2026-08-22
+
+### OBS-004 — §91.5 test 31 has a purpose-built control, and it is planted
+- **class:** observation
+- **evidence:** EV-004
+- **method:** removing the child line from OW-WAR-0001's committed view is
+  rejected by `relations.child-listed`. The plant was first written against
+  `generated.drift`, which also fires, and the harness refused it — §92 requires
+  the intended control, and a rejection for the wrong reason proves nothing
+  about the rule it was meant to exercise.
+- **admissibility:** controlled_measurement
+
+### JDG-001 — OBL-004 is partly discharged, and the remainder is named
+- **class:** judgment
+- **kind:** scope_holding
+- **actor:** QuiteTall
+- **acting role:** author
+- **meaning:** OBL-004 asks for seven plants. One exists — §91.5 test 31, above.
+  The other six are not narrowed and not silent; each is recorded in the Basis
+  with what it needs. Test 24 is a PERMISSION ("a local choice inside autonomy
+  does not require a new ADR"), so its control is a positive one rather than a
+  rejection, and §92's plant shape does not fit it without a decision about what
+  a permission-plant asserts. Tests 30, 32, 33, 34 and 35 need rules that do not
+  exist yet, not plants against rules that do.
+- **basis:** OBS-004
+- **authority:** authorized
+- **limitations:** one actor, so this judgment is not independently reviewed —
+  §27.4 says role separation by one person is not organizational independence
+
 ## Gate Adequacy
 
 Required at `controlled`.

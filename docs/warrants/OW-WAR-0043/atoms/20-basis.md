@@ -75,7 +75,51 @@ OW-WAR-0038 and OW-WAR-0006 resolved.
   *Consequence if false:* an import whose counts cannot be reconciled with the
   source, which is indistinguishable from an import that lost records.
 
+- **Known gap.** OBL-004's remaining six, quoted from
+  `docs/sas/WAR_Software_Architecture_Specification.md` §91.4 and §91.5 rather
+  than summarised, and each with what it actually needs:
+
+  - **24. "A local choice inside autonomy does not require a new ADR."** This is
+    a PERMISSION, not a prohibition. §92's plant shape asks for a violation
+    rejected by its intended control, and a permission has no violation to plant
+    — the honest form is a positive control asserting nothing fires, like the
+    prose-lineage control in OW-WAR-0047. *Resolution requirement:* a decision
+    about what a permission-plant asserts, then the control.
+  - **30. "Parent source is unchanged when child state changes."** Also a
+    property rather than a prohibition. Needs a rule that compares a parent's
+    authored-atom digests across a child-state change, which nothing computes.
+  - **32. "Child cannot silently replace parent rationale."** Needs a comparison
+    between a child's rationale and its parent's, and §35's rationale records
+    exist but are not related across the parent edge.
+  - **33. "Superseding WAR makes old currency `superseded`."** `Currency` and its
+    `Superseded` variant exist in `lifecycle.rs` and are RENDERED — OW-WAR-0001's
+    view shows OW-WAR-0002 as `(current)`. What is missing is the transition:
+    nothing sets a currency to superseded, because no Warrant supersedes another
+    yet.
+  - **34. "Superseded WAR remains exportable."** Blocked behind 33 — there is no
+    superseded Warrant to export.
+  - **35. "Adopted unresolved children are explicit."** Needs an adoption
+    relation; the manifest has `[[parents]]` and no adoption.
+
+  Recorded at this length because the previous attempt at a group like this
+  (OW-ADR-0007) collapsed four tests into one phrase and got three of them wrong.
+
+  Each of the six above states a CODE FACT — that nothing computes a digest
+  across a child-state change, that nothing sets a currency to superseded. Those
+  are true on 2026-08-22 and will stop being true as the code moves, at which
+  point this entry is stale in the direction that matters: it would claim a gap
+  that has closed. Re-read it against the code before citing it, rather than
+  citing it because it is written down.
+
 ## Constraints and Invariants
+
+- **The import artifact is a GOLDEN file.** `--verify` compares byte-for-byte
+  against `artifacts/lamquant-adr-import.json`, so any intentional change to the
+  importer's output format makes the committed artifact stale and the check fail
+  — correctly. The response is to re-run without `--verify`, inspect the diff,
+  and commit the new artifact as a deliberate re-blessing. It is not a one-way
+  door; it is a golden, and a golden that can never be regenerated would be the
+  defect.
 
 - **Bytes are preserved** (§96.1). Migration adds structure alongside
   the original and never replaces it.
