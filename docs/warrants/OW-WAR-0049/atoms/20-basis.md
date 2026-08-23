@@ -21,19 +21,21 @@ OW-WAR-0002 and OW-WAR-0005 resolved.
 
 - **Evidenced premise.** The gaps are already written down, with file and
   line references. This Warrant discovers nothing; it closes what was recorded.
-- **Blocking unknown.** OBL-004's §95 disposition is not recorded. The machinery
-  exists and is unreachable: `LifecycleRelation::attach_relation(warrant,
-  reviewer)` refuses an empty reviewer — the exact control OBL-004 says it relies
-  on — and no `war` command calls it, so the refusal has never run. *Resolution
-  requirement:* a command that attaches a §95 relation, then a disposition of
-  OW-WAR-0005 M4 through it. That is a new verb, not a record, which is why it
-  did not ride along with the three obligations this Warrant did discharge.
+- **Resolved unknown (2026-08-22, by OW-WAR-0041).** OBL-004's §95 disposition
+  was blocked on a verb: `UntrackedWork::attach_relation` refuses an empty
+  reviewer — the exact control OBL-004 relies on — and no command called it, so
+  the refusal had never run.
 
-  The harder half is not the verb. §95 wants a REVIEWER, and this repository has
-  one actor. Naming that actor is permitted — §95 asks for a recorded reviewer,
-  not an independent one — but it produces a disposition whose review is worth
-  what §27.4 says it is worth, and that should be visible in the record rather
-  than discovered later.
+  `war telemetry --attach <scope> --warrant <alias> --reviewer <who>` now calls
+  it, and both directions are planted: no reviewer is refused by
+  `RelationFabricated`, and an attachment WITH a reviewer succeeds. The positive
+  control is not decoration — a build that refused every attachment would satisfy
+  the refusal plant and look like a working review requirement.
+
+  What remains for OBL-004 is a disposition of OW-WAR-0005 M4 through that verb,
+  and the reviewer problem is unchanged: this repository has one actor, so the
+  review §95 asks for is worth what §27.4 says it is worth. That is now a
+  recording decision rather than a missing capability.
 
 - **Resolved unknown (2026-08-22).** This asked whether test 10's claim in
   OW-WAR-0005 should be narrowed or the feature implemented. **Implemented.** It

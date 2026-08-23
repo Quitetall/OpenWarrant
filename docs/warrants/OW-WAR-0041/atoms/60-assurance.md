@@ -40,6 +40,85 @@ classification: internal
   either a baseline value or `no baseline`. It states no delta, because one
   measurement cannot support one.
 
+## Evidence
+
+### EV-001 — the telemetry baseline
+- **class:** evidence
+- **kind:** telemetry_baseline
+- **origin:** performer
+- **admissibility:** performer_report_only
+- **digest:** sha256:pending-receipt-binding
+- **method:** `war telemetry --commit <sha>`, written to
+  `artifacts/telemetry-baseline.json`
+- **occurred at:** 2026-08-22
+
+### EV-002 — the §95 fabrication plants
+- **class:** evidence
+- **kind:** gate_run_output
+- **origin:** gate_runner
+- **admissibility:** controlled_measurement
+- **digest:** sha256:pending-receipt-binding
+- **method:** conformance/plant.sh — an attachment with no reviewer, and a
+  positive control with one
+- **occurred at:** 2026-08-22
+
+### OBS-001 — 7 of §94's 18 measures are takeable; 11 carry a stated reason
+- **class:** observation
+- **evidence:** EV-001
+- **method:** every measure is either a value with a stated method or
+  `not_measurable_yet` with a reason; no measure has neither. Two measures record
+  a value of ZERO and both are real zeros — `auto-authorizable fraction` (no
+  Warrant is auto-authorizable while §56.1 requirement 10 is unmet) and, before
+  correction, `adequacy counterexamples`.
+- **admissibility:** performer_report_only
+
+### OBS-002 — a private counter reported 0 adequacy counterexamples; the shared parser reports 51
+- **class:** observation
+- **evidence:** EV-001
+- **method:** the first implementation counted markdown bullets with its own
+  rule and produced 0. Replacing it with `adequacy::parse` — the same parser
+  `war check` uses — produced 51. The baseline would have published a measured
+  zero for a quantity that is fifty-one.
+- **admissibility:** controlled_measurement
+
+### OBS-003 — §95's fabrication refusal runs from the shipped binary
+- **class:** observation
+- **evidence:** EV-002
+- **method:** `war telemetry --attach` with no `--reviewer` exits 1 with
+  `RelationFabricated`; with a reviewer it exits 0. The positive control matters:
+  a build that refused EVERY attachment would satisfy the refusal plant and look
+  like a working review requirement.
+- **admissibility:** controlled_measurement
+
+### INF-001 — the unmeasurable eleven are blocked on instrumentation, not on effort
+- **class:** inference
+- **kind:** deductive
+- **premises:** OBS-001
+- **claim:** telemetry-baseline
+- **reasoning:** each of the eleven names a property of an authoring SESSION —
+  minutes spent, questions asked, wall time elapsed, cost metered — and a git
+  repository records commits, not sessions. Three of them (`reopenings`,
+  `post-resolution escapes`, and the interview counts) are blocked for a second
+  reason: they are undefined while no Warrant has been resolved and no agent has
+  answered over §75.2. Recording any of them as `0` would assert that the thing
+  was looked for and not found.
+- **admissibility:** performer_report_only
+
+### JDG-001 — no §100 delta is claimed, and none can be
+- **class:** judgment
+- **kind:** scope_holding
+- **actor:** QuiteTall
+- **acting role:** author
+- **meaning:** all sixteen §100 metrics record `no baseline`. §100 is a list of
+  things the system succeeds by REDUCING or INCREASING, and a direction of travel
+  needs two measurements. This is the first. OBL-004 asks for exactly this, and
+  the temptation a success-metrics section creates is precisely to report one
+  sample as an improvement.
+- **basis:** OBS-001
+- **authority:** authorized
+- **limitations:** one actor, so this judgment is not independently reviewed —
+  §27.4 says role separation by one person is not organizational independence
+
 ## Gate Adequacy
 
 Required at `controlled`.
