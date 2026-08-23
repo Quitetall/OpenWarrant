@@ -517,6 +517,21 @@ plant_cmd "a lowering with no computational stage" "blut.not-computational" "rej
 plant_cmd "a lowering against no pinned registry" "blut.lowered" "pinned registry" 0 \
     "true" blut OW-WAR-0047
 
+# §91.5 test 31 — the parent's generated view LISTS ITS CHILD.
+#
+# §20.4's child list is rendered from the corpus, not written by hand. Deleting
+# the line for OW-WAR-0002 from OW-WAR-0001's committed view is what a parent
+# silently losing a child looks like on disk.
+#
+# Asserted against `relations.child-listed`, the rule §20.4 has its own name for,
+# NOT `generated.drift`. Both fire — any hand-edit to a projection drifts — and
+# §92 requires the INTENDED control, because a rejection for the wrong reason
+# proves nothing about the rule it was meant to exercise. This plant was written
+# against drift first and the harness refused it.
+plant "a child removed from its parent's view" "relations.child-listed" "smaller family" 2 \
+    "sed -i '/OW-WAR-0002 (current)/d' docs/warrants/OW-WAR-0001/generated/WAR.md
+     assert_gone 'OW-WAR-0002 (current)' docs/warrants/OW-WAR-0001/generated/WAR.md"
+
 # §91.2 test 10 — a GENERATED atom cannot be edited through an authored-source
 # command. OW-WAR-0005's OBL-002 claimed this test as in scope while the roadmap
 # recorded it unimplemented and no implementation existed: a resolved Warrant
