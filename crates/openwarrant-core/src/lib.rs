@@ -17,6 +17,7 @@ pub mod deliverable;
 pub mod preflight;
 pub mod rationale;
 pub mod traceability;
+pub mod verification;
 mod vocab;
 
 pub mod adequacy;
