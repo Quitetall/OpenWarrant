@@ -139,6 +139,30 @@ classification: internal
   round trip could not pass by refusing everything.
 - **admissibility:** controlled_measurement
 
+### OBS-006 — KF's `recorded_at` is a server column, and the envelope has no field for it
+- **class:** observation
+- **evidence:** EV-001
+- **method:** read from the running instance. `core.action` carries
+  `recorded_at` alongside `actor_id`, `idempotency_key`, `target_ids` and
+  `effective_at`; the `POST /actions/:actionType` body accepts `targetIds`,
+  `idempotencyKey`, `payload`, `reason`, `expectedVersion` and `effectiveAt` and
+  NOTHING else. OBL-001 asks that a client-supplied `recorded_at` be refused —
+  it cannot be supplied at all, which is the stronger form and the same shape
+  that protects `DraftProposal` in OW-WAR-0042.
+- **admissibility:** authoritative_external
+
+### OBS-007 — the write stopped at an empty action registry, not at authorization
+- **class:** observation
+- **evidence:** EV-001
+- **method:** `war kf act` with `--confirm-write` reached the server and was
+  answered `404` for an unregistered action type. `core.action` is empty and the
+  dispatcher resolves definitions from the database rather than from a compiled
+  list, so no §67 action can be recorded in this instance until KF's ontology
+  registry is seeded. Determined by attempting the write once, with a
+  deliberately invalid type, rather than by reading further into a neighbour's
+  internals.
+- **admissibility:** authoritative_external
+
 ### JDG-001 — OBL-001, OBL-002 and OBL-004 are held, not narrowed
 - **class:** judgment
 - **kind:** scope_holding
@@ -147,11 +171,15 @@ classification: internal
 - **meaning:** all three require WRITING to KF — a recorded action envelope with
   a server-assigned `recorded_at`, an allocator-returned enterprise identifier,
   and a §68 round trip through a real instance. The adapter that would do it
-  exists and is exercised read-only. The writes are held because the KF dev
-  database is shared with another agent's in-flight test run, and because a §67
-  action mutates an authoritative external record: doing that to someone else's
-  working state to satisfy our own obligation is the wrong trade. Held pending
-  authorization, not narrowed — nothing about the obligations has changed.
+  exists and is exercised read-only. Authorization to write was later given and
+  the write was attempted; it stopped at KF's own registry, which answers 404 for
+  an unregistered action type (OBS-007). So the block moved from "not allowed" to
+  "nothing to record against", which is a different and more tractable problem:
+  it needs a seeded ontology in that instance, not a decision here.
+
+  OBL-001's second half is already met in the stronger form — `recorded_at`
+  cannot be client-supplied because the envelope has no such field (OBS-006).
+  Held, not narrowed: nothing about the obligations has changed.
 - **basis:** OBS-001, OBS-003
 - **authority:** authorized
 - **limitations:** one actor, so this judgment is not independently reviewed —

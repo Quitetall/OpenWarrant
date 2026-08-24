@@ -52,13 +52,14 @@ toml = "1.1"
 # CLI with no async anywhere, and pulling tokio in to make one HTTP request
 # would be a larger change to this tool than the feature justifies.
 #
-# NO TLS BACKEND, deliberately. Every TLS configuration of ureq 3.4 — `rustls`,
-# `platform-verifier`, `native-tls` — pulls Mozilla's CA bundle
-# (`webpki-roots` / `webpki-root-certs`) under CDLA-Permissive-2.0, which
-# `deny.toml`'s permissive-only allowlist rejects. Measured: 144 / 166 / 160
-# crates and rejected, against 121 and clean without. `war kf` refuses an
-# `https://` URL rather than failing in transport; see `kf.rs`.
-ureq = { version = "3", default-features = false, features = ["json"] }
+# TLS via `rustls`. Every TLS configuration of ureq 3.4 pulls Mozilla's CA
+# bundle under CDLA-Permissive-2.0 — measured at 144 (rustls), 166
+# (platform-verifier) and 160 (native-tls) crates, all initially rejected by
+# `deny.toml`. `rustls` is the cheapest of the three and the one without a
+# system-OpenSSL build dependency. The licence is admitted by a narrow
+# `exceptions` entry naming the two CA-bundle crates; the reasoning is recorded
+# in deny.toml, not here.
+ureq = { version = "3", default-features = false, features = ["rustls", "json"] }
 uuid = { version = "1", features = ["v7", "serde"] }
 
 [profile.release]

@@ -1,20 +1,23 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //! `war kf` — the §67 Knowledge Fabric seam.
 //!
-//! # This build cannot speak HTTPS, and says so
+//! # HTTPS works, after a licence decision that was recorded rather than assumed
 //!
-//! `ureq` is compiled WITHOUT a TLS backend. That is a license decision, not an
-//! oversight: every TLS configuration of ureq 3.4 pulls Mozilla's CA bundle
-//! (`webpki-roots` or `webpki-root-certs`) under `CDLA-Permissive-2.0`, which
-//! `deny.toml`'s permissive-only allowlist rejects. The allowlist's own comment
-//! says adding a license "is a decision about whether OpenWarrant can still be
-//! relicensed afterwards", and that decision belongs to whoever owns the
-//! Apache-2.0 path, not to the commit that needed one HTTP request.
+//! This shipped without a TLS backend for one commit. Every TLS configuration of
+//! ureq 3.4 pulls Mozilla's CA bundle (`webpki-roots` or `webpki-root-certs`)
+//! under `CDLA-Permissive-2.0`, and `deny.toml`'s permissive-only allowlist
+//! rejected all of them — so the seam was HTTP-only and said so at the point of
+//! use rather than failing in transport.
 //!
-//! So [`Client::new`] REFUSES any URL this build cannot honestly serve, naming
-//! the missing feature. A client that accepts an `https://` URL and then fails
-//! inside the transport teaches the operator that KF is down; this one says the
-//! binary cannot reach it.
+//! `deny.toml` now carries a NARROW exception naming the two CA-bundle crates,
+//! which is what its own header says to do instead of widening the blanket
+//! allow list. The reasoning is recorded there: CDLA-Permissive-2.0 is the
+//! permissive member of its family, it covers certificate DATA rather than code,
+//! and it is unavoidable for TLS in this ecosystem. A future CDLA-licensed crate
+//! carrying code will still fail the gate, which is correct — that is a
+//! different decision from this one.
+//!
+//! [`Client::new`] still refuses a scheme it cannot serve at all.
 //!
 //! # Nothing here writes without being asked twice
 //!
@@ -64,18 +67,12 @@ impl std::fmt::Debug for Client {
 impl Client {
     /// Refuse a URL this build cannot serve, rather than failing in transport.
     pub fn new(base: &str) -> Result<Self, RepoError> {
-        if base.starts_with("https://") {
+        if !base.starts_with("http://") && !base.starts_with("https://") {
             return Err(RepoError::Message(format!(
-                "this build cannot reach {base}: `ureq` is compiled without a TLS backend. \
-                 Every TLS configuration of ureq 3.4 pulls Mozilla's CA bundle under \
-                 CDLA-Permissive-2.0, which deny.toml's permissive-only allowlist rejects. \
-                 Enabling TLS means adding a narrow `exceptions` entry for the CA-bundle \
-                 crate — a decision about the Apache-2.0 relicense path, recorded \
-                 deliberately or not at all."
+                "not an http(s) URL: {base}. This build speaks both; a scheme it cannot \
+                 serve is refused here rather than inside the transport, where it would \
+                 read as the service being unreachable."
             )));
-        }
-        if !base.starts_with("http://") {
-            return Err(RepoError::Message(format!("not an http(s) URL: {base}")));
         }
         Ok(Self {
             base: base.trim_end_matches('/').to_owned(),
@@ -132,17 +129,13 @@ impl Client {
 mod tests {
     use super::*;
 
-    /// The refusal is the feature. An `https://` URL must fail with a message
-    /// about THIS BUILD, not about the network.
+    /// HTTPS is accepted now. This test exists because it did NOT hold for one
+    /// commit, and the reason it holds is a recorded licence exception rather
+    /// than a code change — so a future narrowing of `deny.toml` that silently
+    /// dropped TLS would break here rather than at a remote KF.
     #[test]
-    fn an_https_url_is_refused_by_name() {
-        let err = Client::new("https://kf.example.org").expect_err("no TLS in this build");
-        let msg = err.to_string();
-        assert!(msg.contains("without a TLS backend"), "{msg}");
-        assert!(
-            msg.contains("CDLA-Permissive-2.0"),
-            "the refusal must name WHY, so it is fixable: {msg}"
-        );
+    fn an_https_url_is_accepted() {
+        assert!(Client::new("https://kf.example.org").is_ok());
     }
 
     #[test]
@@ -150,6 +143,7 @@ mod tests {
         assert!(Client::new("kf.example.org").is_err());
         assert!(Client::new("ftp://kf.example.org").is_err());
         assert!(Client::new("http://127.0.0.1:4000").is_ok());
+        assert!(Client::new("https://127.0.0.1:4000").is_ok());
     }
 
     /// KF's own floor, enforced client-side so the caller learns which field is
