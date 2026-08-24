@@ -52,10 +52,18 @@ esac
 
 if [ "$VERSION" = "latest" ]; then
     note "resolving the latest release..."
+    # NOT /releases/latest. That endpoint EXCLUDES prereleases, and the release
+    # workflow marks every v0.x as a prerelease because the protocol is not
+    # stable before 1.0. Both of those are correct on their own and broken
+    # together: /releases/latest 404s for the entire pre-1.0 life of the project.
+    #
+    # /releases lists everything, newest first. An unauthenticated caller cannot
+    # see drafts at all, so the first tag_name is the newest published release.
+    #
     # `|| true` is load-bearing: under `set -e`, a failing curl inside a command
     # substitution aborts the script before the diagnostic below can run, and the
     # user sees a bare `curl: (22)` instead of being told no release exists.
-    resp="$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" 2>/dev/null || true)"
+    resp="$(curl -fsSL "https://api.github.com/repos/${REPO}/releases?per_page=10" 2>/dev/null || true)"
     VERSION="$(printf '%s' "$resp" | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p' | head -1)"
     [ -n "$VERSION" ] || die "no published release found for ${REPO}.
 
