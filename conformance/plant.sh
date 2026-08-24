@@ -517,6 +517,25 @@ plant_cmd "a lowering with no computational stage" "blut.not-computational" "rej
 plant_cmd "a lowering against no pinned registry" "blut.lowered" "pinned registry" 0 \
     "true" blut OW-WAR-0047
 
+# §91.13 tests 91-94 — §68 preservation.
+#
+# The export REFUSES today, and that is the test passing rather than failing:
+# §68.2 names fourteen required contents and this repository can supply ten.
+# A package that omitted four and looked complete would be the defect.
+plant_cmd "a §68 export missing required contents" "68.2 requires" "audit receipts" 1 \
+    "true" export OW-WAR-0044
+
+# §68.3's VACUOUS comparison, which is the failure mode the section warns about.
+# Two exports that both omit the same evidence agree about nothing in particular,
+# so identical digests are not enough — the bytes must have been reconnected.
+plant_cmd "a round trip that never reconnected the bytes" "not reconnected" "missing the same data" 1 \
+    "true" export OW-WAR-0044 --round-trip
+
+# The positive control. Without it, a build that refused EVERY round trip would
+# satisfy the plant above and look like a working §68.3 check.
+plant_cmd "a round trip with the bytes reconnected" "round trip verified" "sha256:" 0 \
+    "true" export OW-WAR-0044 --round-trip --reconnect
+
 # §67 — the Knowledge Fabric seam WRITES, and must be hard to reach by accident.
 #
 # `war kf act` POSTs a typed action to an authoritative external record. A seam

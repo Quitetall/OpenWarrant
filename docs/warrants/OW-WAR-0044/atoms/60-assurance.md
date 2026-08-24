@@ -108,6 +108,37 @@ classification: internal
   session.
 - **admissibility:** controlled_measurement
 
+### EV-003 — the §68 export and round-trip plants
+- **class:** evidence
+- **kind:** gate_run_output
+- **origin:** gate_runner
+- **admissibility:** controlled_measurement
+- **digest:** sha256:pending-receipt-binding
+- **method:** conformance/plant.sh — an incomplete export, a vacuous round trip,
+  and a reconnected one that verifies
+- **occurred at:** 2026-08-23
+
+### OBS-004 — the §68 export REFUSES, naming four absent contents
+- **class:** observation
+- **evidence:** EV-003
+- **method:** `war export` reports 4 of §68.2's 14 required contents absent —
+  audit receipts, runtime receipt refs, artifacts, and resolution and standing —
+  each with the reason it does not exist. `PortableExport::validate` then refuses.
+  This is the check passing, not failing: a package that omitted four required
+  contents and looked complete would be the defect §68.2 exists to prevent.
+- **admissibility:** controlled_measurement
+
+### OBS-005 — the vacuous round trip is refused, and the refusal can fail
+- **class:** observation
+- **evidence:** EV-003
+- **method:** identical digests are NOT enough — §68.3 requires the preserved
+  bytes to have been reconnected, because two exports that both omit the same
+  evidence agree about nothing in particular. Falsified: disabling the
+  `evidence_reconnected` check makes the plant fail, and it was then restored.
+  A positive control covers the reconnected case, so a build that refused every
+  round trip could not pass by refusing everything.
+- **admissibility:** controlled_measurement
+
 ### JDG-001 — OBL-001, OBL-002 and OBL-004 are held, not narrowed
 - **class:** judgment
 - **kind:** scope_holding

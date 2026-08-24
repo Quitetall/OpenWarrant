@@ -13,6 +13,7 @@ mod blut;
 mod check;
 mod compile;
 mod diagnostic;
+mod export;
 mod gate_cmd;
 mod init;
 mod kf;
@@ -202,6 +203,23 @@ enum Command {
         attempt_promotion: bool,
     },
 
+    /// §68 portable export and round trip.
+    Export {
+        /// The Warrant's local alias.
+        alias: String,
+        /// Write the package here even if §68.2 contents are missing. Never
+        /// reports the result as valid.
+        #[arg(long)]
+        force: bool,
+        /// §68.3 — export, re-export, compare. Without --reconnect the
+        /// comparison is refused as vacuous.
+        #[arg(long)]
+        round_trip: bool,
+        /// Record that the preserved evidence bytes were reconnected.
+        #[arg(long)]
+        reconnect: bool,
+    },
+
     /// §67 Knowledge Fabric seam. `health` reads; `act` WRITES and needs
     /// --confirm-write.
     Kf {
@@ -306,6 +324,58 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 EXIT_NOT_READY
             })
         }
+        Command::Export {
+            alias,
+            force,
+            round_trip,
+            reconnect,
+        } => {
+            let repository = repo::Repository::discover(None)?;
+            if round_trip {
+                let rt = export::round_trip(&repository, &alias, reconnect)?;
+                match rt.verify() {
+                    Ok(()) => {
+                        println!(
+                            "{alias}: §68.3 round trip verified ({})",
+                            rt.original_digest
+                        );
+                        return Ok(EXIT_OK);
+                    }
+                    Err(e) => {
+                        return Err(Box::new(repo::RepoError::Message(format!("{alias}: {e}"))));
+                    }
+                }
+            }
+            let (package, missing) = export::assemble(&repository, &alias)?;
+            match package.validate() {
+                Ok(()) => {
+                    println!(
+                        "{alias}: §68.2 export complete ({} record(s))",
+                        package.embedded_record_count
+                    );
+                    Ok(EXIT_OK)
+                }
+                Err(e) => {
+                    println!(
+                        "{alias}: §68.2 export INCOMPLETE — {} of {} required contents absent:",
+                        missing.len(),
+                        openwarrant_core::journal::EXPORT_CONTENTS.len() - 1
+                    );
+                    for m in &missing {
+                        println!("  · {m}");
+                    }
+                    if force {
+                        println!(
+                            "\n--force: the package would be written anyway. It is NOT a valid \
+                             §68 export and is not reported as one."
+                        );
+                        return Ok(EXIT_NOT_READY);
+                    }
+                    Err(Box::new(repo::RepoError::Message(format!("{alias}: {e}"))))
+                }
+            }
+        }
+
         Command::Kf { cmd } => match cmd {
             KfCommand::Health { base } => {
                 let client = kf::Client::new(&base)?;
