@@ -176,6 +176,38 @@ sha256 `aad5256cb59e3e589313b7e2d5b48360ad8c85cf1c1d65d21f9260e692dfe8e5`.
 The copy here is byte-identical to the drafted document. Section references
 throughout the source (`§65.2`, `RQ-014`, …) cite it.
 
+## Installing
+
+**No release has been cut yet**, so today the only route is building from
+source. When one exists:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh | bash
+```
+
+The installer verifies the SHA-256 of what it downloads against the published
+checksum and refuses to install without one — a curl-to-shell installer that
+skips that check is a remote-code-execution vector with good manners. It builds
+nothing and needs no Rust toolchain.
+
+Until then:
+
+```bash
+git clone https://github.com/Quitetall/OpenWarrant && cd OpenWarrant
+cargo build --release          # binary at target/release/war
+```
+
+## If an AI agent works in your repository
+
+Copy [`AGENTS.md`](AGENTS.md) into the repository root. It states the rules an
+agent must not break — chiefly that it may not verify its own work, and may not
+write a disposition it did not receive from an independent verifier.
+
+These are enforced by the tool, but an agent that learns them by tripping over
+refusals wastes a lot of everyone's time first. Claude Code users can also copy
+[`.claude/skills/openwarrant/`](.claude/skills/openwarrant); it points at
+`AGENTS.md` rather than restating it, so there is one place to correct.
+
 ## Building
 
 ```bash
