@@ -9,12 +9,18 @@ members = [
 ]
 
 [workspace.package]
-version = "0.0.1"
+version = "0.1.0"
 edition = "2024"
 rust-version = "1.97.1"
-# Relicensing to Apache-2.0 is intended when this goes public; see RELICENSING.md
-# for the two preconditions and the exact procedure. This string is one of the
-# things that changes, so it lives in exactly one place.
+# The repository is ALREADY public under this licence — the relicense to
+# Apache-2.0 that RELICENSING.md describes did not accompany the flip, so it is
+# now a separate future act rather than a step in going public. Anything released
+# under this string stays under it permanently.
+#
+# See RELICENSING.md for the two preconditions, both of which still hold: every
+# dependency is permissive (gated by `cargo deny check licenses`) and the
+# contribution terms are in place. This string lives in exactly one place because
+# the relicense changes it.
 license = "AGPL-3.0-or-later"
 repository = "https://github.com/Quitetall/OpenWarrant"
 homepage = "https://github.com/Quitetall/OpenWarrant"

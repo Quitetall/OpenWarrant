@@ -22,8 +22,8 @@ serde_json = { workspace = true }
 # Removed in 811e0f3 as an unused dependency and restored here for its first
 # real use: `war compile` lowers and renders. OW-WAR-0004 predicted exactly this,
 # which is why the removal was correct at the time rather than churn.
-openwarrant-compiler = { path = "../openwarrant-compiler", version = "0.0.1" }
-openwarrant-core = { path = "../openwarrant-core", version = "0.0.1" }
+openwarrant-compiler = { path = "../openwarrant-compiler", version = "0.1.0" }
+openwarrant-core = { path = "../openwarrant-core", version = "0.1.0" }
 camino = { workspace = true }
 ureq = { workspace = true }
 clap = { workspace = true }
