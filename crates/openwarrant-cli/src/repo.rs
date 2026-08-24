@@ -10,6 +10,8 @@ use openwarrant_core::{
     AdrError, AdrRecord, Manifest, RepositoryConfig, ValidatedManifest, frontmatter,
 };
 
+use openwarrant_core::verification::Verification;
+
 use crate::diagnostic::{Diagnostic, Report};
 use crate::init::CONFIG_FILE;
 
@@ -359,6 +361,51 @@ impl Repository {
         Ok(AdrCorpus { records, failures })
     }
 
+    /// Verification records for one Warrant (§46, §38.5).
+    ///
+    /// Each `verifications/*.toml` is one obligation verified by one verifier.
+    /// A missing directory is not an error — it means nothing has been verified,
+    /// which is a true and common state, distinct from a verification that
+    /// failed to parse.
+    pub fn load_verifications(&self, dir: &Utf8Path) -> Result<VerificationSet, RepoError> {
+        let vdir = dir.join("verifications");
+        if !vdir.is_dir() {
+            return Ok(VerificationSet::default());
+        }
+        let mut paths = Vec::new();
+        for entry in fs::read_dir(&vdir).map_err(|source| RepoError::Io {
+            context: format!("could not read {vdir}"),
+            source,
+        })? {
+            let entry = entry.map_err(|source| RepoError::Io {
+                context: format!("could not read an entry in {vdir}"),
+                source,
+            })?;
+            let Ok(path) = Utf8PathBuf::from_path_buf(entry.path()) else {
+                continue;
+            };
+            if path.extension() == Some("toml") {
+                paths.push(path);
+            }
+        }
+        paths.sort();
+
+        let mut records = Vec::new();
+        let mut failures = Vec::new();
+        for path in paths {
+            let relative = self.relative(&path);
+            let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
+                context: format!("could not read {path}"),
+                source,
+            })?;
+            match toml::from_str::<Verification>(&text) {
+                Ok(v) => records.push(v),
+                Err(e) => failures.push((relative, e.to_string())),
+            }
+        }
+        Ok(VerificationSet { records, failures })
+    }
+
     /// A repository-relative path, for diagnostics and for the IR.
     ///
     /// Absolute paths must never reach the IR: they would make a digest depend
@@ -382,6 +429,19 @@ pub struct AdrCorpus {
     pub records: Vec<AdrRecord>,
     /// `(repository-relative path, why it would not parse)`.
     pub failures: Vec<(String, AdrError)>,
+}
+
+/// Verification records for one Warrant, and the ones that would not parse.
+///
+/// Failures travel alongside the records for the same reason `AdrCorpus` does:
+/// an unreadable verification is not an absent one, and silently treating it as
+/// absent would turn a malformed record into "nothing was verified" — which
+/// reads identically to the honest state and is not.
+#[derive(Debug, Default)]
+pub struct VerificationSet {
+    pub records: Vec<Verification>,
+    /// `(repository-relative path, why it would not parse)`.
+    pub failures: Vec<(String, String)>,
 }
 
 /// A Warrant read from disk, with whatever went wrong while reading it.
