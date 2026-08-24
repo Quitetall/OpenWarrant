@@ -528,14 +528,14 @@ checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
 
 [[package]]
 name = "openwarrant-agent"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "openwarrant-cli"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "camino",
  "clap",
@@ -549,7 +549,7 @@ dependencies = [
 
 [[package]]
 name = "openwarrant-compiler"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "openwarrant-core",
  "serde",
@@ -561,7 +561,7 @@ dependencies = [
 
 [[package]]
 name = "openwarrant-core"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -1183,7 +1183,7 @@ checksum = "3ad82d2a33cdc9674dc7465672f271e096168fcdbe0f799d9e6db8c5892679dc"
 
 [[package]]
 name = "xtask"
-version = "0.0.1"
+version = "0.1.0"
 
 [[package]]
 name = "yoke"

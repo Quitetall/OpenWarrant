@@ -10,6 +10,8 @@ one 0.x version are not guaranteed to be reproducible by another.
 
 ## [Unreleased]
 
+## [0.1.0] — 2026-08-24
+
 ### Changed — BREAKING for agents that emit Draft Proposals
 
 `DraftProposal` (`oh.war/draft-proposal/v1`) now carries
