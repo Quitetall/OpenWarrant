@@ -545,13 +545,12 @@ plant_cmd "a §67 action without --confirm-write" "refusing to POST" "fabricatio
     "true" kf act document.create --actor t --acting-role r --organization o \
     --reason t --idempotency-key abcdefgh
 
-# This build has no TLS backend, because every TLS configuration of ureq 3.4
-# pulls Mozilla's CA bundle under CDLA-Permissive-2.0 and deny.toml's
-# permissive-only allowlist rejects it. An https:// URL must be refused with a
-# message about THIS BUILD — a client that accepts the URL and fails in transport
-# teaches the operator that KF is down.
-plant_cmd "an https KF url this build cannot serve" "without a TLS backend" "CDLA-Permissive-2.0" 1 \
-    "true" kf health --base https://kf.example.org
+# A scheme the client cannot serve is refused at construction, not inside the
+# transport, where it would read as the service being unreachable. `https://` is
+# NOT such a scheme any more — it was for one commit, until deny.toml gained a
+# narrow exception for the CA bundle — so this plants the case that remains.
+plant_cmd "a KF url with an unservable scheme" "not an http(s) URL" "inside the transport" 1 \
+    "true" kf health --base ftp://kf.example.org
 
 # §95 — a relation attached after the fact WITHOUT REVIEW is a fabrication.
 #

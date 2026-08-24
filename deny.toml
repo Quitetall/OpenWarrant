@@ -48,6 +48,33 @@ confidence-threshold = 0.93
 name = "openwarrant-core"
 allow = ["AGPL-3.0-or-later"]
 
+# Mozilla's CA root bundle, under CDLA-Permissive-2.0.
+#
+# A NARROW exception, which is what the header above says to do rather than
+# widening the blanket `allow` list. Three points make it defensible:
+#
+#   1. CDLA-Permissive-2.0 is permissive. It is the permissive member of the
+#      Community Data License Agreement family — no copyleft, no source
+#      disclosure obligation, nothing that survives into a redistribution.
+#   2. It covers DATA, not code: the payload is a list of root certificates.
+#      Nothing in it is linked into or derived from OpenWarrant's source.
+#   3. It is unavoidable for TLS. Measured across ureq 3.4's TLS
+#      configurations — `rustls` (144 crates), `platform-verifier` (166),
+#      `native-tls` (160) — every one pulls `webpki-roots` or
+#      `webpki-root-certs`. The alternative is no HTTPS at all, which is what
+#      this repository shipped until this entry existed.
+#
+# Scoped to the two CA-bundle crates by name. If a future dependency arrives
+# under CDLA-Permissive-2.0 carrying CODE rather than certificates, it will fail
+# this gate and should — that is a different decision from this one.
+[[licenses.exceptions]]
+name = "webpki-roots"
+allow = ["CDLA-Permissive-2.0"]
+
+[[licenses.exceptions]]
+name = "webpki-root-certs"
+allow = ["CDLA-Permissive-2.0"]
+
 [[licenses.exceptions]]
 name = "openwarrant-compiler"
 allow = ["AGPL-3.0-or-later"]
