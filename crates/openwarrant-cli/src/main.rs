@@ -24,6 +24,7 @@ mod repo;
 mod resolve;
 mod show;
 mod telemetry;
+mod verify;
 
 #[derive(clap::Subcommand, Debug)]
 enum KfCommand {
@@ -250,6 +251,21 @@ enum Command {
         /// purpose: a review nobody performed is the fabrication §95 forbids.
         #[arg(long, default_value = "")]
         reviewer: String,
+    },
+
+    /// §46 independent verification. Emits a request; ingests verdicts.
+    ///
+    /// This command never verifies anything itself — the actor that produced
+    /// the work cannot be the actor that clears it.
+    Verify {
+        /// The Warrant's local alias.
+        alias: String,
+        /// The performer whose work is under verification.
+        #[arg(long, default_value = "unknown")]
+        performer: String,
+        /// A verifier's response to ingest. Without it, the request is emitted.
+        #[arg(long)]
+        response: Option<Utf8PathBuf>,
     },
 
     /// Compile the configured projections (§71.8).
@@ -629,6 +645,50 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             } else {
                 EXIT_NOT_READY
             })
+        }
+
+        Command::Verify {
+            alias,
+            performer,
+            response,
+        } => {
+            let repository = repo::Repository::discover(None)?;
+            match response {
+                // Ingest verdicts something else produced.
+                Some(path) => {
+                    let report = verify::ingest(&repository, &alias, &path)?;
+                    check::print(&report);
+                    Ok(if report.is_ready() {
+                        EXIT_OK
+                    } else {
+                        EXIT_NOT_READY
+                    })
+                }
+                // Emit the request and stop. §75.2: a seam with nothing on the
+                // other side should say so rather than pretend.
+                None => {
+                    let request = verify::request(&repository, &alias, &performer)?;
+                    println!(
+                        "{}",
+                        toml::to_string_pretty(&request).map_err(|e| {
+                            repo::RepoError::Io {
+                                context: "could not render the verification request".to_owned(),
+                                source: std::io::Error::other(e.to_string()),
+                            }
+                        })?
+                    );
+                    eprintln!(
+                        "# {} obligation(s) for {alias} at {} assurance.",
+                        request.obligations.len(),
+                        request.assurance_level
+                    );
+                    eprintln!(
+                        "# Hand this to an INDEPENDENT verifier, then ingest with:\n\
+                         #   war verify {alias} --response <file>"
+                    );
+                    Ok(EXIT_OK)
+                }
+            }
         }
 
         Command::Compile { alias } => {
