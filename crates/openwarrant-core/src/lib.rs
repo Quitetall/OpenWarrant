@@ -11,6 +11,7 @@
 
 #![forbid(unsafe_code)]
 
+pub mod authority;
 pub mod autonomy;
 pub mod context;
 pub mod deliverable;
@@ -46,7 +47,12 @@ pub mod structured;
 
 pub use adequacy::{AdequacyError, AdequacyOutcome, AdequacyRequirement, AdequacyReview};
 pub use adr::{AdrError, AdrRecord, AdrStatus};
-pub use config::{ConfigError, GeneratedPolicy, Namespace, Paths, RepositoryConfig};
+pub use authority::{
+    ActorRole, AuthorityError, AuthorityRegister, PolicyResolutionContext, RoleAssignment,
+};
+pub use config::{
+    AuthorityPolicy, ConfigError, GeneratedPolicy, Namespace, Paths, RepositoryConfig,
+};
 pub use contract::{
     ActorKind, Authorization, ContractCoverage, ContractElement, ContractError, ContractRevision,
     Independence, RevisionState,

@@ -9,6 +9,7 @@ use camino::Utf8PathBuf;
 use clap::{Parser, Subcommand};
 use openwarrant_core::Profile;
 
+mod authorize;
 mod blut;
 mod bonsai;
 mod check;
@@ -308,6 +309,19 @@ enum Command {
         #[arg(long, default_value = "unknown")]
         performer: String,
         /// A verifier's response to ingest. Without it, the request is emitted.
+        #[arg(long)]
+        response: Option<Utf8PathBuf>,
+    },
+
+    /// §28.4 authorization. Emits a request; ingests a human's signature.
+    ///
+    /// Like `verify`, this command never decides anything itself: §27.2 says an
+    /// agent SHALL NOT authorize a proposed WAR, and ingestion refuses every
+    /// agent named in a response regardless of what the response claims.
+    Authorize {
+        /// The Warrant's local alias.
+        alias: String,
+        /// A signed response to ingest. Without it, the request is emitted.
         #[arg(long)]
         response: Option<Utf8PathBuf>,
     },
@@ -770,6 +784,57 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     eprintln!(
                         "# Hand this to an INDEPENDENT verifier, then ingest with:\n\
                          #   war verify {alias} --response <file>"
+                    );
+                    Ok(EXIT_OK)
+                }
+            }
+        }
+
+        Command::Authorize { alias, response } => {
+            let repository = repo::Repository::discover(None)?;
+            match response {
+                Some(path) => {
+                    let report = authorize::ingest(&repository, &alias, &path)?;
+                    check::print(&report);
+                    Ok(if report.is_ready() {
+                        EXIT_OK
+                    } else {
+                        EXIT_NOT_READY
+                    })
+                }
+                None => {
+                    let request = authorize::request(&repository, &alias)?;
+                    println!(
+                        "{}",
+                        toml::to_string_pretty(&request).map_err(|e| {
+                            repo::RepoError::Io {
+                                context: "could not render the authorization request".to_owned(),
+                                source: std::io::Error::other(e.to_string()),
+                            }
+                        })?
+                    );
+                    eprintln!(
+                        "# {alias} at {} assurance, contract {}.",
+                        request.assurance_level, request.contract_digest
+                    );
+                    if request.eligible_authorizers.is_empty() {
+                        // Naming this here rather than at ingestion time saves a
+                        // round trip through a signature that could never have
+                        // been accepted.
+                        eprintln!(
+                            "# NOBODY may authorize this: docs/authority/roles.toml grants the\n\
+                             # authorizer role to no one. Authority comes from that file, and\n\
+                             # only a human may write it."
+                        );
+                    } else {
+                        eprintln!(
+                            "# May be authorized by: {}",
+                            request.eligible_authorizers.join(", ")
+                        );
+                    }
+                    eprintln!(
+                        "# Fill in authorizer, acting_role, meaning and effective_time, then:\n\
+                         #   war authorize {alias} --response <file>"
                     );
                     Ok(EXIT_OK)
                 }
