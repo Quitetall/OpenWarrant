@@ -215,8 +215,10 @@ pub struct ScopeFinding {
 pub struct BonsaiRun {
     pub executable: String,
     pub binary_digest: String,
-    pub source: String,
-    pub revision: String,
+    /// Source identity the Warrant requires. This is not a claim that the
+    /// supplied binary was built from it; `binary_digest` is the observed fact.
+    pub expected_source: String,
+    pub expected_revision: String,
     pub version: Option<String>,
     pub exit_code: Option<i32>,
     pub raw_output: Option<Value>,
@@ -404,8 +406,8 @@ pub fn check(
                 BonsaiRun {
                     executable: binary.to_string(),
                     binary_digest,
-                    source: scope.bonsai_source.clone(),
-                    revision: scope.bonsai_revision.clone(),
+                    expected_source: scope.bonsai_source.clone(),
+                    expected_revision: scope.bonsai_revision.clone(),
                     version,
                     exit_code: output.status.code(),
                     raw_output: parsed,
@@ -419,8 +421,8 @@ pub fn check(
             BonsaiRun {
                 executable: binary.to_string(),
                 binary_digest,
-                source: scope.bonsai_source.clone(),
-                revision: scope.bonsai_revision.clone(),
+                expected_source: scope.bonsai_source.clone(),
+                expected_revision: scope.bonsai_revision.clone(),
                 version: None,
                 exit_code: None,
                 raw_output: None,
@@ -606,8 +608,8 @@ mod tests {
         let run = BonsaiRun {
             executable: "bonsai".to_owned(),
             binary_digest: "sha256:0".to_owned(),
-            source: "github:Quitetall/bonsai".to_owned(),
-            revision: "0".repeat(40),
+            expected_source: "github:Quitetall/bonsai".to_owned(),
+            expected_revision: "0".repeat(40),
             version: Some("bonsai 0.1.0".to_owned()),
             exit_code: Some(1),
             raw_output: Some(serde_json::json!({})),
