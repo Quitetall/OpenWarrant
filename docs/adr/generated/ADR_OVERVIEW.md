@@ -1123,12 +1123,14 @@ classes block: paths outside the Warrant machine scope and Bonsai error findings
 from the architecture-rule allowlist. Leanness and other non-architecture
 findings remain visible but advisory.
 
-The canonical Bonsai source is public. Pull-request CI clones only that fixed
-source, verifies the full commit SHA bound in the Warrant scope, and runs its
-locked build on a GitHub-hosted ephemeral runner. It does not use
-`pull_request_target`, a private-source credential, or a pull-request-provided
-command or executable path. An unavailable source, revision, build, executable,
-or machine result remains `unknown`, never pass.
+The canonical Bonsai source is public. Pull-request CI builds the Warrant
+adapter from the protected base, materializes the pull-request candidate only as
+data, then clones Bonsai at the full commit SHA bound in that candidate's
+Warrant scope and runs its locked build on a GitHub-hosted ephemeral runner. It
+does not use `pull_request_target`, a private-source credential, or a
+pull-request-provided command or executable path. An unavailable candidate,
+source, revision, build, executable, or machine result remains `unknown`, never
+pass.
 
 A reproducible public source build makes report-phase evidence available to all
 protected pull-request origins. Blocking still requires independent

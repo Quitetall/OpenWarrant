@@ -32,10 +32,12 @@ classification: internal
 ### OBL-004 — PR workflow remains report-only pending qualification
 - **scope:** PR template, CI workflow, and rollout ADR.
 - **gate:** `gate://software.repo.war-check@1.0.0`
-- **evidence:** report phase clones canonical public Bonsai at Warrant-bound
-  full revision, verifies its checkout, and runs a locked build without a
-  private credential. Missing source, build, executable, or machine result is
-  typed `unknown`. Blocking requires an external human review and
+- **evidence:** report phase builds the adapter from protected base, materializes
+  the candidate only as data, then clones canonical public Bonsai at Warrant-
+  bound full revision, verifies its checkout, and runs a locked build without a
+  private credential. Missing candidate, source, revision, build, executable,
+  or machine result is typed `unknown`. Blocking requires an external human
+  review and
   administrator-owned GitHub settings; those records remain outside this draft
   Warrant.
 
