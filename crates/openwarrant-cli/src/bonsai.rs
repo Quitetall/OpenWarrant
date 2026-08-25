@@ -717,4 +717,235 @@ mod tests {
         };
         assert!(!valid_bonsai_report(&run));
     }
+
+    #[cfg(unix)]
+    mod qualification_plants {
+        use std::fs;
+        use std::os::unix::fs::PermissionsExt;
+        use std::path::{Path, PathBuf};
+        use std::process::Command;
+        use std::sync::atomic::{AtomicUsize, Ordering};
+
+        use camino::{Utf8Path, Utf8PathBuf};
+
+        use super::{EvidenceVerdict, Repository, check};
+
+        static FIXTURE_COUNTER: AtomicUsize = AtomicUsize::new(0);
+
+        struct Fixture {
+            source: PathBuf,
+            root: Utf8PathBuf,
+            scratch: PathBuf,
+        }
+
+        impl Fixture {
+            fn new() -> Self {
+                let source = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                    .parent()
+                    .and_then(Path::parent)
+                    .expect("workspace root")
+                    .to_owned();
+                let unique = format!(
+                    "openwarrant-bonsai-qualification-{}-{}",
+                    std::process::id(),
+                    FIXTURE_COUNTER.fetch_add(1, Ordering::Relaxed)
+                );
+                let scratch = std::env::temp_dir().join(unique);
+                let root = scratch.join("worktree");
+                fs::create_dir_all(&scratch).expect("fixture directory");
+                run_git(
+                    &source,
+                    &[
+                        "worktree",
+                        "add",
+                        "--detach",
+                        root.to_str().expect("UTF-8 path"),
+                        "HEAD",
+                    ],
+                );
+                run_git(
+                    &root,
+                    &[
+                        "remote",
+                        "set-url",
+                        "origin",
+                        "https://github.com/Quitetall/OpenWarrant.git",
+                    ],
+                );
+                let base = git_output(&root, &["rev-parse", "HEAD"]);
+                run_git(&root, &["update-ref", "refs/remotes/origin/main", &base]);
+                Self {
+                    source,
+                    root: Utf8PathBuf::from_path_buf(root).expect("UTF-8 path"),
+                    scratch,
+                }
+            }
+
+            fn repo(&self) -> Repository {
+                Repository::discover(Some(self.root.clone())).expect("fixture repository")
+            }
+
+            fn base(&self) -> String {
+                git_output(self.root.as_std_path(), &["rev-parse", "origin/main"])
+            }
+
+            fn head(&self) -> String {
+                git_output(self.root.as_std_path(), &["rev-parse", "HEAD"])
+            }
+
+            fn commit(&self, path: &str, contents: &str) {
+                let target = self.root.join(path);
+                if let Some(parent) = target.parent() {
+                    fs::create_dir_all(parent).expect("fixture parent directory");
+                }
+                fs::write(&target, contents).expect("fixture source");
+                run_git(self.root.as_std_path(), &["add", path]);
+                run_git(
+                    self.root.as_std_path(),
+                    &[
+                        "-c",
+                        "user.name=Qualification Plant",
+                        "-c",
+                        "user.email=qualification@example.invalid",
+                        "commit",
+                        "-m",
+                        "qualification fixture",
+                    ],
+                );
+            }
+
+            fn bonsai(&self) -> Utf8PathBuf {
+                let binary = self.scratch.join("bonsai-fixture");
+                fs::write(
+                    &binary,
+                    "#!/bin/sh\nif [ \"$1\" = \"--version\" ]; then\n  printf 'bonsai fixture\\n'\n  exit 0\nfi\nprintf '%s\\n' '{\"tool\":\"bonsai\",\"version\":\"fixture\",\"findings\":[]}'\n",
+                )
+                .expect("fixture Bonsai binary");
+                fs::set_permissions(&binary, fs::Permissions::from_mode(0o700))
+                    .expect("fixture Bonsai permissions");
+                Utf8PathBuf::from_path_buf(binary).expect("UTF-8 path")
+            }
+        }
+
+        impl Drop for Fixture {
+            fn drop(&mut self) {
+                let root = self.root.as_str();
+                let _ = Command::new("git")
+                    .arg("-C")
+                    .arg(&self.source)
+                    .args(["worktree", "remove", "--force", root])
+                    .status();
+                let _ = fs::remove_dir_all(&self.scratch);
+            }
+        }
+
+        fn run_git(root: &Path, args: &[&str]) {
+            let output = Command::new("git")
+                .arg("-C")
+                .arg(root)
+                .args(args)
+                .output()
+                .expect("run git");
+            assert!(
+                output.status.success(),
+                "git {} failed: {}",
+                args.join(" "),
+                String::from_utf8_lossy(&output.stderr)
+            );
+        }
+
+        fn git_output(root: &Path, args: &[&str]) -> String {
+            let output = Command::new("git")
+                .arg("-C")
+                .arg(root)
+                .args(args)
+                .output()
+                .expect("run git");
+            assert!(output.status.success(), "git {} failed", args.join(" "));
+            String::from_utf8(output.stdout)
+                .expect("UTF-8 git output")
+                .trim()
+                .to_owned()
+        }
+
+        #[test]
+        fn pilot_qualification_plants_are_observed() {
+            let scoped = Fixture::new();
+            scoped.commit(
+                "crates/openwarrant-cli/src/qualification_fixture.rs",
+                "// scope-covered qualification change\n",
+            );
+            let evidence = check(
+                &scoped.repo(),
+                "OW-WAR-0050",
+                &scoped.base(),
+                &scoped.head(),
+                Utf8Path::new(scoped.bonsai().as_str()),
+            )
+            .expect("scope-covered candidate reports evidence");
+            assert_eq!(evidence.verdict, EvidenceVerdict::Pass);
+
+            let out_of_scope = Fixture::new();
+            out_of_scope.commit("outside-warrant.txt", "must be refused\n");
+            let evidence = check(
+                &out_of_scope.repo(),
+                "OW-WAR-0050",
+                &out_of_scope.base(),
+                &out_of_scope.head(),
+                Utf8Path::new(out_of_scope.bonsai().as_str()),
+            )
+            .expect("out-of-scope candidate still produces evidence");
+            assert_eq!(evidence.verdict, EvidenceVerdict::Fail);
+            assert_eq!(evidence.scope_findings[0].path, "outside-warrant.txt");
+
+            let policy_drift = Fixture::new();
+            policy_drift.commit("bonsai.toml", "# changed policy bytes\n");
+            let error = check(
+                &policy_drift.repo(),
+                "OW-WAR-0050",
+                &policy_drift.base(),
+                &policy_drift.head(),
+                Utf8Path::new(policy_drift.bonsai().as_str()),
+            )
+            .expect_err("policy digest drift must refuse evidence");
+            assert!(error.to_string().contains("policy digest differs"));
+
+            let non_head = Fixture::new();
+            non_head.commit(
+                "crates/openwarrant-cli/src/non_head_fixture.rs",
+                "// candidate differs from checkout\n",
+            );
+            let error = check(
+                &non_head.repo(),
+                "OW-WAR-0050",
+                &non_head.base(),
+                &non_head.base(),
+                Utf8Path::new(non_head.bonsai().as_str()),
+            )
+            .expect_err("non-HEAD candidate must refuse evidence");
+            assert!(error.to_string().contains("is not checked out"));
+
+            let unavailable = Fixture::new();
+            unavailable.commit(
+                "crates/openwarrant-cli/src/unavailable_fixture.rs",
+                "// unavailable Bonsai still has scoped change\n",
+            );
+            let evidence = check(
+                &unavailable.repo(),
+                "OW-WAR-0050",
+                &unavailable.base(),
+                &unavailable.head(),
+                Utf8Path::new(
+                    unavailable
+                        .scratch
+                        .join("missing-bonsai")
+                        .to_str()
+                        .expect("UTF-8 path"),
+                ),
+            )
+            .expect("unavailable Bonsai produces unknown evidence");
+            assert_eq!(evidence.verdict, EvidenceVerdict::Unknown);
+            assert!(evidence.bonsai.spawn_error.is_some());
+        }
+    }
 }

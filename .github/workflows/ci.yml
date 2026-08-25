@@ -8,17 +8,10 @@ name: CI
 # Every job below therefore declares a timeout, and the workflow declares a
 # concurrency group so a rapid push sequence cancels its own superseded runs.
 #
-# RUNNER TIER (ADR 0182). OpenWarrant is PRIVATE, so its minutes are billed and
-# it cannot receive a pull request from an untrusted fork. Both facts point the
-# same way: this workflow belongs on a self-hosted runner on the workstation.
-# That runner does not exist yet, so `ubuntu-latest` is used in the interim and
-# this comment is the record of what it is waiting for. When the runner is
-# registered, change `runs-on` here and nowhere else.
-#
-# If OpenWarrant is ever made public, this decision INVERTS and the reason is
-# security rather than cost: a fork pull request against a public repository
-# with a self-hosted runner executes attacker-supplied code on the workstation.
-# Public means GitHub-hosted, always.
+# RUNNER TIER (ADR 0182). OpenWarrant is public. Pull requests can originate
+# from untrusted forks, so every job runs on GitHub-hosted `ubuntu-latest`.
+# Never move pull-request execution onto a workstation-hosted runner: a public
+# fork would then execute attacker-supplied code on that workstation.
 
 on:
   push:
