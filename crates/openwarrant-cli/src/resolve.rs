@@ -27,17 +27,30 @@
 //! independence below §46.3's minimum for the level. An obligation with no
 //! admissible verification does not count as dispositioned.
 //!
-//! # What it will say today, and why that is the correct answer
+//! # What is computed, and what is still asserted
 //!
-//! Every Warrant here still blocks, because nine of the thirteen ask about
-//! records that do not exist yet — there is no authorization record (§28.4), no
-//! typed deliverables (§37), nothing content-addressed, no gate run bound to an
-//! obligation, no judgment records, and no role assignment.
+//! Five of the thirteen are computed from records on disk:
+//! deliverables and artifact digests (§37, recomputed from the bytes), obligation
+//! dispositions and independence (§46, from verification records), and gate
+//! results (§44.5, from persisted Gate Runs).
 //!
-//! That is the Phase 6 exit being honest rather than a defect. A resolver that
-//! closed a Warrant under these conditions would be manufacturing the exact
-//! false completion the whole system exists to prevent.
+//! Two are structurally true here: no blocker remains, and deviations are
+//! dispositioned.
+//!
+//! **Six are still hardcoded `false`**, because the records they ask about do
+//! not exist: an authorization record (§28.4), judgments (§42), residual-risk
+//! authority (§58), runtime receipts bound to the basis (§48.4), role assignment
+//! (§27), and the resolution of the adequacy warnings that are themselves
+//! required unknowns.
+//!
+//! So every Warrant still blocks. That is the Phase 6 exit being honest rather
+//! than a defect: a resolver that closed a Warrant under these conditions would
+//! manufacture the exact false completion the whole system exists to prevent.
+//!
+//! Four of the six need a human — authorization, judgment, risk acceptance and
+//! role assignment all require an actor this command may not invent (§27.2).
 
+use openwarrant_core::GateRun;
 use openwarrant_core::deliverable::Deliverable;
 use openwarrant_core::resolution::{RESOLUTION_REQUIREMENTS, ResolutionChecks};
 use openwarrant_core::verification::Verification;
@@ -55,6 +68,7 @@ fn evaluate(
     one: &crate::repo::Loaded,
     verifications: &[Verification],
     deliverables: &[Deliverable],
+    gate_runs: &[GateRun],
 ) -> ResolutionChecks {
     let validated = one.validated.as_ref();
     let basis = one.basis.as_ref();
@@ -105,6 +119,24 @@ fn evaluate(
             .iter()
             .all(|id| admissible.iter().any(|v| &v.obligation == id));
 
+    // Gate citations across this Warrant's assurance atoms (§43.5).
+    //
+    // Read from declared `- **gate:**` bullets, never by scanning prose for
+    // `gate://` — a gate identified by pattern-matching prose is the
+    // "string, not a gate" failure §43 exists to end.
+    let cited: Vec<String> = basis
+        .map(|b| {
+            b.atoms
+                .iter()
+                .filter(|a| a.role == "assurance")
+                .flat_map(|a| {
+                    openwarrant_core::gate::cited_gate_uris(&String::from_utf8_lossy(&a.bytes))
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+    let gates_ok = every_required_gate_has_admissible_result(&cited, gate_runs);
+
     let required_deliverables_exist =
         required_deliverables_exist(&repo.root, deliverables, &declared);
     let artifact_digests_verify = artifact_digests_verify(&repo.root, deliverables);
@@ -115,8 +147,7 @@ fn evaluate(
         required_deliverables_exist,
         artifact_digests_verify,
         every_required_obligation_dispositioned: obligations_dispositioned,
-        // A gate runs, but no run is bound to an obligation as its result.
-        every_required_gate_has_admissible_result: false,
+        every_required_gate_has_admissible_result: gates_ok,
         // The adequacy warnings ARE required unknowns.
         no_required_unknown_remains: false,
         no_blocker_remains: true,
@@ -130,6 +161,29 @@ fn evaluate(
         // §27 role assignment does not exist yet.
         resolver_holds_the_role: false,
     }
+}
+
+/// §56.1 — every gate a required obligation cites must have an admissible result.
+///
+/// "Admissible" is §44.5's conjunction, already modelled as
+/// [`GateRun::satisfies_required_pass`]: askable AND completed AND pass. An
+/// unaskable gate cannot pass (SAS §99 criterion 19), and a run that timed out
+/// is a blocking unknown rather than a failure (RQ-054).
+///
+/// A cited gate with NO recorded run is unmet, not vacuously satisfied. That is
+/// the whole point: the gate must have been asked, not merely referenced.
+/// Obligations citing no gate impose nothing here — the requirement is about
+/// gates that were cited.
+#[must_use]
+pub fn every_required_gate_has_admissible_result(cited_uris: &[String], runs: &[GateRun]) -> bool {
+    if cited_uris.is_empty() {
+        return false;
+    }
+    cited_uris.iter().all(|uri| {
+        let key = uri.trim_start_matches("gate://");
+        runs.iter()
+            .any(|r| r.gate == key && r.satisfies_required_pass())
+    })
 }
 
 /// §37 — a required deliverable exists when it VALIDATES and its target is
@@ -186,7 +240,14 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
 
     let verifications = repo.load_verifications(&dir)?;
     let deliverables = repo.load_deliverables(&dir)?;
-    let checks = evaluate(repo, &one, &verifications.records, &deliverables.records);
+    let gate_runs = repo.load_gate_runs();
+    let checks = evaluate(
+        repo,
+        &one,
+        &verifications.records,
+        &deliverables.records,
+        &gate_runs,
+    );
     for (path, why) in &deliverables.failures {
         report.push(Diagnostic::error(
             "deliverables.malformed",
@@ -295,6 +356,89 @@ mod tests {
             obligation_refs: vec![],
             provenance: digest.map(provenance),
         }
+    }
+
+    fn gate_run(gate: &str, askability: &str, status: &str, verdict: &str) -> GateRun {
+        toml::from_str(&format!(
+            "id = \"GR-1\"\ngate = \"{gate}\"\naskability = \"{askability}\"\n\
+             execution_status = \"{status}\"\nverdict = \"{verdict}\"\n"
+        ))
+        .expect("valid run")
+    }
+
+    const GATE: &str = "software.repo.war-check@1.0.0";
+
+    #[test]
+    fn a_cited_gate_with_an_askable_completed_pass_is_admissible() {
+        let runs = vec![gate_run(GATE, "askable", "completed", "pass")];
+        assert!(every_required_gate_has_admissible_result(
+            &[format!("gate://{GATE}")],
+            &runs
+        ));
+    }
+
+    /// SAS §99 criterion 19: unaskable gates cannot pass. A run claiming
+    /// `not_askable` with verdict `pass` is incoherent and must not satisfy
+    /// anything — checking the verdict first is how such a run slips through.
+    #[test]
+    fn an_unaskable_gate_cannot_pass() {
+        let runs = vec![gate_run(GATE, "not_askable", "completed", "pass")];
+        assert!(!every_required_gate_has_admissible_result(
+            &[format!("gate://{GATE}")],
+            &runs
+        ));
+    }
+
+    #[test]
+    fn a_failing_or_unknown_verdict_is_not_admissible() {
+        for verdict in ["fail", "unknown"] {
+            let runs = vec![gate_run(GATE, "askable", "completed", verdict)];
+            assert!(
+                !every_required_gate_has_admissible_result(&[format!("gate://{GATE}")], &runs),
+                "verdict {verdict} must not satisfy a required pass"
+            );
+        }
+    }
+
+    /// A cited gate with NO recorded run is unmet, not vacuously satisfied.
+    /// The gate must have been ASKED, not merely referenced.
+    #[test]
+    fn a_cited_gate_with_no_run_is_unmet() {
+        assert!(!every_required_gate_has_admissible_result(
+            &[format!("gate://{GATE}")],
+            &[]
+        ));
+    }
+
+    /// A passing run for a DIFFERENT gate must not satisfy this citation.
+    #[test]
+    fn a_run_for_another_gate_does_not_count() {
+        let runs = vec![gate_run(
+            "some.other.gate@1.0.0",
+            "askable",
+            "completed",
+            "pass",
+        )];
+        assert!(!every_required_gate_has_admissible_result(
+            &[format!("gate://{GATE}")],
+            &runs
+        ));
+    }
+
+    /// Every cited gate must pass, not merely one of them.
+    #[test]
+    fn one_passing_gate_does_not_carry_a_failing_sibling() {
+        let runs = vec![
+            gate_run(GATE, "askable", "completed", "pass"),
+            gate_run("second.gate@1.0.0", "askable", "completed", "fail"),
+        ];
+        assert!(!every_required_gate_has_admissible_result(
+            &[
+                format!("gate://{GATE}"),
+                "gate://second.gate@1.0.0".to_string()
+            ],
+            &runs
+        ));
     }
 
     /// The happy path, so the refusals below mean something.
