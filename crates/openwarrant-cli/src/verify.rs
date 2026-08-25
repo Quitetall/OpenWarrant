@@ -107,14 +107,27 @@ pub fn request(
         }
     }
 
-    // Artifact references are the Warrant's own source atoms, by repository path.
-    // Deliberately paths and not contents: a verifier reads the tree itself, so
-    // nothing here can be a curated excerpt chosen by the performer.
-    let artifact_refs = one
+    // Artifact references are repository paths, deliberately not contents: a
+    // verifier reads the tree itself, so nothing here can be a curated excerpt
+    // chosen by the performer.
+    //
+    // Two sources, and the second one matters more. The Warrant's own atoms say
+    // what was PROMISED. The declared deliverables (§37) say what was
+    // PRODUCED — and an obligation is a claim about the latter. Sending only the
+    // atoms asks the verifier whether `independence.rs` implements §46.1 without
+    // showing it `independence.rs`, which is not a question anyone can answer
+    // honestly. That was the shape of the request until deliverables existed to
+    // name the artifacts.
+    let mut artifact_refs: Vec<String> = one
         .basis
         .as_ref()
         .map(|b| b.atoms.iter().map(|a| a.source.clone()).collect())
         .unwrap_or_default();
+    for deliverable in repo.load_deliverables(&dir)?.records {
+        if !artifact_refs.contains(&deliverable.target_ref) {
+            artifact_refs.push(deliverable.target_ref);
+        }
+    }
 
     Ok(VerificationRequest {
         schema: REQUEST_SCHEMA.to_owned(),

@@ -199,6 +199,16 @@ pub struct Authority<'a> {
     pub assumptions: Option<&'a [Assumption]>,
     /// §27.3 condition 1 — repository policy, set by a human.
     pub policy_allows_automated_resolution: bool,
+    /// The actor whose work is being resolved, from [`Repository::performer`].
+    ///
+    /// Threaded rather than written as a literal here, and the reason is the
+    /// direction the two could diverge. §27.3 condition 4 is "performer and
+    /// resolver identities are distinct", so this name is what stops an actor
+    /// closing its own delivery. A second copy of the string that fell out of
+    /// step with `performer()` would not fail loudly — it would compare the
+    /// resolver against a name nobody uses any more, find them distinct, and
+    /// let the real performer through.
+    pub performer: &'a str,
 }
 
 impl Authority<'_> {
@@ -276,7 +286,7 @@ impl Authority<'_> {
     pub fn a_resolver_is_eligible(&self, assurance: &str, declared: &[String]) -> bool {
         self.register
             .eligible_resolver(
-                "claude",
+                self.performer,
                 PolicyResolutionContext {
                     policy_allows: self.policy_allows_automated_resolution,
                     assurance_level: assurance,
@@ -355,6 +365,47 @@ pub fn every_required_gate_has_admissible_result(cited_uris: &[String], runs: &[
     })
 }
 
+/// §38.6 — would this resolve SATISFIED, given the dispositions on record?
+///
+/// # This is a different question from §56.1's thirteen, and conflating them
+/// # manufactures a false completion
+///
+/// Requirement 4 asks whether every obligation is *dispositioned*. A verdict of
+/// `not_established` IS a disposition, so it satisfies requirement 4 — correctly:
+/// §38.5 is about whether the question was answered, not about the answer.
+///
+/// Nothing in §56.1 then asks what the answers WERE. So a Warrant could meet all
+/// thirteen requirements while every one of its obligations came back
+/// `not_established`, and a resolver reading only the thirteen would call it
+/// ready to close. §38.6 is the clause that stops this: a delivery resolves
+/// satisfied only when every required obligation is established, or accepted
+/// with residual risk under sufficient authority.
+///
+/// [`Disposition::permits_satisfied`] and [`ObligationSet::aggregate`] both
+/// modelled this from the start and no binary called either — the same "a
+/// function nothing computed" shape this module documents about itself. It is
+/// computed here, from the ADMISSIBLE verifications rather than from the atom,
+/// because an inadmissible verdict must not contribute to an outcome any more
+/// than it contributes to a disposition.
+///
+/// `None` means the question cannot be answered yet: some obligation has no
+/// admissible verdict at all. That is neither satisfied nor unsatisfied, which
+/// is Law 15 — Unknown is neither failure nor pass.
+#[must_use]
+pub fn would_resolve_satisfied(declared: &[String], admissible: &[&Verification]) -> Option<bool> {
+    if declared.is_empty() {
+        return None;
+    }
+    let mut all_permit = true;
+    for id in declared {
+        let verdict = admissible.iter().find(|v| &v.obligation == id)?;
+        if !verdict.disposition.permits_satisfied() {
+            all_permit = false;
+        }
+    }
+    Some(all_permit)
+}
+
 /// §37 — a required deliverable exists when it VALIDATES and its target is
 /// actually present.
 ///
@@ -411,6 +462,7 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
     let deliverables = repo.load_deliverables(&dir)?;
     let gate_runs = repo.load_gate_runs();
 
+    let performer = repo.performer();
     let register = repo.load_authority_register()?;
     let authorization = repo.load_authorization(&dir)?;
     let judgments = repo.load_judgments(&dir)?;
@@ -431,6 +483,7 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
         judgments: &judgments,
         assumptions: assumptions.as_deref(),
         policy_allows_automated_resolution: repo.config.policy.allow_automated_resolution,
+        performer: &performer,
     };
 
     let checks = evaluate(
@@ -456,6 +509,31 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
         ));
     }
 
+    // §38.6, reported alongside the thirteen and never folded into them. See
+    // `would_resolve_satisfied` for why these are different questions.
+    let assurance = one
+        .validated
+        .as_ref()
+        .map(|v| v.assurance_level.to_string())
+        .unwrap_or_else(|| "basic".to_owned());
+    let declared = declared_obligations(&one);
+    let admissible: Vec<&Verification> = verifications
+        .records
+        .iter()
+        .filter(|v| v.admissible_for(&assurance).is_ok())
+        .collect();
+    let outcome = would_resolve_satisfied(&declared, &admissible);
+    let unestablished: Vec<&str> = declared
+        .iter()
+        .filter(|id| {
+            admissible
+                .iter()
+                .find(|v| &&v.obligation == id)
+                .is_some_and(|v| !v.disposition.permits_satisfied())
+        })
+        .map(String::as_str)
+        .collect();
+
     let unmet = checks.unmet();
 
     if unmet.is_empty() {
@@ -472,6 +550,7 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
              this command may invent."
                 .to_owned(),
         );
+        push_outcome(&mut report, alias, outcome, &unestablished);
         return Ok(report);
     }
 
@@ -504,7 +583,54 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
         unmet.len(),
         RESOLUTION_REQUIREMENTS.len()
     ));
+    push_outcome(&mut report, alias, outcome, &unestablished);
     Ok(report)
+}
+
+/// The obligation ids a Warrant declares, as the parser reads them.
+fn declared_obligations(one: &crate::repo::Loaded) -> Vec<String> {
+    one.basis
+        .as_ref()
+        .map(|b| {
+            b.atoms
+                .iter()
+                .filter(|a| a.role == "assurance")
+                .filter_map(|a| {
+                    openwarrant_core::obligation::parse(&String::from_utf8_lossy(&a.bytes)).ok()
+                })
+                .flat_map(|set| set.obligations.into_iter().map(|o| o.id))
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+/// Report §38.6 as its own line, never folded into the thirteen.
+///
+/// A Warrant meeting all thirteen requirements with an obligation on record as
+/// `not_established` is READY to be resolved and would resolve NOT SATISFIED.
+/// Printing only "all thirteen met" would let a reader take the first half of
+/// that sentence for the whole of it.
+fn push_outcome(report: &mut Report, alias: &str, outcome: Option<bool>, unestablished: &[&str]) {
+    match outcome {
+        Some(true) => report.push(Diagnostic::pass(
+            "resolution.outcome",
+            format!("{alias}: §38.6 every required obligation is established or accepted"),
+        )),
+        Some(false) => report.note(format!(
+            "§38.6: {alias} would resolve NOT SATISFIED even once the §56.1 \
+             requirements are met. {} obligation(s) are on record as not established \
+             or refuted: {}. A disposition is not an establishment — requirement 4 \
+             asks whether the question was answered, and §38.6 asks what the answer \
+             was.",
+            unestablished.len(),
+            unestablished.join(", ")
+        )),
+        None => report.note(format!(
+            "§38.6: whether {alias} would resolve satisfied is UNKNOWN — at least one \
+             declared obligation has no admissible verification. Unknown is neither \
+             failure nor pass (Law 15)."
+        )),
+    }
 }
 
 #[cfg(test)]
