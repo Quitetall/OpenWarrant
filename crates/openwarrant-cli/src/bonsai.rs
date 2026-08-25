@@ -5,10 +5,12 @@
 //! repository checker. This adapter deliberately takes an explicit executable
 //! from its caller, never from authored Warrant text.
 
+use std::collections::BTreeSet;
 use std::process::Command;
 
 use camino::Utf8Path;
-use openwarrant_compiler::{lower, sha256_hex};
+use openwarrant_compiler::{CompilationBasis, lower, sha256_hex};
+use openwarrant_core::obligation;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -28,6 +30,7 @@ const ARCHITECTURE_RULES: &[&str] = &[
 
 /// Authored machine scope for one Warrant.
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct ScopeContract {
     schema: String,
     repository: String,
@@ -41,13 +44,14 @@ struct ScopeContract {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct ScopeEntry {
     path_glob: String,
     obligation_refs: Vec<String>,
 }
 
 impl ScopeContract {
-    fn validate(&self) -> Result<(), String> {
+    fn validate(&self, known_obligations: &BTreeSet<String>) -> Result<(), String> {
         if self.schema != SCOPE_SCHEMA {
             return Err(format!(
                 "scope schema must be {SCOPE_SCHEMA:?}, found {:?}",
@@ -106,6 +110,14 @@ impl ScopeContract {
                     entry.path_glob
                 ));
             }
+            for obligation in &entry.obligation_refs {
+                if !known_obligations.contains(obligation) {
+                    return Err(format!(
+                        "scope path_glob {:?} refers to undeclared obligation {:?}",
+                        entry.path_glob, obligation
+                    ));
+                }
+            }
         }
         Ok(())
     }
@@ -146,12 +158,14 @@ fn safe_ref(reference: &str) -> bool {
 }
 
 fn is_sha256(digest: &str) -> bool {
-    digest.strip_prefix("sha256:").is_some_and(|hex| {
-        hex.len() == 64
-            && hex
-                .bytes()
-                .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
-    })
+    digest.strip_prefix("sha256:").is_some_and(is_digest_hex)
+}
+
+fn is_digest_hex(hex: &str) -> bool {
+    hex.len() == 64
+        && hex
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
 fn is_git_commit(commit: &str) -> bool {
@@ -161,7 +175,7 @@ fn is_git_commit(commit: &str) -> bool {
             .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum EvidenceVerdict {
     Pass,
@@ -169,9 +183,10 @@ pub enum EvidenceVerdict {
     Unknown,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct BonsaiEvidence {
-    pub schema: &'static str,
+    pub schema: String,
     pub warrant: WarrantBinding,
     pub git: GitBinding,
     pub policy: PolicyBinding,
@@ -183,7 +198,8 @@ pub struct BonsaiEvidence {
     pub verdict: EvidenceVerdict,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct WarrantBinding {
     pub alias: String,
     pub contract_digest: String,
@@ -191,7 +207,8 @@ pub struct WarrantBinding {
     pub scope_source_digest: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct GitBinding {
     pub repository: String,
     pub base: String,
@@ -199,19 +216,22 @@ pub struct GitBinding {
     pub tree: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct PolicyBinding {
     pub path: String,
     pub digest: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct ScopeFinding {
     pub path: String,
     pub message: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct BonsaiRun {
     pub executable: String,
     pub binary_digest: Option<String>,
@@ -224,6 +244,53 @@ pub struct BonsaiRun {
     pub raw_output: Option<Value>,
     pub stderr: String,
     pub spawn_error: Option<String>,
+}
+
+/// Validate the optional Bonsai scope sidecar during `war check`.
+///
+/// A scope entry names obligations, so accepting a dangling name would allow a
+/// passing adapter report to claim coverage no assurance atom declares.
+pub(crate) fn validate_scope(alias: &str, basis: &CompilationBasis) -> Result<(), RepoError> {
+    load_scope(alias, basis).map(|_| ())
+}
+
+fn load_scope(alias: &str, basis: &CompilationBasis) -> Result<ScopeContract, RepoError> {
+    let scope_source = basis.scope.as_ref().ok_or_else(|| {
+        RepoError::Message(format!("{alias}: Bonsai requires a bound scope.toml"))
+    })?;
+    // Never reread this path. The Compilation Basis is the evidence boundary:
+    // using current filesystem bytes here could enforce a different policy than
+    // the digest embedded in the Warrant contract.
+    let scope: ScopeContract = toml::from_str(&String::from_utf8_lossy(&scope_source.bytes))
+        .map_err(|source| {
+            RepoError::Message(format!(
+                "{alias}: could not parse bound {}: {source}",
+                scope_source.source
+            ))
+        })?;
+    let known_obligations = declared_obligations(basis).map_err(|message| {
+        RepoError::Message(format!(
+            "{alias}: invalid Bonsai assurance basis: {message}"
+        ))
+    })?;
+    scope.validate(&known_obligations).map_err(|message| {
+        RepoError::Message(format!(
+            "{alias}: invalid bound {}: {message}",
+            scope_source.source
+        ))
+    })?;
+    Ok(scope)
+}
+
+fn declared_obligations(basis: &CompilationBasis) -> Result<BTreeSet<String>, String> {
+    let mut known = BTreeSet::new();
+    for atom in basis.atoms.iter().filter(|atom| atom.role == "assurance") {
+        let source = String::from_utf8_lossy(&atom.bytes);
+        let obligations =
+            obligation::parse(&source).map_err(|error| format!("{}: {error}", atom.source))?;
+        known.extend(obligations.ids().into_iter().map(str::to_owned));
+    }
+    Ok(known)
 }
 
 /// Execute Bonsai against a Warrant-bounded diff and emit its evidence model.
@@ -251,18 +318,7 @@ pub fn check(
         )));
     }
 
-    let scope_path = dir.join("scope.toml");
-    let scope_bytes = std::fs::read(&scope_path).map_err(|source| RepoError::Io {
-        context: format!("{alias}: Bonsai requires {scope_path}"),
-        source,
-    })?;
-    let scope: ScopeContract =
-        toml::from_str(&String::from_utf8_lossy(&scope_bytes)).map_err(|source| {
-            RepoError::Message(format!("{alias}: could not parse {scope_path}: {source}"))
-        })?;
-    scope.validate().map_err(|message| {
-        RepoError::Message(format!("{alias}: invalid {scope_path}: {message}"))
-    })?;
+    let scope = load_scope(alias, basis)?;
 
     let worktree = git(repo, &["status", "--porcelain=v1", "--untracked-files=all"])?;
     if !worktree.is_empty() {
@@ -432,27 +488,36 @@ pub fn check(
         ),
     };
 
-    let architecture_findings: Vec<Value> = raw_findings
-        .iter()
-        .filter(|finding| is_architecture_error(finding))
-        .cloned()
-        .collect();
-    let advisory_findings: Vec<Value> = raw_findings
-        .iter()
-        .filter(|finding| !is_architecture_error(finding))
-        .cloned()
-        .collect();
     let bonsai_asked = valid_bonsai_report(&bonsai);
-    let verdict = if !scope_findings.is_empty() || !architecture_findings.is_empty() {
-        EvidenceVerdict::Fail
-    } else if bonsai_asked {
-        EvidenceVerdict::Pass
+    // Finding classification has no meaning until the complete machine result
+    // is validated. In particular, a malformed document cannot turn a string
+    // that resembles an architecture rule into a false failure.
+    let architecture_findings: Vec<Value> = if bonsai_asked {
+        raw_findings
+            .iter()
+            .filter(|finding| is_architecture_error(finding))
+            .cloned()
+            .collect()
     } else {
-        EvidenceVerdict::Unknown
+        Vec::new()
     };
+    let advisory_findings: Vec<Value> = if bonsai_asked {
+        raw_findings
+            .iter()
+            .filter(|finding| !is_architecture_error(finding))
+            .cloned()
+            .collect()
+    } else {
+        Vec::new()
+    };
+    let verdict = evidence_verdict(
+        !scope_findings.is_empty(),
+        bonsai_asked,
+        !architecture_findings.is_empty(),
+    );
 
     Ok(BonsaiEvidence {
-        schema: SCHEMA,
+        schema: SCHEMA.to_owned(),
         warrant: WarrantBinding {
             alias: alias.to_owned(),
             contract_digest,
@@ -476,6 +541,20 @@ pub fn check(
         advisory_findings,
         verdict,
     })
+}
+
+fn evidence_verdict(
+    has_scope_findings: bool,
+    bonsai_asked: bool,
+    has_architecture_findings: bool,
+) -> EvidenceVerdict {
+    if has_scope_findings || (bonsai_asked && has_architecture_findings) {
+        EvidenceVerdict::Fail
+    } else if bonsai_asked {
+        EvidenceVerdict::Pass
+    } else {
+        EvidenceVerdict::Unknown
+    }
 }
 
 fn is_architecture_error(finding: &Value) -> bool {
@@ -541,6 +620,110 @@ fn valid_finding(finding: &Value) -> bool {
         && object
             .get("fix")
             .is_none_or(|fix| fix.as_str().is_some_and(|value| !value.is_empty()))
+}
+
+/// Read and validate a pass-worthy Bonsai evidence document from this repository.
+///
+/// This validates evidence syntax and its internal consistency. It does not run
+/// Bonsai; `war bonsai check` remains the producer of a fresh observation.
+pub(crate) fn verify_evidence_file(
+    repo: &Repository,
+    evidence_path: &Utf8Path,
+) -> Result<(), RepoError> {
+    if evidence_path.is_absolute() || !safe_relative(evidence_path.as_str()) {
+        return Err(RepoError::Message(
+            "Bonsai evidence path must be a safe repository-relative path".to_owned(),
+        ));
+    }
+    let bytes = std::fs::read(repo.root.join(evidence_path)).map_err(|source| RepoError::Io {
+        context: format!("could not read Bonsai evidence {evidence_path}"),
+        source,
+    })?;
+    validate_passing_evidence_bytes(&bytes)
+        .map(|_| ())
+        .map_err(RepoError::Message)
+}
+
+/// Validate the bytes attached to a gate receipt and return their typed model.
+pub(crate) fn validate_passing_evidence_bytes(bytes: &[u8]) -> Result<BonsaiEvidence, String> {
+    let evidence: BonsaiEvidence = serde_json::from_slice(bytes)
+        .map_err(|error| format!("Bonsai evidence is not valid v1 JSON: {error}"))?;
+    if evidence.schema != SCHEMA {
+        return Err(format!("Bonsai evidence schema must be {SCHEMA:?}"));
+    }
+    if evidence.verdict != EvidenceVerdict::Pass {
+        return Err("Bonsai evidence verdict must be pass".to_owned());
+    }
+    if evidence.warrant.alias.trim().is_empty()
+        || !is_digest_hex(&evidence.warrant.contract_digest)
+        || !safe_relative(&evidence.warrant.scope_source)
+        || !is_sha256(&evidence.warrant.scope_source_digest)
+    {
+        return Err("Bonsai evidence has an invalid Warrant binding".to_owned());
+    }
+    if !valid_github_identity(&evidence.git.repository)
+        || !is_git_commit(&evidence.git.base)
+        || !is_git_commit(&evidence.git.head)
+        || !is_git_commit(&evidence.git.tree)
+    {
+        return Err("Bonsai evidence has an invalid Git binding".to_owned());
+    }
+    if !safe_relative(&evidence.policy.path) || !is_sha256(&evidence.policy.digest) {
+        return Err("Bonsai evidence has an invalid policy binding".to_owned());
+    }
+    if evidence
+        .changed_paths
+        .iter()
+        .any(|path| !safe_relative(path))
+    {
+        return Err("Bonsai evidence contains an unsafe changed path".to_owned());
+    }
+    if !evidence.scope_findings.is_empty() || !evidence.architecture_findings.is_empty() {
+        return Err("passing Bonsai evidence cannot contain blocking findings".to_owned());
+    }
+    if evidence.bonsai.spawn_error.is_some()
+        || !is_sha256(evidence.bonsai.binary_digest.as_deref().unwrap_or_default())
+        || evidence.bonsai.expected_source != "github:Quitetall/bonsai"
+        || !is_git_commit(&evidence.bonsai.expected_revision)
+        || !valid_bonsai_report(&evidence.bonsai)
+    {
+        return Err("Bonsai evidence does not contain a valid completed Bonsai run".to_owned());
+    }
+
+    let findings = evidence
+        .bonsai
+        .raw_output
+        .as_ref()
+        .and_then(|output| output.get("findings"))
+        .and_then(Value::as_array)
+        .ok_or_else(|| "Bonsai evidence has no typed findings array".to_owned())?;
+    let expected_architecture = findings
+        .iter()
+        .filter(|finding| is_architecture_error(finding))
+        .cloned()
+        .collect::<Vec<_>>();
+    let expected_advisory = findings
+        .iter()
+        .filter(|finding| !is_architecture_error(finding))
+        .cloned()
+        .collect::<Vec<_>>();
+    if evidence.architecture_findings != expected_architecture
+        || evidence.advisory_findings != expected_advisory
+    {
+        return Err("Bonsai evidence finding classifications do not match raw output".to_owned());
+    }
+    Ok(evidence)
+}
+
+fn valid_github_identity(repository: &str) -> bool {
+    let Some(path) = repository.strip_prefix("github:") else {
+        return false;
+    };
+    let mut parts = path.split('/');
+    matches!(
+        (parts.next(), parts.next(), parts.next()),
+        (Some(owner), Some(name), None) if !owner.is_empty() && !name.is_empty()
+    )
 }
 
 fn git(repo: &Repository, args: &[&str]) -> Result<String, RepoError> {
@@ -611,6 +794,70 @@ fn github_identity(remote: &str) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn clean_evidence() -> BonsaiEvidence {
+        BonsaiEvidence {
+            schema: SCHEMA.to_owned(),
+            warrant: WarrantBinding {
+                alias: "OW-WAR-0050".to_owned(),
+                contract_digest: "a".repeat(64),
+                scope_source: "docs/warrants/OW-WAR-0050/scope.toml".to_owned(),
+                scope_source_digest: format!("sha256:{}", "b".repeat(64)),
+            },
+            git: GitBinding {
+                repository: "github:Quitetall/OpenWarrant".to_owned(),
+                base: "c".repeat(40),
+                head: "d".repeat(40),
+                tree: "e".repeat(40),
+            },
+            policy: PolicyBinding {
+                path: "bonsai.toml".to_owned(),
+                digest: format!("sha256:{}", "f".repeat(64)),
+            },
+            changed_paths: vec!["crates/openwarrant-cli/src/bonsai.rs".to_owned()],
+            scope_findings: vec![],
+            bonsai: BonsaiRun {
+                executable: "target/release/bonsai".to_owned(),
+                binary_digest: Some(format!("sha256:{}", "1".repeat(64))),
+                expected_source: "github:Quitetall/bonsai".to_owned(),
+                expected_revision: "2".repeat(40),
+                version: Some("bonsai fixture".to_owned()),
+                exit_code: Some(0),
+                raw_output: Some(serde_json::json!({
+                    "tool": "bonsai",
+                    "version": "fixture",
+                    "findings": []
+                })),
+                stderr: String::new(),
+                spawn_error: None,
+            },
+            architecture_findings: vec![],
+            advisory_findings: vec![],
+            verdict: EvidenceVerdict::Pass,
+        }
+    }
+
+    #[test]
+    fn passing_evidence_requires_complete_consistent_observation() {
+        let evidence = clean_evidence();
+        let bytes = serde_json::to_vec(&evidence).expect("serialize evidence");
+        validate_passing_evidence_bytes(&bytes).expect("valid clean evidence");
+
+        let mut non_passing = clean_evidence();
+        non_passing.verdict = EvidenceVerdict::Unknown;
+        let bytes = serde_json::to_vec(&non_passing).expect("serialize evidence");
+        assert!(validate_passing_evidence_bytes(&bytes).is_err());
+
+        let mut inconsistent = clean_evidence();
+        inconsistent.advisory_findings.push(serde_json::json!({
+            "rule": "leanness-ratchet",
+            "severity": "error",
+            "message": "not present in raw output",
+            "location": {"file": "bonsai.toml"}
+        }));
+        let bytes = serde_json::to_vec(&inconsistent).expect("serialize evidence");
+        assert!(validate_passing_evidence_bytes(&bytes).is_err());
+    }
 
     #[test]
     fn scope_paths_are_small_and_unambiguous() {
@@ -718,6 +965,30 @@ mod tests {
         assert!(!valid_bonsai_report(&run));
     }
 
+    #[test]
+    fn malformed_architecture_output_is_unknown_not_fail() {
+        let run = BonsaiRun {
+            executable: "bonsai".to_owned(),
+            binary_digest: Some("sha256:0".to_owned()),
+            expected_source: "github:Quitetall/bonsai".to_owned(),
+            expected_revision: "0".repeat(40),
+            version: Some("bonsai 0.1.0".to_owned()),
+            exit_code: Some(1),
+            raw_output: Some(serde_json::json!({
+                "tool": "bonsai",
+                "version": "0.1.0",
+                "findings": [{"rule": "contract-seal", "severity": "error"}]
+            })),
+            stderr: String::new(),
+            spawn_error: None,
+        };
+        assert!(!valid_bonsai_report(&run));
+        assert_eq!(
+            evidence_verdict(false, valid_bonsai_report(&run), true),
+            EvidenceVerdict::Unknown
+        );
+    }
+
     #[cfg(unix)]
     mod qualification_plants {
         use std::fs;
@@ -731,6 +1002,14 @@ mod tests {
         use super::{EvidenceVerdict, Repository, check};
 
         static FIXTURE_COUNTER: AtomicUsize = AtomicUsize::new(0);
+
+        #[derive(Clone, Copy)]
+        enum BonsaiOutput {
+            Clean,
+            ArchitectureError,
+            AdvisoryError,
+            MalformedArchitecture,
+        }
 
         struct Fixture {
             source: PathBuf,
@@ -814,11 +1093,30 @@ mod tests {
                 );
             }
 
-            fn bonsai(&self) -> Utf8PathBuf {
+            fn bonsai(&self, output: BonsaiOutput) -> Utf8PathBuf {
                 let binary = self.scratch.join("bonsai-fixture");
+                let (report, status) = match output {
+                    BonsaiOutput::Clean => {
+                        (r#"{"tool":"bonsai","version":"fixture","findings":[]}"#, 0)
+                    }
+                    BonsaiOutput::ArchitectureError => (
+                        r#"{"tool":"bonsai","version":"fixture","findings":[{"rule":"contract-forbid","severity":"error","message":"forbidden dependency","location":{"file":"crates/openwarrant-cli/src/fixture.rs","line":1}}]}"#,
+                        1,
+                    ),
+                    BonsaiOutput::AdvisoryError => (
+                        r#"{"tool":"bonsai","version":"fixture","findings":[{"rule":"leanness-ratchet","severity":"error","message":"advisory regression","location":{"file":"crates/openwarrant-cli/src/fixture.rs","line":1}}]}"#,
+                        1,
+                    ),
+                    BonsaiOutput::MalformedArchitecture => (
+                        r#"{"tool":"bonsai","version":"fixture","findings":[{"rule":"contract-forbid","severity":"error"}]}"#,
+                        1,
+                    ),
+                };
                 fs::write(
                     &binary,
-                    "#!/bin/sh\nif [ \"$1\" = \"--version\" ]; then\n  printf 'bonsai fixture\\n'\n  exit 0\nfi\nprintf '%s\\n' '{\"tool\":\"bonsai\",\"version\":\"fixture\",\"findings\":[]}'\n",
+                    format!(
+                        "#!/bin/sh\nif [ \"$1\" = \"--version\" ]; then\n  printf 'bonsai fixture\\n'\n  exit 0\nfi\nprintf '%s\\n' '{report}'\nexit {status}\n"
+                    ),
                 )
                 .expect("fixture Bonsai binary");
                 fs::set_permissions(&binary, fs::Permissions::from_mode(0o700))
@@ -880,10 +1178,27 @@ mod tests {
                 "OW-WAR-0050",
                 &scoped.base(),
                 &scoped.head(),
-                Utf8Path::new(scoped.bonsai().as_str()),
+                Utf8Path::new(scoped.bonsai(BonsaiOutput::Clean).as_str()),
             )
             .expect("scope-covered candidate reports evidence");
             assert_eq!(evidence.verdict, EvidenceVerdict::Pass);
+
+            let dangling_obligation = Fixture::new();
+            let scope_path = dangling_obligation
+                .root
+                .join("docs/warrants/OW-WAR-0050/scope.toml");
+            let altered_scope = fs::read_to_string(&scope_path)
+                .expect("read qualification scope")
+                .replacen("OBL-001", "OBL-999", 1);
+            dangling_obligation.commit("docs/warrants/OW-WAR-0050/scope.toml", &altered_scope);
+            let report = crate::check::run(&dangling_obligation.repo(), Some("OW-WAR-0050"), false)
+                .expect("scope check completes");
+            assert!(report.diagnostics.iter().any(|diagnostic| {
+                diagnostic.rule == "bonsai-scope.invalid"
+                    && diagnostic
+                        .message
+                        .contains("undeclared obligation \"OBL-999\"")
+            }));
 
             let out_of_scope = Fixture::new();
             out_of_scope.commit("outside-warrant.txt", "must be refused\n");
@@ -892,7 +1207,7 @@ mod tests {
                 "OW-WAR-0050",
                 &out_of_scope.base(),
                 &out_of_scope.head(),
-                Utf8Path::new(out_of_scope.bonsai().as_str()),
+                Utf8Path::new(out_of_scope.bonsai(BonsaiOutput::Clean).as_str()),
             )
             .expect("out-of-scope candidate still produces evidence");
             assert_eq!(evidence.verdict, EvidenceVerdict::Fail);
@@ -905,7 +1220,7 @@ mod tests {
                 "OW-WAR-0050",
                 &policy_drift.base(),
                 &policy_drift.head(),
-                Utf8Path::new(policy_drift.bonsai().as_str()),
+                Utf8Path::new(policy_drift.bonsai(BonsaiOutput::Clean).as_str()),
             )
             .expect_err("policy digest drift must refuse evidence");
             assert!(error.to_string().contains("policy digest differs"));
@@ -920,7 +1235,7 @@ mod tests {
                 "OW-WAR-0050",
                 &non_head.base(),
                 &non_head.base(),
-                Utf8Path::new(non_head.bonsai().as_str()),
+                Utf8Path::new(non_head.bonsai(BonsaiOutput::Clean).as_str()),
             )
             .expect_err("non-HEAD candidate must refuse evidence");
             assert!(error.to_string().contains("is not checked out"));
@@ -946,6 +1261,64 @@ mod tests {
             .expect("unavailable Bonsai produces unknown evidence");
             assert_eq!(evidence.verdict, EvidenceVerdict::Unknown);
             assert!(evidence.bonsai.spawn_error.is_some());
+
+            let architecture = Fixture::new();
+            architecture.commit(
+                "crates/openwarrant-cli/src/architecture_fixture.rs",
+                "// architecture finding candidate\n",
+            );
+            let evidence = check(
+                &architecture.repo(),
+                "OW-WAR-0050",
+                &architecture.base(),
+                &architecture.head(),
+                Utf8Path::new(
+                    architecture
+                        .bonsai(BonsaiOutput::ArchitectureError)
+                        .as_str(),
+                ),
+            )
+            .expect("architecture finding produces evidence");
+            assert_eq!(evidence.verdict, EvidenceVerdict::Fail);
+            assert_eq!(evidence.architecture_findings.len(), 1);
+
+            let advisory = Fixture::new();
+            advisory.commit(
+                "crates/openwarrant-cli/src/advisory_fixture.rs",
+                "// advisory finding candidate\n",
+            );
+            let evidence = check(
+                &advisory.repo(),
+                "OW-WAR-0050",
+                &advisory.base(),
+                &advisory.head(),
+                Utf8Path::new(advisory.bonsai(BonsaiOutput::AdvisoryError).as_str()),
+            )
+            .expect("advisory finding produces evidence");
+            assert_eq!(evidence.verdict, EvidenceVerdict::Pass);
+            assert_eq!(evidence.architecture_findings.len(), 0);
+            assert_eq!(evidence.advisory_findings.len(), 1);
+
+            let malformed = Fixture::new();
+            malformed.commit(
+                "crates/openwarrant-cli/src/malformed_fixture.rs",
+                "// malformed Bonsai candidate\n",
+            );
+            let evidence = check(
+                &malformed.repo(),
+                "OW-WAR-0050",
+                &malformed.base(),
+                &malformed.head(),
+                Utf8Path::new(
+                    malformed
+                        .bonsai(BonsaiOutput::MalformedArchitecture)
+                        .as_str(),
+                ),
+            )
+            .expect("malformed output produces evidence");
+            assert_eq!(evidence.verdict, EvidenceVerdict::Unknown);
+            assert!(evidence.architecture_findings.is_empty());
+            assert!(evidence.advisory_findings.is_empty());
         }
     }
 }

@@ -35,6 +35,8 @@ use openwarrant_core::{Askability, ExecutionStatus, GateRun, ReasonCode, Verdict
 use crate::diagnostic::{Diagnostic, Report};
 use crate::repo::{RepoError, Repository};
 
+const BONSAI_EVIDENCE_GATE: &str = "software.repo.bonsai-evidence";
+
 /// The deadline used when a gate declares none.
 const DEFAULT_GATE_TIMEOUT: Duration = Duration::from_secs(600);
 
@@ -326,7 +328,7 @@ pub fn run(
     subject_digests: &[String],
     raw_evidence_refs: &[String],
 ) -> Result<Report, RepoError> {
-    validate_bonsai_bindings(repo, subject_digests, raw_evidence_refs)?;
+    validate_bonsai_bindings(repo, only, subject_digests, raw_evidence_refs)?;
     let mut report = Report::default();
     let registry = crate::check::load_gate_registry(repo, &mut report);
 
@@ -490,6 +492,7 @@ pub fn run(
 /// with typed artifact kinds instead of accepting arbitrary strings now.
 fn validate_bonsai_bindings(
     repo: &Repository,
+    only: Option<&str>,
     subject_digests: &[String],
     raw_evidence_refs: &[String],
 ) -> Result<(), RepoError> {
@@ -501,6 +504,14 @@ fn validate_bonsai_bindings(
             "Bonsai receipt binding requires exactly one contract subject and one evidence reference"
                 .to_owned(),
         ));
+    }
+    if !matches!(
+        only,
+        Some(BONSAI_EVIDENCE_GATE) | Some("software.repo.bonsai-evidence@1.0.0")
+    ) {
+        return Err(RepoError::Message(format!(
+            "Bonsai receipt bindings are valid only for {BONSAI_EVIDENCE_GATE}@1.0.0"
+        )));
     }
     let subject = &subject_digests[0];
     let Some(contract_digest) = subject.strip_prefix("contract:sha256:") else {
@@ -536,17 +547,9 @@ fn validate_bonsai_bindings(
             "Bonsai evidence reference digest does not match file bytes".to_owned(),
         ));
     }
-    let evidence: serde_json::Value = serde_json::from_slice(&bytes).map_err(|source| {
-        RepoError::Message(format!("Bonsai evidence is not valid JSON: {source}"))
-    })?;
-    let evidence_contract = evidence
-        .pointer("/warrant/contract_digest")
-        .and_then(serde_json::Value::as_str);
-    if evidence.get("schema").and_then(serde_json::Value::as_str)
-        != Some("oh.war/bonsai-evidence/v1")
-        || evidence.get("verdict").and_then(serde_json::Value::as_str) != Some("pass")
-        || evidence_contract != Some(contract_digest)
-    {
+    let evidence =
+        crate::bonsai::validate_passing_evidence_bytes(&bytes).map_err(RepoError::Message)?;
+    if evidence.warrant.contract_digest != contract_digest {
         return Err(RepoError::Message(
             "Bonsai evidence must be a passing v1 report for the bound contract digest".to_owned(),
         ));

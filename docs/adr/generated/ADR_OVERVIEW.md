@@ -1123,6 +1123,13 @@ classes block: paths outside the Warrant machine scope and Bonsai error findings
 from the architecture-rule allowlist. Leanness and other non-architecture
 findings remain visible but advisory.
 
+The pinned Bonsai source is private today. Public-fork pull requests therefore
+emit `unknown` evidence when no separately supplied trusted artifact is
+available; they do not use `pull_request_target` or expose a private-source
+credential while evaluating pull-request code. A public reproducible Bonsai
+artifact, or an equivalently isolated trusted execution path, is required before
+this report can become a generally available blocking check.
+
 Required administrator-owned GitHub controls before blocking are: one external
 review, required code-owner review, resolved threads, no bypass, strict required
 checks, Actions SHA pinning, Dependabot security updates, secret scanning, and
@@ -1132,4 +1139,5 @@ push protection. This ADR does not claim those settings are enabled.
 
 CI and PR template can establish report-phase mechanics now. Blocking rollout
 remains deliberately incomplete until an external verifier and repository
-administrator record the required evidence.
+administrator record the required evidence and a trusted Bonsai artifact path
+exists for every protected pull-request origin.

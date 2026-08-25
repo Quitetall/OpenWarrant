@@ -16,7 +16,10 @@ pub const KIND: &str = "work_authorization_record";
 
 /// The schema pack this build implements (§64).
 pub const SCHEMA_PACK_ID: &str = "openwarrant-schema-pack";
-pub const SCHEMA_PACK_VERSION: &str = "0.1.0";
+// `source_and_composition.scope` is an optional, contract-bearing field added
+// after 0.1.0. That is a backward-compatible schema capability, so it is a
+// minor pack release rather than silently relabelling 0.1.0 documents.
+pub const SCHEMA_PACK_VERSION: &str = "0.2.0";
 
 /// Pins schema, vocabulary, profile, and state-machine versions (§64).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -281,6 +284,28 @@ mod tests {
                 other.identity.title = "A different warrant".to_owned();
                 other.contract_digest().expect("digest")
             }
+        );
+    }
+
+    #[test]
+    fn pre_scope_documents_remain_readable_under_the_minor_schema_bump() {
+        let mut value = serde_json::to_value(ir()).expect("serializes IR");
+        value["format_basis"]["version"] = serde_json::json!("0.1.0");
+        value["source_and_composition"]
+            .as_object_mut()
+            .expect("source composition object")
+            .remove("scope");
+
+        let parsed: WarIr = serde_json::from_value(value).expect("reads pre-scope IR");
+        assert_eq!(SCHEMA_PACK_VERSION, "0.2.0");
+        assert_eq!(parsed.format_basis.version, "0.1.0");
+        assert!(parsed.source_and_composition.scope.is_none());
+        let reserialized = serde_json::to_value(&parsed).expect("reserializes IR");
+        assert!(
+            reserialized["source_and_composition"]
+                .get("scope")
+                .is_none(),
+            "absent scope sidecar must remain omitted"
         );
     }
 

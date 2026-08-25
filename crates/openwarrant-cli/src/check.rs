@@ -842,6 +842,23 @@ fn check_one(
         }
     }
 
+    // The optional Bonsai sidecar names assurance obligations. Resolve those
+    // names here as well as in the adapter, so an authored scope cannot look
+    // valid until its first CI invocation.
+    if basis.scope.is_some() {
+        match crate::bonsai::validate_scope(&alias, basis) {
+            Ok(()) => report.push(Diagnostic::pass(
+                "bonsai-scope.valid",
+                format!("{alias}: machine scope resolves to declared obligations"),
+            )),
+            Err(err) => report.push(Diagnostic::error(
+                "bonsai-scope.invalid",
+                repo.relative(&one.dir.join("scope.toml")),
+                err.to_string(),
+            )),
+        }
+    }
+
     // §20.2 / §91.5 test 29: a child cites an EXACT parent contract revision.
     // The digest is what makes "exact" verifiable, so it is compared against the
     // parent's actual contract digest rather than merely noted as present.

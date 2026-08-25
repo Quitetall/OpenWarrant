@@ -31,5 +31,9 @@ path_glob = "docs/warrants/generated/**"
 obligation_refs = ["OBL-001"]
 
 [[scope]]
+path_glob = "docs/gates/**"
+obligation_refs = ["OBL-002"]
+
+[[scope]]
 path_glob = "docs/adr/**"
 obligation_refs = ["OBL-004"]

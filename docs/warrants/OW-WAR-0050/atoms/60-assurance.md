@@ -19,21 +19,23 @@ classification: internal
 
 ### OBL-002 — evidence binds exact candidate and machine policy
 - **scope:** `war bonsai check`, scope parser, git binding, JSON evidence.
-- **gate:** `gate://software.repo.war-check@1.0.0`
+- **gate:** `gate://software.repo.bonsai-evidence@1.0.0`
 - **evidence:** plants for out-of-scope diff, policy-digest drift, non-HEAD
   candidate, unavailable Bonsai, and clean candidate.
 
 ### OBL-003 — only scope and architecture block the pilot
 - **scope:** Bonsai policy and adapter finding filter.
-- **gate:** `gate://software.repo.war-check@1.0.0`
+- **gate:** `gate://software.repo.bonsai-evidence@1.0.0`
 - **evidence:** plant showing `contract-*` error fails while a non-architecture
   error remains recorded but non-blocking.
 
 ### OBL-004 — PR workflow remains report-only pending qualification
 - **scope:** PR template, CI workflow, and rollout ADR.
 - **gate:** `gate://software.repo.war-check@1.0.0`
-- **evidence:** workflow review by named external human plus GitHub check
-  settings recorded outside this Warrant.
+- **evidence:** report phase emits typed `unknown` when private Bonsai source is
+  unavailable. Blocking requires an external human review, administrator-owned
+  GitHub settings, and a trusted Bonsai artifact path for protected PR origins;
+  those records remain outside this draft Warrant.
 
 ## Gate Adequacy
 

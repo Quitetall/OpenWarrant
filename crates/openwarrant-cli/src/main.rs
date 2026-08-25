@@ -81,6 +81,12 @@ enum BonsaiCommand {
         #[arg(long, value_name = "BONSAI_BINARY")]
         bonsai: Utf8PathBuf,
     },
+    /// Validate a completed passing Bonsai evidence document without rerunning Bonsai.
+    VerifyEvidence {
+        /// Repository-relative evidence document emitted by `war bonsai check`.
+        #[arg(long)]
+        evidence: Utf8PathBuf,
+    },
 }
 
 /// Exit codes. §76.4 wants machine-usable output; a caller distinguishing
@@ -411,6 +417,12 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     bonsai::EvidenceVerdict::Unknown => EXIT_NOT_READY,
                     bonsai::EvidenceVerdict::Fail => EXIT_DIAGNOSTIC,
                 })
+            }
+            BonsaiCommand::VerifyEvidence { evidence } => {
+                let repository = repo::Repository::discover(None)?;
+                bonsai::verify_evidence_file(&repository, &evidence)?;
+                println!("Bonsai evidence is a valid passing v1 document");
+                Ok(EXIT_OK)
             }
         },
         Command::Export {
