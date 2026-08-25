@@ -488,17 +488,22 @@ fn is_architecture_error(finding: &Value) -> bool {
 
 fn valid_bonsai_report(run: &BonsaiRun) -> bool {
     run.binary_digest.is_some()
-        && matches!(run.exit_code, Some(0 | 1))
         && run.raw_output.as_ref().is_some_and(|report| {
-            report.get("tool").and_then(Value::as_str) == Some("bonsai")
+            let Some(findings) = report.get("findings").and_then(Value::as_array) else {
+                return false;
+            };
+            let has_error = findings
+                .iter()
+                .any(|finding| finding.get("severity").and_then(Value::as_str) == Some("error"));
+            matches!(
+                (run.exit_code, has_error),
+                (Some(0), false) | (Some(1), true)
+            ) && report.get("tool").and_then(Value::as_str) == Some("bonsai")
                 && report
                     .get("version")
                     .and_then(Value::as_str)
                     .is_some_and(|version| !version.is_empty())
-                && report
-                    .get("findings")
-                    .and_then(Value::as_array)
-                    .is_some_and(|findings| findings.iter().all(valid_finding))
+                && findings.iter().all(valid_finding)
         })
 }
 
@@ -691,5 +696,25 @@ mod tests {
             "location": {"file": "src/lib.rs", "line": 4_294_967_296u64}
         });
         assert!(!valid_finding(&finding));
+    }
+
+    #[test]
+    fn bonsai_exit_code_must_match_error_findings() {
+        let run = BonsaiRun {
+            executable: "bonsai".to_owned(),
+            binary_digest: Some("sha256:0".to_owned()),
+            expected_source: "github:Quitetall/bonsai".to_owned(),
+            expected_revision: "0".repeat(40),
+            version: Some("bonsai 0.1.0".to_owned()),
+            exit_code: Some(1),
+            raw_output: Some(serde_json::json!({
+                "tool": "bonsai",
+                "version": "0.1.0",
+                "findings": []
+            })),
+            stderr: String::new(),
+            spawn_error: None,
+        };
+        assert!(!valid_bonsai_report(&run));
     }
 }
