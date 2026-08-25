@@ -4,9 +4,10 @@
 
 ## Warrant
 
-<!-- Which Warrant authorizes this? `war new` creates one. -->
+<!-- Report-phase evidence binds this change to a Warrant. Authorization remains
+     a separate recorded human act; `war new` creates a draft only. -->
 
-Authorized by: OW-WAR-____
+Warrant: OW-WAR-____
 
 ## Checklist
 

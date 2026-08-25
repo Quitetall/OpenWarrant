@@ -1,0 +1,16 @@
+[bonsai]
+root = "."
+version = 1
+skip = [".git", "target", ".bonsai"]
+
+# Pilot blocking policy: architecture only. Leanness remains reported by Bonsai
+# but OpenWarrant's adapter does not turn advisory findings into a Warrant fail.
+[[contract]]
+path = "crates/openwarrant-core/src"
+level = "pure-domain"
+forbid = ["std::process::Command", "ureq::", "reqwest::"]
+
+[[contract]]
+path = "crates/openwarrant-compiler/src"
+level = "pure-compiler"
+forbid = ["std::process::Command", "ureq::", "reqwest::"]

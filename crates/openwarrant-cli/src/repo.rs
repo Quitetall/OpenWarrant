@@ -5,7 +5,7 @@ use std::fmt;
 use std::fs;
 
 use camino::{Utf8Path, Utf8PathBuf};
-use openwarrant_compiler::{AtomSource, CompilationBasis};
+use openwarrant_compiler::{AtomSource, CompilationBasis, ScopeSource};
 use openwarrant_core::{
     AdrError, AdrRecord, Manifest, RepositoryConfig, ValidatedManifest, frontmatter,
 };
@@ -281,6 +281,26 @@ impl Repository {
             });
         }
 
+        let scope_path = dir.join("scope.toml");
+        let scope = if scope_path.is_file() {
+            match fs::read(&scope_path) {
+                Ok(bytes) => Some(ScopeSource {
+                    source: self.relative(&scope_path),
+                    bytes,
+                }),
+                Err(source) => {
+                    report.push(Diagnostic::error(
+                        "scope.unreadable",
+                        self.relative(&scope_path),
+                        source.to_string(),
+                    ));
+                    None
+                }
+            }
+        } else {
+            None
+        };
+
         Ok(Loaded {
             dir: dir.to_owned(),
             basis: Some(CompilationBasis {
@@ -288,6 +308,7 @@ impl Repository {
                 manifest_source: relative_manifest,
                 manifest_bytes,
                 atoms,
+                scope,
             }),
             validated: Some(validated),
             report,

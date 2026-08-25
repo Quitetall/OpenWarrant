@@ -28,11 +28,14 @@
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
 
+use openwarrant_compiler::sha256_hex;
 use openwarrant_core::gate::GateDefinition;
 use openwarrant_core::{Askability, ExecutionStatus, GateRun, ReasonCode, Verdict};
 
 use crate::diagnostic::{Diagnostic, Report};
 use crate::repo::{RepoError, Repository};
+
+const BONSAI_EVIDENCE_GATE: &str = "software.repo.bonsai-evidence";
 
 /// The deadline used when a gate declares none.
 const DEFAULT_GATE_TIMEOUT: Duration = Duration::from_secs(600);
@@ -322,7 +325,10 @@ pub fn run(
     execute: bool,
     only: Option<&str>,
     record: bool,
+    subject_digests: &[String],
+    raw_evidence_refs: &[String],
 ) -> Result<Report, RepoError> {
+    validate_bonsai_bindings(repo, only, subject_digests, raw_evidence_refs)?;
     let mut report = Report::default();
     let registry = crate::check::load_gate_registry(repo, &mut report);
 
@@ -421,7 +427,15 @@ pub fn run(
         // receipt for it would be minting evidence of something that did not
         // happen.
         if run.execution_status == ExecutionStatus::Completed {
-            match receipt::mint(repo, def, &run, &started_at, &format!("{}", run.verdict)) {
+            match receipt::mint(
+                repo,
+                def,
+                &run,
+                &started_at,
+                &format!("{}", run.verdict),
+                subject_digests,
+                raw_evidence_refs,
+            ) {
                 Ok(path) => report.push(Diagnostic::pass(
                     "gate-run.receipt",
                     format!(
@@ -468,6 +482,95 @@ pub fn run(
         }
     }
     Ok(report)
+}
+
+/// Refuse a receipt that attaches a Bonsai document by name but not by bytes,
+/// or that lets a passing local gate appear to endorse failed Bonsai evidence.
+///
+/// This is intentionally narrow: only the Warrant/Bonsai adapter needs these
+/// extra receipt fields today. A future generic evidence registry can widen it
+/// with typed artifact kinds instead of accepting arbitrary strings now.
+fn validate_bonsai_bindings(
+    repo: &Repository,
+    only: Option<&str>,
+    subject_digests: &[String],
+    raw_evidence_refs: &[String],
+) -> Result<(), RepoError> {
+    if subject_digests.is_empty() && raw_evidence_refs.is_empty() {
+        return Ok(());
+    }
+    if subject_digests.len() != 1 || raw_evidence_refs.len() != 1 {
+        return Err(RepoError::Message(
+            "Bonsai receipt binding requires exactly one contract subject and one evidence reference"
+                .to_owned(),
+        ));
+    }
+    if !matches!(
+        only,
+        Some(BONSAI_EVIDENCE_GATE) | Some("software.repo.bonsai-evidence@1.0.0")
+    ) {
+        return Err(RepoError::Message(format!(
+            "Bonsai receipt bindings are valid only for {BONSAI_EVIDENCE_GATE}@1.0.0"
+        )));
+    }
+    let subject = &subject_digests[0];
+    let Some(contract_digest) = subject.strip_prefix("contract:sha256:") else {
+        return Err(RepoError::Message(
+            "Bonsai receipt subject must be contract:sha256:<digest>".to_owned(),
+        ));
+    };
+    if !is_hex_digest(contract_digest) {
+        return Err(RepoError::Message(
+            "Bonsai receipt contract digest must be 64 lowercase hex characters".to_owned(),
+        ));
+    }
+    let Some((path, expected_digest)) = raw_evidence_refs[0]
+        .strip_prefix("file:")
+        .and_then(|reference| reference.rsplit_once("#sha256:"))
+    else {
+        return Err(RepoError::Message(
+            "Bonsai evidence reference must be file:<repo-relative-path>#sha256:<digest>"
+                .to_owned(),
+        ));
+    };
+    if !safe_evidence_path(path) || !is_hex_digest(expected_digest) {
+        return Err(RepoError::Message(
+            "Bonsai evidence reference has an unsafe path or invalid digest".to_owned(),
+        ));
+    }
+    let bytes = std::fs::read(repo.root.join(path)).map_err(|source| RepoError::Io {
+        context: format!("could not read Bonsai evidence {path}"),
+        source,
+    })?;
+    if sha256_hex(&bytes) != expected_digest {
+        return Err(RepoError::Message(
+            "Bonsai evidence reference digest does not match file bytes".to_owned(),
+        ));
+    }
+    let evidence =
+        crate::bonsai::validate_passing_evidence_bytes(&bytes).map_err(RepoError::Message)?;
+    if evidence.warrant.contract_digest != contract_digest {
+        return Err(RepoError::Message(
+            "Bonsai evidence must be a passing v1 report for the bound contract digest".to_owned(),
+        ));
+    }
+    Ok(())
+}
+
+fn safe_evidence_path(path: &str) -> bool {
+    !path.is_empty()
+        && !path.starts_with('/')
+        && !path.contains('\\')
+        && path
+            .split('/')
+            .all(|part| !part.is_empty() && part != "." && part != "..")
+}
+
+fn is_hex_digest(value: &str) -> bool {
+    value.len() == 64
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
 /// Mint a §44.6 receipt for a completed run, and write it beside its streams.
@@ -534,6 +637,8 @@ pub mod receipt {
         run: &GateRun,
         started_at: &str,
         exit_result: &str,
+        subject_digests: &[String],
+        raw_evidence_refs: &[String],
     ) -> Result<camino::Utf8PathBuf, RepoError> {
         let slug = def.key().replace(['/', '@', '.'], "_");
         let rel = |p: &Utf8Path| repo.relative(p);
@@ -556,7 +661,11 @@ pub mod receipt {
             // §43.5 bindings do not exist in this corpus yet. Recording the
             // gate's own key is honest; inventing a binding digest would not be.
             gate_binding_digest: format!("unbound:{}", def.key()),
-            subject_digests: vec![format!("warrant-corpus:{}", repo.config.paths.warrants)],
+            subject_digests: if subject_digests.is_empty() {
+                vec![format!("warrant-corpus:{}", repo.config.paths.warrants)]
+            } else {
+                subject_digests.to_vec()
+            },
             fixture_digests: vec![],
             runner: "war gate --run".to_owned(),
             runtime_environment: format!(
@@ -572,7 +681,7 @@ pub mod receipt {
             exit_result: exit_result.to_owned(),
             selected_test_count: 0,
             selected_test_manifest: vec![],
-            raw_evidence_refs: vec![],
+            raw_evidence_refs: raw_evidence_refs.to_vec(),
             stdout_ref: rel(&dir.join(format!("{slug}.stdout.txt"))),
             stderr_ref: rel(&dir.join(format!("{slug}.stderr.txt"))),
             resource_usage: format!("wall-clock only; {} argv item(s)", def.argv.len()),

@@ -10,6 +10,7 @@ use clap::{Parser, Subcommand};
 use openwarrant_core::Profile;
 
 mod blut;
+mod bonsai;
 mod check;
 mod compile;
 mod diagnostic;
@@ -60,6 +61,31 @@ enum KfCommand {
         /// Required. Without it this refuses rather than writes.
         #[arg(long)]
         confirm_write: bool,
+    },
+}
+
+#[derive(clap::Subcommand, Debug)]
+enum BonsaiCommand {
+    /// Check a Warrant-bound change with a fixed Bonsai binary.
+    Check {
+        /// Warrant authorizing this change.
+        #[arg(long)]
+        warrant: String,
+        /// Merge-base commit for the candidate diff.
+        #[arg(long)]
+        base: String,
+        /// Candidate commit. It must be checked out at HEAD.
+        #[arg(long)]
+        head: String,
+        /// Explicit Bonsai binary. The Warrant never supplies an executable.
+        #[arg(long, value_name = "BONSAI_BINARY")]
+        bonsai: Utf8PathBuf,
+    },
+    /// Validate a completed passing Bonsai evidence document without rerunning Bonsai.
+    VerifyEvidence {
+        /// Repository-relative evidence document emitted by `war bonsai check`.
+        #[arg(long)]
+        evidence: Utf8PathBuf,
     },
 }
 
@@ -129,6 +155,17 @@ enum Command {
         /// must not overwrite the evidentiary record for the subject.
         #[arg(long)]
         record: bool,
+        /// Subject digests bound into a receipt. Requires --record.
+        #[arg(long = "subject-digest")]
+        subject_digests: Vec<String>,
+        /// Immutable evidence references bound into a receipt. Requires --record.
+        #[arg(long = "evidence-ref")]
+        evidence_refs: Vec<String>,
+    },
+    /// Bind a Warrant's machine scope to Bonsai evidence.
+    Bonsai {
+        #[command(subcommand)]
+        command: BonsaiCommand,
     },
     /// Build a drafting request for an agent (§71.3, §75.2).
     ///
@@ -334,9 +371,27 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             })
         }
 
-        Command::Gate { run, gate, record } => {
+        Command::Gate {
+            run,
+            gate,
+            record,
+            subject_digests,
+            evidence_refs,
+        } => {
+            if !record && (!subject_digests.is_empty() || !evidence_refs.is_empty()) {
+                return Err(Box::new(repo::RepoError::Message(
+                    "--subject-digest and --evidence-ref require --record".to_owned(),
+                )));
+            }
             let repository = repo::Repository::discover(None)?;
-            let report = gate_cmd::run(&repository, run, gate.as_deref(), record)?;
+            let report = gate_cmd::run(
+                &repository,
+                run,
+                gate.as_deref(),
+                record,
+                &subject_digests,
+                &evidence_refs,
+            )?;
             check::print(&report);
             // §44.1 and RQ-054: an unaskable gate is NOT a pass, and is not a
             // failure either. `is_ready()` blocks on unknowns, so both land on a
@@ -347,6 +402,29 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 EXIT_NOT_READY
             })
         }
+        Command::Bonsai { command } => match command {
+            BonsaiCommand::Check {
+                warrant,
+                base,
+                head,
+                bonsai: binary,
+            } => {
+                let repository = repo::Repository::discover(None)?;
+                let evidence = bonsai::check(&repository, &warrant, &base, &head, &binary)?;
+                println!("{}", serde_json::to_string_pretty(&evidence)?);
+                Ok(match evidence.verdict {
+                    bonsai::EvidenceVerdict::Pass => EXIT_OK,
+                    bonsai::EvidenceVerdict::Unknown => EXIT_NOT_READY,
+                    bonsai::EvidenceVerdict::Fail => EXIT_DIAGNOSTIC,
+                })
+            }
+            BonsaiCommand::VerifyEvidence { evidence } => {
+                let repository = repo::Repository::discover(None)?;
+                bonsai::verify_evidence_file(&repository, &evidence)?;
+                println!("Bonsai evidence is a valid passing v1 document");
+                Ok(EXIT_OK)
+            }
+        },
         Command::Export {
             alias,
             force,

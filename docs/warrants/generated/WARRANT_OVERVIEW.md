@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-49 Warrant(s) in this repository.
+50 Warrant(s) in this repository.
 
 ## Summary
 
@@ -60,8 +60,9 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0047](docs/warrants/OW-WAR-0047/manifest.toml) | Discharge the Phase 7 exit: compatible WARs execute without duplicating BLUT | `draft` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0048](docs/warrants/OW-WAR-0048/manifest.toml) | Discharge the Phase 8 exit: measured adapter parity and the two-host canonical run | `draft` | `current` | `valid` | `controlled` | 4M / 3S |
 | [OW-WAR-0049](docs/warrants/OW-WAR-0049/manifest.toml) | Close the alpha residue: the gaps alpha carried forward and one false claim | `draft` | `current` | `valid` | `controlled` | 4M / 2S |
+| [OW-WAR-0050](docs/warrants/OW-WAR-0050/manifest.toml) | Governed Bonsai evidence for pull-request workflow | `draft` | `current` | `valid` | `basic` | 2M / 3S |
 
-> **49 of 49 states are DERIVED, not recorded.** Nothing journals transitions yet (OW-WAR-0031), and authorization does not exist until OW-WAR-0009 — so no Warrant has left `draft`. A later phase would have to be invented.
+> **50 of 50 states are DERIVED, not recorded.** Nothing journals transitions yet (OW-WAR-0031), and authorization does not exist until OW-WAR-0009 — so no Warrant has left `draft`. A later phase would have to be invented.
 
 ## Claimed SAS requirement coverage
 

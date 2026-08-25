@@ -1,0 +1,38 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# A local candidate gate for the evidence document, not a second Bonsai runner.
+# `war bonsai check` creates the observation. This gate verifies that a proposed
+# receipt binds a complete passing observation to its exact Warrant contract.
+
+gate_id: "software.repo.bonsai-evidence"
+version: "1.0.0"
+lifecycle: "qualified"
+implementation_ref: "artifact://openwarrant-cli/war-bonsai-verify-evidence"
+output_schema_ref: "schema://bonsai-evidence/v1"
+provenance: "local_candidate"
+input_kinds: ["bonsai-evidence"]
+argv: ["./target/debug/war", "bonsai", "verify-evidence", "--evidence", "bonsai-evidence.json"]
+mutating: "false"
+timeout_secs: "30"
+
+fault_model: ["malformed-bonsai-evidence", "nonpassing-bonsai-evidence", "inconsistent-bonsai-finding-classification"]
+known_blind_spots: ["Does not invoke Bonsai or establish that a report is fresh; it verifies a supplied evidence document only.", "Does not prove the supplied Bonsai executable was built from its expected revision; evidence binds the observed binary digest and expected source identity separately."]
+
+qualification_qualifier: "QuiteTall via Bonsai adapter unit and qualification plants, run by cargo xtask gate"
+qualification_digest: ""
+qualification_positive_controls: ["A typed clean Bonsai observation with matching raw and classified findings is accepted.", "A receipt-binding test accepts only that valid document for its exact contract digest."]
+qualification_negative_controls: ["Malformed output, unavailable Bonsai, scope failures, architecture failures, and altered finding partitions are rejected as passing evidence."]
+qualification_mutation_classes: ["JSON structural corruption", "verdict substitution", "blocking-finding injection", "raw/classified finding partition mismatch"]
+qualification_environments: ["linux-x86_64, rustc 1.97.1 pinned by rust-toolchain.toml", "ubuntu-latest, same pinned toolchain, via .github/workflows/ci.yml"]
+qualification_limitations: ["Controls validate evidence form and internal consistency, not Bonsai implementation correctness or independent review."]
+
+detection_results:
+  - fault_class: "malformed-bonsai-evidence"
+    mutation: "omitted required raw finding fields and unreadable binary digest"
+    detected: "true"
+  - fault_class: "nonpassing-bonsai-evidence"
+    mutation: "unavailable checker, scope violation, or architecture error"
+    detected: "true"
+  - fault_class: "inconsistent-bonsai-finding-classification"
+    mutation: "changed raw finding partition after a valid checker report"
+    detected: "true"

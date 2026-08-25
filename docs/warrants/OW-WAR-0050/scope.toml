@@ -1,0 +1,39 @@
+schema = "oh.war/bonsai-scope/v1"
+repository = "github:Quitetall/OpenWarrant"
+base_ref = "main"
+policy_path = "bonsai.toml"
+policy_digest = "sha256:cd98584ef76d326881ea17eaa65904657063733c7ecf907f07c18ecfa5dfcd28"
+bonsai_source = "github:Quitetall/bonsai"
+bonsai_revision = "4c8cc1043cbc4d30d2c41cbb25ba1afe25c6ad7c"
+
+[[scope]]
+path_glob = "bonsai.toml"
+obligation_refs = ["OBL-003"]
+
+[[scope]]
+path_glob = "crates/openwarrant-cli/**"
+obligation_refs = ["OBL-002"]
+
+[[scope]]
+path_glob = "crates/openwarrant-compiler/**"
+obligation_refs = ["OBL-001"]
+
+[[scope]]
+path_glob = ".github/**"
+obligation_refs = ["OBL-004"]
+
+[[scope]]
+path_glob = "docs/warrants/OW-WAR-0050/**"
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[[scope]]
+path_glob = "docs/warrants/**"
+obligation_refs = ["OBL-001"]
+
+[[scope]]
+path_glob = "docs/gates/**"
+obligation_refs = ["OBL-002"]
+
+[[scope]]
+path_glob = "docs/adr/**"
+obligation_refs = ["OBL-004"]

@@ -1,8 +1,8 @@
 version: 2
 
-# Weekly, not daily. This repository is private today, so every Actions minute is
-# billed (ADR 0182); a daily cadence on a graph of ~70 crates spends the budget
-# on noise. Grouped into one pull request for the same reason.
+# Weekly, not daily. This repository is public, but daily updates across a graph
+# of ~70 crates still create review noise. Grouped updates keep maintenance work
+# bounded while every bump remains subject to the full gate.
 #
 # Every bump still has to clear the full gate, including `cargo deny check
 # licenses` — so a dependency update that would close off the Apache-2.0

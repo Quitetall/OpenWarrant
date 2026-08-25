@@ -16,7 +16,10 @@ pub const KIND: &str = "work_authorization_record";
 
 /// The schema pack this build implements (§64).
 pub const SCHEMA_PACK_ID: &str = "openwarrant-schema-pack";
-pub const SCHEMA_PACK_VERSION: &str = "0.1.0";
+// `source_and_composition.scope` is an optional, contract-bearing field added
+// after 0.1.0. That is a backward-compatible schema capability, so it is a
+// minor pack release rather than silently relabelling 0.1.0 documents.
+pub const SCHEMA_PACK_VERSION: &str = "0.2.0";
 
 /// Pins schema, vocabulary, profile, and state-machine versions (§64).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -54,12 +57,25 @@ pub struct SourceAtom {
     pub required: bool,
 }
 
+/// One machine-readable scope sidecar that participates in the contract.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SourceScope {
+    /// Repository-relative source location.
+    pub source: String,
+    /// SHA-256 over exact sidecar bytes.
+    pub scope_source_digest: String,
+}
+
 /// Workspace Basis and composition (§63.3, §14).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SourceAndComposition {
     pub manifest_source: String,
     pub manifest_digest: String,
     pub atoms: Vec<SourceAtom>,
+    /// Optional because scope was introduced after existing Warrants. Its
+    /// presence and digest are contract-bearing; it is never advisory data.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scope: Option<SourceScope>,
 }
 
 /// Typed relation edges (§63.4).
@@ -217,6 +233,7 @@ mod tests {
                 manifest_source: "docs/warrants/OW-WAR-0001/manifest.toml".to_owned(),
                 manifest_digest: "0".repeat(64),
                 atoms: vec![],
+                scope: None,
             },
             relations: Relations {
                 implements: vec![],
@@ -267,6 +284,28 @@ mod tests {
                 other.identity.title = "A different warrant".to_owned();
                 other.contract_digest().expect("digest")
             }
+        );
+    }
+
+    #[test]
+    fn pre_scope_documents_remain_readable_under_the_minor_schema_bump() {
+        let mut value = serde_json::to_value(ir()).expect("serializes IR");
+        value["format_basis"]["version"] = serde_json::json!("0.1.0");
+        value["source_and_composition"]
+            .as_object_mut()
+            .expect("source composition object")
+            .remove("scope");
+
+        let parsed: WarIr = serde_json::from_value(value).expect("reads pre-scope IR");
+        assert_eq!(SCHEMA_PACK_VERSION, "0.2.0");
+        assert_eq!(parsed.format_basis.version, "0.1.0");
+        assert!(parsed.source_and_composition.scope.is_none());
+        let reserialized = serde_json::to_value(&parsed).expect("reserializes IR");
+        assert!(
+            reserialized["source_and_composition"]
+                .get("scope")
+                .is_none(),
+            "absent scope sidecar must remain omitted"
         );
     }
 
