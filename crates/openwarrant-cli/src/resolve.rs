@@ -27,40 +27,50 @@
 //! independence below §46.3's minimum for the level. An obligation with no
 //! admissible verification does not count as dispositioned.
 //!
-//! # What is computed, and what is still asserted
+//! # What is computed
 //!
-//! Nine of the thirteen are computed from records on disk: deliverables and
-//! artifact digests (§37, recomputed from the bytes), obligation dispositions and
-//! independence (§46, from verification records), gate results (§44.5, from
-//! persisted Gate Runs), and — through [`Authority`] — the authorized contract
-//! revision (§28.4), judgments (§42), residual-risk authority (§36.2 with §27.2)
-//! and the resolver's role (§27).
+//! All thirteen, from records. None is a constant any more:
 //!
-//! Two are structurally true here: no blocker remains, and deviations are
-//! dispositioned.
+//! - deliverables and artifact digests (§37, digests recomputed from the bytes);
+//! - obligation dispositions and independence (§46, from verification records);
+//! - gate results (§44.5, from persisted Gate Runs);
+//! - the authorized contract revision (§28.4), judgments (§42), residual-risk
+//!   authority (§36.2 with §27.2) and the resolver's role (§27), through
+//!   [`Authority`];
+//! - blocking unknowns (§36.3) and runtime receipts (§48.4, §49.3).
 //!
-//! **Two remain hardcoded `false`**: runtime receipts bound to the basis
-//! (§48.4), and the resolution of the adequacy warnings that are themselves
-//! required unknowns. Both are mechanical and neither is done.
+//! Two answer `true` structurally: no blocker remains, and deviations are
+//! dispositioned. Nothing else defaults to true — an unanswerable requirement is
+//! unmet, which is §32's fail-closed rule applied to §56.
 //!
-//! # The four that moved are computed but not SATISFIED
+//! # Computed is not the same as satisfied
 //!
-//! Wiring them up did not close a single Warrant, and it was not supposed to.
-//! Each now reads a record that a human must write — a role assignment in
-//! `docs/authority/roles.toml`, then a signed authorization response. Until
-//! those exist the answer is `false`, exactly as before, but it is now `false`
-//! *because a specific record is absent* rather than because a constant said so.
+//! Wiring the last of these up closed no Warrant, and was not meant to. Four
+//! requirements read records only a human may write: a role assignment in
+//! `docs/authority/roles.toml`, then a signed authorization carrying judgments
+//! and risk acceptances. §27.2 forbids an agent authorizing a proposed WAR,
+//! accepting residual risk, or resolving a delivery, so no implementation here
+//! can make those true.
 //!
-//! That is the whole difference. §27.2 forbids an agent authorizing a proposed
-//! WAR, accepting residual risk, or resolving a delivery, so no amount of
-//! implementation here can make these true. What implementation CAN do is make
-//! them answerable — turning "structurally impossible" into "awaiting one
-//! signature", which is a state a human can act on.
+//! What implementation CAN do is make them answerable — turning "a constant says
+//! no" into "this specific record is absent", which is a state somebody can act
+//! on. That is the whole of the difference.
 //!
-//! An earlier note in this file cited §58 for residual-risk authority. §58 is
-//! Representations; residual risk is §36.2, and its authority constraint is
-//! §27.2. The requirement was unaffected — it was `false` either way — but the
-//! citation would have sent a reader to the wrong page.
+//! # §38.6 is reported separately, and that separation is load-bearing
+//!
+//! Requirement 4 asks whether every obligation is *dispositioned*.
+//! `not_established` is a disposition, so a Warrant can meet all thirteen while
+//! every obligation on record says the claim was not established. See
+//! [`would_resolve_satisfied`].
+//!
+//! # Two citations this file used to get wrong
+//!
+//! Residual-risk authority is §36.2 with §27.2, not §58 (which is
+//! Representations). And the ten §39.3 adequacy warnings `war check` reports are
+//! a gap in the REVIEW, not §36.3 blocking unknowns; see
+//! [`Authority::no_required_unknown_remains`] for why they are not folded in.
+//! Neither error changed a verdict — both were `false` regardless — but each
+//! would have sent a reader to the wrong page.
 
 use openwarrant_core::GateRun;
 use openwarrant_core::authority::{AuthorityRegister, PolicyResolutionContext};
@@ -164,16 +174,13 @@ fn evaluate(
         artifact_digests_verify,
         every_required_obligation_dispositioned: obligations_dispositioned,
         every_required_gate_has_admissible_result: gates_ok,
-        // The adequacy warnings ARE required unknowns.
-        no_required_unknown_remains: false,
+        no_required_unknown_remains: authority.no_required_unknown_remains(),
         no_blocker_remains: true,
         deviations_dispositioned: true,
         required_judgments_exist: authority.required_judgments_exist(),
         independence_requirements_met: independence_met,
         residual_risks_have_sufficient_authority: authority.residual_risks_are_covered(),
-        // §48.4 receipts exist for gate runs, but no runtime receipt is bound to
-        // a Warrant's basis.
-        runtime_receipts_match_the_basis: false,
+        runtime_receipts_match_the_basis: runtime_receipts_match_the_basis(basis),
         resolver_holds_the_role: authority.a_resolver_is_eligible(&assurance, &declared),
     }
 }
@@ -225,6 +232,40 @@ impl Authority<'_> {
             return false;
         };
         crate::authorize::authorizes_current_contract(record, current)
+    }
+
+    /// §56.1 requirement 6 — no required unknown remains.
+    ///
+    /// §36.3 is the record this asks about: an assumption carrying
+    /// `epistemic_status: blocking_unknown`, which
+    /// [`EpistemicStatus::blocks_readiness`] already identifies. A Warrant
+    /// resting on an unresolved blocking unknown may not close, because the
+    /// thing it does not know is by its own declaration load-bearing.
+    ///
+    /// Absent `rationale.toml` is `false`, not vacuously true. The same
+    /// asked-versus-unasked rule the residual-risk check applies: a Warrant that
+    /// never declared its assumptions has not shown it has no blocking ones, and
+    /// Law 15 keeps those two apart.
+    ///
+    /// # What this deliberately does NOT count
+    ///
+    /// An earlier comment here read "the adequacy warnings ARE required
+    /// unknowns", and that conflated two different things. `war check` reports
+    /// ten Warrants whose §39.3 adequacy review executed no attacks — a real gap,
+    /// and one worth fixing — but it is a gap in the REVIEW, not an assumption
+    /// the Warrant declared it was unsure about. Folding it in here would make
+    /// requirement 6 unfixable by the record it names, since resolving it would
+    /// mean running attacks rather than resolving an unknown.
+    #[must_use]
+    pub fn no_required_unknown_remains(&self) -> bool {
+        use openwarrant_core::rationale::EpistemicStatus;
+
+        let Some(assumptions) = self.assumptions else {
+            return false;
+        };
+        !assumptions
+            .iter()
+            .any(|a| a.epistemic_status == EpistemicStatus::BlockingUnknown)
     }
 
     /// §56.1 requirement 9 — required judgments exist.
@@ -363,6 +404,76 @@ pub fn every_required_gate_has_admissible_result(cited_uris: &[String], runs: &[
         runs.iter()
             .any(|r| r.gate == key && r.satisfies_required_pass())
     })
+}
+
+/// §56.1 requirement 12 — runtime receipts match the basis.
+///
+/// # Which stages this is actually about
+///
+/// §48.4 is a clause of §48, *Katana integration*: "Katana SHALL return, at
+/// minimum: session identity, Dispatch digest, PromptIR digest, ... receipt
+/// digest." §49.3 gives BLUT the equivalent duty for its own lineage. Those two
+/// are the executors that return receipts.
+///
+/// A `human`, `agent` or `service` stage does not produce a §48.4 receipt. It
+/// submits through §47's Stage Submission, which is a different record with a
+/// different shape, and demanding a runtime receipt from a person would make
+/// this requirement permanently unmeetable for the ordinary case.
+///
+/// So a Warrant that dispatches nothing to a runtime has no receipts to match,
+/// and that is a genuine pass rather than a vacuous one: the milestones atom is
+/// REQUIRED by the delivery profile, so the question was always asked, and the
+/// answer "no runtime stages" is recorded in the contract itself.
+///
+/// # Where this is strict
+///
+/// A Warrant with a `katana` or `blut` stage needs a receipt, and none exists
+/// anywhere in this repository — Katana has no checkout and nothing has been
+/// dispatched. Those Warrants report unmet, which is correct.
+///
+/// Reading the executor kind from the atom is safe because the atom is part of
+/// the Compilation Basis: mis-declaring a Katana stage as `human` to dodge this
+/// would change the contract digest, and is a false declaration rather than a
+/// hole in this check.
+///
+/// A Warrant whose milestones atom will not parse is unmet, not exempt.
+#[must_use]
+pub fn runtime_receipts_match_the_basis(
+    basis: Option<&openwarrant_compiler::CompilationBasis>,
+) -> bool {
+    use openwarrant_core::milestones::ExecutorKind;
+
+    let Some(basis) = basis else {
+        return false;
+    };
+    let atoms: Vec<_> = basis
+        .atoms
+        .iter()
+        .filter(|a| a.role == "milestones")
+        .collect();
+    if atoms.is_empty() {
+        // The profile requires one. Its absence means the Warrant did not
+        // compile as claimed, and an unanswerable requirement is unmet.
+        return false;
+    }
+
+    let mut runtime_stages = 0usize;
+    for atom in atoms {
+        let Ok(graph) = openwarrant_core::milestones::parse(&String::from_utf8_lossy(&atom.bytes))
+        else {
+            return false;
+        };
+        runtime_stages += graph
+            .stages
+            .iter()
+            .filter(|s| matches!(s.executor_kind, ExecutorKind::Katana | ExecutorKind::Blut))
+            .count();
+    }
+
+    // No receipt store exists yet, so any runtime stage is unmet. Written as a
+    // comparison rather than `runtime_stages == 0` so that wiring receipts in
+    // later is a change to this one expression.
+    runtime_stages == 0
 }
 
 /// §38.6 — would this resolve SATISFIED, given the dispositions on record?
@@ -843,6 +954,109 @@ mod tests {
         checks.independence_requirements_met = false;
         let unmet = checks.unmet();
         assert_eq!(unmet, vec!["independence requirements are met"]);
+    }
+
+    fn basis_with_milestones(yaml: &str) -> openwarrant_compiler::CompilationBasis {
+        openwarrant_compiler::CompilationBasis {
+            manifest_source: "manifest.toml".to_owned(),
+            manifest_bytes: b"(manifest)".to_vec(),
+            manifest: openwarrant_core::Manifest {
+                schema: openwarrant_core::MANIFEST_SCHEMA.to_owned(),
+                uuid: "01a018db-19fc-7f2a-8e39-69730f255e33".to_owned(),
+                local_alias: "OW-WAR-0001".to_owned(),
+                enterprise_id: String::new(),
+                title: "t".to_owned(),
+                profile: "delivery".to_owned(),
+                assurance_level: Some("basic".to_owned()),
+                implements: vec![],
+                roadmap: vec![],
+                parents: vec![],
+                supersedes: vec![],
+                atoms: vec![],
+                currency: None,
+            },
+            atoms: vec![openwarrant_compiler::AtomSource {
+                ordinal: 45,
+                role: "milestones".to_owned(),
+                jurisdiction: "authored".to_owned(),
+                source: "atoms/45-milestones.yaml".to_owned(),
+                bytes: yaml.as_bytes().to_vec(),
+                required: true,
+            }],
+            scope: None,
+        }
+    }
+
+    // Shaped after a real atom, schema line included. A fixture that merely
+    // looked like YAML would fail to parse and the "no runtime stages" case
+    // would then pass for the wrong reason — the unparseable branch, not the
+    // one under test.
+    const HUMAN_ONLY: &str = r#"schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M-001"
+    title: "m"
+    stage_refs: ["STAGE-001"]
+
+stages:
+  - id: "STAGE-001"
+    title: "s"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+"#;
+
+    const WITH_KATANA: &str = r#"schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M-001"
+    title: "m"
+    stage_refs: ["STAGE-001"]
+
+stages:
+  - id: "STAGE-001"
+    title: "s"
+    executor_kind: "katana"
+    responsibility_tier: "T1"
+"#;
+
+    /// §56.1 requirement 12 must be able to both pass and refuse, or wiring it
+    /// up replaced one constant with another.
+    ///
+    /// The pass case is a Warrant that dispatches nothing to a runtime; the
+    /// refusal is one katana stage with no receipt behind it.
+    #[test]
+    fn runtime_receipts_pass_without_runtime_stages_and_refuse_with_them() {
+        let human = basis_with_milestones(HUMAN_ONLY);
+        assert!(
+            runtime_receipts_match_the_basis(Some(&human)),
+            "a Warrant with no katana or blut stage has no receipts to match"
+        );
+
+        let katana = basis_with_milestones(WITH_KATANA);
+        assert!(
+            !runtime_receipts_match_the_basis(Some(&katana)),
+            "a katana stage needs a receipt, and none exists"
+        );
+
+        assert!(
+            !runtime_receipts_match_the_basis(None),
+            "a Warrant that did not compile cannot answer this"
+        );
+
+        let no_milestones = openwarrant_compiler::CompilationBasis {
+            atoms: vec![],
+            ..basis_with_milestones(HUMAN_ONLY)
+        };
+        assert!(
+            !runtime_receipts_match_the_basis(Some(&no_milestones)),
+            "the delivery profile requires a milestones atom; its absence is unmet, not exempt"
+        );
+
+        let unparseable = basis_with_milestones("stages: [ this is not yaml");
+        assert!(
+            !runtime_receipts_match_the_basis(Some(&unparseable)),
+            "an unreadable milestones atom is not an empty one"
+        );
     }
 
     /// Nothing this command computes may default to true. A requirement it
