@@ -109,6 +109,7 @@ jobs:
           HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
           set +e
+          evidence="$RUNNER_TEMP/bonsai-evidence.json"
           git fetch --no-tags origin "refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF"
           BASE="$(git merge-base "$HEAD" "origin/$BASE_REF")"
           ./target/debug/war bonsai check \
@@ -116,9 +117,16 @@ jobs:
             --base "$BASE" \
             --head "$HEAD" \
             --bonsai "$RUNNER_TEMP/bonsai-unavailable" \
-            > bonsai-evidence.json
+            > "$evidence"
           status=$?
           printf 'status=%s\n' "$status" >> "$GITHUB_OUTPUT"
+          if ! jq -e '.schema == "oh.war/bonsai-evidence/v1"' "$evidence" > /dev/null; then
+            echo "Adapter emitted no valid evidence document; report artifact withheld."
+            exit 1
+          fi
+          # `war bonsai check` requires a clean worktree. Keep its output out
+          # of the checkout until the check has completed, then publish it.
+          cp "$evidence" bonsai-evidence.json
           if jq -e '.schema == "oh.war/bonsai-evidence/v1" and .verdict == "pass"' bonsai-evidence.json > /dev/null; then
             contract="$(jq -r '.warrant.contract_digest' bonsai-evidence.json)"
             digest="$(sha256sum bonsai-evidence.json | awk '{print $1}')"
