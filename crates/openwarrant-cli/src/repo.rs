@@ -10,6 +10,7 @@ use openwarrant_core::{
     AdrError, AdrRecord, Manifest, RepositoryConfig, ValidatedManifest, frontmatter,
 };
 
+use openwarrant_core::deliverable::Deliverable;
 use openwarrant_core::verification::Verification;
 
 use crate::diagnostic::{Diagnostic, Report};
@@ -406,6 +407,39 @@ impl Repository {
         Ok(VerificationSet { records, failures })
     }
 
+    /// Deliverables declared for one Warrant (§37).
+    ///
+    /// A single `deliverables.toml` rather than a directory: a Warrant declares a
+    /// handful, they are read together, and one file keeps them reviewable as a
+    /// set.
+    pub fn load_deliverables(&self, dir: &Utf8Path) -> Result<DeliverableSet, RepoError> {
+        let path = dir.join("deliverables.toml");
+        if !path.is_file() {
+            return Ok(DeliverableSet::default());
+        }
+        let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
+            context: format!("could not read {path}"),
+            source,
+        })?;
+
+        #[derive(serde::Deserialize)]
+        struct File {
+            #[serde(default)]
+            deliverable: Vec<Deliverable>,
+        }
+
+        match toml::from_str::<File>(&text) {
+            Ok(f) => Ok(DeliverableSet {
+                records: f.deliverable,
+                failures: vec![],
+            }),
+            Err(e) => Ok(DeliverableSet {
+                records: vec![],
+                failures: vec![(self.relative(&path), e.to_string())],
+            }),
+        }
+    }
+
     /// A repository-relative path, for diagnostics and for the IR.
     ///
     /// Absolute paths must never reach the IR: they would make a digest depend
@@ -429,6 +463,17 @@ pub struct AdrCorpus {
     pub records: Vec<AdrRecord>,
     /// `(repository-relative path, why it would not parse)`.
     pub failures: Vec<(String, AdrError)>,
+}
+
+/// Deliverables for one Warrant, and a parse failure if the file would not read.
+///
+/// A malformed `deliverables.toml` yields NO records and a recorded failure,
+/// never silently zero deliverables — "the file is broken" and "this Warrant
+/// declares none" are different states and must not report identically.
+#[derive(Debug, Default)]
+pub struct DeliverableSet {
+    pub records: Vec<Deliverable>,
+    pub failures: Vec<(String, String)>,
 }
 
 /// Verification records for one Warrant, and the ones that would not parse.
