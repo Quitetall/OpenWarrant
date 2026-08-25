@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       # No toolchain is named here on purpose. `rust-toolchain.toml` pins
       # 1.97.1 exactly, and rustup honours it; naming a version in the workflow
@@ -61,10 +61,10 @@ jobs:
           rustc --version
           cargo --version
 
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@49a0bdc70d2e1b713ca9e2869b211fcce03d3c1c # v2
 
       - name: Install cargo-deny
-        uses: taiki-e/install-action@v2
+        uses: taiki-e/install-action@b6ff580856c41316412a0b9b60540fbc6f8c82cc # v2
         with:
           tool: cargo-deny
 
@@ -73,3 +73,79 @@ jobs:
       # "green locally" cannot mean different things.
       - name: cargo xtask gate
         run: cargo xtask gate
+
+  bonsai-report:
+    name: bonsai-report
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Read Warrant from pull request
+        id: warrant
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          alias="$(printf '%s\n' "$PR_BODY" | sed -nE 's/^Authorized by:[[:space:]]*(OW-WAR-[0-9]{4})[[:space:]]*$/\1/p' | head -n1)"
+          printf 'alias=%s\n' "$alias" >> "$GITHUB_OUTPUT"
+          if [ -z "$alias" ]; then
+            echo "No machine-readable Warrant line; report-phase check skipped."
+          fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        if: steps.warrant.outputs.alias != ''
+        with:
+          repository: Quitetall/bonsai
+          ref: 4c8cc1043cbc4d30d2c41cbb25ba1afe25c6ad7c
+          path: .tools/bonsai
+          persist-credentials: false
+
+      - name: Build report tools
+        if: steps.warrant.outputs.alias != ''
+        run: |
+          cargo build -p openwarrant-cli
+          cargo build --release --manifest-path .tools/bonsai/Cargo.toml
+
+      - name: Emit Warrant-bound Bonsai evidence
+        id: bonsai
+        if: steps.warrant.outputs.alias != ''
+        env:
+          WARRANT: ${{ steps.warrant.outputs.alias }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set +e
+          ./target/debug/war bonsai check \
+            --warrant "$WARRANT" \
+            --base "$BASE" \
+            --head "$HEAD" \
+            --bonsai "$GITHUB_WORKSPACE/.tools/bonsai/target/release/bonsai" \
+            > bonsai-evidence.json
+          status=$?
+          printf 'status=%s\n' "$status" >> "$GITHUB_OUTPUT"
+          if jq -e '.schema == "oh.war/bonsai-evidence/v1"' bonsai-evidence.json > /dev/null; then
+            contract="$(jq -r '.warrant.contract_digest' bonsai-evidence.json)"
+            digest="$(sha256sum bonsai-evidence.json | awk '{print $1}')"
+            ./target/debug/war gate --run --record --gate software.repo.war-check \
+              --subject-digest "contract:sha256:$contract" \
+              --evidence-ref "file:bonsai-evidence.json#sha256:$digest" || true
+          else
+            echo "Adapter emitted no valid evidence document; no receipt binding minted."
+          fi
+          echo "Report phase: evidence status is recorded, not merge-blocking."
+          exit 0
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always() && steps.warrant.outputs.alias != ''
+        with:
+          name: bonsai-evidence-${{ github.event.pull_request.number }}
+          path: |
+            bonsai-evidence.json
+            docs/receipts/*.receipt.json
+            docs/receipts/*.stdout.txt
+            docs/receipts/*.stderr.txt
+          if-no-files-found: error

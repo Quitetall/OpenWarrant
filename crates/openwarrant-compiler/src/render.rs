@@ -394,6 +394,26 @@ pub fn full_warrant(ir: &WarIr, basis: &CompilationBasis, children: &[ChildRef])
         out.push('\n');
     }
 
+    if let Some(scope) = &basis.scope {
+        out.push_str("\n## Machine Scope\n\n");
+        let _ = writeln!(
+            out,
+            "This Warrant binds machine-readable scope from `{}` (`sha256:{}`).",
+            scope.source,
+            ir.source_and_composition
+                .scope
+                .as_ref()
+                .map(|bound| bound.scope_source_digest.as_str())
+                .unwrap_or("unavailable")
+        );
+        out.push_str("\n```toml\n");
+        out.push_str(&String::from_utf8_lossy(&scope.bytes));
+        if !scope.bytes.ends_with(b"\n") {
+            out.push('\n');
+        }
+        out.push_str("```\n");
+    }
+
     // Relations, Provenance, and Integrity (§103) — generated.
     out.push_str("\n## Relations, Provenance, and Integrity\n");
 
@@ -545,6 +565,7 @@ mod tests {
             manifest_bytes: b"(manifest)".to_vec(),
             manifest,
             atoms,
+            scope: None,
         };
         let ir = lower(&basis, &validated).expect("lowers");
         (ir, basis)
@@ -574,6 +595,24 @@ mod tests {
             "frontmatter must not appear in the rendered parent"
         );
         assert!(md.contains("Some body text."), "bodies must appear");
+    }
+
+    #[test]
+    fn machine_scope_is_rendered_from_the_bound_sidecar() {
+        let (ir, mut basis) = fixture();
+        basis.scope = Some(crate::lower::ScopeSource {
+            source: "docs/warrants/OW-WAR-0001/scope.toml".to_owned(),
+            bytes: b"schema = \"oh.war/bonsai-scope/v1\"\n".to_vec(),
+        });
+        let scoped_ir =
+            lower(&basis, &basis.manifest.validate(Some("OW")).expect("valid")).expect("lowers");
+        let md = full_warrant(&scoped_ir, &basis, &[]);
+        assert!(md.contains("## Machine Scope"));
+        assert!(md.contains("schema = \"oh.war/bonsai-scope/v1\""));
+        assert_ne!(
+            ir.contract_digest().expect("digest"),
+            scoped_ir.contract_digest().expect("digest")
+        );
     }
 
     /// §16.1: inapplicable optional roles are omitted, not rendered as empty

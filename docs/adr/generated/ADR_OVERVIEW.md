@@ -17,6 +17,15 @@ Source: ADR atoms under the configured adrs path.
 | [OW-ADR-0006](docs/adr/atoms/OW-ADR-0006-two-gate-vocabularies.md) | ADR OW-0006: Execution status and migration class are two vocabularies, and the verdict keeps its unknown | `accepted` | yes | `war://OW-WAR-0020` |
 | [OW-ADR-0007](docs/adr/atoms/OW-ADR-0007-91-2-residue-narrowing.md) | ADR OW-0007: §91.2 tests 11, 13, 14 and 15 are narrowed, each for a different reason | `falsified` | no | `war://OW-WAR-0049` |
 | [OW-ADR-0008](docs/adr/atoms/OW-ADR-0008-91-2-residue-against-the-text.md) | ADR OW-0008: §91.2 tests 11, 13, 14 and 15, dispositioned against the specification text | `accepted` | yes | `war://OW-WAR-0049` |
+| [OW-ADR-0009](docs/adr/atoms/OW-ADR-0009-openwarrant-bonsai-authority-seam.md) | ADR OW-0009: OpenWarrant owns work authority; Bonsai owns repository checks | `proposed` | no | `war://01a0399d-05b9-7ad0-b8dc-bf1a226fa641` |
+| [OW-ADR-0010](docs/adr/atoms/OW-ADR-0010-machine-scope-and-evidence-binding.md) | ADR OW-0010: Bind machine scope and Bonsai evidence to exact bytes | `proposed` | no | `war://01a0399d-05b9-7ad0-b8dc-bf1a226fa641` |
+| [OW-ADR-0011](docs/adr/atoms/OW-ADR-0011-enforcement-rollout-and-github-policy.md) | ADR OW-0011: Report first; block scope and architecture after qualification | `proposed` | no | `war://01a0399d-05b9-7ad0-b8dc-bf1a226fa641` |
+
+## Proposed
+
+- **OW-ADR-0009** ADR OW-0009: OpenWarrant owns work authority; Bonsai owns repository checks
+- **OW-ADR-0010** ADR OW-0010: Bind machine scope and Bonsai evidence to exact bytes
+- **OW-ADR-0011** ADR OW-0011: Report first; block scope and architecture after qualification
 
 ## Accepted and Current
 
@@ -1031,3 +1040,96 @@ Each quoted line above can be checked against
 `docs/sas/WAR_Software_Architecture_Specification.md` §91.2, which is the point:
 this ADR's premises are verifiable from a file in the repository, which its
 predecessor's were not.
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-0009-openwarrant-bonsai-authority-seam.md · uuid: 3db11337-26e7-43f9-89f8-d84ead364568 -->
+
+# ADR OW-0009: OpenWarrant owns work authority; Bonsai owns repository checks
+
+## Status
+
+Proposed. Requires human acceptance before it governs work.
+
+## Context
+
+Both tools can emit useful output, but output without a clear authority boundary
+creates a path for a checker to look like an authorizer or for a Warrant to look
+like it verified code.
+
+## Decision
+
+OpenWarrant owns Warrant identity, machine scope, evidence binding, external
+verification requests, and lifecycle recording. Bonsai remains a generic,
+local-first repository checker. OpenWarrant invokes a fixed Bonsai binary and
+records its output; Bonsai does not parse, authorize, or resolve Warrants.
+
+## Consequences
+
+The integration lives in `war bonsai check`, not in Bonsai. A result is evidence
+only until an external verifier and a human resolver act through OpenWarrant's
+existing seams.
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-0010-machine-scope-and-evidence-binding.md · uuid: 7f9b3a70-0850-471c-9fa6-a93fb6a2d4c2 -->
+
+# ADR OW-0010: Bind machine scope and Bonsai evidence to exact bytes
+
+## Status
+
+Proposed. Requires human acceptance before it governs work.
+
+## Context
+
+Prose scope cannot be compared mechanically against a pull-request diff. A
+report over an unchecked worktree cannot prove which commit was examined.
+
+## Decision
+
+An optional Warrant-local `scope.toml` declares repository identity, base ref,
+policy path and SHA-256, path scopes, and obligation references. Exact sidecar
+bytes join the Compilation Basis and therefore move the contract digest. Evidence
+records Warrant digest, sidecar digest, base, head, tree, policy digest, Bonsai
+binary/version/output, findings, and verdict. Candidate `head` must equal
+checked-out `HEAD`.
+
+## Consequences
+
+Older Warrants remain valid without scope. Bonsai-backed checks require a valid
+sidecar and return `unknown` when the checker cannot produce machine output.
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-0011-enforcement-rollout-and-github-policy.md · uuid: e7c79d03-c74f-49c4-affe-7cd9dde16a89 -->
+
+# ADR OW-0011: Report first; block scope and architecture after qualification
+
+## Status
+
+Proposed. Requires human acceptance before it governs work.
+
+## Context
+
+Immediate blocking would turn an unqualified integration into a production
+control. Letting every Bonsai signal block would also conflate advisory
+leanness with architectural nonconformance.
+
+## Decision
+
+Pilot pull requests emit and upload evidence without blocking merge. After
+independent qualification and an explicit human rollout decision, only two
+classes block: paths outside the Warrant machine scope and Bonsai error findings
+from the architecture-rule allowlist. Leanness and other non-architecture
+findings remain visible but advisory.
+
+Required administrator-owned GitHub controls before blocking are: one external
+review, required code-owner review, resolved threads, no bypass, strict required
+checks, Actions SHA pinning, Dependabot security updates, secret scanning, and
+push protection. This ADR does not claim those settings are enabled.
+
+## Consequences
+
+CI and PR template can establish report-phase mechanics now. Blocking rollout
+remains deliberately incomplete until an external verifier and repository
+administrator record the required evidence.

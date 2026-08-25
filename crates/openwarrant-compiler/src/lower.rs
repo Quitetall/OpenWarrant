@@ -8,7 +8,7 @@ use crate::canonical::{CanonicalError, sha256_digest};
 use crate::digest::{DigestDomain, sha256_hex};
 use crate::ir::{
     API_VERSION, FormatBasis, Identity, ImplementsEdge, Integrity, KIND, ParentEdge, Relations,
-    SCHEMA_PACK_ID, SCHEMA_PACK_VERSION, SourceAndComposition, SourceAtom, WarIr,
+    SCHEMA_PACK_ID, SCHEMA_PACK_VERSION, SourceAndComposition, SourceAtom, SourceScope, WarIr,
 };
 
 /// One atom's exact source, as read (SAS §62.2).
@@ -24,6 +24,19 @@ pub struct AtomSource {
     pub required: bool,
 }
 
+/// One optional machine-readable scope sidecar, as read with the Warrant.
+///
+/// Scope is authored next to a Warrant rather than inferred from a branch or a
+/// pull request. Its exact bytes join the Compilation Basis so changing what a
+/// Warrant permits changes the compiled contract.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ScopeSource {
+    /// Repository-relative sidecar location.
+    pub source: String,
+    /// Exact sidecar bytes, read once with the rest of the Basis.
+    pub bytes: Vec<u8>,
+}
+
 /// Everything needed to reproduce one compilation (SAS §14).
 ///
 /// §14: a compilation "SHALL NOT silently mix independently changing inputs."
@@ -36,6 +49,9 @@ pub struct CompilationBasis {
     pub manifest_source: String,
     pub manifest_bytes: Vec<u8>,
     pub atoms: Vec<AtomSource>,
+    /// Optional machine-readable scope. Older Warrants remain valid without
+    /// one; a Bonsai-backed gate requires it explicitly.
+    pub scope: Option<ScopeSource>,
 }
 
 /// Lower a validated Basis to the canonical IR.
@@ -66,6 +82,10 @@ pub fn lower(
         manifest_source: basis.manifest_source.clone(),
         manifest_digest,
         atoms,
+        scope: basis.scope.as_ref().map(|scope| SourceScope {
+            source: scope.source.clone(),
+            scope_source_digest: sha256_hex(&scope.bytes),
+        }),
     };
 
     let relations = Relations {
@@ -124,11 +144,17 @@ pub fn lower(
     #[derive(Serialize)]
     struct CompositionView<'a> {
         atoms: &'a [SourceAtom],
+        // Preserve every pre-scope composition digest. `None` must be absent,
+        // not serialized as `null`, or merely adding this optional capability
+        // rewrites every existing generated Warrant.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        scope: &'a Option<SourceScope>,
     }
     let composition_revision_digest = sha256_digest(
         DigestDomain::CompositionRevision,
         &CompositionView {
             atoms: &source_and_composition.atoms,
+            scope: &source_and_composition.scope,
         },
     )?;
 
@@ -222,6 +248,7 @@ mod tests {
                 manifest_bytes: b"(manifest bytes)".to_vec(),
                 manifest,
                 atoms,
+                scope: None,
             },
             validated,
         )
@@ -252,6 +279,26 @@ mod tests {
             before.contract_digest().expect("digest"),
             after.contract_digest().expect("digest"),
             "changing an atom changes what was authorized"
+        );
+    }
+
+    #[test]
+    fn scope_bytes_move_the_contract_digest() {
+        let (mut basis, validated) = basis();
+        basis.scope = Some(ScopeSource {
+            source: "docs/warrants/OW-WAR-0001/scope.toml".to_owned(),
+            bytes: b"schema = \"oh.war/bonsai-scope/v1\"\n".to_vec(),
+        });
+        let before = lower(&basis, &validated).expect("lowers");
+
+        basis.scope.as_mut().expect("scope").bytes =
+            b"schema = \"oh.war/bonsai-scope/v1\"\nrepository = \"github:example/repo\"\n".to_vec();
+        let after = lower(&basis, &validated).expect("lowers");
+
+        assert_ne!(
+            before.contract_digest().expect("digest"),
+            after.contract_digest().expect("digest"),
+            "machine scope changes what the Warrant authorizes"
         );
     }
 

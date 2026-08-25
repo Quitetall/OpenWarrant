@@ -322,6 +322,8 @@ pub fn run(
     execute: bool,
     only: Option<&str>,
     record: bool,
+    subject_digests: &[String],
+    raw_evidence_refs: &[String],
 ) -> Result<Report, RepoError> {
     let mut report = Report::default();
     let registry = crate::check::load_gate_registry(repo, &mut report);
@@ -421,7 +423,15 @@ pub fn run(
         // receipt for it would be minting evidence of something that did not
         // happen.
         if run.execution_status == ExecutionStatus::Completed {
-            match receipt::mint(repo, def, &run, &started_at, &format!("{}", run.verdict)) {
+            match receipt::mint(
+                repo,
+                def,
+                &run,
+                &started_at,
+                &format!("{}", run.verdict),
+                subject_digests,
+                raw_evidence_refs,
+            ) {
                 Ok(path) => report.push(Diagnostic::pass(
                     "gate-run.receipt",
                     format!(
@@ -534,6 +544,8 @@ pub mod receipt {
         run: &GateRun,
         started_at: &str,
         exit_result: &str,
+        subject_digests: &[String],
+        raw_evidence_refs: &[String],
     ) -> Result<camino::Utf8PathBuf, RepoError> {
         let slug = def.key().replace(['/', '@', '.'], "_");
         let rel = |p: &Utf8Path| repo.relative(p);
@@ -556,7 +568,11 @@ pub mod receipt {
             // §43.5 bindings do not exist in this corpus yet. Recording the
             // gate's own key is honest; inventing a binding digest would not be.
             gate_binding_digest: format!("unbound:{}", def.key()),
-            subject_digests: vec![format!("warrant-corpus:{}", repo.config.paths.warrants)],
+            subject_digests: if subject_digests.is_empty() {
+                vec![format!("warrant-corpus:{}", repo.config.paths.warrants)]
+            } else {
+                subject_digests.to_vec()
+            },
             fixture_digests: vec![],
             runner: "war gate --run".to_owned(),
             runtime_environment: format!(
@@ -572,7 +588,7 @@ pub mod receipt {
             exit_result: exit_result.to_owned(),
             selected_test_count: 0,
             selected_test_manifest: vec![],
-            raw_evidence_refs: vec![],
+            raw_evidence_refs: raw_evidence_refs.to_vec(),
             stdout_ref: rel(&dir.join(format!("{slug}.stdout.txt"))),
             stderr_ref: rel(&dir.join(format!("{slug}.stderr.txt"))),
             resource_usage: format!("wall-clock only; {} argv item(s)", def.argv.len()),
