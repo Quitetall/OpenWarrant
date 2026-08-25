@@ -214,7 +214,7 @@ pub struct ScopeFinding {
 #[derive(Debug, Serialize)]
 pub struct BonsaiRun {
     pub executable: String,
-    pub binary_digest: String,
+    pub binary_digest: Option<String>,
     /// Source identity the Warrant requires. This is not a claim that the
     /// supplied binary was built from it; `binary_digest` is the observed fact.
     pub expected_source: String,
@@ -371,12 +371,11 @@ pub fn check(
         .ok()
         .filter(|out| out.status.success())
         .map(|out| String::from_utf8_lossy(&out.stdout).trim().to_owned());
+    // An unreadable binary is an unaskable check, not a diagnostic about the
+    // Warrant. Keep the missing digest explicit in the Unknown evidence.
     let binary_digest = std::fs::read(binary)
-        .map(|bytes| format!("sha256:{}", sha256_hex(&bytes)))
-        .map_err(|source| RepoError::Io {
-            context: format!("could not read Bonsai binary {binary}"),
-            source,
-        })?;
+        .ok()
+        .map(|bytes| format!("sha256:{}", sha256_hex(&bytes)));
 
     let launched = Command::new(binary.as_std_path())
         .args([
@@ -495,8 +494,47 @@ fn valid_bonsai_report(run: &BonsaiRun) -> bool {
                     .get("version")
                     .and_then(Value::as_str)
                     .is_some_and(|version| !version.is_empty())
-                && report.get("findings").is_some_and(Value::is_array)
+                && report
+                    .get("findings")
+                    .and_then(Value::as_array)
+                    .is_some_and(|findings| findings.iter().all(valid_finding))
         })
+}
+
+fn valid_finding(finding: &Value) -> bool {
+    let Some(object) = finding.as_object() else {
+        return false;
+    };
+    let valid_text = |field| {
+        object
+            .get(field)
+            .and_then(Value::as_str)
+            .is_some_and(|value| !value.is_empty())
+    };
+    let valid_location = |location: &Value| {
+        location
+            .get("file")
+            .and_then(Value::as_str)
+            .is_some_and(|file| !file.is_empty())
+            && location
+                .get("line")
+                .is_none_or(|line| line.as_u64().is_some())
+    };
+    valid_text("rule")
+        && valid_text("message")
+        && matches!(
+            object.get("severity").and_then(Value::as_str),
+            Some("error" | "warning" | "info")
+        )
+        && object.get("location").is_some_and(valid_location)
+        && object.get("related").is_none_or(|related| {
+            related
+                .as_array()
+                .is_some_and(|locations| locations.iter().all(valid_location))
+        })
+        && object
+            .get("fix")
+            .is_none_or(|fix| fix.as_str().is_some_and(|value| !value.is_empty()))
 }
 
 fn git(repo: &Repository, args: &[&str]) -> Result<String, RepoError> {
@@ -607,12 +645,16 @@ mod tests {
     fn malformed_bonsai_output_is_not_an_asked_check() {
         let run = BonsaiRun {
             executable: "bonsai".to_owned(),
-            binary_digest: "sha256:0".to_owned(),
+            binary_digest: Some("sha256:0".to_owned()),
             expected_source: "github:Quitetall/bonsai".to_owned(),
             expected_revision: "0".repeat(40),
             version: Some("bonsai 0.1.0".to_owned()),
             exit_code: Some(1),
-            raw_output: Some(serde_json::json!({})),
+            raw_output: Some(serde_json::json!({
+                "tool": "bonsai",
+                "version": "0.1.0",
+                "findings": [null]
+            })),
             stderr: String::new(),
             spawn_error: None,
         };
