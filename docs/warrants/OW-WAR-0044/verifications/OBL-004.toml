@@ -1,0 +1,20 @@
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "atoms/60-assurance.md::OBS-004 - war export reports 4 of 68.2's 14 required contents absent and PortableExport::validate refuses; no successful round trip with digest identity and empty semantic-difference list is shown"
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,20 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "atoms/60-assurance.md - JDG-001 acknowledges the write stopped at KF's registry (OBS-007); no KF receipt containing an allocated enterprise identifier is shown, and no recorded refusal of a locally-derived identifier appears in any artifact"
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

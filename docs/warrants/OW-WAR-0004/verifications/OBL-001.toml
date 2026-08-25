@@ -1,0 +1,20 @@
+obligation = "OBL-001"
+disposition = "established"
+evidence = "render.rs::generated_header - produces §17.1 header with WAR, basis digest, contract revision, and source manifest; render.rs::full_warrant and render.rs::canonical_json both accept the same CompilationBasis and WarIr; compile.rs::projections renders both View::FullWarrant and View::CanonicalJson from one basis call; render.rs::tests::the_generated_header_is_present_and_complete asserts all four header fields"
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

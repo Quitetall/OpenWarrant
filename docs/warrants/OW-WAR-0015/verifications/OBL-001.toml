@@ -1,0 +1,20 @@
+obligation = "OBL-001"
+disposition = "established"
+evidence = "deliverable.rs::ArtifactProvenance has content_digest field; Deliverable::validate checks content_addressed implies non-empty content_digest via ContentAddressedWithoutDigest; test content_addressing_without_a_digest_is_refused exercises the refusal"
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

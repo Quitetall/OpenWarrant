@@ -450,6 +450,11 @@ pub fn ingest(
 
     let authorization = Authorization {
         authorizer: response.authorizer.clone(),
+        // Unreachable after `validate_response`, which refuses `UnknownActor`
+        // before this point. Kept rather than unwrapped so a future edit that
+        // reorders the guard degrades to the most restricted kind instead of
+        // panicking — `Human` is the fallback because an agent reaching here
+        // would already have been refused for being one.
         actor_kind: register
             .actor(&response.authorizer)
             .map_or(ActorKind::Human, |a| a.actor_kind),

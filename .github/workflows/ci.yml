@@ -77,6 +77,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Read Warrant from pull request
         id: warrant
@@ -93,12 +94,31 @@ jobs:
         if: steps.warrant.outputs.alias != ''
         run: cargo build -p openwarrant-cli
 
-      # Bonsai source is private today. This PR-head job never receives a
-      # private-source credential: compiling a pull request may run arbitrary
-      # build scripts, so a later secret-bearing step would be unsafe even if
-      # the secret did not reach the compiler directly. It therefore emits
-      # typed Unknown evidence until a public, independently verified Bonsai
-      # artifact (or an isolated trusted workflow) is available.
+      # Bonsai source is public. This PR-head job uses no private credential:
+      # it clones only the canonical source, verifies the Warrant-pinned commit,
+      # and runs its locked build on the hosted ephemeral runner.
+
+      - name: Build Warrant-pinned public Bonsai
+        id: bonsai-source
+        if: steps.warrant.outputs.alias != ''
+        continue-on-error: true
+        env:
+          WARRANT: ${{ steps.warrant.outputs.alias }}
+        run: |
+          scope="docs/warrants/$WARRANT/scope.toml"
+          source="$(sed -nE 's/^bonsai_source = "([^"]+)"$/\1/p' "$scope")"
+          revision="$(sed -nE 's/^bonsai_revision = "([0-9a-f]{40})"$/\1/p' "$scope")"
+          if [ "$source" != "github:Quitetall/bonsai" ] || [ -z "$revision" ]; then
+            echo "Scope does not name canonical public Bonsai source and full revision."
+            exit 1
+          fi
+          root="$RUNNER_TEMP/bonsai"
+          GIT_TERMINAL_PROMPT=0 git clone --filter=blob:none \
+            https://github.com/Quitetall/bonsai.git "$root"
+          git -C "$root" checkout --detach "$revision"
+          test "$(git -C "$root" rev-parse HEAD)" = "$revision"
+          cargo build --locked --release --manifest-path "$root/Cargo.toml"
+          printf 'binary=%s\n' "$root/target/release/bonsai" >> "$GITHUB_OUTPUT"
 
       - name: Emit Warrant-bound Bonsai evidence
         id: bonsai
@@ -107,16 +127,18 @@ jobs:
           WARRANT: ${{ steps.warrant.outputs.alias }}
           BASE_REF: ${{ github.event.pull_request.base.ref }}
           HEAD: ${{ github.event.pull_request.head.sha }}
+          BONSAI_BINARY: ${{ steps.bonsai-source.outputs.binary }}
         run: |
           set +e
           evidence="$RUNNER_TEMP/bonsai-evidence.json"
+          bonsai="${BONSAI_BINARY:-$RUNNER_TEMP/bonsai-unavailable}"
           git fetch --no-tags origin "refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF"
           BASE="$(git merge-base "$HEAD" "origin/$BASE_REF")"
           ./target/debug/war bonsai check \
             --warrant "$WARRANT" \
             --base "$BASE" \
             --head "$HEAD" \
-            --bonsai "$RUNNER_TEMP/bonsai-unavailable" \
+            --bonsai "$bonsai" \
             > "$evidence"
           status=$?
           printf 'status=%s\n' "$status" >> "$GITHUB_OUTPUT"

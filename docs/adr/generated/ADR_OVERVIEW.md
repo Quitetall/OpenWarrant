@@ -1123,12 +1123,18 @@ classes block: paths outside the Warrant machine scope and Bonsai error findings
 from the architecture-rule allowlist. Leanness and other non-architecture
 findings remain visible but advisory.
 
-The pinned Bonsai source is private today. Public-fork pull requests therefore
-emit `unknown` evidence when no separately supplied trusted artifact is
-available; they do not use `pull_request_target` or expose a private-source
-credential while evaluating pull-request code. A public reproducible Bonsai
-artifact, or an equivalently isolated trusted execution path, is required before
-this report can become a generally available blocking check.
+The canonical Bonsai source is public. Pull-request CI clones only that fixed
+source, verifies the full commit SHA bound in the Warrant scope, and runs its
+locked build on a GitHub-hosted ephemeral runner. It does not use
+`pull_request_target`, a private-source credential, or a pull-request-provided
+command or executable path. An unavailable source, revision, build, executable,
+or machine result remains `unknown`, never pass.
+
+A reproducible public source build makes report-phase evidence available to all
+protected pull-request origins. Blocking still requires independent
+qualification and explicit human rollout; a separately attested distribution or
+equivalently isolated trusted execution path remains stronger provenance for a
+future high-assurance rollout.
 
 Required administrator-owned GitHub controls before blocking are: one external
 review, required code-owner review, resolved threads, no bypass, strict required
@@ -1139,5 +1145,4 @@ push protection. This ADR does not claim those settings are enabled.
 
 CI and PR template can establish report-phase mechanics now. Blocking rollout
 remains deliberately incomplete until an external verifier and repository
-administrator record the required evidence and a trusted Bonsai artifact path
-exists for every protected pull-request origin.
+administrator record the required evidence and activate required protections.

@@ -1,0 +1,80 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1. Declared by the performer — declaring a deliverable is a performer
+# statement (§51), which is permitted. It is the VERIFICATION of the obligations
+# these support that must be independent (§46), not the declaration itself.
+#
+# Every `content_digest` below was computed from the bytes on disk, and
+# `war resolve` RECOMPUTES it rather than trusting what is written here. A digest
+# that is merely present proves nothing.
+#
+# `contract_digest` is "unrecorded" because it is true: no authorized contract
+# revision exists for this Warrant yet (§28.4 needs a human). Writing today's
+# compiled digest here would assert these artifacts were produced under a
+# revision nobody has authorized.
+
+[[deliverable]]
+id = "D-001"
+title = "File-native manifest parsing and validation"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/manifest.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0002/attempt-1"
+contract_digest = "unrecorded"
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:f708467356ddd27a47e09f31d9b287502352313416a750846e7407f0422813e4"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "Atom roles, jurisdiction classes and profiles"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/role.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0002/attempt-1"
+contract_digest = "unrecorded"
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:59f6eb228d621e1c5722eaaf7e0ce15ad60f83117eb17cc2ee3ce76bda9bd5fe"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-003"
+title = "Atomic Warrant allocation (O_EXCL)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/new.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0002/attempt-1"
+contract_digest = "unrecorded"
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:efdf9c6a15945f896793fba5c18e8210a16b7586f2dcd7fe40876dbbf491f353"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

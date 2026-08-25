@@ -1,0 +1,20 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "adequacy.rs - the module comment claims 'The old call site is gone' and the new parse() uses eq_ignore_ascii_case on the exact heading rather than contains(); however check.rs was not provided, so I cannot verify the substring check is removed from the stated scope"
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

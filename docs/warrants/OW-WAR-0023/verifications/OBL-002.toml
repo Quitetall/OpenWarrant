@@ -1,0 +1,20 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "crates/openwarrant-core/src/execution.rs::same_normative_contract_as verifies two dispatches share the same contract, but no projection function exists in the artifacts that produces actor-specific dispatches from a single stage; the test actor_projections_may_differ_in_form_but_not_in_contract manually clones and mutates rather than calling a projector"
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

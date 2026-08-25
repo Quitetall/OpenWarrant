@@ -1,0 +1,20 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = "obligation.rs::ObligationSet::check_references - iterates milestone_refs and returns ObligationError::DanglingObligationRef when an id is not in self.ids(); obligation.rs::tests::a_dangling_obligation_ref_is_refused plants OBL-999 and asserts the error"
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

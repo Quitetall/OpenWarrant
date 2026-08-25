@@ -1,0 +1,20 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "crates/openwarrant-core/src/execution.rs - Attempt struct has basis_change field and StageDispatch has attempt_basis_digest, and replay validation checks basis is unchanged, but no code enforces that a prior attempt's basis_digest remains immutable when a forward amendment creates a new attempt; the obligation requires prior attempts to still cite the old digest after amending forward, and no validation or mutation guard for cross-attempt basis preservation exists"
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

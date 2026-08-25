@@ -1,0 +1,20 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "migration.rs::LegacyDeclaredUnqualified::from_command sets parsed=false askable=false bound=false executed=false gate_run_receipt empty; migrate.rs::import calls LegacyDeclaredUnqualified::from_command for every gate_commands result; promote() returns Err(LegacyGatePromoted) unless all five conditions hold; test a_gate_command_imports_unqualified_and_cannot_be_promoted exercises the refusal"
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

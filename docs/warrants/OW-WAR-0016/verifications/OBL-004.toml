@@ -1,0 +1,20 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "obligation.rs::ObligationSet::aggregate - returns None when any obligation.disposition.is_none(); obligation.rs::tests::aggregation_refuses_to_conclude_with_an_undisposed_obligation plants a set with one None disposition and asserts aggregate() returns None"
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
