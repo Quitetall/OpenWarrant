@@ -29,32 +29,48 @@
 //!
 //! # What is computed, and what is still asserted
 //!
-//! Five of the thirteen are computed from records on disk:
-//! deliverables and artifact digests (§37, recomputed from the bytes), obligation
-//! dispositions and independence (§46, from verification records), and gate
-//! results (§44.5, from persisted Gate Runs).
+//! Nine of the thirteen are computed from records on disk: deliverables and
+//! artifact digests (§37, recomputed from the bytes), obligation dispositions and
+//! independence (§46, from verification records), gate results (§44.5, from
+//! persisted Gate Runs), and — through [`Authority`] — the authorized contract
+//! revision (§28.4), judgments (§42), residual-risk authority (§36.2 with §27.2)
+//! and the resolver's role (§27).
 //!
 //! Two are structurally true here: no blocker remains, and deviations are
 //! dispositioned.
 //!
-//! **Six are still hardcoded `false`**, because the records they ask about do
-//! not exist: an authorization record (§28.4), judgments (§42), residual-risk
-//! authority (§58), runtime receipts bound to the basis (§48.4), role assignment
-//! (§27), and the resolution of the adequacy warnings that are themselves
-//! required unknowns.
+//! **Two remain hardcoded `false`**: runtime receipts bound to the basis
+//! (§48.4), and the resolution of the adequacy warnings that are themselves
+//! required unknowns. Both are mechanical and neither is done.
 //!
-//! So every Warrant still blocks. That is the Phase 6 exit being honest rather
-//! than a defect: a resolver that closed a Warrant under these conditions would
-//! manufacture the exact false completion the whole system exists to prevent.
+//! # The four that moved are computed but not SATISFIED
 //!
-//! Four of the six need a human — authorization, judgment, risk acceptance and
-//! role assignment all require an actor this command may not invent (§27.2).
+//! Wiring them up did not close a single Warrant, and it was not supposed to.
+//! Each now reads a record that a human must write — a role assignment in
+//! `docs/authority/roles.toml`, then a signed authorization response. Until
+//! those exist the answer is `false`, exactly as before, but it is now `false`
+//! *because a specific record is absent* rather than because a constant said so.
+//!
+//! That is the whole difference. §27.2 forbids an agent authorizing a proposed
+//! WAR, accepting residual risk, or resolving a delivery, so no amount of
+//! implementation here can make these true. What implementation CAN do is make
+//! them answerable — turning "structurally impossible" into "awaiting one
+//! signature", which is a state a human can act on.
+//!
+//! An earlier note in this file cited §58 for residual-risk authority. §58 is
+//! Representations; residual risk is §36.2, and its authority constraint is
+//! §27.2. The requirement was unaffected — it was `false` either way — but the
+//! citation would have sent a reader to the wrong page.
 
 use openwarrant_core::GateRun;
+use openwarrant_core::authority::{AuthorityRegister, PolicyResolutionContext};
 use openwarrant_core::deliverable::Deliverable;
+use openwarrant_core::epistemic::Judgment;
+use openwarrant_core::rationale::Assumption;
 use openwarrant_core::resolution::{RESOLUTION_REQUIREMENTS, ResolutionChecks};
 use openwarrant_core::verification::Verification;
 
+use crate::authorize::AuthorizationRecord;
 use crate::diagnostic::{Diagnostic, Report};
 use crate::repo::{RepoError, Repository};
 
@@ -69,6 +85,7 @@ fn evaluate(
     verifications: &[Verification],
     deliverables: &[Deliverable],
     gate_runs: &[GateRun],
+    authority: &Authority<'_>,
 ) -> ResolutionChecks {
     let validated = one.validated.as_ref();
     let basis = one.basis.as_ref();
@@ -142,8 +159,7 @@ fn evaluate(
     let artifact_digests_verify = artifact_digests_verify(&repo.root, deliverables);
 
     ResolutionChecks {
-        // No authorization record exists anywhere in this corpus (§28.4).
-        exact_authorized_contract_revision: false,
+        exact_authorized_contract_revision: authority.contract_is_authorized(),
         required_deliverables_exist,
         artifact_digests_verify,
         every_required_obligation_dispositioned: obligations_dispositioned,
@@ -152,15 +168,148 @@ fn evaluate(
         no_required_unknown_remains: false,
         no_blocker_remains: true,
         deviations_dispositioned: true,
-        required_judgments_exist: false,
+        required_judgments_exist: authority.required_judgments_exist(),
         independence_requirements_met: independence_met,
-        residual_risks_have_sufficient_authority: false,
+        residual_risks_have_sufficient_authority: authority.residual_risks_are_covered(),
         // §48.4 receipts exist for gate runs, but no runtime receipt is bound to
         // a Warrant's basis.
         runtime_receipts_match_the_basis: false,
-        // §27 role assignment does not exist yet.
-        resolver_holds_the_role: false,
+        resolver_holds_the_role: authority.a_resolver_is_eligible(&assurance, &declared),
     }
+}
+
+/// Everything §27, §28.4, §42 and §36.2 need, read once from disk.
+///
+/// Grouped into one type rather than four more parameters because all four
+/// requirements are answers to the same question — *who decided this, and were
+/// they entitled to* — and splitting them across the call site made it easy to
+/// pass one and forget the rest.
+pub struct Authority<'a> {
+    pub register: &'a AuthorityRegister,
+    /// The persisted authorization, if the Warrant has one.
+    pub authorization: Option<&'a AuthorizationRecord>,
+    /// The contract digest the Warrant compiles to RIGHT NOW. `None` when it
+    /// would not compile, which makes requirement 1 unanswerable rather than
+    /// satisfied.
+    pub current_contract_digest: Option<&'a str>,
+    pub judgments: &'a [Judgment],
+    /// `None` means no `rationale.toml` — the residual-risk question was never
+    /// asked. `Some(&[])` means it was asked and the answer was none. Law 15:
+    /// those are different, and only one of them may pass.
+    pub assumptions: Option<&'a [Assumption]>,
+    /// §27.3 condition 1 — repository policy, set by a human.
+    pub policy_allows_automated_resolution: bool,
+}
+
+impl Authority<'_> {
+    /// §56.1 requirement 1 — the EXACT authorized Contract Revision.
+    ///
+    /// Both halves are load-bearing. A record in any state but `Authorized` is a
+    /// proposal, and one whose digest no longer matches the tree authorizes a
+    /// revision that has since been edited — the precise failure the word
+    /// "exact" exists to catch.
+    #[must_use]
+    pub fn contract_is_authorized(&self) -> bool {
+        let (Some(record), Some(current)) = (self.authorization, self.current_contract_digest)
+        else {
+            return false;
+        };
+        crate::authorize::authorizes_current_contract(record, current)
+    }
+
+    /// §56.1 requirement 9 — required judgments exist.
+    ///
+    /// A judgment counts only if it validates AND its author is recorded as
+    /// authorized (§42's `require_authorized`). A Warrant needs a judgment for
+    /// every residual risk it declares; one that declares none needs none, and
+    /// that is a real pass rather than a vacuous one — but only once the
+    /// question has been asked, which is what `assumptions.is_some()` records.
+    #[must_use]
+    pub fn required_judgments_exist(&self) -> bool {
+        let Some(assumptions) = self.assumptions else {
+            return false;
+        };
+        let required = crate::authorize::residual_risks_in(assumptions);
+        if !self
+            .judgments
+            .iter()
+            .all(|j| j.validate().is_ok() && j.require_authorized().is_ok())
+        {
+            return false;
+        }
+        required
+            .iter()
+            .all(|risk| self.judgments.iter().any(|j| refers_to(j, risk)))
+    }
+
+    /// §56.1 requirement 11 — residual risks have SUFFICIENT AUTHORITY.
+    ///
+    /// Distinct from requirement 9, which only asks whether the judgments exist.
+    /// This asks whether the actor who made each one was entitled to accept
+    /// organizational residual risk — §27.2 forbids it to agents outright, and
+    /// holding `judge` is not holding `risk_acceptor`.
+    #[must_use]
+    pub fn residual_risks_are_covered(&self) -> bool {
+        let Some(assumptions) = self.assumptions else {
+            return false;
+        };
+        crate::authorize::residual_risks_in(assumptions)
+            .iter()
+            .all(|risk| {
+                self.judgments.iter().any(|j| {
+                    refers_to(j, risk)
+                        && self
+                            .register
+                            .actor(&j.actor)
+                            .is_some_and(|a| a.may_accept_residual_risk().is_ok())
+                })
+            })
+    }
+
+    /// §56.1 requirement 13 — the resolver holds the role.
+    ///
+    /// Asks the register whether ANY assigned actor could lawfully resolve this
+    /// Warrant, given the performer and §27.3's conditions. `false` means nobody
+    /// may close it — which is the honest answer for a repository whose role
+    /// register is empty, and is why an empty register grants nothing.
+    #[must_use]
+    pub fn a_resolver_is_eligible(&self, assurance: &str, declared: &[String]) -> bool {
+        self.register
+            .eligible_resolver(
+                "claude",
+                PolicyResolutionContext {
+                    policy_allows: self.policy_allows_automated_resolution,
+                    assurance_level: assurance,
+                    // Conservative on purpose: an obligation is treated as
+                    // non-mechanical unless the Warrant declares none at all.
+                    // §27.3 lets a policy service close only mechanical work, and
+                    // guessing in the permissive direction here would hand a
+                    // machine exactly the Warrants it may not touch.
+                    all_obligations_mechanical: declared.is_empty(),
+                    residual_risk_judgment_required: self
+                        .assumptions
+                        .is_none_or(|a| !crate::authorize::residual_risks_in(a).is_empty()),
+                },
+            )
+            .is_some()
+    }
+}
+
+/// Whether a judgment addresses a given residual risk.
+///
+/// Matched through the assumption's own `judgment_ref` when it declares one, and
+/// otherwise through the judgment's `basis_refs`. Both directions are checked
+/// because §36.2 points assumption→judgment while §42 points judgment→basis, and
+/// a record written from either side must be readable from the other.
+fn refers_to(judgment: &Judgment, risk: &crate::authorize::RequestedResidualRisk) -> bool {
+    let by_ref = !risk.judgment_ref.is_empty()
+        && (risk.judgment_ref == judgment.id
+            || risk.judgment_ref == format!("judgment://{}", judgment.id));
+    let by_basis = judgment
+        .basis_refs
+        .iter()
+        .any(|b| b == &risk.assumption_id || b == &format!("assumption://{}", risk.assumption_id));
+    by_ref || by_basis
 }
 
 /// §56.1 — every gate a required obligation cites must have an admissible result.
@@ -241,12 +390,36 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
     let verifications = repo.load_verifications(&dir)?;
     let deliverables = repo.load_deliverables(&dir)?;
     let gate_runs = repo.load_gate_runs();
+
+    let register = repo.load_authority_register()?;
+    let authorization = repo.load_authorization(&dir)?;
+    let judgments = repo.load_judgments(&dir)?;
+    let assumptions = repo.load_rationale(&dir)?;
+    // The digest the Warrant compiles to right now, which requirement 1 compares
+    // the signature against. A Warrant that will not compile yields `None`, and
+    // requirement 1 is then unanswerable rather than satisfied.
+    let current_contract_digest = match (&one.basis, &one.validated) {
+        (Some(basis), Some(validated)) => openwarrant_compiler::lower(basis, validated)
+            .ok()
+            .and_then(|ir| ir.contract_digest().ok()),
+        _ => None,
+    };
+    let authority = Authority {
+        register: &register,
+        authorization: authorization.as_ref(),
+        current_contract_digest: current_contract_digest.as_deref(),
+        judgments: &judgments,
+        assumptions: assumptions.as_deref(),
+        policy_allows_automated_resolution: repo.config.policy.allow_automated_resolution,
+    };
+
     let checks = evaluate(
         repo,
         &one,
         &verifications.records,
         &deliverables.records,
         &gate_runs,
+        &authority,
     );
     for (path, why) in &deliverables.failures {
         report.push(Diagnostic::error(
