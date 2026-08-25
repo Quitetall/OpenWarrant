@@ -175,7 +175,19 @@ fn evaluate(
         every_required_obligation_dispositioned: obligations_dispositioned,
         every_required_gate_has_admissible_result: gates_ok,
         no_required_unknown_remains: authority.no_required_unknown_remains(),
-        no_blocker_remains: true,
+        // §53.1: "an unmet condition preventing valid progress". A declared
+        // §36.3 blocking unknown is exactly that, so requirement 7 is answered
+        // from the same record as requirement 6 and deliberately computes the
+        // same thing for now.
+        //
+        // The duplication is the honest option. §53.1 has its own shape —
+        // condition_ref, owner_ref, required_to_unblock — raised during
+        // execution, and nothing in this repository can record one. Leaving this
+        // as a bare `true` while OW-WAR-0026 and OW-WAR-0040 declare themselves
+        // unstartable made requirement 7 a false assertion, and a Warrant scored
+        // HIGHER for declaring itself blocked than for declaring a weighable
+        // risk. A correct duplicate beats a wrong constant.
+        no_blocker_remains: authority.no_required_unknown_remains(),
         deviations_dispositioned: true,
         required_judgments_exist: authority.required_judgments_exist(),
         independence_requirements_met: independence_met,

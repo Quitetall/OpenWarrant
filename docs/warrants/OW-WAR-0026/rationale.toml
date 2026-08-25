@@ -12,9 +12,15 @@ schema = "oh.war/rationale/v1"
 # signs a judgment through `war authorize`, and `war resolve` reports
 # requirements 9 and 11 unmet until one does.
 
+# §36.3, not §36.2. This Warrant's own Residual Risk section says it is
+# unstartable / provisional pending something outside this repository, and that
+# is a BLOCKING UNKNOWN rather than a risk somebody could weigh and accept.
+# Filing it as an accepted residual risk would offer it to an authorizer as a
+# decision they could make, when there is nothing to decide until the missing
+# thing exists.
+
 [[assumption]]
 id = "A-001"
-statement = "The Katana seam may be built against commit 651ba435 without a checkout to verify it."
-epistemic_status = "accepted_residual_risk"
-consequence_if_false = "Katana's schema has moved and everything in the seam is wrong in a way this host cannot detect."
-judgment_ref = ""
+statement = "Whether the Katana seam matches Katana's actual schema is unknown and unknowable from this host."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "A checkout of Katana at or after 651ba435, against which the seam's types can be compared."

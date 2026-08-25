@@ -12,9 +12,15 @@ schema = "oh.war/rationale/v1"
 # signs a judgment through `war authorize`, and `war resolve` reports
 # requirements 9 and 11 unmet until one does.
 
+# §36.3, not §36.2. This Warrant's own Residual Risk section says it is
+# unstartable / provisional pending something outside this repository, and that
+# is a BLOCKING UNKNOWN rather than a risk somebody could weigh and accept.
+# Filing it as an accepted residual risk would offer it to an authorizer as a
+# decision they could make, when there is nothing to decide until the missing
+# thing exists.
+
 [[assumption]]
 id = "A-001"
-statement = "The Liminal adapter can be planned without a Liminal checkout."
-epistemic_status = "accepted_residual_risk"
-consequence_if_false = "The Warrant is unstartable — the only one in the roadmap blocked on something outside this repository entirely."
-judgment_ref = ""
+statement = "The Liminal adapter and parity harness cannot be built or measured from this host."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "A checkout of Quitetall/liminal on this machine. Until then the adapter is unwritten and the parity number does not exist."
