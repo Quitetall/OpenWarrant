@@ -34,6 +34,8 @@ struct ScopeContract {
     base_ref: String,
     policy_path: String,
     policy_digest: String,
+    bonsai_source: String,
+    bonsai_revision: String,
     #[serde(default)]
     scope: Vec<ScopeEntry>,
 }
@@ -58,6 +60,14 @@ impl ScopeContract {
         if self.base_ref.trim().is_empty() {
             return Err("scope base_ref must not be empty".to_owned());
         }
+        if !safe_ref(&self.base_ref) {
+            return Err("scope base_ref contains an unsafe ref name".to_owned());
+        }
+        // Bonsai discovers only the root `bonsai.toml`. Binding any other file
+        // would make evidence claim one policy while executing another.
+        if self.policy_path != "bonsai.toml" {
+            return Err("scope policy_path must be the effective root bonsai.toml".to_owned());
+        }
         if !safe_relative(&self.policy_path) {
             return Err(format!(
                 "scope policy_path {:?} must be a safe repository-relative path",
@@ -68,6 +78,12 @@ impl ScopeContract {
             return Err(
                 "scope policy_digest must be sha256:<64 lowercase hex characters>".to_owned(),
             );
+        }
+        if self.bonsai_source != "github:Quitetall/bonsai" {
+            return Err("scope bonsai_source must identify the approved Bonsai source".to_owned());
+        }
+        if !is_git_commit(&self.bonsai_revision) {
+            return Err("scope bonsai_revision must be a full lowercase Git commit SHA".to_owned());
         }
         if self.scope.is_empty() {
             return Err("scope must declare at least one path_glob".to_owned());
@@ -120,6 +136,15 @@ fn safe_glob(glob: &str) -> bool {
     safe_relative(stem) && !stem.contains('*') && !glob[..stem.len()].contains('?')
 }
 
+fn safe_ref(reference: &str) -> bool {
+    !reference.is_empty()
+        && !reference.starts_with('-')
+        && !reference.contains("..")
+        && reference
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'/' | b'_' | b'.' | b'-'))
+}
+
 fn is_sha256(digest: &str) -> bool {
     digest.strip_prefix("sha256:").is_some_and(|hex| {
         hex.len() == 64
@@ -127,6 +152,13 @@ fn is_sha256(digest: &str) -> bool {
                 .bytes()
                 .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
     })
+}
+
+fn is_git_commit(commit: &str) -> bool {
+    commit.len() == 40
+        && commit
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
@@ -182,6 +214,9 @@ pub struct ScopeFinding {
 #[derive(Debug, Serialize)]
 pub struct BonsaiRun {
     pub executable: String,
+    pub binary_digest: String,
+    pub source: String,
+    pub revision: String,
     pub version: Option<String>,
     pub exit_code: Option<i32>,
     pub raw_output: Option<Value>,
@@ -227,6 +262,13 @@ pub fn check(
         RepoError::Message(format!("{alias}: invalid {scope_path}: {message}"))
     })?;
 
+    let worktree = git(repo, &["status", "--porcelain=v1", "--untracked-files=all"])?;
+    if !worktree.is_empty() {
+        return Err(RepoError::Message(
+            "Bonsai evidence requires a clean worktree; check a committed candidate".to_owned(),
+        ));
+    }
+
     let contract = lower(basis, validated).map_err(|source| {
         RepoError::Message(format!("{alias}: could not compile contract: {source}"))
     })?;
@@ -257,6 +299,21 @@ pub fn check(
         repo,
         &["rev-parse", "--verify", &format!("{base}^{{commit}}")],
     )?;
+    let scoped_base = git(
+        repo,
+        &[
+            "rev-parse",
+            "--verify",
+            &format!("origin/{}^{{commit}}", scope.base_ref),
+        ],
+    )?;
+    let expected_base = git(repo, &["merge-base", &canonical_head, &scoped_base])?;
+    if canonical_base != expected_base {
+        return Err(RepoError::Message(format!(
+            "candidate base {canonical_base} is not merge-base({canonical_head}, origin/{}) = {expected_base}",
+            scope.base_ref
+        )));
+    }
     let tree = git(repo, &["rev-parse", &format!("{canonical_head}^{{tree}}")])?;
     let remote = git(repo, &["remote", "get-url", "origin"])?;
     let repository = github_identity(&remote).ok_or_else(|| {
@@ -289,7 +346,8 @@ pub fn check(
         &[
             "diff",
             "--name-only",
-            "--diff-filter=ACMR",
+            "--no-renames",
+            "--diff-filter=ACDMRT",
             "-z",
             &canonical_base,
             &canonical_head,
@@ -311,6 +369,12 @@ pub fn check(
         .ok()
         .filter(|out| out.status.success())
         .map(|out| String::from_utf8_lossy(&out.stdout).trim().to_owned());
+    let binary_digest = std::fs::read(binary)
+        .map(|bytes| format!("sha256:{}", sha256_hex(&bytes)))
+        .map_err(|source| RepoError::Io {
+            context: format!("could not read Bonsai binary {binary}"),
+            source,
+        })?;
 
     let launched = Command::new(binary.as_std_path())
         .args([
@@ -339,6 +403,9 @@ pub fn check(
             (
                 BonsaiRun {
                     executable: binary.to_string(),
+                    binary_digest,
+                    source: scope.bonsai_source.clone(),
+                    revision: scope.bonsai_revision.clone(),
                     version,
                     exit_code: output.status.code(),
                     raw_output: parsed,
@@ -351,6 +418,9 @@ pub fn check(
         Err(error) => (
             BonsaiRun {
                 executable: binary.to_string(),
+                binary_digest,
+                source: scope.bonsai_source.clone(),
+                revision: scope.bonsai_revision.clone(),
                 version: None,
                 exit_code: None,
                 raw_output: None,
@@ -371,7 +441,7 @@ pub fn check(
         .filter(|finding| !is_architecture_error(finding))
         .cloned()
         .collect();
-    let bonsai_asked = bonsai.raw_output.is_some();
+    let bonsai_asked = valid_bonsai_report(&bonsai);
     let verdict = if !scope_findings.is_empty() || !architecture_findings.is_empty() {
         EvidenceVerdict::Fail
     } else if bonsai_asked {
@@ -413,6 +483,18 @@ fn is_architecture_error(finding: &Value) -> bool {
             .get("rule")
             .and_then(Value::as_str)
             .is_some_and(|rule| ARCHITECTURE_RULES.contains(&rule))
+}
+
+fn valid_bonsai_report(run: &BonsaiRun) -> bool {
+    matches!(run.exit_code, Some(0 | 1))
+        && run.raw_output.as_ref().is_some_and(|report| {
+            report.get("tool").and_then(Value::as_str) == Some("bonsai")
+                && report
+                    .get("version")
+                    .and_then(Value::as_str)
+                    .is_some_and(|version| !version.is_empty())
+                && report.get("findings").is_some_and(Value::is_array)
+        })
 }
 
 fn git(repo: &Repository, args: &[&str]) -> Result<String, RepoError> {
@@ -494,6 +576,12 @@ mod tests {
     }
 
     #[test]
+    fn only_full_commit_ids_are_accepted() {
+        assert!(is_git_commit("4c8cc1043cbc4d30d2c41cbb25ba1afe25c6ad7c"));
+        assert!(!is_git_commit("4c8cc10"));
+    }
+
+    #[test]
     fn github_remote_is_normalized() {
         assert_eq!(
             github_identity("git@github.com:Quitetall/OpenWarrant.git"),
@@ -511,5 +599,21 @@ mod tests {
         let advisory = serde_json::json!({"rule":"leanness-ratchet", "severity":"error"});
         assert!(is_architecture_error(&architecture));
         assert!(!is_architecture_error(&advisory));
+    }
+
+    #[test]
+    fn malformed_bonsai_output_is_not_an_asked_check() {
+        let run = BonsaiRun {
+            executable: "bonsai".to_owned(),
+            binary_digest: "sha256:0".to_owned(),
+            source: "github:Quitetall/bonsai".to_owned(),
+            revision: "0".repeat(40),
+            version: Some("bonsai 0.1.0".to_owned()),
+            exit_code: Some(1),
+            raw_output: Some(serde_json::json!({})),
+            stderr: String::new(),
+            spawn_error: None,
+        };
+        assert!(!valid_bonsai_report(&run));
     }
 }

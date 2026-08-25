@@ -96,19 +96,13 @@ jobs:
             echo "No machine-readable Warrant line; report-phase check skipped."
           fi
 
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        if: steps.warrant.outputs.alias != ''
-        with:
-          repository: Quitetall/bonsai
-          ref: 4c8cc1043cbc4d30d2c41cbb25ba1afe25c6ad7c
-          path: .tools/bonsai
-          persist-credentials: false
-
       - name: Build report tools
         if: steps.warrant.outputs.alias != ''
         run: |
           cargo build -p openwarrant-cli
-          cargo build --release --manifest-path .tools/bonsai/Cargo.toml
+          git clone --filter=blob:none --no-checkout https://github.com/Quitetall/bonsai.git "$RUNNER_TEMP/bonsai"
+          git -C "$RUNNER_TEMP/bonsai" checkout --detach 4c8cc1043cbc4d30d2c41cbb25ba1afe25c6ad7c
+          cargo build --release --manifest-path "$RUNNER_TEMP/bonsai/Cargo.toml"
 
       - name: Emit Warrant-bound Bonsai evidence
         id: bonsai
@@ -123,11 +117,11 @@ jobs:
             --warrant "$WARRANT" \
             --base "$BASE" \
             --head "$HEAD" \
-            --bonsai "$GITHUB_WORKSPACE/.tools/bonsai/target/release/bonsai" \
+            --bonsai "$RUNNER_TEMP/bonsai/target/release/bonsai" \
             > bonsai-evidence.json
           status=$?
           printf 'status=%s\n' "$status" >> "$GITHUB_OUTPUT"
-          if jq -e '.schema == "oh.war/bonsai-evidence/v1"' bonsai-evidence.json > /dev/null; then
+          if jq -e '.schema == "oh.war/bonsai-evidence/v1" and .verdict == "pass"' bonsai-evidence.json > /dev/null; then
             contract="$(jq -r '.warrant.contract_digest' bonsai-evidence.json)"
             digest="$(sha256sum bonsai-evidence.json | awk '{print $1}')"
             ./target/debug/war gate --run --record --gate software.repo.war-check \

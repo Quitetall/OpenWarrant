@@ -28,6 +28,7 @@
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
 
+use openwarrant_compiler::sha256_hex;
 use openwarrant_core::gate::GateDefinition;
 use openwarrant_core::{Askability, ExecutionStatus, GateRun, ReasonCode, Verdict};
 
@@ -325,6 +326,7 @@ pub fn run(
     subject_digests: &[String],
     raw_evidence_refs: &[String],
 ) -> Result<Report, RepoError> {
+    validate_bonsai_bindings(repo, subject_digests, raw_evidence_refs)?;
     let mut report = Report::default();
     let registry = crate::check::load_gate_registry(repo, &mut report);
 
@@ -478,6 +480,94 @@ pub fn run(
         }
     }
     Ok(report)
+}
+
+/// Refuse a receipt that attaches a Bonsai document by name but not by bytes,
+/// or that lets a passing local gate appear to endorse failed Bonsai evidence.
+///
+/// This is intentionally narrow: only the Warrant/Bonsai adapter needs these
+/// extra receipt fields today. A future generic evidence registry can widen it
+/// with typed artifact kinds instead of accepting arbitrary strings now.
+fn validate_bonsai_bindings(
+    repo: &Repository,
+    subject_digests: &[String],
+    raw_evidence_refs: &[String],
+) -> Result<(), RepoError> {
+    if subject_digests.is_empty() && raw_evidence_refs.is_empty() {
+        return Ok(());
+    }
+    if subject_digests.len() != 1 || raw_evidence_refs.len() != 1 {
+        return Err(RepoError::Message(
+            "Bonsai receipt binding requires exactly one contract subject and one evidence reference"
+                .to_owned(),
+        ));
+    }
+    let subject = &subject_digests[0];
+    let Some(contract_digest) = subject.strip_prefix("contract:sha256:") else {
+        return Err(RepoError::Message(
+            "Bonsai receipt subject must be contract:sha256:<digest>".to_owned(),
+        ));
+    };
+    if !is_hex_digest(contract_digest) {
+        return Err(RepoError::Message(
+            "Bonsai receipt contract digest must be 64 lowercase hex characters".to_owned(),
+        ));
+    }
+    let Some((path, expected_digest)) = raw_evidence_refs[0]
+        .strip_prefix("file:")
+        .and_then(|reference| reference.rsplit_once("#sha256:"))
+    else {
+        return Err(RepoError::Message(
+            "Bonsai evidence reference must be file:<repo-relative-path>#sha256:<digest>"
+                .to_owned(),
+        ));
+    };
+    if !safe_evidence_path(path) || !is_hex_digest(expected_digest) {
+        return Err(RepoError::Message(
+            "Bonsai evidence reference has an unsafe path or invalid digest".to_owned(),
+        ));
+    }
+    let bytes = std::fs::read(repo.root.join(path)).map_err(|source| RepoError::Io {
+        context: format!("could not read Bonsai evidence {path}"),
+        source,
+    })?;
+    if sha256_hex(&bytes) != expected_digest {
+        return Err(RepoError::Message(
+            "Bonsai evidence reference digest does not match file bytes".to_owned(),
+        ));
+    }
+    let evidence: serde_json::Value = serde_json::from_slice(&bytes).map_err(|source| {
+        RepoError::Message(format!("Bonsai evidence is not valid JSON: {source}"))
+    })?;
+    let evidence_contract = evidence
+        .pointer("/warrant/contract_digest")
+        .and_then(serde_json::Value::as_str);
+    if evidence.get("schema").and_then(serde_json::Value::as_str)
+        != Some("oh.war/bonsai-evidence/v1")
+        || evidence.get("verdict").and_then(serde_json::Value::as_str) != Some("pass")
+        || evidence_contract != Some(contract_digest)
+    {
+        return Err(RepoError::Message(
+            "Bonsai evidence must be a passing v1 report for the bound contract digest".to_owned(),
+        ));
+    }
+    Ok(())
+}
+
+fn safe_evidence_path(path: &str) -> bool {
+    !path.is_empty()
+        && !path.starts_with('/')
+        && !path.contains('\\')
+        && path
+            .split('/')
+            .all(|part| !part.is_empty() && part != "." && part != "..")
+}
+
+fn is_hex_digest(value: &str) -> bool {
+    value.len() == 64
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
 /// Mint a §44.6 receipt for a completed run, and write it beside its streams.
