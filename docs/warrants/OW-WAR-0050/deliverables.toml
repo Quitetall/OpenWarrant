@@ -15,21 +15,21 @@ schema = "oh.war/deliverables/v1"
 
 [[deliverable]]
 id = "D-001"
-title = "Rationale node classes and typed edges (§35)"
+title = "Warrant-bound Bonsai evidence adapter"
 kind = "file"
-target_ref = "crates/openwarrant-core/src/rationale.rs"
+target_ref = "crates/openwarrant-cli/src/bonsai.rs"
 required = true
 content_addressed = true
 provenance_required = true
-obligation_refs = ["OBL-001"]
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
 
 [deliverable.provenance]
 producer = "claude"
-producing_attempt = "OW-WAR-0014/attempt-1"
+producing_attempt = "OW-WAR-0050/attempt-1"
 contract_digest = "unrecorded"
 tool_or_runtime_identity = "rustc 1.97.1"
 creation_method = "authored"
-content_digest = "sha256:0283b636e52776c5f98f0dc1d1329e4d9b41a1dae514669c56f6702882a7d8d2"
+content_digest = "sha256:8aa6779f70eceab6e434d01180f4e313a9ba7df60a7bc18e1150eee26fb80d20"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"
@@ -37,22 +37,22 @@ source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
-title = "Assumptions, epistemic status and blocking unknowns (§36)"
+title = "Machine scope bound into the compilation basis"
 kind = "file"
-target_ref = "crates/openwarrant-core/src/rationale.rs"
+target_ref = "bonsai.toml"
 required = true
 content_addressed = true
 provenance_required = true
-obligation_refs = ["OBL-002"]
+obligation_refs = ["OBL-004"]
 
 [deliverable.provenance]
 producer = "claude"
-producing_attempt = "OW-WAR-0014/attempt-1"
+producing_attempt = "OW-WAR-0050/attempt-1"
 contract_digest = "unrecorded"
 tool_or_runtime_identity = "rustc 1.97.1"
 creation_method = "authored"
-content_digest = "sha256:0283b636e52776c5f98f0dc1d1329e4d9b41a1dae514669c56f6702882a7d8d2"
-media_type = "text/x-rust"
+content_digest = "sha256:cd98584ef76d326881ea17eaa65904657063733c7ecf907f07c18ecfa5dfcd28"
+media_type = "application/toml"
 classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"

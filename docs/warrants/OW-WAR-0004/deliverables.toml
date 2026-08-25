@@ -15,21 +15,21 @@ schema = "oh.war/deliverables/v1"
 
 [[deliverable]]
 id = "D-001"
-title = "Rationale node classes and typed edges (§35)"
+title = "Generated Markdown parent with the §17.1 header"
 kind = "file"
-target_ref = "crates/openwarrant-core/src/rationale.rs"
+target_ref = "crates/openwarrant-compiler/src/render.rs"
 required = true
 content_addressed = true
 provenance_required = true
-obligation_refs = ["OBL-001"]
+obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "claude"
-producing_attempt = "OW-WAR-0014/attempt-1"
+producing_attempt = "OW-WAR-0004/attempt-1"
 contract_digest = "unrecorded"
 tool_or_runtime_identity = "rustc 1.97.1"
 creation_method = "authored"
-content_digest = "sha256:0283b636e52776c5f98f0dc1d1329e4d9b41a1dae514669c56f6702882a7d8d2"
+content_digest = "sha256:efed4141ba1cb0097805f46b46c0e061b8c0ca9374c694fb3b8eae0ce9228d70"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"
@@ -37,21 +37,21 @@ source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
-title = "Assumptions, epistemic status and blocking unknowns (§36)"
+title = "Compilation and drift detection"
 kind = "file"
-target_ref = "crates/openwarrant-core/src/rationale.rs"
+target_ref = "crates/openwarrant-cli/src/compile.rs"
 required = true
 content_addressed = true
 provenance_required = true
-obligation_refs = ["OBL-002"]
+obligation_refs = ["OBL-003"]
 
 [deliverable.provenance]
 producer = "claude"
-producing_attempt = "OW-WAR-0014/attempt-1"
+producing_attempt = "OW-WAR-0004/attempt-1"
 contract_digest = "unrecorded"
 tool_or_runtime_identity = "rustc 1.97.1"
 creation_method = "authored"
-content_digest = "sha256:0283b636e52776c5f98f0dc1d1329e4d9b41a1dae514669c56f6702882a7d8d2"
+content_digest = "sha256:0037d74d6cbee35878382c37f8421e685969ee87413d18458b3a95946251edbd"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"

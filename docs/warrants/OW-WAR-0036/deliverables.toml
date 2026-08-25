@@ -15,21 +15,21 @@ schema = "oh.war/deliverables/v1"
 
 [[deliverable]]
 id = "D-001"
-title = "Rationale node classes and typed edges (§35)"
+title = "ADR Overview generation"
 kind = "file"
-target_ref = "crates/openwarrant-core/src/rationale.rs"
+target_ref = "crates/openwarrant-compiler/src/adr_overview.rs"
 required = true
 content_addressed = true
 provenance_required = true
-obligation_refs = ["OBL-001"]
+obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "claude"
-producing_attempt = "OW-WAR-0014/attempt-1"
+producing_attempt = "OW-WAR-0036/attempt-1"
 contract_digest = "unrecorded"
 tool_or_runtime_identity = "rustc 1.97.1"
 creation_method = "authored"
-content_digest = "sha256:0283b636e52776c5f98f0dc1d1329e4d9b41a1dae514669c56f6702882a7d8d2"
+content_digest = "sha256:087d30ed770f59e0a646d34362f35e05f0b3c2f3e4ee85281dde3bd58102dd5b"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"
@@ -37,21 +37,21 @@ source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
-title = "Assumptions, epistemic status and blocking unknowns (§36)"
+title = "Structured atom subset the detector reads"
 kind = "file"
-target_ref = "crates/openwarrant-core/src/rationale.rs"
+target_ref = "crates/openwarrant-core/src/structured.rs"
 required = true
 content_addressed = true
 provenance_required = true
-obligation_refs = ["OBL-002"]
+obligation_refs = ["OBL-003"]
 
 [deliverable.provenance]
 producer = "claude"
-producing_attempt = "OW-WAR-0014/attempt-1"
+producing_attempt = "OW-WAR-0036/attempt-1"
 contract_digest = "unrecorded"
 tool_or_runtime_identity = "rustc 1.97.1"
 creation_method = "authored"
-content_digest = "sha256:0283b636e52776c5f98f0dc1d1329e4d9b41a1dae514669c56f6702882a7d8d2"
+content_digest = "sha256:5aa9770256b4cb42653b61a7c4afaf70cbe0d1b6cd73c45eabd9915d4a2d5286"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"

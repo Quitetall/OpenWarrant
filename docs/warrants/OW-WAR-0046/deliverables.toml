@@ -15,21 +15,21 @@ schema = "oh.war/deliverables/v1"
 
 [[deliverable]]
 id = "D-001"
-title = "Rationale node classes and typed edges (§35)"
+title = "The thirteen §56.1 requirements, computed"
 kind = "file"
-target_ref = "crates/openwarrant-core/src/rationale.rs"
+target_ref = "crates/openwarrant-cli/src/resolve.rs"
 required = true
 content_addressed = true
 provenance_required = true
-obligation_refs = ["OBL-001"]
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
 
 [deliverable.provenance]
 producer = "claude"
-producing_attempt = "OW-WAR-0014/attempt-1"
+producing_attempt = "OW-WAR-0046/attempt-1"
 contract_digest = "unrecorded"
 tool_or_runtime_identity = "rustc 1.97.1"
 creation_method = "authored"
-content_digest = "sha256:0283b636e52776c5f98f0dc1d1329e4d9b41a1dae514669c56f6702882a7d8d2"
+content_digest = "sha256:6a4bc668612cb061b1a71e9c23c859d05c01c8a4294ada68d0bbd7a70ef547ab"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"
@@ -37,21 +37,21 @@ source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
-title = "Assumptions, epistemic status and blocking unknowns (§36)"
+title = "Independent verification seam (§46)"
 kind = "file"
-target_ref = "crates/openwarrant-core/src/rationale.rs"
+target_ref = "crates/openwarrant-cli/src/verify.rs"
 required = true
 content_addressed = true
 provenance_required = true
-obligation_refs = ["OBL-002"]
+obligation_refs = ["OBL-004", "OBL-005"]
 
 [deliverable.provenance]
 producer = "claude"
-producing_attempt = "OW-WAR-0014/attempt-1"
+producing_attempt = "OW-WAR-0046/attempt-1"
 contract_digest = "unrecorded"
 tool_or_runtime_identity = "rustc 1.97.1"
 creation_method = "authored"
-content_digest = "sha256:0283b636e52776c5f98f0dc1d1329e4d9b41a1dae514669c56f6702882a7d8d2"
+content_digest = "sha256:b87d7cd3d27d0286d593671ec858032853a9fba09b7ac959522b30f72f020d00"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"

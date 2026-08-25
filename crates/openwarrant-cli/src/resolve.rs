@@ -321,8 +321,28 @@ fn refers_to(judgment: &Judgment, risk: &crate::authorize::RequestedResidualRisk
 ///
 /// A cited gate with NO recorded run is unmet, not vacuously satisfied. That is
 /// the whole point: the gate must have been asked, not merely referenced.
-/// Obligations citing no gate impose nothing here — the requirement is about
-/// gates that were cited.
+///
+/// # Zero cited gates is UNMET, and this comment used to say the opposite
+///
+/// The prose here claimed "obligations citing no gate impose nothing — the
+/// requirement is about gates that were cited", while the code below has always
+/// returned `false` for an empty list. One of them was wrong, and it was the
+/// prose: a reader trusting it would conclude a Warrant citing no gate had
+/// passed requirement 5, when it had failed.
+///
+/// The code is kept. §56.1 asks whether every required gate has an admissible
+/// result, and a Warrant that names no gate has produced no mechanical proof of
+/// anything — reporting that as satisfied would let a Warrant clear the
+/// requirement by declaring nothing, which is the shape of false completion this
+/// resolver exists to refuse. It is the same rule
+/// [`required_deliverables_exist`] applies to a Warrant that declares no
+/// deliverables.
+///
+/// The consequence is real and is not a defect: OW-WAR-0001 through 0018 were
+/// authored before the Gate Registry existed, cite no gates, and therefore
+/// cannot satisfy requirement 5. Adding gate bullets to their assurance atoms
+/// now would move the contract digest and would be editing a document to make a
+/// tool go green. It needs an amendment somebody authorizes, not a quiet edit.
 #[must_use]
 pub fn every_required_gate_has_admissible_result(cited_uris: &[String], runs: &[GateRun]) -> bool {
     if cited_uris.is_empty() {

@@ -15,21 +15,21 @@ schema = "oh.war/deliverables/v1"
 
 [[deliverable]]
 id = "D-001"
-title = "Rationale node classes and typed edges (§35)"
+title = "Legacy ADR importer preserving unknown classes (§96)"
 kind = "file"
-target_ref = "crates/openwarrant-core/src/rationale.rs"
+target_ref = "crates/openwarrant-core/src/migration.rs"
 required = true
 content_addressed = true
 provenance_required = true
-obligation_refs = ["OBL-001"]
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
 
 [deliverable.provenance]
 producer = "claude"
-producing_attempt = "OW-WAR-0014/attempt-1"
+producing_attempt = "OW-WAR-0038/attempt-1"
 contract_digest = "unrecorded"
 tool_or_runtime_identity = "rustc 1.97.1"
 creation_method = "authored"
-content_digest = "sha256:0283b636e52776c5f98f0dc1d1329e4d9b41a1dae514669c56f6702882a7d8d2"
+content_digest = "sha256:c9859efbaae32e046ae4939bc6c9d6a45166303f9175cae0688db34e213f8fcb"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"
@@ -37,21 +37,21 @@ source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
-title = "Assumptions, epistemic status and blocking unknowns (§36)"
+title = "The import command and its reproducibility check"
 kind = "file"
-target_ref = "crates/openwarrant-core/src/rationale.rs"
+target_ref = "crates/openwarrant-cli/src/migrate.rs"
 required = true
 content_addressed = true
 provenance_required = true
-obligation_refs = ["OBL-002"]
+obligation_refs = ["OBL-004"]
 
 [deliverable.provenance]
 producer = "claude"
-producing_attempt = "OW-WAR-0014/attempt-1"
+producing_attempt = "OW-WAR-0038/attempt-1"
 contract_digest = "unrecorded"
 tool_or_runtime_identity = "rustc 1.97.1"
 creation_method = "authored"
-content_digest = "sha256:0283b636e52776c5f98f0dc1d1329e4d9b41a1dae514669c56f6702882a7d8d2"
+content_digest = "sha256:d6917f8f992cca9465bc1d2860b2ef6b67d0ca2402f911186e7897d33c9f42b0"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"
