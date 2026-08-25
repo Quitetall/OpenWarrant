@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+disposition = "not_established"
+evidence = "bonsai.rs::check loads scope from basis.scope and computes contract_digest, but no test in the provided artifacts demonstrates that adding a scope.toml sidecar changes the contract digest compared to a warrant without one, and no generated-view drift check is present"
 performer = "claude"
 
 [verifier]

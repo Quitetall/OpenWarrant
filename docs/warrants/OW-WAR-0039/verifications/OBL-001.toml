@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+evidence = "telemetry.rs::take iterates TELEMETRY_MEASURES recording each as Taken or NotYet; test the_measure_and_metric_counts_match_the_sas asserts len==18"
 performer = "claude"
 
 [verifier]

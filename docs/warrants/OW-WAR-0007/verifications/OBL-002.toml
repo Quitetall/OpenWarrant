@@ -1,6 +1,6 @@
-obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "crates/openwarrant-core/src/milestones.rs::validate_references checks dangling stage_refs and dangling depends_on but has no check for dangling obligation_refs and no DanglingObligationRef error variant; no test plants a dangling obligation_ref"
 performer = "claude"
 
 [verifier]

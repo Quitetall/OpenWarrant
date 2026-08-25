@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+disposition = "not_established"
+evidence = "crates/openwarrant-cli/src/kf.rs::post_action - the write method exists and the envelope omits recorded_at by design, but OBS-007 records the attempt returned 404 from KF's empty action registry; no successful receipt with a server-assigned recorded_at is present in the artifacts"
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+disposition = "not_established"
+evidence = "atoms/60-assurance.md - OBL-001 specifies gate://software.repo.war-check@1.0.0 and evidence of draft passing war check; no source code implementing war plan, no test producing a draft from a sentence, and no war check output are present in the artifacts"
 performer = "claude"
 
 [verifier]

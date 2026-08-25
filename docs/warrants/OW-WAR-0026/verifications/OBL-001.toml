@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+disposition = "not_established"
+evidence = "seam.rs::KatanaReceipt holds prompt_ir_digest not PromptIR and the_receipt_holds_a_prompt_ir_digest_and_not_prompt_ir verifies no IR fields, but no Dispatch struct or Dispatch-to-Katana-request mapping function appears in the artifacts"
 performer = "claude"
 
 [verifier]

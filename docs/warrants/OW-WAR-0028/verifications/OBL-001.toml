@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+evidence = "crates/openwarrant-cli/src/kf.rs::ActionEnvelope - struct with target_ids, payload, reason, idempotency_key fields; Client::post_action is the only write method and takes action_type parameter plus Actor and ActionEnvelope"
 performer = "claude"
 
 [verifier]

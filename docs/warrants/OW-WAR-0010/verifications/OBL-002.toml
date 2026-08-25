@@ -1,6 +1,6 @@
-obligation = "OBL-001"
+obligation = "OBL-002"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+evidence = "autonomy.rs::tests::an_unrecognised_change_blocks_rather_than_being_guessed - plants four ambiguous changes (e.g. adding a slightly weaker gate, renaming a public function) and asserts classify returns None and classify_or_block returns Err(Unclassifiable), never Some(LocalChoice)"
 performer = "claude"
 
 [verifier]

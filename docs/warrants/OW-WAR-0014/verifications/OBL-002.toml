@@ -1,0 +1,20 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "rationale.rs::tests::an_assumption_validated_by_a_gate_that_depends_on_it_is_refused tests circular validation refusal; rationale.rs::tests::each_status_requires_the_field_that_earns_its_name tests BlockingUnknown validation at assumption level only; rationale.rs::EpistemicStatus::blocks_readiness is defined but never called to refuse a Warrant at authorization; no test plants a Warrant with an unresolved blocking unknown and observes refusal at authorization"
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,6 +1,6 @@
-obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "compile.rs implements war compile writing to disk but no war check --generated implementation is present in the provided artifacts; no check.rs or drift-detection code path exists to examine; no test exercising planted-drift refusal is shown"
 performer = "claude"
 
 [verifier]

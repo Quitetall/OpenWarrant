@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+evidence = "contract.rs::ContractRevision - propose() and authorize() consume self returning new value; no &mut self method exists on authorized revisions; test amendment_creates_a_new_revision_with_a_predecessor confirms authorized revision is untouched after amend"
 performer = "claude"
 
 [verifier]

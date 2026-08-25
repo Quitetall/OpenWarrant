@@ -1,6 +1,6 @@
-obligation = "OBL-001"
+obligation = "OBL-002"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+evidence = "render.rs::tests::rendering_is_byte_identical_across_runs - asserts full_warrant and canonical_json return identical bytes on repeated calls with same inputs; compile.rs::run - reads existing file and skips write when contents match, so recompilation on unchanged tree writes zero bytes"
 performer = "claude"
 
 [verifier]

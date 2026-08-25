@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+disposition = "not_established"
+evidence = "check.rs::print implements the stdout shape with severity labels, counts, worst severity, notes, and verdict line, but the artifacts do not include the CLI entry point that maps report.worst() to a process exit code"
 performer = "claude"
 
 [verifier]

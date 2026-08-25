@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "crates/openwarrant-core/src/independence.rs::Independence::none exists and tests show it fails every level, but no code in verification.rs or elsewhere constructs a Verification using none() for a single-actor case; the obligation requires that every verification in this repository actually reports independence:none on every dimension, and I see no repository-level code or test that asserts this is the case for all verifications produced today"
+evidence = "crates/openwarrant-core/src/execution.rs - Attempt struct has basis_change field and StageDispatch has attempt_basis_digest, and replay validation checks basis is unchanged, but no code enforces that a prior attempt's basis_digest remains immutable when a forward amendment creates a new attempt; the obligation requires prior attempts to still cite the old digest after amending forward, and no validation or mutation guard for cross-attempt basis preservation exists"
 performer = "claude"
 
 [verifier]

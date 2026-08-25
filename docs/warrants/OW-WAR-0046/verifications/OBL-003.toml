@@ -1,6 +1,6 @@
-obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "resolve.rs::evaluate computes all thirteen and resolve.rs::run reports each via checks.as_pairs but no actual recorded dry-run output or per-requirement unset run is present in the artifacts"
 performer = "claude"
 
 [verifier]

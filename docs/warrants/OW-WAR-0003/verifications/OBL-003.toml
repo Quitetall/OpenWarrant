@@ -1,6 +1,6 @@
-obligation = "OBL-001"
+obligation = "OBL-003"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+evidence = "canonical.rs::every_domain_pair_yields_a_distinct_digest hashes one payload under all 15 DigestDomain::ALL entries and asserts digest count equals domain count covering all 105 pairs"
 performer = "claude"
 
 [verifier]

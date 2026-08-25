@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+evidence = "preflight.rs::CheckGroup enum defines all six variants Contract Context Graph Runtime Gates Authority; all_checks() iterates all six constant arrays; test the_check_groups_and_counts_match_the_sas asserts all six groups and TOTAL_CHECKS==41"
 performer = "claude"
 
 [verifier]

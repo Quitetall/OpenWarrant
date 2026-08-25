@@ -1,6 +1,6 @@
-obligation = "OBL-001"
+obligation = "OBL-000"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+evidence = "atoms/20-basis.md - Blocking unknown explicitly states the design question about local authorization; contract.rs::Authorization records Independence::None for human self-authorization; test a_human_may_authorize_their_own_proposal exercises it"
 performer = "claude"
 
 [verifier]

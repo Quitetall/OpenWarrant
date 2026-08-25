@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+evidence = "gate.rs::GateDefinition::validate - checks self.version.trim().is_empty() and returns GateError::MissingVersion; test a_definition_without_a_version_is_refused exercises it"
 performer = "claude"
 
 [verifier]

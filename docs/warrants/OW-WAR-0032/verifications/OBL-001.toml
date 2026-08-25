@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+disposition = "not_established"
+evidence = "atoms/45-milestones.yaml - M1 lists STAGE-001 as the stage to wire a generator, but no generated schemas, Rust types, or validation tests appear in any artifact"
 performer = "claude"
 
 [verifier]

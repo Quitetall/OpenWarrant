@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+disposition = "not_established"
+evidence = "crates/openwarrant-core/src/identity.rs - WarUuid is defined but no enterprise ID type or allocation function exists; basis document states the constraint but no code performs allocation to verify UUID preservation"
 performer = "claude"
 
 [verifier]

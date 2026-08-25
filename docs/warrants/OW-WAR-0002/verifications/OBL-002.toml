@@ -1,6 +1,6 @@
-obligation = "OBL-001"
+obligation = "OBL-002"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+evidence = "manifest.rs::tests - missing_required_atom_is_refused asserts MissingRequiredRole, duplicate_ordinal_is_refused asserts DuplicateOrdinal, unknown_required_role_is_refused asserts UnknownRequiredRole, a_direct_cycle_is_detected asserts detect_parent_cycles returns one cycle; each error variant carries the SAS rule reference"
 performer = "claude"
 
 [verifier]

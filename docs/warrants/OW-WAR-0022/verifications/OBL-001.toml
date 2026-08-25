@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+disposition = "not_established"
+evidence = "crates/openwarrant-core/src/resolution.rs::Resolution struct has contract_digest and assurance_case_snapshot_digest fields, but no code compares them against an external authorized digest and rejects mismatches"
 performer = "claude"
 
 [verifier]

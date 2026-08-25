@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+disposition = "not_established"
+evidence = "adequacy.rs - the module comment claims 'The old call site is gone' and the new parse() uses eq_ignore_ascii_case on the exact heading rather than contains(); however check.rs was not provided, so I cannot verify the substring check is removed from the stated scope"
 performer = "claude"
 
 [verifier]

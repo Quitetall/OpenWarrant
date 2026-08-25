@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+evidence = "rationale.rs::NodeClass defines 8 node classes; rationale.rs::RationaleEdge defines 8 edge types; rationale.rs::tests::the_node_classes_match_the_sas asserts parsed values per class; rationale.rs::tests::the_rationale_edges_match_the_sas asserts parsed values per edge type; rationale.rs::tests::vocabularies_round_trip tests parsing round-trip"
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+evidence = "autonomy.rs::tests::the_three_bands_match_the_sas - asserts classify() returns Some(LocalChoice), Some(AutoAuthorizedRevision), and Some(ManualRevision) for one example from each of the three §30.1 lists"
 performer = "claude"
 
 [verifier]

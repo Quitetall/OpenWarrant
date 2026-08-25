@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+disposition = "not_established"
+evidence = "crates/openwarrant-cli/src/blut.rs::lower - constructs PlanSpec and calls verify() to check BLUT acceptance, but no test output or integration result showing BLUT actually accepted a lowered PlanSpec is present in the artifacts"
 performer = "claude"
 
 [verifier]

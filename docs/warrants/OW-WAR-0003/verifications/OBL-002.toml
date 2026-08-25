@@ -1,6 +1,6 @@
-obligation = "OBL-001"
+obligation = "OBL-002"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+evidence = "canonical.rs::official_rfc8785_vectors reads six external vector pairs from conformance/rfc8785/ and asserts byte equality against published canonical forms"
 performer = "claude"
 
 [verifier]

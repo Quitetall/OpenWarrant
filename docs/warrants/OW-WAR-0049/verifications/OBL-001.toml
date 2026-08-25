@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+disposition = "not_established"
+evidence = "atoms/60-assurance.md::INF-001 explicitly states there is nothing to amend because the claim is now true; no §31 amendment record is shown anywhere in the artifacts"
 performer = "claude"
 
 [verifier]

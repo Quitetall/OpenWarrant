@@ -1,6 +1,6 @@
-obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "manifest.rs::tests and new.rs::tests - every test constructs a Manifest in code or writes to a temp dir; no test reads from docs/warrants/ or enumerates that directory, so a sixth Warrant added there would not be covered"
 performer = "claude"
 
 [verifier]

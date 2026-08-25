@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+disposition = "not_established"
+evidence = "lower.rs::lower sets api_version to API_VERSION and kind to KIND but all tests use synthetic basis() fixtures not the five actual Warrants in docs/warrants/"
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+evidence = "manifest.rs::tests::a_well_formed_delivery_manifest_validates - constructs a §61-shaped Manifest, calls validate(), and asserts v.profile == Profile::Delivery, v.assurance_level == AssuranceLevel::Basic, v.alias.as_str() == OW-WAR-0001"
 performer = "claude"
 
 [verifier]

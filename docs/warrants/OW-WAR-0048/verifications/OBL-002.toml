@@ -1,6 +1,6 @@
-obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "atoms/20-basis.md - describes ci.yml's runner comment as stale guidance needing correction, but the actual .github/workflows/ci.yml file is not among the artifacts shown; no updated comment text is present"
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
-obligation = "OBL-001"
+obligation = "OBL-002"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+evidence = "preflight.rs::CheckOutcome::NotRun permits_readiness returns false; test not_run_blocks_exactly_as_failed_does inserts NotRun for tools available and asserts readiness is NotReady; blocking() returns (CheckGroup, name, outcome) tuples naming the dimension"
 performer = "claude"
 
 [verifier]

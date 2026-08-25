@@ -1,6 +1,6 @@
-obligation = "OBL-001"
+obligation = "OBL-003"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+evidence = "gate_run.rs::blocking_required_runs - filters runs where !satisfies_required_pass() and returns their ids; gate_run.rs::tests::a_required_unknown_blocks_resolution - constructs an unaskable NotRun/Unknown run and asserts blocking_required_runs returns its id"
 performer = "claude"
 
 [verifier]

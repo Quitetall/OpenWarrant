@@ -1,6 +1,6 @@
-obligation = "OBL-001"
+obligation = "OBL-002"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+evidence = "journal.rs::Journal::verify_append_only() compares prior snapshot against current events and returns JournalError::NotAppendOnly on modification or removal; test a_rewritten_journal_is_detected exercises editing position 0 and truncation"
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+disposition = "not_established"
+evidence = "atoms/60-assurance.md - Executed attacks: none yet — this Warrant has not been executed; no CI run output, no digest comparison, no byte-identical canonical JSON artifacts are present in any of the five atoms shown"
 performer = "claude"
 
 [verifier]

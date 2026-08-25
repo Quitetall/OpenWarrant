@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "established"
-evidence = "verification.rs::Verification::admissible_for checks self.verifier.is_distinct_from(&self.performer) and returns VerificationError::SelfVerification when false; test self_verification_is_refused exercises this with actor claude and performer claude"
+evidence = "crates/openwarrant-core/src/verification.rs::Verification::admissible_for - checks !self.verifier.is_distinct_from(&self.performer) and returns VerificationError::SelfVerification; crates/openwarrant-core/src/verification.rs::tests::self_verification_is_refused exercises it with actor=performer=claude"
 performer = "claude"
 
 [verifier]

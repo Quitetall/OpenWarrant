@@ -1,6 +1,6 @@
-obligation = "OBL-001"
+obligation = "OBL-003"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+evidence = "autonomy.rs::tests::a_revision_without_a_named_authority_is_refused_by_band - plants amendments with AutoAuthorizedRevision and ManualRevision bands but empty governing_adr_or_policy and asserts validate returns Err(AmendmentWithoutAuthority)"
 performer = "claude"
 
 [verifier]

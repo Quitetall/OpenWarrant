@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+disposition = "not_established"
+evidence = "crates/openwarrant-compiler/src/adr_overview.rs and crates/openwarrant-core/src/structured.rs contain no classifier function and no test asserting two callers share one; the basis and work order describe the requirement but the implementing code is absent from the artifacts"
 performer = "claude"
 
 [verifier]

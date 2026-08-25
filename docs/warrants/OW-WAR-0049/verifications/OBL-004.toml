@@ -1,6 +1,6 @@
-obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "atoms/20-basis.md states what remains for OBL-004 is a disposition of OW-WAR-0005 M4; no §95 disposition record naming a reviewer is shown in the artifacts"
 performer = "claude"
 
 [verifier]

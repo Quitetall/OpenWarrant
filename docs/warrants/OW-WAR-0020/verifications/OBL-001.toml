@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+evidence = "gate_run.rs::tests::every_triple_except_one_fails_a_required_pass - enumerates all 36 triples and asserts exactly (Askable, Completed, Pass) satisfies; gate_run.rs::tests::an_unaskable_run_cannot_record_a_verdict - validates that NotAskable with Pass or Fail is refused by validate() returning UnaskableWithResult"
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
-obligation = "OBL-001"
+obligation = "OBL-003"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+evidence = "bonsai.rs::tests::qualification_plants::pilot_qualification_plants_are_observed - architecture plant uses BonsaiOutput::ArchitectureError with rule contract-forbid and asserts Fail with architecture_findings.len()==1; advisory plant uses BonsaiOutput::AdvisoryError with rule leanness-ratchet and asserts Pass with advisory_findings.len()==1 and architecture_findings.len()==0"
 performer = "claude"
 
 [verifier]

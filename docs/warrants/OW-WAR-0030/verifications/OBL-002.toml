@@ -1,6 +1,6 @@
-obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "export.rs::tests::a_reconnected_round_trip_with_equal_digests_verifies - uses hardcoded sha256:a digests, not an actual export→import→re-export with real repository data; round_trip() is defined but never tested with real data"
 performer = "claude"
 
 [verifier]

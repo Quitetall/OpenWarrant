@@ -1,6 +1,6 @@
-obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+obligation = "OBL-000"
+disposition = "refuted"
+evidence = "atoms/10-intent.md - explicitly states Quitetall/liminal has no checkout on this host; atoms/20-basis.md - states Liminal has no checkout and the Warrant cannot start until one exists"
 performer = "claude"
 
 [verifier]

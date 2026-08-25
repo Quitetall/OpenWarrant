@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+disposition = "not_established"
+evidence = "export.rs::tests::every_required_content_is_classified - asserts absent_reason returns for every content and EXPORT_CONTENTS.len()==15, but never calls PortableExport::validate nor asserts that a missing populated section causes failure; validate is mentioned only in comments"
 performer = "claude"
 
 [verifier]

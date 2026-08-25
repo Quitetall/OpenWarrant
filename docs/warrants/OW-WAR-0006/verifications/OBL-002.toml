@@ -1,6 +1,6 @@
-obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "crates/openwarrant-core/src/lifecycle.rs and crates/openwarrant-cli/src/relations.rs - Supersession::validate checks reason and adoptions but not cycles; no three-colour DFS cycle detector exists; no code refuses an ADR with status accepted while another supersedes it; no planted tests demonstrate either refusal"
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+evidence = "deliverable.rs::ArtifactProvenance has content_digest field; Deliverable::validate checks content_addressed implies non-empty content_digest via ContentAddressedWithoutDigest; test content_addressing_without_a_digest_is_refused exercises the refusal"
 performer = "claude"
 
 [verifier]

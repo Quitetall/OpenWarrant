@@ -1,6 +1,6 @@
-obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "preflight.rs provides the mechanism via NotRun and blocking() but contains no code that detects absence of a live actor and automatically marks runtime checks as NotRun on every run; no test plants the no-live-actor scenario and verifies runtime reports unknown"
 performer = "claude"
 
 [verifier]

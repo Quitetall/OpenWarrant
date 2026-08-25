@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+disposition = "not_established"
+evidence = "traceability.rs::RequirementRef::parse validates format (prefix, zero-padded number) but never resolves against a §106 index; no roadmap:// parsing or resolution exists anywhere in the artifacts"
 performer = "claude"
 
 [verifier]

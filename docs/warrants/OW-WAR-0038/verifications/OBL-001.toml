@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+evidence = "migrate.rs::import records commit_sha in ImportArtifact and validates it is a full 40-char lowercase hex SHA; MigratedAdr.preserved_body stores the original body verbatim; MigratedAdr.validate recomputes the digest via an injected function and rejects mismatches; write_or_verify with verify_only=true compares a re-run against an existing artifact"
 performer = "claude"
 
 [verifier]

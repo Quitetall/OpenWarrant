@@ -1,6 +1,6 @@
-obligation = "OBL-001"
+obligation = "OBL-004"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+evidence = "gate_run.rs::propagate_invalidation - fixed-point loop propagates disputed standing transitively through rests_on_resolutions; gate_run.rs::tests::invalidation_propagates_transitively_and_stops_at_the_unrelated - R-1 direct, R-2 one hop, R-3 two hops all disputed while R-UNRELATED is not"
 performer = "claude"
 
 [verifier]

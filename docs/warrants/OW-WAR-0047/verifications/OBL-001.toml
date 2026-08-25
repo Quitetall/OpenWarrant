@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+disposition = "not_established"
+evidence = "atoms/60-assurance.md JDG-001 explicitly states OBL-001 remains open; atoms/20-basis.md Blocking unknown states nothing ran so no receipts exist; crates/openwarrant-cli/src/blut.rs::verify doc comment says it is not an execution and discharges nothing"
 performer = "claude"
 
 [verifier]

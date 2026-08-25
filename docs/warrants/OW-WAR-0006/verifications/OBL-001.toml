@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+disposition = "not_established"
+evidence = "crates/openwarrant-core/src/adr.rs::AdrRecord - the struct has uuid, local_alias, title, status, decided, governs, body, source but no supersedes or superseded_by fields; the parse method extracts no such relations and no round-trip test exists for them"
 performer = "claude"
 
 [verifier]

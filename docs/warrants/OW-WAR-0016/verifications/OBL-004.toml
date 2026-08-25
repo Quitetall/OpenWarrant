@@ -1,6 +1,6 @@
-obligation = "OBL-001"
+obligation = "OBL-004"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+evidence = "obligation.rs::ObligationSet::aggregate - returns None when any obligation.disposition.is_none(); obligation.rs::tests::aggregation_refuses_to_conclude_with_an_undisposed_obligation plants a set with one None disposition and asserts aggregate() returns None"
 performer = "claude"
 
 [verifier]

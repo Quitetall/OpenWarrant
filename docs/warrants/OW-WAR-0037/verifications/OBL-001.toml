@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-core/src/verification.rs::Verifier - independence is a non-optional Independence field, so a Verification cannot exist without declared independence; admissible_for then validates it against the assurance level"
+disposition = "not_established"
+evidence = "atoms/20-basis.md - states the constraint Diff over the IR not the Markdown but no code or test implementing a semantic diff was shown; atoms/60-assurance.md defines the acceptance obligation but provides no implementation artifact"
 performer = "claude"
 
 [verifier]
