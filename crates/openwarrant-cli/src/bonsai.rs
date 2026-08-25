@@ -487,7 +487,8 @@ fn is_architecture_error(finding: &Value) -> bool {
 }
 
 fn valid_bonsai_report(run: &BonsaiRun) -> bool {
-    matches!(run.exit_code, Some(0 | 1))
+    run.binary_digest.is_some()
+        && matches!(run.exit_code, Some(0 | 1))
         && run.raw_output.as_ref().is_some_and(|report| {
             report.get("tool").and_then(Value::as_str) == Some("bonsai")
                 && report
@@ -518,7 +519,7 @@ fn valid_finding(finding: &Value) -> bool {
             .is_some_and(|file| !file.is_empty())
             && location
                 .get("line")
-                .is_none_or(|line| line.as_u64().is_some())
+                .is_none_or(|line| line.as_u64().is_some_and(|line| line <= u32::MAX.into()))
     };
     valid_text("rule")
         && valid_text("message")
@@ -659,5 +660,36 @@ mod tests {
             spawn_error: None,
         };
         assert!(!valid_bonsai_report(&run));
+    }
+
+    #[test]
+    fn unreadable_bonsai_binary_is_not_an_asked_check() {
+        let run = BonsaiRun {
+            executable: "bonsai".to_owned(),
+            binary_digest: None,
+            expected_source: "github:Quitetall/bonsai".to_owned(),
+            expected_revision: "0".repeat(40),
+            version: Some("bonsai 0.1.0".to_owned()),
+            exit_code: Some(0),
+            raw_output: Some(serde_json::json!({
+                "tool": "bonsai",
+                "version": "0.1.0",
+                "findings": []
+            })),
+            stderr: String::new(),
+            spawn_error: None,
+        };
+        assert!(!valid_bonsai_report(&run));
+    }
+
+    #[test]
+    fn oversized_bonsai_line_is_not_well_formed() {
+        let finding = serde_json::json!({
+            "rule": "contract-forbid",
+            "severity": "error",
+            "message": "forbidden dependency",
+            "location": {"file": "src/lib.rs", "line": 4_294_967_296u64}
+        });
+        assert!(!valid_finding(&finding));
     }
 }
