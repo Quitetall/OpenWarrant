@@ -122,6 +122,13 @@ enum Command {
         /// A single gate id or `<id>@<version>`. Defaults to every gate.
         #[arg(long)]
         gate: Option<String>,
+        /// Record the run as evidence under the receipts path (§44.6).
+        ///
+        /// Off by default. Running a gate to PROBE its behaviour — as the
+        /// conformance battery does, by corrupting the definition on purpose —
+        /// must not overwrite the evidentiary record for the subject.
+        #[arg(long)]
+        record: bool,
     },
     /// Build a drafting request for an agent (§71.3, §75.2).
     ///
@@ -327,9 +334,9 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             })
         }
 
-        Command::Gate { run, gate } => {
+        Command::Gate { run, gate, record } => {
             let repository = repo::Repository::discover(None)?;
-            let report = gate_cmd::run(&repository, run, gate.as_deref())?;
+            let report = gate_cmd::run(&repository, run, gate.as_deref(), record)?;
             check::print(&report);
             // §44.1 and RQ-054: an unaskable gate is NOT a pass, and is not a
             // failure either. `is_ready()` blocks on unknowns, so both land on a

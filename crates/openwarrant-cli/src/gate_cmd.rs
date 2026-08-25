@@ -317,7 +317,12 @@ pub fn run_gate(def: &GateDefinition, repo: &Repository) -> GateRun {
 }
 
 /// `war gate list` / `war gate run`.
-pub fn run(repo: &Repository, execute: bool, only: Option<&str>) -> Result<Report, RepoError> {
+pub fn run(
+    repo: &Repository,
+    execute: bool,
+    only: Option<&str>,
+    record: bool,
+) -> Result<Report, RepoError> {
     let mut report = Report::default();
     let registry = crate::check::load_gate_registry(repo, &mut report);
 
@@ -361,7 +366,24 @@ pub fn run(repo: &Repository, execute: bool, only: Option<&str>) -> Result<Repor
             continue;
         }
 
-        // §44.6 — persist the RUN, not only its streams.
+        // §44.6 — persist the RUN, not only its streams, but ONLY when asked.
+        //
+        // Recording is opt-in because a gate is run for two different reasons.
+        // Producing evidence about a subject is one; PROBING the gate's own
+        // behaviour is the other, and `conformance/plant.sh` does the second by
+        // deliberately corrupting the gate definition and checking the refusal.
+        //
+        // When recording happened on every invocation, the last such probe left
+        // `not_askable / invalid / malformed` as the gate's persisted last word,
+        // and every later `war resolve` read that as the real verdict. A
+        // deliberately broken test run had silently become the evidentiary
+        // record.
+        //
+        // The fix is NOT to skip recording bad runs — refusing to write failures
+        // is the "only record good news" pattern this system exists to prevent.
+        // It is to make recording deliberate, which is what the receipts
+        // .gitignore already says: evidence is committed on purpose, never as a
+        // side effect of running.
         //
         // Before this, a run existed for the length of the process and left
         // behind stdout/stderr text. §56.1's "every required gate has admissible
@@ -371,7 +393,7 @@ pub fn run(repo: &Repository, execute: bool, only: Option<&str>) -> Result<Repor
         // Written under the receipts path, which is disposable by policy: a run
         // is evidence produced BY running, and it becomes committed evidence
         // deliberately at resolution rather than as a side effect.
-        if let Err(err) = persist_run(&run, repo) {
+        if record && let Err(err) = persist_run(&run, repo) {
             report.push(Diagnostic::error(
                 "gate-run.not-persisted",
                 def.key(),
