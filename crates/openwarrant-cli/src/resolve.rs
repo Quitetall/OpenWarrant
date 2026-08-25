@@ -471,8 +471,15 @@ pub fn runtime_receipts_match_the_basis(
 
     let mut runtime_stages = 0usize;
     for atom in atoms {
-        let Ok(graph) = openwarrant_core::milestones::parse(&String::from_utf8_lossy(&atom.bytes))
-        else {
+        // `from_utf8`, not `from_utf8_lossy`. Lossy decoding replaces invalid
+        // bytes with U+FFFD, which can turn bytes that described a katana stage
+        // into YAML that parses cleanly and describes no runtime stage at all —
+        // a silent pass in the one direction that matters. Invalid UTF-8 lands
+        // in the same place as unparseable YAML: unmet.
+        let Ok(text) = std::str::from_utf8(&atom.bytes) else {
+            return false;
+        };
+        let Ok(graph) = openwarrant_core::milestones::parse(text) else {
             return false;
         };
         runtime_stages += graph
@@ -1068,6 +1075,69 @@ stages:
         assert!(
             !runtime_receipts_match_the_basis(Some(&unparseable)),
             "an unreadable milestones atom is not an empty one"
+        );
+    }
+
+    use openwarrant_core::rationale::EpistemicStatus;
+
+    fn authority_with(assumptions: Option<&[Assumption]>) -> Authority<'_> {
+        static EMPTY: AuthorityRegister = AuthorityRegister {
+            assignments: Vec::new(),
+        };
+        Authority {
+            register: &EMPTY,
+            authorization: None,
+            current_contract_digest: None,
+            judgments: &[],
+            assumptions,
+            policy_allows_automated_resolution: false,
+            performer: "claude",
+        }
+    }
+
+    fn assumption(id: &str, status: EpistemicStatus) -> Assumption {
+        Assumption {
+            id: id.to_owned(),
+            statement: "s".to_owned(),
+            epistemic_status: status,
+            evidence_refs: vec![],
+            judgment_ref: String::new(),
+            consequence_if_false: "c".to_owned(),
+            resolution_requirement: "r".to_owned(),
+            validated_by: vec![],
+        }
+    }
+
+    /// §56.1 requirement 6 in all three of its states.
+    ///
+    /// The commit that introduced this check claimed both new requirements were
+    /// tested in both directions and only requirement 12 was. External review
+    /// caught the overstatement; this is the missing half.
+    #[test]
+    fn a_blocking_unknown_refuses_and_its_absence_passes_only_once_asked() {
+        assert!(
+            !authority_with(None).no_required_unknown_remains(),
+            "no rationale.toml means the question was never asked, which is not an answer"
+        );
+
+        let none_blocking = [assumption("A-001", EpistemicStatus::AcceptedResidualRisk)];
+        assert!(
+            authority_with(Some(&none_blocking)).no_required_unknown_remains(),
+            "assumptions declared, none blocking — asked and answered"
+        );
+
+        assert!(
+            authority_with(Some(&[])).no_required_unknown_remains(),
+            "an empty declaration is still a declaration"
+        );
+
+        let blocking = [
+            assumption("A-001", EpistemicStatus::AcceptedResidualRisk),
+            assumption("A-002", EpistemicStatus::BlockingUnknown),
+        ];
+        assert!(
+            !authority_with(Some(&blocking[..])).no_required_unknown_remains(),
+            "one blocking unknown among several assumptions must still refuse"
         );
     }
 
