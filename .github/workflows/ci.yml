@@ -83,7 +83,7 @@ jobs:
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: |
-          alias="$(printf '%s\n' "$PR_BODY" | sed -nE 's/^Authorized by:[[:space:]]*(OW-WAR-[0-9]{4})[[:space:]]*$/\1/p' | head -n1)"
+          alias="$(printf '%s\n' "$PR_BODY" | sed -nE 's/^Warrant:[[:space:]]*(OW-WAR-[0-9]{4})[[:space:]]*$/\1/p' | head -n1)"
           printf 'alias=%s\n' "$alias" >> "$GITHUB_OUTPUT"
           if [ -z "$alias" ]; then
             echo "No machine-readable Warrant line; report-phase check skipped."
