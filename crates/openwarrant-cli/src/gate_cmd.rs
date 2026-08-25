@@ -120,6 +120,29 @@ fn tool_is_available(program: &str, repo: &Repository) -> bool {
     std::env::split_paths(&path).any(|dir| dir.join(program).is_file())
 }
 
+/// The file a gate's structured run is written to, under the receipts path.
+///
+/// One file per gate key, overwritten by the next run: the QUESTION answered is
+/// "what did this gate last say?", and keeping a history here would invite
+/// reading a stale pass as a current one.
+#[must_use]
+pub fn run_record_path(gate_key: &str, repo: &Repository) -> camino::Utf8PathBuf {
+    let safe = gate_key.replace(['/', ':', '@', '.'], "_");
+    repo.root
+        .join(&repo.config.paths.receipts)
+        .join(format!("{safe}.run.toml"))
+}
+
+/// Write a Gate Run where a later resolution can read it (§44.6).
+pub fn persist_run(run: &GateRun, repo: &Repository) -> Result<(), String> {
+    let path = run_record_path(&run.gate, repo);
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent).map_err(|e| format!("could not create {parent}: {e}"))?;
+    }
+    let rendered = toml::to_string_pretty(run).map_err(|e| e.to_string())?;
+    std::fs::write(&path, rendered).map_err(|e| format!("could not write {path}: {e}"))
+}
+
 /// Run one gate and produce its §44 result.
 ///
 /// The `not_askable` path returns before any process is spawned.
@@ -336,6 +359,27 @@ pub fn run(repo: &Repository, execute: bool, only: Option<&str>) -> Result<Repor
                 format!("the runner produced an invalid run: {err}"),
             ));
             continue;
+        }
+
+        // §44.6 — persist the RUN, not only its streams.
+        //
+        // Before this, a run existed for the length of the process and left
+        // behind stdout/stderr text. §56.1's "every required gate has admissible
+        // result" cannot be answered from prose, so the structured verdict is
+        // written where a later `war resolve` can read it.
+        //
+        // Written under the receipts path, which is disposable by policy: a run
+        // is evidence produced BY running, and it becomes committed evidence
+        // deliberately at resolution rather than as a side effect.
+        if let Err(err) = persist_run(&run, repo) {
+            report.push(Diagnostic::error(
+                "gate-run.not-persisted",
+                def.key(),
+                format!(
+                    "{err} — a run that is not written cannot answer §56.1's \
+                     admissible-result requirement later"
+                ),
+            ));
         }
 
         let reason = run
