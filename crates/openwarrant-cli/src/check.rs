@@ -479,7 +479,24 @@ fn check_deliverable_digests(repo: &Repository, one: &Loaded, alias: &str, repor
             drifted += 1;
             continue;
         };
-        let recorded = provenance.content_digest.trim_start_matches("sha256:");
+        // Only sha256 is supported, and an unsupported algorithm is said so
+        // rather than compared. `trim_start_matches` would leave "md5:abc"
+        // intact, which never equals a sha256 hex, so the check still refuses —
+        // but it refuses as "digest drift", sending the reader to regenerate a
+        // record whose algorithm is the actual problem. The verdict was already
+        // right; the diagnosis was not.
+        let Some(recorded) = provenance.content_digest.strip_prefix("sha256:") else {
+            report.push(Diagnostic::error(
+                "deliverable.unsupported-digest",
+                file.clone(),
+                format!(
+                    "{alias}: {} records {:?}, and only sha256: is supported. This is not                      drift — the record cannot be checked at all",
+                    deliverable.id, provenance.content_digest
+                ),
+            ));
+            drifted += 1;
+            continue;
+        };
         match std::fs::read(repo.root.join(&deliverable.target_ref)) {
             Ok(bytes) => {
                 let actual = openwarrant_compiler::sha256_hex(&bytes);
