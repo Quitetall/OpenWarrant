@@ -1,0 +1,20 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "adequacy.rs - the test the_real_corpus_review_state_is_what_is_claimed scans the warrants directory and counts sections but does not verify content preservation; the adequacy sections of OW-WAR-0003, 0005, 0007, 0016, and 0017 were not provided so I cannot confirm named gaps are preserved verbatim"
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

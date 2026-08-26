@@ -3,6 +3,15 @@ schema = "oh.war/deliverables/v1"
 # §37.1. Declared by the performer — declaring a deliverable is a performer
 # statement (§51), which is permitted. It is the VERIFICATION of the obligations
 # these support that must be independent (§46), not the declaration itself.
+#
+# Every `content_digest` below was computed from the bytes on disk, and
+# `war resolve` RECOMPUTES it rather than trusting what is written here. A digest
+# that is merely present proves nothing.
+#
+# `contract_digest` is "unrecorded" because it is true: no authorized contract
+# revision exists for this Warrant yet (§28.4 needs a human). Writing today's
+# compiled digest here would assert these artifacts were produced under a
+# revision nobody has authorized.
 
 [[deliverable]]
 id = "D-001"
@@ -13,6 +22,28 @@ required = true
 content_addressed = true
 provenance_required = true
 obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0014/attempt-1"
+contract_digest = "unrecorded"
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:0283b636e52776c5f98f0dc1d1329e4d9b41a1dae514669c56f6702882a7d8d2"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "Assumptions, epistemic status and blocking unknowns (§36)"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/rationale.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
 
 [deliverable.provenance]
 producer = "claude"

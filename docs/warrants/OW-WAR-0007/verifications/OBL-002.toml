@@ -1,0 +1,20 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "crates/openwarrant-core/src/milestones.rs::validate_references checks dangling stage_refs and dangling depends_on but has no check for dangling obligation_refs and no DanglingObligationRef error variant; no test plants a dangling obligation_ref"
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

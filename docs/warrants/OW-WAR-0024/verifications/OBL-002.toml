@@ -1,0 +1,20 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "crates/openwarrant-core/src/execution.rs::AttemptKind vocabulary defines four distinct variants (Initial, Replay, Repair, Restart); each has unique validation: Initial rejects parent, Replay rejects changed basis, Repair requires prior_failure_evidence_refs, Restart requires authorization; tests every_attempt_has_one_parent_except_the_initial, a_replay_whose_basis_changed_is_not_a_replay, a_repair_needs_the_prior_failure_evidence, only_a_restart_requires_authorization collectively verify no collapse"
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

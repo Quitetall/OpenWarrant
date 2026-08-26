@@ -1,0 +1,20 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "crates/openwarrant-core/src/drafting.rs - the artifact is in openwarrant-core not the agent crate; the referenced test no_proposal_kind_names_a_write_target is absent from the shown artifacts, and no test inspects every type in the agent crate for writable paths"
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

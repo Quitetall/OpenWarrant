@@ -1,0 +1,20 @@
+schema = "oh.war/rationale/v1"
+
+# §36.2 — accepted residual risk.
+#
+# Each entry transcribes this Warrant's own "## Residual Risk" section from its
+# assurance atom, which stated the risk in prose that nothing could read.
+#
+# `judgment_ref` is EMPTY, and deliberately. The status names the class of
+# assumption — a residual risk, to be accepted — while `judgment_ref` is where an
+# acceptance is recorded. Nobody has accepted these. §27.2 forbids an agent
+# accepting organizational residual risk, so the field stays empty until a human
+# signs a judgment through `war authorize`, and `war resolve` reports
+# requirements 9 and 11 unmet until one does.
+
+[[assumption]]
+id = "A-001"
+statement = "Parsing requirement identifiers out of prose is acceptable because breakage is loud."
+epistemic_status = "accepted_residual_risk"
+consequence_if_false = "A §106 table reformat breaks traceability resolution; loudly, but every claim citing a requirement id is unresolvable until it is fixed."
+judgment_ref = ""

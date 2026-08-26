@@ -54,7 +54,7 @@ jobs:
           rustc --version
           cargo --version
 
-      - uses: Swatinem/rust-cache@49a0bdc70d2e1b713ca9e2869b211fcce03d3c1c # v2
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
 
       - name: Install cargo-deny
         uses: taiki-e/install-action@b6ff580856c41316412a0b9b60540fbc6f8c82cc # v2
@@ -75,8 +75,11 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          # Build the adapter from protected base. The pull-request tree is
+          # materialized below as data and is never built or executed here.
+          ref: ${{ github.event.pull_request.base.sha }}
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Read Warrant from pull request
         id: warrant
@@ -93,30 +96,73 @@ jobs:
         if: steps.warrant.outputs.alias != ''
         run: cargo build -p openwarrant-cli
 
-      # Bonsai source is private today. This PR-head job never receives a
-      # private-source credential: compiling a pull request may run arbitrary
-      # build scripts, so a later secret-bearing step would be unsafe even if
-      # the secret did not reach the compiler directly. It therefore emits
-      # typed Unknown evidence until a public, independently verified Bonsai
-      # artifact (or an isolated trusted workflow) is available.
+      - name: Materialize pull-request candidate as data
+        id: candidate
+        if: steps.warrant.outputs.alias != ''
+        continue-on-error: true
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          git fetch --no-tags origin \
+            "refs/pull/$PR_NUMBER/head:refs/remotes/origin/pr-$PR_NUMBER"
+          test "$(git rev-parse "origin/pr-$PR_NUMBER")" = "$HEAD"
+          candidate="$RUNNER_TEMP/candidate"
+          git worktree add --detach "$candidate" "$HEAD"
+          printf 'path=%s\n' "$candidate" >> "$GITHUB_OUTPUT"
+
+      # Bonsai source is public. This PR-triggered job uses no private credential:
+      # it clones only the canonical source, verifies the Warrant-pinned commit,
+      # and runs its locked build on the hosted ephemeral runner.
+
+      - name: Build Warrant-pinned public Bonsai
+        id: bonsai-source
+        if: steps.warrant.outputs.alias != ''
+        continue-on-error: true
+        env:
+          WARRANT: ${{ steps.warrant.outputs.alias }}
+          CANDIDATE: ${{ steps.candidate.outputs.path }}
+        run: |
+          repository="${CANDIDATE:-$GITHUB_WORKSPACE}"
+          scope="$repository/docs/warrants/$WARRANT/scope.toml"
+          source="$(sed -nE 's/^bonsai_source = "([^"]+)"$/\1/p' "$scope")"
+          revision="$(sed -nE 's/^bonsai_revision = "([0-9a-f]{40})"$/\1/p' "$scope")"
+          if [ "$source" != "github:Quitetall/bonsai" ] || [ -z "$revision" ]; then
+            echo "Scope does not name canonical public Bonsai source and full revision."
+            exit 1
+          fi
+          root="$RUNNER_TEMP/bonsai"
+          GIT_TERMINAL_PROMPT=0 git clone --filter=blob:none \
+            https://github.com/Quitetall/bonsai.git "$root"
+          git -C "$root" checkout --detach "$revision"
+          test "$(git -C "$root" rev-parse HEAD)" = "$revision"
+          # Cargo discovers config above its working directory. Build from
+          # pinned Bonsai, never from the pull-request checkout.
+          cd "$root"
+          cargo build --locked --release
+          printf 'binary=%s\n' "$root/target/release/bonsai" >> "$GITHUB_OUTPUT"
 
       - name: Emit Warrant-bound Bonsai evidence
         id: bonsai
         if: steps.warrant.outputs.alias != ''
         env:
           WARRANT: ${{ steps.warrant.outputs.alias }}
-          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD: ${{ github.event.pull_request.head.sha }}
+          CANDIDATE: ${{ steps.candidate.outputs.path }}
+          BONSAI_BINARY: ${{ steps.bonsai-source.outputs.binary }}
         run: |
           set +e
           evidence="$RUNNER_TEMP/bonsai-evidence.json"
-          git fetch --no-tags origin "refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF"
-          BASE="$(git merge-base "$HEAD" "origin/$BASE_REF")"
-          ./target/debug/war bonsai check \
+          bonsai="${BONSAI_BINARY:-$RUNNER_TEMP/bonsai-unavailable}"
+          repository="${CANDIDATE:-$GITHUB_WORKSPACE}"
+          BASE="$(git -C "$GITHUB_WORKSPACE" merge-base "$HEAD" "$BASE_SHA")"
+          cd "$repository"
+          "$GITHUB_WORKSPACE/target/debug/war" bonsai check \
             --warrant "$WARRANT" \
             --base "$BASE" \
             --head "$HEAD" \
-            --bonsai "$RUNNER_TEMP/bonsai-unavailable" \
+            --bonsai "$bonsai" \
             > "$evidence"
           status=$?
           printf 'status=%s\n' "$status" >> "$GITHUB_OUTPUT"
@@ -126,10 +172,11 @@ jobs:
           fi
           # `war bonsai check` requires a clean worktree. Keep its output out
           # of the checkout until the check has completed, then publish it.
-          cp "$evidence" bonsai-evidence.json
-          if jq -e '.schema == "oh.war/bonsai-evidence/v1" and .verdict == "pass"' bonsai-evidence.json > /dev/null; then
-            contract="$(jq -r '.warrant.contract_digest' bonsai-evidence.json)"
-            digest="$(sha256sum bonsai-evidence.json | awk '{print $1}')"
+          cp "$evidence" "$GITHUB_WORKSPACE/bonsai-evidence.json"
+          if jq -e '.schema == "oh.war/bonsai-evidence/v1" and .verdict == "pass"' "$GITHUB_WORKSPACE/bonsai-evidence.json" > /dev/null; then
+            contract="$(jq -r '.warrant.contract_digest' "$GITHUB_WORKSPACE/bonsai-evidence.json")"
+            digest="$(sha256sum "$GITHUB_WORKSPACE/bonsai-evidence.json" | awk '{print $1}')"
+            cd "$GITHUB_WORKSPACE"
             ./target/debug/war gate --run --record --gate software.repo.bonsai-evidence \
               --subject-digest "contract:sha256:$contract" \
               --evidence-ref "file:bonsai-evidence.json#sha256:$digest" || true

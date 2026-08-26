@@ -1,0 +1,20 @@
+obligation = "OBL-000"
+disposition = "not_established"
+evidence = "OW-ADR-0001-canonical-json-implementation.md status accepted names serde_jcs 0.2 and discusses licensing but no artifact shows cargo deny check licenses output passing with serde_jcs in the dependency graph"
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

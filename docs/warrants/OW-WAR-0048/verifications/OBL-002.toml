@@ -1,0 +1,20 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "atoms/20-basis.md - describes ci.yml's runner comment as stale guidance needing correction, but the actual .github/workflows/ci.yml file is not among the artifacts shown; no updated comment text is present"
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

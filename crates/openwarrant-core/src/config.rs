@@ -198,6 +198,22 @@ impl Default for GeneratedPolicy {
     }
 }
 
+/// §27.3 condition 1 — whether a policy service may resolve automatically.
+///
+/// A separate block from everything else in the config because of what it is:
+/// the one switch that lets a machine close work. It defaults to `false` and
+/// there is no code path that writes it, so turning it on is an act a human
+/// performs in an editor. An agent that could set it would be granting itself
+/// the authority §27.2 withholds.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AuthorityPolicy {
+    /// §27.3 — `false` unless a human wrote otherwise. The other four
+    /// conditions are properties of the work and are checked per Warrant; this
+    /// one is the standing permission without which none of them are reached.
+    #[serde(default)]
+    pub allow_automated_resolution: bool,
+}
+
 /// `openwarrant.toml` (§60).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryConfig {
@@ -207,6 +223,9 @@ pub struct RepositoryConfig {
     pub paths: Paths,
     #[serde(default)]
     pub generated: GeneratedPolicy,
+    /// §27.3's standing permission. Absent means absent, which means no.
+    #[serde(default)]
+    pub policy: AuthorityPolicy,
     /// §46.1's nine independence dimensions, for verification performed in this
     /// repository.
     ///
@@ -232,6 +251,10 @@ impl RepositoryConfig {
             },
             paths: Paths::default(),
             generated: GeneratedPolicy::default(),
+            // A new repository does not permit automated resolution. `war init`
+            // must never hand a fresh project the one setting that lets a
+            // machine close its work.
+            policy: AuthorityPolicy::default(),
             independence: None,
         }
     }

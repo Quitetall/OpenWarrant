@@ -10,6 +10,7 @@ use openwarrant_core::{
     AdrError, AdrRecord, Manifest, RepositoryConfig, ValidatedManifest, frontmatter,
 };
 
+use openwarrant_core::authority::{AuthorityRegister, RoleAssignment};
 use openwarrant_core::deliverable::Deliverable;
 use openwarrant_core::verification::Verification;
 
@@ -133,6 +134,133 @@ impl Repository {
     #[must_use]
     pub fn warrants_dir(&self) -> Utf8PathBuf {
         self.root.join(&self.config.paths.warrants)
+    }
+
+    /// The actor this tool acts as when it performs work (§27.1).
+    ///
+    /// Fixed to `claude`, and deliberately not configurable from the command
+    /// line. The performer identity is what every self-* check compares
+    /// against — self-verification (§46), self-authorization (§27.2),
+    /// self-resolution (§27.3 condition 4). A flag that let the caller rename
+    /// the performer would let it walk out of all three by claiming to be
+    /// somebody else.
+    #[must_use]
+    pub fn performer(&self) -> String {
+        "claude".to_owned()
+    }
+
+    /// Role assignments in force for this repository (§27.4).
+    ///
+    /// `docs/authority/roles.toml` is authored by a human and by nothing else.
+    /// There is no `war authority grant`: a command that could write this file
+    /// would let an agent assign itself the roles §27.2 exists to withhold, so
+    /// the register is read-only to every tool in this workspace.
+    ///
+    /// An absent file yields an empty register, and an empty register grants
+    /// nobody anything — the fail-closed direction.
+    pub fn load_authority_register(&self) -> Result<AuthorityRegister, RepoError> {
+        let path = self.root.join("docs/authority/roles.toml");
+        if !path.is_file() {
+            return Ok(AuthorityRegister::default());
+        }
+        let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
+            context: format!("could not read {path}"),
+            source,
+        })?;
+
+        #[derive(serde::Deserialize)]
+        struct File {
+            #[serde(default)]
+            assignment: Vec<RoleAssignment>,
+        }
+
+        let file: File = toml::from_str(&text)
+            .map_err(|e| RepoError::Message(format!("could not parse {path}: {e}")))?;
+
+        // A malformed assignment is refused for the whole file rather than
+        // skipped. Skipping would silently drop authority, and an actor whose
+        // grant quietly vanished reads identically to one that never had it.
+        for assignment in &file.assignment {
+            assignment
+                .validate()
+                .map_err(|e| RepoError::Message(format!("{path}: {e}")))?;
+        }
+        Ok(AuthorityRegister::new(file.assignment))
+    }
+
+    /// The persisted authorization for one Warrant (§28.4), if any.
+    ///
+    /// A malformed record is an error, never an absent one: "this Warrant was
+    /// never authorized" and "its authorization would not parse" must not
+    /// report identically, because only one of them is safe to work around.
+    pub fn load_authorization(
+        &self,
+        dir: &Utf8Path,
+    ) -> Result<Option<crate::authorize::AuthorizationRecord>, RepoError> {
+        let path = dir.join("authorization.toml");
+        if !path.is_file() {
+            return Ok(None);
+        }
+        let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
+            context: format!("could not read {path}"),
+            source,
+        })?;
+        toml::from_str(&text)
+            .map(Some)
+            .map_err(|e| RepoError::Message(format!("could not parse {path}: {e}")))
+    }
+
+    /// Judgments recorded for one Warrant (§42).
+    pub fn load_judgments(
+        &self,
+        dir: &Utf8Path,
+    ) -> Result<Vec<openwarrant_core::Judgment>, RepoError> {
+        let path = dir.join("judgments.toml");
+        if !path.is_file() {
+            return Ok(vec![]);
+        }
+        let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
+            context: format!("could not read {path}"),
+            source,
+        })?;
+        toml::from_str::<crate::authorize::JudgmentRecord>(&text)
+            .map(|r| r.judgment)
+            .map_err(|e| RepoError::Message(format!("could not parse {path}: {e}")))
+    }
+
+    /// Assumptions declared for one Warrant (§36), if the sidecar exists.
+    ///
+    /// `Ok(None)` means no `rationale.toml` — the question was never asked.
+    /// `Ok(Some(vec![]))` means it was asked and the answer was none. The
+    /// resolver treats those differently and would be unsound if it could not
+    /// tell them apart (Law 15: Unknown is neither failure nor pass).
+    pub fn load_rationale(
+        &self,
+        dir: &Utf8Path,
+    ) -> Result<Option<Vec<openwarrant_core::rationale::Assumption>>, RepoError> {
+        let path = dir.join("rationale.toml");
+        if !path.is_file() {
+            return Ok(None);
+        }
+        let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
+            context: format!("could not read {path}"),
+            source,
+        })?;
+
+        #[derive(serde::Deserialize)]
+        struct File {
+            #[serde(default)]
+            assumption: Vec<openwarrant_core::rationale::Assumption>,
+        }
+
+        let file: File = toml::from_str(&text)
+            .map_err(|e| RepoError::Message(format!("could not parse {path}: {e}")))?;
+        for assumption in &file.assumption {
+            assumption
+                .validate()
+                .map_err(|e| RepoError::Message(format!("{path}: {} — {e}", assumption.id)))?;
+        }
+        Ok(Some(file.assumption))
     }
 
     /// Every Warrant directory, sorted by name.

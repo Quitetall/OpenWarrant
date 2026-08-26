@@ -1,0 +1,20 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "crates/openwarrant-core/src/adr.rs::AdrRecord - the struct has uuid, local_alias, title, status, decided, governs, body, source but no supersedes or superseded_by fields; the parse method extracts no such relations and no round-trip test exists for them"
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

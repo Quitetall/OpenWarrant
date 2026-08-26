@@ -1,0 +1,20 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "manifest.rs::tests - missing_required_atom_is_refused asserts MissingRequiredRole, duplicate_ordinal_is_refused asserts DuplicateOrdinal, unknown_required_role_is_refused asserts UnknownRequiredRole, a_direct_cycle_is_detected asserts detect_parent_cycles returns one cycle; each error variant carries the SAS rule reference"
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

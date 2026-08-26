@@ -1,0 +1,20 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "seam.rs::KatanaReceipt has pub fields and derives Default so any caller can construct one freely; no test in seam.rs plants a self-minted receipt and refuses it — validate() checks completeness and dispatch binding but not provenance"
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

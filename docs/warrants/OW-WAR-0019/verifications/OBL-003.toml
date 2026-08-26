@@ -1,0 +1,20 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = "gate.rs::GateRegistry::resolve_citation - parses gate:// URI via GateRef::parse_uri, looks up registry, returns GateError::ObligationUnresolvedGate with obligation name and URI; test an_obligation_citing_a_nonexistent_gate_is_refused_by_name exercises it"
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
