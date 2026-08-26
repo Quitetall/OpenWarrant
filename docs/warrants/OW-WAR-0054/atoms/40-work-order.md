@@ -85,6 +85,61 @@ particular recipient is not, and folding both into one stage would let the secon
 be discharged by the first having gone well. `45-milestones.yaml` marks this
 stage `human`.
 
+# Where the work happens
+
+The work is in `/mnt/4tb/openhuman-knowledge-fabric`; this Warrant is the
+authority for it and lives elsewhere. Every path below was verified to exist on
+2026-08-26 — a work order naming files that have moved is worse than one naming
+none, because it is trusted.
+
+Read first, in this order:
+
+    ontology/relation-types.yaml            41 types carrying id, inverse,
+                                            acyclic, symmetric and NOTHING ELSE.
+                                            OBL-009 is the change that must
+                                            happen here before a compiler may
+                                            read a policy instead of carrying one.
+    database/migrations/20260811000200_registry.sql
+                                            registry.relation_type — the compiled
+                                            side of that same gap.
+    database/migrations/20260811000400_row_security.sql
+                                            core.set_access_context and the
+                                            policies. Read the SIGNATURE: it is
+                                            (organization, max_classification),
+                                            and no policy reads kf.actor.
+    database/migrations/20260811000300_core.sql
+                                            core.object; core.relation, typed and
+                                            stateful with valid_from/valid_to;
+                                            core.outbox; core.retention_hold.
+    database/migrations/20260811000700_org.sql
+                                            org.person.id references
+                                            core.object(id) — the fact the whole
+                                            relevance model rests on.
+    generated/sql-registry/001-ontology-seed.sql
+                                            the seeded relation types. Generated:
+                                            change the ontology, never this.
+
+Build against:
+
+    tests/database/harness.ts               startHarness, seedFixtures,
+                                            createObject, bindContext. STAGE-001
+                                            through STAGE-003 need nothing else —
+                                            no host, no commissioned instance.
+    tests/database/typed-table-visibility.test.ts
+                                            the pattern to copy for an
+                                            RLS-sensitive suite.
+    packages/export/src/internal/sections/  section machinery to reuse for
+                                            renderings rather than reinvent.
+
+The ADR 0008 site, gated by OBL-010 and M2E:
+
+    packages/authorization/src/identity.ts:250
+                                            `maxClassification:
+                                            request.maxClassification` —
+                                            caller-asserted, unvalidated, with no
+                                            clearance model to clamp against.
+                                            Membership depends entirely on it.
+
 # Not authorized by this Warrant
 
 Each of these is wanted, is recorded in `10-intent.md`, and has a named successor.
