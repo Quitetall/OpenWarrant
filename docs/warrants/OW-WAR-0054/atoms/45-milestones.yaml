@@ -1,0 +1,67 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "The invariant gate exists and has been made to fail in both directions"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "Four views compile into one master document with a manifest"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002"]
+
+  - id: "M3"
+    title: "The document renders to Markdown, HTML, PDF and DOCX from one source"
+    depends_on: ['M2']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002"]
+
+  - id: "M4"
+    title: "A removed record reads as withdrawn, not as absent"
+    depends_on: ['M2']
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-003"]
+
+  - id: "M5"
+    title: "A signed expiring link delivers it, draining core.outbox, receipt written back"
+    depends_on: ['M3', 'M4']
+    stage_refs: ["STAGE-004"]
+    obligation_refs: ["OBL-004", "OBL-005"]
+
+  - id: "M6"
+    title: "The first real disclosure: one person's own master document"
+    depends_on: ['M5']
+    stage_refs: ["STAGE-004"]
+    obligation_refs: ["OBL-004"]
+
+  - id: "M7"
+    title: "A derived subset carries its own runtime warrant and receipt"
+    depends_on: ['M6']
+    stage_refs: ["STAGE-004"]
+    obligation_refs: ["OBL-004"]
+
+stages:
+  - id: "STAGE-001"
+    title: "The invariant, before anything it would guard"
+    executor_kind: "service"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-002"
+    title: "The four-view compiler and its manifest"
+    executor_kind: "service"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-003"
+    title: "Withdrawal, distinguished from silent absence"
+    executor_kind: "service"
+    responsibility_tier: "T1"
+
+  # Human, not service: the first disclosure sends a real person's records to a
+  # real recipient. Nothing in STAGE-004 is discharged by a process deciding it
+  # went well.
+  - id: "STAGE-004"
+    title: "Delivery, and the first real disclosure"
+    executor_kind: "human"
+    responsibility_tier: "T2"
