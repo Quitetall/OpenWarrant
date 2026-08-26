@@ -142,6 +142,32 @@ fn gate() -> ExitCode {
             program: "cargo",
             args: &["deny", "check", "licenses"],
         },
+        // The REAL corpus, unmutated.
+        //
+        // Until this step existed, nothing in CI ever ran `war check` against
+        // the corpus as committed. `conformance/plant.sh` runs it, but always on
+        // a tree it has just mutated and is about to restore — so the tool that
+        // validates this repository's Warrants was exercised only against
+        // deliberately broken inputs, and a regression in the corpus itself was
+        // invisible to the gate.
+        //
+        // That is not hypothetical. Twice in two days a pull request touching
+        // `.github/workflows/ci.yml` invalidated OW-WAR-0001's declared artifact
+        // digest, and both times the Warrant silently lost a §56.1 requirement
+        // with every check green.
+        //
+        // `--generated` is deliberate: it also compares the committed
+        // projections against a fresh compilation, so this one step covers both
+        // §37.2 digest drift and §17 view drift.
+        //
+        // Runs BEFORE the plants because the plants require a clean
+        // `docs/warrants/`, and a corpus failure here is the more specific
+        // diagnosis when both would fail.
+        Step {
+            label: "corpus (§37.2 digests and §17 view drift, on the committed tree)",
+            program: "./target/debug/war",
+            args: &["check", "--generated"],
+        },
         // §92's second half, and the reason the first half means anything: every
         // planted violation must be rejected BY ITS INTENDED CONTROL. The unit
         // tests above prove the code does what it says; this proves the shipped

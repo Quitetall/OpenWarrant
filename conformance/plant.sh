@@ -910,6 +910,39 @@ plant_cmd "a tampered import artifact" "not reproducible" \
      python3 -c \"import pathlib,sys; p=pathlib.Path(sys.argv[1]); p.write_text(p.read_text().replace('\\\"adr_count\\\": 1','\\\"adr_count\\\": 2',1))\" \"$MIGRATE_TMP/t.json\"" \
     migrate --corpus "$MIGRATE_TMP/corpus" --commit "$FROZEN" --out "$MIGRATE_TMP/t.json" --verify
 
+# §37.2 — a deliverable record that no longer describes its artifact.
+#
+# This control exists because it was needed twice in two days: an unrelated pull
+# request edited `.github/workflows/ci.yml`, which OW-WAR-0001 declares, and the
+# Warrant silently lost a §56.1 requirement while every check stayed green.
+#
+# The mutation tampers with the RECORD rather than the artifact, and that is not
+# laziness — `restore` only covers docs/warrants/, docs/adr/, docs/gates/ and
+# openwarrant.toml. A plant that edited `deny.toml` to move its bytes would not
+# be undone by the restore and would leave the developer's tree modified. Same
+# control either way: recorded digest versus bytes on disk.
+DELIVERABLE="docs/warrants/OW-WAR-0001/deliverables.toml"
+
+plant "a deliverable digest that no longer matches" "deliverable.digest-drift" \
+    "regenerate the record" 2 \
+    "python3 -c \"
+import pathlib, re
+p = pathlib.Path('$DELIVERABLE')
+t = p.read_text()
+p.write_text(re.sub(r'content_digest = \\\"sha256:[0-9a-f]{4}', 'content_digest = \\\"sha256:dead', t, count=1))
+\"; assert_present 'sha256:dead' '$DELIVERABLE'"
+
+# The other half: a record naming an artifact nobody produced. Distinct from
+# drift, and reported distinctly — "the digest is wrong" and "there is nothing to
+# hash" send a reader to different fixes.
+plant "a deliverable naming a missing artifact" "deliverable.target-unreadable" \
+    "not a verified one" 2 \
+    "python3 -c \"
+import pathlib
+p = pathlib.Path('$DELIVERABLE')
+p.write_text(p.read_text().replace('target_ref = \\\"Cargo.toml\\\"', 'target_ref = \\\"Cargo.toml.nope\\\"', 1))
+\"; assert_present 'Cargo.toml.nope' '$DELIVERABLE'"
+
 echo
 echo "$PASSED passed, $FAILED failed"
 [[ "$FAILED" -eq 0 ]]

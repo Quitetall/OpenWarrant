@@ -411,6 +411,135 @@ pub(crate) fn load_gate_registry(
 }
 
 #[allow(clippy::too_many_arguments)]
+/// §37.2 — a declared deliverable's recorded digest must still match its bytes.
+///
+/// # Why this belongs in `war check` and not only in `war resolve`
+///
+/// `war resolve` already recomputes these digests, and it caught the drift both
+/// times it happened. It caught it *late*: resolve is run deliberately, by
+/// someone asking about one Warrant, so a stale record sat in `main` until
+/// somebody thought to look. Twice in two days an unrelated pull request edited
+/// a file some Warrant had declared — once `ci.yml` under a Bonsai change, once
+/// `ci.yml` again under a dependency bump — and each time OW-WAR-0001 silently
+/// lost a requirement.
+///
+/// A record that no longer describes the bytes it names is false as written, so
+/// this is an ERROR rather than a warning. The remedy is small and specific:
+/// either the artifact changed and the record must be regenerated, or the
+/// artifact changed and should not have.
+///
+/// # Deliberately not silent about the missing case
+///
+/// A deliverable declaring `content_addressed` with no provenance, or with a
+/// target that cannot be read, is reported rather than skipped. "The digest does
+/// not match" and "there is nothing to match against" are different problems and
+/// a check that collapsed them would send the reader to the wrong fix.
+fn check_deliverable_digests(repo: &Repository, one: &Loaded, alias: &str, report: &mut Report) {
+    let deliverables = match repo.load_deliverables(&one.dir) {
+        Ok(set) => set,
+        Err(err) => {
+            report.push(Diagnostic::error(
+                "deliverable.unreadable",
+                repo.relative(&one.dir.join("deliverables.toml")),
+                format!("{alias}: {err}"),
+            ));
+            return;
+        }
+    };
+    let file = repo.relative(&one.dir.join("deliverables.toml"));
+    for (path, why) in &deliverables.failures {
+        report.push(Diagnostic::error(
+            "deliverable.malformed",
+            path.clone(),
+            format!("{why} — an unreadable deliverables file is not an absent one"),
+        ));
+    }
+
+    let addressed: Vec<_> = deliverables
+        .records
+        .iter()
+        .filter(|d| d.content_addressed)
+        .collect();
+    if addressed.is_empty() {
+        return;
+    }
+
+    let mut drifted = 0usize;
+    for deliverable in &addressed {
+        let Some(provenance) = deliverable.provenance.as_ref() else {
+            report.push(Diagnostic::error(
+                "deliverable.no-provenance",
+                file.clone(),
+                format!(
+                    "{alias}: {} declares content addressing and carries no provenance, so there \
+                     is no digest to check",
+                    deliverable.id
+                ),
+            ));
+            drifted += 1;
+            continue;
+        };
+        // Only sha256 is supported, and an unsupported algorithm is said so
+        // rather than compared. `trim_start_matches` would leave "md5:abc"
+        // intact, which never equals a sha256 hex, so the check still refuses —
+        // but it refuses as "digest drift", sending the reader to regenerate a
+        // record whose algorithm is the actual problem. The verdict was already
+        // right; the diagnosis was not.
+        let Some(recorded) = provenance.content_digest.strip_prefix("sha256:") else {
+            report.push(Diagnostic::error(
+                "deliverable.unsupported-digest",
+                file.clone(),
+                format!(
+                    "{alias}: {} records {:?}, and only sha256: is supported. This is not                      drift — the record cannot be checked at all",
+                    deliverable.id, provenance.content_digest
+                ),
+            ));
+            drifted += 1;
+            continue;
+        };
+        match std::fs::read(repo.root.join(&deliverable.target_ref)) {
+            Ok(bytes) => {
+                let actual = openwarrant_compiler::sha256_hex(&bytes);
+                if actual != recorded {
+                    report.push(Diagnostic::error(
+                        "deliverable.digest-drift",
+                        file.clone(),
+                        format!(
+                            "{alias}: {} records sha256:{recorded} for {} but the file is now \
+                             sha256:{actual}. The artifact moved after the record was written — \
+                             regenerate the record, or restore the artifact",
+                            deliverable.id, deliverable.target_ref
+                        ),
+                    ));
+                    drifted += 1;
+                }
+            }
+            Err(err) => {
+                report.push(Diagnostic::error(
+                    "deliverable.target-unreadable",
+                    file.clone(),
+                    format!(
+                        "{alias}: {} names {} and it cannot be read: {err}. An unreadable artifact \
+                         is not a verified one",
+                        deliverable.id, deliverable.target_ref
+                    ),
+                ));
+                drifted += 1;
+            }
+        }
+    }
+
+    if drifted == 0 {
+        report.push(Diagnostic::pass(
+            "deliverable.digests",
+            format!(
+                "{alias}: {} content-addressed deliverable(s) still match their bytes",
+                addressed.len()
+            ),
+        ));
+    }
+}
+
 fn check_one(
     repo: &Repository,
     one: &Loaded,
@@ -437,6 +566,8 @@ fn check_one(
         "manifest.valid",
         format!("{alias}: manifest and composition are well-formed"),
     ));
+
+    check_deliverable_digests(repo, one, &alias, report);
 
     // Ordinals ascending is not required by the SAS, but a manifest whose
     // ordinals descend renders in an order its author probably did not intend.
