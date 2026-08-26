@@ -6,45 +6,56 @@ milestones:
     stage_refs: ["STAGE-001"]
     obligation_refs: ["OBL-001"]
 
+  # Before the compiler exists, not while building it. If a large share of the
+  # visible set turns out to be resolved live rather than materialized, that
+  # changes what the compiler may include — and discovering it mid-build is how
+  # a document ends up claiming completeness over content the invariant never
+  # reached.
   - id: "M2"
-    title: "Four views compile into one master document with a manifest"
+    title: "Every table in the visible set is classified materialized or live, and the boundary is resolved"
     depends_on: ['M1']
-    stage_refs: ["STAGE-002"]
-    obligation_refs: ["OBL-002"]
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-006"]
 
   - id: "M3"
-    title: "The document renders to Markdown, HTML, PDF and DOCX from one source"
+    title: "Four views compile into one master document with a manifest"
     depends_on: ['M2']
     stage_refs: ["STAGE-002"]
     obligation_refs: ["OBL-002"]
 
   - id: "M4"
+    title: "The document renders to Markdown, HTML, PDF and DOCX from one source"
+    depends_on: ['M3']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002"]
+
+  - id: "M5"
     title: "A removed record reads as withdrawn, not as absent"
-    depends_on: ['M2']
+    depends_on: ['M3']
     stage_refs: ["STAGE-003"]
     obligation_refs: ["OBL-003"]
 
-  - id: "M5"
-    title: "A signed expiring link delivers it, draining core.outbox, receipt written back"
-    depends_on: ['M3', 'M4']
-    stage_refs: ["STAGE-004"]
-    obligation_refs: ["OBL-004", "OBL-005"]
-
   - id: "M6"
-    title: "The first real disclosure: one person's own master document"
-    depends_on: ['M5']
+    title: "A signed expiring link delivers it, draining core.outbox, receipt written back"
+    depends_on: ['M4', 'M5']
     stage_refs: ["STAGE-004"]
-    obligation_refs: ["OBL-004"]
+    obligation_refs: ["OBL-005"]
 
   - id: "M7"
-    title: "A derived subset carries its own runtime warrant and receipt"
+    title: "The first real disclosure: one person's own master document"
     depends_on: ['M6']
-    stage_refs: ["STAGE-004"]
+    stage_refs: ["STAGE-005"]
+    obligation_refs: ["OBL-004"]
+
+  - id: "M8"
+    title: "A derived subset carries its own runtime warrant and receipt"
+    depends_on: ['M7']
+    stage_refs: ["STAGE-005"]
     obligation_refs: ["OBL-004"]
 
 stages:
   - id: "STAGE-001"
-    title: "The invariant, before anything it would guard"
+    title: "The invariant, and the boundary it reaches, before anything it would guard"
     executor_kind: "service"
     responsibility_tier: "T1"
 
@@ -58,10 +69,15 @@ stages:
     executor_kind: "service"
     responsibility_tier: "T1"
 
-  # Human, not service: the first disclosure sends a real person's records to a
-  # real recipient. Nothing in STAGE-004 is discharged by a process deciding it
-  # went well.
+  # Building the delivery mechanism is engineering and can be discharged by code.
   - id: "STAGE-004"
-    title: "Delivery, and the first real disclosure"
+    title: "The delivery mechanism: signed link, outbox drain, receipts"
+    executor_kind: "service"
+    responsibility_tier: "T1"
+
+  # Performing a disclosure is not. A real person's records reach a real
+  # recipient, and no process discharges that by deciding it went well.
+  - id: "STAGE-005"
+    title: "Disclosure: the first real one, and the first derived subset"
     executor_kind: "human"
     responsibility_tier: "T2"

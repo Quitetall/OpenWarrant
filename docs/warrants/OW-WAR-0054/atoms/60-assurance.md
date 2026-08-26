@@ -54,6 +54,22 @@ classification: internal
   refuses, and an access log entry per fetch. Plus the negative: no SMTP, OAuth
   or third-party credential is introduced by the work discharging this Warrant.
 
+### OBL-006 — the invariant's boundary is resolved before the compiler exists
+- **scope:** every table reachable in `visibleSet(P)`, classified as materialized
+  into KF-governed rows or resolved live from an external system.
+- **gate:** `gate://software.repo.war-check@1.0.0`
+- **evidence:** a classification covering the whole visible set with no table
+  unaccounted for, and for every live-resolved table a recorded decision: either
+  it is materialized before it may enter a document, or the document annotates
+  that section as outside the invariant. A classification with an unclassified
+  remainder is refused; "the rest are probably materialized" is the assumption
+  this obligation exists to prevent.
+- **note:** this obligation exists because the residual risk below is real and
+  had no gate. Without it an implementer reaches the compiler, finds a large
+  share of the visible set resolved live, and decides it under schedule pressure
+  — which is how the completeness claim ends up quietly not covering part of
+  itself.
+
 ## Evidence
 
 ### EV-001 — the primitives were read from the tree, not remembered
@@ -181,9 +197,25 @@ says the document is compiled from federated material, and `visibleSet(P)` is
 enumerated from KF's row-level security. Where a federated source is mirrored
 into KF objects the two coincide; where content is resolved live from an external
 system, that system's access model is not KF's, and the invariant is only as
-strong as the mirror. This is not resolved here and must not be papered over —
-either federated content is materialized into governed rows before it can enter a
-document, or the document states which sections the invariant does not cover.
+strong as the mirror.
+
+This now has a gate — OBL-006 and M2 force the classification and the decision
+before STAGE-002 — but the gate does not make the risk go away, it only makes it
+impossible to walk past. Two residues remain and are accepted rather than solved:
+materializing carries its own completeness question, because a mirror that has
+not caught up satisfies the invariant while defeating the intent; and annotating
+sections weakens the claim from "the file is complete" to "the file is complete
+where it says it is", which is a different promise than the one in
+`10-intent.md`. Choosing between them is work for M2, and whichever is chosen
+should be recorded as an amendment if it changes what the intent promises.
+
+**The `⊇` direction may be expensive.** Proving no under-disclosure means
+enumerating the whole visible set across 76 policy-governed tables and diffing
+it, per subject, per compilation. Nothing here has measured that cost. It is the
+likeliest practical reason the expensive half gets quietly dropped, so the
+enumeration's cost should be measured during STAGE-001 — while it is still the
+subject of the work — rather than discovered in STAGE-002 when a compiler already
+depends on it.
 
 **One instance, one actor.** §46.3's independence minimum is unmet and is
 reported as unmet.

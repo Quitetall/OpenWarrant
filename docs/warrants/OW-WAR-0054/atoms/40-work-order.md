@@ -27,6 +27,21 @@ This stage comes first deliberately. Building the compiler first and the check
 afterwards produces a compiler whose output defines the invariant, which is
 circular and would pass.
 
+Two things finish here rather than in STAGE-002, and both are here because
+discovering them later means deciding them under schedule pressure.
+
+**Classify the boundary.** Every table reachable in the visible set is either
+materialized into KF-governed rows or resolved live from an external system, and
+the invariant reaches only the first. Produce the classification with no
+remainder, and for each live-resolved table record the decision: materialize
+before it may enter a document, or annotate that section as outside the claim.
+OBL-006 refuses an unclassified remainder.
+
+**Measure what the `⊇` direction costs.** Enumerating the whole visible set per
+subject per compilation is the expensive half, and expense is the reason
+expensive halves get dropped. Measure it while the enumeration is the subject of
+the work, not once a compiler depends on it.
+
 ## STAGE-002 — the compiler
 
 Four views (`about`, `authored`, `addressed`, `visible`) into one document with a
@@ -48,12 +63,22 @@ on `secure_object.erasure_tombstone`. Verified by removing a record from a
 compiled set and requiring the withdrawal to appear — not by requiring the record
 to be absent, which is what a silent drop also looks like.
 
-## STAGE-004 — delivery, and only then
+## STAGE-004 — the delivery mechanism
 
 A signed, expiring, revocable, access-logged link served by KF itself, fed by a
-consumer that drains `core.outbox` and writes a delivery receipt back. Then the
-first real disclosure — my own master document — and then a derived subset
-carrying its own runtime warrant.
+consumer that drains `core.outbox` and writes a delivery receipt back. This is
+engineering and a service discharges it.
+
+## STAGE-005 — disclosure, which is not engineering
+
+The first real disclosure — one person's own master document — and then a derived
+subset carrying its own runtime warrant.
+
+Separated from STAGE-004 on purpose. Building a mechanism that *can* send is work
+a process completes; deciding that a particular person's records go to a
+particular recipient is not, and folding both into one stage would let the second
+be discharged by the first having gone well. `45-milestones.yaml` marks this
+stage `human`.
 
 The first transport opens **no new outbound credential and involves no third
 party**. That is a deliberate ordering choice, not timidity: it is the only
@@ -87,7 +112,9 @@ has been exercised against a transport that can be taken back.
 # Constraints
 
 **Sequence is load-bearing between stages, not within them.** STAGE-001 must
-precede STAGE-002 for the circularity reason above. STAGE-004 must be last.
+precede STAGE-002 for the circularity reason above, and STAGE-005 must be last —
+nothing is disclosed to anyone until the document it would disclose has been
+proven equal to what the recipient may see.
 
 **No milestone is discharged by a passing test alone.** OBL-001 requires the gate
 to have failed on a plant. A green run of a check nobody has ever seen go red is

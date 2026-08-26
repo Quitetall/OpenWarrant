@@ -47,6 +47,28 @@ Equality, in both directions, and each direction fails differently:
 An implementation that enforces only `⊆` is an export tool with good manners.
 Only the conjunction is the claim.
 
+### Where the claim stops
+
+`visibleSet(P)` is enumerated from KF's row-level security, so the invariant
+holds for **content materialized into KF-governed rows** and nowhere else.
+Federated content resolved live from an external system is governed by that
+system's access model, not KF's, and the invariant does not reach it.
+
+This is stated here, beside the claim, rather than only in the residual risk at
+the end of `60-assurance.md`, because the intent atom is the one most likely to
+be read alone. A successor who learned about the boundary three atoms later could
+reasonably have built a compiler that includes live federated content, proven the
+invariant against KF-native rows, and shipped a document whose completeness claim
+silently does not cover part of itself — which is precisely the failure this
+Warrant exists to prevent, arriving through the door marked "vision".
+
+So: either federated content is materialized into governed rows before it may
+enter a document, or the document states which sections the invariant does not
+cover. `45-milestones.yaml` requires that choice to be made before the compiler
+is built, not discovered while building it. Note that the first option carries
+its own completeness question — a mirror that has not caught up satisfies the
+invariant while defeating the intent — and that question is open.
+
 ## Four views, one document
 
 Not a union — a union destroys the reason a reader opens the file. The same
