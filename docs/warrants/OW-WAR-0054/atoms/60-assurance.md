@@ -12,7 +12,7 @@ classification: internal
 ## Acceptance Obligations
 
 ### OBL-001 — the invariant gate has been made to fail in both directions
-- **scope:** `documentSet(P,T) == visibleSet(P,T)` for a test subject, both
+- **scope:** `masterRecord(P,O,C,T) == permission(O,C)` for a test subject, both
   directions reported separately.
 - **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** two plants and their refusals. One inserts a record the subject
@@ -22,7 +22,7 @@ classification: internal
   passed is not evidence for this obligation — only the two refusals are, plus a
   positive control so that a gate refusing everything cannot discharge it.
 
-### OBL-002 — nothing publishes without a matching visible-set digest
+### OBL-002 — nothing publishes without a matching permission-set digest
 - **scope:** every compiled document and every rendering of it.
 - **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a manifest carrying `compiled_at` and the digest of the
@@ -55,10 +55,10 @@ classification: internal
   or third-party credential is introduced by the work discharging this Warrant.
 
 ### OBL-006 — the invariant's boundary is resolved before the compiler exists
-- **scope:** every table reachable in `visibleSet(P)`, classified as materialized
+- **scope:** every table reachable in `permission(O,C)`, classified as materialized
   into KF-governed rows or resolved live from an external system.
 - **gate:** `gate://software.repo.war-check@1.0.0`
-- **evidence:** a classification covering the whole visible set with no table
+- **evidence:** a classification covering the whole permission set with no table
   unaccounted for, and for every live-resolved table a recorded decision: either
   it is materialized before it may enter a document, or the document annotates
   that section as outside the invariant. A classification with an unclassified
@@ -66,12 +66,12 @@ classification: internal
   this obligation exists to prevent.
 - **note:** this obligation exists because the residual risk below is real and
   had no gate. Without it an implementer reaches the compiler, finds a large
-  share of the visible set resolved live, and decides it under schedule pressure
+  share of the permission set resolved live, and decides it under schedule pressure
   — which is how the completeness claim ends up quietly not covering part of
   itself.
 
 ### OBL-007 — the relevance closure terminates, proven on a planted cycle
-- **scope:** the fixpoint over composition, version and provenation relation
+- **scope:** the fixpoint over composition, version and provenance relation
   types seeded by a person's anchors.
 - **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a planted cycle in a provenance chain — `derived_from` back to an
@@ -80,6 +80,13 @@ classification: internal
   type is among them**, so termination here is a property of the traversal and
   cannot be inherited from the ontology. A closure that has never met a cycle is
   not evidence that it survives one.
+- **note:** `acyclic` is declared per relation TYPE, never per propagation class,
+  so a class is only as safe as its current members. `supersedes`, `amends` and
+  `extends` are acyclic today and the version class traverses both directions on
+  that basis; adding one cyclic type to that class later would make bidirectional
+  traversal non-terminating with nothing in the ontology objecting. The
+  termination proof must therefore hold for the traversal itself, not rest on
+  which types happen to populate a class.
 
 ### OBL-008 — fan-out is measured, and every ceiling governs rendering only
 - **scope:** relevance closure size per anchor type, measured on real data; and
@@ -106,6 +113,26 @@ classification: internal
   and no propagation class, so a compiler written now would necessarily carry a
   hand-maintained mirror of an ontology it cannot check itself against. A planted
   disagreement between declaration and compiler behaviour must be refused.
+- **note:** propagation CLASS and anchor DEPTH are separate degrees of freedom and
+  both must be declared. The five-class table in `10-intent.md` enumerates the
+  first only; the second — how far each anchor's interest reaches through its
+  permitted classes — is what makes `owned_by` differ from `was_associated_with`
+  and is not stated anywhere yet.
+
+### OBL-010 — a person's ceiling comes from a clearance model, not from a caller
+- **scope:** the derivation of `max_classification` for a subject, and every path
+  that reaches `core.set_access_context`.
+- **gate:** `gate://software.repo.war-check@1.0.0`
+- **evidence:** a ceiling resolved from an authoritative clearance model, and a
+  refused attempt to supply one directly. Today `maxClassification` passes
+  unvalidated through `packages/authorization/src/identity.ts:250` and there is no
+  model to clamp against, so the value the whole record's membership depends on
+  is currently caller-asserted. The refusal is the evidence; a resolver that
+  merely prefers the model while still accepting an override discharges nothing.
+- **note:** this is upstream of the compiler because membership is permission and
+  permission is determined solely by ceiling. Compiling an exact record around an
+  unvalidated number produces precision about the wrong set, in both directions
+  and without a signal.
 
 ## Evidence
 
@@ -130,13 +157,17 @@ classification: internal
   `psql -c "select datname from pg_database"` on the `kf-dogfood` host
 - **occurred at:** 2026-08-26
 
-### OBS-001 — the invariant is checkable because the access context is a function
+### OBS-001 — permission is enumerable; it is not person-scoped
 - **class:** observation
 - **evidence:** EV-001
-- **method:** `core.set_access_context(uuid, text)` exists and row-level security
-  is enforced against it on 76 tables. `visibleSet(P)` is therefore a query. Had
-  it not been, the claim in `10-intent.md` could only have been asserted, and
-  this Warrant would not be worth writing.
+- **method:** `core.set_access_context(p_organization uuid, p_max_classification
+  text)` sets `kf.organization` and `kf.max_classification`, and row-level
+  security on 76 tables is enforced against those. No policy in
+  `row_security.sql` reads `kf.actor` or `kf.acting_role`, both of which exist but
+  carry authorship rather than visibility. So `permission(O,C)` is a query, and is
+  identical for every person at one organization and ceiling. Relevance is
+  separately enumerable because `org.person.id` references `core.object(id)`,
+  which makes a person a node in the typed graph.
 - **admissibility:** performer_report_only
 
 ### OBS-002 — the delivery socket exists and nothing drains it
@@ -200,14 +231,14 @@ Required at `controlled`.
 one-directional?** Yes, and it is the likeliest way this goes wrong. Checking
 `⊆` — nothing in the document that the subject cannot see — is what every export
 tool already does, and it is much cheaper than `⊇`, which requires enumerating
-the whole visible set and proving nothing was missed. Drop the second direction
+the whole permission set and proving nothing was missed. Drop the second direction
 and the document still looks complete, the gate still passes, and the sentence
 this Warrant exists to make true becomes false in the only direction the reader
 cannot detect. OBL-001 requires a plant in each direction for that reason, and
 `40-work-order.md` forbids narrowing to `⊆` without amending the Warrant.
 
 **Adversarial question two: could the gate compare the compiler to itself?** Yes,
-if `visibleSet` were computed by the compiler that produces `documentSet`. The
+if `permission` were computed by the compiler that produces the master record. The
 comparison would then be a tautology and would pass forever. STAGE-001 is ordered
 before STAGE-002 to prevent it: the enumeration exists, and is made to fail,
 before there is a compiler whose output could define it.
@@ -230,7 +261,7 @@ absence of executed attacks, which cannot be closed before the work exists.
 ## Residual Risk
 
 **Federated material may exceed what the access context governs.** The intent
-says the document is compiled from federated material, and `visibleSet(P)` is
+says the document is compiled from federated material, and `permission(O,C)` is
 enumerated from KF's row-level security. Where a federated source is mirrored
 into KF objects the two coincide; where content is resolved live from an external
 system, that system's access model is not KF's, and the invariant is only as
@@ -247,7 +278,7 @@ where it says it is", which is a different promise than the one in
 should be recorded as an amendment if it changes what the intent promises.
 
 **The `⊇` direction may be expensive.** Proving no under-disclosure means
-enumerating the whole visible set across 76 policy-governed tables and diffing
+enumerating the whole permission set across 76 policy-governed tables and diffing
 it, per subject, per compilation. Nothing here has measured that cost. It is the
 likeliest practical reason the expensive half gets quietly dropped, so the
 enumeration's cost should be measured during STAGE-001 — while it is still the

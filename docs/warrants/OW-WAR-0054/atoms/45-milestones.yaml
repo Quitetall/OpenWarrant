@@ -7,12 +7,12 @@ milestones:
     obligation_refs: ["OBL-001"]
 
   # Before the compiler exists, not while building it. If a large share of the
-  # visible set turns out to be resolved live rather than materialized, that
+  # permission set turns out to be resolved live rather than materialized, that
   # changes what the compiler may include — and discovering it mid-build is how
   # a document ends up claiming completeness over content the invariant never
   # reached.
   - id: "M2"
-    title: "Every table in the visible set is classified materialized or live, and the boundary is resolved"
+    title: "Every table in the permission set is classified materialized or live, and the boundary is resolved"
     depends_on: ['M1']
     stage_refs: ["STAGE-001"]
     obligation_refs: ["OBL-006"]
@@ -39,9 +39,20 @@ milestones:
     stage_refs: ["STAGE-001"]
     obligation_refs: ["OBL-008"]
 
+  # Membership is permission, and permission is determined solely by ceiling. So
+  # a compiler built before ceilings are derived from an authoritative model
+  # would be exact about a number nobody validated. Recorded as critical path in
+  # 60-assurance.md; this is the dependency that makes that true rather than
+  # stated.
+  - id: "M2E"
+    title: "A person's ceiling is derived from an authoritative clearance model (ADR 0008)"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-010"]
+
   - id: "M3"
     title: "The master record compiles complete, with a manifest and a first rendering"
-    depends_on: ['M2', 'M2D']
+    depends_on: ['M2', 'M2D', 'M2E']
     stage_refs: ["STAGE-002"]
     obligation_refs: ["OBL-002"]
 
@@ -82,7 +93,7 @@ stages:
     responsibility_tier: "T1"
 
   - id: "STAGE-002"
-    title: "The four-view compiler and its manifest"
+    title: "The master-record compiler and its manifest"
     executor_kind: "service"
     responsibility_tier: "T1"
 

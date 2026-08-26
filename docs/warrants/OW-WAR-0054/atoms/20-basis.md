@@ -19,15 +19,26 @@ The claim in `10-intent.md` is only worth making because KF already knows what a
 person can see. Four primitives carry it, and all four were read from the tree
 rather than remembered:
 
-    core.set_access_context(uuid, text)     visibleSet(P) is ENUMERABLE
+    core.set_access_context(organization, max_classification)
+                                            permission(O,C) is ENUMERABLE
+    org.person.id references core.object    a person is a NODE, so relevance
+                                            is a typed traversal
     secure_object.erasure_tombstone         signed withdrawal primitive
     core.outbox                             transactional delivery socket
     quality.federated_source                check (writable = false)
 
-`core.set_access_context` is the load-bearing one. Row-level security is enforced
-on 76 tables against the context it sets, so "everything P can see" is a query,
-not a judgement call. Without it the invariant would be an assertion; with it the
-invariant is a diff.
+`core.set_access_context` is the load-bearing one, and its exact signature is
+`(p_organization uuid, p_max_classification text)`. It sets `kf.organization` and
+`kf.max_classification`; row-level security on 76 tables is enforced against
+those. **It takes no person.** `kf.actor` and `kf.acting_role` exist as session
+variables but no policy in `row_security.sql` reads either — they carry
+authorship, not visibility.
+
+So what is enumerable is `permission(O, C)`, a tenant-and-ceiling set. Two people
+in one organization at one ceiling see exactly the same rows. An earlier draft of
+this Warrant described this function as person-scoped and built the whole
+checkability claim on it; that was wrong, and the correction is why membership is
+permission and relevance only sections it.
 
 `core.outbox` is `(id, action_id, topic, payload, created_at, delivered_at)` with
 a partial index on undelivered rows. It is written inside the action transaction
@@ -67,14 +78,15 @@ rehearsal receipt and until 2026-08-26 there had never been one.
 
 ## What this changes about sequencing
 
-M1 through M4 need only the database test harness (`startHarness()` in
-`tests/database/`), so the compiler and the invariant gate can be built and
-proven with no host at all. M5 onward needs commissioning.
+Everything in STAGE-001 through STAGE-003 needs only the database test harness
+(`startHarness()` in `tests/database/`), so the invariant, the closure and the
+compiler can be built and proven with no host at all. STAGE-004 onward needs
+commissioning.
 
 This matters because ADR 0009 (Google Drive ingestion) was deferred on exactly
 the objection that it was a feature on a system nobody runs. That objection does
-not reach M1-M4 and does reach M5-M7. Sequence accordingly rather than treating
-the whole Warrant as blocked.
+not reach STAGE-001 through STAGE-003 and does reach STAGE-004 onward. Sequence
+accordingly rather than treating the whole Warrant as blocked.
 
 ## Adjacent facts that bound the work
 
@@ -83,7 +95,10 @@ the whole Warrant as blocked.
 `--confirm-write`. It carries **no classification header**. For a disclosure act
 that is not cosmetic: the wire should carry the ceiling the disclosure is bounded
 by. KF decision ADR 0008 is open on what classification means as a granted
-privilege versus a self-limit, and it should settle before M5 rather than after.
+privilege versus a self-limit. It is now on the critical path rather than beside
+it — see OBL-010 and M2E — because membership is permission, permission is
+determined solely by ceiling, and deriving a person's ceiling is exactly what
+that decision leaves open.
 
 **pandoc is qualified on the host.** Version 3.1.11.1, and all ten drift-prone
 constructs agree with CI's 3.1.3 and the workstation's 3.10.2. So PDF and DOCX

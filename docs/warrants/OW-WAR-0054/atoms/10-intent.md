@@ -26,8 +26,9 @@ decoration.
 
 A conventional export answers "what did we decide to send you". This answers
 "what do you have". The difference is that the second is checkable, because KF
-already knows what a person can see: `core.set_access_context(uuid, text)` sets
-the access context and the row-level policies on 76 tables do the rest.
+already knows what a person is permitted to see:
+`core.set_access_context(p_organization uuid, p_max_classification text)` sets the
+access context and the row-level policies on 76 tables do the rest.
 
 So the master document has an invariant, not a specification. It has two halves,
 because relevance and permission are different kinds of thing and conflating them
@@ -45,12 +46,35 @@ person. RLS admits by tenant and ceiling, not by identity.
     relevance(P, T)   = ⋃ over anchors a of P: closure(target(a), propagation[a])
     permission(O, C)  = the set RLS admits at organization O, ceiling C
 
-    documentSet(P, O, C, T) == relevance(P, T) ∩ permission(O, C)
+    masterRecord(P, O, C, T) == permission(O, C)
 
-Both sides are computable, which is the only reason this is a claim and not a
-hope. Note what the parameters say: **two people in one organization at one
-ceiling have identical permission sets.** What distinguishes their documents is
-relevance, and relevance alone.
+**Membership is permission. Relevance sections it. They are never the same
+mechanism.**
+
+That is the sentence at the top of this atom, read literally: *or haven't been
+given permission*. The boundary of the file is what you are permitted to see —
+not what someone judged to concern you. So the record contains everything
+`permission(O, C)` admits, and `relevance(P, T)` decides where in the document
+each thing appears, and what a derived subset may be scoped to.
+
+An earlier draft made membership the intersection `relevance ∩ permission`. That
+was wrong twice over. It contradicted itself two paragraphs later by describing
+material outside the intersection as something a rendering could index, which is
+impossible if it was never in the record. And more importantly it handed the
+relevance policy the power to make records disappear.
+
+Separating them buys the property this whole design exists for. **A record
+missing from someone's file has exactly one possible cause — their clearance did
+not admit it — and that is true by construction rather than by a policy being
+carefully written.** A mistake in the relevance closure can now only put a record
+in the wrong section, where it is still present, still searchable, still there to
+be found. It cannot cause a disappearance, so it cannot cause the untestable
+class of bug where somebody cannot find a document they were plainly implicated
+in and nobody can say why.
+
+Note also what the permission parameters say: **two people in one organization at
+one ceiling hold the same records.** What differs between their documents is
+entirely how those records are sectioned, and which subsets they can derive.
 
 Equality, in both directions, and each direction fails differently:
 
@@ -88,17 +112,18 @@ is built, not discovered while building it. Note that the first option carries
 its own completeness question — a mirror that has not caught up satisfies the
 invariant while defeating the intent — and that question is open.
 
-## Two parts, and sections the ontology names
+## One record, sections the ontology names
 
-A union of everything destroys the reason a reader opens the file. But the four
-views first sketched here — about, authored, addressed, visible — are not four of
-a kind. Three are relation reachability. The fourth is permission scope. So the
-document splits where the kinds split:
+The four views first sketched here — about, authored, addressed, visible — are
+not four of a kind. Three are relation reachability; the fourth is permission
+scope. That mismatch is what earlier tempted this design into filtering
+membership by relevance. The resolution is not to split the record but to stop
+asking one mechanism to do both jobs.
 
 **The master record is a personal database, not a document.** It holds everything
-in `relevance(P) ∩ permission(O,C)`, complete, at full content, with no ceiling
-and no catalogue. Legibility is the job of tooling over it, not of leaving things
-out of it.
+`permission(O,C)` admits, complete, at full content, with no ceiling and no
+catalogue. Legibility is the job of tooling over it, not of leaving things out of
+it.
 
 That separation is load-bearing. **Membership** is decided by the invariant.
 **Presentation** is decided by a rendering. Deciding both at once — "it is too
@@ -112,15 +137,16 @@ subset scoped to an engagement; the PDF. A rendering may inline some things and
 reference others, and it says which — but nothing is *absent from the record*
 because a renderer found it inconvenient.
 
-Two consequences worth naming. The part of your record with no relation to you —
-`permission(O,C) ∖ relevance(P)` — **is** identical to that of every colleague at
-your ceiling, because it is the organization's library rather than anything about
-you; a rendering may reasonably show it as an index. And the record being a
-database is what makes "export in any format" coherent: the formats are
-renderings of one complete thing, not four divergent extracts.
+So the sections follow relevance while the membership follows permission. The
+part with no relation to you — `permission(O,C) ∖ relevance(P)` — is the
+organization's library rather than anything about you, and is identical to every
+colleague's at your ceiling; a rendering may reasonably show it as an index while
+the record still holds it in full. And the record being a database is what makes
+"export in any format" coherent: the formats are renderings of one complete
+thing, not four divergent extracts.
 
-The section grouping inside Part I is declared by `registry.relation_type`, not
-by the compiler. A grouping written in code is a hand-maintained mirror of an
+The section grouping is declared by `registry.relation_type`, not by the
+compiler. A grouping written in code is a hand-maintained mirror of an
 ontology, and that shape has produced four separate defects in this repository.
 
     authored / performed   performed_by, proposes, executes, produces,
@@ -173,38 +199,34 @@ assumed to.
 
 ### Why maximal, and why it is a reliability argument
 
-Both choices above are maximal, and the reason is not thoroughness for its own
-sake. It is that **a narrow closure creates a second cause of absence that is
-indistinguishable from the first.**
+Both choices above are maximal. Since membership is permission, relevance can no
+longer make anything disappear — so maximalism here is not what keeps records
+present. It is what keeps them **findable**, and that is worth being precise
+about, because the two arguments are easy to confuse.
 
-With relevance maximal, a record missing from someone's file has exactly one
-explanation: their clearance did not admit it. That is a single, inspectable,
-testable cause. You can point at it, reproduce it, and answer the question.
+Under-disclosure is already structurally impossible: absence has exactly one
+cause, clearance, by construction. What a narrow relevance closure costs instead
+is that records land in the organization's library rather than in your record —
+present, searchable, but filed as though they had nothing to do with you. For
+someone looking for the document they were plainly implicated in, "it is in the
+file, under a heading suggesting it is not yours" is a real failure, just a
+recoverable one rather than an invisible one.
 
-Tune the closure — decide that `performed_by` does not propagate composition, or
-that provenance stops at one hop — and absence acquires a second cause: the
-policy did not traverse that edge. Now "why can't I find the document I was
-obviously involved in?" has two possible answers that look identical from the
-outside, and distinguishing them means re-running a closure with the policy of
-the day against data that has since moved. That failure is silent, it surfaces
-long after the decision that caused it, and it is exactly the kind nobody can
-debug.
-
-So the maximal closure is chosen to make under-disclosure **structurally
-impossible rather than merely unlikely**, and to keep the one remaining cause of
-absence in a place that is already governed, already audited, and already
-inspectable. The cost is volume, and volume is a tooling problem. The cost of the
-alternative is an untestable class of bug in the one property this system exists
-to guarantee.
+So relevance is tuned maximal to make the sectioning generous: if there is a
+defensible reading under which a record concerns you, it appears under your
+record rather than the library. The cost is that your sections are large, and
+large sections are a tooling problem. The benefit is that the answer to "why is
+this filed as not mine" is always inspectable — you can walk the relation path
+and see it, or see that none exists.
 
 This is also why the ceiling in OBL-008 governs *rendering* and never membership.
-A ceiling that dropped records would reintroduce the second cause of absence
-through the back door, after all this to keep it out.
+A ceiling that dropped records would put absence back in the hands of policy,
+after all this to keep it in the hands of clearance alone.
 
 ## Two consequences that are easy to miss
 
 **Staleness is incorrectness, not age.** The invariant is stated at time `T`. A
-document that no longer equals the visible set is *wrong* — it asserts a
+document that no longer equals the permission set is *wrong* — it asserts a
 completeness it no longer has. So a served document carries `compiled_at` and the
 digest of the enumeration it matched, and a reader can tell whether they are
 holding a claim or a souvenir.

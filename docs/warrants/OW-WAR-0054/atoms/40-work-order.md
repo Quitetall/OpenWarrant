@@ -9,13 +9,13 @@ classification: internal
 
 # Work Order
 
-Four stages. The first three need no host; the fourth does.
+Five stages. The first three need no host; the last two do.
 
 ## STAGE-001 — the invariant, before anything it would guard
 
-Build `visibleSet(P, T)` as an enumeration over
-`core.set_access_context(uuid, text)`, and the comparator that diffs it against a
-compiled document set. Both directions, reported separately, because they are
+Build `permission(O, C)` as an enumeration over
+`core.set_access_context(p_organization uuid, p_max_classification text)`, and the
+comparator that diffs it against a compiled master record. Both directions, reported separately, because they are
 different failures with different consequences.
 
 The gate must be **demonstrated to fail** in both directions before it is
@@ -30,26 +30,26 @@ circular and would pass.
 Two things finish here rather than in STAGE-002, and both are here because
 discovering them later means deciding them under schedule pressure.
 
-**Classify the boundary.** Every table reachable in the visible set is either
+**Classify the boundary.** Every table reachable in the permission set is either
 materialized into KF-governed rows or resolved live from an external system, and
 the invariant reaches only the first. Produce the classification with no
 remainder, and for each live-resolved table record the decision: materialize
 before it may enter a document, or annotate that section as outside the claim.
 OBL-006 refuses an unclassified remainder.
 
-**Measure what the `⊇` direction costs.** Enumerating the whole visible set per
+**Measure what the `⊇` direction costs.** Enumerating the whole permission set per
 subject per compilation is the expensive half, and expense is the reason
 expensive halves get dropped. Measure it while the enumeration is the subject of
 the work, not once a compiler depends on it.
 
 ## STAGE-002 — the compiler
 
-Four views (`about`, `authored`, `addressed`, `visible`) into one document with a
-standard section order and an overview that precedes detail. Reuse `@kf/export`'s
+The master record — everything `permission(O,C)` admits — sectioned by relevance
+into a standard order, with an overview that precedes detail. Reuse `@kf/export`'s
 section machinery rather than starting a parallel renderer.
 
-Two outputs, not one: the document, and a **manifest** recording `compiled_at`,
-the visible-set digest it matched, what was included, and what was withheld or
+Two outputs, not one: the record, and a **manifest** recording `compiled_at`, the
+permission-set digest it matched, what was included, and what was withheld or
 withdrawn with the reason for each. The manifest is what makes the document a
 claim rather than a file.
 
@@ -69,6 +69,11 @@ A signed, expiring, revocable, access-logged link served by KF itself, fed by a
 consumer that drains `core.outbox` and writes a delivery receipt back. This is
 engineering and a service discharges it.
 
+It opens **no new outbound credential and involves no third party**. That is a
+deliberate ordering choice, not timidity: it is the only transport whose failure
+is recoverable, and the invariant should be proven against a recoverable
+transport before an irreversible one.
+
 ## STAGE-005 — disclosure, which is not engineering
 
 The first real disclosure — one person's own master document — and then a derived
@@ -79,11 +84,6 @@ a process completes; deciding that a particular person's records go to a
 particular recipient is not, and folding both into one stage would let the second
 be discharged by the first having gone well. `45-milestones.yaml` marks this
 stage `human`.
-
-The first transport opens **no new outbound credential and involves no third
-party**. That is a deliberate ordering choice, not timidity: it is the only
-transport whose failure is recoverable, and the invariant should be proven
-against a recoverable transport before an irreversible one.
 
 # Not authorized by this Warrant
 
@@ -101,7 +101,7 @@ pass and its own Warrant, not a milestone at the end of this one.
 
 **OW-WAR-0056 — the web viewer and management platform.** Overviews, navigation,
 and seeing who holds which subset. `apps/web` exists and has never completed a
-login against a real realm. Its own Warrant once M1-M6 hold, because a viewer
+login against a real realm. Its own Warrant once M1-M7 hold, because a viewer
 over a document that is not yet provably complete would make the wrong thing
 look finished.
 
