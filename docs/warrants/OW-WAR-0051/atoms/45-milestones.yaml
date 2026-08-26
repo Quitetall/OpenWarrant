@@ -1,0 +1,38 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "Gate visibility survives the collapse"
+    stage_refs: ["STAGE-001", "STAGE-002"]
+  - id: "M2"
+    title: "Waves landed, each projection-verified"
+    stage_refs: ["STAGE-003", "STAGE-004"]
+  - id: "M3"
+    title: "Both ratchets measured at zero and lowered"
+    stage_refs: ["STAGE-005", "STAGE-006"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Re-anchor ci_local.GATE_GLOBS and prove the guard can fail"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+  - id: "STAGE-002"
+    title: "Repair the KF lamquant-compat oracle; record the pre-collapse parity baseline"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+  - id: "STAGE-003"
+    title: "josh :prefix= waves, cheapest-first, one per commit"
+    executor_kind: "agent"
+    responsibility_tier: "T1"
+  - id: "STAGE-004"
+    title: "Retire the ~69 pins the collapse makes dead; converge the fleet"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+  - id: "STAGE-005"
+    title: "Close eagle-lqs and legacy exposure by consuming published versions"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+  - id: "STAGE-006"
+    title: "Lower module-ceilings.json to measured zero; append 0185 completion"
+    executor_kind: "human"
+    responsibility_tier: "T1"
