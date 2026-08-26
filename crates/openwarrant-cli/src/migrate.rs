@@ -19,13 +19,15 @@
 //!
 //! §96.1 keeps every body. The digest is recomputed here and compared by
 //! [`MigratedAdr::validate`], so "0 failures" is a statement about bytes rather
-//! than about non-emptiness. Reading the corpus out of a working tree is the
-//! caller's choice; OBL-001 is discharged by naming the commit and by the
-//! artifact being reproducible, which `--verify-against` checks.
+//! than about non-emptiness. The importer resolves the corpus inside its Git
+//! repository and reads every ADR blob from the exact commit named on the
+//! command line. Worktree edits and untracked files are therefore irrelevant to
+//! OBL-001's reproducibility claim.
 
 use std::collections::BTreeMap;
 use std::fmt;
 use std::fs;
+use std::process::{Command, Output};
 
 use camino::{Utf8Path, Utf8PathBuf};
 use openwarrant_compiler::sha256_hex;
@@ -45,6 +47,30 @@ pub enum MigrateError {
     },
     CorpusNotADirectory {
         path: Utf8PathBuf,
+    },
+    CorpusNotInRepository {
+        path: Utf8PathBuf,
+        detail: String,
+    },
+    CorpusMissingAtCommit {
+        path: String,
+        commit: String,
+    },
+    CommitUnavailable {
+        commit: String,
+        repository: Utf8PathBuf,
+        detail: String,
+    },
+    GitInvocation {
+        operation: &'static str,
+        source: std::io::Error,
+    },
+    GitFailure {
+        operation: &'static str,
+        detail: String,
+    },
+    NonUtf8GitOutput {
+        operation: &'static str,
     },
     CorpusEmpty {
         path: Utf8PathBuf,
@@ -78,6 +104,35 @@ impl fmt::Display for MigrateError {
             Self::CorpusNotADirectory { path } => {
                 write!(f, "corpus {path:?} is not a directory")
             }
+            Self::CorpusNotInRepository { path, detail } => write!(
+                f,
+                "corpus {path:?} is not inside a readable Git worktree: {detail}. \
+                 OBL-001 requires reading the named commit, not live files"
+            ),
+            Self::CorpusMissingAtCommit { path, commit } => write!(
+                f,
+                "corpus {path:?} is not a directory tree at commit {commit}. \
+                 OBL-001 refuses to substitute the live worktree"
+            ),
+            Self::CommitUnavailable {
+                commit,
+                repository,
+                detail,
+            } => write!(
+                f,
+                "commit {commit} is not an available commit object in repository \
+                 {repository:?}: {detail}"
+            ),
+            Self::GitInvocation { operation, source } => {
+                write!(f, "running Git operation {operation:?}: {source}")
+            }
+            Self::GitFailure { operation, detail } => {
+                write!(f, "Git operation {operation:?} failed: {detail}")
+            }
+            Self::NonUtf8GitOutput { operation } => write!(
+                f,
+                "Git operation {operation:?} returned a non-UTF-8 path or ADR body"
+            ),
             Self::CorpusEmpty { path } => write!(
                 f,
                 "corpus {path:?} contains no ADR files matching NNNN-*.md. An empty \
@@ -147,6 +202,166 @@ fn is_adr_filename(name: &str) -> bool {
         && bytes.len() > 5
         && bytes[..4].iter().all(u8::is_ascii_digit)
         && bytes[4] == b'-'
+}
+
+fn git_output(
+    cwd: &Utf8Path,
+    operation: &'static str,
+    args: &[&str],
+) -> Result<Output, MigrateError> {
+    Command::new("git")
+        .arg("-C")
+        .arg(cwd)
+        .args(args)
+        .output()
+        .map_err(|source| MigrateError::GitInvocation { operation, source })
+}
+
+fn git_detail(output: &Output) -> String {
+    let detail = String::from_utf8_lossy(&output.stderr).trim().to_owned();
+    if detail.is_empty() {
+        format!("exit status {}", output.status)
+    } else {
+        detail
+    }
+}
+
+fn git_stdout_text(output: Output, operation: &'static str) -> Result<String, MigrateError> {
+    String::from_utf8(output.stdout).map_err(|_| MigrateError::NonUtf8GitOutput { operation })
+}
+
+fn trim_git_line(mut value: String) -> String {
+    while value.ends_with('\n') || value.ends_with('\r') {
+        value.pop();
+    }
+    value
+}
+
+fn repository_context(corpus: &Utf8Path) -> Result<(Utf8PathBuf, String), MigrateError> {
+    let top = git_output(
+        corpus,
+        "discover repository root",
+        &["rev-parse", "--show-toplevel"],
+    )?;
+    if !top.status.success() {
+        return Err(MigrateError::CorpusNotInRepository {
+            path: corpus.to_owned(),
+            detail: git_detail(&top),
+        });
+    }
+    let repository = Utf8PathBuf::from(trim_git_line(git_stdout_text(
+        top,
+        "discover repository root",
+    )?));
+
+    let prefix = git_output(
+        corpus,
+        "resolve corpus path",
+        &["rev-parse", "--show-prefix"],
+    )?;
+    if !prefix.status.success() {
+        return Err(MigrateError::CorpusNotInRepository {
+            path: corpus.to_owned(),
+            detail: git_detail(&prefix),
+        });
+    }
+    let relative_root = trim_git_line(git_stdout_text(prefix, "resolve corpus path")?)
+        .trim_end_matches('/')
+        .to_owned();
+    Ok((repository, relative_root))
+}
+
+fn committed_adr_paths(
+    repository: &Utf8Path,
+    relative_root: &str,
+    commit_sha: &str,
+) -> Result<Vec<(String, String)>, MigrateError> {
+    if !relative_root.is_empty() {
+        let object = format!("{commit_sha}:{relative_root}");
+        let tree_type = git_output(
+            repository,
+            "resolve corpus tree",
+            &["cat-file", "-t", &object],
+        )?;
+        if !tree_type.status.success()
+            || trim_git_line(git_stdout_text(tree_type, "resolve corpus tree")?) != "tree"
+        {
+            return Err(MigrateError::CorpusMissingAtCommit {
+                path: relative_root.to_owned(),
+                commit: commit_sha.to_owned(),
+            });
+        }
+    }
+
+    let listing = if relative_root.is_empty() {
+        git_output(
+            repository,
+            "list committed corpus",
+            &["ls-tree", "-r", "-z", "--name-only", commit_sha],
+        )?
+    } else {
+        git_output(
+            repository,
+            "list committed corpus",
+            &[
+                "ls-tree",
+                "-r",
+                "-z",
+                "--name-only",
+                commit_sha,
+                "--",
+                relative_root,
+            ],
+        )?
+    };
+    if !listing.status.success() {
+        return Err(MigrateError::GitFailure {
+            operation: "list committed corpus",
+            detail: git_detail(&listing),
+        });
+    }
+
+    let mut paths = vec![];
+    for raw in listing
+        .stdout
+        .split(|byte| *byte == 0)
+        .filter(|p| !p.is_empty())
+    {
+        let path = std::str::from_utf8(raw).map_err(|_| MigrateError::NonUtf8GitOutput {
+            operation: "list committed corpus",
+        })?;
+        let candidate = Utf8Path::new(path);
+        let expected_parent = Utf8Path::new(relative_root);
+        if candidate.parent() != Some(expected_parent) {
+            continue;
+        }
+        let Some(filename) = candidate.file_name().filter(|name| is_adr_filename(name)) else {
+            continue;
+        };
+        paths.push((filename.to_owned(), path.to_owned()));
+    }
+    paths.sort_by(|left, right| left.1.cmp(&right.1));
+    Ok(paths)
+}
+
+fn read_committed_text(
+    repository: &Utf8Path,
+    commit_sha: &str,
+    path: &str,
+) -> Result<String, MigrateError> {
+    let object = format!("{commit_sha}:{path}");
+    let output = git_output(
+        repository,
+        "read committed ADR",
+        &["cat-file", "blob", &object],
+    )?;
+    if !output.status.success() {
+        return Err(MigrateError::GitFailure {
+            operation: "read committed ADR",
+            detail: git_detail(&output),
+        });
+    }
+    git_stdout_text(output, "read committed ADR")
 }
 
 /// Split YAML frontmatter from the body, returning `(frontmatter, body)`.
@@ -394,26 +609,24 @@ pub fn import(
         });
     }
 
-    // Sorted: the artifact must be byte-identical on a re-run (OBL-001), and
-    // directory order is not.
-    let mut files: Vec<Utf8PathBuf> = vec![];
-    let entries = fs::read_dir(corpus).map_err(|source| MigrateError::Read {
-        path: corpus.to_owned(),
-        source,
-    })?;
-    for entry in entries {
-        let entry = entry.map_err(|source| MigrateError::Read {
-            path: corpus.to_owned(),
-            source,
-        })?;
-        let Ok(path) = Utf8PathBuf::from_path_buf(entry.path()) else {
-            continue;
-        };
-        if path.file_name().is_some_and(is_adr_filename) {
-            files.push(path);
-        }
+    let (repository, relative_root) = repository_context(corpus)?;
+    let commit_object = format!("{commit_sha}^{{commit}}");
+    let commit_check = git_output(
+        &repository,
+        "resolve frozen commit",
+        &["cat-file", "-e", &commit_object],
+    )?;
+    if !commit_check.status.success() {
+        return Err(MigrateError::CommitUnavailable {
+            commit: commit_sha.to_owned(),
+            repository,
+            detail: git_detail(&commit_check),
+        });
     }
-    files.sort();
+
+    // Sorted inside `committed_adr_paths`: the artifact must be byte-identical
+    // on a re-run (OBL-001), independent of both directory order and worktree.
+    let files = committed_adr_paths(&repository, &relative_root, commit_sha)?;
     if files.is_empty() {
         return Err(MigrateError::CorpusEmpty {
             path: corpus.to_owned(),
@@ -422,7 +635,11 @@ pub fn import(
 
     let mut artifact = ImportArtifact {
         commit_sha: commit_sha.to_owned(),
-        corpus_relative_root: corpus.file_name().unwrap_or("decisions").to_owned(),
+        corpus_relative_root: if relative_root.is_empty() {
+            ".".to_owned()
+        } else {
+            relative_root
+        },
         adr_count: files.len(),
         promoted_resolutions: 0,
         historical_claims: 0,
@@ -432,12 +649,8 @@ pub fn import(
         adrs: Vec::with_capacity(files.len()),
     };
 
-    for path in &files {
-        let text = fs::read_to_string(path).map_err(|source| MigrateError::Read {
-            path: path.clone(),
-            source,
-        })?;
-        let source = path.file_name().unwrap_or("?").to_owned();
+    for (source, repository_path) in &files {
+        let text = read_committed_text(&repository, commit_sha, repository_path)?;
         let (frontmatter, body) = split_frontmatter(&text);
 
         let mut mapped: BTreeMap<String, LegacyMapping> = BTreeMap::new();
@@ -472,7 +685,7 @@ pub fn import(
 
         let mut claims = vec![];
         if let Some(text) = completion_text(body) {
-            let claim = HistoricalClaim::from_completion_line(&source, &text);
+            let claim = HistoricalClaim::from_completion_line(source, &text);
             // The negative control. Promotion is refused because there is no
             // admissible evidence, which is the whole of §96.3 in one call.
             if attempt_promotion {
@@ -494,7 +707,7 @@ pub fn import(
         };
         // OBL-002, per ADR, over the whole bounded corpus rather than a sample.
         if migrated.validate(body_digest).is_err() {
-            artifact.preservation_failures.push(source);
+            artifact.preservation_failures.push(source.clone());
         }
         artifact.adrs.push(migrated);
     }
@@ -596,6 +809,8 @@ pub fn obligations_met(artifact: &ImportArtifact) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::process::Command;
+    use std::sync::atomic::{AtomicU32, Ordering};
 
     /// A scratch corpus that removes itself.
     ///
@@ -610,8 +825,22 @@ mod tests {
         }
     }
 
-    fn corpus(files: &[(&str, &str)]) -> (Scratch, Utf8PathBuf) {
-        use std::sync::atomic::{AtomicU32, Ordering};
+    fn fixture_git(root: &Utf8Path, args: &[&str]) -> Output {
+        let output = Command::new("git")
+            .arg("-C")
+            .arg(root)
+            .args(args)
+            .output()
+            .expect("run fixture git");
+        assert!(
+            output.status.success(),
+            "fixture git {args:?} failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        output
+    }
+
+    fn corpus(files: &[(&str, &str)]) -> (Scratch, Utf8PathBuf, String) {
         static NEXT: AtomicU32 = AtomicU32::new(0);
         let unique = format!(
             "war-migrate-{}-{}",
@@ -624,10 +853,34 @@ mod tests {
         for (name, text) in files {
             fs::write(root.join(name), text).expect("write");
         }
-        (Scratch(root.clone()), root)
+        fixture_git(&root, &["init", "-b", "main"]);
+        fixture_git(&root, &["config", "user.name", "openwarrant-ci"]);
+        fixture_git(&root, &["config", "user.email", "ci@example.com"]);
+        fixture_git(&root, &["config", "commit.gpgsign", "false"]);
+        fixture_git(&root, &["add", "."]);
+        fixture_git(&root, &["commit", "-m", "fixture"]);
+        let output = fixture_git(&root, &["rev-parse", "HEAD"]);
+        let commit = String::from_utf8(output.stdout).expect("commit output is utf8");
+        let commit = commit.trim().to_owned();
+        assert_eq!(commit.len(), 40);
+        (Scratch(root.clone()), root, commit)
     }
 
-    const SHA: &str = "ee950b8054756eb981e936b27c8d3e2a7c144296";
+    fn nongit_corpus(files: &[(&str, &str)]) -> (Scratch, Utf8PathBuf) {
+        static NEXT: AtomicU32 = AtomicU32::new(0);
+        let unique = format!(
+            "war-migrate-nongit-{}-{}",
+            std::process::id(),
+            NEXT.fetch_add(1, Ordering::Relaxed)
+        );
+        let root = Utf8PathBuf::from_path_buf(std::env::temp_dir().join(unique))
+            .expect("temp dir path is utf8");
+        fs::create_dir_all(&root).expect("create scratch");
+        for (name, text) in files {
+            fs::write(root.join(name), text).expect("write");
+        }
+        (Scratch(root.clone()), root)
+    }
 
     fn adr(body: &str) -> String {
         format!("---\nstatus: accepted\n---\n{body}")
@@ -735,7 +988,7 @@ mod tests {
 
     #[test]
     fn a_branch_name_is_not_a_frozen_commit() {
-        let (_d, root) = corpus(&[("0001-x.md", &adr("## Decision\nx\n"))]);
+        let (_d, root, _commit) = corpus(&[("0001-x.md", &adr("## Decision\nx\n"))]);
         assert!(matches!(
             import(&root, "main", false),
             Err(MigrateError::UnpinnedCommit { .. })
@@ -744,7 +997,7 @@ mod tests {
 
     #[test]
     fn an_abbreviated_sha_is_not_a_frozen_commit() {
-        let (_d, root) = corpus(&[("0001-x.md", &adr("## Decision\nx\n"))]);
+        let (_d, root, _commit) = corpus(&[("0001-x.md", &adr("## Decision\nx\n"))]);
         assert!(matches!(
             import(&root, "ee950b8", false),
             Err(MigrateError::UnpinnedCommit { .. })
@@ -752,10 +1005,50 @@ mod tests {
     }
 
     #[test]
+    fn mutating_the_worktree_after_commit_does_not_change_imported_adr_bodies() {
+        let (_d, root, commit) = corpus(&[("0001-x.md", &adr("## Decision\ncommitted body\n"))]);
+        fs::write(root.join("0001-x.md"), adr("## Decision\nlive body\n")).expect("mutate file");
+        let artifact = import(&root, &commit, false).expect("import");
+        assert_eq!(
+            artifact.adrs[0].preserved_body,
+            "## Decision\ncommitted body\n"
+        );
+    }
+
+    #[test]
+    fn untracked_adr_after_commit_is_not_imported() {
+        let (_d, root, commit) = corpus(&[("0001-x.md", &adr("## Decision\ncommitted body\n"))]);
+        fs::write(
+            root.join("0002-untracked.md"),
+            adr("## Decision\nlive body\n"),
+        )
+        .expect("add untracked");
+        let artifact = import(&root, &commit, false).expect("import");
+        assert_eq!(artifact.adrs.len(), 1);
+        assert_eq!(artifact.adrs[0].source, "0001-x.md");
+    }
+
+    #[test]
+    fn syntactically_valid_missing_git_object_is_rejected_not_read_from_worktree() {
+        let (_d, root, _commit) = corpus(&[("0001-x.md", &adr("## Decision\nx\n"))]);
+        let err =
+            import(&root, "0000000000000000000000000000000000000000", false).expect_err("reject");
+        assert!(matches!(err, MigrateError::CommitUnavailable { .. }));
+    }
+
+    #[test]
+    fn corpus_path_outside_a_git_repo_is_rejected() {
+        let (_d, _root, commit) = corpus(&[("0001-x.md", &adr("## Decision\nx\n"))]);
+        let (_d_non_git, root_non_git) = nongit_corpus(&[("0001-y.md", &adr("## Decision\ny\n"))]);
+        let err = import(&root_non_git, &commit, false).expect_err("reject");
+        assert!(matches!(err, MigrateError::CorpusNotInRepository { .. }));
+    }
+
+    #[test]
     fn the_body_is_preserved_byte_for_byte_and_its_digest_recomputes() {
         let body = "## Decision\n\nKeep every byte,   including   this spacing.\n";
-        let (_d, root) = corpus(&[("0001-x.md", &adr(body))]);
-        let artifact = import(&root, SHA, false).expect("import");
+        let (_d, root, commit) = corpus(&[("0001-x.md", &adr(body))]);
+        let artifact = import(&root, &commit, false).expect("import");
         assert_eq!(artifact.adrs[0].preserved_body, body);
         assert_eq!(artifact.adrs[0].preserved_body_digest, body_digest(body));
         assert!(artifact.preservation_failures.is_empty());
@@ -764,11 +1057,11 @@ mod tests {
 
     #[test]
     fn a_gate_command_imports_unqualified_and_cannot_be_promoted() {
-        let (_d, root) = corpus(&[(
+        let (_d, root, commit) = corpus(&[(
             "0001-x.md",
             &adr("## Implementation Plan\n- `gate_cmd:` `cargo test`\n"),
         )]);
-        let artifact = import(&root, SHA, false).expect("import");
+        let artifact = import(&root, &commit, false).expect("import");
         assert_eq!(artifact.legacy_declared_unqualified_gates, 1);
         let gate = &artifact.adrs[0].legacy_gates[0];
         assert!(!gate.is_now_qualified());
@@ -778,15 +1071,15 @@ mod tests {
     /// OBL-003's negative control, at the library seam the binary calls.
     #[test]
     fn attempting_to_promote_a_completion_line_is_refused() {
-        let (_d, root) = corpus(&[(
+        let (_d, root, commit) = corpus(&[(
             "0001-x.md",
             &adr("## Completion / Resolution\n- **verdict:** `passed`\n"),
         )]);
-        let clean = import(&root, SHA, false).expect("import");
+        let clean = import(&root, &commit, false).expect("import");
         assert_eq!(clean.historical_claims, 1);
         assert_eq!(clean.promoted_resolutions, 0);
 
-        let err = import(&root, SHA, true).expect_err("promotion must be refused");
+        let err = import(&root, &commit, true).expect_err("promotion must be refused");
         assert!(
             format!("{err}").contains("HISTORICAL"),
             "wrong refusal: {err}"
@@ -795,11 +1088,11 @@ mod tests {
 
     #[test]
     fn am_001_normalisation_is_applied_to_real_heading_shapes() {
-        let (_d, root) = corpus(&[(
+        let (_d, root, commit) = corpus(&[(
             "0001-x.md",
             &adr("## Alternatives Considered\nx\n\n## Validation  *(ongoing)*\ny\n"),
         )]);
-        let artifact = import(&root, SHA, false).expect("import");
+        let artifact = import(&root, &commit, false).expect("import");
         assert!(
             artifact.unmapped_elements.is_empty(),
             "unmapped: {:?}",
@@ -810,8 +1103,8 @@ mod tests {
 
     #[test]
     fn an_invented_section_is_reported_unmapped_not_guessed() {
-        let (_d, root) = corpus(&[("0001-x.md", &adr("## Reversal triggers\nx\n"))]);
-        let artifact = import(&root, SHA, false).expect("import");
+        let (_d, root, commit) = corpus(&[("0001-x.md", &adr("## Reversal triggers\nx\n"))]);
+        let artifact = import(&root, &commit, false).expect("import");
         assert_eq!(
             artifact.unmapped_elements.get("Reversal triggers"),
             Some(&1)
@@ -821,12 +1114,12 @@ mod tests {
     /// OBL-001's evidence: a re-run at the same SHA is byte-identical.
     #[test]
     fn the_artifact_is_reproducible() {
-        let (_d, root) = corpus(&[
+        let (_d, root, commit) = corpus(&[
             ("0002-b.md", &adr("## Decision\nb\n")),
             ("0001-a.md", &adr("## Decision\na\n")),
         ]);
-        let first = render(&import(&root, SHA, false).expect("import")).expect("render");
-        let second = render(&import(&root, SHA, false).expect("import")).expect("render");
+        let first = render(&import(&root, &commit, false).expect("import")).expect("render");
+        let second = render(&import(&root, &commit, false).expect("import")).expect("render");
         assert_eq!(first, second);
         // ...and the order is the sorted one, not the directory's.
         let a = first.find("0001-a.md").expect("0001 present");
@@ -836,9 +1129,9 @@ mod tests {
 
     #[test]
     fn an_empty_corpus_is_refused_rather_than_reported_as_a_clean_import() {
-        let (_d, root) = corpus(&[("README.md", "not an ADR\n")]);
+        let (_d, root, commit) = corpus(&[("README.md", "not an ADR\n")]);
         assert!(matches!(
-            import(&root, SHA, false),
+            import(&root, &commit, false),
             Err(MigrateError::CorpusEmpty { .. })
         ));
     }
