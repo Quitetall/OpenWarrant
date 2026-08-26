@@ -58,6 +58,18 @@ so the compiler has a starting point rather than a blank page.
 
 ## What does not exist
 
+**No person-level entitlement layer.** The only subtractive access concept in the
+schema is `core.retention_hold` — `object_id`, `reason` not null, `placed_by`,
+`placed_at`, `released_at`, append-only — and it withholds an object from
+everyone rather than from a person. There is no table, and no code, expressing
+"this person may not see this record, for this reason, placed by this authorizer".
+`org.role_assignment`, `org.project_membership` and `org.engagement` exist and
+could source such decisions, but none of them subtracts anything today.
+
+`core.retention_hold` is nonetheless the right shape to copy, and copying it is
+cheaper than inventing one: it is already append-only, already carries a
+mandatory reason, and already records who placed it and when.
+
 **No outbound transport of any kind.** Zero matches for nodemailer, SMTP,
 SendGrid, Postmark or any mailer across all TypeScript in `packages/` and
 `apps/`. This is not a gap in configuration; there is no code.

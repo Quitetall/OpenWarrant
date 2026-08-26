@@ -30,9 +30,9 @@ already knows what a person is permitted to see:
 `core.set_access_context(p_organization uuid, p_max_classification text)` sets the
 access context and the row-level policies on 76 tables do the rest.
 
-So the master document has an invariant, not a specification. It has two halves,
-because relevance and permission are different kinds of thing and conflating them
-is what makes this claim slippery.
+So the master document has an invariant, not a specification. It has three
+layers, because permission, entitlement and relevance are different kinds of
+thing and conflating any two of them is what makes this claim slippery.
 
 **Relevance is a graph property.** `org.person.id` references `core.object(id)`,
 so a person is a node. `core.relation` is typed, stateful and time-bounded. What
@@ -43,19 +43,40 @@ concerns you is what the graph connects to your node.
 `kf.max_classification`. No policy in `row_security.sql` reads an actor or a
 person. RLS admits by tenant and ceiling, not by identity.
 
-    relevance(P, T)   = ⋃ over anchors a of P: closure(target(a), propagation[a])
     permission(O, C)  = the set RLS admits at organization O, ceiling C
+    exclusions(P, T)  = reasoned, authorized, time-bounded withholdings
+    permitted(P, T)   = permission(O, C) ∖ exclusions(P, T)
+    relevance(P, T)   = ⋃ over anchors a of P: closure(target(a), propagation[a])
 
-    masterRecord(P, O, C, T) == permission(O, C)
+    masterRecord(P, O, C, T) == permitted(P, T)
 
-**Membership is permission. Relevance sections it. They are never the same
-mechanism.**
+**Membership is permission minus reasoned exclusions. Relevance sections it.
+They are never the same mechanism.**
+
+RLS alone cannot express "yours" — it admits by tenant and ceiling, so colleagues
+at one ceiling would otherwise hold identical records. `permitted(P, T)` is the
+person-level layer that makes a record genuinely someone's, and it sits **above**
+RLS rather than inside it: no per-identity policy across 76 tables, and none of
+the scaling problems per-identity row security brings.
+
+**Entitlement is subtractive, never granted.** This is the load-bearing choice. A
+grant-based layer fails by omission — forget to grant and the record is simply
+invisible, with nothing anywhere recording why, which is precisely the untestable
+bug this design exists to prevent. A subtractive layer cannot fail that way:
+absence always has a row behind it carrying a reason, an authorizer and a time.
+Default-open, and every subtraction explains itself.
+
+`core.retention_hold` is the shape to copy — `object_id`, `reason` not null,
+`placed_by`, `placed_at`, `released_at`, append-only — extended with the subject
+it withholds from, and a reason class so withholding can be reported differently
+depending on why: holds enumerated per item, third-party material as a bare
+count.
 
 That is the sentence at the top of this atom, read literally: *or haven't been
 given permission*. The boundary of the file is what you are permitted to see —
 not what someone judged to concern you. So the record contains everything
-`permission(O, C)` admits, and `relevance(P, T)` decides where in the document
-each thing appears, and what a derived subset may be scoped to.
+`permitted(P, T)` admits, and `relevance(P, T)` decides where in the record each
+thing appears, and what a derived subset may be scoped to.
 
 An earlier draft made membership the intersection `relevance ∩ permission`. That
 was wrong twice over. It contradicted itself two paragraphs later by describing
@@ -63,18 +84,23 @@ material outside the intersection as something a rendering could index, which is
 impossible if it was never in the record. And more importantly it handed the
 relevance policy the power to make records disappear.
 
-Separating them buys the property this whole design exists for. **A record
-missing from someone's file has exactly one possible cause — their clearance did
-not admit it — and that is true by construction rather than by a policy being
-carefully written.** A mistake in the relevance closure can now only put a record
-in the wrong section, where it is still present, still searchable, still there to
-be found. It cannot cause a disappearance, so it cannot cause the untestable
-class of bug where somebody cannot find a document they were plainly implicated
-in and nobody can say why.
+Separating them buys the property this whole design exists for. **No absence is
+ever silent.** A mistake in the relevance closure can only put a record in the
+wrong section, where it is still present, still searchable, still there to be
+found — it cannot cause a disappearance. And the two things that genuinely can
+remove a record both account for themselves: an exclusion writes a row carrying
+its reason and appears in the withheld ledger, and clearance is the single
+remaining cause, inspectable and reproducible.
 
-Note also what the permission parameters say: **two people in one organization at
-one ceiling hold the same records.** What differs between their documents is
-entirely how those records are sectioned, and which subsets they can derive.
+So the untestable bug — somebody cannot find a document they were plainly
+implicated in, and nobody can say why — has nowhere left to live. Every "why is
+this not here" resolves to a named section, a named exclusion, or a ceiling.
+
+Note what this fixes. Under RLS alone, two people in one organization at one
+ceiling would hold identical records, and only the sectioning would differ —
+which makes "your record" a courtesy rather than a fact. The entitlement layer is
+what makes the difference real, and it does so subtractively, so the fact costs
+nothing in findability.
 
 Equality, in both directions, and each direction fails differently:
 
@@ -121,7 +147,7 @@ membership by relevance. The resolution is not to split the record but to stop
 asking one mechanism to do both jobs.
 
 **The master record is a personal database, not a document.** It holds everything
-`permission(O,C)` admits, complete, at full content, with no ceiling and no
+`permitted(P,T)` admits, complete, at full content, with no ceiling and no
 catalogue. Legibility is the job of tooling over it, not of leaving things out of
 it.
 
@@ -137,13 +163,41 @@ subset scoped to an engagement; the PDF. A rendering may inline some things and
 reference others, and it says which — but nothing is *absent from the record*
 because a renderer found it inconvenient.
 
-So the sections follow relevance while the membership follows permission. The
-part with no relation to you — `permission(O,C) ∖ relevance(P)` — is the
-organization's library rather than anything about you, and is identical to every
-colleague's at your ceiling; a rendering may reasonably show it as an index while
-the record still holds it in full. And the record being a database is what makes
-"export in any format" coherent: the formats are renderings of one complete
-thing, not four divergent extracts.
+So the sections follow relevance while membership follows entitlement, and the
+record splits into two first-class surfaces:
+
+**Your record** — `relevance(P,T) ∩ permitted(P,T)`. What the graph says concerns
+you, at full content.
+
+**The org view** — `permitted(P,T) ∖ relevance(P,T)`. Everything you may see that
+has no relation to you: the organization's shared and public material from where
+you stand. This is a **view in its own right**, not a leftover. It is browsable
+and searchable, and because every member of it is already permitted to you,
+**opening anything in it needs no further authorization** — the decision was made
+when it entered `permitted`, not when you clicked.
+
+That property is worth stating because it is what makes the org view usable
+rather than a wall of locked titles. A rendering may present it as an index that
+resolves to full content on demand; there is no second gate behind it.
+
+The record being a database is what makes "export in any format" coherent: the
+formats are renderings of one complete thing, not divergent extracts.
+
+### Four states, and only one of them is invisible
+
+For any object in the corpus, from a given person's standpoint:
+
+    in your record       permitted and relevant           full content
+    in the org view      permitted, not relevant          browsable, opens freely
+    in the withheld      excluded, with a reason          named or counted by class
+      ledger
+    absent               permission never admitted it     one cause: tenant/ceiling
+
+Three of the four are **visible**. Only the last is not, and it has exactly one
+explanation, which is inspectable and reproducible. That is a stronger guarantee
+than the earlier draft reached: it keeps records genuinely personal while leaving
+nothing silently missing, because a record that is withheld says so and a record
+that is merely not-about-you is still right there in the org view.
 
 The section grouping is declared by `registry.relation_type`, not by the
 compiler. A grouping written in code is a hand-maintained mirror of an

@@ -50,9 +50,17 @@ milestones:
     stage_refs: ["STAGE-001"]
     obligation_refs: ["OBL-010"]
 
+  # Membership is permitted(P,T), so the entitlement layer has to exist before
+  # anything can compile a record that is genuinely one person's.
+  - id: "M2F"
+    title: "Entitlement subtracts with a reason, and an empty exclusion set hides nothing"
+    depends_on: ['M2E']
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-011"]
+
   - id: "M3"
     title: "The master record compiles complete, with a manifest and a first rendering"
-    depends_on: ['M2', 'M2D', 'M2E']
+    depends_on: ['M2', 'M2D', 'M2F']
     stage_refs: ["STAGE-002"]
     obligation_refs: ["OBL-002"]
 
@@ -61,6 +69,12 @@ milestones:
     depends_on: ['M3']
     stage_refs: ["STAGE-002"]
     obligation_refs: ["OBL-002"]
+
+  - id: "M4B"
+    title: "The org view is browsable and opens without a second authorization"
+    depends_on: ['M3']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-012"]
 
   - id: "M5"
     title: "A removed record reads as withdrawn, not as absent"

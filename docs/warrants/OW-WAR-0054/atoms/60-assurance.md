@@ -89,10 +89,11 @@ classification: internal
   which types happen to populate a class.
 
 ### OBL-008 — fan-out is measured, and every ceiling governs rendering only
-- **scope:** relevance closure size per anchor type, measured on real data; and
-  every threshold in every renderer.
+- **scope:** the size of `permitted(P,T)` — which is what the record actually
+  contains — AND relevance closure size per anchor type, both measured on real
+  data; and every threshold in every renderer.
 - **gate:** `gate://software.repo.war-check@1.0.0`
-- **evidence:** measured fan-out per anchor type, plus a planted oversized
+- **evidence:** both measurements, plus a planted oversized
   subtree proving that the master record still CONTAINS every member while a
   rendering references rather than inlines them, and says which it did. A
   threshold that removes a record from the record itself is refused.
@@ -102,6 +103,11 @@ classification: internal
   that the maximal closure exists to eliminate, and would reintroduce it in the
   layer nobody audits. The measurement is for storage and rendering budgets, not
   for deciding what someone is entitled to.
+- **note:** an earlier draft of this obligation measured relevance fan-out only.
+  That was the wrong quantity once membership moved: record size is
+  |permitted(P,T)|, and relevance governs sectioning. Measuring only the closure
+  would have left the obligation meant to catch "a record nobody can open"
+  looking at a number that does not determine record size.
 
 ### OBL-009 — the anchor and propagation policy lives in the ontology
 - **scope:** `registry.relation_type` and `ontology/relation-types.yaml`.
@@ -133,6 +139,34 @@ classification: internal
   permission is determined solely by ceiling. Compiling an exact record around an
   unvalidated number produces precision about the wrong set, in both directions
   and without a signal.
+
+### OBL-011 — entitlement subtracts, is reasoned, and can never fail by omission
+- **scope:** `permitted(P,T) = permission(O,C) ∖ exclusions(P,T)` and every write
+  to the exclusion store.
+- **gate:** `gate://software.repo.war-check@1.0.0`
+- **evidence:** a record excluded from one person and not another, with the
+  exclusion carrying subject, reason class, free-text reason, authorizer and
+  time; the same record still present in the other person's record; and the
+  exclusion appearing in the first person's withheld ledger. Plus the negative
+  that matters most: **a person with no exclusion rows sees everything
+  `permission(O,C)` admits.** An implementation that requires a grant before a
+  record is visible is refused outright, whatever it is called.
+- **note:** default-open is the whole point. A grant-based layer fails by
+  omission — forget to grant, and the record is invisible with nothing recording
+  why — which is the exact bug this Warrant exists to make impossible. The test
+  for that failure is the empty-exclusions case, not a happy path.
+
+### OBL-012 — the org view opens without a second authorization
+- **scope:** `permitted(P,T) ∖ relevance(P,T)` as a first-class surface.
+- **gate:** `gate://software.repo.war-check@1.0.0`
+- **evidence:** every member of the org view resolves to full content for that
+  person with no further check, no elevation and no request — because the
+  decision was made when it entered `permitted`. A path that re-authorizes on
+  open is refused: it would mean either the entitlement layer did not decide, or
+  it decided twice with two chances to disagree.
+- **note:** the org view is a view, not a leftover. If it were merely titles
+  behind a gate it would be a wall, and people would route around it — which is
+  how shadow copies start.
 
 ## Evidence
 
