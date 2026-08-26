@@ -17,9 +17,31 @@ milestones:
     stage_refs: ["STAGE-001"]
     obligation_refs: ["OBL-006"]
 
+  # The ontology must be able to state the policy before a compiler can obey it.
+  # Otherwise the compiler carries a list nothing checks it against.
+  - id: "M2B"
+    title: "Relation types declare person-anchoring and propagation class"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-009"]
+
+  - id: "M2C"
+    title: "The relevance closure terminates on a planted provenance cycle"
+    depends_on: ['M2B']
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-007"]
+
+  # Full-subtree composition means clearance is the only bound on volume. This
+  # measures what that actually costs before anything depends on the answer.
+  - id: "M2D"
+    title: "Fan-out measured per anchor type; every ceiling governs rendering, never membership"
+    depends_on: ['M2C']
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-008"]
+
   - id: "M3"
-    title: "Four views compile into one master document with a manifest"
-    depends_on: ['M2']
+    title: "The master record compiles complete, with a manifest and a first rendering"
+    depends_on: ['M2', 'M2D']
     stage_refs: ["STAGE-002"]
     obligation_refs: ["OBL-002"]
 

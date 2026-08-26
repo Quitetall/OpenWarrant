@@ -64,7 +64,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0051](docs/warrants/OW-WAR-0051/manifest.toml) | Close ADR 0185's boundary ratchets and run the consolidation waves | `draft` | `current` | `valid` | `basic` | 3M / 6S |
 | [OW-WAR-0052](docs/warrants/OW-WAR-0052/manifest.toml) | Land the ABIR2 boundary, storage profiles, migration and datapath in dependency order | `draft` | `current` | `valid` | `basic` | 3M / 4S |
 | [OW-WAR-0053](docs/warrants/OW-WAR-0053/manifest.toml) | Carry the research track: latent scaling, Optimum v2, H.BWC and the TBME paper | `draft` | `current` | `valid` | `basic` | 3M / 6S |
-| [OW-WAR-0054](docs/warrants/OW-WAR-0054/manifest.toml) | The Master Record: a person's document is their access, and can be proven equal to it | `draft` | `current` | `valid` | `controlled` | 8M / 5S |
+| [OW-WAR-0054](docs/warrants/OW-WAR-0054/manifest.toml) | The Master Record: a person's document is their access, and can be proven equal to it | `draft` | `current` | `valid` | `controlled` | 11M / 5S |
 
 > **54 of 54 states are DERIVED, not recorded.** Nothing journals transitions yet (OW-WAR-0031), and authorization does not exist until OW-WAR-0009 — so no Warrant has left `draft`. A later phase would have to be invented.
 

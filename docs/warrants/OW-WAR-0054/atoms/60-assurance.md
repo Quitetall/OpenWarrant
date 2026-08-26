@@ -70,6 +70,43 @@ classification: internal
   — which is how the completeness claim ends up quietly not covering part of
   itself.
 
+### OBL-007 — the relevance closure terminates, proven on a planted cycle
+- **scope:** the fixpoint over composition, version and provenation relation
+  types seeded by a person's anchors.
+- **gate:** `gate://software.repo.war-check@1.0.0`
+- **evidence:** a planted cycle in a provenance chain — `derived_from` back to an
+  ancestor — from which the closure returns rather than exhausting. Of the 41
+  registered relation types only six declare `acyclic`, and **not one provenance
+  type is among them**, so termination here is a property of the traversal and
+  cannot be inherited from the ontology. A closure that has never met a cycle is
+  not evidence that it survives one.
+
+### OBL-008 — fan-out is measured, and every ceiling governs rendering only
+- **scope:** relevance closure size per anchor type, measured on real data; and
+  every threshold in every renderer.
+- **gate:** `gate://software.repo.war-check@1.0.0`
+- **evidence:** measured fan-out per anchor type, plus a planted oversized
+  subtree proving that the master record still CONTAINS every member while a
+  rendering references rather than inlines them, and says which it did. A
+  threshold that removes a record from the record itself is refused.
+- **note:** membership is decided by the invariant; presentation is decided by a
+  rendering. They must not be decided together. A ceiling that dropped members
+  would reintroduce the second cause of absence — policy, rather than clearance —
+  that the maximal closure exists to eliminate, and would reintroduce it in the
+  layer nobody audits. The measurement is for storage and rendering budgets, not
+  for deciding what someone is entitled to.
+
+### OBL-009 — the anchor and propagation policy lives in the ontology
+- **scope:** `registry.relation_type` and `ontology/relation-types.yaml`.
+- **gate:** `gate://software.repo.war-check@1.0.0`
+- **evidence:** relation types declare which may anchor to a person and which
+  propagation class they belong to, and the compiler reads that declaration
+  rather than carrying its own list. Today the registry holds only `id`,
+  `inverse_label`, `acyclic` and `is_symmetric` — there is no domain, no range
+  and no propagation class, so a compiler written now would necessarily carry a
+  hand-maintained mirror of an ontology it cannot check itself against. A planted
+  disagreement between declaration and compiler behaviour must be refused.
+
 ## Evidence
 
 ### EV-001 — the primitives were read from the tree, not remembered
@@ -220,7 +257,18 @@ depends on it.
 **One instance, one actor.** §46.3's independence minimum is unmet and is
 reported as unmet.
 
-**ADR 0008 is open upstream.** `war kf` carries no classification header. A
-disclosure act bounded by a classification ceiling cannot express that ceiling on
-the wire today, so M5 either waits for that decision or records precisely what it
-could not assert.
+**ADR 0008 is on the critical path, not beside it.** Two facts make it so.
+`core.set_access_context` takes `(organization, max_classification)` and no
+policy reads an actor, so a person's permission set is entirely determined by
+their ceiling — and deriving that ceiling from a person is exactly what ADR 0008
+leaves undecided, with `maxClassification` passing unvalidated through
+`packages/authorization/src/identity.ts:250` and no clearance model to clamp
+against. Then, because composition runs the full subtree bounded only by
+clearance, that same undecided ceiling is the ONLY bound on how large a person's
+file becomes.
+
+So classification correctness now governs volume as well as confidentiality, and
+a wrong ceiling is not merely a leak — it is a leak of unbounded size. Separately
+`war kf` still carries no classification header, so a disclosure act cannot
+express its ceiling on the wire. This is upstream of STAGE-002, not of STAGE-004
+as previously recorded.
