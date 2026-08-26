@@ -56,6 +56,10 @@ pub enum MigrateError {
         path: String,
         commit: String,
     },
+    NestedAdrPath {
+        path: String,
+        corpus: String,
+    },
     CommitUnavailable {
         commit: String,
         repository: Utf8PathBuf,
@@ -113,6 +117,11 @@ impl fmt::Display for MigrateError {
                 f,
                 "corpus {path:?} is not a directory tree at commit {commit}. \
                  OBL-001 refuses to substitute the live worktree"
+            ),
+            Self::NestedAdrPath { path, corpus } => write!(
+                f,
+                "ADR {path:?} is nested below flat corpus {corpus:?}. \
+                 OBL-001 refuses to omit an ADR silently"
             ),
             Self::CommitUnavailable {
                 commit,
@@ -210,6 +219,9 @@ fn git_output(
     args: &[&str],
 ) -> Result<Output, MigrateError> {
     Command::new("git")
+        // Replacement refs are local overlays. Honouring one would make the
+        // literal SHA in the artifact name different bytes on different hosts.
+        .arg("--no-replace-objects")
         .arg("-C")
         .arg(cwd)
         .args(args)
@@ -333,6 +345,12 @@ fn committed_adr_paths(
         let candidate = Utf8Path::new(path);
         let expected_parent = Utf8Path::new(relative_root);
         if candidate.parent() != Some(expected_parent) {
+            if candidate.file_name().is_some_and(is_adr_filename) {
+                return Err(MigrateError::NestedAdrPath {
+                    path: path.to_owned(),
+                    corpus: relative_root.to_owned(),
+                });
+            }
             continue;
         }
         let Some(filename) = candidate.file_name().filter(|name| is_adr_filename(name)) else {
@@ -610,17 +628,24 @@ pub fn import(
     }
 
     let (repository, relative_root) = repository_context(corpus)?;
-    let commit_object = format!("{commit_sha}^{{commit}}");
     let commit_check = git_output(
         &repository,
         "resolve frozen commit",
-        &["cat-file", "-e", &commit_object],
+        &["cat-file", "-t", commit_sha],
     )?;
     if !commit_check.status.success() {
         return Err(MigrateError::CommitUnavailable {
             commit: commit_sha.to_owned(),
             repository,
             detail: git_detail(&commit_check),
+        });
+    }
+    let object_type = trim_git_line(git_stdout_text(commit_check, "resolve frozen commit")?);
+    if object_type != "commit" {
+        return Err(MigrateError::CommitUnavailable {
+            commit: commit_sha.to_owned(),
+            repository,
+            detail: format!("object type is {object_type:?}, expected \"commit\""),
         });
     }
 
@@ -1005,6 +1030,24 @@ mod tests {
     }
 
     #[test]
+    fn an_annotated_tag_object_is_not_a_frozen_commit() {
+        let (_d, root, commit) = corpus(&[("0001-x.md", &adr("## Decision\nx\n"))]);
+        fixture_git(
+            &root,
+            &["tag", "-a", "frozen", "-m", "fixture tag", &commit],
+        );
+        let tag_object = trim_git_line(
+            String::from_utf8(fixture_git(&root, &["rev-parse", "frozen"]).stdout)
+                .expect("tag object id is utf8"),
+        );
+        assert_eq!(tag_object.len(), 40);
+
+        let err = import(&root, &tag_object, false).expect_err("reject tag object id");
+
+        assert!(matches!(err, MigrateError::CommitUnavailable { .. }));
+    }
+
+    #[test]
     fn mutating_the_worktree_after_commit_does_not_change_imported_adr_bodies() {
         let (_d, root, commit) = corpus(&[("0001-x.md", &adr("## Decision\ncommitted body\n"))]);
         fs::write(root.join("0001-x.md"), adr("## Decision\nlive body\n")).expect("mutate file");
@@ -1029,11 +1072,93 @@ mod tests {
     }
 
     #[test]
+    fn replacement_refs_cannot_redirect_the_named_commit() {
+        let (_d, root, frozen) =
+            corpus(&[("0001-x.md", &adr("## Decision\noriginal frozen body\n"))]);
+        fs::write(
+            root.join("0001-x.md"),
+            adr("## Decision\nreplacement body\n"),
+        )
+        .expect("write replacement");
+        fixture_git(&root, &["add", "."]);
+        fixture_git(&root, &["commit", "-m", "replacement"]);
+        let replacement = trim_git_line(
+            String::from_utf8(fixture_git(&root, &["rev-parse", "HEAD"]).stdout)
+                .expect("replacement sha is utf8"),
+        );
+        fixture_git(&root, &["replace", &frozen, &replacement]);
+
+        let artifact = import(&root, &frozen, false).expect("import frozen commit");
+
+        assert_eq!(artifact.commit_sha, frozen);
+        assert_eq!(
+            artifact.adrs[0].preserved_body,
+            "## Decision\noriginal frozen body\n"
+        );
+    }
+
+    #[test]
     fn syntactically_valid_missing_git_object_is_rejected_not_read_from_worktree() {
         let (_d, root, _commit) = corpus(&[("0001-x.md", &adr("## Decision\nx\n"))]);
         let err =
             import(&root, "0000000000000000000000000000000000000000", false).expect_err("reject");
         assert!(matches!(err, MigrateError::CommitUnavailable { .. }));
+    }
+
+    #[test]
+    fn corpus_directory_missing_from_named_commit_is_rejected() {
+        let (_d, repository, commit) = corpus(&[("README.md", "fixture\n")]);
+        let corpus = repository.join("docs/decisions");
+        fs::create_dir_all(&corpus).expect("create live corpus");
+        fs::write(corpus.join("0001-x.md"), adr("## Decision\nlive only\n"))
+            .expect("write live ADR");
+
+        let err = import(&corpus, &commit, false).expect_err("reject missing tree");
+
+        assert!(matches!(err, MigrateError::CorpusMissingAtCommit { .. }));
+    }
+
+    #[test]
+    fn nested_adr_paths_are_rejected_instead_of_silently_omitted() {
+        let (_d, root, _initial) = corpus(&[("README.md", "fixture\n")]);
+        fs::create_dir_all(root.join("nested")).expect("create nested corpus path");
+        fs::write(root.join("nested/0001-x.md"), adr("## Decision\nnested\n"))
+            .expect("write nested ADR");
+        fixture_git(&root, &["add", "."]);
+        fixture_git(&root, &["commit", "-m", "nested ADR"]);
+        let commit = trim_git_line(
+            String::from_utf8(fixture_git(&root, &["rev-parse", "HEAD"]).stdout)
+                .expect("commit sha is utf8"),
+        );
+
+        let err = import(&root, &commit, false).expect_err("reject nested ADR");
+
+        assert!(matches!(err, MigrateError::NestedAdrPath { .. }));
+    }
+
+    #[test]
+    fn non_utf8_committed_adr_body_is_rejected_explicitly() {
+        let (_d, root, _initial) = corpus(&[("0001-x.md", &adr("## Decision\nvalid\n"))]);
+        fs::write(
+            root.join("0001-x.md"),
+            b"---\nstatus: accepted\n---\n\xff\n",
+        )
+        .expect("write non-UTF-8 body");
+        fixture_git(&root, &["add", "."]);
+        fixture_git(&root, &["commit", "-m", "non-utf8"]);
+        let commit = trim_git_line(
+            String::from_utf8(fixture_git(&root, &["rev-parse", "HEAD"]).stdout)
+                .expect("commit sha is utf8"),
+        );
+
+        let err = import(&root, &commit, false).expect_err("reject non-UTF-8 body");
+
+        assert!(matches!(
+            err,
+            MigrateError::NonUtf8GitOutput {
+                operation: "read committed ADR"
+            }
+        ));
     }
 
     #[test]
