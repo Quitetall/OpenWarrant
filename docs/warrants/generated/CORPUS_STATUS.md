@@ -29,7 +29,7 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 | Objective | Exit Warrant | Achieved | invalid | draft | ready | would_satisfy | resolved |
 |---|---|---|---|---|---|---|---|
 | roadmap://OW-PHASE-0: Telemetry shim | OW-WAR-0041 | blocked by OW-WAR-0039, OW-WAR-0041 | 0 | 2 | 0 | 0 | 0 |
-| roadmap://OW-PHASE-1: File-native WAR compiler | — | not derivable — no member carries the `exit` slug | 0 | 17 | 0 | 0 | 1 |
+| roadmap://OW-PHASE-1: File-native WAR compiler | OW-WAR-0061 | blocked by OW-WAR-0001, OW-WAR-0002, OW-WAR-0003, OW-WAR-0004, OW-WAR-0005, OW-WAR-0007, OW-WAR-0008, OW-WAR-0009, OW-WAR-0012, OW-WAR-0013, OW-WAR-0014, OW-WAR-0031, OW-WAR-0033, OW-WAR-0049, OW-WAR-0055, OW-WAR-0057, OW-WAR-0060, OW-WAR-0061 | 0 | 18 | 0 | 0 | 1 |
 | roadmap://OW-PHASE-2: Agent planner | OW-WAR-0042 | blocked by OW-WAR-0034, OW-WAR-0035, OW-WAR-0037, OW-WAR-0042 | 0 | 4 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-3: ADR federation | OW-WAR-0043 | blocked by OW-WAR-0006, OW-WAR-0036, OW-WAR-0038, OW-WAR-0043, OW-WAR-0058 | 0 | 5 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-4: Knowledge Fabric registration | OW-WAR-0044 | blocked by OW-WAR-0028, OW-WAR-0029, OW-WAR-0030, OW-WAR-0032, OW-WAR-0044 | 0 | 5 | 0 | 0 | 0 |
@@ -62,16 +62,16 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | requirement | Warrants blocked |
 |---|---|
-| every required gate has admissible result | 54 |
+| every required gate has admissible result | 55 |
 | artifact digests verify | 9 |
 | required deliverables exist | 9 |
-| every required obligation is dispositioned | 6 |
-| independence requirements are met | 6 |
+| every required obligation is dispositioned | 7 |
+| independence requirements are met | 7 |
+| required judgments exist | 4 |
+| residual risks have sufficient authority | 4 |
+| exact authorized Contract Revision | 3 |
 | no blocker remains | 3 |
 | no required unknown remains | 3 |
-| required judgments exist | 3 |
-| residual risks have sufficient authority | 3 |
-| exact authorized Contract Revision | 2 |
 | runtime receipts match the basis | 2 |
 
 ## Requirements (SAS §106, §34.3)
@@ -100,7 +100,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-015` | claimed | 0 | OW-WAR-0002 (complete), OW-WAR-0005 (complete) |
 | `WAR-SAS-RQ-020` | claimed | 0 | OW-WAR-0036 (complete), OW-WAR-0058 (partial) |
 | `WAR-SAS-RQ-021` | unaddressed | 0 | — |
-| `WAR-SAS-RQ-022` | claimed | 0 | OW-WAR-0013 (complete), OW-WAR-0055 (complete) |
+| `WAR-SAS-RQ-022` | claimed | 0 | OW-WAR-0013 (complete), OW-WAR-0055 (complete), OW-WAR-0061 (partial) |
 | `WAR-SAS-RQ-023` | unaddressed | 0 | — |
 | `WAR-SAS-RQ-024` | claimed | 0 | OW-WAR-0006 (complete) |
 | `WAR-SAS-RQ-025` | claimed | 0 | OW-WAR-0006 (complete) |
@@ -145,7 +145,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-083` | claimed | 0 | OW-WAR-0030 (complete) |
 | `WAR-SAS-RQ-084` | claimed | 0 | OW-WAR-0030 (complete) |
 
-## Warrants (56) — invalid 0 · draft 54 · ready_to_resolve 0 · would_satisfy 0 · resolved **2**
+## Warrants (57) — invalid 0 · draft 55 · ready_to_resolve 0 · would_satisfy 0 · resolved **2**
 
 | Warrant | rung | §38.6 | blocking unknowns | milestones evidenced | first unmet |
 |---|---|---|---|---|---|
@@ -205,6 +205,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0058` Put the SAS under §101 governance: controlled revisions and the Release axis | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0059` Commit gate receipts as evidence and record the first resolutions | draft | unknown | 0 | 0 of 4 | exact authorized Contract Revision |
 | `OW-WAR-0060` Publish the corpus viewer: GitHub Pages from the committed projection | draft | unknown | 0 | 0 of 2 | exact authorized Contract Revision |
+| `OW-WAR-0061` Discharge the Phase 1 exit: OpenWarrant development uses WARs | draft | unknown | 0 | 0 of 1 | exact authorized Contract Revision |
 
 ## Not reported here
 

@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-56 Warrant(s) in this repository.
+57 Warrant(s) in this repository.
 
 ## Summary
 
@@ -67,8 +67,9 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0058](docs/warrants/OW-WAR-0058/manifest.toml) | Put the SAS under §101 governance: controlled revisions and the Release axis | `draft` | `current` | `valid` | `controlled` | 3M / 4S |
 | [OW-WAR-0059](docs/warrants/OW-WAR-0059/manifest.toml) | Commit gate receipts as evidence and record the first resolutions | `draft` | `current` | `valid` | `controlled` | 4M / 4S |
 | [OW-WAR-0060](docs/warrants/OW-WAR-0060/manifest.toml) | Publish the corpus viewer: GitHub Pages from the committed projection | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0061](docs/warrants/OW-WAR-0061/manifest.toml) | Discharge the Phase 1 exit: OpenWarrant development uses WARs | `draft` | `current` | `valid` | `basic` | 1M / 1S |
 
-> **56 of 56 states are DERIVED, not recorded.** Nothing journals transitions yet (OW-WAR-0031), and authorization does not exist until OW-WAR-0009 — so no Warrant has left `draft`. A later phase would have to be invented.
+> **57 of 57 states are DERIVED, not recorded.** Nothing journals transitions yet (OW-WAR-0031), and authorization does not exist until OW-WAR-0009 — so no Warrant has left `draft`. A later phase would have to be invented.
 
 ## Claimed SAS requirement coverage
 
@@ -86,7 +87,7 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-014` — OW-WAR-0003, OW-WAR-0004, OW-WAR-0058
 - `WAR-SAS-RQ-015` — OW-WAR-0002, OW-WAR-0005
 - `WAR-SAS-RQ-020` — OW-WAR-0036, OW-WAR-0058
-- `WAR-SAS-RQ-022` — OW-WAR-0013, OW-WAR-0055
+- `WAR-SAS-RQ-022` — OW-WAR-0013, OW-WAR-0055, OW-WAR-0061
 - `WAR-SAS-RQ-024` — OW-WAR-0006
 - `WAR-SAS-RQ-025` — OW-WAR-0006
 - `WAR-SAS-RQ-030` — OW-WAR-0009
@@ -185,6 +186,7 @@ Source: the Warrants under the configured warrants path.
 - **OW-WAR-0058** · roadmap: roadmap://OW-PHASE-3/sas-governance
 - **OW-WAR-0059** · roadmap: roadmap://OW-PHASE-6/gate-runs
 - **OW-WAR-0060** · roadmap: roadmap://OW-PHASE-1/projections
+- **OW-WAR-0061** · roadmap: roadmap://OW-PHASE-1/exit
 
 ## Not reported here
 
