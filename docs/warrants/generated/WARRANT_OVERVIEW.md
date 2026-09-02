@@ -67,7 +67,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0058](docs/warrants/OW-WAR-0058/manifest.toml) | Put the SAS under §101 governance: controlled revisions and the Release axis | `authorized` | `current` | `valid` | `controlled` | 3M / 4S |
 | [OW-WAR-0059](docs/warrants/OW-WAR-0059/manifest.toml) | Commit gate receipts as evidence and record the first resolutions | `authorized` | `current` | `valid` | `controlled` | 4M / 4S |
 | [OW-WAR-0060](docs/warrants/OW-WAR-0060/manifest.toml) | Publish the corpus viewer: GitHub Pages from the committed projection | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0061](docs/warrants/OW-WAR-0061/manifest.toml) | Discharge the Phase 1 exit: OpenWarrant development uses WARs | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0061](docs/warrants/OW-WAR-0061/manifest.toml) | Discharge the Phase 1 exit: OpenWarrant development uses WARs | `resolved` | `current` | `valid` | `basic` | 1M / 1S |
 
 ## Claimed SAS requirement coverage
 

@@ -252,6 +252,7 @@ pub fn ingest(
                     context: format!("could not serialize verification for {}", v.obligation),
                     source: std::io::Error::other(e.to_string()),
                 })?;
+                let record_digest = openwarrant_compiler::digest::sha256_hex(rendered.as_bytes());
                 fs::write(&path, rendered).map_err(|source| RepoError::Io {
                     context: format!("could not write {path}"),
                     source,
@@ -263,9 +264,12 @@ pub fn ingest(
                         &vm.uuid.to_string(),
                         crate::journal_cmd::VERIFICATION_RECORDED,
                         &format!("{}://{}", v.verifier.kind, v.verifier.actor),
+                        // The record's own digest is in the payload so that a
+                        // re-verification reaching the same disposition on new
+                        // evidence is a new event, not a refused duplicate.
                         &format!(
-                            "{{\"obligation\":\"{}\",\"disposition\":\"{}\"}}",
-                            v.obligation, v.disposition
+                            "{{\"obligation\":\"{}\",\"disposition\":\"{}\",\"record_digest\":\"sha256:{}\"}}",
+                            v.obligation, v.disposition, record_digest
                         ),
                     )?;
                 }

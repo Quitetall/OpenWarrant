@@ -2,7 +2,7 @@
 
 SAS §98, Phase 1 (file-native WAR compiler). Exit: **"OpenWarrant
 development uses WARs."** This file is OW-WAR-0061's deliverable: each line
-carries the command that produced it. Measured 2026-09-02 on `main`.
+carries the command that produced it. Measured 2026-09-02 on `main`; re-measured 2026-09-03 after OW-WAR-0059–0061 were authorized and eight Warrants resolved (the verifier refuted the first count, correctly: it was stale).
 
 ## The ten deliverables
 
@@ -21,26 +21,26 @@ carries the command that produced it. Measured 2026-09-02 on `main`.
 
 ```bash
 ./target/debug/war --help | grep -cE '^  (init|new|check|compile) '   # 4
-ls docs/warrants/OW-WAR-00*/generated/WAR.json | wc -l                 # 56
+ls docs/warrants/OW-WAR-00*/generated/WAR.json | wc -l                 # 57
 ./target/debug/war check --generated >/dev/null; echo $?               # 0
 ```
 
 ## The corpus
 
 ```bash
-ls -d docs/warrants/OW-WAR-00*/ | wc -l                                # 56 Warrants
-ls docs/warrants/OW-WAR-00*/authorization.toml | wc -l                 # 54 authorized (0059, 0060 pending the owner)
-ls docs/warrants/OW-WAR-00*/resolution.toml | wc -l                    # 2 resolved (0010, 0020), each citing a bound §44.6 receipt
+ls -d docs/warrants/OW-WAR-00*/ | wc -l                                # 57 Warrants
+ls docs/warrants/OW-WAR-00*/authorization.toml | wc -l                 # 57 authorized — every Warrant in the corpus
+ls docs/warrants/OW-WAR-00*/resolution.toml | wc -l                    # 8 resolved, each citing a bound §44.6 receipt
 ```
 
 ## Commit traceability (recorded, not passed)
 
 ```bash
-git log --format=%s main | wc -l                                       # 87
-git log --format=%s main | grep -c 'OW-WAR-'                           # 20
+git log --format=%s main | wc -l                                       # 91
+git log --format=%s main | grep -c 'OW-WAR-'                           # 24
 ```
 
-Twenty of eighty-seven commit subjects name a Warrant. The others name a
+24 of 91 commit subjects name a Warrant. The others name a
 SAS section, a fix, a records batch or a dependency bump. This is the
 starting number for a stricter rule this repository has not adopted; a gate
 that enforces it needs commit history CI's shallow checkout does not fetch.
