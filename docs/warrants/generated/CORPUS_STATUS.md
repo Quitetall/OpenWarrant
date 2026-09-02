@@ -39,7 +39,7 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 | roadmap://OW-PHASE-8: Liminal production compiler | OW-WAR-0048 | blocked by OW-WAR-0040, OW-WAR-0048 | 0 | 2 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-9: High-assurance controls | — | not derivable — §98 defines no Exit for this phase | 0 | 0 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-10: Contractor Work Order profile | — | not derivable — §98 defines no Exit for this phase | 0 | 0 | 0 | 0 | 0 |
-| *unassigned — declares no [[roadmap]]* | — | not derivable — a Warrant naming no phase belongs to no Objective | 0 | 1 | 0 | 0 | 0 |
+| *unassigned — declares no [[roadmap]]* | — | not derivable — a Warrant naming no phase belongs to no Objective | 0 | 5 | 0 | 0 | 0 |
 
 - **roadmap://OW-PHASE-0** exit: real distributions for authoring cost, amendment types, and failure causes.
 - **roadmap://OW-PHASE-1** exit: OpenWarrant development uses WARs.
@@ -62,16 +62,16 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | requirement | Warrants blocked |
 |---|---|
-| every required gate has admissible result | 54 |
-| artifact digests verify | 9 |
-| required deliverables exist | 9 |
-| every required obligation is dispositioned | 7 |
-| independence requirements are met | 7 |
-| required judgments exist | 4 |
-| residual risks have sufficient authority | 4 |
-| exact authorized Contract Revision | 3 |
-| no blocker remains | 3 |
-| no required unknown remains | 3 |
+| every required gate has admissible result | 58 |
+| artifact digests verify | 13 |
+| required deliverables exist | 13 |
+| every required obligation is dispositioned | 11 |
+| independence requirements are met | 11 |
+| required judgments exist | 8 |
+| residual risks have sufficient authority | 8 |
+| exact authorized Contract Revision | 7 |
+| no blocker remains | 7 |
+| no required unknown remains | 7 |
 | runtime receipts match the basis | 2 |
 
 ## Requirements (SAS §106, §34.3)
@@ -145,7 +145,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-083` | claimed | 0 | OW-WAR-0030 (complete) |
 | `WAR-SAS-RQ-084` | claimed | 0 | OW-WAR-0030 (complete) |
 
-## Warrants (57) — invalid 0 · draft 54 · ready_to_resolve 0 · would_satisfy 0 · resolved **3**
+## Warrants (61) — invalid 0 · draft 58 · ready_to_resolve 0 · would_satisfy 0 · resolved **3**
 
 | Warrant | rung | §38.6 | blocking unknowns | milestones evidenced | first unmet |
 |---|---|---|---|---|---|
@@ -199,6 +199,10 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0048` Discharge the Phase 8 exit: measured adapter parity and the two-host canonical run | draft | NOT satisfied | 0 | 0 of 4 | required deliverables exist |
 | `OW-WAR-0049` Close the alpha residue: the gaps alpha carried forward and one false claim | draft | NOT satisfied | 0 | 1 of 4 | required deliverables exist |
 | `OW-WAR-0050` Governed Bonsai evidence for pull-request workflow | draft | NOT satisfied | 0 | 0 of 2 | every required gate has admissible result |
+| `OW-WAR-0051` Close ADR 0185's boundary ratchets and run the consolidation waves | draft | unknown | 0 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0052` Land the ABIR2 boundary, storage profiles, migration and datapath in dependency order | draft | unknown | 0 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0053` Carry the research track: latent scaling, Optimum v2, H.BWC and the TBME paper | draft | unknown | 0 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0054` The Master Record: a person's document is their access, and can be proven equal to it | draft | unknown | 0 | 0 of 14 | exact authorized Contract Revision |
 | `OW-WAR-0055` Compute the goal hierarchy: war status and the corpus projection | draft | unknown | 0 | 0 of 4 | every required obligation is dispositioned |
 | `OW-WAR-0056` Compile a real Stage Dispatch (§47) | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0057` The viewer: a static page over the corpus projection | draft | unknown | 0 | 0 of 2 | every required obligation is dispositioned |

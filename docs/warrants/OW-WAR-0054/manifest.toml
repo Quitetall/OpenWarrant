@@ -1,0 +1,45 @@
+schema = "oh.war/manifest/v1"
+uuid = "01a03fb3-3dba-7205-8fdf-bbd7354e0aa3"
+local_alias = "OW-WAR-0054"
+
+# Allocated only by Knowledge Fabric (SAS §12.4). Leave empty.
+enterprise_id = ""
+
+title = "The Master Record: a person's document is their access, and can be proven equal to it"
+profile = "delivery"
+
+# `controlled`, not `basic`. This Warrant authorizes a capability whose failure
+# mode is disclosing one person's records to another, irreversibly, over a
+# transport. `basic` is the right level for work whose worst outcome is wasted
+# effort; it is the wrong level here.
+assurance_level = "controlled"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true

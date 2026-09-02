@@ -1,0 +1,181 @@
+---
+schema: oh.war/atom/v1
+warrant_uuid: 01a03fb3-3dba-7205-8fdf-bbd7354e0aa3
+role: work_order
+jurisdiction: authored
+order: 40
+classification: internal
+---
+
+# Work Order
+
+Five stages. The first three need no host; the last two do.
+
+## STAGE-001 — the invariant, before anything it would guard
+
+Build `permission(O, C)` as an enumeration over
+`core.set_access_context(p_organization uuid, p_max_classification text)`, and the
+comparator that diffs it against a compiled master record. Both directions, reported separately, because they are
+different failures with different consequences.
+
+The gate must be **demonstrated to fail** in both directions before it is
+trusted: plant a record the subject cannot see and require refusal; plant an
+omission of a record they can see and require refusal. A gate that has never
+failed is not evidence that it works — it is evidence that it ran.
+
+This stage comes first deliberately. Building the compiler first and the check
+afterwards produces a compiler whose output defines the invariant, which is
+circular and would pass.
+
+Two things finish here rather than in STAGE-002, and both are here because
+discovering them later means deciding them under schedule pressure.
+
+**Classify the boundary.** Every table reachable in the permission set is either
+materialized into KF-governed rows or resolved live from an external system, and
+the invariant reaches only the first. Produce the classification with no
+remainder, and for each live-resolved table record the decision: materialize
+before it may enter a document, or annotate that section as outside the claim.
+OBL-006 refuses an unclassified remainder.
+
+**Measure what the `⊇` direction costs.** Enumerating the whole permission set per
+subject per compilation is the expensive half, and expense is the reason
+expensive halves get dropped. Measure it while the enumeration is the subject of
+the work, not once a compiler depends on it.
+
+## STAGE-002 — the compiler
+
+The master record — everything `permission(O,C)` admits — sectioned by relevance
+into a standard order, with an overview that precedes detail. Reuse `@kf/export`'s
+section machinery rather than starting a parallel renderer.
+
+Two outputs, not one: the record, and a **manifest** recording `compiled_at`, the
+permission-set digest it matched, what was included, and what was withheld or
+withdrawn with the reason for each. The manifest is what makes the document a
+claim rather than a file.
+
+Renderers: Markdown and HTML through `@kf/export`; PDF and DOCX through pandoc,
+which is already host-qualified across three agreeing versions.
+
+## STAGE-003 — withdrawal
+
+A record that leaves the set reads as **withdrawn**, with time and reason, built
+on `secure_object.erasure_tombstone`. Verified by removing a record from a
+compiled set and requiring the withdrawal to appear — not by requiring the record
+to be absent, which is what a silent drop also looks like.
+
+## STAGE-004 — the delivery mechanism
+
+A signed, expiring, revocable, access-logged link served by KF itself, fed by a
+consumer that drains `core.outbox` and writes a delivery receipt back. This is
+engineering and a service discharges it.
+
+It opens **no new outbound credential and involves no third party**. That is a
+deliberate ordering choice, not timidity: it is the only transport whose failure
+is recoverable, and the invariant should be proven against a recoverable
+transport before an irreversible one.
+
+## STAGE-005 — disclosure, which is not engineering
+
+The first real disclosure — one person's own master document — and then a derived
+subset carrying its own runtime warrant.
+
+Separated from STAGE-004 on purpose. Building a mechanism that *can* send is work
+a process completes; deciding that a particular person's records go to a
+particular recipient is not, and folding both into one stage would let the second
+be discharged by the first having gone well. `45-milestones.yaml` marks this
+stage `human`.
+
+# Where the work happens
+
+The work is in `/mnt/4tb/openhuman-knowledge-fabric`; this Warrant is the
+authority for it and lives elsewhere. Every path below was verified to exist on
+2026-08-26 — a work order naming files that have moved is worse than one naming
+none, because it is trusted.
+
+Read first, in this order:
+
+    ontology/relation-types.yaml            41 types carrying id, inverse,
+                                            acyclic, symmetric and NOTHING ELSE.
+                                            OBL-009 is the change that must
+                                            happen here before a compiler may
+                                            read a policy instead of carrying one.
+    database/migrations/20260811000200_registry.sql
+                                            registry.relation_type — the compiled
+                                            side of that same gap.
+    database/migrations/20260811000400_row_security.sql
+                                            core.set_access_context and the
+                                            policies. Read the SIGNATURE: it is
+                                            (organization, max_classification),
+                                            and no policy reads kf.actor.
+    database/migrations/20260811000300_core.sql
+                                            core.object; core.relation, typed and
+                                            stateful with valid_from/valid_to;
+                                            core.outbox; core.retention_hold.
+    database/migrations/20260811000700_org.sql
+                                            org.person.id references
+                                            core.object(id) — the fact the whole
+                                            relevance model rests on.
+    generated/sql-registry/001-ontology-seed.sql
+                                            the seeded relation types. Generated:
+                                            change the ontology, never this.
+
+Build against:
+
+    tests/database/harness.ts               startHarness, seedFixtures,
+                                            createObject, bindContext. STAGE-001
+                                            through STAGE-003 need nothing else —
+                                            no host, no commissioned instance.
+    tests/database/typed-table-visibility.test.ts
+                                            the pattern to copy for an
+                                            RLS-sensitive suite.
+    packages/export/src/internal/sections/  section machinery to reuse for
+                                            renderings rather than reinvent.
+
+The ADR 0008 site, gated by OBL-010 and M2E:
+
+    packages/authorization/src/identity.ts:250
+                                            `maxClassification:
+                                            request.maxClassification` —
+                                            caller-asserted, unvalidated, with no
+                                            clearance model to clamp against.
+                                            Membership depends entirely on it.
+
+# Not authorized by this Warrant
+
+Each of these is wanted, is recorded in `10-intent.md`, and has a named successor.
+Listing them here is what keeps the boundary a sequencing decision rather than a
+quiet narrowing.
+
+**OW-WAR-0055 — the living external copy.** A work document held in Google Docs
+or Drive that updates itself as records appear and are removed, with removals
+recorded. This is the most valuable deferred piece and the hardest: it needs
+OAuth *write* scope, a reconciliation loop, and a conflict model for a document
+someone may have edited. It also crosses the boundary
+`federated_source_read_only` was drawn beside. It deserves its own threat-model
+pass and its own Warrant, not a milestone at the end of this one.
+
+**OW-WAR-0056 — the web viewer and management platform.** Overviews, navigation,
+and seeing who holds which subset. `apps/web` exists and has never completed a
+login against a real realm. Its own Warrant once M1-M7 hold, because a viewer
+over a document that is not yet provably complete would make the wrong thing
+look finished.
+
+**OW-WAR-0057 — email transport.** Separate credential, deliverability and
+attachment-size surface, and irreversible on send. Deferred until the invariant
+has been exercised against a transport that can be taken back.
+
+# Constraints
+
+**Sequence is load-bearing between stages, not within them.** STAGE-001 must
+precede STAGE-002 for the circularity reason above, and STAGE-005 must be last —
+nothing is disclosed to anyone until the document it would disclose has been
+proven equal to what the recipient may see.
+
+**No milestone is discharged by a passing test alone.** OBL-001 requires the gate
+to have failed on a plant. A green run of a check nobody has ever seen go red is
+not evidence, and this Warrant is at `controlled` partly to make that explicit.
+
+**The invariant is not negotiable down to `⊆`.** If the `⊇` direction proves
+expensive, that is a finding to record and decide about, not a licence to ship
+half the claim while `10-intent.md` still promises both. Narrowing the claim
+means amending this Warrant.

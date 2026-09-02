@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-57 Warrant(s) in this repository.
+61 Warrant(s) in this repository.
 
 ## Summary
 
@@ -61,6 +61,10 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0048](docs/warrants/OW-WAR-0048/manifest.toml) | Discharge the Phase 8 exit: measured adapter parity and the two-host canonical run | `authorized` | `current` | `valid` | `controlled` | 4M / 3S |
 | [OW-WAR-0049](docs/warrants/OW-WAR-0049/manifest.toml) | Close the alpha residue: the gaps alpha carried forward and one false claim | `authorized` | `current` | `valid` | `controlled` | 4M / 2S |
 | [OW-WAR-0050](docs/warrants/OW-WAR-0050/manifest.toml) | Governed Bonsai evidence for pull-request workflow | `authorized` | `current` | `valid` | `basic` | 2M / 3S |
+| [OW-WAR-0051](docs/warrants/OW-WAR-0051/manifest.toml) | Close ADR 0185's boundary ratchets and run the consolidation waves | `draft` | `current` | `valid` | `basic` | 3M / 6S |
+| [OW-WAR-0052](docs/warrants/OW-WAR-0052/manifest.toml) | Land the ABIR2 boundary, storage profiles, migration and datapath in dependency order | `draft` | `current` | `valid` | `basic` | 3M / 4S |
+| [OW-WAR-0053](docs/warrants/OW-WAR-0053/manifest.toml) | Carry the research track: latent scaling, Optimum v2, H.BWC and the TBME paper | `draft` | `current` | `valid` | `basic` | 3M / 6S |
+| [OW-WAR-0054](docs/warrants/OW-WAR-0054/manifest.toml) | The Master Record: a person's document is their access, and can be proven equal to it | `draft` | `current` | `valid` | `controlled` | 14M / 5S |
 | [OW-WAR-0055](docs/warrants/OW-WAR-0055/manifest.toml) | Compute the goal hierarchy: war status and the corpus projection | `authorized` | `current` | `valid` | `controlled` | 4M / 5S |
 | [OW-WAR-0056](docs/warrants/OW-WAR-0056/manifest.toml) | Compile a real Stage Dispatch (§47) | `authorized` | `current` | `valid` | `controlled` | 3M / 4S |
 | [OW-WAR-0057](docs/warrants/OW-WAR-0057/manifest.toml) | The viewer: a static page over the corpus projection | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
