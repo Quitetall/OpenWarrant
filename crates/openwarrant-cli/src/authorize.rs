@@ -465,10 +465,56 @@ pub fn ingest(
         independence: response.independence,
     };
 
-    let revision = ContractRevision::draft(current_digest.clone(), ir.contract_coverage.clone())
-        .propose(proposer)
-        .and_then(|proposed| proposed.authorize(authorization))
-        .map_err(|e| RepoError::Message(format!("{alias}: {e}")))?;
+    // A first authorization is revision 1. A later one, at a moved digest, is
+    // §28's amendment: revision N+1 whose predecessor is the authorized digest
+    // — and §31 says every revision after authorization SHALL carry an
+    // amendment record, so one must exist under `amendments/` before the
+    // signature is accepted. Re-signing the SAME digest is refused: an
+    // authorized revision is immutable (§28.3), and there is nothing to add.
+    let existing = repo.load_authorization(&dir)?;
+    let revision = match existing {
+        Some(prev) if prev.revision.contract_digest == current_digest => {
+            report.push(Diagnostic::error(
+                "authorize.already-authorized",
+                response_path.to_string(),
+                format!(
+                    "{alias}: revision {} is already authorized at this digest; an authorized \
+                     revision is immutable (§28.3)",
+                    prev.revision.revision
+                ),
+            ));
+            return Ok(report);
+        }
+        Some(prev) => {
+            let has_amendment = dir
+                .join("amendments")
+                .read_dir_utf8()
+                .map(|it| it.flatten().any(|e| e.path().as_str().ends_with(".yaml")))
+                .unwrap_or(false);
+            if !has_amendment {
+                report.push(Diagnostic::error(
+                    "authorize.no-amendment",
+                    response_path.to_string(),
+                    format!(
+                        "{alias}: the contract moved from {} to {} after revision {} was authorized, \
+                         and no amendment record exists under amendments/. §31: every revision \
+                         after authorization carries one — write it before re-signing",
+                        prev.revision.contract_digest, current_digest, prev.revision.revision
+                    ),
+                ));
+                return Ok(report);
+            }
+            prev.revision
+                .amend(current_digest.clone(), ir.contract_coverage.clone())
+                .and_then(|draft| draft.propose(proposer))
+                .and_then(|proposed| proposed.authorize(authorization))
+                .map_err(|e| RepoError::Message(format!("{alias}: {e}")))?
+        }
+        None => ContractRevision::draft(current_digest.clone(), ir.contract_coverage.clone())
+            .propose(proposer)
+            .and_then(|proposed| proposed.authorize(authorization))
+            .map_err(|e| RepoError::Message(format!("{alias}: {e}")))?,
+    };
 
     let record = AuthorizationRecord {
         schema: AUTHORIZATION_SCHEMA.to_owned(),

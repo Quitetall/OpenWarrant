@@ -2,9 +2,10 @@ schema = "oh.war/authorization/v1"
 warrant = "OW-WAR-0016"
 
 [revision]
-revision = 1
+revision = 2
 state = "authorized"
-contract_digest = "e1b258e06e7dacec3f68e78525864d1a9b52fc0ea86b7804e938a608487a89bf"
+contract_digest = "ef6824708d842f1d36a8ccf3f973a3740a122a801af35e38667ef41c235d354d"
+predecessor_digest = "e1b258e06e7dacec3f68e78525864d1a9b52fc0ea86b7804e938a608487a89bf"
 proposer = "claude"
 
 [revision.coverage]
@@ -23,6 +24,6 @@ covered = [
 authorizer = "Brian Lam"
 actor_kind = "human"
 acting_role = "authorizer"
-meaning = """Authorizing OW-WAR-0016 (Implement acceptance obligations and bounded claims) at this contract digest means the owner accepts its intent, scope and obligations as the work to be done and judged, and accepts each residual risk declared below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 ("You should manually authorize each of the warrants. I give you my express permission to approve these things."); the decision is the owner's, the wording is the agent's."""
-effective_time = "2026-09-02T06:00:00Z"
+meaning = "Authorizing revision 2 of OW-WAR-0016 (amended by AM-001: four gate citations added, nothing else) means the owner accepts the amended contract as the work to be judged and accepts each residual risk below with its stated consequence. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02; the decision is the owner's, the wording is the agent's."
+effective_time = "2026-09-02T23:30:00Z"
 independence = "separate_role"

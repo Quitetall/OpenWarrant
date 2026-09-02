@@ -1159,6 +1159,22 @@ plant "a journal event for another warrant" "journal.wrong-warrant" "names warra
     "printf '{\"v\":1,\"id\":\"01a00000-0000-7000-8000-000000000001\",\"warrant_uuid\":\"00000000-0000-7000-8000-000000000000\",\"type\":\"draft.revised\",\"class\":\"draft_history\",\"actor_ref\":\"agent://x\",\"occurred_at\":\"2026-09-02T00:00:00Z\",\"payload\":\"{}\",\"idempotency_key\":\"k\"}\n' >> docs/warrants/OW-WAR-0010/journal.jsonl" \
     OW-WAR-0010
 
+# OW-WAR-0016's amendment exposed two gaps in the authorize seam: a signature
+# on an already-authorized digest was accepted (and silently rewrote revision
+# 1), and a signature on a moved digest needed no §31 amendment record.
+AUTH_DIGEST="$("$WAR" authorize OW-WAR-0010 2>/dev/null | grep '^contract_digest' | cut -d'"' -f2)"
+[[ -n "$AUTH_DIGEST" ]] || { echo "could not read OW-WAR-0010's contract digest" >&2; exit 9; }
+plant_cmd "re-signing an already-authorized digest" "authorize.already-authorized" "immutable" 2 \
+    "printf 'schema = \"oh.war/authorization-response/v1\"\nwarrant = \"OW-WAR-0010\"\ncontract_digest = \"%s\"\nauthorizer = \"Brian Lam\"\nacting_role = \"authorizer\"\nmeaning = \"x\"\neffective_time = \"2026-09-02T00:00:00Z\"\nindependence = \"separate_role\"\n' \"$AUTH_DIGEST\" > \"$MIGRATE_TMP/resign.toml\"" \
+    authorize OW-WAR-0010 --response "$MIGRATE_TMP/resign.toml"
+
+# A moved contract signed with no amendment record under amendments/.
+plant_cmd "re-authorizing a moved contract without an amendment" "authorize.no-amendment" "§31" 2 \
+    "printf '\nPlanted paragraph so the contract digest moves.\n' >> docs/warrants/OW-WAR-0010/atoms/10-intent.md; \
+     d=\$(\"$WAR\" authorize OW-WAR-0010 2>/dev/null | grep '^contract_digest' | cut -d'\"' -f2); \
+     printf 'schema = \"oh.war/authorization-response/v1\"\nwarrant = \"OW-WAR-0010\"\ncontract_digest = \"%s\"\nauthorizer = \"Brian Lam\"\nacting_role = \"authorizer\"\nmeaning = \"x\"\neffective_time = \"2026-09-02T00:00:00Z\"\nindependence = \"separate_role\"\n' \"\$d\" > \"$MIGRATE_TMP/moved.toml\"" \
+    authorize OW-WAR-0010 --response "$MIGRATE_TMP/moved.toml"
+
 echo
 echo "$PASSED passed, $FAILED failed"
 [[ "$FAILED" -eq 0 ]]

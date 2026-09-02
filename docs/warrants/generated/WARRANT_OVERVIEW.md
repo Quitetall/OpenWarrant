@@ -26,7 +26,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0013](docs/warrants/OW-WAR-0013/manifest.toml) | Validate SAS and Roadmap traceability | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0014](docs/warrants/OW-WAR-0014/manifest.toml) | Implement the rationale model, assumptions, and unknowns | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
 | [OW-WAR-0015](docs/warrants/OW-WAR-0015/manifest.toml) | Implement deliverables, artifacts, and artifact provenance | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0016](docs/warrants/OW-WAR-0016/manifest.toml) | Implement acceptance obligations and bounded claims | `authorized` | `current` | `valid` | `controlled` | 4M / 4S |
+| [OW-WAR-0016](docs/warrants/OW-WAR-0016/manifest.toml) | Implement acceptance obligations and bounded claims | `resolved` | `current` | `valid` | `controlled` | 4M / 4S |
 | [OW-WAR-0017](docs/warrants/OW-WAR-0017/manifest.toml) | Implement the epistemic classes: evidence, observation, inference, judgment, resolution | `authorized` | `current` | `valid` | `controlled` | 4M / 4S |
 | [OW-WAR-0018](docs/warrants/OW-WAR-0018/manifest.toml) | Implement contract-adequacy review, structurally checked | `authorized` | `current` | `valid` | `controlled` | 3M / 3S |
 | [OW-WAR-0019](docs/warrants/OW-WAR-0019/manifest.toml) | Implement the Gate Registry: definitions, qualification, and bindings | `authorized` | `current` | `valid` | `controlled` | 4M / 4S |
