@@ -315,6 +315,19 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
              not records, and nothing above reads them."
         ));
     }
+    let prefixes: BTreeSet<&str> = warrants
+        .iter()
+        .flat_map(|w| w.roadmap.iter().map(|r| r.prefix.as_str()))
+        .collect();
+    if prefixes.len() > 1 {
+        caveats.push(format!(
+            "Roadmap refs carry {} different prefixes ({}). Objectives are grouped under the \
+             most common one, {prefix}; Warrants naming another prefix's phases are not \
+             grouped and fall to `unassigned`. A per-prefix Objective set is not built yet.",
+            prefixes.len(),
+            prefixes.iter().copied().collect::<Vec<_>>().join(", ")
+        ));
+    }
     let invalid = warrants
         .iter()
         .filter(|w| w.rung == WarrantRung::Invalid)
@@ -491,24 +504,37 @@ fn next_actionable(
         }
     }
 
-    let nothing = lowest_blocked.map(|o| NothingActionable {
-        objective: o.roadmap_ref.clone(),
-        blocked_by: o
-            .warrants
-            .iter()
-            .filter(|a| {
-                by_alias
-                    .get(a.as_str())
-                    .is_some_and(|w| w.rung < WarrantRung::WouldSatisfy)
-            })
-            .cloned()
-            .collect(),
-        why:
-            "no milestone in the lowest unachieved Objective is unblocked; every one is waiting on \
-              a dependency that is not yet evidenced"
+    // Never `(empty, None)`. An agent reading the JSON must always find either
+    // a stage or a reason, and "every Objective is achieved or names no
+    // Warrant" is a reason — a legitimate one, not a defect — that the first
+    // version of this function returned as silence. External review caught it:
+    // the Markdown renderer flagged the case, the JSON did not.
+    let nothing = match lowest_blocked {
+        Some(o) => NothingActionable {
+            objective: o.roadmap_ref.clone(),
+            blocked_by: o
+                .warrants
+                .iter()
+                .filter(|a| {
+                    by_alias
+                        .get(a.as_str())
+                        .is_some_and(|w| w.rung < WarrantRung::WouldSatisfy)
+                })
+                .cloned()
+                .collect(),
+            why: "no milestone in the lowest unachieved Objective is unblocked; every one is \
+                  waiting on a dependency that is not yet evidenced"
                 .to_owned(),
-    });
-    (vec![], nothing)
+        },
+        None => NothingActionable {
+            objective: None,
+            blocked_by: vec![],
+            why: "every Objective is either achieved or names no Warrant; there is no \
+                  unachieved work to point at"
+                .to_owned(),
+        },
+    };
+    (vec![], Some(nothing))
 }
 
 /// SAS §106's requirement index: id → title. Empty if the SAS cannot be read.
@@ -574,4 +600,33 @@ pub fn corpus_status_json(repo: &Repository) -> Result<(Utf8PathBuf, String), Re
         RepoError::Message(format!("could not canonicalize the corpus status: {e}"))
     })?;
     Ok((repo.corpus_status_json_path(), json + "\n"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use openwarrant_core::status::{Achieved, ObjectiveStatus, WarrantLadder};
+
+    /// The case external review found: every Objective achieved (or empty)
+    /// must still produce a REASON in the JSON, never `(empty, None)`.
+    #[test]
+    fn nothing_actionable_always_carries_a_reason() {
+        let all_done = vec![ObjectiveStatus {
+            roadmap_ref: Some(RoadmapRef::parse("roadmap://OW-PHASE-1").expect("ok")),
+            title: "t".to_owned(),
+            exit_criterion: Some("e".to_owned()),
+            exit_warrant: Some("OW-WAR-0001".to_owned()),
+            warrants: vec!["OW-WAR-0001".to_owned()],
+            ladder: WarrantLadder::default(),
+            achieved: Achieved::Recorded,
+        }];
+        let (stages, nothing) = next_actionable(&all_done, &[], &BTreeMap::new());
+        assert!(stages.is_empty());
+        let nothing = nothing.expect("a reason, even when everything is achieved");
+        assert!(nothing.why.contains("achieved"), "{}", nothing.why);
+
+        let (stages, nothing) = next_actionable(&[], &[], &BTreeMap::new());
+        assert!(stages.is_empty());
+        assert!(nothing.is_some(), "an empty corpus still says why");
+    }
 }
