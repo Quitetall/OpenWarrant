@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-51 Warrant(s) in this repository.
+52 Warrant(s) in this repository.
 
 ## Summary
 
@@ -62,8 +62,9 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0049](docs/warrants/OW-WAR-0049/manifest.toml) | Close the alpha residue: the gaps alpha carried forward and one false claim | `draft` | `current` | `valid` | `controlled` | 4M / 2S |
 | [OW-WAR-0050](docs/warrants/OW-WAR-0050/manifest.toml) | Governed Bonsai evidence for pull-request workflow | `draft` | `current` | `valid` | `basic` | 2M / 3S |
 | [OW-WAR-0055](docs/warrants/OW-WAR-0055/manifest.toml) | Compute the goal hierarchy: war status and the corpus projection | `draft` | `current` | `valid` | `controlled` | 4M / 5S |
+| [OW-WAR-0056](docs/warrants/OW-WAR-0056/manifest.toml) | Compile a real Stage Dispatch (§47) | `draft` | `current` | `valid` | `controlled` | 3M / 4S |
 
-> **51 of 51 states are DERIVED, not recorded.** Nothing journals transitions yet (OW-WAR-0031), and authorization does not exist until OW-WAR-0009 — so no Warrant has left `draft`. A later phase would have to be invented.
+> **52 of 52 states are DERIVED, not recorded.** Nothing journals transitions yet (OW-WAR-0031), and authorization does not exist until OW-WAR-0009 — so no Warrant has left `draft`. A later phase would have to be invented.
 
 ## Claimed SAS requirement coverage
 
@@ -92,10 +93,10 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-035` — OW-WAR-0011
 - `WAR-SAS-RQ-040` — OW-WAR-0007
 - `WAR-SAS-RQ-041` — OW-WAR-0007
-- `WAR-SAS-RQ-042` — OW-WAR-0023, OW-WAR-0045
-- `WAR-SAS-RQ-043` — OW-WAR-0023, OW-WAR-0045
+- `WAR-SAS-RQ-042` — OW-WAR-0023, OW-WAR-0045, OW-WAR-0056
+- `WAR-SAS-RQ-043` — OW-WAR-0023, OW-WAR-0045, OW-WAR-0056
 - `WAR-SAS-RQ-044` — OW-WAR-0026, OW-WAR-0045
-- `WAR-SAS-RQ-045` — OW-WAR-0024, OW-WAR-0045
+- `WAR-SAS-RQ-045` — OW-WAR-0024, OW-WAR-0045, OW-WAR-0056
 - `WAR-SAS-RQ-050` — OW-WAR-0016
 - `WAR-SAS-RQ-051` — OW-WAR-0016
 - `WAR-SAS-RQ-052` — OW-WAR-0017
@@ -175,6 +176,7 @@ Source: the Warrants under the configured warrants path.
 - **OW-WAR-0048** · roadmap: roadmap://OW-PHASE-8/exit
 - **OW-WAR-0049** · roadmap: roadmap://OW-PHASE-1/residue
 - **OW-WAR-0055** · roadmap: roadmap://OW-PHASE-1/projections
+- **OW-WAR-0056** · roadmap: roadmap://OW-PHASE-5/dispatch
 
 ## Not reported here
 

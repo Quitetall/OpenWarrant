@@ -32,7 +32,7 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 | roadmap://OW-PHASE-2: Agent planner | OW-WAR-0042 | blocked by OW-WAR-0034, OW-WAR-0035, OW-WAR-0037, OW-WAR-0042 | 0 | 4 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-3: ADR federation | OW-WAR-0043 | blocked by OW-WAR-0006, OW-WAR-0036, OW-WAR-0038, OW-WAR-0043 | 0 | 4 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-4: Knowledge Fabric registration | OW-WAR-0044 | blocked by OW-WAR-0028, OW-WAR-0029, OW-WAR-0030, OW-WAR-0032, OW-WAR-0044 | 0 | 5 | 0 | 0 | 0 |
-| roadmap://OW-PHASE-5: Dispatch and Katana execution | OW-WAR-0045 | blocked by OW-WAR-0011, OW-WAR-0015, OW-WAR-0023, OW-WAR-0024, OW-WAR-0025, OW-WAR-0026, OW-WAR-0045 | 0 | 7 | 0 | 0 | 0 |
+| roadmap://OW-PHASE-5: Dispatch and Katana execution | OW-WAR-0045 | blocked by OW-WAR-0011, OW-WAR-0015, OW-WAR-0023, OW-WAR-0024, OW-WAR-0025, OW-WAR-0026, OW-WAR-0045, OW-WAR-0056 | 0 | 8 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-6: Gate Registry and assurance case | OW-WAR-0046 | blocked by OW-WAR-0016, OW-WAR-0017, OW-WAR-0018, OW-WAR-0019, OW-WAR-0020, OW-WAR-0021, OW-WAR-0022, OW-WAR-0046 | 0 | 8 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-7: BLUT adapter | OW-WAR-0047 | blocked by OW-WAR-0027, OW-WAR-0047 | 0 | 2 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-8: Liminal production compiler | OW-WAR-0048 | blocked by OW-WAR-0040, OW-WAR-0048 | 0 | 2 | 0 | 0 | 0 |
@@ -61,18 +61,18 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | requirement | Warrants blocked |
 |---|---|
-| every required gate has admissible result | 51 |
-| exact authorized Contract Revision | 51 |
-| resolver holds the role | 51 |
-| required judgments exist | 49 |
-| residual risks have sufficient authority | 49 |
+| every required gate has admissible result | 52 |
+| exact authorized Contract Revision | 52 |
+| resolver holds the role | 52 |
+| required judgments exist | 50 |
+| residual risks have sufficient authority | 50 |
 | artifact digests verify | 9 |
 | required deliverables exist | 9 |
 | no blocker remains | 3 |
 | no required unknown remains | 3 |
+| every required obligation is dispositioned | 2 |
+| independence requirements are met | 2 |
 | runtime receipts match the basis | 2 |
-| every required obligation is dispositioned | 1 |
-| independence requirements are met | 1 |
 
 ## Requirements (SAS §106, §34.3)
 
@@ -112,10 +112,10 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-035` | claimed | 0 | OW-WAR-0011 (complete) |
 | `WAR-SAS-RQ-040` | claimed | 0 | OW-WAR-0007 (complete) |
 | `WAR-SAS-RQ-041` | claimed | 0 | OW-WAR-0007 (complete) |
-| `WAR-SAS-RQ-042` | claimed | 0 | OW-WAR-0023 (complete), OW-WAR-0045 (complete) |
-| `WAR-SAS-RQ-043` | claimed | 0 | OW-WAR-0023 (complete), OW-WAR-0045 (complete) |
+| `WAR-SAS-RQ-042` | claimed | 0 | OW-WAR-0023 (complete), OW-WAR-0045 (complete), OW-WAR-0056 (supersession) |
+| `WAR-SAS-RQ-043` | claimed | 0 | OW-WAR-0023 (complete), OW-WAR-0045 (complete), OW-WAR-0056 (supersession) |
 | `WAR-SAS-RQ-044` | claimed | 0 | OW-WAR-0026 (complete), OW-WAR-0045 (complete) |
-| `WAR-SAS-RQ-045` | claimed | 0 | OW-WAR-0024 (complete), OW-WAR-0045 (complete) |
+| `WAR-SAS-RQ-045` | claimed | 0 | OW-WAR-0024 (complete), OW-WAR-0045 (complete), OW-WAR-0056 (partial) |
 | `WAR-SAS-RQ-050` | claimed | 0 | OW-WAR-0016 (complete) |
 | `WAR-SAS-RQ-051` | claimed | 0 | OW-WAR-0016 (complete) |
 | `WAR-SAS-RQ-052` | claimed | 0 | OW-WAR-0017 (complete) |
@@ -145,7 +145,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-083` | claimed | 0 | OW-WAR-0030 (complete) |
 | `WAR-SAS-RQ-084` | claimed | 0 | OW-WAR-0030 (complete) |
 
-## Warrants (51) — invalid 0 · draft 51 · ready_to_resolve 0 · would_satisfy 0 · resolved **0**
+## Warrants (52) — invalid 0 · draft 52 · ready_to_resolve 0 · would_satisfy 0 · resolved **0**
 
 | Warrant | rung | §38.6 | blocking unknowns | milestones evidenced | first unmet |
 |---|---|---|---|---|---|
@@ -200,6 +200,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0049` Close the alpha residue: the gaps alpha carried forward and one false claim | draft | NOT satisfied | 0 | 1 of 4 | exact authorized Contract Revision |
 | `OW-WAR-0050` Governed Bonsai evidence for pull-request workflow | draft | NOT satisfied | 0 | 0 of 2 | exact authorized Contract Revision |
 | `OW-WAR-0055` Compute the goal hierarchy: war status and the corpus projection | draft | unknown | 0 | 0 of 4 | exact authorized Contract Revision |
+| `OW-WAR-0056` Compile a real Stage Dispatch (§47) | draft | unknown | 0 | 0 of 3 | exact authorized Contract Revision |
 
 ## Not reported here
 

@@ -1,0 +1,40 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "§47.1 is complete on the type"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "A dispatch compiles, deterministically, with its digest"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002", "OBL-003"]
+
+  - id: "M3"
+    title: "war dispatch emits a packet and refuses what it should"
+    depends_on: ["M2"]
+    stage_refs: ["STAGE-003", "STAGE-004"]
+    obligation_refs: ["OBL-004", "OBL-005"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Add the missing §47.1 fields and CapabilityAuthorization"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-002"
+    title: "compile_dispatch in the compiler crate, with the three digests"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-003"
+    title: "war dispatch: context manifest from atoms, attempt, emission"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-004"
+    title: "plants, view disclaimer, deliverables"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
