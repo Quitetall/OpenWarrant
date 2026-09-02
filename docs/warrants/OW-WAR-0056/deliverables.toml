@@ -15,21 +15,21 @@ schema = "oh.war/deliverables/v1"
 
 [[deliverable]]
 id = "D-001"
-title = "Generated Markdown parent with the §17.1 header"
+title = "Section 47.1 complete on StageDispatch: CapabilityAuthorization, refs, dispatch_digest"
 kind = "file"
-target_ref = "crates/openwarrant-compiler/src/render.rs"
+target_ref = "crates/openwarrant-core/src/execution.rs"
 required = true
 content_addressed = true
 provenance_required = true
-obligation_refs = ["OBL-001", "OBL-002"]
+obligation_refs = ["OBL-001"]
 
 [deliverable.provenance]
 producer = "claude"
-producing_attempt = "OW-WAR-0004/attempt-1"
+producing_attempt = "OW-WAR-0056/attempt-1"
 contract_digest = "unrecorded"
 tool_or_runtime_identity = "rustc 1.97.1"
 creation_method = "authored"
-content_digest = "sha256:0bebc13c4c402181d50d1b7aa58482d77b251ec60019d44f16285400b4def690"
+content_digest = "sha256:346119a4523830e46b77b5d6e5938b68838e812952913a15c738d8fcce1d7f42"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"
@@ -37,21 +37,43 @@ source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
-title = "Compilation and drift detection"
+title = "compile_dispatch: pure, deterministic for fixed ids, three section-65 digests"
 kind = "file"
-target_ref = "crates/openwarrant-cli/src/compile.rs"
+target_ref = "crates/openwarrant-compiler/src/dispatch.rs"
 required = true
 content_addressed = true
 provenance_required = true
-obligation_refs = ["OBL-003"]
+obligation_refs = ["OBL-002", "OBL-003"]
 
 [deliverable.provenance]
 producer = "claude"
-producing_attempt = "OW-WAR-0004/attempt-1"
+producing_attempt = "OW-WAR-0056/attempt-1"
 contract_digest = "unrecorded"
 tool_or_runtime_identity = "rustc 1.97.1"
 creation_method = "authored"
-content_digest = "sha256:0037d74d6cbee35878382c37f8421e685969ee87413d18458b3a95946251edbd"
+content_digest = "sha256:3936e470a5acfbe8d86c4ce5963a741ded734599dd57144e13bf42fb991e9f8b"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-003"
+title = "war dispatch: context manifest from atoms, attempt minting, canonical emission"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/dispatch.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-004", "OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0056/attempt-1"
+contract_digest = "unrecorded"
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:3b8e306c520a2dba21b270d85d43521e02525a95023a36f744bcb023061e065a"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"
