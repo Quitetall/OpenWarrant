@@ -1,0 +1,28 @@
+schema = "oh.war/authorization/v1"
+warrant = "OW-WAR-0002"
+
+[revision]
+revision = 1
+state = "authorized"
+contract_digest = "c6e8f1311371f28a9d576974daff95179f58a6404b99b9c479981d3c056935ea"
+proposer = "claude"
+
+[revision.coverage]
+covered = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+
+[revision.authorization]
+authorizer = "Brian Lam"
+actor_kind = "human"
+acting_role = "authorizer"
+meaning = """Authorizing OW-WAR-0002 (Implement the file-native manifest and atom parser) at this contract digest means the owner accepts its intent, scope and obligations as the work to be done and judged, and accepts each residual risk declared below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 ("You should manually authorize each of the warrants. I give you my express permission to approve these things."); the decision is the owner's, the wording is the agent's."""
+effective_time = "2026-09-02T06:00:00Z"
+independence = "separate_role"
