@@ -15,9 +15,31 @@ schema = "oh.war/deliverables/v1"
 
 [[deliverable]]
 id = "D-001"
-title = "Local draft journal"
+title = "The §66.3 envelope, event classes, append-only verification, and the §68 export set"
 kind = "file"
 target_ref = "crates/openwarrant-core/src/journal.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0031/attempt-1"
+contract_digest = "unrecorded"
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:e0085c1a4ee4f50d96c0d0f2197aa3200e7128e2c7288a20da1d3a0a9f57e8fe"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "journal.jsonl per Warrant: writers in five commands, backfill, `war check` append-only against HEAD, recorded state"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/journal_cmd.rs"
 required = true
 content_addressed = true
 provenance_required = true
@@ -29,7 +51,7 @@ producing_attempt = "OW-WAR-0031/attempt-1"
 contract_digest = "unrecorded"
 tool_or_runtime_identity = "rustc 1.97.1"
 creation_method = "authored"
-content_digest = "sha256:e0085c1a4ee4f50d96c0d0f2197aa3200e7128e2c7288a20da1d3a0a9f57e8fe"
+content_digest = "sha256:17c500312bef47ec8dace723b9ece636a08338f25b47f303ec8b70b97880f7ff"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"

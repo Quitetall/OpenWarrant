@@ -71,6 +71,15 @@ pub fn run(repo: &Repository, title: &str, profile: Profile) -> Result<Utf8PathB
                         source,
                     })?;
                 write_atom_stubs(&dir, &uuid, profile)?;
+                // §66.4 `draft.created` — the first journal entry, written by
+                // the command that created the draft.
+                crate::journal_cmd::record(
+                    &dir,
+                    &uuid.to_string(),
+                    crate::journal_cmd::DRAFT_CREATED,
+                    &format!("agent://{}", repo.performer()),
+                    &format!("{{\"alias\":\"{alias}\",\"profile\":\"{profile}\"}}"),
+                )?;
                 return Ok(dir);
             }
             Err(err) if err.kind() == std::io::ErrorKind::AlreadyExists => {

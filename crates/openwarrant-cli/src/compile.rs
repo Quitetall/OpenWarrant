@@ -141,7 +141,18 @@ pub fn warrant_overview(repo: &Repository) -> Result<(camino::Utf8PathBuf, Strin
                 .collect(),
             atom_count: basis.atoms.len(),
             source: basis.manifest_source.clone(),
-            state: derive_state(),
+            state: {
+                // Recorded from the journal when one exists (OW-WAR-0031).
+                let outcome = repo
+                    .load_resolution(&one.dir)
+                    .ok()
+                    .flatten()
+                    .and_then(|r| r.resolution.common_outcome.to_string().parse().ok());
+                crate::journal_cmd::load(&one.dir)
+                    .ok()
+                    .and_then(|j| crate::journal_cmd::recorded_state(&j, outcome))
+                    .unwrap_or_else(derive_state)
+            },
             milestone_count: basis
                 .atoms
                 .iter()

@@ -20,6 +20,7 @@ mod evidence;
 mod export;
 mod gate_cmd;
 mod init;
+mod journal_cmd;
 mod kf;
 mod migrate;
 mod new;
@@ -274,6 +275,17 @@ enum Command {
         /// signature would bind, which outcomes §38.6 permits, and who may sign.
         #[arg(long, conflicts_with = "dry_run")]
         response: Option<camino::Utf8PathBuf>,
+    },
+    /// Read a Warrant's local draft journal (§66), or reconstruct one from its
+    /// records. There is no way to append by hand: events come from the
+    /// commands that change records.
+    Journal {
+        /// The Warrant's local alias.
+        alias: String,
+        /// Write the events the existing records imply, each marked
+        /// `backfilled`. Refused on a journal that already has events.
+        #[arg(long)]
+        backfill: bool,
     },
     /// Record gate runs as committed evidence for a Warrant (§44.6).
     Evidence {
@@ -883,6 +895,21 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                         Ok(EXIT_NOT_READY)
                     }
                 }
+            }
+        }
+        Command::Journal { alias, backfill } => {
+            let repository = repo::Repository::discover(None)?;
+            if backfill {
+                let report = journal_cmd::backfill(&repository, &alias)?;
+                check::print(&report);
+                Ok(if report.is_ready() {
+                    EXIT_OK
+                } else {
+                    EXIT_NOT_READY
+                })
+            } else {
+                print!("{}", journal_cmd::show(&repository, &alias)?);
+                Ok(EXIT_OK)
             }
         }
         Command::Evidence { command } => {

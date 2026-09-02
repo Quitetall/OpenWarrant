@@ -153,13 +153,31 @@ pub fn render(summaries: &[WarrantSummary]) -> String {
         out.push('\n');
     }
 
+    let recorded = sorted
+        .iter()
+        .filter(|w| w.state.provenance == openwarrant_core::Provenance::Recorded)
+        .count();
+    out.push_str("\n## Not reported here\n\n");
+    if derived > 0 {
+        let _ = writeln!(
+            out,
+            "- **Recorded state.** {derived} phase(s) are DERIVED from the record's shape, \
+             not read from a journalled transition; {recorded} are read from a journal \
+             (§66, OW-WAR-0031)."
+        );
+    } else {
+        let _ = writeln!(
+            out,
+            "- **Recorded state.** Every phase is read from the Warrant's journal (§66, \
+             OW-WAR-0031); a `backfilled` event is a reconstruction from records, and \
+             says so in its payload."
+        );
+    }
     out.push_str(
-        "\n## Not reported here\n\n\
-         - **Recorded state.** The phase column is DERIVED from the record's shape, \
-         never read from a journalled transition.\n\
-         - **Milestone progress** — the column counts DECLARED milestones and \
+        "- **Milestone progress** — the column counts DECLARED milestones and \
          stages. Nothing here says any of them is met.\n\
-         - **Resolution** — nothing here says a Warrant is done.\n",
+         - **Resolution** — a phase of `resolved` is read from a §56.2 record; every \
+         other phase says nothing about whether a Warrant is done.\n",
     );
 
     out

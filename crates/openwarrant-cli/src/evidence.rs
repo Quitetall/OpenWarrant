@@ -248,11 +248,29 @@ pub fn record(repo: &Repository, alias: &str, only: Option<&str>) -> Result<Repo
     ));
     for key in &targets {
         let sub = crate::gate_cmd::run(repo, true, Some(key), true, &subject, &[], Some(&out_dir))?;
+        let minted = sub.diagnostics.iter().any(|d| d.rule == "gate-run.receipt");
         for d in sub.diagnostics {
             report.push(d);
         }
         for n in sub.notes {
             report.note(n);
+        }
+        if minted
+            && let Some(receipt) = load(repo, &dir)?
+                .into_iter()
+                .find(|e| &e.run.gate == key)
+                .and_then(|e| e.receipt)
+        {
+            crate::journal_cmd::record(
+                &dir,
+                &validated.uuid.to_string(),
+                crate::journal_cmd::RECEIPT_ATTACHED,
+                &format!("agent://{}", repo.performer()),
+                &format!(
+                    "{{\"gate\":\"{key}\",\"verdict\":\"{}\",\"receipt_digest\":\"{}\"}}",
+                    receipt.verdict, receipt.receipt_digest
+                ),
+            )?;
         }
     }
     Ok(report)

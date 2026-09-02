@@ -472,6 +472,18 @@ pub fn ingest(repo: &Repository, alias: &str, path: &Utf8Path) -> Result<Report,
         context: format!("could not write {out}"),
         source,
     })?;
+    if let Some(v) = &one.validated {
+        crate::journal_cmd::record(
+            &dir,
+            &v.uuid.to_string(),
+            crate::journal_cmd::RESOLUTION_RECORDED,
+            &format!("person://{}", response.resolved_by),
+            &format!(
+                "{{\"common_outcome\":\"{}\",\"contract_digest\":\"{}\"}}",
+                response.common_outcome, bound.contract_digest
+            ),
+        )?;
+    }
     report.push(Diagnostic::pass(
         "resolution.recorded",
         format!(
