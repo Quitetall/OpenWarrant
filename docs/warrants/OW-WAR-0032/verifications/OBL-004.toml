@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "atoms/10-intent.md - states §83.4 requires KF TypeScript to consume generated schemas, but no generated TS types or KF import statements appear in any artifact"
+evidence = "No artifacts, tests, or receipts were provided to demonstrate that generated TS types exist and KF imports them; the measured evidence lacks specific references to this obligation."
 performer = "claude"
 
 [verifier]

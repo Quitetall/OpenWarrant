@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/drafting.rs::tests::vocabularies_round_trip - iterates AtomOperation::ALL and asserts from_str(o.as_str()) == Ok(o) for each, plus the_atom_operations_match_the_sas verifies all seven match §74.3"
+evidence = "The test 'drafting::tests::a_proposal_round_trips_through_json' passed, demonstrating that proposals with typed operations serialize and deserialize correctly, and 'drafting::tests::vocabularies_round_trip' confirms the operation kinds round trip."
 performer = "claude"
 
 [verifier]

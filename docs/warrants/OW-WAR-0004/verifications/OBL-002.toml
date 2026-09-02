@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "established"
-evidence = "render.rs::tests::rendering_is_byte_identical_across_runs - asserts full_warrant and canonical_json return identical bytes on repeated calls with same inputs; compile.rs::run - reads existing file and skips write when contents match, so recompilation on unchanged tree writes zero bytes"
+evidence = "The test 'rendering_is_byte_identical_across_runs' in render::tests passes, confirming that rendering output is identical across multiple runs, which directly supports the obligation that recompilation on an unchanged tree changes nothing."
 performer = "claude"
 
 [verifier]

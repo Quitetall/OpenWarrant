@@ -1,6 +1,6 @@
 obligation = "OBL-002"
-disposition = "refuted"
-evidence = "atoms/60-assurance.md - Gate Adequacy section states Executed attacks: none yet — this Warrant has not been executed"
+disposition = "not_established"
+evidence = "The measured evidence explicitly states 'none in a section named for this Warrant' for planted violations in conformance/plant.sh, and the artifact excerpts from resolve.rs focus on computing resolution checks, not recording executed attacks as bullets."
 performer = "claude"
 
 [verifier]

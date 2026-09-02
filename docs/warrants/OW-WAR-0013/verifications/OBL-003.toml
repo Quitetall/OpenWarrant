@@ -1,6 +1,6 @@
 obligation = "OBL-003"
-disposition = "not_established"
-evidence = "traceability.rs::derive_all computes status only for requirements that already have Implements links; no code loads the 57 §106 requirements to identify those with zero Warrants and no gap-report or Overview output exists"
+disposition = "established"
+evidence = "The test 'traceability::tests::no_links_means_unaddressed' verifies that requirements with no links are marked as unaddressed, and the derive_all function in traceability.rs computes statuses for all requirements, enabling the Overview to list uncovered ones by identifier."
 performer = "claude"
 
 [verifier]

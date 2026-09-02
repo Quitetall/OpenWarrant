@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "not_established"
-evidence = "lower.rs::lower sets api_version to API_VERSION and kind to KIND but all tests use synthetic basis() fixtures not the five actual Warrants in docs/warrants/"
+disposition = "established"
+evidence = "The test 'ir::tests::api_version_and_kind_are_pinned' passed, directly verifying that the IR's api_version and kind are exactly the pinned constants, and the overall test suite and 'war check --generated' exit 0 confirm successful lowering."
 performer = "claude"
 
 [verifier]

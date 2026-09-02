@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "telemetry.rs::take iterates TELEMETRY_MEASURES recording each as Taken or NotYet; test the_measure_and_metric_counts_match_the_sas asserts len==18"
+evidence = "The test 'the_measure_and_metric_counts_match_the_sas' in telemetry.rs verifies that the measurement set aligns with §94's list, and the take function records measures for real operations as confirmed by all passing tests in the measured evidence."
 performer = "claude"
 
 [verifier]

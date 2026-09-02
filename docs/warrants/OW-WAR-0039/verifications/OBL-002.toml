@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "telemetry.rs::untracked_candidates runs git log and filters for commits without OW-WAR- prefix, but no test exercises it against the repository to show 3678455 is reported"
+evidence = "No test, plant, or receipt in the artifacts demonstrates that the detector reports the known case of commit `3678455` where the ADR Overview shipped with no Warrant; the listed unit tests in `telemetry::tests` do not cover this specific detection, and the plant.sh has no violations for this Warrant."
 performer = "claude"
 
 [verifier]

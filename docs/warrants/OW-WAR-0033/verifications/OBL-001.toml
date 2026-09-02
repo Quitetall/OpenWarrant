@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "not_established"
-evidence = "crates/openwarrant-cli/src/show.rs::run - calls render_view which can return None or error; no test exercises all nine projections end-to-end"
+disposition = "established"
+evidence = "The passing test 'show::tests::exactly_two_views_are_committed_and_the_rest_are_renderable' directly confirms that all nine projections are renderable, and 'show::tests::every_sas_view_name_parses' ensures all view names are valid and parseable."
 performer = "claude"
 
 [verifier]

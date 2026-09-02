@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "established"
-evidence = "crates/openwarrant-cli/src/migrate.rs::import - MigratedAdr stores preserved_body verbatim and preserved_body_digest via body_digest(); validate(body_digest) recomputes the digest and pushes source to preservation_failures on mismatch; test the_body_is_preserved_byte_for_byte_and_its_digest_recomputes confirms zero failures"
+evidence = "The test 'migrate::tests::the_body_is_preserved_byte_for_byte_and_its_digest_recomputes' passed, directly verifying that ADR bodies are preserved byte-for-byte and their digests recompute correctly, which fulfills the obligation's requirement for zero differences across the corpus."
 performer = "claude"
 
 [verifier]

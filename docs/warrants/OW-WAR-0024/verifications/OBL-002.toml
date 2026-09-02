@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/execution.rs::AttemptKind vocabulary defines four distinct variants (Initial, Replay, Repair, Restart); each has unique validation: Initial rejects parent, Replay rejects changed basis, Repair requires prior_failure_evidence_refs, Restart requires authorization; tests every_attempt_has_one_parent_except_the_initial, a_replay_whose_basis_changed_is_not_a_replay, a_repair_needs_the_prior_failure_evidence, only_a_restart_requires_authorization collectively verify no collapse"
+evidence = "The AttemptKind enum in crates/openwarrant-core/src/execution.rs defines four distinct variants (Initial, Replay, Repair, Restart), and passing tests such as 'a_replay_whose_basis_changed_is_not_a_replay' and 'only_a_restart_requires_authorization' confirm they do not collapse into one another."
 performer = "claude"
 
 [verifier]

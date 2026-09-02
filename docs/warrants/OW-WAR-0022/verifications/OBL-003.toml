@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/resolution.rs::tests::annulment_leaves_the_original_historical and a_dispute_moves_standing_without_touching_the_original both show original Resolution unchanged after dispute() and annul()"
+evidence = "The tests 'annulment_leaves_the_original_historical' and 'a_dispute_moves_standing_without_touching_the_original' in resolution::tests verify that the original resolution remains readable after annulment and dispute, as implemented in the annul and dispute functions in crates/openwarrant-core/src/resolution.rs."
 performer = "claude"
 
 [verifier]

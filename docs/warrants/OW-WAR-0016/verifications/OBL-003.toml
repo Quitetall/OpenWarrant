@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "established"
-evidence = "obligation.rs::ObligationSet::check_references - iterates milestone_refs and returns ObligationError::DanglingObligationRef when an id is not in self.ids(); obligation.rs::tests::a_dangling_obligation_ref_is_refused plants OBL-999 and asserts the error"
+evidence = "The test `obligation::tests::a_dangling_obligation_ref_is_refused` passes, directly demonstrating that dangling obligation refs are refused, as implemented in `crates/openwarrant-core/src/obligation.rs` with the `DanglingObligationRef` error variant."
 performer = "claude"
 
 [verifier]

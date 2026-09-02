@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "resolve.rs - explicitly states It deliberately does NOT record a resolution and no dispute annulment or supersession code or records appear in the artifacts"
+evidence = "The artifacts from verify.rs and its tests (e.g., 'a_well_formed_envelope_is_accepted') focus on verification request/response handling and do not include any implementation or measurement for byte-for-byte comparison of resolutions or supersession with valid standing, as required by OBL-004."
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "established"
-evidence = "manifest.rs::tests - missing_required_atom_is_refused asserts MissingRequiredRole, duplicate_ordinal_is_refused asserts DuplicateOrdinal, unknown_required_role_is_refused asserts UnknownRequiredRole, a_direct_cycle_is_detected asserts detect_parent_cycles returns one cycle; each error variant carries the SAS rule reference"
+evidence = "The unit tests 'manifest::tests::missing_required_atom_is_refused', 'manifest::tests::duplicate_ordinal_is_refused', 'manifest::tests::unknown_required_role_is_refused', and 'manifest::tests::a_direct_cycle_is_detected' (among others) are passing, demonstrating that each in-scope malformed composition is refused as required by §91.2 tests 7, 8, 9, and 12."
 performer = "claude"
 
 [verifier]

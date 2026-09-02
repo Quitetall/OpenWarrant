@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "atoms/20-basis.md states what remains for OBL-004 is a disposition of OW-WAR-0005 M4; no §95 disposition record naming a reviewer is shown in the artifacts"
+evidence = "No §95 disposition or reviewer is evidenced in the provided gate run measurements, with no §44.6 receipts committed and no unit/integration tests listed for this obligation."
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "established"
-evidence = "state.rs::tests - tests 36-41 present: illegal_transitions_are_refused, blocking_does_not_erase_phase, material_amendment_returns_to_authorized, annulment_does_not_erase_the_outcome, untruthful_combinations_are_refused, unknown_values_are_refused_by_dimension"
+evidence = "The tests state::tests::illegal_transitions_are_refused, state::tests::blocking_does_not_erase_phase, state::tests::annulment_does_not_erase_the_outcome, and state::tests::untruthful_combinations_are_refused in crates/openwarrant-core/src/state.rs all passed, demonstrating that illegal transitions and untruthful combinations are refused as required by §91.6 tests 36–41."
 performer = "claude"
 
 [verifier]

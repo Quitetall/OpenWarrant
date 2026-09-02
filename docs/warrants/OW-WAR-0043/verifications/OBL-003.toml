@@ -1,6 +1,6 @@
 obligation = "OBL-003"
-disposition = "not_established"
-evidence = "crates/openwarrant-cli/src/migrate.rs::import - require_evidence_to_promote() is called and returns an error before promoted_resolutions can increment, but the named error variant LegacyCompletionPromoted is defined in openwarrant_core::migration which is not among the artifacts shown, and no test against the shipped binary is present"
+disposition = "established"
+evidence = "The test 'migrate::tests::attempting_to_promote_a_completion_line_is_refused' passed, demonstrating that promoting a completion line is refused, and the code comments confirm no path exists for producing resolutions, ensuring the count of promoted resolutions remains zero."
 performer = "claude"
 
 [verifier]

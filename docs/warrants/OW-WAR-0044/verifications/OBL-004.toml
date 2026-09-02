@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "atoms/60-assurance.md::OBS-004 - war export reports 4 of 68.2's 14 required contents absent and PortableExport::validate refuses; no successful round trip with digest identity and empty semantic-difference list is shown"
+evidence = "No export, reconnect, re-export, or comparison tests or §44.6 receipts are provided in the measured evidence or artifacts for this Warrant, and the listed tests only cover KF seam functionality, not round-trip preservation."
 performer = "claude"
 
 [verifier]

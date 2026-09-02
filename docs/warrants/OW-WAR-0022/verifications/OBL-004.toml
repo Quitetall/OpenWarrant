@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/resolution.rs::tests::each_of_the_thirteen_blocks_resolution_on_its_own includes a setter for no_required_unknown_remains that blocks resolution alone"
+evidence = "The test 'a_required_unknown_blocks_resolution' in the gate_run::tests module, which passed, directly verifies that a required unknown blocks resolution, as enforced by the 'no_required_unknown_remains' check in the ResolutionChecks struct in crates/openwarrant-core/src/resolution.rs."
 performer = "claude"
 
 [verifier]

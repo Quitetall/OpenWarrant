@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "resolve.rs::tests - synthetic gate_run fixtures test admissibility logic but no actual §44.6 receipt with twelve populated scalars exists in the artifacts"
+evidence = "The measured evidence explicitly states that §44.6 receipts committed for this Warrant are none, and no actual gate run receipt is provided or referenced in the artifacts or tests."
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "atoms/60-assurance.md - JDG-001 acknowledges the write stopped at KF's registry (OBS-007); no KF receipt containing an allocated enterprise identifier is shown, and no recorded refusal of a locally-derived identifier appears in any artifact"
+evidence = "No §44.6 receipt is committed for this Warrant, and the tests in crates/openwarrant-cli/src/kf.rs do not demonstrate the provenance of the enterprise identifier from KF."
 performer = "claude"
 
 [verifier]

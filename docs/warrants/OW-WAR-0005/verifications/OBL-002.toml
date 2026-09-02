@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "check.rs implements the checks referenced by §91 items but the artifacts contain no conformance/ directory contents or per-item test execution report"
+evidence = "The measured evidence lacks a per-item conformance report for the specified scope (§91.1 items 1–6, §91.2 items 7, 8, 9, 10, 12, 16, and §91.4 items 26–27); only aggregate test results (e.g., 126 plant tests passed, 636 unit tests passed) are provided, which do not demonstrate each item's pass status."
 performer = "claude"
 
 [verifier]

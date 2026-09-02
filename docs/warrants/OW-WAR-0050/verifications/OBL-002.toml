@@ -1,6 +1,6 @@
 obligation = "OBL-002"
-disposition = "established"
-evidence = "bonsai.rs::tests::qualification_plants::pilot_qualification_plants_are_observed - contains all five plants: out_of_scope asserts Fail with scope_findings path, policy_drift expects error containing policy digest differs, non_head expects error containing is not checked out, unavailable expects Unknown with spawn_error, and first plant asserts Pass for clean candidate"
+disposition = "not_established"
+evidence = "No planted violations for this Warrant in conformance/plant.sh and no unit tests explicitly covering the required scenarios such as out-of-scope diff or policy-digest drift."
 performer = "claude"
 
 [verifier]

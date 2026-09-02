@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "manifest.rs::tests and new.rs::tests - every test constructs a Manifest in code or writes to a temp dir; no test reads from docs/warrants/ or enumerates that directory, so a sixth Warrant added there would not be covered"
+evidence = "No test that enumerates the `docs/warrants/` directory is present in the measured evidence or artifacts; the listed tests are unit tests for role.rs, not corpus-parsing tests."
 performer = "claude"
 
 [verifier]

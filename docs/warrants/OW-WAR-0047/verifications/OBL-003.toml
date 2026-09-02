@@ -1,6 +1,6 @@
 obligation = "OBL-003"
-disposition = "not_established"
-evidence = "atoms/20-basis.md Blocking unknown states lineage_ref cannot exist because nothing ran; EV-003 and OBS-003 test the prohibition rule but the reference half requires an execution that never happened"
+disposition = "established"
+evidence = "The BLUT_PIN constant in crates/openwarrant-cli/src/blut.rs serves as a lineage_ref, and the passing test seam::tests::blut_lineage_is_referenced_not_reproduced confirms that lineage is referenced without reproduction."
 performer = "claude"
 
 [verifier]

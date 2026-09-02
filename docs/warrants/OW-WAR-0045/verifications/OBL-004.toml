@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "atoms/60-assurance.md - describes the capability comparison requirement and the UnauthorizedCapabilityRealized plant but no receipt, no comparison record, and no plant test exist in the artifacts"
+evidence = "No §44.6 receipts committed for this Warrant and no tests or plants specifically addressing the comparison of realized_capabilities against authorization or the refusal of unauthorized capabilities via UnauthorizedCapabilityRealized."
 performer = "claude"
 
 [verifier]

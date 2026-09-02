@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "crates/openwarrant-compiler/src/adr_overview.rs and crates/openwarrant-core/src/structured.rs contain no classifier function and no test asserting two callers share one; the basis and work order describe the requirement but the implementing code is absent from the artifacts"
+evidence = "No test in the provided artifacts for adr_overview.rs asserts that both callers use the same classifier function, as required by the obligation."
 performer = "claude"
 
 [verifier]

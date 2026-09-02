@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "crates/openwarrant-cli/src/kf.rs::ActionEnvelope - struct with target_ids, payload, reason, idempotency_key fields; Client::post_action is the only write method and takes action_type parameter plus Actor and ActionEnvelope"
+disposition = "not_established"
+evidence = "The tests in `kf::tests` validate URL schemes and idempotency keys but do not measure that every state change goes through an action envelope; no test or receipt demonstrates the claim."
 performer = "claude"
 
 [verifier]

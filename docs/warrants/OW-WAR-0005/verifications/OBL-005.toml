@@ -1,6 +1,6 @@
 obligation = "OBL-005"
 disposition = "not_established"
-evidence = "the artifacts contain no war compile output or git diff --exit-code results over the five Warrants, and OBL-004 is itself not established"
+evidence = "The measured evidence does not include OBL-004 being green or `war compile` over the same five leaving `git diff --exit-code` clean, which are required to establish the obligation."
 performer = "claude"
 
 [verifier]

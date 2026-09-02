@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "No source code for war init, no process invocation logs, and no evidence of the two required runs was provided among the artifacts"
+evidence = "No §44.6 receipts or specific tests demonstrating the two required process runs of `war init` (one successful initialization and one failed re-initialization) are present in the measured evidence."
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "atoms/60-assurance.md::JDG-001 - states 'No agent has been invoked' and records OBL-002 as open; no verbatim request, returned proposal, or §74.4 eight-step trace appears in the artifacts"
+evidence = "The measured evidence does not include the verbatim request, returned proposal, §74.4 eight-step trace, or resulting Warrant required by the obligation, and no artifacts or tests are cited that demonstrate these items."
 performer = "claude"
 
 [verifier]

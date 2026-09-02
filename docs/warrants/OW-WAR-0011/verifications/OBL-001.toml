@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "preflight.rs::CheckGroup enum defines all six variants Contract Context Graph Runtime Gates Authority; all_checks() iterates all six constant arrays; test the_check_groups_and_counts_match_the_sas asserts all six groups and TOTAL_CHECKS==41"
+evidence = "The test 'preflight::tests::the_check_groups_and_counts_match_the_sas' in crates/openwarrant-core/src/preflight.rs verifies that all six check groups (contract, context, graph, runtime, gates, authority) are defined with the correct counts as per SAS §32, and the code implements fail-closed outcome reporting via PreflightReceipt."
 performer = "claude"
 
 [verifier]

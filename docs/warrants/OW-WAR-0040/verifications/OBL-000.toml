@@ -1,6 +1,6 @@
 obligation = "OBL-000"
-disposition = "refuted"
-evidence = "atoms/10-intent.md - explicitly states Quitetall/liminal has no checkout on this host; atoms/20-basis.md - states Liminal has no checkout and the Warrant cannot start until one exists"
+disposition = "not_established"
+evidence = "The measured evidence lists no test, receipt, or artifact that verifies the repository's presence on the build host, and the declared deliverables are empty, so the claim is not demonstrated."
 performer = "claude"
 
 [verifier]

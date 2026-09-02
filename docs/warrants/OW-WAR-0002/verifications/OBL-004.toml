@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "established"
-evidence = "new.rs::tests::concurrent_allocation_never_collides - spawns 8 threads each calling run() concurrently, collects aliases into a BTreeSet, asserts len == 8; run() uses OpenOptions::new().create_new(true) which is O_EXCL and retries on AlreadyExists"
+evidence = "The test `new::tests::concurrent_allocation_never_collides` passed, and the implementation in `crates/openwarrant-cli/src/new.rs` uses `O_EXCL` for atomic file creation, ensuring concurrent allocations do not collide."
 performer = "claude"
 
 [verifier]

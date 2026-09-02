@@ -1,0 +1,20 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "The unit test 'evidence::tests::a_receipt_for_an_earlier_contract_is_a_record_not_evidence' passes, and the code in evidence.rs implements admissibility checks that reject receipts bound to earlier contracts, ensuring they are not counted as evidence."
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

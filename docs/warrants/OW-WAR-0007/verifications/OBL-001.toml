@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/milestones.rs::Milestone and Stage structs with typed fields (ExecutorKind enum, ResponsibilityTier enum, Vec<Port> inputs/outputs); tests parses_a_valid_graph and typed_ports_parse assert parsed values field by field including ports"
+evidence = "The tests `milestones::tests::typed_ports_parse` and `milestones::tests::parses_a_valid_graph` in `crates/openwarrant-core/src/milestones.rs` pass, asserting field-by-field parsing of milestones, stages, and typed ports."
 performer = "claude"
 
 [verifier]

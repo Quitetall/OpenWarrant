@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "atoms/40-work-order.md - describes the resolve-refusal test as a premade instruction but no actual Submission, no plant submitting resolve, and no refusal by the shipped binary exist in the artifacts"
+evidence = "The measured evidence lacks any submission request or plant submitting `resolve` as text, and no tests, plants, or receipts specific to OBL-003 are cited to establish the claim."
 performer = "claude"
 
 [verifier]

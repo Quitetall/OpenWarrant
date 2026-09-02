@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "crates/openwarrant-cli/src/show.rs - semantic_diff exists but no test compares digest across projections"
+evidence = "No test or measurement in the artifacts verifies that the digest remains unchanged across all nine §17.5 projections; the provided tests in show.rs focus on diff and view parsing, not digest invariance."
 performer = "claude"
 
 [verifier]

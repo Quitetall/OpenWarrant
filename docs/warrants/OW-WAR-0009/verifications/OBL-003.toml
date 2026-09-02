@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "contract.rs - test amendment_creates_a_new_revision_with_a_predecessor verifies the old revision object is preserved but no Attempt type exists and no test binds an attempt to revision N then verifies it still cites revision N's digest after N+1 is authorized"
+evidence = "No test or measurement in contract.rs demonstrates that prior attempts retain their basis by citing the correct revision digest; the tests focus on revision immutability and authorization, not on attempt retention."
 performer = "claude"
 
 [verifier]

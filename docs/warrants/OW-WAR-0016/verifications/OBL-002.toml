@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "established"
-evidence = "obligation.rs::Obligation::validate - checks self.scope.trim().is_empty() and returns ObligationError::MissingScope; obligation.rs::tests::an_obligation_without_scope_is_refused exercises the refusal with a plant containing no scope field"
+evidence = "The test 'a_universal_claim_established_by_sampling_is_refused' in crates/openwarrant-core/src/obligation.rs demonstrates refusal of a universal claim when verification relies solely on sampling, aligning with the obligation to refuse unbounded universal claims."
 performer = "claude"
 
 [verifier]

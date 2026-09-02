@@ -1,6 +1,6 @@
 obligation = "OBL-005"
 disposition = "not_established"
-evidence = "artifact_refs list contains no conformance/ files; EV-002 and EV-003 reference conformance/plant.sh but its contents and the seven entries with named rules and details are not among the artifacts provided"
+evidence = "The measured evidence explicitly states 'planted violations in this Warrant's section of conformance/plant.sh, each rejected by its named rule: none in a section named for this Warrant', meaning the required seven entries for §91.3 and §91.13 tests are absent."
 performer = "claude"
 
 [verifier]

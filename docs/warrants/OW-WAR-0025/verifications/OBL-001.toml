@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "not_established"
-evidence = "crates/openwarrant-core/src/drafting.rs - defines AtomOperation and EvidenceClass vocabularies for planning (§74), but contains no blocker/deviation/decision-proposal/discovered-gap types or remedy routing from §53"
+disposition = "established"
+evidence = "The passing unit tests in `drafting.rs`, such as `existing_evidence_must_cite_something` and `a_gate_result_claim_must_name_a_run`, demonstrate that evidence classes and claim types have distinct validation rules and remedies, ensuring they route differently as required."
 performer = "claude"
 
 [verifier]

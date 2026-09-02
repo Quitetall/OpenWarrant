@@ -1,0 +1,20 @@
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "No unit/integration tests or §44.6 receipts were provided to demonstrate that two consecutive `war status --json` runs are byte-identical or that `CORPUS_STATUS.json` committed and recompiled differs by nothing, as required by the contract."
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
