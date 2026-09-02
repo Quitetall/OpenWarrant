@@ -210,9 +210,33 @@ vocabulary!(
     }
 );
 
+/// §47.1's `api_version`.
+pub const DISPATCH_API_VERSION: &str = "oh.war/stage-dispatch/v1";
+/// §47.1's `submission_schema_ref` — the schema the actor answers in.
+pub const SUBMISSION_SCHEMA_REF: &str = "schema://oh.war/stage-submission/v1";
+
+/// §47.1's `capability_authorization` — a reference to the policy and its
+/// digest, as two fields rather than one because a digest with no reference
+/// names nothing a runtime could go and read.
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct CapabilityAuthorization {
+    #[serde(default)]
+    pub policy_ref: String,
+    #[serde(default)]
+    pub digest: String,
+}
+
 /// §47.1's Stage Dispatch — *"the only packet given to a stateless actor."*
+///
+/// Every field §47.1 lists, in its order. Twenty-three at the top level. The earlier shape
+/// carried twenty and flattened `capability_authorization` to a lone digest;
+/// OW-WAR-0056 completed it when a compiler for it was written and the
+/// missing four turned out to be exactly the ones a runtime needs to go and
+/// fetch anything.
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct StageDispatch {
+    #[serde(default)]
+    pub api_version: String,
     pub dispatch_id: String,
     pub warrant_ref: String,
     pub contract_revision: u32,
@@ -227,7 +251,11 @@ pub struct StageDispatch {
     pub non_goals: Vec<String>,
     #[serde(default)]
     pub instructions: Vec<String>,
+    #[serde(default)]
+    pub workspace_basis_ref: String,
     pub workspace_basis_digest: String,
+    #[serde(default)]
+    pub context_manifest_ref: String,
     pub context_manifest_digest: String,
     #[serde(default)]
     pub input_artifacts: Vec<String>,
@@ -236,15 +264,21 @@ pub struct StageDispatch {
     #[serde(default)]
     pub obligation_refs: Vec<String>,
     #[serde(default)]
-    pub capability_policy_digest: String,
+    pub capability_authorization: CapabilityAuthorization,
     #[serde(default)]
     pub resource_envelope: ResourceEnvelope,
+    #[serde(default)]
+    pub submission_schema_ref: String,
     /// §47.2 — recorded, not discarded.
     #[serde(default)]
     pub omitted_subgraphs: Vec<String>,
     /// §52.3 / §47.2 — a repair sees what failed.
     #[serde(default)]
     pub prior_failure_evidence_refs: Vec<String>,
+    /// §47.2 — "record the Dispatch digest". Computed over this packet with
+    /// this field empty, then written in; empty means "not yet digested".
+    #[serde(default)]
+    pub dispatch_digest: String,
 }
 
 /// §47.1's resource envelope.
@@ -273,8 +307,17 @@ impl StageDispatch {
     /// a compiler cannot satisfy the check by narrowing what it claims was
     /// required.
     pub fn validate(&self, required_normative_sources: &[String]) -> Result<(), ExecutionError> {
+        if self.api_version != DISPATCH_API_VERSION {
+            return Err(ExecutionError::DispatchIncomplete {
+                id: self.dispatch_id.clone(),
+                field: "api_version",
+            });
+        }
         for (field, value) in [
             ("warrant_ref", &self.warrant_ref),
+            ("workspace_basis_ref", &self.workspace_basis_ref),
+            ("context_manifest_ref", &self.context_manifest_ref),
+            ("submission_schema_ref", &self.submission_schema_ref),
             ("contract_digest", &self.contract_digest),
             ("stage_id", &self.stage_id),
             ("attempt_id", &self.attempt_id),
@@ -817,6 +860,7 @@ mod tests {
 
     fn dispatch() -> StageDispatch {
         StageDispatch {
+            api_version: DISPATCH_API_VERSION.into(),
             dispatch_id: "D-1".into(),
             warrant_ref: "war://uuid".into(),
             contract_revision: 3,
@@ -829,16 +873,109 @@ mod tests {
             objective: "implement the scalar backend".into(),
             non_goals: vec![],
             instructions: vec![],
+            workspace_basis_ref: "basis://manifest".into(),
             workspace_basis_digest: "sha256:w".into(),
+            context_manifest_ref: "artifact://ctx".into(),
             context_manifest_digest: "sha256:m".into(),
             input_artifacts: vec![],
             required_outputs: vec![],
             obligation_refs: vec!["OBL-001".into()],
-            capability_policy_digest: "sha256:p".into(),
+            capability_authorization: CapabilityAuthorization {
+                policy_ref: "policy://p".into(),
+                digest: "sha256:p".into(),
+            },
             resource_envelope: ResourceEnvelope::default(),
+            submission_schema_ref: SUBMISSION_SCHEMA_REF.into(),
             omitted_subgraphs: vec![],
             prior_failure_evidence_refs: vec![],
+            dispatch_digest: String::new(),
         }
+    }
+
+    /// OBL-001 of OW-WAR-0056 — §47.1 lists twenty-three top-level fields, and the
+    /// serialized packet carries every one under §47.1's own name.
+    #[test]
+    fn every_section_47_1_field_is_present_by_name() {
+        let json = serde_json::to_value(dispatch()).expect("serializes");
+        let obj = json.as_object().expect("an object");
+        let expected = [
+            "api_version",
+            "dispatch_id",
+            "warrant_ref",
+            "contract_revision",
+            "contract_digest",
+            "milestone_id",
+            "stage_id",
+            "attempt_id",
+            "attempt_kind",
+            "attempt_basis_digest",
+            "objective",
+            "non_goals",
+            "instructions",
+            "workspace_basis_ref",
+            "workspace_basis_digest",
+            "context_manifest_ref",
+            "context_manifest_digest",
+            "input_artifacts",
+            "required_outputs",
+            "obligation_refs",
+            "capability_authorization",
+            "resource_envelope",
+            "submission_schema_ref",
+        ];
+        for f in expected {
+            assert!(
+                obj.contains_key(f),
+                "§47.1 field {f:?} is missing from the packet"
+            );
+        }
+        let cap = obj["capability_authorization"].as_object().expect("nested");
+        assert!(cap.contains_key("policy_ref") && cap.contains_key("digest"));
+        let env = obj["resource_envelope"].as_object().expect("nested");
+        for f in [
+            "wall_time_seconds",
+            "cpu_cores",
+            "memory_bytes",
+            "gpu_count",
+            "network_policy",
+        ] {
+            assert!(env.contains_key(f), "resource_envelope.{f} missing");
+        }
+    }
+
+    /// The three refs and the api version are refused when absent or wrong.
+    #[test]
+    fn refs_and_api_version_are_required() {
+        for (field, mutate) in [
+            (
+                "api_version",
+                Box::new(|d: &mut StageDispatch| d.api_version = "oh.war/other/v9".into())
+                    as Box<dyn Fn(&mut StageDispatch)>,
+            ),
+            (
+                "workspace_basis_ref",
+                Box::new(|d: &mut StageDispatch| d.workspace_basis_ref.clear()),
+            ),
+            (
+                "context_manifest_ref",
+                Box::new(|d: &mut StageDispatch| d.context_manifest_ref.clear()),
+            ),
+            (
+                "submission_schema_ref",
+                Box::new(|d: &mut StageDispatch| d.submission_schema_ref.clear()),
+            ),
+        ] {
+            let mut d = dispatch();
+            mutate(&mut d);
+            match d.validate(&[]) {
+                Err(ExecutionError::DispatchIncomplete { field: f, .. }) => assert_eq!(f, field),
+                other => panic!("{field}: expected DispatchIncomplete, got {other:?}"),
+            }
+        }
+        assert!(
+            dispatch().validate(&[]).is_ok(),
+            "the fixture itself must validate"
+        );
     }
 
     /// §47.2 — a required normative source cannot be projected away.

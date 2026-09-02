@@ -15,6 +15,7 @@ mod bonsai;
 mod check;
 mod compile;
 mod diagnostic;
+mod dispatch;
 mod export;
 mod gate_cmd;
 mod init;
@@ -202,6 +203,26 @@ enum Command {
         #[arg(long, value_name = "PATH")]
         emit: Option<camino::Utf8PathBuf>,
     },
+    /// Compile a Stage Dispatch for one stage of a Warrant (§47).
+    ///
+    /// The only packet a stateless actor receives. Built from the Warrant's
+    /// own atoms; digested under §65's Dispatch domain; never executed here.
+    Dispatch {
+        /// The Warrant's local alias.
+        alias: String,
+        /// The stage id, e.g. `STAGE-003`.
+        stage: String,
+        /// §52: initial, replay, repair, restart.
+        #[arg(long, default_value = "initial")]
+        attempt_kind: String,
+        /// Prior failure evidence refs. Required for a repair (§52.3).
+        #[arg(long = "prior-failure")]
+        prior_failure: Vec<String>,
+        /// Write the packet here instead of stdout.
+        #[arg(long, value_name = "PATH")]
+        emit: Option<Utf8PathBuf>,
+    },
+
     /// Evaluate §56.1's thirteen resolution requirements without recording one.
     Resolve {
         /// The Warrant's local alias.
@@ -698,6 +719,41 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             let repository = repo::Repository::discover(None)?;
             let report = blut::lower(&repository, &alias, verify.as_deref(), emit.as_deref())?;
             check::print(&report);
+            Ok(if report.is_ready() {
+                EXIT_OK
+            } else {
+                EXIT_NOT_READY
+            })
+        }
+        Command::Dispatch {
+            alias,
+            stage,
+            attempt_kind,
+            prior_failure,
+            emit,
+        } => {
+            let repository = repo::Repository::discover(None)?;
+            let kind = attempt_kind
+                .parse::<openwarrant_core::execution::AttemptKind>()
+                .map_err(|e| repo::RepoError::Message(e.to_string()))?;
+            let report = dispatch::run(
+                &repository,
+                &alias,
+                &stage,
+                kind,
+                &prior_failure,
+                emit.as_deref(),
+            )?;
+            // The packet is the only thing on stdout when it goes there. An
+            // actor piping `war dispatch` into a parser must get canonical JSON
+            // and nothing else — the report goes to stderr in that case.
+            if emit.is_none() {
+                for d in &report.diagnostics {
+                    eprintln!("{d}");
+                }
+            } else {
+                check::print(&report);
+            }
             Ok(if report.is_ready() {
                 EXIT_OK
             } else {

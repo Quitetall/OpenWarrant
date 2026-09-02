@@ -168,10 +168,14 @@ pub fn adr_section(ir: &WarIr, basis: &CompilationBasis) -> String {
 #[must_use]
 pub fn stage_dispatch(ir: &WarIr, basis: &CompilationBasis) -> String {
     let mut out = view_header(ir, View::StageDispatch);
+    // Still the graph, and deliberately so even now that `compile_dispatch`
+    // exists: a dispatch carries a fresh UUIDv7 dispatch_id and attempt_id, so
+    // it is non-deterministic by construction and cannot be a committed,
+    // drift-checked view. The command that mints one is named instead.
     out.push_str(
         "\n*The stage graph, not a Stage Dispatch. A dispatch is compiled per \
          stage per attempt against a context manifest and an attempt basis \
-         (§47.1).*\n",
+         (§47.1) — `war dispatch <alias> <stage-id>` produces one.*\n",
     );
     out.push_str(&atoms_by_role(basis, &["milestones", "work_order"]));
     out

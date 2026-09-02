@@ -943,6 +943,31 @@ p = pathlib.Path('$DELIVERABLE')
 p.write_text(p.read_text().replace('target_ref = \\\"Cargo.toml\\\"', 'target_ref = \\\"Cargo.toml.nope\\\"', 1))
 \"; assert_present 'Cargo.toml.nope' '$DELIVERABLE'"
 
+# OW-WAR-0056 — the Stage Dispatch compiler (§47).
+#
+# OW-WAR-0047's STAGE-002 is the one stage in this corpus that declares an
+# `executor_ref`, so it is the positive case. The three refusals below are the
+# shipped binary refusing on real files; byte-determinism and the omitted
+# required atom are held by unit tests in `openwarrant-compiler`, because a
+# dispatch minted by the CLI carries fresh UUIDv7 ids and cannot be compared
+# across two runs — that is a property of the command, not a gap in the battery.
+
+# OBL-004, positive: a §47.1 packet with its digest, on stdout and nothing else.
+plant_cmd "a bound stage compiles to a dispatch" "oh.war/stage-dispatch/v1" "dispatch_digest" 0 ":" \
+    dispatch OW-WAR-0047 STAGE-002
+
+# An unbound stage is refused for the same reason `war blut` refuses it.
+plant_cmd "an unbound stage is not dispatched" "declares no executor_ref" "Refused rather than dispatched" 1 ":" \
+    dispatch OW-WAR-0021 STAGE-003
+
+# OBL-005. A repair that cannot see what failed is a retry wearing a label.
+plant_cmd "a repair with no prior failure evidence" "is a repair and carries no prior failure evidence" "52.3" 1 ":" \
+    dispatch OW-WAR-0047 STAGE-002 --attempt-kind repair
+
+# A stage id that names nothing is named back, with what does exist.
+plant_cmd "a stage that does not exist" "no stage" "STAGE-001, STAGE-002, STAGE-003" 1 ":" \
+    dispatch OW-WAR-0047 STAGE-099
+
 echo
 echo "$PASSED passed, $FAILED failed"
 [[ "$FAILED" -eq 0 ]]
