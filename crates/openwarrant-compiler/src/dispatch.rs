@@ -150,9 +150,11 @@ pub fn compile_dispatch(inputs: DispatchInputs<'_>) -> Result<StageDispatch, Dis
         }
     }
     for source in &required {
-        // Refused HERE and again in `validate`. Two layers on purpose: this one
-        // names the rule at the point the manifest is read, and the second
-        // holds if a caller ever bypasses the first.
+        // The manifest's own `required` flag on an omission is not trusted.
+        // `ContextManifest::validate` refuses an omission that ADMITS it was
+        // required; this refuses one that claims it was not, by checking
+        // against the contract's required atoms rather than the manifest's
+        // account of them.
         if omitted.contains(source) {
             return Err(DispatchError::RequiredAtomOmitted {
                 atom: source.clone(),
@@ -557,14 +559,17 @@ stages:
             }
             other => panic!("wrong refusal: {other}"),
         }
-        // Recorded as omitted is refused by name too — by the explicit branch,
-        // not only by `validate` downstream.
+        // Recorded as omitted is refused by name too. The omission is marked
+        // `required: false` — a manifest LYING about whether the atom was
+        // required. `ContextManifest::validate` trusts the manifest's own flag
+        // and would pass this; the compiler checks the flag against the
+        // contract's required atoms and does not.
         let mut ctx = context_for(&basis);
         ctx.included.retain(|i| i.id != "atoms/40-work-order.md");
         ctx.omitted.push(Omission {
             id: "atoms/40-work-order.md".to_owned(),
             reason: "r".to_owned(),
-            required: true,
+            required: false,
         });
         match compile(
             &basis,
