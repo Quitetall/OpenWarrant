@@ -333,11 +333,16 @@ pub fn render_html(status: &CorpusStatus, canonical_json: &str) -> String {
     out
 }
 
+/// Text-and-attribute-safe HTML escaping. The single quote is included even
+/// though no call site puts data in a single-quoted attribute today: an
+/// escaper that is safe only in the contexts its author remembered is the
+/// kind that gets reused in the one it did not.
 fn esc(s: &str) -> String {
     s.replace('&', "&amp;")
         .replace('<', "&lt;")
         .replace('>', "&gt;")
         .replace('"', "&quot;")
+        .replace('\'', "&#39;")
 }
 
 const HTML_STYLE: &str = r#"<style>
@@ -361,7 +366,8 @@ const HTML_SCRIPT: &str = r#"<script>
 (function(){
   var el=document.getElementById('corpus-status'); if(!el) return;
   var d=JSON.parse(el.textContent); var app=document.getElementById('app');
-  function h(tag,attrs,kids){var e=document.createElement(tag); if(attrs) for(var k in attrs){ if(k==='text') e.textContent=attrs[k]; else if(k==='html') e.innerHTML=attrs[k]; else e.setAttribute(k,attrs[k]); } (kids||[]).forEach(function(c){ if(c==null) return; e.appendChild(typeof c==='string'?document.createTextNode(c):c); }); return e;}
+  // No innerHTML path, on purpose: every string from the JSON reaches the DOM through textContent or a text node.
+  function h(tag,attrs,kids){var e=document.createElement(tag); if(attrs) for(var k in attrs){ if(k==='text') e.textContent=attrs[k]; else e.setAttribute(k,attrs[k]); } (kids||[]).forEach(function(c){ if(c==null) return; e.appendChild(typeof c==='string'?document.createTextNode(c):c); }); return e;}
   function rung(label,n,head){return h('div',{class:'rung'+(head?' head':'')},[h('b',{text:String(n)}),document.createTextNode(label)]);}
   function count(list,key,val){var n=0; list.forEach(function(x){ if(x[key]===val) n++; }); return n;}
   function ref(r){return r? (r.slug? 'roadmap://'+r.prefix+'-PHASE-'+r.phase+'/'+r.slug : 'roadmap://'+r.prefix+'-PHASE-'+r.phase) : '';}

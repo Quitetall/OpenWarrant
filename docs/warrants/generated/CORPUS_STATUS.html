@@ -25,7 +25,7 @@ ul.next li{margin:.3rem 0}footer{margin-top:3rem;color:var(--muted);font-size:.9
 </style>
 </head>
 <body>
-<aside class="banner" role="note"><strong>Provenance: derived.</strong> Every state on this page is derived from the records' shape. Nothing journals §24 transitions and no §56.2 resolution has been recorded, so no Warrant can read above `would_satisfy` and no requirement above `in_progress` until a human signs.</aside>
+<aside class="banner" role="note"><strong>Provenance: derived.</strong> Every state on this page is derived from the records&#39; shape. Nothing journals §24 transitions and no §56.2 resolution has been recorded, so no Warrant can read above `would_satisfy` and no requirement above `in_progress` until a human signs.</aside>
 <main>
 <h1>Corpus Status</h1>
 <p class="meta">Built from <a href="CORPUS_STATUS.json">CORPUS_STATUS.json</a>; the same projection as <a href="CORPUS_STATUS.md">CORPUS_STATUS.md</a>.</p>
@@ -37,7 +37,8 @@ ul.next li{margin:.3rem 0}footer{margin-top:3rem;color:var(--muted);font-size:.9
 (function(){
   var el=document.getElementById('corpus-status'); if(!el) return;
   var d=JSON.parse(el.textContent); var app=document.getElementById('app');
-  function h(tag,attrs,kids){var e=document.createElement(tag); if(attrs) for(var k in attrs){ if(k==='text') e.textContent=attrs[k]; else if(k==='html') e.innerHTML=attrs[k]; else e.setAttribute(k,attrs[k]); } (kids||[]).forEach(function(c){ if(c==null) return; e.appendChild(typeof c==='string'?document.createTextNode(c):c); }); return e;}
+  // No innerHTML path, on purpose: every string from the JSON reaches the DOM through textContent or a text node.
+  function h(tag,attrs,kids){var e=document.createElement(tag); if(attrs) for(var k in attrs){ if(k==='text') e.textContent=attrs[k]; else e.setAttribute(k,attrs[k]); } (kids||[]).forEach(function(c){ if(c==null) return; e.appendChild(typeof c==='string'?document.createTextNode(c):c); }); return e;}
   function rung(label,n,head){return h('div',{class:'rung'+(head?' head':'')},[h('b',{text:String(n)}),document.createTextNode(label)]);}
   function count(list,key,val){var n=0; list.forEach(function(x){ if(x[key]===val) n++; }); return n;}
   function ref(r){return r? (r.slug? 'roadmap://'+r.prefix+'-PHASE-'+r.phase+'/'+r.slug : 'roadmap://'+r.prefix+'-PHASE-'+r.phase) : '';}
