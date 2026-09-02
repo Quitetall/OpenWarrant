@@ -1,0 +1,28 @@
+schema = "oh.war/authorization/v1"
+warrant = "OW-WAR-0026"
+
+[revision]
+revision = 1
+state = "authorized"
+contract_digest = "ba76aee15716a9fdc008516e9e77bfdb96d15753a0b68f49b5987d1b46984071"
+proposer = "claude"
+
+[revision.coverage]
+covered = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+
+[revision.authorization]
+authorizer = "Brian Lam"
+actor_kind = "human"
+acting_role = "authorizer"
+meaning = """Authorizing OW-WAR-0026 (Implement the Katana runtime seam, capabilities, and receipts) at this contract digest means the owner accepts its intent, scope and obligations as the work to be done and judged, and accepts each residual risk declared below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 ("You should manually authorize each of the warrants. I give you my express permission to approve these things."); the decision is the owner's, the wording is the agent's."""
+effective_time = "2026-09-02T06:00:00Z"
+independence = "separate_role"

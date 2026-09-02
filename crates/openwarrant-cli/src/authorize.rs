@@ -789,6 +789,13 @@ mod tests {
     fn a_signed_response_becomes_a_record_and_a_refused_one_writes_nothing() {
         let (_scratch, repo) = scratch_repo();
         write_register(&repo);
+        // The scratch repo is a copy of the real corpus, which since 2026-09-02
+        // carries the owner's records. This test is about a Warrant with NONE,
+        // so start from that state explicitly rather than assuming it.
+        let warrant_dir = repo.root.join("docs/warrants/OW-WAR-0014");
+        for f in ["authorization.toml", "judgments.toml"] {
+            let _ = fs::remove_file(warrant_dir.join(f));
+        }
 
         let request = request(&repo, "OW-WAR-0014").expect("request builds");
         assert_eq!(

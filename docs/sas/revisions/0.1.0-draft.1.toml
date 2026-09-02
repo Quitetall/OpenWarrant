@@ -2,7 +2,7 @@ schema = "oh.war/sas-revision/v1"
 version = "0.1.0-draft.1"
 source = "docs/sas/WAR_Software_Architecture_Specification.md"
 sha256 = "aad5256cb59e3e589313b7e2d5b48360ad8c85cf1c1d65d21f9260e692dfe8e5"
-state = "proposed"
+state = "accepted"
 architecture_changing = false
 
 [requirements]
@@ -63,3 +63,10 @@ WAR-SAS-RQ-081 = "Cross-system WAR digests use explicit algorithms and domains"
 WAR-SAS-RQ-082 = "Export includes contract, sources, receipts, assurance, resolution"
 WAR-SAS-RQ-083 = "Export-import-export preserves semantic identity"
 WAR-SAS-RQ-084 = "Historical superseded, disputed, and annulled records remain available"
+
+[acceptance]
+accepted_by = "Brian Lam"
+actor_kind = "human"
+acting_role = "authorizer"
+meaning = """Accepting 0.1.0-draft.1 makes this SAS text, at this digest, the normative baseline every compiled Warrant is pinned to. Its 57 §106 requirement ids are henceforth append-only; a later revision that removes or renumbers one is refused. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 ("You should manually authorize each of the warrants. I give you my express permission to approve these things."); the decision is the owner's, the wording is the agent's."""
+effective_time = "2026-09-02T06:00:00Z"
