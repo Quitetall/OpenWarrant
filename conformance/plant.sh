@@ -1130,6 +1130,10 @@ plant "a resolution of a contract that has since moved" "resolution.stale" "earl
     "printf 'schema = \"oh.war/resolution/v1\"\nwarrant = \"OW-WAR-0010\"\n\n[resolution]\nid = \"01a00000-0000-7000-8000-000000000000\"\ncommon_outcome = \"satisfied\"\nprofile_outcome = \"delivered\"\ncontract_revision = 1\ncontract_digest = \"0000000000000000000000000000000000000000000000000000000000000000\"\nassurance_case_snapshot_digest = \"sha256:00\"\nartifact_manifest_digest = \"sha256:00\"\ngate_run_refs = []\njudgment_refs = []\nresidual_risk_refs = []\nresolved_by_ref = \"person://Brian Lam\"\nacting_role_ref = \"role-assignment://Brian Lam/resolver\"\nmeaning = \"planted\"\neffective_at = \"2026-09-02T00:00:00Z\"\nrecorded_at = \"2026-09-02T00:00:00Z\"\nstanding = \"valid\"\n' > docs/warrants/OW-WAR-0010/resolution.toml" \
     OW-WAR-0010
 
+# OW-WAR-0061 — Phase 1 has an exit Warrant. Positive: the projection names it.
+plant_cmd "phase 1 names its exit warrant" "OW-PHASE-1" "OW-WAR-0061" 0 \
+    "true" status
+
 echo
 echo "$PASSED passed, $FAILED failed"
 [[ "$FAILED" -eq 0 ]]

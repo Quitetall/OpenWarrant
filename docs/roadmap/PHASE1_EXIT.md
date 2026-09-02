@@ -1,0 +1,46 @@
+# Phase 1 exit — measured
+
+SAS §98, Phase 1 (file-native WAR compiler). Exit: **"OpenWarrant
+development uses WARs."** This file is OW-WAR-0061's deliverable: each line
+carries the command that produced it. Measured 2026-09-02 on `main`.
+
+## The ten deliverables
+
+| §98 deliverable | Where it lives | Exercised by |
+|---|---|---|
+| `war init` | `crates/openwarrant-cli/src/init.rs` | `war --help`; conformance plants |
+| `war new` | `crates/openwarrant-cli/src/new.rs` | every Warrant in the corpus was allocated by it |
+| manifest | `crates/openwarrant-core/src/manifest.rs` | `war check` on 56 manifests |
+| authored atom profile | `crates/openwarrant-core/src/atom.rs`, restricted frontmatter reader (OW-ADR-0002) | `war check` |
+| canonical IR | `crates/openwarrant-compiler/src/{ir,lower}.rs` | every committed `generated/WAR.json` |
+| `war check` | `crates/openwarrant-cli/src/check.rs` | the `corpus` gate step, every push |
+| `war compile` | `crates/openwarrant-cli/src/compile.rs` | drift check of every committed view |
+| full Markdown parent | `crates/openwarrant-compiler/src/render.rs` | `generated/WAR.md` ×56, drift-checked |
+| canonical JSON | `crates/openwarrant-compiler/src/canonical.rs` (RFC 8785, OW-ADR-0001) | `generated/WAR.json` ×56, drift-checked |
+| generated drift gate | `war check --generated` as the `corpus` step of `cargo xtask gate` | CI on every push since #41 |
+
+```bash
+./target/debug/war --help | grep -cE '^  (init|new|check|compile) '   # 4
+ls docs/warrants/OW-WAR-00*/generated/WAR.json | wc -l                 # 56
+./target/debug/war check --generated >/dev/null; echo $?               # 0
+```
+
+## The corpus
+
+```bash
+ls -d docs/warrants/OW-WAR-00*/ | wc -l                                # 56 Warrants
+ls docs/warrants/OW-WAR-00*/authorization.toml | wc -l                 # 54 authorized (0059, 0060 pending the owner)
+ls docs/warrants/OW-WAR-00*/resolution.toml | wc -l                    # 2 resolved (0010, 0020), each citing a bound §44.6 receipt
+```
+
+## Commit traceability (recorded, not passed)
+
+```bash
+git log --format=%s main | wc -l                                       # 87
+git log --format=%s main | grep -c 'OW-WAR-'                           # 20
+```
+
+Twenty of eighty-seven commit subjects name a Warrant. The others name a
+SAS section, a fix, a records batch or a dependency bump. This is the
+starting number for a stricter rule this repository has not adopted; a gate
+that enforces it needs commit history CI's shallow checkout does not fetch.
