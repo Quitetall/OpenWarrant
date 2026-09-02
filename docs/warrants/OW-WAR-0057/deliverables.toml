@@ -15,9 +15,9 @@ schema = "oh.war/deliverables/v1"
 
 [[deliverable]]
 id = "D-001"
-title = "Generated Markdown parent with the §17.1 header"
+title = "The page: one file, JSON inlined, no fetch, theme-aware, deterministic"
 kind = "file"
-target_ref = "crates/openwarrant-compiler/src/render.rs"
+target_ref = "crates/openwarrant-compiler/src/corpus_status.rs"
 required = true
 content_addressed = true
 provenance_required = true
@@ -25,11 +25,11 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "claude"
-producing_attempt = "OW-WAR-0004/attempt-1"
+producing_attempt = "OW-WAR-0057/attempt-1"
 contract_digest = "unrecorded"
 tool_or_runtime_identity = "rustc 1.97.1"
 creation_method = "authored"
-content_digest = "sha256:0bebc13c4c402181d50d1b7aa58482d77b251ec60019d44f16285400b4def690"
+content_digest = "sha256:b8ce3ac9c4fad96a3cc71e76b33159d037505aa45f2e6c4aa377f04282b264c6"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"
@@ -37,9 +37,9 @@ source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
-title = "Compilation and drift detection"
+title = "Emission of CORPUS_STATUS.html beside the JSON and Markdown"
 kind = "file"
-target_ref = "crates/openwarrant-cli/src/compile.rs"
+target_ref = "crates/openwarrant-cli/src/status.rs"
 required = true
 content_addressed = true
 provenance_required = true
@@ -47,11 +47,11 @@ obligation_refs = ["OBL-003"]
 
 [deliverable.provenance]
 producer = "claude"
-producing_attempt = "OW-WAR-0004/attempt-1"
+producing_attempt = "OW-WAR-0057/attempt-1"
 contract_digest = "unrecorded"
 tool_or_runtime_identity = "rustc 1.97.1"
 creation_method = "authored"
-content_digest = "sha256:ff179d6af7ec0585a609d94cd8f7cb1da851572c1c61527a3c82bb9ce7484373"
+content_digest = "sha256:d42685e5a256693fa7ffb3c93568cabf08dbfc0d35096a2300b04d47b59f8eb3"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"
