@@ -1,0 +1,73 @@
+name: Pages
+
+# Publishes the corpus viewer — docs/warrants/generated/CORPUS_STATUS.html,
+# with the JSON and Markdown it links — as a GitHub Pages site (OW-WAR-0060).
+#
+# The page is a committed, drift-checked build artifact of `war compile`
+# (OW-WAR-0057): the deploy copies it and PROVES it copied it, by comparing
+# the sha256 of what is uploaded with the sha256 of what is committed. Nothing
+# is rendered, generated or rewritten here; a Pages build that could differ
+# from the checked-in file would be a second, unchecked projection.
+#
+# Cost discipline as in ci.yml (ADR 0179): one ubuntu-latest job, a timeout,
+# a concurrency group, and a trigger narrowed to the files that change the
+# site. `workflow_dispatch` lets the pipeline be exercised without a push.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/warrants/generated/CORPUS_STATUS.html"
+      - "docs/warrants/generated/CORPUS_STATUS.json"
+      - "docs/warrants/generated/CORPUS_STATUS.md"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+# Least privilege: the deploy needs Pages and an OIDC token, nothing else.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Assemble the site from the committed projection
+        run: |
+          set -euo pipefail
+          src=docs/warrants/generated
+          mkdir -p _site
+          cp "$src/CORPUS_STATUS.html" _site/index.html
+          cp "$src/CORPUS_STATUS.html" _site/CORPUS_STATUS.html
+          cp "$src/CORPUS_STATUS.json" _site/CORPUS_STATUS.json
+          cp "$src/CORPUS_STATUS.md"   _site/CORPUS_STATUS.md
+          # The claim the site makes is "this IS the committed projection".
+          # Assert it, so a future step that rewrites the page cannot pass.
+          for f in CORPUS_STATUS.html CORPUS_STATUS.json CORPUS_STATUS.md; do
+            a=$(sha256sum "$src/$f" | cut -d' ' -f1)
+            b=$(sha256sum "_site/$f" | cut -d' ' -f1)
+            [ "$a" = "$b" ] || { echo "$f: uploaded bytes differ from committed bytes"; exit 1; }
+          done
+          [ "$(sha256sum _site/index.html | cut -d' ' -f1)" = "$(sha256sum "$src/CORPUS_STATUS.html" | cut -d' ' -f1)" ]
+          echo "site assembled from $(git rev-parse HEAD)"
+
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
