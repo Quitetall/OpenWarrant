@@ -582,21 +582,65 @@ pub fn artifact_digests_verify(root: &camino::Utf8Path, deliverables: &[Delivera
         })
 }
 
-/// `war resolve <alias> --dry-run`.
-pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
-    let dir = repo.warrant_dir(alias)?;
-    let one = repo.load_warrant(&dir)?;
-    let mut report = Report::default();
+/// Everything `war resolve` computes for one Warrant, before any diagnostic is
+/// written.
+///
+/// Extracted so the corpus projection (`war status`) and `war resolve` compute
+/// from ONE function. Two implementations of the thirteen would be two places
+/// for them to disagree, and the projection would be the one nobody re-checked.
+#[derive(Debug, Clone)]
+pub struct Assessment {
+    pub checks: ResolutionChecks,
+    /// §38.6 — beside the thirteen, never folded in.
+    pub would_resolve_satisfied: Option<bool>,
+    /// Obligation ids with an admissible verification that permits satisfaction.
+    pub established: Vec<String>,
+    /// Obligation ids on record as not established or refuted.
+    pub unestablished: Vec<String>,
+    /// §36.3 blocking unknowns, by assumption id.
+    pub blocking_unknowns: Vec<String>,
+    /// Repository-relative paths of the admissible verification records.
+    pub evidence_refs: Vec<String>,
+    pub deliverable_failures: Vec<(String, String)>,
+    pub verification_failures: Vec<(String, String)>,
+}
 
-    let verifications = repo.load_verifications(&dir)?;
-    let deliverables = repo.load_deliverables(&dir)?;
+/// Compute §56.1's thirteen and §38.6 for one loaded Warrant, reading gate
+/// runs from the receipts path.
+///
+/// This is what `war resolve` calls. It is a LOCAL question — "what do the
+/// records on this machine say?" — and the receipts under `docs/receipts/`
+/// are part of that, gitignored or not.
+pub fn assess(repo: &Repository, one: &crate::repo::Loaded) -> Result<Assessment, RepoError> {
     let gate_runs = repo.load_gate_runs();
+    assess_with(repo, one, &gate_runs)
+}
+
+/// The same computation over a caller-supplied set of gate runs.
+///
+/// # Why the gate runs are a parameter
+///
+/// `docs/receipts/` is gitignored — a receipt becomes committed evidence
+/// deliberately, as part of a resolution, and until then it is local state.
+/// A committed, drift-checked projection that read it would be a function of
+/// which machine compiled it: the first CI run of `CORPUS_STATUS.json` failed
+/// drift for exactly that reason, because the recorded gate run existed
+/// locally and not in the fresh clone. The projection passes an empty set and
+/// says so; `war resolve` passes what it finds.
+pub fn assess_with(
+    repo: &Repository,
+    one: &crate::repo::Loaded,
+    gate_runs: &[GateRun],
+) -> Result<Assessment, RepoError> {
+    let dir = &one.dir;
+    let verifications = repo.load_verifications(dir)?;
+    let deliverables = repo.load_deliverables(dir)?;
 
     let performer = repo.performer();
     let register = repo.load_authority_register()?;
-    let authorization = repo.load_authorization(&dir)?;
-    let judgments = repo.load_judgments(&dir)?;
-    let assumptions = repo.load_rationale(&dir)?;
+    let authorization = repo.load_authorization(dir)?;
+    let judgments = repo.load_judgments(dir)?;
+    let assumptions = repo.load_rationale(dir)?;
     // The digest the Warrant compiles to right now, which requirement 1 compares
     // the signature against. A Warrant that will not compile yields `None`, and
     // requirement 1 is then unanswerable rather than satisfied.
@@ -618,26 +662,12 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
 
     let checks = evaluate(
         repo,
-        &one,
+        one,
         &verifications.records,
         &deliverables.records,
-        &gate_runs,
+        gate_runs,
         &authority,
     );
-    for (path, why) in &deliverables.failures {
-        report.push(Diagnostic::error(
-            "deliverables.malformed",
-            path.clone(),
-            format!("{why} — an unreadable deliverables file is not an absent one"),
-        ));
-    }
-    for (path, why) in &verifications.failures {
-        report.push(Diagnostic::error(
-            "verification.malformed",
-            path.clone(),
-            format!("{why} — an unreadable verification is not an absent one"),
-        ));
-    }
 
     // §38.6, reported alongside the thirteen and never folded into them. See
     // `would_resolve_satisfied` for why these are different questions.
@@ -646,21 +676,81 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
         .as_ref()
         .map(|v| v.assurance_level.to_string())
         .unwrap_or_else(|| "basic".to_owned());
-    let declared = declared_obligations(&one);
+    let declared = declared_obligations(one);
     let admissible: Vec<&Verification> = verifications
         .records
         .iter()
         .filter(|v| v.admissible_for(&assurance).is_ok())
         .collect();
-    let outcome = would_resolve_satisfied(&declared, &admissible);
-    let unestablished: Vec<&str> = declared
+    let would_resolve_satisfied = would_resolve_satisfied(&declared, &admissible);
+    let mut established = Vec::new();
+    let mut unestablished = Vec::new();
+    for id in &declared {
+        if let Some(v) = admissible.iter().find(|v| &v.obligation == id) {
+            if v.disposition.permits_satisfied() {
+                established.push(id.clone());
+            } else {
+                unestablished.push(id.clone());
+            }
+        }
+    }
+    let evidence_refs: Vec<String> = admissible
         .iter()
-        .filter(|id| {
-            admissible
-                .iter()
-                .find(|v| &&v.obligation == id)
-                .is_some_and(|v| !v.disposition.permits_satisfied())
+        .map(|v| {
+            repo.relative(
+                &dir.join("verifications")
+                    .join(format!("{}.toml", v.obligation)),
+            )
         })
+        .collect();
+    let blocking_unknowns: Vec<String> = assumptions
+        .as_deref()
+        .unwrap_or(&[])
+        .iter()
+        .filter(|a| {
+            a.epistemic_status == openwarrant_core::rationale::EpistemicStatus::BlockingUnknown
+        })
+        .map(|a| a.id.clone())
+        .collect();
+
+    Ok(Assessment {
+        checks,
+        would_resolve_satisfied,
+        established,
+        unestablished,
+        blocking_unknowns,
+        evidence_refs,
+        deliverable_failures: deliverables.failures,
+        verification_failures: verifications.failures,
+    })
+}
+
+/// `war resolve <alias> --dry-run`.
+pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
+    let dir = repo.warrant_dir(alias)?;
+    let one = repo.load_warrant(&dir)?;
+    let mut report = Report::default();
+
+    let assessment = assess(repo, &one)?;
+    for (path, why) in &assessment.deliverable_failures {
+        report.push(Diagnostic::error(
+            "deliverables.malformed",
+            path.clone(),
+            format!("{why} — an unreadable deliverables file is not an absent one"),
+        ));
+    }
+    for (path, why) in &assessment.verification_failures {
+        report.push(Diagnostic::error(
+            "verification.malformed",
+            path.clone(),
+            format!("{why} — an unreadable verification is not an absent one"),
+        ));
+    }
+    let checks = assessment.checks;
+    let outcome = assessment.would_resolve_satisfied;
+    let unestablished: Vec<&str> = assessment
+        .unestablished
+        .iter()
         .map(String::as_str)
         .collect();
 

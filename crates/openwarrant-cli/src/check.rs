@@ -174,6 +174,18 @@ pub fn run(
             &mut report,
         );
         drift_check(repo, adr_overview(repo), "adr-overview", &mut report);
+        drift_check(
+            repo,
+            crate::status::corpus_status_md(repo),
+            "corpus-status",
+            &mut report,
+        );
+        drift_check(
+            repo,
+            crate::status::corpus_status_json(repo),
+            "corpus-status",
+            &mut report,
+        );
     }
 
     // §38.6 disposition status, aggregated once for the corpus rather than
@@ -540,6 +552,86 @@ fn check_deliverable_digests(repo: &Repository, one: &Loaded, alias: &str, repor
     }
 }
 
+/// §34 and §105 — the references a Warrant makes to the SAS and the Roadmap.
+///
+/// # Why these were never checked before
+///
+/// `Implements.contribution` is an `Option<String>` on disk and `RoadmapRef` is
+/// a bare `String`, and both were copied verbatim into the IR. So a manifest
+/// could say `contribution = "mostly"` or `roadmap://OW-PHASE-11/x` and nothing
+/// would object — `war show` says outright that only `war://` is resolved. The
+/// corpus projection groups Warrants by phase and derives requirement status
+/// from contributions, so both now have to parse, and a value that does not
+/// parse is reported here rather than silently dropped from a count.
+///
+/// An absent contribution is a warning, not an error: §34.2 says a WAR SHOULD
+/// declare it, and turning a SHOULD into a refusal would be reading a rule into
+/// the text.
+fn check_traceability(repo: &Repository, one: &Loaded, alias: &str, report: &mut Report) {
+    use openwarrant_core::traceability::{Contribution, RequirementRef, RoadmapRef};
+
+    let Some(basis) = one.basis.as_ref() else {
+        return;
+    };
+    let file = repo.relative(&one.dir.join("manifest.toml"));
+    let mut bad = 0usize;
+
+    for r in &basis.manifest.roadmap {
+        if let Err(err) = RoadmapRef::parse(&r.r#ref) {
+            report.push(Diagnostic::error(
+                "roadmap.malformed",
+                file.clone(),
+                format!("{alias}: {err}"),
+            ));
+            bad += 1;
+        }
+    }
+
+    for i in &basis.manifest.implements {
+        if let Err(err) = RequirementRef::parse(&i.r#ref) {
+            report.push(Diagnostic::error(
+                "traceability.requirement-ref",
+                file.clone(),
+                format!("{alias}: {err}"),
+            ));
+            bad += 1;
+        }
+        match i.contribution.as_deref() {
+            None => report.push(Diagnostic::warn(
+                "traceability.contribution-unstated",
+                file.clone(),
+                format!(
+                    "{alias}: {} declares no contribution; §34.2 says a WAR SHOULD state \
+                     one of {}",
+                    i.r#ref,
+                    Contribution::known()
+                ),
+            )),
+            Some(text) => {
+                if let Err(err) = text.parse::<Contribution>() {
+                    report.push(Diagnostic::error(
+                        "traceability.contribution",
+                        file.clone(),
+                        format!("{alias}: {}: {err}", i.r#ref),
+                    ));
+                    bad += 1;
+                }
+            }
+        }
+    }
+
+    if bad == 0 && !(basis.manifest.roadmap.is_empty() && basis.manifest.implements.is_empty()) {
+        report.push(Diagnostic::pass(
+            "traceability.refs",
+            format!(
+                "{alias}: {} requirement ref(s) and {} roadmap ref(s) parse",
+                basis.manifest.implements.len(),
+                basis.manifest.roadmap.len()
+            ),
+        ));
+    }
+}
+
 fn check_one(
     repo: &Repository,
     one: &Loaded,
@@ -568,6 +660,7 @@ fn check_one(
     ));
 
     check_deliverable_digests(repo, one, &alias, report);
+    check_traceability(repo, one, &alias, report);
 
     // Ordinals ascending is not required by the SAS, but a manifest whose
     // ordinals descend renders in an order its author probably did not intend.

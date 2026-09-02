@@ -43,6 +43,7 @@ pub mod resolution;
 pub mod role;
 pub mod seam;
 pub mod state;
+pub mod status;
 pub mod structured;
 
 pub use adequacy::{AdequacyError, AdequacyOutcome, AdequacyRequirement, AdequacyReview};
@@ -85,4 +86,13 @@ pub use state::{
     CommonOutcome, Currency, ExecutionCondition, Phase, Provenance, ResolutionStanding, StateError,
     WarrantState,
 };
+pub use status::{
+    Achieved, CORPUS_STATUS_SCHEMA, CorpusStatus, ImplementsClaim, MilestoneState,
+    NothingActionable, ObjectiveStatus, PHASES, Reached, ReleaseSummary, RequirementCounts,
+    RequirementLadder, StageRef, Validity, WarrantLadder, WarrantRung, WarrantStatus,
+};
 pub use structured::{StructuredDoc, StructuredError, StructuredValue};
+pub use traceability::{
+    Contribution, Implements as RequirementLink, RequirementRef, RequirementStatus, RoadmapRef,
+    TraceabilityError, derive_all as derive_requirement_statuses,
+};

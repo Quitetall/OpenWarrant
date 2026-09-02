@@ -237,7 +237,12 @@ pub fn run(repo: &Repository, only: Option<&str>) -> Result<(), RepoError> {
     // The ADR Overview covers the whole corpus, so it is compiled once rather
     // than per Warrant, and only on a full run.
     if only.is_none() {
-        for (path, contents) in [warrant_overview(repo)?, adr_overview(repo)?] {
+        for (path, contents) in [
+            warrant_overview(repo)?,
+            adr_overview(repo)?,
+            crate::status::corpus_status_md(repo)?,
+            crate::status::corpus_status_json(repo)?,
+        ] {
             if let Some(parent) = path.parent() {
                 fs::create_dir_all(parent).map_err(|source| RepoError::Io {
                     context: format!("could not create {parent}"),
