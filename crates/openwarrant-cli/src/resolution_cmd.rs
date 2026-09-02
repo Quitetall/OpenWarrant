@@ -147,13 +147,32 @@ fn bind(alias: &str, one: &crate::repo::Loaded) -> Result<Bound, RepoError> {
     let contract_digest = ir
         .contract_digest()
         .map_err(|e| RepoError::Message(format!("{alias}: could not digest contract: {e}")))?;
-    let snapshot = ir
-        .assurance_case
-        .as_ref()
-        .map(|a| sha256_digest(DigestDomain::AssuranceCaseSnapshot, a))
-        .transpose()
-        .map_err(|e| RepoError::Message(format!("{alias}: assurance snapshot: {e}")))?
-        .map_or_else(|| "absent".to_owned(), |d| format!("sha256:{d}"));
+    // §56.2's assurance-case snapshot. The IR carries no `assurance_case`
+    // section today (the compiler lowers it as `None`), so the snapshot is
+    // taken over the assurance ATOMS as compiled: (ordinal, role, sha256 of
+    // bytes) for each, under the snapshot domain. A record with no assurance
+    // atom to bind is refused — "absent" would be a digest of nothing that
+    // reads like a digest of something.
+    let snapshot = match &ir.assurance_case {
+        Some(a) => sha256_digest(DigestDomain::AssuranceCaseSnapshot, a)
+            .map_err(|e| RepoError::Message(format!("{alias}: assurance snapshot: {e}")))?,
+        None => {
+            let atoms: Vec<(u32, String, String)> = basis
+                .atoms
+                .iter()
+                .filter(|a| a.role == "assurance")
+                .map(|a| (a.ordinal, a.role.clone(), sha256_hex(&a.bytes)))
+                .collect();
+            if atoms.is_empty() {
+                return Err(RepoError::Message(format!(
+                    "{alias}: no assurance atom to snapshot; §56.2 binds the assurance case and there is none"
+                )));
+            }
+            sha256_digest(DigestDomain::AssuranceCaseSnapshot, &atoms)
+                .map_err(|e| RepoError::Message(format!("{alias}: assurance snapshot: {e}")))?
+        }
+    };
+    let snapshot = format!("sha256:{snapshot}");
     let manifest_path = one.dir.join("deliverables.toml");
     let artifact_manifest_digest = std::fs::read(&manifest_path)
         .map(|b| format!("sha256:{}", sha256_hex(&b)))

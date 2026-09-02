@@ -403,11 +403,22 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
     Ok(CorpusStatus {
         schema: CORPUS_STATUS_SCHEMA.to_owned(),
         provenance: Provenance::Derived,
-        provenance_note:
-            "Every state on this page is derived from the records' shape. Nothing journals §24 \
-             transitions and no §56.2 resolution has been recorded, so no Warrant can read above \
-             `would_satisfy` and no requirement above `in_progress` until a human signs."
-                .to_owned(),
+        provenance_note: {
+            let recorded = warrants.iter().filter(|w| w.resolution.is_some()).count();
+            if recorded == 0 {
+                "Every state on this page is derived from the records' shape. Nothing journals §24 \
+                 transitions and no §56.2 resolution has been recorded, so no Warrant can read above \
+                 `would_satisfy` and no requirement above `in_progress` until a human signs."
+                    .to_owned()
+            } else {
+                format!(
+                    "Every state on this page is derived from the records' shape. Nothing journals §24 \
+                     transitions. {recorded} Warrant(s) carry a §56.2 resolution record and read \
+                     `resolved` from it; every other Warrant reads at most `would_satisfy`, and a \
+                     requirement reads `satisfied` only through a resolved Warrant with evidence."
+                )
+            }
+        },
         release: match repo.latest_sas_revision()? {
             Some(r) => ReleaseSummary {
                 version: Some(r.version.clone()),

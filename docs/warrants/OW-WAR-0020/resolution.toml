@@ -1,0 +1,20 @@
+schema = "oh.war/resolution/v1"
+warrant = "OW-WAR-0020"
+
+[resolution]
+id = "01a060fd-3296-7d83-b724-d13c93197ff5"
+common_outcome = "satisfied"
+profile_outcome = "delivered"
+contract_revision = 1
+contract_digest = "829da3b9434632c577505bde0e5767e12edfdcaa46c1e381f6038b457aab6849"
+assurance_case_snapshot_digest = "sha256:c0c8c4f769595e4ac3062cf7e95a7a09281ca3c8b3889131d43c08b1230c2f9a"
+artifact_manifest_digest = "sha256:603a7a0c4fcbbaeb8a78e46d694f34fae459feb1c51688b31f4b8f5bd100715d"
+gate_run_refs = ["docs/warrants/OW-WAR-0020/gate-runs/software_repo_war-check_1_0_0.receipt.json"]
+judgment_refs = ["judgment://J-001"]
+residual_risk_refs = ["assumption://A-001"]
+resolved_by_ref = "person://Brian Lam"
+acting_role_ref = "role-assignment://Brian Lam/resolver"
+meaning = """Resolving OW-WAR-0020 (Implement Gate Run semantics, askability, and invalidation) as satisfied asserts that its declared deliverables exist at their recorded digests, that every declared obligation (OBL-001, OBL-002, OBL-003, OBL-004, OBL-005) was established by an admissible independent verification, and that the cited gate ran against this exact contract and passed. It asserts nothing beyond those bounded obligations. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 ("I give you my express permission to approve these things", and "Get it done" for making the headline nonzero); the decision is the owner's, the wording is the agent's."""
+effective_at = "2026-09-02T09:30:00Z"
+recorded_at = "2026-09-02T07:20:01Z"
+standing = "valid"
