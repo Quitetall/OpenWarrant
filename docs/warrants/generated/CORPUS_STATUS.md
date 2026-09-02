@@ -5,7 +5,7 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 
 # Corpus Status
 
-*Provenance: **derived**. Every state on this page is derived from the records' shape. Nothing journals §24 transitions and no §56.2 resolution has been recorded, so no Warrant can read above `would_satisfy` and no requirement above `in_progress` until a human signs.*
+*Provenance: **derived**. Every state on this page is derived from the records' shape. Nothing journals §24 transitions. 2 Warrant(s) carry a §56.2 resolution record and read `resolved` from it; every other Warrant reads at most `would_satisfy`, and a requirement reads `satisfied` only through a resolved Warrant with evidence.*
 
 ## Read this first
 
