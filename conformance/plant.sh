@@ -1175,6 +1175,15 @@ plant_cmd "re-authorizing a moved contract without an amendment" "authorize.no-a
      printf 'schema = \"oh.war/authorization-response/v1\"\nwarrant = \"OW-WAR-0010\"\ncontract_digest = \"%s\"\nauthorizer = \"Brian Lam\"\nacting_role = \"authorizer\"\nmeaning = \"x\"\neffective_time = \"2026-09-02T00:00:00Z\"\nindependence = \"separate_role\"\n' \"\$d\" > \"$MIGRATE_TMP/moved.toml\"" \
     authorize OW-WAR-0010 --response "$MIGRATE_TMP/moved.toml"
 
+# The stale-amendment bypass (found by review): revision 3 must not ride on
+# the record written for revision 2. OW-WAR-0016 is at revision 2 with one
+# amendment; move its contract and sign without AM-002.
+plant_cmd "a third revision riding on the second's amendment" "authorize.no-amendment" "AM-002" 2 \
+    "printf '\nPlanted paragraph so the contract digest moves again.\n' >> docs/warrants/OW-WAR-0016/atoms/10-intent.md; \
+     d=\$(\"$WAR\" authorize OW-WAR-0016 2>/dev/null | grep '^contract_digest' | cut -d'\"' -f2); \
+     printf 'schema = \"oh.war/authorization-response/v1\"\nwarrant = \"OW-WAR-0016\"\ncontract_digest = \"%s\"\nauthorizer = \"Brian Lam\"\nacting_role = \"authorizer\"\nmeaning = \"x\"\neffective_time = \"2026-09-02T00:00:00Z\"\nindependence = \"separate_role\"\n' \"\$d\" > \"$MIGRATE_TMP/rev3.toml\"" \
+    authorize OW-WAR-0016 --response "$MIGRATE_TMP/rev3.toml"
+
 echo
 echo "$PASSED passed, $FAILED failed"
 [[ "$FAILED" -eq 0 ]]

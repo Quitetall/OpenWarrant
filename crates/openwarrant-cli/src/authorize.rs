@@ -486,20 +486,35 @@ pub fn ingest(
             return Ok(report);
         }
         Some(prev) => {
-            let has_amendment = dir
+            // Revision N+1 needs N amendment records: one per revision after
+            // the first. Counting, rather than "any file exists", is what stops
+            // the record written for revision 2 from carrying revision 3 through
+            // (found by review). The count is of `.yaml` files under amendments/;
+            // each is separately validated by `war check` as a §31 record.
+            let amendments = dir
                 .join("amendments")
                 .read_dir_utf8()
-                .map(|it| it.flatten().any(|e| e.path().as_str().ends_with(".yaml")))
-                .unwrap_or(false);
-            if !has_amendment {
+                .map(|it| {
+                    it.flatten()
+                        .filter(|e| e.path().as_str().ends_with(".yaml"))
+                        .count()
+                })
+                .unwrap_or(0);
+            let needed = prev.revision.revision as usize;
+            if amendments < needed {
                 report.push(Diagnostic::error(
                     "authorize.no-amendment",
                     response_path.to_string(),
                     format!(
-                        "{alias}: the contract moved from {} to {} after revision {} was authorized, \
-                         and no amendment record exists under amendments/. §31: every revision \
-                         after authorization carries one — write it before re-signing",
-                        prev.revision.contract_digest, current_digest, prev.revision.revision
+                        "{alias}: the contract moved from {} to {} after revision {} was authorized. \
+                         §31: every revision after authorization carries an amendment record — \
+                         revision {} needs {needed} under amendments/ and {amendments} exist. \
+                         Write AM-{:03} before re-signing",
+                        prev.revision.contract_digest,
+                        current_digest,
+                        prev.revision.revision,
+                        prev.revision.revision + 1,
+                        needed
                     ),
                 ));
                 return Ok(report);
