@@ -1,0 +1,50 @@
+schema = "oh.war/manifest/v1"
+uuid = "01a060de-a1c9-77f2-962a-74ca52797a34"
+local_alias = "OW-WAR-0060"
+
+# Allocated only by Knowledge Fabric (SAS §12.4). Leave empty.
+enterprise_id = ""
+
+title = "Publish the corpus viewer: GitHub Pages from the committed projection"
+profile = "delivery"
+assurance_level = "basic"
+
+# The drift-checked projection is now reachable without a clone. Partial:
+# RQ-075's views are OW-WAR-0004's and OW-WAR-0055's; this publishes one.
+[[implements]]
+ref = "sas://WAR-SAS-RQ-075"
+contribution = "partial"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-1/projections"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true
+
