@@ -313,9 +313,25 @@ pub struct MilestoneState {
 }
 
 /// One Warrant, as much as the records support.
+/// A recorded §56.2 resolution, as the projection reports it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ResolutionSummary {
+    pub common_outcome: String,
+    pub profile_outcome: String,
+    pub resolved_by_ref: String,
+    pub effective_at: String,
+    /// The record binds the contract as it compiles now. When false the record
+    /// is reported and counted for nothing: a resolution of an earlier revision
+    /// is not a resolution of this one.
+    pub binds_current_contract: bool,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct WarrantStatus {
     pub alias: String,
+    /// Present when `resolution.toml` exists. Read, never derived.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resolution: Option<ResolutionSummary>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
     pub validity: Validity,

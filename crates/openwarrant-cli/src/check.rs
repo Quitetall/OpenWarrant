@@ -722,6 +722,18 @@ fn check_one(
 
     check_deliverable_digests(repo, one, &alias, report);
     check_traceability(repo, one, &alias, report);
+    {
+        // §44.6 recorded runs and the §56.2 record, both held to the contract
+        // as it compiles NOW (OW-WAR-0059).
+        let current = match (&one.basis, &one.validated) {
+            (Some(basis), Some(validated)) => openwarrant_compiler::lower(basis, validated)
+                .ok()
+                .and_then(|ir| ir.contract_digest().ok()),
+            _ => None,
+        };
+        crate::evidence::check(repo, &one.dir, &alias, current.as_deref(), report);
+        crate::resolution_cmd::check(repo, &one.dir, &alias, current.as_deref(), report);
+    }
 
     // Ordinals ascending is not required by the SAS, but a manifest whose
     // ordinals descend renders in an order its author probably did not intend.

@@ -1,0 +1,46 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "A receipt is minted as committed evidence and read back with its binding checked"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-002"]
+
+  - id: "M2"
+    title: "Requirement 5 answers from tracked inputs in both commands"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-003"]
+
+  - id: "M3"
+    title: "A resolution can be recorded by a human and by nobody else"
+    depends_on: ["M2"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-004", "OBL-005", "OBL-006"]
+
+  - id: "M4"
+    title: "Two Warrants carry evidence; their requests are emitted"
+    depends_on: ["M3"]
+    stage_refs: ["STAGE-004"]
+    obligation_refs: ["OBL-007"]
+
+stages:
+  - id: "STAGE-001"
+    title: "evidence.rs; the runner takes an output directory"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-002"
+    title: "assess reads gate-runs/; the projection's caveat is replaced"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-003"
+    title: "resolution_cmd.rs; check rules; status reads the record"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-004"
+    title: "war evidence record ×2; plants; requests emitted"
+    executor_kind: "agent"
+    responsibility_tier: "T2"

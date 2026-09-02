@@ -182,6 +182,20 @@ impl WarrantState {
         }
     }
 
+    /// A Warrant whose §56.2 resolution is on record and binds the current
+    /// contract. `outcome` is the record's, never inferred.
+    #[must_use]
+    pub const fn resolved_recorded(outcome: CommonOutcome) -> Self {
+        Self {
+            phase: Phase::Resolved,
+            condition: ExecutionCondition::Clear,
+            outcome,
+            currency: Currency::Current,
+            standing: ResolutionStanding::Valid,
+            provenance: Provenance::Recorded,
+        }
+    }
+
     /// Check §24.6's truthfulness rules.
     ///
     /// These are the combinations the SAS says are *incoherent*, not merely

@@ -97,6 +97,55 @@ war authorize OW-WAR-0030 --response /tmp/OW-WAR-0030.response.toml
 A refused response writes **nothing**. A rejected authorization must not become a
 file that later reads as authority.
 
+
+## Step 4 — record the gate run, then resolve
+
+Requirement 5 ("every required gate has admissible result") reads ONLY a
+Warrant's own committed `gate-runs/`. Nothing under the gitignored
+`docs/receipts/` counts. To record evidence for a Warrant whose obligations
+are established:
+
+```bash
+war compile                                  # the gate checks the projection; make it fresh
+war evidence record OW-WAR-0010              # runs every cited gate, mints §44.6 receipts into
+                                             # docs/warrants/OW-WAR-0010/gate-runs/, bound to the
+                                             # Warrant's current contract digest
+war compile                                  # the receipt changed the projection; refresh before the next
+```
+
+A receipt counts only while it reseals and is bound to the contract as it
+compiles now; edit the contract and `war check` reports `evidence.stale-binding`
+until a new run is recorded. A Warrant whose assurance atom cites no gate cannot
+record evidence (OW-WAR-0016 today) — that needs an amendment naming a gate.
+
+When all thirteen are met, the resolution is the third two-half seam:
+
+```bash
+war resolve OW-WAR-0010 > /tmp/OW-WAR-0010.resolution.request.toml   # what a signature binds; permitted outcomes; who may sign
+```
+
+Turn it into a response and ingest it. `satisfied` is accepted only when every
+declared obligation is established by an admissible verification (§38.6); an
+agent is refused as resolver whatever the file says; a second resolution is
+refused — §56.4 dispute and §56.5 annulment change one, overwriting does not.
+
+```toml
+schema = "oh.war/resolution-response/v1"
+warrant = "OW-WAR-0010"
+contract_digest = "…"                 # copied from the request, verbatim
+resolved_by = "your-name"
+acting_role = "resolver"
+common_outcome = "satisfied"          # one of the request's permitted_outcomes
+profile_outcome = "delivered"
+meaning = "…"                         # §56.2: what accepting asserts. Not optional.
+effective_time = "2026-09-02T18:00:00Z"
+```
+
+```bash
+war resolve OW-WAR-0010 --response /tmp/OW-WAR-0010.resolution.response.toml
+war compile                           # the Warrant now reads `resolved`; the Release axis moves
+```
+
 ## Step 4 — check what actually happened
 
 ```bash

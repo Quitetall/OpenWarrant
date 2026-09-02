@@ -56,6 +56,10 @@ restore() {
     # before this line existed. Named explicitly rather than `git clean`, which
     # would delete a developer's untracked work.
     rm -f docs/warrants/OW-WAR-0046/amendments/AM-999.yaml
+    # OW-WAR-0059's plants: a stale resolution is CREATED for a Warrant that
+    # has none, and a refused resolution must have written nothing — both
+    # named here so neither can leak.
+    rm -f docs/warrants/OW-WAR-0010/resolution.toml
 }
 
 # The mirror of `assert_gone`, for a mutation that ADDS rather than removes.
@@ -432,10 +436,11 @@ EOF" check --generated
 plant_cmd "resolution blocked by unmet requirements" "resolution.requirement-unmet" "independence requirements are met" 2 \
     "true" resolve OW-WAR-0001 --dry-run
 
-# §56.2 — recording a resolution needs an authorizer and a stated meaning, and
-# no authority model exists to supply them. Asking for a real resolution must be
-# refused rather than quietly downgraded to a dry run.
-plant_cmd "a resolution recorded with no authority" "authorizer" "OW-WAR-0044" 1 \
+# §56.2 — `war resolve` with no flag emits the REQUEST (OW-WAR-0059), never a
+# record: it says what a signature would bind and whether one would be
+# refused. For a Warrant with requirements unmet it must say so and exit
+# not-ready, not quietly emit something a human could sign.
+plant_cmd "a resolution requested with requirements unmet" "requirements_met = false" "would be refused" 2 \
     "true" resolve OW-WAR-0001
 
 # §31 — an amendment record that is malformed is worse than none, because it
@@ -1062,6 +1067,61 @@ SAS_DIGEST="$(grep '^sha256' docs/sas/revisions/0.1.0-draft.1.toml | cut -d'"' -
 plant_cmd "an agent accepting the SAS revision" "sas.unknown-actor\|sas.not-permitted" "claude" 2 \
     "printf 'schema = \"oh.war/sas-acceptance-response/v1\"\nversion = \"0.1.0-draft.1\"\nsha256 = \"%s\"\naccepted_by = \"claude\"\nacting_role = \"owner\"\nmeaning = \"x\"\neffective_time = \"2026-09-02T00:00:00Z\"\n' \"$SAS_DIGEST\" > \"$MIGRATE_TMP/agent-accept.toml\"" \
     sas accept 0.1.0-draft.1 --response "$MIGRATE_TMP/agent-accept.toml"
+
+# OW-WAR-0059 — gate receipts as committed evidence, and the resolution seam.
+# OW-WAR-0010 carries real evidence (`gate-runs/`) and meets all thirteen, so
+# it is the subject: every plant below mutates a Warrant that would otherwise
+# resolve, and asks whether the mutation is refused for its stated reason.
+
+# Positive fixture first, so the refusals below mean something.
+plant_cmd "a sealed receipt bound to the current contract" "evidence.admissible" "bound to the current contract" 0 \
+    "true" check OW-WAR-0010
+
+# OBL-001. A committed receipt edited after sealing — one field, any field.
+plant "a receipt edited after it was sealed" "evidence.receipt-invalid" "does not recompute" 2 \
+    "sed -i 's|\"resource_usage\": \"wall-clock only|\"resource_usage\": \"EDITED|' docs/warrants/OW-WAR-0010/gate-runs/software_repo_war-check_1_0_0.receipt.json; \
+     assert_present 'EDITED' docs/warrants/OW-WAR-0010/gate-runs/software_repo_war-check_1_0_0.receipt.json" \
+    OW-WAR-0010
+
+# OBL-001, the run side. The run file says the gate failed; the receipt is
+# untouched. Requirement 5 is unmet again, whatever the receipt says.
+plant_cmd "a run file that says fail beside a receipt that says pass" "resolution.requirement-unmet" "every required gate has admissible result" 2 \
+    "sed -i 's|^verdict = \"pass\"|verdict = \"fail\"|' docs/warrants/OW-WAR-0010/gate-runs/software_repo_war-check_1_0_0.run.toml; \
+     assert_present 'verdict = \"fail\"' docs/warrants/OW-WAR-0010/gate-runs/software_repo_war-check_1_0_0.run.toml" \
+    resolve --dry-run OW-WAR-0010
+
+# OBL-002. The contract moves after the receipt was recorded. The receipt is a
+# true record of a run that happened, and it is not evidence about this one.
+plant "a receipt recorded before the contract moved" "evidence.stale-binding" "earlier revision" 0 \
+    "printf '\\nPlanted: one more paragraph, so the contract digest moves.\\n' >> docs/warrants/OW-WAR-0010/atoms/10-intent.md; \
+     assert_present 'Planted: one more paragraph' docs/warrants/OW-WAR-0010/atoms/10-intent.md" \
+    OW-WAR-0010
+
+# OBL-004. The agent signs a resolution for a Warrant with all thirteen met.
+# Refused, and nothing written: `restore` would hide a leaked file, so the
+# absence is asserted before it runs.
+RES_DIGEST="$("$WAR" resolve OW-WAR-0010 2>/dev/null | grep '^contract_digest' | cut -d'"' -f2)"
+[[ -n "$RES_DIGEST" ]] || { echo "could not read OW-WAR-0010's contract digest" >&2; exit 9; }
+plant_cmd "an agent resolving a delivery" "resolution.agent" "SHALL NOT resolve" 2 \
+    "printf 'schema = \"oh.war/resolution-response/v1\"\nwarrant = \"OW-WAR-0010\"\ncontract_digest = \"%s\"\nresolved_by = \"claude\"\nacting_role = \"resolver\"\ncommon_outcome = \"satisfied\"\nprofile_outcome = \"delivered\"\nmeaning = \"x\"\neffective_time = \"2026-09-02T00:00:00Z\"\n' \"$RES_DIGEST\" > \"$MIGRATE_TMP/agent-resolve.toml\"" \
+    resolve OW-WAR-0010 --response "$MIGRATE_TMP/agent-resolve.toml"
+if [[ -f docs/warrants/OW-WAR-0010/resolution.toml ]]; then
+    printf 'FAIL  %-34s a refused resolution wrote a record\n' "an agent resolving a delivery"
+    FAILED=$((FAILED + 1)); rm -f docs/warrants/OW-WAR-0010/resolution.toml
+fi
+
+# OBL-005. `satisfied` signed over an obligation the verifier did not establish.
+plant_cmd "satisfied signed over an unestablished obligation" "resolution.outcome-unsupported" "OBL-001" 2 \
+    "sed -i 's|^disposition = \"established\"|disposition = \"not_established\"|' docs/warrants/OW-WAR-0010/verifications/OBL-001.toml; \
+     assert_present 'not_established' docs/warrants/OW-WAR-0010/verifications/OBL-001.toml; \
+     printf 'schema = \"oh.war/resolution-response/v1\"\nwarrant = \"OW-WAR-0010\"\ncontract_digest = \"%s\"\nresolved_by = \"Brian Lam\"\nacting_role = \"resolver\"\ncommon_outcome = \"satisfied\"\nprofile_outcome = \"delivered\"\nmeaning = \"x\"\neffective_time = \"2026-09-02T00:00:00Z\"\n' \"$RES_DIGEST\" > \"$MIGRATE_TMP/over-resolve.toml\"" \
+    resolve OW-WAR-0010 --response "$MIGRATE_TMP/over-resolve.toml"
+
+# OBL-006. A well-formed resolution that binds a contract this Warrant no
+# longer compiles to. §45: dispute or annul; never edit around it.
+plant "a resolution of a contract that has since moved" "resolution.stale" "earlier revision" 2 \
+    "printf 'schema = \"oh.war/resolution/v1\"\nwarrant = \"OW-WAR-0010\"\n\n[resolution]\nid = \"01a00000-0000-7000-8000-000000000000\"\ncommon_outcome = \"satisfied\"\nprofile_outcome = \"delivered\"\ncontract_revision = 1\ncontract_digest = \"0000000000000000000000000000000000000000000000000000000000000000\"\nassurance_case_snapshot_digest = \"sha256:00\"\nartifact_manifest_digest = \"sha256:00\"\ngate_run_refs = []\njudgment_refs = []\nresidual_risk_refs = []\nresolved_by_ref = \"person://Brian Lam\"\nacting_role_ref = \"role-assignment://Brian Lam/resolver\"\nmeaning = \"planted\"\neffective_at = \"2026-09-02T00:00:00Z\"\nrecorded_at = \"2026-09-02T00:00:00Z\"\nstanding = \"valid\"\n' > docs/warrants/OW-WAR-0010/resolution.toml" \
+    OW-WAR-0010
 
 echo
 echo "$PASSED passed, $FAILED failed"

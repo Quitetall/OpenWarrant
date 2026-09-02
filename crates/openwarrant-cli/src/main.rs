@@ -16,6 +16,7 @@ mod check;
 mod compile;
 mod diagnostic;
 mod dispatch;
+mod evidence;
 mod export;
 mod gate_cmd;
 mod init;
@@ -24,6 +25,7 @@ mod migrate;
 mod new;
 mod relations;
 mod repo;
+mod resolution_cmd;
 mod resolve;
 mod sas;
 mod show;
@@ -65,6 +67,21 @@ enum KfCommand {
         /// Required. Without it this refuses rather than writes.
         #[arg(long)]
         confirm_write: bool,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+enum EvidenceCommand {
+    /// Run the gates the Warrant's assurance atom cites and mint each §44.6
+    /// receipt into `docs/warrants/<alias>/gate-runs/`, bound to the Warrant's
+    /// current contract digest. Refuses a Warrant that cites no gate, and a
+    /// named gate the Warrant does not cite.
+    Record {
+        /// The Warrant's local alias.
+        alias: String,
+        /// One cited gate (`<id>@<version>`). Defaults to every cited gate.
+        #[arg(long)]
+        gate: Option<String>,
     },
 }
 
@@ -249,10 +266,19 @@ enum Command {
     Resolve {
         /// The Warrant's local alias.
         alias: String,
-        /// Required. Recording a resolution needs an authorizer and a stated
-        /// meaning, which this command may not invent.
+        /// Report the thirteen §56.1 requirements and stop.
         #[arg(long)]
         dry_run: bool,
+        /// A resolver's signed response to ingest (§56.2). Without it and
+        /// without --dry-run, the resolution REQUEST is emitted: what a
+        /// signature would bind, which outcomes §38.6 permits, and who may sign.
+        #[arg(long, conflicts_with = "dry_run")]
+        response: Option<camino::Utf8PathBuf>,
+    },
+    /// Record gate runs as committed evidence for a Warrant (§44.6).
+    Evidence {
+        #[command(subcommand)]
+        command: EvidenceCommand,
     },
     /// Render one of §17.5's projections (§17.5).
     Show {
@@ -467,6 +493,7 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 record,
                 &subject_digests,
                 &evidence_refs,
+                None,
             )?;
             check::print(&report);
             // §44.1 and RQ-054: an unaskable gate is NOT a pass, and is not a
@@ -801,17 +828,67 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 EXIT_NOT_READY
             })
         }
-        Command::Resolve { alias, dry_run } => {
-            if !dry_run {
-                return Err(Box::new(repo::RepoError::Message(
-                    "recording a resolution requires --dry-run today. §56.2's record \
-                     needs an authorizer, an acting role and a stated meaning, and this \
-                     build has no authority model to supply them (OW-WAR-0044)."
-                        .to_owned(),
-                )));
-            }
+        Command::Resolve {
+            alias,
+            dry_run,
+            response,
+        } => {
             let repository = repo::Repository::discover(None)?;
-            let report = resolve::run(&repository, &alias)?;
+            if dry_run {
+                let report = resolve::run(&repository, &alias)?;
+                check::print(&report);
+                return Ok(if report.is_ready() {
+                    EXIT_OK
+                } else {
+                    EXIT_NOT_READY
+                });
+            }
+            match response {
+                Some(path) => {
+                    let report = resolution_cmd::ingest(&repository, &alias, &path)?;
+                    check::print(&report);
+                    Ok(if report.is_ready() {
+                        EXIT_OK
+                    } else {
+                        EXIT_NOT_READY
+                    })
+                }
+                None => {
+                    let request = resolution_cmd::request(&repository, &alias)?;
+                    println!(
+                        "{}",
+                        toml::to_string_pretty(&request).map_err(|e| repo::RepoError::Io {
+                            context: "could not render the resolution request".to_owned(),
+                            source: std::io::Error::other(e.to_string()),
+                        })?
+                    );
+                    if request.requirements_met {
+                        eprintln!(
+                            "# {alias}: all 13 §56.1 requirements met. Permitted outcomes: {}. \
+                             Eligible resolvers: {}.",
+                            request.permitted_outcomes.join(", "),
+                            if request.eligible_resolvers.is_empty() {
+                                "NOBODY — docs/authority/roles.toml grants `resolver` to no human"
+                                    .to_owned()
+                            } else {
+                                request.eligible_resolvers.join(", ")
+                            }
+                        );
+                        Ok(EXIT_OK)
+                    } else {
+                        eprintln!(
+                            "# {alias}: {} of 13 §56.1 requirements unmet; a response would be refused.",
+                            request.unmet.len()
+                        );
+                        Ok(EXIT_NOT_READY)
+                    }
+                }
+            }
+        }
+        Command::Evidence { command } => {
+            let repository = repo::Repository::discover(None)?;
+            let EvidenceCommand::Record { alias, gate } = command;
+            let report = evidence::record(&repository, &alias, gate.as_deref())?;
             check::print(&report);
             Ok(if report.is_ready() {
                 EXIT_OK

@@ -590,6 +590,8 @@ pub fn artifact_digests_verify(root: &camino::Utf8Path, deliverables: &[Delivera
 /// for them to disagree, and the projection would be the one nobody re-checked.
 #[derive(Debug, Clone)]
 pub struct Assessment {
+    /// The digest the Warrant compiles to now; `None` when it will not compile.
+    pub current_contract_digest: Option<String>,
     pub checks: ResolutionChecks,
     /// §38.6 — beside the thirteen, never folded in.
     pub would_resolve_satisfied: Option<bool>,
@@ -612,25 +614,39 @@ pub struct Assessment {
 /// records on this machine say?" — and the receipts under `docs/receipts/`
 /// are part of that, gitignored or not.
 pub fn assess(repo: &Repository, one: &crate::repo::Loaded) -> Result<Assessment, RepoError> {
-    let gate_runs = repo.load_gate_runs();
-    assess_with(repo, one, &gate_runs)
+    let evidence = crate::evidence::load(repo, &one.dir)?;
+    assess_with(repo, one, &evidence)
 }
 
-/// The same computation over a caller-supplied set of gate runs.
+/// The gate keys (`<id>@<version>`, no scheme) a Warrant's assurance atoms cite.
+#[must_use]
+pub fn cited_gate_keys(one: &crate::repo::Loaded) -> Vec<String> {
+    one.basis
+        .as_ref()
+        .map(|b| {
+            b.atoms
+                .iter()
+                .filter(|a| a.role == "assurance")
+                .flat_map(|a| {
+                    openwarrant_core::gate::cited_gate_uris(&String::from_utf8_lossy(&a.bytes))
+                })
+                .map(|u| u.trim_start_matches("gate://").to_owned())
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+/// Assess against an explicit set of recorded runs.
 ///
-/// # Why the gate runs are a parameter
-///
-/// `docs/receipts/` is gitignored — a receipt becomes committed evidence
-/// deliberately, as part of a resolution, and until then it is local state.
-/// A committed, drift-checked projection that read it would be a function of
-/// which machine compiled it: the first CI run of `CORPUS_STATUS.json` failed
-/// drift for exactly that reason, because the recorded gate run existed
-/// locally and not in the fresh clone. The projection passes an empty set and
-/// says so; `war resolve` passes what it finds.
+/// Requirement 5 reads ONLY a Warrant's own committed `gate-runs/` — never the
+/// gitignored receipts path — so the corpus projection and `war resolve` answer
+/// the same question from the same tracked inputs, and a fresh clone reproduces
+/// both. A run counts only when its receipt reseals and is bound to the
+/// contract as it compiles now (`evidence::admissibility`).
 pub fn assess_with(
     repo: &Repository,
     one: &crate::repo::Loaded,
-    gate_runs: &[GateRun],
+    evidence: &[crate::evidence::GateEvidence],
 ) -> Result<Assessment, RepoError> {
     let dir = &one.dir;
     let verifications = repo.load_verifications(dir)?;
@@ -660,12 +676,13 @@ pub fn assess_with(
         performer: &performer,
     };
 
+    let gate_runs = crate::evidence::admissible_runs(evidence, current_contract_digest.as_deref());
     let checks = evaluate(
         repo,
         one,
         &verifications.records,
         &deliverables.records,
-        gate_runs,
+        &gate_runs,
         &authority,
     );
 
@@ -714,6 +731,7 @@ pub fn assess_with(
         .collect();
 
     Ok(Assessment {
+        current_contract_digest,
         checks,
         would_resolve_satisfied,
         established,
@@ -808,7 +826,7 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
 }
 
 /// The obligation ids a Warrant declares, as the parser reads them.
-fn declared_obligations(one: &crate::repo::Loaded) -> Vec<String> {
+pub fn declared_obligations(one: &crate::repo::Loaded) -> Vec<String> {
     one.basis
         .as_ref()
         .map(|b| {
