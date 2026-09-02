@@ -15,21 +15,21 @@ schema = "oh.war/deliverables/v1"
 
 [[deliverable]]
 id = "D-001"
-title = "The thirteen §56.1 requirements, computed"
+title = "Gate receipts as committed evidence: admissibility, load, record, check"
 kind = "file"
-target_ref = "crates/openwarrant-cli/src/resolve.rs"
+target_ref = "crates/openwarrant-cli/src/evidence.rs"
 required = true
 content_addressed = true
 provenance_required = true
-obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-007"]
 
 [deliverable.provenance]
 producer = "claude"
-producing_attempt = "OW-WAR-0046/attempt-1"
+producing_attempt = "OW-WAR-0059/attempt-1"
 contract_digest = "unrecorded"
 tool_or_runtime_identity = "rustc 1.97.1"
 creation_method = "authored"
-content_digest = "sha256:99aa1c039c4250bfe95ab17d45d15d2f65865e128c69217a27f33c901ba7b64a"
+content_digest = "sha256:306aacdd45f8ad1cf7290d26bb87c5c9170063be8aee108101af943aa3a5b26d"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"
@@ -37,21 +37,43 @@ source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
-title = "Independent verification seam (§46)"
+title = "The resolution seam: request, ingest through the register, the §56.2 record, check"
 kind = "file"
-target_ref = "crates/openwarrant-cli/src/verify.rs"
+target_ref = "crates/openwarrant-cli/src/resolution_cmd.rs"
 required = true
 content_addressed = true
 provenance_required = true
-obligation_refs = ["OBL-004", "OBL-005"]
+obligation_refs = ["OBL-004", "OBL-005", "OBL-006"]
 
 [deliverable.provenance]
 producer = "claude"
-producing_attempt = "OW-WAR-0046/attempt-1"
+producing_attempt = "OW-WAR-0059/attempt-1"
 contract_digest = "unrecorded"
 tool_or_runtime_identity = "rustc 1.97.1"
 creation_method = "authored"
-content_digest = "sha256:c0dfa6332b66e1a9d6b9dff30e0a3ac67aeb33f24b1ac6897b8053b2045c9ec8"
+content_digest = "sha256:704e68317dd5db7a39765ca961eb6e42575789e5f7de87150abca4d7a43bc032"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-003"
+title = "The gate runner mints into a caller-chosen directory; Bonsai pairing scoped to its gate"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/gate_cmd.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0059/attempt-1"
+contract_digest = "unrecorded"
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:5cd62bad471360617ba0765e8b502886ffb85c8c77baf44178bdf0452872ea06"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"

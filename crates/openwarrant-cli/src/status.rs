@@ -32,7 +32,8 @@ use camino::Utf8PathBuf;
 use openwarrant_core::status::{
     Achieved, CORPUS_STATUS_SCHEMA, CorpusStatus, ImplementsClaim, MilestoneState,
     NothingActionable, ObjectiveStatus, Reached, ReleaseSummary, RequirementCounts,
-    RequirementLadder, StageRef, Validity, WarrantLadder, WarrantRung, WarrantStatus,
+    RequirementLadder, ResolutionSummary, StageRef, Validity, WarrantLadder, WarrantRung,
+    WarrantStatus,
 };
 use openwarrant_core::traceability::{
     Contribution, Implements as Link, RequirementRef, RoadmapRef, derive_all,
@@ -41,7 +42,7 @@ use openwarrant_core::{Provenance, WarrantState, milestones};
 
 use crate::diagnostic::Severity;
 use crate::repo::{Loaded, RepoError, Repository};
-use crate::resolve::assess_with;
+use crate::resolve::assess;
 
 /// Build the projection.
 pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
@@ -55,6 +56,7 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
     let mut warrants: Vec<WarrantStatus> = Vec::new();
     let mut links: Vec<Link> = Vec::new();
     let mut rung_by_alias: BTreeMap<String, WarrantRung> = BTreeMap::new();
+    let mut satisfied_by_alias: std::collections::BTreeSet<String> = Default::default();
     let mut milestones_by_alias: BTreeMap<String, Vec<MilestoneState>> = BTreeMap::new();
 
     for one in &loaded {
@@ -99,33 +101,56 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
             None => (vec![], vec![], None),
         };
 
-        let (checks, would, unestablished, blocking, evidence_refs, established) = if valid {
-            // No gate runs. `docs/receipts/` is gitignored, so anything read
-            // from it would make this committed projection depend on which
-            // machine compiled it. Requirement 5 therefore reads unmet for
-            // every Warrant here, and the caveats say why; `war resolve` on a
-            // machine that has recorded a run will disagree, correctly.
-            let a = assess_with(repo, one, &[])?;
-            (
-                Some(a.checks),
-                a.would_resolve_satisfied,
-                a.unestablished,
-                {
-                    let mut b = a.blocking_unknowns;
-                    b.sort();
-                    b
-                },
-                a.evidence_refs,
-                a.established,
-            )
-        } else {
-            (None, None, vec![], vec![], vec![], vec![])
-        };
+        let (checks, would, unestablished, blocking, evidence_refs, established, current_digest) =
+            if valid {
+                // Requirement 5 reads the Warrant's own committed `gate-runs/`
+                // (OW-WAR-0059), so this projection and `war resolve` answer
+                // from the same tracked inputs and a fresh clone reproduces it.
+                let a = assess(repo, one)?;
+                (
+                    Some(a.checks),
+                    a.would_resolve_satisfied,
+                    a.unestablished,
+                    {
+                        let mut b = a.blocking_unknowns;
+                        b.sort();
+                        b
+                    },
+                    a.evidence_refs,
+                    a.established,
+                    a.current_contract_digest,
+                )
+            } else {
+                (None, None, vec![], vec![], vec![], vec![], None)
+            };
 
-        // No §56.2 record exists anywhere. When one does, this is where it is read.
-        let resolved = false;
+        // §56.2 — read from the record, and counted only when the record binds
+        // the contract as it compiles now. A resolution of an earlier revision
+        // is reported (so a reader sees it) and derives nothing.
+        let record = repo.load_resolution(&one.dir).ok().flatten();
+        let resolution = record.as_ref().map(|r| ResolutionSummary {
+            common_outcome: r.resolution.common_outcome.to_string(),
+            profile_outcome: r.resolution.profile_outcome.clone(),
+            resolved_by_ref: r.resolution.resolved_by_ref.clone(),
+            effective_at: r.resolution.effective_at.clone(),
+            binds_current_contract: Some(r.resolution.contract_digest.as_str())
+                == current_digest.as_deref(),
+        });
+        let resolved = resolution
+            .as_ref()
+            .is_some_and(|r| r.binds_current_contract);
+        // §34.3 `satisfied`: a RESOLVED Warrant with evidence. A Warrant resolved
+        // `not_satisfied` or `cancelled` is resolved and satisfies nothing.
+        let resolved_satisfied = resolved
+            && record.as_ref().is_some_and(|r| {
+                r.resolution.common_outcome
+                    == openwarrant_core::resolution::CommonOutcome::Satisfied
+            });
         let rung = WarrantRung::derive(valid, checks.as_ref(), would, resolved);
         rung_by_alias.insert(alias.clone(), rung);
+        if resolved_satisfied {
+            satisfied_by_alias.insert(alias.clone());
+        }
 
         let ms = one.basis.as_ref().and_then(|b| {
             b.atoms
@@ -147,19 +172,31 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
                 warrant: alias.clone(),
                 requirement_ref: c.requirement.clone(),
                 intended_contribution: c.contribution,
-                warrant_resolved: resolved,
+                warrant_resolved: resolved_satisfied,
                 evidence_refs: evidence_refs.clone(),
             });
         }
 
         warrants.push(WarrantStatus {
             alias: alias.clone(),
+            resolution,
             title,
             validity,
             rung,
             roadmap,
             implements,
-            state: valid.then(|| WarrantState::draft(Provenance::Derived)),
+            state: valid.then(|| {
+                if resolved {
+                    WarrantState::resolved_recorded(
+                        record
+                            .as_ref()
+                            .and_then(|r| r.resolution.common_outcome.to_string().parse().ok())
+                            .unwrap_or(openwarrant_core::CommonOutcome::None),
+                    )
+                } else {
+                    WarrantState::draft(Provenance::Derived)
+                }
+            }),
             unmet: checks
                 .as_ref()
                 .map(|c| c.unmet().into_iter().map(str::to_owned).collect())
@@ -213,7 +250,10 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
             }
         } else if let Some(e) = &exit_warrant {
             match rung_by_alias.get(e) {
-                Some(WarrantRung::Resolved) => Achieved::Recorded,
+                Some(WarrantRung::Resolved) if satisfied_by_alias.contains(e) => Achieved::Recorded,
+                Some(WarrantRung::Resolved) => Achieved::Blocked {
+                    by: vec![format!("{e} (resolved, not satisfied)")],
+                },
                 Some(r) if *r >= WarrantRung::WouldSatisfy => Achieved::ExitWarrantWouldSatisfy,
                 _ => Achieved::Blocked {
                     by: members
@@ -312,19 +352,21 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
 
     // Caveats a reader needs before the numbers.
     let mut caveats = vec![
-        "Gate runs are NOT read. `docs/receipts/` is gitignored — a receipt becomes committed \
-         evidence deliberately, as part of a resolution — so a projection that read it could \
-         not be reproduced from the repository. §56.1 requirement 5 (every required gate has an \
-         admissible result) reads unmet for every Warrant here. `war resolve` on a machine that \
-         has recorded a run will report it met, and both are correct."
+        "Gate runs are read ONLY from each Warrant's committed `gate-runs/` (§44.6 receipts \
+         minted by `war evidence record`, bound to the contract digest they ran against). The \
+         gitignored `docs/receipts/` scratch path is never read, so this projection reproduces \
+         from a fresh clone. §56.1 requirement 5 reads unmet for every Warrant that has not \
+         recorded a run, which is a true state, not a caveat."
             .to_owned(),
     ];
     let roadmap_claims = hand_written_resolved_claims(repo);
+    let recorded = warrants.iter().filter(|w| w.resolution.is_some()).count();
     if roadmap_claims > 0 {
         caveats.push(format!(
             "`docs/roadmap/PRODUCTION_ROADMAP.md` marks Warrants \"resolved\" {roadmap_claims} time(s). \
-             No resolution record exists in this repository. Those are hand-written claims, \
-             not records, and nothing above reads them."
+             The Release axis above counts §56.2 records (`resolution.toml`), of which there \
+             are {recorded}. The rest of those are hand-written claims, not records, and \
+             nothing above reads them."
         ));
     }
     let prefixes: BTreeSet<&str> = warrants

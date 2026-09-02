@@ -129,16 +129,26 @@ fn tool_is_available(program: &str, repo: &Repository) -> bool {
 /// "what did this gate last say?", and keeping a history here would invite
 /// reading a stale pass as a current one.
 #[must_use]
-pub fn run_record_path(gate_key: &str, repo: &Repository) -> camino::Utf8PathBuf {
+pub fn run_record_path(gate_key: &str, dir: &camino::Utf8Path) -> camino::Utf8PathBuf {
     let safe = gate_key.replace(['/', ':', '@', '.'], "_");
-    repo.root
-        .join(&repo.config.paths.receipts)
-        .join(format!("{safe}.run.toml"))
+    dir.join(format!("{safe}.run.toml"))
+}
+
+/// Where a run's records go: the disposable receipts path by default, or a
+/// caller-chosen directory — `war evidence record` passes a Warrant's tracked
+/// `gate-runs/` so the receipt is minted AS committed evidence rather than
+/// copied into it later (a copy with rewritten stream refs would not reseal).
+#[must_use]
+pub fn receipts_dir(repo: &Repository, out_dir: Option<&camino::Utf8Path>) -> camino::Utf8PathBuf {
+    out_dir.map_or_else(
+        || repo.root.join(&repo.config.paths.receipts),
+        camino::Utf8Path::to_path_buf,
+    )
 }
 
 /// Write a Gate Run where a later resolution can read it (§44.6).
-pub fn persist_run(run: &GateRun, repo: &Repository) -> Result<(), String> {
-    let path = run_record_path(&run.gate, repo);
+pub fn persist_run(run: &GateRun, dir: &camino::Utf8Path) -> Result<(), String> {
+    let path = run_record_path(&run.gate, dir);
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent).map_err(|e| format!("could not create {parent}: {e}"))?;
     }
@@ -150,7 +160,7 @@ pub fn persist_run(run: &GateRun, repo: &Repository) -> Result<(), String> {
 ///
 /// The `not_askable` path returns before any process is spawned.
 #[must_use]
-pub fn run_gate(def: &GateDefinition, repo: &Repository) -> GateRun {
+pub fn run_gate(def: &GateDefinition, repo: &Repository, dir: &camino::Utf8Path) -> GateRun {
     let id = format!("GR-{}", def.key());
 
     if let Some(reason) = askability_of(def, repo) {
@@ -177,8 +187,7 @@ pub fn run_gate(def: &GateDefinition, repo: &Repository) -> GateRun {
 
     // Where the streams land. Created before the spawn so a failure to open them
     // is an askability problem, not a half-run.
-    let dir = repo.root.join(&repo.config.paths.receipts);
-    if std::fs::create_dir_all(&dir).is_err() {
+    if std::fs::create_dir_all(dir).is_err() {
         return GateRun {
             id,
             gate: def.key(),
@@ -327,8 +336,10 @@ pub fn run(
     record: bool,
     subject_digests: &[String],
     raw_evidence_refs: &[String],
+    out_dir: Option<&camino::Utf8Path>,
 ) -> Result<Report, RepoError> {
     validate_bonsai_bindings(repo, only, subject_digests, raw_evidence_refs)?;
+    let dir = receipts_dir(repo, out_dir);
     let mut report = Report::default();
     let registry = crate::check::load_gate_registry(repo, &mut report);
 
@@ -360,7 +371,7 @@ pub fn run(
         }
 
         let started_at = receipt::now_rfc3339_public();
-        let run = run_gate(def, repo);
+        let run = run_gate(def, repo, &dir);
         // Coherence is checked on our own output. A runner that emits an
         // incoherent run is a runner that can emit a passing unaskable gate.
         if let Err(err) = run.validate() {
@@ -399,7 +410,7 @@ pub fn run(
         // Written under the receipts path, which is disposable by policy: a run
         // is evidence produced BY running, and it becomes committed evidence
         // deliberately at resolution rather than as a side effect.
-        if record && let Err(err) = persist_run(&run, repo) {
+        if record && let Err(err) = persist_run(&run, &dir) {
             report.push(Diagnostic::error(
                 "gate-run.not-persisted",
                 def.key(),
@@ -433,8 +444,11 @@ pub fn run(
                 &run,
                 &started_at,
                 &format!("{}", run.verdict),
-                subject_digests,
-                raw_evidence_refs,
+                receipt::Bindings {
+                    subject_digests,
+                    raw_evidence_refs,
+                },
+                &dir,
             ) {
                 Ok(path) => report.push(Diagnostic::pass(
                     "gate-run.receipt",
@@ -497,6 +511,33 @@ fn validate_bonsai_bindings(
     raw_evidence_refs: &[String],
 ) -> Result<(), RepoError> {
     if subject_digests.is_empty() && raw_evidence_refs.is_empty() {
+        return Ok(());
+    }
+    // The pairing rules below are Bonsai's (§43.5 binding of a document to its
+    // evidence). Any other gate may be bound to a contract subject alone —
+    // that is what `war evidence record` does (OW-WAR-0059) — and the subject
+    // is checked for shape, not for Bonsai's one-to-one pairing.
+    if !matches!(
+        only,
+        Some(BONSAI_EVIDENCE_GATE) | Some("software.repo.bonsai-evidence@1.0.0")
+    ) {
+        for subject in subject_digests {
+            let ok = subject
+                .strip_prefix("contract:sha256:")
+                .is_some_and(is_hex_digest)
+                || subject.starts_with("warrant-corpus:");
+            if !ok {
+                return Err(RepoError::Message(format!(
+                    "receipt subject {subject:?} must be contract:sha256:<64 hex> or warrant-corpus:<path>"
+                )));
+            }
+        }
+        if !raw_evidence_refs.is_empty() {
+            return Err(RepoError::Message(
+                "--evidence-ref is a Bonsai binding; other gates take --subject-digest only"
+                    .to_owned(),
+            ));
+        }
         return Ok(());
     }
     if subject_digests.len() != 1 || raw_evidence_refs.len() != 1 {
@@ -627,6 +668,14 @@ pub mod receipt {
         )
     }
 
+    /// What a receipt is bound to beyond the gate itself (§44.6 subject and
+    /// raw-evidence refs).
+    #[derive(Debug, Clone, Copy)]
+    pub struct Bindings<'a> {
+        pub subject_digests: &'a [String],
+        pub raw_evidence_refs: &'a [String],
+    }
+
     /// Build and persist the receipt. Returns its path.
     ///
     /// The receipt is VALIDATED before it is written. A malformed receipt on
@@ -637,12 +686,15 @@ pub mod receipt {
         run: &GateRun,
         started_at: &str,
         exit_result: &str,
-        subject_digests: &[String],
-        raw_evidence_refs: &[String],
+        bindings: Bindings<'_>,
+        dir: &Utf8Path,
     ) -> Result<camino::Utf8PathBuf, RepoError> {
+        let Bindings {
+            subject_digests,
+            raw_evidence_refs,
+        } = bindings;
         let slug = def.key().replace(['/', '@', '.'], "_");
         let rel = |p: &Utf8Path| repo.relative(p);
-        let dir = repo.root.join(&repo.config.paths.receipts);
 
         let mut receipt = GateReceipt {
             run_id: run.id.clone(),

@@ -211,6 +211,24 @@ impl Repository {
     }
 
     /// Judgments recorded for one Warrant (§42).
+    /// The §56.2 record, if one has been ingested (`war resolve --response`).
+    pub fn load_resolution(
+        &self,
+        dir: &Utf8Path,
+    ) -> Result<Option<crate::resolution_cmd::ResolutionRecord>, RepoError> {
+        let path = dir.join("resolution.toml");
+        if !path.is_file() {
+            return Ok(None);
+        }
+        let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
+            context: format!("could not read {path}"),
+            source,
+        })?;
+        toml::from_str(&text)
+            .map(Some)
+            .map_err(|e| RepoError::Message(format!("could not parse {path}: {e}")))
+    }
+
     pub fn load_judgments(
         &self,
         dir: &Utf8Path,
@@ -712,30 +730,6 @@ impl Repository {
                 failures: vec![(self.relative(&path), e.to_string())],
             }),
         }
-    }
-
-    /// Structured Gate Runs recorded under the receipts path (§44.6).
-    ///
-    /// Returns what is there. An absent directory means no gate has been run,
-    /// which is a true state and distinct from a run that failed — the caller
-    /// decides what an empty set means rather than being handed an error.
-    #[must_use]
-    pub fn load_gate_runs(&self) -> Vec<openwarrant_core::GateRun> {
-        let dir = self.root.join(&self.config.paths.receipts);
-        let Ok(entries) = fs::read_dir(&dir) else {
-            return vec![];
-        };
-        let mut paths: Vec<Utf8PathBuf> = entries
-            .filter_map(Result::ok)
-            .filter_map(|e| Utf8PathBuf::from_path_buf(e.path()).ok())
-            .filter(|p| p.as_str().ends_with(".run.toml"))
-            .collect();
-        paths.sort();
-        paths
-            .iter()
-            .filter_map(|p| fs::read_to_string(p).ok())
-            .filter_map(|t| toml::from_str::<openwarrant_core::GateRun>(&t).ok())
-            .collect()
     }
 
     /// A repository-relative path, for diagnostics and for the IR.
