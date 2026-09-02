@@ -46,6 +46,15 @@ classification: internal
   so the fix is a matcher that finds every `uses` key on a line rather than
   a parser; each form has a test.
 
+- First deploy, 2026-09-02, from the squash commit of #49 (`3d514c7`):
+  run <https://github.com/Quitetall/OpenWarrant/actions/runs/33601820487>,
+  success. `sha256sum` of the served `https://quitetall.github.io/OpenWarrant/`
+  and of `/CORPUS_STATUS.html` both
+  `44e3165a45838e3ec1024c5d0fecda54b0658589af24643aa652d0eedc92eb5f`, equal
+  to the committed `docs/warrants/generated/CORPUS_STATUS.html` at that
+  commit. `/CORPUS_STATUS.json` parses and lists 56 Warrants. Measured by
+  the performer; OBL-003 needs an independent verifier to say the same.
+
 ## Assumptions carried in
 
 - Pages is enabled with `build_type = workflow` through the API at merge

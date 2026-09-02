@@ -56,10 +56,6 @@ restore() {
     # before this line existed. Named explicitly rather than `git clean`, which
     # would delete a developer's untracked work.
     rm -f docs/warrants/OW-WAR-0046/amendments/AM-999.yaml
-    # OW-WAR-0059's plants: a stale resolution is CREATED for a Warrant that
-    # has none, and a refused resolution must have written nothing — both
-    # named here so neither can leak.
-    rm -f docs/warrants/OW-WAR-0010/resolution.toml
 }
 
 # The mirror of `assert_gone`, for a mutation that ADDS rather than removes.
@@ -983,7 +979,7 @@ plant "Corpus Status Markdown edited by hand" "corpus-status.drift" "edited by h
     --generated
 
 plant "Corpus Status JSON edited by hand" "corpus-status.drift" "edited by hand" 2 \
-    "sed -i 's|\"satisfied\":0|\"satisfied\":57|' docs/warrants/generated/CORPUS_STATUS.json; \
+    "sed -i 's|\"satisfied\":[0-9]*|\"satisfied\":57|' docs/warrants/generated/CORPUS_STATUS.json; \
      assert_present '\"satisfied\":57' docs/warrants/generated/CORPUS_STATUS.json" \
     --generated
 
@@ -1091,34 +1087,45 @@ plant_cmd "a run file that says fail beside a receipt that says pass" "resolutio
     resolve --dry-run OW-WAR-0010
 
 # OBL-002. The contract moves after the receipt was recorded. The receipt is a
-# true record of a run that happened, and it is not evidence about this one.
-plant "a receipt recorded before the contract moved" "evidence.stale-binding" "earlier revision" 0 \
+# true record of a run that happened, and it is not evidence about this one
+# (a WARNING). Exit 2 rather than 0 because OW-WAR-0010 also carries a real
+# resolution since 2026-09-02, and the same move makes THAT stale — an ERROR,
+# §45. Both are asserted: the warning by name, the error by the exit code.
+plant "a receipt recorded before the contract moved" "evidence.stale-binding" "earlier revision" 2 \
     "printf '\\nPlanted: one more paragraph, so the contract digest moves.\\n' >> docs/warrants/OW-WAR-0010/atoms/10-intent.md; \
      assert_present 'Planted: one more paragraph' docs/warrants/OW-WAR-0010/atoms/10-intent.md" \
     OW-WAR-0010
 
 # OBL-004. The agent signs a resolution for a Warrant with all thirteen met.
-# Refused, and nothing written: `restore` would hide a leaked file, so the
-# absence is asserted before it runs.
+# OW-WAR-0010 carries a REAL record now (resolved 2026-09-02), so the plant
+# removes it first — `restore` brings a tracked file back — and asserts that
+# the refusal wrote nothing BEFORE restore runs, or restore would hide a leak.
 RES_DIGEST="$("$WAR" resolve OW-WAR-0010 2>/dev/null | grep '^contract_digest' | cut -d'"' -f2)"
 [[ -n "$RES_DIGEST" ]] || { echo "could not read OW-WAR-0010's contract digest" >&2; exit 9; }
-plant_cmd "an agent resolving a delivery" "resolution.agent" "SHALL NOT resolve" 2 \
-    "printf 'schema = \"oh.war/resolution-response/v1\"\nwarrant = \"OW-WAR-0010\"\ncontract_digest = \"%s\"\nresolved_by = \"claude\"\nacting_role = \"resolver\"\ncommon_outcome = \"satisfied\"\nprofile_outcome = \"delivered\"\nmeaning = \"x\"\neffective_time = \"2026-09-02T00:00:00Z\"\n' \"$RES_DIGEST\" > \"$MIGRATE_TMP/agent-resolve.toml\"" \
-    resolve OW-WAR-0010 --response "$MIGRATE_TMP/agent-resolve.toml"
-if [[ -f docs/warrants/OW-WAR-0010/resolution.toml ]]; then
-    printf 'FAIL  %-34s a refused resolution wrote a record\n' "an agent resolving a delivery"
-    FAILED=$((FAILED + 1)); rm -f docs/warrants/OW-WAR-0010/resolution.toml
+restore
+rm -f docs/warrants/OW-WAR-0010/resolution.toml
+printf 'schema = "oh.war/resolution-response/v1"\nwarrant = "OW-WAR-0010"\ncontract_digest = "%s"\nresolved_by = "claude"\nacting_role = "resolver"\ncommon_outcome = "satisfied"\nprofile_outcome = "delivered"\nmeaning = "x"\neffective_time = "2026-09-02T00:00:00Z"\n' "$RES_DIGEST" > "$MIGRATE_TMP/agent-resolve.toml"
+agent_out="$("$WAR" resolve OW-WAR-0010 --response "$MIGRATE_TMP/agent-resolve.toml" 2>&1)"; agent_status=$?
+if [[ "$agent_status" -eq 2 ]] && grep -q "resolution.agent" <<<"$agent_out" && grep -q "SHALL NOT resolve" <<<"$agent_out" && [[ ! -f docs/warrants/OW-WAR-0010/resolution.toml ]]; then
+    printf 'ok    %-34s resolution.agent — refused, nothing written\n' "an agent resolving a delivery"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s exit %s (wanted 2), record present: %s\n' "an agent resolving a delivery" "$agent_status" "$([[ -f docs/warrants/OW-WAR-0010/resolution.toml ]] && echo yes || echo no)"
+    FAILED=$((FAILED + 1))
 fi
+restore
 
 # OBL-005. `satisfied` signed over an obligation the verifier did not establish.
 plant_cmd "satisfied signed over an unestablished obligation" "resolution.outcome-unsupported" "OBL-001" 2 \
-    "sed -i 's|^disposition = \"established\"|disposition = \"not_established\"|' docs/warrants/OW-WAR-0010/verifications/OBL-001.toml; \
+    "rm -f docs/warrants/OW-WAR-0010/resolution.toml; \
+     sed -i 's|^disposition = \"established\"|disposition = \"not_established\"|' docs/warrants/OW-WAR-0010/verifications/OBL-001.toml; \
      assert_present 'not_established' docs/warrants/OW-WAR-0010/verifications/OBL-001.toml; \
      printf 'schema = \"oh.war/resolution-response/v1\"\nwarrant = \"OW-WAR-0010\"\ncontract_digest = \"%s\"\nresolved_by = \"Brian Lam\"\nacting_role = \"resolver\"\ncommon_outcome = \"satisfied\"\nprofile_outcome = \"delivered\"\nmeaning = \"x\"\neffective_time = \"2026-09-02T00:00:00Z\"\n' \"$RES_DIGEST\" > \"$MIGRATE_TMP/over-resolve.toml\"" \
     resolve OW-WAR-0010 --response "$MIGRATE_TMP/over-resolve.toml"
 
 # OBL-006. A well-formed resolution that binds a contract this Warrant no
-# longer compiles to. §45: dispute or annul; never edit around it.
+# longer compiles to. §45: dispute or annul; never edit around it. Overwrites
+# the tracked record; `restore` puts the real one back.
 plant "a resolution of a contract that has since moved" "resolution.stale" "earlier revision" 2 \
     "printf 'schema = \"oh.war/resolution/v1\"\nwarrant = \"OW-WAR-0010\"\n\n[resolution]\nid = \"01a00000-0000-7000-8000-000000000000\"\ncommon_outcome = \"satisfied\"\nprofile_outcome = \"delivered\"\ncontract_revision = 1\ncontract_digest = \"0000000000000000000000000000000000000000000000000000000000000000\"\nassurance_case_snapshot_digest = \"sha256:00\"\nartifact_manifest_digest = \"sha256:00\"\ngate_run_refs = []\njudgment_refs = []\nresidual_risk_refs = []\nresolved_by_ref = \"person://Brian Lam\"\nacting_role_ref = \"role-assignment://Brian Lam/resolver\"\nmeaning = \"planted\"\neffective_at = \"2026-09-02T00:00:00Z\"\nrecorded_at = \"2026-09-02T00:00:00Z\"\nstanding = \"valid\"\n' > docs/warrants/OW-WAR-0010/resolution.toml" \
     OW-WAR-0010
