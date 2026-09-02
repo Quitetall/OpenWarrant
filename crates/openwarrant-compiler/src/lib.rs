@@ -39,6 +39,6 @@ pub use dispatch::{
     required_normative_sources,
 };
 pub use ir::{API_VERSION, KIND, SCHEMA_PACK_ID, SCHEMA_PACK_VERSION, SourceScope, WarIr};
-pub use lower::{AtomSource, CompilationBasis, ScopeSource, lower};
+pub use lower::{AtomSource, CompilationBasis, SasPin, ScopeSource, lower};
 pub use render::{ChildRef, View, canonical_json, full_warrant};
 pub use warrant_overview::{WarrantSummary, render as render_warrant_overview};

@@ -40,7 +40,7 @@ contract_revision = 1
 # coverage joined the preimage (OW-ADR-0004) — the parent's contract genuinely
 # became a different object, so the old pin was correctly reported stale by all
 # four children at once. That was the control working, not churn to be silenced.
-contract_digest = "sha256:232626196412d48f13f640625f01c3405c0530fda4b3379c3b799f54010c499e"
+contract_digest = "sha256:ab7e2df770a6c895e55e0c5990b0ad33a18f5dbebe653e6389fbdc30ca1c648a"
 
 [[atoms]]
 ordinal = 10

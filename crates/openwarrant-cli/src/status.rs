@@ -366,13 +366,32 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
              transitions and no §56.2 resolution has been recorded, so no Warrant can read above \
              `would_satisfy` and no requirement above `in_progress` until a human signs."
                 .to_owned(),
-        release: ReleaseSummary {
-            version: None,
-            digest: None,
-            requirements: counts,
-            note: "The accepted SAS revision is not recorded as a record yet (OW-WAR-0058). The \
-                   requirement ladder is against the §106 index as read from the pinned draft."
-                .to_owned(),
+        release: match repo.latest_sas_revision()? {
+            Some(r) => ReleaseSummary {
+                version: Some(r.version.clone()),
+                digest: Some(format!("sha256:{}", r.sha256)),
+                requirements: counts,
+                note: match r.state {
+                    openwarrant_core::SasRevisionState::Accepted => format!(
+                        "Revision {} is ACCEPTED (§101.2) and normative; every compiled Warrant is \
+                         pinned to it.",
+                        r.version
+                    ),
+                    openwarrant_core::SasRevisionState::Proposed => format!(
+                        "Revision {} is PROPOSED, not accepted. Every compiled Warrant is pinned to \
+                         its digest; §101.2's acceptance is a human's, and has not happened.",
+                        r.version
+                    ),
+                },
+            },
+            None => ReleaseSummary {
+                version: None,
+                digest: None,
+                requirements: counts,
+                note: "No SAS revision is recorded (`war sas propose`). The requirement ladder is \
+                       against §106 as read from the document on disk."
+                    .to_owned(),
+            },
         },
         objectives,
         warrants,

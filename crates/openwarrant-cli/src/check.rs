@@ -164,6 +164,61 @@ pub fn run(
             format!("{} ADR(s) parsed", adrs.records.len()),
         ));
     }
+    // §101 — the SAS is a controlled document. The bytes on disk are held to
+    // the latest recorded revision's digest. Until OW-WAR-0058 nothing in code
+    // compared them: the digest appeared in six places, all prose.
+    match repo.load_sas_revisions() {
+        Err(err) => report.push(Diagnostic::error(
+            "sas.revision-malformed",
+            repo.config.paths.sas.clone(),
+            err.to_string(),
+        )),
+        Ok(revisions) => match crate::sas::pin_of(&revisions) {
+            None => report.push(Diagnostic::warn(
+                "sas.unrecorded",
+                repo.config.paths.sas.clone(),
+                "no SAS revision is recorded; the document is pinned by prose only. \
+                 `war sas propose <version>` records one"
+                    .to_owned(),
+            )),
+            Some(pin) => match repo.sas_document() {
+                Err(err) => report.push(Diagnostic::error(
+                    "sas.document",
+                    repo.config.paths.sas.clone(),
+                    err.to_string(),
+                )),
+                Ok((path, bytes)) => {
+                    let actual = openwarrant_compiler::sha256_hex(&bytes);
+                    if actual == pin.sha256 {
+                        report.push(Diagnostic::pass(
+                            "sas.pinned",
+                            format!(
+                                "{} matches revision {} ({}), sha256:{}",
+                                repo.relative(&path),
+                                pin.version,
+                                pin.state,
+                                &pin.sha256[..12]
+                            ),
+                        ));
+                    } else {
+                        report.push(Diagnostic::error(
+                            "sas.digest-drift",
+                            repo.relative(&path),
+                            format!(
+                                "the document is sha256:{actual} but revision {} ({}) records \
+                                 sha256:{}. §101.6: the accepted revision is normative and mirrors \
+                                 state its exact digest. Either restore the bytes or propose a \
+                                 new revision — an edited document under an unchanged record is \
+                                 the failure this check exists for",
+                                pin.version, pin.state, pin.sha256
+                            ),
+                        ));
+                    }
+                }
+            },
+        },
+    }
+
     // Both corpus-wide projections drift-check through the same function, so
     // they cannot come to report drift differently.
     if check_generated && repo.config.generated.verify_drift {

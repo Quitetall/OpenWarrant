@@ -41,6 +41,7 @@ pub mod milestones;
 pub mod obligation;
 pub mod resolution;
 pub mod role;
+pub mod sas;
 pub mod seam;
 pub mod state;
 pub mod status;
@@ -82,6 +83,10 @@ pub use milestones::{
 };
 pub use obligation::{Disposition, Obligation, ObligationError, ObligationSet, ScopeKind};
 pub use role::{AtomRole, Jurisdiction, Profile, RoleError, is_namespaced_extension_role};
+pub use sas::{
+    SAS_REVISION_SCHEMA, SasAcceptance, SasError, SasRevision, SasRevisionState, Section106Diff,
+    section_106,
+};
 pub use state::{
     CommonOutcome, Currency, ExecutionCondition, Phase, Provenance, ResolutionStanding, StateError,
     WarrantState,

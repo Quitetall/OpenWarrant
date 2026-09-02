@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-53 Warrant(s) in this repository.
+54 Warrant(s) in this repository.
 
 ## Summary
 
@@ -64,8 +64,9 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0055](docs/warrants/OW-WAR-0055/manifest.toml) | Compute the goal hierarchy: war status and the corpus projection | `draft` | `current` | `valid` | `controlled` | 4M / 5S |
 | [OW-WAR-0056](docs/warrants/OW-WAR-0056/manifest.toml) | Compile a real Stage Dispatch (§47) | `draft` | `current` | `valid` | `controlled` | 3M / 4S |
 | [OW-WAR-0057](docs/warrants/OW-WAR-0057/manifest.toml) | The viewer: a static page over the corpus projection | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0058](docs/warrants/OW-WAR-0058/manifest.toml) | Put the SAS under §101 governance: controlled revisions and the Release axis | `draft` | `current` | `valid` | `controlled` | 3M / 4S |
 
-> **53 of 53 states are DERIVED, not recorded.** Nothing journals transitions yet (OW-WAR-0031), and authorization does not exist until OW-WAR-0009 — so no Warrant has left `draft`. A later phase would have to be invented.
+> **54 of 54 states are DERIVED, not recorded.** Nothing journals transitions yet (OW-WAR-0031), and authorization does not exist until OW-WAR-0009 — so no Warrant has left `draft`. A later phase would have to be invented.
 
 ## Claimed SAS requirement coverage
 
@@ -80,9 +81,9 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-011` — OW-WAR-0002
 - `WAR-SAS-RQ-012` — OW-WAR-0002, OW-WAR-0004, OW-WAR-0057
 - `WAR-SAS-RQ-013` — OW-WAR-0002
-- `WAR-SAS-RQ-014` — OW-WAR-0003, OW-WAR-0004
+- `WAR-SAS-RQ-014` — OW-WAR-0003, OW-WAR-0004, OW-WAR-0058
 - `WAR-SAS-RQ-015` — OW-WAR-0002, OW-WAR-0005
-- `WAR-SAS-RQ-020` — OW-WAR-0036
+- `WAR-SAS-RQ-020` — OW-WAR-0036, OW-WAR-0058
 - `WAR-SAS-RQ-022` — OW-WAR-0013, OW-WAR-0055
 - `WAR-SAS-RQ-024` — OW-WAR-0006
 - `WAR-SAS-RQ-025` — OW-WAR-0006
@@ -179,6 +180,7 @@ Source: the Warrants under the configured warrants path.
 - **OW-WAR-0055** · roadmap: roadmap://OW-PHASE-1/projections
 - **OW-WAR-0056** · roadmap: roadmap://OW-PHASE-5/dispatch
 - **OW-WAR-0057** · roadmap: roadmap://OW-PHASE-1/projections
+- **OW-WAR-0058** · roadmap: roadmap://OW-PHASE-3/sas-governance
 
 ## Not reported here
 
