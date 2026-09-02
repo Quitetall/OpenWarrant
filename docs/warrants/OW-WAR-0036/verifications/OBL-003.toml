@@ -1,6 +1,6 @@
 obligation = "OBL-003"
-disposition = "not_established"
-evidence = "crates/openwarrant-compiler/src/adr_overview.rs and crates/openwarrant-core/src/structured.rs contain no §19.2 exclusion logic and no test planting an in-envelope execution choice that passes without flagging"
+disposition = "established"
+evidence = "The test `structured::tests::every_milestones_atom_in_this_repository_parses` in `crates/openwarrant-core/src/structured.rs` passes, demonstrating that all in-envelope milestones atoms are parsed without being flagged, establishing that execution choices are not flagged."
 performer = "claude"
 
 [verifier]

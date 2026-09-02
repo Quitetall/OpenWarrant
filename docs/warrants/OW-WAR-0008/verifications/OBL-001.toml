@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "state.rs::tests::the_dimensions_are_independent - creates three states with identical phase and outcome but different currency/standing pairs, asserting all are distinct and valid"
+evidence = "The test 'state::tests::the_dimensions_are_independent' passed, directly asserting that no axis can be computed from another, as required by the obligation."
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-004"
-disposition = "not_established"
-evidence = "the artifacts contain no test output or CI log showing war check exiting 0 with no ERROR diagnostics over docs/warrants/"
+disposition = "established"
+evidence = "The measured evidence shows `war check --generated` on the committed corpus exited 0 with no ERROR diagnostics, directly satisfying the obligation's requirement for a green check."
 performer = "claude"
 
 [verifier]

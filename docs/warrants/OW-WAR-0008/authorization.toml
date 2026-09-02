@@ -2,9 +2,10 @@ schema = "oh.war/authorization/v1"
 warrant = "OW-WAR-0008"
 
 [revision]
-revision = 1
+revision = 2
 state = "authorized"
-contract_digest = "e4c5be7e2d1a92363efba990f1cb32887a08e21cc5ba8c1f05699e51a78dfb0c"
+contract_digest = "84cef7107964599fb3426ae36148a39682baf98c4c05b0783e258afaf61d6ee2"
+predecessor_digest = "e4c5be7e2d1a92363efba990f1cb32887a08e21cc5ba8c1f05699e51a78dfb0c"
 proposer = "claude"
 
 [revision.coverage]
@@ -23,6 +24,6 @@ covered = [
 authorizer = "Brian Lam"
 actor_kind = "human"
 acting_role = "authorizer"
-meaning = """Authorizing OW-WAR-0008 (Implement the state model: phase, condition, outcome, currency, standing) at this contract digest means the owner accepts its intent, scope and obligations as the work to be done and judged, and accepts each residual risk declared below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 ("You should manually authorize each of the warrants. I give you my express permission to approve these things."); the decision is the owner's, the wording is the agent's."""
-effective_time = "2026-09-02T06:00:00Z"
+meaning = "Authorizing OW-WAR-0008 (Implement the state model: phase, condition, outcome, currency, standing) at this contract digest means the owner accepts its intent, scope and obligations as the work to be done and judged, and accepts each residual risk declared below with its stated consequence. It does not resolve the Warrant. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02; the decision is the owner's, the wording is the agent's."
+effective_time = "2026-09-03T00:40:00Z"
 independence = "separate_role"

@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "manifest.rs::tests::a_well_formed_delivery_manifest_validates - constructs a §61-shaped Manifest, calls validate(), and asserts v.profile == Profile::Delivery, v.assurance_level == AssuranceLevel::Basic, v.alias.as_str() == OW-WAR-0001"
+evidence = "The test `a_well_formed_delivery_manifest_validates` in `manifest::tests` passes, demonstrating that a valid manifest parses into typed values as required by the deliverable in `crates/openwarrant-core/src/manifest.rs`."
 performer = "claude"
 
 [verifier]

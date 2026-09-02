@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "atoms/60-assurance.md - no registration occurred (OBS-007: 404 for unregistered action type), so no post-registration digest comparison or refusal of a plant asserting KF as Source Holder is evidenced anywhere"
+evidence = "The deliverable D-001 and measured evidence (e.g., tests in kf.rs) address KF client behavior and write confirmation, but no artifact or test demonstrates that authored atoms resolve to Git or that their digests are unchanged after registration, nor does any plant assert KF as Source Holder is refused."
 performer = "claude"
 
 [verifier]

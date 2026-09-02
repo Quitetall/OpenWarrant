@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "rationale.rs::NodeClass defines 8 node classes; rationale.rs::RationaleEdge defines 8 edge types; rationale.rs::tests::the_node_classes_match_the_sas asserts parsed values per class; rationale.rs::tests::the_rationale_edges_match_the_sas asserts parsed values per edge type; rationale.rs::tests::vocabularies_round_trip tests parsing round-trip"
+evidence = "The passing unit tests 'the_node_classes_match_the_sas' and 'the_rationale_edges_match_the_sas' in crates/openwarrant-core/src/rationale.rs assert that the parsed node classes and edge types match §35's definitions."
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "deliverable.rs::ArtifactProvenance has content_digest field; Deliverable::validate checks content_addressed implies non-empty content_digest via ContentAddressedWithoutDigest; test content_addressing_without_a_digest_is_refused exercises the refusal"
+evidence = "The test 'deliverable::tests::content_addressing_without_a_digest_is_refused' passes, and the code in deliverable.rs defines ArtifactProvenance with a content_digest field validated as required, ensuring artifacts carry provenance and a digest."
 performer = "claude"
 
 [verifier]

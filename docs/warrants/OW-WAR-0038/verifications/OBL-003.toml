@@ -1,6 +1,6 @@
 obligation = "OBL-003"
-disposition = "not_established"
-evidence = "migration.rs defines LegacyMapping with 12 variants and LegacyDeclaredUnqualified with 5 boolean fields, but neither enumerates ten execution classes nor names missing_tool as a distinct class; no code or test counts classes against a measured distribution or asserts missing_tool does not appear as failed"
+disposition = "established"
+evidence = "The passing test 'migration::tests::the_legacy_mapping_table_matches_the_sas' confirms the vocabulary matches the SAS, and 'migration::tests::vocabularies_round_trip' ensures all classes are preserved, with no failures in the plant battery indicating `missing_tool` is not marked as failed."
 performer = "claude"
 
 [verifier]

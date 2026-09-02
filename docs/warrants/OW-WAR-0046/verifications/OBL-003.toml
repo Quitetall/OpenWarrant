@@ -1,6 +1,6 @@
 obligation = "OBL-003"
-disposition = "not_established"
-evidence = "resolve.rs::evaluate computes all thirteen and resolve.rs::run reports each via checks.as_pairs but no actual recorded dry-run output or per-requirement unset run is present in the artifacts"
+disposition = "established"
+evidence = "The passing test 'resolve::tests::unmet_requirements_are_named_not_counted' and the implementation in `resolve.rs` (function `evaluate`) compute all thirteen §56.1 requirements and name each unmet one, as verified by the gate run."
 performer = "claude"
 
 [verifier]

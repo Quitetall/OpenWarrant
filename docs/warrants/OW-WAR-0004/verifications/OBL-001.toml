@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "render.rs::generated_header - produces §17.1 header with WAR, basis digest, contract revision, and source manifest; render.rs::full_warrant and render.rs::canonical_json both accept the same CompilationBasis and WarIr; compile.rs::projections renders both View::FullWarrant and View::CanonicalJson from one basis call; render.rs::tests::the_generated_header_is_present_and_complete asserts all four header fields"
+evidence = "Test 'render::tests::the_generated_header_is_present_and_complete' verifies the §17.1 header for the Markdown parent, and 'war check --generated' exits 0 confirming both projections are correctly generated from the basis."
 performer = "claude"
 
 [verifier]

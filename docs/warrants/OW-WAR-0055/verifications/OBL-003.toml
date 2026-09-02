@@ -1,0 +1,20 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = "The test 'traceability::tests::status_is_derived_and_cannot_be_assigned' proves requirement status is derived, and 'status::tests::resolved_is_reachable_only_from_a_record' proves that `satisfied` requires a resolution record, with no resolution records present as indicated by zero §44.6 receipts."
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

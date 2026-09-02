@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "established"
-evidence = "bonsai.rs::tests::qualification_plants::pilot_qualification_plants_are_observed - architecture plant uses BonsaiOutput::ArchitectureError with rule contract-forbid and asserts Fail with architecture_findings.len()==1; advisory plant uses BonsaiOutput::AdvisoryError with rule leanness-ratchet and asserts Pass with advisory_findings.len()==1 and architecture_findings.len()==0"
+evidence = "The test 'only_architecture_errors_block' in crates/openwarrant-cli/src/bonsai.rs passes, verifying that only architecture errors block while non-architecture errors remain recorded but non-blocking."
 performer = "claude"
 
 [verifier]

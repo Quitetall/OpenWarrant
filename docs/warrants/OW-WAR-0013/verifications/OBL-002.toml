@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "traceability.rs::RequirementRef::parse would accept sas://WAR-SAS-RQ-999 as well-formed (uppercase prefix, three-digit number); no code checks existence against §106 and no test exercises refusal of an unresolvable-but-well-formed reference"
+evidence = "The measured evidence shows no planted violations for this Warrant in conformance/plant.sh, and no unit test in traceability.rs specifically demonstrates refusal of the reference sas://WAR-SAS-RQ-999."
 performer = "claude"
 
 [verifier]

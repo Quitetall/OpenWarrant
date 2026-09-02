@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "No recorded run showing cargo xtask gate exiting non-zero with named failing steps was provided among the artifacts"
+evidence = "The measured evidence lists only passing tests and checks (e.g., plant battery 126 passed, `war check --generated` exit 0) but no recorded run of `cargo xtask gate` exiting non-zero with named failing steps, which is required to establish the obligation."
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "not_established"
-evidence = "export.rs::tests::every_required_content_is_classified - asserts absent_reason returns for every content and EXPORT_CONTENTS.len()==15, but never calls PortableExport::validate nor asserts that a missing populated section causes failure; validate is mentioned only in comments"
+disposition = "refuted"
+evidence = "The code in export.rs explicitly states that only ten of fourteen required §68.2 contents are supplied, with four absent, and the validate function refuses incomplete exports, as shown in the comments and the absent_reason function."
 performer = "claude"
 
 [verifier]

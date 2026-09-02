@@ -1,0 +1,20 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "The artifact docs/roadmap/PHASE1_EXIT.md contains the 'Commit traceability' section with git log commands and recorded counts (87 total commits, 20 naming a Warrant), demonstrating that commit traceability was measured and recorded as required."
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

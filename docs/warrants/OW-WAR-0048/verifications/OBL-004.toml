@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "atoms/60-assurance.md - Executed attacks: none yet — this Warrant has not been executed; no compiled_by_both count, no observable set declaration, no corpus_size value, and no parity run output appear in any artifact"
+evidence = "No test, receipt, or measurement demonstrating compiled_by_both == corpus_size, observable declaration, or zero differences is present in the provided evidence; the unit/integration tests list is empty and no §44.6 receipts are committed."
 performer = "claude"
 
 [verifier]

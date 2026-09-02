@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "established"
-evidence = "gate.rs::GateRegistry::validate_binding - checks !def.lifecycle.is_bindable() and returns GateError::BindingUnqualified; test a_draft_gate_cannot_be_bound plants a Draft gate and asserts the refusal"
+evidence = "The unit test 'gate::tests::a_draft_gate_cannot_be_bound' in crates/openwarrant-core/src/gate.rs demonstrates that binding an unqualified (draft) gate is refused, as required by §43.4."
 performer = "claude"
 
 [verifier]

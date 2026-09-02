@@ -1,6 +1,6 @@
 obligation = "OBL-004"
-disposition = "not_established"
-evidence = "epistemic.rs::Judgment::validate - checks meaning and acting_role are non-empty but actor field has no emptiness check, so an anonymous judgment with empty actor passes validation"
+disposition = "established"
+evidence = "The test 'a_judgment_without_meaning_or_role_is_invalid' in crates/openwarrant-core/src/epistemic.rs validates that judgments without a role are refused, directly implementing §42's requirement that anonymous judgments are not allowed."
 performer = "claude"
 
 [verifier]

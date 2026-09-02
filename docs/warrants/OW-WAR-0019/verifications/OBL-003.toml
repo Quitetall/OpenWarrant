@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "established"
-evidence = "gate.rs::GateRegistry::resolve_citation - parses gate:// URI via GateRef::parse_uri, looks up registry, returns GateError::ObligationUnresolvedGate with obligation name and URI; test an_obligation_citing_a_nonexistent_gate_is_refused_by_name exercises it"
+evidence = "The test 'gate::tests::an_obligation_citing_a_nonexistent_gate_is_refused_by_name' passed, directly demonstrating that obligations citing unregistered gates are refused by name, as required."
 performer = "claude"
 
 [verifier]

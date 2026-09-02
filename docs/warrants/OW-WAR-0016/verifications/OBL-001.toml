@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "obligation.rs::tests::every_obligation_in_this_repository_parses - reads all docs/warrants/**/60-assurance.md files, parses them with parse(), and asserts warrants >= 40 and total >= 130, validating the schema fits the real corpus without rewriting"
+evidence = "The test 'obligation::tests::every_obligation_in_this_repository_parses' passes, confirming that all obligations in the repository parse successfully without losing bounded-scope statements, as validated by the schema in obligation.rs which requires scope and evidence fields."
 performer = "claude"
 
 [verifier]

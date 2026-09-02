@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "established"
-evidence = "canonical.rs::official_rfc8785_vectors reads six external vector pairs from conformance/rfc8785/ and asserts byte equality against published canonical forms"
+evidence = "The test 'canonical::tests::official_rfc8785_vectors' in 'crates/openwarrant-compiler/src/canonical.rs' performs byte comparison against the official RFC 8785 vectors from external files and passed."
 performer = "claude"
 
 [verifier]

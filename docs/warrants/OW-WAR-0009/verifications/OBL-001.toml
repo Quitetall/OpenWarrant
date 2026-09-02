@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "contract.rs::ContractRevision - propose() and authorize() consume self returning new value; no &mut self method exists on authorized revisions; test amendment_creates_a_new_revision_with_a_predecessor confirms authorized revision is untouched after amend"
+evidence = "The type system in contract.rs defines ContractRevision with no &mut self methods for authorized revisions, and the test 'contract::tests::amendment_creates_a_new_revision_with_a_predecessor' verifies that amending creates a new revision without mutating the original, demonstrating immutability."
 performer = "claude"
 
 [verifier]

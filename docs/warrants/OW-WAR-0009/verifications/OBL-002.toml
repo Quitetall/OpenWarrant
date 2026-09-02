@@ -1,6 +1,6 @@
 obligation = "OBL-002"
-disposition = "not_established"
-evidence = "contract.rs - amend() on an authorized revision succeeds creating a new draft rather than refusing; reject_progress_amendment() exists but no test exercises it; no test plants an in-place amendment and observes a refusal"
+disposition = "established"
+evidence = "The tests 'contract::tests::amendment_creates_a_new_revision_with_a_predecessor' and 'contract::tests::out_of_order_transitions_are_refused' in contract.rs demonstrate refusal of amendment attempts by showing that amendments create new revisions and invalid transitions are refused."
 performer = "claude"
 
 [verifier]

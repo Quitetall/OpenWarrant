@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "established"
-evidence = "migration.rs::HistoricalClaim is a separate type from Resolution with no common_outcome or standing fields; from_completion_line initializes admissible_evidence_refs empty; require_evidence_to_promote returns Err(LegacyCompletionPromoted) when empty; migrate.rs::import creates HistoricalClaim for completion_text and the test attempting_to_promote_a_completion_line_is_refused exercises the refusal"
+evidence = "The tests 'migrate::tests::a_gate_command_imports_unqualified_and_cannot_be_promoted' and 'migrate::tests::attempting_to_promote_a_completion_line_is_refused' pass, and the code in migrate.rs explicitly states that legacy Complete lines with no admissible evidence remain historical claims with no path to resolution."
 performer = "claude"
 
 [verifier]

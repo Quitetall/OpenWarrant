@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "crates/openwarrant-cli/src/kf.rs - Client has no direct-status-edit method (only health and post_action), but no test plant attempts a direct write and demonstrates refusal; the three tests cover URL scheme and idempotency key length, not direct status edit rejection"
+evidence = "No plant or test in the measured evidence specifically demonstrates that direct status edits are refused; the deliverable file kf.rs includes comments and a confirmation requirement for writes, but no concrete test or plant for this obligation is listed."
 performer = "claude"
 
 [verifier]

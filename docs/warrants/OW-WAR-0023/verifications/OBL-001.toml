@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "crates/openwarrant-core/src/execution.rs::StageDispatch::validate checks field completeness and normative-source presence, but no test compiles a Dispatch then reads it with the repository absent; the obligation requires testing by moving the repository, not by inspection"
+evidence = "No test in the measured evidence, such as 'a_dispatch_round_trips_through_json', explicitly tests Dispatch readability with the repository absent by moving it, as required by §47.1."
 performer = "claude"
 
 [verifier]

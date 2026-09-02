@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "atoms/60-assurance.md::JDG-001 - explicitly states 'No agent has been invoked' and records OBL-001 as open; no recorded exchange over §75.2 exists in the artifacts"
+evidence = "No recorded exchange, receipt, or test is provided in the measured evidence or artifacts to demonstrate a real agent answering over the §75.2 seam with a canonical request and Draft Proposal from a separate process."
 performer = "claude"
 
 [verifier]

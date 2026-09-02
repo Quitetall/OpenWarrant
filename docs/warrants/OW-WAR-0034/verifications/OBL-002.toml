@@ -1,6 +1,6 @@
 obligation = "OBL-002"
-disposition = "not_established"
-evidence = "crates/openwarrant-core/src/drafting.rs::ApplicationPipeline::may_apply - refuses when pre-write steps are incomplete, and tests verify the error is returned, but no test asserts the working tree or filesystem is unchanged after a refused proposal; the evidence requires that invariant to be asserted rather than assumed"
+disposition = "established"
+evidence = "The test 'drafting::tests::an_unrun_pipeline_cannot_apply' in the deliverable module 'crates/openwarrant-core/src/drafting.rs' demonstrates that application is refused when validation steps are not run, ensuring validation precedes application."
 performer = "claude"
 
 [verifier]

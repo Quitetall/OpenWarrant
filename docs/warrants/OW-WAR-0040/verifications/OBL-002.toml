@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "atoms/60-assurance.md - states the parity harness has never compared two real adapters and cannot until Liminal ships; no byte comparison results or document counts are present in any artifact"
+evidence = "No byte comparison per document or count assertion is evidenced in the measured artifacts; the unit/integration tests list is empty and no §44.6 receipts are committed for this obligation."
 performer = "claude"
 
 [verifier]

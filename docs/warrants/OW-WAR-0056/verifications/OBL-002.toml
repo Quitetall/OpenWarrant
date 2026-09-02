@@ -1,0 +1,20 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "The test 'dispatch::tests::a_dispatch_is_byte_deterministic_for_fixed_ids' passed, verifying that dispatches are byte-deterministic for fixed ids as required by §47.2."
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

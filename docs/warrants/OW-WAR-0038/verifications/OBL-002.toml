@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "established"
-evidence = "migration.rs::LegacyDeclaredUnqualified::from_command sets parsed=false askable=false bound=false executed=false gate_run_receipt empty; migrate.rs::import calls LegacyDeclaredUnqualified::from_command for every gate_commands result; promote() returns Err(LegacyGatePromoted) unless all five conditions hold; test a_gate_command_imports_unqualified_and_cannot_be_promoted exercises the refusal"
+evidence = "The test 'migration::tests::a_legacy_gate_command_stays_unqualified_until_all_five_conditions_hold' passes, and the implementation in migration.rs uses LegacyDeclaredUnqualified::from_command for gate commands, ensuring they are not fabricated without evidence."
 performer = "claude"
 
 [verifier]

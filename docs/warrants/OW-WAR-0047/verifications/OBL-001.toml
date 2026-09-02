@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "atoms/60-assurance.md JDG-001 explicitly states OBL-001 remains open; atoms/20-basis.md Blocking unknown states nothing ran so no receipts exist; crates/openwarrant-cli/src/blut.rs::verify doc comment says it is not an execution and discharges nothing"
+evidence = "§44.6 receipts committed for this Warrant: none, and no measured evidence shows a real BLUT execution with status, artifact, or lineage receipts returned."
 performer = "claude"
 
 [verifier]

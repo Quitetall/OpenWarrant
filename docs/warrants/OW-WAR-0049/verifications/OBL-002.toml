@@ -1,6 +1,6 @@
 obligation = "OBL-002"
-disposition = "established"
-evidence = "atoms/60-assurance.md::EV-001 shows three plants for test 10; atoms/60-assurance.md::JDG-001 records narrowing for tests 11, 13, 14, 15 via OW-ADR-0008 with per-test reasons"
+disposition = "not_established"
+evidence = "No plants or ADRs are recorded for §91.2 tests 10, 11, 13, 14, 15 in the measured evidence, and the declared deliverables are empty."
 performer = "claude"
 
 [verifier]

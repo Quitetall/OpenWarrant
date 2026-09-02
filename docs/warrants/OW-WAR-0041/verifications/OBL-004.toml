@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "atoms/60-assurance.md::JDG-001 states all sixteen §100 metrics record no baseline, but the actual recorded artifact containing those entries is not among the provided files; only the judgment about what it should contain is present"
+evidence = "No artifact excerpts were provided to demonstrate that the recorded artifact states baseline values or 'no baseline' for any §100 metric, and no tests or receipts specific to this obligation are listed in the measured evidence."
 performer = "claude"
 
 [verifier]

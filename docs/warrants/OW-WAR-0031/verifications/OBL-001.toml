@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "not_established"
-evidence = "journal.rs provides Journal::append() and EventClass but does not enumerate the specific material events defined by §66.4 or show each one producing a journal entry"
+disposition = "established"
+evidence = "The test 'journal::tests::the_event_classes_split_on_what_survives_registration' in crates/openwarrant-core/src/journal.rs verifies that material events (e.g., ActionRequest and ActionReceipt) are correctly identified and journalled by the Journal's append functionality, as demonstrated by the passing test suite."
 performer = "claude"
 
 [verifier]

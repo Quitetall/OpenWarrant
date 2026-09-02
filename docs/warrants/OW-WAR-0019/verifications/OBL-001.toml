@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "gate.rs::GateDefinition::validate - checks self.version.trim().is_empty() and returns GateError::MissingVersion; test a_definition_without_a_version_is_refused exercises it"
+evidence = "The test 'gate::tests::a_definition_without_a_version_is_refused' passed, directly demonstrating that definitions without a version are refused as required by §43.2."
 performer = "claude"
 
 [verifier]

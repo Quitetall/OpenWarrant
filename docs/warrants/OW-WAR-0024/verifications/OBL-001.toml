@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "crates/openwarrant-core/src/execution.rs::RequestedNextAction vocabulary has exactly five variants (Continue, Verify, Block, Amend, Cancel) with no resolve; StageSubmission::validate_requested_action returns SelfCompletionAttempted for any other string; test a_performer_cannot_request_resolution exercises refusal of resolve, resolved, satisfied, accept, complete, close"
+evidence = "The test 'execution::tests::a_performer_cannot_request_resolution' passes, directly demonstrating that a submission cannot assert completion by refusing a request for resolution, as required by §51.2."
 performer = "claude"
 
 [verifier]

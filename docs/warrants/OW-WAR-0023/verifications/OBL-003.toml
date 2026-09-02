@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "crates/openwarrant-core/src/execution.rs::StageDispatch has capability_policy_digest but no code checks requested capabilities against a policy and no test exercises a plant requesting an unlisted capability being refused"
+evidence = "No test or plant in the measured evidence demonstrates a request for an unlisted capability being refused; the deliverable D-001 targets §47, not §55.2, and the listed unit tests (e.g., 'a_performer_cannot_request_resolution') do not address capabilities or §55.2."
 performer = "claude"
 
 [verifier]
