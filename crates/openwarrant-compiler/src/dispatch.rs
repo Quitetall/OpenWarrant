@@ -385,6 +385,7 @@ stages:
                 ),
             ],
             scope: None,
+            sas: None,
         };
         (basis, validated)
     }

@@ -5,7 +5,7 @@ use std::fmt;
 use std::fs;
 
 use camino::{Utf8Path, Utf8PathBuf};
-use openwarrant_compiler::{AtomSource, CompilationBasis, ScopeSource};
+use openwarrant_compiler::{AtomSource, CompilationBasis, SasPin, ScopeSource};
 use openwarrant_core::{
     AdrError, AdrRecord, Manifest, RepositoryConfig, ValidatedManifest, frontmatter,
 };
@@ -437,6 +437,13 @@ impl Repository {
                 manifest_bytes,
                 atoms,
                 scope,
+                // §14 — the SAS revision is a Basis input. Absent until one is
+                // recorded, so nothing moves for a repository that has not
+                // pinned its document; present from the first proposal on.
+                sas: self.latest_sas_revision()?.map(|r| SasPin {
+                    version: r.version,
+                    sha256: r.sha256,
+                }),
             }),
             validated: Some(validated),
             report,
@@ -456,6 +463,95 @@ impl Repository {
             .join(&self.config.paths.warrants)
             .join("generated")
             .join("WARRANT_OVERVIEW.md")
+    }
+
+    /// The SAS document: exactly one Markdown file under the configured path.
+    ///
+    /// Zero is an error and so is two. A repository with two candidate
+    /// documents has no single thing to pin, and guessing which one is
+    /// normative is the failure §101.6 exists to prevent.
+    pub fn sas_document(&self) -> Result<(Utf8PathBuf, Vec<u8>), RepoError> {
+        let dir = self.root.join(&self.config.paths.sas);
+        let mut docs: Vec<Utf8PathBuf> = fs::read_dir(&dir)
+            .map_err(|source| RepoError::Io {
+                context: format!("could not read {dir}"),
+                source,
+            })?
+            .filter_map(Result::ok)
+            .filter_map(|e| Utf8PathBuf::from_path_buf(e.path()).ok())
+            .filter(|p| p.extension() == Some("md"))
+            .collect();
+        docs.sort();
+        match docs.as_slice() {
+            [one] => {
+                let bytes = fs::read(one).map_err(|source| RepoError::Io {
+                    context: format!("could not read {one}"),
+                    source,
+                })?;
+                Ok((one.clone(), bytes))
+            }
+            [] => Err(RepoError::Message(format!(
+                "no SAS document (*.md) under {dir}"
+            ))),
+            many => Err(RepoError::Message(format!(
+                "{} SAS documents under {dir}; there must be exactly one to pin: {}",
+                many.len(),
+                many.iter()
+                    .map(|p| self.relative(p))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            ))),
+        }
+    }
+
+    #[must_use]
+    pub fn sas_revisions_dir(&self) -> Utf8PathBuf {
+        self.root.join(&self.config.paths.sas).join("revisions")
+    }
+
+    #[must_use]
+    pub fn sas_revision_path(&self, version: &str) -> Utf8PathBuf {
+        self.sas_revisions_dir().join(format!("{version}.toml"))
+    }
+
+    /// Every SAS revision on record (§101), validated. A malformed record is an
+    /// error for the set: an accepted revision that quietly failed to load
+    /// would read as "the document is unpinned", which is the wrong direction.
+    pub fn load_sas_revisions(&self) -> Result<Vec<openwarrant_core::SasRevision>, RepoError> {
+        let dir = self.sas_revisions_dir();
+        if !dir.is_dir() {
+            return Ok(vec![]);
+        }
+        let mut paths: Vec<Utf8PathBuf> = fs::read_dir(&dir)
+            .map_err(|source| RepoError::Io {
+                context: format!("could not read {dir}"),
+                source,
+            })?
+            .filter_map(Result::ok)
+            .filter_map(|e| Utf8PathBuf::from_path_buf(e.path()).ok())
+            .filter(|p| p.extension() == Some("toml"))
+            .collect();
+        paths.sort();
+        let mut out = Vec::new();
+        for path in paths {
+            let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
+                context: format!("could not read {path}"),
+                source,
+            })?;
+            let r: openwarrant_core::SasRevision = toml::from_str(&text)
+                .map_err(|e| RepoError::Message(format!("could not parse {path}: {e}")))?;
+            r.validate()
+                .map_err(|e| RepoError::Message(format!("{path}: {e}")))?;
+            out.push(r);
+        }
+        Ok(out)
+    }
+
+    /// The revision the document is held to: newest accepted, else newest
+    /// proposed, else none.
+    pub fn latest_sas_revision(&self) -> Result<Option<openwarrant_core::SasRevision>, RepoError> {
+        let all = self.load_sas_revisions()?;
+        Ok(crate::sas::pin_of(&all).cloned())
     }
 
     /// Where the corpus projection is written (§17.5 `status`, corpus form).

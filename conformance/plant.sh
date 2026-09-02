@@ -37,9 +37,9 @@ fi
 # restore is `git checkout` and would discard that work. docs/gates/ joined this
 # list when gate plants landed: the guard and the restore must name the same
 # paths, or a plant silently deletes work the guard said it was protecting.
-if ! git diff --quiet -- docs/warrants/ docs/adr/ docs/gates/ openwarrant.toml \
-    || ! git diff --cached --quiet -- docs/warrants/ docs/adr/ docs/gates/ openwarrant.toml; then
-    echo "docs/warrants/, docs/adr/, docs/gates/ or openwarrant.toml has uncommitted changes." >&2
+if ! git diff --quiet -- docs/warrants/ docs/adr/ docs/gates/ docs/sas/ openwarrant.toml \
+    || ! git diff --cached --quiet -- docs/warrants/ docs/adr/ docs/gates/ docs/sas/ openwarrant.toml; then
+    echo "docs/warrants/, docs/adr/, docs/gates/, docs/sas/ or openwarrant.toml has uncommitted changes." >&2
     echo "Plants mutate those files and restore with 'git checkout', which would" >&2
     echo "discard your work. Commit or stash those first." >&2
     exit 1
@@ -49,7 +49,7 @@ PASSED=0
 FAILED=0
 
 restore() {
-    git checkout -- docs/warrants/ docs/adr/ docs/gates/ openwarrant.toml 2>/dev/null || true
+    git checkout -- docs/warrants/ docs/adr/ docs/gates/ docs/sas/ openwarrant.toml 2>/dev/null || true
     # `git checkout` restores TRACKED files and leaves untracked ones behind, so
     # a plant that CREATES a file is not undone by it. AM-999 is exactly that —
     # the §91.4 test 24 positive fixture — and it leaked into a commit once
@@ -1033,6 +1033,35 @@ plant_cmd "a repair with no prior failure evidence" "is a repair and carries no 
 # A stage id that names nothing is named back, with what does exist.
 plant_cmd "a stage that does not exist" "no stage" "STAGE-001, STAGE-002, STAGE-003" 1 ":" \
     dispatch OW-WAR-0047 STAGE-099
+
+# OW-WAR-0058 — the SAS as a controlled document (§101). `docs/sas/` joined
+# the guard and the restore above the moment a plant learned to mutate it: the
+# guard and the restore must name the same paths, or a plant silently edits the
+# one document everything else is measured against and leaves it edited.
+
+# OBL-003. One byte of the document, under an unchanged record.
+plant "the SAS edited under an unchanged revision" "sas.digest-drift" "101.6" 2 \
+    "sed -i 's|^## 106. Architecture requirements index|## 106. Architecture requirements index TAMPERED|' docs/sas/WAR_Software_Architecture_Specification.md; \
+     assert_present 'index TAMPERED' docs/sas/WAR_Software_Architecture_Specification.md"
+
+# OBL-004. A candidate with one §106 row deleted is refused, naming the id.
+plant_cmd "a candidate SAS that drops a requirement id" "sas.diff.removed" "WAR-SAS-RQ-042" 2 \
+    "grep -v '^| WAR-SAS-RQ-042 |' docs/sas/WAR_Software_Architecture_Specification.md > \"$MIGRATE_TMP/sas-minus-042.md\"; \
+     grep -q 'WAR-SAS-RQ-041' \"$MIGRATE_TMP/sas-minus-042.md\" || exit 9" \
+    sas diff "$MIGRATE_TMP/sas-minus-042.md"
+
+# OBL-004, the other direction: an added row is reported and not refused.
+plant_cmd "a candidate SAS that appends a requirement id" "sas.diff.added" "WAR-SAS-RQ-999" 0 \
+    "sed 's/^| WAR-SAS-RQ-084 |.*$/&\\n| WAR-SAS-RQ-999 | A planted requirement |/' docs/sas/WAR_Software_Architecture_Specification.md > \"$MIGRATE_TMP/sas-plus-999.md\"; \
+     grep -q 'WAR-SAS-RQ-999' \"$MIGRATE_TMP/sas-plus-999.md\" || exit 9" \
+    sas diff "$MIGRATE_TMP/sas-plus-999.md"
+
+# OBL-002. An acceptance signed by the agent that proposed it is refused, and
+# the record stays proposed.
+SAS_DIGEST="$(grep '^sha256' docs/sas/revisions/0.1.0-draft.1.toml | cut -d'"' -f2)"
+plant_cmd "an agent accepting the SAS revision" "sas.unknown-actor\|sas.not-permitted" "claude" 2 \
+    "printf 'schema = \"oh.war/sas-acceptance-response/v1\"\nversion = \"0.1.0-draft.1\"\nsha256 = \"%s\"\naccepted_by = \"claude\"\nacting_role = \"owner\"\nmeaning = \"x\"\neffective_time = \"2026-09-02T00:00:00Z\"\n' \"$SAS_DIGEST\" > \"$MIGRATE_TMP/agent-accept.toml\"" \
+    sas accept 0.1.0-draft.1 --response "$MIGRATE_TMP/agent-accept.toml"
 
 echo
 echo "$PASSED passed, $FAILED failed"

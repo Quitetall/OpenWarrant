@@ -25,6 +25,7 @@ mod new;
 mod relations;
 mod repo;
 mod resolve;
+mod sas;
 mod show;
 mod status;
 mod telemetry;
@@ -65,6 +66,26 @@ enum KfCommand {
         #[arg(long)]
         confirm_write: bool,
     },
+}
+
+#[derive(clap::Subcommand, Debug)]
+enum SasCommand {
+    /// Record the document as it stands as a proposed revision (§101.2).
+    Propose {
+        /// e.g. `0.1.0-draft.1`, `1.0.0`.
+        version: String,
+    },
+    /// Emit the acceptance request, or ingest a human's signed response.
+    Accept {
+        version: String,
+        /// A signed response to ingest. Without it, the request is emitted.
+        #[arg(long)]
+        response: Option<Utf8PathBuf>,
+    },
+    /// §106 of the document versus a candidate document; refuses a removed id.
+    Diff { candidate: Utf8PathBuf },
+    /// Every revision on record, and which one the document matches.
+    Status,
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -346,6 +367,12 @@ enum Command {
         /// A signed response to ingest. Without it, the request is emitted.
         #[arg(long)]
         response: Option<Utf8PathBuf>,
+    },
+
+    /// The SAS as a controlled document (§101): propose, accept, diff, status.
+    Sas {
+        #[command(subcommand)]
+        command: SasCommand,
     },
 
     /// Where the corpus stands, from records (§17.5 `status`; §34.3; §98).
@@ -791,6 +818,64 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             } else {
                 EXIT_NOT_READY
             })
+        }
+        Command::Sas { command } => {
+            let repository = repo::Repository::discover(None)?;
+            let ready = |report: diagnostic::Report| {
+                check::print(&report);
+                Ok(if report.is_ready() {
+                    EXIT_OK
+                } else {
+                    EXIT_NOT_READY
+                })
+            };
+            match command {
+                SasCommand::Propose { version } => ready(sas::propose(&repository, &version)?),
+                SasCommand::Accept { version, response } => match response {
+                    Some(path) => ready(sas::accept_ingest(&repository, &version, &path)?),
+                    None => {
+                        let request = sas::accept_request(&repository, &version)?;
+                        println!(
+                            "{}",
+                            toml::to_string_pretty(&request).map_err(|e| {
+                                repo::RepoError::Message(format!(
+                                    "could not render the request: {e}"
+                                ))
+                            })?
+                        );
+                        eprintln!(
+                            "# SAS {} at sha256:{} — architecture-changing: {}{}",
+                            request.version,
+                            &request.sha256[..12],
+                            request.architecture_changing,
+                            if request.adr_required {
+                                " (an adr_ref is REQUIRED, §101.3)"
+                            } else {
+                                ""
+                            }
+                        );
+                        if request.eligible_acceptors.is_empty() {
+                            eprintln!(
+                                "# NOBODY may accept this: docs/authority/roles.toml grants the authorizer\n\
+                                 # role to no one. Only a human may write that file."
+                            );
+                        } else {
+                            eprintln!(
+                                "# May be accepted by: {}",
+                                request.eligible_acceptors.join(", ")
+                            );
+                        }
+                        eprintln!(
+                            "# Fill in accepted_by, acting_role, meaning, effective_time, then:\n\
+                             #   war sas accept {} --response <file>",
+                            request.version
+                        );
+                        Ok(EXIT_OK)
+                    }
+                },
+                SasCommand::Diff { candidate } => ready(sas::diff(&repository, &candidate)?),
+                SasCommand::Status => ready(sas::status(&repository)?),
+            }
         }
         Command::Status { alias, json } => {
             let repository = repo::Repository::discover(None)?;

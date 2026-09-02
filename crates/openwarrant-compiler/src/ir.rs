@@ -28,6 +28,13 @@ pub struct FormatBasis {
     pub version: String,
     pub root_schema_id: String,
     pub profile_schema_id: String,
+    /// §14 / §101.6 — the SAS revision this compilation is pinned against.
+    /// Absent, not null, when no revision is recorded, so that a repository
+    /// that has never pinned its document keeps every digest it has.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sas_revision: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sas_digest: Option<String>,
 }
 
 /// UUID, aliases, enterprise ID, title, profile (§63.2).
@@ -220,6 +227,8 @@ mod tests {
                 version: SCHEMA_PACK_VERSION.to_owned(),
                 root_schema_id: KIND.to_owned(),
                 profile_schema_id: "delivery".to_owned(),
+                sas_revision: None,
+                sas_digest: None,
             },
             identity: Identity {
                 uuid: "01a018db-19fc-7f2a-8e39-69730f255e33".to_owned(),

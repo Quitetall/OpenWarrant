@@ -37,6 +37,14 @@ pub struct ScopeSource {
     pub bytes: Vec<u8>,
 }
 
+/// The SAS revision a compilation is pinned against (§14 "SAS revision").
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SasPin {
+    pub version: String,
+    /// sha256 of the document bytes, lowercase hex, no prefix.
+    pub sha256: String,
+}
+
 /// Everything needed to reproduce one compilation (SAS §14).
 ///
 /// §14: a compilation "SHALL NOT silently mix independently changing inputs."
@@ -52,6 +60,10 @@ pub struct CompilationBasis {
     /// Optional machine-readable scope. Older Warrants remain valid without
     /// one; a Bonsai-backed gate requires it explicitly.
     pub scope: Option<ScopeSource>,
+    /// §14 — which SAS this Warrant implements. `None` until a revision is
+    /// recorded (OW-WAR-0058); once one is, every workspace basis digest
+    /// moves, exactly once, which is the point.
+    pub sas: Option<SasPin>,
 }
 
 /// Lower a validated Basis to the canonical IR.
@@ -135,6 +147,8 @@ pub fn lower(
         version: SCHEMA_PACK_VERSION.to_owned(),
         root_schema_id: KIND.to_owned(),
         profile_schema_id: validated.profile.to_string(),
+        sas_revision: basis.sas.as_ref().map(|p| p.version.clone()),
+        sas_digest: basis.sas.as_ref().map(|p| format!("sha256:{}", p.sha256)),
     };
 
     // The composition revision is the ordered atom set; the workspace basis is
@@ -249,6 +263,7 @@ mod tests {
                 manifest,
                 atoms,
                 scope: None,
+                sas: None,
             },
             validated,
         )

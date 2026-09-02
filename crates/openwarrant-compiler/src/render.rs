@@ -570,6 +570,7 @@ mod tests {
             manifest,
             atoms,
             scope: None,
+            sas: None,
         };
         let ir = lower(&basis, &validated).expect("lowers");
         (ir, basis)

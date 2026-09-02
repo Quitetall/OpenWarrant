@@ -1,0 +1,40 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "A revision record exists, is immutable once accepted, and refuses an agent"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-002"]
+
+  - id: "M2"
+    title: "The document's bytes are held to the record, and §106 ids are append-only"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-003", "OBL-004"]
+
+  - id: "M3"
+    title: "Every Warrant is bound to a named SAS, and the Release axis reads it"
+    depends_on: ["M2"]
+    stage_refs: ["STAGE-003", "STAGE-004"]
+    obligation_refs: ["OBL-005"]
+
+stages:
+  - id: "STAGE-001"
+    title: "SasRevision, Section106Diff, and the revisions loader"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-002"
+    title: "war sas propose/accept/diff/status; check rules"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-003"
+    title: "FormatBasis carries the revision; war status reads it"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-004"
+    title: "propose 0.1.0-draft.1; plants; the one-commit digest move"
+    executor_kind: "agent"
+    responsibility_tier: "T2"

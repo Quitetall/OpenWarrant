@@ -1093,6 +1093,7 @@ mod tests {
                 required: true,
             }],
             scope: None,
+            sas: None,
         }
     }
 
