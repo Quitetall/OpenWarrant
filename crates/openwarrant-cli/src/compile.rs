@@ -242,6 +242,7 @@ pub fn run(repo: &Repository, only: Option<&str>) -> Result<(), RepoError> {
             adr_overview(repo)?,
             crate::status::corpus_status_md(repo)?,
             crate::status::corpus_status_json(repo)?,
+            crate::status::corpus_status_html(repo)?,
         ] {
             if let Some(parent) = path.parent() {
                 fs::create_dir_all(parent).map_err(|source| RepoError::Io {

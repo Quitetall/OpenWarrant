@@ -28,7 +28,7 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 | Objective | Exit Warrant | Achieved | invalid | draft | ready | would_satisfy | resolved |
 |---|---|---|---|---|---|---|---|
 | roadmap://OW-PHASE-0: Telemetry shim | OW-WAR-0041 | blocked by OW-WAR-0039, OW-WAR-0041 | 0 | 2 | 0 | 0 | 0 |
-| roadmap://OW-PHASE-1: File-native WAR compiler | — | not derivable — no member carries the `exit` slug | 0 | 16 | 0 | 0 | 0 |
+| roadmap://OW-PHASE-1: File-native WAR compiler | — | not derivable — no member carries the `exit` slug | 0 | 17 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-2: Agent planner | OW-WAR-0042 | blocked by OW-WAR-0034, OW-WAR-0035, OW-WAR-0037, OW-WAR-0042 | 0 | 4 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-3: ADR federation | OW-WAR-0043 | blocked by OW-WAR-0006, OW-WAR-0036, OW-WAR-0038, OW-WAR-0043 | 0 | 4 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-4: Knowledge Fabric registration | OW-WAR-0044 | blocked by OW-WAR-0028, OW-WAR-0029, OW-WAR-0030, OW-WAR-0032, OW-WAR-0044 | 0 | 5 | 0 | 0 | 0 |
@@ -61,17 +61,17 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | requirement | Warrants blocked |
 |---|---|
-| every required gate has admissible result | 52 |
-| exact authorized Contract Revision | 52 |
-| resolver holds the role | 52 |
-| required judgments exist | 50 |
-| residual risks have sufficient authority | 50 |
+| every required gate has admissible result | 53 |
+| exact authorized Contract Revision | 53 |
+| resolver holds the role | 53 |
+| required judgments exist | 51 |
+| residual risks have sufficient authority | 51 |
 | artifact digests verify | 9 |
 | required deliverables exist | 9 |
+| every required obligation is dispositioned | 3 |
+| independence requirements are met | 3 |
 | no blocker remains | 3 |
 | no required unknown remains | 3 |
-| every required obligation is dispositioned | 2 |
-| independence requirements are met | 2 |
 | runtime receipts match the basis | 2 |
 
 ## Requirements (SAS §106, §34.3)
@@ -94,7 +94,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-005` | claimed | 0 | OW-WAR-0029 (complete), OW-WAR-0044 (complete) |
 | `WAR-SAS-RQ-010` | claimed | 0 | OW-WAR-0002 (complete) |
 | `WAR-SAS-RQ-011` | claimed | 0 | OW-WAR-0002 (partial) |
-| `WAR-SAS-RQ-012` | claimed | 0 | OW-WAR-0002 (partial), OW-WAR-0004 (complete) |
+| `WAR-SAS-RQ-012` | claimed | 0 | OW-WAR-0002 (partial), OW-WAR-0004 (complete), OW-WAR-0057 (partial) |
 | `WAR-SAS-RQ-013` | claimed | 0 | OW-WAR-0002 (complete) |
 | `WAR-SAS-RQ-014` | claimed | 0 | OW-WAR-0003 (partial), OW-WAR-0004 (complete) |
 | `WAR-SAS-RQ-015` | claimed | 0 | OW-WAR-0002 (complete), OW-WAR-0005 (complete) |
@@ -137,7 +137,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-072` | claimed | 0 | OW-WAR-0034 (complete), OW-WAR-0042 (complete) |
 | `WAR-SAS-RQ-073` | claimed | 0 | OW-WAR-0036 (complete) |
 | `WAR-SAS-RQ-074` | claimed | 0 | OW-WAR-0005 (complete), OW-WAR-0055 (partial) |
-| `WAR-SAS-RQ-075` | claimed | 0 | OW-WAR-0004 (complete), OW-WAR-0055 (partial) |
+| `WAR-SAS-RQ-075` | claimed | 0 | OW-WAR-0004 (complete), OW-WAR-0055 (partial), OW-WAR-0057 (partial) |
 | `WAR-SAS-RQ-076` | claimed | 0 | OW-WAR-0028 (complete) |
 | `WAR-SAS-RQ-080` | claimed | 0 | OW-WAR-0003 (complete) |
 | `WAR-SAS-RQ-081` | claimed | 0 | OW-WAR-0003 (complete) |
@@ -145,7 +145,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-083` | claimed | 0 | OW-WAR-0030 (complete) |
 | `WAR-SAS-RQ-084` | claimed | 0 | OW-WAR-0030 (complete) |
 
-## Warrants (52) — invalid 0 · draft 52 · ready_to_resolve 0 · would_satisfy 0 · resolved **0**
+## Warrants (53) — invalid 0 · draft 53 · ready_to_resolve 0 · would_satisfy 0 · resolved **0**
 
 | Warrant | rung | §38.6 | blocking unknowns | milestones evidenced | first unmet |
 |---|---|---|---|---|---|
@@ -201,6 +201,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0050` Governed Bonsai evidence for pull-request workflow | draft | NOT satisfied | 0 | 0 of 2 | exact authorized Contract Revision |
 | `OW-WAR-0055` Compute the goal hierarchy: war status and the corpus projection | draft | unknown | 0 | 0 of 4 | exact authorized Contract Revision |
 | `OW-WAR-0056` Compile a real Stage Dispatch (§47) | draft | unknown | 0 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0057` The viewer: a static page over the corpus projection | draft | unknown | 0 | 0 of 2 | exact authorized Contract Revision |
 
 ## Not reported here
 

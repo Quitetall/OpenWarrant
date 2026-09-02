@@ -186,6 +186,12 @@ pub fn run(
             "corpus-status",
             &mut report,
         );
+        drift_check(
+            repo,
+            crate::status::corpus_status_html(repo),
+            "corpus-status",
+            &mut report,
+        );
     }
 
     // §38.6 disposition status, aggregated once for the corpus rather than

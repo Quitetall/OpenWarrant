@@ -614,6 +614,19 @@ pub fn corpus_status_json(repo: &Repository) -> Result<(Utf8PathBuf, String), Re
     Ok((repo.corpus_status_json_path(), json + "\n"))
 }
 
+/// The page, with its path. Built from the same canonical JSON the agent
+/// reads, so the three files cannot disagree.
+pub fn corpus_status_html(repo: &Repository) -> Result<(Utf8PathBuf, String), RepoError> {
+    let status = build(repo)?;
+    let json = openwarrant_compiler::corpus_status_json(&status).map_err(|e| {
+        RepoError::Message(format!("could not canonicalize the corpus status: {e}"))
+    })?;
+    Ok((
+        repo.corpus_status_html_path(),
+        openwarrant_compiler::render_corpus_status_html(&status, &json),
+    ))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

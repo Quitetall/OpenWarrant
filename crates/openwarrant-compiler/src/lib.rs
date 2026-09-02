@@ -30,7 +30,8 @@ pub use canonical::{
     CanonicalError, preimage_bytes, sha256_digest, to_canonical_bytes, to_canonical_string,
 };
 pub use corpus_status::{
-    canonical_json as corpus_status_json, render_markdown as render_corpus_status,
+    canonical_json as corpus_status_json, render_html as render_corpus_status_html,
+    render_markdown as render_corpus_status,
 };
 pub use digest::{DigestDomain, sha256_hex};
 pub use dispatch::{

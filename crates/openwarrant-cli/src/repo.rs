@@ -472,6 +472,14 @@ impl Repository {
     }
 
     #[must_use]
+    pub fn corpus_status_html_path(&self) -> Utf8PathBuf {
+        self.root
+            .join(&self.config.paths.warrants)
+            .join("generated")
+            .join("CORPUS_STATUS.html")
+    }
+
+    #[must_use]
     pub fn corpus_status_json_path(&self) -> Utf8PathBuf {
         self.root
             .join(&self.config.paths.warrants)
