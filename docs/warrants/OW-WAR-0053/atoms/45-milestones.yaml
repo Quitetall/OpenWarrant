@@ -1,0 +1,38 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "Paper retargeted to TBME, hardware-first"
+    stage_refs: ["STAGE-001"]
+  - id: "M2"
+    title: "Codec research advanced without GPU contention"
+    stage_refs: ["STAGE-002", "STAGE-003", "STAGE-004"]
+  - id: "M3"
+    title: "Validation spec and research ledger current"
+    stage_refs: ["STAGE-005", "STAGE-006"]
+
+stages:
+  - id: "STAGE-001"
+    title: "ADR 0077 — reframe and retarget the lossless paper to IEEE TBME"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+  - id: "STAGE-002"
+    title: "ADR 0116 — Optimum v2 frozen peer, measured end-to-end (GPU-exclusive)"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+  - id: "STAGE-003"
+    title: "ADR 0054 — scope against BLX1's peer parity, not the superseded 5/8 verdict"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+  - id: "STAGE-004"
+    title: "ADR 0009 — latent scaling curve, joint not frozen-encoder (GPU-exclusive)"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+  - id: "STAGE-005"
+    title: "ADR 0015 — Eagle validation platform spec"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+  - id: "STAGE-006"
+    title: "ADR 0060 — research subtree ledger, speculation separated from measurement"
+    executor_kind: "agent"
+    responsibility_tier: "T3"

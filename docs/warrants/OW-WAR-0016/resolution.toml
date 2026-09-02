@@ -1,0 +1,20 @@
+schema = "oh.war/resolution/v1"
+warrant = "OW-WAR-0016"
+
+[resolution]
+id = "01a0645b-4714-7e03-b092-82b4d48a1998"
+common_outcome = "satisfied"
+profile_outcome = "delivered"
+contract_revision = 1
+contract_digest = "ef6824708d842f1d36a8ccf3f973a3740a122a801af35e38667ef41c235d354d"
+assurance_case_snapshot_digest = "sha256:87849bf74731dfc6a8870092c4f6183b4f4f01dd52e39828dcbf262bc2f53806"
+artifact_manifest_digest = "sha256:fefa28d8d24f05cdc4d72313b38efe6c843d276c38f670f636c16d82dbbb1c3a"
+gate_run_refs = ["docs/warrants/OW-WAR-0016/gate-runs/software_repo_war-check_1_0_0.receipt.json"]
+judgment_refs = ["judgment://J-001"]
+residual_risk_refs = ["assumption://A-001"]
+resolved_by_ref = "person://Brian Lam"
+acting_role_ref = "role-assignment://Brian Lam/resolver"
+meaning = """Resolving OW-WAR-0016 (Implement acceptance obligations and bounded claims) as satisfied, at revision 2 (AM-001), asserts that its declared deliverables exist at their recorded digests, that every declared obligation (OBL-001, OBL-002, OBL-003, OBL-004) was established by an admissible independent verification, and that the cited gate ran against this exact contract and passed. It asserts nothing beyond those bounded obligations. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 ("Get them all done"); the decision is the owner's, the wording is the agent's."""
+effective_at = "2026-09-02T23:40:00Z"
+recorded_at = "2026-09-02T23:01:38Z"
+standing = "valid"

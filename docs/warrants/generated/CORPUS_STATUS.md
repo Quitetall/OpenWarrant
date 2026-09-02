@@ -5,12 +5,12 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 
 # Corpus Status
 
-*Provenance: **derived**. Every state on this page is derived from the records' shape. Nothing journals §24 transitions. 2 Warrant(s) carry a §56.2 resolution record and read `resolved` from it; every other Warrant reads at most `would_satisfy`, and a requirement reads `satisfied` only through a resolved Warrant with evidence.*
+*Provenance: **derived**. Every state on this page is derived from the records' shape. Nothing journals §24 transitions. 3 Warrant(s) carry a §56.2 resolution record and read `resolved` from it; every other Warrant reads at most `would_satisfy`, and a requirement reads `satisfied` only through a resolved Warrant with evidence.*
 
 ## Read this first
 
 - Gate runs are read ONLY from each Warrant's committed `gate-runs/` (§44.6 receipts minted by `war evidence record`, bound to the contract digest they ran against). The gitignored `docs/receipts/` scratch path is never read, so this projection reproduces from a fresh clone. §56.1 requirement 5 reads unmet for every Warrant that has not recorded a run, which is a true state, not a caveat.
-- `docs/roadmap/PRODUCTION_ROADMAP.md` marks Warrants "resolved" 39 time(s). The Release axis above counts §56.2 records (`resolution.toml`), of which there are 2. The rest of those are hand-written claims, not records, and nothing above reads them.
+- `docs/roadmap/PRODUCTION_ROADMAP.md` marks Warrants "resolved" 39 time(s). The Release axis above counts §56.2 records (`resolution.toml`), of which there are 3. The rest of those are hand-written claims, not records, and nothing above reads them.
 
 ## Release
 
@@ -22,7 +22,7 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 
 | satisfied | in_progress | claimed | unaddressed | superseded |
 |---|---|---|---|---|
-| **2** | 0 | 49 | 6 | 0 |
+| **4** | 0 | 47 | 6 | 0 |
 
 ## Objectives (SAS §98 phases)
 
@@ -34,12 +34,12 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 | roadmap://OW-PHASE-3: ADR federation | OW-WAR-0043 | blocked by OW-WAR-0006, OW-WAR-0036, OW-WAR-0038, OW-WAR-0043, OW-WAR-0058 | 0 | 5 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-4: Knowledge Fabric registration | OW-WAR-0044 | blocked by OW-WAR-0028, OW-WAR-0029, OW-WAR-0030, OW-WAR-0032, OW-WAR-0044 | 0 | 5 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-5: Dispatch and Katana execution | OW-WAR-0045 | blocked by OW-WAR-0011, OW-WAR-0015, OW-WAR-0023, OW-WAR-0024, OW-WAR-0025, OW-WAR-0026, OW-WAR-0045, OW-WAR-0056 | 0 | 8 | 0 | 0 | 0 |
-| roadmap://OW-PHASE-6: Gate Registry and assurance case | OW-WAR-0046 | blocked by OW-WAR-0016, OW-WAR-0017, OW-WAR-0018, OW-WAR-0019, OW-WAR-0021, OW-WAR-0022, OW-WAR-0046, OW-WAR-0059 | 0 | 8 | 0 | 0 | 1 |
+| roadmap://OW-PHASE-6: Gate Registry and assurance case | OW-WAR-0046 | blocked by OW-WAR-0017, OW-WAR-0018, OW-WAR-0019, OW-WAR-0021, OW-WAR-0022, OW-WAR-0046, OW-WAR-0059 | 0 | 7 | 0 | 0 | 2 |
 | roadmap://OW-PHASE-7: BLUT adapter | OW-WAR-0047 | blocked by OW-WAR-0027, OW-WAR-0047 | 0 | 2 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-8: Liminal production compiler | OW-WAR-0048 | blocked by OW-WAR-0040, OW-WAR-0048 | 0 | 2 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-9: High-assurance controls | — | not derivable — §98 defines no Exit for this phase | 0 | 0 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-10: Contractor Work Order profile | — | not derivable — §98 defines no Exit for this phase | 0 | 0 | 0 | 0 | 0 |
-| *unassigned — declares no [[roadmap]]* | — | not derivable — a Warrant naming no phase belongs to no Objective | 0 | 1 | 0 | 0 | 0 |
+| *unassigned — declares no [[roadmap]]* | — | not derivable — a Warrant naming no phase belongs to no Objective | 0 | 5 | 0 | 0 | 0 |
 
 - **roadmap://OW-PHASE-0** exit: real distributions for authoring cost, amendment types, and failure causes.
 - **roadmap://OW-PHASE-1** exit: OpenWarrant development uses WARs.
@@ -62,16 +62,16 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | requirement | Warrants blocked |
 |---|---|
-| every required gate has admissible result | 55 |
-| artifact digests verify | 9 |
-| required deliverables exist | 9 |
-| every required obligation is dispositioned | 7 |
-| independence requirements are met | 7 |
-| required judgments exist | 4 |
-| residual risks have sufficient authority | 4 |
-| exact authorized Contract Revision | 3 |
-| no blocker remains | 3 |
-| no required unknown remains | 3 |
+| every required gate has admissible result | 58 |
+| artifact digests verify | 13 |
+| required deliverables exist | 13 |
+| every required obligation is dispositioned | 11 |
+| independence requirements are met | 11 |
+| required judgments exist | 8 |
+| residual risks have sufficient authority | 8 |
+| exact authorized Contract Revision | 7 |
+| no blocker remains | 7 |
+| no required unknown remains | 7 |
 | runtime receipts match the basis | 2 |
 
 ## Requirements (SAS §106, §34.3)
@@ -116,8 +116,8 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-043` | claimed | 0 | OW-WAR-0023 (complete), OW-WAR-0045 (complete), OW-WAR-0056 (supersession) |
 | `WAR-SAS-RQ-044` | claimed | 0 | OW-WAR-0026 (complete), OW-WAR-0045 (complete) |
 | `WAR-SAS-RQ-045` | claimed | 0 | OW-WAR-0024 (complete), OW-WAR-0045 (complete), OW-WAR-0056 (partial) |
-| `WAR-SAS-RQ-050` | claimed | 0 | OW-WAR-0016 (complete) |
-| `WAR-SAS-RQ-051` | claimed | 0 | OW-WAR-0016 (complete) |
+| `WAR-SAS-RQ-050` | satisfied | 1 | OW-WAR-0016 (complete) |
+| `WAR-SAS-RQ-051` | satisfied | 1 | OW-WAR-0016 (complete) |
 | `WAR-SAS-RQ-052` | claimed | 0 | OW-WAR-0017 (complete) |
 | `WAR-SAS-RQ-053` | claimed | 0 | OW-WAR-0021 (complete), OW-WAR-0046 (complete), OW-WAR-0059 (partial) |
 | `WAR-SAS-RQ-054` | satisfied | 1 | OW-WAR-0020 (complete), OW-WAR-0046 (complete), OW-WAR-0059 (partial) |
@@ -145,7 +145,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-083` | claimed | 0 | OW-WAR-0030 (complete) |
 | `WAR-SAS-RQ-084` | claimed | 0 | OW-WAR-0030 (complete) |
 
-## Warrants (57) — invalid 0 · draft 55 · ready_to_resolve 0 · would_satisfy 0 · resolved **2**
+## Warrants (61) — invalid 0 · draft 58 · ready_to_resolve 0 · would_satisfy 0 · resolved **3**
 
 | Warrant | rung | §38.6 | blocking unknowns | milestones evidenced | first unmet |
 |---|---|---|---|---|---|
@@ -164,7 +164,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0013` Validate SAS and Roadmap traceability | draft | NOT satisfied | 0 | 0 of 3 | every required gate has admissible result |
 | `OW-WAR-0014` Implement the rationale model, assumptions, and unknowns | draft | NOT satisfied | 0 | 1 of 2 | every required gate has admissible result |
 | `OW-WAR-0015` Implement deliverables, artifacts, and artifact provenance | draft | NOT satisfied | 0 | 1 of 2 | every required gate has admissible result |
-| `OW-WAR-0016` Implement acceptance obligations and bounded claims | draft | would satisfy | 0 | 4 of 4 | every required gate has admissible result |
+| `OW-WAR-0016` Implement acceptance obligations and bounded claims | resolved | would satisfy | 0 | 4 of 4 | — |
 | `OW-WAR-0017` Implement the epistemic classes: evidence, observation, inference, judgment, resolution | draft | NOT satisfied | 0 | 0 of 4 | every required gate has admissible result |
 | `OW-WAR-0018` Implement contract-adequacy review, structurally checked | draft | NOT satisfied | 0 | 0 of 3 | every required gate has admissible result |
 | `OW-WAR-0019` Implement the Gate Registry: definitions, qualification, and bindings | draft | NOT satisfied | 0 | 3 of 4 | every required gate has admissible result |
@@ -199,6 +199,10 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0048` Discharge the Phase 8 exit: measured adapter parity and the two-host canonical run | draft | NOT satisfied | 0 | 0 of 4 | required deliverables exist |
 | `OW-WAR-0049` Close the alpha residue: the gaps alpha carried forward and one false claim | draft | NOT satisfied | 0 | 1 of 4 | required deliverables exist |
 | `OW-WAR-0050` Governed Bonsai evidence for pull-request workflow | draft | NOT satisfied | 0 | 0 of 2 | every required gate has admissible result |
+| `OW-WAR-0051` Close ADR 0185's boundary ratchets and run the consolidation waves | draft | unknown | 0 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0052` Land the ABIR2 boundary, storage profiles, migration and datapath in dependency order | draft | unknown | 0 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0053` Carry the research track: latent scaling, Optimum v2, H.BWC and the TBME paper | draft | unknown | 0 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0054` The Master Record: a person's document is their access, and can be proven equal to it | draft | unknown | 0 | 0 of 14 | exact authorized Contract Revision |
 | `OW-WAR-0055` Compute the goal hierarchy: war status and the corpus projection | draft | unknown | 0 | 0 of 4 | every required obligation is dispositioned |
 | `OW-WAR-0056` Compile a real Stage Dispatch (§47) | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0057` The viewer: a static page over the corpus projection | draft | unknown | 0 | 0 of 2 | every required obligation is dispositioned |
