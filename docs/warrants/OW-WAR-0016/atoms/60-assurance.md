@@ -13,18 +13,22 @@ classification: internal
 
 ### OBL-001 — the schema fits the real corpus
 - **scope:** all obligations currently written in this repository. Stated as 21 when this Warrant was authored; the corpus grew to 134 when the roadmap Warrants were written, and the count is measured at run time rather than hard-coded.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** each migrates without losing its bounded-scope statement.
 
 ### OBL-002 — an unbounded universal claim is REFUSED
 - **scope:** an obligation asserting a universal with no declared scope.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a plant and its refusal.
 
 ### OBL-003 — dangling obligation_refs are REFUSED
 - **scope:** milestone `obligation_refs`, which dangle unchecked today.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a plant and its refusal.
 
 ### OBL-004 — a verdict without dispositions is REFUSED
 - **scope:** a resolution asserting satisfied with no per-obligation disposition.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a plant and its refusal. This is §38.1's whole point.
 
 ## Gate Adequacy
