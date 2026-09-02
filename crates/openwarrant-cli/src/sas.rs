@@ -18,7 +18,7 @@
 
 use std::fs;
 
-use camino::{Utf8Path, Utf8PathBuf};
+use camino::Utf8Path;
 use openwarrant_compiler::sha256_hex;
 use openwarrant_core::authority::ActorRole;
 use openwarrant_core::sas::{
@@ -140,6 +140,10 @@ pub fn accept_request(repo: &Repository, version: &str) -> Result<AcceptRequest,
         .as_deref()
         .map(|v| find(repo, v))
         .transpose()?;
+    // Record against record, not against the document on disk: the request is
+    // about the PROPOSAL as recorded, and ingestion separately refuses to accept
+    // it if the bytes have since moved (the stale-digest check). Diffing against
+    // disk here would describe a document nobody has proposed.
     let diff = predecessor
         .as_ref()
         .map(|p| Section106Diff::between(&p.requirements, &record.requirements))
@@ -341,20 +345,21 @@ pub fn status(repo: &Repository) -> Result<Report, RepoError> {
         return Ok(report);
     }
     for r in &revisions {
-        let matches = if r.sha256 == current {
-            "matches the document"
+        let line = format!("{} · {} · sha256:{}", r.version, r.state, &r.sha256[..12]);
+        if r.sha256 == current {
+            report.push(Diagnostic::pass(
+                "sas.revision",
+                format!("{line} · matches the document"),
+            ));
         } else {
-            "does not match the document"
-        };
-        report.push(Diagnostic::pass(
-            "sas.revision",
-            format!(
-                "{} · {} · sha256:{} · {matches}",
-                r.version,
-                r.state,
-                &r.sha256[..12]
-            ),
-        ));
+            // A recorded revision the document no longer matches is worth a
+            // reader's attention even when a newer one does match it.
+            report.push(Diagnostic::warn(
+                "sas.revision",
+                repo.relative(&path),
+                format!("{line} · does not match the document"),
+            ));
+        }
     }
     Ok(report)
 }
@@ -384,6 +389,3 @@ pub fn pin_of(revisions: &[SasRevision]) -> Option<&SasRevision> {
         .max_by(|a, b| a.version.cmp(&b.version))
         .or_else(|| revisions.iter().max_by(|a, b| a.version.cmp(&b.version)))
 }
-
-#[allow(dead_code)]
-fn _unused(_: Utf8PathBuf) {}
