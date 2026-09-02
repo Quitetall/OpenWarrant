@@ -943,6 +943,60 @@ p = pathlib.Path('$DELIVERABLE')
 p.write_text(p.read_text().replace('target_ref = \\\"Cargo.toml\\\"', 'target_ref = \\\"Cargo.toml.nope\\\"', 1))
 \"; assert_present 'Cargo.toml.nope' '$DELIVERABLE'"
 
+# OW-WAR-0055 — the corpus projection. §34 and §105 references, and the two
+# generated files a person and an agent read.
+#
+# The manifest chosen for mutation is OW-WAR-0014, which carries one roadmap
+# ref and one complete contribution and whose contract nothing else in this
+# battery depends on.
+MANIFEST_0014="docs/warrants/OW-WAR-0014/manifest.toml"
+
+# OBL-001. Phase 11 does not exist in §98; a reference to it names nothing.
+plant "a roadmap ref past the last phase" "roadmap.malformed" "0..=10" 2 \
+    "sed -i 's|roadmap://OW-PHASE-1/rationale|roadmap://OW-PHASE-11/rationale|' $MANIFEST_0014; \
+     assert_present 'OW-PHASE-11' '$MANIFEST_0014'"
+
+# OBL-001, the other half of the grammar: an uppercase slug is a second spelling.
+plant "a roadmap ref with an uppercase slug" "roadmap.malformed" "[a-z0-9-]" 2 \
+    "sed -i 's|roadmap://OW-PHASE-1/rationale|roadmap://OW-PHASE-1/Rationale|' $MANIFEST_0014; \
+     assert_present '/Rationale' '$MANIFEST_0014'"
+
+# OBL-002. §34.2 names five contribution values; "mostly" is not one of them,
+# and a projection deriving status from it would be deriving from a word.
+# OW-WAR-0009, not 0014: 0014 declares no [[implements]] at all, and the first
+# version of this plant targeted it — the no-op guard caught the sed matching
+# nothing, which is the guard doing the one job it has.
+MANIFEST_0009="docs/warrants/OW-WAR-0009/manifest.toml"
+plant "a contribution outside the five" "traceability.contribution" "supersession" 2 \
+    "sed -i '0,/contribution = \"complete\"/s||contribution = \"mostly\"|' $MANIFEST_0009; \
+     assert_present 'mostly' '$MANIFEST_0009'"
+
+# OBL-005. Both files a reader trusts, each tampered by one byte.
+plant "Corpus Status Markdown edited by hand" "corpus-status.drift" "edited by hand" 2 \
+    "sed -i 's|^# Corpus Status|# Corpus Status TAMPERED|' docs/warrants/generated/CORPUS_STATUS.md; \
+     assert_present 'TAMPERED' docs/warrants/generated/CORPUS_STATUS.md" \
+    --generated
+
+plant "Corpus Status JSON edited by hand" "corpus-status.drift" "edited by hand" 2 \
+    "sed -i 's|\"satisfied\":0|\"satisfied\":57|' docs/warrants/generated/CORPUS_STATUS.json; \
+     assert_present '\"satisfied\":57' docs/warrants/generated/CORPUS_STATUS.json" \
+    --generated
+
+# OBL-006, positive: the projection on the UNMUTATED corpus names a stage to
+# pick up, and puts a Warrant with no [[roadmap]] under `unassigned` rather than
+# dropping it. `plant_cmd` with a no-op mutation and a wanted exit of 0 is the
+# battery's way of asserting a thing is SAID, not only that a thing is refused.
+plant_cmd "next actionable is never empty" "Next actionable" "STAGE-" 0 ":" status
+plant_cmd "a Warrant with no roadmap is listed as unassigned" "unassigned" "OW-WAR-0050" 0 ":" status
+
+# OBL-004. Two runs, byte-identical. A projection that differed between runs
+# would drift-fail on every commit, so this is also what makes OBL-005 usable.
+plant_cmd "the projection is byte-deterministic" "satisfied" "unaddressed" 0 \
+    "\"$WAR\" status --json > \"$MIGRATE_TMP/status-a.json\" 2>/dev/null; \
+     \"$WAR\" status --json > \"$MIGRATE_TMP/status-b.json\" 2>/dev/null; \
+     cmp -s \"$MIGRATE_TMP/status-a.json\" \"$MIGRATE_TMP/status-b.json\" || { echo 'NOT DETERMINISTIC' >&2; exit 9; }" \
+    status --json
+
 echo
 echo "$PASSED passed, $FAILED failed"
 [[ "$FAILED" -eq 0 ]]

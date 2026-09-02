@@ -458,6 +458,27 @@ impl Repository {
             .join("WARRANT_OVERVIEW.md")
     }
 
+    /// Where the corpus projection is written (§17.5 `status`, corpus form).
+    ///
+    /// Two files from one build: the Markdown a person reads and the canonical
+    /// JSON an agent reads. Named `CORPUS_STATUS` rather than `STATUS` because
+    /// `status` is already the per-Warrant §17.5 view name.
+    #[must_use]
+    pub fn corpus_status_md_path(&self) -> Utf8PathBuf {
+        self.root
+            .join(&self.config.paths.warrants)
+            .join("generated")
+            .join("CORPUS_STATUS.md")
+    }
+
+    #[must_use]
+    pub fn corpus_status_json_path(&self) -> Utf8PathBuf {
+        self.root
+            .join(&self.config.paths.warrants)
+            .join("generated")
+            .join("CORPUS_STATUS.json")
+    }
+
     /// Where the generated ADR Overview is written (§19.6).
     #[must_use]
     pub fn adr_overview_path(&self) -> Utf8PathBuf {

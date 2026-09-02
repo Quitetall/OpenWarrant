@@ -25,6 +25,7 @@ mod relations;
 mod repo;
 mod resolve;
 mod show;
+mod status;
 mod telemetry;
 mod verify;
 
@@ -324,6 +325,19 @@ enum Command {
         /// A signed response to ingest. Without it, the request is emitted.
         #[arg(long)]
         response: Option<Utf8PathBuf>,
+    },
+
+    /// Where the corpus stands, from records (§17.5 `status`; §34.3; §98).
+    ///
+    /// Bare `war status` is the corpus projection. `war status <alias>` is the
+    /// per-Warrant form §72.5 names. Every count is a ladder; nothing is a
+    /// percentage.
+    Status {
+        /// A Warrant's local alias. Omit for the whole corpus.
+        alias: Option<String>,
+        /// Emit RFC 8785 canonical JSON instead of Markdown.
+        #[arg(long)]
+        json: bool,
     },
 
     /// Compile the configured projections (§71.8).
@@ -721,6 +735,24 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             } else {
                 EXIT_NOT_READY
             })
+        }
+        Command::Status { alias, json } => {
+            let repository = repo::Repository::discover(None)?;
+            match alias {
+                Some(alias) => {
+                    let rendered = show::run(&repository, &alias, "status")?;
+                    println!("{rendered}");
+                }
+                None => {
+                    let (_, text) = if json {
+                        status::corpus_status_json(&repository)?
+                    } else {
+                        status::corpus_status_md(&repository)?
+                    };
+                    println!("{text}");
+                }
+            }
+            Ok(EXIT_OK)
         }
         Command::Show { alias, view } => {
             let repository = repo::Repository::discover(None)?;

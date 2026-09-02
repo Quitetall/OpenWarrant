@@ -39,6 +39,13 @@ pub enum TraceabilityError {
     )]
     MalformedRequirementRef { found: String },
     #[error(
+        "malformed roadmap reference {found:?}; expected \
+         roadmap://<PREFIX>-PHASE-<N>[/<slug>] with an uppercase prefix, a phase \
+         number 0..=10 written without padding, and a slug of [a-z0-9-]. This is \
+         OpenWarrant's convention for §105's roadmap://<item-id>"
+    )]
+    MalformedRoadmapRef { found: String },
+    #[error(
         "Warrant {warrant:?} claims contribution {contribution} to {requirement} but \
          is not resolved and has no evidence. §34.3: requirement status is derived \
          from linked WARs and evidence, not from the claim"
@@ -139,6 +146,126 @@ impl RequirementRef {
 }
 
 impl std::fmt::Display for RequirementRef {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.canonical())
+    }
+}
+
+/// A reference into the Production Roadmap (§6.3, §105 `roadmap://<item-id>`).
+///
+/// # Why this has a grammar at all
+///
+/// §105 gives only the URI scheme; the item-id's shape is left to the
+/// repository. Until this type existed the manifest carried the ref as an
+/// unparsed `String` and `war show` said outright that only `war://` was
+/// resolved — so `roadmap://OW-PHASE-11/x` and `roadmap://typo` were both
+/// accepted, and nothing could group Warrants by phase because nothing could
+/// read the phase.
+///
+/// The grammar is OpenWarrant's convention, and is said so in the error text:
+/// `<PREFIX>-PHASE-<N>`, N in 0..=10 (SAS §98's eleven phases), then an optional
+/// `/slug`. The SAS's own example (`roadmap://LIM-PHASE-1/M4`) uses a milestone
+/// id as the slug; this corpus uses topic words. Both parse. The one slug with
+/// meaning is `exit` — the Warrant that discharges §98's Exit criterion for its
+/// phase — and [`RoadmapRef::is_exit`] names it so a projection can ask.
+///
+/// The phase number is unpadded on purpose. `PHASE-1` and `PHASE-01` naming one
+/// phase would make the reference unstable, and §34.1's argument for
+/// zero-padding requirement numbers runs the other way here: there are eleven
+/// phases, they are written `Phase 1` in the SAS, and a leading zero would be a
+/// second spelling rather than a fixed width.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct RoadmapRef {
+    /// The system prefix: `OW`, `LIM`.
+    pub prefix: String,
+    /// SAS §98 phase, 0..=10.
+    pub phase: u8,
+    /// The item within the phase. `None` names the phase itself.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub slug: Option<String>,
+}
+
+impl RoadmapRef {
+    /// The last phase §98 defines. A reference past it names nothing.
+    pub const MAX_PHASE: u8 = 10;
+
+    /// Parse `roadmap://OW-PHASE-6/gate-runs`, `roadmap://OW-PHASE-6`, or the
+    /// same without the scheme.
+    pub fn parse(text: &str) -> Result<Self, TraceabilityError> {
+        let malformed = || TraceabilityError::MalformedRoadmapRef {
+            found: text.to_owned(),
+        };
+        let bare = text.trim();
+        let bare = bare.strip_prefix("roadmap://").unwrap_or(bare);
+        let (head, slug) = match bare.split_once('/') {
+            Some((h, s)) => (h, Some(s)),
+            None => (bare, None),
+        };
+
+        let (prefix, number) = head.split_once("-PHASE-").ok_or_else(malformed)?;
+        if prefix.is_empty() || !prefix.bytes().all(|b| b.is_ascii_uppercase()) {
+            return Err(malformed());
+        }
+        // Unpadded: "0" is fine, "01" is not, "" is not.
+        if number.is_empty()
+            || !number.bytes().all(|b| b.is_ascii_digit())
+            || (number.len() > 1 && number.starts_with('0'))
+        {
+            return Err(malformed());
+        }
+        let phase: u8 = number.parse().map_err(|_| malformed())?;
+        if phase > Self::MAX_PHASE {
+            return Err(malformed());
+        }
+
+        let slug = match slug {
+            None => None,
+            Some(s) => {
+                if s.is_empty()
+                    || !s
+                        .bytes()
+                        .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
+                {
+                    return Err(malformed());
+                }
+                Some(s.to_owned())
+            }
+        };
+
+        Ok(Self {
+            prefix: prefix.to_owned(),
+            phase,
+            slug,
+        })
+    }
+
+    /// The reference to the phase alone, with any slug dropped.
+    #[must_use]
+    pub fn phase_ref(&self) -> Self {
+        Self {
+            prefix: self.prefix.clone(),
+            phase: self.phase,
+            slug: None,
+        }
+    }
+
+    /// Whether this names the phase's exit Warrant — the one that discharges
+    /// §98's Exit criterion. The only slug this corpus gives a meaning to.
+    #[must_use]
+    pub fn is_exit(&self) -> bool {
+        self.slug.as_deref() == Some("exit")
+    }
+
+    #[must_use]
+    pub fn canonical(&self) -> String {
+        match &self.slug {
+            Some(s) => format!("roadmap://{}-PHASE-{}/{s}", self.prefix, self.phase),
+            None => format!("roadmap://{}-PHASE-{}", self.prefix, self.phase),
+        }
+    }
+}
+
+impl std::fmt::Display for RoadmapRef {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&self.canonical())
     }
@@ -482,5 +609,92 @@ mod tests {
             assert_eq!(RequirementStatus::from_str(s.as_str()), Ok(s));
         }
         assert!(Contribution::from_str("done").is_err());
+    }
+
+    #[test]
+    fn a_roadmap_ref_parses_with_and_without_a_slug() {
+        let r = RoadmapRef::parse("roadmap://OW-PHASE-6/gate-runs").expect("parses");
+        assert_eq!(r.prefix, "OW");
+        assert_eq!(r.phase, 6);
+        assert_eq!(r.slug.as_deref(), Some("gate-runs"));
+        assert_eq!(r.canonical(), "roadmap://OW-PHASE-6/gate-runs");
+
+        let p = RoadmapRef::parse("OW-PHASE-0").expect("scheme is optional");
+        assert_eq!(p.phase, 0);
+        assert_eq!(p.slug, None);
+        assert_eq!(p.canonical(), "roadmap://OW-PHASE-0");
+        assert_eq!(
+            r.phase_ref(),
+            RoadmapRef::parse("roadmap://OW-PHASE-6").expect("ok")
+        );
+    }
+
+    /// §98 defines phases 0..=10. Each malformed form below is a distinct way
+    /// a reference could name nothing while looking like it names something,
+    /// and each must be refused on its own — a test that only checked one
+    /// would pass against a parser that accepted the rest.
+    #[test]
+    fn a_roadmap_ref_outside_the_grammar_is_refused() {
+        for bad in [
+            "roadmap://OW-PHASE-11/x",   // past the last phase
+            "roadmap://OW-PHASE-01/x",   // padded: a second spelling of phase 1
+            "roadmap://OW-PHASE-/x",     // no number
+            "roadmap://ow-PHASE-1/x",    // lowercase prefix
+            "roadmap://OW-PHASE-1/",     // empty slug
+            "roadmap://OW-PHASE-1/Gate", // uppercase slug
+            "roadmap://OW-PHASE-1/a b",  // space
+            "roadmap://OW-STAGE-1/x",    // wrong keyword
+            "roadmap://typo",
+            "",
+        ] {
+            assert!(
+                matches!(
+                    RoadmapRef::parse(bad),
+                    Err(TraceabilityError::MalformedRoadmapRef { .. })
+                ),
+                "{bad:?} must be refused"
+            );
+        }
+    }
+
+    #[test]
+    fn only_the_exit_slug_has_a_meaning() {
+        assert!(
+            RoadmapRef::parse("roadmap://OW-PHASE-5/exit")
+                .expect("ok")
+                .is_exit()
+        );
+        assert!(
+            !RoadmapRef::parse("roadmap://OW-PHASE-5/dispatch")
+                .expect("ok")
+                .is_exit()
+        );
+        assert!(
+            !RoadmapRef::parse("roadmap://OW-PHASE-5")
+                .expect("ok")
+                .is_exit()
+        );
+    }
+
+    #[test]
+    fn roadmap_refs_order_by_phase_then_slug() {
+        let mut refs: Vec<RoadmapRef> = [
+            "OW-PHASE-6/exit",
+            "OW-PHASE-1/compiler",
+            "OW-PHASE-6/adequacy",
+        ]
+        .iter()
+        .map(|t| RoadmapRef::parse(t).expect("ok"))
+        .collect();
+        refs.sort();
+        let order: Vec<String> = refs.iter().map(RoadmapRef::canonical).collect();
+        assert_eq!(
+            order,
+            [
+                "roadmap://OW-PHASE-1/compiler",
+                "roadmap://OW-PHASE-6/adequacy",
+                "roadmap://OW-PHASE-6/exit"
+            ]
+        );
     }
 }

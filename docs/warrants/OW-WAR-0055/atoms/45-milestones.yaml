@@ -1,0 +1,51 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "roadmap:// parses and contribution validates"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-002"]
+
+  - id: "M2"
+    title: "The §34.3 ladder is computed from records"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-003"]
+
+  - id: "M3"
+    title: "CorpusStatus is emitted, deterministic, and drift-checked"
+    depends_on: ["M2"]
+    stage_refs: ["STAGE-003", "STAGE-004"]
+    obligation_refs: ["OBL-004", "OBL-005"]
+
+  - id: "M4"
+    title: "An agent can read one document and act"
+    depends_on: ["M3"]
+    stage_refs: ["STAGE-005"]
+    obligation_refs: ["OBL-006"]
+
+stages:
+  - id: "STAGE-001"
+    title: "RoadmapRef::parse and Contribution validation in war check"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-002"
+    title: "Wire traceability::derive_all; seed all 57 from §106"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-003"
+    title: "CorpusStatus types, assess() extraction, corpus_status renderer"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-004"
+    title: "war status subcommand; emission in compile; drift in check"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-005"
+    title: "next_actionable, the unassigned objective, plants, deliverables"
+    executor_kind: "agent"
+    responsibility_tier: "T2"

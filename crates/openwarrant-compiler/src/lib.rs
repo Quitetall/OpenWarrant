@@ -17,6 +17,7 @@
 
 pub mod adr_overview;
 pub mod canonical;
+pub mod corpus_status;
 pub mod digest;
 pub mod ir;
 pub mod lower;
@@ -26,6 +27,9 @@ pub mod warrant_overview;
 pub use adr_overview::render as render_adr_overview;
 pub use canonical::{
     CanonicalError, preimage_bytes, sha256_digest, to_canonical_bytes, to_canonical_string,
+};
+pub use corpus_status::{
+    canonical_json as corpus_status_json, render_markdown as render_corpus_status,
 };
 pub use digest::{DigestDomain, sha256_hex};
 pub use ir::{API_VERSION, KIND, SCHEMA_PACK_ID, SCHEMA_PACK_VERSION, SourceScope, WarIr};
