@@ -63,6 +63,17 @@ pub enum DispatchError {
          §33.6: a required context item is never silently dropped"
     )]
     RequiredAtomUnaccounted { atom: String },
+    #[error(
+        "the context manifest lists {atom:?} as both included and omitted. A packet that says an \
+         item is present and absent says nothing; refused rather than resolved by whichever \
+         list was read first"
+    )]
+    ContradictoryContext { atom: String },
+    #[error(
+        "required atom {atom:?} is recorded as omitted from the context manifest. §47.2: every \
+         required normative source is preserved; an omission with a reason is still an omission"
+    )]
+    RequiredAtomOmitted { atom: String },
 }
 
 /// Everything a dispatch is compiled from.
@@ -129,10 +140,25 @@ pub fn compile_dispatch(inputs: DispatchInputs<'_>) -> Result<StageDispatch, Dis
     // recorded as omitted with a reason. Neither is not an option.
     let required = required_normative_sources(basis);
     let omitted: Vec<String> = context.omitted.iter().map(|o| o.id.clone()).collect();
+    // A manifest that lists one item on both sides is not resolved by whichever
+    // list this loop happens to consult first; it is refused. From external
+    // review: the earlier check short-circuited on `included` and would have
+    // passed such a manifest through to a packet claiming both.
+    for o in &omitted {
+        if context.included.iter().any(|i| &i.id == o) {
+            return Err(DispatchError::ContradictoryContext { atom: o.clone() });
+        }
+    }
     for source in &required {
-        let included = context.included.iter().any(|i| &i.id == source);
-        let recorded_omitted = omitted.contains(source);
-        if !included && !recorded_omitted {
+        // Refused HERE and again in `validate`. Two layers on purpose: this one
+        // names the rule at the point the manifest is read, and the second
+        // holds if a caller ever bypasses the first.
+        if omitted.contains(source) {
+            return Err(DispatchError::RequiredAtomOmitted {
+                atom: source.clone(),
+            });
+        }
+        if !context.included.iter().any(|i| &i.id == source) {
             return Err(DispatchError::RequiredAtomUnaccounted {
                 atom: source.clone(),
             });
@@ -531,9 +557,8 @@ stages:
             }
             other => panic!("wrong refusal: {other}"),
         }
-        // Recorded as omitted is ALSO refused, but downstream by validate(),
-        // because a required source in omitted_subgraphs is §47.2's exact
-        // prohibition.
+        // Recorded as omitted is refused by name too — by the explicit branch,
+        // not only by `validate` downstream.
         let mut ctx = context_for(&basis);
         ctx.included.retain(|i| i.id != "atoms/40-work-order.md");
         ctx.omitted.push(Omission {
@@ -541,16 +566,43 @@ stages:
             reason: "r".to_owned(),
             required: true,
         });
-        assert!(
-            compile(
-                &basis,
-                &validated,
-                &ctx,
-                "STAGE-001",
-                &attempt(AttemptKind::Initial)
-            )
-            .is_err()
-        );
+        match compile(
+            &basis,
+            &validated,
+            &ctx,
+            "STAGE-001",
+            &attempt(AttemptKind::Initial),
+        ) {
+            Err(DispatchError::RequiredAtomOmitted { atom }) => {
+                assert_eq!(atom, "atoms/40-work-order.md");
+            }
+            other => panic!("expected RequiredAtomOmitted, got {other:?}"),
+        }
+    }
+
+    /// From external review: an item on both lists is a contradiction, and a
+    /// check that short-circuits on `included` would let it through.
+    #[test]
+    fn an_item_both_included_and_omitted_is_refused() {
+        let (basis, validated) = fixture();
+        let mut ctx = context_for(&basis);
+        ctx.omitted.push(Omission {
+            id: "atoms/10-intent.md".to_owned(),
+            reason: "r".to_owned(),
+            required: false,
+        });
+        match compile(
+            &basis,
+            &validated,
+            &ctx,
+            "STAGE-001",
+            &attempt(AttemptKind::Initial),
+        ) {
+            Err(DispatchError::ContradictoryContext { atom }) => {
+                assert_eq!(atom, "atoms/10-intent.md");
+            }
+            other => panic!("expected ContradictoryContext, got {other:?}"),
+        }
     }
 
     #[test]
