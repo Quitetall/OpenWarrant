@@ -1134,6 +1134,31 @@ plant "a resolution of a contract that has since moved" "resolution.stale" "earl
 plant_cmd "phase 1 names its exit warrant" "OW-PHASE-1" "OW-WAR-0061" 0 \
     "true" status
 
+# OW-WAR-0031 — the local draft journal (§66). Append-only is enforced against
+# the journal as committed at HEAD; every plant below mutates OW-WAR-0010's
+# tracked journal and `restore` brings it back through git checkout.
+
+# Positive: the journal reads the resolution that happened.
+plant_cmd "a journal records the resolution" "resolution.recorded" "person://Brian Lam" 0 \
+    "true" journal OW-WAR-0010
+
+# OBL-002. One committed line edited in place — the actor rewritten.
+plant "a journal line edited in place" "journal.rewritten" "extended, never edited" 2 \
+    "sed -i '1s|agent://claude|agent://someone-else|' docs/warrants/OW-WAR-0010/journal.jsonl; \
+     assert_present 'someone-else' docs/warrants/OW-WAR-0010/journal.jsonl" \
+    OW-WAR-0010
+
+# OBL-002. The last committed line deleted: history shortened is history rewritten.
+plant "a journal line deleted" "journal.rewritten" "extended, never edited" 2 \
+    "sed -i '\$d' docs/warrants/OW-WAR-0010/journal.jsonl; \
+     assert_gone 'resolution.recorded' docs/warrants/OW-WAR-0010/journal.jsonl" \
+    OW-WAR-0010
+
+# An event appended for a different Warrant's uuid: append-only holds, identity does not.
+plant "a journal event for another warrant" "journal.wrong-warrant" "names warrant" 2 \
+    "printf '{\"v\":1,\"id\":\"01a00000-0000-7000-8000-000000000001\",\"warrant_uuid\":\"00000000-0000-7000-8000-000000000000\",\"type\":\"draft.revised\",\"class\":\"draft_history\",\"actor_ref\":\"agent://x\",\"occurred_at\":\"2026-09-02T00:00:00Z\",\"payload\":\"{}\",\"idempotency_key\":\"k\"}\n' >> docs/warrants/OW-WAR-0010/journal.jsonl" \
+    OW-WAR-0010
+
 echo
 echo "$PASSED passed, $FAILED failed"
 [[ "$FAILED" -eq 0 ]]

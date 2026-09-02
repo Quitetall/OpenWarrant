@@ -733,6 +733,8 @@ fn check_one(
         };
         crate::evidence::check(repo, &one.dir, &alias, current.as_deref(), report);
         crate::resolution_cmd::check(repo, &one.dir, &alias, current.as_deref(), report);
+        let uuid = one.validated.as_ref().map(|v| v.uuid.to_string());
+        crate::journal_cmd::check(repo, &one.dir, &alias, uuid.as_deref(), report);
     }
 
     // Ordinals ascending is not required by the SAS, but a manifest whose

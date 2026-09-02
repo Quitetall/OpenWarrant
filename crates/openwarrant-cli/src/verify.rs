@@ -257,6 +257,18 @@ pub fn ingest(
                     source,
                 })?;
                 written += 1;
+                if let Some(vm) = &one.validated {
+                    crate::journal_cmd::record(
+                        &dir,
+                        &vm.uuid.to_string(),
+                        crate::journal_cmd::VERIFICATION_RECORDED,
+                        &format!("{}://{}", v.verifier.kind, v.verifier.actor),
+                        &format!(
+                            "{{\"obligation\":\"{}\",\"disposition\":\"{}\"}}",
+                            v.obligation, v.disposition
+                        ),
+                    )?;
+                }
                 report.push(Diagnostic::pass(
                     "verify.recorded",
                     format!(

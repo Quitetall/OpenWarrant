@@ -648,6 +648,13 @@ pub mod receipt {
         let secs = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .map_or(0, |d| d.as_secs());
+        rfc3339_from_secs(secs)
+    }
+
+    /// RFC 3339 UTC from Unix seconds. Shared with the journal, whose
+    /// backfilled `draft.created` events take their time from the UUIDv7.
+    #[must_use]
+    pub fn rfc3339_from_secs(secs: u64) -> String {
         // Civil-from-days, so a receipt does not pull in a date crate for one
         // timestamp. Correct for all dates this system will ever record.
         let (days, rem) = ((secs / 86_400) as i64, secs % 86_400);

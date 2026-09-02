@@ -186,16 +186,23 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
             roadmap,
             implements,
             state: valid.then(|| {
-                if resolved {
-                    WarrantState::resolved_recorded(
-                        record
-                            .as_ref()
-                            .and_then(|r| r.resolution.common_outcome.to_string().parse().ok())
-                            .unwrap_or(openwarrant_core::CommonOutcome::None),
-                    )
-                } else {
-                    WarrantState::draft(Provenance::Derived)
-                }
+                let outcome = record
+                    .as_ref()
+                    .and_then(|r| r.resolution.common_outcome.to_string().parse().ok());
+                // Recorded from the journal when one exists (OW-WAR-0031);
+                // derived from the records' shape otherwise, and labelled so.
+                crate::journal_cmd::load(&one.dir)
+                    .ok()
+                    .and_then(|j| crate::journal_cmd::recorded_state(&j, outcome))
+                    .unwrap_or_else(|| {
+                        if resolved {
+                            WarrantState::resolved_recorded(
+                                outcome.unwrap_or(openwarrant_core::CommonOutcome::None),
+                            )
+                        } else {
+                            WarrantState::draft(Provenance::Derived)
+                        }
+                    })
             }),
             unmet: checks
                 .as_ref()

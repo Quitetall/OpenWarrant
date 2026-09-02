@@ -476,6 +476,18 @@ pub fn ingest(
         revision,
     };
     write_toml(&dir.join("authorization.toml"), &record)?;
+    if let Some(v) = &one.validated {
+        crate::journal_cmd::record(
+            &dir,
+            &v.uuid.to_string(),
+            crate::journal_cmd::AUTHORIZATION_RECORDED,
+            &format!("person://{}", response.authorizer),
+            &format!(
+                "{{\"contract_digest\":\"{}\",\"acting_role\":\"{}\"}}",
+                response.contract_digest, response.acting_role
+            ),
+        )?;
+    }
     report.push(Diagnostic::pass(
         "authorize.recorded",
         format!(
