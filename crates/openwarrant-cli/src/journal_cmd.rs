@@ -91,7 +91,11 @@ pub fn load(warrant_dir: &Utf8Path) -> Result<Journal, RepoError> {
 
 /// Build one envelope. `occurred_at` is RFC 3339; the idempotency key is the
 /// digest of (warrant, type, payload), so the same fact recorded twice is
-/// refused rather than duplicated.
+/// refused rather than duplicated. "Same fact" is deliberate: a gate re-run
+/// that mints a receipt with the same digest as the last one attaches nothing
+/// new, and is refused; a re-run whose receipt digest differs (it ran at a
+/// different time, so it always does) is a new event. Time is not in the key
+/// so that a backfill and a live write of the same record cannot both land.
 #[must_use]
 pub fn event(
     warrant_uuid: &str,
