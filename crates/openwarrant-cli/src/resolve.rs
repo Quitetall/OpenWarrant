@@ -605,12 +605,36 @@ pub struct Assessment {
     pub verification_failures: Vec<(String, String)>,
 }
 
-/// Compute §56.1's thirteen and §38.6 for one loaded Warrant.
+/// Compute §56.1's thirteen and §38.6 for one loaded Warrant, reading gate
+/// runs from the receipts path.
+///
+/// This is what `war resolve` calls. It is a LOCAL question — "what do the
+/// records on this machine say?" — and the receipts under `docs/receipts/`
+/// are part of that, gitignored or not.
 pub fn assess(repo: &Repository, one: &crate::repo::Loaded) -> Result<Assessment, RepoError> {
+    let gate_runs = repo.load_gate_runs();
+    assess_with(repo, one, &gate_runs)
+}
+
+/// The same computation over a caller-supplied set of gate runs.
+///
+/// # Why the gate runs are a parameter
+///
+/// `docs/receipts/` is gitignored — a receipt becomes committed evidence
+/// deliberately, as part of a resolution, and until then it is local state.
+/// A committed, drift-checked projection that read it would be a function of
+/// which machine compiled it: the first CI run of `CORPUS_STATUS.json` failed
+/// drift for exactly that reason, because the recorded gate run existed
+/// locally and not in the fresh clone. The projection passes an empty set and
+/// says so; `war resolve` passes what it finds.
+pub fn assess_with(
+    repo: &Repository,
+    one: &crate::repo::Loaded,
+    gate_runs: &[GateRun],
+) -> Result<Assessment, RepoError> {
     let dir = &one.dir;
     let verifications = repo.load_verifications(dir)?;
     let deliverables = repo.load_deliverables(dir)?;
-    let gate_runs = repo.load_gate_runs();
 
     let performer = repo.performer();
     let register = repo.load_authority_register()?;
@@ -641,7 +665,7 @@ pub fn assess(repo: &Repository, one: &crate::repo::Loaded) -> Result<Assessment
         one,
         &verifications.records,
         &deliverables.records,
-        &gate_runs,
+        gate_runs,
         &authority,
     );
 

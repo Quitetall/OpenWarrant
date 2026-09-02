@@ -9,6 +9,7 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 
 ## Read this first
 
+- Gate runs are NOT read. `docs/receipts/` is gitignored — a receipt becomes committed evidence deliberately, as part of a resolution — so a projection that read it could not be reproduced from the repository. §56.1 requirement 5 (every required gate has an admissible result) reads unmet for every Warrant here. `war resolve` on a machine that has recorded a run will report it met, and both are correct.
 - `docs/roadmap/PRODUCTION_ROADMAP.md` marks Warrants "resolved" 39 time(s). No resolution record exists in this repository. Those are hand-written claims, not records, and nothing above reads them.
 
 ## Release
@@ -60,11 +61,11 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | requirement | Warrants blocked |
 |---|---|
+| every required gate has admissible result | 51 |
 | exact authorized Contract Revision | 51 |
 | resolver holds the role | 51 |
 | required judgments exist | 49 |
 | residual risks have sufficient authority | 49 |
-| every required gate has admissible result | 12 |
 | artifact digests verify | 9 |
 | required deliverables exist | 9 |
 | no blocker remains | 3 |

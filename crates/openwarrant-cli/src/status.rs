@@ -41,7 +41,7 @@ use openwarrant_core::{Provenance, WarrantState, milestones};
 
 use crate::diagnostic::Severity;
 use crate::repo::{Loaded, RepoError, Repository};
-use crate::resolve::assess;
+use crate::resolve::assess_with;
 
 /// Build the projection.
 pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
@@ -100,7 +100,12 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
         };
 
         let (checks, would, unestablished, blocking, evidence_refs, established) = if valid {
-            let a = assess(repo, one)?;
+            // No gate runs. `docs/receipts/` is gitignored, so anything read
+            // from it would make this committed projection depend on which
+            // machine compiled it. Requirement 5 therefore reads unmet for
+            // every Warrant here, and the caveats say why; `war resolve` on a
+            // machine that has recorded a run will disagree, correctly.
+            let a = assess_with(repo, one, &[])?;
             (
                 Some(a.checks),
                 a.would_resolve_satisfied,
@@ -306,7 +311,14 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
         next_actionable(&objectives, &warrants, &milestones_by_alias);
 
     // Caveats a reader needs before the numbers.
-    let mut caveats = Vec::new();
+    let mut caveats = vec![
+        "Gate runs are NOT read. `docs/receipts/` is gitignored — a receipt becomes committed \
+         evidence deliberately, as part of a resolution — so a projection that read it could \
+         not be reproduced from the repository. §56.1 requirement 5 (every required gate has an \
+         admissible result) reads unmet for every Warrant here. `war resolve` on a machine that \
+         has recorded a run will report it met, and both are correct."
+            .to_owned(),
+    ];
     let roadmap_claims = hand_written_resolved_claims(repo);
     if roadmap_claims > 0 {
         caveats.push(format!(
