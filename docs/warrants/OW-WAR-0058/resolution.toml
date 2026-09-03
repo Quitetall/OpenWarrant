@@ -1,0 +1,28 @@
+schema = "oh.war/resolution/v1"
+warrant = "OW-WAR-0058"
+
+[resolution]
+id = "01a0651e-6987-7561-b191-ec7ad88cd108"
+common_outcome = "satisfied"
+profile_outcome = "delivered"
+contract_revision = 1
+contract_digest = "e530eae5e3772b645d54d2acb4c28cc20b509a45633ce328e84def3f32342570"
+assurance_case_snapshot_digest = "sha256:aa0cd91b481afcdc44c7c9b607155f1321eafb3ad82bdebfe4c0d5cd8361b85a"
+artifact_manifest_digest = "sha256:5cdf4889a823b63f44f741713581411a863ffcc21a24380d94a801414228d5ae"
+gate_run_refs = ["docs/warrants/OW-WAR-0058/gate-runs/software_repo_war-check_1_0_0.receipt.json"]
+judgment_refs = [
+    "judgment://J-001",
+    "judgment://J-002",
+    "judgment://J-003",
+]
+residual_risk_refs = [
+    "assumption://A-001",
+    "assumption://A-002",
+    "assumption://A-003",
+]
+resolved_by_ref = "person://Brian Lam"
+acting_role_ref = "role-assignment://Brian Lam/resolver"
+meaning = """Resolving OW-WAR-0058 (Put the SAS under §101 governance: controlled revisions and the Release axis) as satisfied asserts that its declared deliverables exist at their recorded digests, that every declared obligation (OBL-001, OBL-002, OBL-003, OBL-004, OBL-005) was established by an admissible independent verification (lamu:mimo-v2.5-pro, blind to the performer, given the full plant battery, every passing test and the committed receipts, 2026-09-03), and that the cited gate ran against this exact contract and passed. It asserts nothing beyond those bounded obligations. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 ("Get them all done"); the decision is the owner's, the wording is the agent's."""
+effective_at = "2026-09-03T03:30:00Z"
+recorded_at = "2026-09-03T02:34:47Z"
+standing = "valid"

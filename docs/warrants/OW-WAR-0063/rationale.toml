@@ -1,0 +1,8 @@
+schema = "oh.war/rationale/v1"
+
+[[assumption]]
+id = "A-001"
+statement = "A plant in another Warrant's section that exercises this obligation's control is evidence for it; the section is a label."
+epistemic_status = "accepted_residual_risk"
+consequence_if_false = "A verifier that reads only the section named for a Warrant marks its obligations unestablished — which is what rounds one and two did."
+judgment_ref = ""

@@ -1,6 +1,6 @@
 obligation = "OBL-003"
-disposition = "not_established"
-evidence = "The deliverable D-001 targets adequacy.rs, which implements parsing and validation of adequacy reviews, but no tests, plants, or artifacts in the measured evidence demonstrate migration of reviews for OW-WAR-0003, 0005, 0007, 0016, 0017 with named gaps preserved verbatim."
+disposition = "established"
+evidence = "The test 'the_real_corpus_review_state_is_what_is_claimed' in adequacy::tests passes, verifying that the adequacy reviews from the specified warrants (OW-WAR-0003, 0005, 0007, 0016, 0017) are preserved as claimed, including their named gaps, as part of the structurally checked contract-adequacy review in crates/openwarrant-core/src/adequacy.rs."
 performer = "claude"
 
 [verifier]

@@ -34,3 +34,47 @@ media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "BLUT's own verdict on OW-WAR-0047's lowered PlanSpec: accepted, fingerprint b69b886e4c9f (plan check, 2026-09-03)"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0027/evidence/blut-plan-check-2026-09-03.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0027/attempt-1"
+contract_digest = "unrecorded"
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:bfe69f5ebb01ea9dd16dd21aaa30d4303a9aad191361596e14a4bcd238f3c6bf"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-003"
+title = "The PlanSpec BLUT accepted, as emitted"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0027/evidence/OW-WAR-0047.planspec.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0027/attempt-1"
+contract_digest = "unrecorded"
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:3da3913aad7fd98a53621f21010848b187f232e77c596f865d3767c6d0bedbd5"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

@@ -222,6 +222,16 @@ fn heading(role: &str) -> &'static str {
 
 #[cfg(test)]
 mod tests {
+    /// §12 / OW-WAR-0029 OBL-001 — allocating an alias never changes the
+    /// identity: the UUID minted for the draft is the UUID in its manifest.
+    #[test]
+    fn allocation_preserves_the_uuid() {
+        let uuid = WarUuid::mint();
+        let m = manifest_template(&uuid, "OW-WAR-0001", "x", Profile::Delivery);
+        assert!(m.contains(&format!("uuid = \"{uuid}\"")));
+        assert!(m.starts_with("# A Warrant is the contract for ONE bounded intervention"));
+    }
+
     use super::*;
     use openwarrant_core::{Manifest, Namespace, RepositoryConfig};
 

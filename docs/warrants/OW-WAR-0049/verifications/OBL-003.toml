@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "The measured evidence does not include any test, plant, or receipt that addresses the note in check.rs naming §91.2 tests 14 and 15 as unchecked."
+evidence = "No test, plant, or measurement in the provided evidence directly verifies whether the §91.2 tests 14 and 15 note in check.rs is accurate, removed, or narrowed; the absence of such evidence means the claim is not established."
 performer = "claude"
 
 [verifier]

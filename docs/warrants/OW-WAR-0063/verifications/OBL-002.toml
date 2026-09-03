@@ -1,0 +1,20 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "The four plants for OW-WAR-0063 in conformance/plant.sh are all rejected by their named rules, and the tests 'the_banner_precedes_the_title_and_the_renderer_divides_nothing' and 'every_committed_war_json_carries_the_sas_pin' in corpus_status.rs are passing."
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

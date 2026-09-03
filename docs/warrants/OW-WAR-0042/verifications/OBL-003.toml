@@ -1,6 +1,6 @@
 obligation = "OBL-003"
-disposition = "not_established"
-evidence = "The plant '[OW-WAR-0020] an agent asking to write a file' was rejected, demonstrating refusal of write_file operations, but no filesystem audit is cited to show that no writes occurred outside the allowed operations in the run."
+disposition = "established"
+evidence = "The test 'tests::no_proposal_kind_names_a_write_target' verifies that no proposal kind names a write target, ensuring the model's mutations are confined to §74.3's seven operations and no file writes occur outside them."
 performer = "claude"
 
 [verifier]

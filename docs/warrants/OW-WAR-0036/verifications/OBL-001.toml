@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "No test or measurement in the provided artifacts asserts that both call the same function; the tests in adr_overview.rs are for ADR Overview rendering, not classifiers."
+evidence = "No test in adr_overview::tests or the listed passing tests asserts that both call the same function; the artifact shows only one classifier use without verification of consistency."
 performer = "claude"
 
 [verifier]

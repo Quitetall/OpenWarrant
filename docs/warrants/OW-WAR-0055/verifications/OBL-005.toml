@@ -1,6 +1,6 @@
 obligation = "OBL-005"
-disposition = "not_established"
-evidence = "The measured evidence lists no plant under OW-WAR-0055 that tests hand-editing of CORPUS_STATUS.md or CORPUS_STATUS.json as corpus-status.drift; only plants for roadmap refs are present."
+disposition = "established"
+evidence = "The plants '[OW-WAR-0055] Corpus Status Markdown edited by hand' and '[OW-WAR-0055] Corpus Status JSON edited by hand' were each rejected in the conformance test battery, demonstrating that hand-edited projections are caught as corpus-status.drift."
 performer = "claude"
 
 [verifier]

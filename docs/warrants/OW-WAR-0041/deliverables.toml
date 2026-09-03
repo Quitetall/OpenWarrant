@@ -21,7 +21,7 @@ target_ref = "crates/openwarrant-cli/src/telemetry.rs"
 required = true
 content_addressed = true
 provenance_required = true
-obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+obligation_refs = ["OBL-002", "OBL-003"]
 
 [deliverable.provenance]
 producer = "claude"
@@ -29,8 +29,30 @@ producing_attempt = "OW-WAR-0041/attempt-1"
 contract_digest = "unrecorded"
 tool_or_runtime_identity = "rustc 1.97.1"
 creation_method = "authored"
-content_digest = "sha256:6bff16c81ee8810dbac01420771ae3a08294278cc660224ba5e993018febae9c"
+content_digest = "sha256:3eeaa373e6a9d2ad7343fb908a032e49baa1d85f99bc635e193815d21b1be538"
 media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "The recorded §94 baseline at a named commit, with each §100 metric valued or marked no-baseline"
+kind = "file"
+target_ref = "artifacts/telemetry-baseline.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0041/attempt-1"
+contract_digest = "unrecorded"
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:5f01dfe8d9ecdaf4c16f2156696c33da9784804e4a0a1ca07cb220a5a9cf1b76"
+media_type = "application/octet-stream"
 classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"

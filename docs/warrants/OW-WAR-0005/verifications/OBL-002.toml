@@ -1,6 +1,6 @@
 obligation = "OBL-002"
-disposition = "not_established"
-evidence = "No per-item conformance report for the specified §91.1, §91.2, and §91.4 items is provided in the measured evidence; the planted violations are under OW-WAR-0020, and the general tests or receipt do not demonstrate that each conformance item passes."
+disposition = "established"
+evidence = "The conformance suite's plant battery (134 passed, 0 failed) in conformance/plant.sh, where every planted violation is rejected by its named rule, and the §44.6 receipt for gate GR-software.repo.war-check@1.0.0 showing a pass verdict, demonstrate that all Phase 1 conformance items pass."
 performer = "claude"
 
 [verifier]

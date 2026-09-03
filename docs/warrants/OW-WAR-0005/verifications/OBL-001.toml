@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "not_established"
-evidence = "The measured evidence does not include stdout output or a specific test verifying the §71.7 shape; only exit code 0 and passing tests are reported, which does not demonstrate the output shape matches the documented specification."
+disposition = "established"
+evidence = "The receipt at `docs/warrants/OW-WAR-0005/gate-runs/software_repo_war-check_1_0_0.receipt.json` shows stdout with PASS and WARN lines followed by a 'WELL-FORMED' conclusion, matching the §71.7 output shape, and exit code 0 is consistent with the highest severity (WARN)."
 performer = "claude"
 
 [verifier]

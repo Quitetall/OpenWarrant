@@ -1,0 +1,102 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1. Declared by the performer — declaring a deliverable is a performer
+# statement (§51), which is permitted. It is the VERIFICATION of the obligations
+# these support that must be independent (§46), not the declaration itself.
+#
+# Every `content_digest` below was computed from the bytes on disk, and
+# `war resolve` RECOMPUTES it rather than trusting what is written here. A digest
+# that is merely present proves nothing.
+#
+# `contract_digest` is "unrecorded" because it is true: no authorized contract
+# revision exists for this Warrant yet (§28.4 needs a human). Writing today's
+# compiled digest here would assert these artifacts were produced under a
+# revision nobody has authorized.
+
+[[deliverable]]
+id = "D-001"
+title = "traceability.unknown-requirement — implements refs held to §106"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/check.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0063/attempt-1"
+contract_digest = "unrecorded"
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:f200d0b46761c945f8d7eaf535f964d60e9c8e57ad19658958e2130d2d68d51a"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "ADR supersession relations read in both directions"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/adr.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0063/attempt-1"
+contract_digest = "unrecorded"
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:f69b879fbf4e0a8262fb853f784661e90711186f0af73a863a0ef0d3dc4fab10"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-003"
+title = "The plants: unknown requirement, duplicate milestone id, contribution unstated, Markdown drift"
+kind = "file"
+target_ref = "conformance/plant.sh"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0063/attempt-1"
+contract_digest = "unrecorded"
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:2ccd0b6f035e7ecdc21d9cff19344bb24c2b996a2979a52694c99babbfd43348"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-004"
+title = "Tests: banner before title, no division, every WAR.json carries the SAS pin"
+kind = "file"
+target_ref = "crates/openwarrant-compiler/src/corpus_status.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0063/attempt-1"
+contract_digest = "unrecorded"
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:41d548c56462e313be1f9a59d49d82a6a338985f82a013e0106505e981e04bd1"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

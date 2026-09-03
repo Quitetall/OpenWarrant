@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "The measured evidence includes only unit tests (e.g., init::tests::init_refuses_to_overwrite) and no process-level runs of the `war` binary for `war init`, as required by the obligation scope."
+evidence = "No measured evidence includes process invocations of `war init`; the unit tests (e.g., init::tests::init_writes_config_and_directories) are excluded by scope, and the CI gate runs `war check`, not `war init`."
 performer = "claude"
 
 [verifier]

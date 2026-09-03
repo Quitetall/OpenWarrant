@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "No test in the passing tests list (e.g., no test named for a recorded exchange over the §75.2 seam) and no receipt demonstrates a real agent answering with canonical request on stdin and Draft Proposal on stdout from a separate process."
+evidence = "The basis atom explicitly states that no drafting agent is available on this host, and no recorded exchange showing a canonical request on stdin and a canonical Draft Proposal on stdout from a separate process is present in the provided artifacts, such as the §44.6 receipts or test outputs."
 performer = "claude"
 
 [verifier]

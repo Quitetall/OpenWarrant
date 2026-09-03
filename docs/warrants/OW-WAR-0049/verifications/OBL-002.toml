@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "The measured evidence contains no plants or recorded narrowing with ADRs for §91.2 tests 10, 11, 13, 14, 15; all listed plants are for OW-WAR-0020, and no ADRs are cited for this obligation."
+evidence = "The measured evidence lists 138 passing plants but does not explicitly link any to §91.2 tests 11 and 13, and no ADR is cited for recorded narrowing of tests 14 and 15 as required."
 performer = "claude"
 
 [verifier]

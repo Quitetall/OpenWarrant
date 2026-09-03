@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "The tests in crates/openwarrant-cli/src/kf.rs (e.g., a_short_idempotency_key_never_reaches_the_network) only validate idempotency key length and URL schemes, with no test or plant demonstrating a stale write refused or a duplicated action applied once as required by §67.3 and §67.4."
+evidence = "No test or measurement in the provided artifacts (including crates/openwarrant-cli/src/kf.rs tests and the workspace test suite) demonstrates a stale write refused or a duplicated action applied once for KF actions."
 performer = "claude"
 
 [verifier]

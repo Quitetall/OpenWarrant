@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No plant in the measured evidence exercises the control for OBL-002; the plant battery for this obligation is empty, and no plant name demonstrates an unchecked dimension blocking with the dimension named."
+evidence = "No plant in conformance/plant.sh exercises the unchecked dimension blocking control for Preflight; the listed plants are for other Warrants and do not name a Preflight dimension or show a not-ready verdict due to an unchecked dimension."
 performer = "claude"
 
 [verifier]

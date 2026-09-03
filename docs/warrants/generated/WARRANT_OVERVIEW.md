@@ -5,21 +5,21 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-58 Warrant(s) in this repository.
+59 Warrant(s) in this repository.
 
 ## Summary
 
 | Warrant | Title | Phase | Currency | Standing | Assurance | Milestones |
 |---|---|---|---|---|---|---|
 | [OW-WAR-0001](docs/warrants/OW-WAR-0001/manifest.toml) | Establish the OpenWarrant repository and Rust workspace | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0002](docs/warrants/OW-WAR-0002/manifest.toml) | Implement the file-native manifest and atom parser | `authorized` | `current` | `valid` | `basic` | 4M / 4S |
+| [OW-WAR-0002](docs/warrants/OW-WAR-0002/manifest.toml) | Implement the file-native manifest and atom parser | `resolved` | `current` | `valid` | `basic` | 4M / 4S |
 | [OW-WAR-0003](docs/warrants/OW-WAR-0003/manifest.toml) | Implement the canonical WAR IR and RFC 8785 digesting | `authorized` | `current` | `valid` | `controlled` | 4M / 4S |
 | [OW-WAR-0004](docs/warrants/OW-WAR-0004/manifest.toml) | Implement the generated parent document and drift checking | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0005](docs/warrants/OW-WAR-0005/manifest.toml) | Implement deterministic war check and close the Phase 1 bootstrap | `authorized` | `current` | `valid` | `controlled` | 4M / 4S |
+| [OW-WAR-0005](docs/warrants/OW-WAR-0005/manifest.toml) | Implement deterministic war check and close the Phase 1 bootstrap | `resolved` | `current` | `valid` | `controlled` | 4M / 4S |
 | [OW-WAR-0006](docs/warrants/OW-WAR-0006/manifest.toml) | Complete ADR federation: relations, supersession, and currency | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0007](docs/warrants/OW-WAR-0007/manifest.toml) | Parse and validate milestones, stages, and named typed ports | `authorized` | `current` | `valid` | `controlled` | 4M / 4S |
 | [OW-WAR-0008](docs/warrants/OW-WAR-0008/manifest.toml) | Implement the state model: phase, condition, outcome, currency, standing | `resolved` | `current` | `valid` | `controlled` | 3M / 3S |
-| [OW-WAR-0009](docs/warrants/OW-WAR-0009/manifest.toml) | Implement contract revisions and their immutability | `authorized` | `current` | `valid` | `controlled` | 4M / 4S |
+| [OW-WAR-0009](docs/warrants/OW-WAR-0009/manifest.toml) | Implement contract revisions and their immutability | `resolved` | `current` | `valid` | `controlled` | 4M / 4S |
 | [OW-WAR-0010](docs/warrants/OW-WAR-0010/manifest.toml) | Implement the autonomy envelope and amendment records | `resolved` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0011](docs/warrants/OW-WAR-0011/manifest.toml) | Implement prerequisites and Preflight | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0012](docs/warrants/OW-WAR-0012/manifest.toml) | Implement the context model, context manifest, and trust classes | `resolved` | `current` | `valid` | `basic` | 3M / 3S |
@@ -28,7 +28,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0015](docs/warrants/OW-WAR-0015/manifest.toml) | Implement deliverables, artifacts, and artifact provenance | `resolved` | `current` | `valid` | `basic` | 2M / 2S |
 | [OW-WAR-0016](docs/warrants/OW-WAR-0016/manifest.toml) | Implement acceptance obligations and bounded claims | `resolved` | `current` | `valid` | `controlled` | 4M / 4S |
 | [OW-WAR-0017](docs/warrants/OW-WAR-0017/manifest.toml) | Implement the epistemic classes: evidence, observation, inference, judgment, resolution | `resolved` | `current` | `valid` | `controlled` | 4M / 4S |
-| [OW-WAR-0018](docs/warrants/OW-WAR-0018/manifest.toml) | Implement contract-adequacy review, structurally checked | `authorized` | `current` | `valid` | `controlled` | 3M / 3S |
+| [OW-WAR-0018](docs/warrants/OW-WAR-0018/manifest.toml) | Implement contract-adequacy review, structurally checked | `resolved` | `current` | `valid` | `controlled` | 3M / 3S |
 | [OW-WAR-0019](docs/warrants/OW-WAR-0019/manifest.toml) | Implement the Gate Registry: definitions, qualification, and bindings | `resolved` | `current` | `valid` | `controlled` | 4M / 4S |
 | [OW-WAR-0020](docs/warrants/OW-WAR-0020/manifest.toml) | Implement Gate Run semantics, askability, and invalidation | `resolved` | `current` | `valid` | `controlled` | 5M / 5S |
 | [OW-WAR-0021](docs/warrants/OW-WAR-0021/manifest.toml) | Implement verifier independence | `resolved` | `current` | `valid` | `basic` | 3M / 3S |
@@ -61,14 +61,15 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0048](docs/warrants/OW-WAR-0048/manifest.toml) | Discharge the Phase 8 exit: measured adapter parity and the two-host canonical run | `authorized` | `current` | `valid` | `controlled` | 4M / 3S |
 | [OW-WAR-0049](docs/warrants/OW-WAR-0049/manifest.toml) | Close the alpha residue: the gaps alpha carried forward and one false claim | `authorized` | `current` | `valid` | `controlled` | 4M / 2S |
 | [OW-WAR-0050](docs/warrants/OW-WAR-0050/manifest.toml) | Governed Bonsai evidence for pull-request workflow | `authorized` | `current` | `valid` | `basic` | 2M / 3S |
-| [OW-WAR-0055](docs/warrants/OW-WAR-0055/manifest.toml) | Compute the goal hierarchy: war status and the corpus projection | `authorized` | `current` | `valid` | `controlled` | 4M / 5S |
+| [OW-WAR-0055](docs/warrants/OW-WAR-0055/manifest.toml) | Compute the goal hierarchy: war status and the corpus projection | `resolved` | `current` | `valid` | `controlled` | 4M / 5S |
 | [OW-WAR-0056](docs/warrants/OW-WAR-0056/manifest.toml) | Compile a real Stage Dispatch (§47) | `resolved` | `current` | `valid` | `controlled` | 3M / 4S |
-| [OW-WAR-0057](docs/warrants/OW-WAR-0057/manifest.toml) | The viewer: a static page over the corpus projection | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0058](docs/warrants/OW-WAR-0058/manifest.toml) | Put the SAS under §101 governance: controlled revisions and the Release axis | `authorized` | `current` | `valid` | `controlled` | 3M / 4S |
+| [OW-WAR-0057](docs/warrants/OW-WAR-0057/manifest.toml) | The viewer: a static page over the corpus projection | `resolved` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0058](docs/warrants/OW-WAR-0058/manifest.toml) | Put the SAS under §101 governance: controlled revisions and the Release axis | `resolved` | `current` | `valid` | `controlled` | 3M / 4S |
 | [OW-WAR-0059](docs/warrants/OW-WAR-0059/manifest.toml) | Commit gate receipts as evidence and record the first resolutions | `authorized` | `current` | `valid` | `controlled` | 4M / 4S |
-| [OW-WAR-0060](docs/warrants/OW-WAR-0060/manifest.toml) | Publish the corpus viewer: GitHub Pages from the committed projection | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0060](docs/warrants/OW-WAR-0060/manifest.toml) | Publish the corpus viewer: GitHub Pages from the committed projection | `resolved` | `current` | `valid` | `basic` | 2M / 2S |
 | [OW-WAR-0061](docs/warrants/OW-WAR-0061/manifest.toml) | Discharge the Phase 1 exit: OpenWarrant development uses WARs | `resolved` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0062](docs/warrants/OW-WAR-0062/manifest.toml) | Lock down the levels: what a SAS, a Warrant, and every other object are | `resolved` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0063](docs/warrants/OW-WAR-0063/manifest.toml) | Complete the conformance battery: the plants and tests the verifier named as missing | `draft` | `current` | `valid` | `basic` | 1M / 1S |
 
 ## Claimed SAS requirement coverage
 
@@ -85,8 +86,8 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-013` — OW-WAR-0002
 - `WAR-SAS-RQ-014` — OW-WAR-0003, OW-WAR-0004, OW-WAR-0058
 - `WAR-SAS-RQ-015` — OW-WAR-0002, OW-WAR-0005
-- `WAR-SAS-RQ-020` — OW-WAR-0036, OW-WAR-0058
-- `WAR-SAS-RQ-022` — OW-WAR-0013, OW-WAR-0055, OW-WAR-0061, OW-WAR-0062
+- `WAR-SAS-RQ-020` — OW-WAR-0036, OW-WAR-0058, OW-WAR-0063
+- `WAR-SAS-RQ-022` — OW-WAR-0013, OW-WAR-0055, OW-WAR-0061, OW-WAR-0062, OW-WAR-0063
 - `WAR-SAS-RQ-024` — OW-WAR-0006
 - `WAR-SAS-RQ-025` — OW-WAR-0006
 - `WAR-SAS-RQ-030` — OW-WAR-0009
@@ -187,6 +188,7 @@ Source: the Warrants under the configured warrants path.
 - **OW-WAR-0060** · roadmap: roadmap://OW-PHASE-1/projections
 - **OW-WAR-0061** · roadmap: roadmap://OW-PHASE-1/exit
 - **OW-WAR-0062** · roadmap: roadmap://OW-PHASE-3/definitions
+- **OW-WAR-0063** · roadmap: roadmap://OW-PHASE-6/conformance
 
 ## Not reported here
 

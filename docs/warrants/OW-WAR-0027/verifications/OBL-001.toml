@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "not_established"
-evidence = "No test, receipt, or measurement in the provided evidence demonstrates that BLUT actually accepts a lowered PlanSpec; the code implements verification but no positive result is shown."
+disposition = "established"
+evidence = "D-002 (blut-plan-check-2026-09-03.md) records BLUT's own verbatim verdict 'PASS blut.accepted' with fingerprint b69b886e4c9f and exit 0, confirming the lowered PlanSpec was accepted by the external binary; D-003 (OW-WAR-0047.planspec.json) is the emitted PlanSpec that was accepted."
 performer = "claude"
 
 [verifier]

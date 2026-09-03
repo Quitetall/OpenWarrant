@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "No test, receipt, or artifact in the provided evidence demonstrates the seam declaring itself unverified in the absence of a live Katana; all passing tests and the seam.rs code focus on receipt validation and seam operations without addressing this specific declaration."
+evidence = "No test in the seam::tests module or receipt in §44.6 demonstrates that the seam declares itself unverified due to the absence of a live Katana."
 performer = "claude"
 
 [verifier]

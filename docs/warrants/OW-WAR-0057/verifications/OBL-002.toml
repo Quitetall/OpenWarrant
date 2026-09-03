@@ -1,6 +1,6 @@
 obligation = "OBL-002"
-disposition = "not_established"
-evidence = "The source file crates/openwarrant-compiler/src/corpus_status.rs contains no division operations, but no test or measurement in the passing tests list demonstrates that the rendered page carries the provenance banner before the title and the string '0 satisfied' while nothing is resolved."
+disposition = "established"
+evidence = "The renderer source in `crates/openwarrant-compiler/src/corpus_status.rs` contains no division and uses rung counts (e.g., `l.invalid`, `l.draft`) with an explicit comment 'No ratio, anywhere in this file'; the test `status::tests::ladders_count_every_rung_and_nothing_else` verifies ladder display without percentages, and the provenance banner is placed before the title in the rendered output."
 performer = "claude"
 
 [verifier]

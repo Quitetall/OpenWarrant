@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "No specific test or measurement is shown for the requirement that observables are declared before the run or that zero differences are reported as 'N of M'; the passing test 'seam::tests::parity_must_cover_the_whole_corpus' addresses parity measurement but not the full obligation scope."
+evidence = "The war-check receipt (GR-software.repo.war-check@1.0.0) does not demonstrate parity measurement across the whole corpus, and the basis atom identifies a blocking unknown regarding the Liminal compiler required for such measurement, with no artifact showing `compiled_by_both == corpus_size` or observables declared before the run."
 performer = "claude"
 
 [verifier]
