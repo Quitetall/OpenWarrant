@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No test, measurement, or plant in the provided artifacts demonstrates that the telemetry detector reports commit 3678455; the tests in telemetry.rs cover serialization and metric counts, not detection of this specific untracked work case."
+evidence = "No plant or test in the measured evidence exercises the detection for ADR Overview shipped with no Warrant; the known case is not covered by the listed plants or tests, and the receipt does not show the detector reporting it."
 performer = "claude"
 
 [verifier]

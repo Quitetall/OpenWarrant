@@ -1,6 +1,6 @@
-obligation = "OBL-000"
-disposition = "not_established"
-evidence = "The measured evidence includes tests and receipts for the structured parser but no ADR artifact naming the parser or verifying its licence against Apache-2.0, as required by the obligation."
+obligation = "OBL-001"
+disposition = "established"
+evidence = "The plant '[OW-WAR-0063] a requirement reference §106 does not contain' in conformance/plant.sh was rejected by traceability.unknown-requirement (138 passed, 0 failed), and the committed corpus passes war check --generated (exit 0), confirming the control exists in check_traceability and the real corpus has no false positives."
 performer = "claude"
 
 [verifier]

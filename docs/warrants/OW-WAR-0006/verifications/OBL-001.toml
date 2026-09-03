@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "not_established"
-evidence = "The measured evidence includes no test or receipt that explicitly verifies parsing and round-tripping of `supersedes` or `superseded_by` relations in ADR atoms, and the artifact excerpt for `crates/openwarrant-core/src/adr.rs` does not show these fields in the `AdrRecord` struct."
+disposition = "established"
+evidence = "Test `adr::tests::supersession_relations_are_read_in_both_directions` (passing) directly exercises parsing of `supersedes` and `superseded_by` fields, and `lower::tests::relations_are_carried_through` (passing) confirms those relations survive the canonical round trip through the IR pipeline."
 performer = "claude"
 
 [verifier]

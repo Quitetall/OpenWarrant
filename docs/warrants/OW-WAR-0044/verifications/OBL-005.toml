@@ -1,6 +1,6 @@
 obligation = "OBL-005"
 disposition = "not_established"
-evidence = "The measured evidence lists planted violations for other warrants (e.g., OW-WAR-0055, OW-WAR-0057) but no entries in conformance/ for OW-WAR-0044 or directly related to §91.3 tests 19 and 22 or §91.13 tests 91 through 95 are shown."
+evidence = "The measured evidence lists all planted violations in conformance/plant.sh, but none correspond to §91.3 tests 19 and 22 or §91.13 tests 91 through 95, and no entries for OW-WAR-0044 are provided to satisfy the requirement for seven rejected entries."
 performer = "claude"
 
 [verifier]

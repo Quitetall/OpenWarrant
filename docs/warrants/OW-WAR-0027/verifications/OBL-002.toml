@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No plant or test in the provided evidence fabricates a receipt and is refused for the BLUT lowering and lineage receipt (§49)."
+evidence = "No plant fabricating a receipt is listed in the measured evidence for this obligation or exercising its control; the absence of such a test means the claim is not established."
 performer = "claude"
 
 [verifier]

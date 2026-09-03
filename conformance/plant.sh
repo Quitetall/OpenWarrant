@@ -1205,10 +1205,12 @@ plant "a duplicate milestone id" "milestones.invalid" "duplicate" 2 \
     OW-WAR-0058
 
 # OW-WAR-0055 OBL-002: an implements entry that states no contribution is a WARNING, not a refusal (§34.2 SHOULD).
-plant "an implements entry with no contribution stated" "traceability.contribution-unstated" "OW-WAR-0058" 0 \
-    "sed -i '0,/^contribution = \"partial\"/s//# contribution unstated/' docs/warrants/OW-WAR-0058/manifest.toml; \
-     assert_present 'contribution unstated' docs/warrants/OW-WAR-0058/manifest.toml" \
-    OW-WAR-0058
+# On OW-WAR-0063 (unauthorized, unresolved): on a resolved Warrant the same
+# edit moves the contract and `resolution.stale` is the louder finding.
+plant "an implements entry with no contribution stated" "traceability.contribution-unstated" "OW-WAR-0063" 0 \
+    "sed -i '0,/^contribution = \"partial\"/s//# contribution unstated/' docs/warrants/OW-WAR-0063/manifest.toml; \
+     assert_present 'contribution unstated' docs/warrants/OW-WAR-0063/manifest.toml" \
+    OW-WAR-0063
 
 # OW-WAR-0055 OBL-005: a byte of CORPUS_STATUS.md edited by hand.
 plant "the corpus status markdown edited by hand" "corpus-status.drift" "CORPUS_STATUS.md" 2 \

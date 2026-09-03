@@ -1,6 +1,6 @@
-obligation = "OBL-000"
-disposition = "not_established"
-evidence = "The measured evidence includes tests and receipts for the structured parser but no ADR artifact naming the parser or verifying its licence against Apache-2.0, as required by the obligation."
+obligation = "OBL-002"
+disposition = "established"
+evidence = "The four plants for OW-WAR-0063 in conformance/plant.sh are all rejected by their named rules, and the tests 'the_banner_precedes_the_title_and_the_renderer_divides_nothing' and 'every_committed_war_json_carries_the_sas_pin' in corpus_status.rs are passing."
 performer = "claude"
 
 [verifier]

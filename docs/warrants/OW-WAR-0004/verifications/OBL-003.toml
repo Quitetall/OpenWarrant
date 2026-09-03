@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "No plant or test in the measured evidence specifically demonstrates that a single-byte mutation of a committed generated parent causes `war check --generated` to exit non-zero and name the file; the listed plants and passing tests do not cover this scope."
+evidence = "No test or measurement in the provided evidence directly verifies that `war check --generated` exits non-zero and names the file for a single-byte mutation of a committed generated parent; the plant battery and receipt only show behavior on the committed tree without mutation."
 performer = "claude"
 
 [verifier]

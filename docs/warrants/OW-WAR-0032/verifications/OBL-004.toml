@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "The measured evidence includes no tests, files, or receipts that demonstrate generated TypeScript types exist or that KF imports them; the list of 644 passing tests and the gate run output do not mention TypeScript generation or KF imports."
+evidence = "The measured evidence includes 646 passing tests and 138 plant violations, but none cite a file, test, or receipt that demonstrates generated TypeScript types exist or that KF imports them, as required by §83.4."
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "No Progress Log entry naming commit 3678455 and the violated obligation is present in the measured evidence; the provided artifacts include tests, plants, and receipts but no such record."
+evidence = "The measured evidence includes tests, plants, and receipts for relation checks and other validations, but no Progress Log entry naming commit 3678455 and the violated obligation is present in the provided artifacts."
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-000"
 disposition = "not_established"
-evidence = "The measured evidence does not include a merged implementation ADR naming the crate and version, nor a `cargo deny check licenses` result, as required by the obligation's scope."
+evidence = "The code comment in canonical.rs references OW-ADR-0001, but no merged ADR artifact naming the crate and version is provided in the evidence; the license check passed via the gate run step 'licenses (cargo deny: permissive-only)'."
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "The deliverable D-001 (kf.rs) demonstrates a write guard requiring --confirm-write, but no plant or test in the measured evidence exercises the specific control that 'a plant asserting KF as Source Holder for an authored atom is refused' or verifies that authored atoms still resolve to Git with unchanged digests after registration."
+evidence = "No test, plant, or receipt in the measured evidence specifically addresses Git remaining Source Holder after registration or refuses a plant asserting KF as Source Holder for an authored atom."
 performer = "claude"
 
 [verifier]

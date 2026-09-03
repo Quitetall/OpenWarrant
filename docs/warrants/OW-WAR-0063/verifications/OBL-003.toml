@@ -1,6 +1,6 @@
-obligation = "OBL-000"
+obligation = "OBL-003"
 disposition = "not_established"
-evidence = "The measured evidence includes tests and receipts for the structured parser but no ADR artifact naming the parser or verifying its licence against Apache-2.0, as required by the obligation."
+evidence = "The measured evidence does not include the output of `war telemetry --verify` for the commit, and the gate run steps do not include a telemetry baseline check."
 performer = "claude"
 
 [verifier]

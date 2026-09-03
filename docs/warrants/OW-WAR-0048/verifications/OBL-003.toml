@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "The basis atom explicitly states that no Liminal compiler profile exists as a blocking unknown, and no recorded invocation or output for the compatibility corpus is present in the measured evidence."
+evidence = "No test, receipt, or artifact in the measured evidence demonstrates a recorded invocation of a real Liminal compiler over the versioned protocol for the compatibility corpus; the 646 passing tests and the war-check receipt do not address this obligation."
 performer = "claude"
 
 [verifier]

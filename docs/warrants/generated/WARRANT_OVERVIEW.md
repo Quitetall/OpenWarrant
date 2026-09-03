@@ -64,9 +64,9 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0055](docs/warrants/OW-WAR-0055/manifest.toml) | Compute the goal hierarchy: war status and the corpus projection | `resolved` | `current` | `valid` | `controlled` | 4M / 5S |
 | [OW-WAR-0056](docs/warrants/OW-WAR-0056/manifest.toml) | Compile a real Stage Dispatch (§47) | `resolved` | `current` | `valid` | `controlled` | 3M / 4S |
 | [OW-WAR-0057](docs/warrants/OW-WAR-0057/manifest.toml) | The viewer: a static page over the corpus projection | `resolved` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0058](docs/warrants/OW-WAR-0058/manifest.toml) | Put the SAS under §101 governance: controlled revisions and the Release axis | `authorized` | `current` | `valid` | `controlled` | 3M / 4S |
+| [OW-WAR-0058](docs/warrants/OW-WAR-0058/manifest.toml) | Put the SAS under §101 governance: controlled revisions and the Release axis | `resolved` | `current` | `valid` | `controlled` | 3M / 4S |
 | [OW-WAR-0059](docs/warrants/OW-WAR-0059/manifest.toml) | Commit gate receipts as evidence and record the first resolutions | `authorized` | `current` | `valid` | `controlled` | 4M / 4S |
-| [OW-WAR-0060](docs/warrants/OW-WAR-0060/manifest.toml) | Publish the corpus viewer: GitHub Pages from the committed projection | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0060](docs/warrants/OW-WAR-0060/manifest.toml) | Publish the corpus viewer: GitHub Pages from the committed projection | `resolved` | `current` | `valid` | `basic` | 2M / 2S |
 | [OW-WAR-0061](docs/warrants/OW-WAR-0061/manifest.toml) | Discharge the Phase 1 exit: OpenWarrant development uses WARs | `resolved` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0062](docs/warrants/OW-WAR-0062/manifest.toml) | Lock down the levels: what a SAS, a Warrant, and every other object are | `resolved` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0063](docs/warrants/OW-WAR-0063/manifest.toml) | Complete the conformance battery: the plants and tests the verifier named as missing | `draft` | `current` | `valid` | `basic` | 1M / 1S |

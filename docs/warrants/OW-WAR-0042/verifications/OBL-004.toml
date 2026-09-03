@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "The measured plant list enumerates 31 named plants across OW-WAR-0055, -0056, -0057, -0058, -0059, -0061, and -0031, but none are tagged §91.8 and none correspond to tests 52–58; the obligation requires seven entries in conformance/ exercising §91.8 tests 52–58 (with tests 53 and 54 specifically refusing an agent that attempts to authorize or allocate an enterprise identifier), and no such plants appear in the evidence."
+evidence = "The measured evidence lists 34 planted violations from conformance/plant.sh, but none are explicitly identified as §91.8 tests 52–58, and there is no mapping or dedicated entries in the conformance directory for those seven tests."
 performer = "claude"
 
 [verifier]
