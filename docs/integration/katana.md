@@ -56,18 +56,39 @@ resolution."
 - A worked example is attached:
   `attachments/example-dispatch-OW-WAR-0047-STAGE-002.json`. That one targets
   BLUT rather than Katana — it is included to show you the **shape and the
-  field set** you will receive, not the job we want run.
+  field set** you will receive, not the job we want run. It is unedited output.
+
+  **Read the `instructions` array as a known defect, not as a sample of good
+  output.** Writing this packet found a bug in our Dispatch compiler: the reader
+  that lifts a work-order section keeps only lines that begin a bullet, so every
+  continuation line is dropped — a wrapped instruction arrives as its first line,
+  cut mid-sentence, and an indented command block under a bullet disappears
+  entirely. (Once the fix below lands and the example is regenerated, the
+  attachment will no longer show this.) A Dispatch is the only packet a stateless actor receives,
+  so that is the actor being told less than the contract says, with nothing in
+  the output to show that anything was dropped.
+
+  The fix is written and tested but not landed. `crates/openwarrant-compiler`
+  is pinned deliverable D-002 of OW-WAR-0056, which is resolved, so changing
+  those bytes trips `deliverable.digest-drift`. That control detects the drift
+  and makes it answerable; it does not forbid the change. A delivered artifact
+  moves through authorization rather than because the performer noticed something
+  afterwards, and that authorization is somebody's decision, not the compiler's. The attachment above is
+  unedited current output, defect included, because showing you a doctored
+  example would be worse than showing you a real one.
 - Stage Submission, the four attempt kinds (§52), and the four remedies (§53)
   are implemented and refuse a submission that tries to resolve anything.
 - Receipt *consumption* is implemented: `KatanaReceipt::validate` refuses a
   receipt missing any of §48.4's minimum fields, and refuses one whose Dispatch
   digest does not match the Dispatch it was recorded against — "a receipt for a
   different dispatch is evidence about a different run."
-- Receipt *minting* is not implemented, deliberately. There is no code path that
-  produces one, which is the honest form of OW-WAR-0026's OBL-002. Note that
-  OBL-002 asks for a **plant** proving fabrication is refused, and that plant is
-  not written yet — the obligation is stated, not established. We are not
-  claiming otherwise.
+- Receipt *minting* is not implemented, deliberately: no non-test code path
+  constructs a `KatanaReceipt`. Being exact, because it changes what you can
+  rely on — the struct's fields are public, so this is a discipline held by
+  review, not a barrier held by the type system. That is precisely why
+  OW-WAR-0026's OBL-002 asks for a **plant** proving fabrication is refused, and
+  that plant is not written yet. The obligation is stated, not established. We
+  are not claiming otherwise.
 
 ## 4. What we need returned — artifacts, not assertions
 
