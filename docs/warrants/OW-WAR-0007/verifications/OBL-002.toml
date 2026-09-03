@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "Plants for dangling stage_refs ('[OW-WAR-0020] milestone dangling stage_ref') and dangling obligation_refs ('[OW-WAR-0020] dangling obligation_refs') are observed, but no plant for duplicate IDs in milestone graphs is listed in the measured evidence, so the duplicate part of the scope is not demonstrated."
+evidence = "The conformance plant list contains no entry for OW-WAR-0007, and the unit tests in milestones::tests cover dangling stage_refs and duplicate IDs but not dangling obligation_refs; the code excerpt shows no validation for obligation_refs."
 performer = "claude"
 
 [verifier]

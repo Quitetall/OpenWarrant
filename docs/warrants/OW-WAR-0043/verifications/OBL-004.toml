@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "The measured evidence lists planted violations in conformance/plant.sh, but does not explicitly identify seven entries corresponding to §91.4 test 24 and §91.5 tests 30 through 35, nor provide test names or mappings to confirm the scope."
+evidence = "The measured evidence does not list seven entries in conformance/ for §91.4 test 24 and §91.5 tests 30-35; the provided list of planted violations includes only entries for other warrants (e.g., OW-WAR-0055, OW-WAR-0056)."
 performer = "claude"
 
 [verifier]

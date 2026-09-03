@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No plant or test specifically for OBL-002 was shown in the measured evidence; the plants listed are for other Warrants (e.g., OW-WAR-0020) and do not exercise the control for this obligation in the context of §49.2 and the deliverable in blut.rs."
+evidence = "No plant or test in the provided evidence fabricates a receipt and is refused for the BLUT lowering and lineage receipt (§49)."
 performer = "claude"
 
 [verifier]

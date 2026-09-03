@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "No test in the passing tests list (e.g., no test named for a recorded exchange over the §75.2 seam) and no receipt demonstrates a real agent answering with canonical request on stdin and Draft Proposal on stdout from a separate process."
+evidence = "The §44.6 receipt for OW-WAR-0042 is for 'war check --generated' and does not record a canonical request on stdin and a Draft Proposal on stdout from a separate drafting agent process; no other measured evidence demonstrates such an exchange."
 performer = "claude"
 
 [verifier]

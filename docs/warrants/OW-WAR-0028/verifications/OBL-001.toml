@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "No test or measurement in the provided evidence demonstrates that every state change goes through a typed and enveloped action; the tests in kf.rs only cover URL validation and idempotency key length, and no plant exercises this specific control."
+evidence = "No test or measurement in the provided artifacts demonstrates that every state change goes through a typed and enveloped action; the tests in `kf::tests` (e.g., `a_short_idempotency_key_never_reaches_the_network`) only cover URL validation and idempotency key enforcement, not the typing and enveloping of all actions."
 performer = "claude"
 
 [verifier]

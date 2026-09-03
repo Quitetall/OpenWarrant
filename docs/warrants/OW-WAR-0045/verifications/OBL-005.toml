@@ -1,6 +1,6 @@
 obligation = "OBL-005"
 disposition = "not_established"
-evidence = "The measured evidence lists plants under [OW-WAR-0020] but none correspond to §91.7 tests 43 through 51 or §91.9 tests 59 through 63, and the total plant battery is 0 passed, 0 failed, indicating no entries for the required tests."
+evidence = "The measured evidence does not list the fourteen entries for §91.7 and §91.9, and the provided list of planted violations does not include any for OW-WAR-0045."
 performer = "claude"
 
 [verifier]

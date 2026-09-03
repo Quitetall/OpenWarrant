@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No test, measurement, or artifact was provided to verify the content of the runner comment in .github/workflows/ci.yml, as required by the obligation's scope."
+evidence = "No test, plant, or measurement in the provided evidence verifies the content of the runner comment in .github/workflows/ci.yml, as required by the obligation's scope."
 performer = "claude"
 
 [verifier]

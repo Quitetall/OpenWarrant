@@ -1,6 +1,6 @@
 obligation = "OBL-007"
 disposition = "not_established"
-evidence = "The measured evidence includes a receipt for OW-WAR-0059 but no receipts or `war check` reports for OW-WAR-0010 or OW-WAR-0020, which are required to demonstrate admissible evidence for those Warrants."
+evidence = "No receipts, `war check` output, or `war resolve` output for OW-WAR-0010 or OW-WAR-0020 are provided in the measured evidence; only a receipt for OW-WAR-0059 is shown."
 performer = "claude"
 
 [verifier]

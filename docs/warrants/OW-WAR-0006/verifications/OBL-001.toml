@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "The `AdrRecord` struct in `crates/openwarrant-core/src/adr.rs` has no fields for `supersedes` or `superseded_by` relations (only `status` with a `Superseded` variant and `governs` for warrants), and none of the six tests (`parses_an_adr_atom`, `missing_required_keys_fail_closed`, `unknown_status_is_refused`, `only_accepted_is_current`, `falsified_and_rejected_are_distinct`, `every_status_maps_to_an_appendix_a_section`) exercise parsing or round-tripping of supersession relations between ADRs."
+evidence = "The measured evidence includes no test or receipt that explicitly verifies parsing and round-tripping of `supersedes` or `superseded_by` relations in ADR atoms, and the artifact excerpt for `crates/openwarrant-core/src/adr.rs` does not show these fields in the `AdrRecord` struct."
 performer = "claude"
 
 [verifier]

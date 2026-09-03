@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "The plant battery has 0 passed and 0 failed, and `war check --generated` exits 0, with no test or measurement demonstrating that planted drift is refused."
+evidence = "No plant or test in the measured evidence specifically demonstrates that a single-byte mutation of a committed generated parent causes `war check --generated` to exit non-zero and name the file; the listed plants and passing tests do not cover this scope."
 performer = "claude"
 
 [verifier]

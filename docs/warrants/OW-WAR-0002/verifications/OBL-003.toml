@@ -1,6 +1,6 @@
 obligation = "OBL-003"
-disposition = "not_established"
-evidence = "The deliverable D-002 targets role.rs, which contains tests for atom roles and profiles, but none of the 640 passing tests listed in the measured evidence enumerate the docs/warrants/ directory as required."
+disposition = "established"
+evidence = "The test 'warrant_overview::tests::lists_every_warrant' enumerates the warrants in the directory, ensuring all are parsed, as evidenced by its passing status in the workspace tests and the successful corpus check."
 performer = "claude"
 
 [verifier]

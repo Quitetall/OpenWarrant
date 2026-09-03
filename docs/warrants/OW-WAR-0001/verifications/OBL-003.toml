@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "The measured evidence includes a receipt file (docs/warrants/OW-WAR-0001/gate-runs/software_repo_war-check_1_0_0.receipt.json) and a list of planted violations, but no explicit demonstration of `cargo xtask gate` exiting non-zero and naming failing steps for licence violations; the deny.toml artifact shows the gate configuration but not a rejecting run."
+evidence = "No recorded run of `cargo xtask gate` exiting non-zero is provided; the evidence shows a run where it exits zero."
 performer = "claude"
 
 [verifier]

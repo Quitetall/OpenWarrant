@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No test or plant in the measured evidence exercises the control for recording clarification counts per plan; the plants are all under OW-WAR-0020 and the 640 passing tests do not include any that verify this obligation."
+evidence = "No test, plant, or receipt in the measured evidence demonstrates that a clarification count is recorded per plan; the provided artifacts lack any specific validation for this claim."
 performer = "claude"
 
 [verifier]

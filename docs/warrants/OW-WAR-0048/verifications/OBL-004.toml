@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "No specific test or measurement is shown for the requirement that observables are declared before the run or that zero differences are reported as 'N of M'; the passing test 'seam::tests::parity_must_cover_the_whole_corpus' addresses parity measurement but not the full obligation scope."
+evidence = "The receipt for gate GR-software.repo.war-check@1.0.0 shows `war check --generated` passed but does not report parity measurement or observable declaration, and no other artifact demonstrates `compiled_by_both == corpus_size` or zero differences."
 performer = "claude"
 
 [verifier]

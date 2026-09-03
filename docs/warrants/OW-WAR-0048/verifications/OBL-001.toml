@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "The measured evidence does not cite any CI run, test, or receipt that demonstrates byte-identical canonical IR across x86_64-unknown-linux-gnu and aarch64-apple-darwin; the listed tests and receipt are for other Warrants or do not specify cross-host verification."
+evidence = "The measured evidence includes a single receipt for 'GR-software.repo.war-check@1.0.0' and unit tests like 'canonical::tests::digests_are_stable_across_runs', but no CI run on both `x86_64-unknown-linux-gnu` and `aarch64-apple-darwin` with digest comparison is provided, so the cross-host determinism claim is not established."
 performer = "claude"
 
 [verifier]

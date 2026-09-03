@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "The receipt file 'docs/warrants/OW-WAR-0045/gate-runs/software_repo_war-check_1_0_0.receipt.json' is committed, but its contents are not provided to verify that it has all eleven minimum fields populated or a dispatch_digest matching the compiled Dispatch."
+evidence = "The only §44.6 receipt is for gate 'GR-software.repo.war-check@1.0.0' (a war check), not for Katana, and the basis atom explicitly states Katana is not checked out on this host, so no evidence of a real Katana execution exists."
 performer = "claude"
 
 [verifier]

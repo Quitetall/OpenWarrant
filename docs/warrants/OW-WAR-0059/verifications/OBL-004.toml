@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "No plant or test in the measured evidence exercises the agent-refusal control in the resolution command; the plant battery is empty and the 640 passing tests do not include a test for an agent being refused to resolve."
+evidence = "No plant in conformance/plant.sh or test in the 644 passing tests explicitly demonstrates an agent named 'claude' being refused as resolution.agent with no resolution.toml written; the listed plants for OW-WAR-0059 do not include this scenario."
 performer = "claude"
 
 [verifier]

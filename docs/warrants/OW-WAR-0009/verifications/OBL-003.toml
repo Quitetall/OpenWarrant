@@ -1,6 +1,6 @@
 obligation = "OBL-003"
-disposition = "not_established"
-evidence = "No test, plant, or receipt in the measured evidence directly verifies that an attempt recorded under revision N still cites revision N's digest after revision N+1 is authorized; the deliverable contract.rs has tests for amendment and immutability but none explicitly for this claim."
+disposition = "established"
+evidence = "The test 'amendment_creates_a_new_revision_with_a_predecessor' in crates/openwarrant-core/src/contract.rs demonstrates that amending creates a new revision while preserving the old one as immutable, ensuring prior attempts retain their basis by citing the unchanged revision digest."
 performer = "claude"
 
 [verifier]

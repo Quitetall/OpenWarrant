@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "The measured evidence does not include the verbatim request, returned proposal, or §74.4 eight-step trace required to establish the obligation; only a receipt and war check result are shown, which are insufficient without the specific artifacts."
+evidence = "The required artifacts for OBL-002—the verbatim request, the returned proposal, the §74.4 eight-step trace, and the resulting Warrant—are not present in the provided measured evidence. The only related artifact is the `war check` receipt showing WELL-FORMED, but that is only one of the five required items."
 performer = "claude"
 
 [verifier]

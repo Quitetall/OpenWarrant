@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "The measured evidence and artifact excerpts do not include a §31 amendment record naming the semantic diff, reason, authorizer, and artifact-admissibility decision for OW-WAR-0005's OBL-002, as required to establish the obligation."
+evidence = "No §31 amendment record for OW-WAR-0005's test 10 correction is present in the measured evidence, and the basis atom states that no revision was needed because the claim was made true by implementation."
 performer = "claude"
 
 [verifier]
