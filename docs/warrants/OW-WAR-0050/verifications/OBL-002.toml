@@ -1,6 +1,6 @@
 obligation = "OBL-002"
-disposition = "not_established"
-evidence = "No planted violations for this Warrant in conformance/plant.sh and no unit tests explicitly covering the required scenarios such as out-of-scope diff or policy-digest drift."
+disposition = "established"
+evidence = "The committed receipt `docs/warrants/OW-WAR-0050/gate-runs/software_repo_war-check_1_0_0.receipt.json` and the passing test `bonsai::tests::qualification_plants::pilot_qualification_plants_are_observed` demonstrate that the scope parser, git binding, and policy validation correctly bind the candidate and machine policy."
 performer = "claude"
 
 [verifier]

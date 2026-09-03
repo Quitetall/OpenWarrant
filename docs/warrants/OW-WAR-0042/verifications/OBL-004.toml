@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "No planted violations in conformance/plant.sh for this Warrant's section, and the measured evidence does not list any entries for §91.8 tests 52-58, including tests 53 and 54."
+evidence = "The measured gate run evidence lists planted violations for tests 52, 53, 54, 55, 56, and 58, but test 57 is absent, so not all seven §91.8 tests are evidenced as planted and rejected."
 performer = "claude"
 
 [verifier]

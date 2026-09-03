@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "The measured evidence shows no planted violations for this Warrant in conformance/plant.sh, and no unit test in traceability.rs specifically demonstrates refusal of the reference sas://WAR-SAS-RQ-999."
+evidence = "No plant in the measured evidence corresponds to refusing an unresolvable requirement reference like sas://WAR-SAS-RQ-999; the listed plants under [OW-WAR-0020] exercise other controls, and no plant specifically targets traceability.rs for this obligation."
 performer = "claude"
 
 [verifier]

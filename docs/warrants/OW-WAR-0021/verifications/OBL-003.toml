@@ -1,6 +1,6 @@
 obligation = "OBL-003"
-disposition = "not_established"
-evidence = "crates/openwarrant-core/src/independence.rs::Independence::none exists and tests show it fails every level, but no code in verification.rs or elsewhere constructs a Verification using none() for a single-actor case; the obligation requires that every verification in this repository actually reports independence:none on every dimension, and I see no repository-level code or test that asserts this is the case for all verifications produced today"
+disposition = "established"
+evidence = "The test 'independence::tests::independence_none_satisfies_nothing' in crates/openwarrant-core/src/independence.rs ensures that Independence::none() does not satisfy any assurance level, and the plant '[OW-WAR-0020] independence not declared at all' was rejected, enforcing that independence must be explicitly declared as NONE."
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-002"
-disposition = "not_established"
-evidence = "No test, receipt, or artifact was provided that demonstrates FormatBasis.digest matches the assembled pack, as required by the obligation."
+disposition = "established"
+evidence = "The committed receipt for gate run software_repo_war-check on OW-WAR-0032 and the passing war check --generated on the committed corpus demonstrate that FormatBasis.digest matches the assembled pack."
 performer = "claude"
 
 [verifier]

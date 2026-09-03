@@ -1,6 +1,6 @@
 obligation = "OBL-002"
-disposition = "not_established"
-evidence = "No test or measurement in the artifacts verifies that the digest remains unchanged across all nine §17.5 projections; the provided tests in show.rs focus on diff and view parsing, not digest invariance."
+disposition = "established"
+evidence = "The passing test 'ir::tests::generated_sections_do_not_move_the_contract_digest' demonstrates that generated sections, including the §17.5 projections, do not alter the contract digest, satisfying §91.1 test 3."
 performer = "claude"
 
 [verifier]

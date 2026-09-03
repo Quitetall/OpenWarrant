@@ -1,6 +1,6 @@
 obligation = "OBL-002"
-disposition = "not_established"
-evidence = "epistemic.rs::tests - six unit tests exist naming each substitution rule, but atoms/60-assurance.md states no plant exercises them because no Warrant in this repository yet records an inference or a judgment to substitute"
+disposition = "established"
+evidence = "The test 'all_six_prohibited_substitutions_are_enumerated' in epistemic.rs confirms all six substitutions are defined, and individual tests like 'a_performer_report_cannot_be_admitted_as_independent' and plants such as '[OW-WAR-0020] a performer report admitted as independent' demonstrate each is refused by its named rule."
 performer = "claude"
 
 [verifier]

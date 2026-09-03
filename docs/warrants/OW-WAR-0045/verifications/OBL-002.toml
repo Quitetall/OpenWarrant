@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "The measured evidence does not include any artifacts or tests for the exact bytes comparison against the compiled Dispatch or a recorded run with omitted input raising a §53.1 BLOCKER, as required by the obligation."
+evidence = "The passing tests include dispatch::tests::the_dispatch_digest_is_recomputable_from_the_packet and dispatch::tests::a_required_atom_dropped_from_context_is_refused_by_name, but no test or artifact explicitly demonstrates a §53.1 BLOCKER for a deliberately omitted required input."
 performer = "claude"
 
 [verifier]

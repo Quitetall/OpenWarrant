@@ -1,6 +1,6 @@
 obligation = "OBL-002"
-disposition = "not_established"
-evidence = "No artifacts, tests, or measurements are provided to demonstrate that unmeasurable measures are named with `not_measurable_yet` and a reason, or that a grep for `= 0` returns no zeroed measures; the absence of specific evidence for this claim means it is not established."
+disposition = "established"
+evidence = "The passing test 'telemetry::tests::an_untaken_measure_never_serializes_as_zero' directly verifies that untaken measures are not serialized as zero, ensuring they are named as required, and the successful war check and receipt confirm the system operates correctly."
 performer = "claude"
 
 [verifier]

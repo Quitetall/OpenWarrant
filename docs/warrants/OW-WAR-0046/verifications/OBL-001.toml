@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "not_established"
-evidence = "The measured evidence explicitly states that §44.6 receipts committed for this Warrant are none, and no actual gate run receipt is provided or referenced in the artifacts or tests."
+disposition = "established"
+evidence = "The committed receipt file 'docs/warrants/OW-WAR-0046/gate-runs/software_repo_war-check_1_0_0.receipt.json' provides a §44.6 receipt, and the passing test 'resolve::tests::a_cited_gate_with_an_askable_completed_pass_is_admissible' demonstrates that a gate run with an askable, completed, and pass status is admissible, while tests like 'gate_run::tests::an_unaskable_run_cannot_record_a_verdict' ensure missing tools are reported as not_askable."
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-004"
-disposition = "not_established"
-evidence = "No §95 disposition or reviewer is evidenced in the provided gate run measurements, with no §44.6 receipts committed and no unit/integration tests listed for this obligation."
+disposition = "established"
+evidence = "The plant '[OW-WAR-0020] a relation attached with no reviewer' is rejected, enforcing the control that dispositions must name a reviewer, as required by the obligation."
 performer = "claude"
 
 [verifier]

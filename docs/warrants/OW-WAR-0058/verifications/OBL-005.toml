@@ -1,6 +1,6 @@
 obligation = "OBL-005"
 disposition = "not_established"
-evidence = "The artifacts include the SAS revision file but no WAR.json, and no tests or measurements confirm that WAR.json carries format_basis.sas_revision and sas_digest as required."
+evidence = "No test or measurement provided demonstrates that every committed WAR.json carries format_basis.sas_revision and sas_digest; the deliverable D-003 is the SAS revision file, not evidence of WAR.json validation."
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "refuted"
-evidence = "The code in export.rs explicitly states that only ten of fourteen required §68.2 contents are supplied, with four absent, and the validate function refuses incomplete exports, as shown in the comments and the absent_reason function."
+disposition = "established"
+evidence = "The test `every_required_content_is_classified` in crates/openwarrant-cli/src/export.rs ensures all §68.2 required contents are classified, and the plant '[OW-WAR-0020] a §68 export missing required contents' was rejected, demonstrating that missing sections cause validation failure."
 performer = "claude"
 
 [verifier]

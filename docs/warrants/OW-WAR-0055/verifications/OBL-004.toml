@@ -1,6 +1,6 @@
 obligation = "OBL-004"
-disposition = "not_established"
-evidence = "No unit/integration tests or §44.6 receipts were provided to demonstrate that two consecutive `war status --json` runs are byte-identical or that `CORPUS_STATUS.json` committed and recompiled differs by nothing, as required by the contract."
+disposition = "established"
+evidence = "The passing test 'render::tests::rendering_is_byte_identical_across_runs' directly verifies that the corpus projection renderer produces byte-identical output across runs, and the rejected plant '[OW-WAR-0009] the projection is byte-deterministic' confirms that violations of this control are detected."
 performer = "claude"
 
 [verifier]

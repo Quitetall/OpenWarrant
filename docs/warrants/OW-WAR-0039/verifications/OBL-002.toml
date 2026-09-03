@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No test, plant, or receipt in the artifacts demonstrates that the detector reports the known case of commit `3678455` where the ADR Overview shipped with no Warrant; the listed unit tests in `telemetry::tests` do not cover this specific detection, and the plant.sh has no violations for this Warrant."
+evidence = "No test or plant in the measured evidence demonstrates the detector finding the known case of commit 3678455 where the ADR Overview was shipped with no Warrant; the telemetry tests and plants under OW-WAR-0020 do not cover this specific detection."
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "No artifacts, tests, plants, or receipts are provided that directly demonstrate the diff reports no semantic change for two revisions differing only in rendering, as the declared deliverables are empty and measured evidence lacks specific references to this obligation."
+evidence = "No test or plant specifically for semantic diff is provided in the measured evidence; the plant battery shows 0 plants for this obligation, and no passing test directly validates that the diff reports no semantic change for two revisions differing only in rendering."
 performer = "claude"
 
 [verifier]

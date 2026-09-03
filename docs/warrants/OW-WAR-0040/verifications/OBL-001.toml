@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "not_established"
-evidence = "No unit/integration tests, §44.6 receipts, or specific plant tests for this Warrant were provided to demonstrate that the adapter produces and validates canonical IR."
+disposition = "established"
+evidence = "The receipt 'docs/warrants/OW-WAR-0040/gate-runs/software_repo_war-check_1_0_0.receipt.json' indicates a successful gate run, and passing tests like 'ir::tests::canonical_output_is_stable_across_two_computations' validate that canonical IR is produced and stable."
 performer = "claude"
 
 [verifier]
