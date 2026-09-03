@@ -1,13 +1,13 @@
 {
   "schema": "oh.war/telemetry-baseline/v1",
-  "commit": "b54310897a72320b475e1da8d7d20f26972cce45",
+  "commit": "8da1ca1",
   "measures": {
     "adequacy counterexamples": {
-      "value": 51,
+      "value": 86,
       "method": "executed attacks, via the same adequacy::parse `war check` uses"
     },
     "amendments": {
-      "value": 2,
+      "value": 14,
       "method": "amendment records under docs/warrants/*/amendments/"
     },
     "auto-authorizable fraction": {
@@ -24,14 +24,14 @@
       "not_measurable_yet": "no §31 escalation has occurred; the count is unknown rather than zero because nothing records escalations even when they do"
     },
     "evidence and gate reuse": {
-      "value": 129,
+      "value": 215,
       "method": "gate:// citations across all atoms"
     },
     "gate failure cause": {
       "not_measurable_yet": "gate runs mint receipts but nothing aggregates causes across them, so a cause distribution cannot be reported"
     },
     "gate library reuse": {
-      "value": 1,
+      "value": 2,
       "method": "gate definitions in the registry; reuse is citations over definitions"
     },
     "human authoring minutes": {
@@ -53,14 +53,14 @@
       "not_measurable_yet": "no instrumented authoring session; a git repository records commits, not elapsed human or wall time"
     },
     "untracked commits or artifacts": {
-      "value": 46,
+      "value": 81,
       "method": "commits whose message cites no Warrant alias (§95 candidates)"
     },
     "wall time": {
       "not_measurable_yet": "no instrumented authoring session; a git repository records commits, not elapsed human or wall time"
     },
     "work completed outside WAR": {
-      "value": 46,
+      "value": 81,
       "method": "commits whose message cites no Warrant alias (§95 candidates)"
     }
   },
@@ -91,7 +91,42 @@
     }
   },
   "untracked_work_candidates": [
-    "b543108 feat(0041): take the §94 baseline — and a private counter would have published a zero for 51",
+    "8da1ca1 feat(OW-WAR-0063): the plants and tests the verifier named as missing, and a check that did not exist",
+    "47fbb61 feat(OW-WAR-0062): lock down the levels — a SAS and a Warrant are the same class of artifact at two levels (#59)",
+    "8721be7 records: 110 obligations re-verified with full evidence; eleven more resolutions; Phase 6 achieved (#58)",
+    "797706e feat(ladder): nine amendments, 47 receipts, SAS 0.1.0-draft.2 with Phase 9/10 Exits, pins frozen at authorization (#57)",
+    "4f76c1f records: 192 independent verifications, five more resolutions, 0008 amended and resolved, 0059–0061 authorized (#56)",
+    "647153d feat(OW-WAR-0016): amended to cite its gate, re-authorized as revision 2, resolved satisfied (#54)",
+    "c75584b feat(OW-WAR-0031): the local draft journal — state is read, not derived (#53)",
+    "64b6c4f feat(OW-WAR-0061): Phase 1 gets an exit Warrant, and the exit is measured (#52)",
+    "271f2e9 fix(corpus): remove six orphan generated views swept in by `git add docs/warrants` (#51)",
+    "3d514c7 feat(OW-WAR-0060): publish the corpus viewer as GitHub Pages, from the committed projection (#49)",
+    "a5407cf feat(OW-WAR-0059): gate receipts as committed evidence, and the resolution seam (#48)",
+    "21fad30 records: SAS 0.1.0-draft.1 accepted; all 54 Warrants authorized by the owner (#47)",
+    "9349765 feat(OW-WAR-0058): put the SAS under §101 governance — the Release axis becomes a record (#46)",
+    "c1722cf feat(OW-WAR-0057): the viewer — one page over the corpus projection (#45)",
+    "4ff41c4 feat(OW-WAR-0055): the corpus projection — war status (#43)",
+    "5aa019f feat(OW-WAR-0056): compile a real Stage Dispatch (§47) (#44)",
+    "643107b feat(§37.2, §92): gate the real corpus — nothing was checking it (#41)",
+    "1e00534 build(deps): bump uuid from 1.24.1 to 1.25.0 in the cargo group (#37)",
+    "fddf089 build(deps): bump Swatinem/rust-cache (#36)",
+    "87e17f0 Merge pull request #40 from Quitetall/codex/openwarrant-public-bonsai-source",
+    "6b1b2a4 fix: run Bonsai report from trusted base",
+    "615c6aa feat(§37): declare what 41 Warrants actually delivered (#39)",
+    "67d0ad6 feat(§27, §28.4): make the four authority requirements answerable (#38)",
+    "e04944b feat: add governed Bonsai PR evidence pilot (#35)",
+    "96f4a09 fix(§44.6): recording a Gate Run is deliberate, not a side effect of running it (#34)",
+    "6f67b49 feat(§44.6): persist Gate Runs, and bind them to the obligations that cite them (#33)",
+    "e6f2c3b feat(§37): verify deliverables and recompute artifact digests (#32)",
+    "da236db fix(install): resolve `latest` from /releases, because /releases/latest hides prereleases (#31)",
+    "eb50dcb release: 0.1.0 (#30)",
+    "ab59509 feat(adoption): AGENTS.md, a Claude skill, and a verifying installer (#29)",
+    "859b53a feat(§46): `war verify` — the independent-verification seam (#28)",
+    "f1db6d4 feat(§46): independence attaches to a verification, not to the repository (#27)",
+    "7d40074 feat(0044): admit the CA bundle by narrow exception, and enable TLS (#26)",
+    "8c47332 feat(0044): wire §68 export — and it refuses, which is the check working (#25)",
+    "297054b feat(0044): reach the §67 KF seam — read-only, and the licence gate chose the TLS (#24)",
+    "f3ac4b1 feat(0041): take the §94 baseline — and a private counter would have published a zero for 51 (#23)",
     "da45481 feat(0042): an agent could allocate an enterprise ID and nothing said no (#22)",
     "0b96233 feat(0043): import the LamQuant ADR corpus for real — 173 ADRs, zero promoted (#21)",
     "1abc207 fix(0049): OW-ADR-0007 was accepted on a false premise — the SAS is in this repo (#20)",
