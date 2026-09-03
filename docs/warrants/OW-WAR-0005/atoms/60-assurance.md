@@ -14,18 +14,21 @@ Assurance level `controlled`; adequacy review required (§39.4) and recorded.
 ## Acceptance Obligations
 
 ### OBL-001 — `war check` produces the §71.7 output shape
+- **gate:** `gate://software.repo.war-check@1.0.0`
 
 - **scope:** the five Warrants under `docs/warrants/`.
 - **evidence:** stdout matching the documented shape, and an exit code
   consistent with the highest severity reported.
 
 ### OBL-002 — every Phase 1 conformance item PASSES
+- **gate:** `gate://software.repo.war-check@1.0.0`
 
 - **scope:** §91.1 items 1–6, §91.2 items 7, 8, 9, 10, 12, 16, and §91.4 items
   26–27. Enumerated, so the set cannot quietly shrink.
 - **evidence:** the conformance suite's per-item report.
 
 ### OBL-003 — every planted violation is REJECTED BY ITS INTENDED CONTROL
+- **gate:** `gate://software.repo.war-check@1.0.0`
 
 - **scope:** one planted violation per item in OBL-002.
 - **evidence:** for each, a run in which the check fails AND the failure names
@@ -36,12 +39,14 @@ Assurance level `controlled`; adequacy review required (§39.4) and recorded.
   exercise, while looking exactly like success in a pass/fail summary.
 
 ### OBL-004 — `war check` is green over this repository's own Warrants
+- **gate:** `gate://software.repo.war-check@1.0.0`
 
 - **scope:** universal over `docs/warrants/`, enumerated at run time rather than
   listed, so a sixth Warrant is covered on the day it is added.
 - **evidence:** exit 0 with no ERROR diagnostics.
 
 ### OBL-005 — the Phase 1 bootstrap is closed
+- **gate:** `gate://software.repo.war-check@1.0.0`
 
 - **scope:** the claim that OpenWarrant development now proceeds through
   Warrants OpenWarrant compiles.

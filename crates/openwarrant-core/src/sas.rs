@@ -228,6 +228,53 @@ impl SasRevision {
     }
 }
 
+/// §98's phases as the document states them: (number, title, Exit sentence).
+///
+/// Read at run time rather than copied into a constant, so that a SAS revision
+/// adding an Exit (0.1.0-draft.2 gave Phases 9 and 10 theirs) changes what the
+/// projection reports without a code change. A phase with no `Exit:` block, or
+/// whose block has no bullet, yields `None` — the projection then says "no
+/// Exit" rather than inventing one.
+#[must_use]
+pub fn section_98(text: &str) -> Vec<(u8, String, Option<String>)> {
+    let mut out: Vec<(u8, String, Option<String>)> = Vec::new();
+    // `in_phase` is true only between a `### Phase N` heading and the next
+    // heading of any level, so an `Exit:` in some other section can never
+    // attach its bullet to a phase (found by review).
+    let mut in_phase = false;
+    let mut in_exit = false;
+    for line in text.lines() {
+        if let Some(rest) = line.strip_prefix("### Phase ") {
+            let (num, title) = rest.split_once(" — ").unwrap_or((rest, ""));
+            in_exit = false;
+            in_phase = false;
+            if let Ok(n) = num.trim().parse::<u8>() {
+                out.push((n, title.trim().to_owned(), None));
+                in_phase = true;
+            }
+            continue;
+        }
+        if line.starts_with('#') {
+            in_exit = false;
+            in_phase = false;
+            continue;
+        }
+        if in_phase && line.trim() == "Exit:" {
+            in_exit = true;
+            continue;
+        }
+        if in_exit
+            && let Some(bullet) = line.trim_start().strip_prefix("- ")
+            && let Some(last) = out.last_mut()
+            && last.2.is_none()
+        {
+            last.2 = Some(bullet.trim().to_owned());
+            in_exit = false;
+        }
+    }
+    out
+}
+
 /// §106 as a map, parsed from the document's own table rows.
 #[must_use]
 pub fn section_106(text: &str) -> BTreeMap<String, String> {
@@ -307,6 +354,51 @@ impl Section106Diff {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn section_98_reads_titles_and_exit_bullets_and_says_none_when_absent() {
+        let text = "### Phase 0 — Telemetry shim\n\nDeliver:\n\n- x;\n\nExit:\n\n- real distributions.\n\n### Phase 1 — Compiler\n\nDeliver:\n\n- y.\n\n## 99. Next\n";
+        let p = super::section_98(text);
+        assert_eq!(p.len(), 2);
+        assert_eq!(
+            p[0],
+            (
+                0,
+                "Telemetry shim".to_owned(),
+                Some("real distributions.".to_owned())
+            )
+        );
+        assert_eq!(p[1], (1, "Compiler".to_owned(), None));
+    }
+
+    #[test]
+    fn section_98_ignores_an_exit_outside_a_phase_section() {
+        let text = "### Phase 0 — Alpha\n\nDeliver:\n- x.\n\n### Phase 1 — Beta\n\nDeliver:\n- y.\n\n## 99. Prose\n\nExit:\n\n- stray bullet.\n";
+        let p = super::section_98(text);
+        assert_eq!(p.len(), 2);
+        assert_eq!(
+            p[1].2, None,
+            "a stray Exit in §99 must not become Phase 1's"
+        );
+        let text2 =
+            "### Phase 0 — Alpha\n\nExit:\n\n- real.\n\n#### Note\n\nExit:\n\n- not this.\n";
+        assert_eq!(super::section_98(text2)[0].2.as_deref(), Some("real."));
+    }
+
+    #[test]
+    fn section_98_of_the_real_document_has_eleven_phases_and_exits_for_all_of_them() {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../docs/sas/WAR_Software_Architecture_Specification.md");
+        let text = std::fs::read_to_string(path).expect("SAS");
+        let p = super::section_98(&text);
+        assert_eq!(p.len(), 11);
+        let missing: Vec<u8> = p
+            .iter()
+            .filter(|(_, _, e)| e.is_none())
+            .map(|(n, _, _)| *n)
+            .collect();
+        assert!(missing.is_empty(), "phases without an Exit: {missing:?}");
+    }
+
     use super::*;
 
     fn rows(pairs: &[(&str, &str)]) -> BTreeMap<String, String> {

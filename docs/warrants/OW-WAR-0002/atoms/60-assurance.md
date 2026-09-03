@@ -12,12 +12,14 @@ classification: internal
 ## Acceptance Obligations
 
 ### OBL-001 — a valid manifest parses into typed values
+- **gate:** `gate://software.repo.war-check@1.0.0`
 
 - **scope:** the §61 manifest shape as exercised by the five Warrants in
   `docs/warrants/`. No claim about manifests using fields none of them use.
 - **evidence:** parse results asserted field by field.
 
 ### OBL-002 — each in-scope malformed composition is REFUSED
+- **gate:** `gate://software.repo.war-check@1.0.0`
 
 - **scope:** §91.2 tests 7 (missing required atom), 8 (duplicate ordinal),
   9 (unknown required role), and 12 (composition cycle).
@@ -27,6 +29,7 @@ classification: internal
   validator returning `Ok(())` unconditionally satisfies OBL-001 completely.
 
 ### OBL-003 — the acceptance corpus parses
+- **gate:** `gate://software.repo.war-check@1.0.0`
 
 - **scope:** all five Warrants under `docs/warrants/`, universally — every one,
   not a sample (§38.4).
@@ -35,6 +38,7 @@ classification: internal
   a visible count change rather than silent under-coverage.
 
 ### OBL-004 — alias allocation is atomic
+- **gate:** `gate://software.repo.war-check@1.0.0`
 
 - **scope:** concurrent `war new` on one repository, same filesystem.
 - **evidence:** N concurrent invocations produce N distinct aliases, or fewer

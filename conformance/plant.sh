@@ -56,6 +56,8 @@ restore() {
     # before this line existed. Named explicitly rather than `git clean`, which
     # would delete a developer's untracked work.
     rm -f docs/warrants/OW-WAR-0046/amendments/AM-999.yaml
+    # The agent-acceptance plant proposes a throwaway SAS revision.
+    rm -f docs/sas/revisions/0.1.0-draft.9.toml
 }
 
 # The mirror of `assert_gone`, for a mutation that ADDS rather than removes.
@@ -429,15 +431,17 @@ EOF" check --generated
 # it a regression guard rather than a planted fault. It is here because the
 # failure it guards against is silent — a resolver that started closing Warrants
 # would look like progress.
-plant_cmd "resolution blocked by unmet requirements" "resolution.requirement-unmet" "independence requirements are met" 2 \
-    "true" resolve OW-WAR-0001 --dry-run
+# OW-WAR-0050 is the fixture: its blocking unknown (administrator-owned GitHub
+# settings) keeps requirements 6 and 7 unmet whatever else is recorded.
+plant_cmd "resolution blocked by unmet requirements" "resolution.requirement-unmet" "no blocker remains" 2 \
+    "true" resolve OW-WAR-0050 --dry-run
 
 # §56.2 — `war resolve` with no flag emits the REQUEST (OW-WAR-0059), never a
 # record: it says what a signature would bind and whether one would be
 # refused. For a Warrant with requirements unmet it must say so and exit
 # not-ready, not quietly emit something a human could sign.
 plant_cmd "a resolution requested with requirements unmet" "requirements_met = false" "would be refused" 2 \
-    "true" resolve OW-WAR-0001
+    "true" resolve OW-WAR-0050
 
 # §31 — an amendment record that is malformed is worse than none, because it
 # looks like a reason. Three plants: no reason, no authorizer, and a semantic
@@ -1058,11 +1062,13 @@ plant_cmd "a candidate SAS that appends a requirement id" "sas.diff.added" "WAR-
     sas diff "$MIGRATE_TMP/sas-plus-999.md"
 
 # OBL-002. An acceptance signed by the agent that proposed it is refused, and
-# the record stays proposed.
-SAS_DIGEST="$(grep '^sha256' docs/sas/revisions/0.1.0-draft.1.toml | cut -d'"' -f2)"
+# the record stays proposed. Both recorded revisions are accepted now, so the
+# plant proposes a throwaway 0.1.0-draft.9 first; `restore` covers docs/sas/.
 plant_cmd "an agent accepting the SAS revision" "sas.unknown-actor\|sas.not-permitted" "claude" 2 \
-    "printf 'schema = \"oh.war/sas-acceptance-response/v1\"\nversion = \"0.1.0-draft.1\"\nsha256 = \"%s\"\naccepted_by = \"claude\"\nacting_role = \"owner\"\nmeaning = \"x\"\neffective_time = \"2026-09-02T00:00:00Z\"\n' \"$SAS_DIGEST\" > \"$MIGRATE_TMP/agent-accept.toml\"" \
-    sas accept 0.1.0-draft.1 --response "$MIGRATE_TMP/agent-accept.toml"
+    "\"$WAR\" sas propose 0.1.0-draft.9 >/dev/null 2>&1 || { echo 'sas propose 0.1.0-draft.9 failed; the plant cannot run' >&2; exit 9; }; \
+     d=\$(grep '^sha256' docs/sas/revisions/0.1.0-draft.9.toml | cut -d'\"' -f2); \
+     printf 'schema = \"oh.war/sas-acceptance-response/v1\"\nversion = \"0.1.0-draft.9\"\nsha256 = \"%s\"\naccepted_by = \"claude\"\nacting_role = \"owner\"\nmeaning = \"x\"\neffective_time = \"2026-09-02T00:00:00Z\"\n' \"\$d\" > \"$MIGRATE_TMP/agent-accept.toml\"" \
+    sas accept 0.1.0-draft.9 --response "$MIGRATE_TMP/agent-accept.toml"
 
 # OW-WAR-0059 — gate receipts as committed evidence, and the resolution seam.
 # OW-WAR-0010 carries real evidence (`gate-runs/`) and meets all thirteen, so

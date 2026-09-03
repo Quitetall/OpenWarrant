@@ -1,10 +1,12 @@
 schema = "oh.war/authorization/v1"
 warrant = "OW-WAR-0017"
+sas_revision = "0.1.0-draft.1"
 
 [revision]
-revision = 1
+revision = 2
 state = "authorized"
-contract_digest = "ca1471c65a7b651ba6f078c05d8e9bcbdb55dd030f6f638d35ffb880b71812aa"
+contract_digest = "44e6b1f4f9341df24e1a4baa592fe072ed947bf210c0c7c9c854755e173ea7a0"
+predecessor_digest = "ca1471c65a7b651ba6f078c05d8e9bcbdb55dd030f6f638d35ffb880b71812aa"
 proposer = "claude"
 
 [revision.coverage]
@@ -23,6 +25,6 @@ covered = [
 authorizer = "Brian Lam"
 actor_kind = "human"
 acting_role = "authorizer"
-meaning = """Authorizing OW-WAR-0017 (Implement the epistemic classes: evidence, observation, inference, judgment, resolution) at this contract digest means the owner accepts its intent, scope and obligations as the work to be done and judged, and accepts each residual risk declared below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 ("You should manually authorize each of the warrants. I give you my express permission to approve these things."); the decision is the owner's, the wording is the agent's."""
-effective_time = "2026-09-02T06:00:00Z"
+meaning = "Authorizing OW-WAR-0017 (Implement the epistemic classes: evidence, observation, inference, judgment, resolution) at this contract digest means the owner accepts its intent, scope and obligations as the work to be done and judged, and accepts each residual risk declared below with its stated consequence. It does not resolve the Warrant. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02; the decision is the owner's, the wording is the agent's."
+effective_time = "2026-09-03T00:40:00Z"
 independence = "separate_role"

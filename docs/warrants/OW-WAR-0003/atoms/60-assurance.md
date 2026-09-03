@@ -15,18 +15,21 @@ RQ-055) and is recorded below rather than waived.
 ## Acceptance Obligations
 
 ### OBL-000 — the canonicalization library is selected by ADR and license-cleared
+- **gate:** `gate://software.repo.war-check@1.0.0`
 
 - **scope:** the single dependency implementing RFC 8785.
 - **evidence:** a merged implementation ADR naming the crate and its version,
   plus `cargo deny check licenses` passing with it in the graph.
 
 ### OBL-001 — a valid Basis lowers to the IR
+- **gate:** `gate://software.repo.war-check@1.0.0`
 
 - **scope:** the five Warrants in `docs/warrants/`, under the `delivery` profile.
 - **evidence:** lowering succeeds and the IR's `api_version` and `kind` are
   exactly the pinned constants.
 
 ### OBL-002 — canonical output conforms to RFC 8785
+- **gate:** `gate://software.repo.war-check@1.0.0`
 
 - **scope:** RFC 8785's published test vectors, plus the five Warrants.
 - **evidence:** byte comparison against the RFC's vectors — **external
@@ -37,6 +40,7 @@ RQ-055) and is recorded below rather than waived.
   would be wrong in a way no test could see.
 
 ### OBL-003 — digests are domain-separated
+- **gate:** `gate://software.repo.war-check@1.0.0`
 
 - **scope:** all fifteen domains.
 - **evidence:** one payload hashed under two different domains yields two
@@ -45,6 +49,7 @@ RQ-055) and is recorded below rather than waived.
   collides.
 
 ### OBL-004 — canonical output is host-independent
+- **gate:** `gate://software.repo.war-check@1.0.0`
 
 - **scope:** two runs, differing in process, working directory, environment
   ordering, and locale.

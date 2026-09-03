@@ -126,6 +126,13 @@ pub struct AuthorizationRecord {
     pub schema: String,
     pub warrant: String,
     pub revision: ContractRevision,
+    /// §14 — the SAS revision the authorized contract was compiled against.
+    /// Fixed here so that a LATER SAS revision does not move this Warrant's
+    /// contract digest out from under its signature: an authorized contract
+    /// keeps its Basis until an amendment re-authorizes it. Absent only on
+    /// records written before this field existed; those read as the latest.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sas_revision: Option<String>,
 }
 
 /// The persisted judgment set.
@@ -535,6 +542,7 @@ pub fn ingest(
         schema: AUTHORIZATION_SCHEMA.to_owned(),
         warrant: alias.to_owned(),
         revision,
+        sas_revision: basis.sas.as_ref().map(|p| p.version.clone()),
     };
     write_toml(&dir.join("authorization.toml"), &record)?;
     if let Some(v) = &one.validated {
@@ -938,6 +946,7 @@ mod tests {
                 "sha256:abc".to_owned(),
                 openwarrant_core::ContractCoverage::new([]),
             ),
+            sas_revision: None,
         };
         assert!(
             !authorizes_current_contract(&record, "sha256:abc"),

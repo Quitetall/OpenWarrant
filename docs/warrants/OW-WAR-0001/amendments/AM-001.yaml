@@ -1,0 +1,19 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-001"
+band: "manual_revision"
+reason: "OW-WAR-0001 was authored before the Gate Registry existed, so its obligations name evidence but cite no gate. §56.1 requirement 5 reads unmet for a Warrant that names no gate — correctly: nothing was asked. This amendment adds the citation each obligation's evidence already relies on, `gate://software.repo.war-check@1.0.0`, the gate that runs the plant battery and the corpus check. Nothing else changes. Authorized by the owner on the express instruction of 2026-09-02; wording drafted by the performer `claude`."
+governing_adr_or_policy: "sas://WAR-SAS-43.5"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. No artifact changes; the assurance atom gains one `gate:` line per obligation (4), the contract digest moves, and revision 2 is authorized against the amended contract."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-03"
+
+semantic_diff:
+  - element: "obligations"
+    before: "Each obligation names evidence and cites no gate."
+    after: "Each obligation additionally cites `gate://software.repo.war-check@1.0.0`."
+
+affected_stages: []
+affected_milestones: []
