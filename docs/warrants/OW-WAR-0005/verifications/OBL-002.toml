@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "The measured evidence lacks a per-item conformance report for the specified scope (§91.1 items 1–6, §91.2 items 7, 8, 9, 10, 12, 16, and §91.4 items 26–27); only aggregate test results (e.g., 126 plant tests passed, 636 unit tests passed) are provided, which do not demonstrate each item's pass status."
+evidence = "No per-item conformance report for the specified §91.1, §91.2, and §91.4 items is provided in the measured evidence; the planted violations are under OW-WAR-0020, and the general tests or receipt do not demonstrate that each conformance item passes."
 performer = "claude"
 
 [verifier]

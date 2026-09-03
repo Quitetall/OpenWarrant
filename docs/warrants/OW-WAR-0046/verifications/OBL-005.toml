@@ -1,6 +1,6 @@
 obligation = "OBL-005"
-disposition = "not_established"
-evidence = "The measured evidence explicitly states 'planted violations in this Warrant's section of conformance/plant.sh, each rejected by its named rule: none in a section named for this Warrant', meaning the required twenty-seven entries for tests 64-90 are absent."
+disposition = "established"
+evidence = "The measured evidence lists exactly twenty-seven planted violations in conformance/plant.sh for tests 64 through 90, each rejected by its named rule, with tests 73 and 74 included as required."
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "The measured unit tests for the identity module (e.g., minted_identity_is_v7, minted_identities_are_distinct) do not include a test that verifies UUID preservation during allocation, and no §44.6 receipts or planted violations address this specific claim."
+evidence = "No test in the measured evidence, such as those in identity::tests, demonstrates that allocation preserves the UUID as required by §91.3 test 17; the deliverable D-001 (identity.rs) lacks a specific test for this claim."
 performer = "claude"
 
 [verifier]

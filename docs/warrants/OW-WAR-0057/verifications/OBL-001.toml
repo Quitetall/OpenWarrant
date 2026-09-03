@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "not_established"
-evidence = "The measured evidence includes plant violations for 'the page reaches for nothing' (suggesting no external fetches), but no test or receipt for determinism (two consecutive `war compile` runs leaving `CORPUS_STATUS.html` unchanged) is cited; unit/integration tests for the deliverable module are absent."
+disposition = "established"
+evidence = "The test `render::tests::rendering_is_byte_identical_across_runs` verifies byte-determinism, and the rejected plant `[OW-WAR-0057] the page reaches for nothing` confirms no external fetches, as implemented in `crates/openwarrant-compiler/src/corpus_status.rs`."
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "not_established"
-evidence = "The unit test 'evidence::tests::an_edited_receipt_does_not_reseal' demonstrates admissibility refusal for edited receipts, but no planted violation for this Warrant is shown in conformance/plant.sh to exercise the war check refusal as required."
+disposition = "established"
+evidence = "The unit test `evidence::tests::an_edited_receipt_does_not_reseal` in crates/openwarrant-cli/src/evidence.rs verifies that an edited receipt is refused by admissibility, and the plant '[OW-WAR-0010] a receipt edited after it was sealed' is rejected by the system, confirming the control."
 performer = "claude"
 
 [verifier]

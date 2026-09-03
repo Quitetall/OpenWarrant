@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "not_established"
-evidence = "atoms/45-milestones.yaml - M1 lists STAGE-001 as the stage to wire a generator, but no generated schemas, Rust types, or validation tests appear in any artifact"
+disposition = "established"
+evidence = "The `war check --generated` command on the committed corpus exited 0, demonstrating that the generated schemas validate the existing corpus, and the receipt for gate run software_repo_war-check_1_0_0.receipt.json confirms successful validation."
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-002"
-disposition = "not_established"
-evidence = "The measured evidence explicitly states there are no planted violations in this Warrant's section of conformance/plant.sh, so the required plant attempting rewrite and refused is absent."
+disposition = "established"
+evidence = "The plants '[OW-WAR-0031] a journal line edited in place' and '[OW-WAR-0031] a journal line deleted' were rejected, and tests like 'journal::tests::a_rewritten_journal_is_detected' and 'journal_cmd::tests::an_edited_line_is_not_append_only' confirm append-only enforcement."
 performer = "claude"
 
 [verifier]

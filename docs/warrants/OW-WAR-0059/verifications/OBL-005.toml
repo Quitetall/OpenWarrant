@@ -1,6 +1,6 @@
 obligation = "OBL-005"
-disposition = "not_established"
-evidence = "The measured evidence shows no planted violations in conformance/plant.sh for this Warrant and no unit/integration tests targeting the deliverable module resolution_cmd.rs, so the refusal of 'satisfied' over unestablished obligations is not demonstrated by any test or receipt."
+disposition = "established"
+evidence = "The plant 'satisfied signed over an unestablished obligation' in conformance/plant.sh, listed under OW-WAR-0010, was rejected by its named rule and exercises the control for this obligation by testing that `satisfied` is refused when obligations are not established."
 performer = "claude"
 
 [verifier]

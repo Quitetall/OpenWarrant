@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "The deliverable file crates/openwarrant-core/src/identity.rs and its passing tests (e.g., minted_identities_are_distinct, alias_round_trips) focus solely on identity allocation and validation, with no test, receipt, or plant addressing post-registration source holder retention or Git's role."
+evidence = "The declared deliverable D-001 targets identity.rs, which implements identity allocation (WarUuid and LocalAlias) but does not mention or test the concept of Source Holder transfer or Git remaining as Source Holder post-registration; no specific test or artifact in the measured evidence addresses this obligation."
 performer = "claude"
 
 [verifier]

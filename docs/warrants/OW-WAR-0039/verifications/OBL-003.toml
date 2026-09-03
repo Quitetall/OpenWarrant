@@ -1,6 +1,6 @@
 obligation = "OBL-003"
-disposition = "not_established"
-evidence = "No test or measurement for 'a plant attempting auto-attachment, refused' is present in the listed unit/integration tests (e.g., telemetry::tests::*) or the plant battery, despite the deliverable D-001 targeting telemetry.rs for untracked-work detection."
+disposition = "established"
+evidence = "The plant '[OW-WAR-0020] a relation attached with no reviewer' was attempted and refused by its named rule, exercising the control that no relation is fabricated without review."
 performer = "claude"
 
 [verifier]

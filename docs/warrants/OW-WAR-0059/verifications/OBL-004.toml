@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "No plant test in conformance/plant.sh for this Warrant demonstrates the refusal of an agent resolution response, and no unit/integration tests exist for the deliverable module crates/openwarrant-cli/src/resolution_cmd.rs."
+evidence = "No plant or test in the measured evidence exercises the agent-refusal control in the resolution command; the plant battery is empty and the 640 passing tests do not include a test for an agent being refused to resolve."
 performer = "claude"
 
 [verifier]

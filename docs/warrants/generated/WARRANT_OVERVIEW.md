@@ -22,33 +22,33 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0009](docs/warrants/OW-WAR-0009/manifest.toml) | Implement contract revisions and their immutability | `authorized` | `current` | `valid` | `controlled` | 4M / 4S |
 | [OW-WAR-0010](docs/warrants/OW-WAR-0010/manifest.toml) | Implement the autonomy envelope and amendment records | `resolved` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0011](docs/warrants/OW-WAR-0011/manifest.toml) | Implement prerequisites and Preflight | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0012](docs/warrants/OW-WAR-0012/manifest.toml) | Implement the context model, context manifest, and trust classes | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0012](docs/warrants/OW-WAR-0012/manifest.toml) | Implement the context model, context manifest, and trust classes | `resolved` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0013](docs/warrants/OW-WAR-0013/manifest.toml) | Validate SAS and Roadmap traceability | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0014](docs/warrants/OW-WAR-0014/manifest.toml) | Implement the rationale model, assumptions, and unknowns | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0014](docs/warrants/OW-WAR-0014/manifest.toml) | Implement the rationale model, assumptions, and unknowns | `resolved` | `current` | `valid` | `basic` | 2M / 2S |
 | [OW-WAR-0015](docs/warrants/OW-WAR-0015/manifest.toml) | Implement deliverables, artifacts, and artifact provenance | `resolved` | `current` | `valid` | `basic` | 2M / 2S |
 | [OW-WAR-0016](docs/warrants/OW-WAR-0016/manifest.toml) | Implement acceptance obligations and bounded claims | `resolved` | `current` | `valid` | `controlled` | 4M / 4S |
-| [OW-WAR-0017](docs/warrants/OW-WAR-0017/manifest.toml) | Implement the epistemic classes: evidence, observation, inference, judgment, resolution | `authorized` | `current` | `valid` | `controlled` | 4M / 4S |
+| [OW-WAR-0017](docs/warrants/OW-WAR-0017/manifest.toml) | Implement the epistemic classes: evidence, observation, inference, judgment, resolution | `resolved` | `current` | `valid` | `controlled` | 4M / 4S |
 | [OW-WAR-0018](docs/warrants/OW-WAR-0018/manifest.toml) | Implement contract-adequacy review, structurally checked | `authorized` | `current` | `valid` | `controlled` | 3M / 3S |
 | [OW-WAR-0019](docs/warrants/OW-WAR-0019/manifest.toml) | Implement the Gate Registry: definitions, qualification, and bindings | `resolved` | `current` | `valid` | `controlled` | 4M / 4S |
 | [OW-WAR-0020](docs/warrants/OW-WAR-0020/manifest.toml) | Implement Gate Run semantics, askability, and invalidation | `resolved` | `current` | `valid` | `controlled` | 5M / 5S |
-| [OW-WAR-0021](docs/warrants/OW-WAR-0021/manifest.toml) | Implement verifier independence | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0021](docs/warrants/OW-WAR-0021/manifest.toml) | Implement verifier independence | `resolved` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0022](docs/warrants/OW-WAR-0022/manifest.toml) | Implement resolution, dispute, and annulment | `resolved` | `current` | `valid` | `controlled` | 4M / 4S |
 | [OW-WAR-0023](docs/warrants/OW-WAR-0023/manifest.toml) | Implement Stage Dispatch compilation and actor-specific projection | `authorized` | `current` | `valid` | `controlled` | 3M / 3S |
 | [OW-WAR-0024](docs/warrants/OW-WAR-0024/manifest.toml) | Implement Stage Submission and attempt semantics | `resolved` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0025](docs/warrants/OW-WAR-0025/manifest.toml) | Implement blockers, deviations, decision proposals, and discovered gaps | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0025](docs/warrants/OW-WAR-0025/manifest.toml) | Implement blockers, deviations, decision proposals, and discovered gaps | `resolved` | `current` | `valid` | `basic` | 2M / 2S |
 | [OW-WAR-0026](docs/warrants/OW-WAR-0026/manifest.toml) | Implement the Katana runtime seam, capabilities, and receipts | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0027](docs/warrants/OW-WAR-0027/manifest.toml) | Implement the BLUT adapter: PlanSpec lowering and lineage receipt | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0028](docs/warrants/OW-WAR-0028/manifest.toml) | Implement Knowledge Fabric typed actions and the controlled-action envelope | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0029](docs/warrants/OW-WAR-0029/manifest.toml) | Implement KF registration, global identity allocation, and federation | `authorized` | `current` | `valid` | `basic` | 4M / 4S |
 | [OW-WAR-0030](docs/warrants/OW-WAR-0030/manifest.toml) | Implement portable preservation: one-file export and round trip | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0031](docs/warrants/OW-WAR-0031/manifest.toml) | Implement the local draft journal | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0031](docs/warrants/OW-WAR-0031/manifest.toml) | Implement the local draft journal | `resolved` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0032](docs/warrants/OW-WAR-0032/manifest.toml) | Generate the schema pack and implement protocol versioning | `authorized` | `current` | `valid` | `basic` | 4M / 4S |
-| [OW-WAR-0033](docs/warrants/OW-WAR-0033/manifest.toml) | Implement the remaining read projections | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0034](docs/warrants/OW-WAR-0034/manifest.toml) | Implement the agent protocol and Draft Proposal validation | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0033](docs/warrants/OW-WAR-0033/manifest.toml) | Implement the remaining read projections | `resolved` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0034](docs/warrants/OW-WAR-0034/manifest.toml) | Implement the agent protocol and Draft Proposal validation | `resolved` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0035](docs/warrants/OW-WAR-0035/manifest.toml) | Implement `war plan` and the interview loop | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0036](docs/warrants/OW-WAR-0036/manifest.toml) | Implement normative-decision detection and proposed-ADR generation | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0037](docs/warrants/OW-WAR-0037/manifest.toml) | Implement `war diff`: semantic difference between revisions | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0038](docs/warrants/OW-WAR-0038/manifest.toml) | Implement the existing-ADR importer, preserving unknown classes | `authorized` | `current` | `valid` | `controlled` | 4M / 4S |
+| [OW-WAR-0038](docs/warrants/OW-WAR-0038/manifest.toml) | Implement the existing-ADR importer, preserving unknown classes | `resolved` | `current` | `valid` | `controlled` | 4M / 4S |
 | [OW-WAR-0039](docs/warrants/OW-WAR-0039/manifest.toml) | Implement telemetry, unit economics, and untracked-work detection | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0040](docs/warrants/OW-WAR-0040/manifest.toml) | Implement the Liminal adapter and measured parity harness | `authorized` | `current` | `valid` | `controlled` | 4M / 4S |
 | [OW-WAR-0041](docs/warrants/OW-WAR-0041/manifest.toml) | Discharge the Phase 0 exit: real telemetry distributions, with a baseline | `authorized` | `current` | `valid` | `controlled` | 4M / 2S |
@@ -56,13 +56,13 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0043](docs/warrants/OW-WAR-0043/manifest.toml) | Discharge the Phase 3 exit: migrate the LamQuant ADR corpus, fabricating nothing | `authorized` | `current` | `valid` | `controlled` | 4M / 3S |
 | [OW-WAR-0044](docs/warrants/OW-WAR-0044/manifest.toml) | Discharge the Phase 4 exit: KF is institutional authority, Git stays Source Holder | `authorized` | `current` | `valid` | `controlled` | 5M / 3S |
 | [OW-WAR-0045](docs/warrants/OW-WAR-0045/manifest.toml) | Discharge the Phase 5 exit: a stateless actor executes one Dispatch | `authorized` | `current` | `valid` | `controlled` | 5M / 3S |
-| [OW-WAR-0046](docs/warrants/OW-WAR-0046/manifest.toml) | Discharge the Phase 6 exit: a delivery closes only through bounded proof | `authorized` | `current` | `valid` | `controlled` | 5M / 4S |
+| [OW-WAR-0046](docs/warrants/OW-WAR-0046/manifest.toml) | Discharge the Phase 6 exit: a delivery closes only through bounded proof | `resolved` | `current` | `valid` | `controlled` | 5M / 4S |
 | [OW-WAR-0047](docs/warrants/OW-WAR-0047/manifest.toml) | Discharge the Phase 7 exit: compatible WARs execute without duplicating BLUT | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0048](docs/warrants/OW-WAR-0048/manifest.toml) | Discharge the Phase 8 exit: measured adapter parity and the two-host canonical run | `authorized` | `current` | `valid` | `controlled` | 4M / 3S |
 | [OW-WAR-0049](docs/warrants/OW-WAR-0049/manifest.toml) | Close the alpha residue: the gaps alpha carried forward and one false claim | `authorized` | `current` | `valid` | `controlled` | 4M / 2S |
 | [OW-WAR-0050](docs/warrants/OW-WAR-0050/manifest.toml) | Governed Bonsai evidence for pull-request workflow | `authorized` | `current` | `valid` | `basic` | 2M / 3S |
 | [OW-WAR-0055](docs/warrants/OW-WAR-0055/manifest.toml) | Compute the goal hierarchy: war status and the corpus projection | `authorized` | `current` | `valid` | `controlled` | 4M / 5S |
-| [OW-WAR-0056](docs/warrants/OW-WAR-0056/manifest.toml) | Compile a real Stage Dispatch (§47) | `authorized` | `current` | `valid` | `controlled` | 3M / 4S |
+| [OW-WAR-0056](docs/warrants/OW-WAR-0056/manifest.toml) | Compile a real Stage Dispatch (§47) | `resolved` | `current` | `valid` | `controlled` | 3M / 4S |
 | [OW-WAR-0057](docs/warrants/OW-WAR-0057/manifest.toml) | The viewer: a static page over the corpus projection | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
 | [OW-WAR-0058](docs/warrants/OW-WAR-0058/manifest.toml) | Put the SAS under §101 governance: controlled revisions and the Release axis | `authorized` | `current` | `valid` | `controlled` | 3M / 4S |
 | [OW-WAR-0059](docs/warrants/OW-WAR-0059/manifest.toml) | Commit gate receipts as evidence and record the first resolutions | `authorized` | `current` | `valid` | `controlled` | 4M / 4S |

@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "not_established"
-evidence = "The measured evidence lists passing unit/integration tests from other modules but does not include any tests from xtask/src/main.rs that verify the workflows gate step, such as `a_tag_pinned_action_is_refused` or `the_real_pages_workflow_passes`, which are required to demonstrate the obligation."
+disposition = "established"
+evidence = "The unit tests `a_sha_pinned_action_passes`, `a_tag_pinned_action_is_refused`, `a_short_sha_is_refused`, and `the_real_pages_workflow_passes` in `xtask/src/main.rs` passed, and the committed gate receipt `docs/warrants/OW-WAR-0060/gate-runs/software_repo_war-check_1_0_0.receipt.json` confirms the workflows step enforced SHA pinning."
 performer = "claude"
 
 [verifier]

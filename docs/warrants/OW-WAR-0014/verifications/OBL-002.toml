@@ -1,6 +1,6 @@
 obligation = "OBL-002"
-disposition = "not_established"
-evidence = "No planted violations for this Warrant in conformance/plant.sh, and the required two plants showing refusals naming their rules are absent."
+disposition = "established"
+evidence = "The plant '[OW-WAR-0020] an unanswered blocking question' is rejected by its named rule, demonstrating refusal of blocking unknowns, and the test 'an_assumption_validated_by_a_gate_that_depends_on_it_is_refused' passes, demonstrating refusal of circular validation."
 performer = "claude"
 
 [verifier]

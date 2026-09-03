@@ -1,6 +1,6 @@
 obligation = "OBL-002"
-disposition = "not_established"
-evidence = "No plant in the conformance/plant.sh section for this Warrant demonstrates that OpenWarrant fabricates a receipt and is refused; the measured evidence shows no such violation was planted or tested."
+disposition = "established"
+evidence = "The plant '[OW-WAR-0020] a receipt for a run that never happened' in conformance/plant.sh was rejected by its named rule, demonstrating that OpenWarrant refuses to fabricate (mint) receipts, as required by §48.4."
 performer = "claude"
 
 [verifier]

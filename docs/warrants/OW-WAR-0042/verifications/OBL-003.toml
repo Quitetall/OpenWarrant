@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "No filesystem audit or test demonstrating that all mutations are limited to §74.3's operations and that `write_file` is refused is provided; the measured evidence lacks concrete artifacts or receipts to establish the claim."
+evidence = "The plant '[OW-WAR-0020] an agent asking to write a file' was rejected, demonstrating refusal of write_file operations, but no filesystem audit is cited to show that no writes occurred outside the allowed operations in the run."
 performer = "claude"
 
 [verifier]

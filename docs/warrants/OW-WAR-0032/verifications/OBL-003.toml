@@ -1,6 +1,6 @@
 obligation = "OBL-003"
-disposition = "not_established"
-evidence = "No planted violations or tests in conformance/plant.sh for this Warrant were provided to demonstrate refusal of hand-edited schemas, and no other artifacts or measurements directly address the claim."
+disposition = "established"
+evidence = "The plant '[OW-WAR-0020] generated view edited by hand' was rejected by its named rule, demonstrating that hand-editing of generated schemas is refused as required."
 performer = "claude"
 
 [verifier]

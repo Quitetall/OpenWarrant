@@ -1,6 +1,6 @@
 obligation = "OBL-006"
-disposition = "not_established"
-evidence = "No plant in conformance/plant.sh or unit test for the deliverable module demonstrates that `war check` refuses a `resolution.toml` with a different digest as `resolution.stale`; the measured evidence shows no such test exists."
+disposition = "established"
+evidence = "The plant '[OW-WAR-0010] a resolution of a contract that has since moved' was rejected by the system, and the `check` function in `resolution_cmd.rs` is designed to report resolutions as stale when the contract has moved."
 performer = "claude"
 
 [verifier]

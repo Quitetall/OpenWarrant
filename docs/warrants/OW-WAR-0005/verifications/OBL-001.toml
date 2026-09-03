@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "No test, receipt, or measurement in the provided evidence verifies that `war check` produces the §71.7 output shape (stdout matching documented shape and exit code consistent with highest severity); the listed tests and plant battery do not explicitly cover this claim."
+evidence = "The measured evidence does not include stdout output or a specific test verifying the §71.7 shape; only exit code 0 and passing tests are reported, which does not demonstrate the output shape matches the documented specification."
 performer = "claude"
 
 [verifier]

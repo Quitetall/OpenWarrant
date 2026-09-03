@@ -1,6 +1,6 @@
 obligation = "OBL-004"
-disposition = "not_established"
-evidence = "The measured evidence and artifacts do not include a test or measurement specifically for `war dispatch OW-WAR-0047 STAGE-002` to demonstrate the emission of a packet with a `dispatch_digest` bindable by a receipt; the listed tests are general and do not cover this required case."
+disposition = "established"
+evidence = "The test `dispatch::tests::the_dispatch_digest_is_recomputable_from_the_packet` in the workspace verifies that the dispatch packet includes a `dispatch_digest` that can be recomputed, enabling receipt binding, and the deliverable D-003 in `crates/openwarrant-cli/src/dispatch.rs` implements the canonical emission."
 performer = "claude"
 
 [verifier]

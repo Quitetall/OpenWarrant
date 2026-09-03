@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "No test or measurement in the provided artifacts verifies that superseded, disputed, and annulled records are present after export; the tests in export.rs (e.g., every_required_content_is_classified, an_unreconnected_round_trip_is_refused_as_vacuous) focus on content classification and round trip behavior, not on the presence of historical records."
+evidence = "The export.rs file and its tests (e.g., every_required_content_is_classified) do not verify that superseded, disputed, or annulled records are present after export, and no measured evidence or plant in the provided list tests this claim."
 performer = "claude"
 
 [verifier]
