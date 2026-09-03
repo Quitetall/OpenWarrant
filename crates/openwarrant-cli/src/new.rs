@@ -122,7 +122,10 @@ fn next_ordinal(repo: &Repository) -> Result<u32, RepoError> {
 
 fn manifest_template(uuid: &WarUuid, alias: &str, title: &str, profile: Profile) -> String {
     let mut out = format!(
-        "schema = \"oh.war/manifest/v1\"\n\
+        "# A Warrant is the contract for ONE bounded intervention inside a program,\n\
+         # and it traces to that program's SAS through [[implements]] and [[roadmap]].\n\
+         # Starting a program? Write its SAS instead (SAS §6.10; docs/DEFINITIONS.md).\n\
+         schema = \"oh.war/manifest/v1\"\n\
          uuid = \"{uuid}\"\n\
          local_alias = \"{alias}\"\n\
          \n\

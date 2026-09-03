@@ -5,18 +5,18 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 
 # Corpus Status
 
-*Provenance: **derived**. Every state on this page is derived from the records' shape. Nothing journals §24 transitions. 20 Warrant(s) carry a §56.2 resolution record and read `resolved` from it; every other Warrant reads at most `would_satisfy`, and a requirement reads `satisfied` only through a resolved Warrant with evidence.*
+*Provenance: **derived**. Every state on this page is derived from the records' shape. Nothing journals §24 transitions. 21 Warrant(s) carry a §56.2 resolution record and read `resolved` from it; every other Warrant reads at most `would_satisfy`, and a requirement reads `satisfied` only through a resolved Warrant with evidence.*
 
 ## Read this first
 
 - Gate runs are read ONLY from each Warrant's committed `gate-runs/` (§44.6 receipts minted by `war evidence record`, bound to the contract digest they ran against). The gitignored `docs/receipts/` scratch path is never read, so this projection reproduces from a fresh clone. §56.1 requirement 5 reads unmet for every Warrant that has not recorded a run, which is a true state, not a caveat.
-- `docs/roadmap/PRODUCTION_ROADMAP.md` marks Warrants "resolved" 39 time(s). The Release axis above counts §56.2 records (`resolution.toml`), of which there are 20. The rest of those are hand-written claims, not records, and nothing above reads them.
+- `docs/roadmap/PRODUCTION_ROADMAP.md` marks Warrants "resolved" 39 time(s). The Release axis above counts §56.2 records (`resolution.toml`), of which there are 21. The rest of those are hand-written claims, not records, and nothing above reads them.
 
 ## Release
 
-- **SAS revision:** 0.1.0-draft.2
-- **digest:** `sha256:daa1c89a3ca01cb7d2a219f8d08a85ec36250094d15324cd79248019a4621d9e`
-- Revision 0.1.0-draft.2 is ACCEPTED (§101.2) and normative. A Warrant compiles against the revision its authorization recorded (§14), so a later revision does not move an authorized contract: 57 against 0.1.0-draft.1.
+- **SAS revision:** 0.1.0-draft.3
+- **digest:** `sha256:742dfd066b8df579116ebbd36e19a4b57dc0849bf913c37b716e690e29069a8a`
+- Revision 0.1.0-draft.3 is ACCEPTED (§101.2) and normative. A Warrant compiles against the revision its authorization recorded (§14), so a later revision does not move an authorized contract: 57 against 0.1.0-draft.1, 1 against 0.1.0-draft.3.
 
 **Requirements (57 in §106)** — strictest rung first:
 
@@ -31,7 +31,7 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 | roadmap://OW-PHASE-0: Telemetry shim | OW-WAR-0041 | blocked by OW-WAR-0039, OW-WAR-0041 | 0 | 0 | 2 | 0 | 0 |
 | roadmap://OW-PHASE-1: File-native WAR compiler | OW-WAR-0061 | recorded | 0 | 1 | 11 | 0 | 7 |
 | roadmap://OW-PHASE-2: Agent planner | OW-WAR-0042 | blocked by OW-WAR-0035, OW-WAR-0037, OW-WAR-0042 | 0 | 2 | 1 | 0 | 1 |
-| roadmap://OW-PHASE-3: ADR federation | OW-WAR-0043 | blocked by OW-WAR-0006, OW-WAR-0036, OW-WAR-0043, OW-WAR-0058 | 0 | 0 | 4 | 0 | 1 |
+| roadmap://OW-PHASE-3: ADR federation | OW-WAR-0043 | blocked by OW-WAR-0006, OW-WAR-0036, OW-WAR-0043, OW-WAR-0058 | 0 | 0 | 4 | 0 | 2 |
 | roadmap://OW-PHASE-4: Knowledge Fabric registration | OW-WAR-0044 | blocked by OW-WAR-0028, OW-WAR-0029, OW-WAR-0030, OW-WAR-0032, OW-WAR-0044 | 0 | 1 | 4 | 0 | 0 |
 | roadmap://OW-PHASE-5: Dispatch and Katana execution | OW-WAR-0045 | blocked by OW-WAR-0011, OW-WAR-0023, OW-WAR-0026, OW-WAR-0045 | 0 | 2 | 2 | 0 | 4 |
 | roadmap://OW-PHASE-6: Gate Registry and assurance case | OW-WAR-0046 | recorded | 0 | 0 | 2 | 0 | 7 |
@@ -97,7 +97,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-015` | claimed | 0 | OW-WAR-0002 (complete), OW-WAR-0005 (complete) |
 | `WAR-SAS-RQ-020` | claimed | 0 | OW-WAR-0036 (complete), OW-WAR-0058 (partial) |
 | `WAR-SAS-RQ-021` | unaddressed | 0 | — |
-| `WAR-SAS-RQ-022` | in_progress | 0 | OW-WAR-0013 (complete), OW-WAR-0055 (complete), OW-WAR-0061 (partial) |
+| `WAR-SAS-RQ-022` | in_progress | 0 | OW-WAR-0013 (complete), OW-WAR-0055 (complete), OW-WAR-0061 (partial), OW-WAR-0062 (partial) |
 | `WAR-SAS-RQ-023` | unaddressed | 0 | — |
 | `WAR-SAS-RQ-024` | claimed | 0 | OW-WAR-0006 (complete) |
 | `WAR-SAS-RQ-025` | claimed | 0 | OW-WAR-0006 (complete) |
@@ -142,7 +142,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-083` | claimed | 0 | OW-WAR-0030 (complete) |
 | `WAR-SAS-RQ-084` | claimed | 0 | OW-WAR-0030 (complete) |
 
-## Warrants (57) — invalid 0 · draft 10 · ready_to_resolve 27 · would_satisfy 0 · resolved **20**
+## Warrants (58) — invalid 0 · draft 10 · ready_to_resolve 27 · would_satisfy 0 · resolved **21**
 
 | Warrant | rung | §38.6 | blocking unknowns | milestones evidenced | first unmet |
 |---|---|---|---|---|---|
@@ -203,6 +203,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0059` Commit gate receipts as evidence and record the first resolutions | ready_to_resolve | NOT satisfied | 0 | 2 of 4 | — |
 | `OW-WAR-0060` Publish the corpus viewer: GitHub Pages from the committed projection | ready_to_resolve | NOT satisfied | 0 | 1 of 2 | — |
 | `OW-WAR-0061` Discharge the Phase 1 exit: OpenWarrant development uses WARs | resolved | would satisfy | 0 | 1 of 1 | — |
+| `OW-WAR-0062` Lock down the levels: what a SAS, a Warrant, and every other object are | resolved | would satisfy | 0 | 1 of 1 | — |
 
 ## Not reported here
 
