@@ -7,7 +7,7 @@
 | Document class | Software Architecture Specification |
 | Short name | WAR SAS |
 | Status | Draft for adoption |
-| Version | `0.1.0-draft.2` |
+| Version | `0.1.0-draft.3` |
 | Date | 2026-08-19 |
 | Enterprise identifier | Unallocated — this file name is not an official Identifier Registry allocation |
 | System name | **OpenWarrant** |
@@ -296,6 +296,68 @@ Evidence is the immutable basis used to observe or evaluate those subjects.
 ### 6.9 Resolution
 
 Resolution is the attributable organizational conclusion about the Warrant under one exact contract and assurance basis.
+
+### 6.10 The levels, and the one rule about SAS and Warrant
+
+Every level above is a named kind of object. This subsection fixes what each
+one IS, so that no reader has to infer it from the diagram, and states the one
+rule that has been misread in practice.
+
+| Level | Object | What it is | Written by | Governed by | Read by |
+|---|---|---|---|---|---|
+| Vision | product or system vision | why the system should exist; not a record this system compiles | a person | nothing here | everyone |
+| **Release** | an **accepted SAS revision** (`docs/sas/revisions/<version>.toml`) | the contract for a WHOLE PROGRAM: what the software is and shall become, with stable requirement ids (§106) and phased Objectives (§98) | a person or agent proposes; a human accepts (§101.2) | §101 | `war sas`, the corpus projection's Release axis |
+| **Objective** | a §98 phase, `roadmap://<PREFIX>-PHASE-<N>` | a stage of the Roadmap with an Exit sentence; achieved when its `exit`-slugged Warrant resolves satisfied | the SAS | §98 | the corpus projection's Objective axis |
+| **Requirement** | a §106 row, `sas://<PREFIX>-SAS-RQ-<NNN>` | one stable, append-only architectural requirement; a Warrant implements it partially or completely | the SAS | §34, §101 | `war check`, the requirement ladder |
+| **Warrant** | a WAR (`docs/warrants/<alias>/`) | the contract for ONE BOUNDED INTERVENTION inside a program: intent, basis, work order, milestones, obligations; authorized, executed, verified, resolved | a person or agent drafts; a human authorizes (§28.4) and resolves (§56) | §16–§56 | `war` |
+| Milestone | `M<n>` in a Warrant's milestones atom | an acceptance checkpoint inside one Warrant, reached when its obligations are established | the Warrant's author | §23 | `war status <alias>` |
+| Stage | `STAGE-<nnn>` | the smallest independently dispatchable execution node | the Warrant's author | §47 | `war dispatch` |
+| Dispatch | a compiled §47.1 packet | the exact stage-specific instruction given to one actor, digest-bound | `war dispatch` | §47 | the executor |
+| Artifact / Evidence | deliverables, receipts, verifications | what was produced; the immutable basis for judging it | performers; gates; independent verifiers | §37, §40, §44, §46 | `war resolve` |
+| Resolution | `resolution.toml` | the attributable organizational conclusion about one Warrant under one exact contract | a human resolver | §56 | the ladder |
+
+**The rule.** A SAS and a Warrant are the **same class of artifact at two
+levels of importance**: each is a controlled contract with an intent, a
+basis, deliverables, acceptance obligations, gates, and immutable revisions.
+They differ in scope and in what traces to them, not in kind.
+
+- The **SAS** is the contract for a program. A program has **exactly one**
+  SAS, and every Warrant in that program traces to it through `[[implements]]`
+  (§34). Its requirements are the program's obligations; its phases are the
+  program's milestones; its accepted revisions are the program's authorized
+  contract revisions (§101 is §28 at program scale).
+- A **Warrant** is the contract for one bounded intervention. It exists only
+  inside a program, and it is not a small SAS: it names the SAS requirements
+  it realizes and the phase that motivates it, and it can be resolved.
+
+So:
+
+- **Starting a program?** Write its SAS. Do not write a Warrant "in the
+  style of the SAS" and call it the program's specification: a Warrant with
+  no SAS to trace to has no requirement ids to implement, no Objective to
+  discharge, and no Release to belong to — the projection reports it under
+  `unassigned` and it can never read `satisfied` on any requirement.
+- **Doing work inside a program?** Write a Warrant against that program's
+  SAS. Do not write a second SAS for a piece of work: a program with two
+  SASs has two Release axes and no single answer to "how far along are we".
+- **Which one is this document?** The OpenWarrant SAS (this file) is the SAS
+  of the OpenWarrant program. Another program — a codec, a server, a
+  laboratory workflow — gets its own SAS in its own repository, with its own
+  prefix, and its own Warrants trace to that one, not to this one.
+
+The correspondence, level for level:
+
+| In a Warrant | In a SAS |
+|---|---|
+| intent atom (§16) | §1 Purpose, §5 Architectural thesis |
+| basis atom (§14, §16) | §6 System hierarchy, §7 Design laws, §10 Implementation basis |
+| work order deliverables (§37) | §98 phase deliverables |
+| milestones (§23) | §98 phases (Objectives) |
+| acceptance obligations (§38) | §106 requirements |
+| gate citations (§43) | §99 System acceptance criteria |
+| contract revision, amendment (§28, §31) | SAS revision, ADR-carrying revision (§101) |
+| authorization (§28.4) | acceptance (§101.2) |
+| resolution (§56) | Release fulfilled: every requirement satisfied |
 
 ## 7. Design laws
 

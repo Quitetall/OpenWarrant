@@ -384,6 +384,26 @@ mod tests {
         assert_eq!(super::section_98(text2)[0].2.as_deref(), Some("real."));
     }
 
+    /// §6.10 — the one rule about SAS and Warrant. A test rather than prose,
+    /// so the rule cannot be edited out of the controlled document without a
+    /// red gate: it was misread once in practice (a Warrant written in the
+    /// SAS's style in place of a program's SAS), and the sentence is what
+    /// prevents the next time.
+    #[test]
+    fn section_6_10_states_that_a_sas_and_a_warrant_are_the_same_class_of_artifact() {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../docs/sas/WAR_Software_Architecture_Specification.md");
+        let text = std::fs::read_to_string(path).expect("SAS");
+        assert!(text.contains("### 6.10 The levels, and the one rule about SAS and Warrant"));
+        assert!(
+            text.contains("same class of artifact"),
+            "the rule's sentence is gone"
+        );
+        assert!(
+            text.contains("Starting a program?") && text.contains("Doing work inside a program?")
+        );
+    }
+
     #[test]
     fn section_98_of_the_real_document_has_eleven_phases_and_exits_for_all_of_them() {
         let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))

@@ -14,72 +14,19 @@ rather than a trail of documents that disagree.
 
 ## Status
 
-**Alpha complete. Beta open.**
+**Read the ladder, not this paragraph.** The corpus projection
+`docs/warrants/generated/CORPUS_STATUS.md` (published at
+<https://quitetall.github.io/OpenWarrant/>) is regenerated on every push and
+drift-checked in CI; every number on it is derived from records — journals,
+authorizations, receipts, verifications, resolutions — and nothing on it is
+typed by hand. Earlier versions of this README stated counts of "resolved"
+Warrants that no record supported; that is exactly the failure this system
+exists to end, so the counts now live only where they are computed.
 
-Alpha means every SAS capability exists and OpenWarrant implements its side of
-every protocol — 49 Warrants, 40 of them resolved. It does **not** mean the
-system has been used, and the distinction is the whole point of the next
-paragraph.
-
-Beta is the act of running it against real systems. Nine Warrants
-(OW-WAR-0041–0049) are authored against the SAS's own phase-exit criteria and
-none is discharged. Two limits are worth knowing before you evaluate anything
-here:
-
-**One neighbour has answered; three have not.** On 2026-08-21 a real BLUT binary
-read a PlanSpec OpenWarrant generated and accepted it — the first verdict here
-that OpenWarrant did not produce about itself. It refused the first few, for
-reasons that turned out to be the adapter's rather than the Warrant's. Katana, Liminal and the Knowledge Fabric each still have a typed, tested
-adapter on this side and have never been spoken to. A refusal is a real answer,
-but it is a typecheck and not an execution: no neighbour has yet returned
-status, artifact or lineage receipts from actually running anything.
-
-**Most rules are not reachable from the binary.** Measured 2026-08-20: of twenty
-types implementing §40's epistemic classes, §46 independence, §56 resolution and
-§44.6 receipts, **twenty were referenced by no code in `war` or the compiler.**
-They are implemented and unit-tested; `war check` did not call them.
-
-**Three are now wired**, as of 2026-08-21. `EvidenceOrigin` and `Admissibility`
-are read from `- **origin:**` and `- **admissibility:**` bullets and enforced at
-obligation parse time, so §40.7's first prohibited substitution — a performer's
-own report admitted as independent evidence — is a corpus rule reached by the
-shipped binary, with a plant proving it. `GateReceipt` is minted by
-`war gate --run`: a completed run now writes a §44.6 receipt with all eighteen
-required records and a digest that seals them, and a run that was never askable
-writes none.
-
-`Independence` is read from `openwarrant.toml`, so §46.3's minimum is evaluated
-against a declared fact rather than assumed. This repository declares all nine
-dimensions false, because one actor authors and verifies everything, and
-`war check` therefore reports that no Warrant here meets §46.3's minimum for its
-level. That report is correct, not a misconfiguration.
-
-`ResolutionChecks` is computed by `war resolve --dry-run`, which evaluates
-§56.1's thirteen requirements against the corpus as it actually is. Today it
-reports **11 of 13 unmet** for every Warrant and refuses to close any of them —
-which is the Phase 6 exit behaving correctly, not a defect.
-
-`AmendmentRecord` is parsed and validated from a Warrant's `amendments/`
-directory, so a §31 record that explains why a claim changed is checked rather
-than decorative.
-
-§40's evidence records — `EvidenceItem`, `Observation`, `Inference`, `Judgment` —
-are read from a `## Evidence` section in the assurance atom and validated, so
-§40.7's prohibited substitutions apply to records a reader can see.
-
-`ClaimGraph` detects a cycle in the claim/evidence graph, so §36.4's
-prohibition applies to a graph that is actually built.
-
-`BlutLowering` is exercised by `war blut`, which lowers a computational
-Warrant's stage graph into a `PlanSpec` matching BLUT's schema at a pinned
-commit — and refuses to lower a Warrant that declares no `blut` stage rather
-than degrading it.
-
-**Eight remain.**
-
-Pre-1.0 and the protocol is **not stable**: the canonical JSON shape, the digest
-domains, and the manifest schema may change in any 0.x release. There is no
-allocated enterprise identifier yet (SAS §101.5).
+What the levels are — Release, Objective, Requirement, Warrant, Milestone,
+Stage — and the one rule about a SAS versus a Warrant, are fixed in SAS §6.10
+and restated in [`docs/DEFINITIONS.md`](docs/DEFINITIONS.md). Start there if
+you are deciding whether to write a Warrant or a SAS.
 
 ## What works
 
