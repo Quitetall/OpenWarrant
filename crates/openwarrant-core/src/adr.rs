@@ -127,6 +127,10 @@ pub struct AdrRecord {
     pub decided: Option<String>,
     /// Warrants this decision governs (§19.4).
     pub governs: Vec<String>,
+    /// Decisions this one supersedes (`adr://…`), from front matter (§19.3).
+    pub supersedes: Vec<String>,
+    /// The decision that superseded this one, if any (§19.3, §24.4).
+    pub superseded_by: Option<String>,
     /// The atom body, frontmatter stripped.
     pub body: String,
     /// Repository-relative source path.
@@ -162,6 +166,8 @@ impl AdrRecord {
             status: AdrStatus::from_str(&get("status")?)?,
             decided: fm.scalar("decided").map(str::to_owned),
             governs: fm.list("governs").unwrap_or_default().to_vec(),
+            supersedes: fm.list("supersedes").unwrap_or_default().to_vec(),
+            superseded_by: fm.scalar("superseded_by").map(str::to_owned),
             body,
             source: source.to_owned(),
         })
@@ -182,6 +188,21 @@ status: accepted\n\
 decided: 2026-08-19\n\
 governs:\n  - \"war://01a0-abc\"\n\
 ---\n\n# ADR OW-0001: Adopt something\n\n## Status\n\nAccepted.\n";
+
+    /// §19.3 — supersession is a relation between decisions, read from front
+    /// matter, in both directions (OW-WAR-0006 OBL-001).
+    #[test]
+    fn supersession_relations_are_read_in_both_directions() {
+        let text = SAMPLE.replace(
+            "governs:\n",
+            "supersedes:\n  - \"adr://01a0-old\"\nsuperseded_by: \"adr://01a0-newer\"\ngoverns:\n",
+        );
+        let adr = AdrRecord::parse("x.md", &text).expect("parses");
+        assert_eq!(adr.supersedes, vec!["adr://01a0-old"]);
+        assert_eq!(adr.superseded_by.as_deref(), Some("adr://01a0-newer"));
+        let plain = AdrRecord::parse("x.md", SAMPLE).expect("parses");
+        assert!(plain.supersedes.is_empty() && plain.superseded_by.is_none());
+    }
 
     #[test]
     fn parses_an_adr_atom() {

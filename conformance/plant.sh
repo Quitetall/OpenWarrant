@@ -1190,6 +1190,32 @@ plant_cmd "a third revision riding on the second's amendment" "authorize.no-amen
      printf 'schema = \"oh.war/authorization-response/v1\"\nwarrant = \"OW-WAR-0016\"\ncontract_digest = \"%s\"\nauthorizer = \"Brian Lam\"\nacting_role = \"authorizer\"\nmeaning = \"x\"\neffective_time = \"2026-09-02T00:00:00Z\"\nindependence = \"separate_role\"\n' \"\$d\" > \"$MIGRATE_TMP/rev3.toml\"" \
     authorize OW-WAR-0016 --response "$MIGRATE_TMP/rev3.toml"
 
+# OW-WAR-0063 — the plants the verifier named as missing for controls that exist.
+
+# OW-WAR-0013 OBL-002: an implements ref that names no §106 row.
+plant "a requirement reference §106 does not contain" "traceability.unknown-requirement" "RQ-999" 2 \
+    "sed -i 's|^ref = \"sas://WAR-SAS-RQ-014\"|ref = \"sas://WAR-SAS-RQ-999\"|' docs/warrants/OW-WAR-0058/manifest.toml; \
+     assert_present 'RQ-999' docs/warrants/OW-WAR-0058/manifest.toml" \
+    OW-WAR-0058
+
+# OW-WAR-0007 OBL-002: a duplicate milestone id in the graph.
+plant "a duplicate milestone id" "milestones.invalid" "duplicate" 2 \
+    "sed -i '0,/id: \"M2\"/s//id: \"M1\"/' docs/warrants/OW-WAR-0058/atoms/45-milestones.yaml; \
+     assert_gone 'id: \"M2\"' docs/warrants/OW-WAR-0058/atoms/45-milestones.yaml" \
+    OW-WAR-0058
+
+# OW-WAR-0055 OBL-002: an implements entry that states no contribution is a WARNING, not a refusal (§34.2 SHOULD).
+plant "an implements entry with no contribution stated" "traceability.contribution-unstated" "OW-WAR-0058" 0 \
+    "sed -i '0,/^contribution = \"partial\"/s//# contribution unstated/' docs/warrants/OW-WAR-0058/manifest.toml; \
+     assert_present 'contribution unstated' docs/warrants/OW-WAR-0058/manifest.toml" \
+    OW-WAR-0058
+
+# OW-WAR-0055 OBL-005: a byte of CORPUS_STATUS.md edited by hand.
+plant "the corpus status markdown edited by hand" "corpus-status.drift" "CORPUS_STATUS.md" 2 \
+    "sed -i 's|^# Corpus Status|# Corpus Status (edited)|' docs/warrants/generated/CORPUS_STATUS.md; \
+     assert_present '(edited)' docs/warrants/generated/CORPUS_STATUS.md" \
+    --generated
+
 echo
 echo "$PASSED passed, $FAILED failed"
 [[ "$FAILED" -eq 0 ]]

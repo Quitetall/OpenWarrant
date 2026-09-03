@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-58 Warrant(s) in this repository.
+59 Warrant(s) in this repository.
 
 ## Summary
 
@@ -69,6 +69,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0060](docs/warrants/OW-WAR-0060/manifest.toml) | Publish the corpus viewer: GitHub Pages from the committed projection | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
 | [OW-WAR-0061](docs/warrants/OW-WAR-0061/manifest.toml) | Discharge the Phase 1 exit: OpenWarrant development uses WARs | `resolved` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0062](docs/warrants/OW-WAR-0062/manifest.toml) | Lock down the levels: what a SAS, a Warrant, and every other object are | `resolved` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0063](docs/warrants/OW-WAR-0063/manifest.toml) | Complete the conformance battery: the plants and tests the verifier named as missing | `draft` | `current` | `valid` | `basic` | 1M / 1S |
 
 ## Claimed SAS requirement coverage
 
@@ -85,8 +86,8 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-013` — OW-WAR-0002
 - `WAR-SAS-RQ-014` — OW-WAR-0003, OW-WAR-0004, OW-WAR-0058
 - `WAR-SAS-RQ-015` — OW-WAR-0002, OW-WAR-0005
-- `WAR-SAS-RQ-020` — OW-WAR-0036, OW-WAR-0058
-- `WAR-SAS-RQ-022` — OW-WAR-0013, OW-WAR-0055, OW-WAR-0061, OW-WAR-0062
+- `WAR-SAS-RQ-020` — OW-WAR-0036, OW-WAR-0058, OW-WAR-0063
+- `WAR-SAS-RQ-022` — OW-WAR-0013, OW-WAR-0055, OW-WAR-0061, OW-WAR-0062, OW-WAR-0063
 - `WAR-SAS-RQ-024` — OW-WAR-0006
 - `WAR-SAS-RQ-025` — OW-WAR-0006
 - `WAR-SAS-RQ-030` — OW-WAR-0009
@@ -187,6 +188,7 @@ Source: the Warrants under the configured warrants path.
 - **OW-WAR-0060** · roadmap: roadmap://OW-PHASE-1/projections
 - **OW-WAR-0061** · roadmap: roadmap://OW-PHASE-1/exit
 - **OW-WAR-0062** · roadmap: roadmap://OW-PHASE-3/definitions
+- **OW-WAR-0063** · roadmap: roadmap://OW-PHASE-6/conformance
 
 ## Not reported here
 

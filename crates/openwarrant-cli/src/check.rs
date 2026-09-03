@@ -648,6 +648,14 @@ fn check_traceability(repo: &Repository, one: &Loaded, alias: &str, report: &mut
         }
     }
 
+    // §106 of the SAS as it stands: an `implements` ref must name a row that
+    // exists. `None` when the document cannot be read — then nothing is
+    // refused and nothing is vouched for (OW-WAR-0063).
+    let known_requirements: Option<std::collections::BTreeMap<String, String>> = repo
+        .sas_document()
+        .ok()
+        .map(|(_, bytes)| openwarrant_core::sas::section_106(&String::from_utf8_lossy(&bytes)))
+        .filter(|m| !m.is_empty());
     for i in &basis.manifest.implements {
         if let Err(err) = RequirementRef::parse(&i.r#ref) {
             report.push(Diagnostic::error(
@@ -656,6 +664,20 @@ fn check_traceability(repo: &Repository, one: &Loaded, alias: &str, report: &mut
                 format!("{alias}: {err}"),
             ));
             bad += 1;
+        }
+        if let Ok(rq) = RequirementRef::parse(&i.r#ref)
+            && let Some(known) = &known_requirements
+            && !known.contains_key(&rq.canonical())
+        {
+            bad += 1;
+            report.push(Diagnostic::error(
+                "traceability.unknown-requirement",
+                repo.relative(&one.dir.join("manifest.toml")),
+                format!(
+                    "{alias}: implements {} and §106 of the pinned SAS has no such row (§34.1: a Warrant implements a requirement that exists)",
+                    i.r#ref
+                ),
+            ));
         }
         match i.contribution.as_deref() {
             None => report.push(Diagnostic::warn(

@@ -211,6 +211,31 @@ impl Report {
 
 #[cfg(test)]
 mod tests {
+    /// OW-WAR-0005 OBL-001 — §71.7's output shape: `SEVERITY rule  message`
+    /// per line, severity a fixed vocabulary, rule a dotted lowercase name.
+    #[test]
+    fn a_rendered_diagnostic_has_the_seventy_one_seven_shape() {
+        for d in [
+            Diagnostic::pass("manifest.valid", "ok"),
+            Diagnostic::warn("independence.insufficient", "x".to_owned(), "why"),
+            Diagnostic::error("generated.drift", "y".to_owned(), "why"),
+            Diagnostic::unknown("gate-run.unaskable", "z".to_owned(), "why"),
+        ] {
+            let line = d.to_string();
+            let (sev, rest) = line.split_once(' ').expect("severity then rule");
+            assert!(
+                ["PASS", "WARN", "ERROR", "UNKNOWN"].contains(&sev),
+                "{line}"
+            );
+            let rule = rest.split_whitespace().next().expect("rule");
+            assert!(
+                rule.chars()
+                    .all(|c| c.is_ascii_lowercase() || c == '.' || c == '-'),
+                "{line}"
+            );
+        }
+    }
+
     use super::*;
 
     const ALL: [Severity; 4] = [

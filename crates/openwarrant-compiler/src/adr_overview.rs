@@ -116,6 +116,8 @@ mod tests {
             governs: vec!["war://abc".to_owned()],
             body: format!("# {title}\n\nThe body of {alias}.\n"),
             source: format!("docs/adr/atoms/{alias}.md"),
+            supersedes: vec![],
+            superseded_by: None,
         }
     }
 

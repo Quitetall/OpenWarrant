@@ -15,21 +15,21 @@ schema = "oh.war/deliverables/v1"
 
 [[deliverable]]
 id = "D-001"
-title = "Corpus projection types: Release, Objective, Warrant, Milestone, Requirement ladders"
+title = "traceability.unknown-requirement — implements refs held to §106"
 kind = "file"
-target_ref = "crates/openwarrant-core/src/status.rs"
+target_ref = "crates/openwarrant-cli/src/check.rs"
 required = true
 content_addressed = true
 provenance_required = true
-obligation_refs = ["OBL-003", "OBL-006"]
+obligation_refs = ["OBL-001"]
 
 [deliverable.provenance]
 producer = "claude"
-producing_attempt = "OW-WAR-0055/attempt-1"
+producing_attempt = "OW-WAR-0063/attempt-1"
 contract_digest = "unrecorded"
 tool_or_runtime_identity = "rustc 1.97.1"
 creation_method = "authored"
-content_digest = "sha256:41ea9407936d2d5b3ed3327cda56e04d552b9413cda37b57407f828dbcaca319"
+content_digest = "sha256:f200d0b46761c945f8d7eaf535f964d60e9c8e57ad19658958e2130d2d68d51a"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"
@@ -37,21 +37,21 @@ source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
-title = "Corpus projection renderer: Markdown and RFC 8785 canonical JSON, no ratio anywhere"
+title = "ADR supersession relations read in both directions"
 kind = "file"
-target_ref = "crates/openwarrant-compiler/src/corpus_status.rs"
+target_ref = "crates/openwarrant-core/src/adr.rs"
 required = true
 content_addressed = true
 provenance_required = true
-obligation_refs = ["OBL-004", "OBL-005"]
+obligation_refs = ["OBL-002"]
 
 [deliverable.provenance]
 producer = "claude"
-producing_attempt = "OW-WAR-0055/attempt-1"
+producing_attempt = "OW-WAR-0063/attempt-1"
 contract_digest = "unrecorded"
 tool_or_runtime_identity = "rustc 1.97.1"
 creation_method = "authored"
-content_digest = "sha256:41d548c56462e313be1f9a59d49d82a6a338985f82a013e0106505e981e04bd1"
+content_digest = "sha256:f69b879fbf4e0a8262fb853f784661e90711186f0af73a863a0ef0d3dc4fab10"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"
@@ -59,21 +59,43 @@ source_holder = "git"
 
 [[deliverable]]
 id = "D-003"
-title = "Corpus projection loader: assess() per Warrant, derive_all wired, next_actionable"
+title = "The plants: unknown requirement, duplicate milestone id, contribution unstated, Markdown drift"
 kind = "file"
-target_ref = "crates/openwarrant-cli/src/status.rs"
+target_ref = "conformance/plant.sh"
 required = true
 content_addressed = true
 provenance_required = true
-obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-006"]
+obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "claude"
-producing_attempt = "OW-WAR-0055/attempt-1"
+producing_attempt = "OW-WAR-0063/attempt-1"
 contract_digest = "unrecorded"
 tool_or_runtime_identity = "rustc 1.97.1"
 creation_method = "authored"
-content_digest = "sha256:7ccbbc7ff519fd7c7994aa3e99badde8bd4f9c5b787510eb672421adc6daaeff"
+content_digest = "sha256:ad547e171acf2a0bbed6a44ca7a76619d7626684e00e050dc366f15210717996"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-004"
+title = "Tests: banner before title, no division, every WAR.json carries the SAS pin"
+kind = "file"
+target_ref = "crates/openwarrant-compiler/src/corpus_status.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0063/attempt-1"
+contract_digest = "unrecorded"
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:41d548c56462e313be1f9a59d49d82a6a338985f82a013e0106505e981e04bd1"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"

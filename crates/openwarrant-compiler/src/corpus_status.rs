@@ -420,3 +420,59 @@ const HTML_SCRIPT: &str = r#"<script>
 })();
 </script>
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// OW-WAR-0057 OBL-002 — the provenance banner precedes the title, and the
+    /// renderer computes no ratio: its source has no division. Rendered from
+    /// the committed projection so no fixture has to be hand-built.
+    #[test]
+    fn the_banner_precedes_the_title_and_the_renderer_divides_nothing() {
+        let src = include_str!("corpus_status.rs");
+        let body = src.split("#[cfg(test)]").next().unwrap_or(src);
+        // A division OPERATOR: `/` between two code tokens, on a line that is
+        // neither a comment nor a string literal (" / " inside a quoted label
+        // is text, not arithmetic).
+        let divides = body.lines().any(|l| {
+            let t = l.trim_start();
+            !t.starts_with("//") && !t.contains('"') && !t.contains('\'') && t.contains(" / ")
+        });
+        assert!(!divides, "a ratio crept into the renderer");
+        let json = std::fs::read_to_string(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../../docs/warrants/generated/CORPUS_STATUS.json"),
+        )
+        .expect("committed projection");
+        let status: openwarrant_core::status::CorpusStatus =
+            serde_json::from_str(&json).expect("parses");
+        let html = render_html(&status, &json);
+        let banner = html.find("class=\"banner\"").expect("banner");
+        let title = html.find("<h1>").expect("title");
+        assert!(banner < title, "banner must precede the title");
+    }
+
+    /// OW-WAR-0058 OBL-005 — every committed WAR.json carries the SAS pin.
+    #[test]
+    fn every_committed_war_json_carries_the_sas_pin() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/warrants");
+        let mut n = 0;
+        for entry in std::fs::read_dir(&root).expect("warrants") {
+            let p = entry.expect("entry").path().join("generated/WAR.json");
+            if !p.is_file() {
+                continue;
+            }
+            let v: serde_json::Value =
+                serde_json::from_str(&std::fs::read_to_string(&p).expect("read")).expect("json");
+            let fb = &v["format_basis"];
+            assert!(
+                fb["sas_revision"].is_string() && fb["sas_digest"].is_string(),
+                "{} lacks the SAS pin",
+                p.display()
+            );
+            n += 1;
+        }
+        assert!(n >= 50, "only {n} WAR.json files found");
+    }
+}

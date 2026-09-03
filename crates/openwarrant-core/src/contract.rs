@@ -410,6 +410,36 @@ impl ContractRevision {
 
 #[cfg(test)]
 mod tests {
+    /// §28.3 / OW-WAR-0009 OBL-003 — a record made under revision N cites
+    /// revision N's digest, and authorizing N+1 does not move it: the
+    /// amendment is a NEW revision, and the old one is immutable.
+    #[test]
+    fn a_prior_revision_keeps_its_digest_after_an_amendment_is_authorized() {
+        let auth = |who: &str| Authorization {
+            authorizer: who.to_owned(),
+            actor_kind: ActorKind::Human,
+            acting_role: "authorizer".to_owned(),
+            meaning: "x".to_owned(),
+            effective_time: "2026-09-03T00:00:00Z".to_owned(),
+            policy_basis: None,
+            independence: Independence::SeparateRole,
+        };
+        let r1 = ContractRevision::draft("d1".to_owned(), coverage())
+            .propose("agent")
+            .and_then(|p| p.authorize(auth("brian")))
+            .expect("r1");
+        let cited_by_attempt = r1.contract_digest.clone();
+        let r2 = r1
+            .amend("d2".to_owned(), coverage())
+            .and_then(|d| d.propose("agent"))
+            .and_then(|p| p.authorize(auth("brian")))
+            .expect("r2");
+        assert_eq!(r2.revision, r1.revision + 1);
+        assert_eq!(r2.predecessor_digest.as_deref(), Some("d1"));
+        assert_eq!(r1.contract_digest, cited_by_attempt, "r1 did not move");
+        assert!(r1.is_immutable());
+    }
+
     use super::*;
 
     fn coverage() -> ContractCoverage {
