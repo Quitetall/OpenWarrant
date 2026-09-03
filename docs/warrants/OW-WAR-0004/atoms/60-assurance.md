@@ -12,6 +12,7 @@ classification: internal
 ## Acceptance Obligations
 
 ### OBL-001 — both projections render from one Basis
+- **gate:** `gate://software.repo.war-check@1.0.0`
 
 - **scope:** the five Warrants in `docs/warrants/`, `full_warrant` and
   `canonical_json` views only. No claim about the other seven views in §17.5.
@@ -19,6 +20,7 @@ classification: internal
   WAR, basis digest, contract revision, and source manifest.
 
 ### OBL-002 — recompilation on an unchanged tree changes nothing
+- **gate:** `gate://software.repo.war-check@1.0.0`
 
 - **scope:** two consecutive `war compile` runs over an unmodified working tree.
 - **evidence:** `git diff --exit-code` over the generated tree exits 0.
@@ -28,6 +30,7 @@ classification: internal
   the response to a check that always fires is to stop running it.
 
 ### OBL-003 — planted drift is REFUSED
+- **gate:** `gate://software.repo.war-check@1.0.0`
 
 - **scope:** a single-byte mutation of a committed generated parent.
 - **evidence:** `war check --generated` exits non-zero and names the file.

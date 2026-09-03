@@ -57,6 +57,7 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
     let mut links: Vec<Link> = Vec::new();
     let mut rung_by_alias: BTreeMap<String, WarrantRung> = BTreeMap::new();
     let mut satisfied_by_alias: std::collections::BTreeSet<String> = Default::default();
+    let mut pins: std::collections::BTreeMap<String, usize> = Default::default();
     let mut milestones_by_alias: BTreeMap<String, Vec<MilestoneState>> = BTreeMap::new();
 
     for one in &loaded {
@@ -148,6 +149,14 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
             });
         let rung = WarrantRung::derive(valid, checks.as_ref(), would, resolved);
         rung_by_alias.insert(alias.clone(), rung);
+        if let Some(v) = one
+            .basis
+            .as_ref()
+            .and_then(|b| b.sas.as_ref())
+            .map(|p| p.version.clone())
+        {
+            *pins.entry(v).or_insert(0) += 1;
+        }
         if resolved_satisfied {
             satisfied_by_alias.insert(alias.clone());
         }
@@ -229,8 +238,22 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
         .map(|(p, _)| p)
         .unwrap_or_else(|| "OW".to_owned());
 
+    // §98 from the SAS as it stands; the compiled-in table is the fallback for
+    // a repository whose document cannot be read.
+    let phases: Vec<(u8, String, Option<String>)> = repo
+        .sas_document()
+        .ok()
+        .map(|(_, bytes)| openwarrant_core::sas::section_98(&String::from_utf8_lossy(&bytes)))
+        .filter(|v| v.len() == openwarrant_core::status::PHASES.len())
+        .unwrap_or_else(|| {
+            openwarrant_core::status::PHASES
+                .iter()
+                .map(|(n, t, e)| (*n, (*t).to_owned(), e.map(str::to_owned)))
+                .collect()
+        });
     let mut objectives: Vec<ObjectiveStatus> = Vec::new();
-    for (n, title, exit) in openwarrant_core::status::PHASES {
+    for (n, title, exit) in phases {
+        let (title, exit) = (title.as_str(), exit.as_deref());
         let members: Vec<&WarrantStatus> = warrants
             .iter()
             .filter(|w| {
@@ -432,11 +455,24 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
                 digest: Some(format!("sha256:{}", r.sha256)),
                 requirements: counts,
                 note: match r.state {
-                    openwarrant_core::SasRevisionState::Accepted => format!(
-                        "Revision {} is ACCEPTED (§101.2) and normative; every compiled Warrant is \
-                         pinned to it.",
-                        r.version
-                    ),
+                    openwarrant_core::SasRevisionState::Accepted => {
+                        let mut by: Vec<(String, usize)> = pins.into_iter().collect();
+                        by.sort();
+                        format!(
+                            "Revision {} is ACCEPTED (§101.2) and normative. A Warrant compiles \
+                             against the revision its authorization recorded (§14), so a later \
+                             revision does not move an authorized contract: {}.",
+                            r.version,
+                            if by.is_empty() {
+                                "no Warrant is pinned yet".to_owned()
+                            } else {
+                                by.iter()
+                                    .map(|(v, n)| format!("{n} against {v}"))
+                                    .collect::<Vec<_>>()
+                                    .join(", ")
+                            }
+                        )
+                    }
                     openwarrant_core::SasRevisionState::Proposed => format!(
                         "Revision {} is PROPOSED, not accepted. Every compiled Warrant is pinned to \
                          its digest; §101.2's acceptance is a human's, and has not happened.",

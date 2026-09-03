@@ -7,7 +7,7 @@
 | Document class | Software Architecture Specification |
 | Short name | WAR SAS |
 | Status | Draft for adoption |
-| Version | `0.1.0-draft.1` |
+| Version | `0.1.0-draft.2` |
 | Date | 2026-08-19 |
 | Enterprise identifier | Unallocated — this file name is not an official Identifier Registry allocation |
 | System name | **OpenWarrant** |
@@ -5113,6 +5113,10 @@ Deliver as required:
 - invalidation propagation;
 - regulatory mapping.
 
+Exit:
+
+- a resolution is signed, its evidence custody is audited, and one gate invalidation propagates to every dependent resolution, with no step performed by the actor who produced the work.
+
 ### Phase 10 — Contractor Work Order profile
 
 Deliver only after separate legal, finance, and QMS decisions:
@@ -5124,6 +5128,10 @@ Deliver only after separate legal, finance, and QMS decisions:
 - signatures and legal terms.
 
 The technical WAR core remains unchanged.
+
+Exit:
+
+- a contractor Work Order compiles through the unchanged technical WAR core, and acceptance, invoicing and legal terms live entirely in the profile.
 
 ## 99. System acceptance criteria
 

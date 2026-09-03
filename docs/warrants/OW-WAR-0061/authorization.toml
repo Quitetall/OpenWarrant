@@ -1,5 +1,6 @@
 schema = "oh.war/authorization/v1"
 warrant = "OW-WAR-0061"
+sas_revision = "0.1.0-draft.1"
 
 [revision]
 revision = 1

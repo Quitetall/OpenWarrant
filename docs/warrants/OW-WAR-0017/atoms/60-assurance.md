@@ -13,19 +13,23 @@ classification: internal
 
 ### OBL-001 — the six classes are distinct
 - **scope:** claim, evidence item, observation, inference, judgment, resolution.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a test that no class converts silently into another.
 
 ### OBL-002 — every prohibited substitution is REFUSED
 - **scope:** each substitution enumerated in §40.7, individually.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** one plant per substitution, each naming its own rule. A shared
   error would prove only that something was rejected.
 
 ### OBL-003 — evidence carries origin and admissibility
 - **scope:** §41.1 origins, §41.2 admissibility, §41.5 custody.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** an evidence item missing custody is refused.
 
 ### OBL-004 — a judgment names who made it
 - **scope:** §42.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** an anonymous judgment is refused.
 
 ## Gate Adequacy

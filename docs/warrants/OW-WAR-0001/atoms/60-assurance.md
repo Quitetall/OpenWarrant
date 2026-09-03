@@ -15,6 +15,7 @@ scope, because a claim is bounded by its evidence (§38.4, Law 14).
 ## Acceptance Obligations
 
 ### OBL-001 — the workspace builds on the pinned toolchain
+- **gate:** `gate://software.repo.war-check@1.0.0`
 
 - **scope:** existential over the workspace members, on Linux x86-64 only.
   No claim is made about macOS, Windows, or any other toolchain.
@@ -22,12 +23,14 @@ scope, because a claim is bounded by its evidence (§38.4, Law 14).
   captured in the same run.
 
 ### OBL-002 — the aggregate gate passes
+- **gate:** `gate://software.repo.war-check@1.0.0`
 
 - **scope:** the four steps `cargo xtask gate` declares — fmt, clippy, tests,
   licenses — at the commit under test, on 1.97.1.
 - **evidence:** `cargo xtask gate` exit status and its per-step report.
 
 ### OBL-003 — the gate has been observed to REJECT
+- **gate:** `gate://software.repo.war-check@1.0.0`
 
 - **scope:** the gate as a control, not the code under it.
 - **evidence:** a recorded run in which `cargo xtask gate` exits non-zero and
@@ -39,6 +42,7 @@ scope, because a claim is bounded by its evidence (§38.4, Law 14).
   parent project has shipped a green gate that compared nothing three times.
 
 ### OBL-004 — `war init` initializes a repository, and refuses to reinitialize
+- **gate:** `gate://software.repo.war-check@1.0.0`
 
 - **scope:** the `war` binary, invoked as a process. Unit tests do not satisfy
   this obligation; §38 distinguishes a performer's internal claim from an

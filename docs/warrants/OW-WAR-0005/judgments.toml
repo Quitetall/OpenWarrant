@@ -7,7 +7,7 @@ kind = "residual_risk_acceptance"
 statement = "`war check` handling a decision Warrant correctly can be assumed, though the corpus is all delivery."
 actor = "Brian Lam"
 acting_role = "risk_acceptor"
-meaning = """The owner accepts this residual risk for OW-WAR-0005: if the assumption is false, the consequence is The first decision Warrant written is validated by code no fixture ever exercised. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 ("You should manually authorize each of the warrants. I give you my express permission to approve these things."); the decision is the owner's, the wording is the agent's."""
+meaning = "The owner accepts this residual risk for OW-WAR-0005: if the assumption is false, the consequence is The first decision Warrant written is validated by code no fixture ever exercised. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02; the decision is the owner's, the wording is the agent's."
 basis_refs = ["assumption://A-001"]
 authority = "authorized"
 
@@ -17,6 +17,6 @@ kind = "residual_risk_acceptance"
 statement = "Two runs on one host satisfy §91.1 test 1's two supported hosts, as stated in the claim."
 actor = "Brian Lam"
 acting_role = "risk_acceptor"
-meaning = """The owner accepts this residual risk for OW-WAR-0005: if the assumption is false, the consequence is The determinism claim covers one architecture while reading as though it covers two. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 ("You should manually authorize each of the warrants. I give you my express permission to approve these things."); the decision is the owner's, the wording is the agent's."""
+meaning = "The owner accepts this residual risk for OW-WAR-0005: if the assumption is false, the consequence is The determinism claim covers one architecture while reading as though it covers two. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02; the decision is the owner's, the wording is the agent's."
 basis_refs = ["assumption://A-002"]
 authority = "authorized"

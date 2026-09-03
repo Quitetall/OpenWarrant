@@ -735,6 +735,28 @@ fn check_one(
         crate::resolution_cmd::check(repo, &one.dir, &alias, current.as_deref(), report);
         let uuid = one.validated.as_ref().map(|v| v.uuid.to_string());
         crate::journal_cmd::check(repo, &one.dir, &alias, uuid.as_deref(), report);
+        // §14 — the authorization's SAS pin must name a recorded revision, and
+        // a Warrant pinned behind the latest accepted revision is said so.
+        if let Ok(Some(a)) = repo.load_authorization(&one.dir)
+            && let Some(v) = &a.sas_revision
+        {
+            let all = repo.load_sas_revisions().unwrap_or_default();
+            if !all.iter().any(|r| &r.version == v) {
+                report.push(Diagnostic::error(
+                    "sas.pin-unknown",
+                    repo.relative(&one.dir.join("authorization.toml")),
+                    format!("{alias}: authorized against SAS revision {v}, and no record of it exists under docs/sas/revisions/"),
+                ));
+            } else if let Some(latest) = repo.latest_sas_revision().ok().flatten()
+                && &latest.version != v
+            {
+                report.push(Diagnostic::warn(
+                    "sas.pin-superseded",
+                    repo.relative(&one.dir.join("authorization.toml")),
+                    format!("{alias}: authorized against SAS {v}; the latest recorded revision is {} — the contract keeps its Basis until an amendment re-authorizes it", latest.version),
+                ));
+            }
+        }
     }
 
     // Ordinals ascending is not required by the SAS, but a manifest whose

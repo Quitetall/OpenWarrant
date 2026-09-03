@@ -13,20 +13,24 @@ classification: internal
 
 ### OBL-000 — the structured-atom parser is chosen by ADR
 - **scope:** the parser used for `.yaml` atoms.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a merged ADR naming it, with its licence checked against the
   Apache-2.0 path.
 
 ### OBL-001 — milestones and stages parse into typed values
 - **scope:** the `oh.war/milestones/v1` schema as used by this repository's Warrants.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** parsed values asserted field by field, including ports.
 
 ### OBL-002 — every malformed graph is REFUSED
 - **scope:** dangling `stage_refs`, dangling `obligation_refs`, duplicate
+- **gate:** `gate://software.repo.war-check@1.0.0`
   milestone id, duplicate stage id, `depends_on` cycle.
 - **evidence:** five plants, five observed refusals, each naming its rule.
 
 ### OBL-003 — the existing corpus validates
 - **scope:** all Warrants under `docs/warrants/`, enumerated at run time.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** `war check` exit 0 with the milestone graph reported.
 
 ## Gate Adequacy

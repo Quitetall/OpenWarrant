@@ -455,13 +455,12 @@ impl Repository {
                 manifest_bytes,
                 atoms,
                 scope,
-                // §14 — the SAS revision is a Basis input. Absent until one is
-                // recorded, so nothing moves for a repository that has not
-                // pinned its document; present from the first proposal on.
-                sas: self.latest_sas_revision()?.map(|r| SasPin {
-                    version: r.version,
-                    sha256: r.sha256,
-                }),
+                // §14 — the SAS revision is a Basis input. An AUTHORIZED Warrant
+                // compiles against the revision its authorization recorded, so
+                // a later SAS revision cannot move its contract digest out from
+                // under the signature; an unauthorized one follows the latest
+                // recorded revision. Absent until any revision is recorded.
+                sas: self.sas_pin_for(dir)?,
             }),
             validated: Some(validated),
             report,
@@ -567,6 +566,29 @@ impl Repository {
 
     /// The revision the document is held to: newest accepted, else newest
     /// proposed, else none.
+    /// The SAS revision this Warrant compiles against (see `load_warrant`).
+    ///
+    /// An authorization naming a revision that has no record is an error
+    /// surfaced by `war check` as `sas.pin-unknown`; here it falls back to the
+    /// latest so the Warrant still compiles and the check can name the fault.
+    pub fn sas_pin_for(&self, dir: &Utf8Path) -> Result<Option<SasPin>, RepoError> {
+        let all = self.load_sas_revisions()?;
+        let pinned = self
+            .load_authorization(dir)
+            .ok()
+            .flatten()
+            .and_then(|a| a.sas_revision)
+            .and_then(|v| all.iter().find(|r| r.version == v).cloned());
+        let chosen = match pinned {
+            Some(r) => Some(r),
+            None => crate::sas::pin_of(&all).cloned(),
+        };
+        Ok(chosen.map(|r| SasPin {
+            version: r.version,
+            sha256: r.sha256,
+        }))
+    }
+
     pub fn latest_sas_revision(&self) -> Result<Option<openwarrant_core::SasRevision>, RepoError> {
         let all = self.load_sas_revisions()?;
         Ok(crate::sas::pin_of(&all).cloned())

@@ -13,21 +13,25 @@ classification: internal
 
 ### OBL-000 — local authorization is defined, not assumed
 - **scope:** how a revision becomes authorized with no KF present.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a written decision; §27.2 forbids self-authorization, so silence
   here would ship exactly that.
 
 ### OBL-001 — an authorized revision is immutable
 - **scope:** every mutating path on a contract revision.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** the type system or an explicit refusal; a test that mutation is
   unrepresentable or rejected.
 
 ### OBL-002 — amendment attempts are REFUSED
 - **scope:** editing an authorized revision; a Progress Log entry that changes
+- **gate:** `gate://software.repo.war-check@1.0.0`
   contract content.
 - **evidence:** two plants, two refusals.
 
 ### OBL-003 — prior attempts retain their basis
 - **scope:** an attempt recorded under revision N, after revision N+1 is authorized.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** the attempt still cites revision N's digest.
 
 ## Gate Adequacy

@@ -13,16 +13,19 @@ classification: internal
 
 ### OBL-001 — the substring check is gone
 - **scope:** `check.rs`.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** `grep -c 'contains("adequacy")'` returns 0, and a controlled
   Warrant with the word 'adequacy' and no review record FAILS.
 
 ### OBL-002 — a review with no executed attacks is REPORTED
 - **scope:** §39.3.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** a plant; and the three existing reviews in this repository, which
   are currently in exactly that state, must be reported by the same rule.
 
 ### OBL-003 — existing reviews migrate without loss
 - **scope:** OW-WAR-0003, 0005, 0007, 0016, 0017 adequacy sections.
+- **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** each migrates with its named gaps preserved verbatim.
 
 ## Gate Adequacy
