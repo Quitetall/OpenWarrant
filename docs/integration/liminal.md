@@ -6,6 +6,14 @@
 Phase 8 exit)
 **Governing text:** SAS §82 (source adapters), §97.5 (cutover)
 
+> **Answered 2026-09-03.** Liminal replied. Brian has decided Liminal will build
+> the compiler and the pieces this packet needs — that decision is his, and it is
+> recorded here as his, not as anything either agent committed. No version pin and
+> no observable set were sent, deliberately and correctly: the IR they would
+> describe does not exist yet, so a set enumerated today would be fabricated.
+> Four things below misdescribed Liminal and are corrected. One of their findings
+> is a risk to OUR gate, not to their schedule, and it is §9.
+
 ## 1. What we are asking for
 
 We need a **pinned Liminal compiler profile that emits canonical IR for our
@@ -23,6 +31,13 @@ seeing the diff is not a measurement, and our harness refuses it.
 **§82.2 Liminal adapter** — "The final adapter invokes a pinned Liminal compiler
 profile through a versioned process protocol." The SAS's illustrative command is
 `liminal-compiler --protocol oh.war/liminal-v1`.
+
+**That command names nothing that exists**, and the error is ours, not theirs.
+Liminal ships `liminald` and `lim`; there is no `liminal-compiler`. The
+`liminal-protocol` crate is 26 lines and says of itself "RESERVED —
+implementation begins Phase 2". A future SAS revision should correct §82.2's
+illustration, which is a §101 governance change and not something to patch in
+prose here.
 
 **§82.3 Adapter parity** — "Before cutover, the Markdown compatibility corpus
 SHALL be compiled by both adapters and compared for declared observable parity."
@@ -73,6 +88,31 @@ exact subset we accept:
 Read those two before profiling. They are short, and they are the difference
 between "compiles our documents" and "compiles Markdown".
 
+## 4b. What Liminal actually is today
+
+Checked against Liminal's source by their team, 2026-09-03, and recorded because
+three of these four were wrong in the first draft of this packet.
+
+- **No versioned process protocol yet.** See §2 above. The process boundary this
+  packet would invoke is two phases out, not one.
+- **No YAML reader anywhere in the tree.** Zero occurrences across every crate.
+  Our two ADRs exist precisely to define a restricted YAML frontmatter grammar,
+  so Liminal cannot currently read the header of a single OpenWarrant atom. That
+  is a missing capability, not a profile setting — which means "point Liminal at
+  the corpus" is not a small configuration step.
+- **`liminal-cst` is not a Markdown parser.** 403 lines, self-described as
+  "intentionally not a full grammar": a coarse, error-tolerant block scanner over
+  Liminal's own v4 format. Its `emit()` returns `&str` — it hands the source
+  back, so its losslessness is byte-preservation, not round-trip through a parse.
+- **`liminal-cir`, the interchange layer that would produce our canonical IR, is
+  tagged M19.3–M19.4.** Phase 1 (M18–M24) is authored but not authorized; every
+  Phase 1 exit gate is `#[ignore]`d under their AM-17.2, including
+  `canonical_round_trip_law_holds`. Authorization comes from an M17.6 GO/NO-GO
+  gated on M17.5, a qualification campaign still running.
+
+This supersedes OW-WAR-0040's OBL-000, which asked only that "the repository is
+present". Presence was the wrong question.
+
 ## 5. What we need returned — artifacts, not assertions
 
 1. **A pinned profile**, invocable as a versioned process, with an exact version
@@ -96,6 +136,30 @@ between "compiles our documents" and "compiles Markdown".
   semantic difference would be.
 - **Cutover before measurement.** `permit_cutover` fails unless parity is
   established first.
+
+## 9. A risk to OUR gate, raised by Liminal
+
+Worth more than the four corrections, because it threatens the design of
+OW-WAR-0040's OBL-002 rather than its schedule.
+
+Our harness refuses parity with **one** recorded difference, over byte-compared
+IR. Liminal has no chosen production Markdown frontend — no crate manifest
+depends on one. The surveyed candidate, tree-sitter-md 0.5.3, was rejected for
+production in their DG17.1 because upstream "warns that its Markdown output
+retains known inaccuracies, and it has no lossless native serializer."
+
+A zero-difference byte-parity claim over a frontend whose parser is **still
+unchosen** is a design exposure on our side. Either the eventual parser is
+byte-faithful over our corpus, or our zero-tolerance rule is unmeetable in
+principle and we have written a gate nobody can pass — which is a worse failure
+than a gate that is merely hard. This needs deciding before a comparison run is
+scheduled, not during one.
+
+The corresponding opening: our OW-ADR-0002/0003 strategy — a restricted reader
+that refuses everything outside a documented subset — is a live candidate for
+Liminal's own unchosen frontend, and our corpus being a bounded subset makes it a
+more tractable first target than general Markdown. Their words, and explicitly
+not a commitment to a design.
 
 ## 7. Something we are fixing on our side, so you do not have to
 
