@@ -1,0 +1,47 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "The act is decided and written down"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "A correction is recordable, and only by a human"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002"]
+
+  - id: "M3"
+    title: "Drift is still refused; corrected drift is not"
+    depends_on: ['M2']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-003"]
+
+  - id: "M4"
+    title: "The correction history cannot be restated"
+    depends_on: ['M2']
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-004"]
+
+  - id: "M5"
+    title: "The superseded digest survives the correction"
+    depends_on: ['M2']
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-005"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Write the ADR for the correction act"
+    executor_kind: "human"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-002"
+    title: "Implement the record, the seam and the checks"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-003"
+    title: "Plant the five attacks"
+    executor_kind: "agent"
+    responsibility_tier: "T1"
