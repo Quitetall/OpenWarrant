@@ -155,6 +155,33 @@ principle and we have written a gate nobody can pass — which is a worse failur
 than a gate that is merely hard. This needs deciding before a comparison run is
 scheduled, not during one.
 
+### Decided 2026-09-03 by the repository owner: keep zero, choose a byte-faithful frontend
+
+The threshold stays at **one difference refuses parity**. The exposure is closed
+from the other end — by choosing a frontend that can actually be byte-faithful
+over this corpus — rather than by widening the gate. The reasoning, which is the
+part worth keeping: the moment differences are negotiable, parity stops being a
+measurement and becomes a judgment made by whoever wants cutover. That is exactly
+the pressure §82.4 exists to resist.
+
+This is a decision the owner is able to make on both sides, because OpenWarrant
+and Liminal are co-developed. It is not OpenWarrant setting a threshold and
+hoping an external vendor can meet it.
+
+**Semantic IR comparison is adopted as a second declared observable, not as a
+replacement.** Byte parity says *whether* two adapters agree; it cannot say
+*how* they disagree, so a byte difference today is a bare refusal with no
+diagnosis attached. A declared semantic comparison — the IR fields that carry
+meaning, enumerated in advance like every other observable — turns a refusal into
+a located one, and it is strictly stronger to require zero on both than zero on
+either alone. Two conditions, or it becomes the loophole it was meant to close:
+the semantic set is declared in advance like everything else, and it never
+substitutes for the byte comparison when the two disagree.
+
+The decision is the owner's; this wording is the agent's. Folding it into
+OW-WAR-0040's OBL-002 is a §31 amendment against an authorized contract, and is
+not done here.
+
 The corresponding opening: our OW-ADR-0002/0003 strategy — a restricted reader
 that refuses everything outside a documented subset — is a live candidate for
 Liminal's own unchosen frontend, and our corpus being a bounded subset makes it a
