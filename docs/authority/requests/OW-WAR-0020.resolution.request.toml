@@ -1,0 +1,26 @@
+schema = "oh.war/resolution-request/v1"
+warrant = "OW-WAR-0020"
+title = "Implement Gate Run semantics, askability, and invalidation"
+contract_digest = "829da3b9434632c577505bde0e5767e12edfdcaa46c1e381f6038b457aab6849"
+contract_revision = 1
+requirements_met = true
+would_resolve_satisfied = true
+established = [
+    "OBL-001",
+    "OBL-002",
+    "OBL-003",
+    "OBL-004",
+    "OBL-005",
+]
+permitted_outcomes = [
+    "satisfied",
+    "not_satisfied",
+    "cancelled",
+    "blocked",
+]
+gate_run_refs = ["docs/warrants/OW-WAR-0020/gate-runs/software_repo_war-check_1_0_0.receipt.json"]
+judgment_refs = ["judgment://J-001"]
+residual_risk_refs = ["assumption://A-001"]
+eligible_resolvers = ["Brian Lam"]
+
+# OW-WAR-0020: all 13 §56.1 requirements met. Permitted outcomes: satisfied, not_satisfied, cancelled, blocked. Eligible resolvers: Brian Lam.

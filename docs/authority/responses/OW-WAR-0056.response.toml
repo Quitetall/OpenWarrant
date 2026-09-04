@@ -1,0 +1,38 @@
+schema = "oh.war/authorization-response/v1"
+warrant = "OW-WAR-0056"
+contract_digest = "b2c5609bdc00907576e09ce85a9237b30fd573aaec9b440cec5e96e38556d3b3"
+authorizer = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0056 (Compile a real Stage Dispatch (\u00a747)) at this contract digest means the owner accepts its intent, scope and obligations as the work to be done and judged, and accepts each residual risk declared below with its stated consequence. It does not resolve the Warrant; resolution still requires the \u00a756.1 evidence. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+effective_time = "2026-09-02T06:00:00Z"
+independence = "separate_role"
+
+[[judgment]]
+id = "J-001"
+kind = "residual_risk_acceptance"
+statement = "Selecting context from the Warrant's own atoms is sufficient for a stage's needs."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0056: if the assumption is false, the consequence is A stage that needs a source outside the Warrant gets a dispatch complete by section 33.6 and incomplete in fact; the compiler cannot know what it was not told about. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+authority = "authorized"
+basis_refs = ["assumption://A-001"]
+
+[[judgment]]
+id = "J-002"
+kind = "residual_risk_acceptance"
+statement = "A placeholder capability policy reference is acceptable until a policy is modelled."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0056: if the assumption is false, the consequence is A runtime that enforces capabilities against the reference finds nothing to enforce, and an actor runs under no capability bound. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+authority = "authorized"
+basis_refs = ["assumption://A-002"]
+
+[[judgment]]
+id = "J-003"
+kind = "residual_risk_acceptance"
+statement = "same_normative_contract_as holds section 47.3's promise without an observed actor."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0056: if the assumption is false, the consequence is Two projections of one stage differ in contract for a real actor and nothing local detects it until Phase 5's exit Warrant executes one. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+authority = "authorized"
+basis_refs = ["assumption://A-003"]

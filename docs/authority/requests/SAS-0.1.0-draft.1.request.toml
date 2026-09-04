@@ -1,0 +1,14 @@
+schema = "oh.war/sas-acceptance-request/v1"
+version = "0.1.0-draft.1"
+source = "docs/sas/WAR_Software_Architecture_Specification.md"
+sha256 = "aad5256cb59e3e589313b7e2d5b48360ad8c85cf1c1d65d21f9260e692dfe8e5"
+architecture_changing = false
+adr_required = false
+requirement_count = 57
+eligible_acceptors = []
+
+[diff]
+added = []
+removed = []
+retitled = []
+

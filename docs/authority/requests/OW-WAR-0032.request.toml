@@ -1,0 +1,40 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0032"
+title = "Generate the schema pack and implement protocol versioning"
+assurance_level = "basic"
+contract_digest = "4e628bb5bf658fabdcafa387d7ac71313e3272e3407eb5daf930fab3a30a089c"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "schemas generate from the types"
+
+[[obligations]]
+id = "OBL-002"
+statement = "the pack is digested and pinned"
+
+[[obligations]]
+id = "OBL-003"
+statement = "generated schemas cannot drift"
+
+[[obligations]]
+id = "OBL-004"
+statement = "TypeScript consumes rather than reimplements"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Generating schemas from the Rust types is sufficient to keep them correct."
+consequence_if_false = "Generation propagates a misreading of the SAS faithfully, and only conformance against the SAS's own examples catches it."
+judgment_ref = ""
+

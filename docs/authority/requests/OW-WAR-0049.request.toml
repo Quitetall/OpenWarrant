@@ -1,0 +1,40 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0049"
+title = "Close the alpha residue: the gaps alpha carried forward and one false claim"
+assurance_level = "controlled"
+contract_digest = "bb05ae32a4fff259503fdda409021ac92c7f63d6f847119291c7c3f51528b459"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "the false claim is corrected by amendment, not by editing"
+
+[[obligations]]
+id = "OBL-002"
+statement = "the §91.2 residue is implemented or narrowed, with the choice recorded"
+
+[[obligations]]
+id = "OBL-003"
+statement = "the negative scope note matches reality"
+
+[[obligations]]
+id = "OBL-004"
+statement = "the untracked work is dispositioned, with a reviewer"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Narrowing a conformance test by ADR is an acceptable disposition."
+consequence_if_false = "All five §91.2 residue tests end up narrowed rather than implemented, and the Warrant closes cleanly while coverage is no better than before."
+judgment_ref = ""
+

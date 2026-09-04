@@ -1,0 +1,8 @@
+schema = "oh.war/authorization-response/v1"
+warrant = "OW-WAR-0040"
+contract_digest = "d9f4e90b4a789decf839ddf7cee7ba2596104ef54487d0a7629acf09550cd79c"
+authorizer = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0040 (Implement the Liminal adapter and measured parity harness) at this contract digest means the owner accepts its intent, scope and obligations as the work to be done and judged, and accepts each residual risk declared below with its stated consequence. It does not resolve the Warrant; resolution still requires the \u00a756.1 evidence. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+effective_time = "2026-09-02T06:00:00Z"
+independence = "separate_role"

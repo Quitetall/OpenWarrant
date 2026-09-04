@@ -1,0 +1,18 @@
+schema = "oh.war/authorization-response/v1"
+warrant = "OW-WAR-0044"
+contract_digest = "f63c78bd49e749168df0516d78a1846a6de498ee2a5b5fd877ba2ed133407791"
+authorizer = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0044 (Discharge the Phase 4 exit: KF is institutional authority, Git stays Source Holder) at this contract digest means the owner accepts its intent, scope and obligations as the work to be done and judged, and accepts each residual risk declared below with its stated consequence. It does not resolve the Warrant; resolution still requires the \u00a756.1 evidence. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+effective_time = "2026-09-02T06:00:00Z"
+independence = "separate_role"
+
+[[judgment]]
+id = "J-001"
+kind = "residual_risk_acceptance"
+statement = "A single KF instance is sufficient to discharge the Phase 4 exit."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0044: if the assumption is false, the consequence is \u00a791.3 test 18 \u2014 the same local alias in two repositories must not collide \u2014 is genuinely cross-instance and stays open rather than claimed. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+authority = "authorized"
+basis_refs = ["assumption://A-001"]

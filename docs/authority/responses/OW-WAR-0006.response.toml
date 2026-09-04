@@ -1,0 +1,18 @@
+schema = "oh.war/authorization-response/v1"
+warrant = "OW-WAR-0006"
+contract_digest = "1477ad6a82409b0591ce5dbfd1a3f07c084c34984c185e0841cb11c0c92806d9"
+authorizer = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0006 (Complete ADR federation: relations, supersession, and currency) at this contract digest means the owner accepts its intent, scope and obligations as the work to be done and judged, and accepts each residual risk declared below with its stated consequence. It does not resolve the Warrant; resolution still requires the \u00a756.1 evidence. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+effective_time = "2026-09-02T06:00:00Z"
+independence = "separate_role"
+
+[[judgment]]
+id = "J-001"
+kind = "residual_risk_acceptance"
+statement = "Adopting already-shipped work under a Warrant written afterwards is acceptable here, with OBL-003 as the record."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0006: if the assumption is false, the consequence is The precedent is set that a Warrant can be written to describe work already done, which makes authorization retrospective and the mitigation is a weak one. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+authority = "authorized"
+basis_refs = ["assumption://A-001"]

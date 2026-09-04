@@ -1,0 +1,56 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0058"
+title = "Put the SAS under §101 governance: controlled revisions and the Release axis"
+assurance_level = "controlled"
+contract_digest = "e530eae5e3772b645d54d2acb4c28cc20b509a45633ce328e84def3f32342570"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "an accepted revision is immutable"
+
+[[obligations]]
+id = "OBL-002"
+statement = "an agent cannot accept, and an architecture change needs an ADR"
+
+[[obligations]]
+id = "OBL-003"
+statement = "the document's bytes are held to the record"
+
+[[obligations]]
+id = "OBL-004"
+statement = "a §106 id cannot be removed"
+
+[[obligations]]
+id = "OBL-005"
+statement = "every Warrant is bound to a named SAS revision"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "A revision record that is immutable by type and checked on load is sufficient until the SAS is a controlled Knowledge Fabric document."
+consequence_if_false = "An accepted record is edited by hand to a different digest in a single commit, and the only thing that notices is a reviewer reading the diff."
+judgment_ref = ""
+
+[[residual_risks]]
+assumption_id = "A-002"
+statement = "Treating a retitled requirement as architecture-changing but not as a removal is the right boundary."
+consequence_if_false = "A retitle that inverts a requirement's meaning passes the stability check, and only the ADR the acceptance requires can catch it."
+judgment_ref = ""
+
+[[residual_risks]]
+assumption_id = "A-003"
+statement = "Moving every workspace basis digest once, on the first proposal, harms no consumer."
+consequence_if_false = "An out-of-tree consumer that cached a workspace basis digest is wrong from that commit on, and this repository cannot know who that is."
+judgment_ref = ""
+

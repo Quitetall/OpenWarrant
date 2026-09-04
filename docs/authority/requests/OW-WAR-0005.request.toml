@@ -1,0 +1,50 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0005"
+title = "Implement deterministic war check and close the Phase 1 bootstrap"
+assurance_level = "controlled"
+contract_digest = "65edfcf35311e80ac8de3804a661ebe640b1dcab553b74a809970eb9244e1a4f"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "`war check` produces the §71.7 output shape"
+
+[[obligations]]
+id = "OBL-002"
+statement = "every Phase 1 conformance item PASSES"
+
+[[obligations]]
+id = "OBL-003"
+statement = "every planted violation is REJECTED BY ITS INTENDED CONTROL"
+
+[[obligations]]
+id = "OBL-004"
+statement = "`war check` is green over this repository's own Warrants"
+
+[[obligations]]
+id = "OBL-005"
+statement = "the Phase 1 bootstrap is closed"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "`war check` handling a decision Warrant correctly can be assumed, though the corpus is all delivery."
+consequence_if_false = "The first decision Warrant written is validated by code no fixture ever exercised."
+judgment_ref = ""
+
+[[residual_risks]]
+assumption_id = "A-002"
+statement = "Two runs on one host satisfy §91.1 test 1's two supported hosts, as stated in the claim."
+consequence_if_false = "The determinism claim covers one architecture while reading as though it covers two."
+judgment_ref = ""
+

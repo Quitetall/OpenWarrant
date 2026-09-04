@@ -1,0 +1,18 @@
+schema = "oh.war/authorization-response/v1"
+warrant = "OW-WAR-0039"
+contract_digest = "144ad9331646730f7a9aa0d45d4f83981cda71c534b97d762b0e094c9dba3d99"
+authorizer = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0039 (Implement telemetry, unit economics, and untracked-work detection) at this contract digest means the owner accepts its intent, scope and obligations as the work to be done and judged, and accepts each residual risk declared below with its stated consequence. It does not resolve the Warrant; resolution still requires the \u00a756.1 evidence. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+effective_time = "2026-09-02T06:00:00Z"
+independence = "separate_role"
+
+[[judgment]]
+id = "J-001"
+kind = "residual_risk_acceptance"
+statement = "Approximate human authoring cost is acceptable input to unit economics."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0039: if the assumption is false, the consequence is Treating the approximation as precise makes every derived figure a false claim. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+authority = "authorized"
+basis_refs = ["assumption://A-001"]

@@ -1,0 +1,32 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0014"
+title = "Implement the rationale model, assumptions, and unknowns"
+assurance_level = "basic"
+contract_digest = "ea291935521d0e39fc3b342bc1f7fefb25d73f9912a666eb90a460544cd59847"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "the rationale graph parses"
+
+[[obligations]]
+id = "OBL-002"
+statement = "blocking unknowns and circular validation are REFUSED"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Structured rationale is worth its authoring burden."
+consequence_if_false = "Authors write the minimum that parses, and a graph written to satisfy a parser carries less than the prose it replaced."
+judgment_ref = ""
+

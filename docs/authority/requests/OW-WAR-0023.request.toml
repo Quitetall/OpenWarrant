@@ -1,0 +1,36 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0023"
+title = "Implement Stage Dispatch compilation and actor-specific projection"
+assurance_level = "controlled"
+contract_digest = "6c3c0fb78ae995976138a18c657a34b5adcced8b63cfafe396d940f6eaaf7768"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "a Dispatch is self-contained"
+
+[[obligations]]
+id = "OBL-002"
+statement = "projection is actor-specific"
+
+[[obligations]]
+id = "OBL-003"
+statement = "capabilities default to DENIED"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Dispatch completeness can be argued rather than demonstrated until a live runtime exists."
+consequence_if_false = "Under-projection surfaces only at execution, so the first real dispatch is where a missing field is discovered."
+judgment_ref = ""
+

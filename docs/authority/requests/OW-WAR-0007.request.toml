@@ -1,0 +1,40 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0007"
+title = "Parse and validate milestones, stages, and named typed ports"
+assurance_level = "controlled"
+contract_digest = "58b012e3fc6cea34bf941342c97f794513c2cf31290e59ebb201a9c400bcbbf7"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-000"
+statement = "the structured-atom parser is chosen by ADR"
+
+[[obligations]]
+id = "OBL-001"
+statement = "milestones and stages parse into typed values"
+
+[[obligations]]
+id = "OBL-002"
+statement = "every malformed graph is REFUSED"
+
+[[obligations]]
+id = "OBL-003"
+statement = "the existing corpus validates"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "The structured-atom parser may widen the input surface OW-ADR-0002 narrowed."
+consequence_if_false = "Adopting a full YAML parser for .yaml atoms reinstates the expansion-DoS exposure that ADR refused, inherited rather than answered."
+judgment_ref = ""
+

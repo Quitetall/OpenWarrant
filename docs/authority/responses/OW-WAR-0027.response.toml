@@ -1,0 +1,18 @@
+schema = "oh.war/authorization-response/v1"
+warrant = "OW-WAR-0027"
+contract_digest = "f62657b83de96d3602d45b0ce361d5d6b70ced4ce01be0aaf924f4f2861f17a2"
+authorizer = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0027 (Implement the BLUT adapter: PlanSpec lowering and lineage receipt) at this contract digest means the owner accepts its intent, scope and obligations as the work to be done and judged, and accepts each residual risk declared below with its stated consequence. It does not resolve the Warrant; resolution still requires the \u00a756.1 evidence. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+effective_time = "2026-09-02T06:00:00Z"
+independence = "separate_role"
+
+[[judgment]]
+id = "J-001"
+kind = "residual_risk_acceptance"
+statement = "BLUT's PlanSpec version may be left unpinned until beta."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0027: if the assumption is false, the consequence is PlanSpec moves and the adapter lowers to a shape BLUT no longer accepts. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+authority = "authorized"
+basis_refs = ["assumption://A-001"]

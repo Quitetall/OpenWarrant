@@ -1,0 +1,44 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0020"
+title = "Implement Gate Run semantics, askability, and invalidation"
+assurance_level = "controlled"
+contract_digest = "829da3b9434632c577505bde0e5767e12edfdcaa46c1e381f6038b457aab6849"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "an unaskable gate cannot satisfy a required pass"
+
+[[obligations]]
+id = "OBL-002"
+statement = "the two vocabularies survive intact"
+
+[[obligations]]
+id = "OBL-003"
+statement = "a required unknown BLOCKS resolution"
+
+[[obligations]]
+id = "OBL-004"
+statement = "invalidation propagates"
+
+[[obligations]]
+id = "OBL-005"
+statement = "a mutating gate is quarantined"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Declarative mutation detection is sufficient without sandboxing."
+consequence_if_false = "A gate that mutates without declaring it is not quarantined, and the quarantine rule protects only honest gates."
+judgment_ref = ""
+

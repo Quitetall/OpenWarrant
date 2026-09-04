@@ -1,0 +1,40 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0017"
+title = "Implement the epistemic classes: evidence, observation, inference, judgment, resolution"
+assurance_level = "controlled"
+contract_digest = "ca1471c65a7b651ba6f078c05d8e9bcbdb55dd030f6f638d35ffb880b71812aa"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "the six classes are distinct"
+
+[[obligations]]
+id = "OBL-002"
+statement = "every prohibited substitution is REFUSED"
+
+[[obligations]]
+id = "OBL-003"
+statement = "evidence carries origin and admissibility"
+
+[[obligations]]
+id = "OBL-004"
+statement = "a judgment names who made it"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Structuring admissibility in types is sufficient, though independence itself remains a judgement."
+consequence_if_false = "The mechanical rule that a performer report is not evidence holds while the non-mechanical rule that a verifier is genuinely independent silently does not."
+judgment_ref = ""
+
