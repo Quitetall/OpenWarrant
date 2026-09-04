@@ -6,6 +6,11 @@
 **Governing text:** SAS §47 (Dispatch), §48 (Katana integration), §51 (Stage
 Submission), §52 (attempts), §53 (remedies)
 
+> **Answered 2026-09-03.** Katana replied to this packet. Item 0's premise was
+> wrong and is corrected below; items 1–4 stand with real constraints now
+> recorded. Nobody at Katana has committed to anything, and nothing here should
+> be read as a commitment.
+
 ## 1. What we are asking for
 
 We need one stage of one Warrant to be **executed by a stateless Katana agent
@@ -16,8 +21,8 @@ against a dispatch it does not answer is rejected outright. Until a receipt
 arrives from your side, the seam stays "built but never exercised", which is
 what our own Warrant currently says about itself.
 
-There is a smaller ask that has to come first: **tell us the executor name.**
-See §4, item 0.
+There is a smaller ask that had to come first — **tell us the executor name** —
+and the answer is that there is no name to tell. See §4 item 0, rewritten.
 
 ## 2. The governing text
 
@@ -92,15 +97,33 @@ resolution."
 
 ## 4. What we need returned — artifacts, not assertions
 
-**0. An executor name and its argument schema.** Today
-`war dispatch OW-WAR-0045 STAGE-002` refuses with:
+**0. ~~An executor name and its argument schema.~~ ANSWERED — the premise was
+wrong, and the name is ours to assign.** Katana has no executor registry, no
+`executor_ref` concept, and no lookup that would resolve one. There is nothing on
+that side to name, so declining to invent a name would leave the field empty
+forever. What goes there will be a name **OpenWarrant** assigns to one of
+Katana's invocation surfaces, pinned to a Katana version.
+
+Today `war dispatch OW-WAR-0045 STAGE-002` still refuses:
 
 > stage "STAGE-002" declares no executor_ref, so nothing says what runs it.
 > Refused rather than dispatched under the WAR id
 
-We deliberately will not invent a name for something that runs in your system.
-Send us the executor identifier Katana resolves (and the shape of its args) and
-we will pin it in the stage, recompile, and send you the real Dispatch.
+The three real surfaces, of which §48.1 already anticipates two ("Dispatch
+protocol or subprocess/API adapter"):
+
+1. **CLI subprocess** — `katana [--result|--json] --policy <reader|builder|trusted|muramasa>
+   --sandbox <auto|bubblewrap|podman|podman-session|landlock|bubblewrap-egress|none>
+   --cwd <dir> --runtime-profile <profile> --wall-timeout-secs <n>
+   --new-session-path <path> --max-turns <n> --max-tool-calls <n> "<prompt>"`.
+   Stateless by construction against a fresh cwd and session path.
+2. **ACP over stdio** (`katana acp`) — a genuinely versioned protocol, and the
+   closest thing to §48.1's "versioned Dispatch protocol".
+3. **MCP server** (`katana mcp`), exposing `katana.run`.
+
+Version pinning for item 4 is already solved on their side: `katana --version`
+plus source commit plus binary sha256, the same triple their SWE-bench harness
+emits as build provenance.
 
 **1. One execution.** The agent receives the Dispatch JSON and nothing else — no
 repository checkout handed over the side, no prior conversation, no operator
@@ -119,6 +142,60 @@ never exceeded authorized).
 
 **4. A version pin.** The Katana adapter identity and exact version, so the run
 is reproducible and the receipt is attributable.
+
+## 4b. What exists today, what does not, and the part that is larger than it looks
+
+Reported by Katana 2026-09-03, recorded here because it changes what
+OW-WAR-0045 can honestly claim.
+
+**Exists.** Stateless execution is not theoretical — a sibling project is driving
+Katana in exactly the shape item 1 describes (cleared environment, per-run HOME,
+fresh session log per item, no repository handed over the side), 150 runs in
+flight. Most of §48.4's eleven fields already exist as recorded runtime facts:
+session identity and usage and terminal status in the `--result` digest;
+`katana::compiler::PromptIR` with `canonical_bytes()` and a `prompt_hash` on
+every `model.request` event; a hash-chained event log (`prev_hash` per event);
+provider/model identity on session creation and per request; realized
+capabilities as `capability.granted` events; confinement on `session.created`.
+Our §48.2 boundary is not aspirational on their side — it is what their replay
+gate already asserts.
+
+**Does not exist.** No receipt emitter and no receipt digest: assembling the
+eleven fields is real work there, not a flag. No Dispatch parser and no Dispatch
+digest — Katana takes a prompt string. The Dispatch JSON *can* be that string,
+which satisfies the letter of item 1, but Katana would not validate it, would not
+digest it, and **would not enforce our `resource_envelope` or
+`capability_authorization` from it**; its confinement and capability limits come
+from its own flags. "Realized never exceeded authorized" is therefore checkable
+after the fact from the event log, not enforced from the Dispatch. And no Stage
+Submission: `--result` emits `{status, session, answer, tool_calls, usage}`; the
+five §51.2 actions are not modelled.
+
+**The part that is larger than it looks.** Our §51.2 worry was that an agent
+might request resolution *by accident*. Katana's correction is sharper: in a
+prompt-only integration, accident is not the risk. If the Submission exists
+because the prompt asked for one, then conformance to §51.2 — including the
+refusal to resolve — is **model behaviour, not a Katana guarantee**. Nothing
+structural prevents a model from emitting a submission that resolves, and a
+well-formed one would look exactly like a compliant one.
+
+OW-WAR-0045's exit says "without authority confusion". If that is meant to rest
+on a structural property, a prompt-shaped integration does not carry it. Better
+to have this before a passing run is recorded than after. It is unscoped, and it
+may be the largest of the three pieces.
+
+## 4c. Digest algorithms — checked, and no collision
+
+Katana flagged that its digests are BLAKE3 with a `b3:` prefix (both
+`prompt_hash` and the event-log chain), and asked whether `KatanaReceipt::validate`
+assumes SHA-256 hex. It does not: every §48.4 field is checked only for being
+non-empty, so a `b3:`-prefixed `prompt_ir_digest` or `runtime_event_log_head`
+passes unchanged. §48.5 taint labels are likewise referenced, never recomputed.
+
+The one field that is not opaque is `dispatch_digest`. It must be **our** digest
+of the Dispatch, echoed back verbatim, not Katana's hash of the packet — that
+equality is what proves the agent ran the bytes we sent. Everything else can be
+in whatever algorithm Katana natively emits.
 
 ## 5. What we will refuse
 

@@ -55,6 +55,12 @@ protocol."
 
 ## 3. What we have already built
 
+> **Answered 2026-09-03.** KF replied to this packet. Items 2, 5 and 6 are
+> resolved and struck through below; items 1, 3 and 4 stand, with their real
+> constraints now recorded. Two defects the exchange found are ours: our client
+> omits `expectedVersion`, and it sends generic action names instead of the
+> thirty-two §67 ones. Both are fixes to `war kf`, not asks of KF.
+
 - `war kf health` (read-only) and `war kf act` (writes, and refuses to write
   without `--confirm-write`), over HTTP or HTTPS, defaulting to
   `http://127.0.0.1:4000`.
@@ -78,30 +84,70 @@ protocol."
 ## 4. What we need returned — artifacts, not assertions
 
 1. **An endpoint we can reach**, with credentials or a local run recipe, and the
-   base URL if it is not `127.0.0.1:4000`.
-2. **The action types, as KF actually names them.** Our client currently sends
-   generic forms like `document.create`. §67 names thirty-two Warrant-specific
-   actions. Tell us the mapping — or tell us KF wants the §67 names verbatim and
-   we will send those.
-3. **One real allocation.** A Warrant registers; KF returns an enterprise
-   identifier under the OpenHuman Identifier Registry; we record it. Which
-   Warrant is your choice — OW-WAR-0029 is the natural candidate, since it is the
-   one that asks for this.
+   base URL if it is not `127.0.0.1:4000`. **Status 2026-09-03: not yet, stated
+   without overstatement.** A Debian 13 host that is deliberately not the build
+   workstation is up, with the six host requirements probed, bubblewrap
+   qualification passing, and PostgreSQL 18.6 running `jit=off`. It has no `kf`
+   database, no promoted release, no TLS and no Keycloak realm, so there is no
+   URL. Their commissioning verifier reports `unverifiable` as a *failure*
+   precisely so a half-built host cannot be cited as one — which is the same rule
+   as ours, arrived at independently.
+2. ~~**The action types, as KF actually names them.**~~ **ANSWERED
+   2026-09-03: verbatim, no mapping.** `@kf/warrants` owns all thirty-two §67
+   names exactly as the SAS spells them, all thirty-two perform typed writes, and
+   an unrecognised action type is refused as `unknown_action`. The generic forms
+   our client sends (`document.create` and friends) are wrong and are being
+   removed.
+3. **One real allocation.** Corrected by KF 2026-09-03: **registration and
+   allocation are two acts, not one.** A Warrant can be registered and hold no
+   identifier — which is exactly the state §12.4 calls a valid local draft, so
+   the correction sharpens our own requirement rather than bending it. The ask is
+   therefore: register, then allocate.
+
+   KF confirms it *can* allocate — `core.allocate_enterprise_id` locks the
+   sequence, skips occupied numbers, computes a Damm check digit, writes a ledger
+   row, and returns the identifier read back from durable state. Two conditions
+   neither side can waive: allocation is a **human-only act** (a service actor is
+   refused every institutional act by name), and `allocate_enterprise_identifier`
+   declares `requires: act`, so a live act grant must reach the target or the
+   organization. `WAR` was allocated in the OpenHuman registry on 2026-09-02 and
+   the pack carrying it signed 2026-09-03, so `OH-WAR-NNNNNN-C` is issuable;
+   before that date it would have been refused by name.
 4. **A federation record** with the nine §12.5 fields, `Source Holder` among
-   them, set to `git`.
-5. **The version field for §67.3.** Our current envelope has no
-   `expected_version` — the route contract we read did not carry one. Optimistic
-   concurrency is an obligation we cannot meet unilaterally: tell us where the
-   version goes (body field, `If-Match` header, something else) and what a drift
-   rejection looks like on the wire, and we will cite the version we read on
-   every mutation.
-6. **Confirmation that registration does not transfer source authority.** This
-   is the load-bearing one for Phase 4 and the easiest to get wrong. The exit
-   criterion is "registered WARs use KF as institutional authority **while Git
-   may remain Source Holder**". A registration that quietly takes source
-   authority too would satisfy a careless reading and destroy the property the
-   test exists to protect. We need a round trip proving Git still holds the
-   bytes.
+   them, set to `git`. KF's position, which we accept: this should be *produced
+   by the registration act*, not hand-written, or it is an assertion rather than
+   a record. Deferred with item 1.
+5. ~~**The version field for §67.3.**~~ **WITHDRAWN — the premise was false.**
+   `expectedVersion` has been on the wire since the route existed
+   (`apps/api/src/routes/actions/write-route.ts`). We were misled by a KF
+   docstring that listed four body fields and omitted it; KF has corrected that
+   comment. The defect is ours to fix: our client does not send the field.
+
+   The real contract:
+
+   ```text
+   body:    { targetIds, payload, reason, idempotencyKey, expectedVersion?, effectiveAt? }
+   headers: x-kf-actor, x-kf-acting-role, x-kf-organization
+   ```
+
+   Drift is refused, never overwritten: `version_conflict`, HTTP 409. Siblings
+   are `illegal_transition` and `idempotency_conflict` (409) and
+   `actor_not_authorized`, `role_not_held`, `classification_not_granted`,
+   `act_not_granted`, `separation_of_duty` (403). Of §67.1's twelve fields KF
+   takes ten and **assigns** two: `request_id` and `recorded_at` are
+   server-derived and not accepted from the caller, which is a stronger reading of
+   §67.2 than accepting a field and ignoring it. `effectiveAt` must be a
+   canonical four-digit-year RFC 3339 millisecond instant; a non-canonical one is
+   refused rather than normalised.
+6. ~~**Confirmation that registration does not transfer source authority.**~~
+   **CONFIRMED 2026-09-03, and built that way.** `work.warrant` uses our UUIDv7
+   *as* the object id, so KF does not mint a rival identity for the same thing.
+   `work.warrant_contract_revision` is append-only and stores the digest, basis
+   and canonical IR **as OpenWarrant computed them** — KF does not recompute a
+   digest and assert its own answer, because that would make it a second
+   authority for a fact Git owns. Recorded on their side as ADR 0019 and
+   KF-SAS-RQ-132/133. The round trip still has to be *run*; what is settled is
+   that the design does not take source authority.
 
 ## 5. Sequencing note — the TypeScript types
 
@@ -127,7 +173,9 @@ and is not yet built. So:
 - **A duplicated action applied twice.** §67.4.
 - **Registration that also takes Source Holder.** §91.3 test 21.
 - **A KF that has to be up for us to work.** §12.6 and RQ-070: the full local
-  flow must still run with KF unreachable, and we verify that by taking it away.
+  flow must still run with KF unreachable. KF rightly points out that this is not
+  something they can hand us — it is a property of *our* client, verified by
+  taking them away — so it is listed here as a refusal, never as a deliverable.
 
 ## 7. How to send it back
 
