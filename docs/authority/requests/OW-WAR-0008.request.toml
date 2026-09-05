@@ -1,0 +1,36 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0008"
+title = "Implement the state model: phase, condition, outcome, currency, standing"
+assurance_level = "controlled"
+contract_digest = "e4c5be7e2d1a92363efba990f1cb32887a08e21cc5ba8c1f05699e51a78dfb0c"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "the five axes exist and are independent"
+
+[[obligations]]
+id = "OBL-002"
+statement = "illegal transitions and untruthful combinations are REFUSED"
+
+[[obligations]]
+id = "OBL-003"
+statement = "reported state distinguishes derived from recorded"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Delivering the state vocabulary and rules without storage is acceptable until the journal exists."
+consequence_if_false = "Transitions cannot be audited, so a wrong state change leaves no trail to find it by."
+judgment_ref = ""
+

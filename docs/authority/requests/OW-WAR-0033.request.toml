@@ -1,0 +1,36 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0033"
+title = "Implement the remaining read projections"
+assurance_level = "basic"
+contract_digest = "2c6f5d7fedf4ed9edba50e94816c8c483c425b3ea602d8382f626e060158591b"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "nine projections exist"
+
+[[obligations]]
+id = "OBL-002"
+statement = "projections do not affect the contract"
+
+[[obligations]]
+id = "OBL-003"
+statement = "every committed projection drift-checks"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "The read projections can be trusted to be complete."
+consequence_if_false = "Omission from a projection is invisible; only a reader who happens to notice catches it."
+judgment_ref = ""
+

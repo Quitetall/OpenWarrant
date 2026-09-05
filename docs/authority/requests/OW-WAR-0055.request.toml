@@ -1,0 +1,60 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0055"
+title = "Compute the goal hierarchy: war status and the corpus projection"
+assurance_level = "controlled"
+contract_digest = "218d3d988671c88d80a79e51898f2dd1b045144e8d82b440fca1642eb95e0917"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "a malformed roadmap reference is refused"
+
+[[obligations]]
+id = "OBL-002"
+statement = "a contribution outside §34.2's five is refused"
+
+[[obligations]]
+id = "OBL-003"
+statement = "requirement status is derived, and `satisfied` needs a resolution"
+
+[[obligations]]
+id = "OBL-004"
+statement = "the projection is byte-deterministic"
+
+[[obligations]]
+id = "OBL-005"
+statement = "a hand-edited projection is caught"
+
+[[obligations]]
+id = "OBL-006"
+statement = "an agent can find what to do next from one document"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "The roadmap:// grammar is an OpenWarrant convention that the SAS will not later bind to milestone ids."
+consequence_if_false = "Every topic slug in the corpus becomes a reference to nothing, and 49 manifests need a coordinated edit that moves every contract digest."
+judgment_ref = ""
+
+[[residual_risks]]
+assumption_id = "A-002"
+statement = "Defining Objective achievement by the exit-slug Warrant is sufficient."
+consequence_if_false = "A phase whose exit Warrant is misnamed reports not_derivable rather than blocked, which is honest and easy to read past; Phase 1 does so today."
+judgment_ref = ""
+
+[[residual_risks]]
+assumption_id = "A-003"
+statement = "A headline of zero satisfied will be read as the truth rather than as a broken tool."
+consequence_if_false = "A reader expecting a percentage dismisses the projection, and the one honest number in the system goes unread."
+judgment_ref = ""
+

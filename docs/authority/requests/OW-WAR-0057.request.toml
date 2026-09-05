@@ -1,0 +1,42 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0057"
+title = "The viewer: a static page over the corpus projection"
+assurance_level = "basic"
+contract_digest = "44a79f708632c7a12a40b8de36d911c1a43eede7bd7406920bb10a330b282eea"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "the page is byte-deterministic and self-contained"
+
+[[obligations]]
+id = "OBL-002"
+statement = "the page shows the ladder and never a percentage"
+
+[[obligations]]
+id = "OBL-003"
+statement = "a hand-edited page is caught"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Inlining the whole projection into one page stays acceptable as the corpus grows."
+consequence_if_false = "At ten times the corpus the page is a megabyte; still one file and still no fetch, but slow to open on a weak connection, and the decision was made at 135 KB."
+judgment_ref = ""
+
+[[residual_risks]]
+assumption_id = "A-002"
+statement = "Putting the provenance banner first is enough for a reader to take derived state as derived."
+consequence_if_false = "A reader who scrolls past it reads draft as a verdict, and nothing further on the page can correct that."
+judgment_ref = ""
+

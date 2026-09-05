@@ -1,0 +1,40 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0029"
+title = "Implement KF registration, global identity allocation, and federation"
+assurance_level = "basic"
+contract_digest = "1d8b13131a5829166712ddf1f53751476e9438d4bf26d98dd5026b258e267698"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "allocation preserves the UUID"
+
+[[obligations]]
+id = "OBL-002"
+statement = "Source Holder is not transferred"
+
+[[obligations]]
+id = "OBL-003"
+statement = "offline still works"
+
+[[obligations]]
+id = "OBL-004"
+statement = "fabrication is still refused"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Enterprise identifiers may be modelled before the Identifier Registry exists."
+consequence_if_false = "An allocated enterprise ID means only that some KF said so, and two instances can allocate the same one."
+judgment_ref = ""
+

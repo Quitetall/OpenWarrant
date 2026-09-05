@@ -1,0 +1,36 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0013"
+title = "Validate SAS and Roadmap traceability"
+assurance_level = "basic"
+contract_digest = "e82d467e4e4b5350f79ce6cc08b3028e56e6328ad467684387dec3c7cce9868f"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "references resolve"
+
+[[obligations]]
+id = "OBL-002"
+statement = "an unresolvable reference is REFUSED"
+
+[[obligations]]
+id = "OBL-003"
+statement = "requirements with no Warrant are reported"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Parsing requirement identifiers out of prose is acceptable because breakage is loud."
+consequence_if_false = "A §106 table reformat breaks traceability resolution; loudly, but every claim citing a requirement id is unresolvable until it is fixed."
+judgment_ref = ""
+

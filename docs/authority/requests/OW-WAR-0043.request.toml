@@ -1,0 +1,40 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0043"
+title = "Discharge the Phase 3 exit: migrate the LamQuant ADR corpus, fabricating nothing"
+assurance_level = "controlled"
+contract_digest = "a9d2de0049ca54a08e8ccd5438c785deff8a8aba77c34b52fbfce12cb3ae9d6b"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "the import ran against one named, frozen commit"
+
+[[obligations]]
+id = "OBL-002"
+statement = "every ADR's bytes survive"
+
+[[obligations]]
+id = "OBL-003"
+statement = "no completion claim became a resolution"
+
+[[obligations]]
+id = "OBL-004"
+statement = "the parent/child and ADR conformance tests are planted"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Reporting unmapped ADR sections is sufficient handling for template drift across 173 documents."
+consequence_if_false = "A large unmapped list is dispositioned in bulk by someone tired, which loses the same content dropping it would have."
+judgment_ref = ""
+

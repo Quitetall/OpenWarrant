@@ -1,0 +1,36 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0011"
+title = "Implement prerequisites and Preflight"
+assurance_level = "basic"
+contract_digest = "0df5ae3aad7476d807f37548d66b21e9954797e8977bbfbbcdf96ad6e4d34377"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "all six dimensions are addressed"
+
+[[obligations]]
+id = "OBL-002"
+statement = "an unchecked dimension BLOCKS"
+
+[[obligations]]
+id = "OBL-003"
+statement = "the report names what it could not exercise"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Partial Preflight until Phase 5 is acceptable by construction."
+consequence_if_false = "A Warrant passes local Preflight and fails immediately against a live runtime, so the check gave false confidence rather than none."
+judgment_ref = ""
+

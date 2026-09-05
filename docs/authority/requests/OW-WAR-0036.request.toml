@@ -1,0 +1,36 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0036"
+title = "Implement normative-decision detection and proposed-ADR generation"
+assurance_level = "basic"
+contract_digest = "5dc61ed786b3e6606335e2128761765f68cf329f0df2ffdb9c0d7539f387af65"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "one classifier, not two"
+
+[[obligations]]
+id = "OBL-002"
+statement = "an undocumented normative decision FAILS"
+
+[[obligations]]
+id = "OBL-003"
+statement = "execution choices are NOT flagged"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Normative-decision detection is worth its false-positive rate."
+consequence_if_false = "A detector that flags routine work is switched off, taking the real detections with it."
+judgment_ref = ""
+

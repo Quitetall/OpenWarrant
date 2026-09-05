@@ -1,0 +1,7 @@
+schema = "oh.war/sas-acceptance-response/v1"
+version = "0.1.0-draft.1"
+sha256 = "aad5256cb59e3e589313b7e2d5b48360ad8c85cf1c1d65d21f9260e692dfe8e5"
+accepted_by = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Accepting 0.1.0-draft.1 makes this SAS text, at this digest, the normative baseline every compiled Warrant is pinned to. Its 57 \u00a7106 requirement ids are henceforth append-only; a later revision that removes or renumbers one is refused. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+effective_time = "2026-09-02T06:00:00Z"

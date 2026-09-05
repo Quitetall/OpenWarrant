@@ -1,0 +1,32 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0025"
+title = "Implement blockers, deviations, decision proposals, and discovered gaps"
+assurance_level = "basic"
+contract_digest = "3ebe6f62fe5b5c2112189303843a7fcddc822c3a2316d70b0a5d12a02c992426"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "the four types are distinct with distinct remedies"
+
+[[obligations]]
+id = "OBL-002"
+statement = "a blocker does not erase phase"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Authored classification of blockers, deviations and gaps is acceptable."
+consequence_if_false = "A deviation recorded as a discovered gap misroutes the remedy and nothing detects the misrouting."
+judgment_ref = ""
+

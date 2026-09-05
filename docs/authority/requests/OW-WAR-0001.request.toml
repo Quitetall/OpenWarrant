@@ -1,0 +1,46 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0001"
+title = "Establish the OpenWarrant repository and Rust workspace"
+assurance_level = "basic"
+contract_digest = "ab7e2df770a6c895e55e0c5990b0ad33a18f5dbebe653e6389fbdc30ca1c648a"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "the workspace builds on the pinned toolchain"
+
+[[obligations]]
+id = "OBL-002"
+statement = "the aggregate gate passes"
+
+[[obligations]]
+id = "OBL-003"
+statement = "the gate has been observed to REJECT"
+
+[[obligations]]
+id = "OBL-004"
+statement = "`war init` initializes a repository, and refuses to reinitialize"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "CI on ubuntu-latest rather than the self-hosted runner the private tier calls for is acceptable, bounded by timeout-minutes and one short job."
+consequence_if_false = "Billed minutes are consumed on a repository whose tier assumed free local runs, and the bound is a timeout rather than a cost ceiling."
+judgment_ref = ""
+
+[[residual_risks]]
+assumption_id = "A-002"
+statement = "The gate being advisory rather than a required status check on main is acceptable until branch protection is applied."
+consequence_if_false = "A red gate does not block a merge, so work can land that the gate would have refused."
+judgment_ref = ""
+

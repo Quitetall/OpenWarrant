@@ -1,0 +1,40 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0041"
+title = "Discharge the Phase 0 exit: real telemetry distributions, with a baseline"
+assurance_level = "controlled"
+contract_digest = "c59efbab5b418007476e09b682503b15be1697fe2ed8cc9a671f080829310773"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "a baseline exists, recorded before any tuning"
+
+[[obligations]]
+id = "OBL-002"
+statement = "measures that cannot be taken are named, not zeroed"
+
+[[obligations]]
+id = "OBL-003"
+statement = "§95 detection runs against real history and fabricates nothing"
+
+[[obligations]]
+id = "OBL-004"
+statement = "no §100 reduction is claimed"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "A single telemetry sample is a legitimate baseline."
+consequence_if_false = "Once a second sample exists the difference is reported as a reduction; §100's verbs make that tempting and only OBL-004 forbids it."
+judgment_ref = ""
+

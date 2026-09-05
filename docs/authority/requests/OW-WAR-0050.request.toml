@@ -1,0 +1,35 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0050"
+title = "Governed Bonsai evidence for pull-request workflow"
+assurance_level = "basic"
+contract_digest = "2d33521286e52a883fba2815b9ea62fea03044e0d1239b81d75f070d79d6946a"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+residual_risks = []
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "scope changes move the Warrant contract"
+
+[[obligations]]
+id = "OBL-002"
+statement = "evidence binds exact candidate and machine policy"
+
+[[obligations]]
+id = "OBL-003"
+statement = "only scope and architecture block the pilot"
+
+[[obligations]]
+id = "OBL-004"
+statement = "PR workflow remains report-only pending qualification"
+

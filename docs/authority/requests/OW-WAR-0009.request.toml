@@ -1,0 +1,40 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0009"
+title = "Implement contract revisions and their immutability"
+assurance_level = "controlled"
+contract_digest = "7352628a84188ffb0da8f061e731b529864fa2f1269d9bd4a1653086eb99d279"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-000"
+statement = "local authorization is defined, not assumed"
+
+[[obligations]]
+id = "OBL-001"
+statement = "an authorized revision is immutable"
+
+[[obligations]]
+id = "OBL-002"
+statement = "amendment attempts are REFUSED"
+
+[[obligations]]
+id = "OBL-003"
+statement = "prior attempts retain their basis"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Local authorization as a placeholder is acceptable, bounded by OBL-000's honesty about it."
+consequence_if_false = "The contract model detects rather than prevents, and the only thing keeping that visible is a sentence somebody has to keep writing."
+judgment_ref = ""
+

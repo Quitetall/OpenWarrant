@@ -1,0 +1,8 @@
+schema = "oh.war/authorization-response/v1"
+warrant = "OW-WAR-0040"
+contract_digest = "cd42487d2624c78b6b3031be665c6924a5701676d478f3ba03a0de13734fcc71"
+authorizer = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Authorizing revision 2 of OW-WAR-0040 (Implement the Liminal adapter and measured parity harness) at this contract digest means the owner accepts amendment AM-001: the zero-difference parity threshold is KEPT, and a semantic IR comparison over fields declared in advance is added as a second observable requiring zero differences of its own. The amendment strengthens the obligation and relaxes nothing. The owner's reason is that the moment differences are negotiable, parity stops being a measurement and becomes a judgment made by whoever wants cutover; the exposure Liminal reported is therefore closed by choosing a byte-faithful frontend over this bounded corpus rather than by widening the gate. No evidence is invalidated, because no comparison has yet been run. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Response drafted by the performer `claude`; the decision is the owner's, the wording is the agent's."
+effective_time = "2026-09-04T00:00:00Z"
+independence = "separate_role"

@@ -1,0 +1,44 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0046"
+title = "Discharge the Phase 6 exit: a delivery closes only through bounded proof"
+assurance_level = "controlled"
+contract_digest = "e82dbfbb60ac27d6a5aa1eed61b39864898506bf38b9fe2bede28da6a0881993"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "a real gate run produced a complete receipt"
+
+[[obligations]]
+id = "OBL-002"
+statement = "an adequacy review executed attacks"
+
+[[obligations]]
+id = "OBL-003"
+statement = "all thirteen requirements are computed, and each unmet one is named"
+
+[[obligations]]
+id = "OBL-004"
+statement = "dispute and annulment preserved history"
+
+[[obligations]]
+id = "OBL-005"
+statement = "§91.10, §91.11 and §91.12 are planted"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Resolutions produced in this repository are meaningful despite the independence gap."
+consequence_if_false = "Every resolution is a self-assessment with good bookkeeping, and unless the resolution's meaning field says so a reader will take it for independent review."
+judgment_ref = ""
+
