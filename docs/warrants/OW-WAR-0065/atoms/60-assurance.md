@@ -30,9 +30,9 @@ classification: internal
 
 - **scope:** WMD H2 scenario at commit `765ab4b`.
 - **gate:** `gate://software.repo.war-check@1.0.0`
-- **evidence:** performer artifact `wmd-local-ci-765ab4b.log` records
-  `./scripts/ci.sh`; repeated scenario has identical transition stream and
-  checksum. This is not independent verification.
+- **evidence:** performer artifact `wmd-wp007-lifecycle.log` records the H2
+  lifecycle/replay test; full matrix is in `wmd-local-ci-765ab4b.log`. This is
+  not independent verification.
 
 ## Gate adequacy and residual risk
 

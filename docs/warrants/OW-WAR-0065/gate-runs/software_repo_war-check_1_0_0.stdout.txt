@@ -772,27 +772,27 @@ PASS obligations.valid                  OW-WAR-0064: 5 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0064: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0065: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0065: 3 requirement ref(s) and 1 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0065: software.repo.war-check@1.0.0 · the receipt is bound to contract:sha256:688bfbb3e39fc67967d2000af89e78c5120b83a5a972f630c9f9e0b8cbf577e2 and the contract now compiles to contract:sha256:987ac9333e85143e27a749a324eca828b191b82b0545b6ba04a39455be8b4c27 — a run against an earlier revision is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0065: software.repo.war-check@1.0.0 · the receipt is bound to contract:sha256:987ac9333e85143e27a749a324eca828b191b82b0545b6ba04a39455be8b4c27 and the contract now compiles to contract:sha256:e385221ee4b8d9835e85007b274459b92292e227987896364edb0c4c8114b0a4 — a run against an earlier revision is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0065/gate-runs/software_repo_war-check_1_0_0.run.toml
-PASS journal.append-only                OW-WAR-0065: 3 event(s), 0 backfilled, extends the committed journal
+PASS journal.append-only                OW-WAR-0065: 4 event(s), 0 backfilled, extends the committed journal
 PASS gate.resolved                      OW-WAR-0065: 1 cited gate(s) resolve to a bindable definition
 PASS milestones.valid                   OW-WAR-0065: 2 milestone(s), 2 stage(s), acyclic with no dangling refs
 PASS obligations.valid                  OW-WAR-0065: 3 obligation(s), each with a bounded scope and evidence
 PASS generated.drift                    OW-WAR-0065: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0066: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0066: 3 requirement ref(s) and 1 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0066: software.repo.war-check@1.0.0 · the receipt is bound to contract:sha256:8f5a3a6f4006d72b0cd17f75a9de5692e4ae112532e4418df15dff2f44846bf5 and the contract now compiles to contract:sha256:f4c92d423498bf74126b219c66d6041df08b0e8af557b21a80b67f3a6959df41 — a run against an earlier revision is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0066: software.repo.war-check@1.0.0 · the receipt is bound to contract:sha256:f4c92d423498bf74126b219c66d6041df08b0e8af557b21a80b67f3a6959df41 and the contract now compiles to contract:sha256:fa98438fce139c547a6cebe992cd05bbf8f7d15f4d3f655f0c76ab32362d58cd — a run against an earlier revision is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0066/gate-runs/software_repo_war-check_1_0_0.run.toml
-PASS journal.append-only                OW-WAR-0066: 4 event(s), 0 backfilled, extends the committed journal
+PASS journal.append-only                OW-WAR-0066: 5 event(s), 0 backfilled, extends the committed journal
 PASS gate.resolved                      OW-WAR-0066: 1 cited gate(s) resolve to a bindable definition
 PASS milestones.valid                   OW-WAR-0066: 2 milestone(s), 2 stage(s), acyclic with no dangling refs
 PASS obligations.valid                  OW-WAR-0066: 3 obligation(s), each with a bounded scope and evidence
 PASS generated.drift                    OW-WAR-0066: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0067: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0067: 4 requirement ref(s) and 1 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0067: software.repo.war-check@1.0.0 · the receipt is bound to contract:sha256:c453753a8c3db2837e54a73ee625c3cc3ed12c2e3710d0a2fafb8a3735a7eec1 and the contract now compiles to contract:sha256:d16ec20ccbc18ea188de4dd0f805b5b4cd4590ed00e381dcaeea53dc1cfba2d5 — a run against an earlier revision is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0067: software.repo.war-check@1.0.0 · the receipt is bound to contract:sha256:d16ec20ccbc18ea188de4dd0f805b5b4cd4590ed00e381dcaeea53dc1cfba2d5 and the contract now compiles to contract:sha256:89f7f9f349ca2a824940a32a3ef38e873f5c923c8dbad8c5fe937d37c309ac25 — a run against an earlier revision is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0067/gate-runs/software_repo_war-check_1_0_0.run.toml
-PASS journal.append-only                OW-WAR-0067: 4 event(s), 0 backfilled, extends the committed journal
+PASS journal.append-only                OW-WAR-0067: 5 event(s), 0 backfilled, extends the committed journal
 PASS gate.resolved                      OW-WAR-0067: 1 cited gate(s) resolve to a bindable definition
 PASS milestones.valid                   OW-WAR-0067: 2 milestone(s), 2 stage(s), acyclic with no dangling refs
 PASS obligations.valid                  OW-WAR-0067: 4 obligation(s), each with a bounded scope and evidence

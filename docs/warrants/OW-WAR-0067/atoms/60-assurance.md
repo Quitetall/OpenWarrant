@@ -36,10 +36,10 @@ classification: internal
 
 - **scope:** 2,048 seeds and stream-byte first-difference comparator.
 - **gate:** `gate://software.repo.war-check@1.0.0`
-- **evidence:** performer artifact `wmd-local-ci-765ab4b.log` records the
-  2,048-seed smoke and local matrix; full IDs and effect sort fields enter
-  divergence bytes; no v1 persistence consumer exists in subject repository.
-  This is not independent verification.
+- **evidence:** performer artifact `wmd-wp009-smoke.log` records the
+  2,048-seed smoke; full matrix is in `wmd-local-ci-765ab4b.log`. Full IDs and
+  effect sort fields enter divergence bytes; no v1 persistence consumer exists
+  in subject repository. This is not independent verification.
 
 ## Gate adequacy and residual risk
 

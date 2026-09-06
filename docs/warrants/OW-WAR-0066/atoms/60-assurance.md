@@ -29,9 +29,9 @@ classification: internal
 
 - **scope:** WMD H2 effect fixtures at commit `765ab4b`.
 - **gate:** `gate://software.repo.war-check@1.0.0`
-- **evidence:** performer artifact `wmd-local-ci-765ab4b.log` records
-  insertion-order permutation tests and `./scripts/ci.sh` local matrix. This is
-  not independent verification.
+- **evidence:** performer artifact `wmd-wp008-order.log` records the
+  insertion-order permutation test; full matrix is in
+  `wmd-local-ci-765ab4b.log`. This is not independent verification.
 
 ## Gate adequacy and residual risk
 
