@@ -15,7 +15,7 @@ classification: internal
    replay comparison, divergence report, v2 checksum, and smoke test.
 2. `apps/wmd-sim-cli/src/main.rs` `--h2` headless proof output.
 3. `docs/work-packages/WP-009-scenario-replay.md` package contract.
-4. WMD commits `519bd5f`, `d77da51`, `312f430`, and `765ab4b`; local gate and
+4. WMD commits `519bd5f`, `d77da51`, `312f430`, `765ab4b`, and `67b98c4`; local gate and
    lamu review receipts.
 
 ## Frozen surfaces

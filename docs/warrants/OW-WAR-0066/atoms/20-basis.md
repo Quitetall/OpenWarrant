@@ -18,10 +18,10 @@ classification: internal
 ## Repository and revision
 
 - Subject repository: `WeaponsOfMageDestruction/wmd` (local checkout).
-- Deliverable revision: WMD `765ab4b` (includes WP-008 implementation and H2
+- Deliverable revision: WMD `67b98c4` (includes WP-008 implementation and H2
   integration tests).
-- Acceptance command: `./scripts/ci.sh`; performer log `wmd-local-ci-765ab4b.log`
-  records 88 tests passing,
+- Acceptance command: `./scripts/ci.sh`; performer log `wmd-local-ci-67b98c4.log`
+  records 89 tests passing,
   deny checks passing, and deterministic CLI checksum retained.
 
 ## Constraints and unknowns

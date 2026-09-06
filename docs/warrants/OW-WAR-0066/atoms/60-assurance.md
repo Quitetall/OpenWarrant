@@ -27,11 +27,11 @@ classification: internal
 
 ### OBL-003 - deterministic commit events
 
-- **scope:** WMD H2 effect fixtures at commit `765ab4b`.
+- **scope:** WMD H2 effect fixtures at commit `67b98c4`.
 - **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** performer artifact `wmd-wp008-order.log` records the
   insertion-order permutation test; full matrix is in
-  `wmd-local-ci-765ab4b.log`. This is not independent verification.
+  `wmd-local-ci-67b98c4.log`. This is not independent verification.
 
 ## Gate adequacy and residual risk
 

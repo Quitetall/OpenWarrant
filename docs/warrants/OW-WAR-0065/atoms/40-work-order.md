@@ -15,7 +15,7 @@ classification: internal
    transitions, interruption, and refusal faults.
 2. `crates/wmd-sim/src/scenario.rs` H2 lifecycle exercise.
 3. `docs/work-packages/WP-007-action-timelines.md` package contract.
-4. WMD commit `765ab4b`; local `./scripts/ci.sh` receipt.
+4. WMD commit `67b98c4`; local `./scripts/ci.sh` receipt.
 
 ## Frozen surfaces
 

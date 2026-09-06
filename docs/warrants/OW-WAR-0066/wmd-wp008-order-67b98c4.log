@@ -1,0 +1,8 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.10s
+     Running unittests src/lib.rs (target/debug/deps/wmd_sim-9fb3f8c5c0338c52)
+
+running 1 test
+test effects::tests::commit_sorts_parallel_effects_by_canonical_sequence ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 24 filtered out; finished in 0.00s
+
