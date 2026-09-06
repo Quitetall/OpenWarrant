@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-60 Warrant(s) in this repository.
+63 Warrant(s) in this repository.
 
 ## Summary
 
@@ -71,6 +71,9 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0062](docs/warrants/OW-WAR-0062/manifest.toml) | Lock down the levels: what a SAS, a Warrant, and every other object are | `resolved` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0063](docs/warrants/OW-WAR-0063/manifest.toml) | Complete the conformance battery: the plants and tests the verifier named as missing | `draft` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0064](docs/warrants/OW-WAR-0064/manifest.toml) | Repair a delivered artifact: the correction act for a resolved Warrant | `draft` | `current` | `valid` | `controlled` | 5M / 3S |
+| [OW-WAR-0065](docs/warrants/OW-WAR-0065/manifest.toml) | WMD H2 WP-007 action timelines and interruption | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0066](docs/warrants/OW-WAR-0066/manifest.toml) | WMD H2 WP-008 buffered effects and events | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0067](docs/warrants/OW-WAR-0067/manifest.toml) | WMD H2 WP-009 deterministic scenario replay | `draft` | `current` | `valid` | `basic` | 2M / 2S |
 
 ## Claimed SAS requirement coverage
 
@@ -88,7 +91,7 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-014` — OW-WAR-0003, OW-WAR-0004, OW-WAR-0058
 - `WAR-SAS-RQ-015` — OW-WAR-0002, OW-WAR-0005
 - `WAR-SAS-RQ-020` — OW-WAR-0036, OW-WAR-0058, OW-WAR-0063, OW-WAR-0064
-- `WAR-SAS-RQ-022` — OW-WAR-0013, OW-WAR-0055, OW-WAR-0061, OW-WAR-0062, OW-WAR-0063
+- `WAR-SAS-RQ-022` — OW-WAR-0013, OW-WAR-0055, OW-WAR-0061, OW-WAR-0062, OW-WAR-0063, OW-WAR-0065, OW-WAR-0066, OW-WAR-0067
 - `WAR-SAS-RQ-024` — OW-WAR-0006
 - `WAR-SAS-RQ-025` — OW-WAR-0006
 - `WAR-SAS-RQ-030` — OW-WAR-0009
@@ -100,14 +103,14 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-040` — OW-WAR-0007
 - `WAR-SAS-RQ-041` — OW-WAR-0007
 - `WAR-SAS-RQ-042` — OW-WAR-0023, OW-WAR-0045, OW-WAR-0056
-- `WAR-SAS-RQ-043` — OW-WAR-0023, OW-WAR-0045, OW-WAR-0056
-- `WAR-SAS-RQ-044` — OW-WAR-0026, OW-WAR-0045
-- `WAR-SAS-RQ-045` — OW-WAR-0024, OW-WAR-0045, OW-WAR-0056
-- `WAR-SAS-RQ-050` — OW-WAR-0016
-- `WAR-SAS-RQ-051` — OW-WAR-0016
+- `WAR-SAS-RQ-043` — OW-WAR-0023, OW-WAR-0045, OW-WAR-0056, OW-WAR-0066
+- `WAR-SAS-RQ-044` — OW-WAR-0026, OW-WAR-0045, OW-WAR-0065
+- `WAR-SAS-RQ-045` — OW-WAR-0024, OW-WAR-0045, OW-WAR-0056, OW-WAR-0067
+- `WAR-SAS-RQ-050` — OW-WAR-0016, OW-WAR-0067
+- `WAR-SAS-RQ-051` — OW-WAR-0016, OW-WAR-0065, OW-WAR-0066
 - `WAR-SAS-RQ-052` — OW-WAR-0017
 - `WAR-SAS-RQ-053` — OW-WAR-0021, OW-WAR-0046, OW-WAR-0059
-- `WAR-SAS-RQ-054` — OW-WAR-0020, OW-WAR-0046, OW-WAR-0059
+- `WAR-SAS-RQ-054` — OW-WAR-0020, OW-WAR-0046, OW-WAR-0059, OW-WAR-0067
 - `WAR-SAS-RQ-055` — OW-WAR-0018, OW-WAR-0046
 - `WAR-SAS-RQ-056` — OW-WAR-0019
 - `WAR-SAS-RQ-057` — OW-WAR-0020, OW-WAR-0046
@@ -191,6 +194,9 @@ Source: the Warrants under the configured warrants path.
 - **OW-WAR-0062** · roadmap: roadmap://OW-PHASE-3/definitions
 - **OW-WAR-0063** · roadmap: roadmap://OW-PHASE-6/conformance
 - **OW-WAR-0064** · roadmap: roadmap://OW-PHASE-3/corrections
+- **OW-WAR-0065** · roadmap: roadmap://WMD-PHASE-2/wp-007
+- **OW-WAR-0066** · roadmap: roadmap://WMD-PHASE-2/wp-008
+- **OW-WAR-0067** · roadmap: roadmap://WMD-PHASE-2/wp-009
 
 ## Not reported here
 
