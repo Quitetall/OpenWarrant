@@ -1,0 +1,26 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "Propose program-specific phase authority decision"
+    stage_refs: ["STAGE-001"]
+  - id: "M2"
+    title: "Implement bounded compatibility and refusal checks"
+    stage_refs: ["STAGE-002"]
+  - id: "M3"
+    title: "Retain gate and independent review evidence"
+    stage_refs: ["STAGE-003"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Draft decision for owner acceptance"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+  - id: "STAGE-002"
+    title: "Implement and exercise compatibility"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+  - id: "STAGE-003"
+    title: "Independent qualification and adoption decision"
+    executor_kind: "human"
+    responsibility_tier: "T1"

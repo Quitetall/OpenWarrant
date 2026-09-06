@@ -1,0 +1,1570 @@
+== spdx headers ==
+   72 file(s) carry the SPDX header
+   ok
+== workflows ==
+   3 workflow(s): every `uses:` pinned by SHA; pages deploys the committed projection
+   ok
+== build (plants run the shipped binary, so it must exist) ==
+   Compiling ring v0.17.14
+   Compiling rustls v0.23.43
+   Compiling rustls-webpki v0.103.15
+   Compiling ureq v3.4.0
+   Compiling openwarrant-cli v0.1.0 (/mnt/4tb/openwarrant-liminal-phases/crates/openwarrant-cli)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 12.40s
+   ok
+== format ==
+   ok
+== clippy ==
+    Checking ring v0.17.14
+    Checking rustls-webpki v0.103.15
+    Checking rustls v0.23.43
+    Checking ureq v3.4.0
+    Checking openwarrant-cli v0.1.0 (/mnt/4tb/openwarrant-liminal-phases/crates/openwarrant-cli)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 7.02s
+   ok
+== tests (positive fixtures + planted violations) ==
+   Compiling openwarrant-cli v0.1.0 (/mnt/4tb/openwarrant-liminal-phases/crates/openwarrant-cli)
+   Compiling openwarrant-compiler v0.1.0 (/mnt/4tb/openwarrant-liminal-phases/crates/openwarrant-compiler)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.92s
+     Running unittests src/lib.rs (target/debug/deps/openwarrant_agent-3d2749dbc82cbcf0)
+
+running 1 test
+test tests::no_proposal_kind_names_a_write_target ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (target/debug/deps/war-47396d472f3f3a3f)
+
+running 114 tests
+test authorize::tests::a_response_for_another_warrant_is_refused ... ok
+test authorize::tests::an_actor_with_no_assignment_has_no_authority ... ok
+test authorize::tests::an_agent_cannot_authorize_even_holding_the_role ... ok
+test authorize::tests::an_agent_may_recommend_a_judgment_but_not_make_one ... ok
+test authorize::tests::an_authorization_must_be_authorized_and_current ... ok
+test authorize::tests::a_signature_against_a_moved_digest_is_refused ... ok
+test bonsai::tests::only_architecture_errors_block ... ok
+test authorize::tests::a_well_formed_human_authorization_is_accepted ... ok
+test authorize::tests::an_authorizer_who_proposed_it_is_refused ... ok
+test diagnostic::tests::an_empty_report_is_well_formed ... ok
+test diagnostic::tests::errors_dominate ... ok
+test diagnostic::tests::a_warning_does_not_block_but_an_unknown_does ... ok
+test bonsai::tests::malformed_bonsai_output_is_not_an_asked_check ... ok
+test bonsai::tests::github_remote_is_normalized ... ok
+test authorize::tests::a_human_risk_acceptance_needs_the_risk_acceptor_role ... ok
+test bonsai::tests::oversized_bonsai_line_is_not_well_formed ... ok
+test diagnostic::tests::a_rendered_diagnostic_has_the_seventy_one_seven_shape ... ok
+test bonsai::tests::scope_paths_are_small_and_unambiguous ... ok
+test authorize::tests::an_unknown_schema_is_refused ... ok
+test bonsai::tests::only_full_commit_ids_are_accepted ... ok
+test diagnostic::tests::blocking_is_upward_closed_in_the_severity_order ... ok
+test evidence::tests::a_run_without_a_receipt_is_not_admissible ... ok
+test export::tests::every_required_content_is_classified ... ok
+test init::tests::init_refuses_a_malformed_namespace ... ok
+test evidence::tests::a_receipt_for_an_earlier_contract_is_a_record_not_evidence ... ok
+test evidence::tests::no_contract_means_nothing_to_bind_to ... ok
+test init::tests::init_refuses_to_overwrite ... ok
+test evidence::tests::a_failing_run_is_not_a_pass_however_well_sealed ... ok
+test diagnostic::tests::the_ready_verdict_names_what_it_excludes ... ok
+test diagnostic::tests::unknown_blocks_readiness_without_being_an_error ... ok
+test evidence::tests::an_edited_receipt_does_not_reseal ... ok
+test bonsai::tests::unreadable_bonsai_binary_is_not_an_asked_check ... ok
+test bonsai::tests::passing_evidence_requires_complete_consistent_observation ... ok
+test bonsai::tests::malformed_architecture_output_is_unknown_not_fail ... ok
+test bonsai::tests::bonsai_exit_code_must_match_error_findings ... ok
+test evidence::tests::a_sealed_bound_passing_receipt_is_admissible ... ok
+test journal_cmd::tests::a_journal_round_trips_through_jsonl_and_refuses_a_duplicate_key ... ok
+test export::tests::a_reconnected_round_trip_with_equal_digests_verifies ... ok
+test journal_cmd::tests::a_malformed_line_is_an_error_not_an_empty_journal ... ok
+test kf::tests::a_non_http_url_is_refused ... ok
+test journal_cmd::tests::an_edited_line_is_not_append_only ... ok
+test kf::tests::an_https_url_is_accepted ... ok
+test journal_cmd::tests::recorded_state_reads_the_furthest_event ... ok
+test migrate::tests::an_abbreviated_sha_is_not_a_frozen_commit ... ok
+test migrate::tests::an_empty_corpus_is_refused_rather_than_reported_as_a_clean_import ... ok
+test authorize::tests::a_signed_response_becomes_a_record_and_a_refused_one_writes_nothing ... ok
+test migrate::tests::an_invented_section_is_reported_unmapped_not_guessed ... ok
+test migrate::tests::prose_and_placeholders_are_not_commands ... ok
+test migrate::tests::each_backtick_span_is_its_own_leg ... ok
+test kf::tests::a_short_idempotency_key_never_reaches_the_network ... ok
+test migrate::tests::a_multibyte_line_does_not_panic_the_extractor ... ok
+test migrate::tests::a_repeated_command_is_deduplicated_within_one_adr ... ok
+test migrate::tests::attempting_to_promote_a_completion_line_is_refused ... ok
+test migrate::tests::am_001_normalisation_is_applied_to_real_heading_shapes ... ok
+test export::tests::an_unreconnected_round_trip_is_refused_as_vacuous ... ok
+test evidence::tests::a_run_and_receipt_that_disagree_are_refused ... ok
+test new::tests::allocation_preserves_the_uuid ... ok
+test init::tests::init_writes_config_and_directories ... ok
+test new::tests::an_empty_title_is_refused ... ok
+test migrate::tests::the_body_is_preserved_byte_for_byte_and_its_digest_recomputes ... ok
+test migrate::tests::the_key_is_recognised_however_it_is_marked_up ... ok
+test migrate::tests::the_artifact_is_reproducible ... ok
+test resolve::tests::a_cited_gate_with_no_run_is_unmet ... ok
+test new::tests::ordinals_increment ... ok
+test new::tests::new_creates_a_valid_delivery_warrant ... ok
+test resolve::tests::a_blocking_unknown_refuses_and_its_absence_passes_only_once_asked ... ok
+test resolve::tests::a_cited_gate_with_an_askable_completed_pass_is_admissible ... ok
+test diagnostic::tests::a_blocking_diagnostic_blocks_regardless_of_company ... ok
+test migrate::tests::a_wrapped_backtick_span_is_folded_into_one_command ... ok
+test resolve::tests::a_digest_that_does_not_match_the_bytes_is_refused ... ok
+test migrate::tests::a_branch_name_is_not_a_frozen_commit ... ok
+test new::tests::new_creates_a_valid_decision_warrant ... ok
+test migrate::tests::a_gate_command_imports_unqualified_and_cannot_be_promoted ... ok
+test resolve::tests::a_failing_or_unknown_verdict_is_not_admissible ... ok
+test resolve::tests::a_deliverable_citing_an_undeclared_obligation_is_refused ... ok
+test resolve::tests::a_present_target_with_a_matching_digest_verifies ... ok
+test resolve::tests::runtime_receipts_pass_without_runtime_stages_and_refuse_with_them ... ok
+test resolve::tests::a_missing_target_fails_both_predicates ... ok
+test repo::program_sas_tests::missing_ambiguous_or_drifted_sas_is_unavailable_without_fallback ... ok
+test resolve::tests::an_unaskable_gate_cannot_pass ... ok
+test show::plan::tests::a_valid_but_unreviewed_proposal_cannot_be_applied ... ok
+test new::tests::concurrent_allocation_never_collides ... ok
+test resolve::tests::unmet_requirements_are_named_not_counted ... ok
+test show::plan::tests::a_buried_durable_choice_is_refused_at_the_seam ... ok
+test show::plan::tests::a_malformed_proposal_is_refused_at_the_parse_step ... ok
+test repo::program_sas_tests::draft_inspection_is_explicit_and_prose_cannot_establish_completion ... ok
+test show::tests::array_changes_are_reported_by_index ... ok
+test show::tests::an_added_field_is_reported ... ok
+test resolve::tests::one_passing_gate_does_not_carry_a_failing_sibling ... ok
+test repo::program_sas_tests::duplicate_declarations_and_mismatched_selected_pin_are_unavailable ... ok
+test show::plan::tests::a_proposal_from_another_protocol_version_is_refused ... ok
+test diagnostic::tests::notes_do_not_affect_readiness ... ok
+test diagnostic::tests::severity_orders_pass_below_everything_that_matters ... ok
+test resolve::tests::a_run_for_another_gate_does_not_count ... ok
+test show::tests::exactly_two_views_are_committed_and_the_rest_are_renderable ... ok
+test show::tests::identical_documents_produce_no_changes ... ok
+test show::tests::nested_changes_are_reported_by_path ... ok
+test verify::tests::an_unknown_response_schema_is_refused ... ok
+test verify::tests::schemas_are_versioned ... ok
+test verify::tests::the_request_carries_no_performer_narrative ... ok
+test resolve::tests::content_addressed_without_provenance_is_refused ... ok
+test resolve::tests::an_unanswerable_requirement_is_unmet_not_assumed ... ok
+test show::tests::a_removed_field_is_reported ... ok
+test show::tests::truncation_does_not_split_a_multibyte_character ... ok
+test show::tests::every_sas_view_name_parses ... ok
+test verify::tests::a_well_formed_envelope_is_accepted ... ok
+test verify::tests::a_response_for_another_warrant_is_refused ... ok
+test resolve::tests::an_empty_deliverable_set_satisfies_neither ... ok
+test status::tests::nothing_actionable_always_carries_a_reason ... ok
+test show::tests::long_values_are_truncated_but_paths_are_not ... ok
+test repo::program_sas_tests::openwarrant_declared_phases_remain_valid_and_phase_eleven_is_undeclared ... ok
+test repo::program_sas_tests::all_fourteen_liminal_phases_come_from_selected_sas_and_configured_namespace ... ok
+test repo::program_sas_tests::wrong_program_undeclared_duplicate_and_malformed_references_are_refused ... ok
+test bonsai::tests::qualification_plants::pilot_qualification_plants_are_observed ... ok
+
+test result: ok. 114 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.41s
+
+     Running unittests src/lib.rs (target/debug/deps/openwarrant_compiler-ee4869115fe8316e)
+
+running 55 tests
+test adr_overview::tests::an_empty_corpus_says_so_rather_than_rendering_an_empty_table ... ok
+test adr_overview::tests::empty_sections_are_omitted ... ok
+test adr_overview::tests::renders_summary_buckets_and_full_bodies ... ok
+test canonical::tests::the_preimage_has_the_shape_the_sas_specifies ... ok
+test digest::tests::all_fifteen_domains_are_present ... ok
+test canonical::tests::digests_are_stable_across_runs ... ok
+test canonical::tests::keys_sort_by_utf16_code_unit_not_utf8_bytes ... ok
+test canonical::tests::es6_number_boundaries ... ok
+test digest::tests::domain_uris_are_namespaced_and_versioned ... ok
+test ir::tests::api_version_and_kind_are_pinned ... ok
+test ir::tests::absent_enterprise_id_is_omitted_not_empty ... ok
+test ir::tests::canonical_output_is_stable_across_two_computations ... ok
+test canonical::tests::every_domain_pair_yields_a_distinct_digest ... ok
+test dispatch::tests::an_item_both_included_and_omitted_is_refused ... ok
+test ir::tests::a_minimal_ir_round_trips_through_its_own_canonical_form ... ok
+test ir::tests::contract_content_moves_the_contract_digest ... ok
+test ir::tests::extensions_survive_a_round_trip ... ok
+test ir::tests::generated_sections_do_not_move_the_contract_digest ... ok
+test lower::tests::an_unallocated_enterprise_id_is_absent ... ok
+test dispatch::tests::a_required_atom_dropped_from_context_is_refused_by_name ... ok
+test dispatch::tests::the_dispatch_digest_is_recomputable_from_the_packet ... ok
+test ir::tests::pre_scope_documents_remain_readable_under_the_minor_schema_bump ... ok
+test dispatch::tests::an_unbound_stage_and_a_repair_without_evidence_are_refused ... ok
+test digest::tests::sha256_matches_published_vectors ... ok
+test adr_overview::tests::currency_is_reported_per_adr ... ok
+test lower::tests::relations_are_carried_through ... ok
+test render::tests::an_unallocated_enterprise_id_renders_as_such ... ok
+test render::tests::absent_roles_produce_no_empty_headings ... ok
+test render::tests::every_source_atom_appears_in_the_provenance_table ... ok
+test lower::tests::workspace_basis_and_composition_digests_differ ... ok
+test render::tests::the_generated_header_is_present_and_complete ... ok
+test adr_overview::tests::output_is_independent_of_input_order ... ok
+test render::tests::atom_frontmatter_is_stripped_from_the_parent ... ok
+test warrant_overview::tests::an_empty_corpus_says_so ... ok
+test render::tests::rendering_is_byte_identical_across_runs ... ok
+test lower::tests::atom_order_affects_the_composition_digest ... ok
+test lower::tests::scope_bytes_move_the_contract_digest ... ok
+test warrant_overview::tests::lists_every_warrant ... ok
+test warrant_overview::tests::output_is_independent_of_input_order ... ok
+test warrant_overview::tests::coverage_is_labelled_as_claimed_not_verified ... ok
+test canonical::tests::official_rfc8785_vectors ... ok
+test render::tests::canonical_json_ends_with_exactly_one_newline ... ok
+test lower::tests::lowering_is_deterministic ... ok
+test render::tests::machine_scope_is_rendered_from_the_bound_sidecar ... ok
+test render::tests::the_rendered_parent_does_not_feed_the_contract_digest ... ok
+test dispatch::tests::a_dispatch_is_byte_deterministic_for_fixed_ids ... ok
+test lower::tests::atom_digests_track_atom_bytes ... ok
+test digest::tests::domain_uris_are_unique ... ok
+test ir::tests::absent_and_empty_differ ... ok
+test warrant_overview::tests::recorded_state_is_not_labelled_derived ... ok
+test warrant_overview::tests::derived_state_is_reported_and_labelled_derived ... ok
+test warrant_overview::tests::requirement_coverage_attributes_each_requirement_to_its_warrants ... ok
+test canonical::tests::source_key_order_does_not_affect_the_digest ... ok
+test corpus_status::tests::the_banner_precedes_the_title_and_the_renderer_divides_nothing ... ok
+test corpus_status::tests::every_committed_war_json_carries_the_sas_pin ... ok
+
+test result: ok. 55 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running unittests src/lib.rs (target/debug/deps/openwarrant_core-9e02bcb96082e3df)
+
+running 476 tests
+test adequacy::tests::an_absent_section_is_absent ... ok
+test adequacy::tests::a_placeholder_is_not_an_executed_attack ... ok
+test adequacy::tests::ordinary_prose_is_not_mistaken_for_the_adversarial_question ... ok
+test adequacy::tests::no_inline_sentence_counts_as_an_executed_attack ... ok
+test adequacy::tests::missing_executed_attacks_does_not_fail_validation_at_controlled ... ok
+test adr::tests::falsified_and_rejected_are_distinct ... ok
+test adr::tests::every_status_maps_to_an_appendix_a_section ... ok
+test adr::tests::only_accepted_is_current ... ok
+test adequacy::tests::the_requirement_table_matches_the_sas ... ok
+test adequacy::tests::a_missing_review_fails_at_controlled ... ok
+test adequacy::tests::outcome_vocabulary_matches_the_sas ... ok
+test authority::tests::an_agent_may_not_authorize_even_someone_elses_proposal ... ok
+test authority::tests::an_agent_may_never_accept_residual_risk ... ok
+test adr::tests::parses_an_adr_atom ... ok
+test adr::tests::missing_required_keys_fail_closed ... ok
+test authority::tests::an_empty_register_has_no_eligible_resolver ... ok
+test adr::tests::supersession_relations_are_read_in_both_directions ... ok
+test authority::tests::holding_a_role_is_required_before_exercising_it ... ok
+test authority::tests::the_register_finds_only_admissible_resolvers ... ok
+test authority::tests::a_human_resolver_needs_no_policy_grant ... ok
+test adequacy::tests::a_heading_that_merely_mentions_the_word_is_not_a_review ... ok
+test adequacy::tests::both_corpus_question_forms_are_recognised ... ok
+test adequacy::tests::a_review_without_a_question_fails ... ok
+test authority::tests::an_assignment_granting_nothing_is_invalid ... ok
+test adr::tests::unknown_status_is_refused ... ok
+test adequacy::tests::executed_attacks_and_outcomes_are_read ... ok
+test autonomy::tests::the_three_bands_match_the_sas ... ok
+test authority::tests::a_human_may_not_authorize_their_own_proposal ... ok
+test autonomy::tests::the_ambiguity_default_is_block_and_propose ... ok
+test autonomy::tests::an_amendment_round_trips_through_json ... ok
+test autonomy::tests::declaring_prior_artifacts_inadmissible_forces_a_re_preflight ... ok
+test autonomy::tests::each_missing_required_field_is_named ... ok
+test autonomy::tests::only_local_choices_avoid_a_revision ... ok
+test context::tests::a_floating_holder_is_detected ... ok
+test autonomy::tests::vocabularies_round_trip ... ok
+test config::tests::default_config_validates ... ok
+test config::tests::default_generated_policy_commits_and_verifies ... ok
+test config::tests::absolute_paths_are_refused ... ok
+test config::tests::unknown_schema_fails_closed ... ok
+test authority::tests::each_policy_service_condition_refuses_on_its_own ... ok
+test authority::tests::role_names_round_trip_through_display ... ok
+test context::tests::a_normative_item_must_be_pinned ... ok
+test authority::tests::a_human_may_not_resolve_their_own_delivery ... ok
+test adequacy::tests::a_stated_absence_of_attacks_is_not_an_attack ... ok
+test authority::tests::an_unknown_role_fails_closed ... ok
+test autonomy::tests::a_complete_amendment_validates ... ok
+test autonomy::tests::an_unrecognised_change_blocks_rather_than_being_guessed ... ok
+test autonomy::tests::stricter_and_weaker_gates_are_different_bands ... ok
+test autonomy::tests::a_revision_without_a_named_authority_is_refused_by_band ... ok
+test config::tests::empty_path_is_refused ... ok
+test context::tests::a_required_item_cannot_be_omitted_to_fit_a_budget ... ok
+test context::tests::a_manifest_round_trips_through_json ... ok
+test config::tests::namespace_rules ... ok
+test context::tests::a_summary_claiming_its_inherited_trust_is_fine ... ok
+test context::tests::a_summary_may_claim_less_trust_than_it_inherits ... ok
+test context::tests::an_item_with_no_holder_is_refused ... ok
+test context::tests::a_summary_with_no_sources_inherits_nothing ... ok
+test context::tests::a_summary_cannot_launder_its_weakest_source ... ok
+test context::tests::a_required_item_that_did_not_resolve_blocks ... ok
+test adequacy::tests::the_real_corpus_review_state_is_what_is_claimed ... ok
+test context::tests::precedence_decides_and_ties_block ... ok
+test context::tests::the_context_roles_match_the_sas ... ok
+test contract::tests::an_authorization_must_record_its_acting_role_and_meaning ... ok
+test contract::tests::the_draft_propose_authorize_chain_works ... ok
+test context::tests::an_optional_item_may_be_omitted_with_a_reason ... ok
+test deliverable::tests::a_deliverable_citing_an_undeclared_obligation_is_refused ... ok
+test context::tests::the_trust_classes_match_the_sas ... ok
+test context::tests::the_precedence_order_matches_the_sas ... ok
+test contract::tests::partial_and_complete_coverage_are_distinguishable ... ok
+test context::tests::weakest_of_nothing_is_nothing ... ok
+test contract::tests::separate_role_is_not_four_eyes ... ok
+test contract::tests::a_human_may_authorize_their_own_proposal ... ok
+test deliverable::tests::a_report_that_replaces_its_sources_is_refused ... ok
+test deliverable::tests::a_report_must_reference_its_raw_evidence ... ok
+test contract::tests::a_prior_revision_keeps_its_digest_after_an_amendment_is_authorized ... ok
+test contract::tests::full_coverage_is_recognised ... ok
+test contract::tests::an_agent_may_authorize_a_proposal_it_did_not_make ... ok
+test contract::tests::an_agent_may_not_authorize_its_own_proposal ... ok
+test contract::tests::coverage_reports_what_is_missing ... ok
+test contract::tests::out_of_order_transitions_are_refused ... ok
+test deliverable::tests::a_deliverable_round_trips_through_json ... ok
+test drafting::tests::an_unrun_pipeline_cannot_apply ... ok
+test drafting::tests::an_operation_outside_the_vocabulary_is_refused ... ok
+test deliverable::tests::an_artifact_with_no_inputs_is_still_valid ... ok
+test drafting::tests::a_gate_result_claim_must_name_a_run ... ok
+test deliverable::tests::a_complete_deliverable_validates ... ok
+test contract::tests::the_seventeen_elements_match_the_sas ... ok
+test deliverable::tests::a_submission_manifest_is_not_a_deliverable ... ok
+test drafting::tests::unanswered_blocking_questions_stop_progress ... ok
+test drafting::tests::each_pre_write_step_blocks_application_on_its_own ... ok
+test drafting::tests::the_module_states_what_it_cannot_check ... ok
+test drafting::tests::the_evidence_classes_match_the_sas ... ok
+test context::tests::an_unresolved_tie_blocks_the_manifest ... ok
+test contract::tests::amendment_creates_a_new_revision_with_a_predecessor ... ok
+test context::tests::vocabularies_round_trip_and_name_their_alternatives ... ok
+test deliverable::tests::content_addressing_without_a_digest_is_refused ... ok
+test drafting::tests::ranking_orders_questions_but_never_drops_a_blocker ... ok
+test epistemic::tests::a_test_pass_is_not_a_universal_coverage_claim ... ok
+test drafting::tests::a_proposal_round_trips_through_json ... ok
+test drafting::tests::a_durable_choice_without_an_adr_draft_is_refused ... ok
+test drafting::tests::a_failed_step_blocks_and_says_why ... ok
+test epistemic::judgment_authority_tests::both_of_42s_authorities_parse ... ok
+test epistemic::tests::gate_verdicts_and_resolutions_do_not_substitute_for_each_other ... ok
+test epistemic::tests::a_performer_report_is_admissible_as_what_it_is ... ok
+test epistemic::tests::an_agent_recommendation_is_not_an_authorized_judgment ... ok
+test deliverable::tests::vocabularies_round_trip ... ok
+test drafting::tests::the_atom_operations_match_the_sas ... ok
+test deliverable::tests::each_missing_provenance_field_is_named ... ok
+test epistemic::tests::observations_carry_what_claims_cannot ... ok
+test drafting::tests::the_application_steps_match_the_sas ... ok
+test epistemic::tests::evidence_without_a_digest_is_refused ... ok
+test drafting::tests::existing_evidence_must_cite_something ... ok
+test epistemic::tests::vocabularies_match_the_sas ... ok
+test execution::tests::a_repair_dispatch_carries_what_failed ... ok
+test execution::tests::a_submission_validates_every_remedy_it_carries ... ok
+test execution::tests::each_remedy_names_its_missing_field ... ok
+test epistemic::tests::a_verifier_may_be_independent ... ok
+test epistemic::tests::all_six_prohibited_substitutions_are_enumerated ... ok
+test execution::tests::a_decision_cannot_become_normative_without_an_adr ... ok
+test epistemic::tests::model_confidence_is_not_an_authorized_judgment ... ok
+test execution::tests::a_discovered_gap_cannot_be_repaired_in_place ... ok
+test epistemic::tests::an_observation_without_a_method_is_refused ... ok
+test drafting::tests::vocabularies_round_trip ... ok
+test epistemic::judgment_authority_tests::a_bad_authority_is_not_reported_as_a_bad_class ... ok
+test execution::tests::a_dispatch_round_trips_through_json ... ok
+test epistemic::tests::a_performer_report_cannot_be_admitted_as_independent ... ok
+test execution::tests::only_a_restart_requires_authorization ... ok
+test execution::tests::refs_and_api_version_are_required ... ok
+test execution::tests::the_gap_dispositions_match_the_sas ... ok
+test execution::tests::a_performer_cannot_upgrade_its_own_report_to_evidence ... ok
+test execution::tests::the_requested_actions_match_the_sas ... ok
+test execution::tests::the_four_remedies_stay_distinct ... ok
+test execution::tests::dispatch_compilation_cannot_omit_a_required_normative_source ... ok
+test execution::tests::every_section_47_1_field_is_present_by_name ... ok
+test execution::tests::every_attempt_has_one_parent_except_the_initial ... ok
+test frontmatter::tests::parses_a_real_atom_header ... ok
+test frontmatter::tests::an_indented_mapping_is_reported_as_nesting_not_as_a_list_problem ... ok
+test epistemic::tests::a_judgment_without_meaning_or_role_is_invalid ... ok
+test execution::tests::a_performer_cannot_request_resolution ... ok
+test frontmatter::tests::preserves_key_order_and_unknown_keys ... ok
+test frontmatter::tests::anchors_and_aliases_are_refused ... ok
+test epistemic::tests::a_generated_report_is_not_raw_evidence ... ok
+test frontmatter::tests::a_lone_quote_is_refused ... ok
+test frontmatter::tests::a_list_item_before_any_key_is_refused ... ok
+test frontmatter::tests::comments_and_blank_lines_are_ignored ... ok
+test frontmatter::tests::duplicate_key_is_refused ... ok
+test gate::tests::a_binding_to_an_unregistered_gate_is_refused ... ok
+test frontmatter::tests::missing_open_fence_is_refused ... ok
+test frontmatter::tests::accepts_a_utf8_bom ... ok
+test execution::tests::a_repair_needs_the_prior_failure_evidence ... ok
+test gate::tests::a_definition_without_a_version_is_refused ... ok
+test frontmatter::tests::parses_block_sequences ... ok
+test gate::tests::a_binding_with_no_subject_is_refused ... ok
+test gate::tests::a_gate_declaring_no_qualification_at_all_is_a_legal_draft ... ok
+test gate::tests::a_fault_class_that_was_not_detected_does_not_count ... ok
+test frontmatter::tests::tags_flow_collections_and_block_scalars_are_refused ... ok
+test frontmatter::tests::unclosed_fence_is_refused ... ok
+test execution::tests::a_replay_whose_basis_changed_is_not_a_replay ... ok
+test execution::tests::observation_admissibility_defaults_to_performer_report_only ... ok
+test execution::tests::actor_projections_may_differ_in_form_but_not_in_contract ... ok
+test execution::tests::vocabularies_round_trip ... ok
+test frontmatter::tests::nested_mappings_are_refused ... ok
+test frontmatter::tests::a_list_under_a_non_empty_scalar_is_refused ... ok
+test frontmatter::tests::a_line_without_a_colon_is_refused ... ok
+test gate::tests::a_deprecated_gate_remains_bindable ... ok
+test gate::tests::a_declared_fault_class_with_no_detection_result_is_refused ... ok
+test frontmatter::tests::unterminated_quote_is_refused ... ok
+test gate::tests::a_binding_round_trips_through_json ... ok
+test gate::tests::a_binding_pinning_a_stale_digest_is_refused ... ok
+test frontmatter::tests::values_may_contain_colons ... ok
+test gate::tests::a_placeholder_qualification_digest_is_refused ... ok
+test gate::tests::qualification_without_negative_controls_is_refused ... ok
+test gate_run::tests::a_completed_run_must_say_which_way_it_went ... ok
+test gate_run::tests::a_mutating_gate_is_quarantined_even_when_fully_declared ... ok
+test gate_run::tests::a_raw_shell_string_needs_a_gate_that_owns_shell_parsing ... ok
+test gate::tests::evidence_policy_defaults_refuse_performer_authored_reports ... ok
+test gate::tests::prose_mentioning_a_gate_uri_is_not_a_citation ... ok
+test gate::tests::the_lifecycle_matches_the_sas ... ok
+test gate::tests::an_obligation_citing_a_nonexistent_gate_is_refused_by_name ... ok
+test gate_run::tests::a_cycle_between_resolutions_terminates ... ok
+test gate::tests::an_invalidated_gate_cannot_be_bound ... ok
+test gate_run::tests::an_unaskable_run_cannot_record_a_verdict ... ok
+test gate::tests::a_qualified_lifecycle_without_a_qualification_record_is_refused ... ok
+test gate::tests::gate_uris_parse_and_malformed_ones_are_named ... ok
+test gate::tests::citations_split_on_whitespace_as_well_as_commas ... ok
+test gate::tests::citations_are_read_from_declared_bullets ... ok
+test gate::tests::a_well_formed_definition_validates_and_binds ... ok
+test gate::tests::qualification_without_positive_controls_is_refused ... ok
+test gate_run::tests::every_legacy_label_maps_into_a_migration_class ... ok
+test gate_run::tests::a_complete_receipt_validates_and_each_missing_scalar_is_named ... ok
+test gate_run::tests::every_migrated_class_is_coherent_and_only_passed_passes ... ok
+test gate_run::tests::invalidation_propagates_transitively_and_stops_at_the_unrelated ... ok
+test gate_run::tests::an_unaskable_run_that_claims_to_have_executed_is_refused ... ok
+test gate_run::tests::an_unknown_label_is_not_quietly_failed ... ok
+test gate_run::tests::a_timed_out_run_cannot_claim_a_verdict ... ok
+test gate_run::tests::a_run_round_trips_through_json ... ok
+test gate_run::tests::a_tally_counts_by_execution_status ... ok
+test gate_run::tests::a_required_unknown_blocks_resolution ... ok
+test gate_run::tests::the_migration_vocabulary_matches_the_sas ... ok
+test gate_run::tests::the_labels_plus_not_run_cover_the_ten_classes_exactly ... ok
+test gate_run::tests::the_execution_statuses_match_the_sas ... ok
+test gate_run::tests::the_sas_worked_examples_validate ... ok
+test identity::tests::alias_round_trips ... ok
+test identity::tests::malformed_aliases_are_refused ... ok
+test gate_run::tests::an_unaskable_run_without_a_reason_code_is_refused ... ok
+test gate_run::tests::could_not_ask_never_collapses_into_failed ... ok
+test gate_run::tests::could_not_ask_labels_do_not_migrate_to_failed ... ok
+test gate::tests::provenance_defaults_to_local_candidate ... ok
+test gate::tests::a_duplicate_definition_is_refused_and_a_new_version_is_not ... ok
+test gate_run::tests::invalidation_rewrites_no_history ... ok
+test gate_run::tests::no_unaskable_run_can_satisfy_a_required_pass ... ok
+test gate_run::tests::not_run_has_no_legacy_label ... ok
+test gate_run::tests::zero_selected_tests_is_a_reason_code_but_not_a_migration_class ... ok
+test gate_run::tests::vocabularies_round_trip_through_their_strings ... ok
+test identity::tests::minted_identities_are_distinct ... ok
+test identity::tests::hyphenated_namespace_survives ... ok
+test independence::tests::a_verifier_that_can_alter_the_measurement_fails_every_level ... ok
+test independence::tests::independence_none_satisfies_nothing ... ok
+test independence::tests::the_dimensions_match_the_sas_defaults ... ok
+test independence::tests::the_minimums_match_the_sas ... ok
+test independence::tests::transcript_blindness_alone_is_not_blindness ... ok
+test independence::tests::vocabularies_round_trip ... ok
+test identity::tests::namespace_mismatch_is_refused ... ok
+test journal::tests::a_duplicate_event_id_is_refused ... ok
+test journal::tests::a_round_trip_that_changed_the_digest_fails ... ok
+test journal::tests::a_round_trip_with_matching_digests_and_no_differences_passes ... ok
+test journal::tests::a_round_trip_without_reconnecting_evidence_is_not_a_round_trip ... ok
+test identity::tests::minted_identity_is_v7 ... ok
+test identity::tests::non_v7_uuid_is_refused ... ok
+test independence::tests::missing_dimensions_are_named_not_counted ... ok
+test independence::tests::the_defaults_meet_controlled_but_not_high_assurance ... ok
+test journal::tests::a_vacuous_round_trip_is_refused ... ok
+test independence::tests::persuasive_input_is_refused_by_name ... ok
+test gate_run::tests::every_triple_except_one_fails_a_required_pass ... ok
+test identity::tests::same_alias_different_repositories_are_distinct_records ... ok
+test journal::tests::a_semantic_difference_fails_even_with_matching_digests ... ok
+test gate::tests::a_draft_gate_cannot_be_bound ... ok
+test gate::tests::a_partial_qualification_is_validated_not_dropped ... ok
+test independence::tests::the_blind_verifier_input_lists_match_the_sas ... ok
+test lifecycle::tests::the_consequence_test_overrides_the_exemption_list ... ok
+test journal::tests::a_rewritten_journal_is_detected ... ok
+test lifecycle::tests::the_telemetry_measures_and_derived_metrics_match_the_sas ... ok
+test journal::tests::a_recorded_at_smuggled_through_the_payload_is_refused ... ok
+test lifecycle::tests::work_carrying_a_tracking_identifier_is_not_a_candidate ... ok
+test lifecycle::tests::a_supersession_cannot_leave_unresolved_work_unaddressed ... ok
+test manifest::tests::a_longer_cycle_is_detected ... ok
+test journal::tests::after_registration_the_journal_cannot_record_facts_of_its_own ... ok
+test lifecycle::tests::an_unrecognised_decision_is_not_assumed_exempt ... ok
+test journal::tests::the_export_contents_match_the_sas ... ok
+test lifecycle::tests::vocabularies_round_trip ... ok
+test journal::tests::every_required_export_content_is_required ... ok
+test journal::tests::vocabularies_round_trip ... ok
+test lifecycle::tests::dropping_an_item_requires_a_reason ... ok
+test manifest::tests::a_decision_profile_requires_an_adr_atom ... ok
+test lifecycle::tests::the_adr_relations_match_the_sas ... ok
+test lifecycle::tests::a_relation_cannot_be_fabricated_after_the_fact ... ok
+test journal::tests::the_event_envelope_has_no_recorded_at_field ... ok
+test journal::tests::the_event_classes_split_on_what_survives_registration ... ok
+test manifest::tests::a_direct_cycle_is_detected ... ok
+test lifecycle::tests::retired_warrants_remain_available ... ok
+test lifecycle::tests::a_supersession_states_its_reason ... ok
+test lifecycle::tests::the_tracking_identifiers_match_the_sas ... ok
+test lifecycle::tests::the_projections_match_the_sas ... ok
+test lifecycle::tests::the_superseded_banner_matches_the_sas ... ok
+test independence::tests::a_distinct_model_does_not_substitute_for_a_distinct_human ... ok
+test manifest::tests::a_self_parent_is_detected ... ok
+test manifest::tests::a_well_formed_delivery_manifest_validates ... ok
+test manifest::tests::alias_from_another_namespace_is_refused ... ok
+test manifest::tests::an_external_parent_is_not_a_cycle ... ok
+test manifest::tests::declaring_a_generated_role_is_refused ... ok
+test manifest::tests::an_acyclic_corpus_has_no_cycles ... ok
+test manifest::tests::atom_source_shape_is_enforced ... ok
+test manifest::tests::unknown_namespaced_role_marked_required_is_refused ... ok
+test manifest::tests::missing_required_atom_is_refused ... ok
+test manifest::tests::unknown_optional_namespaced_role_is_preserved ... ok
+test manifest::tests::parent_without_contract_revision_is_refused ... ok
+test manifest::tests::locally_set_enterprise_id_is_refused ... ok
+test manifest::tests::unknown_required_role_is_refused ... ok
+test manifest::tests::unknown_schema_is_refused ... ok
+test migration::tests::a_breaking_change_needs_a_major_bump_and_an_adr ... ok
+test migration::tests::a_digest_from_some_other_body_is_rejected ... ok
+test manifest::tests::duplicate_ordinal_is_refused ... ok
+test manifest::tests::assurance_level_defaults_to_basic_and_drives_adequacy ... ok
+test migration::tests::am_001_normalisation_reaches_the_row_a_heading_means ... ok
+test migration::tests::an_edited_body_no_longer_matches_its_recorded_digest ... ok
+test migration::tests::unknown_optional_extensions_survive_and_required_ones_fail_closed ... ok
+test migration::tests::vocabularies_round_trip ... ok
+test migration::tests::normalisation_only_ever_shortens ... ok
+test migration::tests::an_unregistered_draft_cannot_claim_global_standing ... ok
+test migration::tests::a_historical_claim_is_a_different_type_from_a_resolution ... ok
+test migration::tests::a_legacy_completion_line_is_not_a_verified_resolution ... ok
+test milestones::tests::an_unknown_schema_is_refused ... ok
+test milestones::tests::an_untyped_port_is_refused ... ok
+test migration::tests::a_heading_that_is_only_a_note_maps_to_nothing ... ok
+test milestones::tests::a_dangling_stage_ref_is_refused ... ok
+test milestones::tests::a_dependency_cycle_is_refused ... ok
+test migration::tests::the_invented_sections_are_not_swept_up_by_normalisation ... ok
+test migration::tests::an_empty_body_reports_the_original_not_preserved_not_a_mismatch ... ok
+test milestones::tests::a_dangling_dependency_is_refused ... ok
+test migration::tests::protocol_versions_parse_and_reject_malformed ... ok
+test migration::tests::an_enterprise_id_cannot_be_derived_locally ... ok
+test milestones::tests::parses_a_valid_graph ... ok
+test migration::tests::migration_preserves_the_original_body ... ok
+test migration::tests::a_legacy_gate_command_stays_unqualified_until_all_five_conditions_hold ... ok
+test milestones::tests::a_stage_carrying_a_milestone_field_is_refused ... ok
+test migration::tests::the_legacy_mapping_table_matches_the_sas ... ok
+test migration::tests::the_frozen_exact_matcher_is_unchanged_by_the_amendment ... ok
+test migration::tests::an_unmapped_element_is_not_guessed ... ok
+test milestones::tests::a_milestone_carrying_a_stage_field_is_refused ... ok
+test milestones::tests::tier_and_executor_kind_are_orthogonal ... ok
+test milestones::tests::duplicate_ids_are_refused ... ok
+test obligation::tests::a_bounded_claim_may_use_sampling ... ok
+test obligation::tests::a_performer_report_cannot_be_admitted_as_independent ... ok
+test obligation::tests::aggregation_matches_38_6 ... ok
+test obligation::tests::an_obligation_without_scope_is_refused ... ok
+test obligation::tests::vocabularies_match_the_sas ... ok
+test obligation::tests::obligations_without_the_new_channels_are_unaffected ... ok
+test preflight::tests::a_receipt_round_trips_through_json ... ok
+test preflight::tests::readiness_requires_a_receipt_to_exist ... ok
+test obligation::tests::duplicate_obligation_ids_are_refused ... ok
+test obligation::tests::a_performer_report_admitted_as_a_performer_report_is_fine ... ok
+test rationale::tests::a_decision_node_must_bind_an_adr ... ok
+test preflight::tests::blocking_checks_are_reported_in_the_specifications_order ... ok
+test preflight::tests::vocabularies_round_trip ... ok
+test obligation::tests::a_universal_claim_established_by_sampling_is_refused ... ok
+test obligation::tests::a_dangling_obligation_ref_is_refused ... ok
+test rationale::tests::a_diamond_is_not_a_cycle ... ok
+test milestones::tests::typed_ports_parse ... ok
+test milestones::tests::unknown_executor_kinds_and_tiers_are_refused ... ok
+test obligation::tests::aggregation_refuses_to_conclude_with_an_undisposed_obligation ... ok
+test preflight::tests::the_check_groups_and_counts_match_the_sas ... ok
+test preflight::tests::not_run_blocks_exactly_as_failed_does ... ok
+test rationale::tests::a_priority_cannot_be_filed_as_a_fact ... ok
+test rationale::tests::a_forecast_missing_any_field_is_named ... ok
+test rationale::tests::a_fact_with_a_source_validates ... ok
+test rationale::tests::the_node_classes_match_the_sas ... ok
+test rationale::tests::the_rationale_edges_match_the_sas ... ok
+test obligation::tests::an_external_origin_may_be_admitted_as_independent ... ok
+test obligation::tests::an_obligation_without_evidence_is_refused ... ok
+test obligation::tests::parses_the_corpus_shape ... ok
+test rationale::tests::the_epistemic_statuses_match_the_sas ... ok
+test preflight::tests::the_receipt_states_what_it_does_not_prove ... ok
+test rationale::tests::a_self_loop_is_a_cycle ... ok
+test rationale::tests::vocabularies_round_trip ... ok
+test obligation::tests::not_applicable_does_not_permit_satisfaction_by_itself ... ok
+test rationale::tests::each_status_requires_the_field_that_earns_its_name ... ok
+test rationale::tests::an_option_missing_a_required_part_is_named ... ok
+test rationale::tests::an_assumption_validated_by_a_gate_that_depends_on_it_is_refused ... ok
+test rationale::tests::an_indirect_cycle_is_found_and_named ... ok
+test rationale::tests::an_acyclic_claim_graph_validates ... ok
+test resolution::tests::a_dispute_moves_standing_without_touching_the_original ... ok
+test preflight::tests::a_receipt_cannot_claim_readiness_it_has_not_earned ... ok
+test preflight::tests::an_absent_check_is_not_run_not_passed ... ok
+test obligation::tests::an_empty_set_has_no_verdict ... ok
+test resolution::tests::a_failed_delivery_cannot_be_dressed_up_as_falsified ... ok
+test resolution::tests::a_fully_verified_resolution_records ... ok
+test resolution::tests::a_dispute_must_state_all_six_things ... ok
+test resolution::tests::a_resolution_round_trips_through_json ... ok
+test resolution::tests::the_resolution_requirements_match_the_sas ... ok
+test resolution::tests::each_of_the_thirteen_blocks_resolution_on_its_own ... ok
+test role::tests::roles_round_trip_through_their_names ... ok
+test role::tests::the_decisions_section_is_composed_of_adr_atoms ... ok
+test resolution::tests::a_monitor_needs_a_metric_and_a_condition ... ok
+test resolution::tests::annulment_leaves_the_original_historical ... ok
+test role::tests::unknown_profile_is_refused ... ok
+test role::tests::authored_roles_exclude_compiler_produced_ones ... ok
+test sas::tests::a_removed_id_is_refused_and_an_added_or_retitled_one_is_not ... ok
+test sas::tests::an_agent_may_not_accept ... ok
+test resolution::tests::supersession_does_not_invalidate_the_superseded ... ok
+test sas::tests::checked_declarations_reject_duplicates_and_noncanonical_numbers ... ok
+test role::tests::unknown_role_is_refused ... ok
+test sas::tests::an_accepted_revision_cannot_be_accepted_again ... ok
+test role::tests::profile_required_roles_match_the_sas ... ok
+test resolution::tests::the_monitor_actions_match_the_sas ... ok
+test resolution::tests::monitoring_is_not_a_completion_proof_by_default ... ok
+test role::tests::jurisdiction_write_permission_is_exhaustive ... ok
+test resolution::tests::vocabularies_round_trip ... ok
+test role::tests::canonical_ordinals_match_the_sas_table ... ok
+test role::tests::namespaced_extension_roles_are_recognised_as_such ... ok
+test role::tests::ordinals_are_strictly_ascending_in_declaration_order ... ok
+test role::tests::unknown_jurisdiction_is_refused ... ok
+test resolution::tests::a_resolution_must_state_what_it_means ... ok
+test sas::tests::an_architecture_changing_revision_needs_an_adr ... ok
+test obligation::tests::every_obligation_in_this_repository_parses ... ok
+test seam::tests::a_lineage_ref_holding_lineage_is_refused ... ok
+test seam::tests::a_fenced_block_is_still_a_copy ... ok
+test seam::tests::an_action_outside_the_vocabulary_is_refused ... ok
+test sas::tests::table_spacing_is_read_but_noncanonical_and_malformed_ids_are_refused ... ok
+test seam::tests::cutover_is_refused_until_parity_holds ... ok
+test seam::tests::blut_lineage_is_referenced_not_reproduced ... ok
+test seam::tests::an_unpinned_registry_is_refused ... ok
+test sas::tests::section_106_reads_only_requirement_rows ... ok
+test sas::tests::section_98_ignores_an_exit_outside_a_phase_section ... ok
+test sas::tests::section_98_reads_titles_and_exit_bullets_and_says_none_when_absent ... ok
+test sas::tests::validate_refuses_a_bad_digest_and_an_accepted_without_acceptance ... ok
+test seam::tests::a_receipt_that_references_nothing_is_refused ... ok
+test seam::tests::a_bare_key_with_no_value_reproduces_nothing ... ok
+test seam::tests::a_warrants_own_stage_key_is_not_bluts_lineage ... ok
+test seam::tests::each_missing_minimum_receipt_field_is_named ... ok
+test seam::tests::prose_about_lineage_is_not_lineage ... ok
+test seam::tests::idempotency_replays_equivalents_and_rejects_conflicts ... ok
+test seam::tests::unpinned_identities_are_refused ... ok
+test seam::tests::the_controlled_action_vocabulary_matches_the_sas ... ok
+test seam::tests::parity_must_cover_the_whole_corpus ... ok
+test seam::tests::vocabularies_round_trip ... ok
+test seam::tests::lineage_in_key_position_is_caught_in_yaml_json_and_markdown ... ok
+test seam::tests::headings_prefixes_and_inline_code_are_not_copies ... ok
+test seam::tests::parity_with_no_declared_observables_asserts_nothing ... ok
+test seam::tests::realizing_more_than_was_authorized_is_a_containment_failure ... ok
+test seam::tests::the_receipt_holds_a_prompt_ir_digest_and_not_prompt_ir ... ok
+test seam::tests::version_drift_fails_rather_than_overwrites ... ok
+test state::tests::a_resolved_warrant_does_not_re_enter_the_lifecycle ... ok
+test state::tests::annulment_does_not_erase_the_outcome ... ok
+test seam::tests::a_client_cannot_assign_recorded_at ... ok
+test sas::tests::fenced_quoted_and_indented_examples_do_not_declare_program_membership ... ok
+test seam::tests::an_incompatible_port_kind_is_rejected_not_coerced ... ok
+test state::tests::blocking_does_not_erase_phase ... ok
+test state::tests::material_amendment_returns_to_authorized ... ok
+test state::tests::the_dimensions_are_independent ... ok
+test status::tests::ladders_count_every_rung_and_nothing_else ... ok
+test state::tests::provenance_is_carried_and_displayed ... ok
+test structured::tests::an_unterminated_quote_in_a_flow_list_is_still_refused ... ok
+test structured::tests::a_sequence_item_before_any_key_is_refused ... ok
+test structured::tests::a_line_without_a_colon_is_refused ... ok
+test state::tests::the_core_transition_chain_is_legal ... ok
+test state::tests::the_sas_truthful_combinations_validate ... ok
+test state::tests::vocabularies_match_the_sas ... ok
+test status::tests::phases_cover_zero_through_ten_and_only_nine_have_exits ... ok
+test state::tests::untruthful_combinations_are_refused ... ok
+test sas::tests::section_98_of_the_real_document_has_eleven_phases_and_exits_for_all_of_them ... ok
+test status::tests::rungs_order_from_least_to_most_done ... ok
+test status::tests::resolved_is_reachable_only_from_a_record ... ok
+test state::tests::illegal_transitions_are_refused ... ok
+test state::tests::unknown_values_are_refused_by_dimension ... ok
+test structured::tests::comments_and_blank_lines_are_ignored ... ok
+test structured::tests::a_comma_inside_a_quoted_flow_item_is_not_a_separator ... ok
+test structured::tests::backslash_is_not_an_escape_in_this_grammar ... ok
+test sas::tests::section_6_10_states_that_a_sas_and_a_warrant_are_the_same_class_of_artifact ... ok
+test seam::tests::a_receipt_for_a_different_dispatch_is_refused ... ok
+test structured::tests::anchors_aliases_and_tags_are_refused ... ok
+test structured::tests::duplicate_keys_are_refused ... ok
+test structured::tests::short_uppercase_tokens_are_not_implicitly_typed ... ok
+test structured::tests::parses_a_real_milestones_atom ... ok
+test traceability::tests::a_claim_alone_does_not_satisfy_a_requirement ... ok
+test traceability::tests::partial_and_investigation_cannot_satisfy_alone ... ok
+test structured::tests::empty_flow_lists_parse ... ok
+test traceability::tests::the_contribution_values_match_the_sas ... ok
+test traceability::tests::statuses_derive_across_a_corpus ... ok
+test structured::tests::deeper_nesting_is_refused ... ok
+test traceability::tests::an_evidenced_supersession_supersedes ... ok
+test traceability::tests::history_must_be_preserved ... ok
+test traceability::tests::only_the_exit_slug_has_a_meaning ... ok
+test traceability::tests::roadmap_refs_order_by_phase_then_slug ... ok
+test traceability::tests::status_is_derived_and_cannot_be_assigned ... ok
+test traceability::tests::no_links_means_unaddressed ... ok
+test verification::tests::a_read_only_reviewer_meets_basic_and_controlled ... ok
+test traceability::tests::signed_phase_refs_preserve_nonnegative_json_and_round_trip ... ok
+test traceability::tests::the_sas_example_identifiers_parse ... ok
+test traceability::tests::all_four_steps_are_required ... ok
+test traceability::tests::a_roadmap_ref_parses_with_and_without_a_slug ... ok
+test structured::tests::multi_document_streams_are_refused ... ok
+test structured::tests::nested_flow_collections_are_refused ... ok
+test traceability::tests::vocabularies_round_trip ... ok
+test verification::tests::self_verification_is_refused ... ok
+test traceability::tests::unstable_or_malformed_identifiers_are_refused ... ok
+test verification::tests::a_model_reviewer_does_not_meet_high_assurance ... ok
+test verification::tests::a_verifier_that_could_alter_the_measurement_is_refused_at_every_level ... ok
+test structured::tests::unterminated_quotes_are_refused ... ok
+test verification::tests::a_verdict_without_evidence_is_refused ... ok
+test verification::tests::an_unnamed_verifier_is_refused ... ok
+test traceability::tests::a_roadmap_ref_outside_the_grammar_is_refused ... ok
+test verification::tests::a_negative_verdict_is_still_admissible ... ok
+test verification::tests::the_reviewer_profile_claims_eight_of_nine_dimensions ... ok
+test milestones::tests::every_milestone_graph_in_this_repository_validates ... ok
+test structured::tests::every_milestones_atom_in_this_repository_parses ... ok
+test rationale::tests::a_deep_chain_does_not_overflow_the_stack ... ok
+
+test result: ok. 476 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.84s
+
+     Running unittests src/main.rs (target/debug/deps/xtask-435b892000f7ce73)
+
+running 10 tests
+test tests::a_flow_mapping_a_quoted_key_and_a_spaced_colon_are_all_checked ... ok
+test tests::a_local_action_needs_no_pin ... ok
+test tests::a_sha_pinned_action_passes ... ok
+test tests::the_real_pages_workflow_passes ... ok
+test tests::a_short_sha_is_refused ... ok
+test tests::a_tag_pinned_action_is_refused ... ok
+test tests::a_docker_ref_pins_by_image_digest_or_is_refused ... ok
+test tests::a_word_containing_uses_is_not_a_key_and_a_comment_is_skipped ... ok
+test tests::the_pages_workflow_must_deploy_the_committed_projection_and_prove_it ... ok
+test tests::a_quoted_ref_is_read_without_its_quotes ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests openwarrant_agent
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests openwarrant_compiler
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests openwarrant_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   ok
+== licenses (permissive-only; protects the Apache-2.0 path) ==
+warning[license-exception-not-encountered]: license exception was not encountered
+   ┌─ /mnt/4tb/openwarrant-liminal-phases/deny.toml:75:9
+   │
+75 │ name = "webpki-root-certs"
+   │         ━━━━━━━━━━━━━━━━━ unmatched license exception
+
+licenses ok
+   ok
+== corpus (§37.2 digests and §17 view drift, on the committed tree) ==
+PASS gate.registered                    software.repo.bonsai-evidence@1.0.0: local candidate, qualified against its declared fault model
+PASS gate.registered                    software.repo.war-check@1.0.0: local candidate, qualified against its declared fault model
+WARN independence.insufficient          33 basic Warrant(s): basic assurance requires verifier_controlled_execution, and the declared independence does not provide it: cannot_modify_subject_artifacts, cannot_modify_gate_definition, cannot_modify_gate_fixtures, separate_writable_workspace. §27.4 — role separation by one person is not organizational independence
+                                             → openwarrant.toml
+WARN independence.insufficient          28 controlled Warrant(s): controlled assurance requires blind_process_or_agent_review, and the declared independence does not provide it: cannot_modify_subject_artifacts, cannot_modify_gate_definition, cannot_modify_gate_fixtures, separate_writable_workspace, performer_transcript_blind, performer_rationale_blind, separate_context_compilation. §27.4 — role separation by one person is not organizational independence
+                                             → openwarrant.toml
+PASS relations.child-listed             OW-WAR-0001: generated view lists all 4 child WAR(s)
+PASS relations.parent-source            OW-WAR-0001: authored atoms carry no child state; §20.4's list stays generated
+PASS manifest.valid                     OW-WAR-0001: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0001: 4 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0001: 2 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0001: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0001: 17 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0001: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0001/authorization.toml
+PASS gate.resolved                      OW-WAR-0001: 1 cited gate(s) resolve to a bindable definition
+PASS amendment.valid                    OW-WAR-0001: amendment AM-001 is a manual_revision carrying 1 semantic change(s)
+PASS milestones.valid                   OW-WAR-0001: 3 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0001: 4 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0001: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0002: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0002: 3 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0002: 5 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0002: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0002: satisfied · resolved by person://Brian Lam at 2026-09-03T03:30:00Z
+PASS journal.append-only                OW-WAR-0002: 10 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0002: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0002/authorization.toml
+PASS gate.resolved                      OW-WAR-0002: 1 cited gate(s) resolve to a bindable definition
+PASS amendment.valid                    OW-WAR-0002: amendment AM-001 is a manual_revision carrying 2 semantic change(s)
+PASS milestones.valid                   OW-WAR-0002: 4 milestone(s), 4 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0002: 4 obligation(s), each with a bounded scope and evidence
+PASS relations.parent-digest            OW-WAR-0002: parent war://01a018db-19fc-7f2a-8e39-69730f255e33 contract digest matches
+PASS generated.drift                    OW-WAR-0002: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0003: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0003: 4 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0003: 3 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0003: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0003: 10 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0003: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0003/authorization.toml
+PASS gate.resolved                      OW-WAR-0003: 1 cited gate(s) resolve to a bindable definition
+PASS amendment.valid                    OW-WAR-0003: amendment AM-001 is a manual_revision carrying 2 semantic change(s)
+PASS assurance.adequacy-review          OW-WAR-0003: controlled assurance carries an adequacy review with an adversarial question
+PASS milestones.valid                   OW-WAR-0003: 4 milestone(s), 4 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0003: 5 obligation(s), each with a bounded scope and evidence
+PASS relations.parent-digest            OW-WAR-0003: parent war://01a018db-19fc-7f2a-8e39-69730f255e33 contract digest matches
+PASS generated.drift                    OW-WAR-0003: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0004: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0004: 2 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0004: 3 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0004: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0004: 9 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0004: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0004/authorization.toml
+PASS gate.resolved                      OW-WAR-0004: 1 cited gate(s) resolve to a bindable definition
+PASS amendment.valid                    OW-WAR-0004: amendment AM-001 is a manual_revision carrying 2 semantic change(s)
+PASS milestones.valid                   OW-WAR-0004: 3 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0004: 3 obligation(s), each with a bounded scope and evidence
+PASS relations.parent-digest            OW-WAR-0004: parent war://01a018db-19fc-7f2a-8e39-69730f255e33 contract digest matches
+PASS generated.drift                    OW-WAR-0004: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0005: manifest and composition are well-formed
+ERROR deliverable.digest-drift           OW-WAR-0005: D-001 records sha256:f200d0b46761c945f8d7eaf535f964d60e9c8e57ad19658958e2130d2d68d51a for crates/openwarrant-cli/src/check.rs but the file is now sha256:613fd9424f9c4e176ce16cb5151d0c02010fed6a5d8e8b38c61877f83c7c0b29. The artifact moved after the record was written — regenerate the record, or restore the artifact
+                                             → docs/warrants/OW-WAR-0005/deliverables.toml
+PASS traceability.refs                  OW-WAR-0005: 2 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0005: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0005: satisfied · resolved by person://Brian Lam at 2026-09-03T03:30:00Z
+PASS journal.append-only                OW-WAR-0005: 15 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0005: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0005/authorization.toml
+PASS gate.resolved                      OW-WAR-0005: 1 cited gate(s) resolve to a bindable definition
+PASS amendment.valid                    OW-WAR-0005: amendment AM-001 is a manual_revision carrying 2 semantic change(s)
+PASS assurance.adequacy-review          OW-WAR-0005: controlled assurance carries an adequacy review with an adversarial question
+PASS milestones.valid                   OW-WAR-0005: 4 milestone(s), 4 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0005: 5 obligation(s), each with a bounded scope and evidence
+PASS relations.parent-digest            OW-WAR-0005: parent war://01a018db-19fc-7f2a-8e39-69730f255e33 contract digest matches
+PASS generated.drift                    OW-WAR-0005: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0006: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0006: 3 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0006: 2 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0006: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0006: 12 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0006: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0006/authorization.toml
+PASS gate.resolved                      OW-WAR-0006: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0006: 3 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0006: 3 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0006: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0007: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0007: 1 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0007: 2 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0007: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0007: 13 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0007: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0007/authorization.toml
+PASS gate.resolved                      OW-WAR-0007: 1 cited gate(s) resolve to a bindable definition
+PASS amendment.valid                    OW-WAR-0007: amendment AM-001 is a manual_revision carrying 1 semantic change(s)
+PASS assurance.adequacy-review          OW-WAR-0007: controlled assurance carries an adequacy review with an adversarial question
+PASS milestones.valid                   OW-WAR-0007: 4 milestone(s), 4 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0007: 4 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0007: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0008: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0008: 1 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0008: 1 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0008: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0008: satisfied · resolved by person://Brian Lam at 2026-09-03T00:30:00Z
+PASS journal.append-only                OW-WAR-0008: 8 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0008: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0008/authorization.toml
+PASS gate.resolved                      OW-WAR-0008: 1 cited gate(s) resolve to a bindable definition
+PASS amendment.valid                    OW-WAR-0008: amendment AM-001 is a manual_revision carrying 1 semantic change(s)
+PASS assurance.adequacy-review          OW-WAR-0008: controlled assurance carries an adequacy review with an adversarial question
+WARN assurance.executed-attacks         OW-WAR-0008: the adequacy review has executed no attacks. §39.3 wants violating artifacts planted and run; 'recorded here when run' is a plan, not evidence
+                                             → docs/warrants/OW-WAR-0008/atoms/60-assurance.md
+PASS milestones.valid                   OW-WAR-0008: 3 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0008: 3 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0008: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0009: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0009: 1 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0009: 4 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0009: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0009: satisfied · resolved by person://Brian Lam at 2026-09-03T03:30:00Z
+PASS journal.append-only                OW-WAR-0009: 10 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0009: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0009/authorization.toml
+PASS gate.resolved                      OW-WAR-0009: 1 cited gate(s) resolve to a bindable definition
+PASS amendment.valid                    OW-WAR-0009: amendment AM-001 is a manual_revision carrying 1 semantic change(s)
+PASS assurance.adequacy-review          OW-WAR-0009: controlled assurance carries an adequacy review with an adversarial question
+PASS milestones.valid                   OW-WAR-0009: 4 milestone(s), 4 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0009: 4 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0009: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0010: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0010: 1 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0010: 0 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0010: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0010: satisfied · resolved by person://Brian Lam at 2026-09-02T09:30:00Z
+PASS journal.append-only                OW-WAR-0010: 4 event(s), 4 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0010: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0010/authorization.toml
+PASS gate.resolved                      OW-WAR-0010: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0010: 3 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0010: 3 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0010: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0011: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0011: 1 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0011: 1 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0011: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0011: 9 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0011: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0011/authorization.toml
+PASS gate.resolved                      OW-WAR-0011: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0011: 3 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0011: 3 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0011: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0012: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0012: 1 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0012: 0 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0012: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0012: satisfied · resolved by person://Brian Lam at 2026-09-03T03:30:00Z
+PASS journal.append-only                OW-WAR-0012: 8 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0012: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0012/authorization.toml
+PASS gate.resolved                      OW-WAR-0012: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0012: 3 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0012: 3 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0012: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0013: manifest and composition are well-formed
+ERROR deliverable.digest-drift           OW-WAR-0013: D-001 records sha256:e161bf6809754d564e1a48c419aa939d7a2f0b4cfb3f4893034130d1b2f4de77 for crates/openwarrant-core/src/traceability.rs but the file is now sha256:bd4c25ea9318117ab301b5617b28a14c7f66ec3603cec0ba72fb449c002f8437. The artifact moved after the record was written — regenerate the record, or restore the artifact
+                                             → docs/warrants/OW-WAR-0013/deliverables.toml
+PASS traceability.refs                  OW-WAR-0013: 1 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0013: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0013: 8 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0013: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0013/authorization.toml
+PASS gate.resolved                      OW-WAR-0013: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0013: 3 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0013: 3 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0013: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0014: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0014: 2 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0014: 0 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0014: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0014: satisfied · resolved by person://Brian Lam at 2026-09-03T03:30:00Z
+PASS journal.append-only                OW-WAR-0014: 7 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0014: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0014/authorization.toml
+PASS gate.resolved                      OW-WAR-0014: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0014: 2 milestone(s), 2 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0014: 2 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0014: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0015: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0015: 1 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0015: 0 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0015: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0015: satisfied · resolved by person://Brian Lam at 2026-09-03T00:30:00Z
+PASS journal.append-only                OW-WAR-0015: 6 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0015: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0015/authorization.toml
+PASS gate.resolved                      OW-WAR-0015: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0015: 2 milestone(s), 2 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0015: 2 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0015: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0016: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0016: 1 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0016: 2 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0016: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0016: satisfied · resolved by person://Brian Lam at 2026-09-02T23:40:00Z
+PASS journal.append-only                OW-WAR-0016: 11 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0016: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0016/authorization.toml
+PASS gate.resolved                      OW-WAR-0016: 1 cited gate(s) resolve to a bindable definition
+PASS amendment.valid                    OW-WAR-0016: amendment AM-001 is a manual_revision carrying 1 semantic change(s)
+PASS assurance.adequacy-review          OW-WAR-0016: controlled assurance carries an adequacy review with an adversarial question
+PASS milestones.valid                   OW-WAR-0016: 4 milestone(s), 4 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0016: 4 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0016: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0017: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0017: 1 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0017: 1 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0017: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0017: satisfied · resolved by person://Brian Lam at 2026-09-03T03:30:00Z
+PASS journal.append-only                OW-WAR-0017: 8 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0017: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0017/authorization.toml
+PASS gate.resolved                      OW-WAR-0017: 1 cited gate(s) resolve to a bindable definition
+PASS amendment.valid                    OW-WAR-0017: amendment AM-001 is a manual_revision carrying 1 semantic change(s)
+PASS assurance.adequacy-review          OW-WAR-0017: controlled assurance carries an adequacy review with an adversarial question
+WARN assurance.executed-attacks         OW-WAR-0017: the adequacy review has executed no attacks. §39.3 wants violating artifacts planted and run; 'recorded here when run' is a plan, not evidence
+                                             → docs/warrants/OW-WAR-0017/atoms/60-assurance.md
+PASS milestones.valid                   OW-WAR-0017: 4 milestone(s), 4 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0017: 4 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0017: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0018: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0018: 1 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0018: 1 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0018: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0018: satisfied · resolved by person://Brian Lam at 2026-09-03T03:30:00Z
+PASS journal.append-only                OW-WAR-0018: 9 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0018: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0018/authorization.toml
+PASS gate.resolved                      OW-WAR-0018: 1 cited gate(s) resolve to a bindable definition
+PASS amendment.valid                    OW-WAR-0018: amendment AM-001 is a manual_revision carrying 1 semantic change(s)
+PASS assurance.adequacy-review          OW-WAR-0018: controlled assurance carries an adequacy review with an adversarial question
+PASS milestones.valid                   OW-WAR-0018: 3 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0018: 3 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0018: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0019: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0019: 1 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0019: 1 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0019: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0019: satisfied · resolved by person://Brian Lam at 2026-09-03T00:30:00Z
+PASS journal.append-only                OW-WAR-0019: 8 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0019: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0019/authorization.toml
+PASS gate.resolved                      OW-WAR-0019: 1 cited gate(s) resolve to a bindable definition
+PASS assurance.adequacy-review          OW-WAR-0019: controlled assurance carries an adequacy review with an adversarial question
+PASS milestones.valid                   OW-WAR-0019: 4 milestone(s), 4 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0019: 4 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0019: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0020: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0020: 2 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0020: 2 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0020: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0020: satisfied · resolved by person://Brian Lam at 2026-09-02T09:30:00Z
+PASS journal.append-only                OW-WAR-0020: 4 event(s), 4 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0020: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0020/authorization.toml
+PASS gate.resolved                      OW-WAR-0020: 1 cited gate(s) resolve to a bindable definition
+PASS assurance.adequacy-review          OW-WAR-0020: controlled assurance carries an adequacy review with an adversarial question
+PASS milestones.valid                   OW-WAR-0020: 5 milestone(s), 5 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0020: 5 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0020: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0021: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0021: 2 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0021: 1 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0021: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0021: satisfied · resolved by person://Brian Lam at 2026-09-03T03:30:00Z
+PASS journal.append-only                OW-WAR-0021: 7 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0021: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0021/authorization.toml
+PASS gate.resolved                      OW-WAR-0021: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0021: 3 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0021: 3 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0021: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0022: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0022: 1 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0022: 2 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0022: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0022: satisfied · resolved by person://Brian Lam at 2026-09-03T00:30:00Z
+PASS journal.append-only                OW-WAR-0022: 8 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0022: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0022/authorization.toml
+PASS gate.resolved                      OW-WAR-0022: 1 cited gate(s) resolve to a bindable definition
+PASS assurance.adequacy-review          OW-WAR-0022: controlled assurance carries an adequacy review with an adversarial question
+PASS milestones.valid                   OW-WAR-0022: 4 milestone(s), 4 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0022: 4 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0022: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0023: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0023: 1 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0023: 2 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0023: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0023: 11 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0023: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0023/authorization.toml
+PASS gate.resolved                      OW-WAR-0023: 1 cited gate(s) resolve to a bindable definition
+PASS assurance.adequacy-review          OW-WAR-0023: controlled assurance carries an adequacy review with an adversarial question
+PASS milestones.valid                   OW-WAR-0023: 3 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0023: 3 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0023: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0024: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0024: 1 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0024: 1 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0024: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0024: satisfied · resolved by person://Brian Lam at 2026-09-03T00:30:00Z
+PASS journal.append-only                OW-WAR-0024: 7 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0024: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0024/authorization.toml
+PASS gate.resolved                      OW-WAR-0024: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0024: 3 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0024: 3 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0024: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0025: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0025: 1 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0025: 0 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0025: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0025: satisfied · resolved by person://Brian Lam at 2026-09-03T03:30:00Z
+PASS journal.append-only                OW-WAR-0025: 7 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0025: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0025/authorization.toml
+PASS gate.resolved                      OW-WAR-0025: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0025: 2 milestone(s), 2 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0025: 2 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0025: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0026: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0026: 1 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0026: 2 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0026: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0026: 10 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0026: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0026/authorization.toml
+PASS gate.resolved                      OW-WAR-0026: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0026: 3 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0026: 3 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0026: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0027: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0027: 3 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0027: 1 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0027: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0027: 13 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0027: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0027/authorization.toml
+PASS gate.resolved                      OW-WAR-0027: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0027: 3 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0027: 3 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0027: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0028: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0028: 1 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0028: 1 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0028: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0028: 13 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0028: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0028/authorization.toml
+PASS gate.resolved                      OW-WAR-0028: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0028: 3 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0028: 3 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0028: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0029: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0029: 1 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0029: 3 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0029: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0029: 14 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0029: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0029/authorization.toml
+PASS gate.resolved                      OW-WAR-0029: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0029: 4 milestone(s), 4 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0029: 4 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0029: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0030: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0030: 1 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0030: 3 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0030: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0030: 10 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0030: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0030/authorization.toml
+PASS gate.resolved                      OW-WAR-0030: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0030: 3 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0030: 3 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0030: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0031: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0031: 2 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0031: 0 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0031: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0031: satisfied · resolved by person://Brian Lam at 2026-09-03T03:30:00Z
+PASS journal.append-only                OW-WAR-0031: 8 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0031: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0031/authorization.toml
+PASS gate.resolved                      OW-WAR-0031: 1 cited gate(s) resolve to a bindable definition
+PASS amendment.valid                    OW-WAR-0031: amendment AM-001 is a manual_revision carrying 1 semantic change(s)
+PASS milestones.valid                   OW-WAR-0031: 3 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0031: 3 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0031: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0032: manifest and composition are well-formed
+PASS traceability.refs                  OW-WAR-0032: 0 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0032: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0032: 12 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0032: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0032/authorization.toml
+PASS gate.resolved                      OW-WAR-0032: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0032: 4 milestone(s), 4 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0032: 4 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0032: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0033: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0033: 2 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0033: 0 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0033: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0033: satisfied · resolved by person://Brian Lam at 2026-09-03T03:30:00Z
+PASS journal.append-only                OW-WAR-0033: 8 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0033: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0033/authorization.toml
+PASS gate.resolved                      OW-WAR-0033: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0033: 3 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0033: 3 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0033: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0034: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0034: 1 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0034: 1 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0034: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0034: satisfied · resolved by person://Brian Lam at 2026-09-03T03:30:00Z
+PASS journal.append-only                OW-WAR-0034: 8 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0034: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0034/authorization.toml
+PASS gate.resolved                      OW-WAR-0034: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0034: 3 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0034: 3 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0034: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0035: manifest and composition are well-formed
+PASS traceability.refs                  OW-WAR-0035: 1 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0035: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0035: 10 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0035: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0035/authorization.toml
+PASS gate.resolved                      OW-WAR-0035: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0035: 3 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0035: 3 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0035: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0036: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0036: 2 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0036: 2 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0036: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0036: 10 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0036: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0036/authorization.toml
+PASS gate.resolved                      OW-WAR-0036: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0036: 3 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0036: 3 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0036: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0037: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0037: 1 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0037: 0 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0037: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0037: 10 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0037: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0037/authorization.toml
+PASS gate.resolved                      OW-WAR-0037: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0037: 2 milestone(s), 2 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0037: 2 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0037: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0038: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0038: 2 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0038: 0 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0038: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0038: satisfied · resolved by person://Brian Lam at 2026-09-03T03:30:00Z
+PASS journal.append-only                OW-WAR-0038: 9 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0038: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0038/authorization.toml
+PASS gate.resolved                      OW-WAR-0038: 1 cited gate(s) resolve to a bindable definition
+PASS assurance.adequacy-review          OW-WAR-0038: controlled assurance carries an adequacy review with an adversarial question
+PASS milestones.valid                   OW-WAR-0038: 4 milestone(s), 4 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0038: 4 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0038: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0039: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0039: 1 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0039: 0 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0039: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0039: 10 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0039: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0039/authorization.toml
+PASS gate.resolved                      OW-WAR-0039: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0039: 3 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0039: 3 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0039: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0040: manifest and composition are well-formed
+PASS traceability.refs                  OW-WAR-0040: 1 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0040: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0040: 13 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0040: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0040/authorization.toml
+PASS gate.resolved                      OW-WAR-0040: 1 cited gate(s) resolve to a bindable definition
+PASS amendment.valid                    OW-WAR-0040: amendment AM-001 is a manual_revision carrying 1 semantic change(s)
+PASS assurance.adequacy-review          OW-WAR-0040: controlled assurance carries an adequacy review with an adversarial question
+PASS milestones.valid                   OW-WAR-0040: 4 milestone(s), 4 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0040: 4 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0040: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0041: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0041: 2 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0041: 0 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0041: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0041: 16 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0041: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0041/authorization.toml
+PASS gate.resolved                      OW-WAR-0041: 1 cited gate(s) resolve to a bindable definition
+PASS evidence.valid                     OW-WAR-0041: 7 §40 record(s) — 2 evidence, 3 observation(s), 1 inference(s), 1 judgment(s)
+PASS assurance.adequacy-review          OW-WAR-0041: controlled assurance carries an adequacy review with an adversarial question
+WARN assurance.executed-attacks         OW-WAR-0041: the adequacy review has executed no attacks. §39.3 wants violating artifacts planted and run; 'recorded here when run' is a plan, not evidence
+                                             → docs/warrants/OW-WAR-0041/atoms/60-assurance.md
+WARN assurance.adequacy-outcome         OW-WAR-0041: the adequacy review records no §39.2 outcome; a review that reaches no outcome is a question, not a review
+                                             → docs/warrants/OW-WAR-0041/atoms/60-assurance.md
+PASS milestones.valid                   OW-WAR-0041: 4 milestone(s), 2 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0041: 4 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0041: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0042: manifest and composition are well-formed
+PASS traceability.refs                  OW-WAR-0042: 2 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0042: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0042: 19 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0042: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0042/authorization.toml
+PASS gate.resolved                      OW-WAR-0042: 1 cited gate(s) resolve to a bindable definition
+PASS evidence.valid                     OW-WAR-0042: 5 §40 record(s) — 1 evidence, 2 observation(s), 1 inference(s), 1 judgment(s)
+PASS assurance.adequacy-review          OW-WAR-0042: controlled assurance carries an adequacy review with an adversarial question
+WARN assurance.executed-attacks         OW-WAR-0042: the adequacy review has executed no attacks. §39.3 wants violating artifacts planted and run; 'recorded here when run' is a plan, not evidence
+                                             → docs/warrants/OW-WAR-0042/atoms/60-assurance.md
+WARN assurance.adequacy-outcome         OW-WAR-0042: the adequacy review records no §39.2 outcome; a review that reaches no outcome is a question, not a review
+                                             → docs/warrants/OW-WAR-0042/atoms/60-assurance.md
+PASS milestones.valid                   OW-WAR-0042: 4 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0042: 4 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0042: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0043: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0043: 1 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0043: 0 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0043: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0043: 10 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0043: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0043/authorization.toml
+PASS gate.resolved                      OW-WAR-0043: 1 cited gate(s) resolve to a bindable definition
+PASS evidence.valid                     OW-WAR-0043: 9 §40 record(s) — 4 evidence, 4 observation(s), 0 inference(s), 1 judgment(s)
+PASS amendment.valid                    OW-WAR-0043: amendment AM-001 is a manual_revision carrying 2 semantic change(s)
+PASS assurance.adequacy-review          OW-WAR-0043: controlled assurance carries an adequacy review with an adversarial question
+WARN assurance.executed-attacks         OW-WAR-0043: the adequacy review has executed no attacks. §39.3 wants violating artifacts planted and run; 'recorded here when run' is a plan, not evidence
+                                             → docs/warrants/OW-WAR-0043/atoms/60-assurance.md
+WARN assurance.adequacy-outcome         OW-WAR-0043: the adequacy review records no §39.2 outcome; a review that reaches no outcome is a question, not a review
+                                             → docs/warrants/OW-WAR-0043/atoms/60-assurance.md
+PASS milestones.valid                   OW-WAR-0043: 4 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0043: 4 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0043: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0044: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0044: 1 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0044: 3 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0044: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0044: 19 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0044: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0044/authorization.toml
+PASS gate.resolved                      OW-WAR-0044: 1 cited gate(s) resolve to a bindable definition
+PASS evidence.valid                     OW-WAR-0044: 12 §40 record(s) — 3 evidence, 7 observation(s), 1 inference(s), 1 judgment(s)
+PASS assurance.adequacy-review          OW-WAR-0044: controlled assurance carries an adequacy review with an adversarial question
+WARN assurance.executed-attacks         OW-WAR-0044: the adequacy review has executed no attacks. §39.3 wants violating artifacts planted and run; 'recorded here when run' is a plan, not evidence
+                                             → docs/warrants/OW-WAR-0044/atoms/60-assurance.md
+WARN assurance.adequacy-outcome         OW-WAR-0044: the adequacy review records no §39.2 outcome; a review that reaches no outcome is a question, not a review
+                                             → docs/warrants/OW-WAR-0044/atoms/60-assurance.md
+PASS milestones.valid                   OW-WAR-0044: 5 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0044: 5 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0044: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0045: manifest and composition are well-formed
+PASS traceability.refs                  OW-WAR-0045: 4 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0045: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0045: 19 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0045: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0045/authorization.toml
+PASS gate.resolved                      OW-WAR-0045: 1 cited gate(s) resolve to a bindable definition
+PASS assurance.adequacy-review          OW-WAR-0045: controlled assurance carries an adequacy review with an adversarial question
+WARN assurance.executed-attacks         OW-WAR-0045: the adequacy review has executed no attacks. §39.3 wants violating artifacts planted and run; 'recorded here when run' is a plan, not evidence
+                                             → docs/warrants/OW-WAR-0045/atoms/60-assurance.md
+WARN assurance.adequacy-outcome         OW-WAR-0045: the adequacy review records no §39.2 outcome; a review that reaches no outcome is a question, not a review
+                                             → docs/warrants/OW-WAR-0045/atoms/60-assurance.md
+PASS milestones.valid                   OW-WAR-0045: 5 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0045: 5 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0045: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0046: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0046: 2 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0046: 5 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0046: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0046: satisfied · resolved by person://Brian Lam at 2026-09-03T03:30:00Z
+PASS journal.append-only                OW-WAR-0046: 13 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0046: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0046/authorization.toml
+PASS gate.resolved                      OW-WAR-0046: 1 cited gate(s) resolve to a bindable definition
+PASS evidence.valid                     OW-WAR-0046: 6 §40 record(s) — 2 evidence, 2 observation(s), 1 inference(s), 1 judgment(s)
+PASS amendment.valid                    OW-WAR-0046: amendment AM-001 is a manual_revision carrying 1 semantic change(s)
+PASS assurance.adequacy-review          OW-WAR-0046: controlled assurance carries an adequacy review with an adversarial question
+WARN assurance.executed-attacks         OW-WAR-0046: the adequacy review has executed no attacks. §39.3 wants violating artifacts planted and run; 'recorded here when run' is a plan, not evidence
+                                             → docs/warrants/OW-WAR-0046/atoms/60-assurance.md
+WARN assurance.adequacy-outcome         OW-WAR-0046: the adequacy review records no §39.2 outcome; a review that reaches no outcome is a question, not a review
+                                             → docs/warrants/OW-WAR-0046/atoms/60-assurance.md
+PASS milestones.valid                   OW-WAR-0046: 5 milestone(s), 4 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0046: 5 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0046: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0047: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0047: 1 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0047: 1 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0047: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0047: 8 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0047: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0047/authorization.toml
+PASS gate.resolved                      OW-WAR-0047: 1 cited gate(s) resolve to a bindable definition
+PASS evidence.valid                     OW-WAR-0047: 11 §40 record(s) — 4 evidence, 4 observation(s), 2 inference(s), 1 judgment(s)
+PASS milestones.valid                   OW-WAR-0047: 3 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0047: 3 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0047: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0048: manifest and composition are well-formed
+PASS traceability.refs                  OW-WAR-0048: 1 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0048: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0048: 19 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0048: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0048/authorization.toml
+PASS gate.resolved                      OW-WAR-0048: 1 cited gate(s) resolve to a bindable definition
+PASS assurance.adequacy-review          OW-WAR-0048: controlled assurance carries an adequacy review with an adversarial question
+WARN assurance.executed-attacks         OW-WAR-0048: the adequacy review has executed no attacks. §39.3 wants violating artifacts planted and run; 'recorded here when run' is a plan, not evidence
+                                             → docs/warrants/OW-WAR-0048/atoms/60-assurance.md
+WARN assurance.adequacy-outcome         OW-WAR-0048: the adequacy review records no §39.2 outcome; a review that reaches no outcome is a question, not a review
+                                             → docs/warrants/OW-WAR-0048/atoms/60-assurance.md
+PASS milestones.valid                   OW-WAR-0048: 4 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0048: 4 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0048: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0049: manifest and composition are well-formed
+PASS traceability.refs                  OW-WAR-0049: 0 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0049: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0049: 16 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0049: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0049/authorization.toml
+PASS gate.resolved                      OW-WAR-0049: 1 cited gate(s) resolve to a bindable definition
+PASS evidence.valid                     OW-WAR-0049: 6 §40 record(s) — 2 evidence, 2 observation(s), 1 inference(s), 1 judgment(s)
+PASS assurance.adequacy-review          OW-WAR-0049: controlled assurance carries an adequacy review with an adversarial question
+WARN assurance.executed-attacks         OW-WAR-0049: the adequacy review has executed no attacks. §39.3 wants violating artifacts planted and run; 'recorded here when run' is a plan, not evidence
+                                             → docs/warrants/OW-WAR-0049/atoms/60-assurance.md
+WARN assurance.adequacy-outcome         OW-WAR-0049: the adequacy review records no §39.2 outcome; a review that reaches no outcome is a question, not a review
+                                             → docs/warrants/OW-WAR-0049/atoms/60-assurance.md
+PASS milestones.valid                   OW-WAR-0049: 4 milestone(s), 2 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0049: 4 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0049: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0050: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0050: 2 content-addressed deliverable(s) still match their bytes
+PASS evidence.admissible                OW-WAR-0050: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0050: 12 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0050: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0050/authorization.toml
+PASS gate.resolved                      OW-WAR-0050: 2 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0050: 2 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0050: 4 obligation(s), each with a bounded scope and evidence
+PASS bonsai-scope.valid                 OW-WAR-0050: machine scope resolves to declared obligations
+PASS generated.drift                    OW-WAR-0050: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0055: manifest and composition are well-formed
+ERROR deliverable.digest-drift           OW-WAR-0055: D-001 records sha256:41ea9407936d2d5b3ed3327cda56e04d552b9413cda37b57407f828dbcaca319 for crates/openwarrant-core/src/status.rs but the file is now sha256:535a952cf98542cfb2d7f738fc78bab3e54285d178bc31bb31ca06c6856fa1ce. The artifact moved after the record was written — regenerate the record, or restore the artifact
+                                             → docs/warrants/OW-WAR-0055/deliverables.toml
+ERROR deliverable.digest-drift           OW-WAR-0055: D-003 records sha256:7ccbbc7ff519fd7c7994aa3e99badde8bd4f9c5b787510eb672421adc6daaeff for crates/openwarrant-cli/src/status.rs but the file is now sha256:474164ee897f2863d766e391788b5984bc16cf4a23cf3331d8c7b117dbf69efc. The artifact moved after the record was written — regenerate the record, or restore the artifact
+                                             → docs/warrants/OW-WAR-0055/deliverables.toml
+PASS traceability.refs                  OW-WAR-0055: 3 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0055: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0055: satisfied · resolved by person://Brian Lam at 2026-09-03T03:30:00Z
+PASS journal.append-only                OW-WAR-0055: 15 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0055: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0055/authorization.toml
+PASS gate.resolved                      OW-WAR-0055: 1 cited gate(s) resolve to a bindable definition
+PASS assurance.adequacy-review          OW-WAR-0055: controlled assurance carries an adequacy review with an adversarial question
+PASS milestones.valid                   OW-WAR-0055: 4 milestone(s), 5 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0055: 6 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0055: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0056: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0056: 3 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0056: 3 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0056: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0056: satisfied · resolved by person://Brian Lam at 2026-09-03T03:30:00Z
+PASS journal.append-only                OW-WAR-0056: 10 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0056: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0056/authorization.toml
+PASS gate.resolved                      OW-WAR-0056: 1 cited gate(s) resolve to a bindable definition
+PASS assurance.adequacy-review          OW-WAR-0056: controlled assurance carries an adequacy review with an adversarial question
+PASS milestones.valid                   OW-WAR-0056: 3 milestone(s), 4 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0056: 5 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0056: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0057: manifest and composition are well-formed
+ERROR deliverable.digest-drift           OW-WAR-0057: D-002 records sha256:7ccbbc7ff519fd7c7994aa3e99badde8bd4f9c5b787510eb672421adc6daaeff for crates/openwarrant-cli/src/status.rs but the file is now sha256:474164ee897f2863d766e391788b5984bc16cf4a23cf3331d8c7b117dbf69efc. The artifact moved after the record was written — regenerate the record, or restore the artifact
+                                             → docs/warrants/OW-WAR-0057/deliverables.toml
+PASS traceability.refs                  OW-WAR-0057: 2 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0057: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0057: satisfied · resolved by person://Brian Lam at 2026-09-03T03:30:00Z
+PASS journal.append-only                OW-WAR-0057: 10 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0057: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0057/authorization.toml
+PASS gate.resolved                      OW-WAR-0057: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0057: 2 milestone(s), 2 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0057: 3 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0057: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0058: manifest and composition are well-formed
+ERROR deliverable.digest-drift           OW-WAR-0058: D-001 records sha256:e8b235cb87160bedb48fba7cdc941ff49c74885e4ab2f14c31289f55856a3116 for crates/openwarrant-core/src/sas.rs but the file is now sha256:fb590a424279737c46ec90d5ff299276a5fc88eceb8ebb3d45b1f7c39cc113b0. The artifact moved after the record was written — regenerate the record, or restore the artifact
+                                             → docs/warrants/OW-WAR-0058/deliverables.toml
+ERROR deliverable.digest-drift           OW-WAR-0058: D-002 records sha256:49edf603a8b196346de2fdd236d13a6102619b7713b555f2bc44bf3274d4651f for crates/openwarrant-cli/src/sas.rs but the file is now sha256:217e5673557a06b2edb82c8350b7ad1abc6f3c83e2aba0e3864d3d0a7c7f1431. The artifact moved after the record was written — regenerate the record, or restore the artifact
+                                             → docs/warrants/OW-WAR-0058/deliverables.toml
+PASS traceability.refs                  OW-WAR-0058: 2 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0058: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0058: satisfied · resolved by person://Brian Lam at 2026-09-03T03:30:00Z
+PASS journal.append-only                OW-WAR-0058: 11 event(s), 2 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0058: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0058/authorization.toml
+PASS gate.resolved                      OW-WAR-0058: 1 cited gate(s) resolve to a bindable definition
+PASS assurance.adequacy-review          OW-WAR-0058: controlled assurance carries an adequacy review with an adversarial question
+PASS milestones.valid                   OW-WAR-0058: 3 milestone(s), 4 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0058: 5 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0058: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0059: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0059: 3 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0059: 3 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0059: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0059: 19 event(s), 1 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0059: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0059/authorization.toml
+PASS gate.resolved                      OW-WAR-0059: 1 cited gate(s) resolve to a bindable definition
+PASS assurance.adequacy-review          OW-WAR-0059: controlled assurance carries an adequacy review with an adversarial question
+PASS milestones.valid                   OW-WAR-0059: 4 milestone(s), 4 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0059: 7 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0059: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0060: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0060: 2 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0060: 1 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0060: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0060: satisfied · resolved by person://Brian Lam at 2026-09-03T03:30:00Z
+PASS journal.append-only                OW-WAR-0060: 11 event(s), 1 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0060: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0060/authorization.toml
+PASS gate.resolved                      OW-WAR-0060: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0060: 2 milestone(s), 2 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0060: 3 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0060: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0061: manifest and composition are well-formed
+PASS deliverable.digests                OW-WAR-0061: 1 content-addressed deliverable(s) still match their bytes
+PASS traceability.refs                  OW-WAR-0061: 1 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0061: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0061: satisfied · resolved by person://Brian Lam at 2026-09-03T01:00:00Z
+PASS journal.append-only                OW-WAR-0061: 12 event(s), 1 backfilled, extends the committed journal
+WARN sas.pin-superseded                 OW-WAR-0061: authorized against SAS 0.1.0-draft.1; the latest recorded revision is 0.1.0-draft.3 — the contract keeps its Basis until an amendment re-authorizes it
+                                             → docs/warrants/OW-WAR-0061/authorization.toml
+PASS gate.resolved                      OW-WAR-0061: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0061: 1 milestone(s), 1 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0061: 4 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0061: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0062: manifest and composition are well-formed
+ERROR deliverable.digest-drift           OW-WAR-0062: D-005 records sha256:e8b235cb87160bedb48fba7cdc941ff49c74885e4ab2f14c31289f55856a3116 for crates/openwarrant-core/src/sas.rs but the file is now sha256:fb590a424279737c46ec90d5ff299276a5fc88eceb8ebb3d45b1f7c39cc113b0. The artifact moved after the record was written — regenerate the record, or restore the artifact
+                                             → docs/warrants/OW-WAR-0062/deliverables.toml
+PASS traceability.refs                  OW-WAR-0062: 1 requirement ref(s) and 1 roadmap ref(s) parse
+PASS evidence.admissible                OW-WAR-0062: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS resolution.recorded                OW-WAR-0062: satisfied · resolved by person://Brian Lam at 2026-09-03T03:30:00Z
+PASS journal.append-only                OW-WAR-0062: 8 event(s), 0 backfilled, extends the committed journal
+PASS gate.resolved                      OW-WAR-0062: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0062: 1 milestone(s), 1 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0062: 3 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0062: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0063: manifest and composition are well-formed
+ERROR deliverable.digest-drift           OW-WAR-0063: D-001 records sha256:f200d0b46761c945f8d7eaf535f964d60e9c8e57ad19658958e2130d2d68d51a for crates/openwarrant-cli/src/check.rs but the file is now sha256:613fd9424f9c4e176ce16cb5151d0c02010fed6a5d8e8b38c61877f83c7c0b29. The artifact moved after the record was written — regenerate the record, or restore the artifact
+                                             → docs/warrants/OW-WAR-0063/deliverables.toml
+ERROR deliverable.digest-drift           OW-WAR-0063: D-003 records sha256:2ccd0b6f035e7ecdc21d9cff19344bb24c2b996a2979a52694c99babbfd43348 for conformance/plant.sh but the file is now sha256:3ade478c0db1b2526fc99e82c92658bf3adbe486b74d022f9e188d017933cd43. The artifact moved after the record was written — regenerate the record, or restore the artifact
+                                             → docs/warrants/OW-WAR-0063/deliverables.toml
+PASS traceability.refs                  OW-WAR-0063: 2 requirement ref(s) and 1 roadmap ref(s) parse
+PASS journal.append-only                OW-WAR-0063: 4 event(s), 0 backfilled, extends the committed journal
+PASS gate.resolved                      OW-WAR-0063: 1 cited gate(s) resolve to a bindable definition
+PASS milestones.valid                   OW-WAR-0063: 1 milestone(s), 1 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0063: 3 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0063: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0064: manifest and composition are well-formed
+PASS traceability.refs                  OW-WAR-0064: 2 requirement ref(s) and 1 roadmap ref(s) parse
+PASS journal.append-only                OW-WAR-0064: 1 event(s), 0 backfilled, extends the committed journal
+PASS gate.resolved                      OW-WAR-0064: 1 cited gate(s) resolve to a bindable definition
+PASS assurance.adequacy-review          OW-WAR-0064: controlled assurance carries an adequacy review with an adversarial question
+WARN assurance.executed-attacks         OW-WAR-0064: the adequacy review has executed no attacks. §39.3 wants violating artifacts planted and run; 'recorded here when run' is a plan, not evidence
+                                             → docs/warrants/OW-WAR-0064/atoms/60-assurance.md
+PASS milestones.valid                   OW-WAR-0064: 5 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0064: 5 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0064: 2 generated view(s) match a fresh compilation
+PASS manifest.valid                     OW-WAR-0065: manifest and composition are well-formed
+PASS traceability.refs                  OW-WAR-0065: 3 requirement ref(s) and 1 roadmap ref(s) parse
+PASS journal.append-only                OW-WAR-0065: 1 event(s), 0 backfilled, extends the committed journal
+PASS gate.resolved                      OW-WAR-0065: 1 cited gate(s) resolve to a bindable definition
+PASS assurance.adequacy-review          OW-WAR-0065: controlled assurance carries an adequacy review with an adversarial question
+WARN assurance.executed-attacks         OW-WAR-0065: the adequacy review has executed no attacks. §39.3 wants violating artifacts planted and run; 'recorded here when run' is a plan, not evidence
+                                             → docs/warrants/OW-WAR-0065/atoms/60-assurance.md
+WARN assurance.adequacy-outcome         OW-WAR-0065: the adequacy review records no §39.2 outcome; a review that reaches no outcome is a question, not a review
+                                             → docs/warrants/OW-WAR-0065/atoms/60-assurance.md
+PASS milestones.valid                   OW-WAR-0065: 3 milestone(s), 3 stage(s), acyclic with no dangling refs
+PASS obligations.valid                  OW-WAR-0065: 4 obligation(s), each with a bounded scope and evidence
+PASS generated.drift                    OW-WAR-0065: 2 generated view(s) match a fresh compilation
+PASS composition.acyclic                parent graph is acyclic across 61 Warrant(s)
+PASS adr.parsed                         11 ADR(s) parsed
+PASS sas.pinned                         docs/sas/WAR_Software_Architecture_Specification.md matches revision 0.1.0-draft.3 (accepted), sha256:742dfd066b8d
+PASS warrant-overview.drift             WARRANT_OVERVIEW.md matches a fresh compilation
+PASS adr-overview.drift                 ADR_OVERVIEW.md matches a fresh compilation
+PASS corpus-status.drift                CORPUS_STATUS.md matches a fresh compilation
+PASS corpus-status.drift                CORPUS_STATUS.json matches a fresh compilation
+PASS corpus-status.drift                CORPUS_STATUS.html matches a fresh compilation
+
+625 pass · 80 warn · 0 unknown · 10 error   (worst: ERROR)
+
+NOT CHECKED:
+  · 61 of 61 Warrant(s) have no disposed              obligations — §38.6 yields no resolution verdict for them, which is the              expected state of work that has not been assessed
+  · contract digest covers 8 of 17 §28.5 elements — missing: deliverables, capabilities, autonomy, resources, gates, obligations, rollback, amendment_policy, assurance_requirements
+  · gate execution — `war gate --run` executes a registered gate (§44), but `war check` does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run
+  · Preflight readiness (§32.7) — 'well-formed' is a claim about the record only
+  · bound-atom resolution — `ref =` atoms cannot be fetched offline
+  · Source Holder ambiguity and classification propagation (§91.2 tests 14, 15) — narrowed by OW-ADR-0008: test 14 needs a `source_holder` on atoms, which §13 requires and none declares; test 15 needs a classification ordering, which the SAS does not give. Neither is undecided — both are undeclared
+
+NOT READY
+   FAILED (exit status: 2)
+== planted violations (§92 — each rejected by its intended control) ==
+docs/warrants/, docs/adr/, docs/gates/, docs/sas/ or openwarrant.toml has uncommitted changes.
+Plants mutate those files and restore with 'git checkout', which would
+discard your work. Commit or stash those first.
+   FAILED (exit status: 1)
+
+gate: FAIL — 2/9 step(s) failed:
+  - corpus (§37.2 digests and §17 view drift, on the committed tree)
+  - planted violations (§92 — each rejected by its intended control)

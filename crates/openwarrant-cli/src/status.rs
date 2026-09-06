@@ -46,6 +46,15 @@ use crate::resolve::assess;
 
 /// Build the projection.
 pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
+    let snapshot = repo.sas_snapshot(None);
+    let authoritative = snapshot.as_ref().is_ok_and(|s| s.is_authoritative());
+    let authority = match &snapshot {
+        Ok(s) if s.is_authoritative() => openwarrant_core::status::SasAuthority::Accepted,
+        Ok(_) => openwarrant_core::status::SasAuthority::Draft,
+        Err(err) => openwarrant_core::status::SasAuthority::Unavailable {
+            reason: err.to_string(),
+        },
+    };
     let mut loaded: Vec<Loaded> = Vec::new();
     for dir in repo.warrant_dirs()? {
         loaded.push(repo.load_warrant(&dir)?);
@@ -62,7 +71,14 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
 
     for one in &loaded {
         let alias = one.alias();
-        let valid = one.validated.is_some() && one.basis.is_some();
+        let mut traceability = crate::diagnostic::Report::default();
+        crate::check::check_traceability(repo, one, &alias, &mut traceability);
+        let valid = one.validated.is_some()
+            && one.basis.is_some()
+            && !traceability
+                .diagnostics
+                .iter()
+                .any(|d| d.severity == Severity::Error);
         let validity = if valid {
             Validity::Valid
         } else {
@@ -71,6 +87,7 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
                     .report
                     .diagnostics
                     .iter()
+                    .chain(traceability.diagnostics.iter())
                     .find(|d| d.severity == Severity::Error)
                     .map(|d| d.message.clone())
                     .unwrap_or_else(|| "manifest did not validate".to_owned()),
@@ -143,6 +160,8 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
         // §34.3 `satisfied`: a RESOLVED Warrant with evidence. A Warrant resolved
         // `not_satisfied` or `cancelled` is resolved and satisfies nothing.
         let resolved_satisfied = resolved
+            && authoritative
+            && traceability.is_ready()
             && record.as_ref().is_some_and(|r| {
                 r.resolution.common_outcome
                     == openwarrant_core::resolution::CommonOutcome::Satisfied
@@ -225,32 +244,13 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
         });
     }
 
-    // Objectives — every §98 phase, then `unassigned` last.
-    let prefix = warrants
-        .iter()
-        .flat_map(|w| w.roadmap.iter().map(|r| r.prefix.clone()))
-        .fold(BTreeMap::<String, usize>::new(), |mut m, p| {
-            *m.entry(p).or_insert(0) += 1;
-            m
-        })
-        .into_iter()
-        .max_by_key(|(_, n)| *n)
-        .map(|(p, _)| p)
-        .unwrap_or_else(|| "OW".to_owned());
-
-    // §98 from the SAS as it stands; the compiled-in table is the fallback for
-    // a repository whose document cannot be read.
-    let phases: Vec<(u8, String, Option<String>)> = repo
-        .sas_document()
-        .ok()
-        .map(|(_, bytes)| openwarrant_core::sas::section_98(&String::from_utf8_lossy(&bytes)))
-        .filter(|v| v.len() == openwarrant_core::status::PHASES.len())
-        .unwrap_or_else(|| {
-            openwarrant_core::status::PHASES
-                .iter()
-                .map(|(n, t, e)| (*n, (*t).to_owned(), e.map(str::to_owned)))
-                .collect()
-        });
+    // Objectives come only from this program's selected SAS. No compiled-in
+    // phase table and no majority-vote namespace can substitute for authority.
+    let prefix = repo.config.project.namespace.as_str().to_owned();
+    let phases = snapshot
+        .as_ref()
+        .map(|s| s.declarations.phases.clone())
+        .unwrap_or_default();
     let mut objectives: Vec<ObjectiveStatus> = Vec::new();
     for (n, title, exit) in phases {
         let (title, exit) = (title.as_str(), exit.as_deref());
@@ -270,7 +270,12 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
         for m in &members {
             ladder.count(m.rung);
         }
-        let achieved = if exit.is_none() {
+        let achieved = if !authoritative {
+            Achieved::NotDerivable {
+                why: "SAS authority unavailable or draft; phase completion cannot be derived"
+                    .to_owned(),
+            }
+        } else if exit.is_none() {
             Achieved::NotDerivable {
                 why: "§98 defines no Exit for this phase".to_owned(),
             }
@@ -313,27 +318,44 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
         });
     }
     {
-        let members: Vec<&WarrantStatus> =
-            warrants.iter().filter(|w| w.roadmap.is_empty()).collect();
+        let assigned: BTreeSet<&str> = objectives
+            .iter()
+            .flat_map(|o| o.warrants.iter().map(String::as_str))
+            .collect();
+        let members: Vec<&WarrantStatus> = warrants
+            .iter()
+            .filter(|w| !assigned.contains(w.alias.as_str()))
+            .collect();
         let mut ladder = WarrantLadder::default();
         for m in &members {
             ladder.count(m.rung);
         }
         objectives.push(ObjectiveStatus {
             roadmap_ref: None,
-            title: "unassigned — declares no [[roadmap]]".to_owned(),
+            title: "unassigned — no declared phase in the selected program".to_owned(),
             exit_criterion: None,
             exit_warrant: None,
             warrants: members.iter().map(|w| w.alias.clone()).collect(),
             ladder,
             achieved: Achieved::NotDerivable {
-                why: "a Warrant naming no phase belongs to no Objective".to_owned(),
+                why: "no declared phase in the selected program can group this Warrant".to_owned(),
             },
         });
     }
 
     // Requirements — seeded from §106 so `unaddressed` is listed by id.
-    let titles = section_106(repo);
+    let titles: BTreeMap<RequirementRef, String> = snapshot
+        .as_ref()
+        .map(|s| {
+            s.declarations
+                .requirements
+                .iter()
+                .filter_map(|(id, title)| {
+                    RequirementRef::parse(id).ok().map(|r| (r, title.clone()))
+                })
+                .collect()
+        })
+        .unwrap_or_default();
     let mut by_req: BTreeMap<RequirementRef, Vec<Link>> = BTreeMap::new();
     for r in titles.keys() {
         by_req.entry(r.clone()).or_default();
@@ -343,6 +365,18 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
             .entry(l.requirement_ref.clone())
             .or_default()
             .push(l.clone());
+    }
+    // A draft or unavailable declaration set cannot acquire fulfilled SAS
+    // requirements merely because a Warrant carries a completion claim.
+    if !authoritative {
+        for link in &mut links {
+            link.warrant_resolved = false;
+        }
+        for ls in by_req.values_mut() {
+            for link in ls {
+                link.warrant_resolved = false;
+            }
+        }
     }
     let statuses = derive_all(&links);
     let requirements: Vec<RequirementLadder> = by_req
@@ -399,18 +433,10 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
              nothing above reads them."
         ));
     }
-    let prefixes: BTreeSet<&str> = warrants
-        .iter()
-        .flat_map(|w| w.roadmap.iter().map(|r| r.prefix.as_str()))
-        .collect();
-    if prefixes.len() > 1 {
-        caveats.push(format!(
-            "Roadmap refs carry {} different prefixes ({}). Objectives are grouped under the \
-             most common one, {prefix}; Warrants naming another prefix's phases are not \
-             grouped and fall to `unassigned`. A per-prefix Objective set is not built yet.",
-            prefixes.len(),
-            prefixes.iter().copied().collect::<Vec<_>>().join(", ")
-        ));
+    match &snapshot {
+        Ok(s) if !s.is_authoritative() => caveats.push("DRAFT INSPECTION: SAS acceptance is not recorded; objectives cannot be achieved by this projection. Next-actionable entries are structural authoring hints, not execution authorization.".to_owned()),
+        Err(err) => caveats.push(format!("SAS AUTHORITY UNAVAILABLE: {err}; no phases or requirement titles are substituted.")),
+        Ok(_) => {},
     }
     let invalid = warrants
         .iter()
@@ -449,8 +475,9 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
                 )
             }
         },
-        release: match repo.latest_sas_revision()? {
+        release: match snapshot.as_ref().ok().and_then(|s| s.revision.as_ref()) {
             Some(r) => ReleaseSummary {
+                authority: authority.clone(),
                 version: Some(r.version.clone()),
                 digest: Some(format!("sha256:{}", r.sha256)),
                 requirements: counts,
@@ -481,12 +508,14 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
                 },
             },
             None => ReleaseSummary {
+                authority: authority.clone(),
                 version: None,
                 digest: None,
                 requirements: counts,
-                note: "No SAS revision is recorded (`war sas propose`). The requirement ladder is \
-                       against §106 as read from the document on disk."
-                    .to_owned(),
+                note: match &authority {
+                    openwarrant_core::status::SasAuthority::Unavailable { reason } => format!("SAS AUTHORITY UNAVAILABLE: {reason}"),
+                    _ => "DRAFT INSPECTION: no SAS revision is recorded (`war sas propose`); no SAS completion is established.".to_owned(),
+                },
             },
         },
         objectives,
@@ -662,40 +691,6 @@ fn next_actionable(
         },
     };
     (vec![], Some(nothing))
-}
-
-/// SAS §106's requirement index: id → title. Empty if the SAS cannot be read.
-fn section_106(repo: &Repository) -> BTreeMap<RequirementRef, String> {
-    let dir = repo.root.join(&repo.config.paths.sas);
-    let Ok(entries) = fs::read_dir(&dir) else {
-        return BTreeMap::new();
-    };
-    let mut paths: Vec<Utf8PathBuf> = entries
-        .filter_map(Result::ok)
-        .filter_map(|e| Utf8PathBuf::from_path_buf(e.path()).ok())
-        .filter(|p| p.extension() == Some("md"))
-        .collect();
-    paths.sort();
-    let mut out = BTreeMap::new();
-    for p in paths {
-        let Ok(text) = fs::read_to_string(&p) else {
-            continue;
-        };
-        for line in text.lines() {
-            // `| WAR-SAS-RQ-001 | Every WAR has immutable UUIDv7 identity |`
-            let Some(rest) = line.strip_prefix("| ") else {
-                continue;
-            };
-            let mut cells = rest.split(" | ");
-            let (Some(id), Some(title)) = (cells.next(), cells.next()) else {
-                continue;
-            };
-            if let Ok(r) = RequirementRef::parse(id) {
-                out.insert(r, title.trim_end_matches(" |").trim().to_owned());
-            }
-        }
-    }
-    out
 }
 
 /// How many times the hand-maintained roadmap says "resolved".

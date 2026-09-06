@@ -391,10 +391,30 @@ pub struct NothingActionable {
     pub why: String,
 }
 
+/// Whether SAS declarations are an accepted authority, a draft inspection,
+/// or unavailable. An unavailable authority never inherits another program.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case", tag = "state")]
+pub enum SasAuthority {
+    Accepted,
+    Draft,
+    Unavailable { reason: String },
+}
+
+impl Default for SasAuthority {
+    fn default() -> Self {
+        Self::Unavailable {
+            reason: "authority not recorded in this projection".to_owned(),
+        }
+    }
+}
+
 /// The Release axis. One entry, versionless, until OW-WAR-0058 records
 /// accepted SAS revisions; the projection does not invent a version.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ReleaseSummary {
+    #[serde(default)]
+    pub authority: SasAuthority,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub version: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]

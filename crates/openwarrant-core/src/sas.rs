@@ -69,6 +69,14 @@ pub enum SasError {
     MissingDigest,
     #[error("§106 could not be read from the document: no `| <PREFIX>-SAS-RQ-NNN | … |` rows")]
     NoRequirementIndex,
+    #[error("duplicate SAS phase {phase}")]
+    DuplicatePhase { phase: i32 },
+    #[error("malformed SAS phase heading: {heading}")]
+    MalformedPhase { heading: String },
+    #[error("duplicate SAS requirement {id}")]
+    DuplicateRequirement { id: String },
+    #[error("malformed SAS requirement {id}")]
+    MalformedRequirement { id: String },
 }
 
 /// Where a revision sits (§101.2).
@@ -228,6 +236,42 @@ impl SasRevision {
     }
 }
 
+/// Declaration-bearing Markdown lines. Fenced and indented code, plus quoted
+/// examples, are not declarations. A fence closes only with the same marker,
+/// sufficient length and no trailing content (CommonMark's fence boundary).
+fn declaration_lines(text: &str) -> impl Iterator<Item = &str> {
+    let mut fence: Option<(u8, usize)> = None;
+    text.lines().filter_map(move |line| {
+        let trimmed = line.trim_start_matches(' ');
+        let indent = line.len() - trimmed.len();
+        if indent >= 4 || trimmed.starts_with('\t') {
+            return None;
+        }
+        let marker = trimmed.as_bytes().first().copied();
+        let run = marker.map_or(0, |m| trimmed.bytes().take_while(|b| *b == m).count());
+        if let Some((open, width)) = fence {
+            if marker == Some(open) && run >= width && trimmed[run..].trim().is_empty() {
+                fence = None;
+            }
+            return None;
+        }
+        if matches!(marker, Some(b'`' | b'~')) && run >= 3 {
+            fence = Some((marker.expect("fence marker"), run));
+            return None;
+        }
+        if trimmed.starts_with('>') {
+            return None;
+        }
+        Some(trimmed)
+    })
+}
+
+fn requirement_cells(line: &str) -> Option<(&str, &str)> {
+    let rest = line.strip_prefix('|')?;
+    let (id, rest) = rest.split_once('|').unwrap_or((rest, ""));
+    Some((id.trim(), rest.split('|').next().unwrap_or("").trim()))
+}
+
 /// §98's phases as the document states them: (number, title, Exit sentence).
 ///
 /// Read at run time rather than copied into a constant, so that a SAS revision
@@ -236,19 +280,19 @@ impl SasRevision {
 /// whose block has no bullet, yields `None` — the projection then says "no
 /// Exit" rather than inventing one.
 #[must_use]
-pub fn section_98(text: &str) -> Vec<(u8, String, Option<String>)> {
-    let mut out: Vec<(u8, String, Option<String>)> = Vec::new();
+pub fn section_98(text: &str) -> Vec<(i32, String, Option<String>)> {
+    let mut out: Vec<(i32, String, Option<String>)> = Vec::new();
     // `in_phase` is true only between a `### Phase N` heading and the next
     // heading of any level, so an `Exit:` in some other section can never
     // attach its bullet to a phase (found by review).
     let mut in_phase = false;
     let mut in_exit = false;
-    for line in text.lines() {
+    for line in declaration_lines(text) {
         if let Some(rest) = line.strip_prefix("### Phase ") {
             let (num, title) = rest.split_once(" — ").unwrap_or((rest, ""));
             in_exit = false;
             in_phase = false;
-            if let Ok(n) = num.trim().parse::<u8>() {
+            if let Ok(n) = num.trim().parse::<i32>() {
                 out.push((n, title.trim().to_owned(), None));
                 in_phase = true;
             }
@@ -279,22 +323,64 @@ pub fn section_98(text: &str) -> Vec<(u8, String, Option<String>)> {
 #[must_use]
 pub fn section_106(text: &str) -> BTreeMap<String, String> {
     let mut out = BTreeMap::new();
-    for line in text.lines() {
-        let Some(rest) = line.strip_prefix("| ") else {
-            continue;
-        };
-        let mut cells = rest.split(" | ");
-        let (Some(id), Some(title)) = (cells.next(), cells.next()) else {
-            continue;
-        };
-        if let Ok(r) = RequirementRef::parse(id) {
-            out.insert(
-                r.canonical(),
-                title.trim_end_matches(" |").trim().to_owned(),
-            );
+    for line in declaration_lines(text) {
+        if let Some((id, title)) = requirement_cells(line)
+            && let Ok(r) = RequirementRef::parse(id)
+        {
+            out.insert(r.canonical(), title.to_owned());
         }
     }
     out
+}
+
+/// Checked declaration set used by repository authority consumers. Legacy
+/// section readers remain useful for inspection; they must not silently collapse
+/// duplicate declarations when establishing membership.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SasDeclarations {
+    pub phases: Vec<(i32, String, Option<String>)>,
+    pub requirements: BTreeMap<String, String>,
+}
+
+impl SasDeclarations {
+    pub fn parse(text: &str) -> Result<Self, SasError> {
+        let mut phase_numbers = std::collections::BTreeSet::new();
+        let mut requirement_ids = std::collections::BTreeSet::new();
+        for line in declaration_lines(text) {
+            if let Some(rest) = line.strip_prefix("### Phase ") {
+                let (number, title) = rest.split_once(" — ").unwrap_or((rest, ""));
+                let phase: i32 = number.parse().map_err(|_| SasError::MalformedPhase {
+                    heading: line.to_owned(),
+                })?;
+                if phase.to_string() != number || title.trim().is_empty() {
+                    return Err(SasError::MalformedPhase {
+                        heading: line.to_owned(),
+                    });
+                }
+                if !phase_numbers.insert(phase) {
+                    return Err(SasError::DuplicatePhase { phase });
+                }
+            }
+            if let Some((id, title)) = requirement_cells(line) {
+                if let Ok(r) = RequirementRef::parse(id) {
+                    if r.canonical() != id || title.is_empty() {
+                        return Err(SasError::MalformedRequirement { id: id.to_owned() });
+                    }
+                    if !requirement_ids.insert(r.canonical()) {
+                        return Err(SasError::DuplicateRequirement { id: r.canonical() });
+                    }
+                } else if id.contains("-SAS-RQ-") {
+                    return Err(SasError::MalformedRequirement { id: id.to_owned() });
+                }
+            }
+        }
+        let mut phases = section_98(text);
+        phases.sort_by_key(|(n, _, _)| *n);
+        Ok(Self {
+            phases,
+            requirements: section_106(text),
+        })
+    }
 }
 
 /// What changed in §106 between two revisions.
@@ -355,6 +441,68 @@ impl Section106Diff {
 #[cfg(test)]
 mod tests {
     #[test]
+    fn fenced_quoted_and_indented_examples_do_not_declare_program_membership() {
+        let text = "### Phase -1 — Real\n\nExit:\n\n````markdown\n### Phase 13 — Example\n| LIM-SAS-RQ-013 | Example |\n```\n- false exit.\n````\n- true exit.\n~~~text\n### Phase 14 — Example\n| LIM-SAS-RQ-014 | Example |\n~~~\n> ### Phase 15 — Quoted\n> | LIM-SAS-RQ-015 | Quoted |\n    ### Phase 16 — Indented\n    | LIM-SAS-RQ-016 | Indented |\n| LIM-SAS-RQ-001 | Real requirement |\n";
+        let d = SasDeclarations::parse(text).expect("declarations");
+        assert_eq!(
+            d.phases,
+            vec![(-1, "Real".to_owned(), Some("true exit.".to_owned()))]
+        );
+        assert_eq!(
+            d.requirements,
+            BTreeMap::from([("LIM-SAS-RQ-001".to_owned(), "Real requirement".to_owned())])
+        );
+        assert_eq!(section_98(text), d.phases);
+        assert_eq!(section_106(text), d.requirements);
+    }
+
+    #[test]
+    fn table_spacing_is_read_but_noncanonical_and_malformed_ids_are_refused() {
+        for text in [
+            "|LIM-SAS-RQ-001|Requirement|",
+            "  |  LIM-SAS-RQ-001  |  Requirement  |",
+        ] {
+            let d = SasDeclarations::parse(text).expect("valid Markdown table spacing");
+            assert_eq!(d.requirements["LIM-SAS-RQ-001"], "Requirement");
+        }
+        for text in [
+            "|LIM-SAS-RQ-0001|Requirement|",
+            "  |  LIM-SAS-RQ-1  | Requirement |",
+            "| LIM-SAS-RQ-001 |",
+            "| sas://LIM-SAS-RQ-001 | Requirement |",
+        ] {
+            assert!(
+                matches!(
+                    SasDeclarations::parse(text),
+                    Err(SasError::MalformedRequirement { .. })
+                ),
+                "{text}"
+            );
+        }
+    }
+
+    #[test]
+    fn checked_declarations_reject_duplicates_and_noncanonical_numbers() {
+        for (text, expected) in [
+            (
+                "### Phase -1 — Start\n### Phase -1 — Duplicate",
+                "duplicate SAS phase -1",
+            ),
+            ("### Phase +1 — Start", "malformed SAS phase"),
+            ("### Phase -0 — Start", "malformed SAS phase"),
+            ("### Phase 01 — Start", "malformed SAS phase"),
+            (
+                "| LIM-SAS-RQ-001 | First |\n| LIM-SAS-RQ-001 | Second |",
+                "duplicate SAS requirement",
+            ),
+            ("| LIM-SAS-RQ-1 | Bad |", "malformed SAS requirement"),
+        ] {
+            let error = super::SasDeclarations::parse(text).expect_err("must refuse");
+            assert!(error.to_string().contains(expected), "{error}");
+        }
+    }
+
+    #[test]
     fn section_98_reads_titles_and_exit_bullets_and_says_none_when_absent() {
         let text = "### Phase 0 — Telemetry shim\n\nDeliver:\n\n- x;\n\nExit:\n\n- real distributions.\n\n### Phase 1 — Compiler\n\nDeliver:\n\n- y.\n\n## 99. Next\n";
         let p = super::section_98(text);
@@ -411,7 +559,7 @@ mod tests {
         let text = std::fs::read_to_string(path).expect("SAS");
         let p = super::section_98(&text);
         assert_eq!(p.len(), 11);
-        let missing: Vec<u8> = p
+        let missing: Vec<i32> = p
             .iter()
             .filter(|(_, _, e)| e.is_none())
             .map(|(n, _, _)| *n)

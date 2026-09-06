@@ -58,6 +58,7 @@ restore() {
     rm -f docs/warrants/OW-WAR-0046/amendments/AM-999.yaml
     # The agent-acceptance plant proposes a throwaway SAS revision.
     rm -f docs/sas/revisions/0.1.0-draft.9.toml
+    rm -f docs/sas/PROGRAM_PHASE_DUPLICATE.md
 }
 
 # The mirror of `assert_gone`, for a mutation that ADDS rather than removes.
@@ -957,9 +958,33 @@ p.write_text(p.read_text().replace('target_ref = \\\"Cargo.toml\\\"', 'target_re
 MANIFEST_0014="docs/warrants/OW-WAR-0014/manifest.toml"
 
 # OBL-001. Phase 11 does not exist in §98; a reference to it names nothing.
-plant "a roadmap ref past the last phase" "roadmap.malformed" "0..=10" 2 \
+plant "a roadmap ref past the declared phases" "roadmap.undeclared-phase" "selected SAS" 2 \
     "sed -i 's|roadmap://OW-PHASE-1/rationale|roadmap://OW-PHASE-11/rationale|' $MANIFEST_0014; \
      assert_present 'OW-PHASE-11' '$MANIFEST_0014'"
+
+# OW-WAR-0065: membership belongs to the configured program, not the grammar.
+plant "a roadmap ref for another program" "roadmap.wrong-program" "configured program is OW" 2 \
+    "sed -i 's|roadmap://OW-PHASE-1/rationale|roadmap://LIM-PHASE-1/rationale|' $MANIFEST_0014; \
+     assert_present 'LIM-PHASE-1' '$MANIFEST_0014'"
+
+plant "a duplicate roadmap ref" "roadmap.duplicate" "OW-PHASE-1/rationale" 2 \
+    "printf '\n[[roadmap]]\nref = \"roadmap://OW-PHASE-1/rationale\"\n' >> $MANIFEST_0014"
+
+SAS_DOCUMENT="docs/sas/WAR_Software_Architecture_Specification.md"
+plant_cmd "missing SAS gives unavailable status" "unavailable" "no SAS document" 0 \
+    "rm '$SAS_DOCUMENT'" status --json
+
+plant_cmd "multiple SAS documents give unavailable status" "unavailable" "exactly one" 0 \
+    "cp '$SAS_DOCUMENT' docs/sas/PROGRAM_PHASE_DUPLICATE.md" status --json
+
+plant_cmd "digest drift gives unavailable phase authority" "unavailable" "source/digest mismatch" 0 \
+    "printf '\nDrift fixture.\n' >> '$SAS_DOCUMENT'" status --json
+
+plant_cmd "duplicate phase cannot be proposed" "duplicate SAS phase" "phase 0" 1 \
+    "printf '\n### Phase 0 — duplicate\n' >> '$SAS_DOCUMENT'" sas propose 0.1.0-draft.9
+
+plant_cmd "duplicate requirement cannot be proposed" "duplicate SAS requirement" "WAR-SAS-RQ-001" 1 \
+    "printf '\n| WAR-SAS-RQ-001 | duplicate |\n' >> '$SAS_DOCUMENT'" sas propose 0.1.0-draft.9
 
 # OBL-001, the other half of the grammar: an uppercase slug is a second spelling.
 plant "a roadmap ref with an uppercase slug" "roadmap.malformed" "[a-z0-9-]" 2 \

@@ -21,9 +21,7 @@ use std::fs;
 use camino::Utf8Path;
 use openwarrant_compiler::sha256_hex;
 use openwarrant_core::authority::ActorRole;
-use openwarrant_core::sas::{
-    SasAcceptance, SasRevision, SasRevisionState, Section106Diff, section_106,
-};
+use openwarrant_core::sas::{SasAcceptance, SasRevision, SasRevisionState, Section106Diff};
 use serde::{Deserialize, Serialize};
 
 use crate::diagnostic::{Diagnostic, Report};
@@ -38,7 +36,9 @@ pub fn propose(repo: &Repository, version: &str) -> Result<Report, RepoError> {
     let (path, bytes) = repo.sas_document()?;
     let sha256 = sha256_hex(&bytes);
     let text = String::from_utf8_lossy(&bytes);
-    let requirements = section_106(&text);
+    let requirements = openwarrant_core::sas::SasDeclarations::parse(&text)
+        .map_err(|e| RepoError::Message(format!("{path}: {e}")))?
+        .requirements;
     if requirements.is_empty() {
         return Err(RepoError::Message(format!(
             "{path}: §106 could not be read — no `| <PREFIX>-SAS-RQ-NNN | … |` rows"
@@ -148,6 +148,10 @@ pub fn accept_request(repo: &Repository, version: &str) -> Result<AcceptRequest,
         .as_ref()
         .map(|p| Section106Diff::between(&p.requirements, &record.requirements))
         .unwrap_or_default();
+    repo.sas_snapshot(Some(&openwarrant_compiler::SasPin {
+        version: record.version.clone(),
+        sha256: record.sha256.clone(),
+    }))?;
     let register = repo.load_authority_register()?;
     Ok(AcceptRequest {
         schema: ACCEPT_REQUEST_SCHEMA.to_owned(),
@@ -225,6 +229,10 @@ pub fn accept_ingest(
         );
         return Ok(report);
     }
+    repo.sas_snapshot(Some(&openwarrant_compiler::SasPin {
+        version: record.version.clone(),
+        sha256: record.sha256.clone(),
+    }))?;
     let register = repo.load_authority_register()?;
     let Some(assignment) = register.actor(&response.accepted_by) else {
         refuse(
@@ -279,12 +287,16 @@ pub fn accept_ingest(
 pub fn diff(repo: &Repository, candidate: &Utf8Path) -> Result<Report, RepoError> {
     let mut report = Report::default();
     let (_, bytes) = repo.sas_document()?;
-    let current = section_106(&String::from_utf8_lossy(&bytes));
+    let current = openwarrant_core::sas::SasDeclarations::parse(&String::from_utf8_lossy(&bytes))
+        .map_err(|e| RepoError::Message(e.to_string()))?
+        .requirements;
     let next_text = fs::read_to_string(candidate).map_err(|source| RepoError::Io {
         context: format!("could not read {candidate}"),
         source,
     })?;
-    let next = section_106(&next_text);
+    let next = openwarrant_core::sas::SasDeclarations::parse(&next_text)
+        .map_err(|e| RepoError::Message(e.to_string()))?
+        .requirements;
     if next.is_empty() {
         report.push(Diagnostic::error(
             "sas.no-index",

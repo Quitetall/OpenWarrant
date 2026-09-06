@@ -85,6 +85,22 @@ pub struct Repository {
     pub config: RepositoryConfig,
 }
 
+/// A declaration snapshot from exactly one document. `revision == None` is
+/// unregistered draft inspection, never evidence of accepted SAS authority.
+#[derive(Debug, Clone)]
+pub struct SasSnapshot {
+    pub revision: Option<openwarrant_core::SasRevision>,
+    pub declarations: openwarrant_core::sas::SasDeclarations,
+}
+
+impl SasSnapshot {
+    pub fn is_authoritative(&self) -> bool {
+        self.revision
+            .as_ref()
+            .is_some_and(openwarrant_core::SasRevision::is_accepted)
+    }
+}
+
 impl Repository {
     /// Find the nearest ancestor containing `openwarrant.toml`.
     pub fn discover(start: Option<Utf8PathBuf>) -> Result<Self, RepoError> {
@@ -594,6 +610,60 @@ impl Repository {
         Ok(crate::sas::pin_of(&all).cloned())
     }
 
+    /// Bind declarations to the selected revision's source and digest. An
+    /// explicit revision pin takes precedence over the repository selection.
+    /// A changed document is unavailable, never replaced with another program's
+    /// phase table. An unregistered document is inspectable only as a draft.
+    pub fn sas_snapshot(&self, pin: Option<&SasPin>) -> Result<SasSnapshot, RepoError> {
+        let (path, bytes) = self.sas_document()?;
+        let all = self.load_sas_revisions()?;
+        let revision = match pin {
+            Some(pin) => Some(
+                all.iter()
+                    .find(|r| r.version == pin.version && r.sha256 == pin.sha256)
+                    .ok_or_else(|| {
+                        RepoError::Message(format!(
+                            "selected SAS revision {} at sha256:{} is unavailable",
+                            pin.version, pin.sha256
+                        ))
+                    })?
+                    .clone(),
+            ),
+            None => crate::sas::pin_of(&all).cloned(),
+        };
+        if let Some(r) = &revision
+            && (r.source != self.relative(&path)
+                || r.sha256 != openwarrant_compiler::sha256_hex(&bytes))
+        {
+            return Err(RepoError::Message(format!(
+                "selected SAS revision {} source/digest mismatch; phase and requirement authority unavailable",
+                r.version
+            )));
+        }
+        let text =
+            std::str::from_utf8(&bytes).map_err(|e| RepoError::Message(format!("{path}: {e}")))?;
+        let declarations = openwarrant_core::sas::SasDeclarations::parse(text)
+            .map_err(|e| RepoError::Message(format!("{path}: {e}")))?;
+        if declarations.phases.is_empty() || declarations.requirements.is_empty() {
+            return Err(RepoError::Message(
+                "SAS phase or requirement declarations are missing; authority unavailable"
+                    .to_owned(),
+            ));
+        }
+        if let Some(r) = &revision
+            && r.requirements != declarations.requirements
+        {
+            return Err(RepoError::Message(format!(
+                "selected SAS revision {} requirement snapshot mismatch; authority unavailable",
+                r.version
+            )));
+        }
+        Ok(SasSnapshot {
+            revision,
+            declarations,
+        })
+    }
+
     /// Where the corpus projection is written (§17.5 `status`, corpus form).
     ///
     /// Two files from one build: the Markdown a person reads and the canonical
@@ -824,5 +894,281 @@ impl Loaded {
             .map(|v| v.alias.to_string())
             .or_else(|| self.dir.file_name().map(str::to_owned))
             .unwrap_or_else(|| self.dir.to_string())
+    }
+}
+
+#[cfg(test)]
+mod program_sas_tests {
+    use super::*;
+    use openwarrant_core::sas::{SasAcceptance, SasRevision};
+    use openwarrant_core::status::{Achieved, SasAuthority};
+
+    struct Fixture(Repository);
+
+    impl Fixture {
+        fn new(namespace: &str) -> Self {
+            let root = Utf8PathBuf::from_path_buf(std::env::temp_dir().join(format!(
+                "ow-program-sas-{}",
+                openwarrant_core::WarUuid::mint()
+            )))
+            .expect("UTF-8 temp path");
+            fs::create_dir_all(&root).expect("fixture directory");
+            crate::init::run(namespace, Some("Fixture"), Some(root.clone())).expect("init");
+            Self(Repository::open(root).expect("repository"))
+        }
+
+        fn document(&self, phases: std::ops::RangeInclusive<i32>) -> String {
+            let text = format!(
+                "# Test SAS\n{}\n| LIM-SAS-RQ-001 | Test requirement |\n",
+                phases
+                    .map(|n| format!("### Phase {n} — Phase {n}\n\nExit:\n\n- phase {n} exit.\n"))
+                    .collect::<Vec<_>>()
+                    .join("\n")
+            );
+            fs::write(self.0.root.join("docs/sas/SAS.md"), &text).expect("SAS");
+            text
+        }
+
+        fn record(&self, text: &str, accepted: bool) {
+            let mut r = SasRevision::proposed(
+                "1",
+                "docs/sas/SAS.md",
+                openwarrant_compiler::sha256_hex(text.as_bytes()),
+                None,
+                openwarrant_core::sas::section_106(text),
+                false,
+            );
+            if accepted {
+                r = r
+                    .accept(SasAcceptance {
+                        accepted_by: "fixture-human".to_owned(),
+                        actor_kind: openwarrant_core::contract::ActorKind::Human,
+                        acting_role: "test owner".to_owned(),
+                        meaning: "test fixture only".to_owned(),
+                        effective_time: "2026-09-05T00:00:00Z".to_owned(),
+                        adr_ref: None,
+                    })
+                    .expect("fixture acceptance");
+            }
+            fs::create_dir_all(self.0.sas_revisions_dir()).expect("revision directory");
+            fs::write(
+                self.0.sas_revision_path("1"),
+                toml::to_string(&r).expect("revision TOML"),
+            )
+            .expect("revision");
+        }
+
+        fn warrant(&self, refs: &[&str]) -> Utf8PathBuf {
+            let dir = crate::new::run(
+                &self.0,
+                "Fixture intervention",
+                openwarrant_core::Profile::Delivery,
+            )
+            .expect("new");
+            let path = dir.join("manifest.toml");
+            let mut manifest = fs::read_to_string(&path).expect("manifest");
+            for r in refs {
+                manifest.push_str(&format!("\n[[roadmap]]\nref = {r:?}\n"));
+            }
+            fs::write(path, manifest).expect("manifest refs");
+            dir
+        }
+    }
+
+    impl Drop for Fixture {
+        fn drop(&mut self) {
+            let _ = fs::remove_dir_all(&self.0.root);
+        }
+    }
+
+    #[test]
+    fn all_fourteen_liminal_phases_come_from_selected_sas_and_configured_namespace() {
+        let f = Fixture::new("LIM");
+        let text = f.document(-1..=12);
+        f.record(&text, true);
+        let status = crate::status::build(&f.0).expect("status");
+        assert_eq!(status.release.authority, SasAuthority::Accepted);
+        let refs: Vec<_> = status
+            .objectives
+            .iter()
+            .filter_map(|o| o.roadmap_ref.as_ref())
+            .collect();
+        assert_eq!(
+            refs.iter().map(|r| r.phase).collect::<Vec<_>>(),
+            (-1..=12).collect::<Vec<_>>()
+        );
+        assert!(refs.iter().all(|r| r.prefix == "LIM"));
+        for phase in -1..=12 {
+            let dir = f.warrant(&[&format!("roadmap://LIM-PHASE-{phase}/exit")]);
+            let loaded = f.0.load_warrant(&dir).expect("load");
+            let mut report = crate::diagnostic::Report::default();
+            crate::check::check_traceability(&f.0, &loaded, &loaded.alias(), &mut report);
+            assert!(report.is_ready(), "{report:?}");
+        }
+    }
+
+    #[test]
+    fn wrong_program_undeclared_duplicate_and_malformed_references_are_refused() {
+        let f = Fixture::new("LIM");
+        let text = f.document(-1..=12);
+        f.record(&text, true);
+        for (refs, rule) in [
+            (vec!["roadmap://OW-PHASE-1"], "roadmap.wrong-program"),
+            (vec!["roadmap://LIM-PHASE-13"], "roadmap.undeclared-phase"),
+            (vec!["roadmap://LIM-PHASE--2"], "roadmap.undeclared-phase"),
+            (vec!["roadmap://LIM-PHASE--01"], "roadmap.malformed"),
+            (
+                vec!["roadmap://LIM-PHASE-1", "LIM-PHASE-1"],
+                "roadmap.duplicate",
+            ),
+        ] {
+            let dir = f.warrant(&refs);
+            let loaded = f.0.load_warrant(&dir).expect("load");
+            let mut report = crate::diagnostic::Report::default();
+            crate::check::check_traceability(&f.0, &loaded, &loaded.alias(), &mut report);
+            assert!(
+                report
+                    .diagnostics
+                    .iter()
+                    .any(|d| d.rule == rule && d.severity == crate::diagnostic::Severity::Error),
+                "{report:?}"
+            );
+        }
+        let status = crate::status::build(&f.0).expect("status");
+        assert!(
+            status
+                .warrants
+                .iter()
+                .all(|w| w.rung == openwarrant_core::status::WarrantRung::Invalid)
+        );
+        assert_eq!(
+            status.objectives.last().expect("unassigned").warrants.len(),
+            4
+        );
+        assert_eq!(
+            status
+                .objectives
+                .iter()
+                .map(|o| o.warrants.len())
+                .sum::<usize>(),
+            5
+        );
+    }
+
+    #[test]
+    fn missing_ambiguous_or_drifted_sas_is_unavailable_without_fallback() {
+        let f = Fixture::new("LIM");
+        let status = crate::status::build(&f.0).expect("missing status");
+        assert!(matches!(
+            status.release.authority,
+            SasAuthority::Unavailable { .. }
+        ));
+        assert!(status.objectives.iter().all(|o| o.roadmap_ref.is_none()));
+        let text = f.document(-1..=12);
+        f.record(&text, true);
+        fs::write(f.0.root.join("docs/sas/second.md"), &text).expect("ambiguous");
+        assert!(
+            f.0.sas_snapshot(None)
+                .expect_err("multiple documents")
+                .to_string()
+                .contains("exactly one")
+        );
+        fs::remove_file(f.0.root.join("docs/sas/second.md")).expect("remove duplicate fixture");
+        fs::write(
+            f.0.root.join("docs/sas/SAS.md"),
+            format!("{text}\n### Phase 13 — forged\n"),
+        )
+        .expect("drift");
+        let status = crate::status::build(&f.0).expect("drift status");
+        assert!(
+            matches!(&status.release.authority, SasAuthority::Unavailable { reason } if reason.contains("source/digest mismatch"))
+        );
+        assert!(status.objectives.iter().all(|o| o.roadmap_ref.is_none()));
+        assert!(status.requirements.is_empty());
+    }
+
+    #[test]
+    fn draft_inspection_is_explicit_and_prose_cannot_establish_completion() {
+        let f = Fixture::new("LIM");
+        let text = f.document(-1..=12);
+        fs::write(
+            f.0.root.join("docs/roadmap/PRODUCTION_ROADMAP.md"),
+            "All phases **resolved**. LIM-SAS-RQ-001 satisfied.",
+        )
+        .expect("false prose claim");
+        for proposed in [false, true] {
+            if proposed {
+                f.record(&text, false);
+            }
+            let status = crate::status::build(&f.0).expect("draft status");
+            assert_eq!(status.release.authority, SasAuthority::Draft);
+            assert!(
+                status
+                    .objectives
+                    .iter()
+                    .all(|o| matches!(o.achieved, Achieved::NotDerivable { .. }))
+            );
+            assert_eq!(status.release.requirements.satisfied, 0);
+        }
+    }
+
+    #[test]
+    fn duplicate_declarations_and_mismatched_selected_pin_are_unavailable() {
+        let f = Fixture::new("LIM");
+        let text = f.document(-1..=12);
+        for extra in [
+            "### Phase -1 — duplicate\n",
+            "| LIM-SAS-RQ-001 | duplicate |\n",
+        ] {
+            fs::write(f.0.root.join("docs/sas/SAS.md"), format!("{text}{extra}"))
+                .expect("duplicate");
+            assert!(
+                f.0.sas_snapshot(None)
+                    .expect_err("duplicate")
+                    .to_string()
+                    .contains("duplicate SAS")
+            );
+            assert!(crate::sas::propose(&f.0, "invalid").is_err());
+            assert!(!f.0.sas_revision_path("invalid").exists());
+        }
+        fs::write(f.0.root.join("docs/sas/SAS.md"), &text).expect("restore fixture");
+        f.record(&text, true);
+        let pin = SasPin {
+            version: "1".to_owned(),
+            sha256: "0".repeat(64),
+        };
+        assert!(
+            f.0.sas_snapshot(Some(&pin))
+                .expect_err("pin mismatch")
+                .to_string()
+                .contains("unavailable")
+        );
+    }
+
+    #[test]
+    fn openwarrant_declared_phases_remain_valid_and_phase_eleven_is_undeclared() {
+        let f = Fixture::new("OW");
+        let text = f.document(0..=10);
+        f.record(&text, true);
+        let status = crate::status::build(&f.0).expect("OW status");
+        assert_eq!(
+            status
+                .objectives
+                .iter()
+                .filter(|o| o.roadmap_ref.is_some())
+                .count(),
+            11
+        );
+        let dir = f.warrant(&["roadmap://OW-PHASE-11"]);
+        let loaded = f.0.load_warrant(&dir).expect("load");
+        let mut report = crate::diagnostic::Report::default();
+        crate::check::check_traceability(&f.0, &loaded, &loaded.alias(), &mut report);
+        assert!(
+            report
+                .diagnostics
+                .iter()
+                .any(|d| d.rule == "roadmap.undeclared-phase"),
+            "{report:?}"
+        );
     }
 }

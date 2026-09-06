@@ -1,0 +1,90 @@
+{
+  "schema": "openwarrant/program-phase-migration-blockers/v1",
+  "base_commit": "8bc3978a26de0c13605c6d206fe820a8440be737",
+  "baseline_errors": 0,
+  "candidate_digest_drift_errors": 10,
+  "correction_act": "OW-WAR-0064",
+  "disposition": "unavailable: correction act and human adoption remain pending",
+  "impacts": [
+    {
+      "warrant": "OW-WAR-0005",
+      "deliverable": "D-001",
+      "record": "docs/warrants/OW-WAR-0005/deliverables.toml",
+      "target": "crates/openwarrant-cli/src/check.rs",
+      "recorded_digest": "sha256:f200d0b46761c945f8d7eaf535f964d60e9c8e57ad19658958e2130d2d68d51a",
+      "candidate_digest": "sha256:613fd9424f9c4e176ce16cb5151d0c02010fed6a5d8e8b38c61877f83c7c0b29"
+    },
+    {
+      "warrant": "OW-WAR-0013",
+      "deliverable": "D-001",
+      "record": "docs/warrants/OW-WAR-0013/deliverables.toml",
+      "target": "crates/openwarrant-core/src/traceability.rs",
+      "recorded_digest": "sha256:e161bf6809754d564e1a48c419aa939d7a2f0b4cfb3f4893034130d1b2f4de77",
+      "candidate_digest": "sha256:bd4c25ea9318117ab301b5617b28a14c7f66ec3603cec0ba72fb449c002f8437"
+    },
+    {
+      "warrant": "OW-WAR-0055",
+      "deliverable": "D-001",
+      "record": "docs/warrants/OW-WAR-0055/deliverables.toml",
+      "target": "crates/openwarrant-core/src/status.rs",
+      "recorded_digest": "sha256:41ea9407936d2d5b3ed3327cda56e04d552b9413cda37b57407f828dbcaca319",
+      "candidate_digest": "sha256:535a952cf98542cfb2d7f738fc78bab3e54285d178bc31bb31ca06c6856fa1ce"
+    },
+    {
+      "warrant": "OW-WAR-0055",
+      "deliverable": "D-003",
+      "record": "docs/warrants/OW-WAR-0055/deliverables.toml",
+      "target": "crates/openwarrant-cli/src/status.rs",
+      "recorded_digest": "sha256:7ccbbc7ff519fd7c7994aa3e99badde8bd4f9c5b787510eb672421adc6daaeff",
+      "candidate_digest": "sha256:474164ee897f2863d766e391788b5984bc16cf4a23cf3331d8c7b117dbf69efc"
+    },
+    {
+      "warrant": "OW-WAR-0057",
+      "deliverable": "D-002",
+      "record": "docs/warrants/OW-WAR-0057/deliverables.toml",
+      "target": "crates/openwarrant-cli/src/status.rs",
+      "recorded_digest": "sha256:7ccbbc7ff519fd7c7994aa3e99badde8bd4f9c5b787510eb672421adc6daaeff",
+      "candidate_digest": "sha256:474164ee897f2863d766e391788b5984bc16cf4a23cf3331d8c7b117dbf69efc"
+    },
+    {
+      "warrant": "OW-WAR-0058",
+      "deliverable": "D-001",
+      "record": "docs/warrants/OW-WAR-0058/deliverables.toml",
+      "target": "crates/openwarrant-core/src/sas.rs",
+      "recorded_digest": "sha256:e8b235cb87160bedb48fba7cdc941ff49c74885e4ab2f14c31289f55856a3116",
+      "candidate_digest": "sha256:fb590a424279737c46ec90d5ff299276a5fc88eceb8ebb3d45b1f7c39cc113b0"
+    },
+    {
+      "warrant": "OW-WAR-0058",
+      "deliverable": "D-002",
+      "record": "docs/warrants/OW-WAR-0058/deliverables.toml",
+      "target": "crates/openwarrant-cli/src/sas.rs",
+      "recorded_digest": "sha256:49edf603a8b196346de2fdd236d13a6102619b7713b555f2bc44bf3274d4651f",
+      "candidate_digest": "sha256:217e5673557a06b2edb82c8350b7ad1abc6f3c83e2aba0e3864d3d0a7c7f1431"
+    },
+    {
+      "warrant": "OW-WAR-0062",
+      "deliverable": "D-005",
+      "record": "docs/warrants/OW-WAR-0062/deliverables.toml",
+      "target": "crates/openwarrant-core/src/sas.rs",
+      "recorded_digest": "sha256:e8b235cb87160bedb48fba7cdc941ff49c74885e4ab2f14c31289f55856a3116",
+      "candidate_digest": "sha256:fb590a424279737c46ec90d5ff299276a5fc88eceb8ebb3d45b1f7c39cc113b0"
+    },
+    {
+      "warrant": "OW-WAR-0063",
+      "deliverable": "D-001",
+      "record": "docs/warrants/OW-WAR-0063/deliverables.toml",
+      "target": "crates/openwarrant-cli/src/check.rs",
+      "recorded_digest": "sha256:f200d0b46761c945f8d7eaf535f964d60e9c8e57ad19658958e2130d2d68d51a",
+      "candidate_digest": "sha256:613fd9424f9c4e176ce16cb5151d0c02010fed6a5d8e8b38c61877f83c7c0b29"
+    },
+    {
+      "warrant": "OW-WAR-0063",
+      "deliverable": "D-003",
+      "record": "docs/warrants/OW-WAR-0063/deliverables.toml",
+      "target": "conformance/plant.sh",
+      "recorded_digest": "sha256:2ccd0b6f035e7ecdc21d9cff19344bb24c2b996a2979a52694c99babbfd43348",
+      "candidate_digest": "sha256:3ade478c0db1b2526fc99e82c92658bf3adbe486b74d022f9e188d017933cd43"
+    }
+  ]
+}

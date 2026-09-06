@@ -41,7 +41,7 @@ pub enum TraceabilityError {
     #[error(
         "malformed roadmap reference {found:?}; expected \
          roadmap://<PREFIX>-PHASE-<N>[/<slug>] with an uppercase prefix, a phase \
-         number 0..=10 written without padding, and a slug of [a-z0-9-]. This is \
+         signed 32-bit number written canonically without padding, and a slug of [a-z0-9-]. This is \
          OpenWarrant's convention for §105's roadmap://<item-id>"
     )]
     MalformedRoadmapRef { found: String },
@@ -163,7 +163,7 @@ impl std::fmt::Display for RequirementRef {
 /// read the phase.
 ///
 /// The grammar is OpenWarrant's convention, and is said so in the error text:
-/// `<PREFIX>-PHASE-<N>`, N in 0..=10 (SAS §98's eleven phases), then an optional
+/// `<PREFIX>-PHASE-<N>`, N a canonical signed integer, then an optional
 /// `/slug`. The SAS's own example (`roadmap://LIM-PHASE-1/M4`) uses a milestone
 /// id as the slug; this corpus uses topic words. Both parse. The one slug with
 /// meaning is `exit` — the Warrant that discharges §98's Exit criterion for its
@@ -171,24 +171,21 @@ impl std::fmt::Display for RequirementRef {
 ///
 /// The phase number is unpadded on purpose. `PHASE-1` and `PHASE-01` naming one
 /// phase would make the reference unstable, and §34.1's argument for
-/// zero-padding requirement numbers runs the other way here: there are eleven
-/// phases, they are written `Phase 1` in the SAS, and a leading zero would be a
+/// zero-padding requirement numbers runs the other way here: phases are
+/// written `Phase 1` in the SAS, and a leading zero would be a
 /// second spelling rather than a fixed width.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct RoadmapRef {
     /// The system prefix: `OW`, `LIM`.
     pub prefix: String,
-    /// SAS §98 phase, 0..=10.
-    pub phase: u8,
+    /// Program phase declared by its selected SAS revision.
+    pub phase: i32,
     /// The item within the phase. `None` names the phase itself.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub slug: Option<String>,
 }
 
 impl RoadmapRef {
-    /// The last phase §98 defines. A reference past it names nothing.
-    pub const MAX_PHASE: u8 = 10;
-
     /// Parse `roadmap://OW-PHASE-6/gate-runs`, `roadmap://OW-PHASE-6`, or the
     /// same without the scheme.
     pub fn parse(text: &str) -> Result<Self, TraceabilityError> {
@@ -206,15 +203,10 @@ impl RoadmapRef {
         if prefix.is_empty() || !prefix.bytes().all(|b| b.is_ascii_uppercase()) {
             return Err(malformed());
         }
-        // Unpadded: "0" is fine, "01" is not, "" is not.
-        if number.is_empty()
-            || !number.bytes().all(|b| b.is_ascii_digit())
-            || (number.len() > 1 && number.starts_with('0'))
-        {
-            return Err(malformed());
-        }
-        let phase: u8 = number.parse().map_err(|_| malformed())?;
-        if phase > Self::MAX_PHASE {
+        // Grammar and membership are separate: the selected program's SAS
+        // determines which canonical signed phase numbers exist.
+        let phase: i32 = number.parse().map_err(|_| malformed())?;
+        if phase.to_string() != number {
             return Err(malformed());
         }
 
@@ -636,14 +628,17 @@ mod tests {
     #[test]
     fn a_roadmap_ref_outside_the_grammar_is_refused() {
         for bad in [
-            "roadmap://OW-PHASE-11/x",   // past the last phase
-            "roadmap://OW-PHASE-01/x",   // padded: a second spelling of phase 1
-            "roadmap://OW-PHASE-/x",     // no number
-            "roadmap://ow-PHASE-1/x",    // lowercase prefix
-            "roadmap://OW-PHASE-1/",     // empty slug
-            "roadmap://OW-PHASE-1/Gate", // uppercase slug
-            "roadmap://OW-PHASE-1/a b",  // space
-            "roadmap://OW-STAGE-1/x",    // wrong keyword
+            "roadmap://OW-PHASE-+1/x",         // noncanonical sign
+            "roadmap://OW-PHASE--0/x",         // negative zero
+            "roadmap://OW-PHASE--01/x",        // padded negative
+            "roadmap://OW-PHASE-2147483648/x", // overflow
+            "roadmap://OW-PHASE-01/x",         // padded: a second spelling of phase 1
+            "roadmap://OW-PHASE-/x",           // no number
+            "roadmap://ow-PHASE-1/x",          // lowercase prefix
+            "roadmap://OW-PHASE-1/",           // empty slug
+            "roadmap://OW-PHASE-1/Gate",       // uppercase slug
+            "roadmap://OW-PHASE-1/a b",        // space
+            "roadmap://OW-STAGE-1/x",          // wrong keyword
             "roadmap://typo",
             "",
         ] {
@@ -673,6 +668,21 @@ mod tests {
             !RoadmapRef::parse("roadmap://OW-PHASE-5")
                 .expect("ok")
                 .is_exit()
+        );
+    }
+
+    #[test]
+    fn signed_phase_refs_preserve_nonnegative_json_and_round_trip() {
+        for phase in -1..=12 {
+            let text = format!("roadmap://LIM-PHASE-{phase}/exit");
+            let r = RoadmapRef::parse(&text).expect("canonical signed phase");
+            assert_eq!(r.phase, phase);
+            assert_eq!(r.canonical(), text);
+        }
+        let r = RoadmapRef::parse("roadmap://OW-PHASE-1").expect("existing ref");
+        assert_eq!(
+            serde_json::to_string(&r).expect("JSON"),
+            r#"{"prefix":"OW","phase":1}"#
         );
     }
 

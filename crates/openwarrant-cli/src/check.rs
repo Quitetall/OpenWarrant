@@ -628,7 +628,12 @@ fn check_deliverable_digests(repo: &Repository, one: &Loaded, alias: &str, repor
 /// An absent contribution is a warning, not an error: §34.2 says a WAR SHOULD
 /// declare it, and turning a SHOULD into a refusal would be reading a rule into
 /// the text.
-fn check_traceability(repo: &Repository, one: &Loaded, alias: &str, report: &mut Report) {
+pub(crate) fn check_traceability(
+    repo: &Repository,
+    one: &Loaded,
+    alias: &str,
+    report: &mut Report,
+) {
     use openwarrant_core::traceability::{Contribution, RequirementRef, RoadmapRef};
 
     let Some(basis) = one.basis.as_ref() else {
@@ -637,25 +642,70 @@ fn check_traceability(repo: &Repository, one: &Loaded, alias: &str, report: &mut
     let file = repo.relative(&one.dir.join("manifest.toml"));
     let mut bad = 0usize;
 
-    for r in &basis.manifest.roadmap {
-        if let Err(err) = RoadmapRef::parse(&r.r#ref) {
-            report.push(Diagnostic::error(
-                "roadmap.malformed",
-                file.clone(),
-                format!("{alias}: {err}"),
-            ));
-            bad += 1;
+    // Membership is against the selected program revision. The historical
+    // authorization pin still holds the immutable compiled contract; it does
+    // not make the current phase catalog read from unbound current bytes.
+    let snapshot = repo.sas_snapshot(None);
+    if !(basis.manifest.roadmap.is_empty() && basis.manifest.implements.is_empty()) {
+        match &snapshot {
+            Err(err) => report.push(Diagnostic::unknown(
+                "sas.authority-unavailable", file.clone(), format!("{alias}: {err}"))),
+            Ok(s) if !s.is_authoritative() => report.push(Diagnostic::warn(
+                "sas.draft-inspection", file.clone(),
+                format!("{alias}: declaration membership is draft inspection; SAS acceptance is not recorded"))),
+            Ok(_) => {},
         }
     }
-
-    // §106 of the SAS as it stands: an `implements` ref must name a row that
-    // exists. `None` when the document cannot be read — then nothing is
-    // refused and nothing is vouched for (OW-WAR-0063).
-    let known_requirements: Option<std::collections::BTreeMap<String, String>> = repo
-        .sas_document()
-        .ok()
-        .map(|(_, bytes)| openwarrant_core::sas::section_106(&String::from_utf8_lossy(&bytes)))
-        .filter(|m| !m.is_empty());
+    let mut seen = std::collections::BTreeSet::new();
+    for r in &basis.manifest.roadmap {
+        match RoadmapRef::parse(&r.r#ref) {
+            Err(err) => {
+                report.push(Diagnostic::error(
+                    "roadmap.malformed",
+                    file.clone(),
+                    format!("{alias}: {err}"),
+                ));
+                bad += 1;
+            }
+            Ok(r) => {
+                let refusal = if r.prefix != repo.config.project.namespace.as_str() {
+                    Some((
+                        "roadmap.wrong-program",
+                        format!(
+                            "{} names program {}, configured program is {}",
+                            r,
+                            r.prefix,
+                            repo.config.project.namespace.as_str()
+                        ),
+                    ))
+                } else if !seen.insert(r.canonical()) {
+                    Some((
+                        "roadmap.duplicate",
+                        format!("duplicate roadmap reference {r}"),
+                    ))
+                } else if snapshot
+                    .as_ref()
+                    .is_ok_and(|s| !s.declarations.phases.iter().any(|(n, _, _)| *n == r.phase))
+                {
+                    Some((
+                        "roadmap.undeclared-phase",
+                        format!("{r} names a phase absent from the selected SAS"),
+                    ))
+                } else {
+                    None
+                };
+                if let Some((rule, reason)) = refusal {
+                    report.push(Diagnostic::error(
+                        rule,
+                        file.clone(),
+                        format!("{alias}: {reason}"),
+                    ));
+                    bad += 1;
+                }
+            }
+        }
+    }
+    let known_requirements = snapshot.as_ref().ok().map(|s| &s.declarations.requirements);
     for i in &basis.manifest.implements {
         if let Err(err) = RequirementRef::parse(&i.r#ref) {
             report.push(Diagnostic::error(
@@ -703,7 +753,10 @@ fn check_traceability(repo: &Repository, one: &Loaded, alias: &str, report: &mut
         }
     }
 
-    if bad == 0 && !(basis.manifest.roadmap.is_empty() && basis.manifest.implements.is_empty()) {
+    if bad == 0
+        && snapshot.is_ok()
+        && !(basis.manifest.roadmap.is_empty() && basis.manifest.implements.is_empty())
+    {
         report.push(Diagnostic::pass(
             "traceability.refs",
             format!(
