@@ -1,0 +1,20 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = "At bc38378, commit_sorts_parallel_effects_by_canonical_sequence passes and wmd-wp008-order-bc38378.log records all 11 effects tests passing; wmd-local-ci-bc38378.log records 104/104 tests passed. Source commit sorting and canonical effect encoding are deterministic over bounded fields."
+performer = "codex"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

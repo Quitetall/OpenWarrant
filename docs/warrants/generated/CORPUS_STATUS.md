@@ -72,10 +72,10 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | exact authorized Contract Revision | 5 |
 | required judgments exist | 5 |
 | residual risks have sufficient authority | 5 |
-| every required obligation is dispositioned | 4 |
-| independence requirements are met | 4 |
 | every required gate has admissible result | 3 |
 | runtime receipts match the basis | 2 |
+| every required obligation is dispositioned | 1 |
+| independence requirements are met | 1 |
 
 ## Requirements (SAS §106, §34.3)
 
@@ -212,9 +212,9 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0062` Lock down the levels: what a SAS, a Warrant, and every other object are | resolved | would satisfy | 0 | 1 of 1 | — |
 | `OW-WAR-0063` Complete the conformance battery: the plants and tests the verifier named as missing | draft | NOT satisfied | 0 | 0 of 1 | exact authorized Contract Revision |
 | `OW-WAR-0064` Repair a delivered artifact: the correction act for a resolved Warrant | draft | unknown | 0 | 0 of 5 | exact authorized Contract Revision |
-| `OW-WAR-0065` WMD H2 WP-007 action timelines and interruption | draft | unknown | 0 | 0 of 2 | exact authorized Contract Revision |
-| `OW-WAR-0066` WMD H2 WP-008 buffered effects and events | draft | unknown | 0 | 0 of 2 | exact authorized Contract Revision |
-| `OW-WAR-0067` WMD H2 WP-009 deterministic scenario replay | draft | unknown | 0 | 0 of 2 | exact authorized Contract Revision |
+| `OW-WAR-0065` WMD H2 WP-007 action timelines and interruption | draft | would satisfy | 0 | 2 of 2 | exact authorized Contract Revision |
+| `OW-WAR-0066` WMD H2 WP-008 buffered effects and events | draft | would satisfy | 0 | 2 of 2 | exact authorized Contract Revision |
+| `OW-WAR-0067` WMD H2 WP-009 deterministic scenario replay | draft | would satisfy | 0 | 2 of 2 | exact authorized Contract Revision |
 
 ## Not reported here
 

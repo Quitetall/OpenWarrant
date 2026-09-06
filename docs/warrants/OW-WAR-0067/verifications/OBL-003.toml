@@ -1,0 +1,20 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = "At bc38378, h2_vertical_slice_replays_identically passes repeated event/checksum equality, pinned seed-7 checksum 2e0a23743bd8554435372b2d7b8f153ddb5487c903c81843b109fe15d0e81b54, and replay None. Source checksum uses domain tag wmd-h2-scenario-v2 plus seed, commands, transitions, event sort fields, payload, and final property."
+performer = "codex"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
