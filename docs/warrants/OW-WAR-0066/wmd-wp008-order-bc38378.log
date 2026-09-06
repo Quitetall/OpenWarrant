@@ -1,0 +1,19 @@
+commit=bc38378e6140aa21dc7c30f41dfc775e5d40dcfc
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s
+     Running unittests src/lib.rs (target/debug/deps/wmd_sim-9fb3f8c5c0338c52)
+
+running 11 tests
+test effects::tests::buffer_capacity_refuses_record_1025 ... ok
+test effects::tests::commit_sorts_parallel_effects_by_canonical_sequence ... ok
+test effects::tests::duplicate_sort_key_is_refused_before_mutation ... ok
+test effects::tests::invalid_atomic_member_rejects_entire_group ... ok
+test effects::tests::payload_encoding_is_bounded_and_typed ... ok
+test effects::tests::oversized_payload_is_refused_before_buffering ... ok
+test effects::tests::unknown_entity_is_rejected_without_event ... ok
+test effects::tests::wrong_phase_is_refused ... ok
+test effects::tests::oversized_atomic_group_rejects_every_member ... ok
+test effects::tests::property_type_and_range_violations_are_rejected_without_mutation ... ok
+test effects::tests::maximum_sized_atomic_group_commits_all_members ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.00s
+

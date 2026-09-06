@@ -17,8 +17,9 @@ partial mutation can leak from invalid groups.
 
 ## Desired Outcome
 
-WMD commit `67b98c4` supplies bounded typed effect records, canonical ADR-0013
-sorting, atomic all-or-none groups, property application, and post-commit events.
+WMD commit `bc38378` supplies bounded typed effect records, canonical ADR-0013
+sorting, atomic all-or-none groups, property application, post-commit events,
+and refusal/boundary tests.
 
 ## Scope
 

@@ -14,7 +14,7 @@ classification: internal
 1. `crates/wmd-sim/src/effects.rs` typed effect records, bounded buffer,
    canonical ordering, atomic validation, property world, and domain events.
 2. `docs/work-packages/WP-008-effects-events.md` package contract.
-3. WMD commit `67b98c4`; local `./scripts/ci.sh` receipt.
+3. WMD commit `bc38378`; local `./scripts/ci.sh` receipt.
 
 ## Frozen surfaces
 

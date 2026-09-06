@@ -19,10 +19,10 @@ classification: internal
 ## Repository and revision
 
 - Subject repository: `WeaponsOfMageDestruction/wmd` (local checkout).
-- Deliverable revision: WMD `67b98c4` (includes WP-009 implementation, CLI proof,
-  and replay tests).
-- Acceptance command: `./scripts/ci.sh`; performer log `wmd-local-ci-67b98c4.log`
-  records 89 tests passing,
+- Deliverable revision: WMD `bc38378` (includes WP-009 implementation, CLI proof,
+  replay tests, and first-difference coverage).
+- Acceptance command: `./scripts/ci.sh`; performer log `wmd-local-ci-bc38378.log`
+  records 104 tests passing,
   deny checks passing, and `wmd-sim-cli --h2 --seed 7` producing four
   transitions, one event, and pinned v2 checksum.
 

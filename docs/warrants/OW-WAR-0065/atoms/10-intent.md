@@ -17,9 +17,9 @@ recovery, interruption, or capability-gated admission.
 
 ## Desired Outcome
 
-WMD commit `67b98c4` supplies bounded action definitions and deterministic
-timeline transitions for one H2 kernel, with refusal tests and no renderer/HPR
-dependency.
+WMD commit `bc38378` supplies bounded action definitions and deterministic
+timeline transitions for one H2 kernel, with refusal/boundary tests and no
+renderer/HPR dependency.
 
 ## Scope
 

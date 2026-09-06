@@ -18,9 +18,9 @@ diagnostics.
 
 ## Desired Outcome
 
-WMD commit `67b98c4` supplies a bounded H2 scenario runner, versioned checksum,
-golden replay assertion, malformed-input refusals, CLI proof, and 2,048-seed
-local smoke.
+WMD commit `bc38378` supplies a bounded H2 scenario runner, versioned checksum,
+golden replay assertion, malformed-input refusals, first-difference diagnostics,
+CLI proof, and 2,048-seed local smoke.
 
 ## Scope
 

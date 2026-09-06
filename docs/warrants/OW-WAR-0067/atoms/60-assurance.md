@@ -28,7 +28,7 @@ classification: internal
 ### OBL-003 - replay identity
 
 - **scope:** checksum domain `wmd-h2-scenario-v2`, seed 7 golden fixture at WMD
-  `67b98c4`.
+  `bc38378`.
 - **gate:** `gate://software.repo.war-check@1.0.0`
 - **evidence:** repeated run has identical events/checksum and pinned checksum
   `2e0a23743bd8554435372b2d7b8f153ddb5487c903c81843b109fe15d0e81b54`.
@@ -37,10 +37,11 @@ classification: internal
 
 - **scope:** 2,048 seeds and stream-byte first-difference comparator.
 - **gate:** `gate://software.repo.war-check@1.0.0`
-- **evidence:** performer artifact `wmd-wp009-smoke.log` records the
-  2,048-seed smoke; full matrix is in `wmd-local-ci-67b98c4.log`. Full IDs and
-  effect sort fields enter divergence bytes; no v1 persistence consumer exists
-  in subject repository. This is not independent verification.
+- **evidence:** performer artifact `wmd-wp009-smoke-bc38378.log` records the
+  2,048-seed smoke and first-difference test; full matrix is in
+  `wmd-local-ci-bc38378.log`. Full IDs and effect sort fields enter divergence
+  bytes; no v1 persistence consumer exists in subject repository. This is not
+  independent verification.
 
 ## Gate adequacy and residual risk
 
