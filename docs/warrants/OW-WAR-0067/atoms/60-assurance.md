@@ -36,12 +36,14 @@ classification: internal
 
 - **scope:** 2,048 seeds and stream-byte first-difference comparator.
 - **gate:** `gate://software.repo.war-check@1.0.0`
-- **evidence:** 2,048-seed smoke passes; full IDs and effect sort fields enter
+- **evidence:** performer artifact `wmd-local-ci-765ab4b.log` records the
+  2,048-seed smoke and local matrix; full IDs and effect sort fields enter
   divergence bytes; no v1 persistence consumer exists in subject repository.
+  This is not independent verification.
 
 ## Gate adequacy and residual risk
 
-The gate must test malformed input and replay identity, not only successful
-output. Local receipts are performer observations; independent verification and
-human authorization are outstanding. Full envelope persistence and migrations
-remain H6 scope.
+The OpenWarrant gate receipt is a corpus-integrity check and does not run WMD
+tests. WMD log is performer observation; independent verification and human
+authorization are outstanding. Full envelope persistence and migrations remain
+H6 scope.

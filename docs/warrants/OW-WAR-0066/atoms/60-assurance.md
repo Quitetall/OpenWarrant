@@ -29,12 +29,14 @@ classification: internal
 
 - **scope:** WMD H2 effect fixtures at commit `765ab4b`.
 - **gate:** `gate://software.repo.war-check@1.0.0`
-- **evidence:** insertion-order permutation yields canonical event order and
-  `./scripts/ci.sh` passes local matrix.
+- **evidence:** performer artifact `wmd-local-ci-765ab4b.log` records
+  insertion-order permutation tests and `./scripts/ci.sh` local matrix. This is
+  not independent verification.
 
 ## Gate adequacy and residual risk
 
 Ordering and refusal plants are required because an always-success commit would
-not establish authority. Local receipts are performer observations; independent
-verification and human authorization are outstanding. Physics and network
-effects remain future packages.
+not establish authority. The OpenWarrant gate receipt is corpus-integrity only;
+WMD log is performer observation. Independent verification and human
+authorization are outstanding. Physics and network effects remain future
+packages.

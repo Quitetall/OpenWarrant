@@ -69,12 +69,12 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | required deliverables exist | 11 |
 | no blocker remains | 7 |
 | no required unknown remains | 7 |
-| every required gate has admissible result | 6 |
 | exact authorized Contract Revision | 5 |
 | required judgments exist | 5 |
 | residual risks have sufficient authority | 5 |
 | every required obligation is dispositioned | 4 |
 | independence requirements are met | 4 |
+| every required gate has admissible result | 3 |
 | runtime receipts match the basis | 2 |
 
 ## Requirements (SAS §106, §34.3)

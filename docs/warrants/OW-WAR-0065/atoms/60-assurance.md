@@ -30,12 +30,13 @@ classification: internal
 
 - **scope:** WMD H2 scenario at commit `765ab4b`.
 - **gate:** `gate://software.repo.war-check@1.0.0`
-- **evidence:** `./scripts/ci.sh` local receipt; repeated scenario has identical
-  transition stream and checksum.
+- **evidence:** performer artifact `wmd-local-ci-765ab4b.log` records
+  `./scripts/ci.sh`; repeated scenario has identical transition stream and
+  checksum. This is not independent verification.
 
 ## Gate adequacy and residual risk
 
-The gate must include refusal plants, not only happy-path transitions. Local
-receipts are performer observations; independent verification and human
+The OpenWarrant gate receipt is a corpus-integrity check and does not run WMD
+tests. WMD log is performer observation; independent verification and human
 authorization are outstanding. Multi-entity action economics remain future
 scope.

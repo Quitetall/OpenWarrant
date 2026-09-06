@@ -772,50 +772,40 @@ PASS obligations.valid                  OW-WAR-0064: 5 obligation(s), each with 
 PASS generated.drift                    OW-WAR-0064: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0065: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0065: 3 requirement ref(s) and 1 roadmap ref(s) parse
-WARN evidence.not-a-pass                OW-WAR-0065: software.repo.war-check@1.0.0 · the run is not a §44.5 required pass (askability askable, execution completed, verdict fail)
-                                             → docs/warrants/OW-WAR-0065/gate-runs/software_repo_war-check_1_0_0.run.toml
-PASS journal.append-only                OW-WAR-0065: 2 event(s), 0 backfilled, extends the committed journal
+PASS evidence.admissible                OW-WAR-0065: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract
+PASS journal.append-only                OW-WAR-0065: 4 event(s), 0 backfilled, extends the committed journal
 PASS gate.resolved                      OW-WAR-0065: 1 cited gate(s) resolve to a bindable definition
 PASS milestones.valid                   OW-WAR-0065: 2 milestone(s), 2 stage(s), acyclic with no dangling refs
 PASS obligations.valid                  OW-WAR-0065: 3 obligation(s), each with a bounded scope and evidence
-ERROR generated.missing                  OW-WAR-0065: generated/WAR.md is missing and this repository commits generated views; run `war compile OW-WAR-0065`
-                                             → docs/warrants/OW-WAR-0065/generated/WAR.md
-ERROR generated.missing                  OW-WAR-0065: generated/WAR.json is missing and this repository commits generated views; run `war compile OW-WAR-0065`
-                                             → docs/warrants/OW-WAR-0065/generated/WAR.json
+PASS generated.drift                    OW-WAR-0065: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0066: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0066: 3 requirement ref(s) and 1 roadmap ref(s) parse
-PASS journal.append-only                OW-WAR-0066: 1 event(s), 0 backfilled, extends the committed journal
+WARN evidence.stale-binding             OW-WAR-0066: software.repo.war-check@1.0.0 · the receipt is bound to contract:sha256:8f5a3a6f4006d72b0cd17f75a9de5692e4ae112532e4418df15dff2f44846bf5 and the contract now compiles to contract:sha256:f4c92d423498bf74126b219c66d6041df08b0e8af557b21a80b67f3a6959df41 — a run against an earlier revision is a record, not evidence about this one
+                                             → docs/warrants/OW-WAR-0066/gate-runs/software_repo_war-check_1_0_0.run.toml
+PASS journal.append-only                OW-WAR-0066: 4 event(s), 0 backfilled, extends the committed journal
 PASS gate.resolved                      OW-WAR-0066: 1 cited gate(s) resolve to a bindable definition
 PASS milestones.valid                   OW-WAR-0066: 2 milestone(s), 2 stage(s), acyclic with no dangling refs
 PASS obligations.valid                  OW-WAR-0066: 3 obligation(s), each with a bounded scope and evidence
-ERROR generated.missing                  OW-WAR-0066: generated/WAR.md is missing and this repository commits generated views; run `war compile OW-WAR-0066`
-                                             → docs/warrants/OW-WAR-0066/generated/WAR.md
-ERROR generated.missing                  OW-WAR-0066: generated/WAR.json is missing and this repository commits generated views; run `war compile OW-WAR-0066`
-                                             → docs/warrants/OW-WAR-0066/generated/WAR.json
+PASS generated.drift                    OW-WAR-0066: 2 generated view(s) match a fresh compilation
 PASS manifest.valid                     OW-WAR-0067: manifest and composition are well-formed
 PASS traceability.refs                  OW-WAR-0067: 4 requirement ref(s) and 1 roadmap ref(s) parse
-PASS journal.append-only                OW-WAR-0067: 1 event(s), 0 backfilled, extends the committed journal
+WARN evidence.stale-binding             OW-WAR-0067: software.repo.war-check@1.0.0 · the receipt is bound to contract:sha256:c453753a8c3db2837e54a73ee625c3cc3ed12c2e3710d0a2fafb8a3735a7eec1 and the contract now compiles to contract:sha256:d16ec20ccbc18ea188de4dd0f805b5b4cd4590ed00e381dcaeea53dc1cfba2d5 — a run against an earlier revision is a record, not evidence about this one
+                                             → docs/warrants/OW-WAR-0067/gate-runs/software_repo_war-check_1_0_0.run.toml
+PASS journal.append-only                OW-WAR-0067: 4 event(s), 0 backfilled, extends the committed journal
 PASS gate.resolved                      OW-WAR-0067: 1 cited gate(s) resolve to a bindable definition
 PASS milestones.valid                   OW-WAR-0067: 2 milestone(s), 2 stage(s), acyclic with no dangling refs
 PASS obligations.valid                  OW-WAR-0067: 4 obligation(s), each with a bounded scope and evidence
-ERROR generated.missing                  OW-WAR-0067: generated/WAR.md is missing and this repository commits generated views; run `war compile OW-WAR-0067`
-                                             → docs/warrants/OW-WAR-0067/generated/WAR.md
-ERROR generated.missing                  OW-WAR-0067: generated/WAR.json is missing and this repository commits generated views; run `war compile OW-WAR-0067`
-                                             → docs/warrants/OW-WAR-0067/generated/WAR.json
+PASS generated.drift                    OW-WAR-0067: 2 generated view(s) match a fresh compilation
 PASS composition.acyclic                parent graph is acyclic across 63 Warrant(s)
 PASS adr.parsed                         11 ADR(s) parsed
 PASS sas.pinned                         docs/sas/WAR_Software_Architecture_Specification.md matches revision 0.1.0-draft.3 (accepted), sha256:742dfd066b8d
-ERROR warrant-overview.drift             the committed WARRANT_OVERVIEW.md differs from a fresh compilation; it was edited by hand or its sources changed without recompiling
-                                             → docs/warrants/generated/WARRANT_OVERVIEW.md
+PASS warrant-overview.drift             WARRANT_OVERVIEW.md matches a fresh compilation
 PASS adr-overview.drift                 ADR_OVERVIEW.md matches a fresh compilation
-ERROR corpus-status.drift                the committed CORPUS_STATUS.md differs from a fresh compilation; it was edited by hand or its sources changed without recompiling
-                                             → docs/warrants/generated/CORPUS_STATUS.md
-ERROR corpus-status.drift                the committed CORPUS_STATUS.json differs from a fresh compilation; it was edited by hand or its sources changed without recompiling
-                                             → docs/warrants/generated/CORPUS_STATUS.json
-ERROR corpus-status.drift                the committed CORPUS_STATUS.html differs from a fresh compilation; it was edited by hand or its sources changed without recompiling
-                                             → docs/warrants/generated/CORPUS_STATUS.html
+PASS corpus-status.drift                CORPUS_STATUS.md matches a fresh compilation
+PASS corpus-status.drift                CORPUS_STATUS.json matches a fresh compilation
+PASS corpus-status.drift                CORPUS_STATUS.html matches a fresh compilation
 
-638 pass · 79 warn · 0 unknown · 10 error   (worst: ERROR)
+646 pass · 80 warn · 0 unknown · 0 error   (worst: WARN)
 
 NOT CHECKED:
   · 63 of 63 Warrant(s) have no disposed              obligations — §38.6 yields no resolution verdict for them, which is the              expected state of work that has not been assessed
@@ -825,4 +815,4 @@ NOT CHECKED:
   · bound-atom resolution — `ref =` atoms cannot be fetched offline
   · Source Holder ambiguity and classification propagation (§91.2 tests 14, 15) — narrowed by OW-ADR-0008: test 14 needs a `source_holder` on atoms, which §13 requires and none declares; test 15 needs a classification ordering, which the SAS does not give. Neither is undecided — both are undeclared
 
-NOT READY
+WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)
