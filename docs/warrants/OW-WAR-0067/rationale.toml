@@ -1,0 +1,4 @@
+schema = "oh.war/rationale/v1"
+
+# No blocking unknowns or accepted residual risks are declared for this
+# bounded synthetic test package. Human authorization remains separate.

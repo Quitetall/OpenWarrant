@@ -1,0 +1,47 @@
+schema = "oh.war/deliverables/v1"
+
+# Local WMD receipts are the bounded artifacts produced for WP-009. The
+# contract is not yet human-authorized, so provenance records that fact.
+[[deliverable]]
+id = "D-001"
+title = "WMD H2 local CI matrix"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0067/wmd-local-ci-bc38378.log"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "codex"
+producing_attempt = "OW-WAR-0067/attempt-bc38378"
+contract_digest = "unrecorded"
+tool_or_runtime_identity = "cargo nextest and cargo-deny"
+creation_method = "executed"
+content_digest = "sha256:cf4bfb4a0231f3616e4fb2df0b2e5a86f666df4b5bfebee3191151fc5a9d8c25"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "WP-009 replay, divergence, and smoke tests"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0067/wmd-wp009-smoke-bc38378.log"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "codex"
+producing_attempt = "OW-WAR-0067/attempt-bc38378"
+contract_digest = "unrecorded"
+tool_or_runtime_identity = "cargo test"
+creation_method = "executed"
+content_digest = "sha256:0a689f06cf3e72aeb1def88f952d9f92705d600585474020616e4c95b2d4d690"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
