@@ -648,6 +648,12 @@ pub(crate) fn check_traceability(
     let snapshot = repo.sas_snapshot(None);
     if !(basis.manifest.roadmap.is_empty() && basis.manifest.implements.is_empty()) {
         match &snapshot {
+            Err(error @ (RepoError::InvalidSasEncoding(_)
+            | RepoError::InvalidSasDeclarations(_))) => report.push(Diagnostic::error(
+                "sas.authority-invalid",
+                file.clone(),
+                format!("{alias}: {error}"),
+            )),
             Err(err) => report.push(Diagnostic::unknown(
                 "sas.authority-unavailable", file.clone(), format!("{alias}: {err}"))),
             Ok(s) if !s.is_authoritative() => report.push(Diagnostic::warn(

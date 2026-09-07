@@ -73,6 +73,10 @@ pub enum SasError {
     DuplicatePhase { phase: i32 },
     #[error("malformed SAS phase heading: {heading}")]
     MalformedPhase { heading: String },
+    #[error("duplicate SAS §98 section")]
+    DuplicatePhaseSection,
+    #[error("SAS §98 contains no phase declarations")]
+    NoPhases,
     #[error("duplicate SAS requirement {id}")]
     DuplicateRequirement { id: String },
     #[error("malformed SAS requirement {id}")]
@@ -249,17 +253,22 @@ fn declaration_lines(text: &str) -> impl Iterator<Item = &str> {
         }
         let marker = trimmed.as_bytes().first().copied();
         let run = marker.map_or(0, |m| trimmed.bytes().take_while(|b| *b == m).count());
+        // A quoted fence is quoted prose and must not change the surrounding
+        // document's fence state.
+        if trimmed.starts_with('>') {
+            return None;
+        }
         if let Some((open, width)) = fence {
             if marker == Some(open) && run >= width && trimmed[run..].trim().is_empty() {
                 fence = None;
             }
             return None;
         }
-        if matches!(marker, Some(b'`' | b'~')) && run >= 3 {
-            fence = Some((marker.expect("fence marker"), run));
-            return None;
-        }
-        if trimmed.starts_with('>') {
+        if matches!(marker, Some(b'`' | b'~'))
+            && run >= 3
+            && (marker != Some(b'`') || !trimmed[run..].contains('`'))
+        {
+            fence = marker.map(|marker| (marker, run));
             return None;
         }
         Some(trimmed)
@@ -281,22 +290,61 @@ fn requirement_cells(line: &str) -> Option<(&str, &str)> {
 /// Exit" rather than inventing one.
 #[must_use]
 pub fn section_98(text: &str) -> Vec<(i32, String, Option<String>)> {
+    section_98_checked(text).unwrap_or_default()
+}
+
+pub fn section_98_checked(text: &str) -> Result<Vec<(i32, String, Option<String>)>, SasError> {
     let mut out: Vec<(i32, String, Option<String>)> = Vec::new();
     // `in_phase` is true only between a `### Phase N` heading and the next
     // heading of any level, so an `Exit:` in some other section can never
     // attach its bullet to a phase (found by review).
     let mut in_phase = false;
     let mut in_exit = false;
+    let mut in_section = false;
+    let mut saw_section = false;
     for line in declaration_lines(text) {
-        if let Some(rest) = line.strip_prefix("### Phase ") {
-            let (num, title) = rest.split_once(" — ").unwrap_or((rest, ""));
-            in_exit = false;
-            in_phase = false;
-            if let Ok(n) = num.trim().parse::<i32>() {
-                out.push((n, title.trim().to_owned(), None));
-                in_phase = true;
+        if line.starts_with("## 98. ") {
+            if saw_section {
+                return Err(SasError::DuplicatePhaseSection);
             }
+            saw_section = true;
+            in_section = true;
             continue;
+        }
+        if in_section && (line.starts_with("# ") || line.starts_with("## ")) {
+            in_section = false;
+        }
+        if !in_section {
+            continue;
+        }
+        if let Some(rest) = line.strip_prefix("### Phase ") {
+            let Some((num, title)) = rest.split_once(" — ") else {
+                return Err(SasError::MalformedPhase {
+                    heading: line.to_owned(),
+                });
+            };
+            in_exit = false;
+            let n = num.parse::<i32>().map_err(|_| SasError::MalformedPhase {
+                heading: line.to_owned(),
+            })?;
+            if n.to_string() != num || title.trim().is_empty() {
+                return Err(SasError::MalformedPhase {
+                    heading: line.to_owned(),
+                });
+            }
+            if out.iter().any(|(phase, _, _)| *phase == n) {
+                return Err(SasError::DuplicatePhase { phase: n });
+            }
+            out.push((n, title.trim().to_owned(), None));
+            in_phase = true;
+            continue;
+        }
+        if let Some(rest) = line.strip_prefix("### Phase")
+            && (rest.is_empty() || rest.starts_with(char::is_whitespace))
+        {
+            return Err(SasError::MalformedPhase {
+                heading: line.to_owned(),
+            });
         }
         if line.starts_with('#') {
             in_exit = false;
@@ -316,7 +364,11 @@ pub fn section_98(text: &str) -> Vec<(i32, String, Option<String>)> {
             in_exit = false;
         }
     }
-    out
+    if out.is_empty() {
+        Err(SasError::NoPhases)
+    } else {
+        Ok(out)
+    }
 }
 
 /// §106 as a map, parsed from the document's own table rows.
@@ -344,23 +396,8 @@ pub struct SasDeclarations {
 
 impl SasDeclarations {
     pub fn parse(text: &str) -> Result<Self, SasError> {
-        let mut phase_numbers = std::collections::BTreeSet::new();
         let mut requirement_ids = std::collections::BTreeSet::new();
         for line in declaration_lines(text) {
-            if let Some(rest) = line.strip_prefix("### Phase ") {
-                let (number, title) = rest.split_once(" — ").unwrap_or((rest, ""));
-                let phase: i32 = number.parse().map_err(|_| SasError::MalformedPhase {
-                    heading: line.to_owned(),
-                })?;
-                if phase.to_string() != number || title.trim().is_empty() {
-                    return Err(SasError::MalformedPhase {
-                        heading: line.to_owned(),
-                    });
-                }
-                if !phase_numbers.insert(phase) {
-                    return Err(SasError::DuplicatePhase { phase });
-                }
-            }
             if let Some((id, title)) = requirement_cells(line) {
                 if let Ok(r) = RequirementRef::parse(id) {
                     if r.canonical() != id || title.is_empty() {
@@ -374,7 +411,11 @@ impl SasDeclarations {
                 }
             }
         }
-        let mut phases = section_98(text);
+        let mut phases = match section_98_checked(text) {
+            Ok(phases) => phases,
+            Err(SasError::NoPhases) => Vec::new(),
+            Err(error) => return Err(error),
+        };
         phases.sort_by_key(|(n, _, _)| *n);
         Ok(Self {
             phases,
@@ -442,7 +483,7 @@ impl Section106Diff {
 mod tests {
     #[test]
     fn fenced_quoted_and_indented_examples_do_not_declare_program_membership() {
-        let text = "### Phase -1 — Real\n\nExit:\n\n````markdown\n### Phase 13 — Example\n| LIM-SAS-RQ-013 | Example |\n```\n- false exit.\n````\n- true exit.\n~~~text\n### Phase 14 — Example\n| LIM-SAS-RQ-014 | Example |\n~~~\n> ### Phase 15 — Quoted\n> | LIM-SAS-RQ-015 | Quoted |\n    ### Phase 16 — Indented\n    | LIM-SAS-RQ-016 | Indented |\n| LIM-SAS-RQ-001 | Real requirement |\n";
+        let text = "## 98. Implementation phases\n### Phase -1 — Real\n\nExit:\n\n````markdown\n### Phase 13 — Example\n| LIM-SAS-RQ-013 | Example |\n```\n- false exit.\n````\n- true exit.\n~~~text\n### Phase 14 — Example\n| LIM-SAS-RQ-014 | Example |\n~~~\n> ### Phase 15 — Quoted\n> | LIM-SAS-RQ-015 | Quoted |\n    ### Phase 16 — Indented\n    | LIM-SAS-RQ-016 | Indented |\n| LIM-SAS-RQ-001 | Real requirement |\n";
         let d = SasDeclarations::parse(text).expect("declarations");
         assert_eq!(
             d.phases,
@@ -485,12 +526,12 @@ mod tests {
     fn checked_declarations_reject_duplicates_and_noncanonical_numbers() {
         for (text, expected) in [
             (
-                "### Phase -1 — Start\n### Phase -1 — Duplicate",
+                "## 98. Phases\n### Phase -1 — Start\n### Phase -1 — Duplicate",
                 "duplicate SAS phase -1",
             ),
-            ("### Phase +1 — Start", "malformed SAS phase"),
-            ("### Phase -0 — Start", "malformed SAS phase"),
-            ("### Phase 01 — Start", "malformed SAS phase"),
+            ("## 98. Phases\n### Phase +1 — Start", "malformed SAS phase"),
+            ("## 98. Phases\n### Phase -0 — Start", "malformed SAS phase"),
+            ("## 98. Phases\n### Phase 01 — Start", "malformed SAS phase"),
             (
                 "| LIM-SAS-RQ-001 | First |\n| LIM-SAS-RQ-001 | Second |",
                 "duplicate SAS requirement",
@@ -504,7 +545,7 @@ mod tests {
 
     #[test]
     fn section_98_reads_titles_and_exit_bullets_and_says_none_when_absent() {
-        let text = "### Phase 0 — Telemetry shim\n\nDeliver:\n\n- x;\n\nExit:\n\n- real distributions.\n\n### Phase 1 — Compiler\n\nDeliver:\n\n- y.\n\n## 99. Next\n";
+        let text = "## 98. Implementation phases\n### Phase 0 — Telemetry shim\n\nDeliver:\n\n- x;\n\nExit:\n\n- real distributions.\n\n### Phase 1 — Compiler\n\nDeliver:\n\n- y.\n\n## 99. Next\n";
         let p = super::section_98(text);
         assert_eq!(p.len(), 2);
         assert_eq!(
@@ -520,16 +561,36 @@ mod tests {
 
     #[test]
     fn section_98_ignores_an_exit_outside_a_phase_section() {
-        let text = "### Phase 0 — Alpha\n\nDeliver:\n- x.\n\n### Phase 1 — Beta\n\nDeliver:\n- y.\n\n## 99. Prose\n\nExit:\n\n- stray bullet.\n";
+        let text = "## 98. Implementation phases\n### Phase 0 — Alpha\n\nDeliver:\n- x.\n\n### Phase 1 — Beta\n\nDeliver:\n- y.\n\n## 99. Prose\n\nExit:\n\n- stray bullet.\n";
         let p = super::section_98(text);
         assert_eq!(p.len(), 2);
         assert_eq!(
             p[1].2, None,
             "a stray Exit in §99 must not become Phase 1's"
         );
-        let text2 =
-            "### Phase 0 — Alpha\n\nExit:\n\n- real.\n\n#### Note\n\nExit:\n\n- not this.\n";
+        let text2 = "## 98. Implementation phases\n### Phase 0 — Alpha\n\nExit:\n\n- real.\n\n#### Note\n\nExit:\n\n- not this.\n";
         assert_eq!(super::section_98(text2)[0].2.as_deref(), Some("real."));
+    }
+
+    #[test]
+    fn section_98_accepts_only_one_real_canonical_section() {
+        let text = "## 98. Implementation phases\n```md\n### Phase 1 — fenced\n```\n~~~~md\n### Phase 2 — tilde fenced\n~~~~\n> ```\n> ### Phase 3 — quoted\n> ```\n### Phase -1 — real\n# Other\n### Phase 4 — outside";
+        assert_eq!(
+            section_98_checked(text)
+                .expect("valid")
+                .iter()
+                .map(|p| p.0)
+                .collect::<Vec<_>>(),
+            [-1]
+        );
+        assert!(matches!(
+            section_98_checked("## 98. A\n### Phase  1 — padded"),
+            Err(SasError::MalformedPhase { .. })
+        ));
+        assert_eq!(
+            section_98_checked("## 98. A\n### Phase 1 — one\n## 98. B\n### Phase 2 — two"),
+            Err(SasError::DuplicatePhaseSection)
+        );
     }
 
     /// §6.10 — the one rule about SAS and Warrant. A test rather than prose,

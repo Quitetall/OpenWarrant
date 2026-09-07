@@ -43,6 +43,8 @@ pub enum RepoError {
         path: Utf8PathBuf,
         source: toml::de::Error,
     },
+    InvalidSasEncoding(std::str::Utf8Error),
+    InvalidSasDeclarations(openwarrant_core::SasError),
     UnknownWarrant {
         alias: String,
         known: Vec<String>,
@@ -63,6 +65,10 @@ impl fmt::Display for RepoError {
             Self::ConfigParse { path, source } => write!(f, "{path}: {source}"),
             Self::ConfigInvalid { path, source } => write!(f, "{path}: {source}"),
             Self::ManifestParse { path, source } => write!(f, "{path}: {source}"),
+            Self::InvalidSasEncoding(source) => write!(f, "selected SAS is not UTF-8: {source}"),
+            Self::InvalidSasDeclarations(source) => {
+                write!(f, "selected SAS declarations are invalid: {source}")
+            }
             Self::UnknownWarrant { alias, known } => write!(
                 f,
                 "no Warrant {alias:?} in this repository. Known: {}",
@@ -640,10 +646,9 @@ impl Repository {
                 r.version
             )));
         }
-        let text =
-            std::str::from_utf8(&bytes).map_err(|e| RepoError::Message(format!("{path}: {e}")))?;
+        let text = std::str::from_utf8(&bytes).map_err(RepoError::InvalidSasEncoding)?;
         let declarations = openwarrant_core::sas::SasDeclarations::parse(text)
-            .map_err(|e| RepoError::Message(format!("{path}: {e}")))?;
+            .map_err(RepoError::InvalidSasDeclarations)?;
         if declarations.phases.is_empty() || declarations.requirements.is_empty() {
             return Err(RepoError::Message(
                 "SAS phase or requirement declarations are missing; authority unavailable"
@@ -919,7 +924,7 @@ mod program_sas_tests {
 
         fn document(&self, phases: std::ops::RangeInclusive<i32>) -> String {
             let text = format!(
-                "# Test SAS\n{}\n| LIM-SAS-RQ-001 | Test requirement |\n",
+                "# Test SAS\n## 98. Implementation phases\n{}\n## 106. Requirements\n| LIM-SAS-RQ-001 | Test requirement |\n",
                 phases
                     .map(|n| format!("### Phase {n} — Phase {n}\n\nExit:\n\n- phase {n} exit.\n"))
                     .collect::<Vec<_>>()
@@ -1120,8 +1125,15 @@ mod program_sas_tests {
             "### Phase -1 — duplicate\n",
             "| LIM-SAS-RQ-001 | duplicate |\n",
         ] {
-            fs::write(f.0.root.join("docs/sas/SAS.md"), format!("{text}{extra}"))
-                .expect("duplicate");
+            let invalid = if extra.starts_with("### Phase") {
+                text.replace(
+                    "## 106. Requirements",
+                    &format!("{extra}## 106. Requirements"),
+                )
+            } else {
+                format!("{text}{extra}")
+            };
+            fs::write(f.0.root.join("docs/sas/SAS.md"), invalid).expect("duplicate");
             assert!(
                 f.0.sas_snapshot(None)
                     .expect_err("duplicate")
