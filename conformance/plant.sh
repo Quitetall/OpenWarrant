@@ -981,7 +981,7 @@ plant_cmd "digest drift gives unavailable phase authority" "unavailable" "source
     "printf '\nDrift fixture.\n' >> '$SAS_DOCUMENT'" status --json
 
 plant_cmd "duplicate phase cannot be proposed" "duplicate SAS phase" "phase 0" 1 \
-    "printf '\n### Phase 0 — duplicate\n' >> '$SAS_DOCUMENT'" sas propose 0.1.0-draft.9
+    "sed -i '/^### Phase 0 —/a ### Phase 0 — duplicate' '$SAS_DOCUMENT'" sas propose 0.1.0-draft.9
 
 plant_cmd "duplicate requirement cannot be proposed" "duplicate SAS requirement" "WAR-SAS-RQ-001" 1 \
     "printf '\n| WAR-SAS-RQ-001 | duplicate |\n' >> '$SAS_DOCUMENT'" sas propose 0.1.0-draft.9
