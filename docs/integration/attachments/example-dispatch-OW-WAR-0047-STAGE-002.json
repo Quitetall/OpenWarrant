@@ -1,0 +1,48 @@
+{
+    "api_version": "oh.war/stage-dispatch/v1",
+    "attempt_basis_digest": "35c867a6dba28acf3e08e7c7b0ef6e5e746bf2939bc0467c8ea9aabe4a4dfc52",
+    "attempt_id": "01a06904-070e-7bd0-9364-ebc82962b7b0",
+    "attempt_kind": "initial",
+    "capability_authorization": {
+        "digest": "",
+        "policy_ref": "policy://none-declared"
+    },
+    "context_manifest_digest": "96b3347e546ef11b76865837c761d8056f1fbacc34d71baf0d2bd5029a0a7ab6",
+    "context_manifest_ref": "artifact://context-manifest/sha256:96b3347e546ef11b76865837c761d8056f1fbacc34d71baf0d2bd5029a0a7ab6",
+    "contract_digest": "c69a32d987c71d123f3eb04f1bcf1270aa1f7cad859f25707208ec84cb9e900e",
+    "contract_revision": 1,
+    "dispatch_digest": "f7995ea24f53ab9bab3823a567ce236a246032219cd1e8785579cdd8be4cc8fb",
+    "dispatch_id": "01a06904-070e-7bd0-9364-ebd160ae90b8",
+    "input_artifacts": [],
+    "instructions": [
+        "Attempt an INCOMPATIBLE lowering first and record the refusal. A",
+        "Grep the resulting Warrant for lineage content. Finding any is the defect.",
+        "Deliverable 2 \u2014 the execution \u2014 runs from the repository root as:",
+        "The receipts are captured AFTER the run, against the real job id, and that"
+    ],
+    "milestone_id": "M3",
+    "non_goals": [],
+    "objective": "Materialize a corpus in BLUT",
+    "obligation_refs": [
+        "OBL-003"
+    ],
+    "omitted_subgraphs": [],
+    "prior_failure_evidence_refs": [],
+    "required_outputs": [
+        "corpus"
+    ],
+    "resource_envelope": {
+        "cpu_cores": 0,
+        "gpu_count": 0,
+        "memory_bytes": 0,
+        "network_policy": "none",
+        "spend_limit_amount": "",
+        "spend_limit_currency": "",
+        "wall_time_seconds": 0
+    },
+    "stage_id": "STAGE-002",
+    "submission_schema_ref": "schema://oh.war/stage-submission/v1",
+    "warrant_ref": "war://01a021a6-0dfd-7e45-b33b-749b95409cd1",
+    "workspace_basis_digest": "f002c958074b1844e1a280cb455e7a713c722698a15e07e49d8084a591b7462f",
+    "workspace_basis_ref": "basis://docs/warrants/OW-WAR-0047/manifest.toml"
+}

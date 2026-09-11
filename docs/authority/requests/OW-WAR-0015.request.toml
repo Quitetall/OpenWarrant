@@ -1,0 +1,32 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0015"
+title = "Implement deliverables, artifacts, and artifact provenance"
+assurance_level = "basic"
+contract_digest = "286e98dadab467ef005451e2c3d3ed61e3fdd01d9768c3281ba4b40228f79ff5"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "artifacts carry provenance and a digest"
+
+[[obligations]]
+id = "OBL-002"
+statement = "a derived report is REFUSED as an artifact"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Artifact identity without artifact correctness is acceptable, being inherent rather than a defect here."
+consequence_if_false = "A digest proves an artifact is the one recorded and says nothing about whether it works."
+judgment_ref = ""
+

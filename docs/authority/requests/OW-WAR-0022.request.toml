@@ -1,0 +1,40 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0022"
+title = "Implement resolution, dispute, and annulment"
+assurance_level = "controlled"
+contract_digest = "96136487092a4630615430948c3c453a2a173c3607707f5e5ea22d8f361ad229"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "resolution binds exact snapshots"
+
+[[obligations]]
+id = "OBL-002"
+statement = "falsification is a resolution"
+
+[[obligations]]
+id = "OBL-003"
+statement = "dispute and annulment preserve history"
+
+[[obligations]]
+id = "OBL-004"
+statement = "a required unknown BLOCKS"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Self-certification is acceptable until federation exists."
+consequence_if_false = "Every controlled Warrant resolves on the performer's own assessment, with bookkeeping standing in for a second party."
+judgment_ref = ""
+

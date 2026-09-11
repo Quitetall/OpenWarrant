@@ -1,0 +1,36 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0010"
+title = "Implement the autonomy envelope and amendment records"
+assurance_level = "basic"
+contract_digest = "789ae9f4627a82b1acadc9e56aa5dec9c92790a3e9c2edb610b818d7ef919ffa"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "the envelope parses and classifies"
+
+[[obligations]]
+id = "OBL-002"
+statement = "ambiguity ESCALATES"
+
+[[obligations]]
+id = "OBL-003"
+statement = "an unjustified amendment is refused"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Conservative autonomy classification is the right default even though it produces unnecessary escalations."
+consequence_if_false = "Frequent escalation pressures the envelope wider, and a widened envelope is a decorative one."
+judgment_ref = ""
+

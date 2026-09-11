@@ -1,0 +1,28 @@
+schema = "oh.war/authorization-response/v1"
+warrant = "OW-WAR-0001"
+contract_digest = "ab7e2df770a6c895e55e0c5990b0ad33a18f5dbebe653e6389fbdc30ca1c648a"
+authorizer = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0001 (Establish the OpenWarrant repository and Rust workspace) at this contract digest means the owner accepts its intent, scope and obligations as the work to be done and judged, and accepts each residual risk declared below with its stated consequence. It does not resolve the Warrant; resolution still requires the \u00a756.1 evidence. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+effective_time = "2026-09-02T06:00:00Z"
+independence = "separate_role"
+
+[[judgment]]
+id = "J-001"
+kind = "residual_risk_acceptance"
+statement = "CI on ubuntu-latest rather than the self-hosted runner the private tier calls for is acceptable, bounded by timeout-minutes and one short job."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0001: if the assumption is false, the consequence is Billed minutes are consumed on a repository whose tier assumed free local runs, and the bound is a timeout rather than a cost ceiling. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+authority = "authorized"
+basis_refs = ["assumption://A-001"]
+
+[[judgment]]
+id = "J-002"
+kind = "residual_risk_acceptance"
+statement = "The gate being advisory rather than a required status check on main is acceptable until branch protection is applied."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0001: if the assumption is false, the consequence is A red gate does not block a merge, so work can land that the gate would have refused. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+authority = "authorized"
+basis_refs = ["assumption://A-002"]

@@ -1,0 +1,20 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "At bc38378, h2_vertical_slice_replays_identically passes property resolution, capability derivation, action admission and lifecycle, effect commit, and event publication. Source Scenario::h2 and ScenarioRunner::run wire one synthetic entity through the full path; smoke artifact records the H2 test pass."
+performer = "codex"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,20 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "At bc38378, terminal_action_is_stable_and_cannot_be_interrupted, active_action_can_be_interrupted_once, phase_end_overflow_is_refused, and timeline_capacity_refuses_action_1025 pass. h2_vertical_slice_replays_identically passes canonical startup/active/recovery/complete transitions. Source ActionTimeline::advance uses checked tick arithmetic and enforces MAX_ACTIONS_PER_TIMELINE = 1024."
+performer = "codex"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

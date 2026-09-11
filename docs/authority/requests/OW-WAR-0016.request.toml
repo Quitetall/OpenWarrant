@@ -1,0 +1,40 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0016"
+title = "Implement acceptance obligations and bounded claims"
+assurance_level = "controlled"
+contract_digest = "e1b258e06e7dacec3f68e78525864d1a9b52fc0ea86b7804e938a608487a89bf"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "the schema fits the real corpus"
+
+[[obligations]]
+id = "OBL-002"
+statement = "an unbounded universal claim is REFUSED"
+
+[[obligations]]
+id = "OBL-003"
+statement = "dangling obligation_refs are REFUSED"
+
+[[obligations]]
+id = "OBL-004"
+statement = "a verdict without dispositions is REFUSED"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Twenty-one prose obligations can be migrated to structured fields without losing their meaning."
+consequence_if_false = "Converted in a hurry, they become twenty-one fields that parse and no longer say what the prose said."
+judgment_ref = ""
+

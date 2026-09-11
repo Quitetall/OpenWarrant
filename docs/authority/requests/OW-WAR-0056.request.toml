@@ -1,0 +1,56 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0056"
+title = "Compile a real Stage Dispatch (§47)"
+assurance_level = "controlled"
+contract_digest = "b2c5609bdc00907576e09ce85a9237b30fd573aaec9b440cec5e96e38556d3b3"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "every §47.1 field is present and required ones are enforced"
+
+[[obligations]]
+id = "OBL-002"
+statement = "a dispatch is byte-deterministic for fixed ids"
+
+[[obligations]]
+id = "OBL-003"
+statement = "a required normative source cannot be omitted"
+
+[[obligations]]
+id = "OBL-004"
+statement = "`war dispatch` emits a packet a receipt can bind to"
+
+[[obligations]]
+id = "OBL-005"
+statement = "a repair without prior failure evidence is refused"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Selecting context from the Warrant's own atoms is sufficient for a stage's needs."
+consequence_if_false = "A stage that needs a source outside the Warrant gets a dispatch complete by section 33.6 and incomplete in fact; the compiler cannot know what it was not told about."
+judgment_ref = ""
+
+[[residual_risks]]
+assumption_id = "A-002"
+statement = "A placeholder capability policy reference is acceptable until a policy is modelled."
+consequence_if_false = "A runtime that enforces capabilities against the reference finds nothing to enforce, and an actor runs under no capability bound."
+judgment_ref = ""
+
+[[residual_risks]]
+assumption_id = "A-003"
+statement = "same_normative_contract_as holds section 47.3's promise without an observed actor."
+consequence_if_false = "Two projections of one stage differ in contract for a real actor and nothing local detects it until Phase 5's exit Warrant executes one."
+judgment_ref = ""
+

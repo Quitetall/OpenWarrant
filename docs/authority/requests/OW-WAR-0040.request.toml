@@ -1,0 +1,35 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0040"
+title = "Implement the Liminal adapter and measured parity harness"
+assurance_level = "controlled"
+contract_digest = "cd42487d2624c78b6b3031be665c6924a5701676d478f3ba03a0de13734fcc71"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+residual_risks = []
+eligible_authorizers = ["Brian Lam"]
+
+[[obligations]]
+id = "OBL-000"
+statement = "Liminal is available"
+
+[[obligations]]
+id = "OBL-001"
+statement = "the adapter produces canonical IR"
+
+[[obligations]]
+id = "OBL-002"
+statement = "parity is byte-identical over the WHOLE corpus, and located when it is not"
+
+[[obligations]]
+id = "OBL-003"
+statement = "cutover requires measured parity"
+

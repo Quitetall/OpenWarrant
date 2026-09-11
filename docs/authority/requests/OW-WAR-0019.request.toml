@@ -1,0 +1,40 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0019"
+title = "Implement the Gate Registry: definitions, qualification, and bindings"
+assurance_level = "controlled"
+contract_digest = "527ebf4140c1a86536e682da45befd08c75a32a819509d7175f0890fdab126db"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "definitions are versioned and governed"
+
+[[obligations]]
+id = "OBL-002"
+statement = "an unqualified gate cannot be BOUND"
+
+[[obligations]]
+id = "OBL-003"
+statement = "an obligation citing a nonexistent gate is REFUSED"
+
+[[obligations]]
+id = "OBL-004"
+statement = "bindings are digested"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "A local registry standing in for the KF-owned one is acceptable provisional authority."
+consequence_if_false = "If the provisionality is not visible in the record, a locally-qualified gate is mistaken for an institutionally-qualified one."
+judgment_ref = ""
+

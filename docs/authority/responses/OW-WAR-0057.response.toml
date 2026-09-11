@@ -1,0 +1,28 @@
+schema = "oh.war/authorization-response/v1"
+warrant = "OW-WAR-0057"
+contract_digest = "44a79f708632c7a12a40b8de36d911c1a43eede7bd7406920bb10a330b282eea"
+authorizer = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0057 (The viewer: a static page over the corpus projection) at this contract digest means the owner accepts its intent, scope and obligations as the work to be done and judged, and accepts each residual risk declared below with its stated consequence. It does not resolve the Warrant; resolution still requires the \u00a756.1 evidence. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+effective_time = "2026-09-02T06:00:00Z"
+independence = "separate_role"
+
+[[judgment]]
+id = "J-001"
+kind = "residual_risk_acceptance"
+statement = "Inlining the whole projection into one page stays acceptable as the corpus grows."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0057: if the assumption is false, the consequence is At ten times the corpus the page is a megabyte; still one file and still no fetch, but slow to open on a weak connection, and the decision was made at 135 KB. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+authority = "authorized"
+basis_refs = ["assumption://A-001"]
+
+[[judgment]]
+id = "J-002"
+kind = "residual_risk_acceptance"
+statement = "Putting the provenance banner first is enough for a reader to take derived state as derived."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0057: if the assumption is false, the consequence is A reader who scrolls past it reads draft as a verdict, and nothing further on the page can correct that. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+authority = "authorized"
+basis_refs = ["assumption://A-002"]

@@ -1,0 +1,40 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0042"
+title = "Discharge the Phase 2 exit: a vague request becomes a reviewable draft"
+assurance_level = "controlled"
+contract_digest = "d5f9af2748b5cf3451ce8eb86a2b877397a041a2c74b977eea5c7025b0fb2032"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "a real agent answered over the §75.2 seam"
+
+[[obligations]]
+id = "OBL-002"
+statement = "one vague sentence produced an applied draft"
+
+[[obligations]]
+id = "OBL-003"
+statement = "the model wrote no file"
+
+[[obligations]]
+id = "OBL-004"
+statement = "§91.8's seven tests are planted, not unit-tested"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "§74.8 citation checking is sufficient against careless fabrication."
+consequence_if_false = "A determined agent citing a plausible but nonexistent source produces a proposal that validates, and catching it needs OW-WAR-0044's federation work."
+judgment_ref = ""
+

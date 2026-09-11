@@ -1,0 +1,36 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0039"
+title = "Implement telemetry, unit economics, and untracked-work detection"
+assurance_level = "basic"
+contract_digest = "144ad9331646730f7a9aa0d45d4f83981cda71c534b97d762b0e094c9dba3d99"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "the measurement set exists"
+
+[[obligations]]
+id = "OBL-002"
+statement = "detection finds the known case"
+
+[[obligations]]
+id = "OBL-003"
+statement = "no relation is fabricated"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Approximate human authoring cost is acceptable input to unit economics."
+consequence_if_false = "Treating the approximation as precise makes every derived figure a false claim."
+judgment_ref = ""
+

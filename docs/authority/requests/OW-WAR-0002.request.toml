@@ -1,0 +1,40 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0002"
+title = "Implement the file-native manifest and atom parser"
+assurance_level = "basic"
+contract_digest = "c6e8f1311371f28a9d576974daff95179f58a6404b99b9c479981d3c056935ea"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "a valid manifest parses into typed values"
+
+[[obligations]]
+id = "OBL-002"
+statement = "each in-scope malformed composition is REFUSED"
+
+[[obligations]]
+id = "OBL-003"
+statement = "the acceptance corpus parses"
+
+[[obligations]]
+id = "OBL-004"
+statement = "alias allocation is atomic"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "The frontmatter parser dependency can be left unchosen without changing this Warrant's assurance level."
+consequence_if_false = "If the resolution is a hand-rolled reader, its input handling becomes security-relevant under §87.2 and the level should have been revisited before resolution, not after."
+judgment_ref = ""
+

@@ -1,0 +1,32 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0037"
+title = "Implement `war diff`: semantic difference between revisions"
+assurance_level = "basic"
+contract_digest = "ef2591f109829dd91c51010ae702eb149cfb9c17b7e73e60b973e5cca0a4d9a0"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "diff is semantic, not textual"
+
+[[obligations]]
+id = "OBL-002"
+statement = "digest movement is attributed"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "`war diff` output is readable enough to be useful."
+consequence_if_false = "Readability is the actual success criterion and is not testable, so a diff nobody can read passes every check."
+judgment_ref = ""
+

@@ -1,0 +1,36 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0031"
+title = "Implement the local draft journal"
+assurance_level = "basic"
+contract_digest = "3e386caaf3263748a5043c5325401056b840bafc3f0f29ae94ffb8c6a308ad0d"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "material events are journalled"
+
+[[obligations]]
+id = "OBL-002"
+statement = "append-only"
+
+[[obligations]]
+id = "OBL-003"
+statement = "state stops being derived"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Filesystem-level tamperability of a local journal is acceptable, as the SAS acknowledges."
+consequence_if_false = "A journal entry is edited or removed on disk and the trail it exists to provide is the thing that was altered."
+judgment_ref = ""
+

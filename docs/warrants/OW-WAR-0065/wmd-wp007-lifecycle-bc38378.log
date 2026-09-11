@@ -1,0 +1,93 @@
+commit=bc38378e6140aa21dc7c30f41dfc775e5d40dcfc
+    Blocking waiting for file lock on package cache
+   Compiling wmd-sim v0.1.0 (/home/brianklam/Desktop/WeaponsOfMageDestruction/wmd/crates/wmd-sim)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.12s
+     Running unittests src/lib.rs (target/debug/deps/wmd_sim-9fb3f8c5c0338c52)
+
+running 1 test
+test scenario::tests::h2_vertical_slice_replays_identically ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 39 filtered out; finished in 0.00s
+
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.51s
+     Running unittests src/lib.rs (target/debug/deps/wmd_sim-9fb3f8c5c0338c52)
+
+running 1 test
+test scenario::tests::duplicate_start_is_refused_by_action_timeline ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 39 filtered out; finished in 0.00s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s
+     Running unittests src/lib.rs (target/debug/deps/wmd_sim-9fb3f8c5c0338c52)
+
+running 1 test
+test scenario::tests::unavailable_capability_refuses_action_admission ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 39 filtered out; finished in 0.00s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s
+     Running unittests src/lib.rs (target/debug/deps/wmd_sim-9fb3f8c5c0338c52)
+
+running 1 test
+test scenario::tests::invalid_duration_refuses_action_admission ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 39 filtered out; finished in 0.00s
+
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.45s
+     Running unittests src/lib.rs (target/debug/deps/wmd_sim-9fb3f8c5c0338c52)
+
+running 1 test
+test scenario::tests::negative_cost_refuses_action_admission ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 39 filtered out; finished in 0.00s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.10s
+     Running unittests src/lib.rs (target/debug/deps/wmd_sim-9fb3f8c5c0338c52)
+
+running 1 test
+test scenario::tests::timeline_capacity_refuses_action_1025 ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 39 filtered out; finished in 0.00s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running unittests src/lib.rs (target/debug/deps/wmd_sim-9fb3f8c5c0338c52)
+
+running 1 test
+test scenario::tests::terminal_action_is_stable_and_cannot_be_interrupted ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 39 filtered out; finished in 0.00s
+
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.22s
+     Running unittests src/lib.rs (target/debug/deps/wmd_sim-9fb3f8c5c0338c52)
+
+running 1 test
+test scenario::tests::active_action_can_be_interrupted_once ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 39 filtered out; finished in 0.00s
+
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.18s
+     Running unittests src/lib.rs (target/debug/deps/wmd_sim-9fb3f8c5c0338c52)
+
+running 1 test
+test scenario::tests::phase_end_overflow_is_refused ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 39 filtered out; finished in 0.00s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/wmd_sim-9fb3f8c5c0338c52)
+
+running 1 test
+test scenario::tests::capability_identity_mismatch_is_refused ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 39 filtered out; finished in 0.00s
+

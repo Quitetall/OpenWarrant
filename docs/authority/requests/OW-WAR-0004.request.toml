@@ -1,0 +1,42 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0004"
+title = "Implement the generated parent document and drift checking"
+assurance_level = "basic"
+contract_digest = "9f9a095ccdc95448bf633e0f5c6c04b1f1e3fab1918a1bace60f8cceed1816de"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "both projections render from one Basis"
+
+[[obligations]]
+id = "OBL-002"
+statement = "recompilation on an unchanged tree changes nothing"
+
+[[obligations]]
+id = "OBL-003"
+statement = "planted drift is REFUSED"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Seven of the nine §17.5 views may stay unimplemented because a caller gets an explicit unimplemented error."
+consequence_if_false = "A consumer builds against two views and finds the other seven absent at the moment it needs them."
+judgment_ref = ""
+
+[[residual_risks]]
+assumption_id = "A-002"
+statement = "Refusing a parent edit without source maps is the safe direction."
+consequence_if_false = "An author who edits the wrong file is told no without being told where to go, and edits the generated file again."
+judgment_ref = ""
+

@@ -1,0 +1,28 @@
+schema = "oh.war/authorization-response/v1"
+warrant = "OW-WAR-0003"
+contract_digest = "d5f59ab8d66ecb6b4406865c8a9af86a831fc28e01bd87acf7e12b3b064c5334"
+authorizer = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0003 (Implement the canonical WAR IR and RFC 8785 digesting) at this contract digest means the owner accepts its intent, scope and obligations as the work to be done and judged, and accepts each residual risk declared below with its stated consequence. It does not resolve the Warrant; resolution still requires the \u00a756.1 evidence. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+effective_time = "2026-09-02T06:00:00Z"
+independence = "separate_role"
+
+[[judgment]]
+id = "J-001"
+kind = "residual_risk_acceptance"
+statement = "Same-host determinism is sufficient evidence for the canonicalization claim, per OBL-004's stated limitation."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0003: if the assumption is false, the consequence is A second architecture disagrees on canonical bytes and every cross-system digest computed before that point is wrong. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+authority = "authorized"
+basis_refs = ["assumption://A-001"]
+
+[[judgment]]
+id = "J-002"
+kind = "residual_risk_acceptance"
+statement = "Leaving the decision profile unexercised does not weaken the IR claim."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0003: if the assumption is false, the consequence is The IR is proven only against delivery Warrants, and a decision Warrant lowers wrongly the first time one is written. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+authority = "authorized"
+basis_refs = ["assumption://A-002"]

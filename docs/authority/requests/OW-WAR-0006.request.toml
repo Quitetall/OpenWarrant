@@ -1,0 +1,36 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0006"
+title = "Complete ADR federation: relations, supersession, and currency"
+assurance_level = "basic"
+contract_digest = "1477ad6a82409b0591ce5dbfd1a3f07c084c34984c185e0841cb11c0c92806d9"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "relations parse and survive a round trip"
+
+[[obligations]]
+id = "OBL-002"
+statement = "cycles and conflicts are REFUSED"
+
+[[obligations]]
+id = "OBL-003"
+statement = "the untracked work is recorded"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Adopting already-shipped work under a Warrant written afterwards is acceptable here, with OBL-003 as the record."
+consequence_if_false = "The precedent is set that a Warrant can be written to describe work already done, which makes authorization retrospective and the mitigation is a weak one."
+judgment_ref = ""
+

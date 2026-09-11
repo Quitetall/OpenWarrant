@@ -1,0 +1,38 @@
+schema = "oh.war/authorization-response/v1"
+warrant = "OW-WAR-0058"
+contract_digest = "e530eae5e3772b645d54d2acb4c28cc20b509a45633ce328e84def3f32342570"
+authorizer = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0058 (Put the SAS under \u00a7101 governance: controlled revisions and the Release axis) at this contract digest means the owner accepts its intent, scope and obligations as the work to be done and judged, and accepts each residual risk declared below with its stated consequence. It does not resolve the Warrant; resolution still requires the \u00a756.1 evidence. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+effective_time = "2026-09-02T06:00:00Z"
+independence = "separate_role"
+
+[[judgment]]
+id = "J-001"
+kind = "residual_risk_acceptance"
+statement = "A revision record that is immutable by type and checked on load is sufficient until the SAS is a controlled Knowledge Fabric document."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0058: if the assumption is false, the consequence is An accepted record is edited by hand to a different digest in a single commit, and the only thing that notices is a reviewer reading the diff. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+authority = "authorized"
+basis_refs = ["assumption://A-001"]
+
+[[judgment]]
+id = "J-002"
+kind = "residual_risk_acceptance"
+statement = "Treating a retitled requirement as architecture-changing but not as a removal is the right boundary."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0058: if the assumption is false, the consequence is A retitle that inverts a requirement's meaning passes the stability check, and only the ADR the acceptance requires can catch it. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+authority = "authorized"
+basis_refs = ["assumption://A-002"]
+
+[[judgment]]
+id = "J-003"
+kind = "residual_risk_acceptance"
+statement = "Moving every workspace basis digest once, on the first proposal, harms no consumer."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0058: if the assumption is false, the consequence is An out-of-tree consumer that cached a workspace basis digest is wrong from that commit on, and this repository cannot know who that is. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+authority = "authorized"
+basis_refs = ["assumption://A-003"]

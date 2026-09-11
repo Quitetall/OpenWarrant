@@ -1,0 +1,44 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0044"
+title = "Discharge the Phase 4 exit: KF is institutional authority, Git stays Source Holder"
+assurance_level = "controlled"
+contract_digest = "f63c78bd49e749168df0516d78a1846a6de498ee2a5b5fd877ba2ed133407791"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "a real KF instance answered typed actions"
+
+[[obligations]]
+id = "OBL-002"
+statement = "the enterprise identifier came from KF, not from us"
+
+[[obligations]]
+id = "OBL-003"
+statement = "Git remained Source Holder after registration"
+
+[[obligations]]
+id = "OBL-004"
+statement = "a §68 round trip preserved semantic and digest identity"
+
+[[obligations]]
+id = "OBL-005"
+statement = "§91.3 and §91.13 are planted"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "A single KF instance is sufficient to discharge the Phase 4 exit."
+consequence_if_false = "§91.3 test 18 — the same local alias in two repositories must not collide — is genuinely cross-instance and stays open rather than claimed."
+judgment_ref = ""
+

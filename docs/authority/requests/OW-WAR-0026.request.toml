@@ -1,0 +1,31 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0026"
+title = "Implement the Katana runtime seam, capabilities, and receipts"
+assurance_level = "basic"
+contract_digest = "ba76aee15716a9fdc008516e9e77bfdb96d15753a0b68f49b5987d1b46984071"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+residual_risks = []
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "a Dispatch maps to a Katana request without a PromptIR"
+
+[[obligations]]
+id = "OBL-002"
+statement = "receipts are consumed, never minted"
+
+[[obligations]]
+id = "OBL-003"
+statement = "the seam declares itself unverified"
+

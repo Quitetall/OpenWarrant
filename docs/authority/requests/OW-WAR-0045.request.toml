@@ -1,0 +1,44 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0045"
+title = "Discharge the Phase 5 exit: a stateless actor executes one Dispatch"
+assurance_level = "controlled"
+contract_digest = "c70f0387d8bd5f27568c426ecfb06afd1ae90ee05921316d830d52c05749eeec"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "a real Katana executed, over a versioned seam"
+
+[[obligations]]
+id = "OBL-002"
+statement = "the agent received the Dispatch and nothing else"
+
+[[obligations]]
+id = "OBL-003"
+statement = "the performer could not and did not resolve"
+
+[[obligations]]
+id = "OBL-004"
+statement = "realized capability was within authorization"
+
+[[obligations]]
+id = "OBL-005"
+statement = "§91.7 and §91.9 are planted"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "§91.7 test 47 may be discharged by OW-WAR-0047 rather than here."
+consequence_if_false = "The subsection is double-counted as complete by both Warrants and neither actually ran it."
+judgment_ref = ""
+

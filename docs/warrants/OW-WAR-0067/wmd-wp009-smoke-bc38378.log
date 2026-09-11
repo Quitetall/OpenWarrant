@@ -1,0 +1,52 @@
+commit=bc38378e6140aa21dc7c30f41dfc775e5d40dcfc
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.09s
+     Running unittests src/lib.rs (target/debug/deps/wmd_sim-9fb3f8c5c0338c52)
+
+running 1 test
+test scenario::tests::h2_vertical_slice_replays_identically ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 39 filtered out; finished in 0.00s
+
+    Blocking waiting for file lock on package cache
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.29s
+     Running unittests src/lib.rs (target/debug/deps/wmd_sim-9fb3f8c5c0338c52)
+
+running 1 test
+test scenario::tests::replay_reports_first_transition_difference ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 39 filtered out; finished in 0.00s
+
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.31s
+     Running unittests src/lib.rs (target/debug/deps/wmd_sim-9fb3f8c5c0338c52)
+
+running 1 test
+test scenario::tests::malformed_non_monotonic_input_refuses ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 39 filtered out; finished in 0.00s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.05s
+     Running unittests src/lib.rs (target/debug/deps/wmd_sim-9fb3f8c5c0338c52)
+
+running 1 test
+test scenario::tests::command_limit_refuses_before_execution ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 39 filtered out; finished in 0.00s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running unittests src/lib.rs (target/debug/deps/wmd_sim-9fb3f8c5c0338c52)
+
+running 1 test
+test scenario::tests::runner_revalidates_public_scenario_fields ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 39 filtered out; finished in 0.00s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.10s
+     Running unittests src/lib.rs (target/debug/deps/wmd_sim-9fb3f8c5c0338c52)
+
+running 1 test
+test scenario::tests::synthetic_nightly_smoke_runs_2048_seeds ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 39 filtered out; finished in 0.09s
+

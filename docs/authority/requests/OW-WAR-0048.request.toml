@@ -1,0 +1,40 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0048"
+title = "Discharge the Phase 8 exit: measured adapter parity and the two-host canonical run"
+assurance_level = "controlled"
+contract_digest = "01f8596ce94a6066ec275f040014c7aea1bec2a98469dd8cab6050ed024d6fc4"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "the canonical IR is byte-identical across two real hosts"
+
+[[obligations]]
+id = "OBL-002"
+statement = "the inverted runner-tier decision is recorded, not left stale"
+
+[[obligations]]
+id = "OBL-003"
+statement = "a real Liminal compiler answered over the versioned protocol"
+
+[[obligations]]
+id = "OBL-004"
+statement = "parity is measured across the whole corpus, observables declared first"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "The caveats recorded by older Warrants will be updated once the real two-host run lands."
+consequence_if_false = "Currently-honest caveats become false in the opposite direction, and OBL-001's follow-through is the kind that gets skipped once the interesting part is done."
+judgment_ref = ""
+

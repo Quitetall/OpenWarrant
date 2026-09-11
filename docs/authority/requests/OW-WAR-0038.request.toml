@@ -1,0 +1,40 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0038"
+title = "Implement the existing-ADR importer, preserving unknown classes"
+assurance_level = "controlled"
+contract_digest = "3219c28e8a8f192547300ded37bd1340dc0476bc3ec21a8f33a47a905904e0ba"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "bytes and provenance survive"
+
+[[obligations]]
+id = "OBL-002"
+statement = "no gate is fabricated"
+
+[[obligations]]
+id = "OBL-003"
+statement = "all ten classes survive"
+
+[[obligations]]
+id = "OBL-004"
+statement = "a legacy Complete is a historical claim"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "An import taken at a frozen commit remains useful as the source corpus moves."
+consequence_if_false = "A snapshot presented as current is its own false claim, and the corpus has already moved."
+judgment_ref = ""
+

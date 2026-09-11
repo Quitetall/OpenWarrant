@@ -1,0 +1,38 @@
+schema = "oh.war/authorization-response/v1"
+warrant = "OW-WAR-0055"
+contract_digest = "218d3d988671c88d80a79e51898f2dd1b045144e8d82b440fca1642eb95e0917"
+authorizer = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0055 (Compute the goal hierarchy: war status and the corpus projection) at this contract digest means the owner accepts its intent, scope and obligations as the work to be done and judged, and accepts each residual risk declared below with its stated consequence. It does not resolve the Warrant; resolution still requires the \u00a756.1 evidence. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+effective_time = "2026-09-02T06:00:00Z"
+independence = "separate_role"
+
+[[judgment]]
+id = "J-001"
+kind = "residual_risk_acceptance"
+statement = "The roadmap:// grammar is an OpenWarrant convention that the SAS will not later bind to milestone ids."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0055: if the assumption is false, the consequence is Every topic slug in the corpus becomes a reference to nothing, and 49 manifests need a coordinated edit that moves every contract digest. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+authority = "authorized"
+basis_refs = ["assumption://A-001"]
+
+[[judgment]]
+id = "J-002"
+kind = "residual_risk_acceptance"
+statement = "Defining Objective achievement by the exit-slug Warrant is sufficient."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0055: if the assumption is false, the consequence is A phase whose exit Warrant is misnamed reports not_derivable rather than blocked, which is honest and easy to read past; Phase 1 does so today. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+authority = "authorized"
+basis_refs = ["assumption://A-002"]
+
+[[judgment]]
+id = "J-003"
+kind = "residual_risk_acceptance"
+statement = "A headline of zero satisfied will be read as the truth rather than as a broken tool."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0055: if the assumption is false, the consequence is A reader expecting a percentage dismisses the projection, and the one honest number in the system goes unread. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 (\"You should manually authorize each of the warrants. I give you my express permission to approve these things.\"); the decision is the owner's, the wording is the agent's."
+authority = "authorized"
+basis_refs = ["assumption://A-003"]

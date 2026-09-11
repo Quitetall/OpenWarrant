@@ -1,0 +1,11 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.18s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.10s
+────────────
+ Nextest run ID 2154a1f0-b49d-4d69-b445-73794bab3d8d with nextest profile: default
+    Starting 89 tests across 7 binaries
+────────────
+     Summary [   0.168s] 89 tests run: 89 passed, 0 skipped
+advisories ok, bans ok, licenses ok, sources ok
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.12s
+     Running `target/debug/wmd-sim-cli --ticks 128 --seed 1`
+ticks=128 seed=1 checksum=43d30892d2718e1959a4fef41bac9bf7e8dbf594d8cbec585934343c0631ca48

@@ -1,0 +1,14 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.17s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.09s
+────────────
+ Nextest run ID 211918eb-b32b-470d-9feb-370a0e23ac72 with nextest profile: default
+    Starting 104 tests across 7 binaries
+────────────
+     Summary [   0.168s] 104 tests run: 104 passed, 0 skipped
+advisories ok, bans ok, licenses ok, sources ok
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.35s
+     Running `target/debug/wmd-sim-cli --ticks 128 --seed 1`
+ticks=128 seed=1 checksum=43d30892d2718e1959a4fef41bac9bf7e8dbf594d8cbec585934343c0631ca48

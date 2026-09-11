@@ -1,0 +1,19 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-001"
+band: "manual_revision"
+reason: "OW-WAR-0040's OBL-002 requires byte-identical parity over the whole corpus and refuses on one recorded difference. Liminal reported on 2026-09-03 that it has no chosen production Markdown frontend, and that the surveyed candidate (tree-sitter-md 0.5.3) was rejected in their own DG17.1 because upstream warns its Markdown output retains known inaccuracies and it has no lossless native serializer. A zero-difference byte claim over an unchosen parser may be unmeetable in principle, and a gate nobody can pass is a worse defect than a gate that is merely hard: it reads as rigour until it blocks forever. The owner decided on 2026-09-03 to KEEP the zero threshold and close the exposure from the other end, by choosing a frontend that can be byte-faithful over this bounded corpus — because the moment differences are negotiable, parity stops being a measurement and becomes a judgment made by whoever wants cutover, which is the pressure SAS 82.4 exists to resist. The owner additionally adopted semantic IR comparison as a SECOND declared observable: byte parity says whether two adapters agree and cannot say how they disagree, so a difference is today a bare refusal with no diagnosis attached. This amendment records both. It strengthens the obligation and relaxes nothing. The decision is the owner's; the wording is the performer `claude`'s."
+governing_adr_or_policy: "sas://WAR-SAS-82.3"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. No artifact changes and no evidence is invalidated: nothing has yet been compared, so no parity claim exists that the amended obligation would judge differently. The assurance atom's OBL-002 gains the second observable and the pre-declaration condition, the contract digest moves, and revision 2 is authorized against the amended contract."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-04"
+
+semantic_diff:
+  - element: "obligations"
+    before: "OBL-002 requires byte-identical parity over every Warrant and ADR, with the count asserted, and refuses on one recorded difference."
+    after: "OBL-002 keeps that threshold unchanged and adds a second declared observable: a semantic IR comparison over fields enumerated in advance, which locates a difference rather than only detecting one. Zero is required on BOTH. The semantic set is declared before the comparison run, exactly as the byte observables are, and it never substitutes for the byte comparison when the two disagree."
+
+affected_stages: []
+affected_milestones: []

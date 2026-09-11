@@ -1,0 +1,50 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0003"
+title = "Implement the canonical WAR IR and RFC 8785 digesting"
+assurance_level = "controlled"
+contract_digest = "d5f59ab8d66ecb6b4406865c8a9af86a831fc28e01bd87acf7e12b3b064c5334"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-000"
+statement = "the canonicalization library is selected by ADR and license-cleared"
+
+[[obligations]]
+id = "OBL-001"
+statement = "a valid Basis lowers to the IR"
+
+[[obligations]]
+id = "OBL-002"
+statement = "canonical output conforms to RFC 8785"
+
+[[obligations]]
+id = "OBL-003"
+statement = "digests are domain-separated"
+
+[[obligations]]
+id = "OBL-004"
+statement = "canonical output is host-independent"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Same-host determinism is sufficient evidence for the canonicalization claim, per OBL-004's stated limitation."
+consequence_if_false = "A second architecture disagrees on canonical bytes and every cross-system digest computed before that point is wrong."
+judgment_ref = ""
+
+[[residual_risks]]
+assumption_id = "A-002"
+statement = "Leaving the decision profile unexercised does not weaken the IR claim."
+consequence_if_false = "The IR is proven only against delivery Warrants, and a decision Warrant lowers wrongly the first time one is written."
+judgment_ref = ""
+

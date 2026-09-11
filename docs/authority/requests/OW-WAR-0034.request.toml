@@ -1,0 +1,36 @@
+schema = "oh.war/authorization-request/v1"
+warrant = "OW-WAR-0034"
+title = "Implement the agent protocol and Draft Proposal validation"
+assurance_level = "basic"
+contract_digest = "02e25660c20a8e82e336375425f72edbd20aef17b4021096767e93659eedd1ca"
+contract_coverage = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+proposer = "claude"
+eligible_authorizers = []
+
+[[obligations]]
+id = "OBL-001"
+statement = "proposals are typed"
+
+[[obligations]]
+id = "OBL-002"
+statement = "validation precedes application"
+
+[[obligations]]
+id = "OBL-003"
+statement = "no write path in the agent crate"
+
+[[residual_risks]]
+assumption_id = "A-001"
+statement = "Validating a Draft Proposal's form is a useful check on agent output."
+consequence_if_false = "A well-formed proposal to do the wrong thing passes every check here."
+judgment_ref = ""
+
