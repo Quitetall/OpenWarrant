@@ -1,0 +1,31 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "The lock is an expressible, digested basis input"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-002"]
+  - id: "M2"
+    title: "Every malformed pin is refused with a named rule"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-003"]
+  - id: "M3"
+    title: "Independent verification and human disposition"
+    depends_on: ["M2"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-004"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Add the digest domain and the lock schema"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+  - id: "STAGE-002"
+    title: "Plant each refusal and run the battery"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+  - id: "STAGE-003"
+    title: "Blind verification by a session that did not draft this"
+    executor_kind: "agent"
+    responsibility_tier: "T1"
