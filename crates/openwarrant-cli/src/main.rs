@@ -25,7 +25,9 @@ mod journal_cmd;
 mod kf;
 mod migrate;
 mod new;
+mod next;
 mod output;
+mod pins;
 mod relations;
 mod repo;
 mod resolution_cmd;
@@ -487,6 +489,17 @@ enum Command {
         command: SasCommand,
     },
 
+    /// Every file a Warrant's `deliverables.toml` pins, with the Warrant's
+    /// state — ask BEFORE editing; a resolved Warrant's pin moves only through
+    /// `war correct` (OW-WAR-0064).
+    Pins {
+        /// Only pins held by a resolution.
+        #[arg(long)]
+        resolved_only: bool,
+    },
+    /// What should happen next, and whose act it is. An agent is never handed
+    /// a signing act; it is told that a human must sign, and how.
+    Next,
     /// Where the corpus stands, from records (§17.5 `status`; §34.3; §98).
     ///
     /// Bare `war status` is the corpus projection. `war status <alias>` is the
@@ -1086,6 +1099,28 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 SasCommand::Diff { candidate } => ready(sas::diff(&repository, &candidate)?),
                 SasCommand::Status => ready(sas::status(&repository)?),
             }
+        }
+        Command::Pins { resolved_only } => {
+            let repository = repo::Repository::discover(None)?;
+            let pins = pins::list(&repository, resolved_only)?;
+            output::emit(
+                mode,
+                "pins",
+                pins::render(&pins).trim_end(),
+                output::value(&pins),
+            );
+            Ok(EXIT_OK)
+        }
+        Command::Next => {
+            let repository = repo::Repository::discover(None)?;
+            let next = next::run(&repository)?;
+            output::emit(
+                mode,
+                "next",
+                next::render(&next).trim_end(),
+                output::value(&next),
+            );
+            Ok(EXIT_OK)
         }
         Command::Status { alias } => {
             let repository = repo::Repository::discover(None)?;
