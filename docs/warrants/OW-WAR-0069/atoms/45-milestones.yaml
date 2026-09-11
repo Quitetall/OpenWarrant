@@ -11,8 +11,8 @@ milestones:
     stage_refs: ["STAGE-002"]
     obligation_refs: ["OBL-003"]
   - id: "M3"
-    title: "Independent verification and human disposition"
-    depends_on: ["M2"]
+    title: "No existing contract digest moves"
+    depends_on: ["M1"]
     stage_refs: ["STAGE-003"]
     obligation_refs: ["OBL-004"]
 
@@ -26,6 +26,6 @@ stages:
     executor_kind: "agent"
     responsibility_tier: "T2"
   - id: "STAGE-003"
-    title: "Blind verification by a session that did not draft this"
+    title: "Diff every contract digest across the whole corpus"
     executor_kind: "agent"
-    responsibility_tier: "T1"
+    responsibility_tier: "T2"

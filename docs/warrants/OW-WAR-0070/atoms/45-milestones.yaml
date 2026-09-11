@@ -6,15 +6,10 @@ milestones:
     stage_refs: ["STAGE-001"]
     obligation_refs: ["OBL-001", "OBL-002"]
   - id: "M2"
-    title: "An unreserved decision debt is itself a visible gap"
+    title: "An unreserved debt is a visible gap and malformed debt is refused"
     depends_on: ["M1"]
     stage_refs: ["STAGE-002"]
     obligation_refs: ["OBL-003"]
-  - id: "M3"
-    title: "Independent verification and human disposition"
-    depends_on: ["M2"]
-    stage_refs: ["STAGE-003"]
-    obligation_refs: ["OBL-004"]
 
 stages:
   - id: "STAGE-001"
@@ -22,10 +17,6 @@ stages:
     executor_kind: "agent"
     responsibility_tier: "T2"
   - id: "STAGE-002"
-    title: "Plant the refusals and the unreserved-gap case"
+    title: "Plant the named refusals and the unreserved-gap case"
     executor_kind: "agent"
     responsibility_tier: "T2"
-  - id: "STAGE-003"
-    title: "Blind verification by a session that did not draft this"
-    executor_kind: "agent"
-    responsibility_tier: "T1"

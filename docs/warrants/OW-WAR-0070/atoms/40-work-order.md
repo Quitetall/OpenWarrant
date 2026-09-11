@@ -24,17 +24,24 @@ classification: internal
 2. A typed value for the existing §36.3 `resolution_requirement` covering the
    decision case, so decision debt is distinguishable from other blocking
    unknowns by field rather than by prose.
-3. Validation: every `bound_to` ref must resolve to a node that exists and the
-   list must be non-empty; a `future_ref`
-   naming a decision record that already exists and is accepted is a
-   contradiction and is refused — debt that is already paid is not debt.
+3. Validation, with each refusal named so the plants and this order agree:
+   - `rationale.bound-to-empty` — the list is empty. A debt that blocks nothing
+     is a statement about nothing, and is malformed rather than unreserved.
+   - `rationale.bound-to-unresolved` — a ref does not resolve. `war://<uuid>#<STAGE-id>`
+     needs a cross-Warrant lookup; `roadmap://<NS>-PHASE-N/<slug>` parses through
+     `openwarrant_core::sas::section_98` and `RoadmapRef::parse` in
+     `traceability.rs`, both of which already exist.
+   - `rationale.future-ref-already-accepted` — `future_ref` names a decision
+     record that exists and is accepted. Debt already paid is not debt.
 4. Surfacing in the slice D1 Gaps view: rows group by `external_dependency` and
    sort by the earliest `bound_to`. A row whose `resolution_requirement` is `adr`
    and which names no `future_ref` renders as an unreserved gap.
 5. `conformance/plants.d/70-*.sh` for each refusal and for the unreserved-gap
    case, using `lib.sh` from the base branch.
-6. A SAS revision narrating the decision case under §36.3, plus an ADR if U-001
-   resolves that one is required.
+6. A SAS revision narrating the decision case under §36.3, plus an ADR, retained
+   on the reviewing session's reader determination that §101.3 applies. §101.3 is
+   applied at SAS acceptance, which is the owner's act; if the owner determines
+   otherwise the ADR deliverable is dropped.
 
 ## Allowed surfaces
 
