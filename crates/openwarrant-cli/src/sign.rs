@@ -18,9 +18,19 @@
 //! - **It refuses without a terminal.** An agent's shell has no TTY, so the
 //!   command cannot be run from inside one. This is a speed bump against an
 //!   agent completing the loop by accident or by "helpfulness", not a
-//!   cryptographic guarantee; a pseudo-terminal defeats it. The stronger form
-//!   is `--ssh-sign`, deferred, which binds the digest to a key the agent does
-//!   not hold.
+//!   cryptographic guarantee; a pseudo-terminal defeats it.
+//! - **`--ssh-sign` is the stronger form, and the one that works from inside
+//!   an agent session.** Measured: Claude Code's `!` prefix runs in the agent's
+//!   own shell and has no TTY, so the terminal path refuses it — correctly, and
+//!   uselessly for a human sitting in that session. `--ssh-sign` signs the
+//!   response file's bytes with `ssh-keygen -Y sign` under namespace
+//!   `oh.war/response`, verifies at once against a human-written
+//!   `docs/authority/allowed_signers`, and refuses if it does not verify. No
+//!   prompt, no TTY: the human act is the ssh agent's confirmation dialog,
+//!   which exists only if the key was loaded with `ssh-add -c`. Without `-c`
+//!   the AI agent's shell can reach the same socket and sign as the human, and
+//!   `war` cannot tell the two apart. That is the one thing the operator must
+//!   get right, and the docs say so where the key is configured.
 //! - **It shows what is being signed, not the TOML.** Title, revision, what
 //!   changed (for an amendment), obligations, every residual risk with its
 //!   consequence, the digest. Those are the things the signer is accepting.
@@ -70,6 +80,12 @@ use crate::{
 /// journal so a later reader can tell a terminal confirmation from a
 /// hand-written file — or, later, from an ssh signature.
 pub const CHANNEL_TTY: &str = "tty";
+/// Signed with `ssh-keygen -Y sign`; the `.sig` sidecar beside the response
+/// verifies against `docs/authority/allowed_signers`.
+pub const CHANNEL_SSH: &str = "ssh";
+/// The `-n` namespace every signature is made and verified under. A signature
+/// made for another purpose with the same key does not verify here.
+pub const SSH_NAMESPACE: &str = "oh.war/response";
 
 /// One act awaiting a human.
 #[derive(Debug)]
@@ -122,6 +138,13 @@ pub struct Options {
     /// Render the screen and stop: no prompt, no terminal needed, nothing
     /// written. For reading what a signature would say from anywhere.
     pub show: bool,
+    /// Sign the response file with the actor's ssh key via `ssh-keygen -Y
+    /// sign`, verified at once against `docs/authority/allowed_signers`. No
+    /// terminal needed: the human act is the agent's confirmation dialog
+    /// (`ssh-add -c`), which no shell can answer.
+    pub ssh_sign: bool,
+    /// Verify an existing response's `.sig` sidecar and stop. Writes nothing.
+    pub verify: bool,
 }
 
 impl Default for Options {
@@ -138,6 +161,19 @@ impl Default for Options {
             edit: false,
             all: false,
             show: false,
+            ssh_sign: false,
+            verify: false,
+        }
+    }
+}
+
+impl Options {
+    /// Which channel a signature made under these options records.
+    fn channel(&self) -> &'static str {
+        if self.ssh_sign {
+            CHANNEL_SSH
+        } else {
+            CHANNEL_TTY
         }
     }
 }
@@ -454,7 +490,7 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
                 policy_basis: None,
                 independence: opts.independence,
                 judgment,
-                signed_via: Some(CHANNEL_TTY.to_owned()),
+                signed_via: Some(opts.channel().to_owned()),
             };
             Ok(Drafted::Authorize(response))
         }
@@ -729,7 +765,164 @@ fn retire_prior(final_path: &Utf8Path, current_digest: &str) -> Result<(), Strin
     }
     std::fs::rename(final_path, &archived)
         .map_err(|e| format!("could not retire {final_path} to {archived}: {e}"))?;
+    // A signature travels with the file it signs.
+    let sig = sig_path(final_path);
+    if sig.is_file() {
+        let archived_sig = sig_path(&archived);
+        std::fs::rename(&sig, &archived_sig)
+            .map_err(|e| format!("could not retire {sig} to {archived_sig}: {e}"))?;
+    }
     Ok(())
+}
+
+/// The public key line for a principal in `docs/authority/allowed_signers`,
+/// as `"<keytype> <base64>"`. OpenSSH's format: `principals [options] keytype
+/// base64 [comment]`, one per line, `#` comments. Exactly one line may name
+/// the principal: `ssh-keygen -Y verify` would accept any of several, so two
+/// lines is refused here as a misconfiguration rather than resolved by order.
+fn pubkey_for_principal(allowed_signers: &str, principal: &str) -> Result<String, String> {
+    let matches: Vec<String> = allowed_signers
+        .lines()
+        .map(str::trim)
+        .filter(|l| !l.is_empty() && !l.starts_with('#'))
+        .filter_map(|l| {
+            let mut fields = l.split_whitespace();
+            let principals = fields.next()?;
+            if !principals.split(',').any(|p| p == principal) {
+                return None;
+            }
+            // Skip `key=value` options until the key type. A key type is a bare
+            // token: an option VALUE that happens to start with `ssh-` still
+            // carries its `=` and is not one.
+            let rest: Vec<&str> = fields.collect();
+            let start = rest.iter().position(|f| {
+                !f.contains('=')
+                    && (f.starts_with("ssh-") || f.starts_with("sk-") || f.starts_with("ecdsa-"))
+            })?;
+            let keytype = rest.get(start)?;
+            let b64 = rest.get(start + 1)?;
+            Some(format!("{keytype} {b64}"))
+        })
+        .collect();
+    match matches.as_slice() {
+        [] => Err(format!(
+            "no key for principal {principal:?}; add one by hand"
+        )),
+        [one] => Ok(one.clone()),
+        // `ssh-keygen -Y verify` would accept ANY of them. Two lines for one
+        // principal means one of them is not the human's, or the file was
+        // edited twice; either way it is a misconfiguration to refuse, not a
+        // choice to make silently by line order.
+        many => Err(format!(
+            "{} lines name principal {principal:?}; exactly one is required — a duplicate \
+             principal is a misconfiguration, not a fallback",
+            many.len()
+        )),
+    }
+}
+
+/// Sign `file` as `principal` and verify the result. Returns the `.sig` path.
+///
+/// The private key is never touched here: `ssh-keygen -Y sign -f <pubkey>`
+/// asks the agent for it, and an agent loaded with `ssh-add -c` asks the human
+/// through a confirmation dialog no shell can answer. `war` cannot check that
+/// `-c` was used — that is the one thing the operator must get right, and the
+/// docs say so. Verification against the allowed_signers file happens before
+/// anything is renamed, so a signature that does not verify writes nothing.
+fn ssh_sign_file(
+    allowed_signers: &Utf8Path,
+    principal: &str,
+    file: &Utf8Path,
+) -> Result<Utf8PathBuf, String> {
+    let text = std::fs::read_to_string(allowed_signers).map_err(|e| {
+        format!("{allowed_signers}: {e}. --ssh-sign needs that file, written by a human")
+    })?;
+    let pubkey = pubkey_for_principal(&text, principal)
+        .map_err(|why| format!("{allowed_signers}: {why}"))?;
+    // Unique per process so two signers of one file cannot delete each other's
+    // key mid-sign, and named so a stray one (crash between write and cleanup)
+    // reads as a temp file, not an authority artifact.
+    let pub_path = Utf8PathBuf::from(format!("{file}.{}.tmp.pub", std::process::id()));
+    std::fs::write(&pub_path, format!("{pubkey} {principal}\n"))
+        .map_err(|e| format!("could not write {pub_path}: {e}"))?;
+    let sign = std::process::Command::new("ssh-keygen")
+        .args(["-Y", "sign", "-f"])
+        .arg(&pub_path)
+        .args(["-n", SSH_NAMESPACE])
+        .arg(file)
+        .output();
+    let _ = std::fs::remove_file(&pub_path);
+    let out = sign.map_err(|e| format!("could not run ssh-keygen: {e}"))?;
+    if !out.status.success() {
+        return Err(format!(
+            "ssh-keygen -Y sign refused ({}): {}",
+            out.status,
+            String::from_utf8_lossy(&out.stderr).trim()
+        ));
+    }
+    let sig = sig_path(file);
+    if !sig.is_file() {
+        return Err(format!(
+            "ssh-keygen reported success but {sig} does not exist"
+        ));
+    }
+    if let Err(why) = ssh_verify_file(allowed_signers, principal, file) {
+        let _ = std::fs::remove_file(&sig);
+        return Err(why);
+    }
+    Ok(sig)
+}
+
+/// `ssh-keygen -Y verify` of `file` against its `.sig` sidecar.
+fn ssh_verify_file(
+    allowed_signers: &Utf8Path,
+    principal: &str,
+    file: &Utf8Path,
+) -> Result<(), String> {
+    let sig = sig_path(file);
+    let input = std::fs::File::open(file).map_err(|e| format!("could not open {file}: {e}"))?;
+    let out = std::process::Command::new("ssh-keygen")
+        .args(["-Y", "verify", "-f"])
+        .arg(allowed_signers)
+        .args(["-I", principal, "-n", SSH_NAMESPACE, "-s"])
+        .arg(&sig)
+        .stdin(input)
+        .output()
+        .map_err(|e| format!("could not run ssh-keygen: {e}"))?;
+    if out.status.success() {
+        Ok(())
+    } else {
+        Err(format!(
+            "signature on {file} does not verify as {principal} ({}): {}",
+            out.status,
+            String::from_utf8_lossy(&out.stderr).trim()
+        ))
+    }
+}
+
+/// `<file>.sig`, what `ssh-keygen -Y sign` writes beside its input.
+fn sig_path(file: &Utf8Path) -> Utf8PathBuf {
+    Utf8PathBuf::from(format!("{file}.sig"))
+}
+
+/// The ssh principal the register names for an actor.
+fn principal_of(repo: &Repository, actor: &str) -> Result<String, String> {
+    let register = repo.load_authority_register().map_err(|e| e.to_string())?;
+    register
+        .assignments
+        .iter()
+        .find(|a| a.actor == actor)
+        .and_then(|a| a.ssh_principal.clone())
+        .ok_or_else(|| {
+            format!(
+                "{actor} has no `ssh_principal` in docs/authority/roles.toml; --ssh-sign needs \
+                 one, and only a human writes that file"
+            )
+        })
+}
+
+fn allowed_signers_path(repo: &Repository) -> Utf8PathBuf {
+    repo.root.join("docs/authority/allowed_signers")
 }
 
 fn signed_path(draft: &Utf8Path) -> Utf8PathBuf {
@@ -778,7 +971,10 @@ fn edit(path: &Utf8Path) -> Result<(), RepoError> {
 /// reads without a terminal, because it writes nothing and asks nothing.
 pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Report, RepoError> {
     let mut report = Report::default();
-    if !opts.show && !at_a_terminal() {
+    if opts.verify {
+        return verify_existing(repo, target, opts);
+    }
+    if !opts.show && !opts.ssh_sign && !at_a_terminal() {
         report.push(Diagnostic::error(
             "sign.no-tty",
             "war sign".to_owned(),
@@ -856,8 +1052,35 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
         if opts.edit {
             edit(&draft_path)?;
         }
-        println!("{}", screen(p, &actor, role(p)).trim_end_matches("[y/N] "));
-        if !confirm(&format!("└ Sign as {actor} ({})? [y/N] ", role(p)))? {
+        let confirmed = if opts.ssh_sign {
+            // No prompt: the confirmation is the agent's dialog. The screen is
+            // still printed so the signer sees what the dialog is for.
+            println!("{}", screen(p, &actor, role(p)).trim_end_matches("[y/N] "));
+            println!(
+                "└ Signing as {actor} ({}) with ssh — confirm in the agent's dialog",
+                role(p)
+            );
+            let principal = match principal_of(repo, &actor) {
+                Ok(pr) => pr,
+                Err(why) => {
+                    let _ = std::fs::remove_file(&draft_path);
+                    report.push(Diagnostic::error("sign.ssh-principal", line(p), why));
+                    continue;
+                }
+            };
+            match ssh_sign_file(&allowed_signers_path(repo), &principal, &draft_path) {
+                Ok(_) => true,
+                Err(why) => {
+                    let _ = std::fs::remove_file(&draft_path);
+                    report.push(Diagnostic::error("sign.ssh-refused", line(p), why));
+                    continue;
+                }
+            }
+        } else {
+            println!("{}", screen(p, &actor, role(p)).trim_end_matches("[y/N] "));
+            confirm(&format!("└ Sign as {actor} ({})? [y/N] ", role(p)))?
+        };
+        if !confirmed {
             // A declined signature leaves nothing that later reads as one. The
             // draft's NAME already says it is not a response; a cleanup that
             // fails is reported rather than swallowed, so the operator knows a
@@ -888,6 +1111,16 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
             context: format!("could not move {draft_path} to {path}"),
             source,
         })?;
+        // The signature covers the BYTES, so renaming the file it signs does
+        // not invalidate it; the sidecar just follows.
+        let draft_sig = sig_path(&draft_path);
+        if draft_sig.is_file() {
+            let sig = sig_path(&path);
+            std::fs::rename(&draft_sig, &sig).map_err(|source| RepoError::Io {
+                context: format!("could not move {draft_sig} to {sig}"),
+                source,
+            })?;
+        }
         let ingested = match (p, &drafted) {
             (Pending::Authorize { alias, .. }, _) => authorize::ingest(repo, alias, &path)?,
             (Pending::Resolve { alias, .. }, _) => resolution_cmd::ingest(repo, alias, &path)?,
@@ -913,6 +1146,16 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
                     .trim_end_matches(".response.toml")
             ));
             let moved = std::fs::rename(&path, &refused);
+            if moved.is_ok()
+                && sig_path(&path).is_file()
+                && let Err(e) = std::fs::rename(sig_path(&path), sig_path(&refused))
+            {
+                report.push(Diagnostic::warn(
+                    "sign.refused",
+                    line(p),
+                    format!("the .sig sidecar could not follow to {refused}: {e}"),
+                ));
+            }
             report.push(Diagnostic::warn(
                 "sign.refused",
                 line(p),
@@ -929,10 +1172,229 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
     Ok(report)
 }
 
+/// `war sign <target> --verify`: check a recorded response's signature against
+/// the allowed_signers file as it stands NOW. Writes nothing. A response with
+/// no `.sig` is reported as unsigned, not as failing — `signed_via = "tty"`
+/// responses have none by design.
+fn verify_existing(
+    repo: &Repository,
+    target: Option<&str>,
+    opts: &Options,
+) -> Result<Report, RepoError> {
+    let mut report = Report::default();
+    let Some(t) = target else {
+        report.push(Diagnostic::error(
+            "sign.no-target",
+            "war sign --verify".to_owned(),
+            "name a Warrant alias or `SAS-<version>`".to_owned(),
+        ));
+        return Ok(report);
+    };
+    // A SAS target is one the revision records know, not one that looks like a
+    // version; the namespace prefix is the repository's, not a literal.
+    let bare = t.strip_prefix("SAS-").unwrap_or(t);
+    // Unreadable revision records must not fail a WARRANT verify; they only
+    // decide whether a bare version string is a SAS target.
+    let is_sas = t.starts_with("SAS-")
+        || repo
+            .load_sas_revisions()
+            .map(|revs| revs.iter().any(|r| r.version == bare))
+            .unwrap_or(false);
+    let stem = if is_sas {
+        format!("SAS-{bare}")
+    } else {
+        t.to_owned()
+    };
+    let path = repo
+        .root
+        .join("docs/authority/responses")
+        .join(format!("{stem}.response.toml"));
+    if !path.is_file() {
+        report.push(Diagnostic::error(
+            "sign.no-response",
+            path.to_string(),
+            format!("{t}: no recorded response to verify"),
+        ));
+        return Ok(report);
+    }
+    if !sig_path(&path).is_file() {
+        report.push(Diagnostic::warn(
+            "sign.unsigned",
+            path.to_string(),
+            format!("{t}: the response carries no .sig sidecar (signed on a terminal, or by hand)"),
+        ));
+        return Ok(report);
+    }
+    let text = std::fs::read_to_string(&path).map_err(|source| RepoError::Io {
+        context: format!("could not read {path}"),
+        source,
+    })?;
+    let value: toml::Value =
+        toml::from_str(&text).map_err(|e| RepoError::Message(format!("{path}: {e}")))?;
+    // The signer is read from the SIGNED bytes — each response type names
+    // exactly one of these — never from a flag. A `--as` here would let the
+    // caller pick whichever principal makes the signature verify.
+    let actor = ["authorizer", "resolved_by", "accepted_by"]
+        .iter()
+        .find_map(|k| value.get(k).and_then(toml::Value::as_str))
+        .map(str::to_owned);
+    let Some(actor) = actor else {
+        report.push(Diagnostic::error(
+            "sign.who",
+            path.to_string(),
+            "the response names no signer (no authorizer, resolved_by or accepted_by); it \
+             cannot be verified as anyone"
+                .to_owned(),
+        ));
+        return Ok(report);
+    };
+    if let Some(claimed) = &opts.actor
+        && claimed != &actor
+    {
+        report.push(Diagnostic::error(
+            "sign.who",
+            path.to_string(),
+            format!(
+                "--as {claimed:?} but the signed response names {actor:?}; refusing to verify \
+                     against a different principal"
+            ),
+        ));
+        return Ok(report);
+    }
+    let principal = match principal_of(repo, &actor) {
+        Ok(pr) => pr,
+        Err(why) => {
+            report.push(Diagnostic::error(
+                "sign.ssh-principal",
+                path.to_string(),
+                why,
+            ));
+            return Ok(report);
+        }
+    };
+    match ssh_verify_file(&allowed_signers_path(repo), &principal, &path) {
+        Ok(()) => report.push(Diagnostic::pass(
+            "sign.verified",
+            format!("{t}: signature verifies as {principal} ({actor}) under {SSH_NAMESPACE}"),
+        )),
+        Err(why) => report.push(Diagnostic::error(
+            "sign.not-verified",
+            path.to_string(),
+            why,
+        )),
+    }
+    Ok(report)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::authorize::{RequestedObligation, RequestedResidualRisk};
+
+    #[test]
+    fn a_principal_is_found_by_name_past_options_and_among_a_list() {
+        let f = "# comment\n\
+                 alice namespaces=\"oh.war/response\" ssh-ed25519 AAAAalice alice@host\n\
+                 bob,carol ssh-ed25519 AAAAbob\n\
+                 dave sk-ssh-ed25519@openssh.com AAAAdave\n";
+        assert_eq!(
+            pubkey_for_principal(f, "alice").unwrap(),
+            "ssh-ed25519 AAAAalice"
+        );
+        assert_eq!(
+            pubkey_for_principal(f, "carol").unwrap(),
+            "ssh-ed25519 AAAAbob"
+        );
+        assert_eq!(
+            pubkey_for_principal(f, "dave").unwrap(),
+            "sk-ssh-ed25519@openssh.com AAAAdave"
+        );
+        assert!(pubkey_for_principal(f, "erin").is_err());
+        assert!(
+            pubkey_for_principal(f, "ali").is_err(),
+            "no prefix matching"
+        );
+        // Two lines for one principal: refused, not first-wins.
+        let dup = "alice ssh-ed25519 AAAAreal\nalice ssh-ed25519 AAAAmallory\n";
+        let err = pubkey_for_principal(dup, "alice").unwrap_err();
+        assert!(err.contains("2 lines"), "{err}");
+        // An option whose value starts with `ssh-` is not a key type.
+        let opt = "alice cert-authority=ssh-ed25519 ssh-ed25519 AAAAalice\n";
+        assert_eq!(
+            pubkey_for_principal(opt, "alice").unwrap(),
+            "ssh-ed25519 AAAAalice"
+        );
+        // No recognisable key type at all: nothing found.
+        assert!(pubkey_for_principal("alice foo AAAA\n", "alice").is_err());
+    }
+
+    /// The whole pipeline against a throwaway key — sign, verify, and the
+    /// three ways it must refuse: wrong principal, a byte changed after
+    /// signing, and a key the allowed_signers file does not list. `ssh-keygen`
+    /// signs with `-f <private key>` directly here, so no agent is needed; the
+    /// agent (and its `-c` dialog) is the deployment, not the mechanism.
+    #[test]
+    fn ssh_sign_then_verify_and_every_refusal() {
+        let dir = camino::Utf8PathBuf::from_path_buf(std::env::temp_dir())
+            .unwrap()
+            .join(format!("war-sign-ssh-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let key = dir.join("id");
+        let generated = std::process::Command::new("ssh-keygen")
+            .args(["-q", "-t", "ed25519", "-N", "", "-C", "test", "-f"])
+            .arg(&key)
+            .status()
+            .expect("ssh-keygen present");
+        assert!(generated.success());
+        let pubkey = std::fs::read_to_string(dir.join("id.pub")).unwrap();
+        let allowed = dir.join("allowed_signers");
+        std::fs::write(
+            &allowed,
+            format!("tester namespaces=\"{SSH_NAMESPACE}\" {pubkey}"),
+        )
+        .unwrap();
+
+        let file = dir.join("OW-WAR-0001.draft.toml");
+        std::fs::write(&file, "schema = \"x\"\ncontract_digest = \"ab\"\n").unwrap();
+        // Sign with the private key directly (the pub file the helper writes
+        // would route through an agent; here we call ssh-keygen ourselves to
+        // produce the sidecar, then exercise OUR verify path on it).
+        let s = std::process::Command::new("ssh-keygen")
+            .args(["-Y", "sign", "-f"])
+            .arg(&key)
+            .args(["-n", SSH_NAMESPACE])
+            .arg(&file)
+            .status()
+            .unwrap();
+        assert!(s.success());
+        assert!(sig_path(&file).is_file());
+        ssh_verify_file(&allowed, "tester", &file).expect("verifies");
+
+        // Wrong principal: refused.
+        assert!(ssh_verify_file(&allowed, "someone", &file).is_err());
+        // Renaming does not break it — the signature is over bytes.
+        let renamed = dir.join("OW-WAR-0001.response.toml");
+        std::fs::rename(&file, &renamed).unwrap();
+        std::fs::rename(sig_path(&file), sig_path(&renamed)).unwrap();
+        ssh_verify_file(&allowed, "tester", &renamed).expect("still verifies");
+        // One byte changed after signing: refused.
+        std::fs::write(&renamed, "schema = \"x\"\ncontract_digest = \"ac\"\n").unwrap();
+        assert!(ssh_verify_file(&allowed, "tester", &renamed).is_err());
+        // A key allowed_signers does not list: refused at sign time by name.
+        assert!(
+            ssh_sign_file(&allowed, "nobody", &renamed)
+                .unwrap_err()
+                .contains("no key for principal")
+        );
+        // No temp .pub left behind by any of the above.
+        let leftovers = std::fs::read_dir(&dir)
+            .unwrap()
+            .filter_map(Result::ok)
+            .filter(|e| e.file_name().to_string_lossy().ends_with(".tmp.pub"))
+            .count();
+        assert_eq!(leftovers, 0);
+        std::fs::remove_dir_all(dir).unwrap();
+    }
 
     fn authorize_pending(risks: usize) -> Pending {
         Pending::Authorize {

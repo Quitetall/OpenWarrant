@@ -54,6 +54,10 @@ roles = ["authorizer", "resolver", "risk_acceptor", "judge"]
 assigned_by = "your-name-here"
 effective_time = "2026-01-01T00:00:00Z"
 note = "Repository owner."
+# Optional. The principal this actor signs as in `allowed_signers` when using
+# `war sign --ssh-sign`. No spaces (OpenSSH's rule). Grants nothing by itself;
+# see allowed_signers.example for the `ssh-add -c` requirement.
+ssh_principal = "your-principal-here"
 
 # The agent is recorded as a performer and nothing else. This entry is not
 # required — an actor with no assignment simply has no authority — but writing it

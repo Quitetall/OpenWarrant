@@ -77,8 +77,26 @@ lets their pinned response types move.
 
 It **refuses without a terminal**: an agent's shell has none, so the drafting
 agent cannot run it (§27.2). That is a speed bump, not cryptography — a
-pseudo-terminal defeats it; `--ssh-sign` is the stronger form and is not built
-yet. There is no `--yes`, on purpose.
+pseudo-terminal defeats it. There is no `--yes`, on purpose.
+
+**From inside an agent session (Claude Code's `!`, a pipe, anywhere without a
+terminal), use the key instead:**
+
+```bash
+ssh-add -c ~/.ssh/id_ed25519            # ONCE per login: confirmation ON
+war sign OW-WAR-0030 --ssh-sign          # a dialog asks you; no prompt, no TTY
+war sign OW-WAR-0030 --verify            # later: does the .sig still verify?
+```
+
+`--ssh-sign` signs the response file's bytes with `ssh-keygen -Y sign` under
+namespace `oh.war/response`, verifies at once against
+`docs/authority/allowed_signers`, refuses if it does not verify, and writes a
+`.sig` sidecar beside the response. It needs `ssh_principal = "…"` on your
+`roles.toml` entry and a matching line in `allowed_signers` — both human-written
+(see `allowed_signers.example`). **The human act is the agent's confirmation
+dialog, which exists only if the key was loaded with `ssh-add -c`.** Without
+`-c`, the AI agent's shell can reach your agent socket and sign as you, and `war`
+cannot tell the difference. This is the one thing you must get right.
 
 **The long way**, which is what `war sign` does for you and which still works:
 

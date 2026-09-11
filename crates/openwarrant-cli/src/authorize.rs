@@ -630,6 +630,7 @@ mod tests {
                 assigned_by: "owner".to_owned(),
                 effective_time: "2026-08-25T00:00:00Z".to_owned(),
                 note: None,
+                ssh_principal: None,
             },
             RoleAssignment {
                 actor: "claude".to_owned(),
@@ -649,6 +650,7 @@ mod tests {
                 // fixture that withheld the roles would pass against an
                 // implementation that had no agent check at all.
                 note: Some("over-granted so the agent refusals are the reason".to_owned()),
+                ssh_principal: None,
             },
         ])
     }

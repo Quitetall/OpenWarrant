@@ -447,6 +447,15 @@ enum Command {
         /// nothing. Read this from anywhere; sign it from a terminal.
         #[arg(long)]
         show: bool,
+        /// Sign with your ssh key instead of a terminal prompt. Needs
+        /// `ssh_principal` on your roles.toml entry and a matching line in
+        /// docs/authority/allowed_signers. Load the key with `ssh-add -c` so
+        /// every signature asks YOU through a dialog; `war` cannot check that.
+        #[arg(long)]
+        ssh_sign: bool,
+        /// Verify a recorded response's .sig sidecar and stop. Writes nothing.
+        #[arg(long)]
+        verify: bool,
     },
 
     /// The SAS as a controlled document (§101): propose, accept, diff, status.
@@ -1120,6 +1129,8 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             independence,
             edit,
             show,
+            ssh_sign,
+            verify,
         } => {
             let repository = repo::Repository::discover(None)?;
             if list {
@@ -1166,6 +1177,8 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 edit,
                 all,
                 show,
+                ssh_sign,
+                verify,
             };
             let report = sign::run(&repository, target.as_deref(), &opts)?;
             check::print(&report);

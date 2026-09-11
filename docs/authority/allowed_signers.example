@@ -1,0 +1,36 @@
+# Who may sign a response with an ssh key (`war sign --ssh-sign`).
+#
+# Copy to `allowed_signers` and edit. Like `roles.toml`, this file is written by
+# a human in an editor and by nothing else: it is the list of keys whose
+# signatures this repository accepts, and a tool that wrote it could let an
+# agent add its own key.
+#
+# Format is OpenSSH's ALLOWED SIGNERS (see ssh-keygen(1), "-Y verify"):
+#
+#   <principal> [namespaces="oh.war/response"] <keytype> <base64> [comment]
+#
+# `principal` is the `ssh_principal` on the actor's `roles.toml` entry — a
+# separate name because OpenSSH permits no spaces here. The namespaces option
+# is optional but recommended: it means a signature this key made for any
+# other purpose does not verify as a response.
+#
+# ---------------------------------------------------------------------------
+# THE ONE THING `war` CANNOT CHECK
+# ---------------------------------------------------------------------------
+#
+# Load the key into your agent with confirmation ON:
+#
+#   ssh-add -c ~/.ssh/id_ed25519
+#
+# `-c` makes the agent ask YOU, through a dialog, every time the key is used.
+# That dialog is the human act; no shell — yours, or an agent's running inside
+# your session — can answer it. Without `-c`, any process that can reach the
+# agent socket can sign as you, and an AI agent's shell can reach it. `war`
+# has no way to tell whether the key was loaded with `-c`. Get this right.
+#
+# A hardware key (sk-ssh-ed25519@openssh.com) with touch required is the same
+# guarantee, held in silicon.
+#
+# ---------------------------------------------------------------------------
+
+brian namespaces="oh.war/response" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA...replace-with-your-key... brian@host
