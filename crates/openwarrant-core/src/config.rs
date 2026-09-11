@@ -214,6 +214,34 @@ pub struct AuthorityPolicy {
     pub allow_automated_resolution: bool,
 }
 
+/// §75.2's configured drafter: the process `war plan --draft` hands the
+/// request to. Absent means `war plan` emits the request and stops, which is
+/// the honest default — a seam with nothing on the other side says so.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PlanPolicy {
+    /// argv, not a shell string: an executable and its arguments, no shell
+    /// between them. Empty means no drafter is configured.
+    #[serde(default)]
+    pub drafter_argv: Vec<String>,
+    /// Wall-clock bound on one drafting run. 0 means the default (300).
+    #[serde(default)]
+    pub drafter_timeout_secs: u64,
+    /// Recorded in the journal as the proposing actor, e.g. `claude-code 2.1`.
+    #[serde(default)]
+    pub drafter_name: String,
+}
+
+impl PlanPolicy {
+    #[must_use]
+    pub fn timeout_secs(&self) -> u64 {
+        if self.drafter_timeout_secs == 0 {
+            300
+        } else {
+            self.drafter_timeout_secs
+        }
+    }
+}
+
 /// `openwarrant.toml` (§60).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryConfig {
@@ -226,6 +254,9 @@ pub struct RepositoryConfig {
     /// §27.3's standing permission. Absent means absent, which means no.
     #[serde(default)]
     pub policy: AuthorityPolicy,
+    /// §75.2 — the configured drafting process, if any.
+    #[serde(default)]
+    pub plan: PlanPolicy,
     /// §46.1's nine independence dimensions, for verification performed in this
     /// repository.
     ///
@@ -255,6 +286,7 @@ impl RepositoryConfig {
             // must never hand a fresh project the one setting that lets a
             // machine close its work.
             policy: AuthorityPolicy::default(),
+            plan: PlanPolicy::default(),
             independence: None,
         }
     }

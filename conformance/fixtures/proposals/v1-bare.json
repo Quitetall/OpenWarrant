@@ -1,0 +1,6 @@
+{
+  "api_version": "oh.war/draft-proposal/v1",
+  "atom_operations": [
+    "create_atom"
+  ]
+}

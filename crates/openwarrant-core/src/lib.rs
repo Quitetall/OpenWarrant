@@ -27,6 +27,7 @@ pub mod config;
 pub mod contract;
 pub mod correction;
 pub mod drafting;
+pub mod drafting_v2;
 pub mod epistemic;
 pub mod execution;
 pub mod frontmatter;

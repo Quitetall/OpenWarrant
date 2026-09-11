@@ -124,6 +124,9 @@ pub fn derive(pending: &[Pending], status: &openwarrant_core::status::CorpusStat
                 command: format!("war check {}", w.alias),
                 why: "the manifest does not validate".to_owned(),
             }),
+            // A pending human act on this Warrant is the unblocker; an agent
+            // action beside it would be noise, so Draft is only an agent's when
+            // no human act is pending.
             R::Draft if !already_human => {
                 let unmet = w.unmet.join("; ");
                 actions.push(Action {
@@ -160,7 +163,9 @@ pub fn derive(pending: &[Pending], status: &openwarrant_core::status::CorpusStat
             why: format!("{} / {}: {}", s.milestone, s.stage, s.why),
         });
     }
-    debug_assert!(
+    // `assert!`, not `debug_assert!`: this invariant is the point of the
+    // command and must hold in a release-built test binary too.
+    assert!(
         actions
             .iter()
             .all(|a| a.actor != Actor::Agent || !a.command.starts_with("war sign")),

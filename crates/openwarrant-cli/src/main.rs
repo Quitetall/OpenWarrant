@@ -28,6 +28,7 @@ mod new;
 mod next;
 mod output;
 mod pins;
+mod plan;
 mod relations;
 mod repo;
 mod resolution_cmd;
@@ -233,18 +234,33 @@ enum Command {
     /// Emits the canonical request and stops: this build ships no agent, and a
     /// seam with nothing on the other side should say so rather than pretend.
     Plan {
-        /// What the Warrant should accomplish.
+        /// What the Warrant should accomplish. Ignored with --proposal.
+        #[arg(default_value = "")]
         request: String,
         #[arg(long, default_value = "delivery")]
         profile: String,
         #[arg(long, default_value = "basic")]
         assurance: String,
-        /// A Draft Proposal returned by an agent, to validate against §74.4.
+        /// A Draft Proposal returned by an agent (v2), to validate against §74.4.
         #[arg(long)]
         proposal: Option<Utf8PathBuf>,
         /// Record that §74.4 steps 5 and 6 (semantic diff, review) happened.
         #[arg(long)]
         reviewed: bool,
+        /// Hand the request to the drafter configured in `[plan] drafter_argv`
+        /// and read its proposal (§75.2). The process must not touch the tree.
+        #[arg(long)]
+        draft: bool,
+        /// Where `--draft` writes the proposal. Defaults to a scratch file.
+        #[arg(long)]
+        out: Option<Utf8PathBuf>,
+        /// An interview answer, `<question-id>=<text>` (§74.6). Repeatable.
+        #[arg(long = "answer")]
+        answers: Vec<String>,
+        /// Apply a reviewed proposal: create the Warrant and its atoms through
+        /// the seven §74.3 operations. Never a raw file write from the model.
+        #[arg(long)]
+        apply: bool,
     },
     /// Lower a computational Warrant's stage graph into a BLUT PlanSpec (§49).
     Blut {
@@ -834,95 +850,153 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             assurance,
             proposal,
             reviewed,
+            draft,
+            out,
+            answers,
+            apply,
         } => {
             let repository = repo::Repository::discover(None)?;
+            let answer_map: std::collections::BTreeMap<String, String> = answers
+                .iter()
+                .filter_map(|a| {
+                    a.split_once('=')
+                        .map(|(k, v)| (k.trim().to_owned(), v.to_owned()))
+                })
+                .collect();
+            let answered: std::collections::BTreeSet<String> = answer_map.keys().cloned().collect();
+            let req = plan::request(&repository, &request, &profile, &assurance, &answer_map)?;
 
-            // The return half of §75.2's seam: validate what an agent sent back.
-            if let Some(path) = proposal {
-                let json = std::fs::read_to_string(&path)
-                    .map_err(|e| repo::RepoError::Message(format!("cannot read {path}: {e}")))?;
-                // Every `war://` this corpus can resolve, so an invented one can
-                // be told from a real one by more than its shape.
-                //
-                // Built only when the proposal actually cites something. Loading
-                // the whole corpus to answer a question nobody asked is a cost
-                // every `war plan` would pay for the benefit of the few that
-                // carry relations.
-                let cites_relations = serde_json::from_str::<serde_json::Value>(&json)
-                    .ok()
-                    .and_then(|v| {
-                        v.get("proposed_relations")
-                            .and_then(|r| r.as_array().map(|a| !a.is_empty()))
-                    })
-                    .unwrap_or(false);
-
-                let mut known = std::collections::BTreeSet::new();
-                if cites_relations {
-                    for dir in repository.warrant_dirs()? {
-                        // A Warrant that fails to LOAD is not a Warrant that does
-                        // not exist. Swallowing the error here would report a real
-                        // reference as invented — the wrong diagnosis, and the
-                        // more alarming one, for a corrupt file.
-                        let loaded = repository.load_warrant(&dir).map_err(|e| {
-                            repo::RepoError::Message(format!(
-                                "cannot resolve proposal references: {} failed to load \
-                                 ({e}). Refusing to report a reference as invented when \
-                                 the corpus could not be read.",
-                                repository.relative(&dir)
-                            ))
+            // Where the proposal comes from: a file, or the configured drafter.
+            // A proposal written to the default scratch path is removed once
+            // `--apply` has recorded it under plan/; one the user named is theirs.
+            let scratch = out.is_none();
+            let (proposal_path, drafter_run) = match (proposal, draft) {
+                (Some(path), _) => (Some(path), None),
+                (None, true) => {
+                    let (json, run) = plan::run_drafter(&repository, &req)?;
+                    let path = out.unwrap_or_else(|| plan::default_out(&repository));
+                    if let Some(parent) = path.parent() {
+                        std::fs::create_dir_all(parent).map_err(|e| {
+                            repo::RepoError::Message(format!("cannot create {parent}: {e}"))
                         })?;
-                        if let Some(v) = loaded.validated {
-                            known.insert(format!("war://{}", v.uuid));
-                        }
                     }
+                    std::fs::write(&path, &json).map_err(|e| {
+                        repo::RepoError::Message(format!("cannot write {path}: {e}"))
+                    })?;
+                    eprintln!("{}", plan::scratch_note(&path));
+                    (Some(path), Some(run))
                 }
+                (None, false) => (None, None),
+            };
+
+            let Some(path) = proposal_path else {
+                // The request half: emit and stop.
+                if request.trim().is_empty() {
+                    return Err(Box::new(repo::RepoError::Message(
+                        "war plan needs a request sentence, or --proposal <file>".to_owned(),
+                    )));
+                }
+                let human = serde_json::to_string_pretty(&req).expect("request serializes");
+                output::emit(mode, "plan.request", &human, output::value(&req));
+                if repository.config.plan.drafter_argv.is_empty() {
+                    eprintln!(
+                        "\nNo drafter is configured. Hand this request to an agent speaking \
+                         `oh.war/agent-drafter/v1` (§75.2) and return its proposal with \
+                         `war plan --proposal <file>`; or set [plan] drafter_argv and use --draft."
+                    );
+                }
+                return Ok(EXIT_OK);
+            };
+
+            // The return half: the §74.4 gauntlet, then --apply.
+            let json = std::fs::read_to_string(&path)
+                .map_err(|e| repo::RepoError::Message(format!("cannot read {path}: {e}")))?;
+            let is_v1 = serde_json::from_str::<serde_json::Value>(&json)
+                .ok()
+                .and_then(|v| {
+                    v.get("api_version")
+                        .and_then(|a| a.as_str().map(str::to_owned))
+                })
+                .is_some_and(|a| a == "oh.war/draft-proposal/v1");
+            if is_v1 {
+                if apply {
+                    return Err(Box::new(repo::RepoError::Message(
+                        "plan.v1-has-no-payloads: a v1 proposal validates but its operations carry \
+                         no payload, so it cannot be applied. Return an oh.war/draft-proposal/v2"
+                            .to_owned(),
+                    )));
+                }
+                let known = plan::known_refs(&repository)?;
                 let (parsed, pipeline) = show::plan::validate_proposal(&json, reviewed, &known)?;
+                let mut report = diagnostic::Report::default();
                 match pipeline.may_apply() {
-                    Ok(()) => {
-                        println!(
-                            "draft proposal is applicable: {} atom operation(s), \
-                             {} ADR draft(s)",
+                    Ok(()) => report.push(diagnostic::Diagnostic::pass(
+                        "plan.applicable",
+                        format!(
+                            "v1 proposal is applicable in principle: {} operation(s), {} ADR draft(s) — but v1 carries no payloads; --apply needs v2",
                             parsed.atom_operations.len(),
                             parsed.proposed_adr_drafts.len()
-                        );
-                        Ok(EXIT_OK)
-                    }
-                    Err(e) => {
-                        // NOT an error exit for a well-formed proposal awaiting
-                        // review: §74.4 step 6 is a human step, and reporting
-                        // "not yet reviewed" as a failure would train people to
-                        // pass --reviewed to make the message go away.
-                        println!("draft proposal parsed and validated, but not applicable yet");
-                        println!("  {e}");
-                        Ok(EXIT_NOT_READY)
-                    }
+                        ),
+                    )),
+                    Err(e) => report.push(diagnostic::Diagnostic::warn(
+                        "plan.not-applicable",
+                        path.to_string(),
+                        format!("validated, not applicable yet: {e}"),
+                    )),
                 }
-            } else {
-                let req = show::plan::DraftRequest {
-                    api_version: "oh.war/draft-request/v1".to_owned(),
-                    user_request: request,
-                    namespace: repository.config.project.namespace.as_str().to_owned(),
-                    profile,
-                    assurance,
-                    existing_warrants: repository
-                        .warrant_dirs()?
-                        .iter()
-                        .filter_map(|d| d.file_name().map(ToOwned::to_owned))
-                        .collect(),
-                    existing_adrs: vec![],
-                };
-                println!(
-                    "{}",
-                    serde_json::to_string_pretty(&req).expect("request serializes")
-                );
-                eprintln!(
-                    "\nThis build ships no drafting agent. Pipe this request to one \
-                 speaking `war-agent --protocol oh.war/agent-drafter/v1` (§75.2), \
-                 then return its Draft Proposal with `war plan --proposal <file>`; \
-                 it must clear §74.4's eight steps before anything is written."
-                );
-                Ok(EXIT_OK)
+                let code = output::finish(mode, "plan.validate", &report, None);
+                return Ok(if code == EXIT_OK && pipeline.may_apply().is_err() {
+                    EXIT_NOT_READY
+                } else {
+                    code
+                });
             }
+            let known = plan::known_refs(&repository)?;
+            let (parsed, mut pipeline) = plan::validate_v2(&json, reviewed, &answered, &known)?;
+            if !apply {
+                let mut report = diagnostic::Report::default();
+                match pipeline.may_apply() {
+                    Ok(()) => report.push(diagnostic::Diagnostic::pass(
+                        "plan.applicable",
+                        format!(
+                            "proposal is applicable: {} operation(s); run again with --apply",
+                            parsed.operations.len()
+                        ),
+                    )),
+                    Err(e) => report.push(diagnostic::Diagnostic::warn(
+                        "plan.not-applicable",
+                        path.to_string(),
+                        format!("validated, not applicable yet: {e}"),
+                    )),
+                }
+                let ready = pipeline.may_apply().is_ok();
+                let code = output::finish(
+                    mode,
+                    "plan.validate",
+                    &report,
+                    Some(output::value(&pipeline)),
+                );
+                return Ok(if ready { code } else { EXIT_NOT_READY });
+            }
+            let (applied, report) = plan::apply(
+                &repository,
+                &parsed,
+                &mut pipeline,
+                &req,
+                drafter_run.as_ref(),
+                &json,
+            )?;
+            if scratch && drafter_run.is_some() {
+                // Recorded verbatim under plan/proposal.json; the scratch copy
+                // under generated/ would otherwise accumulate.
+                let _ = std::fs::remove_file(&path);
+            }
+            Ok(output::finish(
+                mode,
+                "plan.apply",
+                &report,
+                Some(output::value(&applied)),
+            ))
         }
         Command::Blut {
             alias,
@@ -1405,7 +1479,7 @@ mod tests {
     /// does not grow silently.
     #[test]
     fn every_subcommand_supports_json_or_is_listed_as_not_yet() {
-        const NOT_YET: &[&str] = &["init", "kf", "telemetry", "migrate", "export", "plan"];
+        const NOT_YET: &[&str] = &["init", "kf", "telemetry", "migrate", "export"];
         let cmd = super::Cli::command();
         let all: Vec<String> = cmd
             .get_subcommands()
