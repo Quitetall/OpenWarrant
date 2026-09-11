@@ -84,6 +84,16 @@ it did not reproduce.
 Do not describe the tree; describe the diff. A message claiming "5 manifests" when
 the diff contains 4 makes the log unusable as evidence.
 
+## Signing, and what it does not defend
+
+`war sign --ssh-sign` is only as strong as the ssh agent behind it: the key
+must be loaded with `ssh-add -c`, so every signature asks the human through
+the agent's confirmation dialog. `war` cannot verify that; it is the one
+thing the operator must get right. The full list — ten threats, each with
+its control, its residual, and the test or plant that exercises it — is
+[`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md). A change to a control changes
+that file in the same commit.
+
 ## Reporting bugs
 
 Open an issue with the exact command, the full output, and the toolchain version.

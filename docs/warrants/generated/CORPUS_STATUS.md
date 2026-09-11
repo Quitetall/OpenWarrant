@@ -10,7 +10,6 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 ## Read this first
 
 - Gate runs are read ONLY from each Warrant's committed `gate-runs/` (§44.6 receipts minted by `war evidence record`, bound to the contract digest they ran against). The gitignored `docs/receipts/` scratch path is never read, so this projection reproduces from a fresh clone. §56.1 requirement 5 reads unmet for every Warrant that has not recorded a run, which is a true state, not a caveat.
-- `docs/roadmap/PRODUCTION_ROADMAP.md` marks Warrants "resolved" 39 time(s). The Release axis above counts §56.2 records (`resolution.toml`), of which there are 29. The rest of those are hand-written claims, not records, and nothing above reads them.
 
 ## Release
 
@@ -64,7 +63,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | requirement | Warrants blocked |
 |---|---|
-| artifact digests verify | 12 |
+| artifact digests verify | 13 |
 | required deliverables exist | 8 |
 | no blocker remains | 4 |
 | no required unknown remains | 4 |
@@ -206,7 +205,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0057` The viewer: a static page over the corpus projection | resolved | would satisfy | 0 | 2 of 2 | — |
 | `OW-WAR-0058` Put the SAS under §101 governance: controlled revisions and the Release axis | resolved | would satisfy | 0 | 3 of 3 | — |
 | `OW-WAR-0059` Commit gate receipts as evidence and record the first resolutions | ready_to_resolve | NOT satisfied | 0 | 2 of 4 | — |
-| `OW-WAR-0060` Publish the corpus viewer: GitHub Pages from the committed projection | resolved | would satisfy | 0 | 2 of 2 | — |
+| `OW-WAR-0060` Publish the corpus viewer: GitHub Pages from the committed projection | resolved | would satisfy | 0 | 2 of 2 | artifact digests verify |
 | `OW-WAR-0061` Discharge the Phase 1 exit: OpenWarrant development uses WARs | resolved | would satisfy | 0 | 1 of 1 | — |
 | `OW-WAR-0062` Lock down the levels: what a SAS, a Warrant, and every other object are | resolved | would satisfy | 0 | 1 of 1 | — |
 | `OW-WAR-0063` Complete the conformance battery: the plants and tests the verifier named as missing | draft | NOT satisfied | 0 | 0 of 1 | exact authorized Contract Revision |

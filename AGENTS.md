@@ -193,3 +193,5 @@ thirteen and is wrong about eleven.
 - `war <command> --help` — every command documents the section it implements.
 - `CONTRIBUTING.md` — the gate, the toolchain pin, and the rules for changing
   this repository itself.
+- `docs/THREAT_MODEL.md` — what the signing path defends, what it leaves to
+  the operator, and which test or plant exercises each control.
