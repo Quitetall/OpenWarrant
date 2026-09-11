@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 plant "missing required atom" "manifest.invalid" "requires a milestones atom" 2 \
     "python3 - <<'EOF'
 import pathlib

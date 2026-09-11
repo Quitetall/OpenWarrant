@@ -14,6 +14,7 @@ mod blut;
 mod bonsai;
 mod check;
 mod compile;
+mod correct;
 mod diagnostic;
 mod dispatch;
 mod evidence;
@@ -265,6 +266,20 @@ enum Command {
     },
 
     /// Evaluate §56.1's thirteen resolution requirements without recording one.
+    /// Correct a delivered artifact of a RESOLVED Warrant (OW-WAR-0064): emit
+    /// the request naming the pinned digest and the file's digest now, or
+    /// ingest a human's signed correction. The pin in `deliverables.toml` is
+    /// never edited; the correction is appended beside it and the superseded
+    /// digest stays visible.
+    Correct {
+        /// The Warrant's local alias.
+        alias: String,
+        /// The deliverable id, e.g. `D-002`.
+        deliverable_id: String,
+        /// A human's signed correction to ingest. Without it, the request is emitted.
+        #[arg(long)]
+        response: Option<camino::Utf8PathBuf>,
+    },
     Resolve {
         /// The Warrant's local alias.
         alias: String,
@@ -456,6 +471,9 @@ enum Command {
         /// Verify a recorded response's .sig sidecar and stop. Writes nothing.
         #[arg(long)]
         verify: bool,
+        /// For a correction (`<alias>/<D-id>`): behaviour-change | added-refusal.
+        #[arg(long)]
+        kind: Option<String>,
     },
 
     /// The SAS as a controlled document (§101): propose, accept, diff, status.
@@ -891,6 +909,51 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 EXIT_NOT_READY
             })
         }
+        Command::Correct {
+            alias,
+            deliverable_id,
+            response,
+        } => {
+            let repository = repo::Repository::discover(None)?;
+            match response {
+                Some(path) => {
+                    let report = correct::ingest(&repository, &alias, &deliverable_id, &path)?;
+                    check::print(&report);
+                    Ok(if report.is_ready() {
+                        EXIT_OK
+                    } else {
+                        EXIT_NOT_READY
+                    })
+                }
+                None => {
+                    let request = correct::request(&repository, &alias, &deliverable_id)?;
+                    println!(
+                        "{}",
+                        toml::to_string_pretty(&request).map_err(|e| {
+                            repo::RepoError::Message(format!("could not render the request: {e}"))
+                        })?
+                    );
+                    if !request.resolved {
+                        eprintln!(
+                            "# {alias} is NOT resolved: regenerate deliverables.toml instead. A \
+                             correction is for a pin a resolution holds."
+                        );
+                        return Ok(EXIT_NOT_READY);
+                    }
+                    if !request.drift {
+                        eprintln!(
+                            "# {alias}/{deliverable_id}: the file is at the digest on record; nothing to correct."
+                        );
+                        return Ok(EXIT_NOT_READY);
+                    }
+                    eprintln!(
+                        "# {alias}/{deliverable_id}: {} → {} (correction {}). Sign with `war sign {alias}/{deliverable_id}`.",
+                        request.chain_head, request.current_digest, request.next_sequence
+                    );
+                    Ok(EXIT_OK)
+                }
+            }
+        }
         Command::Resolve {
             alias,
             dry_run,
@@ -1131,6 +1194,7 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             show,
             ssh_sign,
             verify,
+            kind,
         } => {
             let repository = repo::Repository::discover(None)?;
             if list {
@@ -1168,6 +1232,13 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     .into());
                 }
             };
+            let kind = kind
+                .as_deref()
+                .map(|s| {
+                    s.parse::<openwarrant_core::correction::CorrectionKind>()
+                        .map_err(|e| repo::RepoError::Message(format!("--kind: {e}")))
+                })
+                .transpose()?;
             let opts = sign::Options {
                 actor,
                 meaning,
@@ -1179,6 +1250,7 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 show,
                 ssh_sign,
                 verify,
+                kind,
             };
             let report = sign::run(&repository, target.as_deref(), &opts)?;
             check::print(&report);

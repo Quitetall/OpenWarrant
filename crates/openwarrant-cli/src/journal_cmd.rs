@@ -52,6 +52,10 @@ pub const AUTHORIZATION_RECORDED: &str = "authorization.recorded";
 pub const VERIFICATION_RECORDED: &str = "verification.recorded";
 pub const RECEIPT_ATTACHED: &str = "sync.receipt_attached";
 pub const RESOLUTION_RECORDED: &str = "resolution.recorded";
+/// OW-WAR-0064 — a delivered artifact superseded for a reason. The payload
+/// carries the digest of the correction file as written, which is how
+/// `war check` tells an authorized record from one edited afterwards.
+pub const CORRECTION_RECORDED: &str = "correction.recorded";
 
 fn now_secs() -> u64 {
     std::time::SystemTime::now()

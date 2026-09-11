@@ -537,7 +537,15 @@ fn check_deliverable_digests(repo: &Repository, one: &Loaded, alias: &str, repor
         return;
     }
 
+    // OW-WAR-0064 — a resolved Warrant's pin may have been superseded by an
+    // authorized correction. The structural checks on the correction records
+    // live in `correct::check`; the chain is resolved HERE, beside the digest
+    // comparison, so "corrected" and "drifted" are decided by one computation.
+    crate::correct::check(repo, one, alias, report);
+    let corrections = repo.load_corrections(&one.dir).unwrap_or_default();
+
     let mut drifted = 0usize;
+    let mut corrected = 0usize;
     for deliverable in &addressed {
         let Some(provenance) = deliverable.provenance.as_ref() else {
             report.push(Diagnostic::error(
@@ -570,18 +578,72 @@ fn check_deliverable_digests(repo: &Repository, one: &Loaded, alias: &str, repor
             drifted += 1;
             continue;
         };
+        let (chain, head) =
+            crate::correct::head_for(&corrections, &deliverable.id, &provenance.content_digest);
+        let head = match head {
+            Ok(h) => h,
+            Err(openwarrant_core::correction::ChainError::Gap { expected, found }) => {
+                report.push(Diagnostic::error(
+                    "correction.sequence-gap",
+                    file.clone(),
+                    format!(
+                        "{alias}: {} corrections are numbered 1..n without gaps; expected {expected}, \
+                         found {found}",
+                        deliverable.id
+                    ),
+                ));
+                drifted += 1;
+                continue;
+            }
+            Err(e @ openwarrant_core::correction::ChainError::SupersededNeverDelivered { .. }) => {
+                report.push(Diagnostic::error(
+                    "correction.superseded-never-delivered",
+                    file.clone(),
+                    format!("{alias}: {} — {e}", deliverable.id),
+                ));
+                drifted += 1;
+                continue;
+            }
+        };
+        let head_hex = head.trim_start_matches("sha256:");
         match std::fs::read(repo.root.join(&deliverable.target_ref)) {
             Ok(bytes) => {
                 let actual = openwarrant_compiler::sha256_hex(&bytes);
-                if actual != recorded {
+                if actual == head_hex {
+                    if !chain.is_empty() {
+                        corrected += 1;
+                        report.push(Diagnostic::pass(
+                            "deliverable.corrected",
+                            format!(
+                                "{alias}: {} corrected {} time(s); sha256:{recorded} superseded, \
+                                 now {head}",
+                                deliverable.id,
+                                chain.len()
+                            ),
+                        ));
+                    }
+                } else if !chain.is_empty() {
+                    report.push(Diagnostic::error(
+                        "correction.new-digest-mismatch",
+                        file.clone(),
+                        format!(
+                            "{alias}: {} — the latest correction records {head} but the file is \
+                             sha256:{actual}; it corrects nothing. A further change is a further \
+                             correction, `war correct {alias} {}`",
+                            deliverable.id, deliverable.id
+                        ),
+                    ));
+                    drifted += 1;
+                } else {
                     report.push(Diagnostic::error(
                         "deliverable.digest-drift",
                         file.clone(),
                         format!(
                             "{alias}: {} records sha256:{recorded} for {} but the file is now \
                              sha256:{actual}. The artifact moved after the record was written — \
-                             regenerate the record, or restore the artifact",
-                            deliverable.id, deliverable.target_ref
+                             regenerate the record, or restore the artifact; for a RESOLVED \
+                             Warrant, `war correct {alias} {}` (OW-WAR-0064)",
+                            deliverable.id, deliverable.target_ref, deliverable.id
                         ),
                     ));
                     drifted += 1;
@@ -606,8 +668,13 @@ fn check_deliverable_digests(repo: &Repository, one: &Loaded, alias: &str, repor
         report.push(Diagnostic::pass(
             "deliverable.digests",
             format!(
-                "{alias}: {} content-addressed deliverable(s) still match their bytes",
-                addressed.len()
+                "{alias}: {} content-addressed deliverable(s) match their bytes{}",
+                addressed.len(),
+                if corrected > 0 {
+                    format!(" ({corrected} through an authorized correction)")
+                } else {
+                    String::new()
+                }
             ),
         ));
     }

@@ -25,6 +25,7 @@ pub mod adequacy;
 pub mod adr;
 pub mod config;
 pub mod contract;
+pub mod correction;
 pub mod drafting;
 pub mod epistemic;
 pub mod execution;
@@ -46,6 +47,7 @@ pub mod seam;
 pub mod state;
 pub mod status;
 pub mod structured;
+pub mod timestamp;
 
 pub use adequacy::{AdequacyError, AdequacyOutcome, AdequacyRequirement, AdequacyReview};
 pub use adr::{AdrError, AdrRecord, AdrStatus};

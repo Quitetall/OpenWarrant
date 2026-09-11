@@ -106,6 +106,13 @@ pub enum Pending {
         version: String,
         request: AcceptRequest,
     },
+    /// OW-WAR-0064 — a resolved Warrant's delivered artifact has moved and a
+    /// human must say why, or restore it.
+    Correct {
+        alias: String,
+        deliverable_id: String,
+        request: crate::correct::CorrectionRequest,
+    },
 }
 
 /// What an amendment says it changed, read for display only. Validation of the
@@ -145,6 +152,8 @@ pub struct Options {
     pub ssh_sign: bool,
     /// Verify an existing response's `.sig` sidecar and stop. Writes nothing.
     pub verify: bool,
+    /// For a correction: what kind of change it admits (OW-WAR-0064).
+    pub kind: Option<openwarrant_core::correction::CorrectionKind>,
 }
 
 impl Default for Options {
@@ -163,6 +172,7 @@ impl Default for Options {
             show: false,
             ssh_sign: false,
             verify: false,
+            kind: None,
         }
     }
 }
@@ -233,6 +243,20 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
             continue;
         }
         if repo.load_resolution(&dir)?.is_some() {
+            // Resolved: the only act left is a correction, and only when a
+            // content-addressed deliverable no longer matches its chain head.
+            let deliverables = repo.load_deliverables(&dir)?;
+            for d in deliverables.records.iter().filter(|d| d.content_addressed) {
+                if let Ok(request) = crate::correct::request(repo, &alias, &d.id)
+                    && request.drift
+                {
+                    out.push(Pending::Correct {
+                        alias: alias.clone(),
+                        deliverable_id: d.id.clone(),
+                        request,
+                    });
+                }
+            }
             continue;
         }
         let Ok(request) = resolution_cmd::request(repo, &alias) else {
@@ -339,6 +363,14 @@ pub fn line(p: &Pending) -> String {
                 ""
             }
         ),
+        Pending::Correct {
+            alias,
+            deliverable_id,
+            request,
+        } => format!(
+            "{alias}/{deliverable_id}  correct  {} drifted (correction {})  {}",
+            request.target_ref, request.next_sequence, request.title
+        ),
     }
 }
 
@@ -427,6 +459,33 @@ fn screen(p: &Pending, actor: &str, role: &str) -> String {
                 request.diff.removed.len(),
                 request.diff.retitled.len()
             ));
+        }
+        Pending::Correct {
+            alias,
+            deliverable_id,
+            request,
+        } => {
+            s.push_str(&format!(
+                "┌ {alias} · correct {deliverable_id} · correction {} of a RESOLVED Warrant\n│ {}\n│ {}\n",
+                request.next_sequence, request.title, request.target_ref
+            ));
+            s.push_str(&format!(
+                "│ recorded   {}\n│ supersedes {}{}\n│ now        {}\n",
+                request.recorded_digest,
+                request.chain_head,
+                if request.prior_corrections > 0 {
+                    format!(
+                        "  (after {} prior correction(s))",
+                        request.prior_corrections
+                    )
+                } else {
+                    String::new()
+                },
+                request.current_digest
+            ));
+            s.push_str(
+                "│ the pin in deliverables.toml is not edited; the superseded digest stays on record\n",
+            );
         }
     }
     s.push_str(&format!("└ Sign as {actor} ({role})? [y/N] "));
@@ -579,6 +638,37 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
                 adr_ref: opts.adr_ref.clone(),
             }))
         }
+        Pending::Correct {
+            alias,
+            deliverable_id,
+            request,
+        } => {
+            // Nothing is guessed: the kind and the reason are the human's
+            // whole contribution to a correction, and both are required.
+            let Some(kind) = opts.kind else {
+                return Err(format!(
+                    "{alias}/{deliverable_id}: a correction needs --kind behaviour-change|added-refusal"
+                ));
+            };
+            let Some(reason) = opts.meaning.as_deref().filter(|m| !m.trim().is_empty()) else {
+                return Err(format!(
+                    "{alias}/{deliverable_id}: a correction needs a reason; pass --meaning \"…\""
+                ));
+            };
+            Ok(Drafted::Correct(crate::correct::CorrectionResponse {
+                schema: crate::correct::RESPONSE_SCHEMA.to_owned(),
+                warrant: alias.clone(),
+                deliverable_id: deliverable_id.clone(),
+                superseded_digest: request.chain_head.clone(),
+                new_digest: request.current_digest.clone(),
+                reason: format!("{reason} {}", provenance()),
+                kind,
+                corrected_by: actor.to_owned(),
+                acting_role: "authorizer".to_owned(),
+                effective_time: now.to_owned(),
+                signed_via: Some(opts.channel().to_owned()),
+            }))
+        }
     }
 }
 
@@ -588,6 +678,7 @@ pub enum Drafted {
     Authorize(AuthorizationResponse),
     Resolve(ResolutionResponse),
     Accept(AcceptResponse),
+    Correct(crate::correct::CorrectionResponse),
 }
 
 impl Drafted {
@@ -596,6 +687,7 @@ impl Drafted {
             Self::Authorize(r) => toml::to_string_pretty(r),
             Self::Resolve(r) => toml::to_string_pretty(r),
             Self::Accept(r) => toml::to_string_pretty(r),
+            Self::Correct(r) => toml::to_string_pretty(r),
         };
         r.map_err(|e| RepoError::Message(format!("could not render the response: {e}")))
     }
@@ -605,6 +697,7 @@ impl Drafted {
             Self::Authorize(r) => r.warrant.clone(),
             Self::Resolve(r) => r.warrant.clone(),
             Self::Accept(r) => format!("SAS-{}", r.version),
+            Self::Correct(r) => format!("{}.{}.correction", r.warrant, r.deliverable_id),
         }
     }
 
@@ -615,6 +708,7 @@ impl Drafted {
             Self::Authorize(r) => &r.contract_digest,
             Self::Resolve(r) => &r.contract_digest,
             Self::Accept(r) => &r.sha256,
+            Self::Correct(r) => &r.new_digest,
         }
     }
 }
@@ -659,22 +753,31 @@ fn eligible(p: &Pending) -> &[String] {
         Pending::Authorize { request, .. } => &request.eligible_authorizers,
         Pending::Resolve { request, .. } => &request.eligible_resolvers,
         Pending::Accept { request, .. } => &request.eligible_acceptors,
+        Pending::Correct { request, .. } => &request.eligible_correctors,
     }
 }
 
 fn role(p: &Pending) -> &'static str {
     match p {
-        Pending::Authorize { .. } | Pending::Accept { .. } => "authorizer",
+        Pending::Authorize { .. } | Pending::Accept { .. } | Pending::Correct { .. } => {
+            "authorizer"
+        }
         Pending::Resolve { .. } => "resolver",
     }
 }
 
 /// Which pending act a target names. A Warrant alias may have an authorization
-/// AND a resolution pending in sequence; the first is what is signed now.
+/// AND a resolution pending in sequence; the first is what is signed now. A
+/// correction is named `<alias>/<deliverable-id>`.
 fn select<'a>(all: &'a [Pending], target: &str) -> Option<&'a Pending> {
     all.iter().find(|p| match p {
         Pending::Authorize { alias, .. } | Pending::Resolve { alias, .. } => alias == target,
         Pending::Accept { version, .. } => version == target || format!("SAS-{version}") == target,
+        Pending::Correct {
+            alias,
+            deliverable_id,
+            ..
+        } => format!("{alias}/{deliverable_id}") == target,
     })
 }
 
@@ -1134,6 +1237,14 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
             (Pending::Authorize { alias, .. }, _) => authorize::ingest(repo, alias, &path)?,
             (Pending::Resolve { alias, .. }, _) => resolution_cmd::ingest(repo, alias, &path)?,
             (Pending::Accept { version, .. }, _) => sas::accept_ingest(repo, version, &path)?,
+            (
+                Pending::Correct {
+                    alias,
+                    deliverable_id,
+                    ..
+                },
+                _,
+            ) => crate::correct::ingest(repo, alias, deliverable_id, &path)?,
         };
         let accepted = ingested.is_ready();
         for d in ingested.diagnostics {
@@ -1243,7 +1354,7 @@ fn verify_existing(
     // The signer is read from the SIGNED bytes — each response type names
     // exactly one of these — never from a flag. A `--as` here would let the
     // caller pick whichever principal makes the signature verify.
-    let actor = ["authorizer", "resolved_by", "accepted_by"]
+    let actor = ["authorizer", "resolved_by", "accepted_by", "corrected_by"]
         .iter()
         .find_map(|k| value.get(k).and_then(toml::Value::as_str))
         .map(str::to_owned);

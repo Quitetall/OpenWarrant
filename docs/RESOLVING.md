@@ -190,6 +190,51 @@ war resolve OW-WAR-0010 --response /tmp/OW-WAR-0010.resolution.response.toml
 war compile                           # the Warrant now reads `resolved`; the Release axis moves
 ```
 
+## Step 5 — correcting a delivered artifact after resolution
+
+A resolution binds `sha256(deliverables.toml)`, so a resolved Warrant's pinned
+files have no ordinary way to change: `war check` reports
+`deliverable.digest-drift` and "regenerate the record" would stale the
+resolution. The correction act (OW-WAR-0064, OW-ADR-0012) is the fifth two-half
+seam, for exactly that case:
+
+```bash
+war correct OW-WAR-0056 D-002              # the request: recorded digest, chain head, the file now, who may sign
+war sign OW-WAR-0056/D-002 --kind behaviour-change --meaning "continuation lines belong to their bullet"
+```
+
+`war sign` refuses to draft a correction without `--kind`
+(`behaviour-change` | `added-refusal`) and a reason: those two are the human's
+whole contribution and nothing guesses them. On `y` (or the ssh dialog) it runs
+the same ingest as a hand-written response:
+
+```toml
+schema = "oh.war/correction-response/v1"
+warrant = "OW-WAR-0056"
+deliverable_id = "D-002"
+superseded_digest = "sha256:…"     # the chain head from the request, verbatim
+new_digest = "sha256:…"            # the file's bytes now, verbatim
+reason = "…"
+kind = "behaviour-change"
+corrected_by = "your-name"
+acting_role = "authorizer"
+effective_time = "2026-09-11T12:00:00Z"
+```
+
+```bash
+war correct OW-WAR-0056 D-002 --response /tmp/OW-WAR-0056.D-002.correction.toml
+```
+
+The record lands as `docs/warrants/OW-WAR-0056/corrections/D-002-1.toml`;
+`deliverables.toml` is not edited and the resolution still verifies. A second
+change is a second file, `D-002-2.toml`, superseding the first's `new_digest` —
+never an edit: the journal witnesses each record's digest as written, and an
+edited one fails `correction.edited`. Refused before anything is written: an
+agent as signer, a Warrant that is not resolved, a file that has not drifted, a
+`new_digest` that is not the file's bytes, a `superseded_digest` that is not the
+chain head, an empty reason, a bad `effective_time`. `war show <alias> --view
+status` lists every correction with the digest it superseded.
+
 ## Step 4 — check what actually happened
 
 ```bash

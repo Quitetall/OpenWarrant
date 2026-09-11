@@ -52,6 +52,12 @@ revert your edit, not to regenerate over it.
 The same applies to a Warrant that has been authorized: an authorized contract
 revision is immutable (§28.7). Amend by creating a new revision.
 
+And to a **resolved** Warrant's delivered files: `deliverables.toml` pins their
+bytes, and `war check` refuses drift. You may **request** a correction
+(`war correct <alias> <D-id>` emits what a human would sign); you may not sign
+one, and you may never regenerate a resolved Warrant's `deliverables.toml` —
+that stales the resolution. OW-WAR-0064 / OW-ADR-0012.
+
 ### 5. Never change a document to make a tool happy
 
 If a checker and a document disagree, establish which is wrong **before**

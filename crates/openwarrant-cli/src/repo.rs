@@ -721,6 +721,47 @@ impl Repository {
         Ok(VerificationSet { records, failures })
     }
 
+    /// Corrections on file for one Warrant (OW-WAR-0064): every
+    /// `corrections/*.toml`, sorted by path, parse failures kept beside the
+    /// records so a malformed correction is reported rather than skipped.
+    pub fn load_corrections(&self, dir: &Utf8Path) -> Result<CorrectionSet, RepoError> {
+        let cdir = dir.join("corrections");
+        if !cdir.is_dir() {
+            return Ok(CorrectionSet::default());
+        }
+        let mut paths = Vec::new();
+        for entry in fs::read_dir(&cdir).map_err(|source| RepoError::Io {
+            context: format!("could not read {cdir}"),
+            source,
+        })? {
+            let entry = entry.map_err(|source| RepoError::Io {
+                context: format!("could not read an entry in {cdir}"),
+                source,
+            })?;
+            let Ok(path) = Utf8PathBuf::from_path_buf(entry.path()) else {
+                continue;
+            };
+            if path.extension() == Some("toml") {
+                paths.push(path);
+            }
+        }
+        paths.sort();
+        let mut records = Vec::new();
+        let mut failures = Vec::new();
+        for path in paths {
+            let relative = self.relative(&path);
+            let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
+                context: format!("could not read {path}"),
+                source,
+            })?;
+            match toml::from_str::<openwarrant_core::correction::CorrectionRecord>(&text) {
+                Ok(r) => records.push((relative, r)),
+                Err(e) => failures.push((relative, e.to_string())),
+            }
+        }
+        Ok(CorrectionSet { records, failures })
+    }
+
     /// Deliverables declared for one Warrant (§37).
     ///
     /// A single `deliverables.toml` rather than a directory: a Warrant declares a
@@ -801,6 +842,27 @@ pub struct VerificationSet {
     pub records: Vec<Verification>,
     /// `(repository-relative path, why it would not parse)`.
     pub failures: Vec<(String, String)>,
+}
+
+/// Corrections on file for one Warrant (OW-WAR-0064), each with the
+/// repository-relative path it was read from — the path is what `war check`
+/// digests against the journal's `record_digest`.
+#[derive(Debug, Default)]
+pub struct CorrectionSet {
+    pub records: Vec<(String, openwarrant_core::correction::CorrectionRecord)>,
+    /// `(repository-relative path, why it would not parse)`.
+    pub failures: Vec<(String, String)>,
+}
+
+impl CorrectionSet {
+    /// The corrections for one deliverable, in file order.
+    pub fn for_deliverable(&self, id: &str) -> Vec<openwarrant_core::correction::Correction> {
+        self.records
+            .iter()
+            .filter(|(_, r)| r.correction.deliverable_id == id)
+            .map(|(_, r)| r.correction.clone())
+            .collect()
+    }
 }
 
 /// A Warrant read from disk, with whatever went wrong while reading it.

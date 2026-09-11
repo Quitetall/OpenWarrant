@@ -15,7 +15,15 @@
 
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
-for plants in "$(dirname "${BASH_SOURCE[0]}")"/plants.d/*.sh; do
+# An empty or missing plants.d/ is a broken battery, not a green one.
+shopt -s nullglob
+PLANT_FILES=("$(dirname "${BASH_SOURCE[0]}")"/plants.d/*.sh)
+shopt -u nullglob
+if [[ ${#PLANT_FILES[@]} -eq 0 ]]; then
+    echo "conformance/plants.d/ holds no plants; refusing to report a battery that ran nothing" >&2
+    exit 1
+fi
+for plants in "${PLANT_FILES[@]}"; do
     # shellcheck source=/dev/null
     source "$plants"
 done
