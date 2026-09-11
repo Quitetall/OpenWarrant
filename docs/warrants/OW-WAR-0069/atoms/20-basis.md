@@ -47,6 +47,7 @@ touches no file pinned by a resolved Warrant.
 
 - U-001: whether adding a `DigestDomain` variant is an architecture-changing
   revision under §101.3 and therefore requires an ADR before the SAS revision is
-  accepted. Resolution requirement: an owner or verifier determination.
-  This Warrant assumes it is and carries an ADR deliverable; if the determination
-  is that it is not, the ADR deliverable is dropped rather than the reverse.
+  accepted. Narrowed: the reviewing session determined that it is — a new digest
+  domain changes what can be digested, which is protocol meaning. The ADR
+  deliverable is retained on that basis. This is a reader determination recorded
+  as such, not a disposition; §101.3 remains the owner's to apply at acceptance.

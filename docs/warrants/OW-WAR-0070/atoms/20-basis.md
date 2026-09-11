@@ -43,10 +43,14 @@ None blocking. Ordering constraint rather than prerequisite: slice D1 also edits
 ## Blocking unknowns
 
 - U-001: whether extending a core type shared with the D1 projection is an
-  architecture-changing revision under §101.3 requiring an ADR. Resolution
-  requirement: an owner or verifier determination. Carried as an ADR deliverable
-  on the assumption that it is.
-- U-002: whether `bound_to` should accept a roadmap URI, a stage ref, or both.
-  Resolution requirement: a determination by whoever owns the D1 Gaps view, since
-  the field's value is what that view groups by. Not resolvable from this
-  Warrant alone.
+  architecture-changing revision under §101.3 requiring an ADR. Narrowed: the
+  reviewing session determined that it is — extending a core record type changes
+  what a record may say. The ADR deliverable is retained. This is a reader
+  determination recorded as such, not a disposition; §101.3 remains the owner's
+  to apply at acceptance.
+- U-002: resolved. The shape of `bound_to` was decided by the session that owns
+  the D1 Gaps view, which is where the field's value is consumed. It is a list
+  of refs, minimum one, each either `roadmap://<NS>-PHASE-N/<slug>` or
+  `war://<uuid>#<STAGE-id>` — stage-precise where a stage exists, phase-level
+  where the work is not yet warranted. The Gaps view groups by
+  `external_dependency` and sorts by the earliest `bound_to`.
