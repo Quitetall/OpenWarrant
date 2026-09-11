@@ -24,4 +24,5 @@ uuid = { workspace = true }
 # Test-only. This crate's production dependency surface is deliberately serde,
 # thiserror, uuid and nothing else; a round-trip test must not widen it.
 [dev-dependencies]
+serde_jcs = { workspace = true }
 serde_json = { workspace = true }

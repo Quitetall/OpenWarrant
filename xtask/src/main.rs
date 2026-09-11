@@ -389,6 +389,13 @@ fn gate() -> ExitCode {
         // planted violation must be rejected BY ITS INTENDED CONTROL. The unit
         // tests above prove the code does what it says; this proves the shipped
         // binary refuses what it should, on real files, for the stated reason.
+        // OW-ADR-0015: signature verification is not part of `war check`
+        // (which stays deterministic and structural); it is this step.
+        Step {
+            label: "attestations (every DSSE envelope verifies; every subject digest holds)",
+            program: "./target/debug/war",
+            args: &["attest", "--all"],
+        },
         Step {
             label: "planted violations (§92 — each rejected by its intended control)",
             program: "bash",

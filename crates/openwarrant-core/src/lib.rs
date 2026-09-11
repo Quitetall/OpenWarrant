@@ -23,6 +23,7 @@ mod vocab;
 
 pub mod adequacy;
 pub mod adr;
+pub mod attestation;
 pub mod config;
 pub mod contract;
 pub mod correction;

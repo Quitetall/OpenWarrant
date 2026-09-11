@@ -27,6 +27,10 @@ Toward 1.0 (the plan is the Warrant backlog; each entry is one slice):
   signing or ingesting tool registered.
 - A Claude Code plugin: the `openwarrant` skill with references, the MCP
   server, a `PreToolUse` pin guard and a `Stop` check on `war check`.
+- Attestations (OW-ADR-0015): every ssh-signed act leaves an in-toto
+  Statement in a DSSE envelope beside its record, signed with the same key
+  under `oh.war/dsse`; `war attest` verifies signatures and subject digests,
+  and `cargo xtask gate` runs `war attest --all`.
 
 ## [0.1.0] — 2026-08-24
 

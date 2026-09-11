@@ -7,12 +7,16 @@
 #
 # Format is OpenSSH's ALLOWED SIGNERS (see ssh-keygen(1), "-Y verify"):
 #
-#   <principal> [namespaces="oh.war/response"] <keytype> <base64> [comment]
+#   <principal> [namespaces="oh.war/response,oh.war/dsse"] <keytype> <base64> [comment]
 #
 # `principal` is the `ssh_principal` on the actor's `roles.toml` entry — a
 # separate name because OpenSSH permits no spaces here. The namespaces option
 # is optional but recommended: it means a signature this key made for any
-# other purpose does not verify as a response.
+# other purpose does not verify as a response. If you set it, list BOTH
+# namespaces: `oh.war/response` signs the response, `oh.war/dsse` signs the
+# attestation `war sign --ssh-sign` writes beside the record (OW-ADR-0015).
+# With only the first, the act is recorded and its attestation is refused
+# with `attest.not-emitted` — the act stands; the witness is missing.
 #
 # ---------------------------------------------------------------------------
 # THE ONE THING `war` CANNOT CHECK
@@ -48,4 +52,4 @@
 #
 # ---------------------------------------------------------------------------
 
-brian namespaces="oh.war/response" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA...replace-with-your-key... brian@host
+brian namespaces="oh.war/response,oh.war/dsse" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA...replace-with-your-key... brian@host

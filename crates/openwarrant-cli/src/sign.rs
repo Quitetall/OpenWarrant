@@ -892,7 +892,10 @@ fn retire_prior(final_path: &Utf8Path, current_digest: &str) -> Result<(), Strin
 /// base64 [comment]`, one per line, `#` comments. Exactly one line may name
 /// the principal: `ssh-keygen -Y verify` would accept any of several, so two
 /// lines is refused here as a misconfiguration rather than resolved by order.
-fn pubkey_for_principal(allowed_signers: &str, principal: &str) -> Result<String, String> {
+pub(crate) fn pubkey_for_principal(
+    allowed_signers: &str,
+    principal: &str,
+) -> Result<String, String> {
     let matches: Vec<String> = allowed_signers
         .lines()
         .map(str::trim)
@@ -1012,13 +1015,125 @@ fn ssh_verify_file(
     }
 }
 
+/// What an ssh-signed act attests to: the record it wrote and the response
+/// that carried the signature, with the response's own fields as predicate.
+fn attest_after(
+    repo: &Repository,
+    p: &Pending,
+    actor: &str,
+    response: &Utf8Path,
+) -> Result<Utf8PathBuf, String> {
+    let (act, target, record): (&str, String, Utf8PathBuf) = match p {
+        Pending::Authorize { alias, .. } => (
+            "authorize",
+            alias.clone(),
+            repo.warrant_dir(alias)
+                .map_err(|e| e.to_string())?
+                .join("authorization.toml"),
+        ),
+        Pending::Resolve { alias, .. } => (
+            "resolve",
+            alias.clone(),
+            repo.warrant_dir(alias)
+                .map_err(|e| e.to_string())?
+                .join("resolution.toml"),
+        ),
+        Pending::Correct {
+            alias,
+            deliverable_id,
+            ..
+        } => {
+            let cdir = repo
+                .warrant_dir(alias)
+                .map_err(|e| e.to_string())?
+                .join("corrections");
+            // The newest correction file for this deliverable is the one just written.
+            let mut files: Vec<Utf8PathBuf> = std::fs::read_dir(&cdir)
+                .map_err(|e| format!("{cdir}: {e}"))?
+                .filter_map(Result::ok)
+                .filter_map(|e| Utf8PathBuf::from_path_buf(e.path()).ok())
+                .filter(|f| {
+                    f.file_name().is_some_and(|n| {
+                        n.starts_with(&format!("{deliverable_id}-")) && n.ends_with(".toml")
+                    })
+                })
+                .collect();
+            files.sort();
+            let newest = files
+                .pop()
+                .ok_or_else(|| format!("no correction file under {cdir}"))?;
+            ("correct", alias.clone(), newest)
+        }
+        Pending::Accept { version, .. } => (
+            "sas-accept",
+            version.clone(),
+            repo.root
+                .join(&repo.config.paths.sas)
+                .join("revisions")
+                .join(format!("{version}.toml")),
+        ),
+    };
+    let response_text =
+        std::fs::read_to_string(response).map_err(|e| format!("{response}: {e}"))?;
+    let response_toml: toml::Value =
+        toml::from_str(&response_text).map_err(|e| format!("{response}: {e}"))?;
+    let mut predicate = serde_json::to_value(&response_toml).map_err(|e| e.to_string())?;
+    if let serde_json::Value::Object(map) = &mut predicate {
+        map.insert(
+            "actor".to_owned(),
+            serde_json::Value::String(actor.to_owned()),
+        );
+        map.insert("act".to_owned(), serde_json::Value::String(act.to_owned()));
+    }
+    let mut extra = Vec::new();
+    if let Some(d) = response_toml
+        .get("contract_digest")
+        .and_then(toml::Value::as_str)
+        .map(|d| d.strip_prefix("sha256:").unwrap_or(d))
+        .filter(|d| d.len() == 64)
+    {
+        extra.push((format!("contract:{target}"), d.to_owned()));
+    }
+    let a = crate::attest::Attestable {
+        act,
+        target: &target,
+        files: vec![
+            Utf8PathBuf::from(repo.relative(&record)),
+            Utf8PathBuf::from(repo.relative(response)),
+        ],
+        extra_subjects: extra,
+        predicate,
+        actor,
+    };
+    let written = crate::attest::emit(repo, &a).map_err(|e| e.to_string())?;
+    // A Warrant act is journalled; a SAS acceptance has no journal.
+    if act != "sas-accept" {
+        let dir = repo.warrant_dir(&target).map_err(|e| e.to_string())?;
+        if let Some(uuid) = repo
+            .load_warrant(&dir)
+            .ok()
+            .and_then(|l| l.validated.map(|v| v.uuid.to_string()))
+        {
+            crate::journal_cmd::record(
+                &dir,
+                &uuid,
+                "attestation.recorded",
+                &format!("human://{actor}"),
+                &serde_json::json!({"act": act, "path": repo.relative(&written)}).to_string(),
+            )
+            .map_err(|e| e.to_string())?;
+        }
+    }
+    Ok(written)
+}
+
 /// `<file>.sig`, what `ssh-keygen -Y sign` writes beside its input.
 fn sig_path(file: &Utf8Path) -> Utf8PathBuf {
     Utf8PathBuf::from(format!("{file}.sig"))
 }
 
 /// The ssh principal the register names for an actor.
-fn principal_of(repo: &Repository, actor: &str) -> Result<String, String> {
+pub(crate) fn principal_of(repo: &Repository, actor: &str) -> Result<String, String> {
     let register = repo.load_authority_register().map_err(|e| e.to_string())?;
     register
         .assignments
@@ -1033,7 +1148,7 @@ fn principal_of(repo: &Repository, actor: &str) -> Result<String, String> {
         })
 }
 
-fn allowed_signers_path(repo: &Repository) -> Utf8PathBuf {
+pub(crate) fn allowed_signers_path(repo: &Repository) -> Utf8PathBuf {
     repo.root.join("docs/authority/allowed_signers")
 }
 
@@ -1252,6 +1367,26 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
         }
         for n in ingested.notes {
             report.note(n);
+        }
+        if accepted && opts.ssh_sign {
+            // OW-ADR-0015: an ssh-signed act is attested with the same key.
+            // The act stands whether or not this succeeds; a refusal here is
+            // a WARN naming why, never a reason to undo an ingested record.
+            match attest_after(repo, p, &actor, &path) {
+                Ok(written) => report.push(Diagnostic::pass(
+                    "attest.emitted",
+                    format!(
+                        "{}: attestation written to {}",
+                        line(p),
+                        repo.relative(&written)
+                    ),
+                )),
+                Err(why) => report.push(Diagnostic::warn(
+                    "attest.not-emitted",
+                    line(p),
+                    format!("the act is recorded; its attestation was not: {why}"),
+                )),
+            }
         }
         if !accepted {
             // Ingest refused it. The response file is the evidence of what was

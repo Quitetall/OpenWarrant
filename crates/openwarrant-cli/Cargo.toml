@@ -17,6 +17,8 @@ name = "war"
 path = "src/main.rs"
 
 [dependencies]
+sha2 = { workspace = true }
+serde_jcs = { workspace = true }
 rmcp = { workspace = true }
 tokio = { workspace = true }
 schemars = { workspace = true }

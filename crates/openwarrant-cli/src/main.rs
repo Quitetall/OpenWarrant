@@ -9,6 +9,7 @@ use camino::Utf8PathBuf;
 use clap::{Parser, Subcommand};
 use openwarrant_core::Profile;
 
+mod attest;
 mod authorize;
 mod blut;
 mod bonsai;
@@ -519,6 +520,18 @@ enum Command {
     /// Every file a Warrant's `deliverables.toml` pins, with the Warrant's
     /// state — ask BEFORE editing; a resolved Warrant's pin moves only through
     /// `war correct` (OW-WAR-0064).
+    /// Attestations for ssh-signed acts (OW-ADR-0015): list them, or verify
+    /// every signature and subject digest against the tree today.
+    Attest {
+        /// A Warrant alias or a SAS version; omit with --all.
+        target: Option<String>,
+        /// Verify signatures and subject digests (default lists only).
+        #[arg(long)]
+        verify: bool,
+        /// Every attestation in the repository (the xtask step).
+        #[arg(long)]
+        all: bool,
+    },
     /// Serve the Model Context Protocol over stdio (OW-ADR-0014): every
     /// read, request half and agent-permitted write as a tool; no signing,
     /// no ingest. `--describe` prints the tool table instead of serving.
@@ -1239,6 +1252,23 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 output::value(&pins),
             );
             Ok(EXIT_OK)
+        }
+        Command::Attest {
+            target,
+            verify,
+            all,
+        } => {
+            let repository = repo::Repository::discover(None)?;
+            let report = match (target, all) {
+                (_, true) => attest::verify_all(&repository)?,
+                (Some(t), false) => attest::run(&repository, &t, verify)?,
+                (None, false) => {
+                    return Err(Box::new(repo::RepoError::Message(
+                        "war attest: name a Warrant or SAS version, or pass --all".to_owned(),
+                    )));
+                }
+            };
+            Ok(output::finish(mode, "attest", &report, None))
         }
         Command::Mcp { describe } => {
             // Discover BEFORE any runtime exists: outside a repository this
