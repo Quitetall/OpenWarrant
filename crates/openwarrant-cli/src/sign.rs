@@ -186,6 +186,15 @@ fn tool_version() -> String {
 
 /// Everything awaiting a signature, in alias order, SAS revisions last.
 pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
+    // Loaded once, up front, and NOT swallowed. Every per-Warrant request
+    // below reads the register, and their errors are skipped so one broken
+    // Warrant does not hide the rest — which meant a broken register (a
+    // duplicate key in roles.toml, found the first time it was hand-edited)
+    // read as "nothing awaits a signature". A trust root that will not parse
+    // is the loudest thing this command can say, not the quietest.
+    repo.load_authority_register().map_err(|e| {
+        RepoError::Message(format!("docs/authority/roles.toml will not load; nothing can be signed or listed until it does: {e}"))
+    })?;
     let mut out = Vec::new();
     let mut dirs = repo.warrant_dirs()?;
     dirs.sort();
