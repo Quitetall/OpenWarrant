@@ -197,6 +197,15 @@ fn resources_are_listed_and_readable() {
     let text = r["result"]["contents"][0]["text"].as_str().expect("text");
     assert!(text.contains("oh.war/next/v1"), "{text}");
     let r = s.call(
+        5,
+        "resources/read",
+        serde_json::json!({"uri":"warrant://OW-WAR-0062"}),
+    );
+    let text = r["result"]["contents"][0]["text"]
+        .as_str()
+        .unwrap_or_else(|| panic!("{r}"));
+    assert!(text.contains("OW-WAR-0062"), "{text}");
+    let r = s.call(
         4,
         "resources/read",
         serde_json::json!({"uri":"warrant://NOPE"}),

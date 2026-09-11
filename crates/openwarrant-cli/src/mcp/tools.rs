@@ -52,13 +52,13 @@ pub struct StatusParams {
 pub struct ShowParams {
     /// Local alias.
     pub alias: String,
-    /// View name: `war`, `status`, `plan`, or another `war show` view.
+    /// View name: `full_warrant` (default), `status`, or another `war show --view`.
     #[serde(default = "default_view")]
     pub view: String,
 }
 
 fn default_view() -> String {
-    "war".to_owned()
+    "full_warrant".to_owned()
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
@@ -341,7 +341,7 @@ impl WarServer {
 
     #[tool(
         name = "war_show",
-        description = "Render a Warrant view (`war show <alias> <view>`). Read-only.",
+        description = "Render a Warrant view (`war show <alias> --view <view>`). Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_show(&self, Parameters(p): Parameters<ShowParams>) -> ToolResult {

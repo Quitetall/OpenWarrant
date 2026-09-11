@@ -103,7 +103,7 @@ pub fn read(repo: &Repository, uri: &str) -> Result<ReadResourceResult, McpError
                     None,
                 ));
             }
-            None => (rest, "war"),
+            None => (rest, "full_warrant"),
         };
         let rendered = if view == "journal" {
             crate::journal_cmd::show(repo, alias)
@@ -111,7 +111,7 @@ pub fn read(repo: &Repository, uri: &str) -> Result<ReadResourceResult, McpError
             crate::show::run(repo, alias, view)
         }
         .map_err(|e| McpError::resource_not_found(e.to_string(), None))?;
-        let mime = if view == "war" {
+        let mime = if view == "full_warrant" {
             "text/markdown"
         } else {
             "text/plain"

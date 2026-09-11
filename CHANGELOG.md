@@ -35,6 +35,10 @@ Toward 1.0 (the plan is the Warrant backlog; each entry is one slice):
   flag; `authorize` and `resolve` refuse an `effective_time` that is not RFC
   3339 UTC; `roles.toml.example` shows a second human signer, and two
   eligible signers is a question (`sign.who`), a duplicate principal a refusal.
+- `war init --program <name>`: a SAS the tool reads (§6.10, §98, §106), the
+  authority examples, the `war check` gate, and a first Warrant with real
+  atoms; `war check` on the scaffold exits 0. `QUICKSTART.md` and
+  `docs/EXAMPLES/01-code.md`.
 
 ## [0.1.0] — 2026-08-24
 

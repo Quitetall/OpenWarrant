@@ -172,11 +172,16 @@ enum Command {
         #[arg(long)]
         namespace: String,
         /// Project name. Defaults to the directory name.
-        #[arg(long)]
+        #[arg(long, conflicts_with = "program")]
         name: Option<String>,
         /// Repository root. Defaults to the current directory.
         #[arg(long)]
         root: Option<Utf8PathBuf>,
+        /// Scaffold a whole program: a SAS the tool reads, the authority
+        /// examples, the `war check` gate, and a first Warrant with real
+        /// atoms. `war check` on the result exits 0.
+        #[arg(long, value_name = "PROGRAM")]
+        program: Option<String>,
     },
     /// Write the AGENTS.md this repository ships, for the repository's
     /// namespace. `war init` writes it once; this rewrites (--force) or prints it.
@@ -587,8 +592,14 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             namespace,
             name,
             root,
+            program,
         } => {
-            init::run(&namespace, name.as_deref(), root)?;
+            match program {
+                Some(program) => {
+                    init::run_program(&program, &namespace, root)?;
+                }
+                None => init::run(&namespace, name.as_deref(), root)?,
+            }
             Ok(EXIT_OK)
         }
 

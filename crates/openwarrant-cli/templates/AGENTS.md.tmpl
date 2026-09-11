@@ -195,3 +195,5 @@ thirteen and is wrong about eleven.
   this repository itself.
 - `docs/THREAT_MODEL.md` — what the signing path defends, what it leaves to
   the operator, and which test or plant exercises each control.
+- `QUICKSTART.md` — an empty directory to a resolved Warrant, every step one
+  command, the two human steps marked; `docs/EXAMPLES/` walks real records.
