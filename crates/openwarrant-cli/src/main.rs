@@ -30,6 +30,7 @@ mod resolution_cmd;
 mod resolve;
 mod sas;
 mod show;
+mod sign;
 mod status;
 mod telemetry;
 mod verify;
@@ -405,6 +406,47 @@ enum Command {
         /// A signed response to ingest. Without it, the request is emitted.
         #[arg(long)]
         response: Option<Utf8PathBuf>,
+    },
+
+    /// Sign what is waiting — authorize, resolve, or accept a SAS revision —
+    /// from one screen at a terminal.
+    ///
+    /// Refuses without a TTY (§27.2: an agent's shell has none). Drafts the
+    /// response from the record's own facts, shows what is being signed, asks
+    /// once, and on `y` runs the same ingest a hand-written response would.
+    /// There is no `--yes`.
+    Sign {
+        /// A Warrant alias, or a SAS version. Omit with --list or --all.
+        target: Option<String>,
+        /// Show what awaits a signature and exit. Needs no terminal.
+        #[arg(long)]
+        list: bool,
+        /// Sign every pending act, one prompt each.
+        #[arg(long)]
+        all: bool,
+        /// Sign as this actor (required when more than one is eligible).
+        #[arg(long = "as")]
+        actor: Option<String>,
+        /// Your own words, appended to the drafted meaning.
+        #[arg(long)]
+        meaning: Option<String>,
+        /// Resolution outcome when §38.6 forbids `satisfied`:
+        /// not_satisfied, cancelled, blocked.
+        #[arg(long)]
+        outcome: Option<String>,
+        /// §101.3 ADR reference for an architecture-changing SAS revision.
+        #[arg(long)]
+        adr: Option<String>,
+        /// none | separate_role | organizational (§27.4).
+        #[arg(long, default_value = "separate_role")]
+        independence: String,
+        /// Open $VISUAL/$EDITOR on the drafted response before the prompt.
+        #[arg(long)]
+        edit: bool,
+        /// Render what would be signed and stop. No terminal needed; writes
+        /// nothing. Read this from anywhere; sign it from a terminal.
+        #[arg(long)]
+        show: bool,
     },
 
     /// The SAS as a controlled document (§101): propose, accept, diff, status.
@@ -1067,6 +1109,72 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             }
         }
 
+        Command::Sign {
+            target,
+            list,
+            all,
+            actor,
+            meaning,
+            outcome,
+            adr,
+            independence,
+            edit,
+            show,
+        } => {
+            let repository = repo::Repository::discover(None)?;
+            if list {
+                let waiting = sign::list(&repository)?;
+                if waiting.is_empty() {
+                    println!("nothing awaits a signature");
+                } else {
+                    println!("{} awaiting a signature:", waiting.len());
+                    for p in &waiting {
+                        println!("  {}", sign::line(p));
+                    }
+                }
+                return Ok(EXIT_OK);
+            }
+            let parse_err = |what: &str, v: &str, known: &str| {
+                repo::RepoError::Message(format!("--{what} {v:?} is not one of {known}"))
+            };
+            let outcome = outcome
+                .as_deref()
+                .map(|s| {
+                    s.parse::<openwarrant_core::resolution::CommonOutcome>()
+                        .map_err(|_| parse_err("outcome", s, "not_satisfied, cancelled, blocked"))
+                })
+                .transpose()?;
+            let independence = match independence.as_str() {
+                "none" => openwarrant_core::Independence::None,
+                "separate_role" => openwarrant_core::Independence::SeparateRole,
+                "organizational" => openwarrant_core::Independence::Organizational,
+                other => {
+                    return Err(parse_err(
+                        "independence",
+                        other,
+                        "none, separate_role, organizational",
+                    )
+                    .into());
+                }
+            };
+            let opts = sign::Options {
+                actor,
+                meaning,
+                outcome,
+                adr_ref: adr,
+                independence,
+                edit,
+                all,
+                show,
+            };
+            let report = sign::run(&repository, target.as_deref(), &opts)?;
+            check::print(&report);
+            Ok(if report.is_ready() {
+                EXIT_OK
+            } else {
+                EXIT_NOT_READY
+            })
+        }
         Command::Authorize { alias, response } => {
             let repository = repo::Repository::discover(None)?;
             match response {

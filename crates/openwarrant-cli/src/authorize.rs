@@ -118,6 +118,11 @@ pub struct AuthorizationResponse {
     /// acceptances. Optional: a Warrant may need none.
     #[serde(default)]
     pub judgment: Vec<Judgment>,
+    /// How the signature was given: `tty` when confirmed on a terminal by
+    /// `war sign`; absent for a hand-written response. Provenance, not
+    /// authority — ingestion trusts the register, never this field.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub signed_via: Option<String>,
 }
 
 /// The persisted authorization record.
@@ -552,8 +557,10 @@ pub fn ingest(
             crate::journal_cmd::AUTHORIZATION_RECORDED,
             &format!("person://{}", response.authorizer),
             &format!(
-                "{{\"contract_digest\":\"{}\",\"acting_role\":\"{}\"}}",
-                response.contract_digest, response.acting_role
+                "{{\"contract_digest\":\"{}\",\"acting_role\":\"{}\",\"channel\":\"{}\"}}",
+                response.contract_digest,
+                response.acting_role,
+                response.signed_via.as_deref().unwrap_or("file")
             ),
         )?;
     }
@@ -656,6 +663,7 @@ mod tests {
             meaning: "Accept the declared deliverables against the bounded obligations.".to_owned(),
             effective_time: "2026-08-25T12:00:00Z".to_owned(),
             policy_basis: None,
+            signed_via: None,
             independence: Independence::None,
             judgment: vec![],
         }

@@ -59,6 +59,29 @@ text an agent wrote.
 
 ## Step 3 — sign it
 
+**The short way, from a terminal you are sitting at:**
+
+```bash
+war sign --list                 # what awaits a signature, corpus-wide; writes nothing
+war sign OW-WAR-0030            # one screen: title, obligations, every residual risk
+                                # with its consequence, the digest. [y/N]
+```
+
+`y` drafts the response below from the record's own facts, writes it to
+`docs/authority/responses/`, and runs the same ingest a hand-written response
+goes through — every refusal still applies. `N` writes nothing. `--edit` opens
+the draft in `$EDITOR` first; `--meaning "…"` appends your own words. An
+authorization response records `signed_via = "tty"`; a resolution or SAS
+acceptance carries the same provenance in its `meaning` until OW-WAR-0064
+lets their pinned response types move.
+
+It **refuses without a terminal**: an agent's shell has none, so the drafting
+agent cannot run it (§27.2). That is a speed bump, not cryptography — a
+pseudo-terminal defeats it; `--ssh-sign` is the stronger form and is not built
+yet. There is no `--yes`, on purpose.
+
+**The long way**, which is what `war sign` does for you and which still works:
+
 Turn the request into a response. The `contract_digest` must be copied across
 unchanged: if the Warrant is edited between reading and signing, the digest moves
 and ingestion refuses, because §56.1 asks for the *exact* authorized revision.
@@ -118,7 +141,10 @@ compiles now; edit the contract and `war check` reports `evidence.stale-binding`
 until a new run is recorded. A Warrant whose assurance atom cites no gate cannot
 record evidence (OW-WAR-0016 today) — that needs an amendment naming a gate.
 
-When all thirteen are met, the resolution is the third two-half seam:
+When all thirteen are met, the resolution is the third two-half seam. From a
+terminal, `war sign OW-WAR-0010` does the whole of it; when §38.6 forbids
+`satisfied` it refuses to guess and asks for `--outcome not_satisfied|cancelled|blocked`.
+The long way:
 
 ```bash
 war resolve OW-WAR-0010 > /tmp/OW-WAR-0010.resolution.request.toml   # what a signature binds; permitted outcomes; who may sign
