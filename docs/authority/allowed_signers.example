@@ -31,6 +31,21 @@
 # A hardware key (sk-ssh-ed25519@openssh.com) with touch required is the same
 # guarantee, held in silicon.
 #
+# TEST YOUR DENY BEFORE YOU TRUST YOUR ALLOW. The agent raises the dialog
+# through $SSH_ASKPASS with SSH_ASKPASS_PROMPT=confirm and treats exit 0 as
+# "allow". A custom askpass that only knows passphrase mode, or that parses
+# pinentry's replies carelessly, can allow on Deny — found here the first time
+# it was used: pinentry answers OK to every SET command before the CONFIRM
+# reply, so "any OK" allowed everything. Run `war sign <x> --ssh-sign` once,
+# click Deny, and confirm `sign.ssh-refused` with nothing written. Then trust it.
+# One more trap for pinentry-based askpasses: the agent's confirm prompt
+# contains a literal NEWLINE ("Allow use of key …?\nKey fingerprint …").
+# Passed raw, it splits your own SETDESC into a second, unknown command that
+# pinentry answers with ERR — and a correct any-ERR-denies rule then denies
+# every Allow. Percent-encode it (%0A) before sending.
+# Note also that the agent's environment, not your shell's, must carry
+# SSH_ASKPASS and DISPLAY — a systemd user service needs a drop-in for that.
+#
 # ---------------------------------------------------------------------------
 
 brian namespaces="oh.war/response" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA...replace-with-your-key... brian@host
