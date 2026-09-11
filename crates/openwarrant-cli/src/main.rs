@@ -1477,6 +1477,58 @@ mod tests {
     /// name, and a new subcommand cannot ship without either supporting the
     /// envelope or being added to this list on purpose. The list shrinks; it
     /// does not grow silently.
+    /// OW-ADR-0014: async is admitted for the MCP transport only. Every source
+    /// file of the workspace outside `openwarrant-cli/src/mcp/` is read here;
+    /// the first `tokio`, `rmcp` or `async fn` outside that directory fails.
+    #[test]
+    fn async_lives_only_in_the_mcp_module() {
+        fn walk(dir: &std::path::Path, out: &mut Vec<std::path::PathBuf>) {
+            for entry in std::fs::read_dir(dir).expect("readable dir").flatten() {
+                let path = entry.path();
+                if path.is_dir() {
+                    walk(&path, out);
+                } else if path.extension().is_some_and(|e| e == "rs") {
+                    out.push(path);
+                }
+            }
+        }
+        let crates = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+        let mut files = Vec::new();
+        walk(&crates, &mut files);
+        assert!(files.len() > 40, "walked too few files: {}", files.len());
+        let this = std::path::Path::new(file!())
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("main.rs");
+        let mut offenders = Vec::new();
+        for path in files {
+            let rel = path
+                .strip_prefix(&crates)
+                .unwrap_or(&path)
+                .to_string_lossy()
+                .replace('\\', "/");
+            if rel.starts_with("openwarrant-cli/src/mcp/")
+                || rel.ends_with(this)
+                || rel.contains("/target/")
+            {
+                continue;
+            }
+            let text = std::fs::read_to_string(&path).expect("readable source");
+            for needle in ["tokio", "rmcp", "async fn"] {
+                if text
+                    .lines()
+                    .any(|l| !l.trim_start().starts_with("//") && l.contains(needle))
+                {
+                    offenders.push(format!("{rel}: {needle}"));
+                }
+            }
+        }
+        assert!(
+            offenders.is_empty(),
+            "async or the MCP SDK outside openwarrant-cli/src/mcp/ (OW-ADR-0014): {offenders:?}"
+        );
+    }
+
     #[test]
     fn every_subcommand_supports_json_or_is_listed_as_not_yet() {
         const NOT_YET: &[&str] = &["init", "kf", "telemetry", "migrate", "export"];
