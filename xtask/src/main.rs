@@ -235,8 +235,82 @@ fn pin_verdict(spec: &str) -> Result<(), &'static str> {
     }
 }
 
-/// Steps run in-process before the commands: spdx headers, workflows.
-const IN_PROCESS_STEPS: usize = 2;
+/// The Claude Code skill is what an agent reads first; a reference file the
+/// SKILL.md never links is invisible, and a link to a missing file is a lie.
+/// Text rules, no YAML parse (OW-ADR-0002), so they are testable on strings.
+fn check_skill() -> Result<usize, std::io::Error> {
+    let dir = Path::new(".claude/skills/openwarrant");
+    let skill = std::fs::read_to_string(dir.join("SKILL.md"))?;
+    let mut refs: Vec<String> = match std::fs::read_dir(dir.join("references")) {
+        Ok(rd) => rd
+            .filter_map(Result::ok)
+            .map(|e| e.file_name().to_string_lossy().into_owned())
+            .filter(|n| n.ends_with(".md"))
+            .collect(),
+        Err(_) => Vec::new(),
+    };
+    refs.sort();
+    let mut problems = 0usize;
+    for why in skill_problems(&skill, &refs) {
+        println!("   {why}");
+        problems += 1;
+    }
+    if problems == 0 {
+        println!(
+            "   SKILL.md: frontmatter present, {} reference(s) all linked and present",
+            refs.len()
+        );
+    }
+    Ok(problems)
+}
+
+/// The rules on text: frontmatter with `name:` and `description:`; every
+/// `references/<file>.md` that exists is linked; every linked reference exists;
+/// the file stays short enough to be read before the work starts.
+fn skill_problems(skill: &str, references: &[String]) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut parts = skill.splitn(3, "---\n");
+    let (Some(""), Some(front), Some(_body)) = (parts.next(), parts.next(), parts.next()) else {
+        out.push("SKILL.md: no `---` frontmatter block at the top".to_owned());
+        return out;
+    };
+    for key in ["name:", "description:"] {
+        if !front.lines().any(|l| l.starts_with(key)) {
+            out.push(format!("SKILL.md: frontmatter lacks `{key}`"));
+        }
+    }
+    for r in references {
+        if !skill.contains(&format!("references/{r}")) {
+            out.push(format!(
+                "SKILL.md: references/{r} exists but is never linked"
+            ));
+        }
+    }
+    // Links are matched in the bare `](references/<file>)` form the shipped
+    // file uses; a `./` or `../` prefix would be invisible to both checks.
+    let mut rest = skill;
+    while let Some(i) = rest.find("](references/") {
+        let after = &rest[i + 2..];
+        let end = after.find(')').unwrap_or(after.len());
+        let target = &after["references/".len()..end];
+        if !references.iter().any(|r| r == target) {
+            out.push(format!(
+                "SKILL.md: links references/{target}, which does not exist"
+            ));
+        }
+        rest = &after[end..];
+    }
+    let lines = skill.lines().count();
+    if lines > 120 {
+        out.push(format!(
+            "SKILL.md: {lines} lines; keep it under 120 — details go in references/"
+        ));
+    }
+    out
+}
+
+/// Steps run in-process before the commands: spdx headers, workflows, skill.
+const IN_PROCESS_STEPS: usize = 3;
 
 fn gate() -> ExitCode {
     let steps = [
@@ -352,6 +426,19 @@ fn gate() -> ExitCode {
         }
     }
 
+    println!("== skill (SKILL.md frontmatter; every reference linked and present) ==");
+    match check_skill() {
+        Ok(0) => println!("   ok"),
+        Ok(n) => {
+            println!("   FAILED ({n} problem(s))");
+            failed.push("skill");
+        }
+        Err(err) => {
+            println!("   COULD NOT RUN: {err}");
+            failed.push("skill");
+        }
+    }
+
     for step in &steps {
         println!("== {} ==", step.label);
         let status = Command::new(step.program).args(step.args).status();
@@ -374,7 +461,7 @@ fn gate() -> ExitCode {
     // Report every failing step, not the first. A gate that stops at the first
     // failure makes the operator re-run it once per defect.
     if failed.is_empty() {
-        // Two in-process steps (spdx, workflows) plus the commands.
+        // Three in-process steps (spdx, workflows, skill) plus the commands.
         println!(
             "\ngate: PASS — {} step(s) green",
             steps.len() + IN_PROCESS_STEPS
@@ -395,7 +482,39 @@ fn gate() -> ExitCode {
 
 #[cfg(test)]
 mod tests {
-    use super::workflow_problems;
+    use super::{skill_problems, workflow_problems};
+
+    #[test]
+    fn skill_rules_catch_each_defect_and_pass_the_shipped_file() {
+        let refs = vec!["loop.md".to_owned(), "mcp.md".to_owned()];
+        let good =
+            "---\nname: x\ndescription: y\n---\n\n[a](references/loop.md) [b](references/mcp.md)\n";
+        assert!(skill_problems(good, &refs).is_empty());
+        assert_eq!(skill_problems("# no frontmatter\n", &refs).len(), 1);
+        let unlinked = "---\nname: x\ndescription: y\n---\n[a](references/loop.md)\n";
+        assert!(skill_problems(unlinked, &refs)[0].contains("mcp.md exists but is never linked"));
+        let dangling = "---\nname: x\ndescription: y\n---\n[a](references/loop.md) [b](references/mcp.md) [c](references/gone.md)\n";
+        assert!(skill_problems(dangling, &refs)[0].contains("gone.md, which does not exist"));
+        let no_desc = "---\nname: x\n---\n[a](references/loop.md) [b](references/mcp.md)\n";
+        assert!(skill_problems(no_desc, &refs)[0].contains("`description:`"));
+        // The shipped skill passes against the shipped references.
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+        let skill =
+            std::fs::read_to_string(root.join(".claude/skills/openwarrant/SKILL.md")).unwrap();
+        let mut shipped: Vec<String> =
+            std::fs::read_dir(root.join(".claude/skills/openwarrant/references"))
+                .unwrap()
+                .filter_map(Result::ok)
+                .map(|e| e.file_name().to_string_lossy().into_owned())
+                .collect();
+        shipped.sort();
+        assert_eq!(shipped.len(), 4);
+        assert!(
+            skill_problems(&skill, &shipped).is_empty(),
+            "{:?}",
+            skill_problems(&skill, &shipped)
+        );
+    }
 
     #[test]
     fn a_sha_pinned_action_passes() {

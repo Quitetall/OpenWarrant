@@ -1,0 +1,13 @@
+{
+  "name": "openwarrant",
+  "displayName": "OpenWarrant",
+  "version": "0.1.0",
+  "description": "Work Authorization Records for agents: the `openwarrant` skill, the `war mcp` server, a pin guard on edits, and a stop check that keeps `war check` green. Holds no authority — signing stays a human act.",
+  "author": { "name": "OpenWarrant" },
+  "repository": "https://github.com/Quitetall/OpenWarrant",
+  "license": "AGPL-3.0-or-later",
+  "keywords": ["warrant", "authorization", "provenance", "mcp"],
+  "skills": "./.claude/skills/",
+  "hooks": "./.claude/hooks/hooks.json",
+  "mcpServers": "./.mcp.json"
+}

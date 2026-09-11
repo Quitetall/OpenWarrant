@@ -97,6 +97,24 @@ Four acts are a human's and only a human's — authorize, resolve, accept a SAS
 revision, correct a resolved Warrant's delivered file. You emit the request; the
 tool refuses your signature by kind (§27.2), whatever the response file says.
 
+### Drafting — both paths reach the same gauntlet
+
+A vague sentence becomes a reviewable draft (§74) without you writing files
+under `docs/warrants/` by hand:
+
+```bash
+war plan "add a changelog"                       # the REQUEST: corpus, ADRs, questions (oh.war/draft-request/v1)
+# you are the drafter: answer it with an oh.war/draft-proposal/v2 file — operations carry
+# role, ordinal, path, body; relations; evidence claims; durable choices; blocker questions
+war plan --proposal draft.json --reviewed        # §74.4's gauntlet, nothing applied
+war plan --proposal draft.json --reviewed --apply   # creates the Warrant through `war new`; records plan/
+war plan "add a changelog" --draft --reviewed --apply   # or: the configured [plan] drafter_argv answers
+```
+
+`--apply` refuses a proposal nobody reviewed, a v1 proposal (no payloads), an
+unanswered blocker question, an invented `war://`, and a drafter that touched
+the working tree. Answer questions with `--answer Q-001="..."`.
+
 ### Over MCP
 
 `war mcp` serves the same surface to any harness over stdio: every read, every
@@ -108,6 +126,13 @@ registers **no** signing, ingesting, `sas propose`, `kf`, `telemetry`,
 `war mcp --describe` prints the table and the refusal list. Resources:
 `warrant://<alias>[/status|/journal]`, `status://corpus`, `sas://current`,
 `pins://all`, `next://`.
+
+Claude Code: the repository is also a plugin (`.claude-plugin/`). It ships the
+`openwarrant` skill, this server (`.mcp.json`), a `PreToolUse` guard that
+denies an edit to a file `war pins --resolved-only` lists or to anything under
+`generated/`, and a `Stop` check that blocks ending the turn while `war check`
+reports errors. `claude plugin marketplace add <path-to-repo>` then
+`/plugin install openwarrant@openwarrant`.
 
 ### Writing the atoms
 

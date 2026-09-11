@@ -10,6 +10,24 @@ one 0.x version are not guaranteed to be reproducible by another.
 
 ## [Unreleased]
 
+Toward 1.0 (the plan is the Warrant backlog; each entry is one slice):
+
+- The correction act (OW-WAR-0064, OW-ADR-0012): a resolved Warrant's pinned
+  file moves for a reason through `war correct` + `war sign <alias>/<D-id>`,
+  never silently and never by regenerating the record.
+- `--json` on every command: one `oh.war/report/v1` envelope, errors included
+  (§76.4). `war pins` (what a resolution pins) and `war next` (whose act is
+  next; never a signing act for an agent).
+- `AGENTS.md` is a template `war init` writes; `war agents-md` rewrites it.
+- Draft Proposal v2 (OW-ADR-0013): operations carry payloads; `war plan
+  --draft` runs a configured drafter, `--apply` creates the Warrant and records
+  request, proposal, drafter run and pipeline under `plan/`.
+- An async runtime for the MCP transport only (OW-ADR-0014); `war mcp` serves
+  every read, request half and agent-permitted write over stdio with no
+  signing or ingesting tool registered.
+- A Claude Code plugin: the `openwarrant` skill with references, the MCP
+  server, a `PreToolUse` pin guard and a `Stop` check on `war check`.
+
 ## [0.1.0] — 2026-08-24
 
 ### Changed — BREAKING for agents that emit Draft Proposals
