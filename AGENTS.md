@@ -97,6 +97,18 @@ Four acts are a human's and only a human's — authorize, resolve, accept a SAS
 revision, correct a resolved Warrant's delivered file. You emit the request; the
 tool refuses your signature by kind (§27.2), whatever the response file says.
 
+### Over MCP
+
+`war mcp` serves the same surface to any harness over stdio: every read, every
+request half, and the writes an agent may make (`war_new`, `war_evidence_record`,
+`war_compile`, `war_gate_run`, `war_journal_backfill`, a reviewed
+`war_plan_apply`). Each tool answers with the `oh.war/report/v1` envelope. It
+registers **no** signing, ingesting, `sas propose`, `kf`, `telemetry`,
+`migrate`, `export`, `bonsai`, `init`, `gate --record` or `plan --draft` tool —
+`war mcp --describe` prints the table and the refusal list. Resources:
+`warrant://<alias>[/status|/journal]`, `status://corpus`, `sas://current`,
+`pins://all`, `next://`.
+
 ### Writing the atoms
 
 A `delivery` Warrant has five authored atoms. What each is for:

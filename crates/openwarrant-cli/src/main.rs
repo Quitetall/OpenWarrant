@@ -23,6 +23,7 @@ mod gate_cmd;
 mod init;
 mod journal_cmd;
 mod kf;
+mod mcp;
 mod migrate;
 mod new;
 mod next;
@@ -518,6 +519,14 @@ enum Command {
     /// Every file a Warrant's `deliverables.toml` pins, with the Warrant's
     /// state — ask BEFORE editing; a resolved Warrant's pin moves only through
     /// `war correct` (OW-WAR-0064).
+    /// Serve the Model Context Protocol over stdio (OW-ADR-0014): every
+    /// read, request half and agent-permitted write as a tool; no signing,
+    /// no ingest. `--describe` prints the tool table instead of serving.
+    Mcp {
+        /// Print the tools, the refusal list and the resources, then exit.
+        #[arg(long)]
+        describe: bool,
+    },
     Pins {
         /// Only pins held by a resolution.
         #[arg(long)]
@@ -1231,6 +1240,17 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             );
             Ok(EXIT_OK)
         }
+        Command::Mcp { describe } => {
+            // Discover BEFORE any runtime exists: outside a repository this
+            // is an ordinary CLI refusal, never a half-started server.
+            let repository = repo::Repository::discover(None)?;
+            if describe {
+                print!("{}", mcp::describe(repository));
+                return Ok(EXIT_OK);
+            }
+            mcp::run(repository)?;
+            Ok(EXIT_OK)
+        }
         Command::Next => {
             let repository = repo::Repository::discover(None)?;
             let next = next::run(&repository)?;
@@ -1531,7 +1551,9 @@ mod tests {
 
     #[test]
     fn every_subcommand_supports_json_or_is_listed_as_not_yet() {
-        const NOT_YET: &[&str] = &["init", "kf", "telemetry", "migrate", "export"];
+        // `mcp` speaks JSON-RPC on stdout; an envelope there would corrupt
+        // the transport, so it is listed as not-yet on purpose, not by gap.
+        const NOT_YET: &[&str] = &["init", "kf", "telemetry", "migrate", "export", "mcp"];
         let cmd = super::Cli::command();
         let all: Vec<String> = cmd
             .get_subcommands()
