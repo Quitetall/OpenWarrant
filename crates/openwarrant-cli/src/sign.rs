@@ -1058,7 +1058,17 @@ fn attest_after(
                     })
                 })
                 .collect();
-            files.sort();
+            // By SEQUENCE, not by name: `D-001-10.toml` sorts before
+            // `D-001-2.toml` lexicographically.
+            let seq = |f: &Utf8PathBuf| -> u32 {
+                f.file_stem()
+                    .and_then(|st| st.rsplit('-').next())
+                    .and_then(|n| n.parse().ok())
+                    // A name outside `<D-id>-<n>.toml` sorts LAST, so junk
+                    // can never be mistaken for the oldest correction.
+                    .unwrap_or(u32::MAX)
+            };
+            files.sort_by_key(seq);
             let newest = files
                 .pop()
                 .ok_or_else(|| format!("no correction file under {cdir}"))?;

@@ -31,6 +31,10 @@ Toward 1.0 (the plan is the Warrant backlog; each entry is one slice):
   Statement in a DSSE envelope beside its record, signed with the same key
   under `oh.war/dsse`; `war attest` verifies signatures and subject digests,
   and `cargo xtask gate` runs `war attest --all`.
+- `[project] performer` in `openwarrant.toml` (default `claude`), never a
+  flag; `authorize` and `resolve` refuse an `effective_time` that is not RFC
+  3339 UTC; `roles.toml.example` shows a second human signer, and two
+  eligible signers is a question (`sign.who`), a duplicate principal a refusal.
 
 ## [0.1.0] — 2026-08-24
 

@@ -73,6 +73,13 @@ pub struct Project {
     pub namespace: Namespace,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub knowledge_fabric_project_ref: Option<String>,
+    /// The actor every self-* check compares against (self-verification
+    /// §46, self-authorization §27.2, self-resolution §27.3). Set in this
+    /// human-written, committed file and nowhere else: a flag that renamed
+    /// the performer would let a caller walk out of all three. Default
+    /// `claude`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub performer: Option<String>,
 }
 
 /// Where the controlled document trees live (§59, §60).
@@ -279,6 +286,7 @@ impl RepositoryConfig {
                 name: name.into(),
                 namespace,
                 knowledge_fabric_project_ref: None,
+                performer: None,
             },
             paths: Paths::default(),
             generated: GeneratedPolicy::default(),

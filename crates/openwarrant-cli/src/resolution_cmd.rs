@@ -301,6 +301,18 @@ pub fn ingest(repo: &Repository, alias: &str, path: &Utf8Path) -> Result<Report,
     }
 
     let dir = repo.warrant_dir(alias)?;
+    if let Err(e) = openwarrant_core::timestamp::validate_rfc3339_utc(&response.effective_time) {
+        refuse(
+            &mut report,
+            "resolution.effective-time",
+            format!(
+                "{alias}: effective_time {:?} is not an RFC 3339 UTC timestamp ({e}); a \
+                 record dated \"soon\" cannot be ordered against any other",
+                response.effective_time
+            ),
+        );
+        return Ok(report);
+    }
     if dir.join("resolution.toml").is_file() {
         refuse(
             &mut report,

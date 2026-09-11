@@ -138,15 +138,20 @@ impl Repository {
 
     /// The actor this tool acts as when it performs work (§27.1).
     ///
-    /// Fixed to `claude`, and deliberately not configurable from the command
-    /// line. The performer identity is what every self-* check compares
-    /// against — self-verification (§46), self-authorization (§27.2),
-    /// self-resolution (§27.3 condition 4). A flag that let the caller rename
-    /// the performer would let it walk out of all three by claiming to be
-    /// somebody else.
+    /// `[project] performer` in `openwarrant.toml`, default `claude`, and
+    /// deliberately not configurable from the command line. The performer
+    /// identity is what every self-* check compares against —
+    /// self-verification (§46), self-authorization (§27.2), self-resolution
+    /// (§27.3 condition 4). A flag that let the caller rename the performer
+    /// would let it walk out of all three by claiming to be somebody else;
+    /// a committed, human-written file cannot be reached that way.
     #[must_use]
     pub fn performer(&self) -> String {
-        "claude".to_owned()
+        self.config
+            .project
+            .performer
+            .clone()
+            .unwrap_or_else(|| "claude".to_owned())
     }
 
     /// Role assignments in force for this repository (§27.4).

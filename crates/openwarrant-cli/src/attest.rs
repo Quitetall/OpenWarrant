@@ -48,6 +48,49 @@ pub struct Attestable<'a> {
     pub actor: &'a str,
 }
 
+/// A private scratch directory for one ssh-keygen exchange: created 0700 with
+/// a per-call name (pid + nanoseconds), removed on drop. Predictable names
+/// under a shared /tmp are a symlink-following risk on the write and a race
+/// on the `.sig` ssh-keygen writes beside its input; a directory nobody else
+/// can enter closes both.
+struct Scratch(Utf8PathBuf);
+
+impl Scratch {
+    fn new(tag: &str) -> Result<Self, String> {
+        // A clock before the epoch would degrade the name to a predictable
+        // one; refuse rather than sign in that environment.
+        let stamp = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_err(|e| format!("system clock is before the Unix epoch: {e}"))?
+            .as_nanos();
+        let dir = Utf8PathBuf::from(format!(
+            "{}/war-attest-{tag}-{}-{stamp}",
+            std::env::temp_dir().display(),
+            std::process::id()
+        ));
+        let mut builder = std::fs::DirBuilder::new();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::DirBuilderExt;
+            builder.mode(0o700);
+        }
+        builder
+            .create(&dir)
+            .map_err(|e| format!("could not create scratch directory {dir}: {e}"))?;
+        Ok(Self(dir))
+    }
+
+    fn file(&self, name: &str) -> Utf8PathBuf {
+        self.0.join(name)
+    }
+}
+
+impl Drop for Scratch {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.0);
+    }
+}
+
 fn sha256_hex(bytes: &[u8]) -> String {
     let mut h = Sha256::new();
     h.update(bytes);
@@ -67,30 +110,33 @@ pub fn dir_for(repo: &Repository, act: &str, target: &str) -> Result<Utf8PathBuf
     }
 }
 
-fn next_name(dir: &Utf8Path, stem: &str) -> Utf8PathBuf {
-    let mut n = 1u32;
-    loop {
+fn next_name(dir: &Utf8Path, stem: &str) -> Result<Utf8PathBuf, RepoError> {
+    // Bounded: ten thousand attestations for one act is a defect to report,
+    // not a loop to spin in.
+    for n in 1u32..=10_000 {
         let candidate = dir.join(format!("{stem}-{n}.dsse.json"));
         if !candidate.exists() {
-            return candidate;
+            return Ok(candidate);
         }
-        n = n.saturating_add(1);
     }
+    Err(RepoError::Message(format!(
+        "{dir}: more than 10000 {stem}-N.dsse.json files; refusing to allocate another"
+    )))
 }
 
 /// `SHA256:<base64>` of the principal's public key, as `ssh-keygen -lf`
 /// prints it — the DSSE `keyid`.
 fn keyid_of(pubkey_line: &str) -> Result<String, String> {
-    let tmp = std::env::temp_dir().join(format!("war-attest-{}.pub", std::process::id()));
+    let scratch = Scratch::new("keyid")?;
+    let tmp = scratch.file("key.pub");
     std::fs::write(&tmp, format!("{pubkey_line}\n"))
-        .map_err(|e| format!("could not write {}: {e}", tmp.display()))?;
+        .map_err(|e| format!("could not write {tmp}: {e}"))?;
     let out = std::process::Command::new("ssh-keygen")
         .args(["-lf"])
         .arg(&tmp)
         .args(["-E", "sha256"])
-        .output();
-    let _ = std::fs::remove_file(&tmp);
-    let out = out.map_err(|e| format!("could not run ssh-keygen -lf: {e}"))?;
+        .output()
+        .map_err(|e| format!("could not run ssh-keygen -lf: {e}"))?;
     if !out.status.success() {
         return Err(format!(
             "ssh-keygen -lf refused: {}",
@@ -108,23 +154,16 @@ fn keyid_of(pubkey_line: &str) -> Result<String, String> {
 /// routes through the agent — or a private key file, which signs directly;
 /// tests use the latter). Returns the base64 SSHSIG blob.
 fn sign_pae(key_file: &Utf8Path, pae_bytes: &[u8]) -> Result<String, String> {
-    let tmp = Utf8PathBuf::from(format!(
-        "{}/war-attest-{}.pae",
-        std::env::temp_dir().display(),
-        std::process::id()
-    ));
+    let scratch = Scratch::new("sign")?;
+    let tmp = scratch.file("statement.pae");
     std::fs::write(&tmp, pae_bytes).map_err(|e| format!("could not write {tmp}: {e}"))?;
     let out = std::process::Command::new("ssh-keygen")
         .args(["-Y", "sign", "-f"])
         .arg(key_file)
         .args(["-n", SSH_NAMESPACE])
         .arg(&tmp)
-        .output();
-    let sig_path = Utf8PathBuf::from(format!("{tmp}.sig"));
-    let armored = std::fs::read_to_string(&sig_path);
-    let _ = std::fs::remove_file(&tmp);
-    let _ = std::fs::remove_file(&sig_path);
-    let out = out.map_err(|e| format!("could not run ssh-keygen -Y sign: {e}"))?;
+        .output()
+        .map_err(|e| format!("could not run ssh-keygen -Y sign: {e}"))?;
     if !out.status.success() {
         return Err(format!(
             "ssh-keygen -Y sign refused ({}): {}",
@@ -132,7 +171,8 @@ fn sign_pae(key_file: &Utf8Path, pae_bytes: &[u8]) -> Result<String, String> {
             String::from_utf8_lossy(&out.stderr).trim()
         ));
     }
-    let armored = armored.map_err(|e| format!("ssh-keygen wrote no signature: {e}"))?;
+    let armored = std::fs::read_to_string(format!("{tmp}.sig"))
+        .map_err(|e| format!("ssh-keygen wrote no signature: {e}"))?;
     dearmor(&armored).map_err(|e| e.to_string())
 }
 
@@ -144,30 +184,21 @@ fn verify_pae(
     pae_bytes: &[u8],
     sig_blob_base64: &str,
 ) -> Result<(), String> {
-    let stem = format!(
-        "{}/war-attest-verify-{}",
-        std::env::temp_dir().display(),
-        std::process::id()
-    );
-    let pae_file = Utf8PathBuf::from(format!("{stem}.pae"));
-    let sig_file = Utf8PathBuf::from(format!("{stem}.sig"));
+    let scratch = Scratch::new("verify")?;
+    let pae_file = scratch.file("statement.pae");
+    let sig_file = scratch.file("statement.sig");
     std::fs::write(&pae_file, pae_bytes).map_err(|e| format!("could not write {pae_file}: {e}"))?;
     std::fs::write(&sig_file, armor(sig_blob_base64))
         .map_err(|e| format!("could not write {sig_file}: {e}"))?;
-    let input = std::fs::File::open(&pae_file).map_err(|e| e.to_string());
-    let out = input.and_then(|input| {
-        std::process::Command::new("ssh-keygen")
-            .args(["-Y", "verify", "-f"])
-            .arg(allowed_signers)
-            .args(["-I", principal, "-n", SSH_NAMESPACE, "-s"])
-            .arg(&sig_file)
-            .stdin(input)
-            .output()
-            .map_err(|e| format!("could not run ssh-keygen -Y verify: {e}"))
-    });
-    let _ = std::fs::remove_file(&pae_file);
-    let _ = std::fs::remove_file(&sig_file);
-    let out = out?;
+    let input = std::fs::File::open(&pae_file).map_err(|e| e.to_string())?;
+    let out = std::process::Command::new("ssh-keygen")
+        .args(["-Y", "verify", "-f"])
+        .arg(allowed_signers)
+        .args(["-I", principal, "-n", SSH_NAMESPACE, "-s"])
+        .arg(&sig_file)
+        .stdin(input)
+        .output()
+        .map_err(|e| format!("could not run ssh-keygen -Y verify: {e}"))?;
     if out.status.success() {
         Ok(())
     } else {
@@ -230,7 +261,7 @@ pub fn emit_with_key(
     } else {
         a.act.to_owned()
     };
-    let path = next_name(&dir, &stem);
+    let path = next_name(&dir, &stem)?;
     let text = serde_json::to_string_pretty(&envelope).unwrap_or_default() + "\n";
     std::fs::OpenOptions::new()
         .write(true)
@@ -257,20 +288,15 @@ pub fn emit(repo: &Repository, a: &Attestable<'_>) -> Result<Utf8PathBuf, RepoEr
         .map_err(|why| RepoError::Message(format!("attest.not-signed: {allowed}: {why}")))?;
     let keyid =
         keyid_of(&pubkey).map_err(|why| RepoError::Message(format!("attest.not-signed: {why}")))?;
-    let pub_path = Utf8PathBuf::from(format!(
-        "{}/war-attest-{}.tmp.pub",
-        std::env::temp_dir().display(),
-        std::process::id()
-    ));
+    let scratch = Scratch::new("emit").map_err(RepoError::Message)?;
+    let pub_path = scratch.file("signer.pub");
     std::fs::write(&pub_path, format!("{pubkey} {principal}\n")).map_err(|source| {
         RepoError::Io {
             context: format!("could not write {pub_path}"),
             source,
         }
     })?;
-    let result = emit_with_key(repo, a, &pub_path, &keyid);
-    let _ = std::fs::remove_file(&pub_path);
-    result
+    emit_with_key(repo, a, &pub_path, &keyid)
 }
 
 /// Every attestation file for a target, sorted.

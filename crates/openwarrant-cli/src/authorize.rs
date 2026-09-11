@@ -242,6 +242,11 @@ pub fn residual_risks_in(assumptions: &[Assumption]) -> Vec<RequestedResidualRis
 /// Why a response was refused before anything was written.
 #[derive(Debug, PartialEq, Eq)]
 pub enum Refusal {
+    /// `effective_time` is not an RFC 3339 UTC timestamp.
+    EffectiveTime {
+        found: String,
+        why: String,
+    },
     UnknownSchema {
         found: String,
     },
@@ -276,6 +281,11 @@ impl std::fmt::Display for Refusal {
             Self::WrongWarrant { named, ingesting } => write!(
                 f,
                 "response names {named:?} but is being ingested for {ingesting}"
+            ),
+            Self::EffectiveTime { found, why } => write!(
+                f,
+                "effective_time {found:?} is not an RFC 3339 UTC timestamp ({why}); a record \
+                 dated \"soon\" cannot be ordered against any other"
             ),
             Self::StaleDigest { signed, current } => write!(
                 f,
@@ -316,6 +326,12 @@ pub fn validate_response(
         return Err(Refusal::WrongWarrant {
             named: response.warrant.clone(),
             ingesting: ingesting.to_owned(),
+        });
+    }
+    if let Err(e) = openwarrant_core::timestamp::validate_rfc3339_utc(&response.effective_time) {
+        return Err(Refusal::EffectiveTime {
+            found: response.effective_time.clone(),
+            why: e.to_string(),
         });
     }
     if response.contract_digest != current_digest {
@@ -428,6 +444,7 @@ pub fn ingest(
             Refusal::UnknownSchema { .. } => "authorize.response-schema",
             Refusal::WrongWarrant { .. } => "authorize.response-warrant",
             Refusal::StaleDigest { .. } => "authorize.stale-digest",
+            Refusal::EffectiveTime { .. } => "authorize.effective-time",
             Refusal::UnknownActor { .. } => "authorize.unknown-actor",
             Refusal::NotPermitted { .. } => "authorize.not-permitted",
         };
