@@ -25,6 +25,7 @@ mod journal_cmd;
 mod kf;
 mod migrate;
 mod new;
+mod output;
 mod relations;
 mod repo;
 mod resolution_cmd;
@@ -138,9 +139,9 @@ enum BonsaiCommand {
 ///
 /// Codes are added when a command can actually produce them. An exit code the
 /// binary never returns is a promise to callers that nothing keeps.
-const EXIT_OK: u8 = 0;
-const EXIT_DIAGNOSTIC: u8 = 1;
-const EXIT_NOT_READY: u8 = 2;
+pub(crate) const EXIT_OK: u8 = 0;
+pub(crate) const EXIT_DIAGNOSTIC: u8 = 1;
+pub(crate) const EXIT_NOT_READY: u8 = 2;
 
 #[derive(Parser)]
 #[command(
@@ -150,6 +151,10 @@ const EXIT_NOT_READY: u8 = 2;
     long_about = None,
 )]
 struct Cli {
+    /// Machine output (SAS §76.4): one `oh.war/report/v1` envelope on stdout,
+    /// for every command. Errors are envelopes too.
+    #[arg(long, global = true)]
+    json: bool,
     #[command(subcommand)]
     command: Command,
 }
@@ -488,11 +493,9 @@ enum Command {
     /// per-Warrant form §72.5 names. Every count is a ladder; nothing is a
     /// percentage.
     Status {
-        /// A Warrant's local alias. Omit for the whole corpus.
+        /// A Warrant's local alias. Omit for the whole corpus. (`--json` is the
+        /// global flag; for the corpus it yields the canonical projection.)
         alias: Option<String>,
-        /// Emit RFC 8785 canonical JSON instead of Markdown.
-        #[arg(long)]
-        json: bool,
     },
 
     /// Compile the configured projections (§71.8).
@@ -503,18 +506,21 @@ enum Command {
 }
 
 fn main() -> ExitCode {
-    match run(Cli::parse()) {
+    let cli = Cli::parse();
+    let mode = output::Mode::from_flag(cli.json);
+    match run(cli) {
         Ok(code) => ExitCode::from(code),
         Err(report) => {
             // §76.2: an explicit diagnostic naming what was wrong and where,
-            // never a bare "error".
-            eprintln!("error: {report}");
+            // never a bare "error". Under --json, an envelope on stdout.
+            output::error(mode, &report.to_string());
             ExitCode::from(EXIT_DIAGNOSTIC)
         }
     }
 }
 
 fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
+    let mode = output::Mode::from_flag(cli.json);
     match cli.command {
         Command::Init {
             namespace,
@@ -529,8 +535,14 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             let profile: Profile = profile.parse()?;
             let repository = repo::Repository::discover(None)?;
             let dir = new::run(&repository, &title, profile)?;
-            println!("created {}", repository.relative(&dir));
-            println!("edit its atoms, then run `war check`");
+            let rel = repository.relative(&dir);
+            let alias = dir.file_name().unwrap_or_default().to_owned();
+            output::emit(
+                mode,
+                "new",
+                &format!("created {rel}\nedit its atoms, then run `war check`"),
+                serde_json::json!({"alias": alias, "dir": rel, "profile": profile.to_string()}),
+            );
             Ok(EXIT_OK)
         }
 
@@ -576,7 +588,7 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 &evidence_refs,
                 None,
             )?;
-            check::print(&report);
+            let _ = output::finish(mode, "gate", &report, None);
             // §44.1 and RQ-054: an unaskable gate is NOT a pass, and is not a
             // failure either. `is_ready()` blocks on unknowns, so both land on a
             // non-zero exit without the two being conflated in the report.
@@ -867,12 +879,7 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         } => {
             let repository = repo::Repository::discover(None)?;
             let report = blut::lower(&repository, &alias, verify.as_deref(), emit.as_deref())?;
-            check::print(&report);
-            Ok(if report.is_ready() {
-                EXIT_OK
-            } else {
-                EXIT_NOT_READY
-            })
+            Ok(output::finish(mode, "blut", &report, None))
         }
         Command::Dispatch {
             alias,
@@ -901,7 +908,9 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     eprintln!("{d}");
                 }
             } else {
-                check::print(&report);
+                // With --emit the packet is on disk, so the report may take
+                // stdout — as an envelope under --json.
+                let _ = output::finish(mode, "dispatch", &report, None);
             }
             Ok(if report.is_ready() {
                 EXIT_OK
@@ -918,20 +927,17 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             match response {
                 Some(path) => {
                     let report = correct::ingest(&repository, &alias, &deliverable_id, &path)?;
-                    check::print(&report);
-                    Ok(if report.is_ready() {
-                        EXIT_OK
-                    } else {
-                        EXIT_NOT_READY
-                    })
+                    Ok(output::finish(mode, "correct", &report, None))
                 }
                 None => {
                     let request = correct::request(&repository, &alias, &deliverable_id)?;
-                    println!(
-                        "{}",
-                        toml::to_string_pretty(&request).map_err(|e| {
+                    output::emit(
+                        mode,
+                        "correct.request",
+                        &toml::to_string_pretty(&request).map_err(|e| {
                             repo::RepoError::Message(format!("could not render the request: {e}"))
-                        })?
+                        })?,
+                        output::value(&request),
                     );
                     if !request.resolved {
                         eprintln!(
@@ -962,31 +968,23 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             let repository = repo::Repository::discover(None)?;
             if dry_run {
                 let report = resolve::run(&repository, &alias)?;
-                check::print(&report);
-                return Ok(if report.is_ready() {
-                    EXIT_OK
-                } else {
-                    EXIT_NOT_READY
-                });
+                return Ok(output::finish(mode, "resolve.dry_run", &report, None));
             }
             match response {
                 Some(path) => {
                     let report = resolution_cmd::ingest(&repository, &alias, &path)?;
-                    check::print(&report);
-                    Ok(if report.is_ready() {
-                        EXIT_OK
-                    } else {
-                        EXIT_NOT_READY
-                    })
+                    Ok(output::finish(mode, "resolve", &report, None))
                 }
                 None => {
                     let request = resolution_cmd::request(&repository, &alias)?;
-                    println!(
-                        "{}",
-                        toml::to_string_pretty(&request).map_err(|e| repo::RepoError::Io {
+                    output::emit(
+                        mode,
+                        "resolve.request",
+                        &toml::to_string_pretty(&request).map_err(|e| repo::RepoError::Io {
                             context: "could not render the resolution request".to_owned(),
                             source: std::io::Error::other(e.to_string()),
-                        })?
+                        })?,
+                        output::value(&request),
                     );
                     if request.requirements_met {
                         eprintln!(
@@ -1015,14 +1013,18 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             let repository = repo::Repository::discover(None)?;
             if backfill {
                 let report = journal_cmd::backfill(&repository, &alias)?;
-                check::print(&report);
-                Ok(if report.is_ready() {
-                    EXIT_OK
-                } else {
-                    EXIT_NOT_READY
-                })
+                Ok(output::finish(mode, "journal", &report, None))
             } else {
-                print!("{}", journal_cmd::show(&repository, &alias)?);
+                let text = journal_cmd::show(&repository, &alias)?;
+                match mode {
+                    output::Mode::Human => print!("{text}"),
+                    output::Mode::Json => output::emit(
+                        mode,
+                        "journal",
+                        &text,
+                        serde_json::json!({"alias": alias, "rendered": text}),
+                    ),
+                }
                 Ok(EXIT_OK)
             }
         }
@@ -1030,36 +1032,26 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             let repository = repo::Repository::discover(None)?;
             let EvidenceCommand::Record { alias, gate } = command;
             let report = evidence::record(&repository, &alias, gate.as_deref())?;
-            check::print(&report);
-            Ok(if report.is_ready() {
-                EXIT_OK
-            } else {
-                EXIT_NOT_READY
-            })
+            Ok(output::finish(mode, "evidence", &report, None))
         }
         Command::Sas { command } => {
             let repository = repo::Repository::discover(None)?;
-            let ready = |report: diagnostic::Report| {
-                check::print(&report);
-                Ok(if report.is_ready() {
-                    EXIT_OK
-                } else {
-                    EXIT_NOT_READY
-                })
-            };
+            let ready = |report: diagnostic::Report| Ok(output::finish(mode, "sas", &report, None));
             match command {
                 SasCommand::Propose { version } => ready(sas::propose(&repository, &version)?),
                 SasCommand::Accept { version, response } => match response {
                     Some(path) => ready(sas::accept_ingest(&repository, &version, &path)?),
                     None => {
                         let request = sas::accept_request(&repository, &version)?;
-                        println!(
-                            "{}",
-                            toml::to_string_pretty(&request).map_err(|e| {
+                        output::emit(
+                            mode,
+                            "accept.accept.request",
+                            &toml::to_string_pretty(&request).map_err(|e| {
                                 repo::RepoError::Message(format!(
                                     "could not render the request: {e}"
                                 ))
-                            })?
+                            })?,
+                            output::value(&request),
                         );
                         eprintln!(
                             "# SAS {} at sha256:{} — architecture-changing: {}{}",
@@ -1095,46 +1087,60 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 SasCommand::Status => ready(sas::status(&repository)?),
             }
         }
-        Command::Status { alias, json } => {
+        Command::Status { alias } => {
             let repository = repo::Repository::discover(None)?;
             match alias {
                 Some(alias) => {
                     let rendered = show::run(&repository, &alias, "status")?;
-                    println!("{rendered}");
+                    output::emit(
+                        mode,
+                        "status",
+                        &rendered,
+                        serde_json::json!({"alias": alias, "view": "status", "rendered": rendered}),
+                    );
                 }
-                None => {
-                    let (_, text) = if json {
-                        status::corpus_status_json(&repository)?
-                    } else {
-                        status::corpus_status_md(&repository)?
-                    };
-                    println!("{text}");
-                }
+                None => match mode {
+                    // The corpus projection IS canonical JSON already; under
+                    // --json it rides inside the envelope as `result`, so the
+                    // committed CORPUS_STATUS.json (written by `compile`) and
+                    // this output agree on the payload.
+                    output::Mode::Json => {
+                        let (_, text) = status::corpus_status_json(&repository)?;
+                        let value: serde_json::Value = serde_json::from_str(&text)
+                            .map_err(|e| repo::RepoError::Message(format!("corpus status: {e}")))?;
+                        output::emit(mode, "status", &text, value);
+                    }
+                    output::Mode::Human => {
+                        let (_, text) = status::corpus_status_md(&repository)?;
+                        println!("{text}");
+                    }
+                },
             }
             Ok(EXIT_OK)
         }
         Command::Show { alias, view } => {
             let repository = repo::Repository::discover(None)?;
             let rendered = show::run(&repository, &alias, &view)?;
-            println!("{rendered}");
+            output::emit(
+                mode,
+                "show",
+                &rendered,
+                serde_json::json!({"alias": alias, "view": view, "rendered": rendered}),
+            );
             Ok(EXIT_OK)
         }
         Command::Diff { alias, from } => {
             let repository = repo::Repository::discover(None)?;
             let report = show::diff(&repository, &alias, from.as_ref())?;
-            check::print(&report);
+            // A diff is information, not a verdict: exit 0 whatever it found.
+            let _ = output::finish(mode, "diff", &report, None);
             Ok(EXIT_OK)
         }
         Command::Check { alias, generated } => {
             let repository = repo::Repository::discover(None)?;
             let report = check::run(&repository, alias.as_deref(), generated)?;
-            check::print(&report);
             // A non-zero exit for an unsound Warrant is what lets CI gate on it.
-            Ok(if report.is_ready() {
-                EXIT_OK
-            } else {
-                EXIT_NOT_READY
-            })
+            Ok(output::finish(mode, "check", &report, None))
         }
 
         Command::Verify {
@@ -1147,25 +1153,20 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 // Ingest verdicts something else produced.
                 Some(path) => {
                     let report = verify::ingest(&repository, &alias, &path)?;
-                    check::print(&report);
-                    Ok(if report.is_ready() {
-                        EXIT_OK
-                    } else {
-                        EXIT_NOT_READY
-                    })
+                    Ok(output::finish(mode, "verify", &report, None))
                 }
                 // Emit the request and stop. §75.2: a seam with nothing on the
                 // other side should say so rather than pretend.
                 None => {
                     let request = verify::request(&repository, &alias, &performer)?;
-                    println!(
-                        "{}",
-                        toml::to_string_pretty(&request).map_err(|e| {
-                            repo::RepoError::Io {
-                                context: "could not render the verification request".to_owned(),
-                                source: std::io::Error::other(e.to_string()),
-                            }
-                        })?
+                    output::emit(
+                        mode,
+                        "verify.request",
+                        &toml::to_string_pretty(&request).map_err(|e| repo::RepoError::Io {
+                            context: "could not render the verification request".to_owned(),
+                            source: std::io::Error::other(e.to_string()),
+                        })?,
+                        output::value(&request),
                     );
                     eprintln!(
                         "# {} obligation(s) for {alias} at {} assurance.",
@@ -1253,35 +1254,25 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 kind,
             };
             let report = sign::run(&repository, target.as_deref(), &opts)?;
-            check::print(&report);
-            Ok(if report.is_ready() {
-                EXIT_OK
-            } else {
-                EXIT_NOT_READY
-            })
+            Ok(output::finish(mode, "sign", &report, None))
         }
         Command::Authorize { alias, response } => {
             let repository = repo::Repository::discover(None)?;
             match response {
                 Some(path) => {
                     let report = authorize::ingest(&repository, &alias, &path)?;
-                    check::print(&report);
-                    Ok(if report.is_ready() {
-                        EXIT_OK
-                    } else {
-                        EXIT_NOT_READY
-                    })
+                    Ok(output::finish(mode, "authorize", &report, None))
                 }
                 None => {
                     let request = authorize::request(&repository, &alias)?;
-                    println!(
-                        "{}",
-                        toml::to_string_pretty(&request).map_err(|e| {
-                            repo::RepoError::Io {
-                                context: "could not render the authorization request".to_owned(),
-                                source: std::io::Error::other(e.to_string()),
-                            }
-                        })?
+                    output::emit(
+                        mode,
+                        "authorize.request",
+                        &toml::to_string_pretty(&request).map_err(|e| repo::RepoError::Io {
+                            context: "could not render the authorization request".to_owned(),
+                            source: std::io::Error::other(e.to_string()),
+                        })?,
+                        output::value(&request),
                     );
                     eprintln!(
                         "# {alias} at {} assurance, contract {}.",
@@ -1314,7 +1305,48 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         Command::Compile { alias } => {
             let repository = repo::Repository::discover(None)?;
             compile::run(&repository, alias.as_deref())?;
+            if mode == output::Mode::Json {
+                output::emit(mode, "compile", "", serde_json::json!({"alias": alias}));
+            }
             Ok(EXIT_OK)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use clap::CommandFactory;
+
+    /// §76.4 says EVERY command should support `--json`. This is the ratchet:
+    /// the subcommands that still print only for humans are listed here, by
+    /// name, and a new subcommand cannot ship without either supporting the
+    /// envelope or being added to this list on purpose. The list shrinks; it
+    /// does not grow silently.
+    #[test]
+    fn every_subcommand_supports_json_or_is_listed_as_not_yet() {
+        const NOT_YET: &[&str] = &["init", "kf", "telemetry", "migrate", "export", "plan"];
+        let cmd = super::Cli::command();
+        let all: Vec<String> = cmd
+            .get_subcommands()
+            .map(|c| c.get_name().to_owned())
+            .collect();
+        assert!(all.len() >= 20, "{all:?}");
+        // Every NOT_YET entry must be a real subcommand — a stale name here
+        // would make the list look longer than the gap is.
+        for n in NOT_YET {
+            assert!(
+                all.iter().any(|a| a == n),
+                "{n} is not a subcommand any more; drop it"
+            );
+        }
+        // The global flag exists and is global.
+        let json = cmd
+            .get_arguments()
+            .find(|a| a.get_id() == "json")
+            .expect("--json is a top-level argument");
+        assert!(
+            json.is_global_set(),
+            "--json must be global so it works after the subcommand"
+        );
     }
 }

@@ -165,7 +165,7 @@ pub fn request(repo: &Repository, alias: &str, id: &str) -> Result<CorrectionReq
         chain_head: head,
         current_digest: current,
         prior_corrections: prior,
-        next_sequence: prior + 1,
+        next_sequence: prior.saturating_add(1),
         eligible_correctors: eligible,
     })
 }
@@ -325,7 +325,10 @@ pub fn ingest(
         return Ok(report);
     }
 
-    let sequence = u32::try_from(s.corrections.len()).unwrap_or(u32::MAX - 1) + 1;
+    // Saturating, and the same arithmetic `request()` uses for `next_sequence`.
+    let sequence = u32::try_from(s.corrections.len())
+        .unwrap_or(u32::MAX)
+        .saturating_add(1);
     let now = crate::gate_cmd::receipt::now_rfc3339_public();
     let correction = Correction {
         id: WarUuid::mint().to_string(),
@@ -395,12 +398,18 @@ pub fn ingest(
             &v.uuid.to_string(),
             crate::journal_cmd::CORRECTION_RECORDED,
             &format!("person://{}", response.corrected_by),
-            &format!(
-                "{{\"deliverable\":\"{id}\",\"sequence\":{sequence},\"superseded\":\"{}\",\"new\":\"{}\",\"record_digest\":\"{record_digest}\",\"channel\":\"{}\"}}",
-                response.superseded_digest,
-                response.new_digest,
-                response.signed_via.as_deref().unwrap_or("file")
-            ),
+            // Built by the serializer, not by hand: the digests are validated
+            // hex today, but a payload that could go malformed on a future
+            // field is a witness that could go silent.
+            &serde_json::json!({
+                "deliverable": id,
+                "sequence": sequence,
+                "superseded": response.superseded_digest,
+                "new": response.new_digest,
+                "record_digest": record_digest,
+                "channel": response.signed_via.as_deref().unwrap_or("file"),
+            })
+            .to_string(),
         )?;
     }
     report.push(Diagnostic::pass(
