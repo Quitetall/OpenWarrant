@@ -105,10 +105,42 @@ pub fn run(
         })?;
     }
 
+    // An adopter's agents read AGENTS.md before their first Warrant. Written
+    // once, never over an existing one: a repository may have tuned its copy.
+    write_agents_md(&root, config.project.namespace.as_str(), false)?;
+
     // §76.3: silence on sound state is the ideal, but `init` is a mutation and
     // the operator needs to know what was created and where.
     println!("initialized {} ({})", config.project.name, config_path);
     Ok(())
+}
+
+/// The agent instructions this repository ships, parameterised by namespace.
+///
+/// One source: this template is the file, and the repository's own `AGENTS.md`
+/// is asserted byte-identical to its rendering for `OW` by a test, so the
+/// rules an adopter's agents get are the rules this repository's agents get.
+pub const AGENTS_MD_TEMPLATE: &str = include_str!("../templates/AGENTS.md.tmpl");
+
+#[must_use]
+pub fn render_agents_md(namespace: &str) -> String {
+    AGENTS_MD_TEMPLATE.replace("{{namespace}}", namespace)
+}
+
+/// Write `AGENTS.md` at the root. Refuses to overwrite unless `force`: an
+/// adopter may have edited theirs, and silently replacing it would be the
+/// "change a document to make a tool happy" failure the file itself forbids.
+/// Returns whether a file was written.
+pub fn write_agents_md(root: &Utf8Path, namespace: &str, force: bool) -> Result<bool, InitError> {
+    let path = root.join("AGENTS.md");
+    if path.exists() && !force {
+        return Ok(false);
+    }
+    fs::write(&path, render_agents_md(namespace)).map_err(|source| InitError::Io {
+        context: format!("could not write {path}"),
+        source,
+    })?;
+    Ok(true)
 }
 
 #[cfg(test)]
@@ -174,5 +206,60 @@ mod tests {
             "nothing written on a refused init"
         );
         let _ = fs::remove_dir_all(&root);
+    }
+}
+
+#[cfg(test)]
+mod agents_md_tests {
+    use super::*;
+
+    #[test]
+    fn the_template_renders_for_a_namespace_with_no_placeholder_left() {
+        let out = render_agents_md("XX");
+        assert!(out.contains("XX-WAR-NNNN"));
+        assert!(!out.contains("{{"), "unrendered placeholder");
+        assert!(out.contains("war sign"), "the loop names the human's act");
+        assert!(out.contains("Never verify your own work"));
+    }
+
+    /// One source of rules: this repository's own AGENTS.md is the template
+    /// rendered for `OW`. If they differ, the adopter and this repository are
+    /// being told different things.
+    #[test]
+    fn the_repositorys_agents_md_is_the_rendered_template() {
+        let repo = camino::Utf8PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let committed = std::fs::read_to_string(repo.join("AGENTS.md")).expect("AGENTS.md");
+        assert_eq!(
+            committed,
+            render_agents_md("OW"),
+            "run `war agents-md --force`"
+        );
+    }
+
+    #[test]
+    fn init_writes_agents_md_once_and_force_rewrites_it() {
+        let root = camino::Utf8PathBuf::from_path_buf(std::env::temp_dir())
+            .unwrap()
+            .join(format!("war-init-agents-{}", std::process::id()));
+        std::fs::create_dir_all(&root).unwrap();
+        run("ZZ", Some("demo"), Some(root.clone())).expect("init");
+        let path = root.join("AGENTS.md");
+        assert!(path.is_file());
+        std::fs::write(&path, "tuned by the adopter\n").unwrap();
+        assert!(
+            !write_agents_md(&root, "ZZ", false).unwrap(),
+            "must not clobber"
+        );
+        assert_eq!(
+            std::fs::read_to_string(&path).unwrap(),
+            "tuned by the adopter\n"
+        );
+        assert!(write_agents_md(&root, "ZZ", true).unwrap());
+        assert!(
+            std::fs::read_to_string(&path)
+                .unwrap()
+                .contains("ZZ-WAR-NNNN")
+        );
+        std::fs::remove_dir_all(root).unwrap();
     }
 }

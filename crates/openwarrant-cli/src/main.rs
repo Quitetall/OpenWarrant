@@ -175,6 +175,16 @@ enum Command {
         #[arg(long)]
         root: Option<Utf8PathBuf>,
     },
+    /// Write the AGENTS.md this repository ships, for the repository's
+    /// namespace. `war init` writes it once; this rewrites (--force) or prints it.
+    AgentsMd {
+        /// Print to stdout instead of writing.
+        #[arg(long)]
+        stdout: bool,
+        /// Overwrite an existing AGENTS.md.
+        #[arg(long)]
+        force: bool,
+    },
     /// Create a draft Warrant (§71.2).
     New {
         /// The Warrant's title.
@@ -544,6 +554,35 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             Ok(EXIT_OK)
         }
 
+        Command::AgentsMd { stdout, force } => {
+            let repository = repo::Repository::discover(None)?;
+            let ns = repository.config.project.namespace.as_str().to_owned();
+            if stdout {
+                print!("{}", init::render_agents_md(&ns));
+                return Ok(EXIT_OK);
+            }
+            match init::write_agents_md(&repository.root, &ns, force)? {
+                true => {
+                    output::emit(
+                        mode,
+                        "agents_md",
+                        "wrote AGENTS.md",
+                        serde_json::json!({"path": "AGENTS.md", "namespace": ns, "written": true}),
+                    );
+                    Ok(EXIT_OK)
+                }
+                false => {
+                    let mut report = diagnostic::Report::default();
+                    report.push(diagnostic::Diagnostic::error(
+                        "agents-md.exists",
+                        "AGENTS.md".to_owned(),
+                        "AGENTS.md exists; pass --force to replace it, or --stdout to read the template",
+                    ));
+                    output::finish(mode, "agents_md", &report, None);
+                    Ok(EXIT_DIAGNOSTIC)
+                }
+            }
+        }
         Command::New { title, profile } => {
             let profile: Profile = profile.parse()?;
             let repository = repo::Repository::discover(None)?;
@@ -915,21 +954,28 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             )?;
             // The packet is the only thing on stdout when it goes there. An
             // actor piping `war dispatch` into a parser must get canonical JSON
-            // and nothing else — the report goes to stderr in that case.
+            // (oh.war/stage-dispatch/v1, its own schema) and nothing else — so
+            // the report goes to STDERR in that case: human lines in human
+            // mode, one envelope in --json mode. The packet's printer lives in
+            // dispatch.rs, a pinned deliverable of resolved OW-WAR-0056; moving
+            // the packet inside the envelope is a correction for another day.
             if emit.is_none() {
-                for d in &report.diagnostics {
-                    eprintln!("{d}");
+                match mode {
+                    output::Mode::Human => {
+                        for d in &report.diagnostics {
+                            eprintln!("{d}");
+                        }
+                    }
+                    output::Mode::Json => {
+                        eprintln!("{}", output::envelope("dispatch", &report, None));
+                    }
                 }
+                Ok(output::exit_code(&report))
             } else {
                 // With --emit the packet is on disk, so the report may take
                 // stdout — as an envelope under --json.
-                let _ = output::finish(mode, "dispatch", &report, None);
+                Ok(output::finish(mode, "dispatch", &report, None))
             }
-            Ok(if report.is_ready() {
-                EXIT_OK
-            } else {
-                EXIT_NOT_READY
-            })
         }
         Command::Correct {
             alias,
