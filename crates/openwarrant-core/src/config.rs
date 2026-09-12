@@ -323,9 +323,49 @@ impl SignPolicy {
     }
 }
 
-/// `[run]` — `war run`'s bounds for a service stage (slice C4b).
+/// `[perform]` — the agent that performs an agent stage (OW-WAR-0069).
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct PerformPolicy {
+    /// argv, not a shell string: the agent that performs an agent stage, given
+    /// the Dispatch on stdin and expected to answer with a Stage Submission on
+    /// stdout. Empty means no performer is configured.
+    #[serde(default)]
+    pub performer_argv: Vec<String>,
+    /// Wall-clock bound on one performance. 0 means the stage's own
+    /// `wall_time_seconds`, and failing that `[run] default_wall_time_seconds`.
+    #[serde(default)]
+    pub performer_timeout_secs: u64,
+    /// How many agent stages may run at once. 0 means 1.
+    ///
+    /// One, in 1.0. Nothing here contains a performer — no cgroups, no sandbox
+    /// — so concurrency would mean several unbounded processes writing one
+    /// tree. Raising it is a deliberate act, and `war perform` says so.
+    #[serde(default)]
+    pub max_concurrent: u32,
+}
+
+impl PerformPolicy {
+    #[must_use]
+    pub fn concurrency(&self) -> u32 {
+        if self.max_concurrent == 0 {
+            1
+        } else {
+            self.max_concurrent
+        }
+    }
+
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.performer_argv.is_empty()
+            && self.performer_timeout_secs == 0
+            && self.max_concurrent == 0
+    }
+}
+
+/// `[run]` — `war run`'s bounds for a service stage (slice C4b).
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RunPolicy {
     /// Wall-clock bound for a stage that declares none; 0 means 600.
     #[serde(default)]
@@ -419,6 +459,9 @@ pub struct RepositoryConfig {
     pub verify: VerifyPolicy,
     #[serde(default)]
     pub run: RunPolicy,
+    /// `[perform]` — the agent that performs an agent stage (OW-WAR-0069).
+    #[serde(default, skip_serializing_if = "PerformPolicy::is_empty")]
+    pub perform: PerformPolicy,
     #[serde(default, skip_serializing_if = "SignPolicy::is_empty")]
     pub sign: SignPolicy,
     /// §46.1's nine independence dimensions, for verification performed in this
@@ -456,6 +499,7 @@ impl RepositoryConfig {
             context: ContextPolicy::default(),
             verify: VerifyPolicy::default(),
             run: RunPolicy::default(),
+            perform: PerformPolicy::default(),
             sign: SignPolicy::default(),
             independence: None,
         }

@@ -36,6 +36,7 @@ mod migrate;
 mod new;
 mod next;
 mod output;
+mod perform;
 mod pins;
 mod plan;
 mod progress;
@@ -644,6 +645,19 @@ enum Command {
     /// (OW-WAR-0069). Check rows, pick a reason from your presets, sign the
     /// batch. It never signs for you: each row is your own ssh confirmation.
     Console,
+    /// Perform an agent stage with the configured performer (OW-WAR-0069): the
+    /// Dispatch goes in on stdin, a Stage Submission comes back on stdout, and
+    /// it is ingested through `war submit`'s refusals. It cannot decide the work
+    /// is done — §51.2 — and writes nothing if the performer sends nothing.
+    Perform {
+        /// The Warrant's local alias. Omit with --all.
+        alias: Option<String>,
+        /// The stage to perform. Omit with --all.
+        stage: Option<String>,
+        /// Every open agent stage on the frontier, one at a time.
+        #[arg(long)]
+        all: bool,
+    },
     /// The commit message, drafted from the records that changed (OW-WAR-0069).
     Commit {
         /// Stage everything and commit with the drafted message.
@@ -1541,6 +1555,19 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             }
             let report = console::run(&repository)?;
             Ok(output::finish(mode, "console", &report, None))
+        }
+        Command::Perform { alias, stage, all } => {
+            let repository = repo::Repository::discover(None)?;
+            let report = match (alias.as_deref(), stage.as_deref(), all) {
+                (Some(a), Some(st), false) => perform::run(&repository, a, st)?,
+                (None, None, true) => perform::all(&repository)?,
+                _ => {
+                    return Err(Box::new(repo::RepoError::Message(
+                        "war perform: name a Warrant and a stage, or pass --all".to_owned(),
+                    )));
+                }
+            };
+            Ok(output::finish(mode, "perform", &report, None))
         }
         Command::Commit { write } => {
             let repository = repo::Repository::discover(None)?;

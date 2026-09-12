@@ -563,16 +563,25 @@ fn start_stages(repo: &Repository, b: &Board, report: &mut Report) -> Result<(),
         println!("  no stage is startable: every one is blocked, claimed, or a human's.");
         return Ok(());
     }
+    let performer = !repo.config.perform.performer_argv.is_empty();
     println!(
-        "\n  {} stage(s). Each gets its Dispatch compiled; a service stage also runs.",
-        b.stages.len()
+        "\n  {} stage(s). A service stage runs its gate; an agent stage {}.",
+        b.stages.len(),
+        if performer {
+            "is handed to the configured performer"
+        } else {
+            "gets its Dispatch compiled, for you to hand over ([perform] performer_argv is unset)"
+        }
     );
     for st in &b.stages {
         println!("\n  ── {} {} [{}]", st.warrant, st.stage, st.executor_kind);
-        let r = if st.executor_kind == "service" {
-            crate::run_cmd::run(repo, &st.warrant, &st.stage)
-        } else {
-            crate::dispatch::run(
+        let r = match (st.executor_kind.as_str(), performer) {
+            ("service", _) => crate::run_cmd::run(repo, &st.warrant, &st.stage),
+            // With a performer configured, `r` starts the work rather than
+            // preparing it: the agent reads the Dispatch and answers over the
+            // submission seam, which still refuses to resolve anything.
+            ("agent", true) => crate::perform::run(repo, &st.warrant, &st.stage),
+            _ => crate::dispatch::run(
                 repo,
                 &st.warrant,
                 &st.stage,
@@ -580,7 +589,7 @@ fn start_stages(repo: &Repository, b: &Board, report: &mut Report) -> Result<(),
                 &[],
                 None,
                 None,
-            )
+            ),
         };
         match r {
             Ok(rep) => {

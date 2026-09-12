@@ -133,3 +133,48 @@ become the scope.
 
 It will not invent a subject for changes it cannot classify, and without
 `--write` it stages nothing.
+
+## Performing a stage
+
+```bash
+war perform <alias> <stage>           # the configured performer does one agent stage
+war perform --all                     # every open agent stage, one at a time
+```
+
+`war run` covered a service stage — a registered gate, a receipt, a verdict.
+An agent stage had no runner: a human compiled a Dispatch, carried it to an
+agent, and carried a Stage Submission back. `war perform` is that walk done by
+the tool. The Dispatch goes in on the performer's stdin, its answer comes back
+on stdout, and the answer is ingested through exactly the refusals `war submit`
+applies to a submission that arrived by post.
+
+```toml
+[perform]
+performer_argv = ["claude", "-p", "--output-format", "text"]
+performer_timeout_secs = 600
+max_concurrent = 1
+```
+
+What it cannot do:
+
+- **decide the work is done.** §51.2 lets a performer ask to continue, be
+  verified, block, amend or cancel. `submission.self-completion` refuses the
+  rest, and a refused answer leaves nothing on disk — not the submission, and
+  not the raw answer either.
+- **stand in for a person.** `perform.human-stage` refuses a human stage by
+  name (§27.2), and `perform.not-an-agent` sends a service stage to `war run`.
+- **claim work that did not happen.** A performer that fails, or is killed at
+  the bound (the tighter of `performer_timeout_secs` and the stage's
+  `wall_time_seconds`), leaves the Dispatch on record and nothing else:
+  `perform.failed` and `perform.timeout` each report the performer's last
+  stderr line.
+- **run several performers at once.** `max_concurrent` above 1 is refused by
+  `perform.no-containment`: nothing here contains a performer — no cgroups, no
+  sandbox — so concurrency would be several unbounded processes writing one
+  tree. Raising it is a deliberate act once containment exists.
+
+In `war console`, `r` starts the checked stages: a service stage runs its gate,
+and an agent stage goes to the performer when one is configured, or has its
+Dispatch compiled for you to hand over when none is. That is the "check the
+boxes and an agent starts working" half of the screen; the questions it asks
+you come back through the hotline.

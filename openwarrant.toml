@@ -79,3 +79,10 @@ key = "5"
 label = "obligations established, blind verification on record"
 meaning = "Every declared obligation is established by a verification whose verifier is not the performer, and the thirteen are as the record reports them."
 acts = ["resolve"]
+
+# The agent that performs an agent stage (OW-WAR-0069). One at a time: nothing
+# here contains a performer, so `max_concurrent` above 1 is refused.
+[perform]
+performer_argv = ["conformance/fixtures/performer/echo-submission.sh"]
+performer_timeout_secs = 600
+max_concurrent = 1
