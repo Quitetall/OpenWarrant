@@ -26,9 +26,10 @@ else
     FAILED=$((FAILED + 1))
 fi
 restore
-mv CONTEXT.md "$SKILLS_TMP/CONTEXT.md"
+# The glossary is tracked; `git checkout` brings it back even if this plant dies mid-way.
+git rm -q --cached CONTEXT.md 2>/dev/null; mv CONTEXT.md "$SKILLS_TMP/CONTEXT.md"
 "$WAR" dispatch OW-WAR-0047 STAGE-002 --emit-context "$SKILLS_TMP/without.json" >/dev/null 2>&1
-mv "$SKILLS_TMP/CONTEXT.md" CONTEXT.md
+mv "$SKILLS_TMP/CONTEXT.md" CONTEXT.md; git add CONTEXT.md
 if ! grep -q '"CONTEXT.md"' "$SKILLS_TMP/without.json"; then
     printf 'ok    %-34s no glossary, no item\n' "an absent glossary is not invented"
     PASSED=$((PASSED + 1))

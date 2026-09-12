@@ -10,6 +10,12 @@
 //! `dispatch.compiled` journal event naming the stage, and "done" is a
 //! `submission.recorded` event naming it. Nothing here is a status claim: it
 //! is derived from the same records `war resolve --dry-run` reads.
+//!
+//! Three choices, stated: `done` wins over `blocked` (a recorded submission
+//! is history, whatever the graph says now); a milestone with no obligations
+//! never completes, so everything behind it stays blocked until someone
+//! writes the obligation (fail closed, and reported); a stage cited by more
+//! than one milestone is one row, blocked if any of them waits.
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -128,7 +134,29 @@ pub fn run(repo: &Repository, alias: Option<&str>) -> Result<(Report, Frontier),
                 )
             })
             .collect();
+        for m in graph
+            .milestones
+            .iter()
+            .filter(|m| m.obligation_refs.is_empty())
+        {
+            if graph
+                .milestones
+                .iter()
+                .any(|o| o.depends_on.contains(&m.id))
+            {
+                report.push(Diagnostic::warn(
+                    "frontier.milestone-without-obligations",
+                    repo.relative(&dir.join("atoms/45-milestones.yaml")),
+                    format!(
+                        "{alias}: {} has no obligation_refs, so it never completes and every milestone depending on it stays blocked",
+                        m.id
+                    ),
+                ));
+            }
+        }
         let (claimed, done) = stage_events(&dir);
+        // One row per stage: its milestones' waits are unioned.
+        let mut per_stage: BTreeMap<String, (Vec<String>, BTreeSet<String>)> = BTreeMap::new();
         for m in &graph.milestones {
             let waiting: Vec<String> = m
                 .depends_on
@@ -137,32 +165,37 @@ pub fn run(repo: &Repository, alias: Option<&str>) -> Result<(Report, Frontier),
                 .cloned()
                 .collect();
             for sid in &m.stage_refs {
-                let Some(stage) = graph.stages.iter().find(|s| &s.id == sid) else {
-                    continue;
-                };
-                let state = if done.contains(sid) {
-                    StageState::Done
-                } else if !waiting.is_empty() {
-                    StageState::Blocked
-                } else if claimed.contains(sid) {
-                    StageState::Claimed
-                } else {
-                    StageState::Open
-                };
-                rows.push(Row {
-                    warrant: alias.clone(),
-                    stage: sid.clone(),
-                    title: stage.title.clone().unwrap_or_default(),
-                    milestone: m.id.clone(),
-                    executor_kind: stage.executor_kind.to_string(),
-                    state,
-                    waiting_on: if state == StageState::Blocked {
-                        waiting.clone()
-                    } else {
-                        vec![]
-                    },
-                });
+                let entry = per_stage.entry(sid.clone()).or_default();
+                entry.0.push(m.id.clone());
+                entry.1.extend(waiting.iter().cloned());
             }
+        }
+        for (sid, (milestones, waiting)) in per_stage {
+            let Some(stage) = graph.stages.iter().find(|s| s.id == sid) else {
+                continue;
+            };
+            let state = if done.contains(&sid) {
+                StageState::Done
+            } else if !waiting.is_empty() {
+                StageState::Blocked
+            } else if claimed.contains(&sid) {
+                StageState::Claimed
+            } else {
+                StageState::Open
+            };
+            rows.push(Row {
+                warrant: alias.clone(),
+                stage: sid.clone(),
+                title: stage.title.clone().unwrap_or_default(),
+                milestone: milestones.join("+"),
+                executor_kind: stage.executor_kind.to_string(),
+                state,
+                waiting_on: if state == StageState::Blocked {
+                    waiting.into_iter().collect()
+                } else {
+                    vec![]
+                },
+            });
         }
     }
     rows.sort_by(|a, b| (&a.warrant, &a.stage).cmp(&(&b.warrant, &b.stage)));

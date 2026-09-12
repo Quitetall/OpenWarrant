@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-64 Warrant(s) in this repository.
+65 Warrant(s) in this repository.
 
 ## Summary
 
@@ -75,6 +75,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0066](docs/warrants/OW-WAR-0066/manifest.toml) | Run: the conformance battery as a service stage | `draft` | `current` | `valid` | `basic` | 2M / 2S |
 | [OW-WAR-0067](docs/warrants/OW-WAR-0067/manifest.toml) | Release 1.0: the seven acts that close the plan, deferred to the owner's signature | `draft` | `current` | `valid` | `basic` | 3M / 7S |
 | [OW-WAR-0068](docs/warrants/OW-WAR-0068/manifest.toml) | Skills: a strict superset of the Pocock set over the deterministic core | `draft` | `current` | `valid` | `basic` | 3M / 7S |
+| [OW-WAR-0069](docs/warrants/OW-WAR-0069/manifest.toml) | The board, the hotline, and the harness: one system from master record to running agents | `draft` | `current` | `valid` | `basic` | 3M / 5S |
 
 ## Claimed SAS requirement coverage
 
@@ -104,9 +105,9 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-036` — OW-WAR-0067
 - `WAR-SAS-RQ-040` — OW-WAR-0007
 - `WAR-SAS-RQ-041` — OW-WAR-0007
-- `WAR-SAS-RQ-042` — OW-WAR-0023, OW-WAR-0045, OW-WAR-0056
+- `WAR-SAS-RQ-042` — OW-WAR-0023, OW-WAR-0045, OW-WAR-0056, OW-WAR-0069
 - `WAR-SAS-RQ-043` — OW-WAR-0023, OW-WAR-0045, OW-WAR-0056, OW-WAR-0065
-- `WAR-SAS-RQ-044` — OW-WAR-0026, OW-WAR-0045
+- `WAR-SAS-RQ-044` — OW-WAR-0026, OW-WAR-0045, OW-WAR-0069
 - `WAR-SAS-RQ-045` — OW-WAR-0024, OW-WAR-0045, OW-WAR-0056
 - `WAR-SAS-RQ-050` — OW-WAR-0016
 - `WAR-SAS-RQ-051` — OW-WAR-0016
@@ -122,7 +123,7 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-062` — OW-WAR-0026
 - `WAR-SAS-RQ-063` — OW-WAR-0027, OW-WAR-0047
 - `WAR-SAS-RQ-064` — OW-WAR-0001
-- `WAR-SAS-RQ-070` — OW-WAR-0001
+- `WAR-SAS-RQ-070` — OW-WAR-0001, OW-WAR-0069
 - `WAR-SAS-RQ-071` — OW-WAR-0035, OW-WAR-0042, OW-WAR-0068
 - `WAR-SAS-RQ-072` — OW-WAR-0034, OW-WAR-0042, OW-WAR-0068
 - `WAR-SAS-RQ-073` — OW-WAR-0036
@@ -201,6 +202,7 @@ Source: the Warrants under the configured warrants path.
 - **OW-WAR-0065** · roadmap: roadmap://OW-PHASE-5/context
 - **OW-WAR-0067** · roadmap: roadmap://OW-PHASE-9/release
 - **OW-WAR-0068** · roadmap: roadmap://OW-PHASE-2/plan
+- **OW-WAR-0069** · roadmap: roadmap://OW-PHASE-5/dispatch
 
 ## Not reported here
 
