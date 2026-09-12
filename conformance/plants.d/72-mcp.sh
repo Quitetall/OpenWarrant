@@ -35,6 +35,10 @@ plant_mcp() {
 plant_mcp "tools/list has no signing tool" '"name":"war_sign"' absent "$MCPFX/list-tools.jsonl"
 plant_mcp "tools/list has no ingest tool" '_ingest"' absent "$MCPFX/list-tools.jsonl"
 plant_mcp "tools/list does list war_next" '"name":"war_next"' present "$MCPFX/list-tools.jsonl"
+# Nor a tool that spawns a performer: an agent asking the server to start
+# another agent is one process starting unbounded processes in the human's tree,
+# and `war perform` is a command a human runs (OW-WAR-0069 Q-006).
+plant_mcp "tools/list cannot start a performer" '"name":"war_perform"' absent "$MCPFX/list-tools.jsonl"
 
 # Calling a signing or ingesting tool is refused by the protocol, not by a message.
 plant_mcp "calling war_sign is refused" 'tool not found' present "$MCPFX/call-sign.jsonl"
