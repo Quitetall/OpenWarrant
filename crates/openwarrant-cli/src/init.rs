@@ -127,14 +127,22 @@ pub fn run_program(
 ) -> Result<Utf8PathBuf, InitError> {
     // §106 rows are `<PREFIX>-SAS-RQ-NNN` and the prefix must be letters;
     // a namespace with a digit or dash would make every ref unparseable.
-    if !namespace.bytes().all(|b| b.is_ascii_uppercase()) {
-        return Err(InitError::Io {
-            context: format!(
-                "--program needs a namespace of uppercase letters only (it prefixes \
-                 `{namespace}-SAS-RQ-001`); {namespace:?} has a digit or dash"
-            ),
-            source: std::io::Error::new(std::io::ErrorKind::InvalidInput, "namespace"),
-        });
+    let invalid = |context: String| InitError::Io {
+        context,
+        source: std::io::Error::new(std::io::ErrorKind::InvalidInput, "refused"),
+    };
+    if namespace.is_empty() || !namespace.bytes().all(|b| b.is_ascii_uppercase()) {
+        return Err(invalid(format!(
+            "--program needs a namespace of uppercase ASCII letters only, A–Z (it prefixes \
+             `{namespace}-SAS-RQ-001`, and a §106 row's prefix must be letters); got {namespace:?}"
+        )));
+    }
+    // The name lands in headings and table cells verbatim; a newline would
+    // break both, and an empty name produces a heading with nothing in it.
+    if program.trim().is_empty() || program.contains(['\n', '\r', '|']) {
+        return Err(invalid(format!(
+            "--program needs a non-empty name without a newline or `|`; got {program:?}"
+        )));
     }
     run(namespace, Some(program), root.clone())?;
     let root = match root {
@@ -213,18 +221,25 @@ pub fn run_program(
         context: format!("could not create the first Warrant: {e}"),
         source: std::io::Error::other(e.to_string()),
     })?;
-    let alias = dir.file_name().unwrap_or("").to_owned();
+    let alias = dir
+        .file_name()
+        .ok_or_else(|| invalid(format!("{dir}: the Warrant directory has no name")))?
+        .to_owned();
     let manifest_path = dir.join("manifest.toml");
     let manifest = fs::read_to_string(&manifest_path)
         .map_err(io(format!("could not read {manifest_path}")))?;
-    let uuid = manifest
-        .lines()
-        .find_map(|l| {
-            l.strip_prefix("uuid = \"")
-                .and_then(|r| r.strip_suffix('"'))
+    let uuid = toml::from_str::<toml::Value>(&manifest)
+        .ok()
+        .and_then(|v| {
+            v.get("uuid")
+                .and_then(toml::Value::as_str)
+                .map(str::to_owned)
         })
-        .unwrap_or("")
-        .to_owned();
+        .ok_or_else(|| {
+            invalid(format!(
+                "{manifest_path}: no `uuid` in the manifest `war new` wrote"
+            ))
+        })?;
     let frontmatter = |role: &str, ordinal: u32| {
         format!(
             "---\nschema: oh.war/atom/v1\nwarrant_uuid: {uuid}\nrole: {role}\njurisdiction: authored\norder: {ordinal}\nclassification: internal\n---\n\n"
@@ -409,8 +424,14 @@ mod program_tests {
         // A namespace with a digit cannot prefix a §106 row: refused by name.
         let bad = root.join("bad");
         fs::create_dir_all(&bad).unwrap();
-        let err = run_program("X", "D1", Some(bad)).unwrap_err().to_string();
-        assert!(err.contains("uppercase letters only"), "{err}");
+        let err = run_program("X", "D1", Some(bad.clone()))
+            .unwrap_err()
+            .to_string();
+        assert!(err.contains("uppercase ASCII letters only"), "{err}");
+        let err = run_program("two\nlines", "DM", Some(bad))
+            .unwrap_err()
+            .to_string();
+        assert!(err.contains("without a newline"), "{err}");
         fs::remove_dir_all(root).unwrap();
     }
 }

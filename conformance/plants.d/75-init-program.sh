@@ -30,6 +30,6 @@ prog_expect "next names the human acts" 0 "HUMAN" next
 # The first Warrant traces into the SAS just written, and the tool reads that.
 prog_expect "the first Warrant implements RQ-001" 0 "PP-SAS-RQ-001" show PP-WAR-0001
 # A namespace a §106 row cannot carry is refused by name, not scaffolded wrong.
-prog_expect "a digit in the namespace is refused" 1 "uppercase letters only" init --program "X" --namespace P1 --root "$PROG_TMP/bad"
+prog_expect "a digit in the namespace is refused" 1 "uppercase ASCII letters only" init --program "X" --namespace P1 --root "$PROG_TMP/bad"
 
 rm -rf "$PROG_TMP"
