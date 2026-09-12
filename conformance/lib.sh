@@ -220,6 +220,8 @@ plan_clear_drafter() {
     python3 - <<'PY'
 import pathlib, re
 p = pathlib.Path("openwarrant.toml"); s = p.read_text()
+# Assumes no line inside [plan] starts with `[` (true of a table that is
+# three scalar keys); a following table header is where the match stops.
 s = re.sub(r'\n\[plan\]\n(?:(?!\[).*\n?)*', '\n', s)
 p.write_text(s.rstrip("\n") + "\n")
 PY

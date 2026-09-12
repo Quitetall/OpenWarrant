@@ -67,7 +67,8 @@ r = json.load(open(sys.argv[1]))
 for t in r["tasks"]:
     if not t["tokens"].get("stable", True):
         t["tokens"] = {k: v for k, v in t["tokens"].items() if k in ("method", "stable")}
-json.dump(r, open(sys.argv[2], "w"), sort_keys=True)
+with open(sys.argv[2], "w") as out:
+    json.dump(r, out, sort_keys=True)
 ' "$1" "$2"
 }
 eval_stable "$EVAL_TMP/run1.json" "$EVAL_TMP/run1.stable.json"
