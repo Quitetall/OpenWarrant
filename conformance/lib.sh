@@ -59,6 +59,9 @@ restore() {
     rm -f docs/warrants/OW-WAR-0046/amendments/AM-999.yaml
     # The agent-acceptance plant proposes a throwaway SAS revision.
     rm -f docs/sas/revisions/0.1.0-draft.9.toml
+    # The re-pin plants (88) fabricate a revision and an amendment each.
+    rm -f docs/sas/revisions/9.9.9.toml docs/warrants/OW-WAR-0047/amendments/AM-901.yaml docs/warrants/OW-WAR-0062/amendments/AM-901.yaml
+    rmdir docs/warrants/OW-WAR-0047/amendments docs/warrants/OW-WAR-0062/amendments 2>/dev/null || true
 }
 
 # The mirror of `assert_gone`, for a mutation that ADDS rather than removes.

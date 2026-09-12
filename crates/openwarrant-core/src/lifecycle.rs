@@ -262,7 +262,7 @@ impl Supersession {
 }
 
 /// §94's measures, verbatim.
-pub const TELEMETRY_MEASURES: [&str; 18] = [
+pub const TELEMETRY_MEASURES: [&str; 20] = [
     "human authoring minutes",
     "interview questions",
     "clarification count",
@@ -274,6 +274,8 @@ pub const TELEMETRY_MEASURES: [&str; 18] = [
     "adequacy counterexamples",
     "wall time",
     "compute and model cost",
+    "context tokens per dispatch",
+    "context tokens per verification",
     "time to first usable artifact",
     "reopenings",
     "untracked commits or artifacts",

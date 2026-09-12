@@ -578,12 +578,22 @@ impl Repository {
     /// latest so the Warrant still compiles and the check can name the fault.
     pub fn sas_pin_for(&self, dir: &Utf8Path) -> Result<Option<SasPin>, RepoError> {
         let all = self.load_sas_revisions()?;
-        let pinned = self
-            .load_authorization(dir)
-            .ok()
-            .flatten()
-            .and_then(|a| a.sas_revision)
-            .and_then(|v| all.iter().find(|r| r.version == v).cloned());
+        // OW-ADR-0016: the latest amendment that names a `sas_revision` re-pins
+        // the Warrant ahead of its authorization, so the contract digest moves
+        // and a new authorization revision is what `war sign --list` shows.
+        // A named revision with no record falls through to the authorization's
+        // pin; `war check` reports it as `sas.pin-unknown`.
+        let amended = amendment_sas_revision(dir)
+            .and_then(|(v, _)| all.iter().find(|r| r.version == v).cloned());
+        let pinned = match amended {
+            Some(r) => Some(r),
+            None => self
+                .load_authorization(dir)
+                .ok()
+                .flatten()
+                .and_then(|a| a.sas_revision)
+                .and_then(|v| all.iter().find(|r| r.version == v).cloned()),
+        };
         let chosen = match pinned {
             Some(r) => Some(r),
             None => crate::sas::pin_of(&all).cloned(),
@@ -892,4 +902,40 @@ impl Loaded {
             .or_else(|| self.dir.file_name().map(str::to_owned))
             .unwrap_or_else(|| self.dir.to_string())
     }
+}
+
+/// The `sas_revision` the latest amendment under `amendments/` names, with the
+/// file that names it (OW-ADR-0016). Read from the file, not the record
+/// struct: the struct is pinned by a resolved Warrant, and the pin is one
+/// top-level scalar on the side. "Latest" is by amendment number (`AM-<n>`),
+/// then name, so `AM-1000` follows `AM-901`. Only an unindented
+/// `sas_revision:` line counts — a key nested under `semantic_diff:` is not
+/// the pin.
+#[must_use]
+pub fn amendment_sas_revision(dir: &Utf8Path) -> Option<(String, Utf8PathBuf)> {
+    let mut files: Vec<Utf8PathBuf> = std::fs::read_dir(dir.join("amendments"))
+        .ok()?
+        .filter_map(Result::ok)
+        .filter_map(|e| Utf8PathBuf::from_path_buf(e.path()).ok())
+        .filter(|p| p.extension() == Some("yaml"))
+        .collect();
+    let number = |p: &Utf8Path| -> u64 {
+        p.file_stem()
+            .and_then(|s| s.rsplit_once('-'))
+            .and_then(|(_, n)| n.parse().ok())
+            .unwrap_or(0)
+    };
+    files.sort_by(|a, b| number(a).cmp(&number(b)).then_with(|| a.cmp(b)));
+    files.into_iter().rev().find_map(|path| {
+        let text = std::fs::read_to_string(&path).ok()?;
+        let version = text.lines().find_map(|line| {
+            let v = line
+                .strip_prefix("sas_revision:")?
+                .trim()
+                .trim_matches('"')
+                .trim();
+            (!v.is_empty()).then(|| v.to_owned())
+        })?;
+        Some((version, path))
+    })
 }

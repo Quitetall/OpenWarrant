@@ -6,9 +6,9 @@
 |---|---|
 | Document class | Software Architecture Specification |
 | Short name | WAR SAS |
-| Status | Draft for adoption |
-| Version | `0.1.0-draft.3` |
-| Date | 2026-08-19 |
+| Status | Proposed for 1.0 — accepted with the 1.0 release (§101.2) |
+| Version | `1.0.0` |
+| Date | 2026-09-12 |
 | Enterprise identifier | Unallocated — this file name is not an official Identifier Registry allocation |
 | System name | **OpenWarrant** |
 | Record name | **Warrant** |
@@ -332,7 +332,10 @@ They differ in scope and in what traces to them, not in kind.
 
 So:
 
-- **Starting a program?** Write its SAS. Do not write a Warrant "in the
+- **Starting a program?** Write its SAS. `war init --program <name> --namespace
+  XX` writes one from a template whose §6.10 table, §98 phases and §106 index
+  the tool can read, plus the program's first Warrant (*Adopt OpenWarrant*);
+  the scaffold is where the program's SAS begins, not a substitute for it. Do not write a Warrant "in the
   style of the SAS" and call it the program's specification: a Warrant with
   no SAS to trace to has no requirement ids to implement, no Objective to
   discharge, and no Release to belong to — the projection reports it under
@@ -2824,8 +2827,17 @@ resource_envelope:
     currency: "USD"
     amount: "2.00"
 
+tokens:
+  estimated_tokens: 5120
+  budget_tokens: 32000
+  method: "oh.war/token-estimate/bytes-div-4/v1"
+
 submission_schema_ref: "schema://oh.war/stage-submission/v1"
 ```
+
+`tokens` is inside the digest. The estimate is the compiler's, by the named
+method, never a model's count; the budget is the stage's `budget_tokens` or
+the repository's `[context] default_budget_tokens`.
 
 ### 47.2 Dispatch compilation
 
@@ -2838,7 +2850,8 @@ The compiler SHALL:
 - enforce classification;
 - include prior failure evidence for repair;
 - produce deterministic canonical bytes;
-- record the Dispatch digest.
+- record the Dispatch digest;
+- record the token estimate and budget, and refuse to emit a Dispatch whose estimate exceeds its budget, naming the largest items.
 
 ### 47.3 Actor-specific projection
 
@@ -4508,13 +4521,7 @@ The first adapter handles the constrained WAR atom profile.
 
 ### 82.2 Liminal adapter
 
-The final adapter invokes a pinned Liminal compiler profile through a versioned process protocol.
-
-Illustrative command:
-
-```text
-liminal-compiler --protocol oh.war/liminal-v1
-```
+The final adapter invokes a pinned Liminal compiler profile through a versioned process protocol (`oh.war/liminal-v1`), across the §75.2 seam: the request and the result are documents, and the command that answers them belongs to the adapter's configuration, not to this specification.
 
 ### 82.3 Adapter parity
 
@@ -4906,6 +4913,8 @@ The system SHALL measure:
 - adequacy counterexamples;
 - wall time;
 - compute and model cost;
+- context tokens per dispatch;
+- context tokens per verification;
 - time to first usable artifact;
 - reopenings;
 - untracked commits or artifacts;
@@ -5559,6 +5568,7 @@ The following requirement IDs provide stable traceability for implementation WAR
 | WAR-SAS-RQ-033 | Material amendment creates new revision |
 | WAR-SAS-RQ-034 | Prior attempts retain original contract basis |
 | WAR-SAS-RQ-035 | Readiness requires Preflight |
+| WAR-SAS-RQ-036 | A delivered artifact of a resolved WAR changes only through a recorded correction |
 
 ### Execution
 
@@ -5570,6 +5580,7 @@ The following requirement IDs provide stable traceability for implementation WAR
 | WAR-SAS-RQ-043 | Dispatch contains exact basis, capabilities, resources, outputs, stop conditions |
 | WAR-SAS-RQ-044 | Agent authority is explicit and bounded |
 | WAR-SAS-RQ-045 | Replay, repair, and restart are distinct |
+| WAR-SAS-RQ-046 | A Dispatch declares its token estimate and budget; exceeding the budget is a refusal |
 
 ### Assurance
 
@@ -5608,6 +5619,7 @@ The following requirement IDs provide stable traceability for implementation WAR
 | WAR-SAS-RQ-074 | `war check` is deterministic and agent-free |
 | WAR-SAS-RQ-075 | Generated views are drift-checked |
 | WAR-SAS-RQ-076 | KF commands use typed actions, not direct status edits |
+| WAR-SAS-RQ-077 | Work of three kinds — code, document, run — has a registered gate and a walked example |
 
 ### Preservation
 
@@ -5618,6 +5630,7 @@ The following requirement IDs provide stable traceability for implementation WAR
 | WAR-SAS-RQ-082 | Export includes contract, sources, receipts, assurance, resolution |
 | WAR-SAS-RQ-083 | Export-import-export preserves semantic identity |
 | WAR-SAS-RQ-084 | Historical superseded, disputed, and annulled records remain available |
+| WAR-SAS-RQ-085 | Every ssh-signed act leaves an attestation a foreign verifier can check |
 
 ## 107. Final doctrine
 

@@ -1,6 +1,6 @@
 {
   "schema": "oh.war/telemetry-baseline/v1",
-  "commit": "8da1ca1",
+  "commit": "4382e0d",
   "measures": {
     "adequacy counterexamples": {
       "value": 86,
@@ -20,18 +20,24 @@
     "compute and model cost": {
       "not_measurable_yet": "no cost is metered for any run in this repository"
     },
+    "context tokens per dispatch": {
+      "not_measurable_yet": "no dispatch.compiled event is journalled on the committed tree; `war dispatch` records one per compile"
+    },
+    "context tokens per verification": {
+      "not_measurable_yet": "no verification bundle is committed; `war verify --bundle` writes one"
+    },
     "escalation count and class": {
       "not_measurable_yet": "no §31 escalation has occurred; the count is unknown rather than zero because nothing records escalations even when they do"
     },
     "evidence and gate reuse": {
-      "value": 215,
+      "value": 226,
       "method": "gate:// citations across all atoms"
     },
     "gate failure cause": {
       "not_measurable_yet": "gate runs mint receipts but nothing aggregates causes across them, so a cause distribution cannot be reported"
     },
     "gate library reuse": {
-      "value": 2,
+      "value": 5,
       "method": "gate definitions in the registry; reuse is citations over definitions"
     },
     "human authoring minutes": {
@@ -53,14 +59,14 @@
       "not_measurable_yet": "no instrumented authoring session; a git repository records commits, not elapsed human or wall time"
     },
     "untracked commits or artifacts": {
-      "value": 81,
+      "value": 115,
       "method": "commits whose message cites no Warrant alias (§95 candidates)"
     },
     "wall time": {
       "not_measurable_yet": "no instrumented authoring session; a git repository records commits, not elapsed human or wall time"
     },
     "work completed outside WAR": {
-      "value": 81,
+      "value": 115,
       "method": "commits whose message cites no Warrant alias (§95 candidates)"
     }
   },
@@ -91,7 +97,41 @@
     }
   },
   "untracked_work_candidates": [
-    "8da1ca1 feat(OW-WAR-0063): the plants and tests the verifier named as missing, and a check that did not exist",
+    "4382e0d feat(eval): `war eval` — the agent loop measured in throwaway programs, scored on a ladder, compared per task (F1)",
+    "6a32f82 feat(run): the ops / runs work kind — `war run` executes a service stage's gate under a wall time, receipts it against the dispatch, and submits only what a run may request; `war submit` ingests the rest (C4b)",
+    "46d5d26 feat(document): the document work kind — `war document review`, its gate, and a research memo Warrant that uses it (C4a)",
+    "8e30a02 feat(verify): `war verify --bundle` and `--run` — the blind verifier's packet, and a configured verifier through the unchanged seam (C3)",
+    "31eb30c feat(dispatch): token accounting — every Dispatch carries its estimate and budget, and over budget is a refusal (C2)",
+    "e691351 feat(dispatch): stage-relevant context selection — a stage declares what its Dispatch carries (C1)",
+    "91f00a9 feat(export): `war export --progress` — the progress bundle with a sha256 manifest (D5)",
+    "ddec9ed feat(platform): the progress platform — nine views over three inlined projections, no framework, no network (D3, D4)",
+    "6984119 feat(status): the projection contract — what a progress platform reads, documented and extended (D1)",
+    "b0e08e5 test(normative): the year guard test expects the sentence after the year",
+    "9c15d09 fix(projections): numbered lists are list items; malformed timestamps are named, not \"unknown\"",
+    "60bdbad feat(status): CORPUS_TIMELINE.json and CORPUS_PENDING.json — two more committed projections for the progress platform (D2)",
+    "eadb1d4 feat(sas): NORMATIVE.{md,json} — the SAS's binding sentences as a compiled, drift-checked projection (E1)",
+    "db1c699 feat(watch): `war watch` — the pending acts, once or as a live diff (D6)",
+    "cdc7a0b feat(check): the rules that live in pinned files, as one correction batch",
+    "cb1d224 fix(init): review nits on the program scaffold",
+    "c2f74e4 feat(init): `war init --program` scaffolds a program the tool can read, plus QUICKSTART and a walked example (C5)",
+    "c3c911a fix(seams): the performer is configured, effective_time is validated, and two signers stay possible (B2 partial, B6)",
+    "8165a42 feat(attest): every ssh-signed act leaves an in-toto Statement in a DSSE envelope (OW-ADR-0015)",
+    "45de04e docs: retire the roadmap's hand-written status (C6) and write the threat model (B7)",
+    "3797458 feat(plugin): the repository is a Claude Code plugin — skill with references, the MCP server, a pin guard, a stop check",
+    "38bf613 feat(mcp): `war mcp` — the CLI's surface over the Model Context Protocol, with no authority in it",
+    "3ce55c4 feat(deps): an async runtime is admitted for the MCP transport only (OW-ADR-0014)",
+    "9274cb8 feat(plan): the drafter seam has something on the other side — v2 proposals carry payloads and `--apply` makes a Warrant",
+    "72d31c1 feat(cli): AGENTS.md is a template `war init` writes — one source of rules for this repository and every adopter",
+    "9ae8bbe feat(cli): `war pins` and `war next` — what an agent may not edit, and whose act comes next",
+    "d955bc5 feat(cli): `--json` on every command — one envelope, oh.war/report/v1, errors included",
+    "77953b9 feat(OW-WAR-0064): the correction act — a delivered artifact of a resolved Warrant moves for a reason, never silently",
+    "59f5ad1 feat(OW-WAR-0064): draft the correction act — a repository that can deliver and refuse but not repair",
+    "ae80621 conformance: split the battery into lib.sh + plants.d/ so a Warrant can plant without moving a digest it does not own",
+    "23e0455 docs(authority): the owner's ssh principal and allowed signer, and what it took to make Deny mean deny",
+    "5348eea fix(sign): a register that will not parse is loud, not \"nothing awaits a signature\"",
+    "62a2719 feat(cli): `war sign --ssh-sign` — the human act that works from inside an agent session",
+    "272b457 feat(cli): `war sign` — the human's half of every seam, one screen, one key, and a refusal without a terminal",
+    "a6e3e03 feat(OW-WAR-0063) + records: the missing plants and tests, BLUT's first verdict, rounds three and four, nine more resolutions (#60)",
     "47fbb61 feat(OW-WAR-0062): lock down the levels — a SAS and a Warrant are the same class of artifact at two levels (#59)",
     "8721be7 records: 110 obligations re-verified with full evidence; eleven more resolutions; Phase 6 achieved (#58)",
     "797706e feat(ladder): nine amendments, 47 receipts, SAS 0.1.0-draft.2 with Phase 9/10 Exits, pins frozen at authorization (#57)",

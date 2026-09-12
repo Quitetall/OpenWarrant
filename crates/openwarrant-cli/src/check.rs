@@ -200,6 +200,26 @@ pub fn run(
                                 &pin.sha256[..12]
                             ),
                         ));
+                    } else if let Some(proposed) = revisions
+                        .iter()
+                        .find(|r| r.sha256 == actual && r.version != pin.version)
+                    {
+                        // The remedy the error names, taken: the document IS a
+                        // recorded proposal awaiting a human. The accepted
+                        // revision stays normative until then (§101.2).
+                        report.push(Diagnostic::warn(
+                            "sas.proposed-unaccepted",
+                            repo.relative(&path),
+                            format!(
+                                "the document is revision {} ({}), sha256:{}; the accepted \
+                                 revision {} remains normative until `war sign {}` accepts it",
+                                proposed.version,
+                                proposed.state,
+                                &actual[..12],
+                                pin.version,
+                                proposed.version
+                            ),
+                        ));
                     } else {
                         report.push(Diagnostic::error(
                             "sas.digest-drift",
@@ -869,12 +889,49 @@ fn check_one(
         crate::resolution_cmd::check(repo, &one.dir, &alias, current.as_deref(), report);
         let uuid = one.validated.as_ref().map(|v| v.uuid.to_string());
         crate::journal_cmd::check(repo, &one.dir, &alias, uuid.as_deref(), report);
-        // §14 — the authorization's SAS pin must name a recorded revision, and
-        // a Warrant pinned behind the latest accepted revision is said so.
+        // §14 — the SAS pin must name a recorded revision, and a Warrant pinned
+        // behind the latest revision is said so. The pin is the latest
+        // amendment's `sas_revision` when one names it (OW-ADR-0016), else the
+        // authorization's.
+        let all = repo.load_sas_revisions().unwrap_or_default();
+        let amended = crate::repo::amendment_sas_revision(&one.dir);
+        if let Some((v, amendment_path)) = &amended {
+            let file = repo.relative(amendment_path);
+            match all.iter().find(|r| &r.version == v) {
+                None => report.push(Diagnostic::error(
+                    "sas.pin-unknown",
+                    file,
+                    format!("{alias}: an amendment re-pins to SAS revision {v}, and no record of it exists under docs/sas/revisions/ — `war sas propose {v}` first"),
+                )),
+                Some(rev) => {
+                    // The re-pinned revision must still carry every row this
+                    // Warrant implements; a requirement that vanished under it
+                    // is a broken trace, not a silent one.
+                    for i in &basis.manifest.implements {
+                        if let Ok(rq) = openwarrant_core::traceability::RequirementRef::parse(&i.r#ref)
+                            && !rev.requirements.contains_key(&rq.canonical())
+                        {
+                            report.push(Diagnostic::error(
+                                "sas.repin-unknown-requirement",
+                                file.clone(),
+                                format!("{alias}: re-pinned to SAS {v}, whose §106 has no {} — the Warrant implements a requirement that revision does not have", i.r#ref),
+                            ));
+                        }
+                    }
+                    if repo.load_resolution(&one.dir).ok().flatten().is_some() {
+                        report.push(Diagnostic::warn(
+                            "sas.repin-resolved",
+                            file,
+                            format!("{alias}: re-pinned to SAS {v} after resolution; the resolution binds the contract as it was and is reported stale, never moved (§56.3)"),
+                        ));
+                    }
+                }
+            }
+        }
         if let Ok(Some(a)) = repo.load_authorization(&one.dir)
             && let Some(v) = &a.sas_revision
+            && amended.is_none()
         {
-            let all = repo.load_sas_revisions().unwrap_or_default();
             if !all.iter().any(|r| &r.version == v) {
                 report.push(Diagnostic::error(
                     "sas.pin-unknown",
@@ -887,7 +944,7 @@ fn check_one(
                 report.push(Diagnostic::warn(
                     "sas.pin-superseded",
                     repo.relative(&one.dir.join("authorization.toml")),
-                    format!("{alias}: authorized against SAS {v}; the latest recorded revision is {} — the contract keeps its Basis until an amendment re-authorizes it", latest.version),
+                    format!("{alias}: authorized against SAS {v}; the latest recorded revision is {} — the contract keeps its Basis until an amendment carrying `sas_revision: \"{}\"` re-pins it and a human re-authorizes (OW-ADR-0016)", latest.version, latest.version),
                 ));
             }
         }

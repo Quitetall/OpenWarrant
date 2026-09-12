@@ -17,11 +17,11 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 - **digest:** `sha256:742dfd066b8df579116ebbd36e19a4b57dc0849bf913c37b716e690e29069a8a`
 - Revision 0.1.0-draft.3 is ACCEPTED (§101.2) and normative. A Warrant compiles against the revision its authorization recorded (§14), so a later revision does not move an authorized contract: 57 against 0.1.0-draft.1, 5 against 0.1.0-draft.3.
 
-**Requirements (57 in §106)** — strictest rung first:
+**Requirements (61 in §106)** — strictest rung first:
 
 | satisfied | in_progress | claimed | unaddressed | superseded |
 |---|---|---|---|---|
-| **22** | 5 | 22 | 6 | 2 |
+| **22** | 5 | 22 | 10 | 2 |
 
 ## Objectives (SAS §98 phases)
 
@@ -77,14 +77,18 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 ## Requirements (SAS §106, §34.3)
 
-**Unaddressed (6)** — no Warrant names these. Several may be built; the gap is bookkeeping, and it is listed rather than hidden:
+**Unaddressed (10)** — no Warrant names these. Several may be built; the gap is bookkeeping, and it is listed rather than hidden:
 
 - `WAR-SAS-RQ-001` — Every WAR has immutable UUIDv7 identity
 - `WAR-SAS-RQ-002` — Local aliases do not substitute for global identity
 - `WAR-SAS-RQ-021` — ADR Overview is generated
 - `WAR-SAS-RQ-023` — Child WARs cite exact parent revision
+- `WAR-SAS-RQ-036` — A delivered artifact of a resolved WAR changes only through a recorded correction
+- `WAR-SAS-RQ-046` — A Dispatch declares its token estimate and budget; exceeding the budget is a refusal
 - `WAR-SAS-RQ-060` — KF owns authority and lifecycle
 - `WAR-SAS-RQ-065` — Native systems retain artifact authority
+- `WAR-SAS-RQ-077` — Work of three kinds — code, document, run — has a registered gate and a walked example
+- `WAR-SAS-RQ-085` — Every ssh-signed act leaves an attestation a foreign verifier can check
 
 | requirement | status | would_satisfy | implementers |
 |---|---|---|---|
@@ -111,12 +115,14 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-033` | satisfied | 1 | OW-WAR-0009 (complete) |
 | `WAR-SAS-RQ-034` | satisfied | 1 | OW-WAR-0009 (complete) |
 | `WAR-SAS-RQ-035` | claimed | 0 | OW-WAR-0011 (complete) |
+| `WAR-SAS-RQ-036` | unaddressed | 0 | — |
 | `WAR-SAS-RQ-040` | claimed | 0 | OW-WAR-0007 (complete) |
 | `WAR-SAS-RQ-041` | claimed | 0 | OW-WAR-0007 (complete) |
 | `WAR-SAS-RQ-042` | superseded | 1 | OW-WAR-0023 (complete), OW-WAR-0045 (complete), OW-WAR-0056 (supersession) |
 | `WAR-SAS-RQ-043` | superseded | 1 | OW-WAR-0023 (complete), OW-WAR-0045 (complete), OW-WAR-0056 (supersession), OW-WAR-0065 (partial) |
 | `WAR-SAS-RQ-044` | claimed | 0 | OW-WAR-0026 (complete), OW-WAR-0045 (complete) |
 | `WAR-SAS-RQ-045` | satisfied | 1 | OW-WAR-0024 (complete), OW-WAR-0045 (complete), OW-WAR-0056 (partial) |
+| `WAR-SAS-RQ-046` | unaddressed | 0 | — |
 | `WAR-SAS-RQ-050` | satisfied | 1 | OW-WAR-0016 (complete) |
 | `WAR-SAS-RQ-051` | satisfied | 1 | OW-WAR-0016 (complete) |
 | `WAR-SAS-RQ-052` | satisfied | 1 | OW-WAR-0017 (complete) |
@@ -140,11 +146,13 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-074` | satisfied | 1 | OW-WAR-0005 (complete), OW-WAR-0055 (partial) |
 | `WAR-SAS-RQ-075` | in_progress | 0 | OW-WAR-0004 (complete), OW-WAR-0055 (partial), OW-WAR-0057 (partial), OW-WAR-0060 (partial) |
 | `WAR-SAS-RQ-076` | claimed | 0 | OW-WAR-0028 (complete) |
+| `WAR-SAS-RQ-077` | unaddressed | 0 | — |
 | `WAR-SAS-RQ-080` | claimed | 0 | OW-WAR-0003 (complete) |
 | `WAR-SAS-RQ-081` | claimed | 0 | OW-WAR-0003 (complete) |
 | `WAR-SAS-RQ-082` | claimed | 0 | OW-WAR-0030 (complete) |
 | `WAR-SAS-RQ-083` | claimed | 0 | OW-WAR-0030 (complete) |
 | `WAR-SAS-RQ-084` | claimed | 0 | OW-WAR-0030 (complete), OW-WAR-0064 (partial) |
+| `WAR-SAS-RQ-085` | unaddressed | 0 | — |
 
 ## Warrants (62) — invalid 0 · draft 17 · ready_to_resolve 16 · would_satisfy 0 · resolved **29**
 
