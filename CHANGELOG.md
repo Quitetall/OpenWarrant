@@ -69,6 +69,10 @@ Toward 1.0 (the plan is the Warrant backlog; each entry is one slice):
   theme, keyboard rows; every count links to its rows, never a ratio. Every
   route renders against the committed data under a node stub DOM in the
   battery.
+- `war export --progress <dir>`: the progress bundle (`oh.war/progress-bundle/v1`)
+  — the corpus projections, the SAS normative projection and every compiled
+  `WAR.json`, copied byte-for-byte with a sha256 manifest and a bundle digest;
+  `--verify-progress <dir>` checks one.
 
 ## [0.1.0] — 2026-08-24
 

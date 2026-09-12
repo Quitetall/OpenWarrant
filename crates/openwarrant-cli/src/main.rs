@@ -31,6 +31,7 @@ mod next;
 mod output;
 mod pins;
 mod plan;
+mod progress;
 mod relations;
 mod repo;
 mod resolution_cmd;
@@ -390,8 +391,17 @@ enum Command {
 
     /// §68 portable export and round trip.
     Export {
-        /// The Warrant's local alias.
-        alias: String,
+        /// The Warrant's local alias (§68). Not needed with --progress.
+        #[arg(required_unless_present_any = ["progress", "verify_progress"])]
+        alias: Option<String>,
+        /// Write the progress bundle (`oh.war/progress-bundle/v1`) — the corpus
+        /// projections and every compiled WAR.json with a sha256 manifest — into
+        /// this empty directory instead of exporting one Warrant.
+        #[arg(long, value_name = "DIR", conflicts_with_all = ["force", "round_trip", "reconnect"])]
+        progress: Option<Utf8PathBuf>,
+        /// Verify a progress bundle directory against its MANIFEST.json.
+        #[arg(long, value_name = "DIR", conflicts_with_all = ["alias", "progress", "force", "round_trip", "reconnect"])]
+        verify_progress: Option<Utf8PathBuf>,
         /// Write the package here even if §68.2 contents are missing. Never
         /// reports the result as valid.
         #[arg(long)]
@@ -753,8 +763,30 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             force,
             round_trip,
             reconnect,
+            progress,
+            verify_progress,
         } => {
+            if let Some(dir) = verify_progress {
+                let report = progress::verify(&dir)?;
+                return Ok(output::finish(
+                    mode,
+                    "export.progress.verify",
+                    &report,
+                    None,
+                ));
+            }
             let repository = repo::Repository::discover(None)?;
+            if let Some(dir) = progress {
+                let report = progress::export(&repository, &dir)?;
+                return Ok(output::finish(mode, "export.progress", &report, None));
+            }
+            let Some(alias) = alias else {
+                // clap: `alias` is required unless a progress flag was given,
+                // and both of those returned above.
+                return Err(Box::new(repo::RepoError::Message(
+                    "war export: a Warrant alias is required".to_owned(),
+                )));
+            };
             if round_trip {
                 let rt = export::round_trip(&repository, &alias, reconnect)?;
                 match rt.verify() {
