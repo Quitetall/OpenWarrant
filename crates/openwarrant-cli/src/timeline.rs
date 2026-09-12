@@ -50,6 +50,10 @@ pub struct Timeline {
     pub days: Vec<Day>,
     pub by_type: BTreeMap<String, usize>,
     pub warrants: usize,
+    /// Events whose `occurred_at` is not an RFC 3339 UTC timestamp. They are
+    /// kept (a record is never dropped from its own history) and bucketed
+    /// under the day `malformed-timestamp`; this count says how many.
+    pub malformed_timestamps: usize,
 }
 
 pub fn build_timeline(repo: &Repository) -> Result<Timeline, RepoError> {
@@ -72,7 +76,12 @@ pub fn build_timeline(repo: &Repository) -> Result<Timeline, RepoError> {
                 warrant: alias.clone(),
                 id: e.id.clone(),
                 event_type: e.event_type.clone(),
-                class: format!("{:?}", e.class).to_lowercase(),
+                // The record's own serialisation of the class, never its
+                // Debug name.
+                class: serde_json::to_value(e.class)
+                    .ok()
+                    .and_then(|v| v.as_str().map(str::to_owned))
+                    .unwrap_or_default(),
                 actor_ref: e.actor_ref.clone(),
                 payload,
             });
@@ -83,9 +92,15 @@ pub fn build_timeline(repo: &Repository) -> Result<Timeline, RepoError> {
     });
     let mut by_type: BTreeMap<String, usize> = BTreeMap::new();
     let mut days: BTreeMap<String, Day> = BTreeMap::new();
+    let mut malformed_timestamps = 0usize;
     for e in &events {
         *by_type.entry(e.event_type.clone()).or_insert(0) += 1;
-        let date = e.occurred_at.get(..10).unwrap_or("unknown").to_owned();
+        let date = if openwarrant_core::timestamp::validate_rfc3339_utc(&e.occurred_at).is_ok() {
+            e.occurred_at[..10].to_owned()
+        } else {
+            malformed_timestamps += 1;
+            "malformed-timestamp".to_owned()
+        };
         let day = days.entry(date.clone()).or_insert_with(|| Day {
             date,
             events: 0,
@@ -100,6 +115,7 @@ pub fn build_timeline(repo: &Repository) -> Result<Timeline, RepoError> {
         days: days.into_values().collect(),
         by_type,
         warrants,
+        malformed_timestamps,
     })
 }
 

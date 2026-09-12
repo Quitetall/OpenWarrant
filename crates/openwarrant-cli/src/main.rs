@@ -581,6 +581,8 @@ enum Command {
         /// global flag; for the corpus it yields the canonical projection.)
         alias: Option<String>,
         /// The corpus timeline (`oh.war/corpus-timeline/v1`) instead of the status.
+        /// (One projection per call: `timeline` excludes `pending`, and both
+        /// exclude an alias; clap checks conflicts in both directions.)
         #[arg(long, conflicts_with_all = ["alias", "pending"])]
         timeline: bool,
         /// The pending human acts (`oh.war/corpus-pending/v1`) instead of the status.

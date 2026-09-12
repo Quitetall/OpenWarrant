@@ -178,9 +178,19 @@ pub fn normative_sentences(text: &str) -> Vec<NormativeSentence> {
             flush(&mut paragraph, &mut out, &section, &heading);
             continue;
         }
+        // A list item: `- `, `* `, or `N. ` (the document's lead-ins are
+        // followed by numbered lists as often as by dashes — "The CLI SHALL:"
+        // then "1. …", "2. …").
+        let numbered = trimmed
+            .split_once(". ")
+            // At most three digits: "2026. The next…" is a year in prose,
+            // not item two thousand and twenty-six.
+            .filter(|(n, _)| (1..=3).contains(&n.len()) && n.bytes().all(|b| b.is_ascii_digit()))
+            .map(|(_, rest)| rest);
         if let Some(bullet) = trimmed
             .strip_prefix("- ")
             .or_else(|| trimmed.strip_prefix("* "))
+            .or(numbered)
         {
             flush(&mut paragraph, &mut out, &section, &heading);
             let bullet = bullet.trim().trim_end_matches([';', '.', ',']).trim();
@@ -263,8 +273,16 @@ mod normative_tests {
     }
 
     #[test]
+    fn a_year_at_the_start_of_a_sentence_is_not_a_list_item() {
+        let text = "## 9. Scope\n\n2026. The tool SHALL still refuse.\n";
+        let got = normative_sentences(text);
+        assert_eq!(got.len(), 1);
+        assert_eq!(got[0].sentence, "2026. The tool SHALL still refuse.");
+    }
+
+    #[test]
     fn sentences_are_projected_with_their_section_and_lead_ins_prefix_their_bullets() {
-        let text = "## 3. Normative language\n\nThe term SHALL states a requirement.\n\n## 47. Dispatch model\n\nProse without a keyword. The compiler SHALL record the digest. It may not.\n\n### 47.2 Dispatch compilation\n\nThe compiler SHALL:\n\n- select only stage-relevant context;\n- record omitted subgraphs.\n\n```\nSHALL inside a fence is code\n```\n\n| a | SHALL in a table |\n|---|---|\n\nA caller MAY retry (e.g. after a timeout). Nothing else.\n";
+        let text = "## 3. Normative language\n\nThe term SHALL states a requirement.\n\n## 47. Dispatch model\n\nProse without a keyword. The compiler SHALL record the digest. It may not.\n\n### 47.2 Dispatch compilation\n\nThe compiler SHALL:\n\n- select only stage-relevant context;\n- record omitted subgraphs.\n\n```\nSHALL inside a fence is code\n```\n\n| a | SHALL in a table |\n|---|---|\n\nA caller MAY retry (e.g. after a timeout). Nothing else.\n\nThe CLI SHALL:\n\n1. refuse an agent signature;\n2. say why.\n";
         let got = normative_sentences(text);
         let as_pairs: Vec<(String, String, String)> = got
             .iter()
@@ -298,6 +316,16 @@ mod normative_tests {
                     "47.2".to_owned(),
                     "MAY".to_owned(),
                     "A caller MAY retry (e.g. after a timeout).".to_owned()
+                ),
+                (
+                    "47.2".to_owned(),
+                    "SHALL".to_owned(),
+                    "The CLI SHALL refuse an agent signature.".to_owned()
+                ),
+                (
+                    "47.2".to_owned(),
+                    "SHALL".to_owned(),
+                    "The CLI SHALL say why.".to_owned()
                 ),
             ]
         );
