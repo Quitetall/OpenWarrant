@@ -57,6 +57,8 @@ restore() {
     # before this line existed. Named explicitly rather than `git clean`, which
     # would delete a developer's untracked work.
     rm -f docs/warrants/OW-WAR-0046/amendments/AM-999.yaml
+    # `war plan --draft` without --apply leaves its scratch proposal behind.
+    rm -f docs/warrants/generated/draft-proposal-*.json
     # The agent-acceptance plant proposes a throwaway SAS revision.
     rm -f docs/sas/revisions/0.1.0-draft.9.toml
     # The re-pin plants (88) fabricate a revision and an amendment each.

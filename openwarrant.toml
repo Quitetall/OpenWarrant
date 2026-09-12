@@ -36,3 +36,10 @@ cannot_modify_gate_fixtures = false
 separate_context_compilation = false
 distinct_model_required = false
 distinct_human_required = false
+
+# OW-WAR-0042: the drafting agent over §75.2 — Claude Code non-interactive,
+# version recorded per run under the Warrant's evidence/.
+[plan]
+drafter_argv = ["conformance/fixtures/drafter/claude-drafter.sh"]
+drafter_name = "claude-code (conformance/fixtures/drafter/claude-drafter.sh)"
+drafter_timeout_secs = 600

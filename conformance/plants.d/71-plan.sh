@@ -30,28 +30,47 @@ plant_cmd "write_file is not an operation" "did not parse" "write_file" 1 \
     "true" \
     plan --proposal "$FX/proposals/v2-write-file.json" --reviewed
 
+
+# The committed openwarrant.toml names a real drafter (OW-WAR-0042), so a
+# plant that wants a fixture drafter REPLACES the `[plan]` table instead of
+# appending a second one (a duplicate table is a TOML error, not a plant).
+plan_clear_drafter() {
+    python3 - <<'PY'
+import pathlib, re
+p = pathlib.Path("openwarrant.toml"); s = p.read_text()
+s = re.sub(r'\n\[plan\]\n(?:(?!\[).*\n?)*', '\n', s)
+p.write_text(s.rstrip("\n") + "\n")
+PY
+}
+plan_set_drafter() {
+    plan_clear_drafter
+    printf '\n[plan]\n%s\n' "$1" >> openwarrant.toml
+}
+
 # No drafter configured: --draft says so rather than inventing one.
 plant_cmd "no drafter configured" "no drafter is configured" "drafter_argv" 1 \
-    "true" \
+    "plan_clear_drafter; assert_gone 'drafter_argv' openwarrant.toml" \
     plan "add a changelog" --draft
 
 # §74.5 — a drafter that touches the tree is refused and its proposal discarded.
 plant_cmd "a drafter that writes a file is refused" "plan.drafter-wrote-files" "README.planted.md" 1 \
-    "printf '\n[plan]\ndrafter_argv = [\"bash\", \"$FX/drafter/writes-a-file.sh\"]\n' >> openwarrant.toml; \
+    "plan_set_drafter 'drafter_argv = [\"bash\", \"$FX/drafter/writes-a-file.sh\"]'; \
      assert_present 'writes-a-file.sh' openwarrant.toml" \
     plan "add a changelog" --draft
 rm -f README.planted.md
 
 # A drafter that never answers is killed at the configured bound.
 plant_cmd "a drafter that never answers is killed" "plan.drafter-timeout" "killed" 1 \
-    "printf '\n[plan]\ndrafter_argv = [\"bash\", \"$FX/drafter/sleeps.sh\"]\ndrafter_timeout_secs = 1\n' >> openwarrant.toml; \
+    "plan_set_drafter 'drafter_argv = [\"bash\", \"$FX/drafter/sleeps.sh\"]
+drafter_timeout_secs = 1'; \
      assert_present 'sleeps.sh' openwarrant.toml" \
     plan "add a changelog" --draft
 
 # Positive, end to end: the configured drafter answers, review is recorded, and
 # --apply creates a Warrant through the seven operations. The new directory is
 # untracked, so it is removed here rather than by `restore`.
-printf '\n[plan]\ndrafter_argv = ["bash", "%s/drafter/echo-proposal.sh"]\ndrafter_name = "echo-fixture"\n' "$FX" >> openwarrant.toml
+plan_set_drafter "drafter_argv = [\"bash\", \"$FX/drafter/echo-proposal.sh\"]
+drafter_name = \"echo-fixture\""
 APPLY_OUT=$("$WAR" --json plan "add a changelog" --draft --reviewed --apply --out /tmp/openwarrant-plant-proposal.json 2>/dev/null)
 APPLY_STATUS=$?
 NEW_ALIAS=$(printf '%s' "$APPLY_OUT" | python3 -c 'import sys, json
@@ -74,3 +93,18 @@ fi
 [[ -n "$NEW_DIR" ]] && rm -rf "docs/warrants/$NEW_DIR"
 rm -f /tmp/openwarrant-plant-proposal.json
 git checkout -- docs/adr/ docs/warrants/generated 2>/dev/null || true
+
+# §91.8 test 57 — validating the same proposal twice yields byte-identical
+# output. Under --json the envelope is the whole answer, so cmp is the test.
+PLAN57_TMP=$(mktemp -d)
+sed 's/{{NS}}/OW/g' conformance/fixtures/proposals/v2-minimal.json > "$PLAN57_TMP/p.json" 2>/dev/null || cp conformance/fixtures/proposals/v2-minimal.json "$PLAN57_TMP/p.json"
+"$WAR" --json plan --proposal "$PLAN57_TMP/p.json" > "$PLAN57_TMP/a.json" 2>/dev/null
+"$WAR" --json plan --proposal "$PLAN57_TMP/p.json" > "$PLAN57_TMP/b.json" 2>/dev/null
+if [[ -s "$PLAN57_TMP/a.json" ]] && cmp -s "$PLAN57_TMP/a.json" "$PLAN57_TMP/b.json" && grep -Eq '"plan\.(not-)?applicable"' "$PLAN57_TMP/a.json"; then
+    printf 'ok    %-34s two validations, one envelope (§91.8 test 57)\n' "validation output is byte-identical"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s the two validation envelopes differ or are empty\n' "validation output is byte-identical"
+    FAILED=$((FAILED + 1))
+fi
+rm -rf "$PLAN57_TMP"
