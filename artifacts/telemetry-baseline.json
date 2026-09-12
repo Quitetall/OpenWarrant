@@ -1,6 +1,6 @@
 {
   "schema": "oh.war/telemetry-baseline/v1",
-  "commit": "4382e0d",
+  "commit": "6e08dd6",
   "measures": {
     "adequacy counterexamples": {
       "value": 86,
@@ -59,14 +59,14 @@
       "not_measurable_yet": "no instrumented authoring session; a git repository records commits, not elapsed human or wall time"
     },
     "untracked commits or artifacts": {
-      "value": 115,
+      "value": 116,
       "method": "commits whose message cites no Warrant alias (§95 candidates)"
     },
     "wall time": {
       "not_measurable_yet": "no instrumented authoring session; a git repository records commits, not elapsed human or wall time"
     },
     "work completed outside WAR": {
-      "value": 115,
+      "value": 116,
       "method": "commits whose message cites no Warrant alias (§95 candidates)"
     }
   },
@@ -97,6 +97,7 @@
     }
   },
   "untracked_work_candidates": [
+    "1a4ec61 feat(sas): SAS 1.0.0 proposed — one architecture-changing revision folding the 1.0 plan's edits, and the circular pin (B4, OW-ADR-0016)",
     "4382e0d feat(eval): `war eval` — the agent loop measured in throwaway programs, scored on a ladder, compared per task (F1)",
     "6a32f82 feat(run): the ops / runs work kind — `war run` executes a service stage's gate under a wall time, receipts it against the dispatch, and submits only what a run may request; `war submit` ingests the rest (C4b)",
     "46d5d26 feat(document): the document work kind — `war document review`, its gate, and a research memo Warrant that uses it (C4a)",

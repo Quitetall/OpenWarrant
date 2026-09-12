@@ -4,13 +4,21 @@ Notable changes to OpenWarrant. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/), with the caveat below.
 
-**Pre-1.0, the protocol is not stable.** The canonical JSON shape, digest
-domains, and manifest schema may change in any 0.x release. Digests minted by
-one 0.x version are not guaranteed to be reproducible by another.
-
 ## [Unreleased]
 
-Toward 1.0 (the plan is the Warrant backlog; each entry is one slice):
+## [1.0.0] — released when the `v1.0.0` tag exists; until then this is the plan's ledger
+
+**The protocol is stable from 1.0.0.** Every `oh.war/*/v1` record shape, every
+`DigestDomain` string, the RFC 8785 canonical form and the schema pack
+`openwarrant-schema-pack 0.2.0` are frozen: a change is additive with
+`#[serde(default)]`, or it is a `v2` with a migration. Digests minted by 1.0.0
+are reproducible by every later 1.x. `docs/COMPATIBILITY.md` states the rules;
+`docs/roadmap/RELEASE_1_0.md` maps SAS §99's twenty-five criteria to what
+proves each. Two acts precede the tag and are the owner's: the relicense to
+Apache-2.0 (`RELICENSING.md`) and `war sign 1.0.0 --ssh-sign` accepting the
+SAS revision; `release.yml` refuses to publish crates under any other licence.
+
+Delivered under the 1.0 plan (each entry one slice, each slice one commit):
 
 - The correction act (OW-WAR-0064, OW-ADR-0012): a resolved Warrant's pinned
   file moves for a reason through `war correct` + `war sign <alias>/<D-id>`,

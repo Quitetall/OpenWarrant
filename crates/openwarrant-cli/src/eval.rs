@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 //! `war eval` (1.0 plan F1): the agent loop, measured.
 //!
 //! A task is one vague sentence and what the loop around it should produce.
