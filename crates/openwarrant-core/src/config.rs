@@ -254,6 +254,25 @@ impl PlanPolicy {
 }
 
 /// `openwarrant.toml` (§60).
+/// `[run]` — `war run`'s bounds for a service stage (slice C4b).
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct RunPolicy {
+    /// Wall-clock bound for a stage that declares none; 0 means 600.
+    #[serde(default)]
+    pub default_wall_time_seconds: u64,
+}
+
+impl RunPolicy {
+    #[must_use]
+    pub fn wall_time_seconds(&self) -> u64 {
+        if self.default_wall_time_seconds == 0 {
+            600
+        } else {
+            self.default_wall_time_seconds
+        }
+    }
+}
+
 /// `[verify]` — a configured blind verifier (slice C3, §75.2).
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct VerifyPolicy {
@@ -328,6 +347,8 @@ pub struct RepositoryConfig {
     pub context: ContextPolicy,
     #[serde(default)]
     pub verify: VerifyPolicy,
+    #[serde(default)]
+    pub run: RunPolicy,
     /// §46.1's nine independence dimensions, for verification performed in this
     /// repository.
     ///
@@ -362,6 +383,7 @@ impl RepositoryConfig {
             plan: PlanPolicy::default(),
             context: ContextPolicy::default(),
             verify: VerifyPolicy::default(),
+            run: RunPolicy::default(),
             independence: None,
         }
     }

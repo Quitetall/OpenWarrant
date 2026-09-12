@@ -39,6 +39,7 @@ mod relations;
 mod repo;
 mod resolution_cmd;
 mod resolve;
+mod run_cmd;
 mod sas;
 mod show;
 mod sign;
@@ -563,6 +564,22 @@ enum Command {
     /// Every file a Warrant's `deliverables.toml` pins, with the Warrant's
     /// state — ask BEFORE editing; a resolved Warrant's pin moves only through
     /// `war correct` (OW-WAR-0064).
+    /// The ops / runs work kind (1.0 plan C4b): run a `service` stage's gate
+    /// under its wall time, mint the receipt, write the submission.
+    Run {
+        /// The Warrant's local alias.
+        alias: String,
+        /// The stage id, e.g. `STAGE-002`.
+        stage: String,
+    },
+    /// Ingest a Stage Submission something else produced (§51): it must name a
+    /// dispatch this Warrant compiled and may not request its own resolution.
+    Submit {
+        /// The Warrant's local alias.
+        alias: String,
+        /// The submission (`oh.war/stage-submission/v1` JSON).
+        file: Utf8PathBuf,
+    },
     /// The document work kind (1.0 plan C4a): review every Warrant's Markdown
     /// deliverables — digest, citations, placeholders, independent review.
     Document {
@@ -1355,6 +1372,16 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 output::value(&pins),
             );
             Ok(EXIT_OK)
+        }
+        Command::Run { alias, stage } => {
+            let repository = repo::Repository::discover(None)?;
+            let report = run_cmd::run(&repository, &alias, &stage)?;
+            Ok(output::finish(mode, "run", &report, None))
+        }
+        Command::Submit { alias, file } => {
+            let repository = repo::Repository::discover(None)?;
+            let report = run_cmd::submit(&repository, &alias, &file)?;
+            Ok(output::finish(mode, "submit", &report, None))
         }
         Command::Document { command } => {
             let repository = repo::Repository::discover(None)?;

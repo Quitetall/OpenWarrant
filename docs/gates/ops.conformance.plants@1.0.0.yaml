@@ -1,0 +1,37 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# The conformance battery as a service gate (1.0 plan C4b): the ops work
+# kind's real example. A stage bound to this gate runs `conformance/plant.sh`
+# under `war run`, and the receipt carries the battery's verdict bound to the
+# dispatch digest. A LOCAL CANDIDATE (OW-ADR-0005); shapes per OW-ADR-0003.
+#
+# The battery is long (minutes) and mutates the tree while it runs, restoring
+# it after; it is `mutating: "true"` for that reason, and its timeout is the
+# battery's, not a stage's default.
+
+gate_id: "ops.conformance.plants"
+version: "1.0.0"
+lifecycle: "qualified"
+implementation_ref: "artifact://openwarrant/conformance/plant.sh"
+output_schema_ref: "schema://plant-battery-summary/v1"
+provenance: "local_candidate"
+input_kinds: ["warrant-corpus"]
+argv: ["bash", "conformance/plant.sh"]
+mutating: "true"
+timeout_secs: "1800"
+fault_model: ["planted-violation-undetected", "positive-fixture-rejected"]
+known_blind_spots: ["Reports the battery's pass/fail as one verdict; which plant failed is in the run's captured output, not the receipt.", "Cannot run while the tree has uncommitted changes under the restored paths; the battery refuses and the run fails honestly."]
+qualification_qualifier: "QuiteTall via conformance/plants.d/86-run.sh, run by cargo xtask gate"
+qualification_digest: ""
+qualification_positive_controls: ["The battery as committed is the positive control: it passes on a clean corpus."]
+qualification_negative_controls: ["Any plant whose mutation is a no-op fails the battery, which fails this gate."]
+qualification_mutation_classes: ["the battery's own: deletion, substitution, injection, hand-edit"]
+qualification_environments: ["linux-x86_64, rustc 1.97.1 pinned by rust-toolchain.toml"]
+qualification_limitations: ["Running the battery inside the battery would recurse; the plants exercise this gate's stage through ops.echo and bind this one for the recorded example only."]
+detection_results:
+  - fault_class: "planted-violation-undetected"
+    mutation: "the battery's own plants"
+    detected: "true"
+  - fault_class: "positive-fixture-rejected"
+    mutation: "the battery's corpus plant"
+    detected: "true"

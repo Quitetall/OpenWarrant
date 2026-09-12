@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-61 Warrant(s) in this repository.
+62 Warrant(s) in this repository.
 
 ## Summary
 
@@ -72,6 +72,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0063](docs/warrants/OW-WAR-0063/manifest.toml) | Complete the conformance battery: the plants and tests the verifier named as missing | `draft` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0064](docs/warrants/OW-WAR-0064/manifest.toml) | Repair a delivered artifact: the correction act for a resolved Warrant | `draft` | `current` | `valid` | `controlled` | 5M / 3S |
 | [OW-WAR-0065](docs/warrants/OW-WAR-0065/manifest.toml) | Research memo: which tokenizer approximation OpenWarrant uses for §33.7 budgets | `draft` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0066](docs/warrants/OW-WAR-0066/manifest.toml) | Run: the conformance battery as a service stage | `draft` | `current` | `valid` | `basic` | 2M / 2S |
 
 ## Claimed SAS requirement coverage
 

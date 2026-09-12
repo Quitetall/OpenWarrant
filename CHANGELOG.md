@@ -97,6 +97,13 @@ Toward 1.0 (the plan is the Warrant backlog; each entry is one slice):
   `established` verification from someone other than the performer. The
   example is OW-WAR-0065, a research memo on the token approximation;
   `docs/EXAMPLES/02-document.md` walks it.
+- The ops / runs work kind: `war run <alias> <stage>` runs a `service` stage's
+  gate under the stage's `wall_time_seconds` (or `[run]
+  default_wall_time_seconds`), mints a §44.6 receipt whose subject is the
+  dispatch digest, and writes a Stage Submission requesting `verify` or
+  `block` — never resolution; `war submit` ingests an external submission
+  under the same refusals. Gates `ops.echo` and `ops.conformance.plants`;
+  the example is OW-WAR-0066, `docs/EXAMPLES/03-run.md`.
 
 ## [0.1.0] — 2026-08-24
 

@@ -243,6 +243,10 @@ pub struct Stage {
     /// the repository default applies.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub budget_tokens: Option<u64>,
+    /// Wall-clock bound for a `service` stage run by `war run` (slice C4b);
+    /// absent means the repository default applies.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub wall_time_seconds: Option<u64>,
 }
 
 /// A validated milestone graph.
@@ -320,7 +324,7 @@ pub fn parse(source: &str) -> Result<MilestoneGraph, MilestoneError> {
     }
 
     // §23.6: fields that belong to the other kind are refused, not ignored.
-    const STAGE_ONLY: [&str; 11] = [
+    const STAGE_ONLY: [&str; 12] = [
         "executor_kind",
         "responsibility_tier",
         "inputs",
@@ -332,6 +336,7 @@ pub fn parse(source: &str) -> Result<MilestoneGraph, MilestoneError> {
         "context_artifacts",
         "context_external",
         "budget_tokens",
+        "wall_time_seconds",
     ];
     const MILESTONE_ONLY: [&str; 3] = ["depends_on", "stage_refs", "obligation_refs"];
 
@@ -433,6 +438,19 @@ pub fn parse(source: &str) -> Result<MilestoneGraph, MilestoneError> {
             context_sections: list(record, "context_sections"),
             context_artifacts: list(record, "context_artifacts"),
             context_external: list(record, "context_external"),
+            wall_time_seconds: match scalar(record, "wall_time_seconds") {
+                None => None,
+                Some(raw) => {
+                    Some(
+                        raw.trim()
+                            .parse::<u64>()
+                            .map_err(|_| MilestoneError::InvalidBudget {
+                                id: id.clone(),
+                                found: format!("wall_time_seconds {raw}"),
+                            })?,
+                    )
+                }
+            },
             budget_tokens: match scalar(record, "budget_tokens") {
                 None => None,
                 Some(raw) => {
