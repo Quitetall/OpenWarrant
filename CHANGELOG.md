@@ -62,6 +62,13 @@ Toward 1.0 (the plan is the Warrant backlog; each entry is one slice):
   chains, gate runs with §44.6 classes, amendments, unknowns and record
   paths; top level carries `repository_url` and `generated_by`. Additive only
   after 1.0; a §84 Knowledge Fabric mapping is documented.
+- The progress platform: `CORPUS_STATUS.html` is a single-file, no-framework
+  app over the three inlined projections — dashboard, objectives, warrants
+  (filters in the URL), warrant drill-down, milestone DAG, requirements,
+  timeline, gaps, pending (with the command to copy), evidence; hash router,
+  theme, keyboard rows; every count links to its rows, never a ratio. Every
+  route renders against the committed data under a node stub DOM in the
+  battery.
 
 ## [0.1.0] — 2026-08-24
 

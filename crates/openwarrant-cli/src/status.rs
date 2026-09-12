@@ -780,9 +780,33 @@ pub fn corpus_status_html(repo: &Repository) -> Result<(Utf8PathBuf, String), Re
     let json = openwarrant_compiler::corpus_status_json(&status).map_err(|e| {
         RepoError::Message(format!("could not canonicalize the corpus status: {e}"))
     })?;
+    // The platform inlines the sibling projections; a failure to build one
+    // renders the page without that view rather than failing the page.
+    let sibling = |name: &str, r: Result<(Utf8PathBuf, String), RepoError>| match r {
+        Ok((_, j)) => Some(j),
+        Err(e) => {
+            // Said, not swallowed: the page's view says "not inlined", and
+            // the operator sees why here.
+            eprintln!("corpus status: {name} not inlined in the page: {e}");
+            None
+        }
+    };
+    let timeline = sibling(
+        "CORPUS_TIMELINE.json",
+        crate::timeline::corpus_timeline_json(repo),
+    );
+    let pending = sibling(
+        "CORPUS_PENDING.json",
+        crate::timeline::corpus_pending_json(repo),
+    );
     Ok((
         repo.corpus_status_html_path(),
-        openwarrant_compiler::render_corpus_status_html(&status, &json),
+        openwarrant_compiler::render_corpus_status_platform(
+            &status,
+            &json,
+            timeline.as_deref(),
+            pending.as_deref(),
+        ),
     ))
 }
 
