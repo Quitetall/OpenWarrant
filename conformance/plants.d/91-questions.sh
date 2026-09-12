@@ -28,7 +28,7 @@ if [[ -z "$Q_ID" ]]; then
 else
     out=$("$WAR" answer "$Q_ALIAS" "$Q_ID" "I, an agent, answer myself" --as claude 2>&1)
     status=$?
-    if [[ $status -eq 2 ]] && grep -q 'question.agent' <<< "$out" && ! grep -q 'answered_by' "$Q_DIR/$Q_ID.toml"; then
+    if [[ $status -eq 2 ]] && grep -q 'question.agent' <<< "$out" && ! grep -qE '^answered_by' "$Q_DIR/$Q_ID.toml"; then
         printf 'ok    %-34s rejected by question.agent, nothing written\n' "an agent answering"
         PASSED=$((PASSED + 1))
     else
@@ -50,7 +50,7 @@ else
     # and the stage's performer can read it back.
     out=$("$WAR" answer "$Q_ALIAS" "$Q_ID" "Yes, a human answers." --as "Brian Lam" 2>&1)
     if [[ $? -eq 0 ]] && grep -q 'question.answered' <<< "$out" \
-        && grep -q 'person://Brian Lam' "$Q_DIR/$Q_ID.toml" \
+        && grep -qE '^answered_by = "person://Brian Lam"' "$Q_DIR/$Q_ID.toml" \
         && "$WAR" answers "$Q_ALIAS" STAGE-001 2>&1 | grep -q 'Yes, a human answers.'; then
         printf 'ok    %-34s recorded, and war answers reads it back\n' "a human answering"
         PASSED=$((PASSED + 1))
@@ -89,4 +89,27 @@ plant_cmd "open questions list blocking first" "BLOCKING" "war answer" 0 \
 # And the watcher raises them beside the pending signatures.
 plant_cmd "watch raises a question" "question" "$Q_ALIAS" 0 \
     "true" watch --once
+q_cleanup
+
+# A record that does not parse hides nothing: it is named, and the rest of the
+# queue still lists (a corpus-wide queue that one typo empties is worse than
+# one that reports the typo).
+printf 'not a question [[[\n' > "$Q_DIR/Q-900.toml"
+out=$("$WAR" questions --open 2>&1); status=$?
+if [[ $status -eq 2 ]] && grep -q 'question.malformed' <<< "$out" && grep -q 'Q-001' <<< "$out"; then
+    printf 'ok    %-34s named, and the other questions still list\n' "a malformed question record"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s exit %s\n%s\n' "a malformed question record" "$status" "$(head -3 <<< "$out")"
+    FAILED=$((FAILED + 1))
+fi
+# `ask` is strict about the same file: it allocates the next id from the set.
+out=$("$WAR" ask "$Q_ALIAS" STAGE-001 "Planted: strict?" 2>&1)
+if [[ $? -ne 0 ]] && grep -q 'not a question record' <<< "$out"; then
+    printf 'ok    %-34s refuses to allocate an id over an unreadable set\n' "ask with a malformed record"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s %s\n' "ask with a malformed record" "$(head -2 <<< "$out")"
+    FAILED=$((FAILED + 1))
+fi
 q_cleanup

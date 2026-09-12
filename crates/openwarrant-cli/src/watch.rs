@@ -89,6 +89,8 @@ pub fn snapshot(repo: &Repository) -> Result<Snapshot, RepoError> {
     let pending: Vec<String> = sign::pending(repo)?.iter().map(sign::line).collect();
     // An open question costs the owner a sentence and an agent its whole
     // stage, so it waits in the same place a signature does (OW-WAR-0069).
+    // A malformed record is reported by `war questions`, not here: the
+    // watcher's job is to raise what can be answered.
     let questions: Vec<String> = crate::questions::list(repo, None, true)
         .map(|(_, l)| {
             l.questions

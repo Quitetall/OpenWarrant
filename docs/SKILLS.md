@@ -59,3 +59,10 @@ judgment, or an authorization.
 
 A question carries the asker's recommended answer, after the grilling
 discipline, so a batch can be cleared in one word each.
+
+`answered_by` is an attribution, not a proof: `war answer --as` takes a name
+and checks its kind in the register, where `war sign` takes a key. That is
+the right asymmetry while an answer authorizes nothing, and it is the reason
+nothing downstream may read `person://…` on an answer as authority. A
+malformed question record is reported by name and the rest of the queue still
+lists.

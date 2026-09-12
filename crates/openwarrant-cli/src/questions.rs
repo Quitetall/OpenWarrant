@@ -87,7 +87,45 @@ fn path_of(dir: &Utf8Path, id: &str) -> Utf8PathBuf {
     dir.join(format!("{id}.toml"))
 }
 
-/// Every question of one Warrant, by id.
+/// Every question of one Warrant, by id, tolerating a file that does not
+/// parse: one hand-edited record must not hide every other question from the
+/// human who has to answer them. The unreadable paths come back beside the
+/// questions so a caller can report them.
+pub fn load_tolerant(repo: &Repository, alias: &str) -> (Vec<Question>, Vec<String>) {
+    match load(repo, alias) {
+        Ok(qs) => (qs, Vec::new()),
+        Err(_) => {
+            let Ok(dir) = dir_of(repo, alias) else {
+                return (Vec::new(), Vec::new());
+            };
+            let Ok(entries) = std::fs::read_dir(&dir) else {
+                return (Vec::new(), Vec::new());
+            };
+            let mut paths: Vec<Utf8PathBuf> = entries
+                .filter_map(Result::ok)
+                .filter_map(|e| Utf8PathBuf::from_path_buf(e.path()).ok())
+                .filter(|p| p.extension() == Some("toml"))
+                .collect();
+            paths.sort();
+            let (mut out, mut bad) = (Vec::new(), Vec::new());
+            for path in paths {
+                match std::fs::read_to_string(&path)
+                    .ok()
+                    .and_then(|t| toml::from_str::<Question>(&t).ok())
+                    .filter(|q| q.schema == SCHEMA)
+                {
+                    Some(q) => out.push(q),
+                    None => bad.push(path.to_string()),
+                }
+            }
+            (out, bad)
+        }
+    }
+}
+
+/// Every question of one Warrant, by id. Strict: `ask` allocates the next id
+/// from this, so a file it cannot read is an error there rather than a silent
+/// gap in the sequence.
 pub fn load(repo: &Repository, alias: &str) -> Result<Vec<Question>, RepoError> {
     let dir = dir_of(repo, alias)?;
     let Ok(entries) = std::fs::read_dir(&dir) else {
@@ -141,6 +179,8 @@ fn next_id(existing: &[Question]) -> String {
         .filter_map(|q| q.id.strip_prefix("Q-").and_then(|n| n.parse::<u32>().ok()))
         .max()
         .unwrap_or(0);
+    // Zero-padded to three, and past 999 simply wider: the id stays
+    // parseable, which is what the sequence depends on.
     format!("Q-{:03}", highest + 1)
 }
 
@@ -150,7 +190,10 @@ fn write_question(path: &Utf8Path, q: &Question, create_new: bool) -> Result<(),
     let header = format!(
         "# {SCHEMA}. Asked by an agent, answered by a human (§27.2). An answer\n\
          # informs the work; it is never a disposition, a judgment, or an\n\
-         # authorization. `war questions --open` lists what awaits an answer.\n\n"
+         # authorization, and `answered_by` is an attribution, not a proof: a\n\
+         # signature binds an ACT, and an answer is not one. `war questions\n\
+         # --open` lists what awaits an answer. Regenerated when answered, so\n\
+         # a comment added below this header does not survive.\n\n"
     );
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent).map_err(|source| RepoError::Io {
@@ -353,7 +396,15 @@ pub fn list(
     };
     let mut questions = Vec::new();
     for a in &aliases {
-        for q in load(repo, a)? {
+        let (qs, unreadable) = load_tolerant(repo, a);
+        for path in unreadable {
+            report.push(Diagnostic::error(
+                "question.malformed",
+                path.clone(),
+                format!("{a}: this question record does not parse, so nobody can answer it; the rest are listed"),
+            ));
+        }
+        for q in qs {
             if open_only && !q.is_open() {
                 continue;
             }
@@ -392,7 +443,8 @@ pub fn answers_for(
     alias: &str,
     stage: Option<&str>,
 ) -> Result<Vec<Question>, RepoError> {
-    Ok(load(repo, alias)?
+    Ok(load_tolerant(repo, alias)
+        .0
         .into_iter()
         .filter(|q| stage.is_none_or(|s| q.stage == s))
         .filter(|q| !q.is_open())
