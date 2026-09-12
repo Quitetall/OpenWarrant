@@ -68,6 +68,7 @@ pub enum MilestoneError {
     UntypedPort { id: String, port: String },
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// Who executes a stage (SAS §23.4).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -109,6 +110,7 @@ impl std::fmt::Display for ExecutorKind {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// Executor responsibility tier (SAS §26).
 ///
 /// §26.5: tier and executor kind are ORTHOGONAL. A T1 stage may be executed by
@@ -156,6 +158,7 @@ impl std::fmt::Display for ResponsibilityTier {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// A named typed port on a stage (SAS §23.5).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Port {
@@ -163,6 +166,7 @@ pub struct Port {
     pub type_name: String,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// An acceptance checkpoint (SAS §23.1). Carries no executor.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Milestone {
@@ -177,6 +181,7 @@ pub struct Milestone {
     pub obligation_refs: Vec<String>,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// A dispatchable execution node (SAS §23.3). Carries no obligations.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Stage {
@@ -249,6 +254,7 @@ pub struct Stage {
     pub wall_time_seconds: Option<u64>,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// A validated milestone graph.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MilestoneGraph {

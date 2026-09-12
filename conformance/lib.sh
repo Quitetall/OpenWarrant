@@ -50,7 +50,7 @@ PASSED=0
 FAILED=0
 
 restore() {
-    git checkout -- docs/warrants/ docs/adr/ docs/gates/ docs/sas/ docs/authority/ docs/roadmap/ docs/research/ openwarrant.toml 2>/dev/null || true
+    git checkout -- docs/warrants/ docs/adr/ docs/gates/ docs/sas/ docs/authority/ docs/roadmap/ docs/research/ schemas/ openwarrant.toml 2>/dev/null || true
     # `git checkout` restores TRACKED files and leaves untracked ones behind, so
     # a plant that CREATES a file is not undone by it. AM-999 is exactly that —
     # the §91.4 test 24 positive fixture — and it leaked into a commit once

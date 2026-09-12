@@ -228,6 +228,7 @@ impl ResolutionChecks {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// §56.2's resolution record.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Resolution {

@@ -175,6 +175,7 @@ fn is_git_commit(commit: &str) -> bool {
             .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum EvidenceVerdict {
@@ -183,6 +184,7 @@ pub enum EvidenceVerdict {
     Unknown,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct BonsaiEvidence {
@@ -198,6 +200,7 @@ pub struct BonsaiEvidence {
     pub verdict: EvidenceVerdict,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct WarrantBinding {
@@ -207,6 +210,7 @@ pub struct WarrantBinding {
     pub scope_source_digest: String,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct GitBinding {
@@ -216,6 +220,7 @@ pub struct GitBinding {
     pub tree: String,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct PolicyBinding {
@@ -223,6 +228,7 @@ pub struct PolicyBinding {
     pub digest: String,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ScopeFinding {
@@ -230,6 +236,7 @@ pub struct ScopeFinding {
     pub message: String,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct BonsaiRun {

@@ -31,6 +31,7 @@ macro_rules! vocabulary {
         { $($(#[$vmeta:meta])* $variant:ident => $text:literal),+ $(,)? }
     ) => {
         $(#[$meta])*
+        #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
         #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize)]
         #[serde(rename_all = "snake_case")]
         pub enum $name { $($(#[$vmeta])* $variant),+ }

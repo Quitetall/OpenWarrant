@@ -296,3 +296,21 @@ mod tests {
         );
     }
 }
+
+/// The schema pack (OW-WAR-0032) sees a `WarUuid` as what it serializes to:
+/// a string in UUID form. Hand-written because schemars has no uuid feature
+/// at this pin, and because a newtype's schema is its payload's.
+#[cfg(feature = "schema")]
+impl schemars::JsonSchema for WarUuid {
+    fn schema_name() -> std::borrow::Cow<'static, str> {
+        std::borrow::Cow::Borrowed("WarUuid")
+    }
+
+    fn json_schema(_generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        schemars::json_schema!({
+            "type": "string",
+            "format": "uuid",
+            "description": "A UUIDv7 in canonical hyphenated form (SAS §12)."
+        })
+    }
+}

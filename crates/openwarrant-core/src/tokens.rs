@@ -17,6 +17,7 @@ pub const fn estimate(bytes: u64) -> u64 {
     bytes.div_ceil(4)
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// What a Dispatch records about its size (§33.7): inside the packet, so
 /// inside its digest.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

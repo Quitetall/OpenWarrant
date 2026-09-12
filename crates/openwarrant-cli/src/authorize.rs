@@ -125,6 +125,7 @@ pub struct AuthorizationResponse {
     pub signed_via: Option<String>,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// The persisted authorization record.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AuthorizationRecord {
@@ -140,6 +141,7 @@ pub struct AuthorizationRecord {
     pub sas_revision: Option<String>,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// The persisted judgment set.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct JudgmentRecord {

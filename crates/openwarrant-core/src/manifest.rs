@@ -115,6 +115,7 @@ impl std::fmt::Display for AssuranceLevel {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// One atom entry in a composition (SAS §61).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AtomEntry {
@@ -146,6 +147,7 @@ impl AtomEntry {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// A SAS requirement this Warrant implements (SAS §34.1).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Implements {
@@ -154,11 +156,13 @@ pub struct Implements {
     pub contribution: Option<String>,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RoadmapRef {
     pub r#ref: String,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// A parent relation (SAS §20.2).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ParentRef {
@@ -172,6 +176,7 @@ pub struct ParentRef {
     pub contract_digest: Option<String>,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// A supersession relation (SAS §21.1).
 ///
 /// `reason` is REQUIRED by §21.1 and is not `Option`: a replacement that does
@@ -189,6 +194,7 @@ pub struct SupersedesRef {
     pub adopts: Vec<String>,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// A WAR manifest (SAS §61).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Manifest {

@@ -51,6 +51,7 @@ pub enum ContractError {
     ProgressAmendment { detail: String },
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// Where a revision sits in §28's lifecycle.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -73,6 +74,7 @@ impl fmt::Display for RevisionState {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// What kind of actor is acting (§27).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -93,6 +95,7 @@ impl fmt::Display for ActorKind {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// Independence of an authorization from the work it authorizes (§27.4, §46).
 ///
 /// `None` is a recorded value, never an omission. §27.4: "Role separation by one
@@ -132,6 +135,7 @@ impl fmt::Display for Independence {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// The §28.5 elements a contract digest covers.
 ///
 /// Recorded in the digest preimage so a partial digest is distinguishable from a
@@ -220,6 +224,7 @@ impl fmt::Display for ContractElement {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// Which §28.5 elements a digest actually covered.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ContractCoverage {
@@ -265,6 +270,7 @@ impl ContractCoverage {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// An authorization record (§28.4).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Authorization {
@@ -303,6 +309,7 @@ impl Authorization {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// One contract revision (§28).
 ///
 /// Immutability is structural: there is no method that mutates an authorized

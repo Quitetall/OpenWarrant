@@ -42,6 +42,8 @@ mod resolution_cmd;
 mod resolve;
 mod run_cmd;
 mod sas;
+#[cfg(feature = "schema")]
+mod schemas;
 mod show;
 mod sign;
 mod status;
@@ -632,6 +634,14 @@ enum Command {
         /// Every attestation in the repository (the xtask step).
         #[arg(long)]
         all: bool,
+    },
+    /// The JSON Schema pack (OW-WAR-0032): write `schemas/` from the record
+    /// types, or `--check` the tree against them. Built with `--features schema`.
+    #[cfg(feature = "schema")]
+    Schemas {
+        /// Compare instead of writing; drift is reported by file.
+        #[arg(long)]
+        check: bool,
     },
     /// The agent loop, measured (1.0 plan F1): scaffold a throwaway program
     /// per task, draft, dispatch, perform, verify blind, and ask what a
@@ -1447,6 +1457,12 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 }
             };
             Ok(output::finish(mode, "attest", &report, None))
+        }
+        #[cfg(feature = "schema")]
+        Command::Schemas { check } => {
+            let repository = repo::Repository::discover(None)?;
+            let report = schemas::run(&repository, check)?;
+            Ok(output::finish(mode, "schemas", &report, None))
         }
         Command::Eval { command } => {
             let repository = repo::Repository::discover(None)?;

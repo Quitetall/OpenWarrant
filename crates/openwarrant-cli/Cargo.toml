@@ -33,3 +33,8 @@ camino = { workspace = true }
 ureq = { workspace = true }
 clap = { workspace = true }
 toml = { workspace = true }
+
+[features]
+# `war schemas`: the JSON Schema pack, generated from the record types.
+# Off in the shipped binary; `cargo xtask gate` builds it on.
+schema = ["openwarrant-core/schema", "openwarrant-compiler/schema"]

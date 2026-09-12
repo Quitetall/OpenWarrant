@@ -346,6 +346,30 @@ fn gate() -> ExitCode {
                 "warnings",
             ],
         },
+        // OW-WAR-0032: the JSON Schema pack is generated from the record types
+        // and drift-checked like every projection. The generator lives behind
+        // the `schema` cargo feature, so this step builds it on; the shipped
+        // binary the plants run is rebuilt without it below.
+        Step {
+            label: "schemas (generated, drift-checked)",
+            program: "cargo",
+            args: &[
+                "run",
+                "-q",
+                "-p",
+                "openwarrant-cli",
+                "--features",
+                "schema",
+                "--",
+                "schemas",
+                "--check",
+            ],
+        },
+        Step {
+            label: "rebuild the shipped binary without the schema feature",
+            program: "cargo",
+            args: &["build", "--workspace"],
+        },
         Step {
             label: "tests (positive fixtures + planted violations)",
             program: "cargo",

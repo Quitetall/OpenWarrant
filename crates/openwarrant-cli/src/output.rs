@@ -57,16 +57,18 @@ impl Mode {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(Serialize)]
-struct WireDiagnostic<'a> {
+pub(crate) struct WireDiagnostic<'a> {
     severity: &'static str,
     rule: &'a str,
     file: Option<&'a str>,
     message: &'a str,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(Serialize)]
-struct Counts {
+pub(crate) struct Counts {
     pass: usize,
     warn: usize,
     unknown: usize,
@@ -74,8 +76,9 @@ struct Counts {
     worst: &'static str,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(Serialize)]
-struct Envelope<'a> {
+pub(crate) struct Envelope<'a> {
     schema: &'static str,
     command: &'a str,
     diagnostics: Vec<WireDiagnostic<'a>>,

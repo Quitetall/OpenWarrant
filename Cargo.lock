@@ -735,6 +735,7 @@ name = "openwarrant-compiler"
 version = "0.1.0"
 dependencies = [
  "openwarrant-core",
+ "schemars",
  "serde",
  "serde_jcs",
  "serde_json",
@@ -746,6 +747,7 @@ dependencies = [
 name = "openwarrant-core"
 version = "0.1.0"
 dependencies = [
+ "schemars",
  "serde",
  "serde_jcs",
  "serde_json",

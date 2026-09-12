@@ -835,6 +835,7 @@ pub struct AdrCorpus {
     pub failures: Vec<(String, AdrError)>,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// Deliverables for one Warrant, and a parse failure if the file would not read.
 ///
 /// A malformed `deliverables.toml` yields NO records and a recorded failure,

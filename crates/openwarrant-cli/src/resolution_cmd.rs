@@ -101,6 +101,7 @@ pub struct ResolutionResponse {
     pub effective_time: String,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// The persisted record: `docs/warrants/<alias>/resolution.toml`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResolutionRecord {

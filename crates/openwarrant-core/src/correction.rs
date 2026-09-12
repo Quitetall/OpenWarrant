@@ -32,6 +32,7 @@ use thiserror::Error;
 
 pub const CORRECTION_SCHEMA: &str = "oh.war/correction/v1";
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// What kind of change a correction admits. Recorded, not enforced: a repair
 /// path may later admit an added refusal more readily than a behaviour change,
 /// because a new refusal cannot invalidate an already-accepted record — it can
@@ -65,6 +66,7 @@ impl std::str::FromStr for CorrectionKind {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// One correction: the deliverable, what it supersedes, what it becomes, why,
 /// and who decided.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
