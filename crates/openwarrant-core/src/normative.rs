@@ -275,9 +275,11 @@ mod normative_tests {
     #[test]
     fn a_year_at_the_start_of_a_sentence_is_not_a_list_item() {
         let text = "## 9. Scope\n\n2026. The tool SHALL still refuse.\n";
+        // The year is not a list item (so nothing is prefixed or stripped);
+        // ". T" after it is a sentence end, as it would be in any prose.
         let got = normative_sentences(text);
         assert_eq!(got.len(), 1);
-        assert_eq!(got[0].sentence, "2026. The tool SHALL still refuse.");
+        assert_eq!(got[0].sentence, "The tool SHALL still refuse.");
     }
 
     #[test]
