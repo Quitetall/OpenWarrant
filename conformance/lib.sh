@@ -38,9 +38,9 @@ fi
 # restore is `git checkout` and would discard that work. docs/gates/ joined this
 # list when gate plants landed: the guard and the restore must name the same
 # paths, or a plant silently deletes work the guard said it was protecting.
-if ! git diff --quiet -- docs/warrants/ docs/adr/ docs/gates/ docs/sas/ docs/authority/ docs/roadmap/ openwarrant.toml \
-    || ! git diff --cached --quiet -- docs/warrants/ docs/adr/ docs/gates/ docs/sas/ docs/authority/ docs/roadmap/ openwarrant.toml; then
-    echo "docs/warrants/, docs/adr/, docs/gates/, docs/sas/, docs/authority/, docs/roadmap/ or openwarrant.toml has uncommitted changes." >&2
+if ! git diff --quiet -- docs/warrants/ docs/adr/ docs/gates/ docs/sas/ docs/authority/ docs/roadmap/ docs/research/ openwarrant.toml \
+    || ! git diff --cached --quiet -- docs/warrants/ docs/adr/ docs/gates/ docs/sas/ docs/authority/ docs/roadmap/ docs/research/ openwarrant.toml; then
+    echo "docs/warrants/, docs/adr/, docs/gates/, docs/sas/, docs/authority/, docs/roadmap/, docs/research/ or openwarrant.toml has uncommitted changes." >&2
     echo "Plants mutate those files and restore with 'git checkout', which would" >&2
     echo "discard your work. Commit or stash those first." >&2
     exit 1
@@ -50,7 +50,7 @@ PASSED=0
 FAILED=0
 
 restore() {
-    git checkout -- docs/warrants/ docs/adr/ docs/gates/ docs/sas/ docs/authority/ docs/roadmap/ openwarrant.toml 2>/dev/null || true
+    git checkout -- docs/warrants/ docs/adr/ docs/gates/ docs/sas/ docs/authority/ docs/roadmap/ docs/research/ openwarrant.toml 2>/dev/null || true
     # `git checkout` restores TRACKED files and leaves untracked ones behind, so
     # a plant that CREATES a file is not undone by it. AM-999 is exactly that —
     # the §91.4 test 24 positive fixture — and it leaked into a commit once

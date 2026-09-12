@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-60 Warrant(s) in this repository.
+61 Warrant(s) in this repository.
 
 ## Summary
 
@@ -71,6 +71,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0062](docs/warrants/OW-WAR-0062/manifest.toml) | Lock down the levels: what a SAS, a Warrant, and every other object are | `resolved` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0063](docs/warrants/OW-WAR-0063/manifest.toml) | Complete the conformance battery: the plants and tests the verifier named as missing | `draft` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0064](docs/warrants/OW-WAR-0064/manifest.toml) | Repair a delivered artifact: the correction act for a resolved Warrant | `draft` | `current` | `valid` | `controlled` | 5M / 3S |
+| [OW-WAR-0065](docs/warrants/OW-WAR-0065/manifest.toml) | Research memo: which tokenizer approximation OpenWarrant uses for §33.7 budgets | `draft` | `current` | `valid` | `basic` | 1M / 1S |
 
 ## Claimed SAS requirement coverage
 
@@ -100,7 +101,7 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-040` — OW-WAR-0007
 - `WAR-SAS-RQ-041` — OW-WAR-0007
 - `WAR-SAS-RQ-042` — OW-WAR-0023, OW-WAR-0045, OW-WAR-0056
-- `WAR-SAS-RQ-043` — OW-WAR-0023, OW-WAR-0045, OW-WAR-0056
+- `WAR-SAS-RQ-043` — OW-WAR-0023, OW-WAR-0045, OW-WAR-0056, OW-WAR-0065
 - `WAR-SAS-RQ-044` — OW-WAR-0026, OW-WAR-0045
 - `WAR-SAS-RQ-045` — OW-WAR-0024, OW-WAR-0045, OW-WAR-0056
 - `WAR-SAS-RQ-050` — OW-WAR-0016
@@ -191,6 +192,7 @@ Source: the Warrants under the configured warrants path.
 - **OW-WAR-0062** · roadmap: roadmap://OW-PHASE-3/definitions
 - **OW-WAR-0063** · roadmap: roadmap://OW-PHASE-6/conformance
 - **OW-WAR-0064** · roadmap: roadmap://OW-PHASE-3/corrections
+- **OW-WAR-0065** · roadmap: roadmap://OW-PHASE-5/context
 
 ## Not reported here
 

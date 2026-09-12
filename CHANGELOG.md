@@ -91,6 +91,12 @@ Toward 1.0 (the plan is the Warrant backlog; each entry is one slice):
   test names, gate runs, prior verifications, token estimate) and `--run`
   hands it to a configured `[verify] verifier_argv`, ingesting the answer
   through the unchanged seam; `docs/RESOLVING.md` describes the hand-off.
+- The document work kind: `war document review [alias]` and the gate
+  `document.review@1.0.0` — a Markdown deliverable at its digest, citations
+  that exist (URLs recorded, not fetched), no placeholder in prose, and an
+  `established` verification from someone other than the performer. The
+  example is OW-WAR-0065, a research memo on the token approximation;
+  `docs/EXAMPLES/02-document.md` walks it.
 
 ## [0.1.0] — 2026-08-24
 

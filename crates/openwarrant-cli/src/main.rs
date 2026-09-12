@@ -20,6 +20,7 @@ mod context_select;
 mod correct;
 mod diagnostic;
 mod dispatch;
+mod document;
 mod evidence;
 mod export;
 mod gate_cmd;
@@ -167,6 +168,15 @@ struct Cli {
     json: bool,
     #[command(subcommand)]
     command: Command,
+}
+
+#[derive(Subcommand)]
+enum DocumentCommand {
+    /// Review Markdown deliverables (the gate `document.review@1.0.0` runs this).
+    Review {
+        /// One Warrant; omit for every Warrant with a Markdown deliverable.
+        alias: Option<String>,
+    },
 }
 
 #[derive(Subcommand)]
@@ -553,6 +563,12 @@ enum Command {
     /// Every file a Warrant's `deliverables.toml` pins, with the Warrant's
     /// state — ask BEFORE editing; a resolved Warrant's pin moves only through
     /// `war correct` (OW-WAR-0064).
+    /// The document work kind (1.0 plan C4a): review every Warrant's Markdown
+    /// deliverables — digest, citations, placeholders, independent review.
+    Document {
+        #[command(subcommand)]
+        command: DocumentCommand,
+    },
     /// Attestations for ssh-signed acts (OW-ADR-0015): list them, or verify
     /// every signature and subject digest against the tree today.
     Attest {
@@ -1339,6 +1355,12 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 output::value(&pins),
             );
             Ok(EXIT_OK)
+        }
+        Command::Document { command } => {
+            let repository = repo::Repository::discover(None)?;
+            let DocumentCommand::Review { alias } = command;
+            let report = document::review(&repository, alias.as_deref())?;
+            Ok(output::finish(mode, "document.review", &report, None))
         }
         Command::Attest {
             target,

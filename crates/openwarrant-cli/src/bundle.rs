@@ -226,6 +226,9 @@ pub fn build(repo: &Repository, alias: &str, performer: &str) -> Result<Bundle, 
         estimated_tokens: 0,
         token_method: openwarrant_core::tokens::METHOD.to_owned(),
     };
+    // The estimate counts what a verifier READS — atom text, deliverable
+    // bytes, plant lines — not the request, the gate-run records or the JSON
+    // punctuation around them; it is a reading cost, labelled as such.
     let bytes: u64 = bundle
         .atoms
         .iter()
