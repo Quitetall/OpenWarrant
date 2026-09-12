@@ -105,6 +105,41 @@ pub fn run(
             return Ok(report);
         }
     };
+    // §33.7 (slice C2): estimate what the packet's context costs to read,
+    // against the stage's budget or the repository's default. Over budget is
+    // a refusal that names the three largest items, so the fix is a cut, not
+    // a bigger number.
+    let total_bytes: u64 = selection.bytes.iter().map(|(_, b)| *b).sum();
+    let estimated_tokens = openwarrant_core::tokens::estimate(total_bytes);
+    let budget_tokens = stage
+        .budget_tokens
+        .unwrap_or_else(|| repo.config.context.budget());
+    if estimated_tokens > budget_tokens {
+        let mut largest = selection.bytes.clone();
+        largest.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));
+        let top: Vec<String> = largest
+            .iter()
+            .take(3)
+            .map(|(id, b)| format!("{id} (~{} tokens)", openwarrant_core::tokens::estimate(*b)))
+            .collect();
+        report.push(Diagnostic::error(
+            "dispatch.over-budget",
+            repo.relative(&dir.join("atoms/45-milestones.yaml")),
+            format!(
+                "{alias}/{stage_id}: the selected context is ~{estimated_tokens} tokens against a \
+                 budget of {budget_tokens} ({}); largest: {}. Narrow the stage's context_sections, \
+                 or raise budget_tokens on the stage with a reason",
+                openwarrant_core::tokens::METHOD,
+                top.join(", ")
+            ),
+        ));
+        return Ok(report);
+    }
+    let tokens = openwarrant_core::tokens::TokenAccount {
+        estimated_tokens,
+        budget_tokens,
+        method: openwarrant_core::tokens::METHOD.to_owned(),
+    };
     let (included, omitted) = (selection.included, selection.omitted);
     let context = ContextManifest {
         workspace_basis_ref: format!("basis://{}", basis.manifest_source),
@@ -165,6 +200,7 @@ pub fn run(
             policy_ref: "policy://none-declared".to_owned(),
             digest: String::new(),
         },
+        tokens: Some(tokens.clone()),
         dispatch_id: openwarrant_core::WarUuid::mint().to_string(),
     })
     .map_err(|e| RepoError::Message(format!("{alias}/{stage_id}: {e}")))?;
@@ -185,6 +221,30 @@ pub fn run(
             ),
         ));
     }
+    // The compile is an event of the Warrant's history (§24): what was
+    // dispatched, at what size, under what budget.
+    crate::journal_cmd::record(
+        &dir,
+        &ir.identity.uuid.to_string(),
+        "dispatch.compiled",
+        &format!("agent://{}", repo.performer()),
+        &serde_json::json!({
+            "stage": stage_id,
+            "dispatch_id": dispatch.dispatch_id,
+            "dispatch_digest": dispatch.dispatch_digest,
+            "estimated_tokens": tokens.estimated_tokens,
+            "budget_tokens": tokens.budget_tokens,
+            "method": tokens.method,
+        })
+        .to_string(),
+    )?;
+    report.push(Diagnostic::pass(
+        "dispatch.tokens",
+        format!(
+            "{alias}/{stage_id}: ~{} tokens of context against a budget of {} ({})",
+            tokens.estimated_tokens, tokens.budget_tokens, tokens.method
+        ),
+    ));
     let json = dispatch_json(&dispatch).map_err(|e| RepoError::Message(e.to_string()))?;
     match emit_to {
         Some(path) => {

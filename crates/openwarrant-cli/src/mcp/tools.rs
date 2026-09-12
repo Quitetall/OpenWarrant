@@ -463,7 +463,7 @@ impl WarServer {
 
     #[tool(
         name = "war_dispatch",
-        description = "Compile the Stage Dispatch packet (`oh.war/stage-dispatch/v1`) for a stage — the agent's context for that stage (`war dispatch`). Writes nothing to the repository.",
+        description = "Compile the Stage Dispatch packet (`oh.war/stage-dispatch/v1`) for a stage — the agent's context for that stage, with its token estimate and budget (`war dispatch`). Records a `dispatch.compiled` journal event; writes nothing else.",
         annotations(read_only_hint = true)
     )]
     fn war_dispatch(&self, Parameters(p): Parameters<DispatchParams>) -> ToolResult {

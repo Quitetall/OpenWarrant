@@ -35,6 +35,9 @@ pub struct Refusal {
 pub struct Selection {
     pub included: Vec<ContextItem>,
     pub omitted: Vec<Omission>,
+    /// The bytes each included item actually carries: whole atoms, section
+    /// bodies, artifact files; an external ref carries none. Sorted by id.
+    pub bytes: Vec<(String, u64)>,
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {
@@ -62,6 +65,7 @@ pub fn select(
     let mut refusals = Vec::new();
     let mut included: Vec<ContextItem> = Vec::new();
     let mut omitted: Vec<Omission> = Vec::new();
+    let mut bytes: Vec<(String, u64)> = Vec::new();
     let holder = |path: String| Holder {
         kind: "git".to_owned(),
         repository: repo.config.project.name.clone(),
@@ -96,7 +100,7 @@ pub fn select(
             refusals.push(Refusal {
                 rule: "dispatch.section-missing",
                 message: format!(
-                    "{}: context_sections entry {sel:?} is not `<atom>#<heading>`",
+                    "{}: context_sections entry {sel:?}: not of the form `<atom>#<heading>`",
                     stage.id
                 ),
             });
@@ -135,7 +139,9 @@ pub fn select(
     for path in &stage.context_artifacts {
         let full = repo.root.join(path);
         match std::fs::read(&full) {
-            Ok(bytes) => artifact_items.push((path.clone(), sha256_hex(&bytes))),
+            Ok(content) => {
+                artifact_items.push((path.clone(), sha256_hex(&content), content.len() as u64))
+            }
             Err(e) => refusals.push(Refusal {
                 rule: "dispatch.artifact-missing",
                 message: format!("{}: context_artifacts names {path:?}: {e}", stage.id),
@@ -152,6 +158,7 @@ pub fn select(
             .any(|n| *n == atom.source || atom.source.rsplit('/').next() == Some(n));
         let sectioned = section_items.iter().any(|(s, _, _)| *s == atom.source);
         if atom.required || declared {
+            bytes.push((atom.source.clone(), atom.bytes.len() as u64));
             included.push(ContextItem {
                 id: atom.source.clone(),
                 role: role_for(&atom.role),
@@ -186,6 +193,7 @@ pub fn select(
             item.selector_sections.dedup();
             continue;
         }
+        bytes.push((format!("{source}#{heading}"), body.len() as u64));
         let atom = atom_by_name(source).expect("resolved above");
         included.push(ContextItem {
             id: format!("{source}#{heading}"),
@@ -200,7 +208,8 @@ pub fn select(
             precedence: Some(Precedence::AuthorizedWarContract),
         });
     }
-    for (path, digest) in artifact_items {
+    for (path, digest, len) in artifact_items {
+        bytes.push((path.clone(), len));
         included.push(ContextItem {
             id: path.clone(),
             role: ContextRole::Input,
@@ -236,5 +245,10 @@ pub fn select(
     }
     included.sort_by(|a, b| a.id.cmp(&b.id));
     omitted.sort_by(|a, b| a.id.cmp(&b.id));
-    Ok(Selection { included, omitted })
+    bytes.sort();
+    Ok(Selection {
+        included,
+        omitted,
+        bytes,
+    })
 }

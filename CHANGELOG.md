@@ -80,6 +80,12 @@ Toward 1.0 (the plan is the Warrant backlog; each entry is one slice):
   selector — and omits the rest with a true reason. A missing section is
   refused with the headings that exist; `war dispatch --emit-context` writes
   the manifest beside the packet.
+- Token accounting (SAS §33.7): every Dispatch carries `tokens` (a bytes/4
+  estimate of its selected context, the budget it was compiled under, the
+  method id) inside its digest; a stage's `budget_tokens` or `[context]
+  default_budget_tokens` (32 000) is the budget, and over budget is
+  `dispatch.over-budget` naming the three largest items; each compile is
+  journalled as `dispatch.compiled` with its size.
 
 ## [0.1.0] — 2026-08-24
 

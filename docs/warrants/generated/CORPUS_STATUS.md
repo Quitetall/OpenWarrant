@@ -32,7 +32,7 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 | roadmap://OW-PHASE-2: Agent planner | OW-WAR-0042 | blocked by OW-WAR-0035, OW-WAR-0037, OW-WAR-0042 | 0 | 3 | 0 | 0 | 1 |
 | roadmap://OW-PHASE-3: ADR federation | OW-WAR-0043 | blocked by OW-WAR-0006, OW-WAR-0036, OW-WAR-0043, OW-WAR-0064 | 0 | 1 | 3 | 0 | 3 |
 | roadmap://OW-PHASE-4: Knowledge Fabric registration | OW-WAR-0044 | blocked by OW-WAR-0028, OW-WAR-0029, OW-WAR-0030, OW-WAR-0032, OW-WAR-0044 | 0 | 1 | 4 | 0 | 0 |
-| roadmap://OW-PHASE-5: Dispatch and Katana execution | OW-WAR-0045 | blocked by OW-WAR-0011, OW-WAR-0023, OW-WAR-0026, OW-WAR-0045 | 0 | 2 | 2 | 0 | 4 |
+| roadmap://OW-PHASE-5: Dispatch and Katana execution | OW-WAR-0045 | blocked by OW-WAR-0011, OW-WAR-0023, OW-WAR-0026, OW-WAR-0045 | 0 | 3 | 1 | 0 | 4 |
 | roadmap://OW-PHASE-6: Gate Registry and assurance case | OW-WAR-0046 | recorded | 0 | 1 | 1 | 0 | 8 |
 | roadmap://OW-PHASE-7: BLUT adapter | OW-WAR-0047 | blocked by OW-WAR-0027, OW-WAR-0047 | 0 | 1 | 1 | 0 | 0 |
 | roadmap://OW-PHASE-8: Liminal production compiler | OW-WAR-0048 | blocked by OW-WAR-0040, OW-WAR-0048 | 0 | 2 | 0 | 0 | 0 |
@@ -63,7 +63,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | requirement | Warrants blocked |
 |---|---|
-| artifact digests verify | 18 |
+| artifact digests verify | 20 |
 | required deliverables exist | 8 |
 | every required gate has admissible result | 4 |
 | no blocker remains | 4 |
@@ -146,7 +146,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-083` | claimed | 0 | OW-WAR-0030 (complete) |
 | `WAR-SAS-RQ-084` | claimed | 0 | OW-WAR-0030 (complete), OW-WAR-0064 (partial) |
 
-## Warrants (60) — invalid 0 · draft 14 · ready_to_resolve 17 · would_satisfy 0 · resolved **29**
+## Warrants (60) — invalid 0 · draft 15 · ready_to_resolve 16 · would_satisfy 0 · resolved **29**
 
 | Warrant | rung | §38.6 | blocking unknowns | milestones evidenced | first unmet |
 |---|---|---|---|---|---|
@@ -172,8 +172,8 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0020` Implement Gate Run semantics, askability, and invalidation | resolved | would satisfy | 0 | 5 of 5 | — |
 | `OW-WAR-0021` Implement verifier independence | resolved | would satisfy | 0 | 3 of 3 | — |
 | `OW-WAR-0022` Implement resolution, dispute, and annulment | resolved | would satisfy | 0 | 4 of 4 | — |
-| `OW-WAR-0023` Implement Stage Dispatch compilation and actor-specific projection | ready_to_resolve | NOT satisfied | 0 | 1 of 3 | — |
-| `OW-WAR-0024` Implement Stage Submission and attempt semantics | resolved | would satisfy | 0 | 3 of 3 | — |
+| `OW-WAR-0023` Implement Stage Dispatch compilation and actor-specific projection | draft | NOT satisfied | 0 | 1 of 3 | artifact digests verify |
+| `OW-WAR-0024` Implement Stage Submission and attempt semantics | resolved | would satisfy | 0 | 3 of 3 | artifact digests verify |
 | `OW-WAR-0025` Implement blockers, deviations, decision proposals, and discovered gaps | resolved | would satisfy | 0 | 2 of 2 | — |
 | `OW-WAR-0026` Implement the Katana runtime seam, capabilities, and receipts | draft | NOT satisfied | 1 | 2 of 3 | no required unknown remains |
 | `OW-WAR-0027` Implement the BLUT adapter: PlanSpec lowering and lineage receipt | ready_to_resolve | NOT satisfied | 0 | 2 of 3 | — |

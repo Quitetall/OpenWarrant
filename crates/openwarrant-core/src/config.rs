@@ -254,6 +254,25 @@ impl PlanPolicy {
 }
 
 /// `openwarrant.toml` (§60).
+/// `[context]` — the Dispatch token budget (slice C2, §33.7).
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct ContextPolicy {
+    /// The budget a stage gets when it declares none. Absent means the
+    /// tool's default (32 000).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_budget_tokens: Option<u64>,
+}
+
+impl ContextPolicy {
+    pub const DEFAULT_BUDGET_TOKENS: u64 = 32_000;
+
+    #[must_use]
+    pub fn budget(&self) -> u64 {
+        self.default_budget_tokens
+            .unwrap_or(Self::DEFAULT_BUDGET_TOKENS)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryConfig {
     pub schema: String,
@@ -268,6 +287,8 @@ pub struct RepositoryConfig {
     /// §75.2 — the configured drafting process, if any.
     #[serde(default)]
     pub plan: PlanPolicy,
+    #[serde(default)]
+    pub context: ContextPolicy,
     /// §46.1's nine independence dimensions, for verification performed in this
     /// repository.
     ///
@@ -300,6 +321,7 @@ impl RepositoryConfig {
             // machine close its work.
             policy: AuthorityPolicy::default(),
             plan: PlanPolicy::default(),
+            context: ContextPolicy::default(),
             independence: None,
         }
     }

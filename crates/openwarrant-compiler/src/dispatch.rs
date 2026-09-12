@@ -86,6 +86,9 @@ pub struct DispatchInputs<'a> {
     pub context: &'a ContextManifest,
     pub resources: ResourceEnvelope,
     pub capability: CapabilityAuthorization,
+    /// §33.7 (slice C2): the estimate and budget, computed by the caller who
+    /// holds the bytes; `None` records nothing.
+    pub tokens: Option<openwarrant_core::tokens::TokenAccount>,
     /// Minted by the caller. Keeping it out of this function is what makes the
     /// output a pure function of its inputs.
     pub dispatch_id: String,
@@ -114,6 +117,7 @@ pub fn compile_dispatch(inputs: DispatchInputs<'_>) -> Result<StageDispatch, Dis
         resources,
         capability,
         dispatch_id,
+        tokens,
     } = inputs;
 
     if !milestone.stage_refs.iter().any(|s| s == &stage.id) {
@@ -223,6 +227,7 @@ pub fn compile_dispatch(inputs: DispatchInputs<'_>) -> Result<StageDispatch, Dis
         submission_schema_ref: SUBMISSION_SCHEMA_REF.to_owned(),
         omitted_subgraphs: omitted,
         prior_failure_evidence_refs: attempt.prior_failure_evidence_refs.clone(),
+        tokens,
         dispatch_digest: String::new(),
     };
 
@@ -484,6 +489,7 @@ stages:
         let stage = graph.stages.iter().find(|s| s.id == stage).expect("stage");
         let milestone = &graph.milestones[0];
         compile_dispatch(DispatchInputs {
+            tokens: None,
             ir: &ir,
             basis,
             milestone,

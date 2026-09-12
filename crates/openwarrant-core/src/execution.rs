@@ -277,6 +277,10 @@ pub struct StageDispatch {
     pub prior_failure_evidence_refs: Vec<String>,
     /// §47.2 — "record the Dispatch digest". Computed over this packet with
     /// this field empty, then written in; empty means "not yet digested".
+    /// §33.7 — the estimate and the budget this packet was compiled under
+    /// (slice C2). Inside the digest; absent on packets compiled before it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tokens: Option<crate::tokens::TokenAccount>,
     #[serde(default)]
     pub dispatch_digest: String,
 }
@@ -888,6 +892,7 @@ mod tests {
             submission_schema_ref: SUBMISSION_SCHEMA_REF.into(),
             omitted_subgraphs: vec![],
             prior_failure_evidence_refs: vec![],
+            tokens: None,
             dispatch_digest: String::new(),
         }
     }
