@@ -44,6 +44,9 @@ Toward 1.0 (the plan is the Warrant backlog; each entry is one slice):
   `roadmap://` ref names this program's §98), `sas.effective-time`; the
   corpus-status fallback namespace comes from `openwarrant.toml`; the Dispatch
   compiler keeps a wrapped bullet whole (dispatch digests move accordingly).
+- `war watch`: the pending set once (`--once`, with `--json`) or as a live
+  diff of what appears and what is signed away; `--notify-send` raises a
+  desktop notification. A poller on the record trees, no new crate.
 
 ## [0.1.0] — 2026-08-24
 

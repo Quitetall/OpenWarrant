@@ -74,6 +74,9 @@ war status                          # DM-WAR-0001: resolved / RQ-001: satisfied
 At every step `war next` says whose act comes next. It never hands an agent a
 signature.
 
+Leave `war watch --notify-send` running in a terminal and the two human
+steps announce themselves when the agent reaches them.
+
 ## From an agent harness
 
 Claude Code: add this repository as a plugin (`claude plugin marketplace add

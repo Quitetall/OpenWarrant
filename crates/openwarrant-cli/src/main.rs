@@ -41,6 +41,7 @@ mod sign;
 mod status;
 mod telemetry;
 mod verify;
+mod watch;
 
 #[derive(clap::Subcommand, Debug)]
 enum KfCommand {
@@ -536,6 +537,22 @@ enum Command {
         /// Every attestation in the repository (the xtask step).
         #[arg(long)]
         all: bool,
+    },
+    /// Tell the human when an act awaits them: print the pending set, then
+    /// poll the record trees and print what appears or is signed away.
+    Watch {
+        /// Print the pending set once and exit.
+        #[arg(long)]
+        once: bool,
+        /// Poll interval in milliseconds (minimum 50; lower values are raised to it).
+        #[arg(long, default_value_t = 500)]
+        interval: u64,
+        /// Also raise a desktop notification through `notify-send`.
+        #[arg(long)]
+        notify_send: bool,
+        /// Stop after this many polls (for tests).
+        #[arg(long, hide = true)]
+        ticks: Option<u64>,
     },
     /// Serve the Model Context Protocol over stdio (OW-ADR-0014): every
     /// read, request half and agent-permitted write as a tool; no signing,
@@ -1280,6 +1297,26 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 }
             };
             Ok(output::finish(mode, "attest", &report, None))
+        }
+        Command::Watch {
+            once,
+            interval,
+            notify_send,
+            ticks,
+        } => {
+            let repository = repo::Repository::discover(None)?;
+            if once {
+                let snap = watch::snapshot(&repository)?;
+                output::emit(
+                    mode,
+                    "watch",
+                    watch::render(&snap).trim_end(),
+                    output::value(&snap),
+                );
+                return Ok(EXIT_OK);
+            }
+            watch::run(&repository, interval, notify_send, ticks)?;
+            Ok(EXIT_OK)
         }
         Command::Mcp { describe } => {
             // Discover BEFORE any runtime exists: outside a repository this
