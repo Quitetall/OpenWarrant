@@ -309,3 +309,20 @@ With `[verify] verifier_argv = ["…"]` in `openwarrant.toml`, `war verify
 runs under `verifier_timeout_secs`, and what it prints on stdout goes through
 the same ingest as a hand-written response — a verifier that answers as the
 performer is refused there, exactly as a human typing it would be.
+
+## Signing a batch of corrections
+
+A correction needs a kind, which is a judgement, and a reason, which the record
+already holds. So the kind is the only thing to type:
+
+```bash
+war sign --list                                  # the queue
+war sign --all --ssh-sign --kind behaviour-change # one dialog each, no typing
+```
+
+The reason is drafted from the commits that touched the file since that
+Warrant resolved, and printed above the prompt before anything is signed.
+`--meaning "..."` adds your sentence to every reason in the batch when the
+record does not say enough. One dialog per signature is the ssh agent's doing
+(`ssh-add -c`), and that is the control, not the friction: a signature nobody
+confirmed is the thing the whole seam exists to prevent.

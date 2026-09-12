@@ -59,7 +59,12 @@ impl std::str::FromStr for CorrectionKind {
     type Err = CorrectionError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "behaviour-change" | "behaviour_change" => Ok(Self::BehaviourChange),
+            // Both spellings. The record writes one of them (`as_str`), and a
+            // signature refused over a vowel is friction with nothing behind
+            // it: the act, the reason and the digests are what matter.
+            "behaviour-change" | "behaviour_change" | "behavior-change" | "behavior_change" => {
+                Ok(Self::BehaviourChange)
+            }
             "added-refusal" | "added_refusal" => Ok(Self::AddedRefusal),
             other => Err(CorrectionError::UnknownKind(other.to_owned())),
         }
@@ -100,7 +105,9 @@ pub struct CorrectionRecord {
 
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum CorrectionError {
-    #[error("unknown correction kind {0:?}; known: behaviour-change, added-refusal")]
+    #[error(
+        "unknown correction kind {0:?}; known: behaviour-change (behavior-change is accepted too), added-refusal"
+    )]
     UnknownKind(String),
     #[error("{field} must be `sha256:` followed by 64 lowercase hex characters, got {found:?}")]
     NotADigest { field: &'static str, found: String },

@@ -389,7 +389,26 @@ pub fn line(p: &Pending) -> String {
 }
 
 /// The screen the signer sees. Facts from the record; nothing recommended.
-fn screen(p: &Pending, actor: &str, role: &str) -> String {
+/// Wrap at a width, on spaces: the screen is read by a person at a terminal.
+fn wrap(text: &str, width: usize) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut line = String::new();
+    for word in text.split_whitespace() {
+        if !line.is_empty() && line.len() + 1 + word.len() > width {
+            out.push(std::mem::take(&mut line));
+        }
+        if !line.is_empty() {
+            line.push(' ');
+        }
+        line.push_str(word);
+    }
+    if !line.is_empty() {
+        out.push(line);
+    }
+    out
+}
+
+fn screen(p: &Pending, actor: &str, role: &str, reason: Option<&str>) -> String {
     let mut s = String::new();
     match p {
         Pending::Authorize {
@@ -497,6 +516,17 @@ fn screen(p: &Pending, actor: &str, role: &str) -> String {
                 },
                 request.current_digest
             ));
+            if let Some(reason) = reason {
+                // What the record will say, wrapped, before the prompt. A
+                // signature over text the signer never read is the defect this
+                // whole seam exists to prevent.
+                for (i, line) in wrap(reason, 72).into_iter().enumerate() {
+                    s.push_str(&format!(
+                        "│ {}{line}\n",
+                        if i == 0 { "reason: " } else { "        " }
+                    ));
+                }
+            }
             s.push_str(
                 "│ the pin in deliverables.toml is not edited; the superseded digest stays on record\n",
             );
@@ -518,6 +548,87 @@ fn provenance() -> String {
          is the signer's and the template is the tool's.",
         tool_version()
     )
+}
+
+/// What a correction's reason says when the signer does not type one.
+///
+/// A signature should cost a keystroke, not an essay, and the reason a
+/// delivered artifact moved is already on record: the commits that touched the
+/// file since the Warrant resolved, each with its own message. So the tool
+/// drafts from those and `--meaning` appends the signer's words when they have
+/// any to add. The judgement stays theirs: `--kind` is still required, because
+/// whether a change alters behaviour or adds a refusal is not a fact the tree
+/// carries.
+fn drafted_correction_reason(repo: &Repository, alias: &str, target_ref: &str) -> String {
+    let since = repo
+        .warrant_dir(alias)
+        .ok()
+        .and_then(|d| repo.load_resolution(&d).ok().flatten())
+        .map(|r| r.resolution.effective_at.clone());
+    let mut args: Vec<String> = vec![
+        "log".to_owned(),
+        "--format=%s".to_owned(),
+        "--max-count=6".to_owned(),
+    ];
+    if let Some(when) = &since {
+        args.push(format!("--since={when}"));
+    }
+    args.push("--".to_owned());
+    args.push(target_ref.to_owned());
+    let subjects: Vec<String> = std::process::Command::new("git")
+        .args(&args)
+        .current_dir(&repo.root)
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .map(|o| {
+            String::from_utf8_lossy(&o.stdout)
+                .lines()
+                .map(str::trim)
+                .filter(|l| !l.is_empty())
+                .map(str::to_owned)
+                .collect()
+        })
+        .unwrap_or_default();
+    let when = since.as_deref().map_or_else(
+        || "it resolved".to_owned(),
+        |w| format!("its resolution at {w}"),
+    );
+    if subjects.is_empty() {
+        return format!(
+            "{target_ref} moved after {when}; the repository records no commit touching it since,              so the bytes changed without a commit message to cite."
+        );
+    }
+    let shown: Vec<String> = subjects
+        .iter()
+        .take(3)
+        .map(|s| format!("\"{s}\""))
+        .collect();
+    format!(
+        "{target_ref} moved after {when}: {} commit(s) touched it, {}{}. Each states its own          change; this correction records that the delivered bytes moved with them.",
+        subjects.len(),
+        shown.join("; "),
+        if subjects.len() > shown.len() {
+            format!(" and {} more", subjects.len() - shown.len())
+        } else {
+            String::new()
+        }
+    )
+}
+
+/// The reason a correction will record: the signer's words when they typed
+/// any, else the draft from the record. `None` for every other act, whose
+/// meaning is templated inside `draft`.
+fn reason_for(repo: &Repository, p: &Pending, opts: &Options) -> Option<String> {
+    if let Some(m) = opts.meaning.as_deref().filter(|m| !m.trim().is_empty()) {
+        return Some(m.to_owned());
+    }
+    match p {
+        Pending::Correct { alias, request, .. } => {
+            Some(drafted_correction_reason(repo, alias, &request.target_ref))
+        }
+        _ => None,
+    }
 }
 
 /// Draft the response for one pending act. Pure: no I/O, so it is testable.
@@ -664,11 +775,13 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
                     "{alias}/{deliverable_id}: a correction needs --kind behaviour-change|added-refusal"
                 ));
             };
-            let Some(reason) = opts.meaning.as_deref().filter(|m| !m.trim().is_empty()) else {
-                return Err(format!(
-                    "{alias}/{deliverable_id}: a correction needs a reason; pass --meaning \"…\""
-                ));
-            };
+            // The reason is drafted from the record when the signer types
+            // none; `opts.meaning` carries either their words or that draft.
+            let reason = opts
+                .meaning
+                .as_deref()
+                .filter(|m| !m.trim().is_empty())
+                .unwrap_or("the delivered artifact moved");
             Ok(Drafted::Correct(crate::correct::CorrectionResponse {
                 schema: crate::correct::RESPONSE_SCHEMA.to_owned(),
                 warrant: alias.clone(),
@@ -1274,7 +1387,11 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
     if opts.show {
         for p in chosen {
             let actor = choose_actor(eligible(p), opts).unwrap_or_else(|_| "<signer>".to_owned());
-            println!("{}", screen(p, &actor, role(p)).trim_end_matches("[y/N] "));
+            let reason = reason_for(repo, p, opts);
+            println!(
+                "{}",
+                screen(p, &actor, role(p), reason.as_deref()).trim_end_matches("[y/N] ")
+            );
             report.push(Diagnostic::pass(
                 "sign.shown",
                 format!("{} — shown, not signed; nothing written", line(p)),
@@ -1292,6 +1409,13 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
             }
         };
         let now = crate::gate_cmd::receipt::now_rfc3339_public();
+        // A correction's reason is drafted here, where I/O is allowed, so
+        // `draft` stays pure and a batch of corrections costs no typing.
+        let mut per_act = opts.clone();
+        if matches!(p, Pending::Correct { .. }) {
+            per_act.meaning = reason_for(repo, p, opts);
+        }
+        let opts = &per_act;
         let drafted = match draft(p, &actor, opts, &now) {
             Ok(d) => d,
             Err(why) => {
@@ -1306,7 +1430,10 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
         let confirmed = if opts.ssh_sign {
             // No prompt: the confirmation is the agent's dialog. The screen is
             // still printed so the signer sees what the dialog is for.
-            println!("{}", screen(p, &actor, role(p)).trim_end_matches("[y/N] "));
+            println!(
+                "{}",
+                screen(p, &actor, role(p), opts.meaning.as_deref()).trim_end_matches("[y/N] ")
+            );
             println!(
                 "└ Signing as {actor} ({}) with ssh — confirm in the agent's dialog",
                 role(p)
@@ -1328,7 +1455,10 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
                 }
             }
         } else {
-            println!("{}", screen(p, &actor, role(p)).trim_end_matches("[y/N] "));
+            println!(
+                "{}",
+                screen(p, &actor, role(p), opts.meaning.as_deref()).trim_end_matches("[y/N] ")
+            );
             confirm(&format!("└ Sign as {actor} ({})? [y/N] ", role(p)))?
         };
         if !confirmed {

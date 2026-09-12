@@ -40,15 +40,19 @@ die() { printf '\n!! %s\n' "$*" >&2; exit 1; }
 
 # A step is offered, never assumed. `y` runs it, `s` skips it, `q` stops the
 # wizard where it stands.
+# `y` runs it, `s` skips it, `q` stops the wizard, and the raw answer is left
+# in REPLY_WAS so a caller can offer its own letter (step 6 offers `d` for the
+# diff) without every prompt having to know about it.
 ask() {
     local prompt="$1"
     [[ $CHECK_ONLY -eq 1 ]] && { say "would ask: $prompt"; return 1; }
     local reply
     read -r -p "   $prompt [y/s/q] " reply
+    REPLY_WAS="$reply"
     case "$reply" in
         y|Y) return 0 ;;
         q|Q) echo "   stopped."; exit 0 ;;
-        *) say "skipped."; return 1 ;;
+        *) return 1 ;;
     esac
 }
 
@@ -109,7 +113,7 @@ step_relicense() {
         say "PARTLY done: the manifest says Apache-2.0 but the tree is not committed."
         say "A relicense is the bytes AND the records that pin them, so the rest"
         say "of this step (re-pin, compile, gate, commit) still has to run."
-        ask "finish it?" || return 0
+        ask "finish it?" || { say "skipped."; return 0; }
         relicense_finish
         return 0
     fi
@@ -122,7 +126,7 @@ step_relicense() {
     say "SPDX header in every file that is NOT pinned by a resolved Warrant,"
     say "lists the ones that are in RELICENSING-PENDING.txt (their header moves"
     say "with their correction), and writes OW-ADR-0017."
-    ask "run the relicense?" || return 0
+    ask "run the relicense?" || { say "skipped."; return 0; }
 
     local apache
     apache=$(ls ~/.cargo/registry/src/*/serde-1.0.0/LICENSE-APACHE 2>/dev/null | head -1)
@@ -317,7 +321,7 @@ step_sas() {
     fi
     say "One dialog. The revision folds every SAS edit of the 1.0 plan and adds"
     say "four §106 rows, so §101.3 requires the ADR flag."
-    ask "sign it?" || return 0
+    ask "sign it?" || { say "skipped."; return 0; }
     run "$WAR" sign 1.0.0 --ssh-sign --adr OW-ADR-0016   # a path also works
     run "$WAR" compile
     run git add -A
@@ -346,7 +350,7 @@ step_authorize() {
     say "adopts it, and an amendment nobody wrote is not one you can sign."
     local a
     for a in $pending; do
-        ask "authorize $a?" || continue
+        ask "authorize $a?" || { say "skipped."; continue; }
         run "$WAR" sign "$a" --ssh-sign
     done
     run "$WAR" compile
@@ -381,7 +385,7 @@ PY
     say "A reviewer will notice it proposes \`war inbox\` for what \`war next\` and"
     say "\`war sign --list\` already do. Applying it is still honest: the Warrant"
     say "records what the agent proposed, and the review is what caught it."
-    ask "apply it (writes a new Warrant directory)?" || return 0
+    ask "apply it (writes a new Warrant directory)?" || { say "skipped."; return 0; }
     run "$WAR" plan --proposal "$proposal" --apply --reviewed
     run "$WAR" compile
     run git add -A
@@ -401,47 +405,77 @@ the reviewer's rewrite."
 }
 
 # ── step 6: the corrections ──────────────────────────────────────────────────
+# One kind for the batch, then a dialog each. The reason is drafted by the tool
+# from the commits that touched the file since the Warrant resolved, and shown
+# on the screen before the prompt, so signing twenty-six corrections costs
+# twenty-six confirmations and no typing. Type a sentence only where you want
+# to say more than the record already does.
 step_corrections() {
     header 6 "sign every correction, on final bytes"
-    local rows
+    local rows count
     rows=$("$WAR" sign --list 2>/dev/null | awk '$2 == "correct" { print $1 }')
     if [[ -z "$rows" ]]; then
         say "no deliverable of a resolved Warrant is drifting."
         return 0
     fi
-    say "$(wc -l <<< "$rows") correction(s) await you. Each one needs two things"
-    say "the tool will not invent: a kind and a meaning."
+    count=$(wc -l <<< "$rows")
+    say "$count correction(s) await you."
     say ""
-    say "  behaviour-change  the file now does something different"
-    say "  added-refusal     the file now refuses something it used to allow"
+    say "The kind is the one judgement the tree cannot make for you:"
+    say "  1  behaviour-change  the file now does something different"
+    say "  2  added-refusal     it now refuses something it used to allow"
     say ""
-    say "Signing LAST matters: a correction binds the bytes as they are now, so"
-    say "if anything recompiles after this, its correction is stale."
+    say "The reason is drafted from the commits that touched each file since its"
+    say "Warrant resolved, and shown before each prompt. Signing last matters: a"
+    say "correction binds the bytes as they are now."
     require_clean
-    local target kind meaning
+
+    local kind meaning
+    while true; do
+        read -r -p "   kind for this batch [1/2, or the name] " kind
+        case "$kind" in
+            1|behaviour-change|behavior-change) kind=behaviour-change; break ;;
+            2|added-refusal) kind=added-refusal; break ;;
+            q|Q) echo "   stopped."; exit 0 ;;
+            *) say "   1 or 2, or the name." ;;
+        esac
+    done
+    read -r -p "   one sentence to add to every reason (Enter for none) " meaning
+    local -a args=(--ssh-sign --kind "$kind")
+    [[ -n "$meaning" ]] && args+=(--meaning "$meaning")
+
+    local target signed=0 skipped=0
     for target in $rows; do
         echo
-        say "── $target"
-        "$WAR" sign "$target" --show 2>&1 | sed -n '1,12p' | sed 's/^/      /'
-        ask "sign this correction?" || continue
-        read -r -p "      kind [behaviour-change/added-refusal] " kind
-        read -r -p "      meaning (your own words, one sentence) " meaning
-        [[ -n "$kind" && -n "$meaning" ]] || { say "both are required; skipped."; continue; }
-        run "$WAR" sign "$target" --ssh-sign --kind "$kind" --meaning "$meaning"
+        "$WAR" sign "$target" --show "${args[@]:1}" 2>&1 | sed -n '1,14p' | sed 's/^/      /'
+        if ! ask "sign $target?"; then
+            say "skipped."
+            skipped=$((skipped + 1))
+            continue
+        fi
+        if "$WAR" sign "$target" "${args[@]}"; then
+            signed=$((signed + 1))
+        else
+            say "   refused; it stays in the queue. Continuing."
+            skipped=$((skipped + 1))
+        fi
     done
+    echo
+    say "$signed signed, $skipped left in the queue."
     run "$WAR" compile
     if ! clean_tree; then
         run git add -A
         git commit -q -m "correct: the drifted deliverables of resolved Warrants (OW-WAR-0067 STAGE-006)
 
-Each correction signed by the owner with its own kind and reason (§34.4,
-OW-WAR-0064): the superseded digest stays on record and the delivered
+Each correction signed by the owner with its kind, and a reason the tool
+drafted from the commits that touched the file since that Warrant resolved
+(§34.4, OW-WAR-0064): the superseded digest stays on record and the delivered
 artifact moves for a stated reason, never silently."
     fi
     say ""
-    say "Any file freed by a correction can now carry the new SPDX header:"
-    say "   # remove its line from RELICENSING-PENDING.txt, rewrite the header,"
-    say "   # then correct it again in the same pass next time."
+    say "A file freed by a correction can take the new SPDX header: remove its"
+    say "line from RELICENSING-PENDING.txt, rewrite the header, and it wants one"
+    say "more correction. One later pass is cheaper than one per file."
 }
 
 # ── step 7: the gate ─────────────────────────────────────────────────────────
@@ -449,7 +483,7 @@ step_gate() {
     header 7 "the whole gate, before the tag"
     say "This is what the release workflow runs. A tag on a red gate is a"
     say "release nobody can reproduce."
-    ask "run cargo xtask gate?" || return 0
+    ask "run cargo xtask gate?" || { say "skipped."; return 0; }
     run cargo xtask gate
     say "green."
 }
@@ -467,7 +501,7 @@ step_tag() {
     say "The tag starts release.yml: the gate, both hosts, IR parity, the"
     say "release, then crates.io in dependency order. A published version's"
     say "licence is permanent."
-    ask "tag and push?" || return 0
+    ask "tag and push?" || { say "skipped."; return 0; }
     run git tag -a v1.0.0 -m "OpenWarrant 1.0.0
 
 The protocol is stable from here: every oh.war/*/v1 record shape, every
