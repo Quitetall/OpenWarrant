@@ -339,6 +339,11 @@ step_authorize() {
     say "awaiting: $(tr '\n' ' ' <<< "$pending")"
     say "Each is one dialog. 0064 is the correction act itself, so sign it first:"
     say "the corrections in step 6 are acts under it."
+    say ""
+    say "A revision above 1 needs an amendment record first (§31): the tool"
+    say "refuses the signature with authorize.no-amendment and names what moved."
+    say "If that happens, stop and have the amendment drafted; the signature"
+    say "adopts it, and an amendment nobody wrote is not one you can sign."
     local a
     for a in $pending; do
         ask "authorize $a?" || continue
