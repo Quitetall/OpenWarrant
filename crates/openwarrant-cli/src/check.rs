@@ -296,6 +296,9 @@ pub fn run(
     if !check_generated {
         report.note("generated-view drift — pass --generated to compare committed projections");
     }
+    if only.is_none() {
+        check_roadmap_status_claims(repo, &mut report);
+    }
 
     Ok(report)
 }
@@ -705,13 +708,32 @@ fn check_traceability(repo: &Repository, one: &Loaded, alias: &str, report: &mut
     let mut bad = 0usize;
 
     for r in &basis.manifest.roadmap {
-        if let Err(err) = RoadmapRef::parse(&r.r#ref) {
-            report.push(Diagnostic::error(
-                "roadmap.malformed",
-                file.clone(),
-                format!("{alias}: {err}"),
-            ));
-            bad += 1;
+        match RoadmapRef::parse(&r.r#ref) {
+            Err(err) => {
+                report.push(Diagnostic::error(
+                    "roadmap.malformed",
+                    file.clone(),
+                    format!("{alias}: {err}"),
+                ));
+                bad += 1;
+            }
+            // A `roadmap://` ref names THIS program's §98: another prefix is a
+            // phase of a SAS this repository does not carry (slice C5).
+            Ok(parsed) if parsed.prefix != repo.config.project.namespace.as_str() => {
+                report.push(Diagnostic::error(
+                    "roadmap.wrong-namespace",
+                    file.clone(),
+                    format!(
+                        "{alias}: {} names phase prefix {:?}; this repository's namespace is \
+                         {:?}, and its SAS is the only §98 a roadmap ref can point into",
+                        r.r#ref,
+                        parsed.prefix,
+                        repo.config.project.namespace.as_str()
+                    ),
+                ));
+                bad += 1;
+            }
+            Ok(_) => {}
         }
     }
 
@@ -1424,4 +1446,40 @@ pub fn print(report: &Report) {
         }
     }
     println!("\n{}", report.verdict_line());
+}
+
+/// A hand-maintained roadmap may not claim a Warrant is **resolved**: the
+/// Release axis is §56.2 records, and OW-WAR-0032 was marked resolved in
+/// prose while its record said otherwise (slice C6). Bold `resolved` is the
+/// exact token the projection's caveat used to count.
+fn check_roadmap_status_claims(repo: &Repository, report: &mut Report) {
+    let dir = repo.root.join(&repo.config.paths.roadmap);
+    let Ok(entries) = std::fs::read_dir(&dir) else {
+        return;
+    };
+    let mut files: Vec<_> = entries
+        .filter_map(Result::ok)
+        .map(|e| e.path())
+        .filter(|p| p.extension().is_some_and(|x| x == "md"))
+        .collect();
+    files.sort();
+    for path in files {
+        let Ok(text) = std::fs::read_to_string(&path) else {
+            continue;
+        };
+        let claims = text.matches("**resolved**").count();
+        if claims > 0 {
+            let rel = camino::Utf8PathBuf::from_path_buf(path)
+                .map(|p| repo.relative(&p))
+                .unwrap_or_else(|p| p.display().to_string());
+            report.push(Diagnostic::error(
+                "roadmap.status-claim",
+                rel.clone(),
+                format!(
+                    "{rel} marks something **resolved** {claims} time(s); resolution is a §56.2 \
+                     record, and CORPUS_STATUS.md is compiled from those — delete the claim"
+                ),
+            ));
+        }
+    }
 }

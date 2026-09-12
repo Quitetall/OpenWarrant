@@ -269,6 +269,17 @@ fn section_bullets(basis: &CompilationBasis, role: &str, heading: &str) -> Vec<S
                         .map(|(_, r)| r.trim().to_owned())
                         .unwrap_or_default(),
                 );
+            } else if !t.is_empty()
+                && line.starts_with([' ', '\t'])
+                && let Some(last) = out.last_mut()
+            {
+                // A wrapped bullet: an indented line after an item continues
+                // it. Dropping these lost every instruction longer than one
+                // line (OW-WAR-0064's intent names it); joining them moves the
+                // dispatch digest of every Warrant whose atoms wrap, which is
+                // the correct consequence of the packet finally being whole.
+                last.push(' ');
+                last.push_str(t);
             }
         }
     }
@@ -278,6 +289,22 @@ fn section_bullets(basis: &CompilationBasis, role: &str, heading: &str) -> Vec<S
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_wrapped_bullet_is_one_instruction_and_an_unindented_line_is_not() {
+        let text = "## Premade Instructions\n\n- first line\n  continues here\n  and here\n- second\n1. numbered\n   wrapped too\nnot a continuation\n\n## Other\n\n- elsewhere\n";
+        let (mut basis, _) = fixture();
+        basis.atoms = vec![atom(40, "work_order", "atoms/40-work-order.md", text, true)];
+        let got = section_bullets(&basis, "work_order", "## Premade Instructions");
+        assert_eq!(
+            got,
+            vec![
+                "first line continues here and here".to_owned(),
+                "second".to_owned(),
+                "numbered wrapped too".to_owned(),
+            ]
+        );
+    }
     use crate::lower::{AtomSource, lower};
     use openwarrant_core::context::{ContextItem, Holder, Omission, Precedence, TrustClass};
     use openwarrant_core::{Manifest, ValidatedManifest};

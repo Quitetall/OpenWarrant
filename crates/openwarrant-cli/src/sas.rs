@@ -208,6 +208,18 @@ pub fn accept_ingest(
         );
         return Ok(report);
     }
+    if let Err(e) = openwarrant_core::timestamp::validate_rfc3339_utc(&response.effective_time) {
+        refuse(
+            &mut report,
+            "sas.effective-time",
+            format!(
+                "effective_time {:?} is not an RFC 3339 UTC timestamp ({e}); a record dated \
+                 \"soon\" cannot be ordered against any other",
+                response.effective_time
+            ),
+        );
+        return Ok(report);
+    }
     // The signature is over a digest; it must match the record AND the bytes on
     // disk right now. A document edited between proposal and acceptance is a
     // different document.

@@ -39,6 +39,11 @@ Toward 1.0 (the plan is the Warrant backlog; each entry is one slice):
   authority examples, the `war check` gate, and a first Warrant with real
   atoms; `war check` on the scaffold exits 0. `QUICKSTART.md` and
   `docs/EXAMPLES/01-code.md`.
+- Rules in pinned files, landed as one correction batch: `roadmap.status-claim`
+  (a hand-written **resolved** is refused), `roadmap.wrong-namespace` (a
+  `roadmap://` ref names this program's §98), `sas.effective-time`; the
+  corpus-status fallback namespace comes from `openwarrant.toml`; the Dispatch
+  compiler keeps a wrapped bullet whole (dispatch digests move accordingly).
 
 ## [0.1.0] — 2026-08-24
 

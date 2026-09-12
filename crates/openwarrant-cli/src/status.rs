@@ -236,7 +236,7 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
         .into_iter()
         .max_by_key(|(_, n)| *n)
         .map(|(p, _)| p)
-        .unwrap_or_else(|| "OW".to_owned());
+        .unwrap_or_else(|| repo.config.project.namespace.as_str().to_owned());
 
     // §98 from the SAS as it stands; the compiled-in table is the fallback for
     // a repository whose document cannot be read.
