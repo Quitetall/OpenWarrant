@@ -4,7 +4,7 @@ An obligation in `60-assurance.md` is the unit of completion. It needs a
 **bounded scope** (§38.4: a claim is bounded by its evidence):
 
 ```markdown
-### OBL-001 — the parser refuses a duplicate ordinal
+### OBL-001: the parser refuses a duplicate ordinal
 
 - **scope:** manifests exercised by the fixtures in `conformance/`.
 - **evidence:** a planted duplicate, and the specific error it produces.
@@ -16,7 +16,7 @@ refusal obligation: code that always succeeds satisfies a success claim.
 ## Independence
 
 `war verify <alias> --performer <you>` emits the request. Hand it to a
-separate context — another session, another model, a person — never your own.
+separate context: another session, another model, a person: never your own.
 `war verify --response` refuses a verdict whose verifier is the performer and
 writes nothing; editing `performer` to get past it falsifies a record.
 

@@ -223,6 +223,25 @@ pub fn select(
             precedence: Some(Precedence::InformativeSource),
         });
     }
+    // The program's glossary (OW-WAR-0068, after mattpocock/skills
+    // domain-modeling): a term defined once at the root costs one word in
+    // every Dispatch, so the selector carries it whenever it exists.
+    let glossary = repo.root.join("CONTEXT.md");
+    if let Ok(body) = std::fs::read(&glossary) {
+        bytes.push(("CONTEXT.md".to_owned(), body.len() as u64));
+        included.push(ContextItem {
+            id: "CONTEXT.md".to_owned(),
+            role: ContextRole::Informative,
+            required: false,
+            holder: holder("CONTEXT.md".to_owned()),
+            content_digest: format!("sha256:{}", sha256_hex(&body)),
+            selector_sections: vec![],
+            classification: "internal".to_owned(),
+            trust: TrustClass::AuthoritativeInternal,
+            taints: vec![],
+            precedence: Some(Precedence::InformativeSource),
+        });
+    }
     for uri in &stage.context_external {
         included.push(ContextItem {
             id: uri.clone(),

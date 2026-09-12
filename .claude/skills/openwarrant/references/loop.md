@@ -4,7 +4,7 @@ Every step is a `war` command. A human signs at two points; nothing you do
 substitutes for either.
 
 ```bash
-war next                                   # whose act is next — read this first
+war next                                   # whose act is next: read this first
 war new "What this work accomplishes"      # docs/warrants/<NS>-WAR-NNNN/
 # edit the atoms (see AGENTS.md "Writing the atoms")
 war check <alias>                          # deterministic; no agent, no network

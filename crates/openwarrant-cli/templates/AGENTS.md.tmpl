@@ -200,3 +200,13 @@ thirteen and is wrong about eleven.
   the operator, and which test or plant exercises each control.
 - `QUICKSTART.md` — an empty directory to a resolved Warrant, every step one
   command, the two human steps marked; `docs/EXAMPLES/` walks real records.
+
+## Skills over the core (OW-WAR-0068)
+
+Adapted from mattpocock/skills (MIT), each ending in a record the tool reads:
+`/war-grill` (answers land in the draft request), `/war-spec` (conversation to
+a v2 proposal), `/war-tickets` and `war frontier` (stages with blocking edges;
+what can start now), `/war-review` (Standards beside the blind verifier's
+Obligations), `/war-map` (a decision Warrant whose fog is blocking unknowns).
+`CONTEXT.md` at the root is the glossary every Dispatch carries: use its
+words. A skill never signs, and never claims a step it did not run.

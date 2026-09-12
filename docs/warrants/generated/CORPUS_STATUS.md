@@ -63,8 +63,8 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | requirement | Warrants blocked |
 |---|---|
-| artifact digests verify | 28 |
-| required deliverables exist | 11 |
+| artifact digests verify | 27 |
+| required deliverables exist | 10 |
 | every required gate has admissible result | 8 |
 | no blocker remains | 8 |
 | no required unknown remains | 8 |

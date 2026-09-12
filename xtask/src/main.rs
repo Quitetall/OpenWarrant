@@ -27,12 +27,29 @@ fn main() -> ExitCode {
     let mut args = std::env::args().skip(1);
     match args.next().as_deref() {
         Some("gate") => gate(),
+        // OW-WAR-0068: the skill checks alone, for a plant and for a fast
+        // local loop while writing a skill.
+        Some("skills") => {
+            let a = check_skill();
+            let b = check_agent_docs();
+            match (a, b) {
+                (Ok(_), Ok(0)) => ExitCode::SUCCESS,
+                (Ok(_), Ok(n)) => {
+                    eprintln!("xtask skills: {n} agent-facing document(s) carry an em-dash");
+                    ExitCode::FAILURE
+                }
+                (Err(e), _) | (_, Err(e)) => {
+                    eprintln!("xtask skills: {e}");
+                    ExitCode::FAILURE
+                }
+            }
+        }
         Some(other) => {
-            eprintln!("xtask: unknown task {other:?}; known tasks: gate");
+            eprintln!("xtask: unknown task {other:?}; known tasks: gate, skills");
             ExitCode::FAILURE
         }
         None => {
-            eprintln!("usage: cargo xtask gate");
+            eprintln!("usage: cargo xtask gate | skills");
             ExitCode::FAILURE
         }
     }
@@ -237,6 +254,42 @@ fn pin_verdict(spec: &str) -> Result<(), &'static str> {
 
 /// The Claude Code skill is what an agent reads first; a reference file the
 /// SKILL.md never links is invisible, and a link to a missing file is a lie.
+/// writing-for-agents (mattpocock/skills, MIT), applied: no em-dash in any
+/// document an agent reads under `.claude/skills/`. The dash is where a
+/// sentence hides a second sentence; an agent reads it as noise. Reports the
+/// count of offending files and names each.
+fn check_agent_docs() -> Result<usize, std::io::Error> {
+    fn walk(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> Result<(), std::io::Error> {
+        for entry in std::fs::read_dir(dir)? {
+            let path = entry?.path();
+            if path.is_dir() {
+                walk(&path, out)?;
+            } else if path.extension().is_some_and(|e| e == "md") {
+                out.push(path);
+            }
+        }
+        Ok(())
+    }
+    let mut files = Vec::new();
+    let root = Path::new(".claude/skills");
+    if root.is_dir() {
+        walk(root, &mut files)?;
+    }
+    files.sort();
+    let mut bad = 0;
+    for f in files {
+        let text = std::fs::read_to_string(&f)?;
+        if let Some(line) = text.lines().position(|l| l.contains('\u{2014}')) {
+            println!("   em-dash: {}:{}", f.display(), line + 1);
+            bad += 1;
+        }
+    }
+    if bad == 0 {
+        println!("   no em-dash in any agent-facing document");
+    }
+    Ok(bad)
+}
+
 /// Text rules, no YAML parse (OW-ADR-0002), so they are testable on strings.
 fn check_skill() -> Result<usize, std::io::Error> {
     let dir = Path::new(".claude/skills/openwarrant");
@@ -310,7 +363,7 @@ fn skill_problems(skill: &str, references: &[String]) -> Vec<String> {
 }
 
 /// Steps run in-process before the commands: spdx headers, workflows, skill.
-const IN_PROCESS_STEPS: usize = 3;
+const IN_PROCESS_STEPS: usize = 4;
 
 fn gate() -> ExitCode {
     let steps = [
@@ -470,6 +523,19 @@ fn gate() -> ExitCode {
         }
     }
 
+    println!("== agent-facing documents (no em-dash under .claude/skills/) ==");
+    match check_agent_docs() {
+        Ok(0) => println!("   ok"),
+        Ok(n) => {
+            println!("   FAILED ({n} file(s))");
+            failed.push("agent-facing documents");
+        }
+        Err(err) => {
+            println!("   COULD NOT RUN: {err}");
+            failed.push("agent-facing documents");
+        }
+    }
+
     for step in &steps {
         println!("== {} ==", step.label);
         let status = Command::new(step.program).args(step.args).status();
@@ -492,7 +558,7 @@ fn gate() -> ExitCode {
     // Report every failing step, not the first. A gate that stops at the first
     // failure makes the operator re-run it once per defect.
     if failed.is_empty() {
-        // Three in-process steps (spdx, workflows, skill) plus the commands.
+        // Four in-process steps (spdx, workflows, skill, agent docs) plus the commands.
         println!(
             "\ngate: PASS — {} step(s) green",
             steps.len() + IN_PROCESS_STEPS

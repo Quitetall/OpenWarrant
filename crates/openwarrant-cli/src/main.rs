@@ -24,6 +24,7 @@ mod document;
 mod eval;
 mod evidence;
 mod export;
+mod frontier;
 mod gate_cmd;
 mod init;
 mod journal_cmd;
@@ -634,6 +635,13 @@ enum Command {
         /// Every attestation in the repository (the xtask step).
         #[arg(long)]
         all: bool,
+    },
+    /// The stages that can start now (OW-WAR-0068): open, unblocked by
+    /// their milestone's `depends_on`, and not yet dispatched. Derived from
+    /// the same records a resolution reads; never a status claim.
+    Frontier {
+        /// One Warrant; omit for every unresolved Warrant.
+        alias: Option<String>,
     },
     /// The JSON Schema pack (OW-WAR-0032): write `schemas/` from the record
     /// types, or `--check` the tree against them. Built with `--features schema`.
@@ -1457,6 +1465,22 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 }
             };
             Ok(output::finish(mode, "attest", &report, None))
+        }
+        Command::Frontier { alias } => {
+            let repository = repo::Repository::discover(None)?;
+            let (report, f) = frontier::run(&repository, alias.as_deref())?;
+            match mode {
+                output::Mode::Human => {
+                    print!("{}", frontier::render(&f));
+                    Ok(output::finish(mode, "frontier", &report, None))
+                }
+                output::Mode::Json => Ok(output::finish(
+                    mode,
+                    "frontier",
+                    &report,
+                    Some(output::value(&f)),
+                )),
+            }
         }
         #[cfg(feature = "schema")]
         Command::Schemas { check } => {

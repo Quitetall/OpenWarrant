@@ -10,7 +10,7 @@ war plan "add a changelog" --json          # oh.war/draft-request/v1: namespace,
 ```
 
 Answer with an `oh.war/draft-proposal/v2` JSON file. The struct is your entire
-output surface — an unknown field is refused at parse (`authorized_by` will
+output surface: an unknown field is refused at parse (`authorized_by` will
 never be "ignored"):
 
 ```json
@@ -55,4 +55,4 @@ drafter_name = "claude-drafter"
 after the drafter runs; a drafter that wrote a file is refused and its
 proposal discarded. What is recorded under `docs/warrants/<alias>/plan/`:
 `request.json`, `proposal.json`, `drafter.json`, `pipeline.json`, and three
-journal events — so OW-WAR-0042's exit is a recorded run, not a claim.
+journal events: so OW-WAR-0042's exit is a recorded run, not a claim.

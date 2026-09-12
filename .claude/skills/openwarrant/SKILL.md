@@ -1,6 +1,6 @@
 ---
 name: openwarrant
-description: Author, check, draft, compile, and verify Work Authorization Records (Warrants) with the `war` CLI or its MCP server. Use whenever a repository contains an `openwarrant.toml` or `docs/warrants/`, or the user mentions Warrants, WARs, OpenWarrant, `war check`, or asks to plan, record, or close a unit of authorized work. Also use before claiming a Warrant is complete — the rules on self-verification are load-bearing and easy to violate by accident.
+description: Author, check, draft, compile, and verify Work Authorization Records (Warrants) with the `war` CLI or its MCP server. Use whenever a repository contains an `openwarrant.toml` or `docs/warrants/`, or the user mentions Warrants, WARs, OpenWarrant, `war check`, or asks to plan, record, or close a unit of authorized work. Also use before claiming a Warrant is complete: the rules on self-verification are load-bearing and easy to violate by accident.
 ---
 
 # OpenWarrant
@@ -16,7 +16,7 @@ prohibitions unmissable. If the two disagree, `AGENTS.md` wins.
 
 ```bash
 ls openwarrant.toml docs/warrants/ 2>/dev/null && war --version
-war next            # whose act is next, agent or human — read this before anything
+war next            # whose act is next, agent or human: read this before anything
 ```
 
 ## The five prohibitions (enforced by the tool; details in AGENTS.md)
@@ -27,7 +27,7 @@ war next            # whose act is next, agent or human — read this before any
 4. **Never edit anything under `generated/`**, nor a file `war pins --resolved-only` lists.
 5. **Never change a document to make a tool go green.**
 
-Four acts are a human's only — authorize, resolve, accept a SAS revision,
+Four acts are a human's only: authorize, resolve, accept a SAS revision,
 correct a resolved Warrant's file. You emit the request; a human signs with
 `war sign … --ssh-sign`. The tool refuses your signature by kind (§27.2).
 
@@ -55,6 +55,18 @@ Every command takes `--json` (one `oh.war/report/v1` envelope).
 | turning a vague sentence into a Warrant (`war plan`, v2 proposals, a configured drafter) | [references/drafting.md](references/drafting.md) |
 | working through the MCP server: tools, refusals, resources | [references/mcp.md](references/mcp.md) |
 | obligations, independence, receipts, the thirteen requirements | [references/verification.md](references/verification.md) |
+
+## Sibling skills (OW-WAR-0068, after mattpocock/skills)
+
+| you want | skill |
+|---|---|
+| a vague request settled before drafting | `/war-grill` (answers land in the draft request) |
+| the conversation turned into a proposal, no interview | `/war-spec` |
+| a Warrant broken into stages with blocking edges; what can start now | `/war-tickets`, `war frontier` |
+| a two-axis review, Standards beside Obligations, verifier kept blind | `/war-review` |
+| a chunk too big for one session, planned as decisions | `/war-map` |
+
+`CONTEXT.md` at the root is the glossary every Dispatch carries; use its words.
 
 ## When stuck
 
