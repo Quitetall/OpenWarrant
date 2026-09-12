@@ -44,14 +44,15 @@ fi
 # And a correction chain that cannot be read is not a verified digest either:
 # requirement 3 is unmet rather than assumed.
 R3_CORR=$(ls docs/warrants/$R3_ALIAS/corrections/*.toml | head -1)
-# Copied, not captured in a variable: the journal witnesses this record's own
-# digest, so a restore that loses the trailing newline would leave the corpus
-# reporting `correction.edited` for the rest of the battery.
-command cp -f "$R3_CORR" "$R3_CORR.plantbak"
+# Restored by checkout, not by copying bytes around: the journal witnesses
+# this record's own digest, so a restore that lost the trailing newline would
+# leave the corpus reporting `correction.edited` for the rest of the battery —
+# and a checkout is what the battery's EXIT trap would do anyway if this were
+# killed between the mutation and the restore.
 printf 'this is not toml = = =\n' > "$R3_CORR"
 assert_present 'not toml' "$R3_CORR"
 out=$("$WAR" resolve "$R3_ALIAS" --dry-run 2>&1)
-command mv -f "$R3_CORR.plantbak" "$R3_CORR"
+git checkout -- "$R3_CORR"
 if grep -q 'artifact digests verify — not established' <<< "$out"; then
     printf 'ok    %-34s an unreadable chain is unmet\n' "requirement 3 fails closed on TOML"
     PASSED=$((PASSED + 1))
