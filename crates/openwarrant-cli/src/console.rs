@@ -228,7 +228,7 @@ pub fn render(b: &Board, checked: &BTreeSet<usize>) -> String {
     }
     let _ = writeln!(
         s,
-        "\n  1-{}  check a row      a  all      n  none\
+        "\n  1-{}  check a row (several at once: 1 4 7)      a  all      n  none\
          \n  s     sign the checked rows (one ssh dialog each)\
          \n  q     answer the questions      r  start the stages\
          \n  c     write the commit message      <Enter>  refresh      x  exit",
@@ -294,18 +294,59 @@ fn choose_preset(
     }
 }
 
-/// The reason a batch of one act kind carries: a preset, a line the signer
-/// adds, or both. The description is optional by design — the whole point of
-/// the presets is that a batch need not be narrated — but when this act is the
-/// one that needs a sentence, typing it here is cheaper than `--meaning`.
-fn choose_reason(
-    repo: &Repository,
-    act: &str,
-) -> Result<(Option<openwarrant_core::config::SignPreset>, Option<String>), RepoError> {
+/// The words and the kind a batch of one act shares: the signer's answers,
+/// asked once each, not once per row.
+struct Reason {
+    preset: Option<openwarrant_core::config::SignPreset>,
+    /// A line the signer adds for this batch. Optional by design — the presets
+    /// exist so a batch need not be narrated — but when this act is the one
+    /// that needs a sentence, typing it here beats `--meaning`.
+    extra: Option<String>,
+    /// For a correction: behaviour-change or added-refusal. Never defaulted.
+    /// The two are different claims about the same bytes, and only the signer
+    /// knows which is true, so the tool asks rather than assumes.
+    kind: Option<String>,
+}
+
+const CORRECTION_KINDS: [&str; 2] = ["behaviour-change", "added-refusal"];
+
+fn choose_reason(repo: &Repository, act: &str) -> Result<Reason, RepoError> {
     let preset = choose_preset(repo, act)?;
     let extra = prompt("  anything to add (Enter for nothing): ")?;
     let extra = (!extra.is_empty()).then_some(extra);
-    Ok((preset, extra))
+    let mut kind = preset
+        .as_ref()
+        .map(|p| p.kind.clone())
+        .filter(|k| !k.trim().is_empty());
+    if act == "correct" && kind.is_none() {
+        kind = Some(choose_correction_kind()?);
+    }
+    Ok(Reason {
+        preset,
+        extra,
+        kind,
+    })
+}
+
+/// Ask which kind of correction this is. One question for the batch, and no
+/// default: a tool that picked one would be recording a claim nobody made.
+fn choose_correction_kind() -> Result<String, RepoError> {
+    println!("\n  what kind of correction is this?");
+    for (i, k) in CORRECTION_KINDS.iter().enumerate() {
+        println!("   {}  {k}", i + 1);
+    }
+    loop {
+        let answer = prompt("  kind: ")?;
+        if let Some(k) = CORRECTION_KINDS
+            .iter()
+            .enumerate()
+            .find(|(i, k)| answer == (i + 1).to_string() || &answer == *k)
+            .map(|(_, k)| (*k).to_owned())
+        {
+            return Ok(k);
+        }
+        println!("  answer 1 or 2, or write the word.");
+    }
 }
 
 /// The words that reach the record: the preset's, the signer's addition, both,
@@ -384,7 +425,6 @@ fn sign_checked(
     let mut kinds: Vec<String> = rows.iter().map(|a| a.act.clone()).collect();
     kinds.sort();
     kinds.dedup();
-    type Reason = (Option<openwarrant_core::config::SignPreset>, Option<String>);
     let mut chosen: Vec<(String, Reason)> = Vec::new();
     for kind in &kinds {
         chosen.push((kind.clone(), choose_reason(repo, kind)?));
@@ -395,8 +435,8 @@ fn sign_checked(
     );
     for a in rows {
         let reason = chosen.iter().find(|(k, _)| k == &a.act).map(|(_, r)| r);
-        let preset = reason.and_then(|(p, _)| p.clone());
-        let extra = reason.and_then(|(_, e)| e.clone());
+        let preset = reason.and_then(|r| r.preset.clone());
+        let extra = reason.and_then(|r| r.extra.clone());
         let mut opts = sign::Options {
             actor: None,
             meaning: compose_meaning(preset.as_ref(), extra.as_deref()),
@@ -411,11 +451,16 @@ fn sign_checked(
             kind: None,
         };
         if a.act == "correct" {
-            let word = preset
-                .as_ref()
-                .map(|p| p.kind.clone())
-                .filter(|k| !k.is_empty())
-                .unwrap_or_else(|| "behaviour-change".to_owned());
+            let Some(word) = reason.and_then(|r| r.kind.clone()) else {
+                report.push(Diagnostic::error(
+                    "console.preset-kind",
+                    a.target.clone(),
+                    "a correction records behaviour-change or added-refusal, and \
+                     nothing said which; it stays in the queue"
+                        .to_owned(),
+                ));
+                continue;
+            };
             match word.parse() {
                 Ok(k) => opts.kind = Some(k),
                 Err(e) => {

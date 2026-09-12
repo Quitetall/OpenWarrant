@@ -28,6 +28,12 @@ pub enum ConfigError {
     PathEmpty { field: &'static str },
     #[error("paths.{field} is {value:?}; configured paths must be relative to the repository root")]
     PathNotRelative { field: &'static str, value: String },
+    #[error(
+        "sign.preset {key:?} offers itself for a correction but names no `kind`; \
+         a correction records whether it is a behaviour-change or an added-refusal, \
+         and no tool may decide that for the signer"
+    )]
+    PresetKindMissing { key: String },
 }
 
 /// A validated project namespace, e.g. `OW`.
@@ -294,6 +300,19 @@ impl SignPolicy {
         self.presets.is_empty()
     }
 
+    /// A preset that offers itself for a correction must say which kind of
+    /// correction, because `war sign --kind` has no default a tool may pick:
+    /// "the behaviour changed" and "a refusal was added" are different claims
+    /// about the same bytes, and only the signer knows which one is true.
+    pub fn validate(&self) -> Result<(), ConfigError> {
+        for p in &self.presets {
+            if p.acts.iter().any(|a| a == "correct") && p.kind.trim().is_empty() {
+                return Err(ConfigError::PresetKindMissing { key: p.key.clone() });
+            }
+        }
+        Ok(())
+    }
+
     /// The presets that apply to one act kind, in declared order.
     #[must_use]
     pub fn for_act(&self, act: &str) -> Vec<&SignPreset> {
@@ -453,6 +472,7 @@ impl RepositoryConfig {
         if self.project.name.trim().is_empty() {
             return Err(ConfigError::ProjectNameEmpty);
         }
+        self.sign.validate()?;
         self.paths.validate()
     }
 }
@@ -475,6 +495,32 @@ mod tests {
         let config = valid();
         assert!(config.generated.commit);
         assert!(config.generated.verify_drift, "drift check must default on");
+    }
+
+    /// A preset that offers itself for a correction and names no kind is a
+    /// preset that would have the tool decide what the signer is claiming.
+    #[test]
+    fn a_correction_preset_without_a_kind_is_refused() {
+        let mut config = valid();
+        config.sign.presets.push(SignPreset {
+            key: "1".to_owned(),
+            label: "the bytes moved".to_owned(),
+            meaning: "They moved with the plan.".to_owned(),
+            acts: vec!["correct".to_owned()],
+            kind: String::new(),
+        });
+        assert_eq!(
+            config.validate(),
+            Err(ConfigError::PresetKindMissing {
+                key: "1".to_owned()
+            })
+        );
+        config.sign.presets[0].kind = "behaviour-change".to_owned();
+        assert_eq!(config.validate(), Ok(()));
+        // An authorize preset needs no kind: there is nothing to choose.
+        config.sign.presets[0].acts = vec!["authorize".to_owned()];
+        config.sign.presets[0].kind = String::new();
+        assert_eq!(config.validate(), Ok(()));
     }
 
     /// §69.3 / §91.1 test 4: an unrecognised schema is refused, not ignored.

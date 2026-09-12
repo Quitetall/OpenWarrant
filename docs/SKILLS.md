@@ -101,9 +101,13 @@ kind = "behaviour-change"
 ```
 
 `acts` restricts a preset to one kind of act, and `kind` supplies `war
-sign --kind` for a correction, so a batch of twenty corrections costs one
-keystroke for the rows, one for the reason, one optional sentence, and twenty
-confirm dialogs — which are the twenty human acts, and the only part that
+sign --kind` for a correction. A preset that offers itself for a correction
+**must** name its kind — `war check` refuses the config otherwise — because
+"the behaviour changed" and "a refusal was added" are different claims about
+the same bytes, and no tool may pick one for the signer. With no preset
+chosen, the console asks which, once for the batch. So twenty corrections cost
+one keystroke for the rows, one for the reason, one optional sentence, and
+twenty confirm dialogs — which are the twenty human acts, and the only part that
 cannot be drafted.
 
 A preset is the signer's own words, recorded verbatim. Nothing here writes a

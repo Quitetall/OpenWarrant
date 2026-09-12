@@ -234,12 +234,30 @@ fn subject(
     }
 }
 
-/// `war commit`: print the drafted message, or commit with it.
-pub fn run(repo: &Repository, write: bool) -> Result<Report, RepoError> {
+/// The drafted message as `--json` carries it.
+pub const MESSAGE_SCHEMA: &str = "oh.war/commit-message/v1";
+
+/// `war commit`: print the drafted message, or commit with it. The message
+/// rides in the envelope's `result` under `--json`, never on stdout beside it:
+/// a reader that asked for JSON gets JSON.
+pub fn run(
+    repo: &Repository,
+    write: bool,
+    mode: crate::output::Mode,
+) -> Result<(Report, Option<serde_json::Value>), RepoError> {
     let mut report = Report::default();
     let text = message(repo)?;
     if !write {
-        println!("{text}");
+        let result = match mode {
+            crate::output::Mode::Human => {
+                println!("{text}");
+                None
+            }
+            crate::output::Mode::Json => Some(serde_json::json!({
+                "schema": MESSAGE_SCHEMA,
+                "message": text,
+            })),
+        };
         report.push(Diagnostic::pass(
             "commit.drafted",
             "drafted from the changed records; nothing staged, nothing committed",
@@ -247,7 +265,7 @@ pub fn run(repo: &Repository, write: bool) -> Result<Report, RepoError> {
         report.note(
             "`war commit --write` stages everything and commits with this message.".to_owned(),
         );
-        return Ok(report);
+        return Ok((report, result));
     }
     let add = std::process::Command::new("git")
         .args(["add", "-A"])
@@ -295,7 +313,13 @@ pub fn run(repo: &Repository, write: bool) -> Result<Report, RepoError> {
             format!("git commit exited {status}"),
         ));
     }
-    Ok(report)
+    Ok((
+        report,
+        Some(serde_json::json!({
+            "schema": MESSAGE_SCHEMA,
+            "message": text,
+        })),
+    ))
 }
 
 #[cfg(test)]

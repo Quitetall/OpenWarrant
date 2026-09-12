@@ -1544,8 +1544,8 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         }
         Command::Commit { write } => {
             let repository = repo::Repository::discover(None)?;
-            let report = commit::run(&repository, write)?;
-            Ok(output::finish(mode, "commit", &report, None))
+            let (report, result) = commit::run(&repository, write, mode)?;
+            Ok(output::finish(mode, "commit", &report, result))
         }
         Command::Ask {
             alias,
