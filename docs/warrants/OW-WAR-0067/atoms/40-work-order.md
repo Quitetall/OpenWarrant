@@ -28,9 +28,13 @@ supersede.
 
 ## Premade Instructions
 
+- `bash scripts/release-1.0-wizard.sh` walks these stages in order, detects
+  what is already done from the records, and stops at each act for your
+  keystroke. `--check` reports the state and writes nothing; `--from N`
+  resumes. It never signs: `war sign --ssh-sign` puts the agent's confirm
+  dialog in front of you.
 - Order: 1 first (bytes move), then 5, then 2, 3, 4, then 6 on final bytes,
-  then 7. `war sign --list` is the queue; `war sign --all --ssh-sign` walks
-  it one dialog at a time.
+  then 7. `war sign --list` is the queue.
 - Each `--meaning` may say the decision was taken remotely on 2026-09-12; the
   signature is what makes it an act.
 - After 1 the performer finishes the relicense mechanically and re-pins every

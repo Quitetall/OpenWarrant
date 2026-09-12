@@ -62,13 +62,23 @@ struct Step {
     args: &'static [&'static str],
 }
 
-/// The SPDX identifier every Rust source file must declare.
+/// The SPDX identifier a Rust source file must declare after the relicense.
 ///
-/// Checked mechanically because the Apache-2.0 relicense rewrites exactly this
-/// line in every file (see RELICENSING.md). A file that never carried a header
-/// would be silently skipped by that rewrite and would keep asserting the old
-/// licence — or none at all — after the flip.
-const EXPECTED_SPDX: &str = "// SPDX-License-Identifier: AGPL-3.0-or-later";
+/// Checked mechanically because the relicense rewrites exactly this line in
+/// every file (RELICENSING.md, OW-ADR-0017). A file that never carried a
+/// header would be silently skipped by that rewrite and would keep asserting
+/// the old licence, or none at all, afterwards.
+const EXPECTED_SPDX: &str = "// SPDX-License-Identifier: Apache-2.0";
+
+/// The identifier before the relicense. Still accepted, but only for a file
+/// the pending list names: those are pinned by a RESOLVED Warrant, so their
+/// header moves with the correction that frees them, not before.
+const PRIOR_SPDX: &str = "// SPDX-License-Identifier: AGPL-3.0-or-later";
+
+/// Files allowed to carry `PRIOR_SPDX`, one repository-relative path per line.
+/// Absent before the relicense, when either identifier passes; present after,
+/// when it is the whole allowance. Shrinks by one line per correction signed.
+const PENDING_SPDX_LIST: &str = "RELICENSING-PENDING.txt";
 
 /// Walk `.rs` files and report every one missing its SPDX header.
 fn check_spdx() -> Result<usize, std::io::Error> {
@@ -96,18 +106,48 @@ fn check_spdx() -> Result<usize, std::io::Error> {
     }
     files.sort();
 
+    // The ratchet: before the relicense there is no pending list and either
+    // identifier passes; after it, the old identifier passes only for a file
+    // the list names. A relicense half-applied is therefore visible, and a
+    // correction that frees a file is a line removed from the list.
+    let pending: Vec<String> = std::fs::read_to_string(PENDING_SPDX_LIST)
+        .map(|t| t.lines().map(str::trim).filter(|l| !l.is_empty()).map(str::to_owned).collect())
+        .unwrap_or_default();
+    let ratcheted = Path::new(PENDING_SPDX_LIST).exists();
+
     let mut missing = 0usize;
     for file in &files {
         let text = std::fs::read_to_string(file)?;
-        if !text.starts_with(EXPECTED_SPDX) {
-            // Report every one, not the first: otherwise the fix is one
-            // re-run per file.
-            println!("   missing SPDX header: {}", file.display());
-            missing += 1;
+        let as_listed = file.to_string_lossy().replace('\\', "/");
+        let allowed_prior = !ratcheted || pending.iter().any(|p| p == &as_listed);
+        if text.starts_with(EXPECTED_SPDX) {
+            continue;
         }
+        if text.starts_with(PRIOR_SPDX) && allowed_prior {
+            continue;
+        }
+        // Report every one, not the first: otherwise the fix is one re-run
+        // per file.
+        if text.starts_with(PRIOR_SPDX) {
+            println!(
+                "   still AGPL and not in {PENDING_SPDX_LIST}: {}",
+                file.display()
+            );
+        } else {
+            println!("   missing SPDX header: {}", file.display());
+        }
+        missing += 1;
     }
     if missing == 0 {
-        println!("   {} file(s) carry the SPDX header", files.len());
+        println!(
+            "   {} file(s) carry an SPDX header{}",
+            files.len(),
+            if ratcheted {
+                format!(" ({} awaiting a correction)", pending.len())
+            } else {
+                String::new()
+            }
+        );
     }
     Ok(missing)
 }
