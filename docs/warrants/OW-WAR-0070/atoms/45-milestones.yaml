@@ -1,0 +1,25 @@
+schema: "oh.war/milestones/v1"
+milestones:
+  - id: "M1"
+    title: "Classifier and fixtures"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+  - id: "M2"
+    title: "war inbox command, docs, and tests"
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002", "OBL-003"]
+stages:
+  - id: "STAGE-001"
+    title: "Implement next_act classifier and conformance fixtures"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T1"
+    context_sections: ["40-work-order.md#Premade Instructions", "40-work-order.md#Deliverables"]
+    budget_tokens: "8000"
+  - id: "STAGE-002"
+    title: "Wire war inbox subcommand, JSON output, docs, and tests"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T1"
+    context_sections: ["40-work-order.md#Premade Instructions", "40-work-order.md#Deliverables"]
+    budget_tokens: "8000"

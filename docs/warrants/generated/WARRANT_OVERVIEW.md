@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-65 Warrant(s) in this repository.
+66 Warrant(s) in this repository.
 
 ## Summary
 
@@ -76,6 +76,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0067](docs/warrants/OW-WAR-0067/manifest.toml) | Release 1.0: the seven acts that close the plan, deferred to the owner's signature | `authorized` | `current` | `valid` | `basic` | 3M / 7S |
 | [OW-WAR-0068](docs/warrants/OW-WAR-0068/manifest.toml) | Skills: a strict superset of the Pocock set over the deterministic core | `authorized` | `current` | `valid` | `basic` | 3M / 7S |
 | [OW-WAR-0069](docs/warrants/OW-WAR-0069/manifest.toml) | The board, the hotline, and the harness: one system from master record to running agents | `authorized` | `current` | `valid` | `basic` | 3M / 5S |
+| [OW-WAR-0070](docs/warrants/OW-WAR-0070/manifest.toml) | Add `war inbox` to list Warrants awaiting a human act | `draft` | `current` | `valid` | `basic` | 2M / 2S |
 
 ## Claimed SAS requirement coverage
 
@@ -203,6 +204,7 @@ Source: the Warrants under the configured warrants path.
 - **OW-WAR-0067** · roadmap: roadmap://OW-PHASE-9/release
 - **OW-WAR-0068** · roadmap: roadmap://OW-PHASE-2/plan
 - **OW-WAR-0069** · roadmap: roadmap://OW-PHASE-5/dispatch
+- **OW-WAR-0070** · roadmap: roadmap://OW-PHASE-2/plan
 
 ## Not reported here
 

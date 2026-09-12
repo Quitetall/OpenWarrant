@@ -26,6 +26,7 @@ Source: ADR atoms under the configured adrs path.
 | [OW-ADR-0015](docs/adr/atoms/OW-ADR-0015-attestation-envelope.md) | ADR OW-0015: every ssh-signed act is attested as an in-toto Statement in a DSSE envelope | `proposed` | no | `war://01a021a2-b570-7f57-85b2-0f8189873d9e` |
 | [OW-ADR-0016](docs/adr/atoms/OW-ADR-0016-sas-1-0-0.md) | ADR OW-0016: SAS 1.0.0 — one architecture-changing revision, accepted with the release | `proposed` | no | `war://01a021a2-b570-7f57-85b2-0f8189873d9e` |
 | [OW-ADR-0017](docs/adr/atoms/OW-ADR-0017-relicense-apache-2-0.md) | ADR OW-0017: relicense from AGPL-3.0-or-later to Apache-2.0 | `accepted` | yes | `war://01a021a2-b570-7f57-85b2-0f8189873d9e` |
+| [OW-ADR-0018](docs/adr/atoms/OW-ADR-0018-adopt-oh-war-inbox-v1-as.md) | ADR OW-0018: Adopt oh.war/inbox/v1 as the machine-readable output of war inbox | `proposed` | no | `war://01a09762-3fa2-7dd0-b794-0190b44fe879` |
 
 ## Proposed
 
@@ -37,6 +38,7 @@ Source: ADR atoms under the configured adrs path.
 - **OW-ADR-0014** ADR OW-0014: an async runtime is admitted for the MCP transport, and nowhere else
 - **OW-ADR-0015** ADR OW-0015: every ssh-signed act is attested as an in-toto Statement in a DSSE envelope
 - **OW-ADR-0016** ADR OW-0016: SAS 1.0.0 — one architecture-changing revision, accepted with the release
+- **OW-ADR-0018** ADR OW-0018: Adopt oh.war/inbox/v1 as the machine-readable output of war inbox
 
 ## Accepted and Current
 
@@ -1579,3 +1581,32 @@ file it names, so a half-applied relicense is visible rather than silent.
 - Each listed file costs one correction, signed with its own reason.
 - CONTRIBUTING.md's dual-licence contribution term is moot for new
   contributions and stays as history.
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-0018-adopt-oh-war-inbox-v1-as.md · uuid: 01a09762-3fa3-7bf2-bfdc-c86af426c679 -->
+
+# ADR OW-0018: Adopt oh.war/inbox/v1 as the machine-readable output of war inbox
+
+## Status
+
+Proposed by a drafting agent through `war plan --apply`; adopted when a human accepts it.
+
+## Status
+
+Proposed
+
+## Context
+
+`war inbox` answers "which Warrants are waiting on a human act". The human-readable table is enough for the operator, but the MCP server, dashboards, and future notification tooling need the same answer in a stable, parseable form. Ad hoc JSON that mirrors internal structs would leak implementation detail and break consumers on every refactor. The project already versions its documents under the `oh.war/<kind>/<version>` scheme and generates schemas from types via `war schemas`.
+
+## Decision
+
+`war inbox --json` emits a document with `api_version: "oh.war/inbox/v1"`, a `namespace` string, a `generated_at` RFC 3339 timestamp, and an `items` list. Each item carries `alias`, `title`, `state`, `awaited_act` (one of the human act names from the classifier), and `waiting_since` (RFC 3339 or null). Items are ordered by wait age descending, then alias ascending. The document is a derived view: it is never written into a record directory. The schema joins the `war schemas` pack and is covered by the transitive digest.
+
+## Consequences
+
+- Consumers get a stable contract; internal struct changes do not leak.
+- Adding the schema to the pack changes the transitive digest once; that is expected and recorded.
+- Any change to item fields requires `oh.war/inbox/v2` rather than in-place edits.
+- The state-to-act vocabulary is now part of a public surface and must be kept in step with the SAS pin (OW-ADR-0016).
