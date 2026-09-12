@@ -55,6 +55,14 @@ war plan "<the sentence, verbatim>" --draft \
 4. Stop. `--apply --reviewed` is the human's step; say so and hand over the
    proposal path.
 
+## The batch, across Warrants
+
+The owner answers many agents at once, so front-load: `war questions --open`
+is every open question in the corpus, blocking first. Before a grilling
+round, read it; after one, ask what the round did not settle as a question
+per stage, each with its recommended answer, so the next pass is one word
+per row.
+
 ## Never
 
 A skill never signs, and never claims a step it did not run. A grilling

@@ -36,3 +36,26 @@ of four states, derived from the records a resolution reads:
 | `blocked` | a milestone it waits on is not complete; the row names which |
 
 `--json` gives `oh.war/frontier/v1`.
+
+## The hotline
+
+A performing agent that needs a decision asks, rather than guessing or
+stalling silently (OW-WAR-0069):
+
+```bash
+war ask <alias> <stage> "<question>" --recommend "<your answer>" --blocking
+war questions --open                 # one queue, blocking first, with the command per row
+war answer <alias> Q-001 "<answer>" --as "<human>"
+war answers <alias> <stage>          # what the performer reads before it starts
+war watch --once                     # questions beside pending signatures
+```
+
+`questions/Q-nnn.toml` holds each one, with `question.asked` and
+`question.answered` journal events. The asymmetry is §27.2's: an agent may ask
+anything and answer nothing, so `war answer` refuses an agent-kind actor by
+name and writes nothing, `war_ask` is an MCP tool and `war_answer` is in the
+refused list. An answer informs the work; it is never a disposition, a
+judgment, or an authorization.
+
+A question carries the asker's recommended answer, after the grilling
+discipline, so a batch can be cleared in one word each.

@@ -162,6 +162,41 @@ pub struct PlanProposalParams {
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct AskParams {
+    /// Local alias.
+    pub alias: String,
+    /// The stage the answer unblocks.
+    pub stage: String,
+    /// The question, in full.
+    pub question: String,
+    /// Your recommended answer, so a human can reply in one word.
+    #[serde(default)]
+    pub recommend: String,
+    /// The stage cannot proceed without the answer.
+    #[serde(default)]
+    pub blocking: bool,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct QuestionsParams {
+    /// One Warrant; omit for every Warrant.
+    #[serde(default)]
+    pub alias: Option<String>,
+    /// Only what awaits an answer.
+    #[serde(default)]
+    pub open: bool,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct AnswersParams {
+    /// Local alias.
+    pub alias: String,
+    /// One stage; omit for every stage.
+    #[serde(default)]
+    pub stage: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 pub struct NewParams {
     /// Title of the new Warrant.
     pub title: String,
@@ -627,7 +662,54 @@ impl WarServer {
         }
     }
 
+    #[tool(
+        name = "war_questions",
+        description = "Every question asked of the human across the corpus, blocking and open first, each with the command that answers it (`war questions`). Read-only.",
+        annotations(read_only_hint = true)
+    )]
+    fn war_questions(&self, Parameters(p): Parameters<QuestionsParams>) -> ToolResult {
+        value_of(
+            "questions",
+            crate::questions::list(&self.repo, p.alias.as_deref(), p.open).map(|(_, l)| l),
+            "questions listed",
+        )
+    }
+
+    #[tool(
+        name = "war_answers",
+        description = "The answers a human gave for a stage, to read BEFORE performing it (`war answers`). Read-only.",
+        annotations(read_only_hint = true)
+    )]
+    fn war_answers(&self, Parameters(p): Parameters<AnswersParams>) -> ToolResult {
+        value_of(
+            "answers",
+            crate::questions::answers_for(&self.repo, &p.alias, p.stage.as_deref()),
+            "answers listed",
+        )
+    }
+
     // -- writes an agent may make --
+
+    // Asking is an agent's act; answering is not, and `war_answer` is in
+    // REFUSED_TOOLS for the same reason `war_sign` is (OW-WAR-0069).
+    #[tool(
+        name = "war_ask",
+        description = "Ask the human a question that blocks a stage (`war ask`): writes questions/Q-nnn.toml and a journal event. Answering is a human act and is not available here.",
+        annotations(read_only_hint = false)
+    )]
+    fn war_ask(&self, Parameters(p): Parameters<AskParams>) -> ToolResult {
+        report_of(
+            "ask",
+            crate::questions::ask(
+                &self.repo,
+                &p.alias,
+                &p.stage,
+                &p.question,
+                &p.recommend,
+                p.blocking,
+            ),
+        )
+    }
 
     #[tool(
         name = "war_new",

@@ -68,6 +68,11 @@ Every command takes `--json` (one `oh.war/report/v1` envelope).
 
 `CONTEXT.md` at the root is the glossary every Dispatch carries; use its words.
 
+Blocked on a decision? `war ask <alias> <stage> "<question>" --recommend
+"<your best answer>" --blocking`, then carry on with what does not depend on
+it. `war answers <alias> <stage>` before you start a stage; `war questions
+--open` is the human's queue. You may ask; only a human answers.
+
 ## When stuck
 
 Report what you established, what you did not, and stop. Two of thirteen

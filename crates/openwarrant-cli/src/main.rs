@@ -37,6 +37,7 @@ mod output;
 mod pins;
 mod plan;
 mod progress;
+mod questions;
 mod relations;
 mod repo;
 mod resolution_cmd;
@@ -635,6 +636,51 @@ enum Command {
         /// Every attestation in the repository (the xtask step).
         #[arg(long)]
         all: bool,
+    },
+    /// Ask the human a question that blocks a stage (OW-WAR-0069). An agent
+    /// asks; only a human answers. Neither act authorizes anything.
+    Ask {
+        /// The Warrant's local alias.
+        alias: String,
+        /// The stage the answer unblocks; must exist in its milestones atom.
+        stage: String,
+        /// The question, in full.
+        question: String,
+        /// Your recommended answer, so it can be answered in one word.
+        #[arg(long, default_value = "")]
+        recommend: String,
+        /// The stage cannot proceed without the answer.
+        #[arg(long)]
+        blocking: bool,
+    },
+    /// Answer a question an agent asked (OW-WAR-0069). Refused for an
+    /// agent-kind actor by the register, and nothing is written.
+    Answer {
+        /// The Warrant's local alias.
+        alias: String,
+        /// The question id, e.g. `Q-001`.
+        id: String,
+        /// The answer, in full.
+        answer: String,
+        /// Who is answering; must hold a human role in roles.toml.
+        #[arg(long = "as")]
+        actor: String,
+    },
+    /// Every question across the corpus, blocking and open first, each with
+    /// the command that answers it (OW-WAR-0069).
+    Questions {
+        /// One Warrant; omit for all.
+        alias: Option<String>,
+        /// Only what awaits an answer.
+        #[arg(long)]
+        open: bool,
+    },
+    /// The answers a stage's performer should read before it starts.
+    Answers {
+        /// The Warrant's local alias.
+        alias: String,
+        /// One stage; omit for every stage of the Warrant.
+        stage: Option<String>,
     },
     /// The stages that can start now (OW-WAR-0068): open, unblocked by
     /// their milestone's `depends_on`, and not yet dispatched. Derived from
@@ -1465,6 +1511,66 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 }
             };
             Ok(output::finish(mode, "attest", &report, None))
+        }
+        Command::Ask {
+            alias,
+            stage,
+            question,
+            recommend,
+            blocking,
+        } => {
+            let repository = repo::Repository::discover(None)?;
+            let report =
+                questions::ask(&repository, &alias, &stage, &question, &recommend, blocking)?;
+            Ok(output::finish(mode, "ask", &report, None))
+        }
+        Command::Answer {
+            alias,
+            id,
+            answer,
+            actor,
+        } => {
+            let repository = repo::Repository::discover(None)?;
+            let report = questions::answer(&repository, &alias, &id, &answer, &actor)?;
+            Ok(output::finish(mode, "answer", &report, None))
+        }
+        Command::Questions { alias, open } => {
+            let repository = repo::Repository::discover(None)?;
+            let (report, list) = questions::list(&repository, alias.as_deref(), open)?;
+            match mode {
+                output::Mode::Human => {
+                    print!("{}", questions::render(&list));
+                    Ok(output::finish(mode, "questions", &report, None))
+                }
+                output::Mode::Json => Ok(output::finish(
+                    mode,
+                    "questions",
+                    &report,
+                    Some(output::value(&list)),
+                )),
+            }
+        }
+        Command::Answers { alias, stage } => {
+            let repository = repo::Repository::discover(None)?;
+            let answered = questions::answers_for(&repository, &alias, stage.as_deref())?;
+            let human = if answered.is_empty() {
+                "no answered question for this stage\n".to_owned()
+            } else {
+                answered
+                    .iter()
+                    .map(|q| {
+                        format!(
+                            "{} ({}): {}\n  → {}\n",
+                            q.id,
+                            q.stage,
+                            q.question,
+                            q.answer.as_ref().map_or("", |a| a.answer.as_str())
+                        )
+                    })
+                    .collect()
+            };
+            output::emit(mode, "answers", human.trim_end(), output::value(&answered));
+            Ok(EXIT_OK)
         }
         Command::Frontier { alias } => {
             let repository = repo::Repository::discover(None)?;

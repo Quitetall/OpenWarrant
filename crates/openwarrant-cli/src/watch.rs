@@ -30,6 +30,10 @@ pub struct Snapshot {
     /// One line per pending act, as `war sign --list` prints them.
     pub pending: Vec<String>,
     pub count: usize,
+    /// Open questions, blocking first (OW-WAR-0069): the other thing a human
+    /// is the only one who can clear.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub questions: Vec<String>,
 }
 
 /// The trees whose change can change the pending set.
@@ -83,21 +87,45 @@ fn fingerprint(dirs: &[camino::Utf8PathBuf]) -> u64 {
 
 pub fn snapshot(repo: &Repository) -> Result<Snapshot, RepoError> {
     let pending: Vec<String> = sign::pending(repo)?.iter().map(sign::line).collect();
+    // An open question costs the owner a sentence and an agent its whole
+    // stage, so it waits in the same place a signature does (OW-WAR-0069).
+    let questions: Vec<String> = crate::questions::list(repo, None, true)
+        .map(|(_, l)| {
+            l.questions
+                .iter()
+                .map(|q| {
+                    format!(
+                        "{} {}  {}{}",
+                        q.warrant,
+                        q.id,
+                        if q.blocking { "BLOCKING  " } else { "" },
+                        q.question
+                    )
+                })
+                .collect()
+        })
+        .unwrap_or_default();
     Ok(Snapshot {
         schema: SCHEMA.to_owned(),
-        count: pending.len(),
+        count: pending.len() + questions.len(),
         pending,
+        questions,
     })
 }
 
 pub fn render(s: &Snapshot) -> String {
-    if s.pending.is_empty() {
-        return "nothing awaits a signature\n".to_owned();
+    if s.pending.is_empty() && s.questions.is_empty() {
+        return "nothing awaits a human\n".to_owned();
     }
-    let mut out = format!("{} act(s) await a human:\n", s.count);
+    let mut out = format!("{} thing(s) await a human:\n", s.count);
     for l in &s.pending {
         out.push_str("  ");
         out.push_str(l);
+        out.push('\n');
+    }
+    for q in &s.questions {
+        out.push_str("  question  ");
+        out.push_str(q);
         out.push('\n');
     }
     out

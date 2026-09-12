@@ -61,6 +61,8 @@ pub const REFUSED_TOOLS: &[&str] = &[
     "war_export",
     "war_bonsai",
     "war_eval",
+    // An agent asks (war_ask); only a human answers.
+    "war_answer",
     "war_init",
     "war_gate_record",
     "war_plan_draft",
