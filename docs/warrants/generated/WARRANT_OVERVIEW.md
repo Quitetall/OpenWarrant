@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-62 Warrant(s) in this repository.
+64 Warrant(s) in this repository.
 
 ## Summary
 
@@ -73,10 +73,12 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0064](docs/warrants/OW-WAR-0064/manifest.toml) | Repair a delivered artifact: the correction act for a resolved Warrant | `draft` | `current` | `valid` | `controlled` | 5M / 3S |
 | [OW-WAR-0065](docs/warrants/OW-WAR-0065/manifest.toml) | Research memo: which tokenizer approximation OpenWarrant uses for §33.7 budgets | `draft` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0066](docs/warrants/OW-WAR-0066/manifest.toml) | Run: the conformance battery as a service stage | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0067](docs/warrants/OW-WAR-0067/manifest.toml) | Release 1.0: the seven acts that close the plan, deferred to the owner's signature | `draft` | `current` | `valid` | `basic` | 3M / 7S |
+| [OW-WAR-0068](docs/warrants/OW-WAR-0068/manifest.toml) | Skills: a strict superset of the Pocock set over the deterministic core | `draft` | `current` | `valid` | `basic` | 3M / 7S |
 
 ## Claimed SAS requirement coverage
 
-51 distinct requirement(s) are claimed by at least one Warrant.
+54 distinct requirement(s) are claimed by at least one Warrant.
 
 > **Claimed, not verified.** A Warrant declaring `[[implements]]` is an assertion by its author. §34.3 treats requirement status as a separate record; nothing here checks that the requirement is actually met.
 
@@ -93,12 +95,13 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-022` — OW-WAR-0013, OW-WAR-0055, OW-WAR-0061, OW-WAR-0062, OW-WAR-0063
 - `WAR-SAS-RQ-024` — OW-WAR-0006
 - `WAR-SAS-RQ-025` — OW-WAR-0006
-- `WAR-SAS-RQ-030` — OW-WAR-0009
+- `WAR-SAS-RQ-030` — OW-WAR-0009, OW-WAR-0067
 - `WAR-SAS-RQ-031` — OW-WAR-0009
 - `WAR-SAS-RQ-032` — OW-WAR-0008
 - `WAR-SAS-RQ-033` — OW-WAR-0009
 - `WAR-SAS-RQ-034` — OW-WAR-0009
 - `WAR-SAS-RQ-035` — OW-WAR-0011
+- `WAR-SAS-RQ-036` — OW-WAR-0067
 - `WAR-SAS-RQ-040` — OW-WAR-0007
 - `WAR-SAS-RQ-041` — OW-WAR-0007
 - `WAR-SAS-RQ-042` — OW-WAR-0023, OW-WAR-0045, OW-WAR-0056
@@ -120,17 +123,19 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-063` — OW-WAR-0027, OW-WAR-0047
 - `WAR-SAS-RQ-064` — OW-WAR-0001
 - `WAR-SAS-RQ-070` — OW-WAR-0001
-- `WAR-SAS-RQ-071` — OW-WAR-0035, OW-WAR-0042
-- `WAR-SAS-RQ-072` — OW-WAR-0034, OW-WAR-0042
+- `WAR-SAS-RQ-071` — OW-WAR-0035, OW-WAR-0042, OW-WAR-0068
+- `WAR-SAS-RQ-072` — OW-WAR-0034, OW-WAR-0042, OW-WAR-0068
 - `WAR-SAS-RQ-073` — OW-WAR-0036
 - `WAR-SAS-RQ-074` — OW-WAR-0005, OW-WAR-0055
 - `WAR-SAS-RQ-075` — OW-WAR-0004, OW-WAR-0055, OW-WAR-0057, OW-WAR-0060
 - `WAR-SAS-RQ-076` — OW-WAR-0028
+- `WAR-SAS-RQ-077` — OW-WAR-0068
 - `WAR-SAS-RQ-080` — OW-WAR-0003
 - `WAR-SAS-RQ-081` — OW-WAR-0003
 - `WAR-SAS-RQ-082` — OW-WAR-0030
 - `WAR-SAS-RQ-083` — OW-WAR-0030
 - `WAR-SAS-RQ-084` — OW-WAR-0030, OW-WAR-0064
+- `WAR-SAS-RQ-085` — OW-WAR-0067
 
 ## Relations
 
@@ -194,6 +199,8 @@ Source: the Warrants under the configured warrants path.
 - **OW-WAR-0063** · roadmap: roadmap://OW-PHASE-6/conformance
 - **OW-WAR-0064** · roadmap: roadmap://OW-PHASE-3/corrections
 - **OW-WAR-0065** · roadmap: roadmap://OW-PHASE-5/context
+- **OW-WAR-0067** · roadmap: roadmap://OW-PHASE-9/release
+- **OW-WAR-0068** · roadmap: roadmap://OW-PHASE-2/plan
 
 ## Not reported here
 
