@@ -63,6 +63,23 @@ else
     FAILED=$((FAILED + 1))
 fi
 
+# End of input closes the screen. Every prompt loop must take a closed stdin as
+# "stop", or the battery itself hangs: `s` with nothing behind it asked for a
+# reason and a correction kind, and an empty line read as "ask again" spins.
+C_HUNG=""
+for C_IN in '' '1' '1
+s'; do
+    printf '%s\n' "$C_IN" | timeout 20 "$WAR" console >/dev/null 2>&1
+    [[ $? -eq 124 ]] && C_HUNG="$C_HUNG $(tr '\n' ',' <<< "$C_IN")"
+done
+if [[ -z "$C_HUNG" ]]; then
+    printf 'ok    %-34s three depths, none hung\n' "end of input closes the screen"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s hung on:%s\n' "end of input closes the screen" "$C_HUNG"
+    FAILED=$((FAILED + 1))
+fi
+
 # `war commit` names the record kinds it found and stages nothing. The mutation
 # is a real edit to a tracked record, so the message has something to classify.
 restore

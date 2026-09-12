@@ -248,7 +248,9 @@ fn preset_line(presets: &[Preset]) -> String {
         .join("  ")
 }
 
-fn prompt(text: &str) -> Result<String, RepoError> {
+/// One line from the signer. `None` is end of input: the screen is closed,
+/// and nothing more will be answered.
+fn prompt(text: &str) -> Result<Option<String>, RepoError> {
     let mut out = std::io::stdout();
     out.write_all(text.as_bytes())
         .and_then(|()| out.flush())
@@ -257,13 +259,19 @@ fn prompt(text: &str) -> Result<String, RepoError> {
             source,
         })?;
     let mut line = String::new();
-    std::io::stdin()
+    let read = std::io::stdin()
         .read_line(&mut line)
         .map_err(|source| RepoError::Io {
             context: "could not read the answer".to_owned(),
             source,
         })?;
-    Ok(line.trim().to_owned())
+    // Zero bytes is end of input, not an empty answer. A loop that reads an
+    // empty line as "ask again" spins forever on a closed stdin, which is how
+    // the battery runs this screen, so every such loop takes `None` as "stop".
+    if read == 0 {
+        return Ok(None);
+    }
+    Ok(Some(line.trim().to_owned()))
 }
 
 /// Which preset the signer picked, for one act kind.
@@ -283,7 +291,9 @@ fn choose_preset(
     }
     println!("   -  none: the tool's drafted reason only");
     loop {
-        let answer = prompt("  reason: ")?;
+        let Some(answer) = prompt("  reason: ")? else {
+            return Ok(None);
+        };
         if answer == "-" || answer.is_empty() {
             return Ok(None);
         }
@@ -312,14 +322,13 @@ const CORRECTION_KINDS: [&str; 2] = ["behaviour-change", "added-refusal"];
 
 fn choose_reason(repo: &Repository, act: &str) -> Result<Reason, RepoError> {
     let preset = choose_preset(repo, act)?;
-    let extra = prompt("  anything to add (Enter for nothing): ")?;
-    let extra = (!extra.is_empty()).then_some(extra);
+    let extra = prompt("  anything to add (Enter for nothing): ")?.filter(|e| !e.is_empty());
     let mut kind = preset
         .as_ref()
         .map(|p| p.kind.clone())
         .filter(|k| !k.trim().is_empty());
     if act == "correct" && kind.is_none() {
-        kind = Some(choose_correction_kind()?);
+        kind = choose_correction_kind()?;
     }
     Ok(Reason {
         preset,
@@ -330,20 +339,22 @@ fn choose_reason(repo: &Repository, act: &str) -> Result<Reason, RepoError> {
 
 /// Ask which kind of correction this is. One question for the batch, and no
 /// default: a tool that picked one would be recording a claim nobody made.
-fn choose_correction_kind() -> Result<String, RepoError> {
+fn choose_correction_kind() -> Result<Option<String>, RepoError> {
     println!("\n  what kind of correction is this?");
     for (i, k) in CORRECTION_KINDS.iter().enumerate() {
         println!("   {}  {k}", i + 1);
     }
     loop {
-        let answer = prompt("  kind: ")?;
+        let Some(answer) = prompt("  kind: ")? else {
+            return Ok(None);
+        };
         if let Some(k) = CORRECTION_KINDS
             .iter()
             .enumerate()
             .find(|(i, k)| answer == (i + 1).to_string() || &answer == *k)
             .map(|(_, k)| (*k).to_owned())
         {
-            return Ok(k);
+            return Ok(Some(k));
         }
         println!("  answer 1 or 2, or write the word.");
     }
@@ -371,7 +382,9 @@ pub fn run(repo: &Repository) -> Result<Report, RepoError> {
         let b = board(repo)?;
         checked.retain(|n| b.acts.iter().any(|a| a.n == *n));
         print!("{}", render(&b, &checked));
-        let answer = prompt("\n  > ")?;
+        let Some(answer) = prompt("\n  > ")? else {
+            break;
+        };
         match answer.as_str() {
             "x" | "exit" => break,
             "" => continue,
@@ -499,7 +512,7 @@ fn answer_questions(repo: &Repository, b: &Board, report: &mut Report) -> Result
         println!("  no open questions.");
         return Ok(());
     }
-    let actor = prompt("  answering as (your name in roles.toml): ")?;
+    let actor = prompt("  answering as (your name in roles.toml): ")?.unwrap_or_default();
     if actor.is_empty() {
         println!("  an answer needs an actor; nothing written.");
         return Ok(());
@@ -515,7 +528,11 @@ fn answer_questions(repo: &Repository, b: &Board, report: &mut Report) -> Result
         if !q.recommended.is_empty() {
             println!("     recommended: {}", q.recommended);
         }
-        let answer = prompt("     your answer (Enter to take the recommendation, s to skip): ")?;
+        let Some(answer) =
+            prompt("     your answer (Enter to take the recommendation, s to skip): ")?
+        else {
+            break;
+        };
         let text = match answer.as_str() {
             "s" => continue,
             "" if !q.recommended.is_empty() => q.recommended.clone(),
