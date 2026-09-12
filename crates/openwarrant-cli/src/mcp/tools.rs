@@ -461,6 +461,8 @@ impl WarServer {
         value_of("next", crate::next::run(&self.repo), "next action derived")
     }
 
+    // read_only_hint stays true: the journal line a compile appends is the
+    // Warrant's own history of being compiled, not a change to its records.
     #[tool(
         name = "war_dispatch",
         description = "Compile the Stage Dispatch packet (`oh.war/stage-dispatch/v1`) for a stage — the agent's context for that stage, with its token estimate and budget (`war dispatch`). Records a `dispatch.compiled` journal event; writes nothing else.",

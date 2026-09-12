@@ -254,6 +254,43 @@ impl PlanPolicy {
 }
 
 /// `openwarrant.toml` (§60).
+/// `[verify]` — a configured blind verifier (slice C3, §75.2).
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct VerifyPolicy {
+    /// The command that reads a bundle path and prints a verification
+    /// response on stdout. Empty means no verifier is configured, and
+    /// `war verify --run` says so.
+    #[serde(default)]
+    pub verifier_argv: Vec<String>,
+    /// Wall-clock bound for the verifier; 0 means the default (600).
+    #[serde(default)]
+    pub verifier_timeout_secs: u64,
+    /// Bytes of a deliverable bundled whole; larger ones are truncated to
+    /// this head with their full digest. 0 means the default (65536).
+    #[serde(default)]
+    pub max_excerpt_bytes: usize,
+}
+
+impl VerifyPolicy {
+    #[must_use]
+    pub fn timeout_secs(&self) -> u64 {
+        if self.verifier_timeout_secs == 0 {
+            600
+        } else {
+            self.verifier_timeout_secs
+        }
+    }
+
+    #[must_use]
+    pub fn max_excerpt_bytes(&self) -> usize {
+        if self.max_excerpt_bytes == 0 {
+            65_536
+        } else {
+            self.max_excerpt_bytes
+        }
+    }
+}
+
 /// `[context]` — the Dispatch token budget (slice C2, §33.7).
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct ContextPolicy {
@@ -289,6 +326,8 @@ pub struct RepositoryConfig {
     pub plan: PlanPolicy,
     #[serde(default)]
     pub context: ContextPolicy,
+    #[serde(default)]
+    pub verify: VerifyPolicy,
     /// §46.1's nine independence dimensions, for verification performed in this
     /// repository.
     ///
@@ -322,6 +361,7 @@ impl RepositoryConfig {
             policy: AuthorityPolicy::default(),
             plan: PlanPolicy::default(),
             context: ContextPolicy::default(),
+            verify: VerifyPolicy::default(),
             independence: None,
         }
     }

@@ -291,3 +291,21 @@ war verify <alias> --performer claude > request.toml
 # hand request.toml to something that did not write the code
 war verify <alias> --response verdicts.toml
 ```
+
+## Handing the verification to someone who is not you
+
+`war verify <alias> --performer <you> --bundle` writes
+`verifications/bundle-<digest>.json` (`oh.war/verification-bundle/v1`): the
+request with the authorized contract digest, every atom, each deliverable's
+bytes (whole under `[verify] max_excerpt_bytes`, else the head with the full
+digest and `truncated: true`), the plants that name the alias, the `#[test]`
+names in Rust deliverables, the committed gate runs, the prior verifications,
+and its own token estimate. Hand that one file to a separate context — another
+session, another model, a person — and ingest what comes back with
+`war verify <alias> --response <file>`.
+
+With `[verify] verifier_argv = ["…"]` in `openwarrant.toml`, `war verify
+<alias> --run` does the hand-off itself: the command gets the bundle path,
+runs under `verifier_timeout_secs`, and what it prints on stdout goes through
+the same ingest as a hand-written response — a verifier that answers as the
+performer is refused there, exactly as a human typing it would be.

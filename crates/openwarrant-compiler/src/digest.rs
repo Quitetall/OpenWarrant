@@ -46,11 +46,13 @@ pub enum DigestDomain {
     AssuranceCaseSnapshot,
     Resolution,
     WarExport,
+    /// A verification bundle (slice C3).
+    VerificationBundle,
 }
 
 impl DigestDomain {
     /// Every domain, in declaration order. Used by conformance tests.
-    pub const ALL: [Self; 15] = [
+    pub const ALL: [Self; 16] = [
         Self::AtomSource,
         Self::Manifest,
         Self::CompositionRevision,
@@ -66,6 +68,7 @@ impl DigestDomain {
         Self::AssuranceCaseSnapshot,
         Self::Resolution,
         Self::WarExport,
+        Self::VerificationBundle,
     ];
 
     /// The stable URI written into the preimage's `digest_domain` field.
@@ -87,6 +90,7 @@ impl DigestDomain {
             Self::AssuranceCaseSnapshot => "oh.war/assurance-case-snapshot/v1",
             Self::Resolution => "oh.war/resolution/v1",
             Self::WarExport => "oh.war/war-export/v1",
+            Self::VerificationBundle => "oh.war/verification-bundle/v1",
         }
     }
 }
@@ -116,8 +120,8 @@ mod tests {
     /// §65 lists fifteen domains. If the SAS grows one, this fails and the
     /// vocabulary gets updated deliberately rather than drifting.
     #[test]
-    fn all_fifteen_domains_are_present() {
-        assert_eq!(DigestDomain::ALL.len(), 15);
+    fn all_sixteen_domains_are_present() {
+        assert_eq!(DigestDomain::ALL.len(), 16);
     }
 
     /// §91.1 test 6: different digest domains produce different preimages.

@@ -86,6 +86,11 @@ Toward 1.0 (the plan is the Warrant backlog; each entry is one slice):
   default_budget_tokens` (32 000) is the budget, and over budget is
   `dispatch.over-budget` naming the three largest items; each compile is
   journalled as `dispatch.compiled` with its size.
+- `war verify --bundle` writes the verification bundle
+  (`oh.war/verification-bundle/v1`: request, atoms, deliverable bytes, plants,
+  test names, gate runs, prior verifications, token estimate) and `--run`
+  hands it to a configured `[verify] verifier_argv`, ingesting the answer
+  through the unchanged seam; `docs/RESOLVING.md` describes the hand-off.
 
 ## [0.1.0] — 2026-08-24
 

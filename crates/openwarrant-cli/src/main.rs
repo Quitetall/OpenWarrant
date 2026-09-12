@@ -13,6 +13,7 @@ mod attest;
 mod authorize;
 mod blut;
 mod bonsai;
+mod bundle;
 mod check;
 mod compile;
 mod context_select;
@@ -465,6 +466,16 @@ enum Command {
         /// A verifier's response to ingest. Without it, the request is emitted.
         #[arg(long)]
         response: Option<Utf8PathBuf>,
+        /// Write the verification bundle (`oh.war/verification-bundle/v1`):
+        /// the request with the authorized digest, every atom, each
+        /// deliverable's bytes, the plants naming the alias, gate runs and
+        /// prior verifications, under `verifications/bundle-<digest>.json`.
+        #[arg(long, conflicts_with = "response")]
+        bundle: bool,
+        /// Write the bundle, run `[verify] verifier_argv` on it, and ingest
+        /// what it prints through the same seam as `--response`.
+        #[arg(long, conflicts_with_all = ["response", "bundle"])]
+        run: bool,
     },
 
     /// §28.4 authorization. Emits a request; ingests a human's signature.
@@ -1483,8 +1494,18 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             alias,
             performer,
             response,
+            bundle,
+            run,
         } => {
             let repository = repo::Repository::discover(None)?;
+            if bundle {
+                let report = bundle::emit(&repository, &alias, &performer)?;
+                return Ok(output::finish(mode, "verify.bundle", &report, None));
+            }
+            if run {
+                let report = bundle::run(&repository, &alias, &performer)?;
+                return Ok(output::finish(mode, "verify.run", &report, None));
+            }
             match response {
                 // Ingest verdicts something else produced.
                 Some(path) => {
