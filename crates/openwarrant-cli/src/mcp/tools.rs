@@ -506,6 +506,7 @@ impl WarServer {
             kind,
             &p.prior_failure,
             Some(&scratch),
+            None,
         );
         let packet = std::fs::read_to_string(&scratch).ok();
         let _ = std::fs::remove_file(&scratch);

@@ -29,6 +29,8 @@ stages:
     executor_kind: "blut"
     responsibility_tier: "T1"
     executor_ref: "materialize_dataset_path"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Premade Instructions"]
+    context_external: ["sas://§47.2", "sas://§33"]
     executor_args: '{"path": "conformance/fixtures/ow-war-0047-corpus.jsonl"}'
     outputs: ["corpus:war/corpus"]
 

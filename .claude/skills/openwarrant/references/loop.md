@@ -37,3 +37,12 @@ Never load the whole SAS (tens of thousands of tokens). `docs/sas/generated/
 NORMATIVE.md` is every binding sentence with its section, compiled by `war
 compile` and drift-checked; cite a section as `§47.2` and read the document
 only when the sentence's reasoning matters.
+
+## Context per stage
+
+A stage in `45-milestones.yaml` may declare what its Dispatch carries:
+`context_sections: ["40-work-order.md#Deliverables"]`, `context_atoms`,
+`context_artifacts` (repository paths), `context_external` (URIs, recorded
+and never fetched). `war dispatch <alias> <stage> --emit-context ctx.json`
+shows what was selected and what was omitted, each with its reason; a section
+that does not exist is refused with the headings that do.

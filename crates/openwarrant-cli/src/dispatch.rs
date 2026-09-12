@@ -22,10 +22,8 @@ use std::fs;
 use std::process::Command;
 
 use camino::Utf8Path;
-use openwarrant_compiler::{DispatchInputs, compile_dispatch, dispatch_json, lower, sha256_hex};
-use openwarrant_core::context::{
-    ContextItem, ContextManifest, ContextRole, Holder, Omission, Precedence, TrustClass,
-};
+use openwarrant_compiler::{DispatchInputs, compile_dispatch, dispatch_json, lower};
+use openwarrant_core::context::ContextManifest;
 use openwarrant_core::execution::{
     Attempt, AttemptKind, CapabilityAuthorization, ResourceEnvelope,
 };
@@ -42,6 +40,7 @@ pub fn run(
     attempt_kind: AttemptKind,
     prior_failure_evidence: &[String],
     emit_to: Option<&Utf8Path>,
+    emit_context_to: Option<&Utf8Path>,
 ) -> Result<Report, RepoError> {
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
@@ -88,41 +87,25 @@ pub fn run(
         )));
     };
 
-    // §33 — the context manifest, from the atoms.
+    // §33 — the context manifest. Slice C1: stage-relevant selection —
+    // required atoms, plus whatever the stage declares (atoms, sections,
+    // artifacts, external refs); everything else omitted with a true reason.
     let commit = git_head(&repo.root);
-    let mut included = Vec::new();
-    let mut omitted = Vec::new();
-    for atom in &basis.atoms {
-        if atom.required {
-            included.push(ContextItem {
-                id: atom.source.clone(),
-                role: role_for(&atom.role),
-                required: true,
-                holder: Holder {
-                    kind: "git".to_owned(),
-                    repository: repo.config.project.name.clone(),
-                    commit_sha: commit.clone().unwrap_or_default(),
-                    path: repo.relative(&dir.join(&atom.source)),
-                },
-                content_digest: format!("sha256:{}", sha256_hex(&atom.bytes)),
-                selector_sections: vec![],
-                classification: "internal".to_owned(),
-                trust: TrustClass::AuthoritativeInternal,
-                taints: vec![],
-                precedence: Some(Precedence::AuthorizedWarContract),
-            });
-        } else {
-            omitted.push(Omission {
-                id: atom.source.clone(),
-                reason: format!(
-                    "optional atom of role {:?}; not stage-relevant to {stage_id} (§47.2 \"select \
-                     only stage-relevant context\")",
-                    atom.role
-                ),
-                required: false,
-            });
+    let selection = match crate::context_select::select(repo, &dir, basis, stage, commit.as_deref())
+    {
+        Ok(s) => s,
+        Err(refusals) => {
+            for r in refusals {
+                report.push(Diagnostic::error(
+                    r.rule,
+                    repo.relative(&dir.join("atoms/45-milestones.yaml")),
+                    r.message,
+                ));
+            }
+            return Ok(report);
         }
-    }
+    };
+    let (included, omitted) = (selection.included, selection.omitted);
     let context = ContextManifest {
         workspace_basis_ref: format!("basis://{}", basis.manifest_source),
         workspace_basis_digest: ir.integrity.workspace_basis_digest.clone(),
@@ -186,6 +169,22 @@ pub fn run(
     })
     .map_err(|e| RepoError::Message(format!("{alias}/{stage_id}: {e}")))?;
 
+    if let Some(path) = emit_context_to {
+        let text = serde_json::to_string_pretty(&context)
+            .map_err(|e| RepoError::Message(e.to_string()))?;
+        fs::write(path, format!("{text}\n")).map_err(|source| RepoError::Io {
+            context: format!("could not write {path}"),
+            source,
+        })?;
+        report.push(Diagnostic::pass(
+            "dispatch.context-emitted",
+            format!(
+                "{alias}/{stage_id}: context manifest written to {path} ({} included, {} omitted)",
+                context.included.len(),
+                context.omitted.len()
+            ),
+        ));
+    }
     let json = dispatch_json(&dispatch).map_err(|e| RepoError::Message(e.to_string()))?;
     match emit_to {
         Some(path) => {
@@ -221,15 +220,6 @@ pub fn run(
         ),
     ));
     Ok(report)
-}
-
-/// §33.2 — which role each atom plays as context.
-fn role_for(atom_role: &str) -> ContextRole {
-    match atom_role {
-        "basis" => ContextRole::Governing,
-        "intent" | "work_order" | "milestones" | "assurance" => ContextRole::Normative,
-        _ => ContextRole::Informative,
-    }
 }
 
 /// The current commit, if this is a git checkout. `None` is reported, not

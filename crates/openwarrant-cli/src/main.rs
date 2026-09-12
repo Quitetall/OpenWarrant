@@ -15,6 +15,7 @@ mod blut;
 mod bonsai;
 mod check;
 mod compile;
+mod context_select;
 mod correct;
 mod diagnostic;
 mod dispatch;
@@ -306,6 +307,10 @@ enum Command {
         /// Write the packet here instead of stdout.
         #[arg(long, value_name = "PATH")]
         emit: Option<Utf8PathBuf>,
+        /// Write the §33 context manifest (what was selected and what was
+        /// omitted, with reasons) beside the packet.
+        #[arg(long, value_name = "PATH")]
+        emit_context: Option<Utf8PathBuf>,
     },
 
     /// Evaluate §56.1's thirteen resolution requirements without recording one.
@@ -1104,6 +1109,7 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             attempt_kind,
             prior_failure,
             emit,
+            emit_context,
         } => {
             let repository = repo::Repository::discover(None)?;
             let kind = attempt_kind
@@ -1116,6 +1122,7 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 kind,
                 &prior_failure,
                 emit.as_deref(),
+                emit_context.as_deref(),
             )?;
             // The packet is the only thing on stdout when it goes there. An
             // actor piping `war dispatch` into a parser must get canonical JSON

@@ -47,6 +47,7 @@ pub mod resolution;
 pub mod role;
 pub mod sas;
 pub mod seam;
+pub mod sections;
 pub mod state;
 pub mod status;
 pub mod structured;

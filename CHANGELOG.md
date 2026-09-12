@@ -73,6 +73,13 @@ Toward 1.0 (the plan is the Warrant backlog; each entry is one slice):
   — the corpus projections, the SAS normative projection and every compiled
   `WAR.json`, copied byte-for-byte with a sha256 manifest and a bundle digest;
   `--verify-progress <dir>` checks one.
+- Stage-relevant context (SAS §47.2): a stage declares `context_atoms`,
+  `context_sections` (`<atom>#<heading>`), `context_artifacts` and
+  `context_external`; the Dispatch's §33 manifest includes the required
+  atoms plus what is declared — a declared section narrows its atom as a
+  selector — and omits the rest with a true reason. A missing section is
+  refused with the headings that exist; `war dispatch --emit-context` writes
+  the manifest beside the packet.
 
 ## [0.1.0] — 2026-08-24
 

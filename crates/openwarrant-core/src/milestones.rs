@@ -25,6 +25,8 @@ pub const MILESTONES_SCHEMA: &str = "oh.war/milestones/v1";
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum MilestoneError {
+    #[error("stage {id}: budget_tokens {found:?} is not a non-negative integer")]
+    InvalidBudget { id: String, found: String },
     #[error(transparent)]
     Structured(#[from] StructuredError),
     #[error("unknown milestones schema {found:?}; this build understands {expected:?}")]
@@ -223,6 +225,24 @@ pub struct Stage {
     /// hold a `Value`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub executor_args: Option<String>,
+    // ---- slice C1: stage-relevant context (SAS §47.2, §33). Flat prefixed
+    // fields, because OW-ADR-0003's reader does not nest inside a record.
+    /// Whole atoms this stage needs beyond the required ones, by file name.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub context_atoms: Vec<String>,
+    /// Sections of atoms, as `<atom file>#<heading>`.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub context_sections: Vec<String>,
+    /// Repository paths the stage reads as inputs.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub context_artifacts: Vec<String>,
+    /// External references, recorded and never fetched.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub context_external: Vec<String>,
+    /// The token budget for this stage's Dispatch (slice C2); absent means
+    /// the repository default applies.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub budget_tokens: Option<u64>,
 }
 
 /// A validated milestone graph.
@@ -300,13 +320,18 @@ pub fn parse(source: &str) -> Result<MilestoneGraph, MilestoneError> {
     }
 
     // §23.6: fields that belong to the other kind are refused, not ignored.
-    const STAGE_ONLY: [&str; 6] = [
+    const STAGE_ONLY: [&str; 11] = [
         "executor_kind",
         "responsibility_tier",
         "inputs",
         "outputs",
         "executor_ref",
         "executor_args",
+        "context_atoms",
+        "context_sections",
+        "context_artifacts",
+        "context_external",
+        "budget_tokens",
     ];
     const MILESTONE_ONLY: [&str; 3] = ["depends_on", "stage_refs", "obligation_refs"];
 
@@ -404,6 +429,23 @@ pub fn parse(source: &str) -> Result<MilestoneGraph, MilestoneError> {
             outputs: ports("outputs")?,
             executor_ref: scalar(record, "executor_ref").filter(|v| !v.trim().is_empty()),
             executor_args: scalar(record, "executor_args").filter(|v| !v.trim().is_empty()),
+            context_atoms: list(record, "context_atoms"),
+            context_sections: list(record, "context_sections"),
+            context_artifacts: list(record, "context_artifacts"),
+            context_external: list(record, "context_external"),
+            budget_tokens: match scalar(record, "budget_tokens") {
+                None => None,
+                Some(raw) => {
+                    Some(
+                        raw.trim()
+                            .parse::<u64>()
+                            .map_err(|_| MilestoneError::InvalidBudget {
+                                id: id.clone(),
+                                found: raw.clone(),
+                            })?,
+                    )
+                }
+            },
             id,
         });
     }
