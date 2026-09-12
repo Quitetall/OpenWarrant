@@ -80,6 +80,10 @@ pub struct Project {
     /// `claude`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub performer: Option<String>,
+    /// Where the repository lives, for the projections that link back to
+    /// it. Optional; a tracked input, unlike a git remote.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub repository_url: Option<String>,
 }
 
 /// Where the controlled document trees live (§59, §60).
@@ -287,6 +291,7 @@ impl RepositoryConfig {
                 namespace,
                 knowledge_fabric_project_ref: None,
                 performer: None,
+                repository_url: None,
             },
             paths: Paths::default(),
             generated: GeneratedPolicy::default(),

@@ -326,6 +326,87 @@ pub struct ResolutionSummary {
     pub binds_current_contract: bool,
 }
 
+/// One acceptance obligation as the platform reads it (slice D1).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ObligationView {
+    pub id: String,
+    pub statement: String,
+    pub scope: String,
+    /// The `gate://` the obligation cites, when it cites one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub gate: Option<String>,
+    /// `established` | `refuted` | `not_established` | `undispositioned`.
+    pub disposition: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verifier: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verifier_kind: Option<String>,
+}
+
+/// What a deliverable's bytes say against its record, today.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum DigestState {
+    /// Bytes match the recorded digest.
+    Verified,
+    /// Bytes match the head of a correction chain (OW-ADR-0012).
+    Corrected,
+    /// Bytes match neither the record nor any correction.
+    Drift,
+    TargetUnreadable,
+    NotContentAddressed,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DeliverableView {
+    pub id: String,
+    pub title: String,
+    pub target_ref: String,
+    pub required: bool,
+    pub digest: DigestState,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub recorded_digest: Option<String>,
+    pub corrections: usize,
+}
+
+/// One committed gate run and how §44.6 classes it against the contract now.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct GateRunView {
+    pub gate: String,
+    pub run_id: String,
+    pub verdict: String,
+    /// `admissible` | `stale_binding` | `receipt_invalid` | `inadmissible`.
+    pub class: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub why: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub receipt_ref: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AmendmentView {
+    pub id: String,
+    pub reason: String,
+    /// `(element, before, after)`.
+    pub changes: Vec<(String, String, String)>,
+}
+
+/// A rationale assumption that is not settled, as the gaps view reads it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct UnknownView {
+    pub id: String,
+    pub statement: String,
+    pub epistemic_status: String,
+    /// External systems the statement names (`katana`, `liminal`,
+    /// `knowledge-fabric`), read from its words; not a declaration.
+    pub mentions: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct GeneratedBy {
+    pub war_version: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct WarrantStatus {
     pub alias: String,
@@ -355,6 +436,34 @@ pub struct WarrantStatus {
     pub blocking_unknowns: Vec<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub milestones: Option<Vec<MilestoneState>>,
+    // ---- slice D1: the platform's fields. Every one defaults, so a
+    // projection written before them still parses.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub uuid: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub profile: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub assurance_level: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub contract_revision: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub contract_digest: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub obligations: Vec<ObligationView>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub deliverables: Vec<DeliverableView>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub gate_runs: Vec<GateRunView>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub amendments: Vec<AmendmentView>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub unknowns: Vec<UnknownView>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub journal_ref: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub authorization_ref: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resolution_ref: Option<String>,
 }
 
 /// One §106 requirement and its §34.3 status, derived.
@@ -420,6 +529,10 @@ pub struct CorpusStatus {
     /// Facts the projection found that a reader should know before reading the
     /// numbers. The roadmap document's hand-written "resolved" column is one.
     pub caveats: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub repository_url: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub generated_by: Option<GeneratedBy>,
 }
 
 impl CorpusStatus {
@@ -454,6 +567,24 @@ impl CorpusStatus {
             }
         }
         m
+    }
+}
+
+#[cfg(test)]
+mod contract_compat_tests {
+    use super::*;
+
+    /// docs/PROJECTION_CONTRACT.md: additive only. A `v1` Warrant entry written
+    /// before the D1 fields existed still parses, and the new fields default.
+    #[test]
+    fn a_warrant_status_written_before_the_platform_fields_still_parses() {
+        let old = r#"{"alias":"OW-WAR-0001","validity":{"state":"valid"},"rung":"draft","roadmap":[],"implements":[],"unmet":[],"unestablished":[],"blocking_unknowns":[]}"#;
+        let w: WarrantStatus = serde_json::from_str(old).expect("v1 entry parses");
+        assert!(w.obligations.is_empty() && w.deliverables.is_empty() && w.gate_runs.is_empty());
+        assert!(w.uuid.is_none() && w.contract_digest.is_none() && w.journal_ref.is_none());
+        // And round-trips without inventing fields: empty vectors are omitted.
+        let back = serde_json::to_string(&w).unwrap();
+        assert!(!back.contains("obligations"));
     }
 }
 

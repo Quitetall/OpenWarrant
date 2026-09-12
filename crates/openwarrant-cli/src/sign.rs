@@ -290,16 +290,30 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
 /// The most recent `amendments/AM-*.yaml`, read line-wise for its `reason`
 /// and `semantic_diff` entries.
 fn read_latest_amendment(dir: &Utf8Path) -> Option<AmendmentSummary> {
+    read_amendments(dir).pop()
+}
+
+/// Every amendment under `amendments/`, oldest first (slice D1 reads all).
+pub(crate) fn read_amendments(dir: &Utf8Path) -> Vec<AmendmentSummary> {
     let amendments = dir.join("amendments");
     let mut files: Vec<Utf8PathBuf> = std::fs::read_dir(&amendments)
-        .ok()?
-        .filter_map(Result::ok)
-        .filter_map(|e| Utf8PathBuf::from_path_buf(e.path()).ok())
-        .filter(|p| p.extension() == Some("yaml"))
-        .collect();
+        .ok()
+        .map(|rd| {
+            rd.filter_map(Result::ok)
+                .filter_map(|e| Utf8PathBuf::from_path_buf(e.path()).ok())
+                .filter(|p| p.extension() == Some("yaml"))
+                .collect()
+        })
+        .unwrap_or_default();
     files.sort();
-    let path = files.pop()?;
-    let text = std::fs::read_to_string(&path).ok()?;
+    files
+        .into_iter()
+        .filter_map(|path| read_amendment(&path))
+        .collect()
+}
+
+fn read_amendment(path: &Utf8Path) -> Option<AmendmentSummary> {
+    let text = std::fs::read_to_string(path).ok()?;
     let mut summary = AmendmentSummary {
         id: path.file_stem().unwrap_or_default().to_owned(),
         ..Default::default()

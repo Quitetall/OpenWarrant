@@ -56,6 +56,12 @@ Toward 1.0 (the plan is the Warrant backlog; each entry is one slice):
   (`oh.war/corpus-pending/v1`: the human acts awaiting a signature, with the
   command for each), compiled, drift-checked, canonical, published by Pages;
   `war status --timeline` / `--pending`.
+- The projection contract (`docs/PROJECTION_CONTRACT.md`): `CORPUS_STATUS.json`
+  Warrants carry identity, contract revision and digest, obligations with
+  dispositions and gates, deliverables with digest state and correction
+  chains, gate runs with §44.6 classes, amendments, unknowns and record
+  paths; top level carries `repository_url` and `generated_by`. Additive only
+  after 1.0; a §84 Knowledge Fabric mapping is documented.
 
 ## [0.1.0] — 2026-08-24
 
