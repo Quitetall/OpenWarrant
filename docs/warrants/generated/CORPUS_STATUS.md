@@ -73,7 +73,6 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | required judgments exist | 3 |
 | residual risks have sufficient authority | 3 |
 | runtime receipts match the basis | 2 |
-| exact authorized Contract Revision | 1 |
 
 ## Requirements (SAS §106, §34.3)
 
@@ -201,7 +200,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0044` Discharge the Phase 4 exit: KF is institutional authority, Git stays Source Holder | ready_to_resolve | NOT satisfied | 0 | 2 of 5 | — |
 | `OW-WAR-0045` Discharge the Phase 5 exit: a stateless actor executes one Dispatch | draft | NOT satisfied | 0 | 3 of 5 | required deliverables exist |
 | `OW-WAR-0046` Discharge the Phase 6 exit: a delivery closes only through bounded proof | resolved | would satisfy | 0 | 5 of 5 | — |
-| `OW-WAR-0047` Discharge the Phase 7 exit: compatible WARs execute without duplicating BLUT | draft | would satisfy | 0 | 3 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0047` Discharge the Phase 7 exit: compatible WARs execute without duplicating BLUT | draft | would satisfy | 0 | 3 of 3 | every required gate has admissible result |
 | `OW-WAR-0048` Discharge the Phase 8 exit: measured adapter parity and the two-host canonical run | draft | NOT satisfied | 0 | 0 of 4 | required deliverables exist |
 | `OW-WAR-0049` Close the alpha residue: the gaps alpha carried forward and one false claim | draft | NOT satisfied | 0 | 1 of 4 | required deliverables exist |
 | `OW-WAR-0050` Governed Bonsai evidence for pull-request workflow | draft | would satisfy | 1 | 0 of 2 | every required gate has admissible result |
