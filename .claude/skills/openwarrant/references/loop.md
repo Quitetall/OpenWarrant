@@ -30,3 +30,10 @@ A pinned file of a RESOLVED Warrant may only change through the correction
 act: `war correct <alias> <D-id>` emits the request; a human signs it with
 `war sign <alias>/<D-id> --kind behaviour-change|added-refusal --meaning "…"`.
 Edit first, then request; the tool refuses when nothing drifted.
+
+## Reading the specification
+
+Never load the whole SAS (tens of thousands of tokens). `docs/sas/generated/
+NORMATIVE.md` is every binding sentence with its section, compiled by `war
+compile` and drift-checked; cite a section as `§47.2` and read the document
+only when the sentence's reasoning matters.

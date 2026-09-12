@@ -188,8 +188,11 @@ thirteen and is wrong about eleven.
 
 ## Reference
 
-- `docs/sas/` — the governing specification, if the repository carries one.
-  Section references throughout the tool (`§46.2`, `RQ-053`) cite it.
+- `docs/sas/generated/NORMATIVE.md` — every SHALL, SHALL NOT, SHOULD and MAY
+  of the governing specification with its section, compiled and drift-checked.
+  Read this, not the whole document: it is about a third of the tokens, and
+  the sentence is what binds. Section references throughout the tool
+  (`§46.2`, `RQ-053`) resolve into it; `docs/sas/` holds the document itself.
 - `war <command> --help` — every command documents the section it implements.
 - `CONTRIBUTING.md` — the gate, the toolchain pin, and the rules for changing
   this repository itself.

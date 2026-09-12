@@ -247,6 +247,17 @@ pub fn run(
             "corpus-status",
             &mut report,
         );
+        // The SAS normative projection (E1), when there is a document.
+        if repo.sas_document().is_ok() {
+            match crate::compile::sas_normative(repo) {
+                Ok(files) => {
+                    for file in files {
+                        drift_check(repo, Ok(file), "sas-normative", &mut report);
+                    }
+                }
+                Err(e) => drift_check(repo, Err(e), "sas-normative", &mut report),
+            }
+        }
     }
 
     // §38.6 disposition status, aggregated once for the corpus rather than

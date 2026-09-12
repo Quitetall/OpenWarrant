@@ -47,6 +47,10 @@ Toward 1.0 (the plan is the Warrant backlog; each entry is one slice):
 - `war watch`: the pending set once (`--once`, with `--json`) or as a live
   diff of what appears and what is signed away; `--notify-send` raises a
   desktop notification. A poller on the record trees, no new crate.
+- `docs/sas/generated/NORMATIVE.{md,json}` (`oh.war/sas-normative/v1`): every
+  SHALL / SHALL NOT / MUST / SHOULD / MAY sentence of the SAS with its section
+  and the document digest, compiled by `war compile` and drift-checked by
+  `war check --generated`; agents read it instead of the document.
 
 ## [0.1.0] — 2026-08-24
 

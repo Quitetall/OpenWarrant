@@ -41,6 +41,7 @@ pub mod lifecycle;
 pub mod manifest;
 pub mod migration;
 pub mod milestones;
+pub mod normative;
 pub mod obligation;
 pub mod resolution;
 pub mod role;
@@ -85,6 +86,7 @@ pub use milestones::{
     ExecutorKind, MILESTONES_SCHEMA, Milestone, MilestoneError, MilestoneGraph, Port,
     ResponsibilityTier, Stage,
 };
+pub use normative::{NormativeKeyword, NormativeSentence, normative_sentences};
 pub use obligation::{Disposition, Obligation, ObligationError, ObligationSet, ScopeKind};
 pub use role::{AtomRole, Jurisdiction, Profile, RoleError, is_namespaced_extension_role};
 pub use sas::{
