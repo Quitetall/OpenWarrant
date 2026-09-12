@@ -43,3 +43,39 @@ distinct_human_required = false
 drafter_argv = ["conformance/fixtures/drafter/claude-drafter.sh"]
 drafter_name = "claude-code (conformance/fixtures/drafter/claude-drafter.sh)"
 drafter_timeout_secs = 600
+
+# The reasons this repository's signer reaches for, written once so a batch of
+# acts costs a keystroke each instead of a sentence each (OW-WAR-0069). The
+# tool drafts the facts; a preset adds the human's own words, verbatim.
+[[sign.preset]]
+key = "1"
+label = "a slice of the 1.0 plan"
+meaning = "The delivered bytes moved with a slice of the 1.0 plan; each commit states its own change, and this records that the artifact moved with them."
+acts = ["correct"]
+kind = "behaviour-change"
+
+[[sign.preset]]
+key = "2"
+label = "the Apache-2.0 relicense"
+meaning = "The SPDX identifier moved with the relicense to Apache-2.0 (OW-ADR-0017); the licence changed and the behaviour did not."
+acts = ["correct"]
+kind = "behaviour-change"
+
+[[sign.preset]]
+key = "3"
+label = "a refusal was added"
+meaning = "This file now refuses something it used to allow; the refusal is named in the commit that added it."
+acts = ["correct"]
+kind = "added-refusal"
+
+[[sign.preset]]
+key = "4"
+label = "the plan authorized it"
+meaning = "Authorized as a slice of the approved 1.0 plan; the contract is the one the record compiles to now."
+acts = ["authorize"]
+
+[[sign.preset]]
+key = "5"
+label = "obligations established, blind verification on record"
+meaning = "Every declared obligation is established by a verification whose verifier is not the performer, and the thirteen are as the record reports them."
+acts = ["resolve"]

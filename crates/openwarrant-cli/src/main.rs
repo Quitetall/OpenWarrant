@@ -15,7 +15,9 @@ mod blut;
 mod bonsai;
 mod bundle;
 mod check;
+mod commit;
 mod compile;
+mod console;
 mod context_select;
 mod correct;
 mod diagnostic;
@@ -636,6 +638,17 @@ enum Command {
         /// Every attestation in the repository (the xtask step).
         #[arg(long)]
         all: bool,
+    },
+    /// One screen for everything you owe: the acts awaiting your signature as
+    /// a checklist, the questions an agent asked, and the stages it can start
+    /// (OW-WAR-0069). Check rows, pick a reason from your presets, sign the
+    /// batch. It never signs for you: each row is your own ssh confirmation.
+    Console,
+    /// The commit message, drafted from the records that changed (OW-WAR-0069).
+    Commit {
+        /// Stage everything and commit with the drafted message.
+        #[arg(long)]
+        write: bool,
     },
     /// Ask the human a question that blocks a stage (OW-WAR-0069). An agent
     /// asks; only a human answers. Neither act authorizes anything.
@@ -1511,6 +1524,28 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 }
             };
             Ok(output::finish(mode, "attest", &report, None))
+        }
+        Command::Console => {
+            let repository = repo::Repository::discover(None)?;
+            // `--json` is a reader, not a screen: a harness asking what a human
+            // owes gets the board and no prompt. Signing is a TTY act.
+            if matches!(mode, output::Mode::Json) {
+                let board = console::board(&repository)?;
+                let report = diagnostic::Report::default();
+                return Ok(output::finish(
+                    mode,
+                    "console",
+                    &report,
+                    Some(serde_json::to_value(&board)?),
+                ));
+            }
+            let report = console::run(&repository)?;
+            Ok(output::finish(mode, "console", &report, None))
+        }
+        Command::Commit { write } => {
+            let repository = repo::Repository::discover(None)?;
+            let report = commit::run(&repository, write)?;
+            Ok(output::finish(mode, "commit", &report, None))
         }
         Command::Ask {
             alias,

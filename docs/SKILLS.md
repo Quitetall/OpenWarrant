@@ -66,3 +66,66 @@ the right asymmetry while an answer authorizes nothing, and it is the reason
 nothing downstream may read `person://…` on an answer as authority. A
 malformed question record is reported by name and the rest of the queue still
 lists.
+
+## The console
+
+One screen for everything a human owes (OW-WAR-0069):
+
+```bash
+war console                          # the checklist; 1-N toggle, a all, n none
+war console --json                   # oh.war/console/v1: acts, questions, stages, presets
+```
+
+Three sections, read in one pass over the records: the acts awaiting a
+signature as a numbered checklist (the same queue `war sign --list` prints),
+the questions a performing agent asked, and the stages on the frontier an
+agent can start now. The keys are `s` to sign the checked rows, `q` to answer
+the questions, `r` to start the checked stages, `c` to print the commit
+message, `x` to leave.
+
+`s` signs nothing by itself. It runs the same `war sign --ssh-sign` a hand
+would, once per checked row, so each act is still the signer's own `ssh-add
+-c` confirmation. What it removes is the typing: the reason comes from a
+preset the repository wrote once, plus an optional line the signer adds for
+the batch, and the tool drafts the facts (which file, which digest, which
+commits moved it) from the records.
+
+```toml
+# openwarrant.toml — the reasons this repository's signer reaches for
+[[sign.preset]]
+key = "1"
+label = "a slice of the 1.0 plan"
+meaning = "The delivered bytes moved with a slice of the 1.0 plan; each commit states its own change."
+acts = ["correct"]
+kind = "behaviour-change"
+```
+
+`acts` restricts a preset to one kind of act, and `kind` supplies `war
+sign --kind` for a correction, so a batch of twenty corrections costs one
+keystroke for the rows, one for the reason, one optional sentence, and twenty
+confirm dialogs — which are the twenty human acts, and the only part that
+cannot be drafted.
+
+A preset is the signer's own words, recorded verbatim. Nothing here writes a
+disposition, a reason or a signature the human did not give: with no preset
+chosen and nothing typed, `war sign` falls back to the reason it drafts from
+the record, and the signer sees it on the confirm screen before the dialog.
+
+## The commit message
+
+```bash
+war commit                           # print the message drafted from what changed
+war commit --write                   # stage everything and commit with it
+```
+
+A commit that lands a signed act is describable without prose: the records
+that appeared say which act, which Warrant, and over which digest. `war
+commit` classifies every changed path (authorization, resolution, correction,
+SAS revision, signed response, question, projection, journal, Warrant record,
+code, docs, plant) and writes a Conventional Commits subject from the most
+significant kind present — a signature outranks the projections it moved,
+because the projections are its consequence. The Warrant aliases it touched
+become the scope.
+
+It will not invent a subject for changes it cannot classify, and without
+`--write` it stages nothing.

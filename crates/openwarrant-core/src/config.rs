@@ -253,8 +253,59 @@ impl PlanPolicy {
     }
 }
 
-/// `openwarrant.toml` (§60).
+/// One named reason a signer reaches for often (`[[sign.preset]]`).
+///
+/// The friction a signing queue creates is not the key, it is the prose: ten
+/// acts with one sentence each is twenty minutes of typing about changes the
+/// repository already describes. A preset is that sentence, written once, by
+/// the human, in the configuration they own. Picking one is a keystroke; the
+/// tool still records who signed, when, and over which bytes.
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SignPreset {
+    /// The key pressed to choose it, usually one character.
+    pub key: String,
+    /// What it says on the menu.
+    pub label: String,
+    /// The reason recorded, verbatim, appended to the drafted meaning.
+    pub meaning: String,
+    /// Which acts it applies to: `authorize`, `resolve`, `accept`, `correct`.
+    /// Empty means every act.
+    #[serde(default)]
+    pub acts: Vec<String>,
+    /// For a correction: `behaviour-change` or `added-refusal`. Ignored by
+    /// the other acts, required by that one, so a preset can carry it.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub kind: String,
+}
+
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SignPolicy {
+    /// The presets offered in `war console` and by `war sign --preset`.
+    #[serde(default, rename = "preset", skip_serializing_if = "Vec::is_empty")]
+    pub presets: Vec<SignPreset>,
+}
+
+impl SignPolicy {
+    /// No presets declared: the table is omitted from a written config.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.presets.is_empty()
+    }
+
+    /// The presets that apply to one act kind, in declared order.
+    #[must_use]
+    pub fn for_act(&self, act: &str) -> Vec<&SignPreset> {
+        self.presets
+            .iter()
+            .filter(|p| p.acts.is_empty() || p.acts.iter().any(|a| a == act))
+            .collect()
+    }
+}
+
 /// `[run]` — `war run`'s bounds for a service stage (slice C4b).
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct RunPolicy {
     /// Wall-clock bound for a stage that declares none; 0 means 600.
@@ -349,6 +400,8 @@ pub struct RepositoryConfig {
     pub verify: VerifyPolicy,
     #[serde(default)]
     pub run: RunPolicy,
+    #[serde(default, skip_serializing_if = "SignPolicy::is_empty")]
+    pub sign: SignPolicy,
     /// §46.1's nine independence dimensions, for verification performed in this
     /// repository.
     ///
@@ -384,6 +437,7 @@ impl RepositoryConfig {
             context: ContextPolicy::default(),
             verify: VerifyPolicy::default(),
             run: RunPolicy::default(),
+            sign: SignPolicy::default(),
             independence: None,
         }
     }
