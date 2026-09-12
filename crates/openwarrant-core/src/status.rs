@@ -335,8 +335,18 @@ pub struct ObligationView {
     /// The `gate://` the obligation cites, when it cites one.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub gate: Option<String>,
-    /// `established` | `refuted` | `not_established` | `undispositioned`.
+    /// `established` | `refuted` | `not_established` | `undispositioned` |
+    /// `inadmissible`.
+    ///
+    /// `inadmissible` is the projection of a verification the resolution rules
+    /// refuse to count: self-verified, evidence-free, or insufficiently
+    /// independent. It is NOT a disposition a verifier may write — no record
+    /// carries that word — and it exists so the page cannot show `established`
+    /// for a claim `war resolve` treats as unestablished.
     pub disposition: String,
+    /// Why the verification behind this row does not count, when it does not.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub inadmissible_because: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub verifier: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]

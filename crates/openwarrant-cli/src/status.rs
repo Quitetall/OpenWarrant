@@ -865,6 +865,16 @@ fn obligation_views(
     };
     let gates = obligation_gates(one);
     let verifications = repo.load_verifications(&one.dir).ok();
+    // §46: admissibility is what `war resolve` asks, so the projection asks it
+    // too. Reporting the first matching record's disposition verbatim let one
+    // `CORPUS_STATUS.json` object say `established` for an obligation the same
+    // file listed as unestablished, because the resolution rules had rejected
+    // that verification and the page had not noticed.
+    let assurance = one
+        .validated
+        .as_ref()
+        .map(|v| v.assurance_level.to_string())
+        .unwrap_or_else(|| "basic".to_owned());
     let mut out = Vec::new();
     for atom in basis.atoms.iter().filter(|a| a.role == "assurance") {
         let Ok(text) = std::str::from_utf8(&atom.bytes) else {
@@ -874,15 +884,34 @@ fn obligation_views(
             continue;
         };
         for o in set.obligations {
-            let v = verifications
+            let matching: Vec<&openwarrant_core::verification::Verification> = verifications
                 .as_ref()
-                .and_then(|vs| vs.records.iter().find(|r| r.obligation == o.id));
+                .map(|vs| vs.records.iter().filter(|r| r.obligation == o.id).collect())
+                .unwrap_or_default();
+            // An admissible record speaks for the obligation. Where none is,
+            // the row carries the record that exists and says why it does not
+            // count, rather than repeating a disposition nothing accepted.
+            let admissible = matching
+                .iter()
+                .copied()
+                .find(|r| r.admissible_for(&assurance).is_ok());
+            let v = admissible.or_else(|| matching.first().copied());
+            let why = match (admissible, matching.first()) {
+                (None, Some(r)) => r.admissible_for(&assurance).err().map(|e| e.to_string()),
+                _ => None,
+            };
+            let disposition = match (admissible, &why) {
+                (Some(r), _) => r.disposition.to_string(),
+                (None, Some(_)) => "inadmissible".to_owned(),
+                (None, None) => o
+                    .disposition
+                    .map(|d| d.to_string())
+                    .unwrap_or_else(|| "undispositioned".to_owned()),
+            };
             out.push(openwarrant_core::status::ObligationView {
                 gate: gates.get(&o.id).cloned(),
-                disposition: v
-                    .map(|r| r.disposition.to_string())
-                    .or_else(|| o.disposition.map(|d| d.to_string()))
-                    .unwrap_or_else(|| "undispositioned".to_owned()),
+                disposition,
+                inadmissible_because: why,
                 verifier: v.map(|r| r.verifier.actor.clone()),
                 verifier_kind: v.map(|r| enum_word(&r.verifier.kind)),
                 id: o.id,
