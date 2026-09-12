@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Repository configuration — `openwarrant.toml` (SAS §60).
 //!
 //! This crate defines and validates the shape; the CLI reads the bytes (§79.1).

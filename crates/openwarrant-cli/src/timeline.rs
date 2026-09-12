@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Two corpus projections for the progress platform (slice D2), compiled by
 //! `war compile` and drift-checked by `war check --generated`:
 //!

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war blut lower` — lower a stage graph into a BLUT `PlanSpec` (SAS §49).
 //!
 //! # The schema is read from BLUT, not invented here

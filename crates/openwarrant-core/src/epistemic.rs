@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Epistemic classes, evidence, and judgment (SAS §40, §41, §42; RQ-052, RQ-053).
 //!
 //! This is the distinction the specification exists to protect.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war mcp` — the Model Context Protocol server over stdio (OW-ADR-0014).
 //!
 //! The only place in this workspace where an async runtime exists. Every tool

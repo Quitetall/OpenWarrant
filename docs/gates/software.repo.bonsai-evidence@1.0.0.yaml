@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-License-Identifier: Apache-2.0
 #
 # A local candidate gate for the evidence document, not a second Bonsai runner.
 # `war bonsai check` creates the observation. This gate verifies that a proposed

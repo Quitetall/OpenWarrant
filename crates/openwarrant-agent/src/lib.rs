@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Agent-assisted planning protocol (SAS §74, §75).
 //!
 //! # Status: protocol surface only

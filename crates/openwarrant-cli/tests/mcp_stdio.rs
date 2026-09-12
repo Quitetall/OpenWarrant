@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war mcp` over stdio, driven by hand-written JSON-RPC (OW-ADR-0014).
 //!
 //! No client SDK: a foreign harness speaks exactly this, so the test does too.

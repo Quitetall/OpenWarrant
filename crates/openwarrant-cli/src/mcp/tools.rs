@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! The tool table. Three kinds: read-only, request halves (emit the document
 //! a human signs; write nothing), and writes that an agent is allowed to make
 //! (`war new`, evidence, compile, gate runs, journal backfill, a reviewed

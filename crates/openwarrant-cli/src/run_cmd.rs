@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war run <alias> <stage>` and `war submit <alias> <file>` — the ops / runs /
 //! experiments work kind (slice C4b; SAS §47, §51, §44.6).
 //!

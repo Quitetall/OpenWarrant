@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Pure domain types and validators for Work Authorization Records.
 //!
 //! Governed by `WAR_Software_Architecture_Specification.md` v0.1.0-draft.1

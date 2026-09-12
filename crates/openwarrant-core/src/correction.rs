@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! The correction act: how a delivered artifact of a RESOLVED Warrant moves for
 //! a reason, leaving the original record intact (OW-WAR-0064; SAS §34.4 applied
 //! to deliverables; OW-ADR-0012).

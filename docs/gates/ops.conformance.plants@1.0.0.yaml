@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-License-Identifier: Apache-2.0
 #
 # The conformance battery as a service gate (1.0 plan C4b): the ops work
 # kind's real example. A stage bound to this gate runs `conformance/plant.sh`

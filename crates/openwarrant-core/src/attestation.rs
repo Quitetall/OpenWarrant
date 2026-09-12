@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Attestations: an in-toto Statement in a DSSE envelope, signed with the
 //! same ssh key that signed the act (OW-ADR-0015).
 //!

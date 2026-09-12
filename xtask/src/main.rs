@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `cargo xtask gate` — the aggregate gate (SAS §92).
 //!
 //! §92: "The final command SHALL exit zero only when every positive fixture
@@ -68,14 +68,16 @@ struct Step {
 /// every file (RELICENSING.md, OW-ADR-0017). A file that never carried a
 /// header would be silently skipped by that rewrite and would keep asserting
 /// the old licence, or none at all, afterwards.
-const EXPECTED_SPDX: &str = "// SPDX-License-Identifier: Apache-2.0";
+/// Both identifiers are assembled from parts on purpose. A relicense sweeps
+/// the repository for the whole header string, and the first run of it
+/// rewrote the constant that NAMES the old licence here, which silently
+/// turned the ratchet below into a check that nothing could satisfy. Split,
+/// no sed can reach them.
+const SPDX_PREFIX: &str = "// SPDX-License-Identifier: ";
+const EXPECTED_ID: &str = "Apache-2.0";
+const PRIOR_ID: &str = "AGPL-3.0-or-later";
 
-/// The identifier before the relicense. Still accepted, but only for a file
-/// the pending list names: those are pinned by a RESOLVED Warrant, so their
-/// header moves with the correction that frees them, not before.
-const PRIOR_SPDX: &str = "// SPDX-License-Identifier: AGPL-3.0-or-later";
-
-/// Files allowed to carry `PRIOR_SPDX`, one repository-relative path per line.
+/// Files allowed to carry the prior identifier, one repository-relative path per line.
 /// Absent before the relicense, when either identifier passes; present after,
 /// when it is the whole allowance. Shrinks by one line per correction signed.
 const PENDING_SPDX_LIST: &str = "RELICENSING-PENDING.txt";
@@ -111,24 +113,32 @@ fn check_spdx() -> Result<usize, std::io::Error> {
     // the list names. A relicense half-applied is therefore visible, and a
     // correction that frees a file is a line removed from the list.
     let pending: Vec<String> = std::fs::read_to_string(PENDING_SPDX_LIST)
-        .map(|t| t.lines().map(str::trim).filter(|l| !l.is_empty()).map(str::to_owned).collect())
+        .map(|t| {
+            t.lines()
+                .map(str::trim)
+                .filter(|l| !l.is_empty())
+                .map(str::to_owned)
+                .collect()
+        })
         .unwrap_or_default();
     let ratcheted = Path::new(PENDING_SPDX_LIST).exists();
 
     let mut missing = 0usize;
     for file in &files {
         let text = std::fs::read_to_string(file)?;
+        let expected = format!("{SPDX_PREFIX}{EXPECTED_ID}");
+        let prior = format!("{SPDX_PREFIX}{PRIOR_ID}");
         let as_listed = file.to_string_lossy().replace('\\', "/");
         let allowed_prior = !ratcheted || pending.iter().any(|p| p == &as_listed);
-        if text.starts_with(EXPECTED_SPDX) {
+        if text.starts_with(&expected) {
             continue;
         }
-        if text.starts_with(PRIOR_SPDX) && allowed_prior {
+        if text.starts_with(&prior) && allowed_prior {
             continue;
         }
         // Report every one, not the first: otherwise the fix is one re-run
         // per file.
-        if text.starts_with(PRIOR_SPDX) {
+        if text.starts_with(&prior) {
             println!(
                 "   still AGPL and not in {PENDING_SPDX_LIST}: {}",
                 file.display()

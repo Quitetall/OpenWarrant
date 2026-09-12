@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-License-Identifier: Apache-2.0
 #
 # The smallest service gate: `true`. It exists so the ops work kind (1.0 plan
 # C4b) has a stage `war run` can execute in well under a second — the plants

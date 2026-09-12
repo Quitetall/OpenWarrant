@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Projections: the human Markdown parent and the canonical JSON (SAS §17, §103).
 //!
 //! §17.2: "The parent document is never authoritative merely because it is

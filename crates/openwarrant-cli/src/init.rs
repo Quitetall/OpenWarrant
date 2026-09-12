@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war init` — initialize repository configuration and directories (SAS §71.1).
 
 use std::fmt;

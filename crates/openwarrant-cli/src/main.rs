@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war` — the OpenWarrant command line interface (SAS §70–§76).
 
 #![forbid(unsafe_code)]

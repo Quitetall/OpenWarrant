@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! The corpus projection — where the whole body of Warrants stands, from
 //! records (SAS §17.5 `status`, §34.3, §98, §102 decision 8).
 //!

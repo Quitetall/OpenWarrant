@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-License-Identifier: Apache-2.0
 #
 # `war eval` on a schedule and on demand — never per PR (1.0 plan F1). The
 # fixture drafter runs for free, so the harness itself is exercised weekly

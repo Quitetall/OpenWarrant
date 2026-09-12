@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war pins` — every file some Warrant's `deliverables.toml` pins, with the
 //! Warrant's state, so an agent (or a hook) can refuse the edit BEFORE it
 //! drifts a resolved record.

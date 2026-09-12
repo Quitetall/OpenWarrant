@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! WAR identity: UUIDv7 (§12.2), local alias (§12.3), enterprise ID (§12.4).
 //!
 //! The three layers exist because they answer different questions and have

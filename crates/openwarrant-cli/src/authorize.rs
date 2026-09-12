@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war authorize` — the §28.4 authorization seam.
 //!
 //! # Two halves, and why this command cannot sign anything

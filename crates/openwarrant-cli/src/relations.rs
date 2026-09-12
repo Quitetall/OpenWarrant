@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Parent/child and supersession conformance — SAS §20, §21.
 //!
 //! OW-WAR-0043 OBL-004 asks for §91.4 test 24 and §91.5 tests 30–35 to be

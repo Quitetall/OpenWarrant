@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 
 //! `war schemas` (OW-WAR-0032): the JSON Schema pack, generated from the
 //! record types and drift-checked like every other projection.

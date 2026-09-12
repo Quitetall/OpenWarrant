@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Contract revisions and their immutability (SAS §28, §29; RQ-030, RQ-031,
 //! RQ-033, RQ-034).
 //!

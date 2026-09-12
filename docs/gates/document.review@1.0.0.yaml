@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-License-Identifier: Apache-2.0
 #
 # The document work kind's gate (SAS §43.2; 1.0 plan slice C4a). A LOCAL
 # CANDIDATE like the others (OW-ADR-0005). Lists are flow sequences and the

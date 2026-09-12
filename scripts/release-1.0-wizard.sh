@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-License-Identifier: Apache-2.0
 #
 # The 1.0 wizard: the seven acts of OW-WAR-0067, walked one at a time.
 #
@@ -102,7 +102,15 @@ say "SAS 1.0.0:      $(grep -m1 '^state' docs/sas/revisions/1.0.0.toml 2>/dev/nu
 step_relicense() {
     header 1 "relicense to Apache-2.0 (RELICENSING.md steps 1 to 6)"
     if grep -q '^license = "Apache-2.0"' Cargo.toml; then
-        say "already done: the manifest says Apache-2.0."
+        if clean_tree; then
+            say "already done: the manifest says Apache-2.0 and the tree is committed."
+            return 0
+        fi
+        say "PARTLY done: the manifest says Apache-2.0 but the tree is not committed."
+        say "A relicense is the bytes AND the records that pin them, so the rest"
+        say "of this step (re-pin, compile, gate, commit) still has to run."
+        ask "finish it?" || return 0
+        relicense_finish
         return 0
     fi
     require_clean
@@ -138,16 +146,16 @@ NOTICE_EOF
     # tolerates the old identifier for exactly these.
     "$WAR" pins --resolved-only 2>/dev/null | awk '{ print $4 }' | sort -u > /tmp/war-pinned.txt
     "$WAR" check 2>/dev/null | grep 'deliverable.digest-drift' | grep -oE 'for [^ ]+' | awk '{ print $2 }' | sort -u > /tmp/war-drifting.txt
-    grep -rl 'SPDX-License-Identifier: AGPL-3.0-or-later' crates xtask 2>/dev/null | sort > /tmp/war-spdx.txt
+    grep -rl 'SPDX-License-Identifier: Apache-2.0' crates xtask 2>/dev/null | sort > /tmp/war-spdx.txt
     comm -12 /tmp/war-spdx.txt /tmp/war-pinned.txt | comm -23 - /tmp/war-drifting.txt > RELICENSING-PENDING.txt
     say "$(wc -l < RELICENSING-PENDING.txt) file(s) stay AGPL until their correction is signed"
 
     local flipped=0 f
     while IFS= read -r f; do
         grep -qxF "$f" RELICENSING-PENDING.txt && continue
-        sed -i 's|SPDX-License-Identifier: AGPL-3.0-or-later|SPDX-License-Identifier: Apache-2.0|' "$f"
+        sed -i 's|SPDX-License-Identifier: Apache-2.0|SPDX-License-Identifier: Apache-2.0|' "$f"
         flipped=$((flipped + 1))
-    done < <(grep -rl 'SPDX-License-Identifier: AGPL-3.0-or-later' crates xtask conformance evals scripts .github docs schemas 2>/dev/null)
+    done < <(grep -rl 'SPDX-License-Identifier: Apache-2.0' crates xtask conformance evals scripts .github docs schemas 2>/dev/null)
     say "$flipped header(s) rewritten"
 
     python3 - <<'PY'
@@ -225,9 +233,15 @@ file it names, so a half-applied relicense is visible rather than silent.
   contributions and stays as history.
 ADR_EOF
 
+    relicense_finish
+}
+
+# The mechanical tail, also reachable when a previous run died part-way: the
+# re-pin comes BEFORE the gate, because the gate's corpus step reads the pins
+# the header rewrite just invalidated.
+relicense_finish() {
     run cargo fmt --all
     run cargo build --workspace
-    run cargo xtask gate
     say "re-pinning every unresolved Warrant on the new bytes"
     python3 - <<'PY'
 import hashlib, pathlib, re, subprocess
@@ -251,6 +265,7 @@ for alias, did, target in drift:
 print(f"   {n} unresolved pin(s) moved")
 PY
     run "$WAR" compile
+    run cargo xtask gate
     run git add -A
     git commit -q -F - <<'MSG_EOF'
 release: relicense to Apache-2.0 (OW-ADR-0017, OW-WAR-0067 STAGE-001)
@@ -303,7 +318,7 @@ step_sas() {
     say "One dialog. The revision folds every SAS edit of the 1.0 plan and adds"
     say "four §106 rows, so §101.3 requires the ADR flag."
     ask "sign it?" || return 0
-    run "$WAR" sign 1.0.0 --ssh-sign --adr OW-ADR-0016
+    run "$WAR" sign 1.0.0 --ssh-sign --adr OW-ADR-0016   # a path also works
     run "$WAR" compile
     run git add -A
     git commit -q -m "sas: 1.0.0 accepted (OW-WAR-0067 STAGE-003)

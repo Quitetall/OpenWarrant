@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war show` — render any §17.5 projection, and `war diff` (§71.10).
 //!
 //! # Why `show` exists at all

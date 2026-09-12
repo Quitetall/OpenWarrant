@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war watch` — tell the human when an act is waiting for them.
 //!
 //! The pending set is `sign::pending` (§27.2's human acts: authorize,

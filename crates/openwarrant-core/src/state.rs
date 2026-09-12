@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! The state model (SAS §24, RQ-032).
 //!
 //! §24 opens with "State SHALL be decomposed into independent dimensions", and

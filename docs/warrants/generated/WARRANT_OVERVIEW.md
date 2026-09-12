@@ -69,13 +69,13 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0060](docs/warrants/OW-WAR-0060/manifest.toml) | Publish the corpus viewer: GitHub Pages from the committed projection | `resolved` | `current` | `valid` | `basic` | 2M / 2S |
 | [OW-WAR-0061](docs/warrants/OW-WAR-0061/manifest.toml) | Discharge the Phase 1 exit: OpenWarrant development uses WARs | `resolved` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0062](docs/warrants/OW-WAR-0062/manifest.toml) | Lock down the levels: what a SAS, a Warrant, and every other object are | `resolved` | `current` | `valid` | `basic` | 1M / 1S |
-| [OW-WAR-0063](docs/warrants/OW-WAR-0063/manifest.toml) | Complete the conformance battery: the plants and tests the verifier named as missing | `draft` | `current` | `valid` | `basic` | 1M / 1S |
-| [OW-WAR-0064](docs/warrants/OW-WAR-0064/manifest.toml) | Repair a delivered artifact: the correction act for a resolved Warrant | `draft` | `current` | `valid` | `controlled` | 5M / 3S |
-| [OW-WAR-0065](docs/warrants/OW-WAR-0065/manifest.toml) | Research memo: which tokenizer approximation OpenWarrant uses for §33.7 budgets | `draft` | `current` | `valid` | `basic` | 1M / 1S |
-| [OW-WAR-0066](docs/warrants/OW-WAR-0066/manifest.toml) | Run: the conformance battery as a service stage | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0067](docs/warrants/OW-WAR-0067/manifest.toml) | Release 1.0: the seven acts that close the plan, deferred to the owner's signature | `draft` | `current` | `valid` | `basic` | 3M / 7S |
-| [OW-WAR-0068](docs/warrants/OW-WAR-0068/manifest.toml) | Skills: a strict superset of the Pocock set over the deterministic core | `draft` | `current` | `valid` | `basic` | 3M / 7S |
-| [OW-WAR-0069](docs/warrants/OW-WAR-0069/manifest.toml) | The board, the hotline, and the harness: one system from master record to running agents | `draft` | `current` | `valid` | `basic` | 3M / 5S |
+| [OW-WAR-0063](docs/warrants/OW-WAR-0063/manifest.toml) | Complete the conformance battery: the plants and tests the verifier named as missing | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0064](docs/warrants/OW-WAR-0064/manifest.toml) | Repair a delivered artifact: the correction act for a resolved Warrant | `authorized` | `current` | `valid` | `controlled` | 5M / 3S |
+| [OW-WAR-0065](docs/warrants/OW-WAR-0065/manifest.toml) | Research memo: which tokenizer approximation OpenWarrant uses for §33.7 budgets | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0066](docs/warrants/OW-WAR-0066/manifest.toml) | Run: the conformance battery as a service stage | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0067](docs/warrants/OW-WAR-0067/manifest.toml) | Release 1.0: the seven acts that close the plan, deferred to the owner's signature | `authorized` | `current` | `valid` | `basic` | 3M / 7S |
+| [OW-WAR-0068](docs/warrants/OW-WAR-0068/manifest.toml) | Skills: a strict superset of the Pocock set over the deterministic core | `authorized` | `current` | `valid` | `basic` | 3M / 7S |
+| [OW-WAR-0069](docs/warrants/OW-WAR-0069/manifest.toml) | The board, the hotline, and the harness: one system from master record to running agents | `authorized` | `current` | `valid` | `basic` | 3M / 5S |
 
 ## Claimed SAS requirement coverage
 

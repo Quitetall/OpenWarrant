@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Verification records — who checked an obligation, and how independent they were (SAS §46, §38.5).
 //!
 //! # Why independence moved out of the repository config

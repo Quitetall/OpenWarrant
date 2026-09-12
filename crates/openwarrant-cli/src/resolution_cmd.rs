@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! §56.2 resolution: the third two-half seam.
 //!
 //! `war authorize` (§28.4) and `war sas accept` (§101.2) established the shape:

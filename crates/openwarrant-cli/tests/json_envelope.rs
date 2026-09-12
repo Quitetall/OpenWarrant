@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `--json` (SAS §76.4): every envelope has the frozen keys, the exit code in
 //! the envelope equals the process's, and stdout is exactly one JSON value.
 //!

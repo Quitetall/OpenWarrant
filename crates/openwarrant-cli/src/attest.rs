@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war attest` — attestations for ssh-signed acts (OW-ADR-0015).
 //!
 //! After `war sign --ssh-sign` ingests an authorization, resolution,

@@ -21,7 +21,7 @@ rust-version = "1.97.1"
 # dependency is permissive (gated by `cargo deny check licenses`) and the
 # contribution terms are in place. This string lives in exactly one place because
 # the relicense changes it.
-license = "AGPL-3.0-or-later"
+license = "Apache-2.0"
 repository = "https://github.com/Quitetall/OpenWarrant"
 homepage = "https://github.com/Quitetall/OpenWarrant"
 authors = ["Brian Lam <briankhanglam@gmail.com>"]

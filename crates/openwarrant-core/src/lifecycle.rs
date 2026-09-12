@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! ADR relations and currency (SAS §19.2, §19.4, §21), read projections
 //! (§17.5), telemetry (§94), and untracked-work detection (§95).
 //! RQ-020, RQ-024, RQ-025, RQ-073.

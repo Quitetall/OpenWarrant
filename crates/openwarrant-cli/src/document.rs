@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war document review [alias]` — the document work kind's gate (slice C4a).
 //!
 //! A research memo, a decision record or a written analysis is delivered as

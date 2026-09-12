@@ -2,7 +2,7 @@
 
 ## Read this first: the licensing constraint
 
-OpenWarrant ships **AGPL-3.0-or-later** today and is intended to be relicensed
+OpenWarrant ships **Apache-2.0** (relicensed 2026-09-12, OW-ADR-0017); before that date it shipped AGPL-3.0-or-later and was relicensed
 **Apache-2.0** when it goes public. That is not an administrative detail you can
 ignore — it constrains what you may contribute.
 

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! The WAR manifest — composition and relations (SAS §61).
 //!
 //! §61.1: "The manifest defines composition and relations. It does not duplicate

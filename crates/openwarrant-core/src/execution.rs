@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Dispatch, submission, attempts, and the four remedies (SAS §47, §51–§53).
 //! RQ-042, RQ-043, RQ-045.
 //!

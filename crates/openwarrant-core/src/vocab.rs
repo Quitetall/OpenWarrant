@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! One macro for the SAS's closed vocabularies.
 //!
 //! The specification is largely a set of fixed word lists — §33.2's nine context

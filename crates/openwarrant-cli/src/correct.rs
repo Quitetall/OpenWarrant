@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war correct` — the correction act (OW-WAR-0064): the fifth two-half seam.
 //!
 //! An agent may EMIT a request naming a resolved Warrant's deliverable, the

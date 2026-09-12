@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Render the corpus projection (SAS §17.5 `status`, corpus form).
 //!
 //! Two outputs from one value: Markdown for a person, RFC 8785 canonical JSON

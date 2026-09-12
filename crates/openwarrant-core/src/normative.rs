@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! The SAS's normative projection (slice E1): every SHALL / SHALL NOT /
 //! MUST / MUST NOT / SHOULD / SHOULD NOT / MAY sentence of the document, with
 //! the section it sits in. Agents read this instead of the whole document:

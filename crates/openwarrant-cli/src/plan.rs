@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war plan` — the drafting seam (§71.3, §74, §75.2) with something on the
 //! other side.
 //!

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Compilation from source atoms to canonical WAR IR and projections.
 //!
 //! Governed by WAR SAS v0.1.0-draft.1. Section references cite that document.

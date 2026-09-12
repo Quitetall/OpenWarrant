@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Actor authority — who may exercise which role (SAS §27).
 //!
 //! # Two vocabularies share the word "role"

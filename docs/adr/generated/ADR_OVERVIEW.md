@@ -25,6 +25,7 @@ Source: ADR atoms under the configured adrs path.
 | [OW-ADR-0014](docs/adr/atoms/OW-ADR-0014-async-runtime-for-mcp-transport.md) | ADR OW-0014: an async runtime is admitted for the MCP transport, and nowhere else | `proposed` | no | `war://01a021a2-b570-7f57-85b2-0f8189873d9e` |
 | [OW-ADR-0015](docs/adr/atoms/OW-ADR-0015-attestation-envelope.md) | ADR OW-0015: every ssh-signed act is attested as an in-toto Statement in a DSSE envelope | `proposed` | no | `war://01a021a2-b570-7f57-85b2-0f8189873d9e` |
 | [OW-ADR-0016](docs/adr/atoms/OW-ADR-0016-sas-1-0-0.md) | ADR OW-0016: SAS 1.0.0 — one architecture-changing revision, accepted with the release | `proposed` | no | `war://01a021a2-b570-7f57-85b2-0f8189873d9e` |
+| [OW-ADR-0017](docs/adr/atoms/OW-ADR-0017-relicense-apache-2-0.md) | ADR OW-0017: relicense from AGPL-3.0-or-later to Apache-2.0 | `accepted` | yes | `war://01a021a2-b570-7f57-85b2-0f8189873d9e` |
 
 ## Proposed
 
@@ -46,6 +47,7 @@ Source: ADR atoms under the configured adrs path.
 - **OW-ADR-0005** ADR OW-0005: A local gate is a candidate, and a gate is not a string — 2026-08-19
 - **OW-ADR-0006** ADR OW-0006: Execution status and migration class are two vocabularies, and the verdict keeps its unknown — 2026-08-19
 - **OW-ADR-0008** ADR OW-0008: §91.2 tests 11, 13, 14 and 15, dispositioned against the specification text — 2026-08-22
+- **OW-ADR-0017** ADR OW-0017: relicense from AGPL-3.0-or-later to Apache-2.0
 
 ## Rejected, Withdrawn, or Falsified
 
@@ -1536,3 +1538,44 @@ new revision and a re-authorization.
 - Leaving §106 unchanged and describing the additions in prose: rejected —
   the rows are what Warrants `implements`, and four deliveries would have
   nothing to trace to.
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-0017-relicense-apache-2-0.md · uuid: 7a3d9c1e-5b28-4f0a-9e64-2c8b1d7f3a90 -->
+
+# ADR OW-0017: relicense from AGPL-3.0-or-later to Apache-2.0
+
+## Status
+
+Accepted 2026-09-12 by the repository owner, who ran the relicense through
+`scripts/release-1.0-wizard.sh` at the workstation.
+
+## Context
+
+RELICENSING.md set two preconditions and kept them true from the first commit:
+every dependency permissive, gated by `cargo deny check licenses` on every gate
+run, and the copyright ours to relicense (one author, with contribution terms
+written down ahead of any outside contribution). Apache-2.0 carries an express
+patent grant, which is worth more to a protocol implementation others
+interoperate with than MIT's brevity. The 1.0 release publishes four crates,
+and a version published under AGPL-3.0-or-later could never be relicensed
+afterwards, so the flip precedes the tag.
+
+## Decision
+
+`license = "Apache-2.0"`, the Apache-2.0 text as LICENSE, a NOTICE, the
+`SPDX-License-Identifier` header rewritten in every file the wall allows, the
+`deny.toml` exception for our own licence removed. Versions distributed before
+2026-09-12 remain available under AGPL-3.0-or-later; nothing is withdrawn.
+
+A file pinned by a RESOLVED Warrant keeps the old identifier until the
+correction that frees it, and is listed in RELICENSING-PENDING.txt meanwhile.
+`cargo xtask gate` ratchets on that list: the old identifier passes only for a
+file it names, so a half-applied relicense is visible rather than silent.
+
+## Consequences
+
+- `release.yml`'s crates job, which refuses any other licence, can publish.
+- Each listed file costs one correction, signed with its own reason.
+- CONTRIBUTING.md's dual-licence contribution term is moot for new
+  contributions and stays as history.

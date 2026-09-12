@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war telemetry` — §94's baseline, §95's untracked-work candidates, §100's metrics.
 //!
 //! # Why a measure may not be zero

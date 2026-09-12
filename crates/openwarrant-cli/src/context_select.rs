@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Stage-relevant context selection (slice C1; SAS §47.2 "select only
 //! stage-relevant context", §33 context manifest).
 //!

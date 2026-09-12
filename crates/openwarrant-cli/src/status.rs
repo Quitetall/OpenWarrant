@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war status` — build the corpus projection from records (SAS §17.5 `status`,
 //! corpus form; §34.3; §98; §102 decision 8).
 //!

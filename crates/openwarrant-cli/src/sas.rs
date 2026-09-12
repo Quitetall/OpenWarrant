@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war sas` — the SAS as a controlled document (SAS §101; §34.1–§34.4).
 //!
 //! # Two halves, again
@@ -253,15 +253,30 @@ pub fn accept_ingest(
         refuse(&mut report, "sas.not-permitted", e.to_string());
         return Ok(report);
     }
+    // §101.3's ADR, named either way a person would name it: the path to the
+    // atom, or the local alias the atom declares. An alias is what `war sign
+    // --adr` is given and what the ADR calls itself, so resolving it here is
+    // the difference between a refusal and a signature for the same intent.
     if let Some(adr) = &response.adr_ref
         && !repo.root.join(adr).is_file()
     {
-        refuse(
-            &mut report,
-            "sas.adr-missing",
-            format!("adr_ref {adr:?} names no file"),
-        );
-        return Ok(report);
+        let known = repo.load_adrs().map(|a| a.records).unwrap_or_default();
+        if !known.iter().any(|r| &r.local_alias == adr) {
+            let aliases: Vec<&str> = known.iter().map(|r| r.local_alias.as_str()).collect();
+            refuse(
+                &mut report,
+                "sas.adr-missing",
+                format!(
+                    "adr_ref {adr:?} is neither a file in this repository nor the local alias of a recorded ADR. Recorded: {}",
+                    if aliases.is_empty() {
+                        "none".to_owned()
+                    } else {
+                        aliases.join(", ")
+                    }
+                ),
+            );
+            return Ok(report);
+        }
     }
     let accepted = record
         .accept(SasAcceptance {

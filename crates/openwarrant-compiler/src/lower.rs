@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Lowering a Compilation Basis to the canonical IR (SAS §14, §63).
 
 use openwarrant_core::{Manifest, ValidatedManifest};

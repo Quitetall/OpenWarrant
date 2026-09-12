@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Gate receipts as committed evidence (§44.6, §56.1 requirement 5).
 //!
 //! # The gap this closes

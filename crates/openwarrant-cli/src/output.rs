@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Machine output for every command (SAS §76.4): one envelope, one schema.
 //!
 //! §76.4 says every command SHOULD support `--json` with a stable versioned

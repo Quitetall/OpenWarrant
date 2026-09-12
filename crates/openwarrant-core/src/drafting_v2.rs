@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `oh.war/draft-proposal/v2` — a Draft Proposal whose operations carry what
 //! they operate on (OW-ADR-0013).
 //!

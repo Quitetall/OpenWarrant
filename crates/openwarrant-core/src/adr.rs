@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! ADR atoms and their lifecycle (SAS §19).
 //!
 //! §4.3: "**ADR** continues to mean **Architecture Decision Record**.

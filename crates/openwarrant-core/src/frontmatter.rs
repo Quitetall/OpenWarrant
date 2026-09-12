@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! The restricted frontmatter reader (OW-ADR-0002, SAS §62).
 //!
 //! This is **not** a YAML parser and must not grow into one. It accepts a

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war check` — deterministic, agent-free validation (SAS §71.7, RQ-074).
 //!
 //! No model, no network, no clock. Reproducibility is not a nicety here: a

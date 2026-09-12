@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Markdown sections by heading, for context selection (slice C1).
 //!
 //! A section is a heading line and everything up to the next heading of the

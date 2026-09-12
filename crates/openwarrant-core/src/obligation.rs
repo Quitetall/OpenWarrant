@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Acceptance obligations and bounded claims (SAS §38; RQ-050, RQ-051).
 //!
 //! §38.1: "A completion summary SHALL be decomposed into bounded acceptance

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! RFC 8785 canonicalization and domain-separated digests (SAS §65).
 //!
 //! Implementation selected by OW-ADR-0001 on measured conformance.

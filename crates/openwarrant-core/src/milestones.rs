@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Milestones and stages (SAS §23), executor kinds (§23.4), named typed ports
 //! (§23.5), and responsibility tiers (§26).
 //!

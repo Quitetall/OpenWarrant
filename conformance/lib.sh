@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-License-Identifier: Apache-2.0
 #
 # Planted-violation battery (SAS §92, §90) — helpers, guard, restore, and the
 # positive corpus check. Sourced by `plant.sh`; the plants are in `plants.d/`.

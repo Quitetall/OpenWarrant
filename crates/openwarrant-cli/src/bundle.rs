@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war verify <alias> --bundle` / `--run` — the verification bundle and a
 //! configured verifier (slice C3; SAS §46, §75.2).
 //!

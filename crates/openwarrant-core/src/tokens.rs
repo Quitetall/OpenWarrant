@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Token accounting for Dispatches (slice C2; SAS §33.7 "the compiler SHALL
 //! record a budget").
 //!

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Verifier independence (SAS §46, RQ-053).
 //!
 //! # What independence is for

@@ -44,10 +44,6 @@ confidence-threshold = 0.93
 # Our own crates are AGPL-3.0-or-later, which is correct and must not be
 # confused with a dependency being AGPL. Exempt them by name so the allowlist
 # above stays a statement purely about third-party code.
-[[licenses.exceptions]]
-name = "openwarrant-core"
-allow = ["AGPL-3.0-or-later"]
-
 # Mozilla's CA root bundle, under CDLA-Permissive-2.0.
 #
 # A NARROW exception, which is what the header above says to do rather than
