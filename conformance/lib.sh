@@ -212,3 +212,19 @@ fi
 echo
 echo "== planted violations =="
 
+# The committed openwarrant.toml names a real drafter (OW-WAR-0042). A plant
+# that needs NO drafter, or a fixture one, rewrites the `[plan]` table rather
+# than appending a second (a duplicate table is a TOML error, not a plant) —
+# and never lets the real agent run inside the battery.
+plan_clear_drafter() {
+    python3 - <<'PY'
+import pathlib, re
+p = pathlib.Path("openwarrant.toml"); s = p.read_text()
+s = re.sub(r'\n\[plan\]\n(?:(?!\[).*\n?)*', '\n', s)
+p.write_text(s.rstrip("\n") + "\n")
+PY
+}
+plan_set_drafter() {
+    plan_clear_drafter
+    printf '\n[plan]\n%s\n' "$1" >> openwarrant.toml
+}

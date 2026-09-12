@@ -60,7 +60,10 @@ same two modes.
 
 `war eval run` writes canonical JSON (`oh.war/eval-result/v1`) to
 `evals/results/<sha>-<drafter>.json` (or `--out`), with timings in a sibling
-`.timing.json` so the result itself is deterministic. Per task: the rung, the
+`.timing.json` so the result itself is deterministic — except a run-kind
+task's token numbers, which include a receipt with wall-clock durations; the
+result marks them `tokens.stable = false` and the determinism plant drops
+them before comparing. Per task: the rung, the
 expected rung, tokens (request, Dispatch, bundle, method), obligations
 established/total, requirements unmet, refusals hit, every step's exit code
 and verdict, and the §74.4 gauntlet as `plan.apply` reported it.

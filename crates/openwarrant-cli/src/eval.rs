@@ -145,6 +145,10 @@ pub struct Tokens {
     pub bundle: u64,
     pub total: u64,
     pub method: String,
+    /// False for the run kind: its bundle carries a receipt, and a receipt
+    /// carries wall-clock durations, so the estimate moves by a token or two
+    /// between identical runs. A comparison should drop the numbers then.
+    pub stable: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -665,6 +669,7 @@ fn run_task(
         gauntlet: None,
         tokens: Tokens {
             method: openwarrant_core::tokens::METHOD.to_owned(),
+            stable: task.kind != "run",
             ..Tokens::default()
         },
         max_tokens: task.max_tokens,

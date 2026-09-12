@@ -45,19 +45,39 @@ fi
 eval_expect "an unaffordable task is over_budget" 0 "over_budget (expected over_budget)" \
     eval run --tasks-dir conformance/fixtures/eval/tasks --drafter "$EVAL_DRAFTER" --verifier "$EVAL_VERIFIER" --out "$EVAL_TMP/budget.json"
 
-# No drafter anywhere: a seam with nothing on the other side says so.
+# No drafter anywhere: a seam with nothing on the other side says so. The
+# committed config names the real agent (OW-WAR-0042); it is cleared for this
+# plant and restored after, so the battery never spends a model call.
+plan_clear_drafter
 eval_expect "no drafter is a named refusal" 1 "eval.no-drafter" \
     eval run --task code-01-changelog --out "$EVAL_TMP/none.json"
+restore
 
 # Determinism: two full runs of the fixture drafter are byte-identical.
 "$WAR" eval run --drafter "$EVAL_DRAFTER" --verifier "$EVAL_VERIFIER" --out "$EVAL_TMP/run1.json" >/dev/null 2>&1
 "$WAR" eval run --drafter "$EVAL_DRAFTER" --verifier "$EVAL_VERIFIER" --out "$EVAL_TMP/run2.json" >/dev/null 2>&1
-if cmp -s "$EVAL_TMP/run1.json" "$EVAL_TMP/run2.json" && [[ -s "$EVAL_TMP/run1.json" ]]; then
+# A run-kind task's bundle carries its receipt, and a receipt carries
+# wall-clock durations, so its token estimate is not a function of the task;
+# the result says so (`tokens.stable = false`) and the comparison drops those
+# numbers and nothing else.
+eval_stable() {
+    python3 -c '
+import json, sys
+r = json.load(open(sys.argv[1]))
+for t in r["tasks"]:
+    if not t["tokens"].get("stable", True):
+        t["tokens"] = {k: v for k, v in t["tokens"].items() if k in ("method", "stable")}
+json.dump(r, open(sys.argv[2], "w"), sort_keys=True)
+' "$1" "$2"
+}
+eval_stable "$EVAL_TMP/run1.json" "$EVAL_TMP/run1.stable.json"
+eval_stable "$EVAL_TMP/run2.json" "$EVAL_TMP/run2.stable.json"
+if cmp -s "$EVAL_TMP/run1.stable.json" "$EVAL_TMP/run2.stable.json" && [[ -s "$EVAL_TMP/run1.json" ]]; then
     printf 'ok    %-34s two runs, one result\n' "the fixture result is deterministic"
     PASSED=$((PASSED + 1))
 else
     printf 'FAIL  %-34s the two results differ:\n%s\n' "the fixture result is deterministic" \
-        "$(diff <(python3 -m json.tool "$EVAL_TMP/run1.json" 2>/dev/null) <(python3 -m json.tool "$EVAL_TMP/run2.json" 2>/dev/null) | head -6)"
+        "$(diff <(python3 -m json.tool "$EVAL_TMP/run1.stable.json" 2>/dev/null) <(python3 -m json.tool "$EVAL_TMP/run2.stable.json" 2>/dev/null) | head -6)"
     FAILED=$((FAILED + 1))
 fi
 

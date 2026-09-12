@@ -31,22 +31,6 @@ plant_cmd "write_file is not an operation" "did not parse" "write_file" 1 \
     plan --proposal "$FX/proposals/v2-write-file.json" --reviewed
 
 
-# The committed openwarrant.toml names a real drafter (OW-WAR-0042), so a
-# plant that wants a fixture drafter REPLACES the `[plan]` table instead of
-# appending a second one (a duplicate table is a TOML error, not a plant).
-plan_clear_drafter() {
-    python3 - <<'PY'
-import pathlib, re
-p = pathlib.Path("openwarrant.toml"); s = p.read_text()
-s = re.sub(r'\n\[plan\]\n(?:(?!\[).*\n?)*', '\n', s)
-p.write_text(s.rstrip("\n") + "\n")
-PY
-}
-plan_set_drafter() {
-    plan_clear_drafter
-    printf '\n[plan]\n%s\n' "$1" >> openwarrant.toml
-}
-
 # No drafter configured: --draft says so rather than inventing one.
 plant_cmd "no drafter configured" "no drafter is configured" "drafter_argv" 1 \
     "plan_clear_drafter; assert_gone 'drafter_argv' openwarrant.toml" \
