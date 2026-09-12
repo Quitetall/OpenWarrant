@@ -334,6 +334,20 @@ fn compile(
 
 /// Spawn the performer with the Dispatch on stdin, under a wall-clock bound.
 ///
+/// # Platform
+///
+/// The group kill is unix-only: elsewhere the deadline reaches the process this
+/// spawned and not the children it spawned, so a performer that backgrounds its
+/// work can outlive its bound there. The crate ships for linux and macOS; a
+/// Windows port owes this function a job object.
+///
+/// If the read grace expires the reader thread is left detached, still holding
+/// the performer's pipes. The group kill makes that vanishingly rare — it takes
+/// a grandchild wedged in uninterruptible sleep — and the alternative, joining
+/// it, is the ten-minute hang this bound exists to prevent. A long
+/// `war perform --all` on a box doing that repeatedly would accumulate threads;
+/// what it must never do is stall, which it now cannot.
+///
 /// Its stdout is written verbatim to `dispatches/answer-<dispatch>.json` and
 /// ingested from there, so what the tool validated is a file a reader can open
 /// rather than a string that lived only in this process. It is deliberately NOT
@@ -371,7 +385,7 @@ fn hand_over(
         // by a broken pipe here.
         let _ = stdin.write_all(body.as_bytes());
     }
-    let mut stdout = child.stdout.take().expect("piped");
+    let stdout = child.stdout.take().expect("piped");
     let mut stderr = child.stderr.take().expect("piped");
     let (tx, rx) = std::sync::mpsc::channel();
     // Set the moment the performer writes past the cap, so the wait below ends
@@ -382,10 +396,7 @@ fn hand_over(
     std::thread::spawn(move || {
         // `take`, not `read_to_string`: the cap is the whole point.
         let mut out = String::new();
-        let _ = stdout
-            .by_ref()
-            .take(STDOUT_CAP + 1)
-            .read_to_string(&mut out);
+        let _ = stdout.take(STDOUT_CAP + 1).read_to_string(&mut out);
         if out.len() as u64 > STDOUT_CAP {
             flag.store(true, std::sync::atomic::Ordering::Release);
         }
