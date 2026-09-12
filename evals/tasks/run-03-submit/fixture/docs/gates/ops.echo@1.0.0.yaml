@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# The smallest service gate: `true`. It exists so the ops work kind (1.0 plan
+# C4b) has a stage `war run` can execute in well under a second — the plants
+# need a run that passes, one that is refused, and one that times out, without
+# waiting on the battery. A LOCAL CANDIDATE (OW-ADR-0005); shapes per
+# OW-ADR-0003's reader.
+
+gate_id: "ops.echo"
+version: "1.0.0"
+lifecycle: "qualified"
+implementation_ref: "artifact://coreutils/true"
+output_schema_ref: "schema://exit-status/v1"
+provenance: "local_candidate"
+input_kinds: ["stage-dispatch"]
+argv: ["true"]
+mutating: "false"
+timeout_secs: "5"
+fault_model: ["service-stage-cannot-run"]
+known_blind_spots: ["Passes whenever `true` exits 0; it verifies nothing about the stage but that the service seam executed it and minted a receipt."]
+qualification_qualifier: "QuiteTall via conformance/plants.d/86-run.sh, run by cargo xtask gate"
+qualification_digest: ""
+qualification_positive_controls: ["A service stage bound to this gate runs, passes, mints a receipt whose subject is the dispatch digest, and submits `verify`."]
+qualification_negative_controls: ["A human stage is refused before anything runs; an unknown gate is refused by name."]
+qualification_mutation_classes: ["substitution (executor_kind, executor_ref, wall_time_seconds)"]
+qualification_environments: ["linux-x86_64, rustc 1.97.1 pinned by rust-toolchain.toml"]
+qualification_limitations: ["A gate that always passes qualifies the seam, not any work."]
+detection_results:
+  - fault_class: "service-stage-cannot-run"
+    mutation: "stage marked human; executor_ref pointed at an unregistered gate"
+    detected: "true"

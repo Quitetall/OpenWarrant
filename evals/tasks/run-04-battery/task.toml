@@ -1,0 +1,7 @@
+schema = "oh.war/eval-task/v1"
+sentence = "run the conformance battery as a stage"
+kind = "run"
+expected_gate = "ops.echo@1.0.0"
+max_tokens = 12000
+max_wall_secs = 120
+expected = "would_satisfy"

@@ -1,0 +1,8 @@
+schema = "oh.war/eval-task/v1"
+sentence = "add a CHANGELOG to this repository"
+kind = "code"
+expected_gate = "software.repo.war-check@1.0.0"
+# One token: the loop cannot fit, and the rung must say so, not `would_satisfy`.
+max_tokens = 1
+max_wall_secs = 120
+expected = "over_budget"

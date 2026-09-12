@@ -19,3 +19,6 @@ __pycache__/
 # `cargo xtask gate`. A receipt becomes committed evidence deliberately, as part
 # of a resolution (OW-WAR-0046 deliverable 3), not as a side effect of running.
 docs/receipts/
+
+# war eval writes a result per run; only the baseline is committed.
+evals/results/

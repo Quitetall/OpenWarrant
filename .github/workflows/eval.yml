@@ -1,0 +1,49 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# `war eval` on a schedule and on demand — never per PR (1.0 plan F1). The
+# fixture drafter runs for free, so the harness itself is exercised weekly
+# even when no model-backed drafter is configured. A model-backed run needs
+# `[plan] drafter_argv` and its secret, and is a workflow_dispatch input.
+name: eval
+
+on:
+  workflow_dispatch:
+    inputs:
+      drafter:
+        description: "One executable path in this checkout, invoked as the drafter and performer. Default: the fixture agent."
+        required: false
+        default: "evals/fixtures/fixture-agent.sh"
+  schedule:
+    - cron: "17 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  eval:
+    name: eval
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+      - name: Build
+        run: cargo build -p openwarrant-cli
+      - name: Run the eval
+        env:
+          # Read through the environment, never interpolated into the script:
+          # a workflow_dispatch input is untrusted text.
+          DRAFTER: ${{ github.event.inputs.drafter || 'evals/fixtures/fixture-agent.sh' }}
+        run: |
+          set -euo pipefail
+          case "$DRAFTER" in
+            -*|*' '*|*$'\n'*) echo "::error::drafter must be one executable path, no flags, no spaces" && exit 1 ;;
+          esac
+          [[ -x "$DRAFTER" ]] || { echo "::error::$DRAFTER is not an executable in this checkout" && exit 1; }
+          ./target/debug/war eval run --drafter "$DRAFTER" --verifier conformance/fixtures/verifier/establishes-all.sh --out evals/results/ci.json
+      - name: Compare with the baseline
+        run: ./target/debug/war eval verify evals/results/ci.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: eval-result
+          path: evals/results/

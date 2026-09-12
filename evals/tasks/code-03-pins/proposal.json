@@ -1,0 +1,51 @@
+{
+  "api_version": "oh.war/draft-proposal/v2",
+  "proposed_identity": {
+    "title": "Code: Tell an agent which files it may not edit",
+    "profile": "delivery",
+    "assurance": "basic"
+  },
+  "operations": [
+    {
+      "op": "create_atom",
+      "role": "intent",
+      "ordinal": 10,
+      "path": "10-intent.md",
+      "body": "# Intent\n\n## Problem\n\nAn agent learns a file is pinned only after the digest drifts.\n\n## Desired Outcome\n\n`docs/PINS.md` exists and is pinned.\n\n## Scope\n\nThis program only.\n\n## Non-goals\n\n- Anything a person must sign: the loop stops at a resolution request.\n\n## SAS and Roadmap Traceability\n\n`sas://{{NS}}-SAS-RQ-001` through `roadmap://{{NS}}-PHASE-1/adopt`.\n"
+    },
+    {
+      "op": "create_atom",
+      "role": "basis",
+      "ordinal": 20,
+      "path": "20-basis.md",
+      "body": "# Basis\n\n## Governing text\n\n- SAS \u00a774 (drafting), \u00a747 (dispatch), \u00a751 (submission), \u00a738.6 (what a resolution may say).\n\n## Assumptions carried in\n\n- The verifier is blind to the performer's transcript.\n"
+    },
+    {
+      "op": "create_atom",
+      "role": "work_order",
+      "ordinal": 40,
+      "path": "40-work-order.md",
+      "body": "# Work Order\n\n## Deliverables\n\n1. `docs/PINS.md` \u2014 tell an agent which files it may not edit.\n\n## Frozen Surfaces\n\nEverything the deliverable does not name.\n\n## Premade Instructions\n\n- List the resolved Warrants' targets and the command that prints them.\n\n## Autonomy and Escalation\n\nTier T1; stop at the first refusal.\n\n## Rollback\n\nDelete the deliverable.\n"
+    },
+    {
+      "op": "create_atom",
+      "role": "milestones",
+      "ordinal": 45,
+      "path": "45-milestones.yaml",
+      "body": "schema: \"oh.war/milestones/v1\"\n\nmilestones:\n  - id: \"M1\"\n    title: \"Delivered\"\n    stage_refs: [\"STAGE-001\"]\n    obligation_refs: [\"OBL-001\"]\n\nstages:\n  - id: \"STAGE-001\"\n    title: \"Deliver\"\n    executor_kind: \"agent\"\n    executor_ref: \"agent://fixture-agent\"\n    responsibility_tier: \"T1\"\n    context_sections: [\"40-work-order.md#Premade Instructions\", \"40-work-order.md#Deliverables\"]\n    budget_tokens: 8000\n"
+    },
+    {
+      "op": "create_atom",
+      "role": "assurance",
+      "ordinal": 60,
+      "path": "60-assurance.md",
+      "body": "# Assurance\n\n## Acceptance Obligations\n\n### OBL-001 \u2014 `docs/PINS.md` is delivered and reviewed\n- **scope:** the deliverable.\n- **gate:** `gate://software.repo.war-check@1.0.0`\n- **evidence:** a \u00a744.6 receipt from the gate, verdict pass, and an independent verification.\n\n## Gate Adequacy\n\nRequired at `basic`.\n\n**Adversarial question:** can the deliverable be missing while the gate passes? Not with a content-addressed deliverable: `war resolve` recomputes the digest.\n\n- **outcome:** gap_accepted\n\n## Residual Risk\n\n- The fixture performer copies a committed delivery; a model would have to write it.\n"
+    },
+    {
+      "op": "add_relation",
+      "relation_kind": "roadmap",
+      "relation_ref": "roadmap://{{NS}}-PHASE-1/adopt"
+    }
+  ],
+  "risk_assessment": "a throwaway program; nothing is signed"
+}

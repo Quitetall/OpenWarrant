@@ -21,6 +21,7 @@ mod correct;
 mod diagnostic;
 mod dispatch;
 mod document;
+mod eval;
 mod evidence;
 mod export;
 mod gate_cmd;
@@ -169,6 +170,40 @@ struct Cli {
     json: bool,
     #[command(subcommand)]
     command: Command,
+}
+
+#[derive(Subcommand)]
+enum EvalCommand {
+    /// Run every task (or one) and write `evals/results/<sha>-<drafter>.json`.
+    Run {
+        /// One task id under the tasks directory.
+        #[arg(long)]
+        task: Option<String>,
+        /// The drafter argv, one element per flag (repeat --drafter). Falls
+        /// back to `[plan] drafter_argv`.
+        #[arg(long = "drafter", value_name = "ARGV")]
+        drafter: Vec<String>,
+        /// The verifier argv, one element per flag. Falls back to
+        /// `[verify] verifier_argv`.
+        #[arg(long = "verifier", value_name = "ARGV")]
+        verifier: Vec<String>,
+        /// Where to write the result (canonical JSON; timings beside it).
+        #[arg(long, value_name = "FILE")]
+        out: Option<Utf8PathBuf>,
+        /// Keep each scratch program for inspection.
+        #[arg(long)]
+        keep: bool,
+        /// The tasks directory.
+        #[arg(long, default_value = eval::DEFAULT_TASKS_DIR, value_name = "DIR")]
+        tasks_dir: Utf8PathBuf,
+    },
+    /// Compare a result against the committed baseline, one rung per task.
+    Verify {
+        /// The result file to compare.
+        result: Utf8PathBuf,
+        #[arg(long, default_value = eval::DEFAULT_BASELINE, value_name = "FILE")]
+        baseline: Utf8PathBuf,
+    },
 }
 
 #[derive(Subcommand)]
@@ -597,6 +632,13 @@ enum Command {
         /// Every attestation in the repository (the xtask step).
         #[arg(long)]
         all: bool,
+    },
+    /// The agent loop, measured (1.0 plan F1): scaffold a throwaway program
+    /// per task, draft, dispatch, perform, verify blind, and ask what a
+    /// resolution would say. Nothing is authorized, resolved or signed.
+    Eval {
+        #[command(subcommand)]
+        command: EvalCommand,
     },
     /// Tell the human when an act awaits them: print the pending set, then
     /// poll the record trees and print what appears or is signed away.
@@ -1405,6 +1447,41 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 }
             };
             Ok(output::finish(mode, "attest", &report, None))
+        }
+        Command::Eval { command } => {
+            let repository = repo::Repository::discover(None)?;
+            match command {
+                EvalCommand::Run {
+                    task,
+                    drafter,
+                    verifier,
+                    out,
+                    keep,
+                    tasks_dir,
+                } => {
+                    let opts = eval::Options {
+                        tasks_dir,
+                        only: task,
+                        drafter,
+                        verifier,
+                        out,
+                        keep,
+                    };
+                    let (report, result, path) = eval::run(&repository, &opts)?;
+                    let mut value = output::value(&result);
+                    if let Some(obj) = value.as_object_mut() {
+                        obj.insert(
+                            "result_path".to_owned(),
+                            serde_json::Value::String(repository.relative(&path)),
+                        );
+                    }
+                    Ok(output::finish(mode, "eval.run", &report, Some(value)))
+                }
+                EvalCommand::Verify { result, baseline } => {
+                    let report = eval::verify(&repository, &result, &baseline)?;
+                    Ok(output::finish(mode, "eval.verify", &report, None))
+                }
+            }
         }
         Command::Watch {
             once,

@@ -89,3 +89,7 @@ is deliberately not one.
 
 `docs/EXAMPLES/` — a code Warrant walked end to end from this repository's own
 records.
+
+Measuring a drafter instead of using one: `war eval run --drafter <argv>` runs
+twelve fixed tasks in throwaway programs and scores each on a ladder; see
+`docs/EVAL.md`.

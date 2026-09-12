@@ -60,6 +60,7 @@ pub const REFUSED_TOOLS: &[&str] = &[
     "war_migrate",
     "war_export",
     "war_bonsai",
+    "war_eval",
     "war_init",
     "war_gate_record",
     "war_plan_draft",
