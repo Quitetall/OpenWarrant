@@ -40,6 +40,7 @@ mod show;
 mod sign;
 mod status;
 mod telemetry;
+mod timeline;
 mod verify;
 mod watch;
 
@@ -579,6 +580,12 @@ enum Command {
         /// A Warrant's local alias. Omit for the whole corpus. (`--json` is the
         /// global flag; for the corpus it yields the canonical projection.)
         alias: Option<String>,
+        /// The corpus timeline (`oh.war/corpus-timeline/v1`) instead of the status.
+        #[arg(long, conflicts_with_all = ["alias", "pending"])]
+        timeline: bool,
+        /// The pending human acts (`oh.war/corpus-pending/v1`) instead of the status.
+        #[arg(long, conflicts_with = "alias")]
+        pending: bool,
     },
 
     /// Compile the configured projections (§71.8).
@@ -1340,8 +1347,43 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             );
             Ok(EXIT_OK)
         }
-        Command::Status { alias } => {
+        Command::Status {
+            alias,
+            timeline,
+            pending,
+        } => {
             let repository = repo::Repository::discover(None)?;
+            if timeline || pending {
+                let (what, value) = if timeline {
+                    let t = timeline::build_timeline(&repository)?;
+                    (
+                        format!(
+                            "{} event(s) across {} Warrant(s), {} day(s)",
+                            t.events.len(),
+                            t.warrants,
+                            t.days.len()
+                        ),
+                        output::value(&t),
+                    )
+                } else {
+                    let p = timeline::build_pending(&repository)?;
+                    let lines: Vec<String> = p
+                        .acts
+                        .iter()
+                        .map(|a| format!("{}  {}  {}", a.warrant, a.action, a.command))
+                        .collect();
+                    (
+                        if lines.is_empty() {
+                            "nothing awaits a signature".to_owned()
+                        } else {
+                            lines.join("\n")
+                        },
+                        output::value(&p),
+                    )
+                };
+                output::emit(mode, "status", &what, value);
+                return Ok(EXIT_OK);
+            }
             match alias {
                 Some(alias) => {
                     let rendered = show::run(&repository, &alias, "status")?;

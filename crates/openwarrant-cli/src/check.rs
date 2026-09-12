@@ -247,6 +247,18 @@ pub fn run(
             "corpus-status",
             &mut report,
         );
+        drift_check(
+            repo,
+            crate::timeline::corpus_timeline_json(repo),
+            "corpus-timeline",
+            &mut report,
+        );
+        drift_check(
+            repo,
+            crate::timeline::corpus_pending_json(repo),
+            "corpus-pending",
+            &mut report,
+        );
         // The SAS normative projection (E1), when there is a document.
         if repo.sas_document().is_ok() {
             match crate::compile::sas_normative(repo) {

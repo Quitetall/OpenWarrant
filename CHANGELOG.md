@@ -51,6 +51,11 @@ Toward 1.0 (the plan is the Warrant backlog; each entry is one slice):
   SHALL / SHALL NOT / MUST / SHOULD / MAY sentence of the SAS with its section
   and the document digest, compiled by `war compile` and drift-checked by
   `war check --generated`; agents read it instead of the document.
+- `CORPUS_TIMELINE.json` (`oh.war/corpus-timeline/v1`: every journal event,
+  sorted, with a per-day histogram) and `CORPUS_PENDING.json`
+  (`oh.war/corpus-pending/v1`: the human acts awaiting a signature, with the
+  command for each), compiled, drift-checked, canonical, published by Pages;
+  `war status --timeline` / `--pending`.
 
 ## [0.1.0] — 2026-08-24
 

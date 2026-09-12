@@ -20,6 +20,10 @@ on:
       - "docs/warrants/generated/CORPUS_STATUS.html"
       - "docs/warrants/generated/CORPUS_STATUS.json"
       - "docs/warrants/generated/CORPUS_STATUS.md"
+      - "docs/warrants/generated/CORPUS_TIMELINE.json"
+      - "docs/warrants/generated/CORPUS_PENDING.json"
+      - "docs/sas/generated/NORMATIVE.md"
+      - "docs/sas/generated/NORMATIVE.json"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -53,10 +57,19 @@ jobs:
           cp "$src/CORPUS_STATUS.html" _site/CORPUS_STATUS.html
           cp "$src/CORPUS_STATUS.json" _site/CORPUS_STATUS.json
           cp "$src/CORPUS_STATUS.md"   _site/CORPUS_STATUS.md
+          cp "$src/CORPUS_TIMELINE.json" _site/CORPUS_TIMELINE.json
+          cp "$src/CORPUS_PENDING.json"  _site/CORPUS_PENDING.json
+          cp docs/sas/generated/NORMATIVE.md   _site/NORMATIVE.md
+          cp docs/sas/generated/NORMATIVE.json _site/NORMATIVE.json
           # The claim the site makes is "this IS the committed projection".
           # Assert it, so a future step that rewrites the page cannot pass.
-          for f in CORPUS_STATUS.html CORPUS_STATUS.json CORPUS_STATUS.md; do
+          for f in CORPUS_STATUS.html CORPUS_STATUS.json CORPUS_STATUS.md CORPUS_TIMELINE.json CORPUS_PENDING.json; do
             a=$(sha256sum "$src/$f" | cut -d' ' -f1)
+            b=$(sha256sum "_site/$f" | cut -d' ' -f1)
+            [ "$a" = "$b" ] || { echo "$f: uploaded bytes differ from committed bytes"; exit 1; }
+          done
+          for f in NORMATIVE.md NORMATIVE.json; do
+            a=$(sha256sum "docs/sas/generated/$f" | cut -d' ' -f1)
             b=$(sha256sum "_site/$f" | cut -d' ' -f1)
             [ "$a" = "$b" ] || { echo "$f: uploaded bytes differ from committed bytes"; exit 1; }
           done

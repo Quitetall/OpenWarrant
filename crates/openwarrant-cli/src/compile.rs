@@ -325,6 +325,8 @@ pub fn run(repo: &Repository, only: Option<&str>) -> Result<(), RepoError> {
             crate::status::corpus_status_md(repo)?,
             crate::status::corpus_status_json(repo)?,
             crate::status::corpus_status_html(repo)?,
+            crate::timeline::corpus_timeline_json(repo)?,
+            crate::timeline::corpus_pending_json(repo)?,
         ];
         // A repository with no SAS document has nothing to project; one with
         // an unreadable one is refused as it always was, by sas_document.
