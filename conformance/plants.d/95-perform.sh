@@ -130,3 +130,32 @@ else
     FAILED=$((FAILED + 1))
 fi
 p_cleanup
+
+# 8. A performer in a loop: the read is capped, the answer is refused, and the
+# process does not grow until the box runs out of memory.
+p_set_performer "$P_FX/floods-stdout.sh"
+assert_present "$P_FX/floods-stdout.sh" openwarrant.toml
+out=$("$WAR" perform "$P_ALIAS" STAGE-001 2>&1)
+P_LEFT=$(ls "$P_DIR"/submissions/*.json "$P_DIR"/dispatches/answer-*.json 2>/dev/null | wc -l)
+if grep -q 'perform.failed' <<< "$out" && grep -q 'the read stopped' <<< "$out" \
+    && [[ "$P_LEFT" == "0" ]]; then
+    printf 'ok    %-34s capped, refused, nothing left\n' "a performer flooding stdout"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s %s files left\n%s\n' "a performer flooding stdout" "$P_LEFT" "$(head -2 <<< "$out")"
+    FAILED=$((FAILED + 1))
+fi
+p_cleanup
+
+# 9. A performer that writes half an answer and dies leaves none of it behind.
+p_set_performer "$P_FX/half-an-answer.sh"
+out=$("$WAR" perform "$P_ALIAS" STAGE-001 2>&1)
+P_LEFT=$(ls "$P_DIR"/dispatches/answer-*.json "$P_DIR"/submissions/*.json 2>/dev/null | wc -l)
+if grep -q 'perform.failed' <<< "$out" && [[ "$P_LEFT" == "0" ]]; then
+    printf 'ok    %-34s the partial answer was discarded\n' "a performer dying mid-answer"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s %s files left\n' "a performer dying mid-answer" "$P_LEFT"
+    FAILED=$((FAILED + 1))
+fi
+p_cleanup

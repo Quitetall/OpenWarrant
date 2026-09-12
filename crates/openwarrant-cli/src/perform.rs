@@ -43,10 +43,23 @@ const DISPATCHES_DIR: &str = "dispatches";
 /// Bounded like the drafter's: a performer that writes a gigabyte to stderr
 /// should not become a gigabyte in a record.
 const STDERR_TAIL: usize = 64 * 1024;
+/// A Stage Submission is a page of JSON. Anything past this is a performer in a
+/// loop, and reading it to the end would be this process growing until the box
+/// runs out of memory, so the read stops and the answer is refused.
+const STDOUT_CAP: u64 = 8 * 1024 * 1024;
+/// How long to wait for the performer's output after it has exited or been
+/// killed. A performer that spawned its own children leaves them holding the
+/// pipe, so a plain `join` here waits for THEM — and a runner whose whole point
+/// is a deadline must not be the thing that hangs. Found by the fixture that
+/// sleeps: its `sleep 600` survived the kill and held stdout open.
+const READ_GRACE: Duration = Duration::from_secs(5);
 
 /// What one performance produced, for the caller to report.
 struct Performance {
     dispatch_id: String,
+    /// The performer wrote past [`STDOUT_CAP`]; the read stopped and the answer
+    /// is not a submission anyone will ingest.
+    oversized: bool,
     /// Where the performer's answer was written, when it sent one.
     submission_path: Option<camino::Utf8PathBuf>,
     /// `None` when the performer was killed at the deadline.
@@ -183,7 +196,24 @@ pub fn run(repo: &Repository, alias: &str, stage_id: &str) -> Result<Report, Rep
                 ));
             }
         }
-        (None, _) => report.push(Diagnostic::error(
+        // Killed for flooding is a failure with its own sentence, not a
+        // deadline: the bound was never reached.
+        (None, _) if outcome.oversized => {
+            discard(&outcome);
+            report.push(Diagnostic::error(
+                "perform.failed",
+                outcome.dispatch_id.clone(),
+                format!(
+                    "{alias}/{stage_id}: the performer wrote past {STDOUT_CAP} bytes on stdout, so \
+                     the read stopped and it was killed; a Stage Submission is a page of JSON. The \
+                     stage is where it was{}",
+                    tail(&outcome.stderr_tail)
+                ),
+            ));
+        }
+        (None, _) => {
+            discard(&outcome);
+            report.push(Diagnostic::error(
             "perform.timeout",
             outcome.dispatch_id.clone(),
             format!(
@@ -191,18 +221,36 @@ pub fn run(repo: &Repository, alias: &str, stage_id: &str) -> Result<Report, Rep
                  the Dispatch is on record and nothing claims the work happened{}",
                 tail(&outcome.stderr_tail)
             ),
-        )),
-        (Some(status), _) => report.push(Diagnostic::error(
-            "perform.failed",
-            outcome.dispatch_id.clone(),
-            format!(
-                "{alias}/{stage_id}: the performer exited {status} without a usable submission; \
-                 the stage is where it was{}",
-                tail(&outcome.stderr_tail)
-            ),
-        )),
+            ));
+        }
+        (Some(status), _) => {
+            discard(&outcome);
+            report.push(Diagnostic::error(
+                "perform.failed",
+                outcome.dispatch_id.clone(),
+                format!(
+                    "{alias}/{stage_id}: the performer exited {status} without a usable \
+                     submission{}; the stage is where it was{}",
+                    if outcome.oversized {
+                        format!(" (it wrote past {STDOUT_CAP} bytes and the read stopped)")
+                    } else {
+                        String::new()
+                    },
+                    tail(&outcome.stderr_tail)
+                ),
+            ));
+        }
     }
     Ok(report)
+}
+
+/// Delete the performer's raw answer. It is scratch on every path: an answer
+/// nothing accepted must not be left in the Warrant's directory looking like a
+/// record of one.
+fn discard(outcome: &Performance) {
+    if let Some(p) = &outcome.submission_path {
+        let _ = std::fs::remove_file(p);
+    }
 }
 
 /// `war perform --all`: every open agent stage, one at a time.
@@ -300,17 +348,21 @@ fn hand_over(
     let policy = &repo.config.perform;
     let program = policy.performer_argv[0].clone();
     let started = Instant::now();
-    let mut child = Command::new(&program)
+    let mut command = Command::new(&program);
+    command
         .args(&policy.performer_argv[1..])
         .current_dir(&repo.root)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .map_err(|source| RepoError::Io {
-            context: format!("could not run the performer {program}"),
-            source,
-        })?;
+        .stderr(Stdio::piped());
+    // Its own process group, so the deadline reaches the children a performer
+    // spawns. Killing only the process it launched leaves its `sleep` running.
+    #[cfg(unix)]
+    std::os::unix::process::CommandExt::process_group(&mut command, 0);
+    let mut child = command.spawn().map_err(|source| RepoError::Io {
+        context: format!("could not run the performer {program}"),
+        source,
+    })?;
     {
         let mut stdin = child.stdin.take().expect("piped");
         let body = serde_json::to_string_pretty(dispatch)
@@ -321,12 +373,25 @@ fn hand_over(
     }
     let mut stdout = child.stdout.take().expect("piped");
     let mut stderr = child.stderr.take().expect("piped");
-    let reader = std::thread::spawn(move || {
+    let (tx, rx) = std::sync::mpsc::channel();
+    // Set the moment the performer writes past the cap, so the wait below ends
+    // it then rather than at the deadline: a performer that flooded stdout has
+    // already failed, and waiting ten minutes to say so wastes ten minutes.
+    let capped = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+    let flag = std::sync::Arc::clone(&capped);
+    std::thread::spawn(move || {
+        // `take`, not `read_to_string`: the cap is the whole point.
         let mut out = String::new();
-        let _ = stdout.read_to_string(&mut out);
+        let _ = stdout
+            .by_ref()
+            .take(STDOUT_CAP + 1)
+            .read_to_string(&mut out);
+        if out.len() as u64 > STDOUT_CAP {
+            flag.store(true, std::sync::atomic::Ordering::Release);
+        }
         let mut err = Vec::new();
         let _ = stderr.read_to_end(&mut err);
-        (out, err)
+        let _ = tx.send((out, err));
     });
     let deadline = Duration::from_secs(bound);
     let exit = loop {
@@ -336,16 +401,20 @@ fn hand_over(
         })? {
             break Some(s);
         }
-        if started.elapsed() > deadline {
-            let _ = child.kill();
-            let _ = child.wait();
+        if capped.load(std::sync::atomic::Ordering::Acquire) || started.elapsed() > deadline {
+            kill_group(&mut child);
             break None;
         }
         std::thread::sleep(Duration::from_millis(50));
     };
-    let (out, err) = reader.join().unwrap_or_default();
+    // Bounded, for the reason READ_GRACE gives. Output that has not arrived by
+    // now is output this run does not have, and the report says the performer
+    // answered nothing rather than waiting on a grandchild to close a pipe.
+    let (out, err) = rx.recv_timeout(READ_GRACE).unwrap_or_default();
     let tail_start = err.len().saturating_sub(STDERR_TAIL);
-    let submission_path = if out.trim().is_empty() {
+    let oversized =
+        out.len() as u64 > STDOUT_CAP || capped.load(std::sync::atomic::Ordering::Acquire);
+    let submission_path = if out.trim().is_empty() || oversized {
         None
     } else {
         let scratch = dir.join(DISPATCHES_DIR);
@@ -362,11 +431,40 @@ fn hand_over(
     };
     Ok(Performance {
         dispatch_id: dispatch.dispatch_id.clone(),
+        oversized,
         submission_path,
         exit,
         stderr_tail: String::from_utf8_lossy(&err[tail_start..]).into_owned(),
         seconds: started.elapsed().as_secs(),
     })
+}
+
+/// SIGKILL the performer and everything it started.
+///
+/// On unix the child leads its own process group (see the spawn above), so the
+/// negated pid reaches the group. `kill` is spawned rather than linking libc:
+/// this crate has no libc dependency and a signal is not worth one.
+fn kill_group(child: &mut std::process::Child) {
+    #[cfg(unix)]
+    {
+        let group = format!("-{}", child.id());
+        let _ = Command::new("kill")
+            .args(["-KILL", &group])
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status();
+    }
+    // Belt and braces, and the whole story on a platform without groups.
+    let _ = child.kill();
+    // Reap without blocking: SIGKILL is not blockable, but a child in
+    // uninterruptible sleep takes it only once its I/O completes.
+    let until = Instant::now() + READ_GRACE;
+    while Instant::now() < until {
+        match child.try_wait() {
+            Ok(Some(_)) | Err(_) => break,
+            Ok(None) => std::thread::sleep(Duration::from_millis(50)),
+        }
+    }
 }
 
 fn tail(stderr: &str) -> String {
