@@ -970,13 +970,19 @@ fn retire_prior(final_path: &Utf8Path, current_digest: &str) -> Result<(), Strin
     // exact loss this function exists to prevent. Unparseable → refuse.
     let value: toml::Value = toml::from_str(&text)
         .map_err(|e| format!("{final_path} exists and is not valid TOML ({e}); not touched"))?;
-    let prior = ["contract_digest", "sha256"]
+    // Every response kind names the thing it was signed over, and each names it
+    // differently: an authorization or resolution carries `contract_digest`, a
+    // SAS acceptance `sha256`, and a correction `new_digest`. The correction key
+    // was missing, so a SECOND correction of the same deliverable always hit the
+    // "carries no digest" refusal below — the draft was discarded and the
+    // signature the human had just given went with it. Three of them, 2026-09-12.
+    let prior = ["contract_digest", "sha256", "new_digest"]
         .iter()
         .find_map(|k| value.get(k).and_then(toml::Value::as_str))
         .ok_or_else(|| {
             format!(
-                "{final_path} exists but carries no contract_digest or sha256; not touched — \
-                 move it aside by hand"
+                "{final_path} exists but carries no contract_digest, sha256 or new_digest; \
+                 not touched — move it aside by hand"
             )
         })?;
     if prior == current_digest {
@@ -1289,6 +1295,19 @@ pub(crate) fn allowed_signers_path(repo: &Repository) -> Utf8PathBuf {
     repo.root.join("docs/authority/allowed_signers")
 }
 
+/// Remove a draft and the signature sitting beside it.
+///
+/// A `.sig` whose `.toml` is gone signs nothing, and to anyone listing the
+/// directory it reads like a signature that went missing. Both go together on
+/// every path that abandons a draft.
+fn discard_draft(draft: &Utf8Path) {
+    let _ = std::fs::remove_file(draft);
+    let sig = sig_path(draft);
+    if sig.is_file() {
+        let _ = std::fs::remove_file(&sig);
+    }
+}
+
 fn signed_path(draft: &Utf8Path) -> Utf8PathBuf {
     let name = draft
         .file_name()
@@ -1441,7 +1460,7 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
             let principal = match principal_of(repo, &actor) {
                 Ok(pr) => pr,
                 Err(why) => {
-                    let _ = std::fs::remove_file(&draft_path);
+                    discard_draft(&draft_path);
                     report.push(Diagnostic::error("sign.ssh-principal", line(p), why));
                     continue;
                 }
@@ -1449,7 +1468,7 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
             match ssh_sign_file(&allowed_signers_path(repo), &principal, &draft_path) {
                 Ok(_) => true,
                 Err(why) => {
-                    let _ = std::fs::remove_file(&draft_path);
+                    discard_draft(&draft_path);
                     report.push(Diagnostic::error("sign.ssh-refused", line(p), why));
                     continue;
                 }
@@ -1484,7 +1503,7 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
         // after it, a response the same ingest as a hand-written one reads.
         let path = signed_path(&draft_path);
         if let Err(why) = retire_prior(&path, drafted.digest()) {
-            let _ = std::fs::remove_file(&draft_path);
+            discard_draft(&draft_path);
             report.push(Diagnostic::error("sign.response-exists", line(p), why));
             continue;
         }
@@ -2024,6 +2043,42 @@ mod tests {
         )
         .unwrap();
         assert!(retire_prior(&final_path, "cd42487d").is_err());
+        std::fs::remove_dir_all(dir).unwrap();
+    }
+
+    /// A correction response names its digest `new_digest`, and the prior round's
+    /// response sits in the same path. Until this was in the list, a second
+    /// correction of one deliverable refused with "carries no digest", the draft
+    /// was discarded, and the human's fresh signature went with it.
+    #[test]
+    fn a_prior_correction_response_retires_by_its_new_digest() {
+        let dir = camino::Utf8PathBuf::from(format!(
+            "/tmp/war-retire-correction-{}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&dir).unwrap();
+        let final_path = dir.join("OW-WAR-0055.D-001.correction.response.toml");
+        let prior = "schema = \"oh.war/correction-response/v1\"\n\
+                     warrant = \"OW-WAR-0055\"\n\
+                     deliverable_id = \"D-001\"\n\
+                     superseded_digest = \"sha256:41ea9407936d2d5b\"\n\
+                     new_digest = \"sha256:54deac321773e933\"\n";
+        std::fs::write(&final_path, prior).unwrap();
+        retire_prior(&final_path, "sha256:6c8c7c779c676772").expect("retires by new_digest");
+        assert!(!final_path.exists(), "the path is freed for the new response");
+        assert!(
+            dir.join("OW-WAR-0055.D-001.correction.sha256:5.response.toml").is_file()
+                || std::fs::read_dir(&dir)
+                    .unwrap()
+                    .filter_map(Result::ok)
+                    .any(|e| e.file_name().to_string_lossy().contains("correction.")),
+            "the prior response is archived under its own digest, not deleted"
+        );
+        // The same digest twice is still a refusal: an unsent response is not
+        // silently replaced by a second signature over the same bytes.
+        std::fs::write(&final_path, prior).unwrap();
+        let err = retire_prior(&final_path, "sha256:54deac321773e933").expect_err("must refuse");
+        assert!(err.contains("not overwritten"), "{err}");
         std::fs::remove_dir_all(dir).unwrap();
     }
 
