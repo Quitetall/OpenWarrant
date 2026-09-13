@@ -1,11 +1,16 @@
-schema = "oh.war/correction-response/v1"
-warrant = "OW-WAR-0057"
-deliverable_id = "D-002"
+schema = "oh.war/correction/v1"
+warrant = "OW-WAR-0055"
+
+[correction]
+id = "01a09947-185c-762a-bbd3-2883258fd39a"
+deliverable_id = "D-003"
+target_ref = "crates/openwarrant-cli/src/status.rs"
+sequence = 2
 superseded_digest = "sha256:366bfaa3511bbae59a41a749ab75f0e65b80ed729fc774f281f10fb43ae5bc46"
 new_digest = "sha256:f37e65d3570d6ee018f380dcc00ef61c55d1b48dfb2f7300253bc12d304d613a"
 reason = """crates/openwarrant-cli/src/status.rs moved after its resolution at 2026-09-03T03:30:00Z: 5 commit(s) touched it, "fix: requirement 3 reads the correction chain, and the projection asks about admissibility"; "release: the relicense to Apache-2.0, and seven authorizations the owner signed (OW-ADR-0017, OW-WAR-0067 STAGE-001 and STAGE-004)"; "feat(platform): the progress platform — nine views over three inlined projections, no framework, no network (D3, D4)" and 2 more. Each states its own          change; this correction records that the delivered bytes moved with them. Presented on a terminal by `war sign 1.0.0` and confirmed by the signer; the decision is the signer's and the template is the tool's."""
 kind = "behaviour-change"
-corrected_by = "Brian Lam"
-acting_role = "authorizer"
-effective_time = "2026-09-13T05:39:29Z"
-signed_via = "ssh"
+authorized_by_ref = "person://Brian Lam"
+acting_role_ref = "role://authorizer"
+effective_at = "2026-09-13T05:39:27Z"
+recorded_at = "2026-09-13T05:39:28Z"
