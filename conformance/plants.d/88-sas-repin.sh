@@ -66,6 +66,13 @@ plant "a re-pin after resolution is stale" "resolution.stale" "" 2 \
 
 # Positive: a sound re-pin moves the contract digest, and the pending act is
 # the NEXT authorization revision — a human's, with the amendment beside it.
-plant_cmd "a sound re-pin asks for authorization rev 2" "rev 2" "authorize" 0 \
+#
+# Which number that is comes from the record, not from this file. It was
+# hard-coded as "rev 2" until OW-WAR-0047 gained a real amendment of its own and
+# the answer became 3; a plant that names a revision names a moment in the
+# corpus, and the corpus moves.
+REPIN_NOW=$(grep -m1 '^revision = ' "$REPIN_DIR/authorization.toml" | tr -dc '0-9')
+REPIN_NEXT=$((REPIN_NOW + 1))
+plant_cmd "a sound re-pin asks for authorization rev $REPIN_NEXT" "rev $REPIN_NEXT" "authorize" 0 \
     "repin_amendment $REPIN_DIR 1.0.0 STAGE-001 M1" \
     sign --list

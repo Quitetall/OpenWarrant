@@ -23,14 +23,20 @@ plant_cmd "a configured performer cannot authorize itself" "authorize.not-permit
      printf 'schema = \"oh.war/authorization-response/v1\"\nwarrant = \"OW-WAR-0010\"\ncontract_digest = \"%s\"\nauthorizer = \"Brian Lam\"\nacting_role = \"authorizer\"\nmeaning = \"x\"\neffective_time = \"2026-09-02T00:00:00Z\"\nindependence = \"separate_role\"\n' \"$AUTH_DIGEST\" > \"$DEF_TMP/self.toml\"" \
     authorize OW-WAR-0010 --response "$DEF_TMP/self.toml"
 
+# The two signing plants below need a Warrant awaiting a signature. Which real
+# Warrants are unsigned changes every time the owner signs one, so they make
+# their own and remove it at the end of the file.
+DEF_ALIAS=$(scratch_warrant "the signing refusals")
+
 # Two eligible signers: the tool asks, it does not pick.
 plant_cmd "two eligible signers is a question" "sign.who" "--as" 2 \
     "printf '\n[[assignment]]\nactor = \"Second Human\"\nactor_kind = \"human\"\nroles = [\"authorizer\", \"resolver\", \"risk_acceptor\"]\nassigned_by = \"Brian Lam\"\neffective_time = \"2026-01-01T00:00:00Z\"\nssh_principal = \"second\"\n' >> docs/authority/roles.toml; assert_present 'Second Human' docs/authority/roles.toml" \
-    sign OW-WAR-0063 --ssh-sign
+    sign "$DEF_ALIAS" --ssh-sign
 
 # A principal listed twice in allowed_signers: refused before any signing.
 plant_cmd "a duplicate principal is refused" "sign.ssh-refused" "exactly one" 2 \
     "grep '^brian ' docs/authority/allowed_signers | head -1 >> docs/authority/allowed_signers; assert_present 'brian' docs/authority/allowed_signers" \
-    sign OW-WAR-0063 --ssh-sign --as "Brian Lam"
+    sign "$DEF_ALIAS" --ssh-sign --as "Brian Lam"
 
 rm -rf "$DEF_TMP"
+scratch_warrant_gone "$DEF_ALIAS"

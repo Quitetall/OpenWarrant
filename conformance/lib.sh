@@ -89,6 +89,36 @@ assert_gone() {
 
 trap restore EXIT
 
+# scratch_warrant <what-for>  ->  echoes a fresh alias awaiting authorization
+#
+# A plant that needs "a Warrant nobody has signed yet" used to name one from the
+# corpus. Every such plant broke the night the owner signed that Warrant — four
+# of them at once on 2026-09-13 — because the corpus is supposed to move and the
+# plants were pinned to a moment in it. A scaffold from `war new` is well-formed,
+# awaits its first authorization, and belongs to the plant that made it.
+#
+# The caller removes it with `scratch_warrant_gone` on every exit path, including
+# the failing ones: an untracked directory is not undone by `git checkout`.
+scratch_warrant() {
+    local out alias
+    out=$("$WAR" new "Plant scratch: ${1:-a plant}" 2>&1) || {
+        printf 'PLANT SETUP FAILED: could not create a scratch Warrant\n%s\n' "$out" >&2
+        exit 9
+    }
+    alias=$(grep -oE '[A-Z][A-Z0-9-]*-WAR-[0-9]{4}' <<< "$out" | head -1)
+    if [[ -z "$alias" ]]; then
+        printf 'PLANT SETUP FAILED: `war new` named no alias\n%s\n' "$out" >&2
+        exit 9
+    fi
+    printf '%s' "$alias"
+}
+
+scratch_warrant_gone() {
+    [[ -n "${1:-}" ]] || return 0
+    rm -rf "docs/warrants/$1"
+    rm -f docs/authority/responses/"$1".* 2>/dev/null || true
+}
+
 # plant_cmd <name> <expected-rule> <expected-detail> <expected-exit> <mutation> <args...>
 #
 # The general form: run any `war` subcommand rather than `check` or `gate --run`.

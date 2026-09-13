@@ -36,10 +36,22 @@ fi
 # reason by hand.
 restore
 python3 - <<'PY'
-import re
+# Line-based, not a regex over the text: `acts = ["correct"]` contains a `[`,
+# so a pattern that ran to the next `[` left half a table behind and the config
+# stopped parsing. A block ends at the next line that STARTS a table.
 p = "openwarrant.toml"
-s = open(p).read()
-open(p, "w").write(re.sub(r"\n\[\[sign\.preset\]\][^\[]*", "\n", s))
+out, skipping = [], False
+for line in open(p):
+    if line.startswith("[[sign.preset]]"):
+        skipping = True
+        continue
+    if skipping:
+        if line.startswith("["):
+            skipping = False
+        else:
+            continue
+    out.append(line)
+open(p, "w").writelines(out)
 PY
 assert_gone '[[sign.preset]]' openwarrant.toml
 C_NONE=$("$WAR" console --json 2>/dev/null | python3 -c 'import json,sys; print(len(json.load(sys.stdin)["result"]["presets"]))')

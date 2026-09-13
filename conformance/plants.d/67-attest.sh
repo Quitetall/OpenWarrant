@@ -5,7 +5,9 @@
 #
 # The whole flow runs against a throwaway ssh-agent with a key generated here,
 # an allowed_signers and roles.toml written here (both restored by `restore`),
-# on OW-WAR-0063, which awaits authorization. Nothing here is the owner's key.
+# on a scratch Warrant this file creates and removes. Nothing here is the
+# owner's key, and nothing here depends on which real Warrants are unsigned —
+# that changes every time the owner signs one.
 
 ATT_TMP=$(mktemp -d)
 ssh-keygen -q -t ed25519 -N "" -C plant -f "$ATT_TMP/id_plant"
@@ -28,9 +30,10 @@ assert_present 'Plant Signer' docs/authority/roles.toml
 eval "$(ssh-agent -s > "$ATT_TMP/agent.env"; cat "$ATT_TMP/agent.env")" >/dev/null
 ssh-add -q "$ATT_TMP/id_plant" 2>/dev/null
 
-ATT_DIR=docs/warrants/OW-WAR-0063/attestations
+ATT_ALIAS=$(scratch_warrant "attestations")
+ATT_DIR=docs/warrants/$ATT_ALIAS/attestations
 ATT_FILE=$ATT_DIR/authorize-1.dsse.json
-SIGN_OUT=$("$WAR" sign OW-WAR-0063 --ssh-sign --as "Plant Signer" 2>&1)
+SIGN_OUT=$("$WAR" sign $ATT_ALIAS --ssh-sign --as "Plant Signer" 2>&1)
 if [[ -f "$ATT_FILE" ]] && grep -Fq 'attest.emitted' <<< "$SIGN_OUT"; then
     printf 'ok    %-34s %s written after an ssh-signed authorization\n' "an ssh-signed act is attested" "$ATT_FILE"
     PASSED=$((PASSED + 1))
@@ -42,7 +45,7 @@ fi
 attest_expect() {
     local name="$1" rule="$2" want_exit="$3"
     local out
-    out=$("$WAR" attest OW-WAR-0063 --verify 2>&1)
+    out=$("$WAR" attest $ATT_ALIAS --verify 2>&1)
     local status=$?
     if [[ $status -eq $want_exit ]] && grep -Fq -- "$rule" <<< "$out"; then
         printf 'ok    %-34s %s (exit %s)\n' "$name" "$rule" "$status"
@@ -70,10 +73,10 @@ PY
     cp "$ATT_TMP/good.json" "$ATT_FILE"
 
     # The record it attests is edited afterwards.
-    printf '\n# edited after attestation\n' >> docs/warrants/OW-WAR-0063/authorization.toml
+    printf '\n# edited after attestation\n' >> docs/warrants/$ATT_ALIAS/authorization.toml
     attest_expect "an edited subject is refused" "attest.subject-drift" 2
-    git checkout -- docs/warrants/OW-WAR-0063/authorization.toml 2>/dev/null || sed -i '/edited after attestation/d' docs/warrants/OW-WAR-0063/authorization.toml
-    sed -i '/^# edited after attestation$/d' docs/warrants/OW-WAR-0063/authorization.toml
+    git checkout -- docs/warrants/$ATT_ALIAS/authorization.toml 2>/dev/null || sed -i '/edited after attestation/d' docs/warrants/$ATT_ALIAS/authorization.toml
+    sed -i '/^# edited after attestation$/d' docs/warrants/$ATT_ALIAS/authorization.toml
 
     # The signer's principal leaves the register.
     sed -i 's/^ssh_principal = "plant"$/# ssh_principal removed by the plant/' docs/authority/roles.toml
@@ -82,7 +85,7 @@ PY
     sed -i 's/^# ssh_principal removed by the plant$/ssh_principal = "plant"/' docs/authority/roles.toml
 
     # The response's own signature (namespace oh.war/response) replayed as the DSSE signature.
-    RESP_SIG=$(ls docs/authority/responses/OW-WAR-0063*.response.toml.sig | head -1)
+    RESP_SIG=$(ls docs/authority/responses/$ATT_ALIAS*.response.toml.sig | head -1)
     python3 - "$ATT_FILE" "$RESP_SIG" <<'PY'
 import json, sys
 p, sig = sys.argv[1], sys.argv[2]
@@ -97,7 +100,6 @@ fi
 # Cleanup: the agent, the untracked files the act wrote, then the tracked ones.
 ssh-agent -k >/dev/null 2>&1 || true
 unset SSH_AUTH_SOCK SSH_AGENT_PID
-rm -rf "$ATT_DIR" docs/authority/responses/OW-WAR-0063* "$ATT_TMP"
-rm -f docs/warrants/OW-WAR-0063/authorization.toml docs/warrants/OW-WAR-0063/judgments.toml
-git checkout -- docs/warrants/OW-WAR-0063/ 2>/dev/null || true
+rm -rf "$ATT_TMP"
+scratch_warrant_gone "$ATT_ALIAS"
 restore
