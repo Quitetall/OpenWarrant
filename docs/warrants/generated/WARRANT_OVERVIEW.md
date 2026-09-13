@@ -76,10 +76,10 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0067](docs/warrants/OW-WAR-0067/manifest.toml) | Release 1.0: the seven acts that close the plan, deferred to the owner's signature | `authorized` | `current` | `valid` | `basic` | 3M / 7S |
 | [OW-WAR-0068](docs/warrants/OW-WAR-0068/manifest.toml) | Skills: a strict superset of the Pocock set over the deterministic core | `authorized` | `current` | `valid` | `basic` | 3M / 7S |
 | [OW-WAR-0069](docs/warrants/OW-WAR-0069/manifest.toml) | The board, the hotline, and the harness: one system from master record to running agents | `authorized` | `current` | `valid` | `basic` | 3M / 5S |
-| [OW-WAR-0070](docs/warrants/OW-WAR-0070/manifest.toml) | Add `war inbox` to list Warrants awaiting a human act | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0071](docs/warrants/OW-WAR-0071/manifest.toml) | SAS 1.1.0: the batch act, and the dashboard as a rendering of the record | `draft` | `current` | `valid` | `basic` | — |
-| [OW-WAR-0072](docs/warrants/OW-WAR-0072/manifest.toml) | The batch act: one human signature over many pending acts | `draft` | `current` | `valid` | `basic` | 3M / 5S |
-| [OW-WAR-0073](docs/warrants/OW-WAR-0073/manifest.toml) | war tui: the dashboard in the terminal | `draft` | `current` | `valid` | `basic` | 4M / 6S |
+| [OW-WAR-0070](docs/warrants/OW-WAR-0070/manifest.toml) | Add `war inbox` to list Warrants awaiting a human act | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0071](docs/warrants/OW-WAR-0071/manifest.toml) | SAS 1.1.0: the batch act, and the dashboard as a rendering of the record | `authorized` | `current` | `valid` | `basic` | — |
+| [OW-WAR-0072](docs/warrants/OW-WAR-0072/manifest.toml) | The batch act: one human signature over many pending acts | `authorized` | `current` | `valid` | `basic` | 3M / 5S |
+| [OW-WAR-0073](docs/warrants/OW-WAR-0073/manifest.toml) | war tui: the dashboard in the terminal | `authorized` | `current` | `valid` | `basic` | 4M / 6S |
 
 ## Claimed SAS requirement coverage
 
