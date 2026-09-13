@@ -1650,8 +1650,6 @@ exists, not after.
 
 ## Decision
 
-## What SAS 1.1.0 adds
-
 **1. The batch act (new §27.6, cited by §27.2).** One signature MAY authorize
 many acts when all of the following hold, and the tool SHALL refuse the batch
 otherwise:
@@ -1687,24 +1685,6 @@ signature.
 the rendering rule, each with the conformance test that demonstrates it.
 
 ## Why not the alternatives
-
-- **Drop `-c`.** Removes the dialogs by removing the control; an agent that
-  reaches the socket then signs silently. Refused on 2026-09-12.
-- **A signature per act, accepted as the cost.** Honest, and the owner has
-  said twice it is too much. The friction is not the confirmation, it is
-  confirming the same decision twenty-four times.
-- **A session token ("approve everything for ten minutes").** Time is not a
-  subject: the signer would be authorizing acts that did not exist when they
-  signed. The batch document exists first, and its digest is what is signed.
-
-## Consequences
-
-- `war sign --batch` becomes sayable (OW-WAR-0072 builds it).
-- A dashboard becomes sayable as a rendering (OW-WAR-0073 builds it).
-- Every Warrant stays pinned to the revision it was authorized against;
-  this revision does not move any contract digest by itself.
-
-## Alternatives rejected
 
 - **Drop `ssh-add -c`.** One keystroke signs everything, and so does anything
   else that reaches the agent socket. Refused by the owner on 2026-09-12.
