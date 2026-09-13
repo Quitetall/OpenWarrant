@@ -15,7 +15,7 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 
 - **SAS revision:** 1.0.0
 - **digest:** `sha256:b7105f5283052579f1ddfe1ab4e3ad5b1021515aeefd9fcfb21596d9a60d74e6`
-- Revision 1.0.0 is ACCEPTED (§101.2) and normative. A Warrant compiles against the revision its authorization recorded (§14), so a later revision does not move an authorized contract: 57 against 0.1.0-draft.1, 8 against 0.1.0-draft.3, 1 against 1.0.0.
+- Revision 1.0.0 is ACCEPTED (§101.2) and normative. A Warrant compiles against the revision its authorization recorded (§14), so a later revision does not move an authorized contract: 57 against 0.1.0-draft.1, 8 against 0.1.0-draft.3, 4 against 1.0.0.
 
 **Requirements (61 in §106)** — strictest rung first:
 
@@ -36,7 +36,7 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 | roadmap://OW-PHASE-6: Gate Registry and assurance case | OW-WAR-0046 | recorded | 0 | 1 | 1 | 0 | 8 |
 | roadmap://OW-PHASE-7: BLUT adapter | OW-WAR-0047 | blocked by OW-WAR-0027, OW-WAR-0047 | 0 | 1 | 1 | 0 | 0 |
 | roadmap://OW-PHASE-8: Liminal production compiler | OW-WAR-0048 | blocked by OW-WAR-0040, OW-WAR-0048 | 0 | 2 | 0 | 0 | 0 |
-| roadmap://OW-PHASE-9: High-assurance controls | — | not derivable — no member carries the `exit` slug | 0 | 1 | 0 | 0 | 0 |
+| roadmap://OW-PHASE-9: High-assurance controls | — | not derivable — no member carries the `exit` slug | 0 | 4 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-10: Contractor Work Order profile | — | not derivable — no Warrant names this phase | 0 | 0 | 0 | 0 | 0 |
 | *unassigned — declares no [[roadmap]]* | — | not derivable — a Warrant naming no phase belongs to no Objective | 0 | 2 | 0 | 0 | 0 |
 
@@ -63,17 +63,17 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | requirement | Warrants blocked |
 |---|---|
-| artifact digests verify | 15 |
-| required deliverables exist | 12 |
-| every required gate has admissible result | 10 |
-| no blocker remains | 10 |
-| no required unknown remains | 10 |
-| every required obligation is dispositioned | 7 |
-| independence requirements are met | 7 |
-| required judgments exist | 4 |
-| residual risks have sufficient authority | 4 |
-| runtime receipts match the basis | 2 |
-| exact authorized Contract Revision | 1 |
+| artifact digests verify | 18 |
+| required deliverables exist | 15 |
+| every required gate has admissible result | 13 |
+| no blocker remains | 13 |
+| no required unknown remains | 13 |
+| every required obligation is dispositioned | 10 |
+| independence requirements are met | 10 |
+| required judgments exist | 7 |
+| residual risks have sufficient authority | 7 |
+| exact authorized Contract Revision | 4 |
+| runtime receipts match the basis | 3 |
 
 ## Requirements (SAS §106, §34.3)
 
@@ -100,7 +100,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-013` | satisfied | 1 | OW-WAR-0002 (complete) |
 | `WAR-SAS-RQ-014` | in_progress | 0 | OW-WAR-0003 (partial), OW-WAR-0004 (complete), OW-WAR-0058 (partial) |
 | `WAR-SAS-RQ-015` | satisfied | 2 | OW-WAR-0002 (complete), OW-WAR-0005 (complete) |
-| `WAR-SAS-RQ-020` | in_progress | 0 | OW-WAR-0036 (complete), OW-WAR-0058 (partial), OW-WAR-0063 (partial), OW-WAR-0064 (partial) |
+| `WAR-SAS-RQ-020` | in_progress | 0 | OW-WAR-0036 (complete), OW-WAR-0058 (partial), OW-WAR-0063 (partial), OW-WAR-0064 (partial), OW-WAR-0071 (partial) |
 | `WAR-SAS-RQ-021` | unaddressed | 0 | — |
 | `WAR-SAS-RQ-022` | satisfied | 1 | OW-WAR-0013 (complete), OW-WAR-0055 (complete), OW-WAR-0061 (partial), OW-WAR-0062 (partial), OW-WAR-0063 (partial) |
 | `WAR-SAS-RQ-023` | unaddressed | 0 | — |
@@ -136,12 +136,12 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-063` | claimed | 0 | OW-WAR-0027 (complete), OW-WAR-0047 (complete) |
 | `WAR-SAS-RQ-064` | claimed | 0 | OW-WAR-0001 (partial) |
 | `WAR-SAS-RQ-065` | unaddressed | 0 | — |
-| `WAR-SAS-RQ-070` | claimed | 0 | OW-WAR-0001 (partial), OW-WAR-0069 (partial) |
+| `WAR-SAS-RQ-070` | claimed | 0 | OW-WAR-0001 (partial), OW-WAR-0069 (partial), OW-WAR-0072 (partial), OW-WAR-0073 (partial) |
 | `WAR-SAS-RQ-071` | claimed | 0 | OW-WAR-0035 (complete), OW-WAR-0042 (complete), OW-WAR-0068 (partial) |
 | `WAR-SAS-RQ-072` | satisfied | 1 | OW-WAR-0034 (complete), OW-WAR-0042 (complete), OW-WAR-0068 (partial) |
 | `WAR-SAS-RQ-073` | claimed | 0 | OW-WAR-0036 (complete) |
 | `WAR-SAS-RQ-074` | satisfied | 1 | OW-WAR-0005 (complete), OW-WAR-0055 (partial) |
-| `WAR-SAS-RQ-075` | in_progress | 0 | OW-WAR-0004 (complete), OW-WAR-0055 (partial), OW-WAR-0057 (partial), OW-WAR-0060 (partial) |
+| `WAR-SAS-RQ-075` | in_progress | 0 | OW-WAR-0004 (complete), OW-WAR-0055 (partial), OW-WAR-0057 (partial), OW-WAR-0060 (partial), OW-WAR-0073 (partial) |
 | `WAR-SAS-RQ-076` | claimed | 0 | OW-WAR-0028 (complete) |
 | `WAR-SAS-RQ-077` | claimed | 0 | OW-WAR-0068 (partial) |
 | `WAR-SAS-RQ-080` | claimed | 0 | OW-WAR-0003 (complete) |
@@ -149,9 +149,9 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-082` | claimed | 0 | OW-WAR-0030 (complete) |
 | `WAR-SAS-RQ-083` | claimed | 0 | OW-WAR-0030 (complete) |
 | `WAR-SAS-RQ-084` | claimed | 0 | OW-WAR-0030 (complete), OW-WAR-0064 (partial) |
-| `WAR-SAS-RQ-085` | claimed | 0 | OW-WAR-0067 (partial) |
+| `WAR-SAS-RQ-085` | claimed | 0 | OW-WAR-0067 (partial), OW-WAR-0071 (partial), OW-WAR-0072 (partial) |
 
-## Warrants (66) — invalid 0 · draft 18 · ready_to_resolve 19 · would_satisfy 0 · resolved **29**
+## Warrants (69) — invalid 0 · draft 21 · ready_to_resolve 19 · would_satisfy 0 · resolved **29**
 
 | Warrant | rung | §38.6 | blocking unknowns | milestones evidenced | first unmet |
 |---|---|---|---|---|---|
@@ -221,6 +221,9 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0068` Skills: a strict superset of the Pocock set over the deterministic core | draft | unknown | 1 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0069` The board, the hotline, and the harness: one system from master record to running agents | draft | unknown | 1 | 0 of 3 | required deliverables exist |
 | `OW-WAR-0070` Add `war inbox` to list Warrants awaiting a human act | draft | unknown | 0 | 0 of 2 | exact authorized Contract Revision |
+| `OW-WAR-0071` SAS 1.1.0: the batch act, and the dashboard as a rendering of the record | draft | unknown | 1 | — | exact authorized Contract Revision |
+| `OW-WAR-0072` The batch act: one human signature over many pending acts | draft | unknown | 1 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0073` war tui: the dashboard in the terminal | draft | unknown | 1 | 0 of 4 | exact authorized Contract Revision |
 
 ## Not reported here
 

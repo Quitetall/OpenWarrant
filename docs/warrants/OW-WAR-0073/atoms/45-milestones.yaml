@@ -1,0 +1,63 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "The frame: dependency, ADR, event loop, terminal safety"
+    stage_refs: ["STAGE-001", "STAGE-002"]
+    obligation_refs: ["OBL-001", "OBL-002"]
+  - id: "M2"
+    title: "The acting panes: queue, questions, frontier"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-003"]
+  - id: "M3"
+    title: "The reading panes: corpus, obligations, evidence, journal"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-004"]
+    obligation_refs: ["OBL-004"]
+  - id: "M4"
+    title: "Planted, documented, and used for a real batch"
+    depends_on: ["M2", "M3"]
+    stage_refs: ["STAGE-005", "STAGE-006"]
+    obligation_refs: ["OBL-002", "OBL-004"]
+
+stages:
+  - id: "STAGE-001"
+    title: "ratatui + crossterm, OW-ADR-0020, the use-boundary test"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "20-basis.md#Assumptions carried in"]
+    budget_tokens: 12000
+  - id: "STAGE-002"
+    title: "Event loop, panic-safe teardown, non-TTY refusal, status bar"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Premade Instructions"]
+    budget_tokens: 16000
+  - id: "STAGE-003"
+    title: "Queue, questions and frontier panes over the existing seams"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Premade Instructions"]
+    budget_tokens: 20000
+  - id: "STAGE-004"
+    title: "Corpus, obligations, evidence and journal panes"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 20000
+  - id: "STAGE-005"
+    title: "Plants, docs/TUI.md, README line"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 14000
+  - id: "STAGE-006"
+    title: "The owner clears a day's queue from the TUI"
+    executor_kind: "human"
+    responsibility_tier: "T2"

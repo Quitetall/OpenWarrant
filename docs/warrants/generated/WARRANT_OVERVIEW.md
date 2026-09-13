@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-66 Warrant(s) in this repository.
+69 Warrant(s) in this repository.
 
 ## Summary
 
@@ -77,6 +77,9 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0068](docs/warrants/OW-WAR-0068/manifest.toml) | Skills: a strict superset of the Pocock set over the deterministic core | `authorized` | `current` | `valid` | `basic` | 3M / 7S |
 | [OW-WAR-0069](docs/warrants/OW-WAR-0069/manifest.toml) | The board, the hotline, and the harness: one system from master record to running agents | `authorized` | `current` | `valid` | `basic` | 3M / 5S |
 | [OW-WAR-0070](docs/warrants/OW-WAR-0070/manifest.toml) | Add `war inbox` to list Warrants awaiting a human act | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0071](docs/warrants/OW-WAR-0071/manifest.toml) | SAS 1.1.0: the batch act, and the dashboard as a rendering of the record | `draft` | `current` | `valid` | `basic` | — |
+| [OW-WAR-0072](docs/warrants/OW-WAR-0072/manifest.toml) | The batch act: one human signature over many pending acts | `draft` | `current` | `valid` | `basic` | 3M / 5S |
+| [OW-WAR-0073](docs/warrants/OW-WAR-0073/manifest.toml) | war tui: the dashboard in the terminal | `draft` | `current` | `valid` | `basic` | 4M / 6S |
 
 ## Claimed SAS requirement coverage
 
@@ -93,7 +96,7 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-013` — OW-WAR-0002
 - `WAR-SAS-RQ-014` — OW-WAR-0003, OW-WAR-0004, OW-WAR-0058
 - `WAR-SAS-RQ-015` — OW-WAR-0002, OW-WAR-0005
-- `WAR-SAS-RQ-020` — OW-WAR-0036, OW-WAR-0058, OW-WAR-0063, OW-WAR-0064
+- `WAR-SAS-RQ-020` — OW-WAR-0036, OW-WAR-0058, OW-WAR-0063, OW-WAR-0064, OW-WAR-0071
 - `WAR-SAS-RQ-022` — OW-WAR-0013, OW-WAR-0055, OW-WAR-0061, OW-WAR-0062, OW-WAR-0063
 - `WAR-SAS-RQ-024` — OW-WAR-0006
 - `WAR-SAS-RQ-025` — OW-WAR-0006
@@ -124,12 +127,12 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-062` — OW-WAR-0026
 - `WAR-SAS-RQ-063` — OW-WAR-0027, OW-WAR-0047
 - `WAR-SAS-RQ-064` — OW-WAR-0001
-- `WAR-SAS-RQ-070` — OW-WAR-0001, OW-WAR-0069
+- `WAR-SAS-RQ-070` — OW-WAR-0001, OW-WAR-0069, OW-WAR-0072, OW-WAR-0073
 - `WAR-SAS-RQ-071` — OW-WAR-0035, OW-WAR-0042, OW-WAR-0068
 - `WAR-SAS-RQ-072` — OW-WAR-0034, OW-WAR-0042, OW-WAR-0068
 - `WAR-SAS-RQ-073` — OW-WAR-0036
 - `WAR-SAS-RQ-074` — OW-WAR-0005, OW-WAR-0055
-- `WAR-SAS-RQ-075` — OW-WAR-0004, OW-WAR-0055, OW-WAR-0057, OW-WAR-0060
+- `WAR-SAS-RQ-075` — OW-WAR-0004, OW-WAR-0055, OW-WAR-0057, OW-WAR-0060, OW-WAR-0073
 - `WAR-SAS-RQ-076` — OW-WAR-0028
 - `WAR-SAS-RQ-077` — OW-WAR-0068
 - `WAR-SAS-RQ-080` — OW-WAR-0003
@@ -137,7 +140,7 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-082` — OW-WAR-0030
 - `WAR-SAS-RQ-083` — OW-WAR-0030
 - `WAR-SAS-RQ-084` — OW-WAR-0030, OW-WAR-0064
-- `WAR-SAS-RQ-085` — OW-WAR-0067
+- `WAR-SAS-RQ-085` — OW-WAR-0067, OW-WAR-0071, OW-WAR-0072
 
 ## Relations
 
@@ -205,6 +208,9 @@ Source: the Warrants under the configured warrants path.
 - **OW-WAR-0068** · roadmap: roadmap://OW-PHASE-2/plan
 - **OW-WAR-0069** · roadmap: roadmap://OW-PHASE-5/dispatch
 - **OW-WAR-0070** · roadmap: roadmap://OW-PHASE-2/plan
+- **OW-WAR-0071** · roadmap: roadmap://OW-PHASE-9/release
+- **OW-WAR-0072** · roadmap: roadmap://OW-PHASE-9/release
+- **OW-WAR-0073** · roadmap: roadmap://OW-PHASE-9/release
 
 ## Not reported here
 

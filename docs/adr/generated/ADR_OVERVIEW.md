@@ -27,6 +27,8 @@ Source: ADR atoms under the configured adrs path.
 | [OW-ADR-0016](docs/adr/atoms/OW-ADR-0016-sas-1-0-0.md) | ADR OW-0016: SAS 1.0.0 — one architecture-changing revision, accepted with the release | `proposed` | no | `war://01a021a2-b570-7f57-85b2-0f8189873d9e` |
 | [OW-ADR-0017](docs/adr/atoms/OW-ADR-0017-relicense-apache-2-0.md) | ADR OW-0017: relicense from AGPL-3.0-or-later to Apache-2.0 | `accepted` | yes | `war://01a021a2-b570-7f57-85b2-0f8189873d9e` |
 | [OW-ADR-0018](docs/adr/atoms/OW-ADR-0018-adopt-oh-war-inbox-v1-as.md) | ADR OW-0018: Adopt oh.war/inbox/v1 as the machine-readable output of war inbox | `proposed` | no | `war://01a09762-3fa2-7dd0-b794-0190b44fe879` |
+| [OW-ADR-0019](docs/adr/atoms/OW-ADR-0019-sas-1-1-0-batch-act-and-renderings.md) | ADR OW-0019: SAS 1.1.0 — the batch act, and renderings hold no authority | `proposed` | no | `war://01a0983e-32d7-7473-b6e1-fbef061a1e5f` |
+| [OW-ADR-0020](docs/adr/atoms/OW-ADR-0020-ratatui-for-the-terminal-dashboard.md) | ADR OW-0020: ratatui and crossterm for the terminal dashboard | `proposed` | no | `war://01a0983e-32db-7240-9a9d-cef5e5b41a38` |
 
 ## Proposed
 
@@ -39,6 +41,8 @@ Source: ADR atoms under the configured adrs path.
 - **OW-ADR-0015** ADR OW-0015: every ssh-signed act is attested as an in-toto Statement in a DSSE envelope
 - **OW-ADR-0016** ADR OW-0016: SAS 1.0.0 — one architecture-changing revision, accepted with the release
 - **OW-ADR-0018** ADR OW-0018: Adopt oh.war/inbox/v1 as the machine-readable output of war inbox
+- **OW-ADR-0019** ADR OW-0019: SAS 1.1.0 — the batch act, and renderings hold no authority
+- **OW-ADR-0020** ADR OW-0020: ratatui and crossterm for the terminal dashboard
 
 ## Accepted and Current
 
@@ -1610,3 +1614,178 @@ Proposed
 - Adding the schema to the pack changes the transitive digest once; that is expected and recorded.
 - Any change to item fields requires `oh.war/inbox/v2` rather than in-place edits.
 - The state-to-act vocabulary is now part of a public surface and must be kept in step with the SAS pin (OW-ADR-0016).
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-0019-sas-1-1-0-batch-act-and-renderings.md · uuid: 01a0983e-4a11-7c62-9f3d-6b2e8c5d4071 -->
+
+# ADR OW-0019: SAS 1.1.0 — the batch act, and renderings hold no authority
+
+## Status
+
+Proposed. Accepted when the repository owner signs SAS revision 1.1.0
+(§101.3 requires this ADR for an architecture-changing revision, and the
+revision is not accepted until that signature exists).
+
+## Context
+
+Signing is per-act today, so clearing a day costs one `ssh-add -c` dialog per
+act — twenty-four on 2026-09-12, differing only in the alias each names. The
+owner has said twice that this is too much: "Signing a warrant should be
+effortless, but something a human does only," and "Nobody wants to open up
+another terminal and sign 10 warrants and have to write 20 sentences."
+
+Two remedies exist. Dropping `-c` deletes the dialogs and the control
+`docs/THREAT_MODEL.md` entry 1 names with them: the key then signs whatever
+asks it, an agent that reached `SSH_AUTH_SOCK` included. Asked directly on
+2026-09-12, the owner chose the other: make one signature cover a list they
+read.
+
+SAS 1.0.0 cannot say that. §27.2 enumerates human-only acts one at a time,
+and §34.4, §38 and §56.1 each bind a signature to a single record. Nothing in
+the accepted text describes a signature whose subject is a list of acts. The
+same text is silent on a second thing about to be built: a terminal dashboard,
+which renders the corpus and must be defined as authority-free before it
+exists, not after.
+
+## Decision
+
+## What SAS 1.1.0 adds
+
+**1. The batch act (new §27.6, cited by §27.2).** One signature MAY authorize
+many acts when all of the following hold, and the tool SHALL refuse the batch
+otherwise:
+
+- the signed subject is a canonical `oh.war/batch/v1` document listing every
+  act it covers — act kind, target, and the digest each act is bound to;
+- every listed act is one the same signer could have performed individually
+  at that moment, under the same role, with no act of a kind the signer is
+  not permitted;
+- no listed act's bound digest has moved since the batch was drafted. A moved
+  digest invalidates the **whole** batch: the batch is re-drafted and
+  re-signed, never silently re-scoped;
+- the batch is signed by a human in the register, under a declared namespace,
+  exactly as a single act is. An agent-kind actor signing a batch is refused
+  by the same rule that refuses it a single act;
+- each act still writes its own record, and each record cites the batch by
+  digest. A reader of one record can find every other act the same signature
+  authorized, which is the property that makes one dialog honest.
+
+**2. Attestation of a batch (amends §85's rule).** A batch emits one DSSE
+envelope whose subject is the batch document and every record it produced.
+The per-act envelopes remain, each naming the batch digest as an additional
+subject, so a foreign verifier can check either direction.
+
+**3. A rendering holds no authority (new §76.6).** A rendering is a view of
+the corpus — the Pages projection, a terminal dashboard, a printed board. It
+MAY issue commands and MUST NOT perform an act: no rendering holds a key,
+and a rendering that appears to sign is a defect. Every approval a rendering
+offers is the drafting half of a seam whose other half is a human's
+signature.
+
+**4. §106 rows.** Three: the batch refusals above; the invalidation rule; and
+the rendering rule, each with the conformance test that demonstrates it.
+
+## Why not the alternatives
+
+- **Drop `-c`.** Removes the dialogs by removing the control; an agent that
+  reaches the socket then signs silently. Refused on 2026-09-12.
+- **A signature per act, accepted as the cost.** Honest, and the owner has
+  said twice it is too much. The friction is not the confirmation, it is
+  confirming the same decision twenty-four times.
+- **A session token ("approve everything for ten minutes").** Time is not a
+  subject: the signer would be authorizing acts that did not exist when they
+  signed. The batch document exists first, and its digest is what is signed.
+
+## Consequences
+
+- `war sign --batch` becomes sayable (OW-WAR-0072 builds it).
+- A dashboard becomes sayable as a rendering (OW-WAR-0073 builds it).
+- Every Warrant stays pinned to the revision it was authorized against;
+  this revision does not move any contract digest by itself.
+
+## Alternatives rejected
+
+- **Drop `ssh-add -c`.** One keystroke signs everything, and so does anything
+  else that reaches the agent socket. Refused by the owner on 2026-09-12.
+- **Keep a signature per act.** Honest and unchanged; the owner has rejected
+  the cost twice. The friction is not the confirming, it is confirming the
+  same decision twenty-four times.
+- **A time-boxed session ("approve everything for ten minutes").** Time is not
+  a subject: the signer would authorize acts that did not exist when they
+  signed. A batch document exists before the signature and its digest is what
+  is signed.
+- **A tool-held key with a policy engine.** The key would be the tool's, which
+  is the failure this whole system exists to prevent.
+
+## Consequences
+
+- `war sign --batch` becomes sayable; OW-WAR-0072 implements it, including the
+  refusal that invalidates a whole batch when one bound digest moved.
+- A dashboard becomes sayable as a rendering; OW-WAR-0073 implements it under
+  §76.6, and a rendering that holds a key is then a defect with a name.
+- Warrants authorized against 1.0.0 keep that Basis until an amendment
+  re-pins them and a human re-authorizes. This revision moves no contract
+  digest by itself.
+- Attestations gain a shape for a batch: one envelope over the batch and its
+  records, plus each act's own envelope naming the batch digest.
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-0020-ratatui-for-the-terminal-dashboard.md · uuid: 01a0983e-4a12-7b41-8d57-9c1f6e2a4073 -->
+
+# ADR OW-0020: ratatui and crossterm for the terminal dashboard
+
+## Status
+
+Proposed. Accepted when the owner authorizes OW-WAR-0073.
+
+## Context
+
+Two views of the corpus exist and neither is where the work happens: the Pages
+projection is rich and lives in a browser that cannot hold a key, and
+`war console` acts but shows almost nothing — no corpus state, no obligation
+ladders, no receipts, no journal. The owner asked for a full terminal
+dashboard on 2026-09-12.
+
+Three ways to build one:
+
+- **Hand-rolled ANSI.** No dependency, and a re-implementation of layout,
+  wrapping, scrolling and terminal restoration — the parts that are subtle,
+  and the parts a crash exposes by leaving the terminal unusable.
+- **crossterm alone.** Input and raw mode without layout; the widgets and the
+  diffing renderer would still be ours.
+- **ratatui over crossterm.** The layout, widget and frame-diffing layer, with
+  crossterm as the backend.
+
+Two constraints bear on the choice. `deny.toml` allows a fixed set of licence
+families and a new family is a refusal, not an exception. `OW-ADR-0014` admits
+async **only** under `openwarrant-cli/src/mcp/`, so a UI library that needs an
+executor would engage that refusal.
+
+## Decision
+
+Take `ratatui` with the `crossterm` backend, confined to
+`crates/openwarrant-cli/src/tui/`. A unit test asserts no module outside that
+directory names either crate, the same shape as the test that confines `tokio`
+and `rmcp` to `mcp/`.
+
+Both crates are MIT, which `deny.toml` already allows, so the dependency adds
+no licence family. Both are synchronous: input arrives through a polled
+`crossterm::event::read`, so no executor enters the graph and `OW-ADR-0014`'s
+refusal stands untouched. `cargo deny check licenses` and a `cargo tree` diff
+are the evidence, recorded under OW-WAR-0073 OBL-001 rather than asserted here.
+
+## Consequences
+
+- One new dependency family in the CLI, with a use-boundary test to keep it
+  where it was put.
+- The dashboard is a **rendering** under SAS 1.1.0 §76.6: it issues commands
+  and holds no key. Every act it starts shells out to `war sign --ssh-sign`, so
+  the `ssh-add -c` dialog remains the human act. A terminal that signs is a
+  defect with a name, which is the point of writing the rule first.
+- A panic hook and explicit teardown are part of the deliverable: a library
+  that takes over the terminal owes the user their terminal back.
+- If a future ratatui release pulls an executor, `OW-ADR-0014` is engaged and
+  the version is pinned or the library replaced; the boundary test is what
+  makes that visible rather than silent.
