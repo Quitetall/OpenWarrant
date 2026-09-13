@@ -2052,10 +2052,8 @@ mod tests {
     /// was discarded, and the human's fresh signature went with it.
     #[test]
     fn a_prior_correction_response_retires_by_its_new_digest() {
-        let dir = camino::Utf8PathBuf::from(format!(
-            "/tmp/war-retire-correction-{}",
-            std::process::id()
-        ));
+        let dir =
+            camino::Utf8PathBuf::from(format!("/tmp/war-retire-correction-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let final_path = dir.join("OW-WAR-0055.D-001.correction.response.toml");
         let prior = "schema = \"oh.war/correction-response/v1\"\n\
@@ -2065,9 +2063,13 @@ mod tests {
                      new_digest = \"sha256:54deac321773e933\"\n";
         std::fs::write(&final_path, prior).unwrap();
         retire_prior(&final_path, "sha256:6c8c7c779c676772").expect("retires by new_digest");
-        assert!(!final_path.exists(), "the path is freed for the new response");
         assert!(
-            dir.join("OW-WAR-0055.D-001.correction.sha256:5.response.toml").is_file()
+            !final_path.exists(),
+            "the path is freed for the new response"
+        );
+        assert!(
+            dir.join("OW-WAR-0055.D-001.correction.sha256:5.response.toml")
+                .is_file()
                 || std::fs::read_dir(&dir)
                     .unwrap()
                     .filter_map(Result::ok)

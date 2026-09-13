@@ -1,24 +1,28 @@
 # shellcheck shell=bash
 # OW-WAR-0064 — the correction act (OW-ADR-0012).
 #
-# Target: OW-WAR-0062, which is RESOLVED and whose D-001 is
-# docs/sas/revisions/0.1.0-draft.3.toml — under docs/sas/, which `restore`
-# covers. A Warrant whose pinned deliverable lives under crates/ cannot be the
-# target: `restore` does not check out crates/, so a plant there would leave the
-# working tree dirty.
+# Target: OW-WAR-0061, which is RESOLVED and whose D-001 is
+# docs/roadmap/PHASE1_EXIT.md — under docs/roadmap/, which `restore` covers. A
+# Warrant whose pinned deliverable lives under crates/ cannot be the target:
+# `restore` does not check out crates/, so a plant there would leave the working
+# tree dirty.
 #
-# Every ingest plant writes a correction record under docs/warrants/OW-WAR-0062/
+# Every ingest plant writes a correction record under docs/warrants/OW-WAR-0061/
 # corrections/ and a journal line. The journal is tracked and restored by
 # checkout; the corrections directory is NOT tracked today and is removed by
 # `restore_corrections` below. That removal is safe ONLY while no real
-# correction exists there — the guard at the top refuses to run otherwise, so
-# the day OW-WAR-0062 gains a genuine correction this file must move to another
-# target rather than delete it. (The `rm -f` that once deleted a real resolution
-# is why this is a guard and not a comment.)
+# correction exists there — the guard below refuses to run otherwise.
+#
+# The target was OW-WAR-0062 until 2026-09-13, when the owner signed a genuine
+# correction of its D-001 and the guard stopped the battery rather than deleting
+# it. That is the guard working: the header said "the day it gains a genuine
+# correction this file must move to another target", and this is the move. (The
+# `rm -f` that once deleted a real resolution is why this is a guard and not a
+# comment.)
 
-TARGET_ALIAS="OW-WAR-0062"
+TARGET_ALIAS="OW-WAR-0061"
 TARGET_DID="D-001"
-TARGET_FILE="docs/sas/revisions/0.1.0-draft.3.toml"
+TARGET_FILE="docs/roadmap/PHASE1_EXIT.md"
 CORR_DIR="docs/warrants/$TARGET_ALIAS/corrections"
 
 if [[ -e "$CORR_DIR" ]]; then

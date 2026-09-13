@@ -314,6 +314,33 @@ pub fn list(repo: &Repository, act_dir: &Utf8Path) -> Vec<Utf8PathBuf> {
     out
 }
 
+/// The attested bytes, if a sibling of `name` still carries them.
+///
+/// `retire_prior` moves a response aside as `<stem>.<tag>.response.toml` when a
+/// later act of the same kind takes its path, so an attestation naming the
+/// original path is describing bytes that still exist under a different name.
+/// Only siblings sharing the original stem are considered: a digest match
+/// anywhere in the repository would be a different claim.
+fn archived_copy(repo: &Repository, name: &str, want: &str) -> Option<String> {
+    let path = camino::Utf8PathBuf::from(name);
+    let dir = repo.root.join(path.parent()?);
+    let file = path.file_name()?;
+    let stem = file.split('.').next()?;
+    let mut found: Vec<String> = std::fs::read_dir(&dir)
+        .ok()?
+        .filter_map(Result::ok)
+        .filter_map(|e| camino::Utf8PathBuf::from_path_buf(e.path()).ok())
+        .filter(|p| {
+            p.file_name()
+                .is_some_and(|f| f.starts_with(stem) && f != file)
+        })
+        .filter(|p| std::fs::read(p).is_ok_and(|bytes| sha256_hex(&bytes) == want))
+        .map(|p| repo.relative(&p))
+        .collect();
+    found.sort();
+    found.into_iter().next()
+}
+
 /// Verify one attestation file: structure, subject digests today, signature.
 pub fn verify_file(repo: &Repository, path: &Utf8Path, report: &mut Report) {
     let rel = repo.relative(path);
@@ -386,16 +413,35 @@ pub fn verify_file(repo: &Repository, path: &Utf8Path, report: &mut Report) {
         match std::fs::read(repo.root.join(&s.name)) {
             Ok(bytes) if sha256_hex(&bytes) == *want => {}
             Ok(_) => {
-                drifted = true;
-                report.push(Diagnostic::error(
-                    "attest.subject-drift",
-                    rel.clone(),
-                    format!(
-                        "{} no longer matches the digest attested for it (sha256:{want}); the \
-                         record was edited after the {act} was attested",
-                        s.name
-                    ),
-                ));
+                // The bytes at that path are not the attested bytes. Before
+                // calling it drift, look for them: a response is RETIRED to
+                // `<name>.<digest>.response.toml` when a later act takes its
+                // path (§34.4 — supersede, never erase), and the attestation
+                // names the path it had when it was signed. Finding the same
+                // bytes beside it is the file moving, not the record changing.
+                match archived_copy(repo, &s.name, want) {
+                    Some(found) => report.push(Diagnostic::pass(
+                        "attest.subject-archived",
+                        format!(
+                            "{}: the attested bytes now live at {found}, retired when a later \
+                             act took the path; the digest still holds",
+                            s.name
+                        ),
+                    )),
+                    None => {
+                        drifted = true;
+                        report.push(Diagnostic::error(
+                            "attest.subject-drift",
+                            rel.clone(),
+                            format!(
+                                "{} no longer matches the digest attested for it \
+                                 (sha256:{want}), and no file beside it carries those bytes; \
+                                 the record was edited after the {act} was attested",
+                                s.name
+                            ),
+                        ));
+                    }
+                }
             }
             Err(e) => {
                 drifted = true;
