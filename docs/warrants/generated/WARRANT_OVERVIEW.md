@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-59 Warrant(s) in this repository.
+87 Warrant(s) in this repository.
 
 ## Summary
 
@@ -69,11 +69,39 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0060](docs/warrants/OW-WAR-0060/manifest.toml) | Publish the corpus viewer: GitHub Pages from the committed projection | `resolved` | `current` | `valid` | `basic` | 2M / 2S |
 | [OW-WAR-0061](docs/warrants/OW-WAR-0061/manifest.toml) | Discharge the Phase 1 exit: OpenWarrant development uses WARs | `resolved` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0062](docs/warrants/OW-WAR-0062/manifest.toml) | Lock down the levels: what a SAS, a Warrant, and every other object are | `resolved` | `current` | `valid` | `basic` | 1M / 1S |
-| [OW-WAR-0063](docs/warrants/OW-WAR-0063/manifest.toml) | Complete the conformance battery: the plants and tests the verifier named as missing | `draft` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0063](docs/warrants/OW-WAR-0063/manifest.toml) | Complete the conformance battery: the plants and tests the verifier named as missing | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0064](docs/warrants/OW-WAR-0064/manifest.toml) | Repair a delivered artifact: the correction act for a resolved Warrant | `authorized` | `current` | `valid` | `controlled` | 5M / 3S |
+| [OW-WAR-0065](docs/warrants/OW-WAR-0065/manifest.toml) | Research memo: which tokenizer approximation OpenWarrant uses for §33.7 budgets | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0066](docs/warrants/OW-WAR-0066/manifest.toml) | Run: the conformance battery as a service stage | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0067](docs/warrants/OW-WAR-0067/manifest.toml) | Release 1.0: the seven acts that close the plan, deferred to the owner's signature | `authorized` | `current` | `valid` | `basic` | 3M / 7S |
+| [OW-WAR-0068](docs/warrants/OW-WAR-0068/manifest.toml) | Skills: a strict superset of the Pocock set over the deterministic core | `authorized` | `current` | `valid` | `basic` | 3M / 7S |
+| [OW-WAR-0069](docs/warrants/OW-WAR-0069/manifest.toml) | The board, the hotline, and the harness: one system from master record to running agents | `authorized` | `current` | `valid` | `basic` | 3M / 5S |
+| [OW-WAR-0070](docs/warrants/OW-WAR-0070/manifest.toml) | Add `war inbox` to list Warrants awaiting a human act | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0071](docs/warrants/OW-WAR-0071/manifest.toml) | SAS 1.1.0: the batch act, and the dashboard as a rendering of the record | `authorized` | `current` | `valid` | `basic` | — |
+| [OW-WAR-0072](docs/warrants/OW-WAR-0072/manifest.toml) | The batch act: one human signature over many pending acts | `authorized` | `current` | `valid` | `basic` | 3M / 5S |
+| [OW-WAR-0073](docs/warrants/OW-WAR-0073/manifest.toml) | war tui: the dashboard in the terminal | `authorized` | `current` | `valid` | `basic` | 4M / 6S |
+| [OW-WAR-0074](docs/warrants/OW-WAR-0074/manifest.toml) | Adopt the exact RC.2 build basis without rewriting history | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0075](docs/warrants/OW-WAR-0075/manifest.toml) | Parse and validate a minimal OpenWarrant document | `draft` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0076](docs/warrants/OW-WAR-0076/manifest.toml) | Author valid documents from explicit fields | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0077](docs/warrants/OW-WAR-0077/manifest.toml) | Capture immutable sources and resolve exact references | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0078](docs/warrants/OW-WAR-0078/manifest.toml) | Evaluate context conditions with explicit uncertainty | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0079](docs/warrants/OW-WAR-0079/manifest.toml) | Select complete context and expose conflicts | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0080](docs/warrants/OW-WAR-0080/manifest.toml) | Build master context and faithful role projections | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0081](docs/warrants/OW-WAR-0081/manifest.toml) | Export and verify portable offline context packages | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0082](docs/warrants/OW-WAR-0082/manifest.toml) | Enforce context budgets and invalidate stale cache entries | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0083](docs/warrants/OW-WAR-0083/manifest.toml) | Check supplied readiness and assurance records truthfully | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0084](docs/warrants/OW-WAR-0084/manifest.toml) | Import legacy history without changing what was signed | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0085](docs/warrants/OW-WAR-0085/manifest.toml) | Prove every Phase 1 primitive through a runnable driver | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0086](docs/warrants/OW-WAR-0086/manifest.toml) | Expose the complete compiler through a machine-safe CLI | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0087](docs/warrants/OW-WAR-0087/manifest.toml) | Expose noninteractive document authoring and validation | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0088](docs/warrants/OW-WAR-0088/manifest.toml) | Make document authoring interactive and recoverable | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0089](docs/warrants/OW-WAR-0089/manifest.toml) | Prepare installable compiler release artifacts and user docs | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0090](docs/warrants/OW-WAR-0090/manifest.toml) | Qualify the integrated compiler and freeze the Stable source set | `draft` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0091](docs/warrants/OW-WAR-0091/manifest.toml) | Publish and verify OpenWarrant Stable 1.0 | `draft` | `current` | `valid` | `basic` | 3M / 3S |
 
 ## Claimed SAS requirement coverage
 
-51 distinct requirement(s) are claimed by at least one Warrant.
+54 distinct requirement(s) are claimed by at least one Warrant.
 
 > **Claimed, not verified.** A Warrant declaring `[[implements]]` is an assertion by its author. §34.3 treats requirement status as a separate record; nothing here checks that the requirement is actually met.
 
@@ -86,23 +114,24 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-013` — OW-WAR-0002
 - `WAR-SAS-RQ-014` — OW-WAR-0003, OW-WAR-0004, OW-WAR-0058
 - `WAR-SAS-RQ-015` — OW-WAR-0002, OW-WAR-0005
-- `WAR-SAS-RQ-020` — OW-WAR-0036, OW-WAR-0058, OW-WAR-0063
+- `WAR-SAS-RQ-020` — OW-WAR-0036, OW-WAR-0058, OW-WAR-0063, OW-WAR-0064, OW-WAR-0071
 - `WAR-SAS-RQ-022` — OW-WAR-0013, OW-WAR-0055, OW-WAR-0061, OW-WAR-0062, OW-WAR-0063
 - `WAR-SAS-RQ-024` — OW-WAR-0006
 - `WAR-SAS-RQ-025` — OW-WAR-0006
-- `WAR-SAS-RQ-030` — OW-WAR-0009
+- `WAR-SAS-RQ-030` — OW-WAR-0009, OW-WAR-0067
 - `WAR-SAS-RQ-031` — OW-WAR-0009
 - `WAR-SAS-RQ-032` — OW-WAR-0008
 - `WAR-SAS-RQ-033` — OW-WAR-0009
 - `WAR-SAS-RQ-034` — OW-WAR-0009
 - `WAR-SAS-RQ-035` — OW-WAR-0011
+- `WAR-SAS-RQ-036` — OW-WAR-0067
 - `WAR-SAS-RQ-040` — OW-WAR-0007
 - `WAR-SAS-RQ-041` — OW-WAR-0007
-- `WAR-SAS-RQ-042` — OW-WAR-0023, OW-WAR-0045, OW-WAR-0056
-- `WAR-SAS-RQ-043` — OW-WAR-0023, OW-WAR-0045, OW-WAR-0056
-- `WAR-SAS-RQ-044` — OW-WAR-0026, OW-WAR-0045
+- `WAR-SAS-RQ-042` — OW-WAR-0023, OW-WAR-0045, OW-WAR-0056, OW-WAR-0069
+- `WAR-SAS-RQ-043` — OW-WAR-0023, OW-WAR-0045, OW-WAR-0056, OW-WAR-0065
+- `WAR-SAS-RQ-044` — OW-WAR-0026, OW-WAR-0045, OW-WAR-0069
 - `WAR-SAS-RQ-045` — OW-WAR-0024, OW-WAR-0045, OW-WAR-0056
-- `WAR-SAS-RQ-050` — OW-WAR-0016
+- `WAR-SAS-RQ-050` — OW-WAR-0016, OW-WAR-0074, OW-WAR-0075, OW-WAR-0076, OW-WAR-0077, OW-WAR-0078, OW-WAR-0079, OW-WAR-0080, OW-WAR-0081, OW-WAR-0082, OW-WAR-0083, OW-WAR-0084, OW-WAR-0085, OW-WAR-0086, OW-WAR-0087, OW-WAR-0088, OW-WAR-0089, OW-WAR-0090, OW-WAR-0091
 - `WAR-SAS-RQ-051` — OW-WAR-0016
 - `WAR-SAS-RQ-052` — OW-WAR-0017
 - `WAR-SAS-RQ-053` — OW-WAR-0021, OW-WAR-0046, OW-WAR-0059
@@ -116,18 +145,20 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-062` — OW-WAR-0026
 - `WAR-SAS-RQ-063` — OW-WAR-0027, OW-WAR-0047
 - `WAR-SAS-RQ-064` — OW-WAR-0001
-- `WAR-SAS-RQ-070` — OW-WAR-0001
-- `WAR-SAS-RQ-071` — OW-WAR-0035, OW-WAR-0042
-- `WAR-SAS-RQ-072` — OW-WAR-0034, OW-WAR-0042
+- `WAR-SAS-RQ-070` — OW-WAR-0001, OW-WAR-0069, OW-WAR-0072, OW-WAR-0073
+- `WAR-SAS-RQ-071` — OW-WAR-0035, OW-WAR-0042, OW-WAR-0068
+- `WAR-SAS-RQ-072` — OW-WAR-0034, OW-WAR-0042, OW-WAR-0068
 - `WAR-SAS-RQ-073` — OW-WAR-0036
 - `WAR-SAS-RQ-074` — OW-WAR-0005, OW-WAR-0055
-- `WAR-SAS-RQ-075` — OW-WAR-0004, OW-WAR-0055, OW-WAR-0057, OW-WAR-0060
+- `WAR-SAS-RQ-075` — OW-WAR-0004, OW-WAR-0055, OW-WAR-0057, OW-WAR-0060, OW-WAR-0073
 - `WAR-SAS-RQ-076` — OW-WAR-0028
+- `WAR-SAS-RQ-077` — OW-WAR-0068
 - `WAR-SAS-RQ-080` — OW-WAR-0003
 - `WAR-SAS-RQ-081` — OW-WAR-0003
 - `WAR-SAS-RQ-082` — OW-WAR-0030
 - `WAR-SAS-RQ-083` — OW-WAR-0030
-- `WAR-SAS-RQ-084` — OW-WAR-0030
+- `WAR-SAS-RQ-084` — OW-WAR-0030, OW-WAR-0064
+- `WAR-SAS-RQ-085` — OW-WAR-0067, OW-WAR-0071, OW-WAR-0072
 
 ## Relations
 
@@ -189,6 +220,15 @@ Source: the Warrants under the configured warrants path.
 - **OW-WAR-0061** · roadmap: roadmap://OW-PHASE-1/exit
 - **OW-WAR-0062** · roadmap: roadmap://OW-PHASE-3/definitions
 - **OW-WAR-0063** · roadmap: roadmap://OW-PHASE-6/conformance
+- **OW-WAR-0064** · roadmap: roadmap://OW-PHASE-3/corrections
+- **OW-WAR-0065** · roadmap: roadmap://OW-PHASE-5/context
+- **OW-WAR-0067** · roadmap: roadmap://OW-PHASE-9/release
+- **OW-WAR-0068** · roadmap: roadmap://OW-PHASE-2/plan
+- **OW-WAR-0069** · roadmap: roadmap://OW-PHASE-5/dispatch
+- **OW-WAR-0070** · roadmap: roadmap://OW-PHASE-2/plan
+- **OW-WAR-0071** · roadmap: roadmap://OW-PHASE-9/release
+- **OW-WAR-0072** · roadmap: roadmap://OW-PHASE-9/release
+- **OW-WAR-0073** · roadmap: roadmap://OW-PHASE-9/release
 
 ## Not reported here
 

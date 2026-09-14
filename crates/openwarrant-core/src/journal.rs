@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! The local draft journal (SAS §66) and portable preservation (§68).
 //! RQ-082, RQ-083, RQ-084.
 //!
@@ -108,6 +108,7 @@ impl EventClass {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// §66.3's event envelope.
 ///
 /// There is deliberately no `recorded_at`: §66.3 says the local clock is not

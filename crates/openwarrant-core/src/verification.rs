@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Verification records — who checked an obligation, and how independent they were (SAS §46, §38.5).
 //!
 //! # Why independence moved out of the repository config
@@ -57,6 +57,7 @@ pub enum VerificationError {
     NoEvidence { obligation: String },
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// What kind of actor produced a verdict (§27.1).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -83,6 +84,7 @@ impl fmt::Display for ActorKind {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// Who performed a verification, and the independence they actually had.
 ///
 /// `independence` is recorded AS OBSERVED for this verifier, not copied from a
@@ -111,6 +113,7 @@ impl Verifier {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// One obligation, verified.
 ///
 /// This is the record §38.5 needs before a disposition means anything, and the

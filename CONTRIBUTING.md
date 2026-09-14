@@ -2,7 +2,7 @@
 
 ## Read this first: the licensing constraint
 
-OpenWarrant ships **AGPL-3.0-or-later** today and is intended to be relicensed
+OpenWarrant ships **Apache-2.0** (relicensed 2026-09-12, OW-ADR-0017); before that date it shipped AGPL-3.0-or-later and was relicensed
 **Apache-2.0** when it goes public. That is not an administrative detail you can
 ignore — it constrains what you may contribute.
 
@@ -83,6 +83,16 @@ it did not reproduce.
 
 Do not describe the tree; describe the diff. A message claiming "5 manifests" when
 the diff contains 4 makes the log unusable as evidence.
+
+## Signing, and what it does not defend
+
+`war sign --ssh-sign` is only as strong as the ssh agent behind it: the key
+must be loaded with `ssh-add -c`, so every signature asks the human through
+the agent's confirmation dialog. `war` cannot verify that; it is the one
+thing the operator must get right. The full list — ten threats, each with
+its control, its residual, and the test or plant that exercises it — is
+[`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md). A change to a control changes
+that file in the same commit.
 
 ## Reporting bugs
 

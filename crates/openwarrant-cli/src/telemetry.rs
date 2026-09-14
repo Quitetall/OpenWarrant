@@ -1,9 +1,9 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war telemetry` — §94's baseline, §95's untracked-work candidates, §100's metrics.
 //!
 //! # Why a measure may not be zero
 //!
-//! §94 lists eighteen measures and `TELEMETRY_MEASURES` transcribes them. Ten of
+//! §94 lists twenty measures (SAS 1.0.0) and `TELEMETRY_MEASURES` transcribes them. Ten of
 //! them cannot be taken from a git repository, because they are properties of an
 //! authoring SESSION that nothing instruments: how many minutes a human spent,
 //! how many clarifying questions were asked, how long the wall clock ran.
@@ -96,6 +96,58 @@ const SUCCESS_METRICS: [&str; 16] = [
     "ability to hand work between agents and humans",
 ];
 
+/// Means of the token estimates the repository recorded, per Warrant directory
+/// list. `None` when nothing was recorded — never zero.
+fn context_token_means(dirs: &[camino::Utf8PathBuf]) -> (Option<u64>, Option<u64>) {
+    let mut dispatch = Vec::new();
+    let mut bundles = Vec::new();
+    for d in dirs {
+        if let Ok(j) = crate::journal_cmd::load(d) {
+            for e in j
+                .events
+                .iter()
+                .filter(|e| e.event_type == "dispatch.compiled")
+            {
+                if let Some(t) = serde_json::from_str::<serde_json::Value>(&e.payload)
+                    .ok()
+                    .and_then(|v| {
+                        v.get("estimated_tokens")
+                            .and_then(serde_json::Value::as_u64)
+                    })
+                {
+                    dispatch.push(t);
+                }
+            }
+        }
+        if let Ok(rd) = d.join("verifications").read_dir_utf8() {
+            for entry in rd.filter_map(Result::ok) {
+                let name = entry.file_name();
+                if !(name.starts_with("bundle-") && name.ends_with(".json")) {
+                    continue;
+                }
+                if let Some(t) = std::fs::read_to_string(entry.path())
+                    .ok()
+                    .and_then(|t| serde_json::from_str::<serde_json::Value>(&t).ok())
+                    .and_then(|v| {
+                        v.get("estimated_tokens")
+                            .and_then(serde_json::Value::as_u64)
+                    })
+                {
+                    bundles.push(t);
+                }
+            }
+        }
+    }
+    let mean = |v: &[u64]| {
+        if v.is_empty() {
+            None
+        } else {
+            Some(v.iter().sum::<u64>() / v.len() as u64)
+        }
+    };
+    (mean(&dispatch), mean(&bundles))
+}
+
 /// Why each unmeasurable measure cannot be taken, stated once so the artifact
 /// and this file cannot drift apart.
 fn unmeasurable(measure: &str) -> Option<&'static str> {
@@ -163,6 +215,12 @@ pub fn take(repo: &Repository, commit: &str) -> Result<Baseline, RepoError> {
         })
         .sum();
 
+    // SAS 1.0.0 §94: context tokens per dispatch and per verification, as
+    // means over what the repository recorded — `dispatch.compiled` journal
+    // events and `verifications/bundle-*.json`. A mean over nothing is not
+    // zero; it is not yet takeable, and says so.
+    let (dispatch_tokens, verification_tokens) = context_token_means(&dirs);
+
     let gates_dir = repo.root.join(&repo.config.paths.gates);
     let gates_defined = gates_dir
         .read_dir_utf8()
@@ -200,6 +258,27 @@ pub fn take(repo: &Repository, commit: &str) -> Result<Baseline, RepoError> {
             "evidence and gate reuse" => {
                 Measure::taken(gate_citations, "gate:// citations across all atoms")
             }
+            "context tokens per dispatch" => match dispatch_tokens {
+                Some(mean) => Measure::taken(
+                    mean,
+                    "mean estimated_tokens over dispatch.compiled journal events \
+                     (oh.war/token-estimate/bytes-div-4/v1)",
+                ),
+                None => Measure::not_yet(
+                    "no dispatch.compiled event is journalled on the committed tree; `war \
+                     dispatch` records one per compile",
+                ),
+            },
+            "context tokens per verification" => match verification_tokens {
+                Some(mean) => Measure::taken(
+                    mean,
+                    "mean estimated_tokens over verifications/bundle-*.json \
+                     (oh.war/token-estimate/bytes-div-4/v1)",
+                ),
+                None => Measure::not_yet(
+                    "no verification bundle is committed; `war verify --bundle` writes one",
+                ),
+            },
             "gate library reuse" => Measure::taken(
                 gates_defined,
                 "gate definitions in the registry; reuse is citations over definitions",

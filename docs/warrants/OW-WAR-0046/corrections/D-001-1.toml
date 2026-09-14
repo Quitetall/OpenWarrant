@@ -1,0 +1,16 @@
+schema = "oh.war/correction/v1"
+warrant = "OW-WAR-0046"
+
+[correction]
+id = "01a098e1-9ca8-70e4-8cc7-4daa5dd52b9c"
+deliverable_id = "D-001"
+target_ref = "crates/openwarrant-cli/src/resolve.rs"
+sequence = 1
+superseded_digest = "sha256:99aa1c039c4250bfe95ab17d45d15d2f65865e128c69217a27f33c901ba7b64a"
+new_digest = "sha256:e626f1a605e653c366721609de293b8858347d9ee7fc1ba8e300cb6e42ae1b9e"
+reason = "The delivered bytes moved with a slice of the 1.0 plan; each commit states its own change, and this records that the artifact moved with them. Presented on a terminal by `war sign 1.0.0` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+kind = "behaviour-change"
+authorized_by_ref = "person://Brian Lam"
+acting_role_ref = "role://authorizer"
+effective_at = "2026-09-13T03:48:34Z"
+recorded_at = "2026-09-13T03:48:37Z"

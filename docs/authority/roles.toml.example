@@ -54,11 +54,27 @@ roles = ["authorizer", "resolver", "risk_acceptor", "judge"]
 assigned_by = "your-name-here"
 effective_time = "2026-01-01T00:00:00Z"
 note = "Repository owner."
+# Optional. The principal this actor signs as in `allowed_signers` when using
+# `war sign --ssh-sign`. No spaces (OpenSSH's rule). Grants nothing by itself;
+# see allowed_signers.example for the `ssh-add -c` requirement.
+ssh_principal = "your-principal-here"
 
 # The agent is recorded as a performer and nothing else. This entry is not
 # required — an actor with no assignment simply has no authority — but writing it
 # down states the arrangement explicitly rather than leaving it to be inferred
 # from an absence.
+# A second human. Two eligible signers for one act is a question `war sign`
+# asks (`sign.who`); pass `--as` to answer it. Nothing here makes one signer
+# the other's reviewer — independence is a declaration on the Warrant.
+[[assignment]]
+actor = "second-signer-here"
+actor_kind = "human"
+roles = ["authorizer", "resolver"]
+assigned_by = "your-name-here"
+effective_time = "2026-01-01T00:00:00Z"
+note = "Second signer; may authorize and resolve."
+ssh_principal = "second-principal-here"
+
 [[assignment]]
 actor = "claude"
 actor_kind = "agent"

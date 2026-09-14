@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `cargo xtask gate` — the aggregate gate (SAS §92).
 //!
 //! §92: "The final command SHALL exit zero only when every positive fixture
@@ -27,12 +27,29 @@ fn main() -> ExitCode {
     let mut args = std::env::args().skip(1);
     match args.next().as_deref() {
         Some("gate") => gate(),
+        // OW-WAR-0068: the skill checks alone, for a plant and for a fast
+        // local loop while writing a skill.
+        Some("skills") => {
+            let a = check_skill();
+            let b = check_agent_docs();
+            match (a, b) {
+                (Ok(_), Ok(0)) => ExitCode::SUCCESS,
+                (Ok(_), Ok(n)) => {
+                    eprintln!("xtask skills: {n} agent-facing document(s) carry an em-dash");
+                    ExitCode::FAILURE
+                }
+                (Err(e), _) | (_, Err(e)) => {
+                    eprintln!("xtask skills: {e}");
+                    ExitCode::FAILURE
+                }
+            }
+        }
         Some(other) => {
-            eprintln!("xtask: unknown task {other:?}; known tasks: gate");
+            eprintln!("xtask: unknown task {other:?}; known tasks: gate, skills");
             ExitCode::FAILURE
         }
         None => {
-            eprintln!("usage: cargo xtask gate");
+            eprintln!("usage: cargo xtask gate | skills");
             ExitCode::FAILURE
         }
     }
@@ -45,13 +62,25 @@ struct Step {
     args: &'static [&'static str],
 }
 
-/// The SPDX identifier every Rust source file must declare.
+/// The SPDX identifier a Rust source file must declare after the relicense.
 ///
-/// Checked mechanically because the Apache-2.0 relicense rewrites exactly this
-/// line in every file (see RELICENSING.md). A file that never carried a header
-/// would be silently skipped by that rewrite and would keep asserting the old
-/// licence — or none at all — after the flip.
-const EXPECTED_SPDX: &str = "// SPDX-License-Identifier: AGPL-3.0-or-later";
+/// Checked mechanically because the relicense rewrites exactly this line in
+/// every file (RELICENSING.md, OW-ADR-0017). A file that never carried a
+/// header would be silently skipped by that rewrite and would keep asserting
+/// the old licence, or none at all, afterwards.
+/// Both identifiers are assembled from parts on purpose. A relicense sweeps
+/// the repository for the whole header string, and the first run of it
+/// rewrote the constant that NAMES the old licence here, which silently
+/// turned the ratchet below into a check that nothing could satisfy. Split,
+/// no sed can reach them.
+const SPDX_PREFIX: &str = "// SPDX-License-Identifier: ";
+const EXPECTED_ID: &str = "Apache-2.0";
+const PRIOR_ID: &str = "AGPL-3.0-or-later";
+
+/// Files allowed to carry the prior identifier, one repository-relative path per line.
+/// Absent before the relicense, when either identifier passes; present after,
+/// when it is the whole allowance. Shrinks by one line per correction signed.
+const PENDING_SPDX_LIST: &str = "RELICENSING-PENDING.txt";
 
 /// Walk `.rs` files and report every one missing its SPDX header.
 fn check_spdx() -> Result<usize, std::io::Error> {
@@ -79,18 +108,56 @@ fn check_spdx() -> Result<usize, std::io::Error> {
     }
     files.sort();
 
+    // The ratchet: before the relicense there is no pending list and either
+    // identifier passes; after it, the old identifier passes only for a file
+    // the list names. A relicense half-applied is therefore visible, and a
+    // correction that frees a file is a line removed from the list.
+    let pending: Vec<String> = std::fs::read_to_string(PENDING_SPDX_LIST)
+        .map(|t| {
+            t.lines()
+                .map(str::trim)
+                .filter(|l| !l.is_empty())
+                .map(str::to_owned)
+                .collect()
+        })
+        .unwrap_or_default();
+    let ratcheted = Path::new(PENDING_SPDX_LIST).exists();
+
     let mut missing = 0usize;
     for file in &files {
         let text = std::fs::read_to_string(file)?;
-        if !text.starts_with(EXPECTED_SPDX) {
-            // Report every one, not the first: otherwise the fix is one
-            // re-run per file.
-            println!("   missing SPDX header: {}", file.display());
-            missing += 1;
+        let expected = format!("{SPDX_PREFIX}{EXPECTED_ID}");
+        let prior = format!("{SPDX_PREFIX}{PRIOR_ID}");
+        let as_listed = file.to_string_lossy().replace('\\', "/");
+        let allowed_prior = !ratcheted || pending.iter().any(|p| p == &as_listed);
+        if text.starts_with(&expected) {
+            continue;
         }
+        if text.starts_with(&prior) && allowed_prior {
+            continue;
+        }
+        // Report every one, not the first: otherwise the fix is one re-run
+        // per file.
+        if text.starts_with(&prior) {
+            println!(
+                "   still AGPL and not in {PENDING_SPDX_LIST}: {}",
+                file.display()
+            );
+        } else {
+            println!("   missing SPDX header: {}", file.display());
+        }
+        missing += 1;
     }
     if missing == 0 {
-        println!("   {} file(s) carry the SPDX header", files.len());
+        println!(
+            "   {} file(s) carry an SPDX header{}",
+            files.len(),
+            if ratcheted {
+                format!(" ({} awaiting a correction)", pending.len())
+            } else {
+                String::new()
+            }
+        );
     }
     Ok(missing)
 }
@@ -235,8 +302,118 @@ fn pin_verdict(spec: &str) -> Result<(), &'static str> {
     }
 }
 
-/// Steps run in-process before the commands: spdx headers, workflows.
-const IN_PROCESS_STEPS: usize = 2;
+/// The Claude Code skill is what an agent reads first; a reference file the
+/// SKILL.md never links is invisible, and a link to a missing file is a lie.
+/// writing-for-agents (mattpocock/skills, MIT), applied: no em-dash in any
+/// document an agent reads under `.claude/skills/`. The dash is where a
+/// sentence hides a second sentence; an agent reads it as noise. Reports the
+/// count of offending files and names each.
+fn check_agent_docs() -> Result<usize, std::io::Error> {
+    fn walk(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> Result<(), std::io::Error> {
+        for entry in std::fs::read_dir(dir)? {
+            let path = entry?.path();
+            if path.is_dir() {
+                walk(&path, out)?;
+            } else if path.extension().is_some_and(|e| e == "md") {
+                out.push(path);
+            }
+        }
+        Ok(())
+    }
+    let mut files = Vec::new();
+    let root = Path::new(".claude/skills");
+    if root.is_dir() {
+        walk(root, &mut files)?;
+    }
+    files.sort();
+    let mut bad = 0;
+    for f in files {
+        let text = std::fs::read_to_string(&f)?;
+        if let Some(line) = text.lines().position(|l| l.contains('\u{2014}')) {
+            println!("   em-dash: {}:{}", f.display(), line + 1);
+            bad += 1;
+        }
+    }
+    if bad == 0 {
+        println!("   no em-dash in any agent-facing document");
+    }
+    Ok(bad)
+}
+
+/// Text rules, no YAML parse (OW-ADR-0002), so they are testable on strings.
+fn check_skill() -> Result<usize, std::io::Error> {
+    let dir = Path::new(".claude/skills/openwarrant");
+    let skill = std::fs::read_to_string(dir.join("SKILL.md"))?;
+    let mut refs: Vec<String> = match std::fs::read_dir(dir.join("references")) {
+        Ok(rd) => rd
+            .filter_map(Result::ok)
+            .map(|e| e.file_name().to_string_lossy().into_owned())
+            .filter(|n| n.ends_with(".md"))
+            .collect(),
+        Err(_) => Vec::new(),
+    };
+    refs.sort();
+    let mut problems = 0usize;
+    for why in skill_problems(&skill, &refs) {
+        println!("   {why}");
+        problems += 1;
+    }
+    if problems == 0 {
+        println!(
+            "   SKILL.md: frontmatter present, {} reference(s) all linked and present",
+            refs.len()
+        );
+    }
+    Ok(problems)
+}
+
+/// The rules on text: frontmatter with `name:` and `description:`; every
+/// `references/<file>.md` that exists is linked; every linked reference exists;
+/// the file stays short enough to be read before the work starts.
+fn skill_problems(skill: &str, references: &[String]) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut parts = skill.splitn(3, "---\n");
+    let (Some(""), Some(front), Some(_body)) = (parts.next(), parts.next(), parts.next()) else {
+        out.push("SKILL.md: no `---` frontmatter block at the top".to_owned());
+        return out;
+    };
+    for key in ["name:", "description:"] {
+        if !front.lines().any(|l| l.starts_with(key)) {
+            out.push(format!("SKILL.md: frontmatter lacks `{key}`"));
+        }
+    }
+    for r in references {
+        if !skill.contains(&format!("references/{r}")) {
+            out.push(format!(
+                "SKILL.md: references/{r} exists but is never linked"
+            ));
+        }
+    }
+    // Links are matched in the bare `](references/<file>)` form the shipped
+    // file uses; a `./` or `../` prefix would be invisible to both checks.
+    let mut rest = skill;
+    while let Some(i) = rest.find("](references/") {
+        let after = &rest[i + 2..];
+        let end = after.find(')').unwrap_or(after.len());
+        let target = &after["references/".len()..end];
+        if !references.iter().any(|r| r == target) {
+            out.push(format!(
+                "SKILL.md: links references/{target}, which does not exist"
+            ));
+        }
+        rest = &after[end..];
+    }
+    let lines = skill.lines().count();
+    if lines > 120 {
+        out.push(format!(
+            "SKILL.md: {lines} lines; keep it under 120 — details go in references/"
+        ));
+    }
+    out
+}
+
+/// Steps run in-process before the commands: spdx headers, workflows, skill.
+const IN_PROCESS_STEPS: usize = 4;
 
 fn gate() -> ExitCode {
     let steps = [
@@ -271,6 +448,30 @@ fn gate() -> ExitCode {
                 "-D",
                 "warnings",
             ],
+        },
+        // OW-WAR-0032: the JSON Schema pack is generated from the record types
+        // and drift-checked like every projection. The generator lives behind
+        // the `schema` cargo feature, so this step builds it on; the shipped
+        // binary the plants run is rebuilt without it below.
+        Step {
+            label: "schemas (generated, drift-checked)",
+            program: "cargo",
+            args: &[
+                "run",
+                "-q",
+                "-p",
+                "openwarrant-cli",
+                "--features",
+                "schema",
+                "--",
+                "schemas",
+                "--check",
+            ],
+        },
+        Step {
+            label: "rebuild the shipped binary without the schema feature",
+            program: "cargo",
+            args: &["build", "--workspace"],
         },
         Step {
             label: "tests (positive fixtures + planted violations)",
@@ -315,6 +516,13 @@ fn gate() -> ExitCode {
         // planted violation must be rejected BY ITS INTENDED CONTROL. The unit
         // tests above prove the code does what it says; this proves the shipped
         // binary refuses what it should, on real files, for the stated reason.
+        // OW-ADR-0015: signature verification is not part of `war check`
+        // (which stays deterministic and structural); it is this step.
+        Step {
+            label: "attestations (every DSSE envelope verifies; every subject digest holds)",
+            program: "./target/debug/war",
+            args: &["attest", "--all"],
+        },
         Step {
             label: "planted violations (§92 — each rejected by its intended control)",
             program: "bash",
@@ -352,6 +560,32 @@ fn gate() -> ExitCode {
         }
     }
 
+    println!("== skill (SKILL.md frontmatter; every reference linked and present) ==");
+    match check_skill() {
+        Ok(0) => println!("   ok"),
+        Ok(n) => {
+            println!("   FAILED ({n} problem(s))");
+            failed.push("skill");
+        }
+        Err(err) => {
+            println!("   COULD NOT RUN: {err}");
+            failed.push("skill");
+        }
+    }
+
+    println!("== agent-facing documents (no em-dash under .claude/skills/) ==");
+    match check_agent_docs() {
+        Ok(0) => println!("   ok"),
+        Ok(n) => {
+            println!("   FAILED ({n} file(s))");
+            failed.push("agent-facing documents");
+        }
+        Err(err) => {
+            println!("   COULD NOT RUN: {err}");
+            failed.push("agent-facing documents");
+        }
+    }
+
     for step in &steps {
         println!("== {} ==", step.label);
         let status = Command::new(step.program).args(step.args).status();
@@ -374,7 +608,7 @@ fn gate() -> ExitCode {
     // Report every failing step, not the first. A gate that stops at the first
     // failure makes the operator re-run it once per defect.
     if failed.is_empty() {
-        // Two in-process steps (spdx, workflows) plus the commands.
+        // Four in-process steps (spdx, workflows, skill, agent docs) plus the commands.
         println!(
             "\ngate: PASS — {} step(s) green",
             steps.len() + IN_PROCESS_STEPS
@@ -395,7 +629,39 @@ fn gate() -> ExitCode {
 
 #[cfg(test)]
 mod tests {
-    use super::workflow_problems;
+    use super::{skill_problems, workflow_problems};
+
+    #[test]
+    fn skill_rules_catch_each_defect_and_pass_the_shipped_file() {
+        let refs = vec!["loop.md".to_owned(), "mcp.md".to_owned()];
+        let good =
+            "---\nname: x\ndescription: y\n---\n\n[a](references/loop.md) [b](references/mcp.md)\n";
+        assert!(skill_problems(good, &refs).is_empty());
+        assert_eq!(skill_problems("# no frontmatter\n", &refs).len(), 1);
+        let unlinked = "---\nname: x\ndescription: y\n---\n[a](references/loop.md)\n";
+        assert!(skill_problems(unlinked, &refs)[0].contains("mcp.md exists but is never linked"));
+        let dangling = "---\nname: x\ndescription: y\n---\n[a](references/loop.md) [b](references/mcp.md) [c](references/gone.md)\n";
+        assert!(skill_problems(dangling, &refs)[0].contains("gone.md, which does not exist"));
+        let no_desc = "---\nname: x\n---\n[a](references/loop.md) [b](references/mcp.md)\n";
+        assert!(skill_problems(no_desc, &refs)[0].contains("`description:`"));
+        // The shipped skill passes against the shipped references.
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+        let skill =
+            std::fs::read_to_string(root.join(".claude/skills/openwarrant/SKILL.md")).unwrap();
+        let mut shipped: Vec<String> =
+            std::fs::read_dir(root.join(".claude/skills/openwarrant/references"))
+                .unwrap()
+                .filter_map(Result::ok)
+                .map(|e| e.file_name().to_string_lossy().into_owned())
+                .collect();
+        shipped.sort();
+        assert_eq!(shipped.len(), 4);
+        assert!(
+            skill_problems(&skill, &shipped).is_empty(),
+            "{:?}",
+            skill_problems(&skill, &shipped)
+        );
+    }
 
     #[test]
     fn a_sha_pinned_action_passes() {

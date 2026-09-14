@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! The state model (SAS §24, RQ-032).
 //!
 //! §24 opens with "State SHALL be decomposed into independent dimensions", and
@@ -65,6 +65,7 @@ where
 
 macro_rules! dimension {
     ($name:ident, $label:literal, { $($variant:ident => $text:literal),+ $(,)? }) => {
+        #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
         #[serde(rename_all = "snake_case")]
         pub enum $name { $($variant),+ }

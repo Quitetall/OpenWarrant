@@ -1,0 +1,13 @@
+# oh.war/question/v1. Asked by an agent, answered by a human (§27.2). An answer
+# informs the work; it is never a disposition, a judgment, or an
+# authorization. `war questions --open` lists what awaits an answer.
+
+schema = "oh.war/question/v1"
+id = "Q-005"
+warrant = "OW-WAR-0069"
+stage = "STAGE-001"
+asked_by = "agent://claude"
+asked_at = "2026-09-12T07:49:07Z"
+question = "Is the performer configured once per repository, or named per stage?"
+blocking = false
+recommended = "Once per repository ([perform] performer_argv), like the drafter and the verifier; the stage's executor_ref names WHICH agent in prose, and a mismatch is a refusal, not a second configuration surface."

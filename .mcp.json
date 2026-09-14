@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "openwarrant": {
+      "command": "war",
+      "args": ["mcp"]
+    }
+  }
+}

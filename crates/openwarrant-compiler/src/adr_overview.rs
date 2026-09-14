@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! The generated ADR Overview (SAS §19.6, Appendix A, RQ-021).
 //!
 //! §19.7: "No manual ADR index." This document is a projection of the ADR atoms

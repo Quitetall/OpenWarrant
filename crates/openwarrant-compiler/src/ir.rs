@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! The canonical WAR IR (SAS §63) and the Compilation Basis it is built from
 //! (§14).
 //!
@@ -21,6 +21,7 @@ pub const SCHEMA_PACK_ID: &str = "openwarrant-schema-pack";
 // minor pack release rather than silently relabelling 0.1.0 documents.
 pub const SCHEMA_PACK_VERSION: &str = "0.2.0";
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// Pins schema, vocabulary, profile, and state-machine versions (§64).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FormatBasis {
@@ -37,6 +38,7 @@ pub struct FormatBasis {
     pub sas_digest: Option<String>,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// UUID, aliases, enterprise ID, title, profile (§63.2).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Identity {
@@ -52,6 +54,7 @@ pub struct Identity {
     pub assurance_level: String,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// One atom as it entered the compilation (§63.3).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SourceAtom {
@@ -64,6 +67,7 @@ pub struct SourceAtom {
     pub required: bool,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// One machine-readable scope sidecar that participates in the contract.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SourceScope {
@@ -73,6 +77,7 @@ pub struct SourceScope {
     pub scope_source_digest: String,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// Workspace Basis and composition (§63.3, §14).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SourceAndComposition {
@@ -85,6 +90,7 @@ pub struct SourceAndComposition {
     pub scope: Option<SourceScope>,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// Typed relation edges (§63.4).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Relations {
@@ -96,6 +102,7 @@ pub struct Relations {
     pub parents: Vec<ParentEdge>,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ImplementsEdge {
     pub r#ref: String,
@@ -103,6 +110,7 @@ pub struct ImplementsEdge {
     pub contribution: Option<String>,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ParentEdge {
     pub r#ref: String,
@@ -111,6 +119,7 @@ pub struct ParentEdge {
     pub contract_digest: Option<String>,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// Digests and checkpoints (§63.11).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Integrity {
@@ -119,6 +128,7 @@ pub struct Integrity {
     pub composition_revision_digest: String,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// The canonical WAR IR (§63).
 ///
 /// # Absent is not empty

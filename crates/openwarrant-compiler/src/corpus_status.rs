@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Render the corpus projection (SAS §17.5 `status`, corpus form).
 //!
 //! Two outputs from one value: Markdown for a person, RFC 8785 canonical JSON
@@ -282,6 +282,19 @@ pub fn render_markdown(status: &CorpusStatus) -> String {
 /// It reads counts the projection already made and prints them. There is no
 /// division in it, for the same reason there is none in the Markdown renderer.
 pub fn render_html(status: &CorpusStatus, canonical_json: &str) -> String {
+    render_platform(status, canonical_json, None, None)
+}
+
+/// The progress platform (slices D3/D4): the status page plus the timeline
+/// and pending projections, inlined, rendered by `app.js` into hash-routed
+/// views. `None` for a sibling projection renders the page without that
+/// view's data, and the view says so.
+pub fn render_platform(
+    status: &CorpusStatus,
+    canonical_json: &str,
+    timeline_json: Option<&str>,
+    pending_json: Option<&str>,
+) -> String {
     let embedded = canonical_json.replace("</", "<\\/");
     let l = status.warrant_ladder();
     let c = &status.release.requirements;
@@ -328,6 +341,18 @@ pub fn render_html(status: &CorpusStatus, canonical_json: &str) -> String {
         out,
         "<script id=\"corpus-status\" type=\"application/json\">{embedded}</script>"
     );
+    for (id, blob) in [
+        ("corpus-timeline", timeline_json),
+        ("corpus-pending", pending_json),
+    ] {
+        if let Some(json) = blob {
+            let _ = writeln!(
+                out,
+                "<script id=\"{id}\" type=\"application/json\">{}</script>",
+                json.replace("</", "<\\/")
+            );
+        }
+    }
     out.push_str(HTML_SCRIPT);
     out.push_str("</body>\n</html>\n");
     out
@@ -345,81 +370,22 @@ fn esc(s: &str) -> String {
         .replace('\'', "&#39;")
 }
 
-const HTML_STYLE: &str = r#"<style>
-:root{color-scheme:light dark;--bg:#fafaf9;--fg:#1c1917;--muted:#57534e;--line:#e7e5e4;--card:#ffffff;--accent:#0f766e;--warn:#b45309;--bad:#b91c1c;--ok:#15803d}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c0a09;--fg:#e7e5e4;--muted:#a8a29e;--line:#292524;--card:#1c1917;--accent:#2dd4bf;--warn:#f59e0b;--bad:#f87171;--ok:#4ade80}}
-:root[data-theme="dark"]{--bg:#0c0a09;--fg:#e7e5e4;--muted:#a8a29e;--line:#292524;--card:#1c1917;--accent:#2dd4bf;--warn:#f59e0b;--bad:#f87171;--ok:#4ade80}
-body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 ui-sans-serif,system-ui,sans-serif}
-main{max-width:1100px;margin:0 auto;padding:1rem 1.25rem 4rem}
-.banner{background:var(--card);border-left:4px solid var(--warn);padding:.75rem 1rem;margin:0;font-size:.95rem}
-h1{font-size:1.6rem;margin:1.25rem 0 .25rem}h2{font-size:1.15rem;margin:2rem 0 .5rem;border-bottom:1px solid var(--line);padding-bottom:.25rem}
-.meta,.muted{color:var(--muted)}.ladder{font-variant-numeric:tabular-nums}
-.caveats{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:.5rem 1rem;margin:1rem 0}.caveats li{margin:.25rem 0}
-.rungs{display:flex;flex-wrap:wrap;gap:.5rem;margin:.5rem 0}.rung{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:.4rem .7rem;font-variant-numeric:tabular-nums}.rung b{font-size:1.25rem;display:block}.rung.head{border-color:var(--accent)}
-.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:.9rem}th,td{text-align:left;padding:.35rem .5rem;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--muted);font-weight:600}code{font:.85em ui-monospace,monospace}
-.pill{display:inline-block;border-radius:999px;padding:0 .5rem;font-size:.8rem;border:1px solid var(--line)}.pill.ok{color:var(--ok)}.pill.warn{color:var(--warn)}.pill.bad{color:var(--bad)}
-ul.next li{margin:.3rem 0}footer{margin-top:3rem;color:var(--muted);font-size:.9rem}
-</style>
-"#;
+/// The stylesheet and the app, kept as files beside this module so they are
+/// edited as CSS and JavaScript and included byte-for-byte: no build step, no
+/// package manager, no second licence gate. The app reaches for nothing —
+/// a plant greps the rendered page for `fetch(`, `<script src=`, `<link `
+/// and `url(`.
+const HTML_STYLE: &str = concat!(
+    "<style>\n",
+    include_str!("corpus_status/app.css"),
+    "</style>\n"
+);
 
-const HTML_SCRIPT: &str = r#"<script>
-(function(){
-  var el=document.getElementById('corpus-status'); if(!el) return;
-  var d=JSON.parse(el.textContent); var app=document.getElementById('app');
-  // No innerHTML path, on purpose: every string from the JSON reaches the DOM through textContent or a text node.
-  function h(tag,attrs,kids){var e=document.createElement(tag); if(attrs) for(var k in attrs){ if(k==='text') e.textContent=attrs[k]; else e.setAttribute(k,attrs[k]); } (kids||[]).forEach(function(c){ if(c==null) return; e.appendChild(typeof c==='string'?document.createTextNode(c):c); }); return e;}
-  function rung(label,n,head){return h('div',{class:'rung'+(head?' head':'')},[h('b',{text:String(n)}),document.createTextNode(label)]);}
-  function count(list,key,val){var n=0; list.forEach(function(x){ if(x[key]===val) n++; }); return n;}
-  function ref(r){return r? (r.slug? 'roadmap://'+r.prefix+'-PHASE-'+r.phase+'/'+r.slug : 'roadmap://'+r.prefix+'-PHASE-'+r.phase) : '';}
-  function rq(r){return r.prefix+'-SAS-RQ-'+String(r.number).padStart(3,'0');}
-  function table(head,rows){var t=h('table'); var tr=h('tr'); head.forEach(function(x){tr.appendChild(h('th',{text:x}));}); t.appendChild(h('thead',null,[tr])); var tb=h('tbody'); rows.forEach(function(r){var tr2=h('tr'); r.forEach(function(c){tr2.appendChild(h('td',null,[c]));}); tb.appendChild(tr2);}); t.appendChild(tb); return h('div',{class:'scroll'},[t]);}
-
-  if(d.caveats && d.caveats.length){ app.appendChild(h('h2',{text:'Read this first'})); app.appendChild(h('ul',{class:'caveats'}, d.caveats.map(function(c){return h('li',{text:c});}))); }
-
-  app.appendChild(h('h2',{text:'Release'}));
-  var rel=d.release; app.appendChild(h('p',{class:'muted',text:'SAS revision: '+(rel.version||'not recorded')+'. '+rel.note}));
-  var c=rel.requirements; app.appendChild(h('p',{text:'Requirements — '+(c.satisfied+c.in_progress+c.claimed+c.unaddressed+c.superseded)+' in §106, strictest rung first:'}));
-  app.appendChild(h('div',{class:'rungs'},[rung('satisfied',c.satisfied,true),rung('in_progress',c.in_progress),rung('claimed',c.claimed),rung('unaddressed',c.unaddressed),rung('superseded',c.superseded)]));
-
-  app.appendChild(h('h2',{text:'Objectives (SAS §98 phases)'}));
-  app.appendChild(table(['Objective','Exit Warrant','Achieved','invalid','draft','ready','would_satisfy','resolved'], d.objectives.map(function(o){
-    var a=o.achieved, at=a.state==='not_derivable'?'not derivable — '+a.why : a.state==='blocked'?'blocked by '+a.by.join(', ') : a.state==='exit_warrant_would_satisfy'?'exit Warrant would satisfy; not recorded':'recorded';
-    var name=o.roadmap_ref? ref(o.roadmap_ref)+': '+o.title : o.title; var l=o.ladder;
-    return [h('span',{text:name}),h('code',{text:o.exit_warrant||'—'}),h('span',{text:at}),String(l.invalid),String(l.draft),String(l.ready_to_resolve),String(l.would_satisfy),String(l.resolved)];
-  })));
-  app.appendChild(h('ul',{class:'muted'}, d.objectives.filter(function(o){return o.exit_criterion;}).map(function(o){return h('li',null,[h('b',{text:ref(o.roadmap_ref)}),' exit: '+o.exit_criterion]);})));
-
-  app.appendChild(h('h2',{text:'Next actionable'}));
-  if(d.next_actionable.length){ app.appendChild(h('ul',{class:'next'}, d.next_actionable.map(function(s){return h('li',null,[h('code',{text:s.warrant+' / '+s.milestone+' / '+s.stage}),' ('+ref(s.objective)+') — '+s.why]);}))); }
-  else { var n=d.nothing_actionable; app.appendChild(h('p',{text: n? ('Nothing is unblocked. '+n.why+(n.blocked_by.length?' Blocked by: '+n.blocked_by.join(', '):'')) : 'Nothing is unblocked, and the projection could not say why. That is a defect in the projection.'})); }
-
-  var blockers={}; d.warrants.forEach(function(w){ w.unmet.forEach(function(u){ blockers[u]=(blockers[u]||0)+1; }); });
-  var bk=Object.keys(blockers).sort(function(a,b){return blockers[b]-blockers[a]||a.localeCompare(b);});
-  if(bk.length){ app.appendChild(h('h2',{text:'What blocks resolution, by §56.1 requirement'})); app.appendChild(h('p',{class:'muted',text:'Warrants blocked on each requirement. Names, not a score: this says what to fix.'})); app.appendChild(table(['requirement','Warrants blocked'], bk.map(function(k){return [k,String(blockers[k])];}))); }
-
-  app.appendChild(h('h2',{text:'Requirements (SAS §106, §34.3)'}));
-  var un=d.requirements.filter(function(r){return r.status==='unaddressed';});
-  if(un.length){ app.appendChild(h('p',null,[h('b',{text:'Unaddressed ('+un.length+')'}),' — no Warrant names these. Several may be built; the gap is bookkeeping, and it is listed rather than hidden:'])); app.appendChild(h('ul',null,un.map(function(r){return h('li',null,[h('code',{text:rq(r.requirement)}),' — '+(r.title||'title unavailable')]);}))); }
-  app.appendChild(table(['requirement','status','would_satisfy','implementers'], d.requirements.map(function(r){ var who=r.links.map(function(l){return l.warrant+' ('+l.intended_contribution+')';}).join(', ')||'—'; return [h('code',{text:rq(r.requirement)}),r.status,String(r.would_satisfy),who]; })));
-
-  var L={invalid:count(d.warrants,'rung','invalid'),draft:count(d.warrants,'rung','draft'),ready:count(d.warrants,'rung','ready_to_resolve'),ws:count(d.warrants,'rung','would_satisfy'),res:count(d.warrants,'rung','resolved')};
-  app.appendChild(h('h2',{text:'Warrants ('+d.warrants.length+')'}));
-  app.appendChild(h('div',{class:'rungs'},[rung('resolved',L.res,true),rung('would_satisfy',L.ws),rung('ready_to_resolve',L.ready),rung('draft',L.draft),rung('invalid',L.invalid)]));
-  app.appendChild(table(['Warrant','rung','§38.6','blocking unknowns','milestones evidenced','first unmet'], d.warrants.map(function(w){
-    var rungTxt = w.validity.state==='invalid' ? 'invalid — '+w.validity.reason : w.rung;
-    var o = w.would_resolve_satisfied===true?'would satisfy': w.would_resolve_satisfied===false?'NOT satisfied':'unknown';
-    var ev = w.milestones? (count(w.milestones.map(function(m){return m.reached;}),'state','evidenced')+' of '+w.milestones.length) : '—';
-    return [h('span',null,[h('code',{text:w.alias}),' '+(w.title||'')]), rungTxt, h('span',{class:'pill '+(o==='would satisfy'?'ok':o==='unknown'?'warn':'bad'),text:o}), String(w.blocking_unknowns.length), ev, (w.unmet[0]||'—')];
-  })));
-
-  var f=h('footer',null,[h('h2',{text:'Not reported here'}),h('ul',null,[
-    h('li',{text:'Any percentage. Every number above is a rung count or a histogram of names.'}),
-    h('li',{text:'Recorded state. Nothing journals §24 transitions yet (OW-WAR-0031); everything above is derived from the records\' shape.'}),
-    h('li',{text:'Whether a §98 Exit sentence is true. It is printed; it is not evaluated.'})])]);
-  app.appendChild(f);
-})();
-</script>
-"#;
+const HTML_SCRIPT: &str = concat!(
+    "<script>\n",
+    include_str!("corpus_status/app.js"),
+    "</script>\n"
+);
 
 #[cfg(test)]
 mod tests {
@@ -435,11 +401,16 @@ mod tests {
         // A division OPERATOR: `/` between two code tokens, on a line that is
         // neither a comment nor a string literal (" / " inside a quoted label
         // is text, not arithmetic).
-        let divides = body.lines().any(|l| {
+        let app = include_str!("corpus_status/app.js");
+        let divides = body.lines().chain(app.lines()).any(|l| {
             let t = l.trim_start();
             !t.starts_with("//") && !t.contains('"') && !t.contains('\'') && t.contains(" / ")
         });
-        assert!(!divides, "a ratio crept into the renderer");
+        assert!(!divides, "a ratio crept into the renderer or the app");
+        // The app builds the DOM through textContent and text nodes only, and
+        // fetches nothing.
+        assert!(!app.contains("innerHTML"), "innerHTML in the app");
+        assert!(!app.contains("fetch("), "the app fetches");
         let json = std::fs::read_to_string(
             std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("../../docs/warrants/generated/CORPUS_STATUS.json"),

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Prerequisites and readiness (SAS §32, RQ-035).
 //!
 //! # What Preflight does and does not mean

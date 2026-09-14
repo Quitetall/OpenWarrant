@@ -52,6 +52,12 @@ revert your edit, not to regenerate over it.
 The same applies to a Warrant that has been authorized: an authorized contract
 revision is immutable (§28.7). Amend by creating a new revision.
 
+And to a **resolved** Warrant's delivered files: `deliverables.toml` pins their
+bytes, and `war check` refuses drift. You may **request** a correction
+(`war correct <alias> <D-id>` emits what a human would sign); you may not sign
+one, and you may never regenerate a resolved Warrant's `deliverables.toml` —
+that stales the resolution. OW-WAR-0064 / OW-ADR-0012.
+
 ### 5. Never change a document to make a tool happy
 
 If a checker and a document disagree, establish which is wrong **before**
@@ -65,20 +71,68 @@ If the tool is wrong, fix the tool and say so.
 ## The loop
 
 ```bash
-war new "What this work accomplishes"     # creates docs/warrants/<NS>-WAR-NNNN/
+war next                                   # whose act is next, and the command — read this first
+war new "What this work accomplishes"      # creates docs/warrants/OW-WAR-NNNN/
 # edit the atoms — this is where the real work is described
 war check <alias>                          # deterministic, no agent, no network
-war compile                                # write the projections
-war check --generated                      # confirm no drift
-war verify <alias> --performer <you>       # emits a request for an INDEPENDENT verifier
-# hand the request to something that is not you
+war compile && war check --generated       # projections written; no drift
+war authorize <alias>                      # the REQUEST: what a human would sign
+#   ── stop. A human runs `war sign <alias>` (terminal) or `--ssh-sign` (dialog). ──
+war pins --resolved-only                   # before editing anything: what a resolution pins
+# deliver; declare it in deliverables.toml
+war evidence record <alias>                # run the cited gates; mint §44.6 receipts
+war verify <alias> --performer <you>       # the request for an INDEPENDENT verifier
+# hand the request to something that is not you — a separate context, never your own
 war verify <alias> --response <file>       # ingest the verdicts
-war resolve --dry-run <alias>              # see what still blocks closure
+war resolve --dry-run <alias>              # what still blocks closure; §38.6 beside the thirteen
+war resolve <alias>                        # the REQUEST
+#   ── stop. A human runs `war sign <alias>`. ──
 ```
 
-`war resolve` **requires** `--dry-run` and cannot record a resolution. Recording
-one needs an authorizer, an acting role, and a stated meaning, and no agent may
-invent those. A human closes the Warrant.
+Every command takes `--json` and answers with one `oh.war/report/v1` envelope.
+`war next --json` names every pending act with its actor; no action it hands an
+agent is a signature.
+
+Four acts are a human's and only a human's — authorize, resolve, accept a SAS
+revision, correct a resolved Warrant's delivered file. You emit the request; the
+tool refuses your signature by kind (§27.2), whatever the response file says.
+
+### Drafting — both paths reach the same gauntlet
+
+A vague sentence becomes a reviewable draft (§74) without you writing files
+under `docs/warrants/` by hand:
+
+```bash
+war plan "add a changelog"                       # the REQUEST: corpus, ADRs, questions (oh.war/draft-request/v1)
+# you are the drafter: answer it with an oh.war/draft-proposal/v2 file — operations carry
+# role, ordinal, path, body; relations; evidence claims; durable choices; blocker questions
+war plan --proposal draft.json --reviewed        # §74.4's gauntlet, nothing applied
+war plan --proposal draft.json --reviewed --apply   # creates the Warrant through `war new`; records plan/
+war plan "add a changelog" --draft --reviewed --apply   # or: the configured [plan] drafter_argv answers
+```
+
+`--apply` refuses a proposal nobody reviewed, a v1 proposal (no payloads), an
+unanswered blocker question, an invented `war://`, and a drafter that touched
+the working tree. Answer questions with `--answer Q-001="..."`.
+
+### Over MCP
+
+`war mcp` serves the same surface to any harness over stdio: every read, every
+request half, and the writes an agent may make (`war_new`, `war_evidence_record`,
+`war_compile`, `war_gate_run`, `war_journal_backfill`, a reviewed
+`war_plan_apply`). Each tool answers with the `oh.war/report/v1` envelope. It
+registers **no** signing, ingesting, `sas propose`, `kf`, `telemetry`,
+`migrate`, `export`, `bonsai`, `init`, `gate --record` or `plan --draft` tool —
+`war mcp --describe` prints the table and the refusal list. Resources:
+`warrant://<alias>[/status|/journal]`, `status://corpus`, `sas://current`,
+`pins://all`, `next://`.
+
+Claude Code: the repository is also a plugin (`.claude-plugin/`). It ships the
+`openwarrant` skill, this server (`.mcp.json`), a `PreToolUse` guard that
+denies an edit to a file `war pins --resolved-only` lists or to anything under
+`generated/`, and a `Stop` check that blocks ending the turn while `war check`
+reports errors. `claude plugin marketplace add <path-to-repo>` then
+`/plugin install openwarrant@openwarrant`.
 
 ### Writing the atoms
 
@@ -134,8 +188,25 @@ thirteen and is wrong about eleven.
 
 ## Reference
 
-- `docs/sas/` — the governing specification, if the repository carries one.
-  Section references throughout the tool (`§46.2`, `RQ-053`) cite it.
+- `docs/sas/generated/NORMATIVE.md` — every SHALL, SHALL NOT, SHOULD and MAY
+  of the governing specification with its section, compiled and drift-checked.
+  Read this, not the whole document: it is about a third of the tokens, and
+  the sentence is what binds. Section references throughout the tool
+  (`§46.2`, `RQ-053`) resolve into it; `docs/sas/` holds the document itself.
 - `war <command> --help` — every command documents the section it implements.
 - `CONTRIBUTING.md` — the gate, the toolchain pin, and the rules for changing
   this repository itself.
+- `docs/THREAT_MODEL.md` — what the signing path defends, what it leaves to
+  the operator, and which test or plant exercises each control.
+- `QUICKSTART.md` — an empty directory to a resolved Warrant, every step one
+  command, the two human steps marked; `docs/EXAMPLES/` walks real records.
+
+## Skills over the core (OW-WAR-0068)
+
+Adapted from mattpocock/skills (MIT), each ending in a record the tool reads:
+`/war-grill` (answers land in the draft request), `/war-spec` (conversation to
+a v2 proposal), `/war-tickets` and `war frontier` (stages with blocking edges;
+what can start now), `/war-review` (Standards beside the blind verifier's
+Obligations), `/war-map` (a decision Warrant whose fog is blocking unknowns).
+`CONTEXT.md` at the root is the glossary every Dispatch carries: use its
+words. A skill never signs, and never claims a step it did not run.

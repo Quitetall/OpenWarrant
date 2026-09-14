@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Repository discovery and loading — the I/O half the core crate refuses (§79.1, §79.4).
 
 use std::fmt;
@@ -138,15 +138,20 @@ impl Repository {
 
     /// The actor this tool acts as when it performs work (§27.1).
     ///
-    /// Fixed to `claude`, and deliberately not configurable from the command
-    /// line. The performer identity is what every self-* check compares
-    /// against — self-verification (§46), self-authorization (§27.2),
-    /// self-resolution (§27.3 condition 4). A flag that let the caller rename
-    /// the performer would let it walk out of all three by claiming to be
-    /// somebody else.
+    /// `[project] performer` in `openwarrant.toml`, default `claude`, and
+    /// deliberately not configurable from the command line. The performer
+    /// identity is what every self-* check compares against —
+    /// self-verification (§46), self-authorization (§27.2), self-resolution
+    /// (§27.3 condition 4). A flag that let the caller rename the performer
+    /// would let it walk out of all three by claiming to be somebody else;
+    /// a committed, human-written file cannot be reached that way.
     #[must_use]
     pub fn performer(&self) -> String {
-        "claude".to_owned()
+        self.config
+            .project
+            .performer
+            .clone()
+            .unwrap_or_else(|| "claude".to_owned())
     }
 
     /// Role assignments in force for this repository (§27.4).
@@ -573,12 +578,22 @@ impl Repository {
     /// latest so the Warrant still compiles and the check can name the fault.
     pub fn sas_pin_for(&self, dir: &Utf8Path) -> Result<Option<SasPin>, RepoError> {
         let all = self.load_sas_revisions()?;
-        let pinned = self
-            .load_authorization(dir)
-            .ok()
-            .flatten()
-            .and_then(|a| a.sas_revision)
-            .and_then(|v| all.iter().find(|r| r.version == v).cloned());
+        // OW-ADR-0016: the latest amendment that names a `sas_revision` re-pins
+        // the Warrant ahead of its authorization, so the contract digest moves
+        // and a new authorization revision is what `war sign --list` shows.
+        // A named revision with no record falls through to the authorization's
+        // pin; `war check` reports it as `sas.pin-unknown`.
+        let amended = amendment_sas_revision(dir)
+            .and_then(|(v, _)| all.iter().find(|r| r.version == v).cloned());
+        let pinned = match amended {
+            Some(r) => Some(r),
+            None => self
+                .load_authorization(dir)
+                .ok()
+                .flatten()
+                .and_then(|a| a.sas_revision)
+                .and_then(|v| all.iter().find(|r| r.version == v).cloned()),
+        };
         let chosen = match pinned {
             Some(r) => Some(r),
             None => crate::sas::pin_of(&all).cloned(),
@@ -721,6 +736,47 @@ impl Repository {
         Ok(VerificationSet { records, failures })
     }
 
+    /// Corrections on file for one Warrant (OW-WAR-0064): every
+    /// `corrections/*.toml`, sorted by path, parse failures kept beside the
+    /// records so a malformed correction is reported rather than skipped.
+    pub fn load_corrections(&self, dir: &Utf8Path) -> Result<CorrectionSet, RepoError> {
+        let cdir = dir.join("corrections");
+        if !cdir.is_dir() {
+            return Ok(CorrectionSet::default());
+        }
+        let mut paths = Vec::new();
+        for entry in fs::read_dir(&cdir).map_err(|source| RepoError::Io {
+            context: format!("could not read {cdir}"),
+            source,
+        })? {
+            let entry = entry.map_err(|source| RepoError::Io {
+                context: format!("could not read an entry in {cdir}"),
+                source,
+            })?;
+            let Ok(path) = Utf8PathBuf::from_path_buf(entry.path()) else {
+                continue;
+            };
+            if path.extension() == Some("toml") {
+                paths.push(path);
+            }
+        }
+        paths.sort();
+        let mut records = Vec::new();
+        let mut failures = Vec::new();
+        for path in paths {
+            let relative = self.relative(&path);
+            let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
+                context: format!("could not read {path}"),
+                source,
+            })?;
+            match toml::from_str::<openwarrant_core::correction::CorrectionRecord>(&text) {
+                Ok(r) => records.push((relative, r)),
+                Err(e) => failures.push((relative, e.to_string())),
+            }
+        }
+        Ok(CorrectionSet { records, failures })
+    }
+
     /// Deliverables declared for one Warrant (§37).
     ///
     /// A single `deliverables.toml` rather than a directory: a Warrant declares a
@@ -779,6 +835,7 @@ pub struct AdrCorpus {
     pub failures: Vec<(String, AdrError)>,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// Deliverables for one Warrant, and a parse failure if the file would not read.
 ///
 /// A malformed `deliverables.toml` yields NO records and a recorded failure,
@@ -803,6 +860,27 @@ pub struct VerificationSet {
     pub failures: Vec<(String, String)>,
 }
 
+/// Corrections on file for one Warrant (OW-WAR-0064), each with the
+/// repository-relative path it was read from — the path is what `war check`
+/// digests against the journal's `record_digest`.
+#[derive(Debug, Default)]
+pub struct CorrectionSet {
+    pub records: Vec<(String, openwarrant_core::correction::CorrectionRecord)>,
+    /// `(repository-relative path, why it would not parse)`.
+    pub failures: Vec<(String, String)>,
+}
+
+impl CorrectionSet {
+    /// The corrections for one deliverable, in file order.
+    pub fn for_deliverable(&self, id: &str) -> Vec<openwarrant_core::correction::Correction> {
+        self.records
+            .iter()
+            .filter(|(_, r)| r.correction.deliverable_id == id)
+            .map(|(_, r)| r.correction.clone())
+            .collect()
+    }
+}
+
 /// A Warrant read from disk, with whatever went wrong while reading it.
 #[derive(Debug, Clone)]
 pub struct Loaded {
@@ -825,4 +903,40 @@ impl Loaded {
             .or_else(|| self.dir.file_name().map(str::to_owned))
             .unwrap_or_else(|| self.dir.to_string())
     }
+}
+
+/// The `sas_revision` the latest amendment under `amendments/` names, with the
+/// file that names it (OW-ADR-0016). Read from the file, not the record
+/// struct: the struct is pinned by a resolved Warrant, and the pin is one
+/// top-level scalar on the side. "Latest" is by amendment number (`AM-<n>`),
+/// then name, so `AM-1000` follows `AM-901`. Only an unindented
+/// `sas_revision:` line counts — a key nested under `semantic_diff:` is not
+/// the pin.
+#[must_use]
+pub fn amendment_sas_revision(dir: &Utf8Path) -> Option<(String, Utf8PathBuf)> {
+    let mut files: Vec<Utf8PathBuf> = std::fs::read_dir(dir.join("amendments"))
+        .ok()?
+        .filter_map(Result::ok)
+        .filter_map(|e| Utf8PathBuf::from_path_buf(e.path()).ok())
+        .filter(|p| p.extension() == Some("yaml"))
+        .collect();
+    let number = |p: &Utf8Path| -> u64 {
+        p.file_stem()
+            .and_then(|s| s.rsplit_once('-'))
+            .and_then(|(_, n)| n.parse().ok())
+            .unwrap_or(0)
+    };
+    files.sort_by(|a, b| number(a).cmp(&number(b)).then_with(|| a.cmp(b)));
+    files.into_iter().rev().find_map(|path| {
+        let text = std::fs::read_to_string(&path).ok()?;
+        let version = text.lines().find_map(|line| {
+            let v = line
+                .strip_prefix("sas_revision:")?
+                .trim()
+                .trim_matches('"')
+                .trim();
+            (!v.is_empty()).then(|| v.to_owned())
+        })?;
+        Some((version, path))
+    })
 }

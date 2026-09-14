@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Pure domain types and validators for Work Authorization Records.
 //!
 //! Governed by `WAR_Software_Architecture_Specification.md` v0.1.0-draft.1
@@ -23,9 +23,12 @@ mod vocab;
 
 pub mod adequacy;
 pub mod adr;
+pub mod attestation;
 pub mod config;
 pub mod contract;
+pub mod correction;
 pub mod drafting;
+pub mod drafting_v2;
 pub mod epistemic;
 pub mod execution;
 pub mod frontmatter;
@@ -38,14 +41,18 @@ pub mod lifecycle;
 pub mod manifest;
 pub mod migration;
 pub mod milestones;
+pub mod normative;
 pub mod obligation;
 pub mod resolution;
 pub mod role;
 pub mod sas;
 pub mod seam;
+pub mod sections;
 pub mod state;
 pub mod status;
 pub mod structured;
+pub mod timestamp;
+pub mod tokens;
 
 pub use adequacy::{AdequacyError, AdequacyOutcome, AdequacyRequirement, AdequacyReview};
 pub use adr::{AdrError, AdrRecord, AdrStatus};
@@ -81,6 +88,7 @@ pub use milestones::{
     ExecutorKind, MILESTONES_SCHEMA, Milestone, MilestoneError, MilestoneGraph, Port,
     ResponsibilityTier, Stage,
 };
+pub use normative::{NormativeKeyword, NormativeSentence, normative_sentences};
 pub use obligation::{Disposition, Obligation, ObligationError, ObligationSet, ScopeKind};
 pub use role::{AtomRole, Jurisdiction, Profile, RoleError, is_namespaced_extension_role};
 pub use sas::{

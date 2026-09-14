@@ -166,7 +166,13 @@ fn evaluate(
 
     let required_deliverables_exist =
         required_deliverables_exist(&repo.root, deliverables, &declared);
-    let artifact_digests_verify = artifact_digests_verify(&repo.root, deliverables);
+    // Unreadable corrections mean the chain cannot be computed, so requirement
+    // 3 is unmet rather than assumed: `correction.unreadable` from `war check`
+    // is the diagnostic that names the file.
+    let artifact_digests_verify = match repo.load_corrections(&one.dir) {
+        Ok(corrections) => artifact_digests_verify(&repo.root, deliverables, &corrections),
+        Err(_) => false,
+    };
 
     ResolutionChecks {
         exact_authorized_contract_revision: authority.contract_is_authorized(),
@@ -564,7 +570,11 @@ pub fn required_deliverables_exist(
 /// read fails rather than being skipped — an unreadable artifact is not a
 /// verified one.
 #[must_use]
-pub fn artifact_digests_verify(root: &camino::Utf8Path, deliverables: &[Deliverable]) -> bool {
+pub fn artifact_digests_verify(
+    root: &camino::Utf8Path,
+    deliverables: &[Deliverable],
+    corrections: &crate::repo::CorrectionSet,
+) -> bool {
     let addressed: Vec<&Deliverable> = deliverables
         .iter()
         .filter(|d| d.content_addressed)
@@ -574,9 +584,22 @@ pub fn artifact_digests_verify(root: &camino::Utf8Path, deliverables: &[Delivera
             let Some(p) = d.provenance.as_ref() else {
                 return false;
             };
-            let recorded = p.content_digest.trim_start_matches("sha256:");
+            // The digest the deliverable OUGHT to have is the head of its
+            // correction chain, not the one the manifest first pinned. §34.4
+            // supersedes; it does not erase. Reading only the manifest made
+            // this requirement unanswerable for every corrected file — `war
+            // check` printed `deliverable.corrected` while requirement 3 read
+            // unmet for the same bytes — so the chain is read here from the
+            // same `chain_head` the check uses.
+            let (_, head) = crate::correct::head_for(corrections, &d.id, &p.content_digest);
+            // A broken chain is not a verified digest: fail closed, and let
+            // `war check`'s correction rules say which link is wrong.
+            let Ok(head) = head else {
+                return false;
+            };
+            let want = head.trim_start_matches("sha256:");
             match std::fs::read(root.join(&d.target_ref)) {
-                Ok(bytes) => openwarrant_compiler::sha256_hex(&bytes) == recorded,
+                Ok(bytes) => openwarrant_compiler::sha256_hex(&bytes) == want,
                 Err(_) => false,
             }
         })
@@ -1006,7 +1029,11 @@ mod tests {
         let digest = format!("sha256:{}", openwarrant_compiler::sha256_hex(b"hello"));
         let d = vec![deliverable("artifact.txt", Some(&digest))];
         assert!(required_deliverables_exist(&root, &d, &[]));
-        assert!(artifact_digests_verify(&root, &d));
+        assert!(artifact_digests_verify(
+            &root,
+            &d,
+            &crate::repo::CorrectionSet::default()
+        ));
         let _ = std::fs::remove_dir_all(&root);
     }
 
@@ -1020,7 +1047,11 @@ mod tests {
             "artifact.txt",
             Some(&format!("sha256:{}", "0".repeat(64))),
         )];
-        assert!(!artifact_digests_verify(&root, &d));
+        assert!(!artifact_digests_verify(
+            &root,
+            &d,
+            &crate::repo::CorrectionSet::default()
+        ));
         let _ = std::fs::remove_dir_all(&root);
     }
 
@@ -1032,7 +1063,7 @@ mod tests {
         let d = vec![deliverable("never-written.txt", Some(&digest))];
         assert!(!required_deliverables_exist(&root, &d, &[]));
         assert!(
-            !artifact_digests_verify(&root, &d),
+            !artifact_digests_verify(&root, &d, &crate::repo::CorrectionSet::default()),
             "an unreadable artifact is not a verified one"
         );
         let _ = std::fs::remove_dir_all(&root);
@@ -1045,7 +1076,11 @@ mod tests {
         std::fs::write(root.join("a.txt"), b"x").expect("write");
         let mut d = deliverable("a.txt", None);
         d.content_addressed = true;
-        assert!(!artifact_digests_verify(&root, &[d]));
+        assert!(!artifact_digests_verify(
+            &root,
+            &[d],
+            &crate::repo::CorrectionSet::default()
+        ));
         let _ = std::fs::remove_dir_all(&root);
     }
 
@@ -1054,7 +1089,11 @@ mod tests {
     fn an_empty_deliverable_set_satisfies_neither() {
         let root = scratch("empty");
         assert!(!required_deliverables_exist(&root, &[], &[]));
-        assert!(!artifact_digests_verify(&root, &[]));
+        assert!(!artifact_digests_verify(
+            &root,
+            &[],
+            &crate::repo::CorrectionSet::default()
+        ));
         let _ = std::fs::remove_dir_all(&root);
     }
 

@@ -59,6 +59,47 @@ text an agent wrote.
 
 ## Step 3 — sign it
 
+**The short way, from a terminal you are sitting at:**
+
+```bash
+war sign --list                 # what awaits a signature, corpus-wide; writes nothing
+war sign OW-WAR-0030            # one screen: title, obligations, every residual risk
+                                # with its consequence, the digest. [y/N]
+```
+
+`y` drafts the response below from the record's own facts, writes it to
+`docs/authority/responses/`, and runs the same ingest a hand-written response
+goes through — every refusal still applies. `N` writes nothing. `--edit` opens
+the draft in `$EDITOR` first; `--meaning "…"` appends your own words. An
+authorization response records `signed_via = "tty"`; a resolution or SAS
+acceptance carries the same provenance in its `meaning` until OW-WAR-0064
+lets their pinned response types move.
+
+It **refuses without a terminal**: an agent's shell has none, so the drafting
+agent cannot run it (§27.2). That is a speed bump, not cryptography — a
+pseudo-terminal defeats it. There is no `--yes`, on purpose.
+
+**From inside an agent session (Claude Code's `!`, a pipe, anywhere without a
+terminal), use the key instead:**
+
+```bash
+ssh-add -c ~/.ssh/id_ed25519            # ONCE per login: confirmation ON
+war sign OW-WAR-0030 --ssh-sign          # a dialog asks you; no prompt, no TTY
+war sign OW-WAR-0030 --verify            # later: does the .sig still verify?
+```
+
+`--ssh-sign` signs the response file's bytes with `ssh-keygen -Y sign` under
+namespace `oh.war/response`, verifies at once against
+`docs/authority/allowed_signers`, refuses if it does not verify, and writes a
+`.sig` sidecar beside the response. It needs `ssh_principal = "…"` on your
+`roles.toml` entry and a matching line in `allowed_signers` — both human-written
+(see `allowed_signers.example`). **The human act is the agent's confirmation
+dialog, which exists only if the key was loaded with `ssh-add -c`.** Without
+`-c`, the AI agent's shell can reach your agent socket and sign as you, and `war`
+cannot tell the difference. This is the one thing you must get right.
+
+**The long way**, which is what `war sign` does for you and which still works:
+
 Turn the request into a response. The `contract_digest` must be copied across
 unchanged: if the Warrant is edited between reading and signing, the digest moves
 and ingestion refuses, because §56.1 asks for the *exact* authorized revision.
@@ -118,7 +159,10 @@ compiles now; edit the contract and `war check` reports `evidence.stale-binding`
 until a new run is recorded. A Warrant whose assurance atom cites no gate cannot
 record evidence (OW-WAR-0016 today) — that needs an amendment naming a gate.
 
-When all thirteen are met, the resolution is the third two-half seam:
+When all thirteen are met, the resolution is the third two-half seam. From a
+terminal, `war sign OW-WAR-0010` does the whole of it; when §38.6 forbids
+`satisfied` it refuses to guess and asks for `--outcome not_satisfied|cancelled|blocked`.
+The long way:
 
 ```bash
 war resolve OW-WAR-0010 > /tmp/OW-WAR-0010.resolution.request.toml   # what a signature binds; permitted outcomes; who may sign
@@ -145,6 +189,51 @@ effective_time = "2026-09-02T18:00:00Z"
 war resolve OW-WAR-0010 --response /tmp/OW-WAR-0010.resolution.response.toml
 war compile                           # the Warrant now reads `resolved`; the Release axis moves
 ```
+
+## Step 5 — correcting a delivered artifact after resolution
+
+A resolution binds `sha256(deliverables.toml)`, so a resolved Warrant's pinned
+files have no ordinary way to change: `war check` reports
+`deliverable.digest-drift` and "regenerate the record" would stale the
+resolution. The correction act (OW-WAR-0064, OW-ADR-0012) is the fifth two-half
+seam, for exactly that case:
+
+```bash
+war correct OW-WAR-0056 D-002              # the request: recorded digest, chain head, the file now, who may sign
+war sign OW-WAR-0056/D-002 --kind behaviour-change --meaning "continuation lines belong to their bullet"
+```
+
+`war sign` refuses to draft a correction without `--kind`
+(`behaviour-change` | `added-refusal`) and a reason: those two are the human's
+whole contribution and nothing guesses them. On `y` (or the ssh dialog) it runs
+the same ingest as a hand-written response:
+
+```toml
+schema = "oh.war/correction-response/v1"
+warrant = "OW-WAR-0056"
+deliverable_id = "D-002"
+superseded_digest = "sha256:…"     # the chain head from the request, verbatim
+new_digest = "sha256:…"            # the file's bytes now, verbatim
+reason = "…"
+kind = "behaviour-change"
+corrected_by = "your-name"
+acting_role = "authorizer"
+effective_time = "2026-09-11T12:00:00Z"
+```
+
+```bash
+war correct OW-WAR-0056 D-002 --response /tmp/OW-WAR-0056.D-002.correction.toml
+```
+
+The record lands as `docs/warrants/OW-WAR-0056/corrections/D-002-1.toml`;
+`deliverables.toml` is not edited and the resolution still verifies. A second
+change is a second file, `D-002-2.toml`, superseding the first's `new_digest` —
+never an edit: the journal witnesses each record's digest as written, and an
+edited one fails `correction.edited`. Refused before anything is written: an
+agent as signer, a Warrant that is not resolved, a file that has not drifted, a
+`new_digest` that is not the file's bytes, a `superseded_digest` that is not the
+chain head, an empty reason, a bad `effective_time`. `war show <alias> --view
+status` lists every correction with the digest it superseded.
 
 ## Step 4 — check what actually happened
 
@@ -202,3 +291,38 @@ war verify <alias> --performer claude > request.toml
 # hand request.toml to something that did not write the code
 war verify <alias> --response verdicts.toml
 ```
+
+## Handing the verification to someone who is not you
+
+`war verify <alias> --performer <you> --bundle` writes
+`verifications/bundle-<digest>.json` (`oh.war/verification-bundle/v1`): the
+request with the authorized contract digest, every atom, each deliverable's
+bytes (whole under `[verify] max_excerpt_bytes`, else the head with the full
+digest and `truncated: true`), the plants that name the alias, the `#[test]`
+names in Rust deliverables, the committed gate runs, the prior verifications,
+and its own token estimate. Hand that one file to a separate context — another
+session, another model, a person — and ingest what comes back with
+`war verify <alias> --response <file>`.
+
+With `[verify] verifier_argv = ["…"]` in `openwarrant.toml`, `war verify
+<alias> --run` does the hand-off itself: the command gets the bundle path,
+runs under `verifier_timeout_secs`, and what it prints on stdout goes through
+the same ingest as a hand-written response — a verifier that answers as the
+performer is refused there, exactly as a human typing it would be.
+
+## Signing a batch of corrections
+
+A correction needs a kind, which is a judgement, and a reason, which the record
+already holds. So the kind is the only thing to type:
+
+```bash
+war sign --list                                  # the queue
+war sign --all --ssh-sign --kind behaviour-change # one dialog each, no typing
+```
+
+The reason is drafted from the commits that touched the file since that
+Warrant resolved, and printed above the prompt before anything is signed.
+`--meaning "..."` adds your sentence to every reason in the batch when the
+record does not say enough. One dialog per signature is the ssh agent's doing
+(`ssh-add -c`), and that is the control, not the friction: a signature nobody
+confirmed is the thing the whole seam exists to prevent.

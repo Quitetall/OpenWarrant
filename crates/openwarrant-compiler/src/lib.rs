@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Compilation from source atoms to canonical WAR IR and projections.
 //!
 //! Governed by WAR SAS v0.1.0-draft.1. Section references cite that document.
@@ -31,7 +31,7 @@ pub use canonical::{
 };
 pub use corpus_status::{
     canonical_json as corpus_status_json, render_html as render_corpus_status_html,
-    render_markdown as render_corpus_status,
+    render_markdown as render_corpus_status, render_platform as render_corpus_status_platform,
 };
 pub use digest::{DigestDomain, sha256_hex};
 pub use dispatch::{

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war kf` — the §67 Knowledge Fabric seam.
 //!
 //! # HTTPS works, after a licence decision that was recorded rather than assumed

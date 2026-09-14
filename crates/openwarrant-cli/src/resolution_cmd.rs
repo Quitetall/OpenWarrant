@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! §56.2 resolution: the third two-half seam.
 //!
 //! `war authorize` (§28.4) and `war sas accept` (§101.2) established the shape:
@@ -101,6 +101,7 @@ pub struct ResolutionResponse {
     pub effective_time: String,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// The persisted record: `docs/warrants/<alias>/resolution.toml`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResolutionRecord {
@@ -301,6 +302,18 @@ pub fn ingest(repo: &Repository, alias: &str, path: &Utf8Path) -> Result<Report,
     }
 
     let dir = repo.warrant_dir(alias)?;
+    if let Err(e) = openwarrant_core::timestamp::validate_rfc3339_utc(&response.effective_time) {
+        refuse(
+            &mut report,
+            "resolution.effective-time",
+            format!(
+                "{alias}: effective_time {:?} is not an RFC 3339 UTC timestamp ({e}); a \
+                 record dated \"soon\" cannot be ordered against any other",
+                response.effective_time
+            ),
+        );
+        return Ok(report);
+    }
     if dir.join("resolution.toml").is_file() {
         refuse(
             &mut report,

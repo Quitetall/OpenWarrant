@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war authorize` — the §28.4 authorization seam.
 //!
 //! # Two halves, and why this command cannot sign anything
@@ -118,8 +118,14 @@ pub struct AuthorizationResponse {
     /// acceptances. Optional: a Warrant may need none.
     #[serde(default)]
     pub judgment: Vec<Judgment>,
+    /// How the signature was given: `tty` when confirmed on a terminal by
+    /// `war sign`; absent for a hand-written response. Provenance, not
+    /// authority — ingestion trusts the register, never this field.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub signed_via: Option<String>,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// The persisted authorization record.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AuthorizationRecord {
@@ -135,6 +141,7 @@ pub struct AuthorizationRecord {
     pub sas_revision: Option<String>,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// The persisted judgment set.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct JudgmentRecord {
@@ -237,6 +244,11 @@ pub fn residual_risks_in(assumptions: &[Assumption]) -> Vec<RequestedResidualRis
 /// Why a response was refused before anything was written.
 #[derive(Debug, PartialEq, Eq)]
 pub enum Refusal {
+    /// `effective_time` is not an RFC 3339 UTC timestamp.
+    EffectiveTime {
+        found: String,
+        why: String,
+    },
     UnknownSchema {
         found: String,
     },
@@ -271,6 +283,11 @@ impl std::fmt::Display for Refusal {
             Self::WrongWarrant { named, ingesting } => write!(
                 f,
                 "response names {named:?} but is being ingested for {ingesting}"
+            ),
+            Self::EffectiveTime { found, why } => write!(
+                f,
+                "effective_time {found:?} is not an RFC 3339 UTC timestamp ({why}); a record \
+                 dated \"soon\" cannot be ordered against any other"
             ),
             Self::StaleDigest { signed, current } => write!(
                 f,
@@ -311,6 +328,12 @@ pub fn validate_response(
         return Err(Refusal::WrongWarrant {
             named: response.warrant.clone(),
             ingesting: ingesting.to_owned(),
+        });
+    }
+    if let Err(e) = openwarrant_core::timestamp::validate_rfc3339_utc(&response.effective_time) {
+        return Err(Refusal::EffectiveTime {
+            found: response.effective_time.clone(),
+            why: e.to_string(),
         });
     }
     if response.contract_digest != current_digest {
@@ -423,6 +446,7 @@ pub fn ingest(
             Refusal::UnknownSchema { .. } => "authorize.response-schema",
             Refusal::WrongWarrant { .. } => "authorize.response-warrant",
             Refusal::StaleDigest { .. } => "authorize.stale-digest",
+            Refusal::EffectiveTime { .. } => "authorize.effective-time",
             Refusal::UnknownActor { .. } => "authorize.unknown-actor",
             Refusal::NotPermitted { .. } => "authorize.not-permitted",
         };
@@ -552,8 +576,10 @@ pub fn ingest(
             crate::journal_cmd::AUTHORIZATION_RECORDED,
             &format!("person://{}", response.authorizer),
             &format!(
-                "{{\"contract_digest\":\"{}\",\"acting_role\":\"{}\"}}",
-                response.contract_digest, response.acting_role
+                "{{\"contract_digest\":\"{}\",\"acting_role\":\"{}\",\"channel\":\"{}\"}}",
+                response.contract_digest,
+                response.acting_role,
+                response.signed_via.as_deref().unwrap_or("file")
             ),
         )?;
     }
@@ -623,6 +649,7 @@ mod tests {
                 assigned_by: "owner".to_owned(),
                 effective_time: "2026-08-25T00:00:00Z".to_owned(),
                 note: None,
+                ssh_principal: None,
             },
             RoleAssignment {
                 actor: "claude".to_owned(),
@@ -642,6 +669,7 @@ mod tests {
                 // fixture that withheld the roles would pass against an
                 // implementation that had no agent check at all.
                 note: Some("over-granted so the agent refusals are the reason".to_owned()),
+                ssh_principal: None,
             },
         ])
     }
@@ -656,6 +684,7 @@ mod tests {
             meaning: "Accept the declared deliverables against the bounded obligations.".to_owned(),
             effective_time: "2026-08-25T12:00:00Z".to_owned(),
             policy_basis: None,
+            signed_via: None,
             independence: Independence::None,
             judgment: vec![],
         }

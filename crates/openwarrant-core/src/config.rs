@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Repository configuration — `openwarrant.toml` (SAS §60).
 //!
 //! This crate defines and validates the shape; the CLI reads the bytes (§79.1).
@@ -28,6 +28,12 @@ pub enum ConfigError {
     PathEmpty { field: &'static str },
     #[error("paths.{field} is {value:?}; configured paths must be relative to the repository root")]
     PathNotRelative { field: &'static str, value: String },
+    #[error(
+        "sign.preset {key:?} offers itself for a correction but names no `kind`; \
+         a correction records whether it is a behaviour-change or an added-refusal, \
+         and no tool may decide that for the signer"
+    )]
+    PresetKindMissing { key: String },
 }
 
 /// A validated project namespace, e.g. `OW`.
@@ -73,6 +79,17 @@ pub struct Project {
     pub namespace: Namespace,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub knowledge_fabric_project_ref: Option<String>,
+    /// The actor every self-* check compares against (self-verification
+    /// §46, self-authorization §27.2, self-resolution §27.3). Set in this
+    /// human-written, committed file and nowhere else: a flag that renamed
+    /// the performer would let a caller walk out of all three. Default
+    /// `claude`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub performer: Option<String>,
+    /// Where the repository lives, for the projections that link back to
+    /// it. Optional; a tracked input, unlike a git remote.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub repository_url: Option<String>,
 }
 
 /// Where the controlled document trees live (§59, §60).
@@ -214,7 +231,214 @@ pub struct AuthorityPolicy {
     pub allow_automated_resolution: bool,
 }
 
-/// `openwarrant.toml` (§60).
+/// §75.2's configured drafter: the process `war plan --draft` hands the
+/// request to. Absent means `war plan` emits the request and stops, which is
+/// the honest default — a seam with nothing on the other side says so.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PlanPolicy {
+    /// argv, not a shell string: an executable and its arguments, no shell
+    /// between them. Empty means no drafter is configured.
+    #[serde(default)]
+    pub drafter_argv: Vec<String>,
+    /// Wall-clock bound on one drafting run. 0 means the default (300).
+    #[serde(default)]
+    pub drafter_timeout_secs: u64,
+    /// Recorded in the journal as the proposing actor, e.g. `claude-code 2.1`.
+    #[serde(default)]
+    pub drafter_name: String,
+}
+
+impl PlanPolicy {
+    #[must_use]
+    pub fn timeout_secs(&self) -> u64 {
+        if self.drafter_timeout_secs == 0 {
+            300
+        } else {
+            self.drafter_timeout_secs
+        }
+    }
+}
+
+/// One named reason a signer reaches for often (`[[sign.preset]]`).
+///
+/// The friction a signing queue creates is not the key, it is the prose: ten
+/// acts with one sentence each is twenty minutes of typing about changes the
+/// repository already describes. A preset is that sentence, written once, by
+/// the human, in the configuration they own. Picking one is a keystroke; the
+/// tool still records who signed, when, and over which bytes.
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SignPreset {
+    /// The key pressed to choose it, usually one character.
+    pub key: String,
+    /// What it says on the menu.
+    pub label: String,
+    /// The reason recorded, verbatim, appended to the drafted meaning.
+    pub meaning: String,
+    /// Which acts it applies to: `authorize`, `resolve`, `accept`, `correct`.
+    /// Empty means every act.
+    #[serde(default)]
+    pub acts: Vec<String>,
+    /// For a correction: `behaviour-change` or `added-refusal`. Ignored by
+    /// the other acts, required by that one, so a preset can carry it.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub kind: String,
+}
+
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SignPolicy {
+    /// The presets offered in `war console` and by `war sign --preset`.
+    #[serde(default, rename = "preset", skip_serializing_if = "Vec::is_empty")]
+    pub presets: Vec<SignPreset>,
+}
+
+impl SignPolicy {
+    /// No presets declared: the table is omitted from a written config.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.presets.is_empty()
+    }
+
+    /// A preset that offers itself for a correction must say which kind of
+    /// correction, because `war sign --kind` has no default a tool may pick:
+    /// "the behaviour changed" and "a refusal was added" are different claims
+    /// about the same bytes, and only the signer knows which one is true.
+    pub fn validate(&self) -> Result<(), ConfigError> {
+        for p in &self.presets {
+            if p.acts.iter().any(|a| a == "correct") && p.kind.trim().is_empty() {
+                return Err(ConfigError::PresetKindMissing { key: p.key.clone() });
+            }
+        }
+        Ok(())
+    }
+
+    /// The presets that apply to one act kind, in declared order.
+    #[must_use]
+    pub fn for_act(&self, act: &str) -> Vec<&SignPreset> {
+        self.presets
+            .iter()
+            .filter(|p| p.acts.is_empty() || p.acts.iter().any(|a| a == act))
+            .collect()
+    }
+}
+
+/// `[perform]` — the agent that performs an agent stage (OW-WAR-0069).
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct PerformPolicy {
+    /// argv, not a shell string: the agent that performs an agent stage, given
+    /// the Dispatch on stdin and expected to answer with a Stage Submission on
+    /// stdout. Empty means no performer is configured.
+    #[serde(default)]
+    pub performer_argv: Vec<String>,
+    /// Wall-clock bound on one performance. 0 means the stage's own
+    /// `wall_time_seconds`, and failing that `[run] default_wall_time_seconds`.
+    #[serde(default)]
+    pub performer_timeout_secs: u64,
+    /// How many agent stages may run at once. 0 means 1.
+    ///
+    /// One, in 1.0. Nothing here contains a performer — no cgroups, no sandbox
+    /// — so concurrency would mean several unbounded processes writing one
+    /// tree. Raising it is a deliberate act, and `war perform` says so.
+    #[serde(default)]
+    pub max_concurrent: u32,
+}
+
+impl PerformPolicy {
+    #[must_use]
+    pub fn concurrency(&self) -> u32 {
+        if self.max_concurrent == 0 {
+            1
+        } else {
+            self.max_concurrent
+        }
+    }
+
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.performer_argv.is_empty()
+            && self.performer_timeout_secs == 0
+            && self.max_concurrent == 0
+    }
+}
+
+/// `[run]` — `war run`'s bounds for a service stage (slice C4b).
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RunPolicy {
+    /// Wall-clock bound for a stage that declares none; 0 means 600.
+    #[serde(default)]
+    pub default_wall_time_seconds: u64,
+}
+
+impl RunPolicy {
+    #[must_use]
+    pub fn wall_time_seconds(&self) -> u64 {
+        if self.default_wall_time_seconds == 0 {
+            600
+        } else {
+            self.default_wall_time_seconds
+        }
+    }
+}
+
+/// `[verify]` — a configured blind verifier (slice C3, §75.2).
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct VerifyPolicy {
+    /// The command that reads a bundle path and prints a verification
+    /// response on stdout. Empty means no verifier is configured, and
+    /// `war verify --run` says so.
+    #[serde(default)]
+    pub verifier_argv: Vec<String>,
+    /// Wall-clock bound for the verifier; 0 means the default (600).
+    #[serde(default)]
+    pub verifier_timeout_secs: u64,
+    /// Bytes of a deliverable bundled whole; larger ones are truncated to
+    /// this head with their full digest. 0 means the default (65536).
+    #[serde(default)]
+    pub max_excerpt_bytes: usize,
+}
+
+impl VerifyPolicy {
+    #[must_use]
+    pub fn timeout_secs(&self) -> u64 {
+        if self.verifier_timeout_secs == 0 {
+            600
+        } else {
+            self.verifier_timeout_secs
+        }
+    }
+
+    #[must_use]
+    pub fn max_excerpt_bytes(&self) -> usize {
+        if self.max_excerpt_bytes == 0 {
+            65_536
+        } else {
+            self.max_excerpt_bytes
+        }
+    }
+}
+
+/// `[context]` — the Dispatch token budget (slice C2, §33.7).
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct ContextPolicy {
+    /// The budget a stage gets when it declares none. Absent means the
+    /// tool's default (32 000).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_budget_tokens: Option<u64>,
+}
+
+impl ContextPolicy {
+    pub const DEFAULT_BUDGET_TOKENS: u64 = 32_000;
+
+    #[must_use]
+    pub fn budget(&self) -> u64 {
+        self.default_budget_tokens
+            .unwrap_or(Self::DEFAULT_BUDGET_TOKENS)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryConfig {
     pub schema: String,
@@ -226,6 +450,20 @@ pub struct RepositoryConfig {
     /// §27.3's standing permission. Absent means absent, which means no.
     #[serde(default)]
     pub policy: AuthorityPolicy,
+    /// §75.2 — the configured drafting process, if any.
+    #[serde(default)]
+    pub plan: PlanPolicy,
+    #[serde(default)]
+    pub context: ContextPolicy,
+    #[serde(default)]
+    pub verify: VerifyPolicy,
+    #[serde(default)]
+    pub run: RunPolicy,
+    /// `[perform]` — the agent that performs an agent stage (OW-WAR-0069).
+    #[serde(default, skip_serializing_if = "PerformPolicy::is_empty")]
+    pub perform: PerformPolicy,
+    #[serde(default, skip_serializing_if = "SignPolicy::is_empty")]
+    pub sign: SignPolicy,
     /// §46.1's nine independence dimensions, for verification performed in this
     /// repository.
     ///
@@ -248,6 +486,8 @@ impl RepositoryConfig {
                 name: name.into(),
                 namespace,
                 knowledge_fabric_project_ref: None,
+                performer: None,
+                repository_url: None,
             },
             paths: Paths::default(),
             generated: GeneratedPolicy::default(),
@@ -255,6 +495,12 @@ impl RepositoryConfig {
             // must never hand a fresh project the one setting that lets a
             // machine close its work.
             policy: AuthorityPolicy::default(),
+            plan: PlanPolicy::default(),
+            context: ContextPolicy::default(),
+            verify: VerifyPolicy::default(),
+            run: RunPolicy::default(),
+            perform: PerformPolicy::default(),
+            sign: SignPolicy::default(),
             independence: None,
         }
     }
@@ -270,6 +516,7 @@ impl RepositoryConfig {
         if self.project.name.trim().is_empty() {
             return Err(ConfigError::ProjectNameEmpty);
         }
+        self.sign.validate()?;
         self.paths.validate()
     }
 }
@@ -292,6 +539,32 @@ mod tests {
         let config = valid();
         assert!(config.generated.commit);
         assert!(config.generated.verify_drift, "drift check must default on");
+    }
+
+    /// A preset that offers itself for a correction and names no kind is a
+    /// preset that would have the tool decide what the signer is claiming.
+    #[test]
+    fn a_correction_preset_without_a_kind_is_refused() {
+        let mut config = valid();
+        config.sign.presets.push(SignPreset {
+            key: "1".to_owned(),
+            label: "the bytes moved".to_owned(),
+            meaning: "They moved with the plan.".to_owned(),
+            acts: vec!["correct".to_owned()],
+            kind: String::new(),
+        });
+        assert_eq!(
+            config.validate(),
+            Err(ConfigError::PresetKindMissing {
+                key: "1".to_owned()
+            })
+        );
+        config.sign.presets[0].kind = "behaviour-change".to_owned();
+        assert_eq!(config.validate(), Ok(()));
+        // An authorize preset needs no kind: there is nothing to choose.
+        config.sign.presets[0].acts = vec!["authorize".to_owned()];
+        config.sign.presets[0].kind = String::new();
+        assert_eq!(config.validate(), Ok(()));
     }
 
     /// §69.3 / §91.1 test 4: an unrecognised schema is refused, not ignored.

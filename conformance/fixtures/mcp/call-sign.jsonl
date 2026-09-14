@@ -1,0 +1,4 @@
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"plant","version":"0"}}}
+{"jsonrpc":"2.0","method":"notifications/initialized"}
+{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"war_sign","arguments":{"target":"OW-WAR-0062"}}}
+{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"war_resolve","arguments":{"alias":"OW-WAR-0062","response":"x.toml"}}}

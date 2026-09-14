@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! RFC 8785 canonicalization and domain-separated digests (SAS §65).
 //!
 //! Implementation selected by OW-ADR-0001 on measured conformance.
@@ -11,6 +11,13 @@ use crate::digest::{DigestDomain, sha256_hex};
 pub enum CanonicalError {
     #[error("value could not be canonicalized as RFC 8785 JSON: {0}")]
     Canonicalize(#[from] serde_json::Error),
+    /// `schemas/pack.json` does not declare the version inside every contract
+    /// digest (OW-WAR-0032): nothing compiles until the pack and the format
+    /// agree.
+    #[error(
+        "the committed schema pack does not declare version {expected}, the one inside every contract digest; regenerate it with `war schemas` (cargo feature `schema`) or restore it"
+    )]
+    SchemaPack { expected: String },
 }
 
 /// Canonicalize a serializable value to RFC 8785 JSON bytes.

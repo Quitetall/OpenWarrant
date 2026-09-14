@@ -17,14 +17,24 @@ name = "war"
 path = "src/main.rs"
 
 [dependencies]
+sha2 = { workspace = true }
+serde_jcs = { workspace = true }
+rmcp = { workspace = true }
+tokio = { workspace = true }
+schemars = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 # Removed in 811e0f3 as an unused dependency and restored here for its first
 # real use: `war compile` lowers and renders. OW-WAR-0004 predicted exactly this,
 # which is why the removal was correct at the time rather than churn.
-openwarrant-compiler = { path = "../openwarrant-compiler", version = "0.1.0" }
-openwarrant-core = { path = "../openwarrant-core", version = "0.1.0" }
+openwarrant-compiler = { path = "../openwarrant-compiler", version = "1.0.0" }
+openwarrant-core = { path = "../openwarrant-core", version = "1.0.0" }
 camino = { workspace = true }
 ureq = { workspace = true }
 clap = { workspace = true }
 toml = { workspace = true }
+
+[features]
+# `war schemas`: the JSON Schema pack, generated from the record types.
+# Off in the shipped binary; `cargo xtask gate` builds it on.
+schema = ["openwarrant-core/schema", "openwarrant-compiler/schema"]

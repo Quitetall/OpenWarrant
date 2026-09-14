@@ -1,0 +1,13 @@
+# oh.war/question/v1. Asked by an agent, answered by a human (§27.2). An answer
+# informs the work; it is never a disposition, a judgment, or an
+# authorization. `war questions --open` lists what awaits an answer.
+
+schema = "oh.war/question/v1"
+id = "Q-004"
+warrant = "OW-WAR-0069"
+stage = "STAGE-001"
+asked_by = "agent://claude"
+asked_at = "2026-09-12T07:49:07Z"
+question = "May a question be asked with no stage, at program level (a question about the SAS rather than a stage)?"
+blocking = false
+recommended = "No. A question with no stage has nothing to unblock and nobody to read it; a program-level question belongs to a decision Warrant's stage (war-map), which is cheap to create."

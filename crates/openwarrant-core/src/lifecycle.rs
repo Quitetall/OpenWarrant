@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! ADR relations and currency (SAS §19.2, §19.4, §21), read projections
 //! (§17.5), telemetry (§94), and untracked-work detection (§95).
 //! RQ-020, RQ-024, RQ-025, RQ-073.
@@ -262,7 +262,7 @@ impl Supersession {
 }
 
 /// §94's measures, verbatim.
-pub const TELEMETRY_MEASURES: [&str; 18] = [
+pub const TELEMETRY_MEASURES: [&str; 20] = [
     "human authoring minutes",
     "interview questions",
     "clarification count",
@@ -274,6 +274,8 @@ pub const TELEMETRY_MEASURES: [&str; 18] = [
     "adequacy counterexamples",
     "wall time",
     "compute and model cost",
+    "context tokens per dispatch",
+    "context tokens per verification",
     "time to first usable artifact",
     "reopenings",
     "untracked commits or artifacts",

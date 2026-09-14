@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Milestones and stages (SAS §23), executor kinds (§23.4), named typed ports
 //! (§23.5), and responsibility tiers (§26).
 //!
@@ -25,6 +25,8 @@ pub const MILESTONES_SCHEMA: &str = "oh.war/milestones/v1";
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum MilestoneError {
+    #[error("stage {id}: budget_tokens {found:?} is not a non-negative integer")]
+    InvalidBudget { id: String, found: String },
     #[error(transparent)]
     Structured(#[from] StructuredError),
     #[error("unknown milestones schema {found:?}; this build understands {expected:?}")]
@@ -66,6 +68,7 @@ pub enum MilestoneError {
     UntypedPort { id: String, port: String },
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// Who executes a stage (SAS §23.4).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -107,6 +110,7 @@ impl std::fmt::Display for ExecutorKind {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// Executor responsibility tier (SAS §26).
 ///
 /// §26.5: tier and executor kind are ORTHOGONAL. A T1 stage may be executed by
@@ -154,6 +158,7 @@ impl std::fmt::Display for ResponsibilityTier {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// A named typed port on a stage (SAS §23.5).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Port {
@@ -161,6 +166,7 @@ pub struct Port {
     pub type_name: String,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// An acceptance checkpoint (SAS §23.1). Carries no executor.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Milestone {
@@ -175,6 +181,7 @@ pub struct Milestone {
     pub obligation_refs: Vec<String>,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// A dispatchable execution node (SAS §23.3). Carries no obligations.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Stage {
@@ -223,8 +230,31 @@ pub struct Stage {
     /// hold a `Value`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub executor_args: Option<String>,
+    // ---- slice C1: stage-relevant context (SAS §47.2, §33). Flat prefixed
+    // fields, because OW-ADR-0003's reader does not nest inside a record.
+    /// Whole atoms this stage needs beyond the required ones, by file name.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub context_atoms: Vec<String>,
+    /// Sections of atoms, as `<atom file>#<heading>`.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub context_sections: Vec<String>,
+    /// Repository paths the stage reads as inputs.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub context_artifacts: Vec<String>,
+    /// External references, recorded and never fetched.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub context_external: Vec<String>,
+    /// The token budget for this stage's Dispatch (slice C2); absent means
+    /// the repository default applies.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub budget_tokens: Option<u64>,
+    /// Wall-clock bound for a `service` stage run by `war run` (slice C4b);
+    /// absent means the repository default applies.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub wall_time_seconds: Option<u64>,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// A validated milestone graph.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MilestoneGraph {
@@ -300,13 +330,19 @@ pub fn parse(source: &str) -> Result<MilestoneGraph, MilestoneError> {
     }
 
     // §23.6: fields that belong to the other kind are refused, not ignored.
-    const STAGE_ONLY: [&str; 6] = [
+    const STAGE_ONLY: [&str; 12] = [
         "executor_kind",
         "responsibility_tier",
         "inputs",
         "outputs",
         "executor_ref",
         "executor_args",
+        "context_atoms",
+        "context_sections",
+        "context_artifacts",
+        "context_external",
+        "budget_tokens",
+        "wall_time_seconds",
     ];
     const MILESTONE_ONLY: [&str; 3] = ["depends_on", "stage_refs", "obligation_refs"];
 
@@ -404,6 +440,36 @@ pub fn parse(source: &str) -> Result<MilestoneGraph, MilestoneError> {
             outputs: ports("outputs")?,
             executor_ref: scalar(record, "executor_ref").filter(|v| !v.trim().is_empty()),
             executor_args: scalar(record, "executor_args").filter(|v| !v.trim().is_empty()),
+            context_atoms: list(record, "context_atoms"),
+            context_sections: list(record, "context_sections"),
+            context_artifacts: list(record, "context_artifacts"),
+            context_external: list(record, "context_external"),
+            wall_time_seconds: match scalar(record, "wall_time_seconds") {
+                None => None,
+                Some(raw) => {
+                    Some(
+                        raw.trim()
+                            .parse::<u64>()
+                            .map_err(|_| MilestoneError::InvalidBudget {
+                                id: id.clone(),
+                                found: format!("wall_time_seconds {raw}"),
+                            })?,
+                    )
+                }
+            },
+            budget_tokens: match scalar(record, "budget_tokens") {
+                None => None,
+                Some(raw) => {
+                    Some(
+                        raw.trim()
+                            .parse::<u64>()
+                            .map_err(|_| MilestoneError::InvalidBudget {
+                                id: id.clone(),
+                                found: raw.clone(),
+                            })?,
+                    )
+                }
+            },
             id,
         });
     }

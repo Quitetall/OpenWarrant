@@ -236,7 +236,7 @@ If you want the current state of LamQuant, measure LamQuant. Do not use these.
 
 ## License
 
-**AGPL-3.0-or-later** today; **Apache-2.0** intended when this goes public.
+**Apache-2.0** (relicensed 2026-09-12, OW-ADR-0017). Versions distributed before that date remain available under AGPL-3.0-or-later.
 
 That intent constrains the code now rather than later: every dependency must be
 MIT and/or Apache-2.0, enforced by `cargo deny check licenses` inside the gate,

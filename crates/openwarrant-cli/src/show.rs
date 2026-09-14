@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war show` — render any §17.5 projection, and `war diff` (§71.10).
 //!
 //! # Why `show` exists at all
@@ -54,14 +54,44 @@ pub fn run(repo: &Repository, alias: &str, view_name: &str) -> Result<String, Re
         .filter_map(|d| repo.load_warrant(d).ok())
         .collect();
     let children = crate::compile::children_of(&validated.raw.uuid, &corpus);
-    render::render_view(view, &ir, basis, &children)
+    let mut rendered = render::render_view(view, &ir, basis, &children)
         .map_err(|e| RepoError::Message(format!("{alias}: {view} did not render: {e}")))?
         .ok_or_else(|| {
             RepoError::Message(format!(
                 "`{view}` is a projection of the ADR corpus rather than of one \
                  Warrant; see the generated ADR overview"
             ))
-        })
+        })?;
+    // OW-WAR-0064 — corrections are records beside the contract, not part of
+    // the IR (adding them to the IR would move every WAR.json). The two views a
+    // reader opens to ask "what are these bytes?" get a trailer that names
+    // every superseded digest, so the original never disappears from view.
+    if matches!(view, View::FullWarrant | View::Status) {
+        let corrections = repo.load_corrections(&dir)?;
+        if !corrections.records.is_empty() {
+            rendered.push_str("\n## Corrections\n\n");
+            rendered.push_str(
+                "*A correction supersedes a delivered artifact's pinned digest for a stated \
+                 reason (OW-WAR-0064). The pin in `deliverables.toml` is unchanged; the \
+                 superseded digest is listed here, not erased.*\n\n",
+            );
+            for (path, r) in &corrections.records {
+                let c = &r.correction;
+                rendered.push_str(&format!(
+                    "- **{}** · correction {} · {} · `{}` → `{}` · {} · {} · {}\n",
+                    c.deliverable_id,
+                    c.sequence,
+                    c.kind,
+                    c.superseded_digest,
+                    c.new_digest,
+                    c.authorized_by_ref,
+                    c.effective_at,
+                    path
+                ));
+            }
+        }
+    }
+    Ok(rendered)
 }
 
 /// One semantic difference between two compilations (§71.10).

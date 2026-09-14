@@ -1,0 +1,25 @@
+schema = "oh.war/rationale/v1"
+
+[[assumption]]
+id = "A-001"
+statement = "The owner chose batch signing over dropping `ssh-add -c` on 2026-09-12, answering a direct question with 'Build batch signing first'. A choice recorded in a conversation is a decision on record; it is not a signature, and this revision is not accepted until they sign it."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "`war sas propose 1.1.0 --adr OW-ADR-0019` followed by the owner's ssh-signed acceptance at the workstation."
+consequence_if_false = "SAS 1.0.0 stands, the batch act is unsayable, and OW-WAR-0072 and OW-WAR-0073 stay unauthorized."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-002"
+statement = "One signature over a canonical list is the same human act as one signature over one record, provided the list is the signed subject and a moved digest invalidates the batch. This is the whole argument of §27.6 and it is an argument, not a measurement."
+epistemic_status = "accepted_residual_risk"
+resolution_requirement = "The independent document review under OBL-002 states whether any clause of §27.6 weakens §27.2, in a verification the owner reads before signing."
+consequence_if_false = "The batch act is withdrawn and the per-act dialogs stand; no record written under a withdrawn rule would exist, since nothing is implemented under this Warrant."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-003"
+statement = "1.1.0 adds requirements and therefore is not a patch release under §101.2, and it is architecture-changing under §101.3 because it changes what a signature may cover."
+epistemic_status = "accepted_residual_risk"
+resolution_requirement = "`war sas propose 1.1.0` reports the §106 diff; if it shows no added rows the version choice is wrong and the revision is renumbered before acceptance."
+consequence_if_false = "The revision is renumbered; no downstream record changes, since a revision's identity is its version and digest together."
+judgment_ref = ""

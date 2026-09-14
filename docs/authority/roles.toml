@@ -54,6 +54,7 @@ roles = ["authorizer", "resolver", "risk_acceptor", "judge"]
 assigned_by = "Brian Lam"
 effective_time = "2026-01-01T00:00:00Z"
 note = "Repository owner."
+ssh_principal = "brian"
 
 # The agent is recorded as a performer and nothing else. This entry is not
 # required — an actor with no assignment simply has no authority — but writing it

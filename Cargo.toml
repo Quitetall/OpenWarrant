@@ -9,7 +9,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.1.0"
+version = "1.0.0"
 edition = "2024"
 rust-version = "1.97.1"
 # The repository is ALREADY public under this licence — the relicense to
@@ -21,7 +21,7 @@ rust-version = "1.97.1"
 # dependency is permissive (gated by `cargo deny check licenses`) and the
 # contribution terms are in place. This string lives in exactly one place because
 # the relicense changes it.
-license = "AGPL-3.0-or-later"
+license = "Apache-2.0"
 repository = "https://github.com/Quitetall/OpenWarrant"
 homepage = "https://github.com/Quitetall/OpenWarrant"
 authors = ["Brian Lam <briankhanglam@gmail.com>"]
@@ -55,8 +55,10 @@ thiserror = "2"
 toml = "1.1"
 # The first network dependency in this workspace, added for the §67 Knowledge
 # Fabric seam (OW-WAR-0044). Blocking and runtime-free on purpose: `war` is a
-# CLI with no async anywhere, and pulling tokio in to make one HTTP request
-# would be a larger change to this tool than the feature justifies.
+# CLI with no async outside `openwarrant-cli/src/mcp/` (OW-ADR-0014 admits a
+# current-thread runtime there, to drive the MCP stdio transport and nothing
+# else), and pulling tokio in to make one HTTP request would be a larger
+# change to this tool than the feature justifies.
 #
 # TLS via `rustls`. Every TLS configuration of ureq 3.4 pulls Mozilla's CA
 # bundle under CDLA-Permissive-2.0 — measured at 144 (rustls), 166
@@ -67,6 +69,16 @@ toml = "1.1"
 # in deny.toml, not here.
 ureq = { version = "3", default-features = false, features = ["rustls", "json"] }
 uuid = { version = "1", features = ["v7", "serde"] }
+# The MCP transport (OW-ADR-0014): the reference SDK is async throughout, so
+# a current-thread tokio runtime is admitted inside `openwarrant-cli/src/mcp/`
+# and nowhere else — a unit test in main.rs greps every other source file.
+# Exact pin; a bump re-measures the crate count and licence families in the ADR.
+rmcp = { version = "=3.3.0", default-features = false, features = ["server", "macros", "transport-io"] }
+tokio = { version = "1", default-features = false, features = ["rt", "io-std", "macros"] }
+# Loose pin on purpose: rmcp 3.3 requires `schemars ^1` and resolves it itself;
+# an exact pin here would only fight the SDK's own requirement.
+schemars = "1"
+
 
 [profile.release]
 lto = "thin"

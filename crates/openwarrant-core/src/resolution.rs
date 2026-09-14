@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Resolution, dispute, annulment, and ongoing validation (SAS §56, §57).
 //! RQ-058, RQ-059.
 //!
@@ -228,6 +228,7 @@ impl ResolutionChecks {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// §56.2's resolution record.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Resolution {

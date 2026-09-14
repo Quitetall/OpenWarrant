@@ -1,0 +1,16 @@
+{
+  "api_version": "oh.war/draft-proposal/v2",
+  "proposed_identity": {
+    "title": "Planted: a CHANGELOG entry policy",
+    "profile": "delivery",
+    "assurance": "basic"
+  },
+  "operations": [
+    {
+      "op": "write_file",
+      "path": "README.md",
+      "body": "x"
+    }
+  ],
+  "risk_assessment": "none; a fixture"
+}

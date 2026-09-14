@@ -1,0 +1,24 @@
+schema = "oh.war/deliverables/v1"
+
+[[deliverable]]
+id = "D-001"
+title = "Memo: Decide which tokenizer approximation the budgets should use"
+kind = "file"
+target_ref = "docs/research/tokenizer.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "eval-performer"
+producing_attempt = "{{ALIAS}}/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "evals/fixtures/fixture-agent.sh perform"
+creation_method = "authored"
+content_digest = "{{DIGEST:docs/research/tokenizer.md}}"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

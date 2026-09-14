@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Lowering a Compilation Basis to the canonical IR (SAS §14, §63).
 
 use openwarrant_core::{Manifest, ValidatedManifest};
@@ -71,10 +71,36 @@ pub struct CompilationBasis {
 /// Pure: no clock, no environment, no filesystem. Compiling the same Basis twice
 /// yields byte-identical output, which is what makes the drift check meaningful
 /// rather than noise (OW-WAR-0004 OBL-002).
+/// The committed schema pack, read at build time. `lower` refuses to compile
+/// against a pack whose `version` is not `SCHEMA_PACK_VERSION`: the version
+/// sits inside every contract digest (`FormatBasis`), so a pack relabelled
+/// without a format change would make every digest a lie (OW-WAR-0032).
+const SCHEMA_PACK_JSON: &str = include_str!("../../../schemas/pack.json");
+
+/// The version the committed pack declares, or an error naming the mismatch.
+///
+/// # Errors
+/// When `schemas/pack.json` does not declare `SCHEMA_PACK_VERSION`.
+pub fn schema_pack_version() -> Result<&'static str, CanonicalError> {
+    // Parsed, not substring-matched: the top-level `version` field is the
+    // claim, and a version string appearing anywhere else is not.
+    let declared = serde_json::from_str::<serde_json::Value>(SCHEMA_PACK_JSON)
+        .ok()
+        .and_then(|v| v.get("version").and_then(|x| x.as_str()).map(str::to_owned));
+    if declared.as_deref() == Some(SCHEMA_PACK_VERSION) {
+        Ok(SCHEMA_PACK_VERSION)
+    } else {
+        Err(CanonicalError::SchemaPack {
+            expected: SCHEMA_PACK_VERSION.to_owned(),
+        })
+    }
+}
+
 pub fn lower(
     basis: &CompilationBasis,
     validated: &ValidatedManifest,
 ) -> Result<WarIr, CanonicalError> {
+    schema_pack_version()?;
     let manifest_digest = sha256_hex(&basis.manifest_bytes);
 
     let atoms: Vec<SourceAtom> = basis
@@ -357,5 +383,17 @@ mod tests {
             before.integrity.composition_revision_digest,
             after.integrity.composition_revision_digest
         );
+    }
+}
+
+#[cfg(test)]
+mod schema_pack_tests {
+    #[test]
+    fn the_committed_pack_declares_the_version_inside_every_digest() {
+        assert_eq!(
+            super::schema_pack_version().unwrap(),
+            super::SCHEMA_PACK_VERSION
+        );
+        assert!(super::SCHEMA_PACK_JSON.contains("\"transitive_digest\""));
     }
 }

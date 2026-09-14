@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Runtime and platform seams: Katana (§48), BLUT (§49), Knowledge Fabric
 //! (§67), and source adapters (§82). RQ-044, RQ-062, RQ-063, RQ-061, RQ-076.
 //!

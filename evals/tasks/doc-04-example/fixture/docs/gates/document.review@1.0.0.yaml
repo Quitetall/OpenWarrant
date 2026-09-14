@@ -1,0 +1,52 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# The document work kind's gate (SAS §43.2; 1.0 plan slice C4a). A LOCAL
+# CANDIDATE like the others (OW-ADR-0005). Lists are flow sequences and the
+# qualification is spelled with `qualification_` prefixes because OW-ADR-0003's
+# reader does not nest inside a record.
+
+gate_id: "document.review"
+version: "1.0.0"
+lifecycle: "qualified"
+implementation_ref: "artifact://openwarrant-cli/war-document-review"
+output_schema_ref: "schema://war-document-review/v1"
+provenance: "local_candidate"
+input_kinds: ["warrant-corpus", "markdown-deliverable"]
+
+# §44.7 — a structured argument vector. Corpus-wide: every Warrant with a
+# Markdown deliverable is reviewed, so a static argv covers the Warrant that
+# cites this gate without the runner naming it. The built binary, as for
+# `war check`; a released install would say ["war", "document", "review"].
+argv: ["war", "document", "review"]
+
+# §44.8 — reads only.
+mutating: "false"
+
+timeout_secs: "120"
+
+# What this gate claims to detect; each has a recorded detection result below.
+fault_model: ["document-undigested", "citation-missing", "review-absent", "placeholder-left"]
+
+known_blind_spots: ["Cannot judge whether a memo's argument is any good, only that it exists at its digest, cites things that exist, carries no placeholder, and was reviewed by someone other than its author.", "Does not fetch URLs; a dead link is recorded, not detected.", "Does not read a verification's evidence text; an `established` from a distinct verifier is taken as a review."]
+
+qualification_qualifier: "QuiteTall via conformance/plants.d/85-document.sh, run by cargo xtask gate"
+qualification_digest: ""
+qualification_positive_controls: ["Four planted violations against the example memo of OW-WAR-0065, each expected to be REJECTED by its named rule."]
+qualification_negative_controls: ["The memo as committed exits 2 only for `document.review-absent` until an independent verification is recorded — the true state, asserted rather than hidden."]
+qualification_mutation_classes: ["substitution (a byte of the memo)", "injection (a TODO; a citation to a missing file)", "deletion (the verification)"]
+qualification_environments: ["linux-x86_64, rustc 1.97.1 pinned by rust-toolchain.toml"]
+qualification_limitations: ["Plants are single-fault.", "The placeholder list is fixed; a project's own marker words are not known to it."]
+
+detection_results:
+  - fault_class: "document-undigested"
+    mutation: "appended a byte to the memo after its digest was recorded"
+    detected: "true"
+  - fault_class: "citation-missing"
+    mutation: "cited a file that does not exist"
+    detected: "true"
+  - fault_class: "review-absent"
+    mutation: "no verification from a non-performer"
+    detected: "true"
+  - fault_class: "placeholder-left"
+    mutation: "left a TODO in prose"
+    detected: "true"

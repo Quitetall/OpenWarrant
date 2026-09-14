@@ -1,0 +1,12 @@
+schema = "oh.war/judgments/v1"
+warrant = "OW-WAR-0063"
+
+[[judgment]]
+id = "J-001"
+kind = "residual_risk_acceptance"
+statement = "A plant in another Warrant's section that exercises this obligation's control is evidence for it; the section is a label."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "Accepting residual risk A-001 for OW-WAR-0063: if the assumption is false, the consequence is: A verifier that reads only the section named for a Warrant marks its obligations unestablished — which is what rounds one and two did. Presented on a terminal by `war sign 0.1.0` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+basis_refs = ["assumption://A-001"]
+authority = "authorized"

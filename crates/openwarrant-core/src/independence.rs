@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Verifier independence (SAS §46, RQ-053).
 //!
 //! # What independence is for
@@ -79,6 +79,7 @@ impl IndependenceMinimum {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// §46.1's nine independence dimensions.
 ///
 /// Booleans rather than a summary score, because §46.3's minimums are about

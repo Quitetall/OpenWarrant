@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Deliverables, artifact provenance, and derived reports (SAS §37).
 //!
 //! # The sentence that shapes this module
@@ -88,6 +88,7 @@ vocabulary!(
     }
 );
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// §37.2's provenance record. Eleven fields, all of them required when a
 /// deliverable sets `provenance_required`.
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
@@ -140,6 +141,7 @@ impl ArtifactProvenance {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// §37.1's deliverable.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Deliverable {

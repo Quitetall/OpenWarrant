@@ -1,0 +1,59 @@
+# {{program}} — Software Architecture Specification
+
+Version 0.1.0. This document governs the program `{{program}}`; every Warrant
+in `docs/warrants/` traces to it through `[[implements]]` refs into §106 and
+`[[roadmap]]` refs into §98. It is a controlled document: `war sas propose
+<version>` records a revision, a human accepts it with `war sign <version>
+--ssh-sign`, and Warrants pin the accepted revision (OpenWarrant SAS §101).
+
+Write the architecture here. The three sections below are the ones the tool
+reads; keep their headings and shapes, and change everything else.
+
+## 6.10. Levels
+
+| Level | What it is | Who closes it |
+|---|---|---|
+| Release | this SAS at an accepted version | a human, `war sign <version>` |
+| Objective | one §98 phase, reached when its Exit holds | the records of its Warrants |
+| Requirement | one §106 row, satisfied by the Warrants that implement it | resolved Warrants |
+| Warrant | one bounded intervention, authorized and resolved by a human | `war sign <alias>` |
+| Milestone / Stage | a checkpoint inside a Warrant; a dispatchable unit of work | evidence and verification |
+
+A SAS and a Warrant are the same class of document at two levels: one SAS per
+program, many Warrants under it. Starting a program means writing this file;
+starting a unit of work means `war new`.
+
+## 98. Implementation phases
+
+### Phase 1 — Adopt OpenWarrant
+
+Deliver:
+
+- this SAS at an accepted revision;
+- the first Warrant, `{{namespace}}-WAR-0001`, authorized, delivered, verified and resolved;
+- `docs/authority/roles.toml` and `allowed_signers`, written by a human.
+
+Exit:
+
+- one Warrant has gone from `war new` to a human-signed resolution with an independent verification on record.
+
+### Phase 2 — First real work
+
+Deliver:
+
+- the program's own Warrants, one per bounded intervention.
+
+Exit:
+
+- the first §106 requirement beyond adoption is satisfied by a resolved Warrant.
+
+## 106. Architecture requirements index
+
+Stable identifiers for traceability. A Warrant's `[[implements]]` ref names a
+row here; `war check` refuses a ref that names no row.
+
+| ID | Requirement |
+|---|---|
+| {{namespace}}-SAS-RQ-001 | This SAS is accepted by a human signature and every Warrant pins the accepted revision |
+| {{namespace}}-SAS-RQ-002 | Every Warrant is authorized and resolved by a human, never by the performer |
+| {{namespace}}-SAS-RQ-003 | Every resolution rests on an independent verification and recorded gate evidence |

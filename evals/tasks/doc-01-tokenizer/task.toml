@@ -1,0 +1,7 @@
+schema = "oh.war/eval-task/v1"
+sentence = "decide which tokenizer approximation the budgets should use"
+kind = "document"
+expected_gate = "document.review@1.0.0"
+max_tokens = 12000
+max_wall_secs = 120
+expected = "would_satisfy"

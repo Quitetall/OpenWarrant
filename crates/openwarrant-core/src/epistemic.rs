@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Epistemic classes, evidence, and judgment (SAS §40, §41, §42; RQ-052, RQ-053).
 //!
 //! This is the distinction the specification exists to protect.
@@ -399,6 +399,7 @@ impl JudgmentAuthority {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// Who is making a judgment (§42).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -409,6 +410,7 @@ pub enum JudgmentAuthority {
     Authorized,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// §40.5 / §42 — an attributable evaluative or policy choice.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Judgment {

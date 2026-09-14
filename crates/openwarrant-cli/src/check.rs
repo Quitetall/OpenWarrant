@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war check` — deterministic, agent-free validation (SAS §71.7, RQ-074).
 //!
 //! No model, no network, no clock. Reproducibility is not a nicety here: a
@@ -200,6 +200,26 @@ pub fn run(
                                 &pin.sha256[..12]
                             ),
                         ));
+                    } else if let Some(proposed) = revisions
+                        .iter()
+                        .find(|r| r.sha256 == actual && r.version != pin.version)
+                    {
+                        // The remedy the error names, taken: the document IS a
+                        // recorded proposal awaiting a human. The accepted
+                        // revision stays normative until then (§101.2).
+                        report.push(Diagnostic::warn(
+                            "sas.proposed-unaccepted",
+                            repo.relative(&path),
+                            format!(
+                                "the document is revision {} ({}), sha256:{}; the accepted \
+                                 revision {} remains normative until `war sign {}` accepts it",
+                                proposed.version,
+                                proposed.state,
+                                &actual[..12],
+                                pin.version,
+                                proposed.version
+                            ),
+                        ));
                     } else {
                         report.push(Diagnostic::error(
                             "sas.digest-drift",
@@ -247,6 +267,29 @@ pub fn run(
             "corpus-status",
             &mut report,
         );
+        drift_check(
+            repo,
+            crate::timeline::corpus_timeline_json(repo),
+            "corpus-timeline",
+            &mut report,
+        );
+        drift_check(
+            repo,
+            crate::timeline::corpus_pending_json(repo),
+            "corpus-pending",
+            &mut report,
+        );
+        // The SAS normative projection (E1), when there is a document.
+        if repo.sas_document().is_ok() {
+            match crate::compile::sas_normative(repo) {
+                Ok(files) => {
+                    for file in files {
+                        drift_check(repo, Ok(file), "sas-normative", &mut report);
+                    }
+                }
+                Err(e) => drift_check(repo, Err(e), "sas-normative", &mut report),
+            }
+        }
     }
 
     // §38.6 disposition status, aggregated once for the corpus rather than
@@ -295,6 +338,9 @@ pub fn run(
     );
     if !check_generated {
         report.note("generated-view drift — pass --generated to compare committed projections");
+    }
+    if only.is_none() {
+        check_roadmap_status_claims(repo, &mut report);
     }
 
     Ok(report)
@@ -537,7 +583,15 @@ fn check_deliverable_digests(repo: &Repository, one: &Loaded, alias: &str, repor
         return;
     }
 
+    // OW-WAR-0064 — a resolved Warrant's pin may have been superseded by an
+    // authorized correction. The structural checks on the correction records
+    // live in `correct::check`; the chain is resolved HERE, beside the digest
+    // comparison, so "corrected" and "drifted" are decided by one computation.
+    crate::correct::check(repo, one, alias, report);
+    let corrections = repo.load_corrections(&one.dir).unwrap_or_default();
+
     let mut drifted = 0usize;
+    let mut corrected = 0usize;
     for deliverable in &addressed {
         let Some(provenance) = deliverable.provenance.as_ref() else {
             report.push(Diagnostic::error(
@@ -570,18 +624,72 @@ fn check_deliverable_digests(repo: &Repository, one: &Loaded, alias: &str, repor
             drifted += 1;
             continue;
         };
+        let (chain, head) =
+            crate::correct::head_for(&corrections, &deliverable.id, &provenance.content_digest);
+        let head = match head {
+            Ok(h) => h,
+            Err(openwarrant_core::correction::ChainError::Gap { expected, found }) => {
+                report.push(Diagnostic::error(
+                    "correction.sequence-gap",
+                    file.clone(),
+                    format!(
+                        "{alias}: {} corrections are numbered 1..n without gaps; expected {expected}, \
+                         found {found}",
+                        deliverable.id
+                    ),
+                ));
+                drifted += 1;
+                continue;
+            }
+            Err(e @ openwarrant_core::correction::ChainError::SupersededNeverDelivered { .. }) => {
+                report.push(Diagnostic::error(
+                    "correction.superseded-never-delivered",
+                    file.clone(),
+                    format!("{alias}: {} — {e}", deliverable.id),
+                ));
+                drifted += 1;
+                continue;
+            }
+        };
+        let head_hex = head.trim_start_matches("sha256:");
         match std::fs::read(repo.root.join(&deliverable.target_ref)) {
             Ok(bytes) => {
                 let actual = openwarrant_compiler::sha256_hex(&bytes);
-                if actual != recorded {
+                if actual == head_hex {
+                    if !chain.is_empty() {
+                        corrected += 1;
+                        report.push(Diagnostic::pass(
+                            "deliverable.corrected",
+                            format!(
+                                "{alias}: {} corrected {} time(s); sha256:{recorded} superseded, \
+                                 now {head}",
+                                deliverable.id,
+                                chain.len()
+                            ),
+                        ));
+                    }
+                } else if !chain.is_empty() {
+                    report.push(Diagnostic::error(
+                        "correction.new-digest-mismatch",
+                        file.clone(),
+                        format!(
+                            "{alias}: {} — the latest correction records {head} but the file is \
+                             sha256:{actual}; it corrects nothing. A further change is a further \
+                             correction, `war correct {alias} {}`",
+                            deliverable.id, deliverable.id
+                        ),
+                    ));
+                    drifted += 1;
+                } else {
                     report.push(Diagnostic::error(
                         "deliverable.digest-drift",
                         file.clone(),
                         format!(
                             "{alias}: {} records sha256:{recorded} for {} but the file is now \
                              sha256:{actual}. The artifact moved after the record was written — \
-                             regenerate the record, or restore the artifact",
-                            deliverable.id, deliverable.target_ref
+                             regenerate the record, or restore the artifact; for a RESOLVED \
+                             Warrant, `war correct {alias} {}` (OW-WAR-0064)",
+                            deliverable.id, deliverable.target_ref, deliverable.id
                         ),
                     ));
                     drifted += 1;
@@ -606,8 +714,13 @@ fn check_deliverable_digests(repo: &Repository, one: &Loaded, alias: &str, repor
         report.push(Diagnostic::pass(
             "deliverable.digests",
             format!(
-                "{alias}: {} content-addressed deliverable(s) still match their bytes",
-                addressed.len()
+                "{alias}: {} content-addressed deliverable(s) match their bytes{}",
+                addressed.len(),
+                if corrected > 0 {
+                    format!(" ({corrected} through an authorized correction)")
+                } else {
+                    String::new()
+                }
             ),
         ));
     }
@@ -638,13 +751,32 @@ fn check_traceability(repo: &Repository, one: &Loaded, alias: &str, report: &mut
     let mut bad = 0usize;
 
     for r in &basis.manifest.roadmap {
-        if let Err(err) = RoadmapRef::parse(&r.r#ref) {
-            report.push(Diagnostic::error(
-                "roadmap.malformed",
-                file.clone(),
-                format!("{alias}: {err}"),
-            ));
-            bad += 1;
+        match RoadmapRef::parse(&r.r#ref) {
+            Err(err) => {
+                report.push(Diagnostic::error(
+                    "roadmap.malformed",
+                    file.clone(),
+                    format!("{alias}: {err}"),
+                ));
+                bad += 1;
+            }
+            // A `roadmap://` ref names THIS program's §98: another prefix is a
+            // phase of a SAS this repository does not carry (slice C5).
+            Ok(parsed) if parsed.prefix != repo.config.project.namespace.as_str() => {
+                report.push(Diagnostic::error(
+                    "roadmap.wrong-namespace",
+                    file.clone(),
+                    format!(
+                        "{alias}: {} names phase prefix {:?}; this repository's namespace is \
+                         {:?}, and its SAS is the only §98 a roadmap ref can point into",
+                        r.r#ref,
+                        parsed.prefix,
+                        repo.config.project.namespace.as_str()
+                    ),
+                ));
+                bad += 1;
+            }
+            Ok(_) => {}
         }
     }
 
@@ -757,12 +889,49 @@ fn check_one(
         crate::resolution_cmd::check(repo, &one.dir, &alias, current.as_deref(), report);
         let uuid = one.validated.as_ref().map(|v| v.uuid.to_string());
         crate::journal_cmd::check(repo, &one.dir, &alias, uuid.as_deref(), report);
-        // §14 — the authorization's SAS pin must name a recorded revision, and
-        // a Warrant pinned behind the latest accepted revision is said so.
+        // §14 — the SAS pin must name a recorded revision, and a Warrant pinned
+        // behind the latest revision is said so. The pin is the latest
+        // amendment's `sas_revision` when one names it (OW-ADR-0016), else the
+        // authorization's.
+        let all = repo.load_sas_revisions().unwrap_or_default();
+        let amended = crate::repo::amendment_sas_revision(&one.dir);
+        if let Some((v, amendment_path)) = &amended {
+            let file = repo.relative(amendment_path);
+            match all.iter().find(|r| &r.version == v) {
+                None => report.push(Diagnostic::error(
+                    "sas.pin-unknown",
+                    file,
+                    format!("{alias}: an amendment re-pins to SAS revision {v}, and no record of it exists under docs/sas/revisions/ — `war sas propose {v}` first"),
+                )),
+                Some(rev) => {
+                    // The re-pinned revision must still carry every row this
+                    // Warrant implements; a requirement that vanished under it
+                    // is a broken trace, not a silent one.
+                    for i in &basis.manifest.implements {
+                        if let Ok(rq) = openwarrant_core::traceability::RequirementRef::parse(&i.r#ref)
+                            && !rev.requirements.contains_key(&rq.canonical())
+                        {
+                            report.push(Diagnostic::error(
+                                "sas.repin-unknown-requirement",
+                                file.clone(),
+                                format!("{alias}: re-pinned to SAS {v}, whose §106 has no {} — the Warrant implements a requirement that revision does not have", i.r#ref),
+                            ));
+                        }
+                    }
+                    if repo.load_resolution(&one.dir).ok().flatten().is_some() {
+                        report.push(Diagnostic::warn(
+                            "sas.repin-resolved",
+                            file,
+                            format!("{alias}: re-pinned to SAS {v} after resolution; the resolution binds the contract as it was and is reported stale, never moved (§56.3)"),
+                        ));
+                    }
+                }
+            }
+        }
         if let Ok(Some(a)) = repo.load_authorization(&one.dir)
             && let Some(v) = &a.sas_revision
+            && amended.is_none()
         {
-            let all = repo.load_sas_revisions().unwrap_or_default();
             if !all.iter().any(|r| &r.version == v) {
                 report.push(Diagnostic::error(
                     "sas.pin-unknown",
@@ -775,7 +944,7 @@ fn check_one(
                 report.push(Diagnostic::warn(
                     "sas.pin-superseded",
                     repo.relative(&one.dir.join("authorization.toml")),
-                    format!("{alias}: authorized against SAS {v}; the latest recorded revision is {} — the contract keeps its Basis until an amendment re-authorizes it", latest.version),
+                    format!("{alias}: authorized against SAS {v}; the latest recorded revision is {} — the contract keeps its Basis until an amendment carrying `sas_revision: \"{}\"` re-pins it and a human re-authorizes (OW-ADR-0016)", latest.version, latest.version),
                 ));
             }
         }
@@ -1357,4 +1526,40 @@ pub fn print(report: &Report) {
         }
     }
     println!("\n{}", report.verdict_line());
+}
+
+/// A hand-maintained roadmap may not claim a Warrant is **resolved**: the
+/// Release axis is §56.2 records, and OW-WAR-0032 was marked resolved in
+/// prose while its record said otherwise (slice C6). Bold `resolved` is the
+/// exact token the projection's caveat used to count.
+fn check_roadmap_status_claims(repo: &Repository, report: &mut Report) {
+    let dir = repo.root.join(&repo.config.paths.roadmap);
+    let Ok(entries) = std::fs::read_dir(&dir) else {
+        return;
+    };
+    let mut files: Vec<_> = entries
+        .filter_map(Result::ok)
+        .map(|e| e.path())
+        .filter(|p| p.extension().is_some_and(|x| x == "md"))
+        .collect();
+    files.sort();
+    for path in files {
+        let Ok(text) = std::fs::read_to_string(&path) else {
+            continue;
+        };
+        let claims = text.matches("**resolved**").count();
+        if claims > 0 {
+            let rel = camino::Utf8PathBuf::from_path_buf(path)
+                .map(|p| repo.relative(&p))
+                .unwrap_or_else(|p| p.display().to_string());
+            report.push(Diagnostic::error(
+                "roadmap.status-claim",
+                rel.clone(),
+                format!(
+                    "{rel} marks something **resolved** {claims} time(s); resolution is a §56.2 \
+                     record, and CORPUS_STATUS.md is compiled from those — delete the claim"
+                ),
+            ));
+        }
+    }
 }

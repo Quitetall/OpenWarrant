@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Actor authority — who may exercise which role (SAS §27).
 //!
 //! # Two vocabularies share the word "role"
@@ -194,6 +194,13 @@ pub struct RoleAssignment {
     pub effective_time: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
+    /// The principal this actor signs as in `docs/authority/allowed_signers`
+    /// (OpenSSH format, which permits no spaces in a principal — hence a
+    /// separate name). Absent means this actor cannot `war sign --ssh-sign`.
+    /// Grants nothing on its own: the allowed_signers file, also
+    /// human-written, is what holds the key.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ssh_principal: Option<String>,
 }
 
 impl RoleAssignment {
@@ -408,6 +415,7 @@ mod tests {
             assigned_by: "owner".to_owned(),
             effective_time: "2026-08-25T00:00:00Z".to_owned(),
             note: None,
+            ssh_principal: None,
         }
     }
 

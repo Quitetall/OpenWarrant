@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Dispatch, submission, attempts, and the four remedies (SAS §47, §51–§53).
 //! RQ-042, RQ-043, RQ-045.
 //!
@@ -215,6 +215,7 @@ pub const DISPATCH_API_VERSION: &str = "oh.war/stage-dispatch/v1";
 /// §47.1's `submission_schema_ref` — the schema the actor answers in.
 pub const SUBMISSION_SCHEMA_REF: &str = "schema://oh.war/stage-submission/v1";
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// §47.1's `capability_authorization` — a reference to the policy and its
 /// digest, as two fields rather than one because a digest with no reference
 /// names nothing a runtime could go and read.
@@ -226,6 +227,7 @@ pub struct CapabilityAuthorization {
     pub digest: String,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// §47.1's Stage Dispatch — *"the only packet given to a stateless actor."*
 ///
 /// Every field §47.1 lists, in its order. Twenty-three at the top level. The earlier shape
@@ -277,10 +279,15 @@ pub struct StageDispatch {
     pub prior_failure_evidence_refs: Vec<String>,
     /// §47.2 — "record the Dispatch digest". Computed over this packet with
     /// this field empty, then written in; empty means "not yet digested".
+    /// §33.7 — the estimate and the budget this packet was compiled under
+    /// (slice C2). Inside the digest; absent on packets compiled before it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tokens: Option<crate::tokens::TokenAccount>,
     #[serde(default)]
     pub dispatch_digest: String,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// §47.1's resource envelope.
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct ResourceEnvelope {
@@ -414,6 +421,7 @@ impl StageDispatch {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// §51.1's performer claim. An assertion, not evidence (§51.3).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PerformerClaim {
@@ -421,6 +429,7 @@ pub struct PerformerClaim {
     pub statement: String,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// §51.1's performer observation.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PerformerObservation {
@@ -450,6 +459,7 @@ impl PerformerObservation {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// §51.1's Stage Submission — §37.4's claim envelope, in execution form.
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct StageSubmission {
@@ -568,6 +578,7 @@ impl Attempt {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// §53.1.
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct Blocker {
@@ -598,6 +609,7 @@ impl Blocker {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// §53.2.
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct Deviation {
@@ -630,6 +642,7 @@ impl Deviation {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// §53.3.
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct DecisionProposal {
@@ -654,6 +667,7 @@ impl DecisionProposal {
     }
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// §53.4.
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct DiscoveredGap {
@@ -888,6 +902,7 @@ mod tests {
             submission_schema_ref: SUBMISSION_SCHEMA_REF.into(),
             omitted_subgraphs: vec![],
             prior_failure_evidence_refs: vec![],
+            tokens: None,
             dispatch_digest: String::new(),
         }
     }

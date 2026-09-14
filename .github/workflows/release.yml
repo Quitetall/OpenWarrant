@@ -59,6 +59,28 @@ jobs:
       - name: Build
         run: cargo build --release --target ${{ matrix.target }} -p openwarrant-cli
 
+      # §91.1 test 1 — two hosts, one IR. Each host compiles every Warrant
+      # and lists the sha256 of every WAR.json; the publish job diffs the two
+      # lists against each other and against the committed files. Any
+      # difference fails the release: a digest that depends on the host is
+      # not a digest.
+      - name: IR parity list
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./target/${{ matrix.target }}/release/war compile
+          find docs/warrants -name WAR.json | sort | xargs sha256sum > "ir-${{ matrix.target }}.sha256"
+          git diff --quiet -- docs/warrants || { echo "compile on ${{ matrix.target }} moved a committed projection" >&2; git --no-pager diff --stat -- docs/warrants; exit 1; }
+          # A list over nothing would compare equal to another list over nothing.
+          n=$(wc -l < "ir-${{ matrix.target }}.sha256")
+          [[ "$n" -ge 1 ]] || { echo "no WAR.json compiled on ${{ matrix.target }}" >&2; exit 1; }
+          echo "$n WAR.json digests listed"
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: ir-${{ matrix.target }}
+          path: ir-${{ matrix.target }}.sha256
+
       # A published binary nobody can verify is a binary nobody should run.
       # SHA-256 travels with it, matching the algorithm the protocol itself uses
       # for every other digest (§65.1).
@@ -95,6 +117,17 @@ jobs:
           path: dist
           merge-multiple: true
 
+      - name: IR parity across hosts
+        shell: bash
+        run: |
+          set -euo pipefail
+          lists=(dist/ir-*.sha256)
+          [[ ${#lists[@]} -ge 2 ]] || { echo "fewer than two IR lists" >&2; exit 1; }
+          for l in "${lists[@]}"; do diff -u "${lists[0]}" "$l"; done
+          # And against the committed tree: the release ships what is committed.
+          find docs/warrants -name WAR.json | sort | xargs sha256sum | diff -u "${lists[0]}" -
+          echo "IR is byte-identical on every host and matches the committed tree"
+
       - name: Verify the artifact round trip
         run: |
           set -euo pipefail
@@ -122,3 +155,52 @@ jobs:
             --notes-file CHANGELOG.md \
             $prerelease \
             dist/*
+
+  # crates.io, in dependency order, only from a tag, and only under the
+  # licence the relicense produces: a version published under
+  # AGPL-3.0-or-later stays under it permanently (docs/PUBLISHING.md).
+  crates:
+    name: publish crates
+    needs: publish
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+      - name: The relicense must have happened
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Through cargo's own view of the manifest, not a grep of the file.
+          for crate in openwarrant-core openwarrant-agent openwarrant-compiler openwarrant-cli; do
+            lic=$(cargo metadata --format-version 1 --no-deps | jq -r --arg c "$crate" '.packages[] | select(.name == $c) | .license')
+            [[ "$lic" == "Apache-2.0" ]] || { echo "$crate is licensed $lic; RELICENSING.md first" >&2; exit 1; }
+          done
+          grep -q 'Apache License' LICENSE && grep -q 'Version 2.0' LICENSE || { echo "LICENSE is not the Apache-2.0 text" >&2; exit 1; }
+      - name: Publish in order
+        shell: bash
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          set -euo pipefail
+          [[ -n "$CARGO_REGISTRY_TOKEN" ]] || { echo "CARGO_REGISTRY_TOKEN is not set" >&2; exit 1; }
+          version=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name == "openwarrant-core") | .version')
+          # Each crate waits until the sparse index serves its version before
+          # the next publish resolves it; a fixed sleep is a guess, this is a
+          # check. A crate already published at this version is skipped, so a
+          # partial run is resumed by re-running the job.
+          for crate in openwarrant-core openwarrant-agent openwarrant-compiler openwarrant-cli; do
+            prefix=$(printf '%s' "$crate" | awk '{ l=length($0); if (l==1) print "1"; else if (l==2) print "2"; else if (l==3) print "3/" substr($0,1,1); else print substr($0,1,2) "/" substr($0,3,2) }')
+            index_url="https://index.crates.io/$prefix/$crate"
+            if curl -fsSL "$index_url" 2>/dev/null | grep -q "\"vers\":\"$version\""; then
+              echo "$crate $version is already in the index; skipping"
+              continue
+            fi
+            cargo publish -p "$crate"
+            for i in $(seq 1 60); do
+              if curl -fsSL "$index_url" 2>/dev/null | grep -q "\"vers\":\"$version\""; then break; fi
+              [[ "$i" -lt 60 ]] || { echo "$crate $version did not appear in the index within 10 minutes" >&2; exit 1; }
+              sleep 10
+            done
+          done

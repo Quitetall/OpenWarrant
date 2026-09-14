@@ -20,12 +20,29 @@ Source: ADR atoms under the configured adrs path.
 | [OW-ADR-0009](docs/adr/atoms/OW-ADR-0009-openwarrant-bonsai-authority-seam.md) | ADR OW-0009: OpenWarrant owns work authority; Bonsai owns repository checks | `proposed` | no | `war://01a0399d-05b9-7ad0-b8dc-bf1a226fa641` |
 | [OW-ADR-0010](docs/adr/atoms/OW-ADR-0010-machine-scope-and-evidence-binding.md) | ADR OW-0010: Bind machine scope and Bonsai evidence to exact bytes | `proposed` | no | `war://01a0399d-05b9-7ad0-b8dc-bf1a226fa641` |
 | [OW-ADR-0011](docs/adr/atoms/OW-ADR-0011-enforcement-rollout-and-github-policy.md) | ADR OW-0011: Report first; block scope and architecture after qualification | `proposed` | no | `war://01a0399d-05b9-7ad0-b8dc-bf1a226fa641` |
+| [OW-ADR-0012](docs/adr/atoms/OW-ADR-0012-correction-act.md) | ADR OW-0012: A delivered artifact of a resolved Warrant moves only through a correction | `proposed` | no | `war://01a06a12-0aa2-7503-b589-67cf75905be4` |
+| [OW-ADR-0013](docs/adr/atoms/OW-ADR-0013-draft-proposal-v2.md) | ADR OW-0013: Draft Proposal v2 — operations carry their payloads | `proposed` | no | `war://01a021a2-b570-7f57-85b2-0f8189873d9e` |
+| [OW-ADR-0014](docs/adr/atoms/OW-ADR-0014-async-runtime-for-mcp-transport.md) | ADR OW-0014: an async runtime is admitted for the MCP transport, and nowhere else | `proposed` | no | `war://01a021a2-b570-7f57-85b2-0f8189873d9e` |
+| [OW-ADR-0015](docs/adr/atoms/OW-ADR-0015-attestation-envelope.md) | ADR OW-0015: every ssh-signed act is attested as an in-toto Statement in a DSSE envelope | `proposed` | no | `war://01a021a2-b570-7f57-85b2-0f8189873d9e` |
+| [OW-ADR-0016](docs/adr/atoms/OW-ADR-0016-sas-1-0-0.md) | ADR OW-0016: SAS 1.0.0 — one architecture-changing revision, accepted with the release | `proposed` | no | `war://01a021a2-b570-7f57-85b2-0f8189873d9e` |
+| [OW-ADR-0017](docs/adr/atoms/OW-ADR-0017-relicense-apache-2-0.md) | ADR OW-0017: relicense from AGPL-3.0-or-later to Apache-2.0 | `accepted` | yes | `war://01a021a2-b570-7f57-85b2-0f8189873d9e` |
+| [OW-ADR-0018](docs/adr/atoms/OW-ADR-0018-adopt-oh-war-inbox-v1-as.md) | ADR OW-0018: Adopt oh.war/inbox/v1 as the machine-readable output of war inbox | `proposed` | no | `war://01a09762-3fa2-7dd0-b794-0190b44fe879` |
+| [OW-ADR-0019](docs/adr/atoms/OW-ADR-0019-sas-1-1-0-batch-act-and-renderings.md) | ADR OW-0019: SAS 1.1.0 — the batch act, and renderings hold no authority | `proposed` | no | `war://01a0983e-32d7-7473-b6e1-fbef061a1e5f` |
+| [OW-ADR-0020](docs/adr/atoms/OW-ADR-0020-ratatui-for-the-terminal-dashboard.md) | ADR OW-0020: ratatui and crossterm for the terminal dashboard | `proposed` | no | `war://01a0983e-32db-7240-9a9d-cef5e5b41a38` |
 
 ## Proposed
 
 - **OW-ADR-0009** ADR OW-0009: OpenWarrant owns work authority; Bonsai owns repository checks
 - **OW-ADR-0010** ADR OW-0010: Bind machine scope and Bonsai evidence to exact bytes
 - **OW-ADR-0011** ADR OW-0011: Report first; block scope and architecture after qualification
+- **OW-ADR-0012** ADR OW-0012: A delivered artifact of a resolved Warrant moves only through a correction
+- **OW-ADR-0013** ADR OW-0013: Draft Proposal v2 — operations carry their payloads
+- **OW-ADR-0014** ADR OW-0014: an async runtime is admitted for the MCP transport, and nowhere else
+- **OW-ADR-0015** ADR OW-0015: every ssh-signed act is attested as an in-toto Statement in a DSSE envelope
+- **OW-ADR-0016** ADR OW-0016: SAS 1.0.0 — one architecture-changing revision, accepted with the release
+- **OW-ADR-0018** ADR OW-0018: Adopt oh.war/inbox/v1 as the machine-readable output of war inbox
+- **OW-ADR-0019** ADR OW-0019: SAS 1.1.0 — the batch act, and renderings hold no authority
+- **OW-ADR-0020** ADR OW-0020: ratatui and crossterm for the terminal dashboard
 
 ## Accepted and Current
 
@@ -36,6 +53,7 @@ Source: ADR atoms under the configured adrs path.
 - **OW-ADR-0005** ADR OW-0005: A local gate is a candidate, and a gate is not a string — 2026-08-19
 - **OW-ADR-0006** ADR OW-0006: Execution status and migration class are two vocabularies, and the verdict keeps its unknown — 2026-08-19
 - **OW-ADR-0008** ADR OW-0008: §91.2 tests 11, 13, 14 and 15, dispositioned against the specification text — 2026-08-22
+- **OW-ADR-0017** ADR OW-0017: relicense from AGPL-3.0-or-later to Apache-2.0
 
 ## Rejected, Withdrawn, or Falsified
 
@@ -1148,3 +1166,606 @@ push protection. This ADR does not claim those settings are enabled.
 CI and PR template can establish report-phase mechanics now. Blocking rollout
 remains deliberately incomplete until an external verifier and repository
 administrator record the required evidence and activate required protections.
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-0012-correction-act.md · uuid: 2e497de8-3ffd-489c-88ad-b2e34fd98ee0 -->
+
+# ADR OW-0012: A delivered artifact of a resolved Warrant moves only through a correction
+
+## Status
+
+Proposed by the performer under OW-WAR-0064; adopted when the owner accepts it.
+
+## Context
+
+`deliverables.toml` pins the bytes of every delivered file. A resolution binds
+`sha256(deliverables.toml)` into its own record (`artifact_manifest_digest`).
+Once a Warrant is resolved, its pins therefore have no authorized way to change:
+`war check` raises `deliverable.digest-drift`, and the remedy that rule names —
+regenerate the record — would move the resolution's digest and stale the
+resolution.
+
+Three defects hit that wall in one day, all found by other projects reading our
+seams, none fixable: the Dispatch compiler drops continuation lines of wrapped
+instructions (OW-WAR-0056 D-002), `war status` falls back to a literal `"OW"`
+namespace (OW-WAR-0055/0057), and neither `war sas accept` nor `war authorize`
+validates `effective_time` (OW-WAR-0058). A fourth followed: `plant.sh` itself,
+pinned by OW-WAR-0063, could accept no new plant.
+
+The gate was right to refuse. A delivered artifact must not move because the
+performer noticed something afterwards. What was missing was the act that lets
+it move for a reason. Without one, known-wrong artifacts accumulate until
+somebody decides the digest gate is an obstacle rather than a control — and that
+decision, once taken, is taken for every artifact.
+
+SAS §34.4 already answers this question for a *requirement* that turns out to be
+wrong: open an ADR, propose a controlled revision, supersede or amend affected
+Warrants, and preserve the original requirement and its evidence history.
+Supersede rather than erase. Nothing said what those four steps are for a
+*deliverable*. This ADR says.
+
+## Decision
+
+§34.4's four steps, applied to a delivered artifact of a resolved Warrant:
+
+1. **The act is written down before it is used.** This ADR is that record; the
+   mechanism is OW-WAR-0064's deliverable, not the other way round.
+2. **No SAS text changes.** §37's pin is untouched: `deliverables.toml` keeps
+   the digest it recorded, and the resolution keeps binding that file. A
+   correction is *added evidence*, not a revised record.
+3. **Supersede through a record beside the manifest, never by regenerating it.**
+   Each correction is one append-only file,
+   `docs/warrants/<alias>/corrections/<deliverable-id>-<n>.toml`
+   (`oh.war/correction/v1`), carrying the deliverable, the digest it supersedes,
+   the digest the file has now, the reason, the kind of change
+   (`behaviour-change` or `added-refusal`), the human who authorized it, the
+   role exercised, and the effective time. Corrections chain: the first
+   supersedes the recorded digest, each later one supersedes its predecessor's
+   `new_digest`, numbered 1..n with no gaps. One function, `chain_head`, decides
+   the digest the file must have now, and `war check`, `war correct`, `war sign`
+   and `war show` all use it.
+4. **The original stays honest history.** The recorded digest remains in
+   `deliverables.toml`, in every correction's `superseded_digest`, and in what
+   `war show` prints under a `## Corrections` trailer. A correction that erases
+   what it replaced has done the thing this act exists to prevent.
+
+The act is the fifth two-half seam. An agent may emit the request
+(`war correct <alias> <deliverable-id>`), which names the recorded digest, the
+chain head, the file's digest now, and who may sign; only a human's response,
+ingested through the authority register, writes a record. An agent is refused by
+kind, as everywhere else (§27.2). The journal witnesses each record's digest as
+written, so a correction edited afterwards — or a second one applied as an edit
+to the first — is caught as `correction.edited`, and a record no one ingested is
+`correction.unjournalled`.
+
+`war check` suppresses `deliverable.digest-drift` in exactly one case: the
+file's bytes equal the chain head. Every other divergence is a named refusal —
+`correction.new-digest-mismatch` (the correction corrects nothing),
+`correction.superseded-never-delivered` (it supersedes nothing that happened),
+`correction.sequence-gap`, `correction.malformed`, `correction.agent`.
+
+The `kind` field is recorded and not enforced. A behaviour change alters what
+already-accepted records meant; an added refusal cannot invalidate an accepted
+record, only stop the next bad one. A later revision may admit the second more
+readily than the first; this ADR gives it the data and does not pretend to have
+decided.
+
+## Consequences
+
+- A resolved Warrant can be repaired without unmaking the judgment that
+  resolved it. The resolution stands; the artifact moves; both are on record.
+- The conformance battery, the Dispatch compiler, `war status` and the two
+  ingest seams named above can now be fixed, each through a correction signed
+  by the owner — the first users of the act are not its author.
+- A correction is only as good as the reason written in it. Nothing here tests
+  whether a reason is honest; the record makes it attributable, which is a
+  smaller claim, and the one this system makes everywhere.
+- Signing a correction without reading it converts this control into paperwork.
+  `war sign` shows the superseded and current digests and refuses to draft
+  without a kind and a reason; it cannot make anyone read them.
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-0013-draft-proposal-v2.md · uuid: 6f0d3c8e-4b1a-4d2e-9c7f-0a1b2c3d4e5f -->
+
+# ADR OW-0013: Draft Proposal v2 — operations carry their payloads
+
+## Status
+
+Proposed by the performer under the 1.0 plan (slice A4); adopted when the owner
+accepts it.
+
+## Context
+
+`oh.war/draft-proposal/v1` (§74.2) lists a planner's `atom_operations` as bare
+operation names from §74.3's closed list. That proved two things that matter:
+the list is closed (an unknown operation is refused by name), and the struct is
+the agent's entire output surface (`deny_unknown_fields` — a proposal carrying
+`authorized_by` or `enterprise_id` is refused at parse, never silently dropped).
+
+It could not be applied. `create_atom` with no role, no ordinal and no body
+creates nothing. `war plan` therefore emitted a request, validated a returned
+proposal through §74.4's first four steps, and stopped. OW-WAR-0042's exit — a
+vague request becomes a reviewable draft with no direct file mutation — had
+never been reached, because nothing on the tool's side could turn a proposal
+into files without a human typing them.
+
+## Decision
+
+`oh.war/draft-proposal/v2`, in a new core module beside v1 (`drafting.rs` is a
+pinned deliverable of resolved Warrants and is untouched):
+
+- `operations: [AtomOperationRequest]`, each carrying the operation from §74.3's
+  same closed list plus the fields that operation needs — `role`, `ordinal`,
+  `path`, `body` for `create_atom`; `target` for revise/retire; `relation_kind`
+  and `relation_ref` for `add_relation`; `adr_title` and `body` for
+  `propose_adr`. Validation names the missing field and the operation.
+- `proposed_identity: {title, profile, assurance}` — what the Warrant will be.
+- Every v1 rule kept: evidence claims classed and cited, durable choices produce
+  an ADR draft, unresolved blocker questions stop a non-interactive run, an
+  invented `war://` blocks. `deny_unknown_fields` stays on every struct.
+- A `create_atom` path is a file name, never a route (`/` and `..` refused).
+
+v1 still parses and validates. Only `--apply` refuses it, by name
+(`plan.v1-has-no-payloads`).
+
+`war plan --apply` applies a reviewed v2 proposal inside
+`docs/warrants/<alias>/` and `docs/adr/atoms/` and nowhere else, through
+`war new` and per-operation writers. The model never writes a file (§74.5). The
+configured drafter (`[plan] drafter_argv`) is watched for exactly that — the
+working tree before and after the run — and a drafter that touched it is
+refused with its proposal discarded.
+
+## Consequences
+
+- Both drafting paths reach the same gauntlet: the harness-as-agent writes a v2
+  file; a configured process returns one over stdin/stdout (§75.2). §74.4's
+  eight steps run in order either way; review is a recorded step, not a flag's
+  side effect.
+- An applied draft records its own provenance under `plan/` — request,
+  proposal, drafter run, pipeline — and three journal events, so OW-WAR-0042 can
+  finally be discharged by a recorded run rather than a fixture.
+- `revise_atom`, `retire_atom`, `add_binding` and `remove_binding` are
+  validated and recorded but refused at apply in this build, by name: a fresh
+  Warrant has nothing to revise or retire, and no binding vocabulary exists yet.
+  Refusing with the reason is better than a silent no-op.
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-0014-async-runtime-for-mcp-transport.md · uuid: 9b2f6a41-7d3e-4c58-a1f0-5e8c2d7b3a19 -->
+
+# ADR OW-0014: an async runtime is admitted for the MCP transport, and nowhere else
+
+## Status
+
+Proposed by the performer under the 1.0 plan (slice A1); adopted when the owner
+accepts it.
+
+## Context
+
+The workspace `Cargo.toml` records, beside `ureq`, why `war` has no async
+runtime: it is a CLI, every act is a blocking call over files, and pulling
+`tokio` in to make one HTTP request was a larger change than the §67 seam
+justified. That reasoning still holds for every command that exists today.
+
+1.0 adds `war mcp`: a Model Context Protocol server over stdio, so an agent
+harness that has never heard of OpenWarrant can call `war_check`, `war_next`
+or `war_plan_request` as tools. The reference Rust SDK, `rmcp`, is async
+throughout — its server trait, its stdio transport and its macros all assume a
+runtime. Reimplementing JSON-RPC framing, the initialize handshake and the tool
+and resource schemas by hand would trade a runtime dependency for a protocol
+reimplementation this program would then have to keep conformant on its own.
+
+## Decision
+
+- `rmcp = "=3.3.0"` with `default-features = false` and only `server`,
+  `macros`, `transport-io`: no `auth`, no HTTP client, no child-process
+  transport. `tokio` with only `rt`, `io-std`, `macros`: a current-thread
+  runtime built inside `war mcp` and dropped when it exits. `schemars`,
+  which `rmcp`'s server needs for tool input schemas.
+- Async is confined to `crates/openwarrant-cli/src/mcp/`. Every tool body is a
+  synchronous call into the module that already implements the command; the
+  runtime exists to drive the transport, not the work. A unit test greps every
+  other source file of the workspace for `tokio`, `rmcp` and `async fn` and
+  fails on the first hit, so the boundary cannot erode without editing the test.
+- The comment in `Cargo.toml` is amended from "no async anywhere" to "no
+  async outside `openwarrant-cli/src/mcp/`", citing this ADR.
+
+## Evidence
+
+Measured on the 1.97.1 toolchain against commit 4e8c901, with the lockfile
+updated minimally (no unrelated crate moved):
+
+| | before | after |
+|---|---|---|
+| crates in the normal dependency graph (`cargo tree -e normal`, unique) | 86 | 108 |
+| licence families (`cargo deny list`) | 10 | 10, the same ten |
+| `cargo deny check licenses` | ok | ok |
+
+The families are AGPL-3.0-or-later (this workspace), Apache-2.0, BSD-3-Clause,
+BSL-1.0, CDLA-Permissive-2.0 (the CA bundle already excepted in `deny.toml`),
+ISC, LGPL-2.1-or-later, MIT, Unicode-3.0, Unlicense. No new family, so no new
+exception. A future `rmcp` bump that introduces one is a refusal at
+`cargo deny`, not a case for an exception.
+
+## Consequences
+
+- `war mcp` can be built on the reference SDK and stay conformant as the
+  protocol moves, at the cost of twenty-two more crates in the release binary's
+  graph. The pin is exact (`=3.3.0`); a bump is a deliberate commit with the
+  table above re-measured.
+- Every other command stays exactly as it was: blocking, runtime-free,
+  testable with a scratch directory. Nothing outside `mcp/` may spawn a
+  runtime or await.
+- The refusal of async recorded beside `ureq` is narrowed, not reversed:
+  §67's HTTP seam still makes its one request with `ureq`.
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-0015-attestation-envelope.md · uuid: c4d1e8f2-3a5b-4c6d-9e7f-1a2b3c4d5e6f -->
+
+# ADR OW-0015: every ssh-signed act is attested as an in-toto Statement in a DSSE envelope
+
+## Status
+
+Proposed by the performer under the 1.0 plan (slice B3); adopted when the owner
+accepts it.
+
+## Context
+
+A signed response under `docs/authority/responses/` proves that a human signed
+those bytes. It does not, by itself, say which records the act produced, and
+a verifier that has never heard of OpenWarrant has to learn this repository's
+layout to check anything. Supply-chain tooling already has a shape for "a
+signed statement that these artifacts have these digests and this predicate":
+in-toto Statements in DSSE envelopes.
+
+## Decision
+
+- After `war sign --ssh-sign` ingests an act, an in-toto Statement v1 is
+  written whose subjects are the record the act wrote and the signed response
+  (sha256 of each, as on disk at that moment), plus `contract:<alias>` when
+  the response names a contract digest; the predicate is the response's own
+  fields plus `actor` and `act`; `predicateType` is
+  `https://openwarrant.dev/attestation/<act>/v1`.
+- The Statement is JCS-canonical (RFC 8785, the same serializer every
+  digest here uses), base64'd into a DSSE envelope with
+  `payloadType = application/vnd.in-toto+json`, and signed over the DSSE
+  pre-authentication encoding with `ssh-keygen -Y sign -n oh.war/dsse` — the
+  same key, a different namespace, so a response signature does not verify as
+  an attestation and an attestation does not verify as a response.
+- `sig` is the raw SSHSIG blob (the armor's base64 body), not a bare ed25519
+  signature; `keyid` is the OpenSSH `SHA256:` fingerprint. A foreign
+  verifier unwraps SSHSIG or hands the PAE and the re-armored blob to
+  `ssh-keygen -Y verify`. This is stated in the module docs because it is in
+  neither spec.
+- Files: `docs/warrants/<alias>/attestations/<act>-<n>.dsse.json`;
+  `docs/sas/revisions/attestations/sas-accept-<version>-<n>.dsse.json`.
+  Written with `create_new`; never overwritten. A Warrant act also journals
+  `attestation.recorded`.
+- Only ssh-signed acts are attested. A TTY signature has no key; acts made
+  before this existed are unattested; `war attest` says "tty-signed or
+  earlier; git is the witness" rather than pretending.
+- `war check` stays deterministic and structural. Signature verification is
+  `war attest <target> --verify` / `war attest --all`, and one xtask step.
+  Verification takes the principal from the predicate's actor through
+  `roles.toml`, never from a flag, and recomputes every subject digest
+  against the tree today (`attest.subject-drift`).
+- `allowed_signers` must permit the `oh.war/dsse` namespace beside
+  `oh.war/response`; that file is human-written, so this is an operator edit
+  the example file now shows. An attestation the key may not make is a WARN
+  (`attest.not-emitted`) on the act, which stands: the record is the act,
+  the attestation is its portable witness.
+- No new cryptography crate. base64 is forty lines in core (the crate's
+  dependency surface stays serde, thiserror, uuid); sha256 and JCS are the
+  ones already in use.
+
+## Consequences
+
+- Every human act from here on has a self-describing, externally checkable
+  witness beside its record, and `war attest --all` fails the gate when a
+  record moves after its attestation.
+- The key custody question (THREAT_MODEL.md entry 1) is unchanged:
+  attestations make a signature made without a dialog visible, not
+  impossible.
+- A second signer on one envelope is refused (`this tool writes and checks
+  exactly one`); multi-signer attestation is a later decision, not an
+  accidental capability.
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-0016-sas-1-0-0.md · uuid: 5e0c7b3a-2d91-4f46-b8a7-6c1d9e2f4a53 -->
+
+# ADR OW-0016: SAS 1.0.0 — one architecture-changing revision, accepted with the release
+
+## Status
+
+Proposed by the performer under the 1.0 plan (slice B4); adopted when the
+owner accepts revision `1.0.0` with `war sign 1.0.0 --ssh-sign`, the last act
+before the 1.0 tag. §101.3 requires this ADR because the revision adds rows to
+§106.
+
+## Context
+
+The accepted revision is `0.1.0-draft.3`. Since it was accepted the tool grew
+things the document does not name: a token estimate and budget inside every
+Dispatch (§33.7 asked for a budget; §47.1 showed none), two measures §94 never
+listed, a correction act for a resolved Warrant's deliverable (§34.4 named the
+steps, no requirement row held them), three work kinds each with a gate, an
+attestation per ssh-signed act, and a scaffold that writes a program's SAS.
+§82.2 also named a command (`liminal-compiler`) that no repository ships, in a
+document whose own §75.2 says the command is the adapter's.
+
+Every Warrant resolved so far is pinned to `0.1.0-draft.3`, and the pin is
+inside the contract digest (§14). A revision therefore cannot move a resolved
+Warrant, and an unresolved one moves only through an amendment that names the
+new revision and a re-authorization.
+
+## Decision
+
+1. **One revision, `1.0.0`**, folding every SAS edit the 1.0 plan produced:
+   §6.10 (the `war init --program` template note), §47.1 (`tokens`), §47.2
+   (over-budget is a refusal), §82.2 (no command named), §94 (two measures),
+   §106 (four rows: RQ-036 correction, RQ-046 tokens, RQ-077 work kinds,
+   RQ-085 attestation). No row is removed or retitled.
+2. **Architecture-changing** under §101.3, by §106's diff (4 added), and so
+   carrying this ADR.
+3. **Accepted with the release**, by the owner, through the same ssh-signed
+   act as every other acceptance; its acceptance is the first attested SAS act
+   (OW-ADR-0015).
+4. **The circular pin.** An amendment may carry a top-level `sas_revision`
+   (and `predecessor_sas_revision`). The tool reads the latest amendment's
+   pin ahead of the authorization's when computing the Warrant's Basis, so
+   the contract digest moves and the next authorization revision appears in
+   `war sign --list`; ingesting that authorization persists the new pin. A
+   re-pin whose revision lacks a requirement the Warrant `implements` is an
+   ERROR (`sas.repin-unknown-requirement`); a re-pin on a resolved Warrant
+   surfaces as the existing `resolution.stale`, never as a moved resolution.
+   Warrants that do not re-pin stay honestly pinned to `0.1.0-draft.3`.
+
+## Consequences
+
+- `war sas propose 1.0.0` records the proposal; `war sas accept 1.0.0` puts
+  it to a human. Until accepted, `sas.pin-superseded` stays a WARNING and the
+  latest *accepted* revision governs.
+- `TELEMETRY_MEASURES` goes 18 → 20; the baseline is re-taken and says the
+  two new measures are not yet takeable in this corpus (no compiled Dispatch
+  is journalled on the committed tree).
+- The amendment record's struct is pinned by a resolved Warrant (OW-WAR-0010);
+  the pin is read from the amendment file by the CLI, not added to the struct,
+  so no correction is needed for this change.
+
+## Alternatives considered
+
+- A revision per slice (`draft.4`, `draft.5`, …): rejected — each would be a
+  re-pin opportunity nobody takes, and §101.2 makes every accepted revision
+  immutable anyway.
+- Leaving §106 unchanged and describing the additions in prose: rejected —
+  the rows are what Warrants `implements`, and four deliveries would have
+  nothing to trace to.
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-0017-relicense-apache-2-0.md · uuid: 7a3d9c1e-5b28-4f0a-9e64-2c8b1d7f3a90 -->
+
+# ADR OW-0017: relicense from AGPL-3.0-or-later to Apache-2.0
+
+## Status
+
+Accepted 2026-09-12 by the repository owner, who ran the relicense through
+`scripts/release-1.0-wizard.sh` at the workstation.
+
+## Context
+
+RELICENSING.md set two preconditions and kept them true from the first commit:
+every dependency permissive, gated by `cargo deny check licenses` on every gate
+run, and the copyright ours to relicense (one author, with contribution terms
+written down ahead of any outside contribution). Apache-2.0 carries an express
+patent grant, which is worth more to a protocol implementation others
+interoperate with than MIT's brevity. The 1.0 release publishes four crates,
+and a version published under AGPL-3.0-or-later could never be relicensed
+afterwards, so the flip precedes the tag.
+
+## Decision
+
+`license = "Apache-2.0"`, the Apache-2.0 text as LICENSE, a NOTICE, the
+`SPDX-License-Identifier` header rewritten in every file the wall allows, the
+`deny.toml` exception for our own licence removed. Versions distributed before
+2026-09-12 remain available under AGPL-3.0-or-later; nothing is withdrawn.
+
+A file pinned by a RESOLVED Warrant keeps the old identifier until the
+correction that frees it, and is listed in RELICENSING-PENDING.txt meanwhile.
+`cargo xtask gate` ratchets on that list: the old identifier passes only for a
+file it names, so a half-applied relicense is visible rather than silent.
+
+## Consequences
+
+- `release.yml`'s crates job, which refuses any other licence, can publish.
+- Each listed file costs one correction, signed with its own reason.
+- CONTRIBUTING.md's dual-licence contribution term is moot for new
+  contributions and stays as history.
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-0018-adopt-oh-war-inbox-v1-as.md · uuid: 01a09762-3fa3-7bf2-bfdc-c86af426c679 -->
+
+# ADR OW-0018: Adopt oh.war/inbox/v1 as the machine-readable output of war inbox
+
+## Status
+
+Proposed by a drafting agent through `war plan --apply`; adopted when a human accepts it.
+
+## Status
+
+Proposed
+
+## Context
+
+`war inbox` answers "which Warrants are waiting on a human act". The human-readable table is enough for the operator, but the MCP server, dashboards, and future notification tooling need the same answer in a stable, parseable form. Ad hoc JSON that mirrors internal structs would leak implementation detail and break consumers on every refactor. The project already versions its documents under the `oh.war/<kind>/<version>` scheme and generates schemas from types via `war schemas`.
+
+## Decision
+
+`war inbox --json` emits a document with `api_version: "oh.war/inbox/v1"`, a `namespace` string, a `generated_at` RFC 3339 timestamp, and an `items` list. Each item carries `alias`, `title`, `state`, `awaited_act` (one of the human act names from the classifier), and `waiting_since` (RFC 3339 or null). Items are ordered by wait age descending, then alias ascending. The document is a derived view: it is never written into a record directory. The schema joins the `war schemas` pack and is covered by the transitive digest.
+
+## Consequences
+
+- Consumers get a stable contract; internal struct changes do not leak.
+- Adding the schema to the pack changes the transitive digest once; that is expected and recorded.
+- Any change to item fields requires `oh.war/inbox/v2` rather than in-place edits.
+- The state-to-act vocabulary is now part of a public surface and must be kept in step with the SAS pin (OW-ADR-0016).
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-0019-sas-1-1-0-batch-act-and-renderings.md · uuid: 01a0983e-4a11-7c62-9f3d-6b2e8c5d4071 -->
+
+# ADR OW-0019: SAS 1.1.0 — the batch act, and renderings hold no authority
+
+## Status
+
+Proposed. Accepted when the repository owner signs SAS revision 1.1.0
+(§101.3 requires this ADR for an architecture-changing revision, and the
+revision is not accepted until that signature exists).
+
+## Context
+
+Signing is per-act today, so clearing a day costs one `ssh-add -c` dialog per
+act — twenty-four on 2026-09-12, differing only in the alias each names. The
+owner has said twice that this is too much: "Signing a warrant should be
+effortless, but something a human does only," and "Nobody wants to open up
+another terminal and sign 10 warrants and have to write 20 sentences."
+
+Two remedies exist. Dropping `-c` deletes the dialogs and the control
+`docs/THREAT_MODEL.md` entry 1 names with them: the key then signs whatever
+asks it, an agent that reached `SSH_AUTH_SOCK` included. Asked directly on
+2026-09-12, the owner chose the other: make one signature cover a list they
+read.
+
+SAS 1.0.0 cannot say that. §27.2 enumerates human-only acts one at a time,
+and §34.4, §38 and §56.1 each bind a signature to a single record. Nothing in
+the accepted text describes a signature whose subject is a list of acts. The
+same text is silent on a second thing about to be built: a terminal dashboard,
+which renders the corpus and must be defined as authority-free before it
+exists, not after.
+
+## Decision
+
+**1. The batch act (new §27.6, cited by §27.2).** One signature MAY authorize
+many acts when all of the following hold, and the tool SHALL refuse the batch
+otherwise:
+
+- the signed subject is a canonical `oh.war/batch/v1` document listing every
+  act it covers — act kind, target, and the digest each act is bound to;
+- every listed act is one the same signer could have performed individually
+  at that moment, under the same role, with no act of a kind the signer is
+  not permitted;
+- no listed act's bound digest has moved since the batch was drafted. A moved
+  digest invalidates the **whole** batch: the batch is re-drafted and
+  re-signed, never silently re-scoped;
+- the batch is signed by a human in the register, under a declared namespace,
+  exactly as a single act is. An agent-kind actor signing a batch is refused
+  by the same rule that refuses it a single act;
+- each act still writes its own record, and each record cites the batch by
+  digest. A reader of one record can find every other act the same signature
+  authorized, which is the property that makes one dialog honest.
+
+**2. Attestation of a batch (amends §85's rule).** A batch emits one DSSE
+envelope whose subject is the batch document and every record it produced.
+The per-act envelopes remain, each naming the batch digest as an additional
+subject, so a foreign verifier can check either direction.
+
+**3. A rendering holds no authority (new §76.6).** A rendering is a view of
+the corpus — the Pages projection, a terminal dashboard, a printed board. It
+MAY issue commands and MUST NOT perform an act: no rendering holds a key,
+and a rendering that appears to sign is a defect. Every approval a rendering
+offers is the drafting half of a seam whose other half is a human's
+signature.
+
+**4. §106 rows.** Three: the batch refusals above; the invalidation rule; and
+the rendering rule, each with the conformance test that demonstrates it.
+
+## Why not the alternatives
+
+- **Drop `ssh-add -c`.** One keystroke signs everything, and so does anything
+  else that reaches the agent socket. Refused by the owner on 2026-09-12.
+- **Keep a signature per act.** Honest and unchanged; the owner has rejected
+  the cost twice. The friction is not the confirming, it is confirming the
+  same decision twenty-four times.
+- **A time-boxed session ("approve everything for ten minutes").** Time is not
+  a subject: the signer would authorize acts that did not exist when they
+  signed. A batch document exists before the signature and its digest is what
+  is signed.
+- **A tool-held key with a policy engine.** The key would be the tool's, which
+  is the failure this whole system exists to prevent.
+
+## Consequences
+
+- `war sign --batch` becomes sayable; OW-WAR-0072 implements it, including the
+  refusal that invalidates a whole batch when one bound digest moved.
+- A dashboard becomes sayable as a rendering; OW-WAR-0073 implements it under
+  §76.6, and a rendering that holds a key is then a defect with a name.
+- Warrants authorized against 1.0.0 keep that Basis until an amendment
+  re-pins them and a human re-authorizes. This revision moves no contract
+  digest by itself.
+- Attestations gain a shape for a batch: one envelope over the batch and its
+  records, plus each act's own envelope naming the batch digest.
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-0020-ratatui-for-the-terminal-dashboard.md · uuid: 01a0983e-4a12-7b41-8d57-9c1f6e2a4073 -->
+
+# ADR OW-0020: ratatui and crossterm for the terminal dashboard
+
+## Status
+
+Proposed. Accepted when the owner authorizes OW-WAR-0073.
+
+## Context
+
+Two views of the corpus exist and neither is where the work happens: the Pages
+projection is rich and lives in a browser that cannot hold a key, and
+`war console` acts but shows almost nothing — no corpus state, no obligation
+ladders, no receipts, no journal. The owner asked for a full terminal
+dashboard on 2026-09-12.
+
+Three ways to build one:
+
+- **Hand-rolled ANSI.** No dependency, and a re-implementation of layout,
+  wrapping, scrolling and terminal restoration — the parts that are subtle,
+  and the parts a crash exposes by leaving the terminal unusable.
+- **crossterm alone.** Input and raw mode without layout; the widgets and the
+  diffing renderer would still be ours.
+- **ratatui over crossterm.** The layout, widget and frame-diffing layer, with
+  crossterm as the backend.
+
+Two constraints bear on the choice. `deny.toml` allows a fixed set of licence
+families and a new family is a refusal, not an exception. `OW-ADR-0014` admits
+async **only** under `openwarrant-cli/src/mcp/`, so a UI library that needs an
+executor would engage that refusal.
+
+## Decision
+
+Take `ratatui` with the `crossterm` backend, confined to
+`crates/openwarrant-cli/src/tui/`. A unit test asserts no module outside that
+directory names either crate, the same shape as the test that confines `tokio`
+and `rmcp` to `mcp/`.
+
+Both crates are MIT, which `deny.toml` already allows, so the dependency adds
+no licence family. Both are synchronous: input arrives through a polled
+`crossterm::event::read`, so no executor enters the graph and `OW-ADR-0014`'s
+refusal stands untouched. `cargo deny check licenses` and a `cargo tree` diff
+are the evidence, recorded under OW-WAR-0073 OBL-001 rather than asserted here.
+
+## Consequences
+
+- One new dependency family in the CLI, with a use-boundary test to keep it
+  where it was put.
+- The dashboard is a **rendering** under SAS 1.1.0 §76.6: it issues commands
+  and holds no key. Every act it starts shells out to `war sign --ssh-sign`, so
+  the `ssh-add -c` dialog remains the human act. A terminal that signs is a
+  defect with a name, which is the point of writing the rule first.
+- A panic hook and explicit teardown are part of the deliverable: a library
+  that takes over the terminal owes the user their terminal back.
+- If a future ratatui release pulls an executor, `OW-ADR-0014` is engaged and
+  the version is pinned or the library replaced; the boundary test is what
+  makes that visible rather than silent.

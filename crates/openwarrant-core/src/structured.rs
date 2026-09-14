@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! The restricted reader for structured atoms (OW-ADR-0003, SAS §62.1).
 //!
 //! A SECOND grammar, deliberately not a widening of the frontmatter one. §62.1

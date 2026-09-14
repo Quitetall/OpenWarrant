@@ -1,0 +1,10 @@
+schema = "oh.war/authorization-response/v1"
+warrant = "OW-WAR-0065"
+contract_digest = "0412c1cc078a275234820f3c0fd50f97d35ece14c21961e98586a8c36226cd1c"
+authorizer = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0065 (Research memo: which tokenizer approximation OpenWarrant uses for §33.7 budgets) at this contract digest means the signer accepts its intent, scope and 2 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 0.1.0` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-09-12T20:42:17Z"
+independence = "separate_role"
+judgment = []
+signed_via = "ssh"

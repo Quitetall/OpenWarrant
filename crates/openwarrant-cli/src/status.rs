@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war status` — build the corpus projection from records (SAS §17.5 `status`,
 //! corpus form; §34.3; §98; §102 decision 8).
 //!
@@ -222,6 +222,46 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
             unestablished,
             blocking_unknowns: blocking,
             milestones: ms,
+            // ---- slice D1: what the platform drills into.
+            uuid: one.validated.as_ref().map(|v| v.uuid.to_string()),
+            profile: one.validated.as_ref().map(|v| v.profile.to_string()),
+            assurance_level: one
+                .validated
+                .as_ref()
+                .map(|v| v.assurance_level.to_string()),
+            contract_revision: repo
+                .load_authorization(&one.dir)
+                .ok()
+                .flatten()
+                .map(|a| a.revision.revision),
+            contract_digest: current_digest.clone(),
+            obligations: obligation_views(repo, one),
+            deliverables: deliverable_views(repo, one),
+            gate_runs: gate_run_views(repo, one, current_digest.as_deref()),
+            amendments: crate::sign::read_amendments(&one.dir)
+                .into_iter()
+                .map(|a| openwarrant_core::status::AmendmentView {
+                    id: a.id,
+                    reason: a.reason,
+                    changes: a.changes,
+                })
+                .collect(),
+            unknowns: unknown_views(repo, one),
+            journal_ref: one
+                .dir
+                .join("journal.jsonl")
+                .is_file()
+                .then(|| repo.relative(&one.dir.join("journal.jsonl"))),
+            authorization_ref: one
+                .dir
+                .join("authorization.toml")
+                .is_file()
+                .then(|| repo.relative(&one.dir.join("authorization.toml"))),
+            resolution_ref: one
+                .dir
+                .join("resolution.toml")
+                .is_file()
+                .then(|| repo.relative(&one.dir.join("resolution.toml"))),
         });
     }
 
@@ -236,7 +276,7 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
         .into_iter()
         .max_by_key(|(_, n)| *n)
         .map(|(p, _)| p)
-        .unwrap_or_else(|| "OW".to_owned());
+        .unwrap_or_else(|| repo.config.project.namespace.as_str().to_owned());
 
     // §98 from the SAS as it stands; the compiled-in table is the fallback for
     // a repository whose document cannot be read.
@@ -431,6 +471,10 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
     }
 
     Ok(CorpusStatus {
+        repository_url: repo.config.project.repository_url.clone(),
+        generated_by: Some(openwarrant_core::status::GeneratedBy {
+            war_version: env!("CARGO_PKG_VERSION").to_owned(),
+        }),
         schema: CORPUS_STATUS_SCHEMA.to_owned(),
         provenance: Provenance::Derived,
         provenance_note: {
@@ -736,10 +780,294 @@ pub fn corpus_status_html(repo: &Repository) -> Result<(Utf8PathBuf, String), Re
     let json = openwarrant_compiler::corpus_status_json(&status).map_err(|e| {
         RepoError::Message(format!("could not canonicalize the corpus status: {e}"))
     })?;
+    // The platform inlines the sibling projections; a failure to build one
+    // renders the page without that view rather than failing the page.
+    let sibling = |name: &str, r: Result<(Utf8PathBuf, String), RepoError>| match r {
+        Ok((_, j)) => Some(j),
+        Err(e) => {
+            // Said, not swallowed: the page's view says "not inlined", and
+            // the operator sees why here.
+            eprintln!("corpus status: {name} not inlined in the page: {e}");
+            None
+        }
+    };
+    let timeline = sibling(
+        "CORPUS_TIMELINE.json",
+        crate::timeline::corpus_timeline_json(repo),
+    );
+    let pending = sibling(
+        "CORPUS_PENDING.json",
+        crate::timeline::corpus_pending_json(repo),
+    );
     Ok((
         repo.corpus_status_html_path(),
-        openwarrant_compiler::render_corpus_status_html(&status, &json),
+        openwarrant_compiler::render_corpus_status_platform(
+            &status,
+            &json,
+            timeline.as_deref(),
+            pending.as_deref(),
+        ),
     ))
+}
+
+// ---------------------------------------------------------------------------
+// Slice D1 — the per-Warrant views the platform drills into. Each reads the
+// same records the checks above read, so the page and `war check` cannot
+// disagree about a disposition, a digest or a receipt.
+// ---------------------------------------------------------------------------
+
+fn enum_word<T: serde::Serialize>(v: &T) -> String {
+    serde_json::to_value(v)
+        .ok()
+        .and_then(|j| j.as_str().map(str::to_owned))
+        .unwrap_or_default()
+}
+
+/// The `gate://` each obligation cites, read from the assurance atom's own
+/// `- **gate:**` line under the `### OBL-…` heading.
+fn obligation_gates(one: &crate::repo::Loaded) -> BTreeMap<String, String> {
+    let mut out = BTreeMap::new();
+    let Some(basis) = one.basis.as_ref() else {
+        return out;
+    };
+    for atom in basis.atoms.iter().filter(|a| a.role == "assurance") {
+        let Ok(text) = std::str::from_utf8(&atom.bytes) else {
+            continue;
+        };
+        let mut current: Option<String> = None;
+        for line in text.lines() {
+            let t = line.trim();
+            if let Some(rest) = t.strip_prefix("### ") {
+                current = rest
+                    .split_whitespace()
+                    .next()
+                    .filter(|w| w.starts_with("OBL-"))
+                    .map(str::to_owned);
+                continue;
+            }
+            if let (Some(id), Some(rest)) = (&current, t.strip_prefix("- **gate:**")) {
+                let g = rest.trim().trim_matches('`').to_owned();
+                if g.starts_with("gate://") {
+                    out.insert(id.clone(), g);
+                }
+            }
+        }
+    }
+    out
+}
+
+fn obligation_views(
+    repo: &Repository,
+    one: &crate::repo::Loaded,
+) -> Vec<openwarrant_core::status::ObligationView> {
+    let Some(basis) = one.basis.as_ref() else {
+        return vec![];
+    };
+    let gates = obligation_gates(one);
+    let verifications = repo.load_verifications(&one.dir).ok();
+    // §46: admissibility is what `war resolve` asks, so the projection asks it
+    // too. Reporting the first matching record's disposition verbatim let one
+    // `CORPUS_STATUS.json` object say `established` for an obligation the same
+    // file listed as unestablished, because the resolution rules had rejected
+    // that verification and the page had not noticed.
+    let assurance = one
+        .validated
+        .as_ref()
+        .map(|v| v.assurance_level.to_string())
+        .unwrap_or_else(|| "basic".to_owned());
+    let mut out = Vec::new();
+    for atom in basis.atoms.iter().filter(|a| a.role == "assurance") {
+        let Ok(text) = std::str::from_utf8(&atom.bytes) else {
+            continue;
+        };
+        let Ok(set) = openwarrant_core::obligation::parse(text) else {
+            continue;
+        };
+        for o in set.obligations {
+            let matching: Vec<&openwarrant_core::verification::Verification> = verifications
+                .as_ref()
+                .map(|vs| vs.records.iter().filter(|r| r.obligation == o.id).collect())
+                .unwrap_or_default();
+            // An admissible record speaks for the obligation. Where none is,
+            // the row carries the record that exists and says why it does not
+            // count, rather than repeating a disposition nothing accepted.
+            let admissible = matching
+                .iter()
+                .copied()
+                .find(|r| r.admissible_for(&assurance).is_ok());
+            let v = admissible.or_else(|| matching.first().copied());
+            let why = match (admissible, matching.first()) {
+                (None, Some(r)) => r.admissible_for(&assurance).err().map(|e| e.to_string()),
+                _ => None,
+            };
+            let disposition = match (admissible, &why) {
+                (Some(r), _) => r.disposition.to_string(),
+                (None, Some(_)) => "inadmissible".to_owned(),
+                (None, None) => o
+                    .disposition
+                    .map(|d| d.to_string())
+                    .unwrap_or_else(|| "undispositioned".to_owned()),
+            };
+            out.push(openwarrant_core::status::ObligationView {
+                gate: gates.get(&o.id).cloned(),
+                disposition,
+                inadmissible_because: why,
+                verifier: v.map(|r| r.verifier.actor.clone()),
+                verifier_kind: v.map(|r| enum_word(&r.verifier.kind)),
+                id: o.id,
+                statement: o.statement,
+                scope: o.scope,
+            });
+        }
+    }
+    out
+}
+
+fn deliverable_views(
+    repo: &Repository,
+    one: &crate::repo::Loaded,
+) -> Vec<openwarrant_core::status::DeliverableView> {
+    use openwarrant_core::status::DigestState;
+    let Ok(set) = repo.load_deliverables(&one.dir) else {
+        return vec![];
+    };
+    let corrections = repo.load_corrections(&one.dir).ok();
+    set.records
+        .into_iter()
+        .map(|d| {
+            let recorded = d.provenance.as_ref().map(|p| p.content_digest.clone());
+            let (chain_len, head) = match (&corrections, recorded.as_deref()) {
+                (Some(c), Some(rec)) => {
+                    let (list, head) =
+                        crate::correct::head_for(c, &d.id, rec.trim_start_matches("sha256:"));
+                    (list.len(), head.ok())
+                }
+                _ => (
+                    0,
+                    recorded
+                        .as_deref()
+                        .map(|r| r.trim_start_matches("sha256:").to_owned()),
+                ),
+            };
+            let digest = if !d.content_addressed {
+                DigestState::NotContentAddressed
+            } else {
+                match std::fs::read(repo.root.join(&d.target_ref)) {
+                    Err(_) => DigestState::TargetUnreadable,
+                    Ok(bytes) => {
+                        let actual = {
+                            use sha2::Digest;
+                            let mut h = sha2::Sha256::new();
+                            h.update(&bytes);
+                            h.finalize()
+                                .iter()
+                                .map(|b| format!("{b:02x}"))
+                                .collect::<String>()
+                        };
+                        let rec = recorded
+                            .as_deref()
+                            .map(|r| r.trim_start_matches("sha256:").to_owned());
+                        if rec.as_deref() == Some(actual.as_str()) {
+                            DigestState::Verified
+                        } else if head.as_deref() == Some(actual.as_str()) && chain_len > 0 {
+                            DigestState::Corrected
+                        } else {
+                            DigestState::Drift
+                        }
+                    }
+                }
+            };
+            openwarrant_core::status::DeliverableView {
+                id: d.id,
+                title: d.title,
+                target_ref: d.target_ref,
+                required: d.required,
+                digest,
+                recorded_digest: recorded,
+                corrections: chain_len,
+            }
+        })
+        .collect()
+}
+
+fn gate_run_views(
+    repo: &Repository,
+    one: &crate::repo::Loaded,
+    contract_digest: Option<&str>,
+) -> Vec<openwarrant_core::status::GateRunView> {
+    let Ok(evidence) = crate::evidence::load(repo, &one.dir) else {
+        return vec![];
+    };
+    evidence
+        .iter()
+        .map(|e| {
+            let (class, why) = match crate::evidence::admissibility(e, contract_digest) {
+                Ok(()) => ("admissible".to_owned(), None),
+                Err(why) => {
+                    let stale = e.receipt.as_ref().is_some_and(|r| {
+                        crate::evidence::receipt_digest_recomputes(r)
+                            && r.verdict == e.run.verdict
+                            && r.validate().is_ok()
+                            && e.run.satisfies_required_pass()
+                    });
+                    let class = if stale {
+                        "stale_binding"
+                    } else if e.run.satisfies_required_pass() {
+                        "receipt_invalid"
+                    } else {
+                        "inadmissible"
+                    };
+                    (class.to_owned(), Some(why))
+                }
+            };
+            openwarrant_core::status::GateRunView {
+                gate: e.run.gate.clone(),
+                run_id: e.run.id.clone(),
+                verdict: enum_word(&e.run.verdict),
+                class,
+                why,
+                receipt_ref: e.receipt.as_ref().map(|_| repo.relative(&e.receipt_path)),
+            }
+        })
+        .collect()
+}
+
+fn unknown_views(
+    repo: &Repository,
+    one: &crate::repo::Loaded,
+) -> Vec<openwarrant_core::status::UnknownView> {
+    let Ok(Some(assumptions)) = repo.load_rationale(&one.dir) else {
+        return vec![];
+    };
+    assumptions
+        .into_iter()
+        .filter(|a| {
+            let st = enum_word(&a.epistemic_status);
+            st != "accepted" && st != "verified" && st != "established"
+        })
+        .map(|a| {
+            let lower = a.statement.to_lowercase();
+            let mentions: Vec<String> = [
+                ("katana", "katana"),
+                ("liminal", "liminal"),
+                ("knowledge fabric", "knowledge-fabric"),
+                ("knowledge-fabric", "knowledge-fabric"),
+                ("blut", "blut"),
+            ]
+            .iter()
+            .filter(|(needle, _)| lower.contains(needle))
+            .map(|(_, name)| (*name).to_owned())
+            .collect::<std::collections::BTreeSet<_>>()
+            .into_iter()
+            .collect();
+            openwarrant_core::status::UnknownView {
+                epistemic_status: enum_word(&a.epistemic_status),
+                id: a.id,
+                statement: a.statement,
+                mentions,
+            }
+        })
+        .collect()
 }
 
 #[cfg(test)]

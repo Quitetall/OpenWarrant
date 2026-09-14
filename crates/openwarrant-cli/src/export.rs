@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war export` — §68's portable export and round trip.
 //!
 //! # This will refuse, and that is the finding

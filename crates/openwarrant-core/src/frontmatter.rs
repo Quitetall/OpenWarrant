@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! The restricted frontmatter reader (OW-ADR-0002, SAS §62).
 //!
 //! This is **not** a YAML parser and must not grow into one. It accepts a
@@ -29,6 +29,7 @@
 use std::collections::BTreeSet;
 use std::fmt;
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// A frontmatter value. Deliberately only two shapes (OW-ADR-0002).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Value {
@@ -77,6 +78,7 @@ pub enum FrontmatterError {
     UnterminatedQuote { line: usize, value: String },
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// A parsed frontmatter block: ordered key/value pairs plus the body offset.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct Frontmatter {

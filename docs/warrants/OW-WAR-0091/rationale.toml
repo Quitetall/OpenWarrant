@@ -1,0 +1,25 @@
+schema = "oh.war/rationale/v1"
+
+[[assumption]]
+id = "A-001"
+statement = "The exact RC.2 implementation basis is accepted and applicable."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "The adopted candidate digest, governing revision and any required ADR/migration records are present and independently checked; an old 1.0.0 signature is insufficient."
+consequence_if_false = "Affected implementation or publication stays blocked; draft preparation may continue."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-002"
+statement = "The required interface and evidence delivered by OW-WAR-0090 are available at the approved revision."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "Inspect the applicable accepted deliverables and independent evidence from OW-WAR-0090; record exact prerequisite revisions before authorizing dependent implementation."
+consequence_if_false = "Affected implementation or publication stays blocked; draft preparation may continue."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-003"
+statement = "An owner-approved release strategy resolves the existing v1.0.0 tag collision."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "A recorded owner decision identifies the preserved old ref, intended Stable ref and package versions; fresh remote/registry checks show publication can follow that decision."
+consequence_if_false = "Affected implementation or publication stays blocked; draft preparation may continue."
+judgment_ref = ""

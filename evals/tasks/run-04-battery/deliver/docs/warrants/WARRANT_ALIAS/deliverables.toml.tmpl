@@ -1,0 +1,27 @@
+schema = "oh.war/deliverables/v1"
+
+# The run IS the deliverable: the §44.6 receipt `war run` minted, pinned by
+# content. `war resolve` recomputes the digest.
+
+[[deliverable]]
+id = "D-001"
+title = "The receipt of STAGE-001 under ops.echo"
+kind = "file"
+target_ref = "docs/warrants/{{ALIAS}}/gate-runs/ops_echo_1_0_0.receipt.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "war run"
+producing_attempt = "{{ALIAS}}/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "war run (the service seam)"
+creation_method = "generated"
+content_digest = "{{DIGEST:docs/warrants/{{ALIAS}}/gate-runs/ops_echo_1_0_0.receipt.json}}"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
