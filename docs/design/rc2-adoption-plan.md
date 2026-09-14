@@ -83,7 +83,7 @@ pinned README edits. Its green structural check does not establish the root
 checkout or the aggregate release gate as green. The root's earlier 305/1 battery
 and 12/14 aggregate figures are handoff observations, not runs repeated here.
 
-The ephemeral consolidated-base routing note can be sequestered after its facts
+The ephemeral consolidated-base routing note can be archived after its facts
 are retained here and in the source set. This plan and the source-set/roadmap
 become the durable entry points; the original vocabulary proposal is discussion
 history, not an additional normative authority.

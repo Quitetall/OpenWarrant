@@ -96,3 +96,20 @@ The LF-only fixed-example audit still does not claim production CRLF coverage.
 New candidate manifest SHA-256: `201b707e9657a3c6674ea113a018a34a54b5ab425f37c417c8968af9f4d2cf31`.
 This digest replaces the earlier candidate only in unsigned draft planning bases;
 it is not an acceptance or a modification of an approved contract.
+
+## Review of the consolidated planning commit
+
+Commit 2661d64 received LAMU review_commit PASS WITH NITS, including critic review.
+One finding was valid: OW-WAR-0083's implementation stage accidentally named the
+verifier executor because its title contained “independent status dimensions.”
+The first stage now names agent://codex; the verification stage retains the
+independent-verifier reference. Separate contexts/workspaces and evidence remain
+required by the Warrant; different reference names alone do not prove isolation.
+
+The suggestion to replace generated format_basis.sas_revision/digest with the
+unaccepted candidate was rejected: those fields identify the actual governing
+legacy basis used by this tool. Candidate implementation targets are explicit in
+the authored basis and planning index. Changing generated authority metadata
+would misstate authority. Human stages without executor_ref already passed all
+frontier reads; canonical source-set JSON deliberately has no terminal newline;
+source Markdown whitespace checks passed. No change was made for those nits.

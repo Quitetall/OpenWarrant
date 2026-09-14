@@ -18,7 +18,7 @@ stages:
     responsibility_tier: "T2"
     context_sections: ["20-basis.md#Required context", "40-work-order.md#Premade Instructions", "60-assurance.md#Acceptance Obligations"]
     budget_tokens: 24000
-    executor_ref: "agent://independent-verifier"
+    executor_ref: "agent://codex"
   - id: "STAGE-002"
     title: "Independently verify forged, missing and stale evidence refusals"
     executor_kind: "agent"
