@@ -77,3 +77,13 @@ No generated records were rewritten to conceal those failures. This source set
 does not claim a green repository. The full `cargo xtask gate`, production
 T01–T56 tests, agent efficiency trials, live workflow proof, signatures, adoption,
 and Stable release checks were not performed in this documentation task.
+
+## Later consolidation and commit review
+
+The record above preserves the initial candidate work. The later commit
+2bca43c received external review_commit PASS WITH NITS. Verified findings and
+clarifications are recorded in the roadmap validation record. The owner then
+confirmed binding canonical definitions/advisory usage and successor preparation
+for the three signed legacy Warrants. Those decisions are now consolidated in
+the candidate, with source-set manifest SHA-256 `201b707e9657a3c6674ea113a018a34a54b5ab425f37c417c8968af9f4d2cf31`.
+No production conformance or human acceptance is implied by those document edits.

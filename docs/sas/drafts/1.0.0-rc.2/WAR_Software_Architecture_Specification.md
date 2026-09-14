@@ -154,6 +154,9 @@ SHALL NOT treat a valid draft as permission to execute or proof of completion.
 
 The earlier baseline is designated **1.0.0-rc.1**. Its original acceptance record
 literally says `1.0.0`; neither that record nor its source bytes are rewritten.
+The owner has withdrawn the SAS 1.1.0 release line. The target is 1.0.0 Stable;
+RC.2 is the current candidate. References to 1.1.0 in historical signed work
+remain facts about that work, not another planned edition.
 This RC.2 replaces the previous unaccepted working draft, not the configured
 repository authority. See §18 for adoption and historical references.
 
@@ -204,21 +207,58 @@ old source revision; `RC.1 §33.8` is not silently redirected to RC.2 §8. Requi
 IDs remain in §106 with explicit scope and changed meanings. The RC.1 document
 is the source for legacy contracts, not a second set of RC.2 requirements.
 
-Terms used throughout:
+### 3.1 Canonical definitions
+
+The definitions below are normative. A conforming implementation SHALL preserve
+these distinctions in its data and claims. Examples, synonym notes and wording
+advice are guidance; different display wording alone is not a conformance failure.
+Legacy records keep the meanings of their original editions (§18).
 
 | Term | Meaning |
 | --- | --- |
+| Warrant | Document describing one bounded, reviewable outcome and its explicit constraints |
+| SAS | Software Architecture Specification: the program's architecture document, represented by the `sas` document kind |
+| ADR | Architecture Decision Record: context, decision and consequences represented by the `adr` kind; proposed text is not accepted authority |
 | Source document | Human-editable Markdown and structured metadata at its owning source |
-| Source unit | Explicitly identified text span, with binding or background meaning |
-| Snapshot | Captured bytes, source revision, locator, and digest; immutable when referenced |
-| Contract | Exact Warrant outcome, scope, constraints, checks, and referenced basis admitted for work |
-| Master context | Generated assembly of a caller-selected, captured source set |
-| Projection / packet | Selected task view and the required exact content it delivers |
-| Evidence | Recorded observation with its basis; distinct from an agent claim |
+| Source unit | Explicitly identified text span inside a source document, classified as binding or background |
+| Snapshot | Captured bytes, source revision, locator and digest; immutable when referenced, without freezing the live pathname |
+| Contract | Exact Warrant outcome, scope, constraints, expectations and referenced basis to which an approval applies |
+| Requirement | Rule imposed by a governing source within its declared scope |
+| Expectation | Contract-bound acceptance-check entry with identity, scope and check digest, as defined in F9 |
+| Obligation | Bounded acceptance condition evaluated by verification; its disposition must rest on applicable evidence |
+| Check definition | Identified executable or review procedure and its exact expected behavior; executing it is a separate act |
+| Observation record | Attributable record of an attempted check, its execution status, verdict and exact basis |
+| Evidence | Recorded observation or retained supporting artifact with provenance and basis; an agent assertion alone is not an independent observation |
 | Verification | Independent evaluation of an exact result against bounded obligations |
-| Acceptance | Attributable decision about an exact result; formal signed completion requires a human |
-| Assurance mark | Optional qualification record for one exact result under a versioned baseline |
-| Workflow | Consumer that acts on compiler outputs using its own permissions and environment |
+| Permission record | Supplied authority evidence for a specifically scoped action; not evidence that the action succeeded |
+| Human acceptance | An authorized human's attributable acceptance of an exact result after required review; F8 calls its record kind `human-acceptance` |
+| Qualification | Determination that one exact result satisfies every requirement of a stated assurance baseline |
+| Assurance mark | Optional qualification record for one exact result under a versioned baseline, including the required human acceptance |
+| Master context | Generated assembly of a caller-selected, captured source set |
+| Projection | Role/stage selection of context from that master basis, preserving applicable exact content and inclusion reasons |
+| Packet | Portable delivery of a projection: entry view, machine records, manifest and required source/evidence bytes |
+| Generated view | Derived rendering or index of source records, with no independent source authority |
+| Entry view | The packet's initial human/agent reading surface, `ENTRY.md`; its full rendered bytes are used for entry-budget accounting |
+| Task brief | The role-specific task, constraints, expected outputs and stopping conditions carried in a packet |
+| Blob | Exact retained source or evidence bytes addressed by digest inside a packet |
+| Manifest | The typed inventory for its stated object; a packet manifest and a legacy Warrant manifest are different schemas |
+| Pointer | Declared context reference with applicability and inclusion rules |
+| Dependency | A declared requirement to include another exact target whenever the originating unit is selected |
+| Conflict | A declared incompatibility between selected targets; its presence is not permission for the compiler to choose a winner |
+| Blocker | Missing or unresolved required input or condition for a specified action; distinguish it from invalid document syntax |
+| Correction | Attributable correction of an assertion in a record, preserving the prior assertion and its evidence |
+| Successor work | Work governing a new delivered version, with explicit lineage to preserved earlier versions |
+| Attestation | Attributable signed statement over an exact subject in its declared schema and digest domain |
+
+### 3.2 Usage guidance
+
+Use **generated view** for corpus indexes and other derived files; reserve
+**projection** for selected task context and **packet** for its delivery object.
+Do not merge requirement, expectation and obligation, or correction and successor
+work. A legacy atom is a file, not a synonym for a source unit. Legacy resolution
+is an edition-specific act, not an alias for RC.2 acceptance or qualification.
+`war`, frontier, battery, plant, drafter and proposal are reference-tool vocabulary;
+their existence does not add requirements to basic document compatibility.
 
 <!-- ow:unit documents binding -->
 ## 4. Documents, identities, and authoring
@@ -661,8 +701,8 @@ Do not claim improvement from a single shorter prompt or a hand-selected run.
 
 The existing `oh.war/atom/v1`, canonical IR, receipts, signatures, and digest
 domains retain their meanings. RC.2 adds a distinct document adapter and packet
-schema. Explicit legacy import may preserve old atoms as units and original
-canonical objects; it SHALL NOT pretend an old signature accepted new RC.2 bytes.
+schema. Explicit legacy import may map whole old atom files to one or more source
+units while preserving original canonical objects; it SHALL NOT pretend an old signature accepted new RC.2 bytes.
 Unsupported legacy meaning is retained with diagnostics, never silently omitted
 from a supposedly complete projection. No live corpus rewrite is required merely
 to author RC.2 examples.
@@ -678,11 +718,37 @@ meaning. Example fixtures and their expected outputs must be pinned for conforma
 OW-ADR-0002 and OW-ADR-0003 continue to govern the legacy parsers. The RC.2 TOML
 adapter is a distinct proposed architecture choice. OW-ADR-0001's JCS choice is
 retained. OW-ADR-0012's current correction workflow remains binding for current
-records until a migration is adopted. OW-ADR-0019 is a proposed 1.1 batch/rendering
-change, not the release target; §15 retains exact batch subjects while allowing
-the subsequently selected authenticated-session approval route. It does not
-silently accept or edit that ADR. Runtime/receipt adapters retain existing
-protocol commitments where selected.
+records until a migration is adopted. At inspected base `f22ef2f`, OW-WAR-0071,
+OW-WAR-0072 and OW-WAR-0073 each have a human authorization record dated
+2026-09-13; their bodies describe the withdrawn 1.1.0/batch/dashboard plan.
+Authorization of that work is not acceptance of the unaccepted 1.1.0 SAS.
+OW-ADR-0019 still declares acceptance contingent on that SAS acceptance.
+OW-ADR-0020 still has `status: proposed` metadata while its prose acceptance
+condition names authorization of OW-WAR-0073, which exists. Preserve these exact
+records and surface their status distinction; this draft does not rewrite their
+metadata, issue an acceptance or decide away the historical inconsistency.
+
+§15 retains exact batch subjects while allowing the subsequently selected
+authenticated-session approval route. The owner selected preservation plus successor work when needed for the signed
+legacy Warrants. Their actual supersession is a separate governed act; no
+historical contract is amended by this candidate. Reuse on the RC.2 line
+requires the explicit approved successor basis. Runtime/receipt
+adapters retain existing protocol commitments where selected.
+
+Legacy import SHALL report the original resolution, subject, signer, verdict and
+provenance as legacy facts. A legacy `resolved` state alone SHALL NOT create an
+RC.2 `human-acceptance` or `qualification` record. Any derived acceptance claim
+requires authenticated evidence for the same exact result and the applicable
+review meaning; missing evidence yields unknown or ineligible with reasons.
+Qualification is evaluated separately against every RC.2 baseline requirement.
+Do not infer a mark, stronger fixture history or new signed completion from an
+old resolution or a note saying the earlier edition bundled those concepts.
+
+The Phase 2 `war document` and `war context` surfaces are additive. Existing
+legacy commands retain their meanings; aliasing `war compile` to RC.2 semantics
+without an explicit migration is prohibited. New guidance and context packets
+SHOULD label legacy glossaries and instructions by edition. Current pinned
+glossaries are changed only through their applicable governed process.
 
 Historical section references, requirement titles, and draft decisions are mapped
 in the decision map. The earlier specification is retained for interpreting its

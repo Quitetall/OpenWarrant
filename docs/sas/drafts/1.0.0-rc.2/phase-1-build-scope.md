@@ -12,6 +12,10 @@ Phase 3 implements stateful workflows, starting with Knowledge Fabric Compiler.
 The compiler library can contain primitives in Phase 1; the distinction is tested
 pieces first, supported composition second, not a prohibition on its crate name.
 
+Terminology follows normative SAS §3 definitions. New modules use source unit,
+snapshot, projection, packet, observation record and check definition. Existing
+legacy types keep their original names and bytes; any adapter mapping is explicit.
+
 First Phase 1 slice: **F01, parse a minimal Warrant and reject malformed framing**.
 Do not start with a TUI, database, agent launcher, or whole-corpus migration.
 Each feature has one owner module, a narrow public boundary, and fixtures proving
@@ -136,8 +140,8 @@ checked in before the corresponding feature is called complete.
 | T46 | Trusted human acceptance + qualifying exact evidence, then changed candidate | Eligible first; new candidate cannot reuse old eligibility |
 | T47 | Later-added fixtures versus fixtures-before-work profile | Final-result baseline can qualify; stricter history claim remains unmet |
 | T48 | Delegated SAS adoption / indirect effective-policy change | Delegation never earns mark; effective-policy edit still requires human authority |
-| T49 | Legacy signed fixture import | Preserve bytes, digest domains, UUIDs, original states and signature subjects |
-| T50 | Legacy unsupported semantics / missing historical artifact bytes | Diagnostic; cannot claim complete preservation or fabricate history |
+| T49 | Legacy signed fixture import, including a resolved Warrant | Preserve bytes, digest domains, UUIDs, original states and signature subjects; report legacy resolution without automatically minting RC.2 acceptance or qualification |
+| T50 | Legacy unsupported semantics / missing historical artifact bytes / unproved acceptance meaning | Diagnostic; cannot claim complete preservation, infer a mark or fabricate history |
 | T51 | Successor Warrant changes old delivered pathname | Both versions recoverable; lineage, no blanket old-record correction fanout |
 | T52 | Unrelated unresolved Warrant, then relevant broken prerequisite | First does not block; second does |
 | T53 | Export/import/export new and legacy preservation payloads | Same semantic identity and original immutable bytes |

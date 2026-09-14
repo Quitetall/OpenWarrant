@@ -26,6 +26,11 @@ schema, and reference fixtures by exact bytes. It is a review manifest, not an
 acceptance record or signature. The [validation record](validation.md) reports
 what was checked, remaining repository errors, and limits of the evidence.
 
+The [adoption and consolidation plan](../../../design/rc2-adoption-plan.md)
+records the canonical-vocabulary decision, signed legacy transition route and
+cross-program requests with their actual implementation limits. Definitions in
+SAS §3.1 bind; usage advice in §3.2 remains guidance.
+
 ## Main decisions now concrete
 
 - Minimal documents are valid before execution readiness. TOML metadata and stable

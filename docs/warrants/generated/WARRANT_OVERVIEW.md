@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-69 Warrant(s) in this repository.
+87 Warrant(s) in this repository.
 
 ## Summary
 
@@ -80,6 +80,24 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0071](docs/warrants/OW-WAR-0071/manifest.toml) | SAS 1.1.0: the batch act, and the dashboard as a rendering of the record | `authorized` | `current` | `valid` | `basic` | — |
 | [OW-WAR-0072](docs/warrants/OW-WAR-0072/manifest.toml) | The batch act: one human signature over many pending acts | `authorized` | `current` | `valid` | `basic` | 3M / 5S |
 | [OW-WAR-0073](docs/warrants/OW-WAR-0073/manifest.toml) | war tui: the dashboard in the terminal | `authorized` | `current` | `valid` | `basic` | 4M / 6S |
+| [OW-WAR-0074](docs/warrants/OW-WAR-0074/manifest.toml) | Adopt the exact RC.2 build basis without rewriting history | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0075](docs/warrants/OW-WAR-0075/manifest.toml) | Parse and validate a minimal OpenWarrant document | `draft` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0076](docs/warrants/OW-WAR-0076/manifest.toml) | Author valid documents from explicit fields | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0077](docs/warrants/OW-WAR-0077/manifest.toml) | Capture immutable sources and resolve exact references | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0078](docs/warrants/OW-WAR-0078/manifest.toml) | Evaluate context conditions with explicit uncertainty | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0079](docs/warrants/OW-WAR-0079/manifest.toml) | Select complete context and expose conflicts | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0080](docs/warrants/OW-WAR-0080/manifest.toml) | Build master context and faithful role projections | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0081](docs/warrants/OW-WAR-0081/manifest.toml) | Export and verify portable offline context packages | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0082](docs/warrants/OW-WAR-0082/manifest.toml) | Enforce context budgets and invalidate stale cache entries | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0083](docs/warrants/OW-WAR-0083/manifest.toml) | Check supplied readiness and assurance records truthfully | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0084](docs/warrants/OW-WAR-0084/manifest.toml) | Import legacy history without changing what was signed | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0085](docs/warrants/OW-WAR-0085/manifest.toml) | Prove every Phase 1 primitive through a runnable driver | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0086](docs/warrants/OW-WAR-0086/manifest.toml) | Expose the complete compiler through a machine-safe CLI | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0087](docs/warrants/OW-WAR-0087/manifest.toml) | Expose noninteractive document authoring and validation | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0088](docs/warrants/OW-WAR-0088/manifest.toml) | Make document authoring interactive and recoverable | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0089](docs/warrants/OW-WAR-0089/manifest.toml) | Prepare installable compiler release artifacts and user docs | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0090](docs/warrants/OW-WAR-0090/manifest.toml) | Qualify the integrated compiler and freeze the Stable source set | `draft` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0091](docs/warrants/OW-WAR-0091/manifest.toml) | Publish and verify OpenWarrant Stable 1.0 | `draft` | `current` | `valid` | `basic` | 3M / 3S |
 
 ## Claimed SAS requirement coverage
 
@@ -113,7 +131,7 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-043` — OW-WAR-0023, OW-WAR-0045, OW-WAR-0056, OW-WAR-0065
 - `WAR-SAS-RQ-044` — OW-WAR-0026, OW-WAR-0045, OW-WAR-0069
 - `WAR-SAS-RQ-045` — OW-WAR-0024, OW-WAR-0045, OW-WAR-0056
-- `WAR-SAS-RQ-050` — OW-WAR-0016
+- `WAR-SAS-RQ-050` — OW-WAR-0016, OW-WAR-0074, OW-WAR-0075, OW-WAR-0076, OW-WAR-0077, OW-WAR-0078, OW-WAR-0079, OW-WAR-0080, OW-WAR-0081, OW-WAR-0082, OW-WAR-0083, OW-WAR-0084, OW-WAR-0085, OW-WAR-0086, OW-WAR-0087, OW-WAR-0088, OW-WAR-0089, OW-WAR-0090, OW-WAR-0091
 - `WAR-SAS-RQ-051` — OW-WAR-0016
 - `WAR-SAS-RQ-052` — OW-WAR-0017
 - `WAR-SAS-RQ-053` — OW-WAR-0021, OW-WAR-0046, OW-WAR-0059

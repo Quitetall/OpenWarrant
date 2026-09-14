@@ -88,6 +88,9 @@ A Phase 3 proof is planned future workflow evidence, not a missing Phase 1 test.
 | C13 | Integrate context-management/packet improvements into SAS | §§6–10 |
 | C14 | Earlier baseline is rc.1, refining 1.0 rather than 1.1; preserve old signatures | §§1, 18 |
 | C15 | Current edition is 1.0.0-rc.2; finish consistent SAS, examples, and Phase 1 scope before building | This source set; implementation remains next work |
+| C16 | Consolidate the handoff and one canonical vocabulary before RC.2 acceptance; SAS 1.1.0 is withdrawn, without rewriting its historical references | §§1, 3, 18 |
+| C17 | Canonical definitions bind inside RC.2; examples and usage advice remain guidance | §3.1 versus §3.2 |
+| C18 | Preserve signed OW-WAR-0071/0072/0073; prepare successors when needed, without performing supersession now | §18; adoption work plan |
 
 ## Explicit supersessions
 
@@ -147,3 +150,31 @@ service storage engine, signing/session implementation, KFC transport, hosted
 permission administration, worker fencing mechanism, and online resolver protocol.
 Their Phase 3 contracts must be specified before implementing them. The assurance
 mark's public name does not change its defined baseline or postpone parser work.
+
+## Consolidation boundaries, 2026-09-14
+
+The vocabulary discussion proposed treating a legacy resolution as both new
+acceptance and qualification. That shortcut is not adopted: Q43–Q46 require
+the actual exact-result evidence and the baseline's human review. §18 preserves
+legacy resolution facts and permits only evidence-supported derived claims;
+F09/F10 still evaluate qualification separately. It also retains legacy CLI
+meaning through Phase 2, as the existing additive command plan already specified.
+
+The handoff's description of three authorized Warrants was checked against their
+authorization records. Its broader suggestion that both bound ADRs were already
+accepted is not treated as proof: ADR-0019 and ADR-0020 retain proposed metadata
+and different prose acceptance conditions. §18 records those facts without
+changing the sources or manufacturing a disposition.
+
+The handoff's `git log f22ef2f..HEAD` instruction was stale: the root checkout is
+still f22ef2f. The cited correction/performer fixes are ancestors of that base,
+not five additional commits to merge. Their existence informs migration risk.
+The referenced temporary 2026-09-13 handoff file was absent when reread; no claim
+depends on having read it during this consolidation.
+
+Cross-program roadmap/requirement-lifecycle requests are tracked in the adoption
+work plan. RC.2's standalone format uses explicit captured paths and source
+identities; it does not promise an online cross-repository URI resolver, a new
+requirement-lifecycle record grammar or an unimplemented in-force annex command.
+Those requests must not be reported implemented by projection or by an ignored
+legacy metadata field.

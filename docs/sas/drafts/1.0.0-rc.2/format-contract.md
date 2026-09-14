@@ -112,8 +112,10 @@ An unsupported `requires_extensions` item blocks semantic compilation. Extension
 cannot redefine core fields or smuggle unsupported required behavior as optional.
 
 <!-- ow:unit units binding -->
-## F2. Markdown units and minimum documents
+## F2. Source units and minimum documents
 
+A source unit is a marked span within one document, not a whole legacy atom file.
+Canonical definitions are in SAS §3; these wire rules give their exact encoding.
 A unit starts with this exact, unindented marker line outside a fenced code block:
 
 ```markdown
@@ -198,8 +200,9 @@ own rules even when the Warrant does not repeat them.
 Dependencies have exactly `unit` (local unit ID) and `target`. They are unconditional
 when that unit is selected and transitively require their targets. Conditions
 belong to pointers, not dependency edges. Conflicts have exactly `unit` and
-`target`; a conflict is symmetric when both targets are selected. These tables
-must reference existing local units, but remote existence is a resolution concern.
+`target`; a conflict is symmetric when both targets are selected. The originating `unit` must exist locally; the target may be a unit in another
+captured source. Cross-document dependency edges are explicitly allowed. Target
+existence is a resolution concern.
 
 Targets are `<path>#<unit-id>`, `<path>#*`, `#<unit-id>`, or `<path>` for a raw
 whole-file reference. `#*` means all units plus header semantics of a parsed
@@ -313,6 +316,8 @@ The compiler reports access as supplied policy facts, not independently verified
 identity. The caller is responsible for establishing those grants at its trusted
 I/O boundary. Empty basis_refs are allowed for a content-only example, with the
 limitation explicitly reported; they establish no execution permission or mark.
+Both access arrays may be empty. An empty allowed_source_digests array allows
+no blob disclosure; it is not an unrestricted grant.
 No unspecified ambient configuration enters the pure result. Unsupported schema
 versions, duplicate source paths/IDs where ambiguous, or mismatching blob lengths
 or digests are errors.
@@ -344,7 +349,9 @@ source path then pointer ID. Output set-like arrays (selected units, omitted
 pointers, diagnostics, sources, reasons) use lexicographic tuple order as follows:
 unit `(source_digest,unit)`, pointer `(source path,pointer ID)`, diagnostic
 `(code,source path,unit-or-empty,pointer-or-empty)`, reason `(kind,source path,id)`.
-Duplicate reasons are removed. Authored plan/step arrays keep their explicit order.
+Here reason tuples are inclusion reasons in `binding_context`. Catalog
+evaluation reasons are diagnostic strings, deduplicated and sorted
+lexicographically. Authored plan/step arrays keep their explicit order.
 
 The `task.role` also selects a fixed action meaning. Warrant outcome, scope,
 constraints, and expected product outputs remain identical; role changes what
@@ -443,6 +450,9 @@ remain in the basis. Full parsed-source preservation can make transfer size larg
 than the entry projection; v1 optimizes initial agent context, not guaranteed
 package transfer size. Catalog `supplied` means target bytes exist in package,
 even if not selected for ENTRY; a separate `selected` boolean states that choice.
+Catalog `reasons` is an array of diagnostic strings explaining pointer evaluation
+and availability; it is distinct from the structured inclusion-reason objects
+in `binding_context`. Both are required to retain their stated meanings.
 
 ENTRY.md renders, in order: `# <title>`; role/stage, F6 role action/stop condition, and coverage/readiness notice;
 `## Task brief` with the six brief lists and references; `## Binding context` with
