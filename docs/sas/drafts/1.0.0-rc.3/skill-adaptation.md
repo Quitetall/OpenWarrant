@@ -68,6 +68,70 @@ Use rich trigger descriptions only when autonomous invocation is needed. A route
 may help users discover manual skills. Harness-specific invocation flags must be
 tested in the supported harness; they are not OpenWarrant standard metadata.
 
+## Integration with existing context documents
+
+OpenWarrant integrations adopting this profile SHALL work with the repository's
+existing `AGENTS.md`, `CLAUDE.md`, `CONTEXT.md` and other configured context sources.
+Those files retain their native purpose, ownership and directory scope. They need
+not become OpenWarrant documents, contain its metadata or move to its store.
+An OpenWarrant-compatible Warrant remains valid without installing a harness hook
+or using one of those filenames.
+
+The host harness owns instruction discovery and precedence. An integration SHALL
+preserve that hierarchy, including nested directory rules; OpenWarrant supplies
+work contracts and evidence, not a competing instruction-precedence system.
+Retrieving a document, following a context pointer or naming a file `AGENTS.md`
+does not by itself establish permission, policy or human acceptance. Conflicting
+applicable requirements remain visible; the responsible decision-maker settles
+the affected scope. An adapter cannot silently pick whichever rule is convenient.
+
+Keep one source for shared OpenWarrant guidance. Integrations SHALL add a small
+conditional pointer or a supported include where the host loads instructions.
+The pointer names both the target and the work that requires it. Preserve unrelated
+content and user changes. Repeated setup SHALL avoid duplicate entries; removal
+SHALL affect only the unchanged entry owned by that integration. If the entry was
+edited, report the conflict and leave the file intact. Preserve symlinks and their
+targets; a link to a shared/global instructions file is not permission to change
+that file. Resolve and show the actual write target before any requested edit.
+
+For example, a `CLAUDE.md` in this repository can reference its shared guidance:
+
+```markdown
+For OpenWarrant work, read [AGENTS.md](AGENTS.md), then follow its task-specific
+context pointers. Keep applying the other instructions in this file.
+```
+
+This example is an entry pointer, not a request to create a duplicate file or
+rewrite an existing one. Adopters choose the target holding their shared guidance;
+they need not adopt this repository's file layout. Merely pointing two files at
+each other without a source containing the required guidance is not integration.
+
+Context providers SHALL represent native documents as source references with exact
+revision/content identity, applicable scope, and provenance. The caller/host supplies
+their instruction role and effective scope; the compiler does not infer authority
+from prose or filenames. Required applicable rules and their dependencies remain
+exact in the agent packet. Background can be summarized under the existing context
+contract. Already supplied context may be reused only when its exact identity and
+coverage are established; a path alone does not prove delivery. Missing required
+content remains a coverage gap and blocks affected dispatch, not independent work.
+
+The SDK represents and validates supplied references and records. Providers resolve
+and project native sources; harness adapters load context and apply host rules.
+No SDK filesystem scan, database, model call or new authority follows from this
+integration. Work-change rules still govern a changed required instruction during
+execution; see the [stop contract](work-stop-contract.md).
+
+Phase 1 S08/SDK-07 SHALL include fixed context-entry edit proposals: retain existing
+host text, choose an explicit shared source, reuse the same pointer on repeat, and
+retain nested scope/source identity. Refusal cases include a modified owned entry,
+an unapproved symlink target, a missing required source and conflicting applicable
+instructions. Test byte preservation for unchanged content. These are direct
+artifact/adapter fixtures; Phase 3 observes actual harness loading and installation.
+The current legacy `war agents-md --force` replaces a whole file and does not
+implement this additive contract. Its template stays a legacy workflow reference
+until separately scoped migration; current repository guidance may link that
+reference beside project-specific and successor-design instructions.
+
 ## Authority and evaluation
 
 For prompt-only work without an explicit Warrant action gate, skills SHALL proceed

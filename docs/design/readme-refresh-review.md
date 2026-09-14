@@ -9,7 +9,7 @@ This record distinguishes the prepared change from human signing and publication
 
 - [Applied README](../../README.md): SHA-256 `468c44364589226235012fa7be7c434b0602ac03d47189f70b92dddb79aba450`.
 - [SAS entry](../sas/drafts/1.0.0-rc.3/README.md) and
-  [source set](../sas/drafts/1.0.0-rc.3/source-set.json): SHA-256 `a91de175269fa92663f07a38a75c19a75c0a1d07d6bb4bd6a777675567f131ce`.
+  [source set](../sas/drafts/1.0.0-rc.3/source-set.json): SHA-256 `73aa976ddd63191533697de7da737ddd763a9ece2696d189f8c36ace9d7e6c09`.
 - [Context views/shared work](../sas/drafts/1.0.0-rc.3/context-views-and-shared-work.md)
   and [stop/change contract](../sas/drafts/1.0.0-rc.3/work-stop-contract.md)
   are now normative companions, included in the source-set manifest.
@@ -32,7 +32,7 @@ observed that exact old/new pair, next sequence 2 and eligible corrector Brian L
 it did not sign or write anything. The human signs from this checkout using:
 
 ```sh
-/mnt/4tb/OpenWarrant/target/debug/war sign OW-WAR-0062/D-003 --kind behaviour-change
+cd /mnt/4tb/tmp/ow-sdk-standard-amendment && ./target/debug/war sign OW-WAR-0062/D-003 --kind behaviour-change
 ```
 
 The existing [AGENTS.md](../../AGENTS.md) reserves correction signatures for the
@@ -91,3 +91,18 @@ A subsequent wording correction explicitly covers coordinated cross-project
 changes or deliveries even when the interface stays unchanged. Documentation
 inventory/refusal semantics are unchanged; the source set was regenerated. It does
 not change runtime code or clear the outstanding corpus/review requirements.
+
+## Agent guidance follow-up
+
+The owner then requested native integration with existing AGENTS.md, CLAUDE.md
+and CONTEXT.md. Root AGENTS.md now routes to task-specific sources and distinguishes
+the revised completion/assurance model from current legacy enforcement. The full
+legacy procedure remains a byte-identical linked reference. The three existing
+issue/triage/domain guidance files were preserved from the main user checkout.
+
+SAS §16 and its skill adaptation companion now define additive context pointers,
+preserved host precedence and scope, exact source delivery, and planned adapter
+cases. The CLI template and installer behavior are unchanged. The reference/template
+equality test follows the new reference location; three focused tests pass. Draft,
+link, formatting and preservation checks pass as recorded in the candidate's
+validation note. This follow-up does not resolve the publication boundaries above.

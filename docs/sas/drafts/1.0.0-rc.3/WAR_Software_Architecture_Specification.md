@@ -857,6 +857,15 @@ decision/question record, stage plan, or bounded review evidence. Optional HTML,
 tracker entries and chat summaries are views or links, not substitute authorities.
 The SDK validates these artifacts; a skill does not reimplement the standard.
 
+OpenWarrant integrations SHALL preserve existing host context documents, including
+`AGENTS.md`, `CLAUDE.md` and `CONTEXT.md`, with their native ownership and scope.
+Use conditional pointers to shared guidance rather than replacing host instructions
+or requiring their conversion to OpenWarrant format. The harness owns instruction
+precedence. Providers retain exact source identity and applicable rules; the SDK
+validates supplied references. The [integration contract](skill-adaptation.md#integration-with-existing-context-documents)
+defines additive edits, source delivery and conformance cases. Filenames and
+retrieval results do not confer authority.
+
 Skills SHALL obey §11's effective permission mode, record real actor identities,
 and distinguish proposed, executed and independently verified acts. They cannot
 grant themselves policy or the human-backed mark. User decisions already supplied
@@ -938,10 +947,12 @@ remain historical facts. Unsigned implementation plans may be revised against
 this new basis; signatures and resolutions are separate acts. [Migration map](migration-map.md) assigns every planned OW-WAR-0074–0091 and RC.2 F/T case without
 claiming cancellation, supersession, implementation or a new allocated identifier.
 
-Existing AGENTS.md, CONTEXT.md, installed war skills and CLI enforcement describe
-legacy behavior. They do not become prototype-capable by this document edit.
-Prepare scoped successor work for their policy/SDK migration, retaining protected
-history and explaining source-edition differences. Legacy command meanings remain
+Repository AGENTS.md may route tasks to current project guidance, native domain
+documents and this candidate while retaining a linked legacy workflow reference.
+Existing legacy templates, installed war skills and CLI enforcement do not become
+prototype-capable by this document edit. Prepare scoped successor work for their
+policy/SDK migration, retaining protected history and explaining source-edition
+differences. Legacy command meanings remain
 until versioned migration; a new SDK wrapper must not silently alias `war compile`
 to another compiler. Root policy changes are not implicit in this draft.
 
@@ -1099,7 +1110,7 @@ supersessions. Source clauses, not titles alone, define full requirements.
 | WAR-SAS-RQ-121 | Phase 1 proves each SDK primitive directly and then through CLI access | D | 17 | SDK Phase 1; integration Phase 2; see migration map |
 | WAR-SAS-RQ-122 | SDK exposes typed document, record and adapter primitives independently of compiler/service execution | D | 2, 6 | S01–S07 |
 | WAR-SAS-RQ-123 | First-party war skills adapt Pocock methods into validated OpenWarrant artifacts with attribution and version provenance | D/W | 16 | S08; Phase 3 |
-| WAR-SAS-RQ-124 | Skills reuse settled decisions, apply explicit context pointers and report observable completion without manufacturing authority | D/W | 16 | S08; Phase 3 |
+| WAR-SAS-RQ-124 | Skills reuse settled decisions, integrate scoped host context through explicit pointers and report observable completion without manufacturing authority | D/W | 16 | S08; Phase 3 |
 | WAR-SAS-RQ-125 | SDK/compiler integration validates provider capabilities, exact subjects, explicit refusals and claimed coverage | D/C | 6, 16 | Phase 2 |
 | WAR-SAS-RQ-126 | Reference webapp proves prototype and human-qualified paths with first-party integrations and actual users | W | 14–17 | Phase 3 |
 | WAR-SAS-RQ-127 | Agent signatures never satisfy the mandatory secure human acceptance for the common mark | A/W | 11–13 | S04/S05; Phase 3 |

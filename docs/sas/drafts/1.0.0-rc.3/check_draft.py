@@ -31,6 +31,23 @@ def sha(data):
     return "sha256:" + hashlib.sha256(data).hexdigest()
 
 
+def markdown_link_targets(markdown):
+    """Read prose links; fenced examples belong to the example's own context."""
+    fence = None
+    for line in markdown.splitlines():
+        marker = re.match(r"^ {0,3}(`{3,}|~{3,})(.*)$", line)
+        if fence:
+            if (marker and marker[1][0] == fence[0]
+                    and len(marker[1]) >= len(fence) and not marker[2].strip()):
+                fence = None
+            continue
+        if marker:
+            fence = marker[1]
+            continue
+        yield from re.findall(r"\]\(([^)\s]+)\)", line)
+    require(fence is None, "unclosed example fence")
+
+
 def inventory():
     result = []
     for p in sorted(BASE.rglob("*")):
@@ -124,7 +141,7 @@ def main():
 
     checked_links = 0
     for path in BASE.glob("*.md"):
-        for target in re.findall(r"\]\(([^)\s]+)\)", path.read_text()):
+        for target in markdown_link_targets(path.read_text()):
             if "://" in target or target.startswith("#"):
                 continue
             require((path.parent / target.split("#")[0]).is_file(), f"broken link: {path.name}: {target}")

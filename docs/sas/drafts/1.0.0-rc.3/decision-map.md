@@ -23,6 +23,7 @@ through adoption of this source set. They do not reinterpret old signed contract
 | Verification optional, encouraged before shipping | Every completed prototype creates required human review | SAS §§11–13; stricter repository profiles may require verification |
 | Verified mark always requires secure human signature plus evidence | Session approval alone sufficient for final assurance, or human-kind field implies proof | SAS §12; new assurance profile; SDK trust boundary |
 | Adapt Matt Pocock methods as first-party war skills | Generic tracker/HTML artifacts replacing canonical records | SAS §16; skill-adaptation.md |
+| Integrate existing AGENTS.md, CLAUDE.md, CONTEXT.md and host context through conditional pointers | Replacing host instructions, duplicating shared guidance or forcing native sources into Warrant format | SAS §16; skill adaptation integration contract; S08/SDK-07 |
 
 | Supervisor progress, decisions/domain, draft scratchpad, contract and skill views share owned source records | Repeated master documents or sending every view to every agent | SAS §19; context companion; SDK-19 |
 | A task selects context through LAMU queries but retains Warrant identity and permissions | Treating SQL or vector similarity as task authority | SAS §19; SDK-20; CTX-02/04/08 |

@@ -21,6 +21,12 @@ the OpenWarrant SDK has no mandatory SQL engine, database or model dependency.
 | Skill/context overview | Conditional pointers to relevant skills and agent instructions. Reuse the harness-supplied version when its exact identity is known; avoid duplicate instructions. |
 | Out of Context Bucket | Selection or access state for excluded records, not a second source of truth. Suppression, quarantine and destruction have separate effects below. |
 
+Native agent/domain documents remain at their source: `AGENTS.md`, `CLAUDE.md`,
+`CONTEXT.md` and other configured files can supply scoped context without conversion
+to OpenWarrant format. Their instruction role comes from the host, not their filename.
+Apply the [context integration contract](skill-adaptation.md#integration-with-existing-context-documents)
+when referencing them, preserving exact identity, scope and host precedence.
+
 The supervisor's progress entry SHALL cover its authorized project scope. Large
 inventories MAY use indexed or paged details reached from that entry. Coverage,
 filters, source revisions and as-of identity are explicit. Unknown or withheld

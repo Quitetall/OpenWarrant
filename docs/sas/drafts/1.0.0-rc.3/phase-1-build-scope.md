@@ -35,6 +35,10 @@ S03–S08 additional acceptance scenarios (not aliases for RC.2 tests):
 - SDK-07: war-grill records questions/answers and drafts the bounded outcome;
   war-spec emits a valid Warrant/ADR proposal; stage/review/map cases use their
   declared artifacts; no free-form HTML or tracker issue substitutes for the record.
+  Context-entry proposals retain host content, nested scope and exact references;
+  repeated setup adds no duplicate pointer. Refuse changed owned entries, unapproved
+  symlink targets, missing required sources and unresolved applicable-rule conflicts
+  as specified in [skill adaptation](skill-adaptation.md#integration-with-existing-context-documents).
 - SDK-08: a proposed policy change remains a proposal; prototype configuration
   cannot authorize its own escalation or waive the mark's human signature.
 - SDK-09: human/agent unverified completion without a prior OpenWarrant authorization
