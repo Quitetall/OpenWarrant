@@ -68,8 +68,9 @@ indexing that owner's data in LAMU does not transfer ownership.
 
 ## Shared cross-project Warrant
 
-Work that changes a shared contract across projects SHALL use one canonical shared
-Warrant or adapter contract at an exact revision. Local entries are references or
+Work requiring coordinated changes or deliveries from more than one project SHALL
+use one canonical shared Warrant or adapter contract at an exact revision, including
+work that preserves an existing interface. Local entries are references or
 derived work orders. They SHALL NOT independently redefine common requirements.
 This does not require every single-project task to become a shared Warrant.
 

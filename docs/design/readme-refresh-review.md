@@ -9,7 +9,7 @@ This record distinguishes the prepared change from human signing and publication
 
 - [Applied README](../../README.md): SHA-256 `468c44364589226235012fa7be7c434b0602ac03d47189f70b92dddb79aba450`.
 - [SAS entry](../sas/drafts/1.0.0-rc.3/README.md) and
-  [source set](../sas/drafts/1.0.0-rc.3/source-set.json): SHA-256 `746596fde7e10a981bd01743f04651fa0b9e3484d0769068e0877670f772d24d`.
+  [source set](../sas/drafts/1.0.0-rc.3/source-set.json): SHA-256 `a91de175269fa92663f07a38a75c19a75c0a1d07d6bb4bd6a777675567f131ce`.
 - [Context views/shared work](../sas/drafts/1.0.0-rc.3/context-views-and-shared-work.md)
   and [stop/change contract](../sas/drafts/1.0.0-rc.3/work-stop-contract.md)
   are now normative companions, included in the source-set manifest.
@@ -76,3 +76,18 @@ preflight. A commit needs its own required `review_commit` result before being
 considered done. Human correction, exact review and branch reconciliation remain
 separate from documentation checks. Actual commits/pushes are evidenced by Git,
 not by predictive claims in this note.
+
+## Post-commit observation
+
+Commit `a186ed542abbddb28c3deaa3cbc1c0e8990c72e5` received the required
+`review_commit` call; its result was `Transport closed`, not a review verdict.
+The aggregate gate on that committed tree reached 12/14 on Rust 1.97.1, with
+300 planted cases passing and six failing. Corpus still reports the pending README
+correction. Five failing plants require a clean corpus; the corrected-deliverable
+resolution plant also reports an unmet artifact-digest requirement. Do not claim
+all six are repaired before observing a rerun after the actual correction.
+
+A subsequent wording correction explicitly covers coordinated cross-project
+changes or deliveries even when the interface stays unchanged. Documentation
+inventory/refusal semantics are unchanged; the source set was regenerated. It does
+not change runtime code or clear the outstanding corpus/review requirements.
