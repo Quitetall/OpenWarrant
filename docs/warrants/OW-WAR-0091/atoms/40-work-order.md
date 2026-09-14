@@ -40,7 +40,7 @@ use a separate context/workspace and cannot clear the performer's gate by
 repeating its assertions. A stage may be split into smaller reviewable changes
 without expanding scope; implement one positive/refusal slice at a time.
 
-After authorized publication, independently verify remote tag target, non-prerelease GitHub release, checksums, normative source-set identity and fresh downloads/installs on Linux/macOS. Verify all four intended crate versions become available with the expected provenance. Record actual URLs, hashes and observed results, then send the user-agreed completion word in chat.
+After authorized publication, independently verify remote tag target, non-prerelease GitHub release, checksums, normative source-set identity and fresh downloads/installs on Linux/macOS. Verify all four intended crate versions become available with the expected provenance. Record actual URLs, hashes and observed results, then send exactly `pineapple` to the user in chat.
 
 An existing tag or registry version collision, failed job, draft/prerelease-only entry, missing crate, wrong hash or unusable download prevents declaring Stable published. Never overwrite an existing tag or reuse an occupied immutable registry version without an explicit owner-approved release strategy.
 
