@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-87 Warrant(s) in this repository.
+88 Warrant(s) in this repository.
 
 ## Summary
 
@@ -98,6 +98,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0089](docs/warrants/OW-WAR-0089/manifest.toml) | Prepare standard and SDK release artifacts | `draft` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0090](docs/warrants/OW-WAR-0090/manifest.toml) | Qualify four-phase release and freeze Stable source set | `draft` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0091](docs/warrants/OW-WAR-0091/manifest.toml) | Publish and verify OpenWarrant Stable 1.0 | `draft` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0092](docs/warrants/OW-WAR-0092/manifest.toml) | View project progress as offline HTML and a locally refreshed dashboard | `draft` | `current` | `valid` | `basic` | 1M / 1S |
 
 ## Claimed SAS requirement coverage
 
@@ -131,7 +132,7 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-043` — OW-WAR-0023, OW-WAR-0045, OW-WAR-0056, OW-WAR-0065
 - `WAR-SAS-RQ-044` — OW-WAR-0026, OW-WAR-0045, OW-WAR-0069
 - `WAR-SAS-RQ-045` — OW-WAR-0024, OW-WAR-0045, OW-WAR-0056
-- `WAR-SAS-RQ-050` — OW-WAR-0016, OW-WAR-0074, OW-WAR-0075, OW-WAR-0076, OW-WAR-0077, OW-WAR-0078, OW-WAR-0079, OW-WAR-0080, OW-WAR-0081, OW-WAR-0082, OW-WAR-0083, OW-WAR-0084, OW-WAR-0085, OW-WAR-0086, OW-WAR-0087, OW-WAR-0088, OW-WAR-0089, OW-WAR-0090, OW-WAR-0091
+- `WAR-SAS-RQ-050` — OW-WAR-0016, OW-WAR-0074, OW-WAR-0075, OW-WAR-0076, OW-WAR-0077, OW-WAR-0078, OW-WAR-0079, OW-WAR-0080, OW-WAR-0081, OW-WAR-0082, OW-WAR-0083, OW-WAR-0084, OW-WAR-0085, OW-WAR-0086, OW-WAR-0087, OW-WAR-0088, OW-WAR-0089, OW-WAR-0090, OW-WAR-0091, OW-WAR-0092
 - `WAR-SAS-RQ-051` — OW-WAR-0016
 - `WAR-SAS-RQ-052` — OW-WAR-0017
 - `WAR-SAS-RQ-053` — OW-WAR-0021, OW-WAR-0046, OW-WAR-0059

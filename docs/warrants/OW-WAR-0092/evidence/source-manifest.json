@@ -1,0 +1,13 @@
+{
+  "base": "b0985fab9e3cc81c18b1cb9771f6f114750bf757",
+  "files": {
+    "Cargo.lock": "8bd7099162d1960ed257657fa7c066d16cc5a4ec02788a719e926b38f53367b8",
+    "crates/openwarrant-cli/Cargo.toml": "aa6a2b7fc536463cebde8aa0be7a3426e8553977feb8f57575fb33ce85e74449",
+    "crates/openwarrant-cli/src/main.rs": "d77940f5a8881759bd2a88d0b3e84d4b2b49032a355756ee761c1f4e1b246cf7",
+    "crates/openwarrant-cli/src/progress_viewer.rs": "7b75c9c9301052aeca44f48e28f432299d975ae500c2dd2db9835c35b5d31832",
+    "crates/openwarrant-cli/src/progress_viewer/server.rs": "71a56aa3892b496742b062b61b345ab5bb66145cb8b6c0312bb7e1941319134d",
+    "crates/openwarrant-cli/src/progress_viewer/source.rs": "607a319a165cd21a82d4caa4be3620b54b02c34805cabe4a5358a66cd5e7425e",
+    "crates/openwarrant-cli/src/progress_viewer/view.html": "b53b2d010a1796e1570a7802d25ad6897b5cb91d65f95fd79094a1e97ea563f0",
+    "crates/openwarrant-cli/tests/progress_viewer.rs": "513cae55886ee0181ead16c6a237a990f850eea8b76ebe409b4b77da9e190e9f"
+  }
+}

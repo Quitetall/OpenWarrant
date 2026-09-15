@@ -1,20 +1,28 @@
 # Progress lookup
 
-Run `war overview --json` (`war progress` is the same command). Default lists every
-unresolved legacy record; `--all` includes resolutions. Read totals and row details;
-show a short answer unless a full list was requested. Save human output with
-`war overview > <chosen-output.md>` when a persistent overview link is wanted.
-This explicit output is a snapshot; regenerate it before claiming current state.
+Human-facing progress uses HTML. Run `war progress --html`; return the emitted
+artifact path as the work-stop link. Default output is
+`.openwarrant/state/progress.html`. An explicit path selects another snapshot.
+Regenerate before claiming current state. `war progress --serve` starts the same
+read-only view on loopback, refreshed every five seconds by default; consult
+`--help` for port and interval options. Return its URL when a live view is wanted.
 
-For one result: `war status <alias> --json`. For human acts: `war next --json`.
-For open questions: `war questions --open --json`. For stages: `war frontier --json`.
-Follow the named actor; a pending signature is never an agent action.
+For machine lookup, use `war overview --json` (`war progress` is the same command).
+Default JSON/text lists unresolved legacy records; `--all` includes resolutions.
+Remaining means unresolved, not unfinished code. On an older binary without
+HTML support, link the existing generated `CORPUS_STATUS.html` and disclose its
+legacy-only snapshot semantics; do not substitute raw JSON as the human artifact.
 
-Current command reports legacy record state. `remaining` means unresolved, not a
-measurement of unfinished code. It cannot observe future SDK prototype completion
-records or award Verified marks. Read the candidate roadmap for intended phase
-ownership; keep that planning view separate from observed runtime status.
+For implementation reporting, read the viewer adapter contract at
+`docs/warrants/OW-WAR-0092/implementation/viewer-contract.md` in this source repo.
+At a work stop, record actual scope, source revision and evidence in the Warrant's
+`implementation/progress.json`, then regenerate HTML. Report only observed work;
+missing evidence is not invented. This adapter is an attributed display claim,
+not an SDK assurance record. Unknown implementation stays unknown, and legacy
+resolution alone never supplies the new Verified mark.
 
-On an older binary without overview, use `war status --json` and filter unresolved
-rows from its live result; disclose fallback. On command failure, report UNKNOWN
-and the diagnostic, not zero remaining. Do not silently use stale generated views.
+For one legacy record: `war status <alias> --json`. Human acts: `war next --json`.
+Open questions: `war questions --open --json`. Stages: `war frontier --json`.
+Follow named actors; pending signatures are not universal prototype start gates.
+On lookup failure, report UNKNOWN and diagnostics, never zero remaining. Live
+view retains its last good snapshot and labels stale/disconnected state.

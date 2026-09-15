@@ -1,0 +1,16 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0076",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "e3e16813a9aa8a917dfd2cbf285a94856cedc3ec",
+  "summary": "SDK author/edit complete. 14-step gate, 747 Rust tests and 308 mutation checks passed; PR #67 merged.",
+  "notes": "docs/warrants/OW-WAR-0076/implementation/sdk-author-notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0076/evidence/sdk-author/completion.json",
+    "docs/warrants/OW-WAR-0076/evidence/sdk-author/gate.log"
+  ],
+  "next_steps": [
+    "OW-WAR-0077 Phase 1: source identity, snapshot and reference types."
+  ]
+}
