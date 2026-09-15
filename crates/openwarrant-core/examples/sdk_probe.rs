@@ -8,6 +8,8 @@ use openwarrant_core::document::{
 mod author;
 #[path = "sdk_probe/conditions.rs"]
 mod conditions;
+#[path = "sdk_probe/packet.rs"]
+mod packet;
 #[path = "sdk_probe/source.rs"]
 mod source;
 use serde::Deserialize;
@@ -68,10 +70,13 @@ fn run() -> Result<(), String> {
             }
         }
     }
-    if !matches!(scope.as_deref(), Some("75" | "76" | "77" | "78")) {
-        return Err("This driver implements --scope 75, 76, 77 or 78".into());
+    if !matches!(scope.as_deref(), Some("75" | "76" | "77" | "78" | "81")) {
+        return Err("This driver implements --scope 75, 76, 77, 78 or 81".into());
     }
     let root = std::path::PathBuf::from(fixtures.ok_or("--fixtures is required")?);
+    if scope.as_deref() == Some("81") {
+        return packet::run(&root);
+    }
     if scope.as_deref() == Some("78") {
         return conditions::run(&root);
     }
