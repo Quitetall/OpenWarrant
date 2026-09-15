@@ -1,0 +1,337 @@
+{
+  "schema": "oh.war/sdk-source-cases/v1",
+  "cases": [
+    {
+      "id": "SDK77-opaque",
+      "sources": [
+        {
+          "descriptor": "abc.json",
+          "blob": "abc.bin"
+        }
+      ],
+      "references": [],
+      "expected_lock": "abc.lock.json",
+      "error": null
+    },
+    {
+      "id": "SDK77-unit-span",
+      "sources": [
+        {
+          "descriptor": "task.json",
+          "blob": "task.md"
+        }
+      ],
+      "references": [
+        {
+          "reference": {
+            "source_digest": "sha256:16126178787a0ae75a6503ae225da07b428ae1c60d72498bdf0aa66284711fc8",
+            "unit": "outcome",
+            "start": 33,
+            "end": 143
+          },
+          "expected": "outcome.txt"
+        }
+      ],
+      "expected_lock": "task.lock.json",
+      "error": null
+    },
+    {
+      "id": "SDK77-digest-drift",
+      "sources": [
+        {
+          "descriptor": "task.json",
+          "blob": "changed.md"
+        }
+      ],
+      "references": [],
+      "expected_lock": null,
+      "error": "digest-mismatch"
+    },
+    {
+      "id": "SDK77-forged-identity",
+      "sources": [
+        {
+          "descriptor": "wrong-identity.json",
+          "blob": "task.md"
+        }
+      ],
+      "references": [],
+      "expected_lock": null,
+      "error": "source-mismatch"
+    },
+    {
+      "id": "SDK77-unsafe-path",
+      "sources": [
+        {
+          "descriptor": "unsafe-path.json",
+          "blob": "task.md"
+        }
+      ],
+      "references": [],
+      "expected_lock": null,
+      "error": "target-invalid"
+    },
+    {
+      "id": "SDK77-wrong-length",
+      "sources": [
+        {
+          "descriptor": "wrong-length.json",
+          "blob": "task.md"
+        }
+      ],
+      "references": [],
+      "expected_lock": null,
+      "error": "source-mismatch"
+    },
+    {
+      "id": "SDK77-duplicate-path",
+      "sources": [
+        {
+          "descriptor": "task.json",
+          "blob": "task.md"
+        },
+        {
+          "descriptor": "task.json",
+          "blob": "task.md"
+        }
+      ],
+      "references": [],
+      "expected_lock": null,
+      "error": "source-ambiguous"
+    },
+    {
+      "id": "SDK77-conflicting-identity",
+      "sources": [
+        {
+          "descriptor": "task.json",
+          "blob": "task.md"
+        },
+        {
+          "descriptor": "conflicting.json",
+          "blob": "changed.md"
+        }
+      ],
+      "references": [],
+      "expected_lock": null,
+      "error": "source-ambiguous"
+    },
+    {
+      "id": "SDK77-order-a",
+      "sources": [
+        {
+          "descriptor": "task.json",
+          "blob": "task.md"
+        },
+        {
+          "descriptor": "abc.json",
+          "blob": "abc.bin"
+        }
+      ],
+      "references": [],
+      "expected_lock": "combined.lock.json",
+      "error": null
+    },
+    {
+      "id": "SDK77-order-b",
+      "sources": [
+        {
+          "descriptor": "abc.json",
+          "blob": "abc.bin"
+        },
+        {
+          "descriptor": "task.json",
+          "blob": "task.md"
+        }
+      ],
+      "references": [],
+      "expected_lock": "combined.lock.json",
+      "error": null
+    },
+    {
+      "id": "SDK77-range-drift",
+      "sources": [
+        {
+          "descriptor": "task.json",
+          "blob": "task.md"
+        }
+      ],
+      "references": [
+        {
+          "reference": {
+            "source_digest": "sha256:16126178787a0ae75a6503ae225da07b428ae1c60d72498bdf0aa66284711fc8",
+            "unit": "outcome",
+            "start": 33,
+            "end": 142
+          },
+          "expected": "outcome.txt"
+        }
+      ],
+      "expected_lock": null,
+      "error": "range-mismatch"
+    },
+    {
+      "id": "SDK77-missing-source",
+      "sources": [
+        {
+          "descriptor": "task.json",
+          "blob": "task.md"
+        }
+      ],
+      "references": [
+        {
+          "reference": {
+            "source_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "unit": "outcome",
+            "start": 33,
+            "end": 143
+          },
+          "expected": "outcome.txt"
+        }
+      ],
+      "expected_lock": null,
+      "error": "source-missing"
+    },
+    {
+      "id": "SDK77-missing-unit",
+      "sources": [
+        {
+          "descriptor": "task.json",
+          "blob": "task.md"
+        }
+      ],
+      "references": [
+        {
+          "reference": {
+            "source_digest": "sha256:16126178787a0ae75a6503ae225da07b428ae1c60d72498bdf0aa66284711fc8",
+            "unit": "absent",
+            "start": 33,
+            "end": 143
+          },
+          "expected": "outcome.txt"
+        }
+      ],
+      "expected_lock": null,
+      "error": "target-missing"
+    },
+    {
+      "id": "SDK77-opaque-unit",
+      "sources": [
+        {
+          "descriptor": "abc.json",
+          "blob": "abc.bin"
+        }
+      ],
+      "references": [
+        {
+          "reference": {
+            "source_digest": "sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+            "unit": "outcome",
+            "start": 0,
+            "end": 3
+          },
+          "expected": "abc.bin"
+        }
+      ],
+      "expected_lock": null,
+      "error": "target-missing"
+    },
+    {
+      "id": "SDK77-false-authority",
+      "sources": [
+        {
+          "descriptor": "false-authority.json",
+          "blob": "abc.bin"
+        }
+      ],
+      "references": [],
+      "expected_lock": null,
+      "error": "source-invalid"
+    },
+    {
+      "id": "SDK77-renamed-heading",
+      "sources": [
+        {
+          "descriptor": "renamed.json",
+          "blob": "renamed.md"
+        }
+      ],
+      "references": [],
+      "expected_lock": "renamed.lock.json",
+      "error": null
+    },
+    {
+      "id": "SDK77-old-reference",
+      "sources": [
+        {
+          "descriptor": "renamed.json",
+          "blob": "renamed.md"
+        }
+      ],
+      "references": [
+        {
+          "reference": {
+            "source_digest": "sha256:16126178787a0ae75a6503ae225da07b428ae1c60d72498bdf0aa66284711fc8",
+            "unit": "outcome",
+            "start": 33,
+            "end": 143
+          },
+          "expected": "outcome.txt"
+        }
+      ],
+      "expected_lock": null,
+      "error": "source-missing"
+    },
+    {
+      "id": "SDK77-crlf-unicode",
+      "sources": [
+        {
+          "descriptor": "crlf.json",
+          "blob": "crlf.md"
+        }
+      ],
+      "references": [
+        {
+          "reference": {
+            "source_digest": "sha256:0432a7936b897824f060aaaa63a4ccc94d6dffa1c88f9909d38c7c0d1f29c347",
+            "unit": "outcome",
+            "start": 34,
+            "end": 151
+          },
+          "expected": "crlf-outcome.txt"
+        }
+      ],
+      "expected_lock": "crlf.lock.json",
+      "error": null
+    },
+    {
+      "id": "SDK77-mixed-sources",
+      "sources": [
+        {
+          "descriptor": "task.json",
+          "blob": "task.md"
+        },
+        {
+          "descriptor": "architecture.json",
+          "blob": "architecture.md"
+        },
+        {
+          "descriptor": "abc.json",
+          "blob": "abc.bin"
+        }
+      ],
+      "references": [
+        {
+          "reference": {
+            "source_digest": "sha256:df6856e5fa47d36f3e4b15e1452957051747edbe94a96d65533068b6567527fa",
+            "unit": "decision",
+            "start": 303,
+            "end": 389
+          },
+          "expected": "decision.txt"
+        }
+      ],
+      "expected_lock": "mixed.lock.json",
+      "error": null
+    }
+  ]
+}

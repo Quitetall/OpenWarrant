@@ -2,7 +2,7 @@
 use super::{Diagnostic, Document, MetadataValue, scan::unit_id};
 use std::collections::BTreeSet;
 
-fn path(value: &str) -> bool {
+pub(super) fn path(value: &str) -> bool {
     !value.is_empty()
         && !value
             .chars()

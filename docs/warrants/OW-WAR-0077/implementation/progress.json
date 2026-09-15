@@ -1,0 +1,14 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0077",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "8f688e1e531a0a9bc7a5711a78c4583d8cc09f3e",
+  "summary": "Implementing pure SDK source descriptors, snapshot checks and bound-reference checks. Provider capture/resolution integration remains a separate stage.",
+  "notes": "docs/warrants/OW-WAR-0077/implementation/notes.md",
+  "evidence": [],
+  "next_steps": [
+    "Prove exact supplied bytes and reference ranges through public tests.",
+    "Validate provider integration requirements; retain real-provider gaps explicitly."
+  ]
+}

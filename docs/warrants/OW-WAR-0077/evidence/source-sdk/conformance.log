@@ -1,0 +1,22 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.04s
+     Running `target/debug/examples/sdk_probe --scope 77 --fixtures conformance/sdk`
+PASS SDK77-opaque
+PASS SDK77-unit-span
+PASS SDK77-digest-drift
+PASS SDK77-forged-identity
+PASS SDK77-unsafe-path
+PASS SDK77-wrong-length
+PASS SDK77-duplicate-path
+PASS SDK77-conflicting-identity
+PASS SDK77-order-a
+PASS SDK77-order-b
+PASS SDK77-range-drift
+PASS SDK77-missing-source
+PASS SDK77-missing-unit
+PASS SDK77-opaque-unit
+PASS SDK77-false-authority
+PASS SDK77-renamed-heading
+PASS SDK77-old-reference
+PASS SDK77-crlf-unicode
+PASS SDK77-mixed-sources
+19 source cases passed; supplied-byte integrity only; capture, access, context completeness, readiness and authority not evaluated
