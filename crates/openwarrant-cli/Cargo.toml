@@ -38,3 +38,6 @@ toml = { workspace = true }
 # `war schemas`: the JSON Schema pack, generated from the record types.
 # Off in the shipped binary; `cargo xtask gate` builds it on.
 schema = ["openwarrant-core/schema", "openwarrant-compiler/schema"]
+
+[target.'cfg(unix)'.dependencies]
+rustix = { version = "=1.1.4", features = ["fs"] }
