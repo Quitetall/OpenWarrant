@@ -646,7 +646,7 @@ pub fn encode_packet(packet: &Packet, limit: PacketLimits) -> Result<Vec<u8>, Di
     serde_jcs::to_vec(packet).map_err(|e| invalid(&e.to_string()))
 }
 
-fn check_json_depth(
+pub(super) fn check_json_depth(
     value: &serde_json::Value,
     depth: usize,
     remaining: &mut usize,
@@ -718,7 +718,7 @@ pub struct CompileBasis {
     pub records: Vec<BTreeMap<String, serde_json::Value>>,
     pub options: CompileOptions,
 }
-fn validate_basis_shape(basis: &CompileBasis) -> Result<(), Diagnostic> {
+pub(super) fn validate_basis_shape(basis: &CompileBasis) -> Result<(), Diagnostic> {
     if basis.schema != "oh.war/compile-request/1.0.0-rc.2"
         || !matches!(basis.mode.as_str(), "task" | "master")
         || basis.compiler.is_empty()
