@@ -1,0 +1,45 @@
+{
+  "schema": "oh.war/sdk-condition-cases/v1",
+  "cases": [
+    {
+      "id": "all-fields",
+      "file": "all-fields.toml",
+      "error": null
+    },
+    {
+      "id": "unicode-path",
+      "file": "unicode-path.toml",
+      "error": null
+    },
+    {
+      "id": "unknown-operator",
+      "file": "unknown-operator.toml",
+      "error": "condition-invalid"
+    },
+    {
+      "id": "empty-list",
+      "file": "empty-list.toml",
+      "error": "condition-invalid"
+    },
+    {
+      "id": "embedded-double-star",
+      "file": "embedded-double-star.toml",
+      "error": "condition-invalid"
+    },
+    {
+      "id": "traversal",
+      "file": "traversal.toml",
+      "error": "condition-invalid"
+    },
+    {
+      "id": "wrong-type",
+      "file": "wrong-type.toml",
+      "error": "condition-invalid"
+    },
+    {
+      "id": "empty-table",
+      "file": "empty-table.toml",
+      "error": "condition-invalid"
+    }
+  ]
+}
