@@ -31,3 +31,23 @@ subtraction, without panic. No changes were made for those false positives.
 Participant pull request: https://github.com/Quitetall/lamu/pull/2 (draft; existing
 baseline lint failures remain). This is the actual published provider revision,
 not a simulated response adapter.
+
+
+Follow-up provider revision 7ab57b5d52430f727ece3485443702a0f5ca794b fixes FIFO
+fixture construction on macOS with POSIX mkfifo. Both focused Linux and macOS CI
+jobs pass (ci.json). This advances the platform evidence beyond the frozen shared
+contract's drafting-time statement that macOS proof was absent. The source
+provider API and contract hash remain unchanged.
+
+The portable fixture commit review passed with nits. The suggested
+rustix::fs::mkfifo replacement does not exist in pinned rustix1.1.4; tests require
+the POSIX utility and use unique, automatically cleaned temporary directories.
+OpenWarrant's integration commit review also passed with nits: the exact dependency
+pin check intentionally rejects unreviewed feature/configuration changes; added
+tests must also pass because Cargo's process exit is checked; counting before
+allocation is a required resource contract, not merely style.
+
+OpenWarrant aggregate gate at 75eadb55baccfb0cd3b2d8766f8c5dd45f6330e4:
+Rust1.97.1, 14/14 steps, 308 planted refusals, exit0. gate.log retains full output.
+The driver also rejected altered fixture bytes with exit1 and wrote no receipt
+(driver-refusal.json). Participant merges remain pending; no assurance inferred.

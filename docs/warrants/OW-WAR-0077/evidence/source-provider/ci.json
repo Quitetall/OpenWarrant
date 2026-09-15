@@ -1,0 +1,19 @@
+{
+  "provider_revision": "7ab57b5d52430f727ece3485443702a0f5ca794b",
+  "run": "https://github.com/Quitetall/lamu/actions/runs/35018809123",
+  "provider_linux": {
+    "state": "SUCCESS",
+    "url": "https://github.com/Quitetall/lamu/actions/runs/35018809123/job/104548919562"
+  },
+  "provider_macos": {
+    "state": "SUCCESS",
+    "url": "https://github.com/Quitetall/lamu/actions/runs/35018809123/job/104548918999"
+  },
+  "participant_merge": "pending",
+  "other_failures": [
+    "Existing default formatting/Clippy failures",
+    "cargo-deny reports existing dependency advisories/yanked crate and container toolchain mismatch",
+    "gitleaks cannot access pull request (HTTP403)",
+    "Existing package and Windows jobs fail"
+  ]
+}

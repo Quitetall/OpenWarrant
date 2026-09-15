@@ -82,3 +82,9 @@ Rust 1.89 formatting and Clippy checks fail in unrelated runtime code. Its new
 optional provider passes focused Rust 1.97.1 tests, formatting and Clippy. No live
 LAMU service or unrelated local changes were replaced. Sequential file rechecks
 cannot establish atomic cross-file snapshots; this limit is explicit in the profile.
+
+
+Latest provider revision: 7ab57b5d52430f727ece3485443702a0f5ca794b. Focused Linux
+and macOS CI both pass after the portable FIFO fixture fix. OpenWarrant gate at
+75eadb5 passes14/14. See source-provider/ci.json and review.md for exact evidence.
+Wider LAMU CI still blocks participant integration; OW-WAR-0077 remains in progress.

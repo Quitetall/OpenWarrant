@@ -3,14 +3,16 @@
   "warrant": "OW-WAR-0077",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "revision": "8f048eee8c5679660e20537f82ddf1b923b21a3f",
-  "summary": "SDK merged. Real LAMU source provider implemented; five integration tests and independent Spec/Standards reviews pass. Participant merge pending: existing LAMU default fmt/Clippy failures remain.",
+  "revision": "75eadb55baccfb0cd3b2d8766f8c5dd45f6330e4",
+  "summary": "SDK and real LAMU source provider implemented. Linux/macOS provider CI and independent reviews pass; OpenWarrant gate 14/14. Participant merge remains blocked by wider LAMU CI failures.",
   "notes": "docs/warrants/OW-WAR-0077/implementation/notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0077/evidence/source-sdk/gate.log",
     "docs/warrants/OW-WAR-0077/evidence/source-sdk/conformance.log",
     "docs/warrants/OW-WAR-0077/evidence/source-sdk/review.md",
-    "docs/warrants/OW-WAR-0077/evidence/source-provider/observation.json"
+    "docs/warrants/OW-WAR-0077/evidence/source-provider/observation.json",
+    "docs/warrants/OW-WAR-0077/evidence/source-provider/ci.json",
+    "docs/warrants/OW-WAR-0077/evidence/source-provider/review.md"
   ],
   "next_steps": [
     "Merge the reviewed LAMU provider and OpenWarrant integration records after required checks pass.",

@@ -8,7 +8,7 @@
     "sdk_revision": "8f048eee8c5679660e20537f82ddf1b923b21a3f",
     "contract_sha256": "13b843dd49dd1ee50f36489a917971ab3ddaa5c9d1fed9ebc8b23a88cf94edde"
   },
-  "provider_git_head": "9ff093b75439c9a7f674260ebddba20aee01fbef",
+  "provider_git_head": "7ab57b5d52430f727ece3485443702a0f5ca794b",
   "provider_worktree_status": "",
   "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
   "inputs_sha256": {
@@ -18,7 +18,7 @@
     "lamu-openwarrant/src/lib.rs": "b0cf4521f9382c50cff21d0d9fa3f180ea7d74c505278a19489fee139c5326cc",
     "lamu-openwarrant/tests/fixtures/architecture.md": "df6856e5fa47d36f3e4b15e1452957051747edbe94a96d65533068b6567527fa",
     "lamu-openwarrant/tests/fixtures/task.md": "16126178787a0ae75a6503ae225da07b428ae1c60d72498bdf0aa66284711fc8",
-    "lamu-openwarrant/tests/source.rs": "5c2088dad50d553d3def94d7727321974031cef3a1e1f462c2ef72dc1bc64631",
+    "lamu-openwarrant/tests/source.rs": "8cb7bc8fe612ab2dbbe5850f76558d491101a791dd46d6ac5422ed23bd1fd142",
     "Cargo.lock": "47241a96099fe1e9c7ea47f5d15329ab9b2c88f6b7b36c22c04a9517d4d0b02e",
     "Cargo.toml": "8f9a06f230e95c09062338208d4b716c18a840c4055854138212fd50e05fe6a0"
   },
