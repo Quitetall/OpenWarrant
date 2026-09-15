@@ -3,16 +3,17 @@
   "warrant": "OW-WAR-0077",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "revision": "593fbc287ba3287579b43604d0de1406ab1c1505",
-  "summary": "Phase 1 source/reference SDK implemented and tested: 14/14 gate steps, 762 Rust tests, 308 refusal cases, 19 conformance cases. Phase 2 real-provider integration remains pending.",
+  "revision": "8f048eee8c5679660e20537f82ddf1b923b21a3f",
+  "summary": "SDK merged. Real LAMU source provider implemented; five integration tests and independent Spec/Standards reviews pass. Participant merge pending: existing LAMU default fmt/Clippy failures remain.",
   "notes": "docs/warrants/OW-WAR-0077/implementation/notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0077/evidence/source-sdk/gate.log",
     "docs/warrants/OW-WAR-0077/evidence/source-sdk/conformance.log",
-    "docs/warrants/OW-WAR-0077/evidence/source-sdk/review.md"
+    "docs/warrants/OW-WAR-0077/evidence/source-sdk/review.md",
+    "docs/warrants/OW-WAR-0077/evidence/source-provider/observation.json"
   ],
   "next_steps": [
-    "Define the shared source-provider capability and request/response contract.",
-    "Implement and test real-provider capture/resolution against T11\u2013T15; retain unverified status until assurance requirements are met."
+    "Merge the reviewed LAMU provider and OpenWarrant integration records after required checks pass.",
+    "Retain unverified status; human assurance remains separate."
   ]
 }

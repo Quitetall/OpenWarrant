@@ -1,0 +1,65 @@
+{
+  "format": "openwarrant-source-integration-observation/1",
+  "passed": true,
+  "profile": {
+    "id": "lamu.openwarrant.local-source/1",
+    "provider": "lamu-openwarrant",
+    "version": "0.1.0",
+    "sdk_revision": "8f048eee8c5679660e20537f82ddf1b923b21a3f",
+    "contract_sha256": "13b843dd49dd1ee50f36489a917971ab3ddaa5c9d1fed9ebc8b23a88cf94edde"
+  },
+  "provider_git_head": "9ff093b75439c9a7f674260ebddba20aee01fbef",
+  "provider_worktree_status": "",
+  "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "inputs_sha256": {
+    "lamu-openwarrant/CONTRACT.md": "5adf9ae3c6eac57617a7d2cd4997016536e759da2900753eafae21b58b28eb07",
+    "lamu-openwarrant/Cargo.toml": "45aef6ff34e36bca7dee60f040b25a515e2593d9f3835d11f4bb0fcd1abbb958",
+    "lamu-openwarrant/examples/profile.rs": "8f6dd69af1b55c2a19587fb8ecd3c2e7306127374072dc6b91cbab4703a7625c",
+    "lamu-openwarrant/src/lib.rs": "b0cf4521f9382c50cff21d0d9fa3f180ea7d74c505278a19489fee139c5326cc",
+    "lamu-openwarrant/tests/fixtures/architecture.md": "df6856e5fa47d36f3e4b15e1452957051747edbe94a96d65533068b6567527fa",
+    "lamu-openwarrant/tests/fixtures/task.md": "16126178787a0ae75a6503ae225da07b428ae1c60d72498bdf0aa66284711fc8",
+    "lamu-openwarrant/tests/source.rs": "5c2088dad50d553d3def94d7727321974031cef3a1e1f462c2ef72dc1bc64631",
+    "Cargo.lock": "47241a96099fe1e9c7ea47f5d15329ab9b2c88f6b7b36c22c04a9517d4d0b02e",
+    "Cargo.toml": "8f9a06f230e95c09062338208d4b716c18a840c4055854138212fd50e05fe6a0"
+  },
+  "profile_process": {
+    "argv": [
+      "cargo",
+      "+1.97.1",
+      "run",
+      "--locked",
+      "--quiet",
+      "-p",
+      "lamu-openwarrant",
+      "--example",
+      "profile"
+    ],
+    "exit_code": 0,
+    "stdout": "{\"id\":\"lamu.openwarrant.local-source/1\",\"provider\":\"lamu-openwarrant\",\"version\":\"0.1.0\",\"sdk_revision\":\"8f048eee8c5679660e20537f82ddf1b923b21a3f\",\"contract_sha256\":\"13b843dd49dd1ee50f36489a917971ab3ddaa5c9d1fed9ebc8b23a88cf94edde\"}\n",
+    "stderr": ""
+  },
+  "tests": {
+    "argv": [
+      "cargo",
+      "+1.97.1",
+      "test",
+      "--locked",
+      "-p",
+      "lamu-openwarrant",
+      "--test",
+      "source",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit_code": 0,
+    "stdout": "\nrunning 5 tests\ntest aggregate_budget_stops_before_next_filesystem_lookup ... ok\ntest capture_original_bytes_and_refuse_changed_source_without_replacing_prior_snapshot ... ok\ntest filesystem_boundary_refuses_escape_symlinks_special_files_and_limits ... ok\ntest mixed_sources_have_deterministic_locks_and_distinct_integrity_refusals ... ok\ntest resolve_units_from_actual_capture_preserves_old_basis_after_heading_rename ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+    "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.08s\n     Running tests/source.rs (target/debug/deps/source-c2caa3f0ef7ea8e4)\n"
+  },
+  "scope": "T11-T15 local Unix source profile plus aggregate-budget regression",
+  "limitations": [
+    "No human assurance",
+    "No atomic cross-file filesystem snapshot",
+    "No dependency closure or context compiler",
+    "Host OS only"
+  ]
+}
