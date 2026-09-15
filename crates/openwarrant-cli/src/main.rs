@@ -36,6 +36,7 @@ mod migrate;
 mod new;
 mod next;
 mod output;
+mod overview;
 mod perform;
 mod pins;
 mod plan;
@@ -763,6 +764,14 @@ enum Command {
     /// What should happen next, and whose act it is. An agent is never handed
     /// a signing act; it is told that a human must sign, and how.
     Next,
+    /// List remaining Warrant records and status, read-only, from live sources.
+    /// `progress` is an alias. Legacy resolution is not implementation completion.
+    #[command(visible_alias = "progress")]
+    Overview {
+        /// Include records with an existing resolution.
+        #[arg(long)]
+        all: bool,
+    },
     /// Where the corpus stands, from records (§17.5 `status`; §34.3; §98).
     ///
     /// Bare `war status` is the corpus projection. `war status <alias>` is the
@@ -1730,6 +1739,17 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 "next",
                 next::render(&next).trim_end(),
                 output::value(&next),
+            );
+            Ok(EXIT_OK)
+        }
+        Command::Overview { all } => {
+            let repository = repo::Repository::discover(None)?;
+            let view = overview::build(status::build(&repository)?, all);
+            output::emit(
+                mode,
+                "overview",
+                &overview::render(&view),
+                output::value(&view),
             );
             Ok(EXIT_OK)
         }

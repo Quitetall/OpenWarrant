@@ -1,0 +1,20 @@
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "No measured evidence includes process invocations of `war init`; the unit tests (e.g., init::tests::init_writes_config_and_directories) are excluded by scope, and the CI gate runs `war check`, not `war init`."
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

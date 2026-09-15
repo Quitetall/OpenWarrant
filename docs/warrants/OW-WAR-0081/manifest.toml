@@ -8,7 +8,7 @@ local_alias = "OW-WAR-0081"
 # Allocated only by Knowledge Fabric (SAS §12.4). Leave empty.
 enterprise_id = ""
 
-title = "Export and verify portable offline context packages"
+title = "Inspect packet integrity and prove offline provider packages"
 profile = "delivery"
 assurance_level = "basic"
 

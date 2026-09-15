@@ -1,0 +1,16 @@
+schema = "oh.war/correction/v1"
+warrant = "OW-WAR-0062"
+
+[correction]
+id = "01a0a25d-0e8f-7f53-a9d7-ed79a8d5c63f"
+deliverable_id = "D-003"
+target_ref = "README.md"
+sequence = 2
+superseded_digest = "sha256:b847f03a5d91f7eddd3fbb983d52e86cfd11ceca639f25725372025e7a545680"
+new_digest = "sha256:468c44364589226235012fa7be7c434b0602ac03d47189f70b92dddb79aba450"
+reason = """README.md moved after its resolution at 2026-09-03T03:30:00Z: 2 commit(s) touched it, "docs: consolidate RC.3 standard, context views and work-stop contracts"; "release: the relicense to Apache-2.0, and seven authorizations the owner signed (OW-ADR-0017, OW-WAR-0067 STAGE-001 and STAGE-004)". Each states its own          change; this correction records that the delivered bytes moved with them. Presented on a terminal by `war sign 1.0.0` and confirmed by the signer; the decision is the signer's and the template is the tool's."""
+kind = "behaviour-change"
+authorized_by_ref = "person://Brian Lam"
+acting_role_ref = "role://authorizer"
+effective_at = "2026-09-15T00:00:01Z"
+recorded_at = "2026-09-15T00:00:02Z"

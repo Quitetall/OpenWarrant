@@ -1,0 +1,46 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "Gate Definitions carry identity, version, and lifecycle"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "An unqualified definition cannot be bound"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002"]
+
+  - id: "M3"
+    title: "An obligation citing an unbound gate is refused"
+    depends_on: ['M2']
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-003"]
+
+  - id: "M4"
+    title: "Bindings digest under their declared domain"
+    depends_on: ['M2']
+    stage_refs: ["STAGE-004"]
+    obligation_refs: ["OBL-004"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Implement §43.2–§43.3"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-002"
+    title: "Plant a binding to an unqualified gate"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-003"
+    title: "Plant the dangling citation"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-004"
+    title: "Wire gate_binding_digest"
+    executor_kind: "human"
+    responsibility_tier: "T2"

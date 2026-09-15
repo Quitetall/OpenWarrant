@@ -11,27 +11,25 @@ classification: internal
 
 ## Problem
 
-The RC.2 build requires the bounded result below; the existing implementation
-does not establish this new contract merely by having similar legacy commands.
+The revised product needs publish and verify openwarrant stable 1.0. Legacy command behavior does not
+establish this SDK/provider contract.
 
 ## Desired Outcome
 
-1. Stable 1.0 standard and compiler are publicly available, correctly labeled and usable from fresh installations; only then is the agreed chat completion signal sent.
-2. A reviewer can reproduce the named positive and refusal observations at
-   Public release ref, downloadable artifacts and registry consumers at one approved Stable revision.
+Publish only after exact release qualification and owner release permission. Re-download and verify published artifacts/registries against approved digests. Say the configured final release completion word only after actual Stable publication is proved.
 
 ## Scope
 
-Publication: RELEASE-PUBLISHED.
+Phase 4 publication; RELEASE-PUBLISHED. Owner: OpenWarrant owner. Primary phase: 4.
+Mixed-phase work delivers its standalone SDK subset before provider integration.
 
 ## Non-goals
 
-No work outside this bounded result. No historical signatures are rewritten.
-No tracker TUI, service, browser, agent launcher, hotline or sibling integration
-is required before Stable 1.0. Those workflows belong to Phase 3.
+No ownership of a second semantic compiler, no inferred permissions, no historical
+signature rewriting. Phase 3 workflow delivery and Phase 4 promotion remain
+separate from a Phase 1 library result. No work outside the stated outcome.
 
 ## SAS and Roadmap Traceability
 
-The current SAS requirement WAR-SAS-RQ-050 governs bounded acceptance obligations.
-The candidate feature/case mapping above defines the prospective RC.2 behavior.
-The implementation roadmap records this Warrant's prerequisite edges and phase.
+SAS RC.3 and its migration map assign this scope. WAR-SAS-RQ-050 remains the
+legacy trace for bounded obligations, not an assertion that RC.3 is accepted.

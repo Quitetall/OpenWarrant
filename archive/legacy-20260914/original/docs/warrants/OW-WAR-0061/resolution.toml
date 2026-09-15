@@ -1,0 +1,20 @@
+schema = "oh.war/resolution/v1"
+warrant = "OW-WAR-0061"
+
+[resolution]
+id = "01a06474-4ca5-7c70-9912-de18d591e3b0"
+common_outcome = "satisfied"
+profile_outcome = "delivered"
+contract_revision = 1
+contract_digest = "59b98c2d3696a7991b01ef7e9975da8bfb9f13b64180df84ca57f48e7dd1f264"
+assurance_case_snapshot_digest = "sha256:a2af5fb680ec2a19c78caf7cbb0d35ac734f7fe4563abf3e4cc5dd1a94cf83dd"
+artifact_manifest_digest = "sha256:b0d1b116273e360e132a997839dcedd2c1198b8d82897fb60891e57588b1fac0"
+gate_run_refs = ["docs/warrants/OW-WAR-0061/gate-runs/software_repo_war-check_1_0_0.receipt.json"]
+judgment_refs = ["judgment://J-001"]
+residual_risk_refs = ["assumption://A-001"]
+resolved_by_ref = "person://Brian Lam"
+acting_role_ref = "role-assignment://Brian Lam/resolver"
+meaning = """Resolving OW-WAR-0061 (Discharge the Phase 1 exit: OpenWarrant development uses WARs) as satisfied asserts that the Phase 1 Exit is discharged on the reading its basis states — the corpus exists, compiles, is authorized (57 of 57) and can close through §56 (8 resolved) — with every number in PHASE1_EXIT.md re-measured on 2026-09-03 after the verifier refuted the stale count; every declared obligation (OBL-001, OBL-002, OBL-003, OBL-004) was established by an admissible independent verification, and the cited gate ran against this exact contract and passed. It asserts nothing about the stricter reading (24 of 91 commits name a Warrant). Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 ("Get them all done"); the decision is the owner's, the wording is the agent's."""
+effective_at = "2026-09-03T01:00:00Z"
+recorded_at = "2026-09-02T23:28:58Z"
+standing = "valid"

@@ -7,12 +7,21 @@ plant_cmd "agents-md refuses to clobber without --force" "agents-md.exists" "AGE
     "true" \
     agents-md
 
-# The template renders for this repository byte-for-byte as the committed file:
-# one source of rules for this repository's agents and every adopter's.
-if diff -q <(./target/debug/war agents-md --stdout) AGENTS.md > /dev/null; then
-    printf 'ok    %-34s AGENTS.md is the rendered template\n' "agents-md template matches the file"
+# The generic legacy template stays byte-for-byte equal to the linked workflow
+# reference. Root AGENTS.md retains this repository's own context and routing.
+LEGACY_AGENT_REFERENCE="docs/agents/legacy-warrant-workflow.md"
+if diff -q <(./target/debug/war agents-md --stdout) "$LEGACY_AGENT_REFERENCE" > /dev/null; then
+    printf 'ok    %-34s legacy reference is the rendered template\n' "agents-md template matches reference"
     PASSED=$((PASSED + 1))
 else
-    printf 'FAIL  %-34s AGENTS.md drifted from the template\n' "agents-md template matches the file"
+    printf 'FAIL  %-34s legacy reference drifted from the template\n' "agents-md template matches reference"
+    FAILED=$((FAILED + 1))
+fi
+
+if grep -Fq -- "]($LEGACY_AGENT_REFERENCE)" AGENTS.md; then
+    printf 'ok    %-34s root instructions link the legacy workflow\n' "agents-md preserves root routing"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s root instructions lost the legacy workflow link\n' "agents-md preserves root routing"
     FAILED=$((FAILED + 1))
 fi

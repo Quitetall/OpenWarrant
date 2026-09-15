@@ -1,0 +1,35 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "The typed action vocabulary and envelope exist"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "A direct status edit is unrepresentable"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002"]
+
+  - id: "M3"
+    title: "Stale writes are refused and retries do not double-apply"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-003"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Implement §67 and §67.1"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-002"
+    title: "Attempt a direct write; it must not compile or must refuse"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-003"
+    title: "Plant a stale write and a duplicate retry"
+    executor_kind: "human"
+    responsibility_tier: "T1"

@@ -1,0 +1,7 @@
+New fixture name/id exit=0
+PASS arbitrary-new-id
+1 document cases passed; context/readiness not evaluated; author/edit outside scope 75
+
+Mutated actual bytes exit=1
+FAIL arbitrary-new-id
+1 failed: arbitrary-new-id

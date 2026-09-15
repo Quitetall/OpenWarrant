@@ -1,0 +1,9 @@
+# Historical sources and parser fixtures are byte-preserving artifacts.
+archive/** -text
+archive/legacy-20260914/history.bundle binary
+archive/legacy-20260914/snapshots/*.tar.gz binary
+conformance/sdk/document/** -text
+conformance/sdk/document/*.bin binary
+docs/warrants/OW-WAR-0075/evidence/sdk-parser/** -text
+docs/design/amendment-review/*.log -text
+docs/design/amendment-review/*-signing-preview.txt -text

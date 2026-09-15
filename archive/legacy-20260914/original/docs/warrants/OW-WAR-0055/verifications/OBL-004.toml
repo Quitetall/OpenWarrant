@@ -1,0 +1,20 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "The passing test 'render::tests::rendering_is_byte_identical_across_runs' directly verifies that the corpus projection renderer produces byte-identical output across runs, and the rejected plant '[OW-WAR-0009] the projection is byte-deterministic' confirms that violations of this control are detected."
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="390" viewBox="0 0 1200 390" role="img" aria-labelledby="title desc">
+  <title id="title">Complete work, then choose when to verify it</title>
+  <desc id="desc">Prompt, work, complete, then start the next Warrant by prompt. Completed work may enter review, independent checks and human signing to earn Verified status. A Warrant may explicitly require a start gate.</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#79756b" stroke-width="1.5"/></marker></defs>
+  <rect width="1200" height="390" rx="20" fill="#f6f4ee"/>
+  <g font-family="Arial, Helvetica, sans-serif">
+    <text x="38" y="43" font-size="12" font-weight="700" letter-spacing="2" fill="#79756b">PLANNED WORKFLOW</text>
+    <text x="38" y="80" font-size="26" fill="#20262b">Complete is complete. Verification is separate.</text>
+    <g fill="#fffefa" stroke="#d6d2c8">
+      <rect x="38" y="116" width="236" height="96" rx="12"/>
+      <rect x="334" y="116" width="236" height="96" rx="12"/>
+      <rect x="630" y="116" width="236" height="96" rx="12"/>
+      <rect x="926" y="116" width="236" height="96" rx="12"/>
+      <rect x="334" y="265" width="532" height="68" rx="12"/>
+      <rect x="926" y="265" width="236" height="68" rx="12"/>
+    </g>
+    <g fill="none" stroke="#79756b" stroke-width="1.5" marker-end="url(#arrow)">
+      <path d="M284 164H323"/><path d="M580 164H619"/><path d="M876 164H915"/>
+      <path d="M748 222V255"/><path d="M876 299H915"/>
+    </g>
+    <g fill="#20262b" font-size="23" font-weight="700">
+      <text x="60" y="156">Prompt</text><text x="356" y="156">Work</text>
+      <text x="652" y="156">Complete</text><text x="948" y="156">Next prompt</text>
+      <text x="948" y="307">Verified</text>
+    </g>
+    <g fill="#555a5b" font-size="15">
+      <text x="60" y="185">Choose the Warrant.</text><text x="356" y="185">Agent or human executes.</text>
+      <text x="652" y="185">Return the work-stop links.</text><text x="948" y="185">Start the next Warrant.</text>
+      <text x="356" y="291">WHEN REVIEW IS NEEDED</text>
+      <text x="356" y="316">Independent checks + human review and signing</text>
+    </g>
+    <text x="766" y="245" font-size="12" fill="#79756b">optional review path</text>
+    <text x="38" y="366" font-size="13" fill="#79756b">Explicit Warrant start gates still apply. A review ceremony can cover several exact results; each earns its own mark.</text>
+  </g>
+</svg>

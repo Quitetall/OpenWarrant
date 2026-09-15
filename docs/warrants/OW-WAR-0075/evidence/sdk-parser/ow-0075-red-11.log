@@ -1,0 +1,24 @@
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-war-0075-sdk/crates/openwarrant-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.14s
+     Running tests/document.rs (target/debug/deps/document-b0fa1e91232fbf0d)
+
+running 1 test
+test nul_diagnostic_identifies_actual_byte_after_unicode_crlf ... FAILED
+
+failures:
+
+---- nul_diagnostic_identifies_actual_byte_after_unicode_crlf stdout ----
+
+thread 'nul_diagnostic_identifies_actual_byte_after_unicode_crlf' (1694831) panicked at crates/openwarrant-core/tests/document.rs:473:5:
+assertion `left == right` failed
+  left: 0..3
+ right: 684..685
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    nul_diagnostic_identifies_actual_byte_after_unicode_crlf
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p openwarrant-core --test document`

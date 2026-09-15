@@ -11,27 +11,25 @@ classification: internal
 
 ## Problem
 
-The RC.2 build requires the bounded result below; the existing implementation
-does not establish this new contract merely by having similar legacy commands.
+The revised product needs prove phase 1 sdk, cli and adapted skill scope. Legacy command behavior does not
+establish this SDK/provider contract.
 
 ## Desired Outcome
 
-1. Every scoped library feature can be invoked directly and reproduced from fixtures before production CLI integration begins.
-2. A reviewer can reproduce the named positive and refusal observations at
-   rc2_probe --all plus public-boundary integration tests and the repository aggregate gate.
+Run complete Phase 1 inventory, including S07 consumer types and S08 skill artifacts. Cross-provider semantic execution is Phase 2. Prove caller parity and truthful reports; document supported/unsupported capability per operation.
 
 ## Scope
 
-Phase 1 exit: F01, F02, F03, F04, F05, F06, F07, F08, F09, F10, F11, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25, T26, T27, T28, T29, T30, T31, T32, T33, T34, T35, T36, T37, T38, T39, T40, T41, T42, T43, T44, T45, T46, T47, T48, T49, T50, T51, T52, T53, T54, T55, T56.
+S01–S08; SDK-01–SDK-24; FOOTER-01–FOOTER-08; Phase 1 portions of T01–T56. Owner: OpenWarrant SDK. Primary phase: 1.
+Mixed-phase work delivers its standalone SDK subset before provider integration.
 
 ## Non-goals
 
-No work outside this bounded result. No historical signatures are rewritten.
-No tracker TUI, service, browser, agent launcher, hotline or sibling integration
-is required before Stable 1.0. Those workflows belong to Phase 3.
+No ownership of a second semantic compiler, no inferred permissions, no historical
+signature rewriting. Phase 3 workflow delivery and Phase 4 promotion remain
+separate from a Phase 1 library result. No work outside the stated outcome.
 
 ## SAS and Roadmap Traceability
 
-The current SAS requirement WAR-SAS-RQ-050 governs bounded acceptance obligations.
-The candidate feature/case mapping above defines the prospective RC.2 behavior.
-The implementation roadmap records this Warrant's prerequisite edges and phase.
+SAS RC.3 and its migration map assign this scope. WAR-SAS-RQ-050 remains the
+legacy trace for bounded obligations, not an assertion that RC.3 is accepted.

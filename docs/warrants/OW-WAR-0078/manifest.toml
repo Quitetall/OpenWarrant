@@ -8,7 +8,7 @@ local_alias = "OW-WAR-0078"
 # Allocated only by Knowledge Fabric (SAS §12.4). Leave empty.
 enterprise_id = ""
 
-title = "Evaluate context conditions with explicit uncertainty"
+title = "Validate condition syntax and prove provider evaluation integration"
 profile = "delivery"
 assurance_level = "basic"
 

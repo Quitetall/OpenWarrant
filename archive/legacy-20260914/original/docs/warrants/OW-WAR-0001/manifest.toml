@@ -1,0 +1,58 @@
+# Composition and relations for OW-WAR-0001 (SAS §61).
+#
+# The manifest defines composition and relations. It does NOT duplicate the
+# semantic content of the atoms (§61.1) — everything substantive lives in the
+# files this points at.
+
+schema = "oh.war/manifest/v1"
+uuid = "01a018db-19fc-7f2a-8e39-69730f255e33"
+local_alias = "OW-WAR-0001"
+
+# Empty until the OpenHuman Identifier Registry allocates one (§101.5, §12.4).
+# An official enterprise ID cannot be fabricated locally (§91.3 test 20).
+enterprise_id = ""
+
+title = "Establish the OpenWarrant repository and Rust workspace"
+profile = "delivery"
+assurance_level = "basic"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-064"
+contribution = "partial"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-070"
+contribution = "partial"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-1/bootstrap"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true

@@ -1,0 +1,35 @@
+schema = "oh.war/rationale/v1"
+
+[[assumption]]
+id = "A-001"
+statement = "SAS 1.1.0 §76.6 defines a rendering as authority-free before one is built. The owner asked for the TUI on 2026-09-12; the rule it must obey is unsigned."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "OW-WAR-0071 resolved and 1.1.0 accepted by the owner's signature."
+consequence_if_false = "The TUI is built against an unwritten rule, which is how a view acquires authority by accident. Withdraw rather than proceed."
+external_dependency = "OW-WAR-0071"
+judgment_ref = ""
+
+[[assumption]]
+id = "A-002"
+statement = "ratatui and crossterm are MIT and inside deny.toml's allowlist, and neither pulls an async runtime. Read from deny.toml and the lock before drafting; not yet proven by a gate run on the new graph."
+epistemic_status = "accepted_residual_risk"
+resolution_requirement = "OBL-001: `cargo deny check licenses` and a `cargo tree` diff after the dependency lands."
+consequence_if_false = "If an executor crate enters the graph, OW-ADR-0014's refusal is engaged and the TUI needs its own async ADR or a different library."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-003"
+statement = "The batch act (OW-WAR-0072) lands first, so the queue pane signs a checked set with one dialog. If it does not, the pane signs act by act and the TUI is still worth having."
+epistemic_status = "accepted_residual_risk"
+resolution_requirement = "Observation at STAGE-003: whether `war sign --batch` exists when the pane is written."
+consequence_if_false = "The queue pane loops the per-act path; no design changes, only the dialog count."
+external_dependency = "OW-WAR-0072"
+judgment_ref = ""
+
+[[assumption]]
+id = "A-004"
+statement = "A panic hook plus explicit teardown restores the terminal on every exit path this application has."
+epistemic_status = "accepted_residual_risk"
+resolution_requirement = "OBL-002's plant: a fixture that panics mid-render, after which raw mode is off and the alternate screen is closed."
+consequence_if_false = "A crash leaves the owner's terminal unusable, which is a defect this Warrant must fix before resolution, not after."
+judgment_ref = ""

@@ -1,0 +1,24 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "Rationale nodes and edges parse"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "Blocking unknowns block and circular validation is detected"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Implement §35 node classes and edges"
+    executor_kind: "human"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-002"
+    title: "Plant both and observe refusal"
+    executor_kind: "human"
+    responsibility_tier: "T1"

@@ -1,37 +1,40 @@
 schema: "oh.war/milestones/v1"
 
+# Legacy milestone completion derives from dispositions, not prototype work stops.
+# M1/M2 implementation progress is reported separately until SDK work-state support.
 milestones:
   - id: "M1"
-    title: "Prepare the final publication request and recheck name availability"
+    title: "Prepare interface and positive/refusal fixtures"
     stage_refs: ["STAGE-001"]
     obligation_refs: ["OBL-001", "OBL-002"]
   - id: "M2"
-    title: "Approve and perform the governed release act"
+    title: "Deliver and test bounded outcome"
     stage_refs: ["STAGE-002"]
     obligation_refs: ["OBL-001", "OBL-002"]
     depends_on: ["M1"]
   - id: "M3"
-    title: "Independently verify public artifacts and report completion"
+    title: "Review exact result for qualification"
     stage_refs: ["STAGE-003"]
     obligation_refs: ["OBL-003", "OBL-004"]
     depends_on: ["M2"]
 
 stages:
   - id: "STAGE-001"
-    title: "Prepare the final publication request and recheck name availability"
+    title: "Prepare interface and positive/refusal fixtures"
     executor_kind: "agent"
     responsibility_tier: "T2"
     context_sections: ["20-basis.md#Required context", "40-work-order.md#Premade Instructions", "60-assurance.md#Acceptance Obligations"]
     budget_tokens: 24000
     executor_ref: "agent://codex"
   - id: "STAGE-002"
-    title: "Approve and perform the governed release act"
-    executor_kind: "human"
+    title: "Deliver and test bounded outcome"
+    executor_kind: "agent"
     responsibility_tier: "T2"
     context_sections: ["20-basis.md#Required context", "40-work-order.md#Premade Instructions", "60-assurance.md#Acceptance Obligations"]
-    budget_tokens: 12000
+    budget_tokens: 24000
+    executor_ref: "agent://codex"
   - id: "STAGE-003"
-    title: "Independently verify public artifacts and report completion"
+    title: "Review exact result for qualification"
     executor_kind: "agent"
     responsibility_tier: "T2"
     context_sections: ["20-basis.md#Required context", "40-work-order.md#Premade Instructions", "60-assurance.md#Acceptance Obligations"]

@@ -1,0 +1,13 @@
+# oh.war/question/v1. Asked by an agent, answered by a human (§27.2). An answer
+# informs the work; it is never a disposition, a judgment, or an
+# authorization. `war questions --open` lists what awaits an answer.
+
+schema = "oh.war/question/v1"
+id = "Q-002"
+warrant = "OW-WAR-0069"
+stage = "STAGE-001"
+asked_by = "agent://claude"
+asked_at = "2026-09-12T07:49:07Z"
+question = "May a performing agent ask mid-run, or only before it starts? Mid-run asking needs the performer to wait, which costs wall time; up-front only needs every question foreseen."
+blocking = true
+recommended = "Both: a performer may ask at any time, but only its own stage waits, and if no answer arrives before the stage's wall time the submission requests block with the question id as the blocker."

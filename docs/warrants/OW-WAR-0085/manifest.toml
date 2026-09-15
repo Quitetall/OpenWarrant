@@ -8,7 +8,7 @@ local_alias = "OW-WAR-0085"
 # Allocated only by Knowledge Fabric (SAS §12.4). Leave empty.
 enterprise_id = ""
 
-title = "Prove every Phase 1 primitive through a runnable driver"
+title = "Prove Phase 1 SDK, CLI and adapted skill scope"
 profile = "delivery"
 assurance_level = "basic"
 

@@ -11,49 +11,37 @@ classification: internal
 
 ## Acceptance Obligations
 
-### OBL-001 — the bounded result is observed
-- **scope:** rc2_probe --all plus public-boundary integration tests and the repository aggregate gate; F01, F02, F03, F04, F05, F06, F07, F08, F09, F10, F11, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, T21, T22, T23, T24, T25, T26, T27, T28, T29, T30, T31, T32, T33, T34, T35, T36, T37, T38, T39, T40, T41, T42, T43, T44, T45, T46, T47, T48, T49, T50, T51, T52, T53, T54, T55, T56.
-- **evidence:** All eleven features and all 56 cases report fixture digests, observed results and matched expectations with no skips; focused tests and cargo xtask gate pass on the pinned toolchain. An independent reviewer reproduces the direct-driver runs.
+### OBL-001 — the scoped behavior is observed
+- **scope:** all public SDK operations through direct driver and noninteractive CLI; fixed skill artifact cases; S01–S08; SDK-01–SDK-24; FOOTER-01–FOOTER-08; Phase 1 portions of T01–T56.
+- **evidence:** Run complete Phase 1 inventory, including S07 consumer types and S08 skill artifacts. Cross-provider semantic execution is Phase 2. Prove caller parity and truthful reports; document supported/unsupported capability per operation. Record exact inputs, outputs, exit codes and source/fixture/build revisions through the public boundary.
 
-### OBL-002 — the controls reject their stated counterexamples
-- **scope:** the refusal cases within rc2_probe --all plus public-boundary integration tests and the repository aggregate gate.
-- **evidence:** Deleting a case, returning constant success, dispatching on fixture names or removing required assertions must make the test harness fail. A legacy regression or unavailable required check cannot be recorded as PASS.
+### OBL-002 — the boundary refuses invalid inputs
+- **scope:** malformed, incomplete, conflicting, over-limit and authority-confused inputs for the same boundary; every mapped historical refusal remains in its original profile scope.
+- **evidence:** observed named refusals, unchanged prior output on failed writes, and mutations of real content rather than fixture-name selection. Positive checks alone are insufficient.
 
-### OBL-003 — independent evidence supports acceptance of the exact result
-- **scope:** this Warrant's final deliverable revision and the two obligations above.
-- **evidence:** a separate verifier reproduces required observations, reviews exact source/fixture/build digests and reports bounded findings; the authorized human accepts or resolves through the applicable process. Performer tests alone cannot establish this obligation.
+### OBL-003 — independent evidence supports qualification of the exact result
+- **scope:** qualification only, for this exact result and OBL-001/002; not a condition for reporting unverified work complete.
+- **evidence:** independent reproduction/review, applicable baseline conditions and secure human acceptance of the exact subject. Late review does not invent pre-work facts.
 
-### OBL-004 — the delivered Warrant records remain structurally valid
-- **scope:** this Warrant's authored records and their current repository references; no claim of runtime feature correctness.
+### OBL-004 — Warrant records stay structurally valid
+- **scope:** this Warrant's authored records/references; no runtime feature or assurance claim.
 - **gate:** `gate://software.repo.war-check@1.0.0`
-- **evidence:** a recorded run of the qualified structural gate on the exact deliverable revision, with its existing planted controls retained. A named fixture/schema violation is refused in a disposable corpus; a structural pass cannot satisfy OBL-001 or OBL-002 by itself.
+- **evidence:** structural check and existing planted refusals, with independently bounded scope.
 
 ## Gate Adequacy
 
-All observations above are required and currently NOT RUN for this new Warrant.
-No disposition is declared. `war check` checks draft structure, not feature
-correctness. `war check --generated` checks generated consistency, not runtime
-conformance. Functional commands must capture command, exit, exact inputs,
-observed output and revision; an expected refusal passes its test only when
-the named refusal is observed. Missing cases and unknown checks cannot pass.
+These implementation observations are NOT RUN until attached evidence proves them.
+No disposition is declared here. Unverified completion records actual OBL-001/002
+outcomes and notes qualification gaps; legacy resolution may still require all
+four obligations. `war check` cannot establish runtime behavior or independent
+verification. Unknown observations cannot pass.
 
-For library slices, use the documented future rc2_probe --feature command and
-public-boundary integration tests. For phase exits, run the documented full
-inventory and cargo xtask gate on the pinned toolchain. Register/qualify any
-new executable gate before citing it as an authoritative gate result; this
-draft invents no gate qualification. Evidence admissibility and independent
-verification remain prerequisites for resolution in addition to the separately bounded structural gate above.
+**Adversarial question:** could constant success, fixture-name lookup, copied
+performer assertions or an unobserved test establish the claim? Each named control
+requires its own observed refusal and exact evidence.
 
-**Adversarial question:** can constant success, a fixture lookup table, copied
-performer assertions, or an unobserved check satisfy these obligations? No:
-the named mutations/refusals, exact input identities and independent reproduction
-must establish the bounded behavior. Failures remain visible until repaired or
-properly dispositioned by an authorized independent actor.
+## Planned acceptance entry point
 
-## Planned direct acceptance commands
-
-```bash
-# Future driver; the aggregate repository command already exists.
-cargo run -p openwarrant-compiler --example rc2_probe -- --all --fixtures conformance/rc2
-cargo xtask gate
-```
+`cargo run -p openwarrant-core --example sdk_probe -- --scope 85 --fixtures conformance/sdk` after the driver exists; test public library and CLI parity where applicable.
+The driver is planned, not claimed shipped. Phase exit also runs `cargo xtask gate`
+on the pinned toolchain; authoritative new gate registration remains separate.

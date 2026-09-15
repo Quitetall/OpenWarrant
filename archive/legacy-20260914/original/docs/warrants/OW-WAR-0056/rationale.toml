@@ -1,0 +1,26 @@
+schema = "oh.war/rationale/v1"
+
+# §36.2 — accepted residual risk, transcribed from this Warrant's assurance atom.
+# `judgment_ref` is empty: §27.2 forbids an agent accepting organizational
+# residual risk, so nobody has.
+
+[[assumption]]
+id = "A-001"
+statement = "Selecting context from the Warrant's own atoms is sufficient for a stage's needs."
+epistemic_status = "accepted_residual_risk"
+consequence_if_false = "A stage that needs a source outside the Warrant gets a dispatch complete by section 33.6 and incomplete in fact; the compiler cannot know what it was not told about."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-002"
+statement = "A placeholder capability policy reference is acceptable until a policy is modelled."
+epistemic_status = "accepted_residual_risk"
+consequence_if_false = "A runtime that enforces capabilities against the reference finds nothing to enforce, and an actor runs under no capability bound."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-003"
+statement = "same_normative_contract_as holds section 47.3's promise without an observed actor."
+epistemic_status = "accepted_residual_risk"
+consequence_if_false = "Two projections of one stage differ in contract for a real actor and nothing local detects it until Phase 5's exit Warrant executes one."
+judgment_ref = ""

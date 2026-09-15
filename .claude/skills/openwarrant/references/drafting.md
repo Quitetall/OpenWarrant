@@ -56,3 +56,12 @@ after the drafter runs; a drafter that wrote a file is refused and its
 proposal discarded. What is recorded under `docs/warrants/<alias>/plan/`:
 `request.json`, `proposal.json`, `drafter.json`, `pipeline.json`, and three
 journal events: so OW-WAR-0042's exit is a recorded run, not a claim.
+
+## Scope and review
+
+The connected agent can draft the response itself; no paid drafter is required.
+Use a scratch proposal path outside `generated/`. Applying a reviewed proposal is
+an agent-permitted draft write, not a human-only act. `--reviewed` records actual
+proposal inspection; it must not stand for an inspection that did not happen.
+Only unresolved material decisions justify another user question. Use current
+schema/help; never pass RC.3 footer source to a legacy atom parser as if supported.

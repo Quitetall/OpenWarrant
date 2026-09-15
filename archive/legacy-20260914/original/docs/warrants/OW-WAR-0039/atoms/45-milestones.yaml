@@ -1,0 +1,35 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "The §94 measurements are recorded"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "Untracked work is detected in this repository's own history"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002"]
+
+  - id: "M3"
+    title: "Detection never fabricates a relation"
+    depends_on: ['M2']
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-003"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Implement §94 against the journal"
+    executor_kind: "human"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-002"
+    title: "Run §95 detection over the log"
+    executor_kind: "service"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-003"
+    title: "Plant an auto-attach attempt"
+    executor_kind: "human"
+    responsibility_tier: "T1"

@@ -1,0 +1,20 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = "The manifest_template in new.rs opens with three comment-pointer lines ('A Warrant is the contract for ONE bounded intervention…' / 'Starting a program? Write its SAS instead (SAS §6.10; docs/DEFINITIONS.md)') so every new manifest shows the rule first; the README Status section points to the computed ladder (docs/warrants/generated/CORPUS_STATUS.md), points to the definitions (docs/DEFINITIONS.md), and explicitly asserts no hand-typed counts ('nothing on it is typed by hand')."
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

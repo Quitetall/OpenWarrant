@@ -1,0 +1,13 @@
+{
+  "id": 2,
+  "jsonrpc": "2.0",
+  "result": {
+    "content": [
+      {
+        "text": "=== Review of 81fcd29e (MiMo V2.5 Pro) ===\n\nPASS WITH NITS\n\n1.  **SECURITY**: `metadata.rs:103` uses `error.valid_up_to()..error.error_len().unwrap_or(1)` for invalid UTF-8 spans. If `error.error_len()` returns 0 (undefined behavior on some parsers) or `valid_up_to()` is 0, this creates a `0..0` or `0..1` span, which is technically valid but semantically misleading for error reporting. **Fix**: Use `error.valid_up_to().max(0)..error.error_len().max(1)` to ensure non-zero ranges.\n2.  **CORRECTNESS**: `metadata.rs:105` checks `source.starts_with('\\u{feff}')` (BOM) and rejects it. However, `std::str::from_utf8` does not strip BOMs by default; it includes them in the string. If the input starts with BOM, `source` will start with it, and the check passes. The check is correct, but the comment in `mod.rs` says \"Parsing preserves original bytes,\" which is true, yet rejecting BOMs might conflict with \"preserving\" if the user expects BOMs to be handled gracefully. **Fix**: Ensure the rejection logic is explicit and documented as a hard constraint, which it is. No change needed unless BOM handling policy shifts.\n3.  **STYLE**: `metadata.rs:113` uses `error.valid_up_to()..error.error_len().unwrap_or(1)`. The `unwrap_or(1)` is a safety net for the span, but if `error.error_len()` is 0, the span is `0..1`, which is fine. However, if `error.valid_up_to()` is 0 and `error.error_len()` is 0, the span is `0..0`, which is invalid for error reporting. **Fix**: Change to `error.valid_up_to().max(0)..error.error_len().max(1)` to guarantee a non-zero span.\n\nRecommend: Fix the span calculation in `metadata.rs` to avoid zero-length spans on edge cases.\n\n_(reviewed by local model 'qwen3.5-4b-q4_k_m' via lamu serve \u2014 all cloud reviewers were unavailable)_",
+        "type": "text"
+      }
+    ],
+    "isError": false
+  }
+}

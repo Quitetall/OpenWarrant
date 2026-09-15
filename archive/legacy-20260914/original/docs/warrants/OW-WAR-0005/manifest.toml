@@ -1,0 +1,72 @@
+schema = "oh.war/manifest/v1"
+uuid = "01a018db-19fc-71ab-a5db-0f2c062305af"
+local_alias = "OW-WAR-0005"
+enterprise_id = ""
+title = "Implement deterministic war check and close the Phase 1 bootstrap"
+profile = "delivery"
+
+# `controlled`. `war check` is the control that decides whether a Warrant is
+# fit to be authorized. A false PASS here does not produce a bug — it produces
+# an authorization granted on a record nobody validated, which is the exact
+# failure the SAS was written against.
+assurance_level = "controlled"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-074"
+contribution = "complete"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-015"
+contribution = "complete"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-1/bootstrap-closure"
+
+[[parents]]
+ref = "war://01a018db-19fc-7f2a-8e39-69730f255e33"
+contract_revision = 1
+# Pins the exact parent basis this child was authorized against (SAS §20.2).
+# `war check` recomputes it: if OW-WAR-0001 changes, this stops matching and the
+# child is reported as resting on a basis that no longer exists.
+#
+# Re-pinned 2026-08-19 (OW-WAR-0009). The contract digest moved because §28.5
+# coverage joined the preimage (OW-ADR-0004) — the parent's contract genuinely
+# became a different object, so the old pin was correctly reported stale by all
+# four children at once. That was the control working, not churn to be silenced.
+contract_digest = "sha256:f29c7d95baeb90a7bbad57a26b07846c724482c66a1e9ed7a2670af8d00b776d"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true
+
+[[atoms]]
+ordinal = 80
+role = "validation"
+path = "atoms/80-validation.md"
+required = false

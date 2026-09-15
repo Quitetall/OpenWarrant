@@ -1,0 +1,20 @@
+obligation = "OBL-000"
+disposition = "established"
+evidence = "The test `contract::tests::an_authorization_must_record_its_acting_role_and_meaning` and the implementation in `crates/openwarrant-core/src/contract.rs` demonstrate that authorization is explicitly defined with validation against self-authorization (§27.2), including recording acting role and meaning as a written decision."
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

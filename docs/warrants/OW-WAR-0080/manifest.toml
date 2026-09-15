@@ -8,7 +8,7 @@ local_alias = "OW-WAR-0080"
 # Allocated only by Knowledge Fabric (SAS §12.4). Leave empty.
 enterprise_id = ""
 
-title = "Build master context and faithful role projections"
+title = "Prove provider master context and task projections"
 profile = "delivery"
 assurance_level = "basic"
 

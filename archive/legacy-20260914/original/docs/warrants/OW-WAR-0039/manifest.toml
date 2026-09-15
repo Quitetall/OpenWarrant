@@ -1,0 +1,41 @@
+schema = "oh.war/manifest/v1"
+uuid = "01a01bdc-5a1f-771a-a8ed-983d14257cfe"
+local_alias = "OW-WAR-0039"
+enterprise_id = ""
+title = "Implement telemetry, unit economics, and untracked-work detection"
+profile = "delivery"
+assurance_level = "basic"
+
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-0/telemetry"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true

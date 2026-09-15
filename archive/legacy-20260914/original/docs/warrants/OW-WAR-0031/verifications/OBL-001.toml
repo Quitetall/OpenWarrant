@@ -1,0 +1,20 @@
+obligation = "OBL-001"
+disposition = "established"
+evidence = "The test 'journal::tests::the_event_classes_split_on_what_survives_registration' in crates/openwarrant-core/src/journal.rs verifies that material events (e.g., ActionRequest and ActionReceipt) are correctly identified and journalled by the Journal's append functionality, as demonstrated by the passing test suite."
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

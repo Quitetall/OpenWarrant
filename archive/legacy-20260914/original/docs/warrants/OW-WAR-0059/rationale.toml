@@ -1,0 +1,26 @@
+schema = "oh.war/rationale/v1"
+
+# §36.2 — accepted residual risk, transcribed from this Warrant's assurance atom.
+# `judgment_ref` is empty: §27.2 forbids an agent accepting organizational
+# residual risk, so nobody has.
+
+[[assumption]]
+id = "A-001"
+statement = "A receipt that seals its own fields but not the stdout and stderr files it references is sufficient evidence."
+epistemic_status = "accepted_residual_risk"
+consequence_if_false = "An edited stdout beside an untouched receipt reads as evidence until a reviewer diffs it; a stdout_digest field is a §44.6 amendment, not this Warrant."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-002"
+statement = "Binding a recorded run to the contract digest, not the workspace basis digest, is the right strictness."
+epistemic_status = "accepted_residual_risk"
+consequence_if_false = "An edit to a non-contract atom keeps every run admissible; if §14 is later read to require workspace-basis binding, every recorded run is stale at once."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-003"
+statement = "A resolution request an agent emits, signed by a human with wording the agent drafted, records a decision that is the human's."
+epistemic_status = "accepted_residual_risk"
+consequence_if_false = "The record says who drafted the wording and the projection cannot tell the difference; only the meaning field, read by a person, can."
+judgment_ref = ""

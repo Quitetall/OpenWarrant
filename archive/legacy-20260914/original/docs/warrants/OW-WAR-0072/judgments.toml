@@ -1,0 +1,22 @@
+schema = "oh.war/judgments/v1"
+warrant = "OW-WAR-0072"
+
+[[judgment]]
+id = "J-001"
+kind = "residual_risk_acceptance"
+statement = "Reusing each act's existing ingest keeps every record byte-identical to the single-act case apart from `batch_ref`. Assumed from reading the ingests, not measured."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "Accepting residual risk A-002 for OW-WAR-0072: if the assumption is false, the consequence is: The batch path is a second implementation of authorization and must be abandoned rather than maintained. Presented on a terminal by `war sign 1.0.0` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+basis_refs = ["assumption://A-002"]
+authority = "authorized"
+
+[[judgment]]
+id = "J-002"
+kind = "residual_risk_acceptance"
+statement = "`batch_ref` is additive under docs/COMPATIBILITY.md, so no `oh.war/*/v1` record schema moves to v2 and no migration is needed."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "Accepting residual risk A-003 for OW-WAR-0072: if the assumption is false, the consequence is: A v2 of four record schemas plus a migration — a larger Warrant, and the owner decides whether it is worth it. Presented on a terminal by `war sign 1.0.0` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+basis_refs = ["assumption://A-003"]
+authority = "authorized"
