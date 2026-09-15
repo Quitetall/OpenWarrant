@@ -1,7 +1,8 @@
 # RC.2 to SDK roadmap migration
 
-Reference companion to SAS RC.3. Every row is a proposed reassignment. No Warrant
-state, signed subject, delivery pin or authorization is changed by this map.
+Reference companion to SAS RC.3. Unsigned contracts OW-WAR-0075–0091 now carry these SDK-era assignments. No
+signed subject, delivery pin, journal state or authorization was rewritten.
+Original proposal.json files remain historical drafting inputs; atoms are current.
 Original case descriptions remain in the [RC.2 scope](../1.0.0-rc.2/phase-1-build-scope.md).
 Machine inventory: [roadmap.json](roadmap.json).
 
@@ -52,12 +53,16 @@ original profile scope; they cannot imply a universal block on unverified work.
 | OW-WAR-0090 | replace Phase-2 Stable qualification with four-phase qualification | OpenWarrant release + independent reviewers / 4 |
 | OW-WAR-0091 | defer Stable publication until revised hardening gate and owner release act | OpenWarrant owner / 4 |
 
-Before implementation, re-read actual authorizations and update each unsigned
-contract or prepare an authorized successor where needed. Do not relabel an old
+Before implementation, inspect actual records and the current unsigned scope.
+Prepare a successor for any signed contract whose scope must change. Do not relabel an old
 signature as approval of this scope. No new identifiers are allocated here.
 The old roadmap is historical planning evidence and no longer the target build
-order for this draft. New dependency order is adoption → S01/S03 → S02/S04/S05
-→ CLI/consumer/skill proof → external integration → workflow → hardening.
+order for this draft. New build order is S01 → S03 → S02/S04/S05 → CLI/consumer/skill proof
+→ external integration → workflow → hardening. Adoption is a qualification
+requirement, not a universal start gate for prompt-only unverified work.
+OW-WAR-0077/0078/0081 expose their SDK subsets in Phase 1; their provider
+cases remain Phase 2. OW-WAR-0087 CLI parity precedes OW-WAR-0085 Phase 1 exit,
+removing the old reversed edge. roadmap.json records required output owners.
 Individual independent slices may overlap once their inputs and ownership hold.
 
 ## Other program contracts

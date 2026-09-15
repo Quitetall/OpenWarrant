@@ -1,0 +1,28 @@
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-war-0075-sdk/crates/openwarrant-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.13s
+     Running tests/document.rs (target/debug/deps/document-b0fa1e91232fbf0d)
+
+running 7 tests
+test minimal_document_preserves_original_bytes_and_exact_units ... ok
+test malformed_footer_and_unit_framing_never_yield_partial_documents ... FAILED
+test framing_preserves_fenced_markers_crlf_and_explicit_legacy_ranges ... ok
+test metadata_subset_refuses_multiline_and_nonportable_values_before_producing_document ... ok
+test validation_distinguishes_kind_requirements_from_external_readiness ... ok
+test unknown_extensions_preserve_content_and_block_only_required_interpretation ... ok
+test local_reference_syntax_is_checked_without_resolving_missing_sources ... ok
+
+failures:
+
+---- malformed_footer_and_unit_framing_never_yield_partial_documents stdout ----
+
+thread 'malformed_footer_and_unit_framing_never_yield_partial_documents' (1659051) panicked at crates/openwarrant-core/tests/document.rs:149:92:
+called `Result::unwrap_err()` on an `Ok` value: Document { source: "<!-- ow:unit outcome binding -->\n# Make signup easier\n\n## Desired outcome\n\nReduce the information a new user must enter to create an account.\n\n<!-- ow:unit scope binding -->\n## Scope\n\nExplore the signup form. Payment and account deletion are outside this draft.\n\n<!-- ow:unit context binding -->\n## Known context\n\nRequired account fields and governing sources have not been investigated yet.\nNo permission to change the repository is recorded here.\n\n<!-- ow:metadata -->\n```toml\nschema = \"oh.war/document/1.0.0-rc.3\"\nkind = \"warrant\"\nid = \"example:minimal-signup\"\nrevision = 1\ntitle = \"Make signup easier\"\nstate = \"draft\"\n```\n<!-- /ow:metadata -->\r", dialect: Rc3, metadata: Table({"id": String("example:minimal-signup"), "kind": String("warrant"), "revision": Integer(1), "schema": String("oh.war/document/1.0.0-rc.3"), "state": String("draft"), "title": String("Make signup easier")}), metadata_span: 479..622, units: [Unit { id: "outcome", kind: Binding, span: 33..143 }, Unit { id: "scope", kind: Binding, span: 174..263 }, Unit { id: "context", kind: Binding, span: 296..450 }] }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    malformed_footer_and_unit_framing_never_yield_partial_documents
+
+test result: FAILED. 6 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p openwarrant-core --test document`

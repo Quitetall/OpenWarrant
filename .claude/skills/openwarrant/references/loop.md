@@ -1,5 +1,8 @@
 # The loop, with the stops marked
 
+Legacy transport reference. These commands retain their existing authority rules;
+use [execution](execution.md) for prompt-only unverified work.
+
 Every step is a `war` command. A human signs at two points; nothing you do
 substitutes for either.
 

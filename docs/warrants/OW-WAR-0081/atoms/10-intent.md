@@ -11,27 +11,25 @@ classification: internal
 
 ## Problem
 
-The RC.2 build requires the bounded result below; the existing implementation
-does not establish this new contract merely by having similar legacy commands.
+The revised product needs inspect packet integrity and prove offline provider packages. Legacy command behavior does not
+establish this SDK/provider contract.
 
 ## Desired Outcome
 
-1. An agent can obtain every required context byte from a portable package, and a consumer can verify integrity and declared semantic coverage without the original repository.
-2. A reviewer can reproduce the named positive and refusal observations at
-   build_package and check_package in an offline consumer.
+SDK checks schema, hashes, ranges and limits with explicit inputs. Provider constructs and semantically validates portable offline packages; integrity alone never establishes required-context coverage.
 
 ## Scope
 
-Phase 1: F07, T32, T33, T34, T35, T36, T37.
+S05 integrity subset of T33/T35 (Phase 1); T32–T37 full packages (Phase 2). Owner: LAMU/provider; SDK boundary. Primary phase: 2.
+Mixed-phase work delivers its standalone SDK subset before provider integration.
 
 ## Non-goals
 
-No work outside this bounded result. No historical signatures are rewritten.
-No tracker TUI, service, browser, agent launcher, hotline or sibling integration
-is required before Stable 1.0. Those workflows belong to Phase 3.
+No ownership of a second semantic compiler, no inferred permissions, no historical
+signature rewriting. Phase 3 workflow delivery and Phase 4 promotion remain
+separate from a Phase 1 library result. No work outside the stated outcome.
 
 ## SAS and Roadmap Traceability
 
-The current SAS requirement WAR-SAS-RQ-050 governs bounded acceptance obligations.
-The candidate feature/case mapping above defines the prospective RC.2 behavior.
-The implementation roadmap records this Warrant's prerequisite edges and phase.
+SAS RC.3 and its migration map assign this scope. WAR-SAS-RQ-050 remains the
+legacy trace for bounded obligations, not an assertion that RC.3 is accepted.

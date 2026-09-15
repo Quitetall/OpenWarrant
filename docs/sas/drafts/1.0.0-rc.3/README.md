@@ -42,13 +42,14 @@ chat tokens. A new prompt starts the next work, subject to its explicit gates.
 
 ## Format versions and examples
 
-The [format contract](format-contract.md), [packet schema](schemas/packet.schema.json)
-and [RC.2 examples](examples/README.md) retain RC.2 wire identifiers and fixture
-bytes. Those are explicit compatibility inputs; example prose describing the old
-phase plan is historical, not this draft's schedule. RC.3 is the program SAS
-edition, not an automatic rename of every wire schema or digest domain.
-New agent-act wire meaning is in the SDK contract and a new assurance baseline
-is named in SAS §12. No old acceptance is reused for their new meanings.
+The [format contract](format-contract.md) defines human-first RC.3 documents:
+readable units first, compact TOML metadata in a framed footer. New unsigned SAS
+sources use `oh.war/document/1.0.0-rc.3`. See [footer examples](examples-footer/README.md) and
+[format decision](human-first-format.adr.md).
+The [RC.2 examples](examples/README.md) and their packet/record wire identifiers
+remain byte-identical compatibility inputs. RC.3 does not rename every schema or
+digest domain. New agent-act meaning is in the SDK contract; no old acceptance
+is reused for the new framing or assurance baseline.
 
 The [source-set manifest](source-set.json) binds all normative companions and
 reference files by exact bytes. It is a review inventory, not a signature. The
@@ -58,7 +59,8 @@ example integrity. It does not implement or qualify an SDK/compiler/workflow.
 ## Next implementation boundary
 
 First slice remains a minimal document parser and validator, now an SDK component.
-Review/adopt this exact amendment and revise the affected Warrant basis through
-its applicable process before claiming governed implementation. Existing RC.2
+Unsigned Warrant scopes name this exact candidate and permit prompt-only
+unverified implementation. Formal adoption and human acceptance are required
+for the associated qualification claims, not a universal prototype start gate. Existing RC.2
 capture, human corrections and authorized work are retained in their own checkout;
 this isolated drafting checkout does not claim those uncommitted records are here.

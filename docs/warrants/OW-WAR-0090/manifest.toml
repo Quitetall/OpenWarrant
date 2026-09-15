@@ -8,7 +8,7 @@ local_alias = "OW-WAR-0090"
 # Allocated only by Knowledge Fabric (SAS §12.4). Leave empty.
 enterprise_id = ""
 
-title = "Qualify the integrated compiler and freeze the Stable source set"
+title = "Qualify four-phase release and freeze Stable source set"
 profile = "delivery"
 assurance_level = "basic"
 

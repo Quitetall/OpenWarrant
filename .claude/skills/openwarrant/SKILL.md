@@ -1,79 +1,42 @@
 ---
 name: openwarrant
-description: Author, check, draft, compile, and verify Work Authorization Records (Warrants) with the `war` CLI or its MCP server. Use whenever a repository contains an `openwarrant.toml` or `docs/warrants/`, or the user mentions Warrants, WARs, OpenWarrant, `war check`, or asks to plan, record, or close a unit of authorized work. Also use before claiming a Warrant is complete: the rules on self-verification are load-bearing and easy to violate by accident.
+description: "OpenWarrant shared workflow and compatibility entry. Use for explicit OpenWarrant work or when a war skill needs execution and assurance rules."
 ---
 
 # OpenWarrant
 
-A Warrant is one unit of authorized work: source atoms compiled into
-projections, authorized and resolved by a human, closed only on evidence.
+Read the target repository's AGENTS.md. Keep its directory scope and harness rules.
+A Warrant describes one reviewable outcome. Completion and assurance are separate.
+Prompt-only work can finish unverified; explicit action gates bind their named acts.
+Human acceptance plus independent evidence is required for the common Verified mark.
 
-**Read [`AGENTS.md`](../../../AGENTS.md) in the repository root first.** It is
-the single source of the rules; this file gets you there and makes the five
-prohibitions unmissable. If the two disagree, `AGENTS.md` wins.
+## Locate and select
 
-## Detect
+1. Confirm repository, current changes and available `war --version`/`--help`.
+   In this source repo, prefer the checkout's built `target/debug/war` over stale PATH.
+2. For intent routing, read [war](../war/SKILL.md). For records, read live CLI output;
+   command availability outranks a skill example. Do not infer readiness from an old
+   generated file or from `frontier` showing `open`.
+3. Apply only the requested scope. New-model behavior not implemented by the installed
+   CLI stays explicitly unsupported; never relabel a legacy signed act as prototype work.
 
-```bash
-ls openwarrant.toml docs/warrants/ 2>/dev/null && war --version
-war next            # whose act is next, agent or human: read this before anything
-```
+## Load by task
 
-## The five prohibitions (enforced by the tool; details in AGENTS.md)
+| When | Read |
+| --- | --- |
+| Remaining work, status, next steps | [progress](references/progress.md) |
+| Drafting or applying a proposal | [drafting](references/drafting.md) |
+| Migrating existing docs or upgrading their OpenWarrant edition | [war-migrate](../war-migrate/SKILL.md) |
+| Implementing or completing a bounded scope | [execution](references/execution.md) |
+| Human qualification or legacy signing requests | [verification](references/verification.md) |
+| Existing authorized/resolved legacy records or corrections | [legacy loop](references/loop.md) |
+| MCP transport | [MCP](references/mcp.md) |
 
-1. **Never verify your own work.** `war verify` refuses verifier == performer.
-2. **Never write a disposition you did not receive** via `war verify --response`.
-3. **`UNKNOWN` is neither failure nor pass.** It blocks.
-4. **Never edit anything under `generated/`**, nor a file `war pins --resolved-only` lists.
-5. **Never change a document to make a tool go green.**
+Keep exact required context and source revisions; retrieve background only when needed.
+Never invent an actor, signature, independent disposition, test result or completion.
+Unknown observations stay UNKNOWN. Preserve signed history and regenerate projections
+through their tool. Independent work may continue when another scope is blocked.
 
-Four acts are a human's only: authorize, resolve, accept a SAS revision,
-correct a resolved Warrant's file. You emit the request; a human signs with
-`war sign … --ssh-sign`. The tool refuses your signature by kind (§27.2).
-
-## The loop
-
-```bash
-war next && war new "What this accomplishes"
-# edit the atoms
-war check <alias> && war compile && war check --generated
-war authorize <alias>                 # request → STOP: human signs
-war pins --resolved-only              # then deliver; declare in deliverables.toml
-war evidence record <alias>
-war verify <alias> --performer <you>  # request for an INDEPENDENT verifier
-war verify <alias> --response <file>
-war resolve --dry-run <alias> && war resolve <alias>   # request → STOP: human signs
-```
-
-Every command takes `--json` (one `oh.war/report/v1` envelope).
-
-## References
-
-| when | read |
-|---|---|
-| the full loop with every stop, corrections, `--json` | [references/loop.md](references/loop.md) |
-| turning a vague sentence into a Warrant (`war plan`, v2 proposals, a configured drafter) | [references/drafting.md](references/drafting.md) |
-| working through the MCP server: tools, refusals, resources | [references/mcp.md](references/mcp.md) |
-| obligations, independence, receipts, the thirteen requirements | [references/verification.md](references/verification.md) |
-
-## Sibling skills (OW-WAR-0068, after mattpocock/skills)
-
-| you want | skill |
-|---|---|
-| a vague request settled before drafting | `/war-grill` (answers land in the draft request) |
-| the conversation turned into a proposal, no interview | `/war-spec` |
-| a Warrant broken into stages with blocking edges; what can start now | `/war-tickets`, `war frontier` |
-| a two-axis review, Standards beside Obligations, verifier kept blind | `/war-review` |
-| a chunk too big for one session, planned as decisions | `/war-map` |
-
-`CONTEXT.md` at the root is the glossary every Dispatch carries; use its words.
-
-Blocked on a decision? `war ask <alias> <stage> "<question>" --recommend
-"<your best answer>" --blocking`, then carry on with what does not depend on
-it. `war answers <alias> <stage>` before you start a stage; `war questions
---open` is the human's queue. You may ask; only a human answers.
-
-## When stuck
-
-Report what you established, what you did not, and stop. Two of thirteen
-requirements honestly met beats thirteen claimed and eleven wrong.
+Methods/provenance: [adaptation record](../openwarrant/ADAPTATIONS.md),
+[upstream license](../openwarrant/LICENSE.mattpocock). Skills choose process and artifacts;
+they do not acquire permissions or sandbox an agent.

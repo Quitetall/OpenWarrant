@@ -63,7 +63,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | requirement | Warrants blocked |
 |---|---|
-| artifact digests verify | 34 |
+| artifact digests verify | 33 |
 | required deliverables exist | 33 |
 | every required gate has admissible result | 31 |
 | no blocker remains | 30 |
@@ -212,7 +212,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0059` Commit gate receipts as evidence and record the first resolutions | ready_to_resolve | NOT satisfied | 0 | 2 of 4 | — |
 | `OW-WAR-0060` Publish the corpus viewer: GitHub Pages from the committed projection | resolved | would satisfy | 0 | 2 of 2 | — |
 | `OW-WAR-0061` Discharge the Phase 1 exit: OpenWarrant development uses WARs | resolved | would satisfy | 0 | 1 of 1 | — |
-| `OW-WAR-0062` Lock down the levels: what a SAS, a Warrant, and every other object are | resolved | would satisfy | 0 | 1 of 1 | artifact digests verify |
+| `OW-WAR-0062` Lock down the levels: what a SAS, a Warrant, and every other object are | resolved | would satisfy | 0 | 1 of 1 | — |
 | `OW-WAR-0063` Complete the conformance battery: the plants and tests the verifier named as missing | draft | NOT satisfied | 0 | 0 of 1 | every required gate has admissible result |
 | `OW-WAR-0064` Repair a delivered artifact: the correction act for a resolved Warrant | draft | unknown | 0 | 0 of 5 | required deliverables exist |
 | `OW-WAR-0065` Research memo: which tokenizer approximation OpenWarrant uses for §33.7 budgets | draft | unknown | 0 | 0 of 1 | every required obligation is dispositioned |
@@ -225,23 +225,23 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0072` The batch act: one human signature over many pending acts | draft | unknown | 1 | 0 of 3 | required deliverables exist |
 | `OW-WAR-0073` war tui: the dashboard in the terminal | draft | unknown | 1 | 0 of 4 | required deliverables exist |
 | `OW-WAR-0074` Adopt the exact RC.2 build basis without rewriting history | draft | unknown | 0 | 0 of 2 | exact authorized Contract Revision |
-| `OW-WAR-0075` Parse and validate a minimal OpenWarrant document | draft | unknown | 1 | 0 of 3 | exact authorized Contract Revision |
-| `OW-WAR-0076` Author valid documents from explicit fields | draft | unknown | 2 | 0 of 2 | exact authorized Contract Revision |
-| `OW-WAR-0077` Capture immutable sources and resolve exact references | draft | unknown | 2 | 0 of 2 | exact authorized Contract Revision |
-| `OW-WAR-0078` Evaluate context conditions with explicit uncertainty | draft | unknown | 2 | 0 of 2 | exact authorized Contract Revision |
-| `OW-WAR-0079` Select complete context and expose conflicts | draft | unknown | 3 | 0 of 2 | exact authorized Contract Revision |
-| `OW-WAR-0080` Build master context and faithful role projections | draft | unknown | 2 | 0 of 2 | exact authorized Contract Revision |
-| `OW-WAR-0081` Export and verify portable offline context packages | draft | unknown | 2 | 0 of 2 | exact authorized Contract Revision |
-| `OW-WAR-0082` Enforce context budgets and invalidate stale cache entries | draft | unknown | 3 | 0 of 2 | exact authorized Contract Revision |
-| `OW-WAR-0083` Check supplied readiness and assurance records truthfully | draft | unknown | 3 | 0 of 2 | exact authorized Contract Revision |
-| `OW-WAR-0084` Import legacy history without changing what was signed | draft | unknown | 3 | 0 of 2 | exact authorized Contract Revision |
-| `OW-WAR-0085` Prove every Phase 1 primitive through a runnable driver | draft | unknown | 5 | 0 of 2 | exact authorized Contract Revision |
-| `OW-WAR-0086` Expose the complete compiler through a machine-safe CLI | draft | unknown | 2 | 0 of 2 | exact authorized Contract Revision |
-| `OW-WAR-0087` Expose noninteractive document authoring and validation | draft | unknown | 2 | 0 of 2 | exact authorized Contract Revision |
-| `OW-WAR-0088` Make document authoring interactive and recoverable | draft | unknown | 2 | 0 of 2 | exact authorized Contract Revision |
-| `OW-WAR-0089` Prepare installable compiler release artifacts and user docs | draft | unknown | 3 | 0 of 2 | exact authorized Contract Revision |
-| `OW-WAR-0090` Qualify the integrated compiler and freeze the Stable source set | draft | unknown | 2 | 0 of 3 | exact authorized Contract Revision |
-| `OW-WAR-0091` Publish and verify OpenWarrant Stable 1.0 | draft | unknown | 3 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0075` Parse and validate human-first OpenWarrant documents | draft | unknown | 1 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0076` Author and edit human-first OpenWarrant documents | draft | unknown | 2 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0077` Define SDK source types and prove provider resolution integration | draft | unknown | 2 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0078` Validate condition syntax and prove provider evaluation integration | draft | unknown | 2 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0079` Prove provider context selection and dependency closure | draft | unknown | 3 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0080` Prove provider master context and task projections | draft | unknown | 2 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0081` Inspect packet integrity and prove offline provider packages | draft | unknown | 3 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0082` Prove provider context budgets and cache invalidation | draft | unknown | 3 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0083` Evaluate supplied work and assurance records | draft | unknown | 3 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0084` Preserve legacy history and explicit successor lineage | draft | unknown | 4 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0085` Prove Phase 1 SDK, CLI and adapted skill scope | draft | unknown | 9 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0086` Integrate SDK with LAMU and a second minimal consumer | draft | unknown | 6 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0087` Expose document and record primitives through CLI | draft | unknown | 8 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0088` Make SDK document authoring interactive and recoverable | draft | unknown | 2 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0089` Prepare standard and SDK release artifacts | draft | unknown | 3 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0090` Qualify four-phase release and freeze Stable source set | draft | unknown | 2 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0091` Publish and verify OpenWarrant Stable 1.0 | draft | unknown | 2 | 0 of 3 | exact authorized Contract Revision |
 
 ## Not reported here
 

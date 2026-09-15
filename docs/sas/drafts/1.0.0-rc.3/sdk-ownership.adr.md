@@ -20,8 +20,9 @@ adapter instead of a duplicate small production compiler. Use the same SDK in
 standalone tools and compiler consumers. Standard versions remain independent of
 provider versions, storage backend and model runtime.
 
-Retain context-profile semantics and tests while reassigning implementation. Carry
-RC.2 wire formats and immutable examples explicitly; add separately versioned agent
+Retain context-profile semantics and tests while reassigning implementation. Preserve
+RC.2 wire formats and immutable examples explicitly; use RC.3 footer framing
+for new human-first document sources; add separately versioned agent
 acts and RC.3 assurance requirements rather than reinterpret old signed records.
 Maintain first-party war skills as attributed adaptations of Matt Pocock's methods,
 with OpenWarrant artifacts and SDK validation as their output boundary.

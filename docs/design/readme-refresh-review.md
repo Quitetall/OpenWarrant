@@ -9,7 +9,7 @@ This record distinguishes the prepared change from human signing and publication
 
 - [Applied README](../../README.md): SHA-256 `468c44364589226235012fa7be7c434b0602ac03d47189f70b92dddb79aba450`.
 - [SAS entry](../sas/drafts/1.0.0-rc.3/README.md) and
-  [source set](../sas/drafts/1.0.0-rc.3/source-set.json): SHA-256 `73aa976ddd63191533697de7da737ddd763a9ece2696d189f8c36ace9d7e6c09`.
+  [source set](../sas/drafts/1.0.0-rc.3/source-set.json): SHA-256 `661a1260ebc33d22cc8b9bf4ed3f9798df63457ef3093912ef7aca359c2faf2f`.
 - [Context views/shared work](../sas/drafts/1.0.0-rc.3/context-views-and-shared-work.md)
   and [stop/change contract](../sas/drafts/1.0.0-rc.3/work-stop-contract.md)
   are now normative companions, included in the source-set manifest.
@@ -64,12 +64,23 @@ establish production SDK behavior, independent Warrant verification or a mark.
 
 ## Publication boundary
 
-Remote main was observed at `a6e3e03ea93d0a242969e9ce13041fac05a29cce`, 76 commits
-behind this checkout after a remote rewind. Advancing it to this branch would also
-restore 881 files of newer history. The owner was asked to select restoration or
-a docs-only change on current main. No force push is authorized or required.
-Current main also has older CLI, license and record semantics; a docs-only port
-must adjust current-behavior/license links honestly and preserve historical inputs.
+At inspection, remote main was `a6e3e03ea93d0a242969e9ce13041fac05a29cce`, 76
+commits behind this amendment's starting base `16f0559`. A remote rewind was
+initially inferred but was not established. Bonsai qualification tests write
+shared local `origin/main` from linked worktrees, so a later fetch can report a
+forced tracking-ref update without a remote rewind.
+
+The owner selected bringing those 76 newer commits (881 changed files) onto main.
+[PR #65](https://github.com/Quitetall/OpenWarrant/pull/65) merged that exact base
+as `651ea2d002e4e61dbaddb9262b3e8959a110ea8d` after its required gate passed.
+The merge tree is byte-identical to `16f0559` and all 76 commit identities remain
+in main history. The later amendment commits retain their separate
+correction/review requirements. The required LAMU review call on the merge commit
+returned `Transport closed`; it supplied no independent review verdict.
+GitHub rejected direct push because main requires a PR and the `gate` status check.
+No force push is authorized or required. The older main has different CLI, license
+and record semantics; the approved history integration carries their existing
+versioned changes rather than presenting new documentation against the old code.
 
 The configured external reviewer returned `Transport closed` during connection
 preflight. A commit needs its own required `review_commit` result before being
@@ -106,3 +117,10 @@ cases. The CLI template and installer behavior are unchanged. The reference/temp
 equality test follows the new reference location; three focused tests pass. Draft,
 link, formatting and preservation checks pass as recorded in the candidate's
 validation note. This follow-up does not resolve the publication boundaries above.
+
+## Footer and skill follow-up
+
+The owner approved the human-first preview and requested unsigned scope updates
+and a skill audit. See [current audit](war-skills-audit.md) for that applied scope
+and its current verification/legacy-record limits. Earlier counts above are dated
+observations and do not describe this expanded working tree.

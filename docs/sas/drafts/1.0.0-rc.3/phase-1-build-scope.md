@@ -8,7 +8,7 @@ implementation. The direct SDK boundary precedes CLI exposure for each feature.
 
 | Feature | Public seam / artifact | Positive and refusal proof |
 | --- | --- | --- |
-| S01 Documents | `parse_document`, `validate_document`, `unit` | T01–T10 from RC.2: exact minimal document and byte spans, UTF-8/CRLF, fences, missing/duplicate fields/units, malformed framing, limits, kind rules, optional/required extensions and valid-unready draft |
+| S01 Documents | `parse_document`, `validate_document`, `unit` | T01–T10 from RC.2 plus FOOTER-01–FOOTER-08: exact minimal document and byte spans, UTF-8/CRLF, fences, missing/duplicate fields/units, malformed framing, limits, kind rules, optional/required extensions and valid-unready draft |
 | S02 Authoring | `author_document`, `edit_document` | T54–T56: valid typed-field round trip, preserved untouched bytes, delimiter/marker/shell text escaped or refused, cancelled save preserves old source |
 | S03 Standard codecs | Canonical JSON/digests, pointer/condition syntax, source/packet/record types | Independent canonical vectors, matching declared ranges; refuse duplicate fields, wrong schema/domain/digest/range, unsafe target syntax, unsupported operator; no resolution inferred from syntax |
 | S04 Record evaluation | `check_records`, `evaluate_readiness`, `evaluate_assurance` | T42–T48 plus agent-act examples: claims without observations, UNKNOWN vs FAIL, self-verifier, missing isolation, spoofed human, changed candidate, true fixture timing, delegated governance and forbidden effective-policy escalation |
@@ -104,6 +104,29 @@ The [SDK contract](sdk-contract.md) fixes boundaries and the new agent-act envel
 Wire schemas and executable expectations must be reviewed and checked in before
 their production behavior is called complete. Prepare one vertical slice at a
 time; these case descriptions are scope, not a pretense that all tests exist.
+
+## Footer acceptance cases (S01/S02)
+
+These supplement every retained T01–T10/T54–T56 case under its explicit schema.
+The documentation witness is `test_footer.py`; production observations must use
+SDK parse/validate and author/edit, not that witness as a substitute.
+
+- FOOTER-01: readable title/units precede one RC.3 TOML footer; wrapped and plain
+  forms yield equal metadata, with original bytes retained separately.
+- FOOTER-02: compact and repeated-table dependencies preserve every unit/target
+  pair and order; duplicate keys, not repeated source-unit references, refuse.
+- FOOTER-03: LF/CRLF and multibyte text yield exact original UTF-8 unit spans;
+  final unit ends before the footer and hashes still cover the whole document.
+- FOOTER-04: footer/unit markers inside body fences remain text; malformed markers,
+  unclosed fences and incomplete footer delimiters refuse with located diagnostics.
+- FOOTER-05: missing, duplicate, mixed, misplaced or trailing-content footer refuses;
+  optional presentation wrappers obey the exact framing grammar.
+- FOOTER-06: wrong/unknown schema, title/first-heading disagreement, invalid metadata
+  types and missing required fields refuse; no visual rendering supplies meaning.
+- FOOTER-07: legacy RC.2 bytes retain their adapter and expected results; RC.2 in a
+  footer or RC.3 in a header refuses. No acceptance moves to converted bytes.
+- FOOTER-08: author/edit round-trip through parser; preserve untouched unit bytes,
+  update visible and metadata titles together, and keep prior output on failure.
 
 ## Reuse and ownership
 

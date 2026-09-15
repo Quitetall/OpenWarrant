@@ -8,7 +8,7 @@ local_alias = "OW-WAR-0082"
 # Allocated only by Knowledge Fabric (SAS §12.4). Leave empty.
 enterprise_id = ""
 
-title = "Enforce context budgets and invalidate stale cache entries"
+title = "Prove provider context budgets and cache invalidation"
 profile = "delivery"
 assurance_level = "basic"
 

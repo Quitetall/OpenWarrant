@@ -1,0 +1,19 @@
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-war-0075-sdk/crates/openwarrant-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.17s
+     Running tests/document.rs (target/debug/deps/document-b0fa1e91232fbf0d)
+
+running 11 tests
+test malformed_footer_and_unit_framing_never_yield_partial_documents ... ok
+test minimal_document_preserves_original_bytes_and_exact_units ... ok
+test limits_are_positive_inclusive_and_refuse_without_truncation ... ok
+test framing_preserves_fenced_markers_crlf_and_explicit_legacy_ranges ... ok
+test context_kind_requires_at_least_one_nonempty_unit ... ok
+test unknown_extensions_preserve_content_and_block_only_required_interpretation ... ok
+test metadata_subset_refuses_multiline_and_nonportable_values_before_producing_document ... ok
+test footer_wrappers_and_dependency_spellings_preserve_meaning_not_bytes ... ok
+test validation_distinguishes_kind_requirements_from_external_readiness ... ok
+test toml_10_and_core_field_contract_refusals_are_explicit ... ok
+test local_reference_syntax_is_checked_without_resolving_missing_sources ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

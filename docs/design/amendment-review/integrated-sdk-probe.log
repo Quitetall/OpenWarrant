@@ -1,0 +1,43 @@
+   Compiling serde_core v1.0.229
+   Compiling serde v1.0.229
+   Compiling libc v0.2.189
+   Compiling serde_json v1.0.151
+   Compiling memchr v2.8.3
+   Compiling indexmap v2.14.0
+   Compiling syn v3.0.3
+   Compiling getrandom v0.4.3
+   Compiling serde_derive v1.0.229
+   Compiling thiserror-impl v2.0.20
+   Compiling uuid v1.25.0
+   Compiling thiserror v2.0.20
+   Compiling serde_spanned v0.6.9
+   Compiling toml_datetime v0.6.11
+   Compiling serde_jcs v0.2.0
+   Compiling toml_edit v0.22.27
+   Compiling toml v0.8.23
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-sdk-standard-amendment/crates/openwarrant-core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 7.69s
+     Running `target/debug/examples/sdk_probe --scope 75 --fixtures conformance/sdk`
+PASS T01-minimal-rc3
+PASS T01-legacy-explicit
+PASS T02-duplicate-key
+PASS T03-fenced-markers
+PASS T04-duplicate-unit
+PASS T05-crlf-unicode
+PASS T06-invalid-utf8
+PASS T07-missing-outcome
+PASS T08-unknown-optional
+PASS T08-unknown-required
+PASS T09-adr
+PASS T09-sas
+PASS T10-unresolved-required
+PASS FOOTER01-wrapped
+PASS FOOTER02-compact
+PASS FOOTER04-malformed
+PASS FOOTER05-trailing
+PASS FOOTER06-title
+PASS FOOTER07-schema
+PASS T09-context-binding
+PASS T09-context-background-refusal
+PASS T06-combined-depth-refusal
+22 document cases passed; context/readiness not evaluated; author/edit outside scope 75

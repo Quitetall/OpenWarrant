@@ -1,0 +1,16 @@
+schema = "oh.war/correction/v1"
+warrant = "OW-WAR-0060"
+
+[correction]
+id = "01a0a25d-0812-75d0-b6cd-32796b30dbe6"
+deliverable_id = "D-002"
+target_ref = "xtask/src/main.rs"
+sequence = 2
+superseded_digest = "sha256:2283d37b53d32fc3d7c85c8460fff74cf1086ac8e3dfa26f60adf3f75c286f3e"
+new_digest = "sha256:952bc7b0aaf62e12d3210afca07a5d5390c59b4780a662e5f78a0e4014d30ee6"
+reason = """xtask/src/main.rs moved after its resolution at 2026-09-03T03:30:00Z: 6 commit(s) touched it, "release: the relicense to Apache-2.0, and seven authorizations the owner signed (OW-ADR-0017, OW-WAR-0067 STAGE-001 and STAGE-004)"; "feat(release): the 1.0 wizard — the seven acts walked one keystroke at a time, and an SPDX ratchet so a half-applied relicense is visible"; "feat(skills): the Pocock set over the deterministic core — war-grill, war-spec, war-tickets + `war frontier`, war-review, war-map, and a glossary every Dispatch carries (OW-WAR-0068, M1–M2)" and 3 more. Each states its own          change; this correction records that the delivered bytes moved with them. Presented on a terminal by `war sign 1.0.0` and confirmed by the signer; the decision is the signer's and the template is the tool's."""
+kind = "behaviour-change"
+authorized_by_ref = "person://Brian Lam"
+acting_role_ref = "role://authorizer"
+effective_at = "2026-09-14T23:59:58Z"
+recorded_at = "2026-09-15T00:00:01Z"

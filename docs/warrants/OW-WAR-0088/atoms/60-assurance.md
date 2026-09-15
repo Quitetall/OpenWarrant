@@ -11,41 +11,37 @@ classification: internal
 
 ## Acceptance Obligations
 
-### OBL-001 — the bounded result is observed
-- **scope:** Interactive field selection and editing through the document CLI under a pseudo-terminal; P2-INTERACTIVE.
-- **evidence:** Pseudo-terminal scenarios exercise field selection, multiline text, validation feedback, correction and atomic save, producing the same semantic document as noninteractive authoring.
+### OBL-001 — the scoped behavior is observed
+- **scope:** interactive authoring adapter calling the same SDK operations as noninteractive CLI; Phase 2 ergonomic SDK consumer; P2-INTERACTIVE.
+- **evidence:** Select fields, edit and preview human-first documents, retain drafts on cancel/failure, and produce identical validated output for equivalent inputs. Interaction cannot silently approve or verify work. Record exact inputs, outputs, exit codes and source/fixture/build revisions through the public boundary.
 
-### OBL-002 — the controls reject their stated counterexamples
-- **scope:** the refusal cases within Interactive field selection and editing through the document CLI under a pseudo-terminal.
-- **evidence:** Cancel, EOF, interrupt, invalid field input and failed saves preserve prior bytes and leave no false success report. This does not add a tracker TUI or agent REPL.
+### OBL-002 — the boundary refuses invalid inputs
+- **scope:** malformed, incomplete, conflicting, over-limit and authority-confused inputs for the same boundary; every mapped historical refusal remains in its original profile scope.
+- **evidence:** observed named refusals, unchanged prior output on failed writes, and mutations of real content rather than fixture-name selection. Positive checks alone are insufficient.
 
-### OBL-003 — independent evidence supports acceptance of the exact result
-- **scope:** this Warrant's final deliverable revision and the two obligations above.
-- **evidence:** a separate verifier reproduces required observations, reviews exact source/fixture/build digests and reports bounded findings; the authorized human accepts or resolves through the applicable process. Performer tests alone cannot establish this obligation.
+### OBL-003 — independent evidence supports qualification of the exact result
+- **scope:** qualification only, for this exact result and OBL-001/002; not a condition for reporting unverified work complete.
+- **evidence:** independent reproduction/review, applicable baseline conditions and secure human acceptance of the exact subject. Late review does not invent pre-work facts.
 
-### OBL-004 — the delivered Warrant records remain structurally valid
-- **scope:** this Warrant's authored records and their current repository references; no claim of runtime feature correctness.
+### OBL-004 — Warrant records stay structurally valid
+- **scope:** this Warrant's authored records/references; no runtime feature or assurance claim.
 - **gate:** `gate://software.repo.war-check@1.0.0`
-- **evidence:** a recorded run of the qualified structural gate on the exact deliverable revision, with its existing planted controls retained. A named fixture/schema violation is refused in a disposable corpus; a structural pass cannot satisfy OBL-001 or OBL-002 by itself.
+- **evidence:** structural check and existing planted refusals, with independently bounded scope.
 
 ## Gate Adequacy
 
-All observations above are required and currently NOT RUN for this new Warrant.
-No disposition is declared. `war check` checks draft structure, not feature
-correctness. `war check --generated` checks generated consistency, not runtime
-conformance. Functional commands must capture command, exit, exact inputs,
-observed output and revision; an expected refusal passes its test only when
-the named refusal is observed. Missing cases and unknown checks cannot pass.
+These implementation observations are NOT RUN until attached evidence proves them.
+No disposition is declared here. Unverified completion records actual OBL-001/002
+outcomes and notes qualification gaps; legacy resolution may still require all
+four obligations. `war check` cannot establish runtime behavior or independent
+verification. Unknown observations cannot pass.
 
-For library slices, use the documented future rc2_probe --feature command and
-public-boundary integration tests. For phase exits, run the documented full
-inventory and cargo xtask gate on the pinned toolchain. Register/qualify any
-new executable gate before citing it as an authoritative gate result; this
-draft invents no gate qualification. Evidence admissibility and independent
-verification remain prerequisites for resolution in addition to the separately bounded structural gate above.
+**Adversarial question:** could constant success, fixture-name lookup, copied
+performer assertions or an unobserved test establish the claim? Each named control
+requires its own observed refusal and exact evidence.
 
-**Adversarial question:** can constant success, a fixture lookup table, copied
-performer assertions, or an unobserved check satisfy these obligations? No:
-the named mutations/refusals, exact input identities and independent reproduction
-must establish the bounded behavior. Failures remain visible until repaired or
-properly dispositioned by an authorized independent actor.
+## Planned acceptance entry point
+
+Run the scoped consumer/release driver over the fixture paths in Work Order; record actual commands when that adapter exists.
+The driver is planned, not claimed shipped. Phase exit also runs `cargo xtask gate`
+on the pinned toolchain; authoritative new gate registration remains separate.

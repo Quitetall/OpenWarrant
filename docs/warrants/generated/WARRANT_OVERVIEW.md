@@ -81,22 +81,22 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0072](docs/warrants/OW-WAR-0072/manifest.toml) | The batch act: one human signature over many pending acts | `authorized` | `current` | `valid` | `basic` | 3M / 5S |
 | [OW-WAR-0073](docs/warrants/OW-WAR-0073/manifest.toml) | war tui: the dashboard in the terminal | `authorized` | `current` | `valid` | `basic` | 4M / 6S |
 | [OW-WAR-0074](docs/warrants/OW-WAR-0074/manifest.toml) | Adopt the exact RC.2 build basis without rewriting history | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0075](docs/warrants/OW-WAR-0075/manifest.toml) | Parse and validate a minimal OpenWarrant document | `draft` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0076](docs/warrants/OW-WAR-0076/manifest.toml) | Author valid documents from explicit fields | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0077](docs/warrants/OW-WAR-0077/manifest.toml) | Capture immutable sources and resolve exact references | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0078](docs/warrants/OW-WAR-0078/manifest.toml) | Evaluate context conditions with explicit uncertainty | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0079](docs/warrants/OW-WAR-0079/manifest.toml) | Select complete context and expose conflicts | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0080](docs/warrants/OW-WAR-0080/manifest.toml) | Build master context and faithful role projections | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0081](docs/warrants/OW-WAR-0081/manifest.toml) | Export and verify portable offline context packages | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0082](docs/warrants/OW-WAR-0082/manifest.toml) | Enforce context budgets and invalidate stale cache entries | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0083](docs/warrants/OW-WAR-0083/manifest.toml) | Check supplied readiness and assurance records truthfully | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0084](docs/warrants/OW-WAR-0084/manifest.toml) | Import legacy history without changing what was signed | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0085](docs/warrants/OW-WAR-0085/manifest.toml) | Prove every Phase 1 primitive through a runnable driver | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0086](docs/warrants/OW-WAR-0086/manifest.toml) | Expose the complete compiler through a machine-safe CLI | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0087](docs/warrants/OW-WAR-0087/manifest.toml) | Expose noninteractive document authoring and validation | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0088](docs/warrants/OW-WAR-0088/manifest.toml) | Make document authoring interactive and recoverable | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0089](docs/warrants/OW-WAR-0089/manifest.toml) | Prepare installable compiler release artifacts and user docs | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0090](docs/warrants/OW-WAR-0090/manifest.toml) | Qualify the integrated compiler and freeze the Stable source set | `draft` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0075](docs/warrants/OW-WAR-0075/manifest.toml) | Parse and validate human-first OpenWarrant documents | `draft` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0076](docs/warrants/OW-WAR-0076/manifest.toml) | Author and edit human-first OpenWarrant documents | `draft` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0077](docs/warrants/OW-WAR-0077/manifest.toml) | Define SDK source types and prove provider resolution integration | `draft` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0078](docs/warrants/OW-WAR-0078/manifest.toml) | Validate condition syntax and prove provider evaluation integration | `draft` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0079](docs/warrants/OW-WAR-0079/manifest.toml) | Prove provider context selection and dependency closure | `draft` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0080](docs/warrants/OW-WAR-0080/manifest.toml) | Prove provider master context and task projections | `draft` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0081](docs/warrants/OW-WAR-0081/manifest.toml) | Inspect packet integrity and prove offline provider packages | `draft` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0082](docs/warrants/OW-WAR-0082/manifest.toml) | Prove provider context budgets and cache invalidation | `draft` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0083](docs/warrants/OW-WAR-0083/manifest.toml) | Evaluate supplied work and assurance records | `draft` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0084](docs/warrants/OW-WAR-0084/manifest.toml) | Preserve legacy history and explicit successor lineage | `draft` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0085](docs/warrants/OW-WAR-0085/manifest.toml) | Prove Phase 1 SDK, CLI and adapted skill scope | `draft` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0086](docs/warrants/OW-WAR-0086/manifest.toml) | Integrate SDK with LAMU and a second minimal consumer | `draft` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0087](docs/warrants/OW-WAR-0087/manifest.toml) | Expose document and record primitives through CLI | `draft` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0088](docs/warrants/OW-WAR-0088/manifest.toml) | Make SDK document authoring interactive and recoverable | `draft` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0089](docs/warrants/OW-WAR-0089/manifest.toml) | Prepare standard and SDK release artifacts | `draft` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0090](docs/warrants/OW-WAR-0090/manifest.toml) | Qualify four-phase release and freeze Stable source set | `draft` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0091](docs/warrants/OW-WAR-0091/manifest.toml) | Publish and verify OpenWarrant Stable 1.0 | `draft` | `current` | `valid` | `basic` | 3M / 3S |
 
 ## Claimed SAS requirement coverage

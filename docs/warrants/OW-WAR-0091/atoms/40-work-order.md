@@ -11,60 +11,41 @@ classification: internal
 
 ## Deliverables
 
-- `docs/releases/1.0.0/publication.md`
-- `docs/releases/1.0.0/checksums.txt`
-- `GitHub release assets for the approved Stable revision`
-- `crates.io releases for the four approved package versions`
-- This Warrant's evidence/ directory: immutable command outputs, fixture/build
-  identities, independent review request and response references.
+- `docs/releases/`
+- `.github/workflows/release.yml`
+- This Warrant's implementation notes and exact test/evidence references.
 
-Paths are planned ownership boundaries, not claims that these files already
-exist. Angle-bracket record names require the authorized owner's allocation;
-they are not identifiers allocated by this draft. Shared driver/module exports
-may change only for this slice. Reconcile shared edits before integration.
+Paths are planned ownership boundaries; do not claim files already exist. Shared
+module exports and the driver may change only for the named slice; reconcile
+writers before integration. Provider-owned internals remain outside this repo.
 
 ## Frozen Surfaces
 
-Previously authorized contract revisions, original accepted source bytes,
-signatures and evidence remain immutable. Legacy parsers, digest domains and
-command meanings remain compatible unless an approved migration says otherwise.
-Required behavior, permission boundaries and acceptance expectations are binding;
-internal implementation steps can adapt within those bounds.
+Historical signed contracts, source bytes, digest domains, evidence and resolutions
+remain immutable. Required outcomes, explicit constraints and checks bind; internal
+steps may adapt within scope. RC.3 footer framing uses its own schema identifier.
 
 ## Premade Instructions
 
-Use the seam and complete case inventory in Basis. Prepare/reuse acceptance
-fixtures before implementing the corresponding behavior. Use one isolated Git
-worktree per implementation Warrant and serialize writers within it. Reviewers
-use a separate context/workspace and cannot clear the performer's gate by
-repeating its assertions. A stage may be split into smaller reviewable changes
-without expanding scope; implement one positive/refusal slice at a time.
+Publish only after exact release qualification and owner release permission. Re-download and verify published artifacts/registries against approved digests. Say the configured final release completion word only after actual Stable publication is proved.
 
-After authorized publication, independently verify remote tag target, non-prerelease GitHub release, checksums, normative source-set identity and fresh downloads/installs on Linux/macOS. Verify all four intended crate versions become available with the expected provenance. Record actual URLs, hashes and observed results, then send exactly `pineapple` to the user in chat.
-
-An existing tag or registry version collision, failed job, draft/prerelease-only entry, missing crate, wrong hash or unusable download prevents declaring Stable published. Never overwrite an existing tag or reuse an occupied immutable registry version without an explicit owner-approved release strategy.
+Prepare/reuse positive and refusal fixtures at the stated public seam. Use one
+isolated Git worktree per implementation Warrant, serialized writers, and separate
+context/workspace for independent verification. Take one bounded vertical slice
+at a time. Constant success or a fixture-name lookup cannot satisfy the checks.
 
 ## Autonomy and Escalation
 
-Agents may draft, implement within authorization, run checks and report evidence.
-They cannot authorize, sign, accept a SAS, clear their own independent gate or
-resolve this Warrant. Escalate changes to wire meaning, digest domains, authority,
-required expectations, scope or release naming. Default repair limit is three
-cycles unless the owner chooses another; actual repository spend/time limits
-must be explicit before paid or autonomous execution.
+The owner's prompt permits in-scope unverified execution and completion. Keep
+actual test findings, work completion and assurance separate. Secure human acts
+and independent verdicts cannot be substituted by performer assertions. Escalate
+material scope, wire meaning, required expectations, authority or release changes.
+Default repair limit: three cycles, configurable. Default paid-call cap: $10,
+configurable or unset by human policy. Refuse paid calls under a hard cap without
+reliable accounting; unknown cost is never zero. Apply repository limits.
 
 ## Rollback
 
-Preserve the pre-change worktree and accepted source basis. Failed operations
-leave prior output intact. Revert an unaccepted implementation branch or issue
-an approved successor/correction; never erase or regenerate signed history.
-
-## Release collision recorded during planning
-
-On 2026-09-14 the remote v1.0.0 tag already targeted
-5ab3636597461e28712d777fed847150db6af8c3. GitHub listed only the v0.1.0
-prerelease. The sparse crates.io index returned HTTP 404 for all four package
-names; this is an observation at planning time, not a name reservation.
-The owner must approve a release-ref/version strategy before any irreversible
-release mutation. Preserve the existing ref until that decision. Recheck all
-remote refs, release objects and registry versions immediately before publishing.
+Preserve prior inputs and accepted history. Failed writes leave prior output
+intact. Revert unaccepted implementation changes or use an explicit successor;
+never erase signatures to make a check pass.

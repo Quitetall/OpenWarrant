@@ -8,7 +8,7 @@ local_alias = "OW-WAR-0079"
 # Allocated only by Knowledge Fabric (SAS §12.4). Leave empty.
 enterprise_id = ""
 
-title = "Select complete context and expose conflicts"
+title = "Prove provider context selection and dependency closure"
 profile = "delivery"
 assurance_level = "basic"
 

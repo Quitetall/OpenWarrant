@@ -1,0 +1,342 @@
+{
+  "kind": "implementation-source-inventory",
+  "warrant": "OW-WAR-0075",
+  "assurance": "unverified",
+  "files": [
+    {
+      "path": "Cargo.lock",
+      "bytes": 43862,
+      "sha256": "00e72b591f466a3f8fdaf2882c897dff41105520f6bff38a421a254545ad83ea"
+    },
+    {
+      "path": "conformance/sdk/document/README.md",
+      "bytes": 1548,
+      "sha256": "81fd539fbf00884d9f4856b4fe7d8d418025fe502f238b56951c38908ab6b8ba"
+    },
+    {
+      "path": "conformance/sdk/document/adr.md",
+      "bytes": 1266,
+      "sha256": "df6856e5fa47d36f3e4b15e1452957051747edbe94a96d65533068b6567527fa"
+    },
+    {
+      "path": "conformance/sdk/document/cases.json",
+      "bytes": 3021,
+      "sha256": "8b4787f73e2adaddf5bf4da9173a23112f396a648a1e5af2b396b0c9a3c420f7"
+    },
+    {
+      "path": "conformance/sdk/document/combined-depth.md",
+      "bytes": 8873,
+      "sha256": "ff8dcdea0dc4c3b335c6884e24f48e7f6297bc44c4adca215364014c48d76c10"
+    },
+    {
+      "path": "conformance/sdk/document/compact-deps.md",
+      "bytes": 742,
+      "sha256": "321f0d56141ceb19253d76fbdb0ec15cf21c9eda0af99b2a862ccdc66c354776"
+    },
+    {
+      "path": "conformance/sdk/document/context-background.md",
+      "bytes": 251,
+      "sha256": "e977888e95118c98a6db98426f3eb4da69794525bf20b71e4b1e9fc40acc6aac"
+    },
+    {
+      "path": "conformance/sdk/document/context-binding.md",
+      "bytes": 248,
+      "sha256": "370440ca5e31294249784f85ecedb693867e77a9788a10c50e1e977b657edc64"
+    },
+    {
+      "path": "conformance/sdk/document/crlf-unicode.md",
+      "bytes": 687,
+      "sha256": "4fb7fcc646590b7e720ea4f8013313e0a746d8308f4095a8fe83822a405ccbdf"
+    },
+    {
+      "path": "conformance/sdk/document/duplicate-key.md",
+      "bytes": 661,
+      "sha256": "ce066f0e1afa617e94c46f63e103a188b8df693b61de6f3ae26903ff82e8b21a"
+    },
+    {
+      "path": "conformance/sdk/document/duplicate-unit.md",
+      "bytes": 650,
+      "sha256": "bb80f7c7004fd0fdf4418383d0b287e21e902b460df7ea393d31a3cee9a5f4f7"
+    },
+    {
+      "path": "conformance/sdk/document/fenced-markers.md",
+      "bytes": 719,
+      "sha256": "601348f6202a77eedaff6fed3ee5d6b3f79a09d947f7a354be4895afe35ef0f6"
+    },
+    {
+      "path": "conformance/sdk/document/invalid-utf8.bin",
+      "bytes": 2,
+      "sha256": "b3d510ef04275ca8e698e5b3cbb0ece3949ef9252f0cdc839e9ee347409a2209"
+    },
+    {
+      "path": "conformance/sdk/document/malformed-footer.md",
+      "bytes": 655,
+      "sha256": "1bcc1b910c728dcdfab68e396c06216f5294451e3c2c0b22a81225ddc73866ab"
+    },
+    {
+      "path": "conformance/sdk/document/minimal-rc2.md",
+      "bytes": 579,
+      "sha256": "f5bcafb923b6b5f31ec8f56fb06153d55106ba2cd739a3aa5f0e130bac84d3c1"
+    },
+    {
+      "path": "conformance/sdk/document/minimal-rc3.md",
+      "bytes": 648,
+      "sha256": "16126178787a0ae75a6503ae225da07b428ae1c60d72498bdf0aa66284711fc8"
+    },
+    {
+      "path": "conformance/sdk/document/missing-outcome.md",
+      "bytes": 650,
+      "sha256": "f9ed4cb94baa9de9c0681ede7c832efcf8c553e6e552fe0bce27e44d808cf3c7"
+    },
+    {
+      "path": "conformance/sdk/document/sas.md",
+      "bytes": 644,
+      "sha256": "20775f86f3df4574ce4763c099cdadba4a3877d224d4aa7708b8b6fe7f714b7d"
+    },
+    {
+      "path": "conformance/sdk/document/trailing.md",
+      "bytes": 653,
+      "sha256": "429c8d69216bd89088637f828a4e99b84ebffdcb51c14736baaac9d56eaa665c"
+    },
+    {
+      "path": "conformance/sdk/document/unknown-optional.md",
+      "bytes": 696,
+      "sha256": "33276e2e6c5820d581616aac516d481b307e7ea446fc59c74588fb89ca5aa3ec"
+    },
+    {
+      "path": "conformance/sdk/document/unknown-required.md",
+      "bytes": 737,
+      "sha256": "5ef67d812b2bab249154bd09231e4f7ef7bc2b1ec61ec68a1ce8a80a994ee6b7"
+    },
+    {
+      "path": "conformance/sdk/document/unresolved-required.md",
+      "bytes": 726,
+      "sha256": "9f5826dd9762dea7fdd6a4691a9253facec58319d164b95717ff6bddf1acca8e"
+    },
+    {
+      "path": "conformance/sdk/document/wrapped.md",
+      "bytes": 711,
+      "sha256": "39eb168d89dcbd5c845725276ea3ef87a107274c30587458cad8de360d804dd7"
+    },
+    {
+      "path": "conformance/sdk/document/wrong-schema.md",
+      "bytes": 648,
+      "sha256": "a5027a6af8096425f2853875ce012bcd7501f10b58265515577af1975ed12e74"
+    },
+    {
+      "path": "conformance/sdk/document/wrong-title.md",
+      "bytes": 645,
+      "sha256": "bbaa1522b38375b986bc825bb1dbd9199a91c6b249ae4ff702c03d363c291718"
+    },
+    {
+      "path": "crates/openwarrant-core/Cargo.toml",
+      "bytes": 1453,
+      "sha256": "4254785c1a44fe60b416b18c507e14d52da6cd99afc80831146c39f14cbf8eef"
+    },
+    {
+      "path": "crates/openwarrant-core/examples/sdk_probe.rs",
+      "bytes": 4841,
+      "sha256": "e6a9ef35b416b9c45ebfa211352c4997885df608609b2ab0490a6f8e1dfec707"
+    },
+    {
+      "path": "crates/openwarrant-core/src/document/metadata.rs",
+      "bytes": 6403,
+      "sha256": "7bb600a7592568b8f7d35d204a750e00b72e5ff8ac3d484aa370bcabe4061f2d"
+    },
+    {
+      "path": "crates/openwarrant-core/src/document/mod.rs",
+      "bytes": 5812,
+      "sha256": "3e9828125af357b16cfe7e10744a16e8779454a2dfa9a0da2d35c1ac63b9f58d"
+    },
+    {
+      "path": "crates/openwarrant-core/src/document/references.rs",
+      "bytes": 5194,
+      "sha256": "bf7843db996ba6fcc61ea7ed8870ebc1a513d60e5dcd5fc5f826093fa0cf17bd"
+    },
+    {
+      "path": "crates/openwarrant-core/src/document/scan.rs",
+      "bytes": 7784,
+      "sha256": "1d0af9a0ecc6d5ed6ce30a556c1668ffd993dd6cf2503579b349d4c75f8d968f"
+    },
+    {
+      "path": "crates/openwarrant-core/src/document/validate.rs",
+      "bytes": 8539,
+      "sha256": "06acd3ae0b0928afe88054ff85ecafe60c99b61b1e782b8044cd457579829a66"
+    },
+    {
+      "path": "crates/openwarrant-core/src/lib.rs",
+      "bytes": 3920,
+      "sha256": "874ade6b8561d5ede80f4b149a720145ef39f1db93dd36efa93aa48a4189e063"
+    },
+    {
+      "path": "crates/openwarrant-core/tests/document.rs",
+      "bytes": 19640,
+      "sha256": "96570506575a28700b0bb044b6fa9cf4d329bf49c30f40a9c0068036167722ea"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-boundary-tests.log",
+      "bytes": 1134,
+      "sha256": "e2267059770a2e1716ccd7cac0fddbde784b42e8cef1c42340dd8c8dc0f08e82"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-clippy-final.log",
+      "bytes": 164,
+      "sha256": "131d55e0e3acf267de418ff760df21c42da6b25c9f8de62acdb3ff3ec8991240"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-clippy.log",
+      "bytes": 1575,
+      "sha256": "f229d6910ae5e512dd946ed1fe00065b25ba72017296427b96d707b8967bd704"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-core-final.log",
+      "bytes": 36665,
+      "sha256": "40e57b00d990f48cbb60108ab290b565350ad1ed70325efa9a6dd4687c66fb8d"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-core-tests.log",
+      "bytes": 36879,
+      "sha256": "9015057851aceae8f4334b1ad870d612c2d7f147911c2235c6169e21a4cc1e03"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-default-clippy.log",
+      "bytes": 495,
+      "sha256": "914b49b53eff2fef71e6e791c504d09031ac3583cc0f3fb9fe0f5b8175ee4de2"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-depth-regression.log",
+      "bytes": 1200,
+      "sha256": "1083a081f1893803a97794de0d37faa326150891fd3c4d95bb0b002981cd159e"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-fmt-final.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-green-01.log",
+      "bytes": 860,
+      "sha256": "71624e8b5cdbeed626d063625895724889b2b6d0e0194aa31275f37247aaf897"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-green-02.log",
+      "bytes": 520,
+      "sha256": "cca43b4ebac6f90a629e67fd06e91436a6c8f9ee6f666cc718a58a9609f972c7"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-green-03.log",
+      "bytes": 599,
+      "sha256": "ab52c6fe8dc06f0a593cf0019a7abcee471fa437ae61900240292a34b7f59906"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-green-04.log",
+      "bytes": 686,
+      "sha256": "eca2bdf5dedb4092ebc97f97674d7a300240f9ed4bdacfe80c50d117fc9366d9"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-green-05.log",
+      "bytes": 766,
+      "sha256": "114ab820221fa54ae4a4501424d784d748be63fe19a8b21dfa1e2022cb8f6f18"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-green-06.log",
+      "bytes": 919,
+      "sha256": "807157e5b37120ce10ed9c18a22c1b1f5601882a272ecc4a6ded742fec5f3569"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-green-07.log",
+      "bytes": 980,
+      "sha256": "b44a4c08016d07de9ab916a87652160ea99b96d4c46fadb44874817b81e4fc42"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-green-08.log",
+      "bytes": 762,
+      "sha256": "a357d10c2a77bed0247f635a244a15bfa55a8691e0493900e8c45272e669130e"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-green-09.log",
+      "bytes": 1134,
+      "sha256": "6d13c9bb855cea083f39ca2e88fc5b1378e443698dd3b446d81bc81428a6431b"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-green-10.log",
+      "bytes": 370,
+      "sha256": "2005d14dbd1218cb2883242cde769487e54b0b82b270374867022536fe611149"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-green-11.log",
+      "bytes": 1353,
+      "sha256": "74c22297047f625de5e072c3b000c77b4776498d699dd673f0a7b95904e6a700"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-probe-final.log",
+      "bytes": 855,
+      "sha256": "cd69695c77ad4bfb4a4e82de69dd36054017db74b4d0f6f8658b224f4ef7728e"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-probe-mutation.log",
+      "bytes": 214,
+      "sha256": "88b6f3b33f2608691f7853bd9908147de6c70b6e509cc3b6d976e5013c2d3970"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-red-01.log",
+      "bytes": 1177,
+      "sha256": "35a5f41add51d0897569e49f0e94a4573fdd37dfb8daaa3d40866741b582e28e"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-red-02.log",
+      "bytes": 2264,
+      "sha256": "1d03cc5e9a0639d48530889f702b639cecf7881758fcabc88b45f4638674bf87"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-red-03.log",
+      "bytes": 1101,
+      "sha256": "2276242a40bda5cfd7f983128989ef126823445056fc177733c96814e4dd8723"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-red-04.log",
+      "bytes": 1032,
+      "sha256": "4bc00450ffcd1cf9d558493e20499aa7ed006194fb88ddd45a9b37adddcaeac2"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-red-05.log",
+      "bytes": 1005,
+      "sha256": "b86679f6e69c9b0403c5e52d13354ce9f104a017aa3529d33c6dd1c79a917d99"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-red-06.log",
+      "bytes": 2587,
+      "sha256": "80a6d4bc7fa7e5560c4cc3aad85589dc7369850f3c282a77a8b5055992f08311"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-red-07.log",
+      "bytes": 909,
+      "sha256": "932b063efd495b42b011e8c3642721b9a7d0bfca499de4888e4d3908874ed481"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-red-08.log",
+      "bytes": 73,
+      "sha256": "d96e630b4637f1dd2bf6e190a6cbd65435e143c9a3c01f6bef0ed4fb48d30354"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-red-09.log",
+      "bytes": 909,
+      "sha256": "6a5bdb54658f5727e4940d0ac8f7a4e7c5e9862186be475a398d09fad91d0672"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-red-10.log",
+      "bytes": 104,
+      "sha256": "bc8517e2d897e1cc5216cd001778afedb199635bde73683489c73be45af45fae"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/evidence/sdk-parser/ow-0075-red-11.log",
+      "bytes": 942,
+      "sha256": "c536747af12b9c59568091a1b0de57c8df414268e63d438247da8404828f71fa"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/implementation/sdk-parser-notes.md",
+      "bytes": 5009,
+      "sha256": "2ee0b5a0174fbbb2693e12e09d71c994f04b37b05a189200fb0e6d9e7970a2f2"
+    }
+  ]
+}

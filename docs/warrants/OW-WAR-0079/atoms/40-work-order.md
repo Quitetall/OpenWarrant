@@ -11,49 +11,41 @@ classification: internal
 
 ## Deliverables
 
-- `crates/openwarrant-compiler/src/context_graph.rs`
-- `crates/openwarrant-compiler/examples/rc2_probe.rs`
-- `conformance/rc2/context-graph/`
-- This Warrant's evidence/ directory: immutable command outputs, fixture/build
-  identities, independent review request and response references.
+- `conformance/integration/selection/`
+- `docs/integrations/selection.md`
+- This Warrant's implementation notes and exact test/evidence references.
 
-Paths are planned ownership boundaries, not claims that these files already
-exist. Angle-bracket record names require the authorized owner's allocation;
-they are not identifiers allocated by this draft. Shared driver/module exports
-may change only for this slice. Reconcile shared edits before integration.
+Paths are planned ownership boundaries; do not claim files already exist. Shared
+module exports and the driver may change only for the named slice; reconcile
+writers before integration. Provider-owned internals remain outside this repo.
 
 ## Frozen Surfaces
 
-Previously authorized contract revisions, original accepted source bytes,
-signatures and evidence remain immutable. Legacy parsers, digest domains and
-command meanings remain compatible unless an approved migration says otherwise.
-Required behavior, permission boundaries and acceptance expectations are binding;
-internal implementation steps can adapt within those bounds.
+Historical signed contracts, source bytes, digest domains, evidence and resolutions
+remain immutable. Required outcomes, explicit constraints and checks bind; internal
+steps may adapt within scope. RC.3 footer framing uses its own schema identifier.
 
 ## Premade Instructions
 
-Use the seam and complete case inventory in Basis. Prepare/reuse acceptance
-fixtures before implementing the corresponding behavior. Use one isolated Git
-worktree per implementation Warrant and serialize writers within it. Reviewers
-use a separate context/workspace and cannot clear the performer's gate by
-repeating its assertions. A stage may be split into smaller reviewable changes
-without expanding scope; implement one positive/refusal slice at a time.
+Exercise provider-owned selection, exact required rules, dependency closure, conflicts and access refusals. OpenWarrant does not implement a second closure engine.
 
-T21-T26 prove transitive closure, shared dependency deduplication, cycles, governing pointers outside the Warrant and required inclusion on UNKNOWN applicability.
-
-Missing required units, explicit conflicts and competing required revisions refuse a complete projection. Optional omissions remain labeled; no arbitrary conflict winner or keyword-only rule extraction.
+Prepare/reuse positive and refusal fixtures at the stated public seam. Use one
+isolated Git worktree per implementation Warrant, serialized writers, and separate
+context/workspace for independent verification. Take one bounded vertical slice
+at a time. Constant success or a fixture-name lookup cannot satisfy the checks.
 
 ## Autonomy and Escalation
 
-Agents may draft, implement within authorization, run checks and report evidence.
-They cannot authorize, sign, accept a SAS, clear their own independent gate or
-resolve this Warrant. Escalate changes to wire meaning, digest domains, authority,
-required expectations, scope or release naming. Default repair limit is three
-cycles unless the owner chooses another; actual repository spend/time limits
-must be explicit before paid or autonomous execution.
+The owner's prompt permits in-scope unverified execution and completion. Keep
+actual test findings, work completion and assurance separate. Secure human acts
+and independent verdicts cannot be substituted by performer assertions. Escalate
+material scope, wire meaning, required expectations, authority or release changes.
+Default repair limit: three cycles, configurable. Default paid-call cap: $10,
+configurable or unset by human policy. Refuse paid calls under a hard cap without
+reliable accounting; unknown cost is never zero. Apply repository limits.
 
 ## Rollback
 
-Preserve the pre-change worktree and accepted source basis. Failed operations
-leave prior output intact. Revert an unaccepted implementation branch or issue
-an approved successor/correction; never erase or regenerate signed history.
+Preserve prior inputs and accepted history. Failed writes leave prior output
+intact. Revert unaccepted implementation changes or use an explicit successor;
+never erase signatures to make a check pass.

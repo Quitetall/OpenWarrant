@@ -1,182 +1,6 @@
-+++
-schema = "oh.war/document/1.0.0-rc.2"
-kind = "sas"
-id = "openwarrant:sas"
-revision = 3
-title = "OpenWarrant Software Architecture Specification"
-state = "proposed"
-
-[[dependencies]]
-unit = "documents"
-target = "format-contract.md#source"
-
-[[dependencies]]
-unit = "documents"
-target = "format-contract.md#units"
-
-[[dependencies]]
-unit = "compilation"
-target = "format-contract.md#request"
-
-[[dependencies]]
-unit = "compilation"
-target = "format-contract.md#digests"
-
-[[dependencies]]
-unit = "selection"
-target = "format-contract.md#pointers"
-
-[[dependencies]]
-unit = "selection"
-target = "format-contract.md#conditions"
-
-[[dependencies]]
-unit = "selection"
-target = "format-contract.md#selection"
-
-[[dependencies]]
-unit = "packets"
-target = "format-contract.md#package"
-
-[[dependencies]]
-unit = "records"
-target = "format-contract.md#records"
-
-[[dependencies]]
-unit = "assurance"
-target = "format-contract.md#records"
-
-[[dependencies]]
-unit = "phases"
-target = "phase-1-build-scope.md"
-
-[[dependencies]]
-unit = "documents"
-target = "#context"
-
-[[dependencies]]
-unit = "contracts"
-target = "#context"
-
-[[dependencies]]
-unit = "compilation"
-target = "#context"
-
-[[dependencies]]
-unit = "selection"
-target = "#context"
-
-[[dependencies]]
-unit = "provenance"
-target = "#context"
-
-[[dependencies]]
-unit = "packets"
-target = "#context"
-
-[[dependencies]]
-unit = "invalidation"
-target = "#context"
-
-[[dependencies]]
-unit = "authority"
-target = "#context"
-
-[[dependencies]]
-unit = "assurance"
-target = "#context"
-
-[[dependencies]]
-unit = "records"
-target = "#context"
-
-[[dependencies]]
-unit = "workflow"
-target = "#context"
-
-[[dependencies]]
-unit = "recovery"
-target = "#context"
-
-[[dependencies]]
-unit = "integrations"
-target = "#context"
-
-[[dependencies]]
-unit = "phases"
-target = "#context"
-
-[[dependencies]]
-unit = "adoption"
-target = "#context"
-
-[[dependencies]]
-unit = "contracts"
-target = "#authority"
-
-[[dependencies]]
-unit = "assurance"
-target = "#authority"
-
-[[dependencies]]
-unit = "assurance"
-target = "#contracts"
-
-[[dependencies]]
-unit = "assurance"
-target = "#records"
-
-[[dependencies]]
-unit = "records"
-target = "#assurance"
-
-[[dependencies]]
-unit = "packets"
-target = "#invalidation"
-
-[[dependencies]]
-unit = "compilation"
-target = "sdk-contract.md"
-
-[[dependencies]]
-unit = "integrations"
-target = "skill-adaptation.md"
-
-[[dependencies]]
-unit = "phases"
-target = "phase-plan.md"
-
-[[dependencies]]
-unit = "context-views"
-target = "context-views-and-shared-work.md"
-
-[[dependencies]]
-unit = "context-views"
-target = "#context"
-
-[[dependencies]]
-unit = "context-views"
-target = "#authority"
-
-[[dependencies]]
-unit = "stops"
-target = "work-stop-contract.md"
-
-[[dependencies]]
-unit = "stops"
-target = "#workflow"
-
-[[dependencies]]
-unit = "invalidation"
-target = "work-stop-contract.md"
-
-[[dependencies]]
-unit = "records"
-target = "context-views-and-shared-work.md"
-
-+++
-
 <!-- ow:unit outcome binding -->
+# OpenWarrant Software Architecture Specification
+
 ## 1. Purpose and edition
 
 **Edition: 1.0.0-rc.3. Status: successor draft for review, not signed adoption,
@@ -324,7 +148,9 @@ their existence does not add requirements to basic document compatibility.
 ## 4. Documents, identities, and authoring
 
 The normal editable source SHALL be one Markdown file with a TOML metadata
-header and defined units. The format contract fixes required fields, delimiters,
+footer and defined units. Human-readable content comes first; compact dependency
+arrays and exact metadata framing follow the RC.3 format contract. Historical
+RC.2 header sources retain their explicit adapter and original bytes. The format contract fixes required fields, delimiters,
 unit syntax, references, and extension rules. Warrant, SAS, ADR, and context
 are supported source kinds. Arbitrary repository files and raw evidence may be
 captured as opaque content; they do not become conforming documents by import.
@@ -1121,3 +947,63 @@ supersessions. Source clauses, not titles alone, define full requirements.
 | WAR-SAS-RQ-132 | Context exclusion and evidence destruction preserve signed history and disclose affected assurance; active rules follow stop/change handling | D/C/A/W | 10, 19–20 | SDK-22; CTX-06/07; Phases 2–3 |
 | WAR-SAS-RQ-133 | Work and agent stops separate completion, cause, actual execution and assurance at an explicit scope | D/W | 14.1, 20 | SDK-17/23; stop scenarios; Phase 3 |
 | WAR-SAS-RQ-134 | Work changes honor recorded user choices; harness updates apply before affected dispatch with fencing and recovery evidence | D/W | 15, 20 | SDK-24; stop scenarios; Phases 3–4 |
+
+<!-- ow:metadata -->
+<details>
+<summary>OpenWarrant metadata</summary>
+
+```toml
+schema = "oh.war/document/1.0.0-rc.3"
+kind = "sas"
+id = "openwarrant:sas"
+revision = 3
+title = "OpenWarrant Software Architecture Specification"
+state = "proposed"
+dependencies = [
+  { unit = "documents", target = "format-contract.md#source" },
+  { unit = "documents", target = "format-contract.md#units" },
+  { unit = "compilation", target = "format-contract.md#request" },
+  { unit = "compilation", target = "format-contract.md#digests" },
+  { unit = "selection", target = "format-contract.md#pointers" },
+  { unit = "selection", target = "format-contract.md#conditions" },
+  { unit = "selection", target = "format-contract.md#selection" },
+  { unit = "packets", target = "format-contract.md#package" },
+  { unit = "records", target = "format-contract.md#records" },
+  { unit = "assurance", target = "format-contract.md#records" },
+  { unit = "phases", target = "phase-1-build-scope.md" },
+  { unit = "documents", target = "#context" },
+  { unit = "contracts", target = "#context" },
+  { unit = "compilation", target = "#context" },
+  { unit = "selection", target = "#context" },
+  { unit = "provenance", target = "#context" },
+  { unit = "packets", target = "#context" },
+  { unit = "invalidation", target = "#context" },
+  { unit = "authority", target = "#context" },
+  { unit = "assurance", target = "#context" },
+  { unit = "records", target = "#context" },
+  { unit = "workflow", target = "#context" },
+  { unit = "recovery", target = "#context" },
+  { unit = "integrations", target = "#context" },
+  { unit = "phases", target = "#context" },
+  { unit = "adoption", target = "#context" },
+  { unit = "contracts", target = "#authority" },
+  { unit = "assurance", target = "#authority" },
+  { unit = "assurance", target = "#contracts" },
+  { unit = "assurance", target = "#records" },
+  { unit = "records", target = "#assurance" },
+  { unit = "packets", target = "#invalidation" },
+  { unit = "compilation", target = "sdk-contract.md" },
+  { unit = "integrations", target = "skill-adaptation.md" },
+  { unit = "phases", target = "phase-plan.md" },
+  { unit = "context-views", target = "context-views-and-shared-work.md" },
+  { unit = "context-views", target = "#context" },
+  { unit = "context-views", target = "#authority" },
+  { unit = "stops", target = "work-stop-contract.md" },
+  { unit = "stops", target = "#workflow" },
+  { unit = "invalidation", target = "work-stop-contract.md" },
+  { unit = "records", target = "context-views-and-shared-work.md" },
+]
+```
+
+</details>
+<!-- /ow:metadata -->
