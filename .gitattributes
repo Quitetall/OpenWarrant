@@ -7,3 +7,5 @@ conformance/sdk/document/*.bin binary
 docs/warrants/OW-WAR-0075/evidence/sdk-parser/** -text
 docs/design/amendment-review/*.log -text
 docs/design/amendment-review/*-signing-preview.txt -text
+conformance/sdk/author/** -text
+docs/warrants/OW-WAR-0076/evidence/sdk-author/** -text

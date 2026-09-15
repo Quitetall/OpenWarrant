@@ -34,6 +34,22 @@ impl Default for ValidationOptions {
     }
 }
 
+pub(super) const CORE_FIELDS: &[&str] = &[
+    "schema",
+    "kind",
+    "id",
+    "revision",
+    "title",
+    "state",
+    "alias",
+    "scope",
+    "context",
+    "dependencies",
+    "conflicts",
+    "extensions",
+    "requires_extensions",
+];
+
 /// Structural validity is independent of resolution, readiness and extension support.
 #[derive(Clone, Debug)]
 pub struct ValidationReport {
@@ -74,23 +90,8 @@ pub fn validate_document(document: &Document<'_>, options: &ValidationOptions) -
         ))
     };
     let fields = document.metadata.as_table().expect("TOML root table");
-    const ALLOWED: &[&str] = &[
-        "schema",
-        "kind",
-        "id",
-        "revision",
-        "title",
-        "state",
-        "alias",
-        "scope",
-        "context",
-        "dependencies",
-        "conflicts",
-        "extensions",
-        "requires_extensions",
-    ];
     for key in fields.keys() {
-        if !ALLOWED.contains(&key.as_str()) {
+        if !CORE_FIELDS.contains(&key.as_str()) {
             issue(format!("Unknown core field {key}"));
         }
     }

@@ -4,6 +4,8 @@ use openwarrant_core::document::{
     Dialect, ParseLimits, SemanticSupport, ValidationOptions, Validity, parse_document,
     validate_document,
 };
+#[path = "sdk_probe/author.rs"]
+mod author;
 use serde::Deserialize;
 use std::{
     collections::BTreeSet,
@@ -62,11 +64,11 @@ fn run() -> Result<(), String> {
             }
         }
     }
-    if scope.as_deref() != Some("75") {
-        return Err("This driver implements --scope 75 only".into());
+    if !matches!(scope.as_deref(), Some("75" | "76")) {
+        return Err("This driver implements --scope 75 or 76".into());
     }
-    let directory =
-        std::path::PathBuf::from(fixtures.ok_or("--fixtures is required")?).join("document");
+    let root = std::path::PathBuf::from(fixtures.ok_or("--fixtures is required")?);
+    let directory = root.join("document");
     let suite: Suite =
         serde_json::from_slice(&read_bounded(&directory.join("cases.json"), 1024 * 1024)?)
             .map_err(|e| e.to_string())?;
@@ -129,6 +131,9 @@ fn run() -> Result<(), String> {
         "{} document cases passed; context/readiness not evaluated; author/edit outside scope 75",
         suite.cases.len()
     );
+    if scope.as_deref() == Some("76") {
+        author::run(&root)?;
+    }
     Ok(())
 }
 
