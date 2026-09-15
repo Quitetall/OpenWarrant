@@ -34,7 +34,7 @@ def main():
     contract = ow / "docs/integrations/lamu-source-provider.md"
     manifest = tomllib.loads((crate / "Cargo.toml").read_text())
     dependency = manifest["dependencies"]["openwarrant-core"]
-    expected_sdk = "821e821599b0dcea33f0d35d22638742f05da308"
+    expected_sdk = "f5c7ac0ee1d71e43437b3def2ed75693d5804553"
     if dependency != {"git": "https://github.com/Quitetall/OpenWarrant.git", "rev": expected_sdk}:
         raise ValueError("Provider does not consume the agreed SDK revision")
     fixtures = [("task.md", "conformance/sdk/source/task.md"),

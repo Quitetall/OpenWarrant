@@ -31,7 +31,7 @@ def main():
     root = args.provider_root.resolve(strict=True)
     ow = Path(__file__).resolve().parents[3]
     crate = root / "lamu-openwarrant"
-    contract = ow / "docs/integrations/conditions.md"
+    contract = ow / "docs/integrations/projections.md"
     manifest = tomllib.loads((crate / "Cargo.toml").read_text())
     dependency = manifest["dependencies"]["openwarrant-core"]
     expected_sdk = "f5c7ac0ee1d71e43437b3def2ed75693d5804553"
@@ -43,35 +43,33 @@ def main():
         if (crate / "tests/fixtures" / name).read_bytes() != (ow / original).read_bytes():
             raise ValueError(f"Fixture differs from OpenWarrant source: {name}")
     profile_run = run(["cargo", "+1.97.1", "run", "--locked", "--quiet", "-p",
-                       "lamu-openwarrant", "--example", "conditions_profile"], root)
+                       "lamu-openwarrant", "--example", "projections_profile"], root)
     if profile_run["exit_code"]:
         raise RuntimeError(profile_run["stderr"])
     profile = json.loads(profile_run["stdout"])
-    if profile["id"] != "lamu.openwarrant.conditions/1" or profile["sdk_revision"] != expected_sdk:
+    if profile["id"] != "lamu.openwarrant.projections/1" or profile["sdk_revision"] != expected_sdk:
         raise ValueError("Unexpected provider profile")
     if profile["contract_sha256"] != digest(contract):
         raise ValueError("Provider contract digest mismatch")
     tests = run(["cargo", "+1.97.1", "test", "--locked", "-p", "lamu-openwarrant",
-                 "--test", "conditions", "--", "--test-threads=1"], root)
+                 "--test", "projections", "--", "--test-threads=1"], root)
     expected_tests = [
-        "missing_inputs_are_unknown_but_known_false_wins_and_empty_is_known",
-        "f4_paths_match_whole_case_sensitive_unicode_segments",
-        "invalid_inputs_and_bounded_computation_refuse_without_truth_result",
-        "warrant_scope_supplies_defaults_and_overrides_keep_their_origin",
-        "inferred_stage_provenance_consumes_text_budget",
+        "four_roles_preserve_exact_subject_and_master_is_not_execution_readiness",
+        "summaries_preserve_parent_labels_and_cannot_replace_binding_rules",
+        "refusal_boundaries_preserve_previous_view_and_claims_never_grant_readiness",
     ]
     passed = tests["exit_code"] == 0 and all(
         f"test {name} ... ok" in tests["stdout"] for name in expected_tests)
     inputs = sorted(p for p in crate.rglob("*") if p.is_file()) + [root / "Cargo.lock", root / "Cargo.toml"]
     receipt = {
-        "format": "openwarrant-condition-integration-observation/1", "passed": passed,
+        "format": "openwarrant-projection-integration-observation/1", "passed": passed,
         "profile": profile, "provider_git_head": run(["git", "rev-parse", "HEAD"], root)["stdout"].strip(),
         "provider_worktree_status": run(["git", "status", "--short"], root)["stdout"],
         "toolchain": run(["rustc", "+1.97.1", "--version"], root)["stdout"].strip(),
         "inputs_sha256": {str(p.relative_to(root)): digest(p) for p in inputs},
         "profile_process": profile_run, "tests": tests,
-        "scope": "T16-T20 condition evaluation and SDK syntax; required UNKNOWN inclusion awaits 0079 closure",
-        "limitations": ["No human assurance", "No required UNKNOWN dependency closure proof",
+        "scope": "T27-T31 master/task projections, roles, exact text and summary provenance",
+        "limitations": ["No human assurance", "No portable package or semantic package verification", "Task readiness blocked pending record evaluation",
                         "Host OS only"],
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
