@@ -16,6 +16,7 @@ pub use author::{
 
 pub mod condition;
 mod metadata;
+pub mod packet;
 mod references;
 mod scan;
 pub mod source;
