@@ -1,0 +1,68 @@
+{
+  "format": "openwarrant-condition-integration-observation/1",
+  "passed": true,
+  "profile": {
+    "id": "lamu.openwarrant.conditions/1",
+    "provider": "lamu-openwarrant",
+    "version": "0.1.0",
+    "sdk_revision": "821e821599b0dcea33f0d35d22638742f05da308",
+    "contract_sha256": "10633e1189d5f2048ced5b7a12a42f5f139e9aa116faa451c9efb16106ae7abb"
+  },
+  "provider_git_head": "994a6936a92275201b4c8ba0d38559d029b84f49",
+  "provider_worktree_status": "",
+  "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "inputs_sha256": {
+    "lamu-openwarrant/CONTRACT.md": "62e0840dbd20513ae3aa25259c258ae16fed4bd33dc42a6f29f188152be6a792",
+    "lamu-openwarrant/Cargo.toml": "81cab578b414bd5cf54038b8e7f38df5be0e6e0decce068f8c1e5697d9774c18",
+    "lamu-openwarrant/examples/conditions_profile.rs": "70049a72568bdca8ec660f5e44aab476fccb27083d2f6c62bda643ddc4fc4c0e",
+    "lamu-openwarrant/examples/profile.rs": "8f6dd69af1b55c2a19587fb8ecd3c2e7306127374072dc6b91cbab4703a7625c",
+    "lamu-openwarrant/src/conditions.rs": "e8e4317cca7ed3d956fbb1538265db805fb68cfce57550706944cfdaee992aa1",
+    "lamu-openwarrant/src/lib.rs": "4b04c44b8bf3bec7059b0f09f391e0b58aecfff29657d58f4d59ce578cf1252d",
+    "lamu-openwarrant/tests/conditions.rs": "034a7b6a7c090383cf815c36bbfa3c369aaa973bb6f53e18faeee1bcee3252a2",
+    "lamu-openwarrant/tests/fixtures/architecture.md": "df6856e5fa47d36f3e4b15e1452957051747edbe94a96d65533068b6567527fa",
+    "lamu-openwarrant/tests/fixtures/task.md": "16126178787a0ae75a6503ae225da07b428ae1c60d72498bdf0aa66284711fc8",
+    "lamu-openwarrant/tests/source.rs": "8cb7bc8fe612ab2dbbe5850f76558d491101a791dd46d6ac5422ed23bd1fd142",
+    "Cargo.lock": "37a124bbafe919fc5d50b83924f9d0474c49deb6ba979260e52588c194eb92b1",
+    "Cargo.toml": "8f9a06f230e95c09062338208d4b716c18a840c4055854138212fd50e05fe6a0"
+  },
+  "profile_process": {
+    "argv": [
+      "cargo",
+      "+1.97.1",
+      "run",
+      "--locked",
+      "--quiet",
+      "-p",
+      "lamu-openwarrant",
+      "--example",
+      "conditions_profile"
+    ],
+    "exit_code": 0,
+    "stdout": "{\"id\":\"lamu.openwarrant.conditions/1\",\"provider\":\"lamu-openwarrant\",\"version\":\"0.1.0\",\"sdk_revision\":\"821e821599b0dcea33f0d35d22638742f05da308\",\"contract_sha256\":\"10633e1189d5f2048ced5b7a12a42f5f139e9aa116faa451c9efb16106ae7abb\"}\n",
+    "stderr": ""
+  },
+  "tests": {
+    "argv": [
+      "cargo",
+      "+1.97.1",
+      "test",
+      "--locked",
+      "-p",
+      "lamu-openwarrant",
+      "--test",
+      "conditions",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit_code": 0,
+    "stdout": "\nrunning 5 tests\ntest f4_paths_match_whole_case_sensitive_unicode_segments ... ok\ntest inferred_stage_provenance_consumes_text_budget ... ok\ntest invalid_inputs_and_bounded_computation_refuse_without_truth_result ... ok\ntest missing_inputs_are_unknown_but_known_false_wins_and_empty_is_known ... ok\ntest warrant_scope_supplies_defaults_and_overrides_keep_their_origin ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+    "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.10s\n     Running tests/conditions.rs (target/debug/deps/conditions-889994ca17dd0c83)\n"
+  },
+  "scope": "T16-T20 condition evaluation and SDK syntax; required UNKNOWN inclusion awaits 0079 closure",
+  "limitations": [
+    "No human assurance",
+    "No required UNKNOWN dependency closure proof",
+    "No dependency closure or context compiler",
+    "Host OS only"
+  ]
+}

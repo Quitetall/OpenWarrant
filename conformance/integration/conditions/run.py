@@ -31,7 +31,7 @@ def main():
     root = args.provider_root.resolve(strict=True)
     ow = Path(__file__).resolve().parents[3]
     crate = root / "lamu-openwarrant"
-    contract = ow / "docs/integrations/lamu-source-provider.md"
+    contract = ow / "docs/integrations/conditions.md"
     manifest = tomllib.loads((crate / "Cargo.toml").read_text())
     dependency = manifest["dependencies"]["openwarrant-core"]
     expected_sdk = "821e821599b0dcea33f0d35d22638742f05da308"
@@ -43,35 +43,35 @@ def main():
         if (crate / "tests/fixtures" / name).read_bytes() != (ow / original).read_bytes():
             raise ValueError(f"Fixture differs from OpenWarrant source: {name}")
     profile_run = run(["cargo", "+1.97.1", "run", "--locked", "--quiet", "-p",
-                       "lamu-openwarrant", "--example", "profile"], root)
+                       "lamu-openwarrant", "--example", "conditions_profile"], root)
     if profile_run["exit_code"]:
         raise RuntimeError(profile_run["stderr"])
     profile = json.loads(profile_run["stdout"])
-    if profile["id"] != "lamu.openwarrant.local-source/1" or profile["sdk_revision"] != expected_sdk:
+    if profile["id"] != "lamu.openwarrant.conditions/1" or profile["sdk_revision"] != expected_sdk:
         raise ValueError("Unexpected provider profile")
     if profile["contract_sha256"] != digest(contract):
         raise ValueError("Provider contract digest mismatch")
     tests = run(["cargo", "+1.97.1", "test", "--locked", "-p", "lamu-openwarrant",
-                 "--test", "source", "--", "--test-threads=1"], root)
+                 "--test", "conditions", "--", "--test-threads=1"], root)
     expected_tests = [
-        "capture_original_bytes_and_refuse_changed_source_without_replacing_prior_snapshot",
-        "resolve_units_from_actual_capture_preserves_old_basis_after_heading_rename",
-        "mixed_sources_have_deterministic_locks_and_distinct_integrity_refusals",
-        "filesystem_boundary_refuses_escape_symlinks_special_files_and_limits",
-        "aggregate_budget_stops_before_next_filesystem_lookup",
+        "missing_inputs_are_unknown_but_known_false_wins_and_empty_is_known",
+        "f4_paths_match_whole_case_sensitive_unicode_segments",
+        "invalid_inputs_and_bounded_computation_refuse_without_truth_result",
+        "warrant_scope_supplies_defaults_and_overrides_keep_their_origin",
+        "inferred_stage_provenance_consumes_text_budget",
     ]
     passed = tests["exit_code"] == 0 and all(
         f"test {name} ... ok" in tests["stdout"] for name in expected_tests)
     inputs = sorted(p for p in crate.rglob("*") if p.is_file()) + [root / "Cargo.lock", root / "Cargo.toml"]
     receipt = {
-        "format": "openwarrant-source-integration-observation/1", "passed": passed,
+        "format": "openwarrant-condition-integration-observation/1", "passed": passed,
         "profile": profile, "provider_git_head": run(["git", "rev-parse", "HEAD"], root)["stdout"].strip(),
         "provider_worktree_status": run(["git", "status", "--short"], root)["stdout"],
         "toolchain": run(["rustc", "+1.97.1", "--version"], root)["stdout"].strip(),
         "inputs_sha256": {str(p.relative_to(root)): digest(p) for p in inputs},
         "profile_process": profile_run, "tests": tests,
-        "scope": "T11-T15 local Unix source profile plus aggregate-budget regression",
-        "limitations": ["No human assurance", "No atomic cross-file filesystem snapshot",
+        "scope": "T16-T20 condition evaluation and SDK syntax; required UNKNOWN inclusion awaits 0079 closure",
+        "limitations": ["No human assurance", "No required UNKNOWN dependency closure proof",
                         "No dependency closure or context compiler", "Host OS only"],
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
