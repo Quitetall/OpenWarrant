@@ -1,0 +1,23 @@
+{
+  "schema": "oh.war/implementation-evidence/v1",
+  "warrant": "OW-WAR-0076",
+  "implementation_commit": "e3e16813a9aa8a917dfd2cbf285a94856cedc3ec",
+  "base_commit": "8280bb94b8bcfb921bb7a14000504a2b15faa41a",
+  "implementation": "complete-unverified",
+  "qualification": "not-established",
+  "rust_toolchain": "1.97.1",
+  "checks": {
+    "gate": {
+      "exit_code": 0,
+      "passed_steps": 14
+    },
+    "rust_tests": 747,
+    "mutation_checks": 308,
+    "document_fixtures": 22,
+    "author_edit_fixtures": 10
+  },
+  "independent_spec_review": "pass",
+  "independent_standards_review": "pass-after-fixes",
+  "lamu_review": "pass-with-nits-false-positives-checked",
+  "progress_note": "progress.json is actual legacy CLI state; legacy resolution is separate from this implementation completion"
+}

@@ -1,0 +1,65 @@
+{
+  "schema": "oh.war/sdk-author-cases/v1",
+  "cases": [
+    {
+      "id": "T54-minimum",
+      "input": "T54-minimum.json",
+      "expected": "minimal.md",
+      "error": null
+    },
+    {
+      "id": "T56-revision",
+      "input": "T56-revision.json",
+      "expected": "revision.md",
+      "error": null
+    },
+    {
+      "id": "FOOTER08-title-crlf",
+      "input": "FOOTER08-title-crlf.json",
+      "expected": "title-crlf.md",
+      "error": null
+    },
+    {
+      "id": "T55-duplicate-field",
+      "input": "T55-duplicate-field.json",
+      "expected": null,
+      "error": "field-duplicate"
+    },
+    {
+      "id": "T55-unit-injection",
+      "input": "T55-unit-injection.json",
+      "expected": null,
+      "error": "unit-injection"
+    },
+    {
+      "id": "T55-footer-injection",
+      "input": "T55-footer-injection.json",
+      "expected": null,
+      "error": "source-invalid"
+    },
+    {
+      "id": "T56-false-assurance",
+      "input": "T56-false-assurance.json",
+      "expected": null,
+      "error": "source-invalid"
+    },
+    {
+      "id": "FOOTER08-title-conflict",
+      "input": "FOOTER08-title-conflict.json",
+      "expected": null,
+      "error": "source-invalid"
+    },
+    {
+      "id": "T56-duplicate-edit",
+      "input": "T56-duplicate-edit.json",
+      "expected": null,
+      "error": "field-duplicate"
+    },
+    {
+      "id": "T56-unit-edit",
+      "input": "T56-unit-edit.json",
+      "expected": "body.md",
+      "error": null
+    }
+  ]
+}
