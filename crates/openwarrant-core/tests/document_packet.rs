@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 use openwarrant_core::document::packet::{PacketLimits, decode_packet};
 const PACKET: &[u8] = include_bytes!(
     "../../../docs/sas/drafts/1.0.0-rc.2/examples/expected/signup-packet/packet.json"
