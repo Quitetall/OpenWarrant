@@ -17,6 +17,7 @@ pub use author::{
 mod metadata;
 mod references;
 mod scan;
+pub mod source;
 mod validate;
 pub use validate::{
     Evaluation, SemanticSupport, ValidationOptions, ValidationReport, Validity, validate_document,

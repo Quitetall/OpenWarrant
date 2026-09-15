@@ -1,0 +1,16 @@
+{
+  "path": "fixtures/abc.bin",
+  "source_digest": "sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+  "byte_length": 3,
+  "holder": {
+    "kind": "example",
+    "locator": "example:fixture"
+  },
+  "metadata": {
+    "trust": "untrusted",
+    "classification": "internal",
+    "taints": [],
+    "authority": "unestablished",
+    "basis_refs": []
+  }
+}

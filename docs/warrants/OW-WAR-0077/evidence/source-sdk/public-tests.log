@@ -1,0 +1,19 @@
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-war-0077-sdk/crates/openwarrant-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.52s
+     Running tests/document_source.rs (target/debug/deps/document_source-e3252ac80b43e4c6)
+
+running 11 tests
+test aliases_share_checked_bytes_but_each_length_claim_is_checked ... ok
+test limits_cover_empty_calls_metadata_total_bytes_and_output ... ok
+test codecs_refuse_duplicate_fields_wrong_domains_and_unsafe_ranges ... ok
+test supplied_opaque_bytes_get_exact_identity_without_io_or_authority ... ok
+test source_descriptions_refuse_unsafe_paths_and_invalid_provenance ... ok
+test parsed_identity_comes_from_validated_original_document ... ok
+test bound_reference_must_match_named_unit_exactly ... ok
+test one_digest_cannot_have_incompatible_parsed_and_opaque_interpretations ... ok
+test source_lock_is_order_independent_and_refuses_ambiguous_capture ... ok
+test snapshot_table_checks_actual_blobs_and_rejects_conflicting_claims ... ok
+test reference_encoding_matches_canonical_vector_and_retains_exact_revision ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
