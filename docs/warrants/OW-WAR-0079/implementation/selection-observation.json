@@ -1,0 +1,71 @@
+{
+  "format": "openwarrant-selection-integration-observation/1",
+  "passed": true,
+  "profile": {
+    "id": "lamu.openwarrant.selection/1",
+    "provider": "lamu-openwarrant",
+    "version": "0.1.0",
+    "sdk_revision": "821e821599b0dcea33f0d35d22638742f05da308",
+    "contract_sha256": "7d86247ca0ce3789b9f8515f30151e69ef54c26c3d751a27da7cc66e430ab88f"
+  },
+  "provider_git_head": "4c88530f2b84072ea191132e2ed0bb91930b3bf9",
+  "provider_worktree_status": "",
+  "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "inputs_sha256": {
+    "lamu-openwarrant/CONTRACT.md": "c796f24d9931a9db59c3bfc804a2893b7739e614a41f027e5c50d460bb4b9ab7",
+    "lamu-openwarrant/Cargo.toml": "81cab578b414bd5cf54038b8e7f38df5be0e6e0decce068f8c1e5697d9774c18",
+    "lamu-openwarrant/examples/conditions_profile.rs": "70049a72568bdca8ec660f5e44aab476fccb27083d2f6c62bda643ddc4fc4c0e",
+    "lamu-openwarrant/examples/profile.rs": "8f6dd69af1b55c2a19587fb8ecd3c2e7306127374072dc6b91cbab4703a7625c",
+    "lamu-openwarrant/examples/selection_profile.rs": "881627e7e1a3af5dcc3d27f97e550de9e82daf71e0cb1bf0178806b2513b91b8",
+    "lamu-openwarrant/src/conditions.rs": "dd0d2d52708f9ca04afa03b285f547faffb17dd271c970875e9f4fab7d7e693b",
+    "lamu-openwarrant/src/lib.rs": "2b7a2a0b3eafc72cc2bb17d4bf426f08224edd572442236d5f3630014c215def",
+    "lamu-openwarrant/src/selection.rs": "12cb41a1e168ff8a8e873e75f82cbaa919a8f91f1eab1cbced8fd808f49a04ee",
+    "lamu-openwarrant/tests/conditions.rs": "034a7b6a7c090383cf815c36bbfa3c369aaa973bb6f53e18faeee1bcee3252a2",
+    "lamu-openwarrant/tests/fixtures/architecture.md": "df6856e5fa47d36f3e4b15e1452957051747edbe94a96d65533068b6567527fa",
+    "lamu-openwarrant/tests/fixtures/task.md": "16126178787a0ae75a6503ae225da07b428ae1c60d72498bdf0aa66284711fc8",
+    "lamu-openwarrant/tests/selection.rs": "6464b6feb9f604cd30de515fd6c0eb08c444e4f3b1aa6e62ac8f29d9c70dc81b",
+    "lamu-openwarrant/tests/source.rs": "8cb7bc8fe612ab2dbbe5850f76558d491101a791dd46d6ac5422ed23bd1fd142",
+    "Cargo.lock": "37a124bbafe919fc5d50b83924f9d0474c49deb6ba979260e52588c194eb92b1",
+    "Cargo.toml": "8f9a06f230e95c09062338208d4b716c18a840c4055854138212fd50e05fe6a0"
+  },
+  "profile_process": {
+    "argv": [
+      "cargo",
+      "+1.97.1",
+      "run",
+      "--locked",
+      "--quiet",
+      "-p",
+      "lamu-openwarrant",
+      "--example",
+      "selection_profile"
+    ],
+    "exit_code": 0,
+    "stdout": "{\"id\":\"lamu.openwarrant.selection/1\",\"provider\":\"lamu-openwarrant\",\"version\":\"0.1.0\",\"sdk_revision\":\"821e821599b0dcea33f0d35d22638742f05da308\",\"contract_sha256\":\"7d86247ca0ce3789b9f8515f30151e69ef54c26c3d751a27da7cc66e430ab88f\"}\n",
+    "stderr": ""
+  },
+  "tests": {
+    "argv": [
+      "cargo",
+      "+1.97.1",
+      "test",
+      "--locked",
+      "-p",
+      "lamu-openwarrant",
+      "--test",
+      "selection",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit_code": 0,
+    "stdout": "\nrunning 6 tests\ntest competing_required_revisions_refuse_and_master_order_is_stable ... ok\ntest cycles_terminate_and_missing_members_and_conflicts_block ... ok\ntest governing_unknown_pointer_includes_exact_transitive_background_and_all_reasons ... ok\ntest limits_are_positive_before_traversal_even_without_conditions ... ok\ntest optional_absence_is_catalogued_but_required_missing_and_included_dependencies_block ... ok\ntest raw_document_target_retains_whole_blob_and_missing_optional_is_not_included ... ok\n\ntest result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n",
+    "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.08s\n     Running tests/selection.rs (target/debug/deps/selection-7e5076cb99f9dcfd)\n"
+  },
+  "scope": "T21-T26 selection closure plus required UNKNOWN, access and bounded traversal",
+  "limitations": [
+    "No human assurance",
+    "No full request compiler or portable package",
+    "No dependency closure or context compiler",
+    "Host OS only"
+  ]
+}
