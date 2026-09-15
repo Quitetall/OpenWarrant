@@ -9,8 +9,9 @@ do not award the new assurance mark.
 
 ## Documentation and publication
 
-- Review and publish the amendment. The new README, banner and diagrams remain
-  off `main`; remote `main` was checked at `651ea2d002e4e61dbaddb9262b3e8959a110ea8d`.
+- The amendment includes the new README, banner and diagrams. Publication uses
+  a pull request and the required `gate` check; Git history records the merge.
+  This publication does not accept the SAS or release Stable 1.0.
 - All nine legacy conflicts are reconciled. The owner confirmed the README and
   xtask corrections through the human terminal on 2026-09-14/15 UTC; old responses
   and SSH signatures are retained unchanged. Seven OW-WAR-0068 mismatches are new
@@ -30,9 +31,10 @@ do not award the new assurance mark.
    tests and 22 real-file cases. Independent review reproduced and then confirmed
    fixes for a depth-limit bypass and incorrect NUL diagnostic span. See
    [implementation notes](../warrants/OW-WAR-0075/implementation/sdk-parser-notes.md).
-   The [integrated gate](amendment-review/integration-results.md) passes 12/14
-   steps with all 740 Rust tests passing; that earlier run preceded the owner's corrections. The remaining clean-tree
-   battery run and commit publication are tracked in the review packet; this is
+   All 740 Rust tests passed. Clean-tree gate reached 13/14; its only failure
+   was a stale installer-template test, now corrected to compare the linked legacy
+   workflow and preserve root routing. The [review packet](amendment-review/README.md)
+   and required GitHub gate record final publication checks. This is
    unverified work, not signed completion. Build OW-WAR-0076
    authoring; the SDK subsets of 0077 source types, 0078 condition syntax and 0081
    integrity; 0083 records/assurance; 0084 compatibility; 0087 CLI parity; then

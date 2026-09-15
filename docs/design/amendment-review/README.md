@@ -73,3 +73,22 @@ by `check_examples.py`. Neither demonstrates a defect. No expectation or budget
 was weakened. The reviewer's merge recommendation does not clear the outstanding
 signed corrections, SAS acceptance or aggregate gate. These three historical
 reviews do not cover current uncommitted changes.
+
+## Integrated commit review and clean-tree correction
+
+Commit `81fcd29e` received [PASS WITH NITS](commit-reviews/81fcd29e.json). The initial
+response repeated speculative suggestions; retained [raw output](commit-reviews/81fcd29e-initial.json)
+shows that limitation. Findings were checked before changes: the UTF-8 span already
+adds `valid_up_to()` to its length; BOM rejection is an explicit F1 requirement;
+title length is explicitly Unicode scalar values; fence info-string backticks
+are forbidden by F2; table-depth accounting is a documented conservative resource
+bound. No source expectation was weakened for these findings.
+
+The first clean-tree gate passed 13/14 steps: all 740 Rust tests passed, and the
+battery reported 306 passes and one failure. The [full log](clean-gate-before-template-fix.log)
+retains the failure. The shell installer test still equated repository-specific
+AGENTS.md with the generic template, despite the approved context integration and
+existing Rust test already using `docs/agents/legacy-warrant-workflow.md`. The shell
+test now uses that same exact reference and additionally checks the root link;
+its overwrite-refusal test is unchanged. This test file has no resolved delivery
+pin. Final rerun and required GitHub `gate` determine publication readiness.
