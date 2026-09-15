@@ -29,3 +29,20 @@ No readiness, authority or assurance follows from these checks.
 
 Provider export, offline semantic checking, atomic output and full integration
 T32-T37 remain pending. This SDK slice does not complete OW-WAR-0081.
+
+## Actual LAMU provider integration
+
+Portable task packages now build, read and verify offline through the actual LAMU
+provider. Semantic reconstruction rejects a resealed incomplete context package
+that passes SDK integrity. Optional opaque descriptors may remain unsupplied.
+Fresh-directory publication rejects overwrite, traversal and symlinks.
+Provider tests: 23 passed, Clippy passed; independent specification and standards
+reviews passed after fixing pre-allocation basis checks and package limit alignment.
+
+Commit reviewer nits were checked: canonical output has an explicit post-JCS byte
+check; parser receives the remaining unit quota before subtraction. Both alleged
+defects were false positives. The reported readiness formatting line was not in
+the cited package implementation.
+
+No human assurance or Phase 1/2 exit is claimed. Record/readiness integration and
+participant merges remain prerequisites for the complete downstream workflow.
