@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 //! Bounded F7 packet wire types and integrity checks. No semantic compilation.
 use super::{
     Diagnostic,
