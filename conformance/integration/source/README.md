@@ -1,20 +1,36 @@
-# Source provider integration cases (Phase 2, pending)
+# Source-provider integration
 
-OW-WAR-0077 owns the OpenWarrant side. A real source provider owns acquisition and
-reference resolution. This directory defines the required observations; it does
-not claim a transport, provider, passing fixture or supported LAMU profile.
+OW-WAR-0077 uses the real optional `lamu-openwarrant` crate through profile
+`lamu.openwarrant.local-source/1`. The [shared contract](../../../docs/integrations/lamu-source-provider.md)
+defines the exact Rust API, access basis, limits and capability declaration.
+No LAMU daemon, model call or database is required.
 
-| Case | Real-provider observation required |
+```sh
+python3 conformance/integration/source/run.py \
+  --provider-root /path/to/lamu/lamu-rs \
+  --output /tmp/source-provider-observation.json
+```
+
+The driver verifies the SDK Git pin, contract SHA-256 and shared fixture bytes,
+then builds the real provider and runs its filesystem integration tests. It records
+commands, exits, full test output, toolchain, provider HEAD/worktree status and
+source/Cargo.lock hashes. Dirty candidates remain identifiable by file hashes;
+final receipts must also identify committed participant revisions.
+
+| Case | Exercised behavior |
 | --- | --- |
-| T11 | Capture a Warrant, ADR and opaque fixture; each pin matches original bytes, document identity and unit ranges. SDK checks the returned descriptors and references against supplied blobs. |
-| T12 | Rename a heading while preserving unit ID; resolve against the new captured basis. Old reference and approval subjects remain unchanged. |
-| T13 | Missing target, ambiguous identity and wrong digest produce distinct refusal diagnostics; no complete output is published. |
-| T14 | Reject traversal, absolute paths and prohibited symlinks at the real I/O boundary. Change a source during capture and observe snapshot refusal with prior output preserved. |
-| T15 | Reorder capture enumeration and obtain identical canonical source locks and deterministic provider outputs. |
+| T11 | Capture Warrant, ADR and opaque bytes; SDK validates descriptors and exact unit ranges. |
+| T12 | Rename heading/title with stable unit ID; new basis changes, old snapshot/reference remains usable. |
+| T13 | Missing target, conflicting identity and altered blob digest produce distinct refusals. |
+| T14 | Refuse traversal, absolute paths, symlink leaves/components and FIFO; mutation between begin/finish rejects new snapshot while preserving prior result. |
+| T15 | Reverse source enumeration; exact canonical lock and explicit reference results remain equal. |
+| Regression | Exhaust metadata budget before touching a later missing file. |
 
-Before claiming integration, fix provider identity/build, versioned capability
-and request/response profile, access basis and limits in a shared cross-project
-contract. Bind actual provider and SDK revisions; retain positive/refusal outputs.
-No field claiming permission or success is trusted without the caller's trusted
-adapter. A fake provider can test response handling only and cannot qualify LAMU.
-The SDK never takes over dependency closure, ranking, assembly or package creation.
+This profile provides sequential source rechecks, not an atomic multi-file
+snapshot. Immutable checkouts or external write exclusion are required where
+atomicity matters. Metadata claims confer no permission. The SDK never takes over
+dependency closure, ranking, assembly, access policy or package creation.
+
+Linux observations do not establish macOS runtime behavior or formal human
+assurance. Provider-specific Linux/macOS CI is separate from LAMU's default runtime
+checks. Integration is not reported complete while participant merges remain open.

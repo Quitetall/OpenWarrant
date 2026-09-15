@@ -1,0 +1,5 @@
+{
+  "exit_code": 1,
+  "stderr": "Integration refused: Fixture differs from OpenWarrant source: task.md\n",
+  "receipt_created": false
+}
