@@ -1,6 +1,6 @@
 # OpenWarrant and LAMU source-provider contract
 
-Revision: 2, implementation draft. Canonical shared contract: this file in the
+Revision: 3, implementation draft. Canonical shared contract: this file in the
 OpenWarrant repository. Participant receipts bind its raw SHA-256 and their exact
 repository revisions. LAMU keeps a pointer and digest, not a separately edited copy.
 No official shared Warrant identifier, human signature or assurance mark is allocated.
@@ -117,3 +117,5 @@ Revision 2 consumes SDK 821e821599b0dcea33f0d35d22638742f05da308. The source API
 is unchanged; the SDK adds pure condition validation used by the separate
 [condition profile](conditions.md). Original revision1 receipts remain historical
 evidence for their exact provider/SDK revisions.
+
+Revision 3 consumes SDK f5c7ac0ee1d71e43437b3def2ed75693d5804553. Source and condition APIs remain compatible; SDK packet integrity types support the separate projection profile. Earlier receipts retain their original revisions.

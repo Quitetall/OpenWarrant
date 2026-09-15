@@ -34,7 +34,7 @@ def main():
     contract = ow / "docs/integrations/selection.md"
     manifest = tomllib.loads((crate / "Cargo.toml").read_text())
     dependency = manifest["dependencies"]["openwarrant-core"]
-    expected_sdk = "821e821599b0dcea33f0d35d22638742f05da308"
+    expected_sdk = "f5c7ac0ee1d71e43437b3def2ed75693d5804553"
     if dependency != {"git": "https://github.com/Quitetall/OpenWarrant.git", "rev": expected_sdk}:
         raise ValueError("Provider does not consume the agreed SDK revision")
     fixtures = [("task.md", "conformance/sdk/source/task.md"),
@@ -73,7 +73,7 @@ def main():
         "profile_process": profile_run, "tests": tests,
         "scope": "T21-T26 selection closure plus required UNKNOWN, access and bounded traversal",
         "limitations": ["No human assurance", "No full request compiler or portable package",
-                        "No dependency closure or context compiler", "Host OS only"],
+                        "Host OS only"],
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(receipt, indent=2) + "\n")
