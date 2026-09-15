@@ -1,0 +1,18 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0007",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "178dda4d486fa2a8abd0a22f152284213bb6e580",
+  "summary": "Accepted OW-ADR-0003 names the structured reader. Current graph tests plus actual duplicate-stage probe cover the five declared malformed graph cases.",
+  "notes": "docs/warrants/OW-WAR-0007/implementation/completion-audit.md",
+  "evidence": [
+    "docs/design/completion-audit-20260915/audit.json",
+    "docs/warrants/OW-WAR-0077/evidence/source-sdk/gate.log",
+    "docs/adr/atoms/OW-ADR-0003-structured-atom-subset.md",
+    "docs/design/completion-audit-20260915/duplicate-stage.json"
+  ],
+  "next_steps": [
+    "Human qualification/legacy resolution remains separate; this report changes no signed record."
+  ]
+}
