@@ -1,0 +1,56 @@
+schema = "oh.war/manifest/v1"
+uuid = "01a06069-882d-7103-a07a-8e2d5c23bd12"
+local_alias = "OW-WAR-0058"
+
+# Allocated only by Knowledge Fabric (SAS §12.4). Leave empty.
+enterprise_id = ""
+
+title = "Put the SAS under §101 governance: controlled revisions and the Release axis"
+profile = "delivery"
+assurance_level = "controlled"
+
+# The Basis gains the SAS revision §14 lists as one of its inputs. Partial:
+# RQ-014 is the whole one-Basis rule, most of which OW-WAR-0003 delivered.
+[[implements]]
+ref = "sas://WAR-SAS-RQ-014"
+contribution = "partial"
+
+# An architecture-changing SAS revision requires an ADR (§101.3) — a normative
+# decision that is first-class. Partial: RQ-020 is OW-WAR-0006's.
+[[implements]]
+ref = "sas://WAR-SAS-RQ-020"
+contribution = "partial"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-3/sas-governance"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true
+

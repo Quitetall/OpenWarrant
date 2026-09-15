@@ -1,0 +1,13 @@
+# oh.war/question/v1. Asked by an agent, answered by a human (§27.2). An answer
+# informs the work; it is never a disposition, a judgment, or an
+# authorization. `war questions --open` lists what awaits an answer.
+
+schema = "oh.war/question/v1"
+id = "Q-001"
+warrant = "OW-WAR-0069"
+stage = "STAGE-001"
+asked_by = "agent://claude"
+asked_at = "2026-09-12T07:49:07Z"
+question = "Where does the board live? The numbered approval list can be a terminal view (war board), a view in the Pages app beside the other projections, or both."
+blocking = true
+recommended = "Both, terminal first: war board renders the list and its exact war sign commands; the Pages board is the same data as a read-only view, since a browser cannot sign."

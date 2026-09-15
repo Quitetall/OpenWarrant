@@ -1,0 +1,62 @@
+schema = "oh.war/manifest/v1"
+uuid = "01a06011-b342-78b3-8ba5-ed5c5cd9ba09"
+local_alias = "OW-WAR-0055"
+
+# Allocated only by Knowledge Fabric (SAS §12.4). Leave empty.
+enterprise_id = ""
+
+title = "Compute the goal hierarchy: war status and the corpus projection"
+profile = "delivery"
+assurance_level = "controlled"
+
+# RQ-022 says WARs trace to SAS requirements AND Roadmap. The SAS half exists;
+# the Roadmap half is an unparsed string. This Warrant builds the Roadmap half
+# and the projection that reads both, so its contribution is complete.
+[[implements]]
+ref = "sas://WAR-SAS-RQ-022"
+contribution = "complete"
+
+# One more drift-checked generated view. Partial: RQ-075 is already claimed
+# complete by the Warrant that built the drift check itself.
+[[implements]]
+ref = "sas://WAR-SAS-RQ-075"
+contribution = "partial"
+
+# `war status` is deterministic and agent-free, like `war check`. Partial for
+# the same reason.
+[[implements]]
+ref = "sas://WAR-SAS-RQ-074"
+contribution = "partial"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-1/projections"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true

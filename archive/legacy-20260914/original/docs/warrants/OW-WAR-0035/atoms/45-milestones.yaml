@@ -1,0 +1,35 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "war plan produces a validated draft from one sentence"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "The interview asks only unresolved questions"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002"]
+
+  - id: "M3"
+    title: "A plan never authorizes"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-003"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Implement §71.3"
+    executor_kind: "human"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-002"
+    title: "Implement §74.6 and instrument counts"
+    executor_kind: "human"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-003"
+    title: "Plant a self-authorizing plan"
+    executor_kind: "human"
+    responsibility_tier: "T1"

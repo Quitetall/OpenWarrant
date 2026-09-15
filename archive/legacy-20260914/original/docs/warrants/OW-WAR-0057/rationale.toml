@@ -1,0 +1,19 @@
+schema = "oh.war/rationale/v1"
+
+# §36.2 — accepted residual risk, transcribed from this Warrant's assurance atom.
+# `judgment_ref` is empty: §27.2 forbids an agent accepting organizational
+# residual risk, so nobody has.
+
+[[assumption]]
+id = "A-001"
+statement = "Inlining the whole projection into one page stays acceptable as the corpus grows."
+epistemic_status = "accepted_residual_risk"
+consequence_if_false = "At ten times the corpus the page is a megabyte; still one file and still no fetch, but slow to open on a weak connection, and the decision was made at 135 KB."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-002"
+statement = "Putting the provenance banner first is enough for a reader to take derived state as derived."
+epistemic_status = "accepted_residual_risk"
+consequence_if_false = "A reader who scrolls past it reads draft as a verdict, and nothing further on the page can correct that."
+judgment_ref = ""

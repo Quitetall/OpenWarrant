@@ -1,0 +1,50 @@
+schema = "oh.war/manifest/v1"
+uuid = "01a064fc-a6f2-7c43-bed9-fa248b771712"
+local_alias = "OW-WAR-0062"
+
+# Allocated only by Knowledge Fabric (SAS §12.4). Leave empty.
+enterprise_id = ""
+
+title = "Lock down the levels: what a SAS, a Warrant, and every other object are"
+profile = "delivery"
+assurance_level = "basic"
+
+# §6.10 makes the hierarchy's objects and the SAS/Warrant rule normative text;
+# RQ-022's "WARs trace to SAS and Roadmap" now says what they trace TO.
+[[implements]]
+ref = "sas://WAR-SAS-RQ-022"
+contribution = "partial"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-3/definitions"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true
+

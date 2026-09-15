@@ -1,0 +1,20 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = "The test 'independence::tests::independence_none_satisfies_nothing' in crates/openwarrant-core/src/independence.rs ensures that Independence::none() does not satisfy any assurance level, and the plant '[OW-WAR-0020] independence not declared at all' was rejected, enforcing that independence must be explicitly declared as NONE."
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

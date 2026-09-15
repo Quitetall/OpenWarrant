@@ -1,0 +1,27 @@
+schema = "oh.war/rationale/v1"
+
+# §36.2 — accepted residual risk.
+#
+# Each entry transcribes this Warrant's own "## Residual Risk" section from its
+# assurance atom, which stated the risk in prose that nothing could read.
+#
+# `judgment_ref` is EMPTY, and deliberately. The status names the class of
+# assumption — a residual risk, to be accepted — while `judgment_ref` is where an
+# acceptance is recorded. Nobody has accepted these. §27.2 forbids an agent
+# accepting organizational residual risk, so the field stays empty until a human
+# signs a judgment through `war authorize`, and `war resolve` reports
+# requirements 9 and 11 unmet until one does.
+
+[[assumption]]
+id = "A-001"
+statement = "CI on ubuntu-latest rather than the self-hosted runner the private tier calls for is acceptable, bounded by timeout-minutes and one short job."
+epistemic_status = "accepted_residual_risk"
+consequence_if_false = "Billed minutes are consumed on a repository whose tier assumed free local runs, and the bound is a timeout rather than a cost ceiling."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-002"
+statement = "The gate being advisory rather than a required status check on main is acceptable until branch protection is applied."
+epistemic_status = "accepted_residual_risk"
+consequence_if_false = "A red gate does not block a merge, so work can land that the gate would have refused."
+judgment_ref = ""

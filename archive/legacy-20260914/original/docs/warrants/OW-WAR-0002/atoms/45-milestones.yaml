@@ -1,0 +1,46 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "Manifest parses into typed values"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "Every §91.2 refusal in scope is planted and observed"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002"]
+
+  - id: "M3"
+    title: "All five authored Warrants parse"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-003"]
+
+  - id: "M4"
+    title: "war new allocates atomically"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-004"]
+    obligation_refs: ["OBL-004"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Implement Manifest, AtomRole, Jurisdiction, Profile"
+    executor_kind: "human"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-002"
+    title: "Plant composition violations and assert each refusal"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-003"
+    title: "Parse the acceptance corpus"
+    executor_kind: "service"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-004"
+    title: "Implement war new with O_EXCL allocation"
+    executor_kind: "human"
+    responsibility_tier: "T2"

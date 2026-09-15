@@ -1,0 +1,36 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1. Declared by the performer — declaring a deliverable is a performer
+# statement (§51), which is permitted. It is the VERIFICATION of the obligations
+# these support that must be independent (§46), not the declaration itself.
+#
+# Every `content_digest` below was computed from the bytes on disk, and
+# `war resolve` RECOMPUTES it rather than trusting what is written here. A digest
+# that is merely present proves nothing.
+#
+# `contract_digest` is "unrecorded" because it is true: no authorized contract
+# revision exists for this Warrant yet (§28.4 needs a human). Writing today's
+# compiled digest here would assert these artifacts were produced under a
+# revision nobody has authorized.
+
+[[deliverable]]
+id = "D-001"
+title = "Blockers, deviations and decision proposals"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/drafting.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0025/attempt-1"
+contract_digest = "unrecorded"
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:325d23b7d8ba81e00b954e73f4e1df25f7b7296cd002e64d5d95b3d7409c5a34"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

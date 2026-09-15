@@ -1,0 +1,48 @@
+schema = "oh.war/manifest/v1"
+uuid = "01a01bd6-ebf5-7339-94c1-44ae5d81a7df"
+local_alias = "OW-WAR-0022"
+enterprise_id = ""
+title = "Implement resolution, dispute, and annulment"
+profile = "delivery"
+assurance_level = "controlled"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-058"
+contribution = "complete"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-059"
+contribution = "complete"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-6/resolution"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true

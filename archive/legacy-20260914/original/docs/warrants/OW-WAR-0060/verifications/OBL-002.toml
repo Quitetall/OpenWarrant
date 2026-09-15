@@ -1,0 +1,20 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "The .github/workflows/pages.yml artifact implements sha256 comparison for each file in _site/ and exits non-zero on any difference, and the unit test 'the_pages_workflow_must_deploy_the_committed_projection_and_prove_it' in xtask/src/main.rs verifies the workflow deploys only the committed projection."
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

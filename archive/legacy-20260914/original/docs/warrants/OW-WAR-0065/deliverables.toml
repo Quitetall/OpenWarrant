@@ -1,0 +1,27 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1. Declared by the performer. `war resolve` RECOMPUTES every
+# content_digest; a digest that is merely present proves nothing.
+
+[[deliverable]]
+id = "D-001"
+title = "Research memo: the tokenizer approximation for §33.7 budgets"
+kind = "file"
+target_ref = "docs/research/tokenizer-approximation.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0065/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "wc (coreutils) + the performer"
+creation_method = "authored"
+content_digest = "sha256:50694a3cbc6ff6198a808ecf8fdfad36c6543d3e7d49790a5075f9fbf5f7f07b"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

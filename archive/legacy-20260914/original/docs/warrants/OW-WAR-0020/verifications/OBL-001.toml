@@ -1,0 +1,20 @@
+obligation = "OBL-001"
+disposition = "established"
+evidence = "gate_run.rs::tests::every_triple_except_one_fails_a_required_pass - enumerates all 36 triples and asserts exactly (Askable, Completed, Pass) satisfies; gate_run.rs::tests::an_unaskable_run_cannot_record_a_verdict - validates that NotAskable with Pass or Fail is refused by validate() returning UnaskableWithResult"
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

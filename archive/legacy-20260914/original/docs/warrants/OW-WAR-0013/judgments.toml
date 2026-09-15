@@ -1,0 +1,12 @@
+schema = "oh.war/judgments/v1"
+warrant = "OW-WAR-0013"
+
+[[judgment]]
+id = "J-001"
+kind = "residual_risk_acceptance"
+statement = "Parsing requirement identifiers out of prose is acceptable because breakage is loud."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = """The owner accepts this residual risk for OW-WAR-0013: if the assumption is false, the consequence is A §106 table reformat breaks traceability resolution; loudly, but every claim citing a requirement id is unresolvable until it is fixed. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 ("You should manually authorize each of the warrants. I give you my express permission to approve these things."); the decision is the owner's, the wording is the agent's."""
+basis_refs = ["assumption://A-001"]
+authority = "authorized"

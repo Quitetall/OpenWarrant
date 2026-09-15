@@ -1,0 +1,32 @@
+schema = "oh.war/judgments/v1"
+warrant = "OW-WAR-0073"
+
+[[judgment]]
+id = "J-001"
+kind = "residual_risk_acceptance"
+statement = "ratatui and crossterm are MIT and inside deny.toml's allowlist, and neither pulls an async runtime. Read from deny.toml and the lock before drafting; not yet proven by a gate run on the new graph."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "Accepting residual risk A-002 for OW-WAR-0073: if the assumption is false, the consequence is: If an executor crate enters the graph, OW-ADR-0014's refusal is engaged and the TUI needs its own async ADR or a different library. Presented on a terminal by `war sign 1.0.0` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+basis_refs = ["assumption://A-002"]
+authority = "authorized"
+
+[[judgment]]
+id = "J-002"
+kind = "residual_risk_acceptance"
+statement = "The batch act (OW-WAR-0072) lands first, so the queue pane signs a checked set with one dialog. If it does not, the pane signs act by act and the TUI is still worth having."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "Accepting residual risk A-003 for OW-WAR-0073: if the assumption is false, the consequence is: The queue pane loops the per-act path; no design changes, only the dialog count. Presented on a terminal by `war sign 1.0.0` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+basis_refs = ["assumption://A-003"]
+authority = "authorized"
+
+[[judgment]]
+id = "J-003"
+kind = "residual_risk_acceptance"
+statement = "A panic hook plus explicit teardown restores the terminal on every exit path this application has."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "Accepting residual risk A-004 for OW-WAR-0073: if the assumption is false, the consequence is: A crash leaves the owner's terminal unusable, which is a defect this Warrant must fix before resolution, not after. Presented on a terminal by `war sign 1.0.0` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+basis_refs = ["assumption://A-004"]
+authority = "authorized"

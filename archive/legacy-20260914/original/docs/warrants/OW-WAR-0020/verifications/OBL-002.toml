@@ -1,0 +1,20 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "gate_run.rs::MIGRATION_CLASSES - exactly 10 entries matching §96.4; gate_run.rs::ExecutionStatus::ALL - exactly 6 variants matching §44.2; gate_run.rs::tests::could_not_ask_never_collapses_into_failed - every could-not-ask class migrates to NotAskable and never to Verdict::Fail; gate_run.rs::ReasonCode::migration_target - MissingTool maps to (NotAskable, NotRun, Unknown) while Failed maps to (Askable, Completed, Fail); gate_cmd.rs::classify_missing - missing_crate reachable only when program is cargo or rustc, documented as limitation"
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,20 @@
+obligation = "OBL-001"
+disposition = "established"
+evidence = "autonomy.rs::tests::the_three_bands_match_the_sas - asserts classify() returns Some(LocalChoice), Some(AutoAuthorizedRevision), and Some(ManualRevision) for one example from each of the three §30.1 lists"
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

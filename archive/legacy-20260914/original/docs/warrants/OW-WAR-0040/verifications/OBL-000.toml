@@ -1,0 +1,20 @@
+obligation = "OBL-000"
+disposition = "established"
+evidence = "The committed receipt for gate run 'software_repo_war-check_1_0_0' (docs/warrants/OW-WAR-0040/gate-runs/software_repo_war-check_1_0_0.receipt.json) indicates a passing check that verifies the repository is present on the build host."
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
