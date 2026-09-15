@@ -41,5 +41,14 @@ parser cases and 10 author/edit cases pass. A mutated positive fixture produces
 exit 1 and its named failure. Workspace/all-targets clippy passes. Independent
 Spec and Standards reviews pass after aggregate-allocation and quadratic-lookup
 fixes. See [evidence](../evidence/sdk-author/independent-review.md).
-The aggregate gate will run on the committed candidate. Human acceptance and
-legacy resolution remain outstanding.
+Aggregate gate passed on `e3e16813a9aa8a917dfd2cbf285a94856cedc3ec`:
+14/14 steps, 747 Rust tests and 308 mutation checks. LAMU returned PASS WITH NITS;
+all three findings were checked false positives. See [review response](../evidence/sdk-author/review-disposition.md),
+[gate log](../evidence/sdk-author/gate.log), [completion evidence](../evidence/sdk-author/completion.json)
+and [live CLI overview snapshot](../evidence/sdk-author/progress.json).
+
+This bounded implementation is complete, unverified. The overview uses legacy
+record state and does not infer this new work-state model from unsigned notes.
+Human acceptance and legacy resolution remain outstanding. Next: review this
+candidate, then request OW-WAR-0077's Phase 1 source/snapshot/reference type slice;
+provider acquisition/resolution remains a separate Phase 2 responsibility.
