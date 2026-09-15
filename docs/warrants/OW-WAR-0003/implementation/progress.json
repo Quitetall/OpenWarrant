@@ -1,0 +1,17 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0003",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "178dda4d486fa2a8abd0a22f152284213bb6e580",
+  "summary": "Accepted OW-ADR-0001 selects serde_jcs 0.2; dependency and license gate agree. Existing canonical/digest tests and established observations cover the implementation.",
+  "notes": "docs/warrants/OW-WAR-0003/implementation/completion-audit.md",
+  "evidence": [
+    "docs/design/completion-audit-20260915/audit.json",
+    "docs/warrants/OW-WAR-0077/evidence/source-sdk/gate.log",
+    "docs/adr/atoms/OW-ADR-0001-canonical-json-implementation.md"
+  ],
+  "next_steps": [
+    "Human qualification/legacy resolution remains separate; this report changes no signed record."
+  ]
+}

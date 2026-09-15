@@ -1,0 +1,906 @@
+{
+  "schema": "oh.war/completion-audit/v1",
+  "basis": "178dda4d486fa2a8abd0a22f152284213bb6e580",
+  "scope": "All 88 current Warrants; work completion separate from qualification",
+  "new_completed_reports": [
+    "OW-WAR-0001",
+    "OW-WAR-0002",
+    "OW-WAR-0003",
+    "OW-WAR-0004",
+    "OW-WAR-0005",
+    "OW-WAR-0007",
+    "OW-WAR-0008",
+    "OW-WAR-0009",
+    "OW-WAR-0010",
+    "OW-WAR-0012",
+    "OW-WAR-0013",
+    "OW-WAR-0014",
+    "OW-WAR-0015",
+    "OW-WAR-0016",
+    "OW-WAR-0017",
+    "OW-WAR-0018",
+    "OW-WAR-0019",
+    "OW-WAR-0020",
+    "OW-WAR-0021",
+    "OW-WAR-0022",
+    "OW-WAR-0024",
+    "OW-WAR-0025",
+    "OW-WAR-0031",
+    "OW-WAR-0033",
+    "OW-WAR-0034",
+    "OW-WAR-0038",
+    "OW-WAR-0046",
+    "OW-WAR-0050",
+    "OW-WAR-0055",
+    "OW-WAR-0056",
+    "OW-WAR-0057",
+    "OW-WAR-0058",
+    "OW-WAR-0059",
+    "OW-WAR-0060",
+    "OW-WAR-0061",
+    "OW-WAR-0062",
+    "OW-WAR-0064"
+  ],
+  "warrants": [
+    {
+      "warrant": "OW-WAR-0001",
+      "title": "Establish the OpenWarrant repository and Rust workspace",
+      "audit_result": "completed",
+      "reason": "Workspace bootstrap now has direct init/refusal observations alongside the passing aggregate gate. Later authorized licensing/publication decisions supersede the initial private/AGPL setup.",
+      "legacy_rung": "ready_to_resolve",
+      "legacy_unestablished": [
+        "OBL-004"
+      ],
+      "contract_digest": "f29c7d95baeb90a7bbad57a26b07846c724482c66a1e9ed7a2670af8d00b776d"
+    },
+    {
+      "warrant": "OW-WAR-0002",
+      "title": "Implement the file-native manifest and atom parser",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "e054369fd1abf19248742eef09824181407bc1c7ff0efdd085ed0ace1b6c8f03"
+    },
+    {
+      "warrant": "OW-WAR-0003",
+      "title": "Implement the canonical WAR IR and RFC 8785 digesting",
+      "audit_result": "completed",
+      "reason": "Accepted OW-ADR-0001 selects serde_jcs 0.2; dependency and license gate agree. Existing canonical/digest tests and established observations cover the implementation.",
+      "legacy_rung": "ready_to_resolve",
+      "legacy_unestablished": [
+        "OBL-000"
+      ],
+      "contract_digest": "a22a4da86554d16d8f1f49019ae8f8968d320e8c3c9b998fd8f7915a05956bba"
+    },
+    {
+      "warrant": "OW-WAR-0004",
+      "title": "Implement the generated parent document and drift checking",
+      "audit_result": "completed",
+      "reason": "Generated parent rendering is delivered; the current battery observes generated.drift on a changed committed parent.",
+      "legacy_rung": "ready_to_resolve",
+      "legacy_unestablished": [
+        "OBL-003"
+      ],
+      "contract_digest": "e8b329d18814c638553a7f460b04b8efb3e7da074ea29867d631b484083d49ab"
+    },
+    {
+      "warrant": "OW-WAR-0005",
+      "title": "Implement deterministic war check and close the Phase 1 bootstrap",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "94651e957b776159224d464fa9f0a02f6f8bc035c7e983fddf22e8ca09f05cfd"
+    },
+    {
+      "warrant": "OW-WAR-0006",
+      "title": "Complete ADR federation: relations, supersession, and currency",
+      "audit_result": "not-proven-complete",
+      "reason": "Required Progress Log entry for untracked commit 3678455 is not present; intent/roadmap mentions are not that record.",
+      "legacy_rung": "ready_to_resolve",
+      "legacy_unestablished": [
+        "OBL-003"
+      ],
+      "contract_digest": "1477ad6a82409b0591ce5dbfd1a3f07c084c34984c185e0841cb11c0c92806d9"
+    },
+    {
+      "warrant": "OW-WAR-0007",
+      "title": "Parse and validate milestones, stages, and named typed ports",
+      "audit_result": "completed",
+      "reason": "Accepted OW-ADR-0003 names the structured reader. Current graph tests plus actual duplicate-stage probe cover the five declared malformed graph cases.",
+      "legacy_rung": "ready_to_resolve",
+      "legacy_unestablished": [
+        "OBL-000",
+        "OBL-002"
+      ],
+      "contract_digest": "12522bfbd7a6d6256af05cd08990bea99161fa24556428d306fc8b46d097e662"
+    },
+    {
+      "warrant": "OW-WAR-0008",
+      "title": "Implement the state model: phase, condition, outcome, currency, standing",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "84cef7107964599fb3426ae36148a39682baf98c4c05b0783e258afaf61d6ee2"
+    },
+    {
+      "warrant": "OW-WAR-0009",
+      "title": "Implement contract revisions and their immutability",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "00d35ab4f9f3100d71513f8f7e63ff872cf2af158cd3b9382d563f2cb3e119f4"
+    },
+    {
+      "warrant": "OW-WAR-0010",
+      "title": "Implement the autonomy envelope and amendment records",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "789ae9f4627a82b1acadc9e56aa5dec9c92790a3e9c2edb610b818d7ef919ffa"
+    },
+    {
+      "warrant": "OW-WAR-0011",
+      "title": "Implement prerequisites and Preflight",
+      "audit_result": "not-proven-complete",
+      "reason": "Preflight still cannot establish every required dimension; the public check explicitly reports Preflight not implemented.",
+      "legacy_rung": "ready_to_resolve",
+      "legacy_unestablished": [
+        "OBL-002"
+      ],
+      "contract_digest": "0df5ae3aad7476d807f37548d66b21e9954797e8977bbfbbcdf96ad6e4d34377"
+    },
+    {
+      "warrant": "OW-WAR-0012",
+      "title": "Implement the context model, context manifest, and trust classes",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "1fa8e5b0e2cc41fd8de417d4b2ef2eec4da15bc538226387e9c29095458780d9"
+    },
+    {
+      "warrant": "OW-WAR-0013",
+      "title": "Validate SAS and Roadmap traceability",
+      "audit_result": "completed",
+      "reason": "Current battery rejects an unknown RQ-999 requirement through traceability.unknown-requirement; existing typed traceability checks cover the positive case.",
+      "legacy_rung": "ready_to_resolve",
+      "legacy_unestablished": [
+        "OBL-002"
+      ],
+      "contract_digest": "e82d467e4e4b5350f79ce6cc08b3028e56e6328ad467684387dec3c7cce9868f"
+    },
+    {
+      "warrant": "OW-WAR-0014",
+      "title": "Implement the rationale model, assumptions, and unknowns",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "ea291935521d0e39fc3b342bc1f7fefb25d73f9912a666eb90a460544cd59847"
+    },
+    {
+      "warrant": "OW-WAR-0015",
+      "title": "Implement deliverables, artifacts, and artifact provenance",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "286e98dadab467ef005451e2c3d3ed61e3fdd01d9768c3281ba4b40228f79ff5"
+    },
+    {
+      "warrant": "OW-WAR-0016",
+      "title": "Implement acceptance obligations and bounded claims",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "ef6824708d842f1d36a8ccf3f973a3740a122a801af35e38667ef41c235d354d"
+    },
+    {
+      "warrant": "OW-WAR-0017",
+      "title": "Implement the epistemic classes: evidence, observation, inference, judgment, resolution",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "44e6b1f4f9341df24e1a4baa592fe072ed947bf210c0c7c9c854755e173ea7a0"
+    },
+    {
+      "warrant": "OW-WAR-0018",
+      "title": "Implement contract-adequacy review, structurally checked",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "cd6cd0f66e65c6667765886a8d124ae1df5ffd62770bf0a5b1cfa1575cf13af9"
+    },
+    {
+      "warrant": "OW-WAR-0019",
+      "title": "Implement the Gate Registry: definitions, qualification, and bindings",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "527ebf4140c1a86536e682da45befd08c75a32a819509d7175f0890fdab126db"
+    },
+    {
+      "warrant": "OW-WAR-0020",
+      "title": "Implement Gate Run semantics, askability, and invalidation",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "829da3b9434632c577505bde0e5767e12edfdcaa46c1e381f6038b457aab6849"
+    },
+    {
+      "warrant": "OW-WAR-0021",
+      "title": "Implement verifier independence",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "36ef155bc646165841b9505518d0c0c97fc2c225df7f9a3189e3c9c9ab07f395"
+    },
+    {
+      "warrant": "OW-WAR-0022",
+      "title": "Implement resolution, dispute, and annulment",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "96136487092a4630615430948c3c453a2a173c3607707f5e5ea22d8f361ad229"
+    },
+    {
+      "warrant": "OW-WAR-0023",
+      "title": "Implement Stage Dispatch compilation and actor-specific projection",
+      "audit_result": "not-proven-complete",
+      "reason": "Original self-contained Dispatch and capability-denial obligations lack full scoped evidence; later dispatch work alone does not settle all original deliverables.",
+      "legacy_rung": "ready_to_resolve",
+      "legacy_unestablished": [
+        "OBL-001",
+        "OBL-003"
+      ],
+      "contract_digest": "6c3c0fb78ae995976138a18c657a34b5adcced8b63cfafe396d940f6eaaf7768"
+    },
+    {
+      "warrant": "OW-WAR-0024",
+      "title": "Implement Stage Submission and attempt semantics",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "1d04d728e7f35b96bd3ec170a6d5ac7ba931bf54185777900d2d500ebfdcbe1b"
+    },
+    {
+      "warrant": "OW-WAR-0025",
+      "title": "Implement blockers, deviations, decision proposals, and discovered gaps",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "3ebe6f62fe5b5c2112189303843a7fcddc822c3a2316d70b0a5d12a02c992426"
+    },
+    {
+      "warrant": "OW-WAR-0026",
+      "title": "Implement the Katana runtime seam, capabilities, and receipts",
+      "audit_result": "not-proven-complete",
+      "reason": "Runtime seam remains provisional; required per-run unverified declaration has not been established for the complete seam scope.",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [
+        "OBL-003"
+      ],
+      "contract_digest": "ba76aee15716a9fdc008516e9e77bfdb96d15753a0b68f49b5987d1b46984071"
+    },
+    {
+      "warrant": "OW-WAR-0027",
+      "title": "Implement the BLUT adapter: PlanSpec lowering and lineage receipt",
+      "audit_result": "not-proven-complete",
+      "reason": "Real BLUT lineage receipt consumption remains unproven; plan validation is not stage execution.",
+      "legacy_rung": "ready_to_resolve",
+      "legacy_unestablished": [
+        "OBL-002"
+      ],
+      "contract_digest": "f62657b83de96d3602d45b0ce361d5d6b70ced4ce01be0aaf924f4f2861f17a2"
+    },
+    {
+      "warrant": "OW-WAR-0028",
+      "title": "Implement Knowledge Fabric typed actions and the controlled-action envelope",
+      "audit_result": "not-proven-complete",
+      "reason": "Real KF controlled-action concurrency and idempotency evidence remains missing.",
+      "legacy_rung": "ready_to_resolve",
+      "legacy_unestablished": [
+        "OBL-001",
+        "OBL-003"
+      ],
+      "contract_digest": "f1710e739af7b6b5dde1edc1b6d0aaad99a3c7beff224364eb37de467ed25987"
+    },
+    {
+      "warrant": "OW-WAR-0029",
+      "title": "Implement KF registration, global identity allocation, and federation",
+      "audit_result": "not-proven-complete",
+      "reason": "Registration preserving Source Holder requires actual KF registration evidence, not identity type tests.",
+      "legacy_rung": "ready_to_resolve",
+      "legacy_unestablished": [
+        "OBL-002"
+      ],
+      "contract_digest": "1d8b13131a5829166712ddf1f53751476e9438d4bf26d98dd5026b258e267698"
+    },
+    {
+      "warrant": "OW-WAR-0030",
+      "title": "Implement portable preservation: one-file export and round trip",
+      "audit_result": "not-proven-complete",
+      "reason": "export.rs still explicitly omits required history/receipt/artifact categories; complete portable preservation is not delivered.",
+      "legacy_rung": "ready_to_resolve",
+      "legacy_unestablished": [
+        "OBL-003"
+      ],
+      "contract_digest": "4bd76924b820035c67ff954234c3be6742115ee1fa384208433f8f0adac2ec09"
+    },
+    {
+      "warrant": "OW-WAR-0031",
+      "title": "Implement the local draft journal",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "3e386caaf3263748a5043c5325401056b840bafc3f0f29ae94ffb8c6a308ad0d"
+    },
+    {
+      "warrant": "OW-WAR-0032",
+      "title": "Generate the schema pack and implement protocol versioning",
+      "audit_result": "not-proven-complete",
+      "reason": "Required TypeScript consumer proof remains missing; schema-pack generation alone is narrower.",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [
+        "OBL-004"
+      ],
+      "contract_digest": "4e628bb5bf658fabdcafa387d7ac71313e3272e3407eb5daf930fab3a30a089c"
+    },
+    {
+      "warrant": "OW-WAR-0033",
+      "title": "Implement the remaining read projections",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "2c6f5d7fedf4ed9edba50e94816c8c483c425b3ea602d8382f626e060158591b"
+    },
+    {
+      "warrant": "OW-WAR-0034",
+      "title": "Implement the agent protocol and Draft Proposal validation",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "02e25660c20a8e82e336375425f72edbd20aef17b4021096767e93659eedd1ca"
+    },
+    {
+      "warrant": "OW-WAR-0035",
+      "title": "Implement `war plan` and the interview loop",
+      "audit_result": "not-proven-complete",
+      "reason": "Counted questions across the required planning workflow remain unproven.",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [
+        "OBL-002"
+      ],
+      "contract_digest": "d196667f03bc533d3abe09998f9236f72e8ef7e4811ababab55d16d7bdabdd27"
+    },
+    {
+      "warrant": "OW-WAR-0036",
+      "title": "Implement normative-decision detection and proposed-ADR generation",
+      "audit_result": "not-proven-complete",
+      "reason": "A shared decision classifier and proposed-ADR generation remain unproven; recorded deliverables include an ADR overview renderer, not sufficient proof of that scope.",
+      "legacy_rung": "ready_to_resolve",
+      "legacy_unestablished": [
+        "OBL-001"
+      ],
+      "contract_digest": "5dc61ed786b3e6606335e2128761765f68cf329f0df2ffdb9c0d7539f387af65"
+    },
+    {
+      "warrant": "OW-WAR-0037",
+      "title": "Implement `war diff`: semantic difference between revisions",
+      "audit_result": "not-proven-complete",
+      "reason": "Public war diff accepts --from but has no --to despite the explicit work-order deliverable; complete planned surface is not delivered.",
+      "legacy_rung": "ready_to_resolve",
+      "legacy_unestablished": [
+        "OBL-002"
+      ],
+      "contract_digest": "ef2591f109829dd91c51010ae702eb149cfb9c17b7e73e60b973e5cca0a4d9a0"
+    },
+    {
+      "warrant": "OW-WAR-0038",
+      "title": "Implement the existing-ADR importer, preserving unknown classes",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "3219c28e8a8f192547300ded37bd1340dc0476bc3ec21a8f33a47a905904e0ba"
+    },
+    {
+      "warrant": "OW-WAR-0039",
+      "title": "Implement telemetry, unit economics, and untracked-work detection",
+      "audit_result": "not-proven-complete",
+      "reason": "Required detector case 3678455 is absent from recorded main history; no successful detection evidence for that exact case.",
+      "legacy_rung": "ready_to_resolve",
+      "legacy_unestablished": [
+        "OBL-002"
+      ],
+      "contract_digest": "144ad9331646730f7a9aa0d45d4f83981cda71c534b97d762b0e094c9dba3d99"
+    },
+    {
+      "warrant": "OW-WAR-0040",
+      "title": "Implement the Liminal adapter and measured parity harness",
+      "audit_result": "not-proven-complete",
+      "reason": "Assurance atom explicitly states no real two-adapter parity run; recorded established labels cannot override that missing runtime evidence.",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "d9f4e90b4a789decf839ddf7cee7ba2596104ef54487d0a7629acf09550cd79c"
+    },
+    {
+      "warrant": "OW-WAR-0041",
+      "title": "Discharge the Phase 0 exit: real telemetry distributions, with a baseline",
+      "audit_result": "not-proven-complete",
+      "reason": "Required real-history detection case remains unproven.",
+      "legacy_rung": "ready_to_resolve",
+      "legacy_unestablished": [
+        "OBL-003"
+      ],
+      "contract_digest": "c59efbab5b418007476e09b682503b15be1697fe2ed8cc9a671f080829310773"
+    },
+    {
+      "warrant": "OW-WAR-0042",
+      "title": "Discharge the Phase 2 exit: a vague request becomes a reviewable draft",
+      "audit_result": "not-proven-complete",
+      "reason": "Required real-agent vague-prompt-to-applied-draft observation remains unproven.",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-004"
+      ],
+      "contract_digest": "d5f9af2748b5cf3451ce8eb86a2b877397a041a2c74b977eea5c7025b0fb2032"
+    },
+    {
+      "warrant": "OW-WAR-0043",
+      "title": "Discharge the Phase 3 exit: migrate the LamQuant ADR corpus, fabricating nothing",
+      "audit_result": "not-proven-complete",
+      "reason": "Real migration observation exists, but full named seven-plant requirement and frozen-source reproduction have not all been established by this audit.",
+      "legacy_rung": "ready_to_resolve",
+      "legacy_unestablished": [
+        "OBL-004"
+      ],
+      "contract_digest": "a9d2de0049ca54a08e8ccd5438c785deff8a8aba77c34b52fbfce12cb3ae9d6b"
+    },
+    {
+      "warrant": "OW-WAR-0044",
+      "title": "Discharge the Phase 4 exit: KF is institutional authority, Git stays Source Holder",
+      "audit_result": "not-proven-complete",
+      "reason": "Real KF allocation/registration and preserved Git Source Holder remain unproven.",
+      "legacy_rung": "ready_to_resolve",
+      "legacy_unestablished": [
+        "OBL-002",
+        "OBL-003",
+        "OBL-005"
+      ],
+      "contract_digest": "f63c78bd49e749168df0516d78a1846a6de498ee2a5b5fd877ba2ed133407791"
+    },
+    {
+      "warrant": "OW-WAR-0045",
+      "title": "Discharge the Phase 5 exit: a stateless actor executes one Dispatch",
+      "audit_result": "not-proven-complete",
+      "reason": "Real Katana execution with Dispatch-only context remains unproven.",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [
+        "OBL-001",
+        "OBL-002"
+      ],
+      "contract_digest": "c70f0387d8bd5f27568c426ecfb06afd1ae90ee05921316d830d52c05749eeec"
+    },
+    {
+      "warrant": "OW-WAR-0046",
+      "title": "Discharge the Phase 6 exit: a delivery closes only through bounded proof",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "e82dbfbb60ac27d6a5aa1eed61b39864898506bf38b9fe2bede28da6a0881993"
+    },
+    {
+      "warrant": "OW-WAR-0047",
+      "title": "Discharge the Phase 7 exit: compatible WARs execute without duplicating BLUT",
+      "audit_result": "not-proven-complete",
+      "reason": "JDG-001 explicitly keeps real BLUT execution receipts open; a successful plan typecheck is not execution.",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "f987d39f897ee8c138d01585cbfc6fa0363e5d91c738733885b07d12bd187578"
+    },
+    {
+      "warrant": "OW-WAR-0048",
+      "title": "Discharge the Phase 8 exit: measured adapter parity and the two-host canonical run",
+      "audit_result": "not-proven-complete",
+      "reason": "Two-host byte comparison and full real Liminal parity remain unproven.",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003",
+        "OBL-004"
+      ],
+      "contract_digest": "01f8596ce94a6066ec275f040014c7aea1bec2a98469dd8cab6050ed024d6fc4"
+    },
+    {
+      "warrant": "OW-WAR-0049",
+      "title": "Close the alpha residue: the gaps alpha carried forward and one false claim",
+      "audit_result": "not-proven-complete",
+      "reason": "Required exact amendment/record route and refusal observations are not all established; assurance still records no executed attacks.",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003"
+      ],
+      "contract_digest": "bb05ae32a4fff259503fdda409021ac92c7f63d6f847119291c7c3f51528b459"
+    },
+    {
+      "warrant": "OW-WAR-0050",
+      "title": "Governed Bonsai evidence for pull-request workflow",
+      "audit_result": "completed",
+      "reason": "Report-phase Bonsai adapter delivered, with all four recorded obligations established and current adapter tests passing. No blocking rollout or Bonsai evidence for unscoped newer Warrants is claimed.",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "2d33521286e52a883fba2815b9ea62fea03044e0d1239b81d75f070d79d6946a"
+    },
+    {
+      "warrant": "OW-WAR-0055",
+      "title": "Compute the goal hierarchy: war status and the corpus projection",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "218d3d988671c88d80a79e51898f2dd1b045144e8d82b440fca1642eb95e0917"
+    },
+    {
+      "warrant": "OW-WAR-0056",
+      "title": "Compile a real Stage Dispatch (\u00a747)",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "b2c5609bdc00907576e09ce85a9237b30fd573aaec9b440cec5e96e38556d3b3"
+    },
+    {
+      "warrant": "OW-WAR-0057",
+      "title": "The viewer: a static page over the corpus projection",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "44a79f708632c7a12a40b8de36d911c1a43eede7bd7406920bb10a330b282eea"
+    },
+    {
+      "warrant": "OW-WAR-0058",
+      "title": "Put the SAS under \u00a7101 governance: controlled revisions and the Release axis",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "e530eae5e3772b645d54d2acb4c28cc20b509a45633ce328e84def3f32342570"
+    },
+    {
+      "warrant": "OW-WAR-0059",
+      "title": "Commit gate receipts as evidence and record the first resolutions",
+      "audit_result": "completed",
+      "reason": "Current battery observes agent-resolution refusal and receipt tampering/stale-binding refusals. Existing resolved Warrants retain admissible receipts; no new human act is inferred.",
+      "legacy_rung": "ready_to_resolve",
+      "legacy_unestablished": [
+        "OBL-004",
+        "OBL-007"
+      ],
+      "contract_digest": "5361789fdc6e4b70c5ffe0e0cb8111f7cd6e7fefa5273f519402ce81273a6cf0"
+    },
+    {
+      "warrant": "OW-WAR-0060",
+      "title": "Publish the corpus viewer: GitHub Pages from the committed projection",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "6b2bbb2829dbc31559a54e1f980159c2b3e64ffc4d67d0e3f9b67c0a96d1c5c9"
+    },
+    {
+      "warrant": "OW-WAR-0061",
+      "title": "Discharge the Phase 1 exit: OpenWarrant development uses WARs",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "59b98c2d3696a7991b01ef7e9975da8bfb9f13b64180df84ca57f48e7dd1f264"
+    },
+    {
+      "warrant": "OW-WAR-0062",
+      "title": "Lock down the levels: what a SAS, a Warrant, and every other object are",
+      "audit_result": "completed",
+      "reason": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "legacy_rung": "resolved",
+      "legacy_unestablished": [],
+      "contract_digest": "78251bb2202e2692eb9540ccab1a21f5a8956c3edcb47a505a7bc71070d6d3c2"
+    },
+    {
+      "warrant": "OW-WAR-0063",
+      "title": "Complete the conformance battery: the plants and tests the verifier named as missing",
+      "audit_result": "not-proven-complete",
+      "reason": "Required current declared telemetry baseline is not established.",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [
+        "OBL-003"
+      ],
+      "contract_digest": "ea6dfe4e55e0d364f95803ba7e176d83a7a08cca7bb6ca49e246971ca876c0ab"
+    },
+    {
+      "warrant": "OW-WAR-0064",
+      "title": "Repair a delivered artifact: the correction act for a resolved Warrant",
+      "audit_result": "completed",
+      "reason": "Correction request/ingest path, accepted ADR, append-only history and six named refusals are delivered and exercised by the current gate. Existing signed corrections remain unchanged.",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "b3d727e24eb834126166799c86651f189f9071708a2d7db4d8fe8fd122ad31a0"
+    },
+    {
+      "warrant": "OW-WAR-0065",
+      "title": "Research memo: which tokenizer approximation OpenWarrant uses for \u00a733.7 budgets",
+      "audit_result": "not-proven-complete",
+      "reason": "Memo says bytes/4 rounded up but gives 2811 bytes as 702 (ceil is 703); complete measurement/decision correctness is not established.",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "0412c1cc078a275234820f3c0fd50f97d35ece14c21961e98586a8c36226cd1c"
+    },
+    {
+      "warrant": "OW-WAR-0066",
+      "title": "Run: the conformance battery as a service stage",
+      "audit_result": "not-proven-complete",
+      "reason": "Required dispatch/submission records for the two real service-stage runs are absent.",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "69c2d3d8ccec7b93a7bf9f3cc5e25d5b9957db12ae5ac08febfca4e5fbbb6d74"
+    },
+    {
+      "warrant": "OW-WAR-0067",
+      "title": "Release 1.0: the seven acts that close the plan, deferred to the owner's signature",
+      "audit_result": "not-proven-complete",
+      "reason": "Stable publication and all named human acts remain incomplete; no new release inferred from existing implementation.",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "b2242029428dcfefbf9083eca410f6df1e147e231ab964ae0262894af283f720"
+    },
+    {
+      "warrant": "OW-WAR-0068",
+      "title": "Skills: a strict superset of the Pocock set over the deterministic core",
+      "audit_result": "not-proven-complete",
+      "reason": "Required skill-driven eval baseline and owner-reviewed first runs remain unproven for the full named skill set.",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "f77a07c9bee13fc2490a248e8e735bafe31ea3ab01399d9b45f5cdf53e115808"
+    },
+    {
+      "warrant": "OW-WAR-0069",
+      "title": "The board, the hotline, and the harness: one system from master record to running agents",
+      "audit_result": "not-proven-complete",
+      "reason": "Current war-grill skill lacks the required all-open-questions batch mode; passing question/performer tests do not establish every deliverable.",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "887e1c0c07bef47bb372e7d912bdffeec025b5d5c4ae214577ef5c2c0bf9ab4a"
+    },
+    {
+      "warrant": "OW-WAR-0070",
+      "title": "Add `war inbox` to list Warrants awaiting a human act",
+      "audit_result": "not-proven-complete",
+      "reason": "Specified inbox classifier, command documentation and fixture suite are absent; war next/overview are different surfaces.",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "36a47b4fa4593abc5a220a4e28d944ccd11e0cc3f3db1fba27cf78f07323d81d"
+    },
+    {
+      "warrant": "OW-WAR-0071",
+      "title": "SAS 1.1.0: the batch act, and the dashboard as a rendering of the record",
+      "audit_result": "not-proven-complete",
+      "reason": "Accepted SAS 1.1.0 revision is not established; preserved signed proposal/history is not acceptance.",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "263c826aaeec0e887e26cc36b705fa7262619ad8711ca2a9c96f6a22f6c6a743"
+    },
+    {
+      "warrant": "OW-WAR-0072",
+      "title": "The batch act: one human signature over many pending acts",
+      "audit_result": "not-proven-complete",
+      "reason": "Required batch-signing implementation and nine refusal proofs remain absent.",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "d876d9729a19f98f5719fd9ed8f3a1336f0cc934e9fa4fb51d9c5b8ac3ea8852"
+    },
+    {
+      "warrant": "OW-WAR-0073",
+      "title": "war tui: the dashboard in the terminal",
+      "audit_result": "not-proven-complete",
+      "reason": "Required native TUI implementation and interaction proofs remain absent.",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "691f51ce230b13d5d57a78064723b6db32e2218b9c9d0334f9979df1db5f02fc"
+    },
+    {
+      "warrant": "OW-WAR-0074",
+      "title": "Adopt the exact RC.2 build basis without rewriting history",
+      "audit_result": "not-proven-complete",
+      "reason": "Exact RC.2 adoption contract cannot be called complete from later unaccepted RC.3 SDK work; original source-set acceptance evidence must be reconciled.",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "df700b5f1d82ad7ee4c36d61dc557de866b5d909e1009014d32d306556d6f64a"
+    },
+    {
+      "warrant": "OW-WAR-0075",
+      "title": "Parse and validate human-first OpenWarrant documents",
+      "audit_result": "existing-completed",
+      "reason": "Parser and structural validation delivered; integrated and gated with PR #66. Human qualification not claimed.",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+    },
+    {
+      "warrant": "OW-WAR-0076",
+      "title": "Author and edit human-first OpenWarrant documents",
+      "audit_result": "existing-completed",
+      "reason": "SDK author/edit complete. 14-step gate, 747 Rust tests and 308 mutation checks passed; PR #67 merged.",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "8251dba500ad2a6a543c4303406f1a530293671bb07edf2720507df7e9e0da55"
+    },
+    {
+      "warrant": "OW-WAR-0077",
+      "title": "Define SDK source types and prove provider resolution integration",
+      "audit_result": "existing-in-progress",
+      "reason": "Phase 1 source/reference SDK implemented and tested: 14/14 gate steps, 762 Rust tests, 308 refusal cases, 19 conformance cases. Phase 2 real-provider integration remains pending.",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+    },
+    {
+      "warrant": "OW-WAR-0078",
+      "title": "Validate condition syntax and prove provider evaluation integration",
+      "audit_result": "not-proven-complete",
+      "reason": "OBL-001: the scoped behavior is observed; OBL-002: the boundary refuses invalid inputs; OBL-003: independent evidence supports qualification of the exact result; OBL-004: Warrant records stay structurally valid",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "78e2c9913590c8a224021dffa274c3e6836b4b26a9c77249371c3ce1957d7dfa"
+    },
+    {
+      "warrant": "OW-WAR-0079",
+      "title": "Prove provider context selection and dependency closure",
+      "audit_result": "not-proven-complete",
+      "reason": "OBL-001: the scoped behavior is observed; OBL-002: the boundary refuses invalid inputs; OBL-003: independent evidence supports qualification of the exact result; OBL-004: Warrant records stay structurally valid",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "c8a069f42696aa13a85d0cf2b6f5ef5d06dddabf4312ed852260d1c497440324"
+    },
+    {
+      "warrant": "OW-WAR-0080",
+      "title": "Prove provider master context and task projections",
+      "audit_result": "not-proven-complete",
+      "reason": "OBL-001: the scoped behavior is observed; OBL-002: the boundary refuses invalid inputs; OBL-003: independent evidence supports qualification of the exact result; OBL-004: Warrant records stay structurally valid",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "33688b0563e1990ca6ba612eb55a227ff1bc22a40f7c083dbd100004c3d9563a"
+    },
+    {
+      "warrant": "OW-WAR-0081",
+      "title": "Inspect packet integrity and prove offline provider packages",
+      "audit_result": "not-proven-complete",
+      "reason": "OBL-001: the scoped behavior is observed; OBL-002: the boundary refuses invalid inputs; OBL-003: independent evidence supports qualification of the exact result; OBL-004: Warrant records stay structurally valid",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+    },
+    {
+      "warrant": "OW-WAR-0082",
+      "title": "Prove provider context budgets and cache invalidation",
+      "audit_result": "not-proven-complete",
+      "reason": "OBL-001: the scoped behavior is observed; OBL-002: the boundary refuses invalid inputs; OBL-003: independent evidence supports qualification of the exact result; OBL-004: Warrant records stay structurally valid",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "6913df06e3bfb43ced68864664cc2907e14ab275fbb5ec4f41b76cafe1e172b4"
+    },
+    {
+      "warrant": "OW-WAR-0083",
+      "title": "Evaluate supplied work and assurance records",
+      "audit_result": "not-proven-complete",
+      "reason": "OBL-001: the scoped behavior is observed; OBL-002: the boundary refuses invalid inputs; OBL-003: independent evidence supports qualification of the exact result; OBL-004: Warrant records stay structurally valid",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "7b2e8ac1b3c192d17e925c92279d9176ac9d6ba6da08c379603745cfba0fe772"
+    },
+    {
+      "warrant": "OW-WAR-0084",
+      "title": "Preserve legacy history and explicit successor lineage",
+      "audit_result": "not-proven-complete",
+      "reason": "OBL-001: the scoped behavior is observed; OBL-002: the boundary refuses invalid inputs; OBL-003: independent evidence supports qualification of the exact result; OBL-004: Warrant records stay structurally valid",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "e081d2878d11e655963d364ff6b95e75acbedd2419afbf66ba31ebd72924989d"
+    },
+    {
+      "warrant": "OW-WAR-0085",
+      "title": "Prove Phase 1 SDK, CLI and adapted skill scope",
+      "audit_result": "not-proven-complete",
+      "reason": "OBL-001: the scoped behavior is observed; OBL-002: the boundary refuses invalid inputs; OBL-003: independent evidence supports qualification of the exact result; OBL-004: Warrant records stay structurally valid",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "f6732dacf9d466cdee5bcb13362433fdfcc090b07463ec8008b0fa60e4b7336c"
+    },
+    {
+      "warrant": "OW-WAR-0086",
+      "title": "Integrate SDK with LAMU and a second minimal consumer",
+      "audit_result": "not-proven-complete",
+      "reason": "OBL-001: the scoped behavior is observed; OBL-002: the boundary refuses invalid inputs; OBL-003: independent evidence supports qualification of the exact result; OBL-004: Warrant records stay structurally valid",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "6276598f804483678a920550c1faf1d8f875b266c2be0a7705ff84a706f27cf0"
+    },
+    {
+      "warrant": "OW-WAR-0087",
+      "title": "Expose document and record primitives through CLI",
+      "audit_result": "not-proven-complete",
+      "reason": "OBL-001: the scoped behavior is observed; OBL-002: the boundary refuses invalid inputs; OBL-003: independent evidence supports qualification of the exact result; OBL-004: Warrant records stay structurally valid",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "c864cbd53bd49f9fda95f9f9ea2c7d16831ce0a65afa99877d02a32fbab246c9"
+    },
+    {
+      "warrant": "OW-WAR-0088",
+      "title": "Make SDK document authoring interactive and recoverable",
+      "audit_result": "not-proven-complete",
+      "reason": "OBL-001: the scoped behavior is observed; OBL-002: the boundary refuses invalid inputs; OBL-003: independent evidence supports qualification of the exact result; OBL-004: Warrant records stay structurally valid",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "c82c0e8100737f0fcb4610652fe43066e695f6eb544645fab25760ed816461bc"
+    },
+    {
+      "warrant": "OW-WAR-0089",
+      "title": "Prepare standard and SDK release artifacts",
+      "audit_result": "not-proven-complete",
+      "reason": "OBL-001: the scoped behavior is observed; OBL-002: the boundary refuses invalid inputs; OBL-003: independent evidence supports qualification of the exact result; OBL-004: Warrant records stay structurally valid",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "dc9c1215b122b3650bc239155549cf22ee8d5c577dccad1292320481957e91d4"
+    },
+    {
+      "warrant": "OW-WAR-0090",
+      "title": "Qualify four-phase release and freeze Stable source set",
+      "audit_result": "not-proven-complete",
+      "reason": "OBL-001: the scoped behavior is observed; OBL-002: the boundary refuses invalid inputs; OBL-003: independent evidence supports qualification of the exact result; OBL-004: Warrant records stay structurally valid",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "3bb45a37ec285934c59d5b003f43ac54d96b8c7dfb61f5799b8bd38b98cb0bb5"
+    },
+    {
+      "warrant": "OW-WAR-0091",
+      "title": "Publish and verify OpenWarrant Stable 1.0",
+      "audit_result": "not-proven-complete",
+      "reason": "OBL-001: the scoped behavior is observed; OBL-002: the boundary refuses invalid inputs; OBL-003: independent evidence supports qualification of the exact result; OBL-004: Warrant records stay structurally valid",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "ddedceac6c1d18730fb0fafd4ee8292172d007fe80fc4f4d09ac68a701f2811b"
+    },
+    {
+      "warrant": "OW-WAR-0092",
+      "title": "View project progress as offline HTML and a locally refreshed dashboard",
+      "audit_result": "existing-completed",
+      "reason": "Offline HTML export and read-only local refresh implemented; aggregate gate and independent reviews passed. Unverified result; direct offline visual inspection remains UNKNOWN because file-URL navigation was blocked.",
+      "legacy_rung": "draft",
+      "legacy_unestablished": [],
+      "contract_digest": "60eeb000029c9f4e22beb42abab5c21390f20f03131cd4e77ce165e56fd01241"
+    }
+  ]
+}

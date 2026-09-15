@@ -1,0 +1,11 @@
+{
+  "command": [
+    "/mnt/4tb/tmp/ow-war-0077-sdk/target/debug/xtask",
+    "gate"
+  ],
+  "fixture": "/tmp/ow-completion-refusals-d1c3cej5",
+  "basis": "178dda4d486fa2a8abd0a22f152284213bb6e580",
+  "mutation": "Append an unclosed function declaration to crates/openwarrant-cli/src/main.rs in a disposable archive copy",
+  "exit": 1,
+  "scope": "Exact shipped aggregate gate rejects malformed Rust source; this is not a successful full gate"
+}
