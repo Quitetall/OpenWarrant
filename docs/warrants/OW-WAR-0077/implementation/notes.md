@@ -1,6 +1,6 @@
 # OW-WAR-0077 implementation
 
-Base: 8f688e1e531a0a9bc7a5711a78c4583d8cc09f3e. Work in progress, unverified.
+Base: 8f688e1e531a0a9bc7a5711a78c4583d8cc09f3e. Phase 1 SDK implemented and tested; Phase 2 pending. Unverified.
 
 Public seam: RC.3 format F3/F5 source descriptors and bound references, checked
 against explicitly supplied bytes. Source acquisition, path confinement at I/O,
@@ -51,9 +51,16 @@ checks cannot claim full context, workflow readiness or provider qualification.
 ## Current observations
 
 11 public tests and 19 conformance cases pass. Independent Spec/Standards reviews
-pass after the total-byte repair and repeated-work cleanup. Full aggregate gate
-and publication remain pending. Git whitespace warnings on exact CRLF/range
+pass after the total-byte repair and repeated-work cleanup. Aggregate gate at
+593fbc287ba3287579b43604d0de1406ab1c1505 passed all 14 steps: 762 Rust tests
+and 308 planted refusal cases. Publication remains pending. Git whitespace warnings on exact CRLF/range
 fixtures reflect intentionally retained bytes, not editable prose formatting.
 
 Phase2 remains pending under the existing mixed-phase Warrant. Its actual-provider
 acceptance cases are documented in conformance/integration/source/README.md.
+
+Local LAMU commit review returned PASS WITH NITS. Findings were checked: the
+counting writer refuses oversized output before allocation; literal test slices
+independently check parser ranges; authority labels are restricted claims, not
+authentication. No confirmed defect remained. Review output is retained in
+`../evidence/source-sdk/commit-review.log`.
