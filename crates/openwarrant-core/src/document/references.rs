@@ -34,7 +34,7 @@ fn strings(value: &MetadataValue, nonempty_array: bool, predicate: fn(&str) -> b
     })
 }
 
-fn condition(value: &MetadataValue) -> bool {
+pub(super) fn condition(value: &MetadataValue) -> bool {
     value.as_table().is_some_and(|fields| {
         !fields.is_empty()
             && fields.iter().all(|(key, value)| match key.as_str() {

@@ -6,6 +6,8 @@ use openwarrant_core::document::{
 };
 #[path = "sdk_probe/author.rs"]
 mod author;
+#[path = "sdk_probe/conditions.rs"]
+mod conditions;
 #[path = "sdk_probe/source.rs"]
 mod source;
 use serde::Deserialize;
@@ -66,10 +68,13 @@ fn run() -> Result<(), String> {
             }
         }
     }
-    if !matches!(scope.as_deref(), Some("75" | "76" | "77")) {
-        return Err("This driver implements --scope 75, 76 or 77".into());
+    if !matches!(scope.as_deref(), Some("75" | "76" | "77" | "78")) {
+        return Err("This driver implements --scope 75, 76, 77 or 78".into());
     }
     let root = std::path::PathBuf::from(fixtures.ok_or("--fixtures is required")?);
+    if scope.as_deref() == Some("78") {
+        return conditions::run(&root);
+    }
     if scope.as_deref() == Some("77") {
         return source::run(&root);
     }

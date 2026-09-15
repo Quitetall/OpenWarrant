@@ -14,6 +14,7 @@ pub use author::{
     edit_document,
 };
 
+pub mod condition;
 mod metadata;
 mod references;
 mod scan;
