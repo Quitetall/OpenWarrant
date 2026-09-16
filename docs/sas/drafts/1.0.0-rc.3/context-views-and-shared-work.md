@@ -67,8 +67,9 @@ The Master Document SHALL account for all sources within its declared coverage
 through its manifest and navigable index. This does not require every source body
 on the opening page. A full assembled export MAY be offered. An overview summary
 SHALL preserve its source identity and remain distinguishable from exact binding
-text. Conflicting requirements and unavailable required sources SHALL remain
-visible. A summary cannot resolve a conflict or hide it behind a completion claim.
+text. Recorded conflicting requirements and unavailable required sources SHALL remain
+visible. Conflict records come from source declarations, linked checks or reviews;
+assembly preserves them rather than claiming to detect every semantic conflict. A summary cannot resolve a conflict or hide it behind a completion claim.
 
 The Progress Context Packet is the progress section of this entry, or a projection
 of the same records for supervisors. It SHALL NOT require a second manually

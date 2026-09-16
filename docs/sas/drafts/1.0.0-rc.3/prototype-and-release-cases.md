@@ -161,7 +161,8 @@ Expected: the generated entry shows a short purpose, architecture summary, curre
 work and pointers to exact sources. It requires neither a new PRD nor copied
 progress records. Optional PRD absence does not invalidate the view.
 
-Input: code now uses a different storage interface from an accepted SAS contract.
+Input: a linked review or check records that code now uses a different storage
+interface from an accepted SAS contract.
 Expected: observed architecture can record the actual version; the required
 contract remains binding and the conflict stays visible. Regenerating the Master
 Document cannot accept the code change or rewrite the SAS contract.
