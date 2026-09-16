@@ -31,8 +31,10 @@ Do not remove that refusal or push a release tag to test this runbook.
   approval without a new artifact review.
 - Publish only the approved tag, release assets and registry versions. Record
   every destination and returned identity. Cargo publishes manifest versions;
-  prerelease tag spelling does not change a crate's version.
-- Re-download each public artifact and registry package into a new directory.
+  prerelease tag spelling does not change a crate's version. Require the
+  approved tag version to match the manifest version before registry publication.
+- Re-download each public artifact and registry package into its own fresh, empty
+  temporary directory. Refuse reused destinations and incomplete downloads.
   Check exact approved byte digests and registry metadata. Run the approved
   install/examples on the downloaded artifacts. Record failures separately from
   successful publication; a server accepting an upload is not download proof.
