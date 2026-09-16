@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0083",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "revision": "1f277bad45434929f3e6b497cf5776f7351e981747b86ecf966c970043f93d01",
+  "revision": "6ecd6dc9e44fba03b122f4ea3cbd2fdd82bec9f3938b01e2fcda2f00c58f8873",
   "summary": "Dependency scheduling and advisory difficulty SDK slice implemented and independently reviewed. Full record, readiness and assurance evaluation remains unfinished. Revision is the source-inventory digest linked below, not a Git commit.",
   "notes": "docs/warrants/OW-WAR-0083/implementation/notes.md",
   "evidence": [

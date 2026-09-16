@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 use openwarrant_core::document::schedule::*;
 
 fn digest(c: char) -> String {
