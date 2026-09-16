@@ -9,7 +9,7 @@ in the roadmap and shared drafting guide; browser model drafting remains pending
 Public seam tests cover actual processes, Git and HTTP with synthetic harnesses.
 Independent reviews found and fixed duplicate result fields, lost timeout capture,
 oversized Unicode evidence and lone-surrogate storage failures. A blocked-stdin
-regression fixed a timeout bypass. Full repository gate pending.
+regression fixed a timeout bypass. Full repository gate passed:14 steps,308 controls. See [evidence](completion.md).
 
 Browser QA on an isolated temporary repository started attempt
 `a914eaf9-eb74-47f9-baa0-a3f85f2dbe59`, observed running, then completed/stopped

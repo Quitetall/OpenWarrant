@@ -49,7 +49,7 @@ bounded contract and positive/refusal fixtures before dispatch.
    local state and deterministic projections through an authenticated local API.
    Prove prompt-only drafting and unverified completion, preserved user docs,
    startup/restart, access refusal and invalid-input refusal. No agent launch yet.
-2. **Web workflow and execution bridge (OW94 in progress).** Display the generated project overview,
+2. **Web workflow and execution bridge (OW94 bounded configured-harness slice complete, unverified).** Display the generated project overview,
    filtered Warrant list, source/spec pointers and exact subject details. Start
    one eligible Warrant through an explicit connected-agent or harness interface.
    Preserve one worktree per Warrant, serialized writers, attempt identity and
@@ -103,3 +103,5 @@ remain separate facts. No denominator pruning, fabricated success or default
 resolution can satisfy this target. Historical NOT SATISFIED outcomes retain their
 meaning; map remaining useful scope to a successor or an explicit authorized
 reconciliation. See [current reconciliation queue](warrant-reconciliation.md).
+
+[Legacy gap review](legacy-gap-review.md) records concrete next actions; no historical disposition is changed.
