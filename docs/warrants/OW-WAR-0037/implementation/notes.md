@@ -16,7 +16,7 @@ a changed digest. Invalid JSON, duplicate members, nonobjects and inputs above
 still follows that existing code.
 
 One public CLI regression observed field movement and layout equivalence, then
-duplicate/malformed refusal. A review-found long-key/wide-array amplification case failed before the fix and now refuses without generating the oversized report. Full gate and independent reviews pending.
+duplicate/malformed refusal. A review-found long-key/wide-array amplification case failed before the fix and now refuses without generating the oversized report. Source ec0809a7003251225a2b84ce24d0ac5b719d6aa1 passed the aggregate gate: 14 steps green, 308 planted controls passed. Separate-context specification and standards reviews passed; local LAMU commit review passed with verified false-positive nits, recorded in evidence.
 
 OW37 remains incomplete: its original intent also names `contract:N` selectors,
 and trusted contract-digest cause attribution is not established by comparing
