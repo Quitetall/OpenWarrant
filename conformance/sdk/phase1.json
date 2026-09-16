@@ -1,0 +1,932 @@
+{
+  "schema": "oh.war/phase1-inventory/v1",
+  "cases": {
+    "S01": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ]
+    },
+    "S02": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ]
+    },
+    "S03": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ]
+    },
+    "S04": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ]
+    },
+    "S05": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ]
+    },
+    "S06": {
+      "phase": 1,
+      "checks": [
+        "cli"
+      ]
+    },
+    "S07": {
+      "phase": 1,
+      "checks": [
+        "core"
+      ]
+    },
+    "S08": {
+      "phase": 1,
+      "checks": [
+        "skills",
+        "context",
+        "stage",
+        "structure"
+      ]
+    },
+    "SDK-01": {
+      "phase": 1,
+      "checks": [
+        "cli",
+        "core"
+      ]
+    },
+    "SDK-02": {
+      "phase": 1,
+      "checks": [
+        "cli",
+        "core"
+      ]
+    },
+    "SDK-03": {
+      "phase": 1,
+      "checks": [
+        "cli",
+        "core"
+      ]
+    },
+    "SDK-04": {
+      "phase": 1,
+      "checks": [
+        "cli",
+        "core"
+      ]
+    },
+    "SDK-05": {
+      "phase": 1,
+      "checks": [
+        "cli",
+        "core"
+      ]
+    },
+    "SDK-06": {
+      "phase": 1,
+      "checks": [
+        "cli",
+        "core"
+      ]
+    },
+    "SDK-07": {
+      "phase": 1,
+      "checks": [
+        "skills",
+        "context",
+        "stage",
+        "structure"
+      ]
+    },
+    "SDK-08": {
+      "phase": 1,
+      "checks": [
+        "cli",
+        "core"
+      ]
+    },
+    "SDK-09": {
+      "phase": 1,
+      "checks": [
+        "cli",
+        "core"
+      ]
+    },
+    "SDK-10": {
+      "phase": 1,
+      "checks": [
+        "cli",
+        "core"
+      ]
+    },
+    "SDK-11": {
+      "phase": 1,
+      "checks": [
+        "cli",
+        "core"
+      ]
+    },
+    "SDK-12": {
+      "phase": 1,
+      "checks": [
+        "cli",
+        "core"
+      ]
+    },
+    "SDK-13": {
+      "phase": 1,
+      "checks": [
+        "cli",
+        "core"
+      ]
+    },
+    "SDK-14": {
+      "phase": 1,
+      "checks": [
+        "cli",
+        "core"
+      ]
+    },
+    "SDK-15": {
+      "phase": 1,
+      "checks": [
+        "cli",
+        "core"
+      ]
+    },
+    "SDK-16": {
+      "phase": 1,
+      "checks": [
+        "cli",
+        "core"
+      ]
+    },
+    "SDK-17": {
+      "phase": 1,
+      "checks": [
+        "cli",
+        "core"
+      ]
+    },
+    "SDK-18": {
+      "phase": 1,
+      "checks": [
+        "cli",
+        "core"
+      ]
+    },
+    "SDK-19": {
+      "phase": 1,
+      "checks": [
+        "cli",
+        "core"
+      ]
+    },
+    "SDK-20": {
+      "phase": 1,
+      "checks": [
+        "cli",
+        "core"
+      ]
+    },
+    "SDK-21": {
+      "phase": 1,
+      "checks": [
+        "cli",
+        "core"
+      ]
+    },
+    "SDK-22": {
+      "phase": 1,
+      "checks": [
+        "cli",
+        "core"
+      ]
+    },
+    "SDK-23": {
+      "phase": 1,
+      "checks": [
+        "cli",
+        "core"
+      ]
+    },
+    "SDK-24": {
+      "phase": 1,
+      "checks": [
+        "cli",
+        "core"
+      ]
+    },
+    "FOOTER-01": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core",
+        "cli"
+      ]
+    },
+    "FOOTER-02": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core",
+        "cli"
+      ]
+    },
+    "FOOTER-03": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core",
+        "cli"
+      ]
+    },
+    "FOOTER-04": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core",
+        "cli"
+      ]
+    },
+    "FOOTER-05": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core",
+        "cli"
+      ]
+    },
+    "FOOTER-06": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core",
+        "cli"
+      ]
+    },
+    "FOOTER-07": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core",
+        "cli"
+      ]
+    },
+    "FOOTER-08": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core",
+        "cli"
+      ]
+    },
+    "T01": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ],
+      "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
+    },
+    "T02": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ],
+      "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
+    },
+    "T03": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ],
+      "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
+    },
+    "T04": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ],
+      "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
+    },
+    "T05": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ],
+      "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
+    },
+    "T06": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ],
+      "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
+    },
+    "T07": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ],
+      "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
+    },
+    "T08": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ],
+      "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
+    },
+    "T09": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ],
+      "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
+    },
+    "T10": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ],
+      "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
+    },
+    "T11": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T12": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T13": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T14": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T15": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T16": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T17": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T18": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T19": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T20": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T21": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T22": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T23": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T24": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T25": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T26": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T27": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T28": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T29": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T30": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T31": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T32": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T33": {
+      "phase": 2,
+      "checks": [
+        "core"
+      ],
+      "limit": "SDK integrity subset only; full provider behavior remains Phase 2"
+    },
+    "T34": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T35": {
+      "phase": 2,
+      "checks": [
+        "core"
+      ],
+      "limit": "SDK integrity subset only; full provider behavior remains Phase 2"
+    },
+    "T36": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T37": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T38": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T39": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T40": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T41": {
+      "phase": 2,
+      "checks": [],
+      "limit": "Full provider behavior remains Phase 2"
+    },
+    "T42": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ],
+      "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
+    },
+    "T43": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ],
+      "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
+    },
+    "T44": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ],
+      "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
+    },
+    "T45": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ],
+      "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
+    },
+    "T46": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ],
+      "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
+    },
+    "T47": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ],
+      "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
+    },
+    "T48": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ],
+      "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
+    },
+    "T49": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ],
+      "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
+    },
+    "T50": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ],
+      "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
+    },
+    "T51": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ],
+      "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
+    },
+    "T52": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ],
+      "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
+    },
+    "T53": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ],
+      "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
+    },
+    "T54": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ],
+      "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
+    },
+    "T55": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ],
+      "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
+    },
+    "T56": {
+      "phase": 1,
+      "checks": [
+        "fixtures",
+        "core"
+      ],
+      "limit": "Supplied SDK boundary; runtime enforcement remains Phase 3"
+    }
+  },
+  "required_fixture_ids": {
+    "conformance/sdk/author/cases.json": [
+      "T54-minimum",
+      "T56-revision",
+      "FOOTER08-title-crlf",
+      "T55-duplicate-field",
+      "T55-unit-injection",
+      "T55-footer-injection",
+      "T56-false-assurance",
+      "FOOTER08-title-conflict",
+      "T56-duplicate-edit",
+      "T56-unit-edit"
+    ],
+    "conformance/sdk/cli/cases.json": [
+      "parse",
+      "validate",
+      "bad-source",
+      "unit",
+      "author",
+      "edit",
+      "duplicate-edit",
+      "digest",
+      "raw",
+      "bad-hex",
+      "condition",
+      "condition-refuse",
+      "describe",
+      "source-codec",
+      "sources",
+      "sources-corrupt",
+      "reference-codec",
+      "packet-decode",
+      "packet-encode",
+      "packet-integrity",
+      "packet-missing",
+      "package",
+      "package-empty",
+      "prepare",
+      "provider-version",
+      "adapter-check",
+      "adapter-stale",
+      "records",
+      "readiness-unknown",
+      "assurance-unknown",
+      "agent-act",
+      "agent-spoof",
+      "workflow",
+      "handoff",
+      "replay",
+      "replay-conflict",
+      "resume",
+      "resume-unfenced",
+      "availability",
+      "batch",
+      "batch-agent",
+      "schedule",
+      "schedule-cycle",
+      "difficulty",
+      "legacy-import",
+      "legacy-capture",
+      "successor",
+      "self-successor",
+      "assurance-conditional",
+      "assurance-without-human",
+      "assurance-without-checks",
+      "records-subject-conflict",
+      "parse-invalid",
+      "unit-invalid",
+      "author-invalid",
+      "digest-invalid",
+      "source-describe-invalid",
+      "source-codec-invalid",
+      "reference-codec-invalid",
+      "packet-decode-invalid",
+      "packet-encode-invalid",
+      "records-invalid",
+      "readiness-invalid",
+      "workflow-decode-invalid",
+      "handoff-invalid",
+      "resume-invalid",
+      "availability-invalid",
+      "batch-acceptance-invalid",
+      "difficulty-invalid",
+      "legacy-import-invalid",
+      "legacy-capture-invalid"
+    ],
+    "conformance/sdk/conditions/cases.json": [
+      "all-fields",
+      "unicode-path",
+      "unknown-operator",
+      "empty-list",
+      "embedded-double-star",
+      "traversal",
+      "wrong-type",
+      "empty-table"
+    ],
+    "conformance/sdk/document/cases.json": [
+      "T01-minimal-rc3",
+      "T01-legacy-explicit",
+      "T02-duplicate-key",
+      "T03-fenced-markers",
+      "T04-duplicate-unit",
+      "T05-crlf-unicode",
+      "T06-invalid-utf8",
+      "T07-missing-outcome",
+      "T08-unknown-optional",
+      "T08-unknown-required",
+      "T09-adr",
+      "T09-sas",
+      "T10-unresolved-required",
+      "FOOTER01-wrapped",
+      "FOOTER02-compact",
+      "FOOTER04-malformed",
+      "FOOTER05-trailing",
+      "FOOTER06-title",
+      "FOOTER07-schema",
+      "T09-context-binding",
+      "T09-context-background-refusal",
+      "T06-combined-depth-refusal"
+    ],
+    "conformance/sdk/legacy/cases.json": [
+      "T49-legacy-signed",
+      "T53-new-roundtrip",
+      "T53-rc2-roundtrip",
+      "T51-same-path-successor",
+      "T51-self-successor-refused",
+      "T50-unsupported",
+      "T50-escaping",
+      "T50-future",
+      "T50-corrupt",
+      "T50-missing"
+    ],
+    "conformance/sdk/packet/cases.json": [
+      "valid",
+      "wrong-schema",
+      "duplicate-field",
+      "unknown-field",
+      "invalid-role",
+      "invalid-kind",
+      "noncanonical"
+    ],
+    "conformance/sdk/records/cases.json": [
+      "observation-untrusted",
+      "unavailable-pass",
+      "unknown-observation",
+      "unknown-core-field",
+      "wrong-result",
+      "unsigned-completion",
+      "agent-human-spoof",
+      "agent-authorization-without-policy",
+      "complete-unverified-view",
+      "conflated-state"
+    ],
+    "conformance/sdk/source/cases.json": [
+      "SDK77-opaque",
+      "SDK77-unit-span",
+      "SDK77-digest-drift",
+      "SDK77-forged-identity",
+      "SDK77-unsafe-path",
+      "SDK77-wrong-length",
+      "SDK77-duplicate-path",
+      "SDK77-conflicting-identity",
+      "SDK77-order-a",
+      "SDK77-order-b",
+      "SDK77-range-drift",
+      "SDK77-missing-source",
+      "SDK77-missing-unit",
+      "SDK77-opaque-unit",
+      "SDK77-false-authority",
+      "SDK77-renamed-heading",
+      "SDK77-old-reference",
+      "SDK77-crlf-unicode",
+      "SDK77-mixed-sources"
+    ]
+  },
+  "required_test_functions": {
+    "crates/openwarrant-core/tests/document.rs": [
+      "minimal_document_preserves_original_bytes_and_exact_units",
+      "metadata_subset_refuses_multiline_and_nonportable_values_before_producing_document",
+      "validation_distinguishes_kind_requirements_from_external_readiness",
+      "unknown_extensions_preserve_content_and_block_only_required_interpretation",
+      "local_reference_syntax_is_checked_without_resolving_missing_sources",
+      "framing_preserves_fenced_markers_crlf_and_explicit_legacy_ranges",
+      "malformed_footer_and_unit_framing_never_yield_partial_documents",
+      "context_kind_requires_at_least_one_nonempty_unit",
+      "footer_wrappers_and_dependency_spellings_preserve_meaning_not_bytes",
+      "limits_are_positive_inclusive_and_refuse_without_truncation",
+      "toml_10_and_core_field_contract_refusals_are_explicit",
+      "combined_dotted_and_inline_depth_is_bounded_before_recursive_allocation",
+      "nul_diagnostic_identifies_actual_byte_after_unicode_crlf"
+    ],
+    "crates/openwarrant-core/tests/document_adapter.rs": [
+      "explicit_negotiation_and_response_identity_refuse_wrong_boundaries",
+      "provider_unavailable_never_falls_back_and_semantic_claims_remain_separate",
+      "malformed_tasks_and_deep_records_refuse_before_provider_call"
+    ],
+    "crates/openwarrant-core/tests/document_author.rs": [
+      "author_round_trip_and_edit_preserves_other_bytes",
+      "title_edit_updates_heading_preserves_crlf_and_refuses_conflict",
+      "refuses_injection_duplicates_invalid_values_and_limits_without_partial_output",
+      "preserves_unknown_extensions_compact_dependencies_and_fenced_markers",
+      "explicit_rc2_edits_keep_adapter_and_original_bytes",
+      "edit_batch_is_bounded_before_copying_values"
+    ],
+    "crates/openwarrant-core/tests/document_author_resources.rs": [
+      "oversized_edit_batch_refuses_before_copying_the_whole_batch"
+    ],
+    "crates/openwarrant-core/tests/document_condition.rs": [
+      "condition_syntax_accepts_f4_fields_and_refuses_unknown_operators",
+      "malformed_conditions_never_become_unknown_applicability",
+      "limits_count_entries_across_fields_and_utf8_bytes_without_cloning"
+    ],
+    "crates/openwarrant-core/tests/document_legacy.rs": [
+      "explicit_import_roundtrips_original_bytes_without_new_authority",
+      "signed_legacy_inventory_keeps_resolution_subjects_and_refuses_tampering",
+      "successor_keeps_both_versions_without_copying_old_authority",
+      "corruption_missing_files_escaping_paths_and_unknown_editions_refuse",
+      "unrelated_unresolved_history_does_not_gate_new_work_but_named_failure_does",
+      "historical_colon_names_are_preserved_but_drive_and_traversal_paths_refuse",
+      "tiny_limits_refuse_import_before_retaining_blobs_and_metadata",
+      "oversized_json_strings_keys_and_escapes_refuse_before_decoding"
+    ],
+    "crates/openwarrant-core/tests/document_packet.rs": [
+      "bounded_packet_decode_accepts_example_and_refuses_schema_and_duplicate_fields",
+      "packet_integrity_checks_exact_source_ranges_and_entry_accounting",
+      "package_integrity_refuses_tampering_extra_files_and_noncanonical_manifest",
+      "self_consistent_incomplete_package_is_integrity_only_and_missing_routing_blob_refuses",
+      "structured_digest_bounds_actual_canonical_bytes_and_depth",
+      "typed_packet_integrity_enforces_json_budget",
+      "incomplete_basis_refuses_even_with_valid_hashes"
+    ],
+    "crates/openwarrant-core/tests/document_records.rs": [
+      "claimed_authenticity_is_not_trust_and_unavailable_is_not_pass",
+      "exact_trust_binding_rejects_spoofed_actor_changed_bytes_and_duplicate_payload_keys",
+      "explicit_action_gates_and_qualification_timing_stay_separate",
+      "claims_and_missing_contract_never_establish_assurance",
+      "exact_qualification_requires_all_checks_independence_and_secure_human_act",
+      "unverified_agent_completion_is_valid_but_cannot_be_human_acceptance",
+      "independent_controls_reject_claims_self_review_missing_isolation_and_wrong_contract",
+      "unknown_and_failure_remain_distinct_and_artifact_quota_applies",
+      "permission_constraints_do_not_disappear_under_a_human_signature",
+      "delegated_adoption_needs_human_policy_and_cannot_edit_effective_policy",
+      "unsigned_payload_digest_preserves_absent_fields_and_excludes_attestation",
+      "agent_act_rejects_array_encoded_structs_without_panicking",
+      "explicit_null_optional_source_fields_remain_valid"
+    ],
+    "crates/openwarrant-core/tests/document_schedule.rs": [
+      "dependent_stage_waits_while_independent_preparation_can_start",
+      "cycles_and_conflicting_facts_refuse_instead_of_returning_ready_work",
+      "estimates_are_optional_advisory_metadata_with_provenance",
+      "facts_bind_exact_contract_stage_result_and_required_meaning",
+      "malformed_duplicate_and_over_limit_inputs_never_return_partial_readiness",
+      "future_output_can_be_unpinned_but_competing_results_need_selection"
+    ],
+    "crates/openwarrant-core/tests/document_source.rs": [
+      "parsed_identity_comes_from_validated_original_document",
+      "source_descriptions_refuse_unsafe_paths_and_invalid_provenance",
+      "snapshot_table_checks_actual_blobs_and_rejects_conflicting_claims",
+      "bound_reference_must_match_named_unit_exactly",
+      "source_lock_is_order_independent_and_refuses_ambiguous_capture",
+      "limits_cover_empty_calls_metadata_total_bytes_and_output",
+      "codecs_refuse_duplicate_fields_wrong_domains_and_unsafe_ranges",
+      "reference_encoding_matches_canonical_vector_and_retains_exact_revision",
+      "one_digest_cannot_have_incompatible_parsed_and_opaque_interpretations",
+      "aliases_share_checked_bytes_but_each_length_claim_is_checked",
+      "supplied_opaque_bytes_get_exact_identity_without_io_or_authority"
+    ],
+    "crates/openwarrant-core/tests/document_workflow_records.rs": [
+      "completion_and_qualification_are_separate_in_context_views",
+      "stale_overview_cannot_emit_safeword_or_undo_completed_work",
+      "confirmed_feature_handoff_uses_pointers_without_completing_parent",
+      "shared_contract_mismatch_and_timeout_as_completion_refuse",
+      "evidence_loss_preserves_history_and_exact_duplicates_can_retain_support",
+      "resume_requires_fencing_for_work_changes_and_next_tool_boundary_for_harness",
+      "batch_acceptance_binds_exact_manifest_member_profile_and_evidence",
+      "stop_states_and_scalar_reference_limits_remain_explicit"
+    ]
+  }
+}

@@ -26,6 +26,7 @@ Human acceptance plus independent evidence is required for the common Verified m
 | --- | --- |
 | Remaining work, status, next steps | [progress](references/progress.md) |
 | Drafting or applying a proposal | [drafting](references/drafting.md) |
+| Authoring or checking RC.3 documents and supplied records | [SDK artifacts](references/sdk-artifacts.md) |
 | Migrating existing docs or upgrading their OpenWarrant edition | [war-migrate](../war-migrate/SKILL.md) |
 | Implementing or completing a bounded scope | [execution](references/execution.md) |
 | Human qualification or legacy signing requests | [verification](references/verification.md) |
