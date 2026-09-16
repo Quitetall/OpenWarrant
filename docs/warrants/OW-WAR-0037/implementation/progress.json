@@ -1,17 +1,18 @@
 {
   "schema": "oh.war/viewer-work-report/v1",
   "warrant": "OW-WAR-0037",
-  "work_state": "in-progress",
+  "work_state": "completed",
   "reported_by": "agent://codex",
-  "revision": "ec0809a7003251225a2b84ce24d0ac5b719d6aa1",
-  "summary": "Missing file-based --to comparison implemented and public regression passes. Historical contract:N lookup and trusted digest-cause attribution remain open; no completion or qualification claimed.",
-  "notes": "docs/warrants/OW-WAR-0037/implementation/notes.md",
+  "revision": "4c8d5733e4336a26be34568fc2addebb11c109d9",
+  "summary": "OW37 implementation complete, unverified: explicit JSON and retained contract:N comparisons, recomputed contract-digest input attribution, bounded history and refusal cases. Historical assurance and resolution unchanged.",
+  "notes": "docs/warrants/OW-WAR-0037/implementation/history-repair.md",
   "evidence": [
-    "docs/warrants/OW-WAR-0037/implementation/evidence/gate.log",
-    "docs/warrants/OW-WAR-0037/implementation/evidence/cli-green.log",
-    "docs/warrants/OW-WAR-0037/implementation/evidence/independent-review.md"
+    "docs/warrants/OW-WAR-0037/implementation/evidence/history/gate.log",
+    "docs/warrants/OW-WAR-0037/implementation/evidence/history/cli-tests.log",
+    "docs/warrants/OW-WAR-0037/implementation/evidence/history/actual-revision.json",
+    "docs/warrants/OW-WAR-0037/implementation/evidence/history/independent-review.md"
   ],
   "next_steps": [
-    "Implement retained contract revision selectors and establish digest-cause attribution."
+    "Independent legacy assurance disposition and human acceptance/resolution remain separate from this implementation report."
   ]
 }

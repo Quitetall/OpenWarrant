@@ -20,6 +20,5 @@ duplicate/malformed refusal. A review-found long-key/wide-array amplification ca
 
 The [retained history repair](history-repair.md) now implements the remaining
 contract:N lookup and recomputed digest-input attribution. Its observations and
-limits are separate from this earlier file-target slice. Final gate and review
-must pass before the work report can claim implementation completion. Historical
+limits are separate from this earlier file-target slice. Final gate and independent reviews passed; the work report records completed/unverified. Historical
 not-established dispositions and all signed records remain unchanged.

@@ -1,0 +1,10 @@
+   Compiling openwarrant-cli v1.0.0 (/mnt/4tb/tmp/ow37-history/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.35s
+     Running tests/diff_target.rs (target/debug/deps/diff_target-7a15eceec255c800)
+
+running 2 tests
+test explicit_target_reports_field_movement_and_ignores_json_layout ... ok
+test retained_contracts_name_digest_inputs_and_refuse_missing_history ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+

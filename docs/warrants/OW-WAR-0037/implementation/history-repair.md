@@ -45,4 +45,4 @@ It reported no semantic difference. This does not invent a second actual revisio
 Separate-context specification review passed the bounded implementation and
 independently probed unsupported-field refusal. Standards review found a missing
 single-selector restriction; the CLI now explicitly requires the target and tests
-that refusal. Full gate, source commit review and final completion report follow.
+that refusal. Source 4c8d5733e4336a26be34568fc2addebb11c109d9 passed all 14 gate steps and 308 planted controls. Local LAMU source review passed with nits checked against the implementation. The work report now records completed/unverified; historical assurance and resolution remain unchanged.
