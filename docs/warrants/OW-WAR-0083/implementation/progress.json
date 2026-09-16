@@ -1,0 +1,17 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0083",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "1f277bad45434929f3e6b497cf5776f7351e981747b86ecf966c970043f93d01",
+  "summary": "Dependency scheduling and advisory difficulty SDK slice implemented and independently reviewed. Full record, readiness and assurance evaluation remains unfinished. Revision is the source-inventory digest linked below, not a Git commit.",
+  "notes": "docs/warrants/OW-WAR-0083/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0083/implementation/scheduling-observation.json",
+    "docs/warrants/OW-WAR-0083/implementation/scheduling-tests.log"
+  ],
+  "next_steps": [
+    "Implement remaining S04/T42-T48 record and assurance subsets.",
+    "Add document wire fixtures and CLI/workflow consumers before claiming scheduling UI support."
+  ]
+}

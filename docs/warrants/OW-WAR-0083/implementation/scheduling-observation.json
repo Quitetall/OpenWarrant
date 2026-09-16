@@ -1,0 +1,16 @@
+{
+  "scope": "OW-WAR-0083 scheduling subset only",
+  "toolchain": "1.97.1",
+  "source_digest": "1f277bad45434929f3e6b497cf5776f7351e981747b86ecf966c970043f93d01",
+  "source_files": {
+    "crates/openwarrant-core/src/document/schedule.rs": "aadb18baa88cb32fdc0f1c5046f32c36df788505dea14de1afd1887a6928cf54",
+    "crates/openwarrant-core/tests/document_schedule.rs": "5ef289bfe035bd288da4a40b901378f021ce8f7d3f7ef44983636495ea37bd20",
+    "docs/sas/drafts/1.0.0-rc.3/sdk-contract.md": "129318f3d1b464f866f79cf88e84b15d6c86297eb7221bd46a6fa34d45d8103d"
+  },
+  "public_tests": 6,
+  "test_result": "PASS",
+  "clippy": "PASS",
+  "spec_review": "PASS bounded scheduling slice",
+  "standards_review": "PASS bounded scheduling slice",
+  "qualification_assessed": false
+}
