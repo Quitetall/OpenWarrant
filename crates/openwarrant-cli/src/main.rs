@@ -21,6 +21,7 @@ mod console;
 mod context_select;
 mod correct;
 mod diagnostic;
+mod diff_target;
 mod dispatch;
 mod document;
 mod eval;
@@ -446,6 +447,9 @@ enum Command {
         /// A canonical JSON file to compare against. Defaults to the committed one.
         #[arg(long)]
         from: Option<Utf8PathBuf>,
+        /// Explicit canonical IR or proposal JSON target. Defaults to fresh compilation.
+        #[arg(long)]
+        to: Option<Utf8PathBuf>,
     },
     /// Import a legacy ADR corpus (§96), discharging OW-WAR-0043.
     Migrate {
@@ -1917,9 +1921,13 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             );
             Ok(EXIT_OK)
         }
-        Command::Diff { alias, from } => {
+        Command::Diff { alias, from, to } => {
             let repository = repo::Repository::discover(None)?;
-            let report = show::diff(&repository, &alias, from.as_ref())?;
+            let report = if let Some(to) = to {
+                diff_target::compare(&repository, &alias, from.as_deref(), &to)?
+            } else {
+                show::diff(&repository, &alias, from.as_ref())?
+            };
             // A diff is information, not a verdict: exit 0 whatever it found.
             let _ = output::finish(mode, "diff", &report, None);
             Ok(EXIT_OK)
