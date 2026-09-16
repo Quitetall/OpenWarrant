@@ -32,3 +32,16 @@ observations, not universal memory or runtime guarantees.
 No filesystem migration, live storage deletion, cryptographic verification or
 new authority act occurs. Original source trees and legacy signatures remain intact.
 The full repository gate and required commit review are recorded after execution.
+
+## Completion evidence
+
+Implementation commit `90f4aa0` passed all 14 repository gate steps and 308/308
+planted controls on Rust 1.97.1. See `gate.log`. LAMU review_commit returned PASS
+WITH NITS using the local/free model. The raw JSON bound permits escape expansion
+and decoded metadata is bounded separately. Private validated Preserved values
+establish entry presence before indexing. The compact Report initializer remains
+a readability nit, not a correctness failure.
+
+OW84 Phase 1 supplied-byte implementation is complete and unverified. No human
+acceptance, legacy resolution or assurance mark is claimed. Next scope is OW85,
+Phase 1 SDK/CLI/skill acceptance inventory.
