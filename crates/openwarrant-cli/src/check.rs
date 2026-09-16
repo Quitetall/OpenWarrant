@@ -279,6 +279,32 @@ pub fn run(
             "corpus-pending",
             &mut report,
         );
+        // Completeness, which drift cannot see: a projection that drops the same
+        // sentences every time compiles identically every time. Reported against
+        // the document, whether or not the projection is committed.
+        if let Ok((path, bytes)) = repo.sas_document() {
+            let dropped = openwarrant_core::dropped_sections(&String::from_utf8_lossy(&bytes));
+            if dropped.is_empty() {
+                report.push(Diagnostic::pass(
+                    "sas-normative.complete",
+                    "every numbered section of the SAS reaches the normative projection",
+                ));
+            } else {
+                for heading in dropped {
+                    report.push(Diagnostic::error(
+                        "sas-normative.section-dropped",
+                        repo.relative(&path),
+                        format!(
+                            "§{heading} carries normative text and the projection's section \
+                             parser cannot label it, so every sentence under it is absent from \
+                             docs/sas/generated/NORMATIVE.md — silently, because a fresh \
+                             compilation drops the same ones and the drift check passes. A \
+                             section number is digits with an optional letter suffix (§8, §8A)"
+                        ),
+                    ));
+                }
+            }
+        }
         // The SAS normative projection (E1), when there is a document.
         if repo.sas_document().is_ok() {
             match crate::compile::sas_normative(repo) {
