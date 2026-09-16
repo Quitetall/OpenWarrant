@@ -27,3 +27,15 @@ is modified by the authoring command.
 
 Repository gate pending. See `conformance/integration/interactive/README.md` for
 commands, input transcript, bounds and recovery behavior.
+
+## Completion
+
+The full repository gate passed all 14 steps and 308/308 controls on `fa0ed49`.
+OW88 implementation is complete and unverified. Independent specification and
+standards review passed; the latter independently reproduced the aggregate-depth
+refusal and successful recovery. LAMU review_commit used the local/free model and
+ended with PASS. Its temporary-file and lock concerns were retracted after checking
+cleanup and exclusive-lock behavior. No additional code change was required.
+
+Next: OW89 candidate packaging rehearsal. Full phase exits, native macOS acceptance,
+actual-user workflow observations and owner release permission remain separate.
