@@ -2,7 +2,7 @@
 
 **Current product-direction candidate: standard and SDK, with external semantic
 compilers and four delivery phases. Draft only; not signed adoption or Stable.**
-Updated 2026-09-14.
+Updated 2026-09-16.
 
 ## Review in this order
 
@@ -16,7 +16,7 @@ Updated 2026-09-14.
    ADR, question, stage and review artifacts; attribution and context discipline.
 5. [Migration map](migration-map.md) and [roadmap inventory](roadmap.json): every
    prior feature, case and planned Warrant assigned to its new owner/phase.
-6. [Context views and shared work](context-views-and-shared-work.md): supervisor and worker views, query boundaries, shared contracts and retained evidence.
+6. [Context views and shared work](context-views-and-shared-work.md): Master Document, evolving SAS, optional PRD, supervisor/worker views, shared contracts and retained evidence.
 7. [Work-stop contract](work-stop-contract.md): completion, interruption, changes, live writers and recovery scenarios.
 8. [Architecture amendment](sdk-ownership.adr.md), [decision map](decision-map.md)
    and [validation](validation.md): rationale, supersessions and observed limits.

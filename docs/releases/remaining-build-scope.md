@@ -56,6 +56,10 @@ bounded contract and positive/refusal fixtures before dispatch.
    configured spend/retry limits. Prove changed-subject, impersonation, hard-cap
    unknown-cost and explicit verified-start refusal. A checkbox is an action
    request, not a signature or evidence of success.
+   Extend the project entry into the Master Document defined in SAS RC.3 §19:
+   short overview, vision/SAS/optional PRD summaries, exact source pointers and
+   shared progress records. Provider owns assembly; app owns display. Existing
+   progress viewer is not yet this complete Master view.
 3. **Questions, stops and recovery.** Route in-scope questions to agents and
    governing questions to authorized humans. Pause affected work and dependents;
    preserve independent progress. Apply work and harness changes at the defined

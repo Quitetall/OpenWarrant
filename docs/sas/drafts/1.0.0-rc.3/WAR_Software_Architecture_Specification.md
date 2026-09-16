@@ -792,7 +792,9 @@ correction of an old assertion remains separately attributable.
 ## 19. Context views, shared work and retention
 
 [Context views and shared work](context-views-and-shared-work.md) is normative.
-It defines the supervisor progress view, decisions/domain view, draft scratchpad,
+It defines the generated Master Document, its short overview and source pointers,
+the evolving SAS with required/observed/proposed architecture, optional PRD,
+the supervisor progress view, decisions/domain view, draft scratchpad,
 code-derived contract view, skill pointers and context exclusion state as views of
 one owned source model. Their display names are provisional; their distinctions
 are binding. SQL and vector retrieval belong to context providers. A task retains
