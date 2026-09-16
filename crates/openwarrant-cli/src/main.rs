@@ -791,6 +791,9 @@ enum Command {
         /// Include records with an existing resolution in text/JSON output.
         #[arg(long)]
         all: bool,
+        /// Return the validated viewer snapshot, including attributed work reports.
+        #[arg(long, conflicts_with_all = ["html", "serve"])]
+        snapshot: bool,
         /// Write a self-contained HTML snapshot (all records), with no implicit server.
         #[arg(long, num_args=0..=1, default_missing_value=".openwarrant/state/progress.html", conflicts_with="serve")]
         html: Option<std::path::PathBuf>,
@@ -1797,12 +1800,23 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         }
         Command::Overview {
             all,
+            snapshot,
             html,
             serve,
             port,
             refresh_secs,
         } => {
             let repository = repo::Repository::discover(None)?;
+            if snapshot {
+                let view = progress_viewer::json_snapshot(&repository)?;
+                output::emit(
+                    mode,
+                    "overview",
+                    &serde_json::to_string_pretty(&view).unwrap(),
+                    view,
+                );
+                return Ok(EXIT_OK);
+            }
             if let Some(path) = html {
                 progress_viewer::export(&repository, &path)?;
                 output::emit(

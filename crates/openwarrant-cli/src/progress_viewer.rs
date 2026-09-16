@@ -304,3 +304,8 @@ pub fn serve(
 ) -> Result<(), RepoError> {
     server::serve(repo, port, interval, mode)
 }
+
+/// The same validated snapshot used by both HTML consumers. No files are written.
+pub fn json_snapshot(repo: &Repository) -> Result<serde_json::Value, RepoError> {
+    serde_json::to_value(capture(repo, true)?).map_err(|e| err(e.to_string()))
+}
