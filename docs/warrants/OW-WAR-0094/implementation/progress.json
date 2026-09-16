@@ -1,0 +1,14 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0094",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "df2701da",
+  "summary": "Configured-harness execution bridge implemented; HTTP/process/Git and browser QA observed. Full gate and final review pending.",
+  "notes": "docs/warrants/OW-WAR-0094/implementation/notes.md",
+  "evidence": [],
+  "next_steps": [
+    "Finish gate and review evidence.",
+    "Continue question routing, recovery, real adapters and remaining-Warrant reconciliation."
+  ]
+}
