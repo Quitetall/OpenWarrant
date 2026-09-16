@@ -25,5 +25,6 @@ See [application/API guide](../../../../apps/openwarrant-web/README.md),
 All89 active records are inventoried; no historical resolution, signature,
 retirement, reconciliation acceptance or Verified mark is fabricated.
 
-Full repository gate is pending for this source change. Agent execution, hotline,
+Full repository gate passed: 14 steps green and 308 planted controls passed.
+See [completion evidence](completion.md). Agent execution, hotline,
 work-stop orchestration, real adapters and actual-user evidence are later slices.

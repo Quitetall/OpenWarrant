@@ -23,6 +23,16 @@ it does not give an agent permission to sign it. Where product scope changed,
 prepare a linked successor or an explicit reconciliation record and preserve
 the original contract, delivery and decisions. Missing observations remain unknown.
 
+## Observed legacy closure results
+
+Read-only dry-runs of all 13 structurally ready legacy records returned
+**NOT SATISFIED**: 0006, 0011, 0023, 0027, 0028, 0029, 0030, 0036, 0037, 0039,
+0041, 0043 and 0044. An answered obligation can remain not established or refuted.
+Do not infer completion from `ready_to_resolve` or the dry-run exit code.
+[Exact dry-run receipts](../warrants/OW-WAR-0093/implementation/evidence/legacy-closure.json)
+identify each remaining obligation. These observations propose no disposition
+and record no human act.
+
 ## Every active record
 
 | Warrant | Reported work | Legacy state | Proposed route |

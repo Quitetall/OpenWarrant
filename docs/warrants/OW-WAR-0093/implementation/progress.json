@@ -1,14 +1,22 @@
 {
   "schema": "oh.war/viewer-work-report/v1",
   "warrant": "OW-WAR-0093",
-  "work_state": "in-progress",
+  "work_state": "completed",
   "reported_by": "agent://codex",
-  "revision": "746e773f5d7eac2653b16956e0f90af0115cec0a",
-  "summary": "Reference draft webapp/API and complete reconciliation inventory implemented; 8 HTTP and 5 viewer tests plus browser QA pass. Full repository gate pending.",
+  "revision": "1655871dee2a97cdd68942520b1f6150e4cee09f",
+  "summary": "Reference draft webapp and authenticated local API complete: immutable revisions, browser authoring and canonical project inventory. 8 HTTP tests, 5 viewer tests and full 14-step/308-control gate passed. Unverified; execution workflow remains separate.",
   "notes": "docs/warrants/OW-WAR-0093/implementation/notes.md",
-  "evidence": [],
+  "evidence": [
+    "docs/warrants/OW-WAR-0093/implementation/completion.md",
+    "docs/warrants/OW-WAR-0093/implementation/evidence/gate.log",
+    "docs/warrants/OW-WAR-0093/implementation/evidence/http-tests.log",
+    "docs/warrants/OW-WAR-0093/implementation/evidence/viewer-tests.log",
+    "docs/warrants/OW-WAR-0093/implementation/evidence/source-review.log",
+    "docs/warrants/OW-WAR-0093/implementation/evidence/legacy-closure.json"
+  ],
   "next_steps": [
-    "Run final repository gate and commit review.",
-    "Continue execution bridge and remaining-Warrant reconciliation."
+    "Build execution, questions, work-stop and recovery workflow slices.",
+    "Complete or explicitly reconcile remaining Warrants; 13 structurally ready legacy closures currently report NOT SATISFIED.",
+    "Obtain remaining native macOS, integration and actual-user evidence before release qualification."
   ]
 }
