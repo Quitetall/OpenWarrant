@@ -1,17 +1,20 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Dependency readiness over supplied facts. No authentication, dispatch or assurance.
 
+use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
 /// An exact Warrant contract and optional bounded stage/milestone.
-#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct WorkScope {
     pub warrant: String,
     pub contract_digest: String,
     pub stage: Option<String>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum RequiredResult {
     ImplementationFinished,
     ChecksPassed,
@@ -20,7 +23,8 @@ pub enum RequiredResult {
 }
 
 /// An action prerequisite; qualification-only conditions do not belong here.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Dependency {
     pub predecessor: usize,
     pub successor: usize,
@@ -30,7 +34,8 @@ pub struct Dependency {
     pub reason: String,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum Satisfaction {
     Satisfied,
     Unmet,
@@ -39,7 +44,8 @@ pub enum Satisfaction {
 
 /// The caller establishes authenticity and admissibility before supplying facts.
 /// This type does not turn an actor's completion claim into verification evidence.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ResultFact {
     pub scope: WorkScope,
     pub requirement: RequiredResult,
@@ -65,19 +71,19 @@ impl Default for ScheduleLimits {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Serialize)]
 pub struct Waiting {
     pub dependency: usize,
     pub state: Satisfaction,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Serialize)]
 pub struct SatisfiedDependency {
     pub dependency: usize,
     pub fact: usize,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Serialize)]
 pub struct ScheduleReport {
     /// Input scope indexes in stable input order. Dependency readiness only.
     pub ready: Vec<usize>,
@@ -261,14 +267,16 @@ fn is_digest(text: &str) -> bool {
             .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(b))
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum Difficulty {
     Low,
     Medium,
     High,
     Unknown,
 }
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum Confidence {
     Low,
     Medium,
@@ -276,7 +284,8 @@ pub enum Confidence {
 }
 
 /// Optional advisory metadata. Deliberately not an input to dependency evaluation.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct DifficultyEstimate {
     pub difficulty: Difficulty,
     pub reason: String,

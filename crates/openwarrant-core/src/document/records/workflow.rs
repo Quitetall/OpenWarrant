@@ -420,19 +420,21 @@ fn exact(r: &ExactReference) -> bool {
 }
 
 /// Explicit tracker-adapter attestation over the exact supplied overview bytes.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct TrackerTrust {
     pub overview_url: String,
     pub raw_digest: String,
     pub tracker: String,
     pub revision: String,
 }
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum ResponseStyle {
     Minimal,
     WithNotes,
 }
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct HandoffResult {
     pub work_complete: bool,
     pub state: FindingState,
@@ -547,7 +549,8 @@ pub fn check_replay(
     }
     Ok(true)
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ResumeFacts {
     pub change_digest: String,
     pub choice_established: bool,
@@ -587,13 +590,14 @@ pub fn evaluate_resume(
         "Exact change, choice, context, limits and required stop boundary must be established",
     ))
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct AvailabilityFacts {
     pub record_digest: String,
     pub retained_exact_bytes: bool,
     pub expected_history: Vec<String>,
 }
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct AvailabilityReport {
     pub declared_state: Availability,
     pub support: FindingState,
@@ -626,7 +630,8 @@ pub fn evaluate_availability(
         history_preserved,
     })
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct HumanReviewTrust {
     pub manifest_digest: String,
     pub actor_id: String,

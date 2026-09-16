@@ -51,6 +51,7 @@ mod run_cmd;
 mod sas;
 #[cfg(feature = "schema")]
 mod schemas;
+mod sdk;
 mod show;
 mod sign;
 mod status;
@@ -226,6 +227,15 @@ enum DocumentCommand {
 
 #[derive(Subcommand)]
 enum Command {
+    /// Run an offline SDK operation from an explicit JSON request. Always emits JSON.
+    Sdk {
+        /// Request JSON file, or - for stdin.
+        #[arg(long)]
+        request: String,
+        /// Also save the result envelope to a new file; existing files are never replaced.
+        #[arg(long)]
+        output: Option<Utf8PathBuf>,
+    },
     /// Initialize repository configuration and directories (§71.1).
     Init {
         /// Namespace prefixing every local alias, e.g. `OW` in `OW-WAR-0001`.
@@ -812,7 +822,21 @@ enum Command {
 }
 
 fn main() -> ExitCode {
-    let cli = Cli::parse();
+    let cli = match Cli::try_parse() {
+        Ok(cli) => cli,
+        Err(error) => {
+            // Preserve legacy argument handling. SDK callers always receive a
+            // report for invocation errors; --help and --version remain help.
+            let sdk = std::env::args_os()
+                .skip(1)
+                .find(|arg| arg != "--json")
+                .is_some_and(|arg| arg == "sdk");
+            if sdk && error.use_stderr() {
+                return ExitCode::from(sdk::argument_error(&error.to_string()));
+            }
+            error.exit();
+        }
+    };
     let mode = output::Mode::from_flag(cli.json);
     match run(cli) {
         Ok(code) => ExitCode::from(code),
@@ -828,6 +852,7 @@ fn main() -> ExitCode {
 fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
     let mode = output::Mode::from_flag(cli.json);
     match cli.command {
+        Command::Sdk { request, output } => Ok(sdk::run(&request, output.as_deref())),
         Command::Init {
             namespace,
             name,

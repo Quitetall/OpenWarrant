@@ -11,7 +11,10 @@ classification: internal
 
 ## Deliverables
 
-- `crates/openwarrant-cli/src/document.rs`
+- `crates/openwarrant-cli/src/sdk.rs` and `src/sdk/wire.rs` (new offline shell)
+- `crates/openwarrant-cli/tests/sdk_cli.rs`
+- SDK helper serialization in `document/records.rs`, `records/workflow.rs` and
+  `document/schedule.rs`; existing signed-record encodings remain unchanged.
 - `crates/openwarrant-cli/src/main.rs`
 - `conformance/sdk/cli/`
 - This Warrant's implementation notes and exact test/evidence references.

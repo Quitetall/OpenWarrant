@@ -42,6 +42,8 @@ requires its own observed refusal and exact evidence.
 
 ## Planned acceptance entry point
 
-`cargo run -p openwarrant-core --example sdk_probe -- --scope 87 --fixtures conformance/sdk` after the driver exists; test public library and CLI parity where applicable.
-The driver is planned, not claimed shipped. Phase exit also runs `cargo xtask gate`
+`cargo test -p openwarrant-cli --test sdk_cli` drives the actual CLI against
+`conformance/sdk/cli/cases.json` and compares public SDK results. The acceptance
+driver belongs to the CLI crate so Cargo supplies the exact built CLI binary;
+no core-library dependency on an installed CLI is introduced. Phase exit also runs `cargo xtask gate`
 on the pinned toolchain; authoritative new gate registration remains separate.
