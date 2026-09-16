@@ -1,0 +1,16 @@
+title
+Reset password
+id
+example:reset
+unit outcome binding
+# Reset password
+
+Send a reset link.
+.
+unit scope binding
+## Scope
+
+Do not change signup.
+.
+preview
+save

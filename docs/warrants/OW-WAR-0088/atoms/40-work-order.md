@@ -11,7 +11,8 @@ classification: internal
 
 ## Deliverables
 
-- `crates/openwarrant-cli/src/document.rs`
+- `crates/openwarrant-cli/src/document.rs` and its `document/draft.rs` adapter; shared CLI dispatch and bounded JSON guard.
+- `crates/openwarrant-cli/tests/document_draft.rs`
 - `conformance/integration/interactive/`
 - This Warrant's implementation notes and exact test/evidence references.
 

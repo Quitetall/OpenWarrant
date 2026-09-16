@@ -218,6 +218,15 @@ enum EvalCommand {
 
 #[derive(Subcommand)]
 enum DocumentCommand {
+    /// Author a draft interactively; checkpoints remain on cancel or failure.
+    Draft {
+        #[arg(long)]
+        draft_dir: Utf8PathBuf,
+        #[arg(long)]
+        output: Utf8PathBuf,
+        #[arg(long)]
+        resume: bool,
+    },
     /// Review Markdown deliverables (the gate `document.review@1.0.0` runs this).
     Review {
         /// One Warrant; omit for every Warrant with a Markdown deliverable.
@@ -1563,12 +1572,18 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             let report = run_cmd::submit(&repository, &alias, &file)?;
             Ok(output::finish(mode, "submit", &report, None))
         }
-        Command::Document { command } => {
-            let repository = repo::Repository::discover(None)?;
-            let DocumentCommand::Review { alias } = command;
-            let report = document::review(&repository, alias.as_deref())?;
-            Ok(output::finish(mode, "document.review", &report, None))
-        }
+        Command::Document { command } => match command {
+            DocumentCommand::Draft {
+                draft_dir,
+                output,
+                resume,
+            } => Ok(document::draft::run(&draft_dir, &output, resume, mode)),
+            DocumentCommand::Review { alias } => {
+                let repository = repo::Repository::discover(None)?;
+                let report = document::review(&repository, alias.as_deref())?;
+                Ok(output::finish(mode, "document.review", &report, None))
+            }
+        },
         Command::Attest {
             target,
             verify,

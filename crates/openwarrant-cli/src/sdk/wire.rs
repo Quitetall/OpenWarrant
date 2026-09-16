@@ -5,6 +5,13 @@ use serde_json::Value;
 use std::{fmt, io::Write};
 
 pub(super) fn decode(bytes: &[u8]) -> Result<Value, serde_json::Error> {
+    let value = decode_value(bytes)?;
+    if !value.is_object() {
+        return Err(de::Error::custom("request must be an object"));
+    }
+    Ok(value)
+}
+pub(crate) fn decode_value(bytes: &[u8]) -> Result<Value, serde_json::Error> {
     let mut decoder = serde_json::Deserializer::from_slice(bytes);
     let mut remaining = 65_536usize;
     let value = Node {
@@ -13,9 +20,6 @@ pub(super) fn decode(bytes: &[u8]) -> Result<Value, serde_json::Error> {
     }
     .deserialize(&mut decoder)?;
     decoder.end()?;
-    if !value.is_object() {
-        return Err(de::Error::custom("request must be an object"));
-    }
     Ok(value)
 }
 struct Node<'a> {
@@ -89,7 +93,7 @@ impl<'de> Visitor<'de> for Node<'_> {
 }
 // Serde also accepts positional arrays for named structs. Compare with the
 // typed object's serialized shape so that only documented object forms pass.
-pub(super) fn shape(input: &Value, typed: &Value) -> Result<(), &'static str> {
+pub(crate) fn shape(input: &Value, typed: &Value) -> Result<(), &'static str> {
     match (input, typed) {
         (Value::Array(_), Value::Object(_)) => {
             Err("named fields require an object, not a positional array")
