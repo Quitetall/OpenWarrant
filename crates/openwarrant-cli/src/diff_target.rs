@@ -6,6 +6,7 @@ use std::io::Read;
 use camino::Utf8Path;
 
 use crate::{
+    contract_history,
     diagnostic::{Diagnostic, Report},
     repo::{RepoError, Repository},
     sdk::wire,
@@ -81,13 +82,60 @@ pub fn compare(
 ) -> Result<Report, RepoError> {
     let baseline = repo.warrant_dir(alias)?.join("generated/WAR.json");
     let from = from.unwrap_or(&baseline);
-    let before = read(from)?;
-    let after = read(to)?;
+    let load = |path: &Utf8Path| -> Result<_, RepoError> {
+        if let Some(revision) = contract_history::selector(path.as_str())? {
+            contract_history::resolve(repo, alias, revision)
+        } else {
+            Ok((read(path)?, path.to_string()))
+        }
+    };
+    let (before, from_source) = load(from)?;
+    let (after, to_source) = load(to)?;
     let mut budget = 8 * 1024 * 1024;
     charge_paths(&before, 0, &mut budget)?;
     charge_paths(&after, 0, &mut budget)?;
     let changes = show::semantic_diff(&before, &after);
     let mut report = Report::default();
+    report.note(format!("Baseline: {from_source}. Target: {to_source}."));
+    if before["api_version"] == "oh.war/v1" && after["api_version"] == "oh.war/v1" {
+        let old = contract_history::parse_ir(&before)?;
+        let new = contract_history::parse_ir(&after)?;
+        if old.identity.uuid != new.identity.uuid {
+            return Err(RepoError::Message(
+                "contract comparison requires the same Warrant UUID".into(),
+            ));
+        }
+        let old_digest = old
+            .contract_digest()
+            .map_err(|e| RepoError::Message(e.to_string()))?;
+        let new_digest = new
+            .contract_digest()
+            .map_err(|e| RepoError::Message(e.to_string()))?;
+        report.note(format!("Recomputed contract digest: {old_digest} -> {new_digest}. Covers only declared contract inputs; this does not authenticate signatures."));
+        if old_digest != new_digest {
+            for change in &changes {
+                if [
+                    "contract_coverage",
+                    "format_basis",
+                    "identity",
+                    "source_and_composition",
+                    "relations",
+                ]
+                .iter()
+                .any(|root| change.path == *root || change.path.starts_with(&format!("{root}.")))
+                {
+                    report.push(Diagnostic::warn(
+                        "diff.contract-input",
+                        repo.relative(to),
+                        format!(
+                            "Digest input {}: {} -> {}",
+                            change.path, change.from, change.to
+                        ),
+                    ));
+                }
+            }
+        }
+    }
     if changes.is_empty() {
         report.push(Diagnostic::pass(
             "diff.identical",

@@ -36,3 +36,11 @@ and skills evidence (0063/0065/0066/0068), old CLI/UI delivery (0069/0070), and
 old architecture/batch/TUI/adoption plans (0067/0071–0074). A modern successor
 must name preserved scope and omitted obligations; changed product direction alone
 never closes those original records.
+
+## Follow-up: OW37 implementation completed (2026-09-16)
+
+The table above preserves the earlier review snapshot. OW37 now has explicit file
+targets, retained contract:N lookup and recomputed digest-input attribution at
+source `4c8d5733e4336a26be34568fc2addebb11c109d9`. See [bounded evidence and limitations](../warrants/OW-WAR-0037/implementation/history-repair.md).
+Implementation is reported complete/unverified. The historical NOT SATISFIED
+outcome and signed records are unchanged; this is not accepted reconciliation.

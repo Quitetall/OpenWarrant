@@ -19,6 +19,7 @@ mod commit;
 mod compile;
 mod console;
 mod context_select;
+mod contract_history;
 mod correct;
 mod diagnostic;
 mod diff_target;
@@ -444,10 +445,10 @@ enum Command {
     Diff {
         /// The Warrant's local alias.
         alias: String,
-        /// A canonical JSON file to compare against. Defaults to the committed one.
+        /// JSON baseline or contract:N retained revision (requires --to). Defaults to committed JSON.
         #[arg(long)]
         from: Option<Utf8PathBuf>,
-        /// Explicit canonical IR or proposal JSON target. Defaults to fresh compilation.
+        /// Explicit JSON target or contract:N retained revision. Defaults to fresh compilation.
         #[arg(long)]
         to: Option<Utf8PathBuf>,
     },
@@ -1926,6 +1927,15 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             let report = if let Some(to) = to {
                 diff_target::compare(&repository, &alias, from.as_deref(), &to)?
             } else {
+                if from
+                    .as_ref()
+                    .is_some_and(|value| value.as_str().starts_with("contract:"))
+                {
+                    return Err(repo::RepoError::Message(
+                        "contract baseline requires explicit --to target".into(),
+                    )
+                    .into());
+                }
                 show::diff(&repository, &alias, from.as_ref())?
             };
             // A diff is information, not a verdict: exit 0 whatever it found.
