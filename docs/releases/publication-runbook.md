@@ -1,7 +1,9 @@
 # Stable publication runbook — not ready to execute
 
 OW91 depends on OW90's exact four-phase qualification and owner release permission.
-Both remain unestablished. The workflow deliberately refuses all tag publication.
+Both remain unestablished. The owner also requires every remaining Warrant to be
+completed or explicitly reconciled before release; see the
+[reconciliation queue](warrant-reconciliation.md). The workflow deliberately refuses all tag publication.
 Do not remove that refusal or push a release tag to test this runbook.
 
 ## Prepare the exact release subject
@@ -16,12 +18,16 @@ Do not remove that refusal or push a release tag to test this runbook.
 3. Collect all four phase exits, including real workflow/adapters, actual-user
    observations and hardening results. A passing repository gate alone does not
    qualify the product. Human assurance records bind their exact result subjects.
-4. Prepare a reviewable publication change: final versions, artifact names and
+4. Freeze the full Warrant inventory. Every outstanding scope must have completion
+   evidence or an explicit accepted reconciliation route; preserve original records.
+   Missing records, undecided dispositions and unresolved integrity issues refuse
+   release readiness. This is separate from awarding a Verified mark.
+5. Prepare a reviewable publication change: final versions, artifact names and
    digests, destinations, crate dependency order, release notes, intended tag and
    an enforced qualification/permission check replacing the temporary refusal.
    Test negative cases: absent permission, stale source, changed artifact, missing
    platform, incomplete phase and wrong version must not publish.
-5. Obtain owner permission for that exact publication. Existing permission to
+6. Obtain owner permission for that exact publication. Existing permission to
    implement Warrants does not authorize an irreversible registry release.
 
 ## Execute only after those prerequisites

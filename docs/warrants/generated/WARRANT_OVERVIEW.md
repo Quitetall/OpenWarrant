@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-88 Warrant(s) in this repository.
+89 Warrant(s) in this repository.
 
 ## Summary
 
@@ -99,6 +99,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0090](docs/warrants/OW-WAR-0090/manifest.toml) | Qualify four-phase release and freeze Stable source set | `draft` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0091](docs/warrants/OW-WAR-0091/manifest.toml) | Publish and verify OpenWarrant Stable 1.0 | `draft` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0092](docs/warrants/OW-WAR-0092/manifest.toml) | View project progress as offline HTML and a locally refreshed dashboard | `draft` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0093](docs/warrants/OW-WAR-0093/manifest.toml) | Reference workflow package: local API and draft webapp | `draft` | `current` | `valid` | `basic` | 1M / 1S |
 
 ## Claimed SAS requirement coverage
 
