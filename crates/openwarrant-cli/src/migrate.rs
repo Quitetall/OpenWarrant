@@ -19,13 +19,25 @@
 //!
 //! §96.1 keeps every body. The digest is recomputed here and compared by
 //! [`MigratedAdr::validate`], so "0 failures" is a statement about bytes rather
-//! than about non-emptiness. Reading the corpus out of a working tree is the
-//! caller's choice; OBL-001 is discharged by naming the commit and by the
-//! artifact being reproducible, which `--verify-against` checks.
+//! than about non-emptiness.
+//!
+//! # The commit is the input, not a label
+//!
+//! Until 2026-09-15 this read the WORKING TREE and used `--commit` only to
+//! stamp the artifact. OBL-001 asks for "a re-run at that SHA producing
+//! byte-identical output", and a working tree is not a SHA: the LamQuant
+//! corpus it imported is frozen against NEW decisions (its ADR 0186 clause 5)
+//! while still taking permitted Progress Log appends, so `--verify` began
+//! failing three weeks after the import against an artifact that was never
+//! wrong. The corpus is now read with `git show <commit>:<path>`, so the input
+//! is the commit the artifact names and a re-run is reproducible for as long
+//! as that object exists. `--corpus` still points at the directory, but only
+//! to locate the repository and the path within it.
 
 use std::collections::BTreeMap;
 use std::fmt;
 use std::fs;
+use std::process::Command;
 
 use camino::{Utf8Path, Utf8PathBuf};
 use openwarrant_compiler::sha256_hex;
@@ -63,6 +75,14 @@ pub enum MigrateError {
         commit: String,
         path: Utf8PathBuf,
     },
+    Git {
+        argv: String,
+        detail: String,
+    },
+    CommitNotInRepository {
+        commit: String,
+        repository: Utf8PathBuf,
+    },
 }
 
 impl fmt::Display for MigrateError {
@@ -95,8 +115,44 @@ impl fmt::Display for MigrateError {
                  \"a re-run at that SHA producing byte-identical output\", so a \
                  differing re-run is the obligation failing, not a formatting detail"
             ),
+            Self::Git { argv, detail } => {
+                write!(f, "git {argv} failed: {detail}")
+            }
+            Self::CommitNotInRepository { commit, repository } => write!(
+                f,
+                "commit {commit} is not an object in {repository:?}. The corpus is \
+                 read AT that commit, so a commit the repository does not have is \
+                 not an import of an older corpus: it is no input at all"
+            ),
         }
     }
+}
+
+/// Run git in `dir`, returning stdout verbatim.
+///
+/// Deliberately not trimmed: a blob's bytes are the thing being imported, and
+/// `String::trim` would eat a file's trailing newline and change its digest.
+/// Callers that read a single-line answer trim it themselves.
+fn git_in(dir: &Utf8Path, args: &[&str]) -> Result<String, MigrateError> {
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(dir.as_str())
+        .args(args)
+        .output()
+        .map_err(|source| MigrateError::Git {
+            argv: args.join(" "),
+            detail: source.to_string(),
+        })?;
+    if !output.status.success() {
+        return Err(MigrateError::Git {
+            argv: args.join(" "),
+            detail: String::from_utf8_lossy(&output.stderr).trim().to_owned(),
+        });
+    }
+    String::from_utf8(output.stdout).map_err(|_| MigrateError::Git {
+        argv: args.join(" "),
+        detail: "returned non-UTF-8 output".to_owned(),
+    })
 }
 
 impl std::error::Error for MigrateError {}
@@ -394,25 +450,49 @@ pub fn import(
         });
     }
 
-    // Sorted: the artifact must be byte-identical on a re-run (OBL-001), and
-    // directory order is not.
-    let mut files: Vec<Utf8PathBuf> = vec![];
-    let entries = fs::read_dir(corpus).map_err(|source| MigrateError::Read {
-        path: corpus.to_owned(),
-        source,
+    // Where the corpus sits in its repository. `--corpus` is a filesystem path
+    // for the caller's convenience; the bytes come from the commit.
+    let repository = Utf8PathBuf::from(git_in(corpus, &["rev-parse", "--show-toplevel"])?.trim());
+    let prefix = git_in(corpus, &["rev-parse", "--show-prefix"])?
+        .trim()
+        .to_owned();
+
+    // The commit must be IN this repository. `git show` on an unknown object
+    // fails per-file, which would read as a corpus problem rather than as the
+    // caller naming a commit this repository never had.
+    git_in(
+        &repository,
+        &["cat-file", "-e", &format!("{commit_sha}^{{commit}}")],
+    )
+    .map_err(|_| MigrateError::CommitNotInRepository {
+        commit: commit_sha.to_owned(),
+        repository: repository.clone(),
     })?;
-    for entry in entries {
-        let entry = entry.map_err(|source| MigrateError::Read {
-            path: corpus.to_owned(),
-            source,
-        })?;
-        let Ok(path) = Utf8PathBuf::from_path_buf(entry.path()) else {
-            continue;
-        };
-        if path.file_name().is_some_and(is_adr_filename) {
-            files.push(path);
-        }
-    }
+
+    // A corpus that IS the repository root has an empty `--show-prefix`, and an
+    // empty pathspec is not "everything" to git -- it is
+    // `fatal: empty string is not a valid pathspec`. Say `.` there instead.
+    // (Found by the tests: every caller so far passed a subdirectory, so the
+    // root case had never been reached.)
+    let pathspec = if prefix.is_empty() {
+        "."
+    } else {
+        prefix.as_str()
+    };
+
+    // `ls-tree` output is already sorted by git, but the artifact must be
+    // byte-identical on a re-run (OBL-001) and that is worth not inferring.
+    let listing = git_in(
+        &repository,
+        &["ls-tree", "--name-only", commit_sha, "--", pathspec],
+    )?;
+    let mut files: Vec<Utf8PathBuf> = listing
+        .lines()
+        .map(str::trim_end)
+        .filter(|line| !line.is_empty())
+        .map(Utf8PathBuf::from)
+        .filter(|path| path.file_name().is_some_and(is_adr_filename))
+        .collect();
     files.sort();
     if files.is_empty() {
         return Err(MigrateError::CorpusEmpty {
@@ -433,10 +513,7 @@ pub fn import(
     };
 
     for path in &files {
-        let text = fs::read_to_string(path).map_err(|source| MigrateError::Read {
-            path: path.clone(),
-            source,
-        })?;
+        let text = git_in(&repository, &["show", &format!("{commit_sha}:{path}")])?;
         let source = path.file_name().unwrap_or("?").to_owned();
         let (frontmatter, body) = split_frontmatter(&text);
 
@@ -610,7 +687,17 @@ mod tests {
         }
     }
 
-    fn corpus(files: &[(&str, &str)]) -> (Scratch, Utf8PathBuf) {
+    /// A scratch corpus that is a real repository with one commit.
+    ///
+    /// It has to be. `import` reads the corpus out of the NAMED COMMIT with
+    /// `git ls-tree`/`git show`, not off the filesystem, and a helper that
+    /// planted files in a bare directory could not exercise that at all -- it
+    /// was what the reader did BEFORE the fix, which is precisely the defect:
+    /// the artifact claimed to be "the corpus at <sha>" while describing
+    /// whatever happened to be in the working tree.
+    ///
+    /// Returns the scratch guard, the root, and the sha that was committed.
+    fn corpus(files: &[(&str, &str)]) -> (Scratch, Utf8PathBuf, String) {
         use std::sync::atomic::{AtomicU32, Ordering};
         static NEXT: AtomicU32 = AtomicU32::new(0);
         let unique = format!(
@@ -624,10 +711,26 @@ mod tests {
         for (name, text) in files {
             fs::write(root.join(name), text).expect("write");
         }
-        (Scratch(root.clone()), root)
+        // Identity and signing are set on the REPOSITORY, never read from the
+        // developer's global config: a test must not depend on how the machine
+        // running it is configured, and a `commit.gpgsign = true` in someone's
+        // ~/.gitconfig would otherwise hang or fail this helper.
+        for args in [
+            &["init", "-q", "-b", "main"][..],
+            &["config", "user.email", "migrate-test@openwarrant.invalid"][..],
+            &["config", "user.name", "migrate test"][..],
+            &["config", "commit.gpgsign", "false"][..],
+            &["add", "-A"][..],
+            &["commit", "-q", "-m", "corpus"][..],
+        ] {
+            git_in(&root, args).unwrap_or_else(|e| panic!("git {args:?}: {e}"));
+        }
+        let sha = git_in(&root, &["rev-parse", "HEAD"])
+            .expect("rev-parse")
+            .trim()
+            .to_owned();
+        (Scratch(root.clone()), root, sha)
     }
-
-    const SHA: &str = "ee950b8054756eb981e936b27c8d3e2a7c144296";
 
     fn adr(body: &str) -> String {
         format!("---\nstatus: accepted\n---\n{body}")
@@ -735,7 +838,7 @@ mod tests {
 
     #[test]
     fn a_branch_name_is_not_a_frozen_commit() {
-        let (_d, root) = corpus(&[("0001-x.md", &adr("## Decision\nx\n"))]);
+        let (_d, root, _sha) = corpus(&[("0001-x.md", &adr("## Decision\nx\n"))]);
         assert!(matches!(
             import(&root, "main", false),
             Err(MigrateError::UnpinnedCommit { .. })
@@ -744,7 +847,7 @@ mod tests {
 
     #[test]
     fn an_abbreviated_sha_is_not_a_frozen_commit() {
-        let (_d, root) = corpus(&[("0001-x.md", &adr("## Decision\nx\n"))]);
+        let (_d, root, _sha) = corpus(&[("0001-x.md", &adr("## Decision\nx\n"))]);
         assert!(matches!(
             import(&root, "ee950b8", false),
             Err(MigrateError::UnpinnedCommit { .. })
@@ -754,8 +857,8 @@ mod tests {
     #[test]
     fn the_body_is_preserved_byte_for_byte_and_its_digest_recomputes() {
         let body = "## Decision\n\nKeep every byte,   including   this spacing.\n";
-        let (_d, root) = corpus(&[("0001-x.md", &adr(body))]);
-        let artifact = import(&root, SHA, false).expect("import");
+        let (_d, root, sha) = corpus(&[("0001-x.md", &adr(body))]);
+        let artifact = import(&root, &sha, false).expect("import");
         assert_eq!(artifact.adrs[0].preserved_body, body);
         assert_eq!(artifact.adrs[0].preserved_body_digest, body_digest(body));
         assert!(artifact.preservation_failures.is_empty());
@@ -764,11 +867,11 @@ mod tests {
 
     #[test]
     fn a_gate_command_imports_unqualified_and_cannot_be_promoted() {
-        let (_d, root) = corpus(&[(
+        let (_d, root, sha) = corpus(&[(
             "0001-x.md",
             &adr("## Implementation Plan\n- `gate_cmd:` `cargo test`\n"),
         )]);
-        let artifact = import(&root, SHA, false).expect("import");
+        let artifact = import(&root, &sha, false).expect("import");
         assert_eq!(artifact.legacy_declared_unqualified_gates, 1);
         let gate = &artifact.adrs[0].legacy_gates[0];
         assert!(!gate.is_now_qualified());
@@ -778,15 +881,15 @@ mod tests {
     /// OBL-003's negative control, at the library seam the binary calls.
     #[test]
     fn attempting_to_promote_a_completion_line_is_refused() {
-        let (_d, root) = corpus(&[(
+        let (_d, root, sha) = corpus(&[(
             "0001-x.md",
             &adr("## Completion / Resolution\n- **verdict:** `passed`\n"),
         )]);
-        let clean = import(&root, SHA, false).expect("import");
+        let clean = import(&root, &sha, false).expect("import");
         assert_eq!(clean.historical_claims, 1);
         assert_eq!(clean.promoted_resolutions, 0);
 
-        let err = import(&root, SHA, true).expect_err("promotion must be refused");
+        let err = import(&root, &sha, true).expect_err("promotion must be refused");
         assert!(
             format!("{err}").contains("HISTORICAL"),
             "wrong refusal: {err}"
@@ -795,11 +898,11 @@ mod tests {
 
     #[test]
     fn am_001_normalisation_is_applied_to_real_heading_shapes() {
-        let (_d, root) = corpus(&[(
+        let (_d, root, sha) = corpus(&[(
             "0001-x.md",
             &adr("## Alternatives Considered\nx\n\n## Validation  *(ongoing)*\ny\n"),
         )]);
-        let artifact = import(&root, SHA, false).expect("import");
+        let artifact = import(&root, &sha, false).expect("import");
         assert!(
             artifact.unmapped_elements.is_empty(),
             "unmapped: {:?}",
@@ -810,23 +913,57 @@ mod tests {
 
     #[test]
     fn an_invented_section_is_reported_unmapped_not_guessed() {
-        let (_d, root) = corpus(&[("0001-x.md", &adr("## Reversal triggers\nx\n"))]);
-        let artifact = import(&root, SHA, false).expect("import");
+        let (_d, root, sha) = corpus(&[("0001-x.md", &adr("## Reversal triggers\nx\n"))]);
+        let artifact = import(&root, &sha, false).expect("import");
         assert_eq!(
             artifact.unmapped_elements.get("Reversal triggers"),
             Some(&1)
         );
     }
 
+    /// The defect this reader was rewritten for: it read the WORKING TREE.
+    ///
+    /// The artifact stamps a source revision and OBL-001 asks for "a re-run at
+    /// that SHA producing byte-identical output". A reader that walks the
+    /// filesystem answers with whatever is checked out, so an artifact could
+    /// name a commit and describe something else entirely -- silently, and the
+    /// re-run would agree with it. Here the working tree is edited AFTER the
+    /// commit and the import at that commit must not see the edit.
+    #[test]
+    fn the_import_reads_the_named_commit_and_not_the_working_tree() {
+        let committed = "## Decision\n\nthe committed text\n";
+        let (_d, root, sha) = corpus(&[("0001-x.md", &adr(committed))]);
+        fs::write(
+            root.join("0001-x.md"),
+            adr("## Decision\n\nthe working-tree text\n"),
+        )
+        .expect("edit the working tree");
+        let artifact = import(&root, &sha, false).expect("import");
+        assert_eq!(artifact.adrs[0].preserved_body, committed);
+        assert_eq!(
+            artifact.adrs[0].preserved_body_digest,
+            body_digest(committed)
+        );
+    }
+
+    /// A file that arrives only in the working tree is not in the corpus either.
+    #[test]
+    fn a_record_added_after_the_commit_is_not_imported() {
+        let (_d, root, sha) = corpus(&[("0001-x.md", &adr("## Decision\nx\n"))]);
+        fs::write(root.join("0002-y.md"), adr("## Decision\ny\n")).expect("write");
+        let artifact = import(&root, &sha, false).expect("import");
+        assert_eq!(artifact.adrs.len(), 1, "an uncommitted record was imported");
+    }
+
     /// OBL-001's evidence: a re-run at the same SHA is byte-identical.
     #[test]
     fn the_artifact_is_reproducible() {
-        let (_d, root) = corpus(&[
+        let (_d, root, sha) = corpus(&[
             ("0002-b.md", &adr("## Decision\nb\n")),
             ("0001-a.md", &adr("## Decision\na\n")),
         ]);
-        let first = render(&import(&root, SHA, false).expect("import")).expect("render");
-        let second = render(&import(&root, SHA, false).expect("import")).expect("render");
+        let first = render(&import(&root, &sha, false).expect("import")).expect("render");
+        let second = render(&import(&root, &sha, false).expect("import")).expect("render");
         assert_eq!(first, second);
         // ...and the order is the sorted one, not the directory's.
         let a = first.find("0001-a.md").expect("0001 present");
@@ -836,9 +973,9 @@ mod tests {
 
     #[test]
     fn an_empty_corpus_is_refused_rather_than_reported_as_a_clean_import() {
-        let (_d, root) = corpus(&[("README.md", "not an ADR\n")]);
+        let (_d, root, sha) = corpus(&[("README.md", "not an ADR\n")]);
         assert!(matches!(
-            import(&root, SHA, false),
+            import(&root, &sha, false),
             Err(MigrateError::CorpusEmpty { .. })
         ));
     }
