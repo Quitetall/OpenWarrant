@@ -687,6 +687,21 @@ mod tests {
         }
     }
 
+    /// A scratch corpus in a SUBDIRECTORY -- what every real caller passes
+    /// (`--corpus .../docs/decisions`).
+    ///
+    /// The root-only helper left `--show-prefix` empty in every test, so of the
+    /// two pathspec cases only one was ever driven: the empty-prefix defect hid
+    /// on that side, and nothing at all covered this one.
+    fn corpus_under(dir: &str, files: &[(&str, &str)]) -> (Scratch, Utf8PathBuf, String) {
+        corpus_at(Some(dir), files)
+    }
+
+    /// A scratch corpus at the repository root.
+    fn corpus(files: &[(&str, &str)]) -> (Scratch, Utf8PathBuf, String) {
+        corpus_at(None, files)
+    }
+
     /// A scratch corpus that is a real repository with one commit.
     ///
     /// It has to be. `import` reads the corpus out of the NAMED COMMIT with
@@ -696,8 +711,10 @@ mod tests {
     /// the artifact claimed to be "the corpus at <sha>" while describing
     /// whatever happened to be in the working tree.
     ///
-    /// Returns the scratch guard, the root, and the sha that was committed.
-    fn corpus(files: &[(&str, &str)]) -> (Scratch, Utf8PathBuf, String) {
+    /// `under` places the corpus below the repository root (`None` = at it).
+    /// Returns the scratch guard, the CORPUS directory -- which is what
+    /// `import` is given, not the root -- and the sha that was committed.
+    fn corpus_at(under: Option<&str>, files: &[(&str, &str)]) -> (Scratch, Utf8PathBuf, String) {
         use std::sync::atomic::{AtomicU32, Ordering};
         static NEXT: AtomicU32 = AtomicU32::new(0);
         let unique = format!(
@@ -708,8 +725,13 @@ mod tests {
         let root = Utf8PathBuf::from_path_buf(std::env::temp_dir().join(unique))
             .expect("temp dir path is utf8");
         fs::create_dir_all(&root).expect("create scratch");
+        let corpus_dir = match under {
+            Some(rel) => root.join(rel),
+            None => root.clone(),
+        };
+        fs::create_dir_all(&corpus_dir).expect("create corpus dir");
         for (name, text) in files {
-            fs::write(root.join(name), text).expect("write");
+            fs::write(corpus_dir.join(name), text).expect("write");
         }
         // Identity and signing are set on the REPOSITORY, never read from the
         // developer's global config: a test must not depend on how the machine
@@ -729,7 +751,9 @@ mod tests {
             .expect("rev-parse")
             .trim()
             .to_owned();
-        (Scratch(root.clone()), root, sha)
+        // The guard removes the whole scratch; the returned path is the CORPUS,
+        // which is what `import` is given.
+        (Scratch(root.clone()), corpus_dir, sha)
     }
 
     fn adr(body: &str) -> String {
@@ -919,6 +943,40 @@ mod tests {
             artifact.unmapped_elements.get("Reversal triggers"),
             Some(&1)
         );
+    }
+
+    /// The shape every real caller passes: `--corpus <repo>/docs/decisions`.
+    ///
+    /// Two pathspec cases exist -- an empty `--show-prefix` at the repository
+    /// root, and a real prefix below it -- and until this test only the root
+    /// one was ever exercised, by a helper that could not produce the other.
+    #[test]
+    fn a_corpus_in_a_subdirectory_is_read_at_the_commit_like_any_other() {
+        let body = "## Decision\n\nnested\n";
+        let (_d, corpus_dir, sha) = corpus_under("docs/decisions", &[("0001-x.md", &adr(body))]);
+        assert!(
+            corpus_dir.as_str().ends_with("docs/decisions"),
+            "{corpus_dir}"
+        );
+        let artifact = import(&corpus_dir, &sha, false).expect("import");
+        assert_eq!(artifact.adr_count, 1);
+        assert_eq!(artifact.adrs[0].preserved_body, body);
+        assert!(artifact.preservation_failures.is_empty());
+    }
+
+    /// And the working tree is not read there either.
+    #[test]
+    fn a_subdirectory_corpus_ignores_the_working_tree_too() {
+        let committed = "## Decision\n\ncommitted, nested\n";
+        let (_d, corpus_dir, sha) =
+            corpus_under("docs/decisions", &[("0001-x.md", &adr(committed))]);
+        fs::write(
+            corpus_dir.join("0001-x.md"),
+            adr("## Decision\n\nedited after the commit\n"),
+        )
+        .expect("edit the working tree");
+        let artifact = import(&corpus_dir, &sha, false).expect("import");
+        assert_eq!(artifact.adrs[0].preserved_body, committed);
     }
 
     /// The defect this reader was rewritten for: it read the WORKING TREE.
