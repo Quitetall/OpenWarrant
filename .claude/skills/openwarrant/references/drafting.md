@@ -65,3 +65,20 @@ an agent-permitted draft write, not a human-only act. `--reviewed` records actua
 proposal inspection; it must not stand for an inspection that did not happen.
 Only unresolved material decisions justify another user question. Use current
 schema/help; never pass RC.3 footer source to a legacy atom parser as if supported.
+
+## Local and cloud agents
+
+Use the same `war spec` method with either backend. A connected agent can draft
+directly; a configured harness can invoke a local model or a cloud model. Model
+selection belongs to that harness, not the document parser or SDK.
+
+For RC.3 source, use [SDK authoring](sdk-artifacts.md), then validate the actual
+output and show the readable draft. For legacy corpus proposals, use the v2
+transport above. Preserve exact governing context and source revisions; keep
+credentials outside the packet. Record actual backend/model identity when known.
+
+Honor the effective cost policy before invoking a provider. Unknown paid cost
+refuses a mandatory hard cap; an explicitly uncapped policy may permit it and
+records cost as unknown. A configured command is not proof of metering or sandboxing.
+Keep drafting distinct from implementation. Exit with a validated draft path and
+remaining material questions; claim no signature, completion or qualification.

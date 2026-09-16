@@ -3,7 +3,7 @@
 A separate workflow application over the OpenWarrant SDK CLI. Python owns HTTP,
 local draft storage and browser presentation. The existing Rust SDK owns document
 authoring and validation. SDK core imports no web application code. No model or
-external service is required. This is the first Phase 3 slice, not Phase 3 exit.
+external service is required. OW93 provides authoring; OW94 adds opt-in execution. Neither establishes Phase 3 exit.
 
 ## Run
 
@@ -23,7 +23,8 @@ into the unlock form. The browser keeps it in page memory, not a URL, cookie or
 persistent storage. A restart rotates the token; choose a new session-file path.
 Stop with Ctrl-C. Keep the state directory to resume drafts. Each revision is a
 new checksummed payload file; every editable field and exact source is bound.
-The app exposes no deletion, signing, completion or agent-launch route.
+The base app exposes no deletion or signing route. Opt-in harness execution and
+unverified attempt results are documented in [EXECUTION.md](EXECUTION.md).
 Drafts live outside the repository. Download Markdown to inspect or adopt it through
 your chosen workflow; saving a draft here does not register a legacy Warrant.
 

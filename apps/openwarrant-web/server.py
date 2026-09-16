@@ -18,6 +18,8 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from socketserver import ThreadingMixIn
 
+from execution import ExecutionError, Executor
+
 BODY_LIMIT = 64 * 1024
 FILE_LIMIT = 1024 * 1024
 STORE_LIMIT = 64 * 1024 * 1024
@@ -43,7 +45,11 @@ def unique(pairs):
 
 def decode(data):
     try:
-        return json.loads(data, object_pairs_hook=unique)
+        value = json.loads(data, object_pairs_hook=unique)
+        # Escaped lone surrogates are accepted by Python's JSON decoder but cannot
+        # be retained or served as UTF-8. Reject them at the shared input boundary.
+        json.dumps(value, ensure_ascii=False).encode("utf-8")
+        return value
     except (ValueError, UnicodeError, RecursionError) as e:
         raise Refusal(400, "Invalid JSON") from e
 
@@ -240,7 +246,9 @@ class Store:
         if len(entries) > REVISION_LIMIT + 64:
             raise Refusal(413, "Store entry limit exceeded")
         for path in sorted(entries):
-            if path.name == ".lock" or path.name.startswith(".pending-"):
+            if path.name in (".lock", ".execution") or path.name.startswith(
+                ".pending-"
+            ):
                 continue
             match = re.fullmatch(r"([0-9a-f-]{36})\.([0-9]{8})\.json", path.name)
             if not match:
@@ -392,6 +400,7 @@ class Server(ThreadingMixIn, HTTPServer):
     def __init__(self, address, store, token):
         self.store = store
         self.token = token
+        self.executor = None
         self.slots = threading.BoundedSemaphore(8)
         super().__init__(address, Handler)
 
@@ -476,6 +485,14 @@ class Handler(BaseHTTPRequestHandler):
                 return self.reply(200, store.listing())
             if self.command == "GET" and self.path == "/api/project":
                 return self.reply(200, project_inventory(store.sdk))
+            if self.command == "GET" and self.path.startswith("/api/runs"):
+                if self.server.executor is None:
+                    raise Refusal(409, "Execution harness not configured")
+                if self.path == "/api/runs":
+                    return self.reply(200, self.server.executor.listing())
+                return self.reply(
+                    200, self.server.executor.get(self.path.removeprefix("/api/runs/"))
+                )
             match = re.fullmatch(r"/api/warrants/([0-9a-f-]{36})", self.path)
             if self.command == "GET" and match:
                 return self.reply(200, store.get(match[1]))
@@ -484,9 +501,9 @@ class Handler(BaseHTTPRequestHandler):
             )
             if self.command == "GET" and history:
                 return self.reply(200, store.get(history[1], int(history[2])))
-            if (self.command == "POST" and self.path == "/api/warrants") or (
-                self.command == "PUT" and match
-            ):
+            if (
+                self.command == "POST" and self.path in ("/api/warrants", "/api/runs")
+            ) or (self.command == "PUT" and match):
                 if (
                     self.headers.get_all("Content-Type") != ["application/json"]
                     or self.headers.get_all("Transfer-Encoding")
@@ -503,6 +520,10 @@ class Handler(BaseHTTPRequestHandler):
                 if len(body) != size:
                     raise Refusal(400, "Incomplete request")
                 fields = decode(body)
+                if self.path == "/api/runs":
+                    if self.server.executor is None:
+                        raise Refusal(409, "Execution harness not configured")
+                    return self.reply(202, self.server.executor.start(fields))
                 expected = None
                 if self.command == "PUT":
                     if not isinstance(fields, dict) or fields.get("id") != match[1]:
@@ -517,9 +538,9 @@ class Handler(BaseHTTPRequestHandler):
                     store.create(fields, expected),
                 )
             raise Refusal(404, "Unsupported route or action")
-        except Refusal as e:
+        except (Refusal, ExecutionError) as e:
             self.reply(e.status, {"error": e.message, "qualified": False})
-        except (OSError, KeyError, TypeError, ValueError):
+        except (OSError, KeyError, TypeError, ValueError, subprocess.SubprocessError):
             self.reply(
                 409,
                 {
@@ -541,12 +562,17 @@ def main():
     parser.add_argument("--state", type=Path, required=True)
     parser.add_argument("--port", type=int, default=8766)
     parser.add_argument("--session-file", type=Path, required=True)
+    parser.add_argument("--execution-config", type=Path)
     args = parser.parse_args()
     store = Store(
         args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
     )
     token = secrets.token_hex(32)
     server = Server(("127.0.0.1", args.port), store, token)
+    if args.execution_config:
+        server.executor = Executor(
+            store, args.execution_config, read_file, publish, decode
+        )
     info = {"url": "http://127.0.0.1:" + str(server.server_port), "token": token}
     publish(args.session_file, (json.dumps(info) + "\n").encode())
     print(info["url"], flush=True)

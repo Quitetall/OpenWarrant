@@ -21,17 +21,35 @@ Available evidence is frozen in [the review inventory](rc3-review-inventory.json
 A hash proves which bytes were listed. It does not establish independent approval.
 OW90 cannot close while the Phase 3 product and its required observations are absent.
 
+## Skill-driven local and cloud drafting
+
+The owner requires both local agents and cloud models to draft Warrants using the
+same `war spec` skill. The skill owns the method; OpenWarrant SDK owns parsing,
+validation and authoring; the configured harness owns model routing and context.
+Connected agents can use this path today through CLI/SDK without a model call inside
+the SDK. Keep provider keys outside documents and packets. Preserve prompt, source
+revisions, model/harness identity and validation findings in the drafting history.
+
+The reference webapp still needs an agent-drafting action: send a bounded prompt
+and exact context to a configured local/cloud adapter, validate returned proposals,
+show a readable editable draft, then save through the existing SDK authoring seam.
+Test local and cloud adapters with real observations, invalid output, timeout,
+context limits and cost refusal. A deterministic fixture proves transport only.
+Unknown cost must refuse when a hard spend cap applies; explicit uncapped policy
+may permit it while displaying unknown cost. Drafting grants no execution or
+qualification authority. Track this as a remaining workflow deliverable, not shipped UI.
+
 ## Prepare bounded implementation Warrants
 
 These are proposed slices, not already-issued or completed Warrants. Each needs a
 bounded contract and positive/refusal fixtures before dispatch.
 
-1. **Reference package and local API.** Add a separate workflow package. Reuse SDK
+1. **Reference package and local API (OW93 bounded draft slice complete, unverified).** Add a separate workflow package. Reuse SDK
    parsing, validation, authoring and immutable record semantics. Expose persistent
    local state and deterministic projections through an authenticated local API.
    Prove prompt-only drafting and unverified completion, preserved user docs,
    startup/restart, access refusal and invalid-input refusal. No agent launch yet.
-2. **Web workflow and execution bridge.** Display the generated project overview,
+2. **Web workflow and execution bridge (OW94 bounded configured-harness slice complete, unverified).** Display the generated project overview,
    filtered Warrant list, source/spec pointers and exact subject details. Start
    one eligible Warrant through an explicit connected-agent or harness interface.
    Preserve one worktree per Warrant, serialized writers, attempt identity and
@@ -76,3 +94,14 @@ ceremony is added to ordinary unverified execution.
 Native macOS capacity is an execution prerequisite, not an architecture decision.
 No native OpenWarrant macOS receipt has been established in this work. LAMU's macOS
 CI result does not substitute for OpenWarrant's acceptance or installation checks.
+
+## Completion target
+
+The requested target is 100% of the explicit Warrant inventory completed or
+reconciled with evidence. Work completion, accepted reconciliation and qualification
+remain separate facts. No denominator pruning, fabricated success or default
+resolution can satisfy this target. Historical NOT SATISFIED outcomes retain their
+meaning; map remaining useful scope to a successor or an explicit authorized
+reconciliation. See [current reconciliation queue](warrant-reconciliation.md).
+
+[Legacy gap review](legacy-gap-review.md) records concrete next actions; no historical disposition is changed.
