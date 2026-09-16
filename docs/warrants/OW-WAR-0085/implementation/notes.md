@@ -9,3 +9,16 @@ Independent specification and standards review identified missing build inputs a
 The Linux receipt records exact pre-run and post-run inputs. Later documentation and generated progress updates are not retroactively included in that receipt. The receipt retains all command logs and reports phase_exit_established=false. Clippy passed with warnings denied.
 
 Remaining: repository gate, native macOS run with matching inputs, and final phase review. Independent implementation and integration preparation may continue while platform evidence is missing.
+
+The initial repository gate failed on an existing OW68 delivery digest for
+`war-spec/SKILL.md`, causing four additional baseline-dependent plants to fail.
+The historical skill file is restored unchanged. New SDK guidance remains in the
+OpenWarrant router and its separate reference; no historical pin or signature was
+changed. The failed gate log is retained.
+
+LAMU reviewed implementation commit `96b9e9b` through the local/free model and
+returned PASS WITH NITS. The executable-selection concern was retracted by the
+reviewer itself: missing identity fails closed. Every fixed artifact expectation
+is positively checked; one removed constraint per artifact supplies the bounded
+negative control. The repository-relative script location is intentional. Large
+receipt/generated data was explicitly omitted from this bounded source review.

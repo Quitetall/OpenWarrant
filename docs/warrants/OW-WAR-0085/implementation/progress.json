@@ -3,12 +3,13 @@
   "warrant": "OW-WAR-0085",
   "work_state": "blocked",
   "reported_by": "agent://codex",
-  "revision": "551f628ea34d800ef5a6d029320020557afaa2bd25983c9369ad65da48057b9b",
+  "revision": "7c869d4b301663144df20d589ec06da29465a16366b7378ac5c7e509eb228cb5",
   "summary": "Linux acceptance passes; source/build receipts and fixed skill artifacts implemented. Full Phase 1 exit awaits native macOS evidence and repository gate. Unverified.",
   "notes": "docs/warrants/OW-WAR-0085/implementation/notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0085/implementation/linux-observation.json",
-    "docs/warrants/OW-WAR-0085/implementation/clippy.log"
+    "docs/warrants/OW-WAR-0085/implementation/clippy.log",
+    "docs/warrants/OW-WAR-0085/implementation/linux-observation-v2.json"
   ],
   "next_steps": [
     "Run repository gate and native macOS acceptance with matching input inventory.",
