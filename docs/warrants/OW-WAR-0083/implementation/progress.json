@@ -1,7 +1,7 @@
 {
   "schema": "oh.war/viewer-work-report/v1",
   "warrant": "OW-WAR-0083",
-  "work_state": "complete",
+  "work_state": "completed",
   "reported_by": "agent://codex",
   "revision": "f7c500abd45539d52768d7a4573532fd3c6d8d0c587778cb224af564b32a87f8",
   "summary": "Phase 1 dependency scheduling and supplied-record readiness/assurance SDK complete, unverified. 21 record/workflow tests, 10 codec fixtures and full 14-step gate passed; 308/308 planted controls. Revision identifies source inventory, not Git commit.",
