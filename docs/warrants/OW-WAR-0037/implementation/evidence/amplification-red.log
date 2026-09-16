@@ -1,0 +1,22 @@
+   Compiling openwarrant-cli v1.0.0 (/mnt/4tb/tmp/ow-war-0037-diff/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.30s
+     Running tests/diff_target.rs (target/debug/deps/diff_target-7a15eceec255c800)
+
+running 1 test
+test explicit_target_reports_field_movement_and_ignores_json_layout ... FAILED
+
+failures:
+
+---- explicit_target_reports_field_movement_and_ignores_json_layout stdout ----
+
+thread 'explicit_target_reports_field_movement_and_ignores_json_layout' (1083145) panicked at crates/openwarrant-cli/tests/diff_target.rs:53:5:
+amplified paths must refuse before walking
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    explicit_target_reports_field_movement_and_ignores_json_layout
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.34s
+
+error: test failed, to rerun pass `-p openwarrant-cli --test diff_target`

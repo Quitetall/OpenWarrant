@@ -3,7 +3,7 @@
   "warrant": "OW-WAR-0095",
   "work_state": "blocked",
   "reported_by": "agent://codex",
-  "revision": "a117b072",
+  "revision": "1775dbec97503a88e21dcb072d0be2d802ae1ea5",
   "summary": "Three-developer study scope prepared. Real consented sessions and runnable workflow prerequisites not yet established; no observations fabricated.",
   "notes": "docs/warrants/OW-WAR-0095/implementation/notes.md",
   "evidence": [],
