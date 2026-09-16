@@ -1,0 +1,19 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0089",
+  "work_state": "blocked",
+  "reported_by": "agent://codex",
+  "revision": "9e99fbf26df2fc1c5cb3a1bfc2be39f5e4e57e8f64473d530614e4553093a159",
+  "summary": "Linux candidate packaging/install and six refusal tests pass; full gate 14/14, 308/308. Native macOS install remains missing; no release qualification or publication.",
+  "notes": "docs/warrants/OW-WAR-0089/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0089/implementation/observation.json",
+    "docs/warrants/OW-WAR-0089/implementation/linux-install.json",
+    "docs/warrants/OW-WAR-0089/implementation/tests.log",
+    "docs/warrants/OW-WAR-0089/implementation/gate.log"
+  ],
+  "next_steps": [
+    "Obtain matching native macOS installation and final build provenance.",
+    "Finish Phase 3 workflow/user evidence before OW90 qualification."
+  ]
+}
