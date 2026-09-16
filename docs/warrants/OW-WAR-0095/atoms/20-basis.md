@@ -10,7 +10,7 @@ classification: internal
 # Basis
 
 The owner explicitly confirmed three consenting developers, each completing onboarding and
-one Warrant; targets are at most10 minutes active setup and at most60 seconds administration.
+one Warrant; targets are at most 600 seconds (10 minutes) active setup and at most 60 seconds administration.
 Review and waiting are measured separately. This authorizes preparing this scope, not inventing
 participants, consent, measurements, independent verification or completed sessions.
 

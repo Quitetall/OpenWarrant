@@ -17,8 +17,8 @@ Three consenting developers each onboard a repository and complete one bounded W
 the actual reference workflow. Retain measured times, failures and exact build/scenario identities.
 
 ## Scope
-A formative three-person study: active setup at most10 minutes per participant and administration
-at most60 seconds per Warrant. Measure substantive review, implementation and waiting separately.
+A formative three-person study: active setup at most 600 seconds (10 minutes) per participant and administration
+at most 60 seconds per Warrant. Measure substantive review, implementation and waiting separately.
 
 ## Non-goals
 Population-wide usability claims, covert telemetry, production deployment, signature delegation,
