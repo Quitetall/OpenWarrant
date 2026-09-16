@@ -14,6 +14,8 @@ classification: internal
 - `conformance/sdk/`
 - `crates/openwarrant-core/examples/sdk_probe.rs`
 - `docs/reviews/phase-1.md`
+- `crates/openwarrant-core/tests/skill_artifacts.rs`
+- Adapted skill pointers/references for the shipped SDK authoring transport.
 - This Warrant's implementation notes and exact test/evidence references.
 
 Paths are planned ownership boundaries; do not claim files already exist. Shared

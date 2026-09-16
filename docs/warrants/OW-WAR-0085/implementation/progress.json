@@ -1,0 +1,17 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0085",
+  "work_state": "blocked",
+  "reported_by": "agent://codex",
+  "revision": "551f628ea34d800ef5a6d029320020557afaa2bd25983c9369ad65da48057b9b",
+  "summary": "Linux acceptance passes; source/build receipts and fixed skill artifacts implemented. Full Phase 1 exit awaits native macOS evidence and repository gate. Unverified.",
+  "notes": "docs/warrants/OW-WAR-0085/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0085/implementation/linux-observation.json",
+    "docs/warrants/OW-WAR-0085/implementation/clippy.log"
+  ],
+  "next_steps": [
+    "Run repository gate and native macOS acceptance with matching input inventory.",
+    "Continue independent OW86 integration and OW88 authoring work."
+  ]
+}

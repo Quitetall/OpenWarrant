@@ -14,9 +14,10 @@ Method: Matt Pocock's spec synthesis; [provenance](../openwarrant/ADAPTATIONS.md
 2. Draft one reviewable outcome with scope/non-goals, exact context pointers,
    explicit constraints, input prerequisites and positive/refusal evidence plan.
    Mark qualification-only conditions separately from named execution gates.
-3. Use the format supported by the selected tool: current `war plan` reads a v2
-   proposal into legacy atoms; RC.3 footer authoring remains SDK build scope.
-   Proposed architecture belongs in linked ADR drafts, not an invented acceptance.
+3. Choose the supported artifact transport. For RC.3 documents use the
+   [SDK artifact guide](../openwarrant/references/sdk-artifacts.md). `war plan`
+   still reads v2 proposals into legacy atoms. Proposed architecture belongs in
+   linked ADR drafts, not an invented acceptance.
 4. Validate the proposal, inspect every operation and fix actual defects. If the
    user requested drafting/applying, an agent may apply its reviewed proposal via
    `war plan --proposal <file> --reviewed --apply`. This is not a human signature.

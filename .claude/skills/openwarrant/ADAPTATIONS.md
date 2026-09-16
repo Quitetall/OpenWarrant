@@ -1,6 +1,6 @@
 # Skill adaptation provenance
 
-Local adaptation revision: sdk-footer-rc3-2 (2026-09-14).
+Local adaptation revision: sdk-cli-rc3-3 (2026-09-16).
 Upstream: mattpocock/skills, MIT; full immutable revision
 `3cca18b368ae95cdbdebbff572ccafa662551015`.
 [License and copyright notice](LICENSE.mattpocock) travels with this suite.
@@ -21,3 +21,7 @@ endorsement or transfer of authorship is claimed.
 These are method adaptations, not an imported copy of the whole upstream suite.
 `war` routing is local. Keep this revision fixed until a reviewed upstream update.
 Audit evidence: [skill audit](../../../docs/design/war-skills-audit.md).
+
+OW85 update: RC.3 authoring now points to shipped `war sdk` transport. Fixed
+artifact/host-entry proposals are tested separately from model invocation quality.
+Upstream revision and attribution remain unchanged.

@@ -42,6 +42,8 @@ requires its own observed refusal and exact evidence.
 
 ## Planned acceptance entry point
 
-`cargo run -p openwarrant-core --example sdk_probe -- --scope 85 --fixtures conformance/sdk` after the driver exists; test public library and CLI parity where applicable.
-The driver is planned, not claimed shipped. Phase exit also runs `cargo xtask gate`
+`python3 conformance/sdk/run_phase1.py --output <new-receipt.json>` runs the
+current-host acceptance inventory. It invokes `sdk_probe --scope 85`, public SDK
+and CLI tests, fixed skill artifacts and context-entry proposals. A host receipt
+does not establish the other required OS or full phase exit. Phase exit also runs `cargo xtask gate`
 on the pinned toolchain; authoritative new gate registration remains separate.
