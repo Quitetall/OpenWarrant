@@ -1,7 +1,7 @@
 {
   "format": "openwarrant-adapter-integration-observation/1",
   "passed": true,
-  "provider_git_head": "35682e346bef2f90f56e197ab6565bf93e419bb6",
+  "provider_git_head": "fe9181d0968c808e561bf6183b87bd193a23eb92",
   "sdk_revision": "4b626f23b3076ff7e764f08eeb15e8bdfa6af5cd",
   "provider_worktree_status": "",
   "shared_contract_sha256": "d96a306c1da1a8677c73078ee3638f5dbaf835f8424715110bc0e4c182a88493",
@@ -14,14 +14,16 @@
         "provider": "lamu-openwarrant",
         "version": "0.1.0",
         "sdk_revision": "4b626f23b3076ff7e764f08eeb15e8bdfa6af5cd",
-        "contract_sha256": "330d992a8258dc1c965ef418d31b01d9f2596d56205a9db9379d4218c974df53"
+        "contract_sha256": "b0e349730732155ffb92cfdfb6500e076588bfd4c5f2239c8a9201cbc8c9ab7d"
       },
-      "provider_git_head": "35682e346bef2f90f56e197ab6565bf93e419bb6",
+      "provider_git_head": "fe9181d0968c808e561bf6183b87bd193a23eb92",
       "provider_worktree_status": "",
       "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
       "inputs_sha256": {
-        "lamu-openwarrant/CONTRACT.md": "29600d8076fb50901a92f15ff46500a9201a221d218b8e7c94963625207039b2",
-        "lamu-openwarrant/Cargo.toml": "acdf32f696526d0cc92a96088959744464a50f3cc746bd05811b9d4a1578f8d5",
+        "lamu-openwarrant/.gitignore": "306fd52e74fca6746e12acc750f232de15e71da917756a1270d74c91f5eb7368",
+        "lamu-openwarrant/CONTRACT.md": "7fe32d9ddf4b6d9c682a52c32d11ea0ca4fb23c4ac493f4230d3a8977e55ff6b",
+        "lamu-openwarrant/Cargo.lock": "704814c31572e1d116e6bca69d0ea9f7a9e97093451d6aca76850ae4e9e9c8eb",
+        "lamu-openwarrant/Cargo.toml": "57d0e11d347e8627f31fcd3e295937e4eac1f195c6260660f221c20fd39f62c0",
         "lamu-openwarrant/examples/budget_profile.rs": "9a98f33147d314894f70842f06712256cb587b1b19b1a36b8befd3cedda818e6",
         "lamu-openwarrant/examples/compile_package.rs": "35b227a3917cd8a0dee08c2f84dfd09fd71eeaea8e8672ca0473a483e11f19f5",
         "lamu-openwarrant/examples/conditions_profile.rs": "70049a72568bdca8ec660f5e44aab476fccb27083d2f6c62bda643ddc4fc4c0e",
@@ -32,7 +34,7 @@
         "lamu-openwarrant/src/adapter.rs": "d57e5ec70413c65e0bb66a8cd40847e1fa1b092f28d822dad59ce9cf3c5bc8a4",
         "lamu-openwarrant/src/budget.rs": "e6386ffa09b2f6678f6c1fdd9ffa791a337d96aca817470b71c56bc48c962189",
         "lamu-openwarrant/src/conditions.rs": "f8e441e1620e679f1806254c50675107e0dac9b029ba4181ff10ee6038b522a9",
-        "lamu-openwarrant/src/lib.rs": "73ee55d726cc4831dd8c3feb5aaeffbf785c15836fcfe4e0c7082ee06243b785",
+        "lamu-openwarrant/src/lib.rs": "cdb77133e9fec9187d2406f1a31df6eed1c6284c181e45bef0a660e97d62c5e8",
         "lamu-openwarrant/src/package.rs": "43a2deba42da9b9de0d49b9d1f813562aa202b3669fdc16757bff15e0c256709",
         "lamu-openwarrant/src/projections.rs": "55288951c4098ae2f79a7f1383f412fead1f9471f5f2f12f5977b9b99f64bb03",
         "lamu-openwarrant/src/selection.rs": "12cb41a1e168ff8a8e873e75f82cbaa919a8f91f1eab1cbced8fd808f49a04ee",
@@ -49,8 +51,8 @@
         "lamu-openwarrant/tests/projections.rs": "4e5dfe1e46e0509d6de0528f45f74f87b251e8c4f86c7f98d7d84ee6e64d3fd1",
         "lamu-openwarrant/tests/selection.rs": "6464b6feb9f604cd30de515fd6c0eb08c444e4f3b1aa6e62ac8f29d9c70dc81b",
         "lamu-openwarrant/tests/source.rs": "8cb7bc8fe612ab2dbbe5850f76558d491101a791dd46d6ac5422ed23bd1fd142",
-        "Cargo.lock": "8c55986bc71fd73d56fec5640cd8a4b5fb946bc61c07a134e6cf5f7e73c11d01",
-        "Cargo.toml": "8f9a06f230e95c09062338208d4b716c18a840c4055854138212fd50e05fe6a0"
+        "Cargo.lock": "c0bd84837b3573495d37dc2096b0fa4bf15e1b50160bce1d8ac893660052612a",
+        "Cargo.toml": "2b55b14ec51a0fbe318f3410abd345a1c131d59d3bbd23efd0e5d73908406b08"
       },
       "profile_process": {
         "argv": [
@@ -59,13 +61,15 @@
           "run",
           "--locked",
           "--quiet",
+          "--manifest-path",
+          "/mnt/4tb/tmp/lamu-ow86-provider/lamu-rs/lamu-openwarrant/Cargo.toml",
           "-p",
           "lamu-openwarrant",
           "--example",
           "profile"
         ],
         "exit_code": 0,
-        "stdout": "{\"id\":\"lamu.openwarrant.local-source/1\",\"provider\":\"lamu-openwarrant\",\"version\":\"0.1.0\",\"sdk_revision\":\"4b626f23b3076ff7e764f08eeb15e8bdfa6af5cd\",\"contract_sha256\":\"330d992a8258dc1c965ef418d31b01d9f2596d56205a9db9379d4218c974df53\"}\n",
+        "stdout": "{\"id\":\"lamu.openwarrant.local-source/1\",\"provider\":\"lamu-openwarrant\",\"version\":\"0.1.0\",\"sdk_revision\":\"4b626f23b3076ff7e764f08eeb15e8bdfa6af5cd\",\"contract_sha256\":\"b0e349730732155ffb92cfdfb6500e076588bfd4c5f2239c8a9201cbc8c9ab7d\"}\n",
         "stderr": ""
       },
       "tests": {
@@ -74,6 +78,8 @@
           "+1.97.1",
           "test",
           "--locked",
+          "--manifest-path",
+          "/mnt/4tb/tmp/lamu-ow86-provider/lamu-rs/lamu-openwarrant/Cargo.toml",
           "-p",
           "lamu-openwarrant",
           "--test",
@@ -82,8 +88,8 @@
           "--test-threads=1"
         ],
         "exit_code": 0,
-        "stdout": "\nrunning 5 tests\ntest aggregate_budget_stops_before_next_filesystem_lookup ... ok\ntest capture_original_bytes_and_refuse_changed_source_without_replacing_prior_snapshot ... ok\ntest filesystem_boundary_refuses_escape_symlinks_special_files_and_limits ... ok\ntest mixed_sources_have_deterministic_locks_and_distinct_integrity_refusals ... ok\ntest resolve_units_from_actual_capture_preserves_old_basis_after_heading_rename ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
-        "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s\n     Running tests/source.rs (target/debug/deps/source-7c1238af38fc798c)\n"
+        "stdout": "\nrunning 5 tests\ntest aggregate_budget_stops_before_next_filesystem_lookup ... ok\ntest capture_original_bytes_and_refuse_changed_source_without_replacing_prior_snapshot ... ok\ntest filesystem_boundary_refuses_escape_symlinks_special_files_and_limits ... ok\ntest mixed_sources_have_deterministic_locks_and_distinct_integrity_refusals ... ok\ntest resolve_units_from_actual_capture_preserves_old_basis_after_heading_rename ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n",
+        "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s\n     Running tests/source.rs (lamu-openwarrant/target/debug/deps/source-00dc95f07ed4fdcb)\n"
       },
       "scope": "T11-T15 local Unix source profile plus aggregate-budget regression",
       "limitations": [
@@ -103,12 +109,14 @@
         "sdk_revision": "4b626f23b3076ff7e764f08eeb15e8bdfa6af5cd",
         "contract_sha256": "998652ff2eaba07a56e0216b289c2dde74368d936a57cbf556ca7dcced53973d"
       },
-      "provider_git_head": "35682e346bef2f90f56e197ab6565bf93e419bb6",
+      "provider_git_head": "fe9181d0968c808e561bf6183b87bd193a23eb92",
       "provider_worktree_status": "",
       "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
       "inputs_sha256": {
-        "lamu-openwarrant/CONTRACT.md": "29600d8076fb50901a92f15ff46500a9201a221d218b8e7c94963625207039b2",
-        "lamu-openwarrant/Cargo.toml": "acdf32f696526d0cc92a96088959744464a50f3cc746bd05811b9d4a1578f8d5",
+        "lamu-openwarrant/.gitignore": "306fd52e74fca6746e12acc750f232de15e71da917756a1270d74c91f5eb7368",
+        "lamu-openwarrant/CONTRACT.md": "7fe32d9ddf4b6d9c682a52c32d11ea0ca4fb23c4ac493f4230d3a8977e55ff6b",
+        "lamu-openwarrant/Cargo.lock": "704814c31572e1d116e6bca69d0ea9f7a9e97093451d6aca76850ae4e9e9c8eb",
+        "lamu-openwarrant/Cargo.toml": "57d0e11d347e8627f31fcd3e295937e4eac1f195c6260660f221c20fd39f62c0",
         "lamu-openwarrant/examples/budget_profile.rs": "9a98f33147d314894f70842f06712256cb587b1b19b1a36b8befd3cedda818e6",
         "lamu-openwarrant/examples/compile_package.rs": "35b227a3917cd8a0dee08c2f84dfd09fd71eeaea8e8672ca0473a483e11f19f5",
         "lamu-openwarrant/examples/conditions_profile.rs": "70049a72568bdca8ec660f5e44aab476fccb27083d2f6c62bda643ddc4fc4c0e",
@@ -119,7 +127,7 @@
         "lamu-openwarrant/src/adapter.rs": "d57e5ec70413c65e0bb66a8cd40847e1fa1b092f28d822dad59ce9cf3c5bc8a4",
         "lamu-openwarrant/src/budget.rs": "e6386ffa09b2f6678f6c1fdd9ffa791a337d96aca817470b71c56bc48c962189",
         "lamu-openwarrant/src/conditions.rs": "f8e441e1620e679f1806254c50675107e0dac9b029ba4181ff10ee6038b522a9",
-        "lamu-openwarrant/src/lib.rs": "73ee55d726cc4831dd8c3feb5aaeffbf785c15836fcfe4e0c7082ee06243b785",
+        "lamu-openwarrant/src/lib.rs": "cdb77133e9fec9187d2406f1a31df6eed1c6284c181e45bef0a660e97d62c5e8",
         "lamu-openwarrant/src/package.rs": "43a2deba42da9b9de0d49b9d1f813562aa202b3669fdc16757bff15e0c256709",
         "lamu-openwarrant/src/projections.rs": "55288951c4098ae2f79a7f1383f412fead1f9471f5f2f12f5977b9b99f64bb03",
         "lamu-openwarrant/src/selection.rs": "12cb41a1e168ff8a8e873e75f82cbaa919a8f91f1eab1cbced8fd808f49a04ee",
@@ -136,8 +144,8 @@
         "lamu-openwarrant/tests/projections.rs": "4e5dfe1e46e0509d6de0528f45f74f87b251e8c4f86c7f98d7d84ee6e64d3fd1",
         "lamu-openwarrant/tests/selection.rs": "6464b6feb9f604cd30de515fd6c0eb08c444e4f3b1aa6e62ac8f29d9c70dc81b",
         "lamu-openwarrant/tests/source.rs": "8cb7bc8fe612ab2dbbe5850f76558d491101a791dd46d6ac5422ed23bd1fd142",
-        "Cargo.lock": "8c55986bc71fd73d56fec5640cd8a4b5fb946bc61c07a134e6cf5f7e73c11d01",
-        "Cargo.toml": "8f9a06f230e95c09062338208d4b716c18a840c4055854138212fd50e05fe6a0"
+        "Cargo.lock": "c0bd84837b3573495d37dc2096b0fa4bf15e1b50160bce1d8ac893660052612a",
+        "Cargo.toml": "2b55b14ec51a0fbe318f3410abd345a1c131d59d3bbd23efd0e5d73908406b08"
       },
       "profile_process": {
         "argv": [
@@ -146,6 +154,8 @@
           "run",
           "--locked",
           "--quiet",
+          "--manifest-path",
+          "/mnt/4tb/tmp/lamu-ow86-provider/lamu-rs/lamu-openwarrant/Cargo.toml",
           "-p",
           "lamu-openwarrant",
           "--example",
@@ -161,6 +171,8 @@
           "+1.97.1",
           "test",
           "--locked",
+          "--manifest-path",
+          "/mnt/4tb/tmp/lamu-ow86-provider/lamu-rs/lamu-openwarrant/Cargo.toml",
           "-p",
           "lamu-openwarrant",
           "--test",
@@ -170,7 +182,7 @@
         ],
         "exit_code": 0,
         "stdout": "\nrunning 5 tests\ntest f4_paths_match_whole_case_sensitive_unicode_segments ... ok\ntest inferred_stage_provenance_consumes_text_budget ... ok\ntest invalid_inputs_and_bounded_computation_refuse_without_truth_result ... ok\ntest missing_inputs_are_unknown_but_known_false_wins_and_empty_is_known ... ok\ntest warrant_scope_supplies_defaults_and_overrides_keep_their_origin ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
-        "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s\n     Running tests/conditions.rs (target/debug/deps/conditions-8d397ba1586c8b5f)\n"
+        "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s\n     Running tests/conditions.rs (lamu-openwarrant/target/debug/deps/conditions-7d50582dfbd82760)\n"
       },
       "scope": "T16-T20 condition evaluation and SDK syntax; required UNKNOWN inclusion awaits 0079 closure",
       "limitations": [
@@ -189,12 +201,14 @@
         "sdk_revision": "4b626f23b3076ff7e764f08eeb15e8bdfa6af5cd",
         "contract_sha256": "7d86247ca0ce3789b9f8515f30151e69ef54c26c3d751a27da7cc66e430ab88f"
       },
-      "provider_git_head": "35682e346bef2f90f56e197ab6565bf93e419bb6",
+      "provider_git_head": "fe9181d0968c808e561bf6183b87bd193a23eb92",
       "provider_worktree_status": "",
       "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
       "inputs_sha256": {
-        "lamu-openwarrant/CONTRACT.md": "29600d8076fb50901a92f15ff46500a9201a221d218b8e7c94963625207039b2",
-        "lamu-openwarrant/Cargo.toml": "acdf32f696526d0cc92a96088959744464a50f3cc746bd05811b9d4a1578f8d5",
+        "lamu-openwarrant/.gitignore": "306fd52e74fca6746e12acc750f232de15e71da917756a1270d74c91f5eb7368",
+        "lamu-openwarrant/CONTRACT.md": "7fe32d9ddf4b6d9c682a52c32d11ea0ca4fb23c4ac493f4230d3a8977e55ff6b",
+        "lamu-openwarrant/Cargo.lock": "704814c31572e1d116e6bca69d0ea9f7a9e97093451d6aca76850ae4e9e9c8eb",
+        "lamu-openwarrant/Cargo.toml": "57d0e11d347e8627f31fcd3e295937e4eac1f195c6260660f221c20fd39f62c0",
         "lamu-openwarrant/examples/budget_profile.rs": "9a98f33147d314894f70842f06712256cb587b1b19b1a36b8befd3cedda818e6",
         "lamu-openwarrant/examples/compile_package.rs": "35b227a3917cd8a0dee08c2f84dfd09fd71eeaea8e8672ca0473a483e11f19f5",
         "lamu-openwarrant/examples/conditions_profile.rs": "70049a72568bdca8ec660f5e44aab476fccb27083d2f6c62bda643ddc4fc4c0e",
@@ -205,7 +219,7 @@
         "lamu-openwarrant/src/adapter.rs": "d57e5ec70413c65e0bb66a8cd40847e1fa1b092f28d822dad59ce9cf3c5bc8a4",
         "lamu-openwarrant/src/budget.rs": "e6386ffa09b2f6678f6c1fdd9ffa791a337d96aca817470b71c56bc48c962189",
         "lamu-openwarrant/src/conditions.rs": "f8e441e1620e679f1806254c50675107e0dac9b029ba4181ff10ee6038b522a9",
-        "lamu-openwarrant/src/lib.rs": "73ee55d726cc4831dd8c3feb5aaeffbf785c15836fcfe4e0c7082ee06243b785",
+        "lamu-openwarrant/src/lib.rs": "cdb77133e9fec9187d2406f1a31df6eed1c6284c181e45bef0a660e97d62c5e8",
         "lamu-openwarrant/src/package.rs": "43a2deba42da9b9de0d49b9d1f813562aa202b3669fdc16757bff15e0c256709",
         "lamu-openwarrant/src/projections.rs": "55288951c4098ae2f79a7f1383f412fead1f9471f5f2f12f5977b9b99f64bb03",
         "lamu-openwarrant/src/selection.rs": "12cb41a1e168ff8a8e873e75f82cbaa919a8f91f1eab1cbced8fd808f49a04ee",
@@ -222,8 +236,8 @@
         "lamu-openwarrant/tests/projections.rs": "4e5dfe1e46e0509d6de0528f45f74f87b251e8c4f86c7f98d7d84ee6e64d3fd1",
         "lamu-openwarrant/tests/selection.rs": "6464b6feb9f604cd30de515fd6c0eb08c444e4f3b1aa6e62ac8f29d9c70dc81b",
         "lamu-openwarrant/tests/source.rs": "8cb7bc8fe612ab2dbbe5850f76558d491101a791dd46d6ac5422ed23bd1fd142",
-        "Cargo.lock": "8c55986bc71fd73d56fec5640cd8a4b5fb946bc61c07a134e6cf5f7e73c11d01",
-        "Cargo.toml": "8f9a06f230e95c09062338208d4b716c18a840c4055854138212fd50e05fe6a0"
+        "Cargo.lock": "c0bd84837b3573495d37dc2096b0fa4bf15e1b50160bce1d8ac893660052612a",
+        "Cargo.toml": "2b55b14ec51a0fbe318f3410abd345a1c131d59d3bbd23efd0e5d73908406b08"
       },
       "profile_process": {
         "argv": [
@@ -232,6 +246,8 @@
           "run",
           "--locked",
           "--quiet",
+          "--manifest-path",
+          "/mnt/4tb/tmp/lamu-ow86-provider/lamu-rs/lamu-openwarrant/Cargo.toml",
           "-p",
           "lamu-openwarrant",
           "--example",
@@ -247,6 +263,8 @@
           "+1.97.1",
           "test",
           "--locked",
+          "--manifest-path",
+          "/mnt/4tb/tmp/lamu-ow86-provider/lamu-rs/lamu-openwarrant/Cargo.toml",
           "-p",
           "lamu-openwarrant",
           "--test",
@@ -255,8 +273,8 @@
           "--test-threads=1"
         ],
         "exit_code": 0,
-        "stdout": "\nrunning 6 tests\ntest competing_required_revisions_refuse_and_master_order_is_stable ... ok\ntest cycles_terminate_and_missing_members_and_conflicts_block ... ok\ntest governing_unknown_pointer_includes_exact_transitive_background_and_all_reasons ... ok\ntest limits_are_positive_before_traversal_even_without_conditions ... ok\ntest optional_absence_is_catalogued_but_required_missing_and_included_dependencies_block ... ok\ntest raw_document_target_retains_whole_blob_and_missing_optional_is_not_included ... ok\n\ntest result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n",
-        "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s\n     Running tests/selection.rs (target/debug/deps/selection-e183c617e0b939d6)\n"
+        "stdout": "\nrunning 6 tests\ntest competing_required_revisions_refuse_and_master_order_is_stable ... ok\ntest cycles_terminate_and_missing_members_and_conflicts_block ... ok\ntest governing_unknown_pointer_includes_exact_transitive_background_and_all_reasons ... ok\ntest limits_are_positive_before_traversal_even_without_conditions ... ok\ntest optional_absence_is_catalogued_but_required_missing_and_included_dependencies_block ... ok\ntest raw_document_target_retains_whole_blob_and_missing_optional_is_not_included ... ok\n\ntest result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n",
+        "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s\n     Running tests/selection.rs (lamu-openwarrant/target/debug/deps/selection-3c2e162a9089f7e9)\n"
       },
       "scope": "T21-T26 selection closure plus required UNKNOWN, access and bounded traversal",
       "limitations": [
@@ -275,12 +293,14 @@
         "sdk_revision": "4b626f23b3076ff7e764f08eeb15e8bdfa6af5cd",
         "contract_sha256": "704548d927b9a641e4995ba767f7beedac9b08d590a5320fbff3e16805e42ecb"
       },
-      "provider_git_head": "35682e346bef2f90f56e197ab6565bf93e419bb6",
+      "provider_git_head": "fe9181d0968c808e561bf6183b87bd193a23eb92",
       "provider_worktree_status": "",
       "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
       "inputs_sha256": {
-        "lamu-openwarrant/CONTRACT.md": "29600d8076fb50901a92f15ff46500a9201a221d218b8e7c94963625207039b2",
-        "lamu-openwarrant/Cargo.toml": "acdf32f696526d0cc92a96088959744464a50f3cc746bd05811b9d4a1578f8d5",
+        "lamu-openwarrant/.gitignore": "306fd52e74fca6746e12acc750f232de15e71da917756a1270d74c91f5eb7368",
+        "lamu-openwarrant/CONTRACT.md": "7fe32d9ddf4b6d9c682a52c32d11ea0ca4fb23c4ac493f4230d3a8977e55ff6b",
+        "lamu-openwarrant/Cargo.lock": "704814c31572e1d116e6bca69d0ea9f7a9e97093451d6aca76850ae4e9e9c8eb",
+        "lamu-openwarrant/Cargo.toml": "57d0e11d347e8627f31fcd3e295937e4eac1f195c6260660f221c20fd39f62c0",
         "lamu-openwarrant/examples/budget_profile.rs": "9a98f33147d314894f70842f06712256cb587b1b19b1a36b8befd3cedda818e6",
         "lamu-openwarrant/examples/compile_package.rs": "35b227a3917cd8a0dee08c2f84dfd09fd71eeaea8e8672ca0473a483e11f19f5",
         "lamu-openwarrant/examples/conditions_profile.rs": "70049a72568bdca8ec660f5e44aab476fccb27083d2f6c62bda643ddc4fc4c0e",
@@ -291,7 +311,7 @@
         "lamu-openwarrant/src/adapter.rs": "d57e5ec70413c65e0bb66a8cd40847e1fa1b092f28d822dad59ce9cf3c5bc8a4",
         "lamu-openwarrant/src/budget.rs": "e6386ffa09b2f6678f6c1fdd9ffa791a337d96aca817470b71c56bc48c962189",
         "lamu-openwarrant/src/conditions.rs": "f8e441e1620e679f1806254c50675107e0dac9b029ba4181ff10ee6038b522a9",
-        "lamu-openwarrant/src/lib.rs": "73ee55d726cc4831dd8c3feb5aaeffbf785c15836fcfe4e0c7082ee06243b785",
+        "lamu-openwarrant/src/lib.rs": "cdb77133e9fec9187d2406f1a31df6eed1c6284c181e45bef0a660e97d62c5e8",
         "lamu-openwarrant/src/package.rs": "43a2deba42da9b9de0d49b9d1f813562aa202b3669fdc16757bff15e0c256709",
         "lamu-openwarrant/src/projections.rs": "55288951c4098ae2f79a7f1383f412fead1f9471f5f2f12f5977b9b99f64bb03",
         "lamu-openwarrant/src/selection.rs": "12cb41a1e168ff8a8e873e75f82cbaa919a8f91f1eab1cbced8fd808f49a04ee",
@@ -308,8 +328,8 @@
         "lamu-openwarrant/tests/projections.rs": "4e5dfe1e46e0509d6de0528f45f74f87b251e8c4f86c7f98d7d84ee6e64d3fd1",
         "lamu-openwarrant/tests/selection.rs": "6464b6feb9f604cd30de515fd6c0eb08c444e4f3b1aa6e62ac8f29d9c70dc81b",
         "lamu-openwarrant/tests/source.rs": "8cb7bc8fe612ab2dbbe5850f76558d491101a791dd46d6ac5422ed23bd1fd142",
-        "Cargo.lock": "8c55986bc71fd73d56fec5640cd8a4b5fb946bc61c07a134e6cf5f7e73c11d01",
-        "Cargo.toml": "8f9a06f230e95c09062338208d4b716c18a840c4055854138212fd50e05fe6a0"
+        "Cargo.lock": "c0bd84837b3573495d37dc2096b0fa4bf15e1b50160bce1d8ac893660052612a",
+        "Cargo.toml": "2b55b14ec51a0fbe318f3410abd345a1c131d59d3bbd23efd0e5d73908406b08"
       },
       "profile_process": {
         "argv": [
@@ -318,6 +338,8 @@
           "run",
           "--locked",
           "--quiet",
+          "--manifest-path",
+          "/mnt/4tb/tmp/lamu-ow86-provider/lamu-rs/lamu-openwarrant/Cargo.toml",
           "-p",
           "lamu-openwarrant",
           "--example",
@@ -333,6 +355,8 @@
           "+1.97.1",
           "test",
           "--locked",
+          "--manifest-path",
+          "/mnt/4tb/tmp/lamu-ow86-provider/lamu-rs/lamu-openwarrant/Cargo.toml",
           "-p",
           "lamu-openwarrant",
           "--test",
@@ -341,8 +365,8 @@
           "--test-threads=1"
         ],
         "exit_code": 0,
-        "stdout": "\nrunning 3 tests\ntest four_roles_preserve_exact_subject_and_master_is_not_execution_readiness ... ok\ntest refusal_boundaries_preserve_previous_view_and_claims_never_grant_readiness ... ok\ntest summaries_preserve_parent_labels_and_cannot_replace_binding_rules ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n",
-        "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s\n     Running tests/projections.rs (target/debug/deps/projections-8092e5c6fd1b44df)\n"
+        "stdout": "\nrunning 3 tests\ntest four_roles_preserve_exact_subject_and_master_is_not_execution_readiness ... ok\ntest refusal_boundaries_preserve_previous_view_and_claims_never_grant_readiness ... ok\ntest summaries_preserve_parent_labels_and_cannot_replace_binding_rules ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n",
+        "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s\n     Running tests/projections.rs (lamu-openwarrant/target/debug/deps/projections-11eedcbd8ddd5c86)\n"
       },
       "scope": "T27-T31 master/task projections, roles, exact text and summary provenance",
       "limitations": [
@@ -362,12 +386,14 @@
         "sdk_revision": "4b626f23b3076ff7e764f08eeb15e8bdfa6af5cd",
         "contract_sha256": "fce4c98209dd97faa0e7d2598f972d626aed010be1ca2e1ab83b14afce14cdf5"
       },
-      "provider_git_head": "35682e346bef2f90f56e197ab6565bf93e419bb6",
+      "provider_git_head": "fe9181d0968c808e561bf6183b87bd193a23eb92",
       "provider_worktree_status": "",
       "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
       "inputs_sha256": {
-        "lamu-openwarrant/CONTRACT.md": "29600d8076fb50901a92f15ff46500a9201a221d218b8e7c94963625207039b2",
-        "lamu-openwarrant/Cargo.toml": "acdf32f696526d0cc92a96088959744464a50f3cc746bd05811b9d4a1578f8d5",
+        "lamu-openwarrant/.gitignore": "306fd52e74fca6746e12acc750f232de15e71da917756a1270d74c91f5eb7368",
+        "lamu-openwarrant/CONTRACT.md": "7fe32d9ddf4b6d9c682a52c32d11ea0ca4fb23c4ac493f4230d3a8977e55ff6b",
+        "lamu-openwarrant/Cargo.lock": "704814c31572e1d116e6bca69d0ea9f7a9e97093451d6aca76850ae4e9e9c8eb",
+        "lamu-openwarrant/Cargo.toml": "57d0e11d347e8627f31fcd3e295937e4eac1f195c6260660f221c20fd39f62c0",
         "lamu-openwarrant/examples/budget_profile.rs": "9a98f33147d314894f70842f06712256cb587b1b19b1a36b8befd3cedda818e6",
         "lamu-openwarrant/examples/compile_package.rs": "35b227a3917cd8a0dee08c2f84dfd09fd71eeaea8e8672ca0473a483e11f19f5",
         "lamu-openwarrant/examples/conditions_profile.rs": "70049a72568bdca8ec660f5e44aab476fccb27083d2f6c62bda643ddc4fc4c0e",
@@ -378,7 +404,7 @@
         "lamu-openwarrant/src/adapter.rs": "d57e5ec70413c65e0bb66a8cd40847e1fa1b092f28d822dad59ce9cf3c5bc8a4",
         "lamu-openwarrant/src/budget.rs": "e6386ffa09b2f6678f6c1fdd9ffa791a337d96aca817470b71c56bc48c962189",
         "lamu-openwarrant/src/conditions.rs": "f8e441e1620e679f1806254c50675107e0dac9b029ba4181ff10ee6038b522a9",
-        "lamu-openwarrant/src/lib.rs": "73ee55d726cc4831dd8c3feb5aaeffbf785c15836fcfe4e0c7082ee06243b785",
+        "lamu-openwarrant/src/lib.rs": "cdb77133e9fec9187d2406f1a31df6eed1c6284c181e45bef0a660e97d62c5e8",
         "lamu-openwarrant/src/package.rs": "43a2deba42da9b9de0d49b9d1f813562aa202b3669fdc16757bff15e0c256709",
         "lamu-openwarrant/src/projections.rs": "55288951c4098ae2f79a7f1383f412fead1f9471f5f2f12f5977b9b99f64bb03",
         "lamu-openwarrant/src/selection.rs": "12cb41a1e168ff8a8e873e75f82cbaa919a8f91f1eab1cbced8fd808f49a04ee",
@@ -395,8 +421,8 @@
         "lamu-openwarrant/tests/projections.rs": "4e5dfe1e46e0509d6de0528f45f74f87b251e8c4f86c7f98d7d84ee6e64d3fd1",
         "lamu-openwarrant/tests/selection.rs": "6464b6feb9f604cd30de515fd6c0eb08c444e4f3b1aa6e62ac8f29d9c70dc81b",
         "lamu-openwarrant/tests/source.rs": "8cb7bc8fe612ab2dbbe5850f76558d491101a791dd46d6ac5422ed23bd1fd142",
-        "Cargo.lock": "8c55986bc71fd73d56fec5640cd8a4b5fb946bc61c07a134e6cf5f7e73c11d01",
-        "Cargo.toml": "8f9a06f230e95c09062338208d4b716c18a840c4055854138212fd50e05fe6a0"
+        "Cargo.lock": "c0bd84837b3573495d37dc2096b0fa4bf15e1b50160bce1d8ac893660052612a",
+        "Cargo.toml": "2b55b14ec51a0fbe318f3410abd345a1c131d59d3bbd23efd0e5d73908406b08"
       },
       "profile_process": {
         "argv": [
@@ -405,6 +431,8 @@
           "run",
           "--locked",
           "--quiet",
+          "--manifest-path",
+          "/mnt/4tb/tmp/lamu-ow86-provider/lamu-rs/lamu-openwarrant/Cargo.toml",
           "-p",
           "lamu-openwarrant",
           "--example",
@@ -420,6 +448,8 @@
           "+1.97.1",
           "test",
           "--locked",
+          "--manifest-path",
+          "/mnt/4tb/tmp/lamu-ow86-provider/lamu-rs/lamu-openwarrant/Cargo.toml",
           "-p",
           "lamu-openwarrant",
           "--test",
@@ -432,8 +462,8 @@
           "--test-threads=1"
         ],
         "exit_code": 0,
-        "stdout": "\nrunning 1 test\ntest offline_package_rebuilds_exact_views_and_refuses_tampering ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 1 test\ntest oversized_basis_refuses_before_copying ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n\nrunning 1 test\ntest optional_opaque_absent_offline ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
-        "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.08s\n     Running tests/package.rs (target/debug/deps/package-8bed413dfa635f17)\n     Running tests/package_allocations.rs (target/debug/deps/package_allocations-b08cd65bc52d32c9)\n     Running tests/package_optional.rs (target/debug/deps/package_optional-70f4192db11e9db6)\n"
+        "stdout": "\nrunning 1 test\ntest offline_package_rebuilds_exact_views_and_refuses_tampering ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s\n\n\nrunning 1 test\ntest oversized_basis_refuses_before_copying ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n\nrunning 1 test\ntest optional_opaque_absent_offline ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n",
+        "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s\n     Running tests/package.rs (lamu-openwarrant/target/debug/deps/package-1b618efac50b206b)\n     Running tests/package_allocations.rs (lamu-openwarrant/target/debug/deps/package_allocations-7488dfaf9a4893df)\n     Running tests/package_optional.rs (lamu-openwarrant/target/debug/deps/package_optional-f04494fabee74674)\n"
       },
       "scope": "T32-T37 portable package construction, semantic reconstruction and filesystem refusals",
       "limitations": [
@@ -452,12 +482,14 @@
         "sdk_revision": "4b626f23b3076ff7e764f08eeb15e8bdfa6af5cd",
         "contract_sha256": "6ad6c51ed5fd6c75c5bf1101b48de1d25f2185a22ebf7fa8e15da0c4da5260b0"
       },
-      "provider_git_head": "35682e346bef2f90f56e197ab6565bf93e419bb6",
+      "provider_git_head": "fe9181d0968c808e561bf6183b87bd193a23eb92",
       "provider_worktree_status": "",
       "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
       "inputs_sha256": {
-        "lamu-openwarrant/CONTRACT.md": "29600d8076fb50901a92f15ff46500a9201a221d218b8e7c94963625207039b2",
-        "lamu-openwarrant/Cargo.toml": "acdf32f696526d0cc92a96088959744464a50f3cc746bd05811b9d4a1578f8d5",
+        "lamu-openwarrant/.gitignore": "306fd52e74fca6746e12acc750f232de15e71da917756a1270d74c91f5eb7368",
+        "lamu-openwarrant/CONTRACT.md": "7fe32d9ddf4b6d9c682a52c32d11ea0ca4fb23c4ac493f4230d3a8977e55ff6b",
+        "lamu-openwarrant/Cargo.lock": "704814c31572e1d116e6bca69d0ea9f7a9e97093451d6aca76850ae4e9e9c8eb",
+        "lamu-openwarrant/Cargo.toml": "57d0e11d347e8627f31fcd3e295937e4eac1f195c6260660f221c20fd39f62c0",
         "lamu-openwarrant/examples/budget_profile.rs": "9a98f33147d314894f70842f06712256cb587b1b19b1a36b8befd3cedda818e6",
         "lamu-openwarrant/examples/compile_package.rs": "35b227a3917cd8a0dee08c2f84dfd09fd71eeaea8e8672ca0473a483e11f19f5",
         "lamu-openwarrant/examples/conditions_profile.rs": "70049a72568bdca8ec660f5e44aab476fccb27083d2f6c62bda643ddc4fc4c0e",
@@ -468,7 +500,7 @@
         "lamu-openwarrant/src/adapter.rs": "d57e5ec70413c65e0bb66a8cd40847e1fa1b092f28d822dad59ce9cf3c5bc8a4",
         "lamu-openwarrant/src/budget.rs": "e6386ffa09b2f6678f6c1fdd9ffa791a337d96aca817470b71c56bc48c962189",
         "lamu-openwarrant/src/conditions.rs": "f8e441e1620e679f1806254c50675107e0dac9b029ba4181ff10ee6038b522a9",
-        "lamu-openwarrant/src/lib.rs": "73ee55d726cc4831dd8c3feb5aaeffbf785c15836fcfe4e0c7082ee06243b785",
+        "lamu-openwarrant/src/lib.rs": "cdb77133e9fec9187d2406f1a31df6eed1c6284c181e45bef0a660e97d62c5e8",
         "lamu-openwarrant/src/package.rs": "43a2deba42da9b9de0d49b9d1f813562aa202b3669fdc16757bff15e0c256709",
         "lamu-openwarrant/src/projections.rs": "55288951c4098ae2f79a7f1383f412fead1f9471f5f2f12f5977b9b99f64bb03",
         "lamu-openwarrant/src/selection.rs": "12cb41a1e168ff8a8e873e75f82cbaa919a8f91f1eab1cbced8fd808f49a04ee",
@@ -485,8 +517,8 @@
         "lamu-openwarrant/tests/projections.rs": "4e5dfe1e46e0509d6de0528f45f74f87b251e8c4f86c7f98d7d84ee6e64d3fd1",
         "lamu-openwarrant/tests/selection.rs": "6464b6feb9f604cd30de515fd6c0eb08c444e4f3b1aa6e62ac8f29d9c70dc81b",
         "lamu-openwarrant/tests/source.rs": "8cb7bc8fe612ab2dbbe5850f76558d491101a791dd46d6ac5422ed23bd1fd142",
-        "Cargo.lock": "8c55986bc71fd73d56fec5640cd8a4b5fb946bc61c07a134e6cf5f7e73c11d01",
-        "Cargo.toml": "8f9a06f230e95c09062338208d4b716c18a840c4055854138212fd50e05fe6a0"
+        "Cargo.lock": "c0bd84837b3573495d37dc2096b0fa4bf15e1b50160bce1d8ac893660052612a",
+        "Cargo.toml": "2b55b14ec51a0fbe318f3410abd345a1c131d59d3bbd23efd0e5d73908406b08"
       },
       "profile_process": {
         "argv": [
@@ -495,6 +527,8 @@
           "run",
           "--locked",
           "--quiet",
+          "--manifest-path",
+          "/mnt/4tb/tmp/lamu-ow86-provider/lamu-rs/lamu-openwarrant/Cargo.toml",
           "-p",
           "lamu-openwarrant",
           "--example",
@@ -510,6 +544,8 @@
           "+1.97.1",
           "test",
           "--locked",
+          "--manifest-path",
+          "/mnt/4tb/tmp/lamu-ow86-provider/lamu-rs/lamu-openwarrant/Cargo.toml",
           "-p",
           "lamu-openwarrant",
           "--test",
@@ -518,8 +554,8 @@
           "--test-threads=1"
         ],
         "exit_code": 0,
-        "stdout": "\nrunning 3 tests\ntest budget_counts_final_framing_and_inclusive_limit ... ok\ntest cache_tracks_full_basis_and_retains_previous_results ... ok\ntest newly_applicable_rule_invalidates_cached_view ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n",
-        "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s\n     Running tests/budget.rs (target/debug/deps/budget-694bead890e5239d)\n"
+        "stdout": "\nrunning 3 tests\ntest budget_counts_final_framing_and_inclusive_limit ... ok\ntest cache_tracks_full_basis_and_retains_previous_results ... ok\ntest newly_applicable_rule_invalidates_cached_view ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s\n\n",
+        "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s\n     Running tests/budget.rs (lamu-openwarrant/target/debug/deps/budget-33dc40fa24e9f78f)\n"
       },
       "scope": "T38-T41 final entry budget, immutable cached views and complete basis invalidation",
       "limitations": [
@@ -536,6 +572,8 @@
       "+1.97.1",
       "test",
       "--locked",
+      "--manifest-path",
+      "/mnt/4tb/tmp/lamu-ow86-provider/lamu-rs/lamu-openwarrant/Cargo.toml",
       "-p",
       "lamu-openwarrant",
       "--test",
@@ -544,8 +582,8 @@
       "adapter_allocations"
     ],
     "exit_code": 0,
-    "stdout": "\nrunning 1 test\ntest real_provider_compiles_all_roles_and_keeps_semantics_separate ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 1 test\ntest provider_refuses_tiny_quota_before_source_clone ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
-    "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s\n     Running tests/adapter.rs (target/debug/deps/adapter-7c1e151eaa11495e)\n     Running tests/adapter_allocations.rs (target/debug/deps/adapter_allocations-34306ca2609eade0)\n"
+    "stdout": "\nrunning 1 test\ntest real_provider_compiles_all_roles_and_keeps_semantics_separate ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s\n\n\nrunning 1 test\ntest provider_refuses_tiny_quota_before_source_clone ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n",
+    "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s\n     Running tests/adapter.rs (lamu-openwarrant/target/debug/deps/adapter-92e75309464b3e77)\n     Running tests/adapter_allocations.rs (lamu-openwarrant/target/debug/deps/adapter_allocations-829d00de3858c6fc)\n"
   },
   "producer_argv": [
     "cargo",
@@ -553,6 +591,8 @@
     "run",
     "--locked",
     "--quiet",
+    "--manifest-path",
+    "/mnt/4tb/tmp/lamu-ow86-provider/lamu-rs/lamu-openwarrant/Cargo.toml",
     "-p",
     "lamu-openwarrant",
     "--example",
@@ -560,9 +600,9 @@
     "--",
     "/mnt/4tb/tmp/ow-war-0086-sdk/conformance/sdk/source",
     "task.md",
-    "lamu-openwarrant@35682e346bef2f90f56e197ab6565bf93e419bb6"
+    "lamu-openwarrant@fe9181d0968c808e561bf6183b87bd193a23eb92"
   ],
-  "package_map_sha256": "2d073af9c78fa98b269e2ab018aa4729237b19597ef35467d96c872f1e2c6a0b",
+  "package_map_sha256": "551db870d6217b91801cbc941a43d83736c4f87287ecedefd7c9d6d29538199d",
   "repeat_identical": true,
   "second_consumer": {
     "argv": [
@@ -577,7 +617,7 @@
       "audit_context_package"
     ],
     "exit_code": 0,
-    "stdout": "{\"schema\":\"oh.war/package-audit-example/1\",\"local_integrity\":true,\"local_semantic_coverage\":false,\"root_digest\":\"sha256:7286ff416eea7dc89554d96e169cd81dd3d93978df5b1a1d3ce86d47f20e07e0\",\"basis_digest\":\"sha256:cf847aba431169663c190d354f854a26437f98bc4a35971700b34c19dbbf6dd0\",\"compiler\":\"lamu-openwarrant@35682e346bef2f90f56e197ab6565bf93e419bb6\",\"readiness\":\"blocked\"}\n",
+    "stdout": "{\"schema\":\"oh.war/package-audit-example/1\",\"local_integrity\":true,\"local_semantic_coverage\":false,\"root_digest\":\"sha256:6577e97c5cbd4295908e5cb2ade20090c92634825e848f7eb7eff17fe3643093\",\"basis_digest\":\"sha256:f9757257d3a2e24bf008de2e8e88f28b84477d641c6e68edcb6c3493212bce12\",\"compiler\":\"lamu-openwarrant@fe9181d0968c808e561bf6183b87bd193a23eb92\",\"readiness\":\"blocked\"}\n",
     "stderr": ""
   },
   "tamper_refusal": {

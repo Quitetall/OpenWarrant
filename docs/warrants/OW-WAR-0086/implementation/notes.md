@@ -28,3 +28,17 @@ signature or disposition was changed to pretend those prerequisites were met.
 
 Next implementation: 0083 records and readiness, then 0084 legacy/successor handling,
 0087 CLI parity, 0085 Phase 1 exit, and remaining 0086 record/legacy exchange checks.
+
+## LAMU PR review and Windows isolation repair
+
+PR2 head 1f3b422e introduced a Windows checkout regression: Cargo resolved the
+optional Git SDK while checking ordinary LAMU, and preserved archive filenames
+contain colons. The provider now has a separate Cargo workspace and lockfile,
+excluded from main LAMU resolution. Both CI layouts run its explicit manifest and
+separate dependency audit. Original archive bytes and paths remain unchanged.
+
+Locked offline Rust 1.89 dependency resolution for the Windows target succeeds
+with zero OpenWarrant packages. The isolated provider passes 28 tests, Clippy and
+cargo-deny. Independent review passed. Native Windows compilation and fresh remote
+CI are not established by this Linux metadata observation. The prior main Linux
+CI failure was runner communication loss; no code test failure was observed.

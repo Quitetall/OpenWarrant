@@ -1,6 +1,6 @@
 # OpenWarrant and LAMU source-provider contract
 
-Revision: 4, implementation draft. Canonical shared contract: this file in the
+Revision: 5, implementation draft. Canonical shared contract: this file in the
 OpenWarrant repository. Participant receipts bind its raw SHA-256 and their exact
 repository revisions. LAMU keeps a pointer and digest, not a separately edited copy.
 No official shared Warrant identifier, human signature or assurance mark is allocated.
@@ -121,3 +121,5 @@ evidence for their exact provider/SDK revisions.
 Revision 3 consumes SDK f5c7ac0ee1d71e43437b3def2ed75693d5804553. Source and condition APIs remain compatible; SDK packet integrity types support the separate projection profile. Earlier receipts retain their original revisions.
 
 Revision 4 consumes SDK 4b626f23b3076ff7e764f08eeb15e8bdfa6af5cd. Existing source/condition/packet types remain compatible; the explicit compiler adapter is added separately. Historical receipts keep their original pins.
+
+Revision 5 isolates `lamu-openwarrant` as its own Cargo workspace and lockfile, excluded from the main LAMU workspace. Ordinary LAMU builds therefore do not resolve or fetch the optional SDK Git source. Invoke provider Cargo commands with `--manifest-path lamu-openwarrant/Cargo.toml` from the Rust root. This preserves legacy OpenWarrant archive paths while keeping unrelated Windows builds independent.

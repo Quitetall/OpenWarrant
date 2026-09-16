@@ -7,6 +7,7 @@ This is a test driver, not an authority or provider attestation.
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -18,6 +19,9 @@ def digest(path):
 
 
 def run(argv, root):
+    if argv[0] == "cargo" and "lamu-openwarrant" in argv:
+        index = argv.index("-p")
+        argv = argv[:index] + ["--manifest-path", str(root / "lamu-openwarrant/Cargo.toml")] + argv[index:]
     completed = subprocess.run(argv, cwd=root, text=True, capture_output=True, timeout=600)
     return {"argv": argv, "exit_code": completed.returncode,
             "stdout": completed.stdout, "stderr": completed.stderr}
@@ -63,7 +67,11 @@ def main():
     ]
     passed = tests["exit_code"] == 0 and all(
         f"test {name} ... ok" in tests["stdout"] for name in expected_tests)
-    inputs = sorted(p for p in crate.rglob("*") if p.is_file()) + [root / "Cargo.lock", root / "Cargo.toml"]
+    inputs = []
+    for directory, dirs, names in os.walk(crate):
+        dirs[:] = [d for d in dirs if d not in {"target", ".git"}]
+        inputs.extend(Path(directory) / name for name in names)
+    inputs = sorted(inputs) + [root / "Cargo.lock", root / "Cargo.toml"]
     receipt = {
         "format": "openwarrant-selection-integration-observation/1", "passed": passed,
         "profile": profile, "provider_git_head": run(["git", "rev-parse", "HEAD"], root)["stdout"].strip(),

@@ -4,10 +4,11 @@
   "work_state": "blocked",
   "reported_by": "agent://codex",
   "revision": "4b626f23b3076ff7e764f08eeb15e8bdfa6af5cd",
-  "summary": "Typed SDK adapter, real LAMU provider and second independent SDK consumer implemented and reviewed. Full Phase 2 exit awaits Phase 1 records, legacy and CLI prerequisites.",
+  "summary": "Typed SDK adapter, real LAMU provider and second independent SDK consumer implemented and reviewed. Full Phase 2 exit awaits Phase 1 records, legacy and CLI prerequisites. Optional provider workspace isolated to repair LAMU Windows dependency checkout.",
   "notes": "docs/warrants/OW-WAR-0086/implementation/notes.md",
   "evidence": [
-    "docs/warrants/OW-WAR-0086/implementation/adapter-observation.json"
+    "docs/warrants/OW-WAR-0086/implementation/adapter-observation.json",
+    "docs/warrants/OW-WAR-0086/implementation/windows-isolation.json"
   ],
   "next_steps": [
     "Complete prerequisite record, legacy and CLI slices, then Phase 1/2 exits."

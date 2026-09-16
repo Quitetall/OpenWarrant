@@ -11,6 +11,9 @@ import tomllib
 
 
 def run(argv, cwd, data=None):
+    if argv[0] == "cargo" and "lamu-openwarrant" in argv:
+        index = argv.index("-p")
+        argv = argv[:index] + ["--manifest-path", str(cwd / "lamu-openwarrant/Cargo.toml")] + argv[index:]
     result = subprocess.run(argv, cwd=cwd, input=data, text=True,
                             capture_output=True, timeout=600)
     return {"argv": argv, "exit_code": result.returncode,
@@ -69,7 +72,7 @@ def main():
                "provider_worktree_status": run(["git", "status", "--short"], root)["stdout"],
                "shared_contract_sha256": hashlib.sha256((ow / "docs/integrations/sdk.md").read_bytes()).hexdigest(),
                "provider_cases": observations, "adapter_tests": tests,
-               "producer_argv": command, "package_map_sha256": hashlib.sha256(payload.encode()).hexdigest(),
+               "producer_argv": generated["argv"], "package_map_sha256": hashlib.sha256(payload.encode()).hexdigest(),
                "repeat_identical": repeated["stdout"] == payload,
                "second_consumer": accepted, "tamper_refusal": tampered,
                "duplicate_refusal": duplicate,
