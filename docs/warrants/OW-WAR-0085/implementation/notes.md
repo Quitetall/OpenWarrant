@@ -22,3 +22,10 @@ reviewer itself: missing identity fails closed. Every fixed artifact expectation
 is positively checked; one removed constraint per artifact supplies the bounded
 negative control. The repository-relative script location is intentional. Large
 receipt/generated data was explicitly omitted from this bounded source review.
+
+The corrected full repository gate passed all 14 steps and 308/308 planted controls
+on `038f32d`. The newer Linux acceptance receipt passed after the historical skill
+was restored. Native macOS Phase 1 evidence remains missing, so full phase exit
+stays blocked. LAMU reviewed the correction commit PASS WITH NITS: receipt names
+are explicit caller output paths, the referenced file exists, and Linux success
+does not justify marking the entire phase complete or Verified.
