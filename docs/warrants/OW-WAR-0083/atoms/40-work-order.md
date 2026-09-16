@@ -19,6 +19,18 @@ Paths are planned ownership boundaries; do not claim files already exist. Shared
 module exports and the driver may change only for the named slice; reconcile
 writers before integration. Provider-owned internals remain outside this repo.
 
+## Approved scheduling slice
+
+Owner approved cross-Warrant dependency readiness and optional advisory difficulty
+on 2026-09-15. Implement the pure supplied-facts scheduling seam described by the
+RC.3 SDK contract. Return dependency-ready scopes and exact unsatisfied edges;
+refuse cycles, duplicates, contradictory facts and over-limit graphs. Bind facts
+to exact contract, stage and result kind; optionally pin the expected output digest
+and always retain the actual selected result. Refuse ambiguous unpinned results. Test independent stages,
+stale/missing facts and estimate changes. No runtime dispatch, signature trust,
+new document wire encoding or full records/assurance completion is claimed by
+this slice. Remaining S04/T42–T48 obligations remain open.
+
 ## Frozen Surfaces
 
 Historical signed contracts, source bytes, digest domains, evidence and resolutions

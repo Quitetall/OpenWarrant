@@ -20,6 +20,7 @@ mod metadata;
 pub mod packet;
 mod references;
 mod scan;
+pub mod schedule;
 pub mod source;
 mod validate;
 pub use validate::{

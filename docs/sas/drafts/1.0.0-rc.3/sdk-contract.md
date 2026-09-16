@@ -48,6 +48,49 @@ Contracts without these gates retain the prompt-only path. Real input availabili
 and harness limits remain separate. No SDK evaluation launches or prevents a tool
 action by itself.
 
+## Warrant scheduling and advisory estimates
+
+Declared work dependencies SHALL be distinct from context pointers and current
+blockers. A dependency names an exact predecessor Warrant contract and optional
+milestone/stage, the required result, the affected successor action/stage and a
+human-readable reason. An expected result digest may be omitted before the output
+exists. Evaluation then requires one unambiguous supplied result and records its
+exact digest through the selected fact; competing versions require explicit
+selection. A supplied expected digest restricts matching to that exact result.
+Required results distinguish implementation completion,
+passing checks, human acceptance and a published contract. Completion does not
+imply acceptance. Only the named successor scope waits; independent preparation
+may continue. Qualification-only requirements do not become execution gates.
+
+A pure SDK scheduling evaluator SHALL inspect an explicitly supplied finite graph
+and caller-established result facts. Each fact binds the exact predecessor contract,
+stage, required result and result/artifact digest. Missing or stale facts remain
+unknown; failed facts remain unmet. Neither state satisfies the dependency. Inputs
+that conflict, duplicate identities or contain dependency cycles SHALL be refused.
+A report lists dependency-ready scopes and unsatisfied edges with reasons. Ready
+means only that supplied dependency requirements are met: permissions, resource
+limits, other action gates and current workflow blockers require separate checks.
+The report SHALL NOT schedule processes, authenticate facts or issue assurance.
+
+Workflow apps own acquisition and trust of facts, dispatch, agent availability,
+current blocker tracking and dashboard presentation. They should show ready work,
+predecessor/successor links and reasons for waiting. An acyclic dependency order
+alone is not a time estimate or a measured critical path. Historical signed
+contracts and context-reference semantics remain unchanged.
+
+Difficulty MAY be recorded as low, medium, high or unknown, with a nonempty reason,
+confidence (low, medium or high), estimator identity and estimate revision. This
+is an advisory estimate, separate from size, elapsed time, spend and risk. Agents
+may propose revised estimates with provenance; an estimate SHALL NOT grant
+permissions, satisfy prerequisites, require a particular model or block execution.
+Absence means no estimate, not low difficulty. Scheduling results do not change
+when only a difficulty estimate changes.
+
+The initial SDK slice uses typed Rust inputs, not a newly frozen wire schema.
+Document metadata encoding, ingestion, CLI parity and workflow presentation need
+explicit fixtures before being claimed supported. Existing F3 context dependency
+fields SHALL NOT be repurposed as scheduling edges.
+
 ## Agent-act envelope: proposed additional wire type
 
 Schema ID: `oh.war/agent-act/1.0.0-rc.3`. This is an additional envelope; existing
