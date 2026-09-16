@@ -3,7 +3,7 @@
 use camino::Utf8Path;
 use openwarrant_core::document::{self as d, legacy as l, packet as p, records as r, source as s};
 use serde::{Deserialize, Serialize};
-mod wire;
+pub(crate) mod wire;
 use openwarrant_core::document::{adapter as a, schedule as q};
 use r::workflow as w;
 use serde_json::{Value, json};

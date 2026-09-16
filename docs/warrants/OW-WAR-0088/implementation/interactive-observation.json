@@ -1,0 +1,85 @@
+{
+  "schema": "oh.war/interactive-observation/v1",
+  "passed": true,
+  "war": "/mnt/4tb/tmp/ow-war-0086-sdk/target/debug/war",
+  "binary_sha256": "8735b624dc9f34d8f35d778e6aa8dc8f44204086b73e05767a5dd64a759495df",
+  "transcript_sha256": "ef621bc6b3bcd6c8bf4268faf1257d8dcf8ffceed52c8e2cd43f5b0d44eb880f",
+  "observations": {
+    "author": {
+      "argv": [
+        "--json",
+        "document",
+        "draft",
+        "--draft-dir",
+        "draft",
+        "--output",
+        "result.md"
+      ],
+      "input_sha256": "ef621bc6b3bcd6c8bf4268faf1257d8dcf8ffceed52c8e2cd43f5b0d44eb880f",
+      "exit_code": 0,
+      "stdout": "{\n  \"schema\": \"oh.war/report/v1\",\n  \"command\": \"document.draft\",\n  \"diagnostics\": [\n    {\n      \"severity\": \"pass\",\n      \"rule\": \"document.draft\",\n      \"file\": null,\n      \"message\": \"Source saved; draft retained at draft; no qualification\"\n    }\n  ],\n  \"notes\": [],\n  \"counts\": {\n    \"pass\": 1,\n    \"warn\": 0,\n    \"unknown\": 0,\n    \"error\": 0,\n    \"worst\": \"pass\"\n  },\n  \"verdict\": \"well_formed\",\n  \"verdict_line\": \"WELL-FORMED (record only \u2014 Preflight is not implemented, and `war check` does not run gates)\",\n  \"exit_code\": 0,\n  \"result\": {\n    \"saved\": true,\n    \"draft_directory\": \"draft\",\n    \"output\": \"result.md\",\n    \"qualified\": false\n  }\n}\n",
+      "stderr": "Fields: title, id, kind, revision; meta KEY (JSON value).\nUnits: unit ID binding|background (Markdown; finish with a single dot), drop ID.\nActions: preview, save, cancel, help. Every accepted line checkpoints your draft. No approval or verification.\ndraft> title value:\ndraft> id value:\ndraft> Markdown for outcome; include heading. Single dot ends input.\ndraft> Markdown for scope; include heading. Single dot ends input.\ndraft> <!-- ow:unit outcome binding -->\n# Reset password\n\nSend a reset link.\n<!-- ow:unit scope binding -->\n## Scope\n\nDo not change signup.\n<!-- ow:unit context binding -->\n## Context\n\nRecord relevant sources and unknowns.\n<!-- ow:metadata -->\n```toml\n\"schema\" = \"oh.war/document/1.0.0-rc.3\"\n\"kind\" = \"warrant\"\n\"id\" = \"example:reset\"\n\"revision\" = 1\n\"title\" = \"Reset password\"\n\"state\" = \"draft\"\n```\n<!-- /ow:metadata -->\ndraft> "
+    },
+    "sdk-parity": {
+      "argv": [
+        "sdk",
+        "--request",
+        "-"
+      ],
+      "input_sha256": "270fb022846d522758533e0986f07fdc19eaf7f1c297ca7483193551144188db",
+      "exit_code": 0,
+      "stdout": "{\"schema\":\"oh.war/report/v1\",\"command\":\"sdk\",\"diagnostics\":[],\"notes\":[],\"counts\":{\"pass\":0,\"warn\":0,\"unknown\":0,\"error\":0,\"worst\":\"pass\"},\"verdict\":\"well_formed\",\"verdict_line\":\"SDK operation evaluated; see result for standing\",\"exit_code\":0,\"result\":{\"source\":\"<!-- ow:unit outcome binding -->\\n# Reset password\\n\\nSend a reset link.\\n<!-- ow:unit scope binding -->\\n## Scope\\n\\nDo not change signup.\\n<!-- ow:unit context binding -->\\n## Context\\n\\nRecord relevant sources and unknowns.\\n<!-- ow:metadata -->\\n```toml\\n\\\"schema\\\" = \\\"oh.war/document/1.0.0-rc.3\\\"\\n\\\"kind\\\" = \\\"warrant\\\"\\n\\\"id\\\" = \\\"example:reset\\\"\\n\\\"revision\\\" = 1\\n\\\"title\\\" = \\\"Reset password\\\"\\n\\\"state\\\" = \\\"draft\\\"\\n```\\n<!-- /ow:metadata -->\\n\",\"saved\":false,\"qualified\":false}}\n",
+      "stderr": ""
+    },
+    "cancel": {
+      "argv": [
+        "--json",
+        "document",
+        "draft",
+        "--draft-dir",
+        "draft",
+        "--output",
+        "result.md",
+        "--resume"
+      ],
+      "input_sha256": "c60fefd0c0a6751b4529aabd6043bd00fa7757116e5ee3743bf5da43f7715a3e",
+      "exit_code": 0,
+      "stdout": "{\n  \"schema\": \"oh.war/report/v1\",\n  \"command\": \"document.draft\",\n  \"diagnostics\": [\n    {\n      \"severity\": \"pass\",\n      \"rule\": \"document.draft\",\n      \"file\": null,\n      \"message\": \"Canceled; draft retained at draft; no qualification\"\n    }\n  ],\n  \"notes\": [],\n  \"counts\": {\n    \"pass\": 1,\n    \"warn\": 0,\n    \"unknown\": 0,\n    \"error\": 0,\n    \"worst\": \"pass\"\n  },\n  \"verdict\": \"well_formed\",\n  \"verdict_line\": \"WELL-FORMED (record only \u2014 Preflight is not implemented, and `war check` does not run gates)\",\n  \"exit_code\": 0,\n  \"result\": {\n    \"saved\": false,\n    \"draft_directory\": \"draft\",\n    \"output\": null,\n    \"qualified\": false\n  }\n}\n",
+      "stderr": "Fields: title, id, kind, revision; meta KEY (JSON value).\nUnits: unit ID binding|background (Markdown; finish with a single dot), drop ID.\nActions: preview, save, cancel, help. Every accepted line checkpoints your draft. No approval or verification.\ndraft> "
+    },
+    "existing-output": {
+      "argv": [
+        "--json",
+        "document",
+        "draft",
+        "--draft-dir",
+        "draft",
+        "--output",
+        "result.md",
+        "--resume"
+      ],
+      "input_sha256": "20caea9f0fa9f97e23768898bce0ce7a9c9cdc357c2f382dbd3935cbede561c3",
+      "exit_code": 2,
+      "stdout": "{\n  \"schema\": \"oh.war/report/v1\",\n  \"command\": \"document.draft\",\n  \"diagnostics\": [\n    {\n      \"severity\": \"error\",\n      \"rule\": \"document.draft\",\n      \"file\": \"draft\",\n      \"message\": \"Output unchanged; draft retained: File exists (os error 17)\"\n    }\n  ],\n  \"notes\": [],\n  \"counts\": {\n    \"pass\": 0,\n    \"warn\": 0,\n    \"unknown\": 0,\n    \"error\": 1,\n    \"worst\": \"error\"\n  },\n  \"verdict\": \"not_ready\",\n  \"verdict_line\": \"NOT READY\",\n  \"exit_code\": 2,\n  \"result\": {\n    \"saved\": false,\n    \"draft_directory\": \"draft\",\n    \"output\": null,\n    \"qualified\": false\n  }\n}\n",
+      "stderr": "Fields: title, id, kind, revision; meta KEY (JSON value).\nUnits: unit ID binding|background (Markdown; finish with a single dot), drop ID.\nActions: preview, save, cancel, help. Every accepted line checkpoints your draft. No approval or verification.\ndraft> "
+    },
+    "resume": {
+      "argv": [
+        "--json",
+        "document",
+        "draft",
+        "--draft-dir",
+        "draft",
+        "--output",
+        "resumed.md",
+        "--resume"
+      ],
+      "input_sha256": "20caea9f0fa9f97e23768898bce0ce7a9c9cdc357c2f382dbd3935cbede561c3",
+      "exit_code": 0,
+      "stdout": "{\n  \"schema\": \"oh.war/report/v1\",\n  \"command\": \"document.draft\",\n  \"diagnostics\": [\n    {\n      \"severity\": \"pass\",\n      \"rule\": \"document.draft\",\n      \"file\": null,\n      \"message\": \"Source saved; draft retained at draft; no qualification\"\n    }\n  ],\n  \"notes\": [],\n  \"counts\": {\n    \"pass\": 1,\n    \"warn\": 0,\n    \"unknown\": 0,\n    \"error\": 0,\n    \"worst\": \"pass\"\n  },\n  \"verdict\": \"well_formed\",\n  \"verdict_line\": \"WELL-FORMED (record only \u2014 Preflight is not implemented, and `war check` does not run gates)\",\n  \"exit_code\": 0,\n  \"result\": {\n    \"saved\": true,\n    \"draft_directory\": \"draft\",\n    \"output\": \"resumed.md\",\n    \"qualified\": false\n  }\n}\n",
+      "stderr": "Fields: title, id, kind, revision; meta KEY (JSON value).\nUnits: unit ID binding|background (Markdown; finish with a single dot), drop ID.\nActions: preview, save, cancel, help. Every accepted line checkpoints your draft. No approval or verification.\ndraft> "
+    }
+  },
+  "qualification_established": false,
+  "human_effort_measured": false
+}

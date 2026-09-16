@@ -42,6 +42,5 @@ requires its own observed refusal and exact evidence.
 
 ## Planned acceptance entry point
 
-Run the scoped consumer/release driver over the fixture paths in Work Order; record actual commands when that adapter exists.
-The driver is planned, not claimed shipped. Phase exit also runs `cargo xtask gate`
+Run `cargo test -p openwarrant-cli --test document_draft --test sdk_cli` and `python3 conformance/integration/interactive/run.py --war <built-war> --output <new-receipt.json>`. These public entry points are implemented. Phase exit also runs `cargo xtask gate`
 on the pinned toolchain; authoritative new gate registration remains separate.

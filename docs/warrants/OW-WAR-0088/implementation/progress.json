@@ -1,0 +1,18 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0088",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "4bd2994a76bf863a7b4e9b6b48cb791777016afd65cefa1fe600c0fc1deeb134",
+  "summary": "Interactive SDK authoring implemented; 10 draft tests, 11 SDK tests, fixed transcript and terminal probe pass. Independent reviews pass. Repository gate pending; unverified.",
+  "notes": "docs/warrants/OW-WAR-0088/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0088/implementation/observation.json",
+    "docs/warrants/OW-WAR-0088/implementation/tests.log",
+    "docs/warrants/OW-WAR-0088/implementation/interactive-observation.json"
+  ],
+  "next_steps": [
+    "Run repository gate.",
+    "Continue OW89 packaging rehearsal; phase qualification remains separate."
+  ]
+}
