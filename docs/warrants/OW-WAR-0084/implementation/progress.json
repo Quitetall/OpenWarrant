@@ -1,0 +1,17 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0084",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "6a963da5fb1cc64b0590a16b9e9557b1a477fb090ddef9cd2eac8b55e537717d",
+  "summary": "Preservation SDK and successor mappings implemented; focused tests and independent reviews pass. Full gate and commit review pending. Revision identifies source inventory.",
+  "notes": "docs/warrants/OW-WAR-0084/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0084/implementation/observation.json",
+    "docs/warrants/OW-WAR-0084/implementation/tests.log",
+    "docs/warrants/OW-WAR-0084/implementation/probe.log"
+  ],
+  "next_steps": [
+    "Run clean full repository gate and required LAMU commit review."
+  ]
+}

@@ -321,3 +321,45 @@ Evidence availability checks retain history and distinguish missing bytes from a
 retained exact duplicate. These helpers neither stop processes nor delete storage,
 verify cryptographic signatures, dispatch agents or perform tracker I/O. Those
 integration proofs belong to the workflow phase.
+
+## Explicit preservation and successor profile (OW-WAR-0084)
+
+The candidate `oh.war/preservation/1.0.0-rc.3` envelope retains an explicit regular-file
+inventory, not a rewritten historical Warrant. Its fields are `schema`,
+`source_dialect`, `adapter_version`, `entry`, `inventory` and `files`.
+`inventory` entries contain original relative `path`, raw SHA-256 `digest` and
+`bytes`; `files` maps those exact paths to byte arrays. Version
+`ow-sdk-preservation/1` admits explicit `legacy-warrant-v1`, `rc2` and `rc3`
+dialects. Markdown is never used to guess a dialect. Unsupported editions refuse.
+
+Import checks exact inventory coverage and bytes, path safety, declared dialect
+and parser syntax. It preserves original schema/identity, historical state fields,
+signature subjects and original JSON as bytes. The legacy Warrant adapter uses
+the existing manifest validation and restricted Markdown atom parser. Bound or
+missing atoms are reported as unsupported; they are not fetched or invented.
+Historical filename colons remain literal; rooted, drive, traversal and ambiguous
+separator paths refuse. Filesystem callers must reject links and special files
+before supplying regular-file bytes, and choose a fresh destination for export.
+
+The preservation report separates inventory integrity from historical closure,
+authenticity and qualification. It never establishes external historical closure,
+acceptance meaning, signature validity or a new assurance mark. A present legacy
+resolution is reported as `resolved-record-present`, with its original outcome,
+standing and contract fields retained separately. This label is not a new
+resolution. Unknown historical meaning remains in the retained bytes and is not
+silently translated into the new model.
+
+Export/import/export retains deterministic envelope output and identical original
+blobs. Wire, file-count, per-file and total limits apply before blob materialization;
+output is bounded while serialized. A refusal returns no valid partial bundle.
+These pure calls never write or replace original files.
+
+A successor mapping binds distinct source identities and exact predecessor and
+successor entry digests, plus each declared same-path replacement's old/new digest.
+Both input inventories remain recoverable. The mapping transfers no authority,
+signature, acceptance or qualification and creates no correction fanout. It is
+provenance for new work, not authorization to modify legacy pinned files.
+Only explicit relevant prerequisites gate their named successor action; the
+existing dependency evaluator does not make unrelated unresolved records blockers.
+Retained-evidence assurance gaps use the supplied-record availability helpers.
+These SDK checks do not replace migration workflow, storage retention or signing.

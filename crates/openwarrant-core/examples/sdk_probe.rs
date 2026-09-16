@@ -8,6 +8,8 @@ use openwarrant_core::document::{
 mod author;
 #[path = "sdk_probe/conditions.rs"]
 mod conditions;
+#[path = "sdk_probe/legacy.rs"]
+mod legacy;
 #[path = "sdk_probe/packet.rs"]
 mod packet;
 #[path = "sdk_probe/records.rs"]
@@ -74,11 +76,14 @@ fn run() -> Result<(), String> {
     }
     if !matches!(
         scope.as_deref(),
-        Some("75" | "76" | "77" | "78" | "81" | "83")
+        Some("75" | "76" | "77" | "78" | "81" | "83" | "84")
     ) {
-        return Err("This driver implements --scope 75, 76, 77, 78, 81 or 83".into());
+        return Err("This driver implements --scope 75, 76, 77, 78, 81, 83 or 84".into());
     }
     let root = std::path::PathBuf::from(fixtures.ok_or("--fixtures is required")?);
+    if scope.as_deref() == Some("84") {
+        return legacy::run(&root);
+    }
     if scope.as_deref() == Some("83") {
         return records::run(&root);
     }

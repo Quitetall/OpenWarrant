@@ -777,6 +777,7 @@ dependencies = [
  "sha2",
  "thiserror",
  "toml 0.8.23",
+ "toml 1.1.4+spec-1.1.0",
  "uuid",
 ]
 
