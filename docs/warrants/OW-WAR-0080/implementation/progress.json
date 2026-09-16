@@ -1,16 +1,18 @@
 {
   "schema": "oh.war/viewer-work-report/v1",
   "warrant": "OW-WAR-0080",
-  "work_state": "in-progress",
+  "work_state": "completed",
   "reported_by": "agent://codex",
   "revision": "f8dc55dc714c8b22946134a2bcd7b9471d1d428a",
-  "summary": "Master and four-role task projections implemented and independently reviewed; exact rules and source labels retained. Compatible participant merges remain pending; no assurance claimed.",
+  "summary": "Master and four-role task projections implemented and independently reviewed; exact rules and source labels retained. Implementation complete, unverified. Merged LAMU provider retested through OW86; full-phase qualification remains separate.",
   "notes": "docs/warrants/OW-WAR-0080/implementation/notes.md",
   "evidence": [
-    "docs/warrants/OW-WAR-0080/implementation/projection-observation.json"
+    "docs/warrants/OW-WAR-0080/implementation/projection-observation.json",
+    "docs/warrants/OW-WAR-0086/implementation/merged-exchange-observation.json",
+    "docs/warrants/OW-WAR-0086/implementation/lamu-merged-pr.json"
   ],
   "next_steps": [
-    "Merge compatible participant changes after required CI passes.",
-    "Keep implementation status separate from human assurance."
+    "Retain exact historical evidence and unverified status.",
+    "Complete full Phase 1/2 qualification through OW85/86."
   ]
 }

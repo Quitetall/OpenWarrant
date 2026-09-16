@@ -42,3 +42,29 @@ with zero OpenWarrant packages. The isolated provider passes 28 tests, Clippy an
 cargo-deny. Independent review passed. Native Windows compilation and fresh remote
 CI are not established by this Linux metadata observation. The prior main Linux
 CI failure was runner communication loss; no code test failure was observed.
+
+## Merged provider and current SDK exchange
+
+LAMU PR #8 is merged at `5f4a9054c5055a92dcb35c1804c93e62d4398c96`.
+All ten PR checks passed, including Linux and native macOS provider checks. The
+post-merge main run could not start because GitHub reported an account billing
+limit; that is not a successful post-merge run or an observed source failure.
+
+The real merged provider passes all six integration suites and adapter tests on
+this Linux host. A second SDK consumer independently checks package integrity;
+changed bytes and duplicate entries refuse. The new exchange binds records to the
+actual package result, preserves unknown readiness without trust, rejects a wrong
+result, preserves legacy paths/bytes and recompiles the restored task identically.
+The receipt hashes tested SDK/provider build inputs before and after execution.
+
+Phase 2 exit remains blocked by native macOS Phase 1 evidence and final full-phase
+review. This does not replace historical receipts or create a human acceptance.
+
+Independent review caught an initial use of the compile-basis digest as a contract
+digest. The final exchange constructs and retains a normalized candidate contract
+from actual task/source references and a bounded package-integrity expectation.
+The SDK computes the separate Contract-domain digest. A direct assurance probe
+checks that contract binding; substituting the Basis-domain digest produces an
+unmet contract finding. No human qualification is established by either probe.
+
+Independent specification review replayed all five contract/readiness CLI requests and passed. Standards recheck passed the source and recorded exchange. The final full Linux integration rerun passed after the contract-domain fix.

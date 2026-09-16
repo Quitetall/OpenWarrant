@@ -42,6 +42,5 @@ requires its own observed refusal and exact evidence.
 
 ## Planned acceptance entry point
 
-Run the scoped consumer/release driver over the fixture paths in Work Order; record actual commands when that adapter exists.
-The driver is planned, not claimed shipped. Phase exit also runs `cargo xtask gate`
+Run `python3 conformance/integration/adapter/run.py --provider-root <LAMU-Rust-workspace> --output <new-receipt.json>` for actual provider, second consumer, record/readiness and preservation exchange. The driver is implemented; full phase qualification remains separate. Phase exit also runs `cargo xtask gate`
 on the pinned toolchain; authoritative new gate registration remains separate.
