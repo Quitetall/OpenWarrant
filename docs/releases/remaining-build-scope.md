@@ -64,7 +64,7 @@ bounded contract and positive/refusal fixtures before dispatch.
    failure and retry without duplicate completion.
 4. **First-party adapter contracts.** Freeze the inventory before phase freeze.
    Current SAS names LAMU, Knowledge Fabric, Katana, BLUT, Liminal and Bonsai;
-   confirmation remains pending. Use one shared contract for each cross-project
+   the owner confirmed all six. Use one shared contract for each cross-project
    scenario, participant-owned work and explicit stage requirements. Freeze real
    versions and receipt subjects. Stub results cannot qualify an unavailable app.
 5. **Release review and real-user study.** Demonstrate one meaningful maintenance
@@ -88,8 +88,11 @@ ceremony is added to ordinary unverified execution.
 
 ## Decisions still needed before dependent work
 
-- Confirm or change the six-app Phase 3 inventory before freezing its scope.
-- Agree to study sample, consent process and measurable thresholds before sessions.
+- Owner confirmed LAMU, Knowledge Fabric, Katana, BLUT, Liminal and Bonsai.
+  Freeze actual versions and shared contract scope before integration qualification.
+- Owner approved preparing the three-developer study in OW-WAR-0095: ≤10 minutes
+  active setup and ≤60 seconds administration for each participant. Obtain actual
+  informed consent and freeze build/scenarios before running sessions.
 
 Native macOS capacity is an execution prerequisite, not an architecture decision.
 No native OpenWarrant macOS receipt has been established in this work. LAMU's macOS
