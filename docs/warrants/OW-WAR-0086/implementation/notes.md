@@ -68,3 +68,10 @@ checks that contract binding; substituting the Basis-domain digest produces an
 unmet contract finding. No human qualification is established by either probe.
 
 Independent specification review replayed all five contract/readiness CLI requests and passed. Standards recheck passed the source and recorded exchange. The final full Linux integration rerun passed after the contract-domain fix.
+
+LAMU review_commit for `31d4502` returned PASS WITH NITS on the local/free model.
+Its claimed readiness false-pass is incorrect: the probe refuses every state other
+than `unknown`. Python dictionary comparison intentionally ignores key order.
+`os.walk` does not follow directory symlinks by default; the review stated otherwise.
+The input capture now explicitly refuses non-build symlink directories too, so an
+unfollowed source directory cannot be silently omitted from the inventory.

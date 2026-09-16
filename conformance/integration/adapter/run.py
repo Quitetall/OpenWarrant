@@ -30,6 +30,8 @@ def inputs(ow, provider):
         for folder in folders:
             for directory,dirs,names in os.walk(root/folder):
                 dirs[:]=[d for d in dirs if d not in {'target','.git','__pycache__'}]
+                if any((Path(directory)/d).is_symlink() for d in dirs):
+                    raise ValueError('Symlink input directory requires explicit capture')
                 paths.extend(Path(directory)/name for name in names if not name.endswith('.pyc'))
         paths += [root/name for name in ['Cargo.toml','Cargo.lock','rust-toolchain.toml','rust-toolchain'] if (root/name).is_file()]
         if (root/'.cargo').is_dir(): paths += [p for p in (root/'.cargo').rglob('*') if p.is_file()]
