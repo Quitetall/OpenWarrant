@@ -1,0 +1,16 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0078",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "69a67baf73e86338e5183cc768534783de957708",
+  "summary": "Bounded condition validation and real LAMU evaluation implemented and reviewed. Required UNKNOWN closure proven through selection integration. Compatible participant merges remain pending; no assurance claimed.",
+  "notes": "docs/warrants/OW-WAR-0078/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0078/implementation/conditions-observation.json"
+  ],
+  "next_steps": [
+    "Merge compatible participant changes after required CI passes.",
+    "Keep implementation status separate from human assurance."
+  ]
+}

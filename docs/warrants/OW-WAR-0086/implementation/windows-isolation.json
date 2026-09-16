@@ -1,0 +1,27 @@
+{
+  "schema": "openwarrant-provider-workspace-isolation-observation/1",
+  "provider_revision": "fe9181d0968c808e561bf6183b87bd193a23eb92",
+  "command": [
+    "cargo",
+    "+1.89.0",
+    "metadata",
+    "--manifest-path",
+    "lamu-rs/Cargo.toml",
+    "--locked",
+    "--offline",
+    "--format-version",
+    "1",
+    "--filter-platform",
+    "x86_64-pc-windows-msvc"
+  ],
+  "exit_code": 0,
+  "resolved_package_count": 427,
+  "openwarrant_packages": [],
+  "passed": true,
+  "root_lock_sha256": "c0bd84837b3573495d37dc2096b0fa4bf15e1b50160bce1d8ac893660052612a",
+  "provider_lock_sha256": "704814c31572e1d116e6bca69d0ea9f7a9e97093451d6aca76850ae4e9e9c8eb",
+  "limitations": [
+    "Dependency resolution on Linux for Windows target; not native Windows compilation",
+    "Remote CI rerun pending"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0079",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "334267c6af2560f5ec99f7da33666ead141d8e2f",
+  "summary": "Required context closure implemented and reviewed, including UNKNOWN, cycles, conflicts and resource bounds. Compatible participant merges remain pending; no assurance claimed.",
+  "notes": "docs/warrants/OW-WAR-0079/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0079/implementation/selection-observation.json"
+  ],
+  "next_steps": [
+    "Merge compatible participant changes after required CI passes.",
+    "Keep implementation status separate from human assurance."
+  ]
+}

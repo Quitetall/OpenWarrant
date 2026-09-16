@@ -1,9 +1,9 @@
 # Shared condition evaluation contract
 
-Revision2 implementation draft, shared OW-WAR-0078. Canonical owner: OpenWarrant;
+Revision3 implementation draft, shared OW-WAR-0078. Canonical owner: OpenWarrant;
 LAMU retains a digest/pointer. No signature, readiness or assurance is granted.
 
-OpenWarrant SDKf5c7ac0ee1d71e43437b3def2ed75693d5804553 owns F4 syntax validation.
+OpenWarrant SDK4b626f23b3076ff7e764f08eeb15e8bdfa6af5cd owns F4 syntax validation.
 LAMU owns `lamu-openwarrant::conditions`: deterministic evaluation without I/O,
 implicit policy, models or filesystem glob semantics. Source capture remains the
 separate source profile. Adding evaluation does not create a second SDK compiler.

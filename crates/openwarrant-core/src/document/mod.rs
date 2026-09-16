@@ -8,6 +8,7 @@ use std::ops::Range;
 
 pub use toml10::Value as MetadataValue;
 
+pub mod adapter;
 mod author;
 pub use author::{
     AuthorOptions, AuthoredUnit, DocumentEdit, DocumentFields, LineEnding, author_document,
