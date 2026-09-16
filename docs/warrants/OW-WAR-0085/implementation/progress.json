@@ -4,15 +4,16 @@
   "work_state": "blocked",
   "reported_by": "agent://codex",
   "revision": "7c869d4b301663144df20d589ec06da29465a16366b7378ac5c7e509eb228cb5",
-  "summary": "Linux acceptance passes; source/build receipts and fixed skill artifacts implemented. Full Phase 1 exit awaits native macOS evidence and repository gate. Unverified.",
+  "summary": "Linux Phase 1 acceptance and full repository gate pass: 14/14 steps, 308/308 controls. Full Phase 1 exit awaits native macOS evidence; unverified.",
   "notes": "docs/warrants/OW-WAR-0085/implementation/notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0085/implementation/linux-observation.json",
     "docs/warrants/OW-WAR-0085/implementation/clippy.log",
-    "docs/warrants/OW-WAR-0085/implementation/linux-observation-v2.json"
+    "docs/warrants/OW-WAR-0085/implementation/linux-observation-v2.json",
+    "docs/warrants/OW-WAR-0085/implementation/gate.log"
   ],
   "next_steps": [
-    "Run repository gate and native macOS acceptance with matching input inventory.",
+    "Obtain native macOS acceptance with matching input inventory and final phase review.",
     "Continue independent OW86 integration and OW88 authoring work."
   ]
 }
