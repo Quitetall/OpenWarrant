@@ -17,6 +17,7 @@ categories.workspace = true
 # compiler's. Keeping `std::fs` out of here is what makes the validators
 # testable against in-memory fixtures rather than against a scratch directory.
 [dependencies]
+toml = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 serde_jcs = { workspace = true }
