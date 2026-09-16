@@ -33,3 +33,23 @@ bytes plus changed-byte refusal, alongside all prior provider cases.
 This profile is an implementation candidate. Full Phase 2 exit also requires the
 Phase 1 exit, record/readiness exchange, legacy preservation and complete declared
 integration cases. A passing adapter mock or package audit alone cannot satisfy it.
+
+## Current SDK record and preservation exchange
+
+The integration driver also passes the actual provider package through the current
+SDK CLI. A local observation names its exact basis and package root. Without
+caller-established trust, this record cannot clear an explicit passing-check gate.
+A record for another package root refuses. No compiler statement supplies a human
+signature or changes the meaning of the provider packet's readiness field.
+
+The driver imports the legacy preservation fixture, retains its complete original
+path structure under `archive/`, and captures it with the current task document.
+Export/import must preserve every byte. Recompiling the restored task through the
+real provider must produce identical package bytes; corrupt preservation refuses.
+This is an SDK consumer exchange around the existing provider profile, not a new
+LAMU wire contract or an assertion of historical signature validity.
+
+The record subject uses a Contract-domain digest of the retained normalized
+candidate contract. The compile-basis digest and package root remain separately
+named identities. The candidate adds a bounded package-integrity expectation for
+this test and does not claim to be an approved implementation contract.

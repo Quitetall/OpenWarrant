@@ -1,10 +1,10 @@
 {
   "schema": "oh.war/viewer-work-report/v1",
   "warrant": "OW-WAR-0077",
-  "work_state": "in-progress",
+  "work_state": "completed",
   "reported_by": "agent://codex",
   "revision": "75eadb55baccfb0cd3b2d8766f8c5dd45f6330e4",
-  "summary": "SDK and real LAMU source provider implemented. Linux/macOS provider CI and independent reviews pass; OpenWarrant gate 14/14. Participant merge remains blocked by wider LAMU CI failures.",
+  "summary": "SDK and real LAMU source provider implemented. Linux/macOS provider CI and independent reviews pass; OpenWarrant gate 14/14. Implementation complete, unverified. Merged LAMU provider retested through OW86; full-phase qualification remains separate.",
   "notes": "docs/warrants/OW-WAR-0077/implementation/notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0077/evidence/source-sdk/gate.log",
@@ -12,10 +12,12 @@
     "docs/warrants/OW-WAR-0077/evidence/source-sdk/review.md",
     "docs/warrants/OW-WAR-0077/evidence/source-provider/observation.json",
     "docs/warrants/OW-WAR-0077/evidence/source-provider/ci.json",
-    "docs/warrants/OW-WAR-0077/evidence/source-provider/review.md"
+    "docs/warrants/OW-WAR-0077/evidence/source-provider/review.md",
+    "docs/warrants/OW-WAR-0086/implementation/merged-exchange-observation.json",
+    "docs/warrants/OW-WAR-0086/implementation/lamu-merged-pr.json"
   ],
   "next_steps": [
-    "Merge the reviewed LAMU provider and OpenWarrant integration records after required checks pass.",
-    "Retain unverified status; human assurance remains separate."
+    "Retain exact historical evidence and unverified status.",
+    "Complete full Phase 1/2 qualification through OW85/86."
   ]
 }
