@@ -224,7 +224,8 @@ pub struct Qualification {
 
 /// Out-of-band authentication established by the caller, bound to exact raw bytes.
 /// `human_signed` means a secure human signing act, not a service acting for a human.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct TrustedRecord {
     pub id: String,
     pub raw_digest: String,
@@ -734,29 +735,33 @@ fn required_option<'de, D: serde::Deserializer<'de>>(d: D) -> Result<Option<Stri
     Option::<String>::deserialize(d)
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum FindingState {
     Established,
     Unmet,
     Unknown,
 }
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct Finding {
     pub id: String,
     pub state: FindingState,
     pub reason: String,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum Purpose {
     ActionGate,
     Qualification,
 }
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum Timing {
     Any,
     Before(u64),
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub enum Requirement {
     PassingCheck {
         record_id: String,
@@ -779,7 +784,8 @@ impl Requirement {
         }
     }
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Condition {
     pub id: String,
     pub action: String,
@@ -789,13 +795,14 @@ pub struct Condition {
     pub requirement: Requirement,
 }
 /// Caller-established human-approved policy, not a record's self-declared grant.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct PolicyAuthority {
     pub record_id: String,
     pub digest: String,
     pub acts: Vec<Act>,
 }
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ReadinessReport {
     /// Inline profile: exact conditions are retained below; no ambient lookup.
     pub profile: &'static str,
@@ -1047,13 +1054,14 @@ pub struct NormalizedContract {
     pub constraints: Vec<super::source::BoundReference>,
     pub expectations: Vec<Expectation>,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum AssuranceStanding {
     Eligible,
     Ineligible,
     Unknown,
 }
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct AssuranceReport {
     pub subject: Subject,
     pub baseline: &'static str,
@@ -1402,7 +1410,7 @@ fn present_option<'de, D: serde::Deserializer<'de>, T: Deserialize<'de>>(
 ) -> Result<Option<T>, D::Error> {
     Option::<T>::deserialize(d)
 }
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct AgentActReport {
     pub act: AgentAct,
     pub unsigned_digest: String,

@@ -363,3 +363,20 @@ Only explicit relevant prerequisites gate their named successor action; the
 existing dependency evaluator does not make unrelated unresolved records blockers.
 Retained-evidence assurance gaps use the supplied-record availability helpers.
 These SDK checks do not replace migration workflow, storage retention or signing.
+
+## Offline CLI transport profile (OW-WAR-0087)
+
+The candidate `war sdk --request <file|->` shell exposes the Phase 1 document,
+record, integrity and preservation SDK operations without repository discovery.
+The request schema is `oh.war/sdk-request/v1`; the response uses the existing
+`oh.war/report/v1` envelope. See the operation and encoding table in
+[the CLI profile](../../../../conformance/sdk/cli/README.md).
+
+Embedded source and record bytes remain explicit. A successful evaluation can
+report unknown, unmet or conditionally eligible standing; exit zero alone is not
+readiness or qualification. Caller-supplied trust and policy facts remain
+unauthenticated assumptions. No signer, provider, model or worker is invoked.
+Optional output writes a new JSON result file without replacing existing bytes;
+it does not edit the input document or persist an authority act. The CLI crate's
+file-backed driver compares public SDK outcomes and tests named refusals and
+I/O preservation. Interactive authoring and workflow execution remain later work.

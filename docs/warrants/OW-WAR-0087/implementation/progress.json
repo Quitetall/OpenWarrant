@@ -1,0 +1,18 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0087",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "90a41edff46fa54db311be299b8acd60d3d10e751c32941daf406d6c64b8686c",
+  "summary": "Offline SDK CLI implemented; 33 operations and 71 cases pass. Full repository gate and commit review pending. No qualification claimed.",
+  "notes": "docs/warrants/OW-WAR-0087/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0087/implementation/observation.json",
+    "docs/warrants/OW-WAR-0087/implementation/tests.log",
+    "docs/warrants/OW-WAR-0087/implementation/wire.log"
+  ],
+  "next_steps": [
+    "Run full repository gate and required commit review.",
+    "Then run OW-WAR-0085 acceptance inventory."
+  ]
+}
