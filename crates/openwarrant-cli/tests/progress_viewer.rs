@@ -296,3 +296,35 @@ fn cached_evidence_replaced_by_fifo_or_symlink_refuses_without_hanging() {
     assert!(!reply.contains("root:"));
     assert!(server.data().is_object());
 }
+
+#[test]
+fn json_snapshot_reuses_report_validation_and_preserves_unknown() {
+    let fixture = Fixture::new();
+    let path = fixture.report("completed");
+    let snapshot = || {
+        let output = Command::new(env!("CARGO_BIN_EXE_war"))
+            .current_dir(&fixture.0)
+            .args(["progress", "--snapshot", "--json"])
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        serde_json::from_slice::<serde_json::Value>(&output.stdout).unwrap()["result"].clone()
+    };
+    let valid = snapshot();
+    assert_eq!(valid["schema"], "oh.war/progress-view/v1");
+    assert_eq!(
+        valid["reports"]["VIEW-WAR-0001"]["report"]["work_state"],
+        "completed"
+    );
+    let mut report: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+    report["reported_by"] = serde_json::json!("");
+    std::fs::write(&path, serde_json::to_vec(&report).unwrap()).unwrap();
+    let invalid = snapshot();
+    assert!(invalid["reports"]["VIEW-WAR-0001"]["report"].is_null());
+    assert!(invalid["reports"]["VIEW-WAR-0001"]["error"].is_string());
+}

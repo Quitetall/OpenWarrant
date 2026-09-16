@@ -46,6 +46,61 @@ from an approved intended contract are reported as drift. Code extraction does n
 approve the current implementation or establish undocumented behavior. A changed
 source invalidates affected facts and projections through dependency links (§10).
 
+## Master Document and evolving SAS
+
+The Master Document SHALL be a generated project entry view over exact source
+revisions: vision where supplied, SAS, optional PRD, Warrants, decisions and other
+selected documents. Each requirement retains one authoritative source. The view
+SHALL identify its coverage, source manifest and as-of identity; assembly order
+SHALL NOT grant precedence or change source authority.
+
+The entry SHOULD fit a short opening page: purpose and desired outcome, current
+state and next work, essential architecture/principles, and optional product
+requirements. Detailed documents and inventories belong behind labeled pointers
+or expandable sections. Each pointer SHOULD state what it contains and when to
+read it. A missing optional document is shown as absent or omitted, not invented.
+A PRD is optional; when present it describes user needs, behavior and success
+measures alongside the SAS, with explicit references between their requirements.
+A separate vision file is optional; an owned source unit can provide that summary.
+
+The Master Document SHALL account for all sources within its declared coverage
+through its manifest and navigable index. This does not require every source body
+on the opening page. A full assembled export MAY be offered. An overview summary
+SHALL preserve its source identity and remain distinguishable from exact binding
+text. Recorded conflicting requirements and unavailable required sources SHALL remain
+visible. Conflict records come from source declarations, linked checks or reviews;
+assembly preserves them rather than claiming to detect every semantic conflict. A summary cannot resolve a conflict or hide it behind a completion claim.
+
+The Progress Context Packet is the progress section of this entry, or a projection
+of the same records for supervisors. It SHALL NOT require a second manually
+maintained progress ledger. Worker packets remain task-specific: a Master overview
+or its links alone do not discharge required context delivery.
+
+The SAS describes implementation architecture, contracts and principles in units
+that agents can inspect and check where executable checks exist. Structural
+validity alone does not prove architecture conformance. A SAS MAY develop alongside
+implementation. Preparing one explicitly before substantial development is
+RECOMMENDED, not a universal start gate. Explicit Warrant and repository gates
+still apply. SAS content SHALL distinguish:
+
+- Required architecture: binding requirements under the applicable authority.
+- Observed architecture: descriptions derived from identified code/evidence.
+- Proposed architecture: drafts awaiting their applicable decision or adoption.
+
+These are meanings, not new wire enum values. Existing unit/provenance and
+applicability fields carry them until a separately tested schema extension exists.
+Code changes MAY refresh observed descriptions. They SHALL NOT silently promote
+proposals, change binding requirements or rewrite accepted revisions. Drift between
+required and observed architecture remains explicit and follows the amendment and
+work-stop rules. Updating the SAS as work proceeds preserves prior revisions.
+
+The context provider owns deterministic assembly and task projection; workflow
+apps own navigation and display. The SDK supplies document primitives and source
+references. Assembly SHALL work without a model call. AI MAY draft source summaries;
+accepted summary inputs and exact source revisions produce reproducible assembly.
+Live timestamps are presentation metadata, distinct from reproducible content.
+This section specifies planned behavior, not an implemented Master generator.
+
 ## Task and query boundary
 
 A task SHALL identify its Warrant revision, outcome/stage, participant repository

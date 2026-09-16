@@ -151,7 +151,7 @@ impl<'a> CheckedSources<'a> {
     }
 }
 
-fn raw_digest(bytes: &[u8]) -> String {
+pub(super) fn raw_digest(bytes: &[u8]) -> String {
     let hex: String = Sha256::digest(bytes)
         .iter()
         .map(|byte| format!("{byte:02x}"))
@@ -165,6 +165,23 @@ pub fn check_sources<'a>(
     descriptors: &'a [SourceDescriptor],
     blobs: &'a BTreeMap<String, Vec<u8>>,
     limits: SourceLimits,
+) -> Result<CheckedSources<'a>, Diagnostic> {
+    check_source_set(descriptors, blobs, limits, false)
+}
+
+pub(super) fn check_packet_sources<'a>(
+    descriptors: &'a [SourceDescriptor],
+    blobs: &'a BTreeMap<String, Vec<u8>>,
+    limits: SourceLimits,
+) -> Result<CheckedSources<'a>, Diagnostic> {
+    check_source_set(descriptors, blobs, limits, true)
+}
+
+fn check_source_set<'a>(
+    descriptors: &'a [SourceDescriptor],
+    blobs: &'a BTreeMap<String, Vec<u8>>,
+    limits: SourceLimits,
+    allow_omitted_opaque: bool,
 ) -> Result<CheckedSources<'a>, Diagnostic> {
     limits.check()?;
     if descriptors.len() > limits.sources || blobs.len() > limits.sources {
@@ -213,6 +230,12 @@ pub fn check_sources<'a>(
                     0..0,
                 ));
             }
+            continue;
+        }
+        if allow_omitted_opaque
+            && descriptor.document.is_none()
+            && !blobs.contains_key(&descriptor.source_digest)
+        {
             continue;
         }
         let bytes = blobs.get(&descriptor.source_digest).ok_or_else(|| {
@@ -306,7 +329,7 @@ impl Default for SourceLimits {
     }
 }
 impl SourceLimits {
-    fn check(self) -> Result<(), Diagnostic> {
+    pub(super) fn check(self) -> Result<(), Diagnostic> {
         if [
             self.source_bytes,
             self.total_bytes,

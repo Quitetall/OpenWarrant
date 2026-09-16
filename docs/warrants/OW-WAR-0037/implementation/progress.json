@@ -1,0 +1,17 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0037",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "ec0809a7003251225a2b84ce24d0ac5b719d6aa1",
+  "summary": "Missing file-based --to comparison implemented and public regression passes. Historical contract:N lookup and trusted digest-cause attribution remain open; no completion or qualification claimed.",
+  "notes": "docs/warrants/OW-WAR-0037/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0037/implementation/evidence/gate.log",
+    "docs/warrants/OW-WAR-0037/implementation/evidence/cli-green.log",
+    "docs/warrants/OW-WAR-0037/implementation/evidence/independent-review.md"
+  ],
+  "next_steps": [
+    "Implement retained contract revision selectors and establish digest-cause attribution."
+  ]
+}

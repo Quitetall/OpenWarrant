@@ -153,3 +153,25 @@ work-stop snapshot.
 These examples add behavioral scope. Executable codec fixtures belong to Phase 1;
 actual prompt-only execution, professional gating and batch-signing UX belong to
 Phase 3. Nothing here claims an installed CLI or harness already has these paths.
+
+## Master Document disclosure and SAS growth
+
+Input: a prototype has a vision unit, a small SAS and two Warrants, but no PRD.
+Expected: the generated entry shows a short purpose, architecture summary, current
+work and pointers to exact sources. It requires neither a new PRD nor copied
+progress records. Optional PRD absence does not invalidate the view.
+
+Input: a linked review or check records that code now uses a different storage
+interface from an accepted SAS contract.
+Expected: observed architecture can record the actual version; the required
+contract remains binding and the conflict stays visible. Regenerating the Master
+Document cannot accept the code change or rewrite the SAS contract.
+
+Input: an agent receives only the small Master overview while its task requires
+an API contract from the detailed SAS.
+Expected: the overview does not establish sufficient task context. The provider
+includes the exact applicable contract and dependencies in the task packet.
+
+Input: the same source revisions and summary inputs are assembled twice.
+Expected: identical content and pointers; live as-of display metadata is separate.
+These are review cases for planned behavior, not observed implementation tests.

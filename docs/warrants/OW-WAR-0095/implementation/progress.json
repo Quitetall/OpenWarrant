@@ -1,0 +1,14 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0095",
+  "work_state": "blocked",
+  "reported_by": "agent://codex",
+  "revision": "1775dbec97503a88e21dcb072d0be2d802ae1ea5",
+  "summary": "Three-developer study scope prepared. Real consented sessions and runnable workflow prerequisites not yet established; no observations fabricated.",
+  "notes": "docs/warrants/OW-WAR-0095/implementation/notes.md",
+  "evidence": [],
+  "next_steps": [
+    "Complete reference workflow and freeze study build/scenarios.",
+    "Arrange three consenting developers and record actual sessions."
+  ]
+}

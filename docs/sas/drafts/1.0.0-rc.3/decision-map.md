@@ -7,6 +7,7 @@ through adoption of this source set. They do not reinterpret old signed contract
 
 | Owner decision | Replaces / refines | Binding destination |
 | --- | --- | --- |
+| Master Document is a generated entry view; SAS may grow alongside code; PRD is optional | Separate mandatory Vision/SAS/PRD hierarchy and upfront SAS as universal gate | SAS §19; context views, Master Document and evolving SAS |
 | OpenWarrant is the standard and SDK | OpenWarrant-owned full semantic compiler | SAS §§2, 6; SDK contract |
 | LAMU owns its compiler; other compilers may consume SDK | Duplicate small OpenWarrant production compiler | SAS §§6–10; external provider profile |
 | Small reference helper allowed | Implicit second production compiler | SDK typed adapter/example only |

@@ -6,6 +6,14 @@ use openwarrant_core::document::{
 };
 #[path = "sdk_probe/author.rs"]
 mod author;
+#[path = "sdk_probe/conditions.rs"]
+mod conditions;
+#[path = "sdk_probe/legacy.rs"]
+mod legacy;
+#[path = "sdk_probe/packet.rs"]
+mod packet;
+#[path = "sdk_probe/records.rs"]
+mod records;
 #[path = "sdk_probe/source.rs"]
 mod source;
 use serde::Deserialize;
@@ -66,13 +74,42 @@ fn run() -> Result<(), String> {
             }
         }
     }
-    if !matches!(scope.as_deref(), Some("75" | "76" | "77")) {
-        return Err("This driver implements --scope 75, 76 or 77".into());
+    if !matches!(
+        scope.as_deref(),
+        Some("75" | "76" | "77" | "78" | "81" | "83" | "84" | "85")
+    ) {
+        return Err("This driver implements --scope 75, 76, 77, 78, 81, 83, 84 or 85".into());
     }
     let root = std::path::PathBuf::from(fixtures.ok_or("--fixtures is required")?);
+    if scope.as_deref() == Some("84") {
+        return legacy::run(&root);
+    }
+    if scope.as_deref() == Some("83") {
+        return records::run(&root);
+    }
+    if scope.as_deref() == Some("81") {
+        return packet::run(&root);
+    }
+    if scope.as_deref() == Some("78") {
+        return conditions::run(&root);
+    }
     if scope.as_deref() == Some("77") {
         return source::run(&root);
     }
+    documents(&root, matches!(scope.as_deref(), Some("76" | "85")))?;
+    if scope.as_deref() == Some("85") {
+        source::run(&root)?;
+        conditions::run(&root)?;
+        packet::run(&root)?;
+        records::run(&root)?;
+        legacy::run(&root)?;
+        println!(
+            "SDK fixture suites passed; CLI, skills, platforms and phase exit are checked separately"
+        );
+    }
+    Ok(())
+}
+fn documents(root: &Path, with_author: bool) -> Result<(), String> {
     let directory = root.join("document");
     let suite: Suite =
         serde_json::from_slice(&read_bounded(&directory.join("cases.json"), 1024 * 1024)?)
@@ -133,11 +170,11 @@ fn run() -> Result<(), String> {
         ));
     }
     println!(
-        "{} document cases passed; context/readiness not evaluated; author/edit outside scope 75",
+        "{} document cases passed; context/readiness not evaluated",
         suite.cases.len()
     );
-    if scope.as_deref() == Some("76") {
-        author::run(&root)?;
+    if with_author {
+        author::run(root)?;
     }
     Ok(())
 }

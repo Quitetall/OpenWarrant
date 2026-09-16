@@ -64,3 +64,27 @@ counting writer refuses oversized output before allocation; literal test slices
 independently check parser ranges; authority labels are restricted claims, not
 authentication. No confirmed defect remained. Review output is retained in
 `../evidence/source-sdk/commit-review.log`.
+
+## Real-provider integration candidate
+
+The optional LAMU `lamu-openwarrant` crate implements explicit local source capture
+and F3 resolution, using the published SDK at 8f048eee. The shared contract is
+`docs/integrations/lamu-source-provider.md`. The SDK still performs no filesystem I/O.
+
+Five filesystem tests pass through the cross-repository driver, including T11–T15
+and an aggregate-budget regression. Independent Spec and Standards reviews found
+late metadata accounting; incremental preflight/accounting fixed it and both
+reviewers reproduced the repair. Immutable snapshots now cache unit indexes and
+canonical locks, avoiding repeated corpus parsing during reference lookup.
+
+Provider publication and participant merge remain pending. LAMU's existing default
+Rust 1.89 formatting and Clippy checks fail in unrelated runtime code. Its new
+optional provider passes focused Rust 1.97.1 tests, formatting and Clippy. No live
+LAMU service or unrelated local changes were replaced. Sequential file rechecks
+cannot establish atomic cross-file snapshots; this limit is explicit in the profile.
+
+
+Latest provider revision: 7ab57b5d52430f727ece3485443702a0f5ca794b. Focused Linux
+and macOS CI both pass after the portable FIFO fixture fix. OpenWarrant gate at
+75eadb5 passes14/14. See source-provider/ci.json and review.md for exact evidence.
+Wider LAMU CI still blocks participant integration; OW-WAR-0077 remains in progress.

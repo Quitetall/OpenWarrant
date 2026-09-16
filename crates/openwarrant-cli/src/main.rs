@@ -21,6 +21,7 @@ mod console;
 mod context_select;
 mod correct;
 mod diagnostic;
+mod diff_target;
 mod dispatch;
 mod document;
 mod eval;
@@ -51,6 +52,7 @@ mod run_cmd;
 mod sas;
 #[cfg(feature = "schema")]
 mod schemas;
+mod sdk;
 mod show;
 mod sign;
 mod status;
@@ -217,6 +219,15 @@ enum EvalCommand {
 
 #[derive(Subcommand)]
 enum DocumentCommand {
+    /// Author a draft interactively; checkpoints remain on cancel or failure.
+    Draft {
+        #[arg(long)]
+        draft_dir: Utf8PathBuf,
+        #[arg(long)]
+        output: Utf8PathBuf,
+        #[arg(long)]
+        resume: bool,
+    },
     /// Review Markdown deliverables (the gate `document.review@1.0.0` runs this).
     Review {
         /// One Warrant; omit for every Warrant with a Markdown deliverable.
@@ -226,6 +237,15 @@ enum DocumentCommand {
 
 #[derive(Subcommand)]
 enum Command {
+    /// Run an offline SDK operation from an explicit JSON request. Always emits JSON.
+    Sdk {
+        /// Request JSON file, or - for stdin.
+        #[arg(long)]
+        request: String,
+        /// Also save the result envelope to a new file; existing files are never replaced.
+        #[arg(long)]
+        output: Option<Utf8PathBuf>,
+    },
     /// Initialize repository configuration and directories (§71.1).
     Init {
         /// Namespace prefixing every local alias, e.g. `OW` in `OW-WAR-0001`.
@@ -427,6 +447,9 @@ enum Command {
         /// A canonical JSON file to compare against. Defaults to the committed one.
         #[arg(long)]
         from: Option<Utf8PathBuf>,
+        /// Explicit canonical IR or proposal JSON target. Defaults to fresh compilation.
+        #[arg(long)]
+        to: Option<Utf8PathBuf>,
     },
     /// Import a legacy ADR corpus (§96), discharging OW-WAR-0043.
     Migrate {
@@ -772,6 +795,9 @@ enum Command {
         /// Include records with an existing resolution in text/JSON output.
         #[arg(long)]
         all: bool,
+        /// Return the validated viewer snapshot, including attributed work reports.
+        #[arg(long, conflicts_with_all = ["html", "serve"])]
+        snapshot: bool,
         /// Write a self-contained HTML snapshot (all records), with no implicit server.
         #[arg(long, num_args=0..=1, default_missing_value=".openwarrant/state/progress.html", conflicts_with="serve")]
         html: Option<std::path::PathBuf>,
@@ -812,7 +838,21 @@ enum Command {
 }
 
 fn main() -> ExitCode {
-    let cli = Cli::parse();
+    let cli = match Cli::try_parse() {
+        Ok(cli) => cli,
+        Err(error) => {
+            // Preserve legacy argument handling. SDK callers always receive a
+            // report for invocation errors; --help and --version remain help.
+            let sdk = std::env::args_os()
+                .skip(1)
+                .find(|arg| arg != "--json")
+                .is_some_and(|arg| arg == "sdk");
+            if sdk && error.use_stderr() {
+                return ExitCode::from(sdk::argument_error(&error.to_string()));
+            }
+            error.exit();
+        }
+    };
     let mode = output::Mode::from_flag(cli.json);
     match run(cli) {
         Ok(code) => ExitCode::from(code),
@@ -828,6 +868,7 @@ fn main() -> ExitCode {
 fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
     let mode = output::Mode::from_flag(cli.json);
     match cli.command {
+        Command::Sdk { request, output } => Ok(sdk::run(&request, output.as_deref())),
         Command::Init {
             namespace,
             name,
@@ -1538,12 +1579,18 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             let report = run_cmd::submit(&repository, &alias, &file)?;
             Ok(output::finish(mode, "submit", &report, None))
         }
-        Command::Document { command } => {
-            let repository = repo::Repository::discover(None)?;
-            let DocumentCommand::Review { alias } = command;
-            let report = document::review(&repository, alias.as_deref())?;
-            Ok(output::finish(mode, "document.review", &report, None))
-        }
+        Command::Document { command } => match command {
+            DocumentCommand::Draft {
+                draft_dir,
+                output,
+                resume,
+            } => Ok(document::draft::run(&draft_dir, &output, resume, mode)),
+            DocumentCommand::Review { alias } => {
+                let repository = repo::Repository::discover(None)?;
+                let report = document::review(&repository, alias.as_deref())?;
+                Ok(output::finish(mode, "document.review", &report, None))
+            }
+        },
         Command::Attest {
             target,
             verify,
@@ -1757,12 +1804,23 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         }
         Command::Overview {
             all,
+            snapshot,
             html,
             serve,
             port,
             refresh_secs,
         } => {
             let repository = repo::Repository::discover(None)?;
+            if snapshot {
+                let view = progress_viewer::json_snapshot(&repository)?;
+                output::emit(
+                    mode,
+                    "overview",
+                    &serde_json::to_string_pretty(&view).unwrap(),
+                    view,
+                );
+                return Ok(EXIT_OK);
+            }
             if let Some(path) = html {
                 progress_viewer::export(&repository, &path)?;
                 output::emit(
@@ -1863,9 +1921,13 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             );
             Ok(EXIT_OK)
         }
-        Command::Diff { alias, from } => {
+        Command::Diff { alias, from, to } => {
             let repository = repo::Repository::discover(None)?;
-            let report = show::diff(&repository, &alias, from.as_ref())?;
+            let report = if let Some(to) = to {
+                diff_target::compare(&repository, &alias, from.as_deref(), &to)?
+            } else {
+                show::diff(&repository, &alias, from.as_ref())?
+            };
             // A diff is information, not a verdict: exit 0 whatever it found.
             let _ = output::finish(mode, "diff", &report, None);
             Ok(EXIT_OK)

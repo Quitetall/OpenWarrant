@@ -1,0 +1,17 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0090",
+  "work_state": "blocked",
+  "reported_by": "agent://codex",
+  "revision": "260ecbb006bd5a329b1e68a4392b234d83d3ea33890b99fcff91e4c60befee46",
+  "summary": "Exact available evidence inventoried; all four phase exits remain incomplete. Reference webapp planned as separate package; real workflow/user and native macOS evidence missing.",
+  "notes": "docs/warrants/OW-WAR-0090/implementation/notes.md",
+  "evidence": [
+    "docs/releases/rc3-review-inventory.json"
+  ],
+  "next_steps": [
+    "Build separate reference workflow package under bounded implementation Warrants.",
+    "Confirm Phase 3 app inventory and define study requirements before actual-user sessions.",
+    "Collect native macOS and final four-phase evidence before qualification."
+  ]
+}

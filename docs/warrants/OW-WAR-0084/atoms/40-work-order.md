@@ -12,6 +12,9 @@ classification: internal
 ## Deliverables
 
 - `crates/openwarrant-core/src/document/legacy.rs`
+- `crates/openwarrant-core/src/document/legacy/codec.rs`
+- `crates/openwarrant-core/tests/document_legacy.rs`
+- `crates/openwarrant-core/examples/sdk_probe/legacy.rs`
 - `conformance/sdk/legacy/`
 - This Warrant's implementation notes and exact test/evidence references.
 

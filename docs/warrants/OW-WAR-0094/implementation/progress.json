@@ -1,0 +1,21 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0094",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "a117b072eff161ce2c4125a4c05647959690f3d8",
+  "summary": "Bounded configured-harness execution bridge complete, unverified.21 execution and8 draft API tests, browser synthetic QA and full14-step/308-control gate passed. Real adapters, questions/recovery and qualification remain open.",
+  "notes": "docs/warrants/OW-WAR-0094/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0094/implementation/completion.md",
+    "docs/warrants/OW-WAR-0094/implementation/evidence/gate.log",
+    "docs/warrants/OW-WAR-0094/implementation/evidence/execution-tests.log",
+    "docs/warrants/OW-WAR-0094/implementation/evidence/draft-tests.log",
+    "docs/warrants/OW-WAR-0094/implementation/evidence/source-review.log"
+  ],
+  "next_steps": [
+    "Implement question routing, work-stop delivery and tested harness recovery.",
+    "Complete real six-app integrations and native macOS evidence.",
+    "Run consented OW95 study and discharge legacy scope/reconciliation queue."
+  ]
+}

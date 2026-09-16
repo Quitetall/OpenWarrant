@@ -1,0 +1,18 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0082",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "59b96dd7887a77acd035dac138f7608cb68882af",
+  "summary": "Final-entry budgets and immutable bounded cache implemented and independently reviewed; source/policy changes invalidate reuse. Implementation complete, unverified. Merged LAMU provider retested through OW86; full-phase qualification remains separate.",
+  "notes": "docs/warrants/OW-WAR-0082/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0082/implementation/budget-observation.json",
+    "docs/warrants/OW-WAR-0086/implementation/merged-exchange-observation.json",
+    "docs/warrants/OW-WAR-0086/implementation/lamu-merged-pr.json"
+  ],
+  "next_steps": [
+    "Retain exact historical evidence and unverified status.",
+    "Complete full Phase 1/2 qualification through OW85/86."
+  ]
+}

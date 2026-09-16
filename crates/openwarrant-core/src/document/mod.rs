@@ -8,15 +8,20 @@ use std::ops::Range;
 
 pub use toml10::Value as MetadataValue;
 
+pub mod adapter;
 mod author;
 pub use author::{
     AuthorOptions, AuthoredUnit, DocumentEdit, DocumentFields, LineEnding, author_document,
     edit_document,
 };
 
+pub mod condition;
 mod metadata;
+pub mod packet;
+pub mod records;
 mod references;
 mod scan;
+pub mod schedule;
 pub mod source;
 mod validate;
 pub use validate::{
@@ -217,3 +222,5 @@ pub fn parse_document(
         units,
     })
 }
+
+pub mod legacy;

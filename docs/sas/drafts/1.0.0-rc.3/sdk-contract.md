@@ -48,6 +48,49 @@ Contracts without these gates retain the prompt-only path. Real input availabili
 and harness limits remain separate. No SDK evaluation launches or prevents a tool
 action by itself.
 
+## Warrant scheduling and advisory estimates
+
+Declared work dependencies SHALL be distinct from context pointers and current
+blockers. A dependency names an exact predecessor Warrant contract and optional
+milestone/stage, the required result, the affected successor action/stage and a
+human-readable reason. An expected result digest may be omitted before the output
+exists. Evaluation then requires one unambiguous supplied result and records its
+exact digest through the selected fact; competing versions require explicit
+selection. A supplied expected digest restricts matching to that exact result.
+Required results distinguish implementation completion,
+passing checks, human acceptance and a published contract. Completion does not
+imply acceptance. Only the named successor scope waits; independent preparation
+may continue. Qualification-only requirements do not become execution gates.
+
+A pure SDK scheduling evaluator SHALL inspect an explicitly supplied finite graph
+and caller-established result facts. Each fact binds the exact predecessor contract,
+stage, required result and result/artifact digest. Missing or stale facts remain
+unknown; failed facts remain unmet. Neither state satisfies the dependency. Inputs
+that conflict, duplicate identities or contain dependency cycles SHALL be refused.
+A report lists dependency-ready scopes and unsatisfied edges with reasons. Ready
+means only that supplied dependency requirements are met: permissions, resource
+limits, other action gates and current workflow blockers require separate checks.
+The report SHALL NOT schedule processes, authenticate facts or issue assurance.
+
+Workflow apps own acquisition and trust of facts, dispatch, agent availability,
+current blocker tracking and dashboard presentation. They should show ready work,
+predecessor/successor links and reasons for waiting. An acyclic dependency order
+alone is not a time estimate or a measured critical path. Historical signed
+contracts and context-reference semantics remain unchanged.
+
+Difficulty MAY be recorded as low, medium, high or unknown, with a nonempty reason,
+confidence (low, medium or high), estimator identity and estimate revision. This
+is an advisory estimate, separate from size, elapsed time, spend and risk. Agents
+may propose revised estimates with provenance; an estimate SHALL NOT grant
+permissions, satisfy prerequisites, require a particular model or block execution.
+Absence means no estimate, not low difficulty. Scheduling results do not change
+when only a difficulty estimate changes.
+
+The initial SDK slice uses typed Rust inputs, not a newly frozen wire schema.
+Document metadata encoding, ingestion, CLI parity and workflow presentation need
+explicit fixtures before being claimed supported. Existing F3 context dependency
+fields SHALL NOT be repurposed as scheduling edges.
+
 ## Agent-act envelope: proposed additional wire type
 
 Schema ID: `oh.war/agent-act/1.0.0-rc.3`. This is an additional envelope; existing
@@ -198,3 +241,142 @@ SDK consumers need no CLI shell process for in-process use.
 A small reference compiler adapter demonstrates an external call and validates its
 response. It SHALL NOT contain production dependency traversal, context ranking,
 master assembly or hidden model calls. Semantic compilation remains provider-owned.
+
+## Supplied-record SDK profile (OW-WAR-0083)
+
+The Phase 1 record codec implements F8 `oh.war/record/1.0.0-rc.2` and the
+agent-act profile above. The candidate workflow encoding is
+`oh.war/workflow-record/1.0.0-rc.3`: an object with `schema`, `id`, and
+`payload: {kind, value}`. Unknown fields and duplicate JSON keys refuse. Its
+structural schemas and executable inputs live in `conformance/sdk/records/`.
+Schemas describe structure; SDK checks additionally enforce relationships, exact
+subjects, resource bounds and trust separation. This draft profile is not a
+claim that RC.3 has been accepted or published.
+
+| Payload kind | Preserved facts |
+| --- | --- |
+| `context-view` | Source digest, document maturity, work state, qualification claim, code-derived or approved-document origin |
+| `shared-contract` | One contract digest; each participant's project, scope and exact basis |
+| `evidence-availability` | Exact evidence reference; present, absent, deleted or restored state; retained digests, history references and affected assurance |
+| `stop` | Exact subject, class, scope, scope ID, optional parent, cause, work state and observed worker state |
+| `work-change` | Work/harness class, old/new basis, affected scope, application boundary, choice/fencing/context references and limits |
+| `overview` | Tracker identity, revision, observation time and exact completion events with qualification, evidence, notes, trail and next steps |
+| `handoff` | Event identity, exact overview reference and URL, configured safeword, qualification, evidence and required pointers |
+| `review-manifest` | Exact result subjects, each selected profile and evidence set |
+
+`program` encodes the named complete-stop scope. Work states include `pending`,
+`in-progress`, `complete`, `blocked`, `failed`, `cancelled` and `unknown`.
+Worker states include `running`, `stop-requested`, `stopped` and `unknown`.
+A work stop requires complete work and an exact result. An interruption may
+preserve earlier completion, but cannot produce a new completion signal.
+These records are bounded SDK inputs, not a replacement for the richer runtime
+journal required by the work-stop contract.
+
+### Trust is an explicit input
+
+Record content cannot authenticate itself. `TrustedRecord` binds caller-established
+facts to exact original bytes, record ID and actor identity/kind. Authentication,
+observed execution, secure human signing, observation time and support for a named
+assurance criterion are separate facts. An authenticated claim is not an observation.
+The caller must establish these facts through its trusted adapters; the SDK never
+accepts them from the record's claimed provenance or signature reference.
+
+Every evidence, policy, isolation and observation-artifact reference must resolve
+within the supplied records before dependent support can be established. External
+artifacts require supplied authenticated receipt records; unresolved references
+remain unknown. Cyclic evidence cannot establish itself. No network lookup occurs.
+
+Readiness retains the exact action, stage and selected conditions, including timing
+and whether each condition gates action or only qualification. No selected action
+gate means no gate is invented. Unsupported permission constraint expressions remain
+unknown, rather than being ignored. Delegation must match an exact secure human
+policy record and permitted act; automation cannot grant itself policy-edit authority.
+
+Assurance requires the normalized contract and exact Warrant source descriptor,
+expected scopes/check digests, independent observations and secure human acceptance.
+The baseline cannot be removed by selecting an empty condition list. Evidence for
+protected expectations, scope permission, adequacy, preservation and isolation needs
+explicit caller-established criterion support, not an arbitrary passing check.
+Additional profile conditions strengthen this assessment. The result is eligibility,
+ineligibility or unknown; this helper issues no assurance mark.
+
+A batch review manifest establishes human acceptance coverage only. Each exact
+member still needs its own assurance evaluation; adding a member or changing its
+profile/evidence invalidates the supplied signature coverage. A release name alone
+cannot establish acceptance.
+
+### Completion and recovery helpers
+
+A confirmed handoff requires caller-established tracker identity, revision, exact
+bytes and URL. The overview must acknowledge the exact event, result and scope,
+qualification and required pointers. Minimal output is the configured safeword and
+overview URL; richer output adds notes. Missing synchronization leaves completed
+work intact while response delivery remains pending. Neither form completes a
+parent scope. Replayed IDs must retain exact bytes.
+
+Resume checks consume explicit exact-change facts for choice, fencing, context,
+limits and the selected boundary. Work changes require fencing; harness-only changes
+apply before the next tool action. References alone do not establish these facts.
+Evidence availability checks retain history and distinguish missing bytes from a
+retained exact duplicate. These helpers neither stop processes nor delete storage,
+verify cryptographic signatures, dispatch agents or perform tracker I/O. Those
+integration proofs belong to the workflow phase.
+
+## Explicit preservation and successor profile (OW-WAR-0084)
+
+The candidate `oh.war/preservation/1.0.0-rc.3` envelope retains an explicit regular-file
+inventory, not a rewritten historical Warrant. Its fields are `schema`,
+`source_dialect`, `adapter_version`, `entry`, `inventory` and `files`.
+`inventory` entries contain original relative `path`, raw SHA-256 `digest` and
+`bytes`; `files` maps those exact paths to byte arrays. Version
+`ow-sdk-preservation/1` admits explicit `legacy-warrant-v1`, `rc2` and `rc3`
+dialects. Markdown is never used to guess a dialect. Unsupported editions refuse.
+
+Import checks exact inventory coverage and bytes, path safety, declared dialect
+and parser syntax. It preserves original schema/identity, historical state fields,
+signature subjects and original JSON as bytes. The legacy Warrant adapter uses
+the existing manifest validation and restricted Markdown atom parser. Bound or
+missing atoms are reported as unsupported; they are not fetched or invented.
+Historical filename colons remain literal; rooted, drive, traversal and ambiguous
+separator paths refuse. Filesystem callers must reject links and special files
+before supplying regular-file bytes, and choose a fresh destination for export.
+
+The preservation report separates inventory integrity from historical closure,
+authenticity and qualification. It never establishes external historical closure,
+acceptance meaning, signature validity or a new assurance mark. A present legacy
+resolution is reported as `resolved-record-present`, with its original outcome,
+standing and contract fields retained separately. This label is not a new
+resolution. Unknown historical meaning remains in the retained bytes and is not
+silently translated into the new model.
+
+Export/import/export retains deterministic envelope output and identical original
+blobs. Wire, file-count, per-file and total limits apply before blob materialization;
+output is bounded while serialized. A refusal returns no valid partial bundle.
+These pure calls never write or replace original files.
+
+A successor mapping binds distinct source identities and exact predecessor and
+successor entry digests, plus each declared same-path replacement's old/new digest.
+Both input inventories remain recoverable. The mapping transfers no authority,
+signature, acceptance or qualification and creates no correction fanout. It is
+provenance for new work, not authorization to modify legacy pinned files.
+Only explicit relevant prerequisites gate their named successor action; the
+existing dependency evaluator does not make unrelated unresolved records blockers.
+Retained-evidence assurance gaps use the supplied-record availability helpers.
+These SDK checks do not replace migration workflow, storage retention or signing.
+
+## Offline CLI transport profile (OW-WAR-0087)
+
+The candidate `war sdk --request <file|->` shell exposes the Phase 1 document,
+record, integrity and preservation SDK operations without repository discovery.
+The request schema is `oh.war/sdk-request/v1`; the response uses the existing
+`oh.war/report/v1` envelope. See the operation and encoding table in
+[the CLI profile](../../../../conformance/sdk/cli/README.md).
+
+Embedded source and record bytes remain explicit. A successful evaluation can
+report unknown, unmet or conditionally eligible standing; exit zero alone is not
+readiness or qualification. Caller-supplied trust and policy facts remain
+unauthenticated assumptions. No signer, provider, model or worker is invoked.
+Optional output writes a new JSON result file without replacing existing bytes;
+it does not edit the input document or persist an authority act. The CLI crate's
+file-backed driver compares public SDK outcomes and tests named refusals and
+I/O preservation. Interactive authoring and workflow execution remain later work.
