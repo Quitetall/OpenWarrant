@@ -1,19 +1,20 @@
 {
   "schema": "oh.war/viewer-work-report/v1",
   "warrant": "OW-WAR-0083",
-  "work_state": "in-progress",
+  "work_state": "complete",
   "reported_by": "agent://codex",
   "revision": "f7c500abd45539d52768d7a4573532fd3c6d8d0c587778cb224af564b32a87f8",
-  "summary": "Scheduling and supplied-record SDK implemented; focused tests and independent code reviews complete. Full gate and final commit review pending. Revision identifies source inventory, not Git commit.",
+  "summary": "Phase 1 dependency scheduling and supplied-record readiness/assurance SDK complete, unverified. 21 record/workflow tests, 10 codec fixtures and full 14-step gate passed; 308/308 planted controls. Revision identifies source inventory, not Git commit.",
   "notes": "docs/warrants/OW-WAR-0083/implementation/notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0083/implementation/scheduling-observation.json",
     "docs/warrants/OW-WAR-0083/implementation/scheduling-tests.log",
     "docs/warrants/OW-WAR-0083/implementation/records-observation.json",
-    "docs/warrants/OW-WAR-0083/implementation/records-tests.log"
+    "docs/warrants/OW-WAR-0083/implementation/records-tests.log",
+    "docs/warrants/OW-WAR-0083/implementation/records-gate.log"
   ],
   "next_steps": [
-    "Finish full repository gate and required commit review.",
-    "Then proceed to remaining Phase 1 Warrants; runtime adapters remain later-phase work."
+    "Implement OW-WAR-0084 legacy history and successor records.",
+    "Complete remaining Phase 1 work and OW-WAR-0086 exit checks; runtime adapters and human qualification remain separate."
   ]
 }
