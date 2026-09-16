@@ -12,6 +12,9 @@ classification: internal
 ## Deliverables
 
 - `crates/openwarrant-core/src/document/records.rs`
+- `crates/openwarrant-core/src/document/records/workflow.rs`
+- `crates/openwarrant-core/tests/document_records.rs` and `document_workflow_records.rs`
+- `crates/openwarrant-core/examples/sdk_probe/records.rs` and `record_schemas.rs`
 - `conformance/sdk/records/`
 - This Warrant's implementation notes and exact test/evidence references.
 
@@ -29,7 +32,7 @@ to exact contract, stage and result kind; optionally pin the expected output dig
 and always retain the actual selected result. Refuse ambiguous unpinned results. Test independent stages,
 stale/missing facts and estimate changes. No runtime dispatch, signature trust,
 new document wire encoding or full records/assurance completion is claimed by
-this slice. Remaining S04/T42–T48 obligations remain open.
+this slice. The subsequent records slice supplies S04/T42–T48 and SDK-08–SDK-24 record-subset evidence; qualification remains separate.
 
 ## Frozen Surfaces
 

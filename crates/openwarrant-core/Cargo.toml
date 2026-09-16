@@ -37,3 +37,7 @@ schema = ["dep:schemars"]
 [dev-dependencies]
 serde_jcs = { workspace = true }
 serde_json = { workspace = true }
+
+[[example]]
+name = "record_schemas"
+required-features = ["schema"]

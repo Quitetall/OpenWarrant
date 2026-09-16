@@ -18,6 +18,7 @@ pub use author::{
 pub mod condition;
 mod metadata;
 pub mod packet;
+pub mod records;
 mod references;
 mod scan;
 pub mod schedule;

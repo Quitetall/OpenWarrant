@@ -3,15 +3,17 @@
   "warrant": "OW-WAR-0083",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "revision": "6ecd6dc9e44fba03b122f4ea3cbd2fdd82bec9f3938b01e2fcda2f00c58f8873",
-  "summary": "Dependency scheduling and advisory difficulty SDK slice implemented and independently reviewed. Full record, readiness and assurance evaluation remains unfinished. Revision is the source-inventory digest linked below, not a Git commit.",
+  "revision": "f7c500abd45539d52768d7a4573532fd3c6d8d0c587778cb224af564b32a87f8",
+  "summary": "Scheduling and supplied-record SDK implemented; focused tests and independent code reviews complete. Full gate and final commit review pending. Revision identifies source inventory, not Git commit.",
   "notes": "docs/warrants/OW-WAR-0083/implementation/notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0083/implementation/scheduling-observation.json",
-    "docs/warrants/OW-WAR-0083/implementation/scheduling-tests.log"
+    "docs/warrants/OW-WAR-0083/implementation/scheduling-tests.log",
+    "docs/warrants/OW-WAR-0083/implementation/records-observation.json",
+    "docs/warrants/OW-WAR-0083/implementation/records-tests.log"
   ],
   "next_steps": [
-    "Implement remaining S04/T42-T48 record and assurance subsets.",
-    "Add document wire fixtures and CLI/workflow consumers before claiming scheduling UI support."
+    "Finish full repository gate and required commit review.",
+    "Then proceed to remaining Phase 1 Warrants; runtime adapters remain later-phase work."
   ]
 }

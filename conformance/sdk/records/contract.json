@@ -1,0 +1,79 @@
+{
+  "warrant_source_digest": "sha256:8f051a60f20b265a0c8962764edf4f533dbe3054585e6f0d6427b2aa021fc65d",
+  "sources": [
+    {
+      "byte_length": 505,
+      "holder": {
+        "kind": "example",
+        "locator": "example:acceptance.json"
+      },
+      "metadata": {
+        "authority": "unestablished",
+        "basis_refs": [],
+        "classification": "public",
+        "taints": [
+          "illustrative"
+        ],
+        "trust": "example-unverified"
+      },
+      "path": "acceptance.json",
+      "source_digest": "sha256:c0654f491b78a4b66e5a9ce9236d49662446114a5bb5efebb87c13ffe0ef0f9b"
+    },
+    {
+      "byte_length": 1172,
+      "document": {
+        "id": "example:activation-decision",
+        "kind": "adr",
+        "revision": 3,
+        "schema": "oh.war/document/1.0.0-rc.2"
+      },
+      "holder": {
+        "kind": "example",
+        "locator": "example:architecture.md"
+      },
+      "metadata": {
+        "authority": "unestablished",
+        "basis_refs": [],
+        "classification": "public",
+        "taints": [
+          "illustrative"
+        ],
+        "trust": "example-unverified"
+      },
+      "path": "architecture.md",
+      "source_digest": "sha256:c90c4ab63cf754ace400953f34441b6eada14a967cf40122b08880159cdb22b5"
+    },
+    {
+      "byte_length": 2165,
+      "document": {
+        "id": "example:signup",
+        "kind": "warrant",
+        "revision": 1,
+        "schema": "oh.war/document/1.0.0-rc.2"
+      },
+      "holder": {
+        "kind": "example",
+        "locator": "example:signup.md"
+      },
+      "metadata": {
+        "authority": "unestablished",
+        "basis_refs": [],
+        "classification": "public",
+        "taints": [
+          "illustrative"
+        ],
+        "trust": "example-unverified"
+      },
+      "path": "signup.md",
+      "source_digest": "sha256:8f051a60f20b265a0c8962764edf4f533dbe3054585e6f0d6427b2aa021fc65d"
+    }
+  ],
+  "constraints": [],
+  "expectations": [
+    {
+      "id": "OBL-1",
+      "scope": "signup behavior",
+      "check_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    }
+  ]
+}

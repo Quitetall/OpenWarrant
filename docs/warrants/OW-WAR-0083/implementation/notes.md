@@ -24,3 +24,47 @@ separately after commit; do not infer a gate pass from these focused checks.
 Remaining OW83 work includes record codecs, trusted-fact evaluation, exact human
 acceptance, shared/context/stop records and retained-evidence gaps (S04/T42–T48).
 This slice does not complete OW83 or unblock the full OW86 phase exit.
+
+## Supplied records and workflow facts
+
+The remaining Phase 1 slice adds strict F8 records, agent acts, exact-subject
+readiness and baseline assurance evaluation. Inputs are bounded and supplied by
+the caller. A provenance claim never establishes authentication, execution or
+criterion support. Missing evidence remains unknown. Automation cannot authorize
+its own effective-policy edits. The helper evaluates eligibility and issues no mark.
+
+The candidate workflow codec supports context views, shared contracts, evidence
+availability, scoped stops, changes, tracker overviews, handoffs and batch review
+coverage. Completion survives unavailable tracker delivery and missing qualification.
+The configured completion word requires an exact acknowledged event and attested
+overview URL. Work-change resume requires caller-established fencing and context.
+
+### Evidence map
+
+| Requirement | Public observation |
+| --- | --- |
+| S04 / T42–T48 | `document_records`: claims versus observed execution, UNKNOWN versus FAIL, independent isolation, exact secure human acceptance, candidate mutation, late review timing and delegated policy limits |
+| SDK-08–SDK-11, SDK-16 | `document_records`: action-scoped gates versus qualification, unsigned completion, timing and exact policy delegation |
+| SDK-12 | `document_workflow_records`: exact batch manifest/member/profile/evidence coverage; each member still requires separate assurance evaluation |
+| SDK-13–SDK-19 | `document_workflow_records`: complete/unverified metadata, acknowledged event, stale URL/revision refusal, replay, minimal/rich output and parent scope preservation |
+| SDK-20 | Existing adapter request/response boundary; no new query execution in OW83 |
+| SDK-21–SDK-24 | Shared revision mismatch, retained/deleted evidence and history, distinct stop states, work versus harness resume boundaries |
+
+Twenty-one focused public tests pass. Ten actual file-backed codec fixtures pass through
+`sdk_probe --scope 83`; this driver does not replace semantic tests. JSON schemas
+are structural only. Focused library/examples Clippy with `schema` passes. The
+broader `--all-targets --features schema -D warnings` check also exposes an existing
+`identity.rs` items-after-test-module lint, outside this change.
+
+Independent spec and standards review findings were checked and repaired: artifact
+closure/quota, cached support resolution, exact Warrant binding, explicit criterion
+support, URL/qualification binding, scalar quotas and positional-array refusal and valid explicit-null preservation.
+These observations are not assurance dispositions or a human signature.
+
+Limits: no cryptographic verification, process control, storage deletion, tracker
+I/O or runtime orchestration. Unsupported permission expressions remain unknown.
+Phase 3 must prove real adapters and recovery; this slice proves only supplied-record
+semantics. Full repository gate and commit review are reported separately.
+
+The first aggregate run passed 13 steps; mutation plants refused uncommitted
+documentation to prevent destructive restoration. The clean-commit rerun is required.

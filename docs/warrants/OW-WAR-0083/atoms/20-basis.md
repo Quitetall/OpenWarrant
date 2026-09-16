@@ -12,7 +12,7 @@ classification: internal
 ## Governing text
 
 Implementation target: `docs/sas/drafts/1.0.0-rc.3/`, source-set manifest SHA-256
-`26f5e29f1b54760a6ecca5c23eb709a9e0f8cc06648e4a7d4cc32ae448148937`. This is an unaccepted candidate selected for unverified
+`ace3ae6fdcbb9c7f64d05bcab6ce150e3f7316642251c55f2547a801f84d7dfc`. This is an unaccepted candidate selected for unverified
 implementation by the owner, not a replacement signature on the legacy SAS.
 Existing applicable authority, access limits and signed records remain binding.
 

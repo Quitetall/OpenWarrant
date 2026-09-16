@@ -241,3 +241,83 @@ SDK consumers need no CLI shell process for in-process use.
 A small reference compiler adapter demonstrates an external call and validates its
 response. It SHALL NOT contain production dependency traversal, context ranking,
 master assembly or hidden model calls. Semantic compilation remains provider-owned.
+
+## Supplied-record SDK profile (OW-WAR-0083)
+
+The Phase 1 record codec implements F8 `oh.war/record/1.0.0-rc.2` and the
+agent-act profile above. The candidate workflow encoding is
+`oh.war/workflow-record/1.0.0-rc.3`: an object with `schema`, `id`, and
+`payload: {kind, value}`. Unknown fields and duplicate JSON keys refuse. Its
+structural schemas and executable inputs live in `conformance/sdk/records/`.
+Schemas describe structure; SDK checks additionally enforce relationships, exact
+subjects, resource bounds and trust separation. This draft profile is not a
+claim that RC.3 has been accepted or published.
+
+| Payload kind | Preserved facts |
+| --- | --- |
+| `context-view` | Source digest, document maturity, work state, qualification claim, code-derived or approved-document origin |
+| `shared-contract` | One contract digest; each participant's project, scope and exact basis |
+| `evidence-availability` | Exact evidence reference; present, absent, deleted or restored state; retained digests, history references and affected assurance |
+| `stop` | Exact subject, class, scope, scope ID, optional parent, cause, work state and observed worker state |
+| `work-change` | Work/harness class, old/new basis, affected scope, application boundary, choice/fencing/context references and limits |
+| `overview` | Tracker identity, revision, observation time and exact completion events with qualification, evidence, notes, trail and next steps |
+| `handoff` | Event identity, exact overview reference and URL, configured safeword, qualification, evidence and required pointers |
+| `review-manifest` | Exact result subjects, each selected profile and evidence set |
+
+`program` encodes the named complete-stop scope. Work states include `pending`,
+`in-progress`, `complete`, `blocked`, `failed`, `cancelled` and `unknown`.
+Worker states include `running`, `stop-requested`, `stopped` and `unknown`.
+A work stop requires complete work and an exact result. An interruption may
+preserve earlier completion, but cannot produce a new completion signal.
+These records are bounded SDK inputs, not a replacement for the richer runtime
+journal required by the work-stop contract.
+
+### Trust is an explicit input
+
+Record content cannot authenticate itself. `TrustedRecord` binds caller-established
+facts to exact original bytes, record ID and actor identity/kind. Authentication,
+observed execution, secure human signing, observation time and support for a named
+assurance criterion are separate facts. An authenticated claim is not an observation.
+The caller must establish these facts through its trusted adapters; the SDK never
+accepts them from the record's claimed provenance or signature reference.
+
+Every evidence, policy, isolation and observation-artifact reference must resolve
+within the supplied records before dependent support can be established. External
+artifacts require supplied authenticated receipt records; unresolved references
+remain unknown. Cyclic evidence cannot establish itself. No network lookup occurs.
+
+Readiness retains the exact action, stage and selected conditions, including timing
+and whether each condition gates action or only qualification. No selected action
+gate means no gate is invented. Unsupported permission constraint expressions remain
+unknown, rather than being ignored. Delegation must match an exact secure human
+policy record and permitted act; automation cannot grant itself policy-edit authority.
+
+Assurance requires the normalized contract and exact Warrant source descriptor,
+expected scopes/check digests, independent observations and secure human acceptance.
+The baseline cannot be removed by selecting an empty condition list. Evidence for
+protected expectations, scope permission, adequacy, preservation and isolation needs
+explicit caller-established criterion support, not an arbitrary passing check.
+Additional profile conditions strengthen this assessment. The result is eligibility,
+ineligibility or unknown; this helper issues no assurance mark.
+
+A batch review manifest establishes human acceptance coverage only. Each exact
+member still needs its own assurance evaluation; adding a member or changing its
+profile/evidence invalidates the supplied signature coverage. A release name alone
+cannot establish acceptance.
+
+### Completion and recovery helpers
+
+A confirmed handoff requires caller-established tracker identity, revision, exact
+bytes and URL. The overview must acknowledge the exact event, result and scope,
+qualification and required pointers. Minimal output is the configured safeword and
+overview URL; richer output adds notes. Missing synchronization leaves completed
+work intact while response delivery remains pending. Neither form completes a
+parent scope. Replayed IDs must retain exact bytes.
+
+Resume checks consume explicit exact-change facts for choice, fencing, context,
+limits and the selected boundary. Work changes require fencing; harness-only changes
+apply before the next tool action. References alone do not establish these facts.
+Evidence availability checks retain history and distinguish missing bytes from a
+retained exact duplicate. These helpers neither stop processes nor delete storage,
+verify cryptographic signatures, dispatch agents or perform tracker I/O. Those
+integration proofs belong to the workflow phase.
