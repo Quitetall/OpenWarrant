@@ -34,7 +34,7 @@ def main():
     contract = ow / "docs/integrations/conditions.md"
     manifest = tomllib.loads((crate / "Cargo.toml").read_text())
     dependency = manifest["dependencies"]["openwarrant-core"]
-    expected_sdk = "f5c7ac0ee1d71e43437b3def2ed75693d5804553"
+    expected_sdk = "4b626f23b3076ff7e764f08eeb15e8bdfa6af5cd"
     if dependency != {"git": "https://github.com/Quitetall/OpenWarrant.git", "rev": expected_sdk}:
         raise ValueError("Provider does not consume the agreed SDK revision")
     fixtures = [("task.md", "conformance/sdk/source/task.md"),

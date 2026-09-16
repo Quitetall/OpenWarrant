@@ -1,0 +1,16 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0080",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "f8dc55dc714c8b22946134a2bcd7b9471d1d428a",
+  "summary": "Master and four-role task projections implemented and independently reviewed; exact rules and source labels retained. Compatible participant merges remain pending; no assurance claimed.",
+  "notes": "docs/warrants/OW-WAR-0080/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0080/implementation/projection-observation.json"
+  ],
+  "next_steps": [
+    "Merge compatible participant changes after required CI passes.",
+    "Keep implementation status separate from human assurance."
+  ]
+}
