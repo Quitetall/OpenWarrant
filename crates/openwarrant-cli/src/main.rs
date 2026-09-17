@@ -43,6 +43,7 @@ mod overview;
 mod perform;
 mod pins;
 mod plan;
+mod preflight_cmd;
 mod progress;
 mod progress_viewer;
 mod questions;
@@ -792,6 +793,8 @@ enum Command {
     Next,
     /// Warrants waiting on a human act (read-only; OW-WAR-0070).
     Inbox,
+    /// Report six readiness dimensions; unavailable checks block readiness.
+    Preflight { alias: String },
     /// List remaining Warrant records and status, read-only, from live sources.
     /// `progress` is an alias. Legacy resolution is not implementation completion.
     #[command(visible_alias = "progress")]
@@ -1794,6 +1797,18 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             }
             mcp::run(repository)?;
             Ok(EXIT_OK)
+        }
+        Command::Preflight { alias } => {
+            let repository = repo::Repository::discover(None)?;
+            let (result, report) = preflight_cmd::run(&repository, &alias)?;
+            match mode {
+                output::Mode::Human => print!("{}", preflight_cmd::render(&result)),
+                output::Mode::Json => println!(
+                    "{}",
+                    output::envelope("preflight", &report, Some(output::value(&result)))
+                ),
+            }
+            Ok(output::exit_code(&report))
         }
         Command::Inbox => {
             let repository = repo::Repository::discover(None)?;

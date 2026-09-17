@@ -6,6 +6,11 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+- Add partial read-only `war preflight <alias>` with all six SAS readiness
+  dimensions. Unobserved checks remain UNKNOWN and block readiness; no execution
+  permission or recorded state changes (OW-WAR-0011, remaining scope documented
+  in `docs/cli/preflight.md`).
+
 - Add read-only `war inbox`: human-waiting Warrants, blocking hotline questions,
   known/unknown transition ages, and a proposed versioned JSON result. Existing
   signing policy, records and schema pack remain unchanged (OW-WAR-0070).
