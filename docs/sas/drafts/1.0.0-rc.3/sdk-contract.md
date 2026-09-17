@@ -131,6 +131,47 @@ methods yield unsupported/unverified results, never successful authentication.
 Wire fixtures/schema and positive/refusal tests are Phase 1 deliverables before
 this proposal can be called implemented. They do not allocate real actors or keys.
 
+## Authority proposals and signed transitions
+
+Agents MAY draft authority-register changes. Editing a role, actor kind, key list,
+or policy file SHALL NOT make that change effective. The SDK SHALL distinguish a
+structurally valid proposal from an authenticated authority transition.
+
+A transition SHALL bind the repository identity, previous trusted authority
+revision, exact proposed revision, operation and format version. It SHALL be
+validated against the permissions and signing requirements of the previous
+trusted state. A proposed grant SHALL NOT authorize itself. Changing a signer,
+actor kind, role or policy SHALL follow the same transition rules; editable actor
+labels alone do not establish identity or human control.
+
+The SDK SHALL accept trusted bootstrap and current-state facts only through an
+explicit caller boundary. A repository file SHALL NOT establish its own trust
+anchor. Workflow/harness adapters SHALL protect the bootstrap trust anchor,
+current accepted revision, verifier and activation path from the execution agent.
+If that protection is unavailable, the workflow SHALL NOT claim enforced authority
+isolation. Moving files outside the checkout without isolating access is not
+sufficient. Git history and prompt instructions alone are not this protection.
+
+Activation SHALL compare against the current trusted revision and update it
+atomically; stale proposals and replays SHALL NOT replace newer state. Key rotation
+and recovery SHALL require the previously established administration/recovery
+policy, never a replacement policy supplied by the proposal. Unavailable trust
+or signature evidence SHALL prevent activation without being reported as pass.
+Historical signatures and prior revisions SHALL remain available; revocation
+SHALL NOT fabricate a different history.
+
+Workflow apps SHOULD let an agent prepare and validate a proposal, show the human
+an exact permission diff, then obtain one secure approval action. The approving
+signer must have the required permission in the previously trusted state. A
+signature alone does not prove human review if the agent can use the signing key
+without human control. Ungated unverified work SHALL retain its prompt-only path;
+this transition requirement applies to effective authority changes, not every
+Warrant edit or execution.
+
+See [authority transition implementation scope](authority-transition-plan.md).
+This is an unaccepted SAS candidate requirement, not a claim that the legacy
+register loader implements these protections.
+
 ## Assurance and secure human acceptance
 
 SAS RC.3 requires an actual human signing act for the common assurance mark. The

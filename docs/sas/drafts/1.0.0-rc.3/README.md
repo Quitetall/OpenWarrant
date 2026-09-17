@@ -64,3 +64,11 @@ unverified implementation. Formal adoption and human acceptance are required
 for the associated qualification claims, not a universal prototype start gate. Existing RC.2
 capture, human corrections and authorized work are retained in their own checkout;
 this isolated drafting checkout does not claim those uncommitted records are here.
+
+## Authority change boundary
+
+Agents may prepare authority changes; only transitions approved under previously
+trusted authority become effective. The [SDK contract](sdk-contract.md#authority-proposals-and-signed-transitions)
+defines the candidate requirements. The [implementation scope](authority-transition-plan.md)
+separates document checks, signature validation and isolated activation. Current
+legacy role/key files do not yet provide that boundary.
