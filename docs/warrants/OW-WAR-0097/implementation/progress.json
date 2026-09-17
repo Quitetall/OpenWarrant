@@ -1,0 +1,18 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0097",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "61a368166165fa892889427f0be13624bcfce098",
+  "summary": "Read-only doctor implemented with positive and refusal CLI controls; unverified completion, no admission or authority claim.",
+  "notes": "docs/warrants/OW-WAR-0097/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0097/implementation/evidence/gate.log",
+    "docs/warrants/OW-WAR-0097/implementation/evidence/cli-tests.log",
+    "docs/warrants/OW-WAR-0097/implementation/evidence/review.md"
+  ],
+  "next_steps": [
+    "Implement shared admission over exact subjects and runtime facts.",
+    "Complete protected authority cutover and secure approval clients."
+  ]
+}

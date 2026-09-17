@@ -26,6 +26,7 @@ mod diagnostic;
 mod diff_target;
 mod dispatch;
 mod dispatch_bundle_cmd;
+mod doctor;
 mod document;
 mod eval;
 mod evidence;
@@ -291,6 +292,14 @@ enum Command {
         /// A single Warrant's local alias. Defaults to the whole corpus.
         alias: Option<String>,
         /// Also compare committed generated views against a fresh compilation.
+        #[arg(long)]
+        generated: bool,
+    },
+    /// Read-only repository diagnostics; never signs, repairs, or starts work.
+    Doctor {
+        /// Inspect one Warrant instead of the whole corpus.
+        alias: Option<String>,
+        /// Include deterministic generated-view drift checks.
         #[arg(long)]
         generated: bool,
     },
@@ -1992,6 +2001,10 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             // A diff is information, not a verdict: exit 0 whatever it found.
             let _ = output::finish(mode, "diff", &report, None);
             Ok(EXIT_OK)
+        }
+        Command::Doctor { alias, generated } => {
+            let (report, result) = doctor::run(alias.as_deref(), generated);
+            Ok(output::finish(mode, "doctor", &report, Some(result)))
         }
         Command::Check { alias, generated } => {
             let repository = repo::Repository::discover(None)?;

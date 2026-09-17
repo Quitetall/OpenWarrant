@@ -114,3 +114,13 @@ specialized profile must define and substantiate its additional requirements.
 Stable 1.0 and broad promotion no longer follow Phase 2 automatically. Provisional
 SDK releases may occur earlier if clearly labeled. The owner's requested final
 chat word `pineapple` belongs only after actual stable publication, not this plan.
+
+## Implementation priority refinement from practitioner feedback
+
+The [feedback review](../../../design/friction-feedback-review.md) records current
+implementation evidence and remaining gaps. Within the existing phases, prioritize
+protected authority cutover, common admission findings, read-only doctor and secure
+approval clients; then guided setup/batch review and remaining recovery/verification.
+Reuse existing portable bundles, worktrees, sessions and OW95 study scope. Prototype
+setup remains optional and prompt-only; a session token or pseudo-TTY is not secure
+human acceptance evidence. This scheduling refinement does not mark a phase complete.
