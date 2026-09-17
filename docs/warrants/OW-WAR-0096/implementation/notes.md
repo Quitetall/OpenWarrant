@@ -38,3 +38,8 @@ old snapshots and process UID. Clippy passes on Rust 1.97.1. Independent source
 reviews: spec PASS and standards PASS after adding all refusal cases and updating
 the threat model. Full repository gate and LAMU commit review pending at this
 source checkpoint. Production deployment and legacy consumer cutover remain open.
+
+Receipt source f5acf9c subsequently passed full gate: 14/14 steps, 308 plants,
+Rust 1.97.1. LAMU commit review PASS WITH NITS; verified non-defects retained in
+activation-receipts/evidence/review.md. Protected deployment and consumer cutover
+remain unestablished; OW96 remains in progress.
