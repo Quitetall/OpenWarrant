@@ -370,11 +370,12 @@ enum Command {
         #[arg(long, value_name = "PATH")]
         emit: Option<camino::Utf8PathBuf>,
     },
-    /// Capture or check portable context for an existing Dispatch; never execute it.
+    /// Draft, authenticate and activate authority changes under previous trusted state.
     Authority {
         #[command(subcommand)]
         command: authority_cmd::Command,
     },
+    /// Capture or check portable context for an existing Dispatch; never execute it.
     DispatchBundle {
         #[command(subcommand)]
         command: dispatch_bundle_cmd::Command,
