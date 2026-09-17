@@ -173,7 +173,9 @@ fn doctor_accepts_clean_scaffold_and_refuses_generated_drift() {
             .as_array()
             .unwrap()
             .iter()
-            .any(|d| d["severity"] == "error" && d["rule"].as_str().unwrap().contains("drift"))
+            .any(|d| d["severity"] == "error"
+                && d["rule"] == "generated.drift"
+                && d["file"] == "docs/warrants/DOC-WAR-0001/generated/WAR.md")
     );
     assert_eq!(planted, snapshot(&root));
     fs::remove_dir_all(root).unwrap();
