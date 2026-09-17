@@ -1,5 +1,12 @@
 # OpenWarrant: less friction, safer AI implementation
 
+> **Current-status correction (2026-09-17):** The interview below is historical.
+> Current product candidate is [SAS RC.3](../sas/drafts/1.0.0-rc.3/README.md).
+> Several mechanisms have since been implemented as bounded reference paths.
+> See [practitioner feedback review](friction-feedback-review.md) for current
+> evidence, remaining gaps and delivery priorities. The older RC.2 note below
+> records its date's state; it is not the current implementation inventory.
+
 > **2026-09-14 update:** The owner directed completion of SAS **1.0.0-rc.2**
 > and testable Phase 1 scope before building. The [RC.2 source set](../sas/drafts/1.0.0-rc.2/README.md)
 > now consolidates these decisions, chooses the candidate format and assurance

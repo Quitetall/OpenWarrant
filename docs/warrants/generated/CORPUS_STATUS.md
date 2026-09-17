@@ -15,7 +15,7 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 
 - **SAS revision:** 1.0.0
 - **digest:** `sha256:b7105f5283052579f1ddfe1ab4e3ad5b1021515aeefd9fcfb21596d9a60d74e6`
-- Revision 1.0.0 is ACCEPTED (§101.2) and normative. A Warrant compiles against the revision its authorization recorded (§14), so a later revision does not move an authorized contract: 57 against 0.1.0-draft.1, 8 against 0.1.0-draft.3, 27 against 1.0.0.
+- Revision 1.0.0 is ACCEPTED (§101.2) and normative. A Warrant compiles against the revision its authorization recorded (§14), so a later revision does not move an authorized contract: 57 against 0.1.0-draft.1, 8 against 0.1.0-draft.3, 28 against 1.0.0.
 
 **Requirements (61 in §106)** — strictest rung first:
 
@@ -38,7 +38,7 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 | roadmap://OW-PHASE-8: Liminal production compiler | OW-WAR-0048 | blocked by OW-WAR-0040, OW-WAR-0048 | 0 | 2 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-9: High-assurance controls | — | not derivable — no member carries the `exit` slug | 0 | 4 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-10: Contractor Work Order profile | — | not derivable — no Warrant names this phase | 0 | 0 | 0 | 0 | 0 |
-| *unassigned — declares no [[roadmap]]* | — | not derivable — a Warrant naming no phase belongs to no Objective | 0 | 25 | 0 | 0 | 0 |
+| *unassigned — declares no [[roadmap]]* | — | not derivable — a Warrant naming no phase belongs to no Objective | 0 | 26 | 0 | 0 | 0 |
 
 - **roadmap://OW-PHASE-0** exit: real distributions for authoring cost, amendment types, and failure causes.
 - **roadmap://OW-PHASE-1** exit: OpenWarrant development uses WARs.
@@ -63,16 +63,16 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | requirement | Warrants blocked |
 |---|---|
-| artifact digests verify | 38 |
-| required deliverables exist | 38 |
-| every required gate has admissible result | 36 |
-| no blocker remains | 35 |
-| no required unknown remains | 35 |
-| every required obligation is dispositioned | 33 |
-| independence requirements are met | 33 |
-| exact authorized Contract Revision | 23 |
-| required judgments exist | 9 |
-| residual risks have sufficient authority | 9 |
+| artifact digests verify | 39 |
+| required deliverables exist | 39 |
+| every required gate has admissible result | 37 |
+| no blocker remains | 36 |
+| no required unknown remains | 36 |
+| every required obligation is dispositioned | 34 |
+| independence requirements are met | 34 |
+| exact authorized Contract Revision | 24 |
+| required judgments exist | 10 |
+| residual risks have sufficient authority | 10 |
 | runtime receipts match the basis | 3 |
 
 ## Requirements (SAS §106, §34.3)
@@ -151,7 +151,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-084` | claimed | 0 | OW-WAR-0030 (complete), OW-WAR-0064 (partial) |
 | `WAR-SAS-RQ-085` | claimed | 0 | OW-WAR-0067 (partial), OW-WAR-0071 (partial), OW-WAR-0072 (partial) |
 
-## Warrants (92) — invalid 0 · draft 44 · ready_to_resolve 19 · would_satisfy 0 · resolved **29**
+## Warrants (93) — invalid 0 · draft 45 · ready_to_resolve 19 · would_satisfy 0 · resolved **29**
 
 | Warrant | rung | §38.6 | blocking unknowns | milestones evidenced | first unmet |
 |---|---|---|---|---|---|
@@ -247,6 +247,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0094` Connected-agent execution workflow and model-neutral drafting roadmap | draft | unknown | 0 | 0 of 1 | exact authorized Contract Revision |
 | `OW-WAR-0095` Three-developer reference workflow qualification study | draft | unknown | 0 | 0 of 1 | exact authorized Contract Revision |
 | `OW-WAR-0096` Authenticate authority changes through signed transitions and protected activation | draft | unknown | 0 | 0 of 1 | exact authorized Contract Revision |
+| `OW-WAR-0097` Read-only repository doctor and actionable readiness diagnostics | draft | unknown | 0 | 0 of 1 | exact authorized Contract Revision |
 
 ## Not reported here
 
