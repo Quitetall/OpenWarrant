@@ -13,7 +13,7 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 mod server;
-mod source;
+pub(crate) mod source;
 
 const REPORT_SCHEMA: &str = "oh.war/viewer-work-report/v1";
 const HTML: &str = include_str!("progress_viewer/view.html");

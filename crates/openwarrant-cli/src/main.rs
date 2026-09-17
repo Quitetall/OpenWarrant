@@ -24,6 +24,7 @@ mod correct;
 mod diagnostic;
 mod diff_target;
 mod dispatch;
+mod dispatch_bundle_cmd;
 mod document;
 mod eval;
 mod evidence;
@@ -368,10 +369,12 @@ enum Command {
         #[arg(long, value_name = "PATH")]
         emit: Option<camino::Utf8PathBuf>,
     },
+    /// Capture or check portable context for an existing Dispatch; never execute it.
+    DispatchBundle {
+        #[command(subcommand)]
+        command: dispatch_bundle_cmd::Command,
+    },
     /// Compile a Stage Dispatch for one stage of a Warrant (§47).
-    ///
-    /// The only packet a stateless actor receives. Built from the Warrant's
-    /// own atoms; digested under §65's Dispatch domain; never executed here.
     Dispatch {
         /// The Warrant's local alias.
         alias: String,
@@ -1349,6 +1352,15 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             let repository = repo::Repository::discover(None)?;
             let report = blut::lower(&repository, &alias, verify.as_deref(), emit.as_deref())?;
             Ok(output::finish(mode, "blut", &report, None))
+        }
+        Command::DispatchBundle { command } => {
+            let (report, result) = dispatch_bundle_cmd::run(command)?;
+            Ok(output::finish(
+                mode,
+                "dispatch-bundle",
+                &report,
+                Some(result),
+            ))
         }
         Command::Dispatch {
             alias,
