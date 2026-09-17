@@ -25,3 +25,16 @@ Observe real human approval/cancellation and separate-account denials.
 Legacy roles.toml consumers remain legacy; this candidate does not silently
 replace their authority, retroactively authenticate history or claim a mark.
 These host-specific cutover steps are not established by disposable fixture keys.
+
+## Activation receipt continuation
+
+Owner-approved feedback adds atomic local activation observations: exact proposal,
+previous/new heads, authenticated signers, process UID and wall-clock seconds.
+Older snapshots remain readable with explicit missing-receipt count. Receipt
+metadata does not establish human presence, trusted time or portable authenticity.
+
+Focused CLI test passes, including each subject/signer mismatch, invalid sequence,
+old snapshots and process UID. Clippy passes on Rust 1.97.1. Independent source
+reviews: spec PASS and standards PASS after adding all refusal cases and updating
+the threat model. Full repository gate and LAMU commit review pending at this
+source checkpoint. Production deployment and legacy consumer cutover remain open.

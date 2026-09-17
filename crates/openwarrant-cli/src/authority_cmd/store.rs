@@ -10,7 +10,29 @@ struct State {
     genesis: Revision,
     legacy: BTreeMap<String, Vec<u8>>,
     transitions: Vec<Signed>,
+    // Absent on older snapshots. Never invent observation times for old acts.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    activation_receipts: BTreeMap<u64, ActivationReceipt>,
 }
+#[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ActivationReceipt {
+    transition_digest: String,
+    previous_head: String,
+    new_head: String,
+    authenticated_signers: Vec<String>,
+    operator_uid: Option<u32>,
+    observed_at_unix_seconds: u64,
+}
+#[cfg(unix)]
+fn operator_uid() -> Option<u32> {
+    Some(rustix::process::geteuid().as_raw())
+}
+#[cfg(not(unix))]
+fn operator_uid() -> Option<u32> {
+    None
+}
+
 impl State {
     fn current(&self) -> &Revision {
         self.transitions
@@ -30,11 +52,29 @@ impl State {
             signing::verify(previous, t)?;
             previous = &t.proposal.next;
         }
+        for (sequence, receipt) in &self.activation_receipts {
+            let index = sequence
+                .checked_sub(1)
+                .and_then(|n| usize::try_from(n).ok())
+                .ok_or_else(|| err("authority-receipt-sequence"))?;
+            let transition = self
+                .transitions
+                .get(index)
+                .ok_or_else(|| err("authority-receipt-sequence"))?;
+            if receipt.transition_digest != transition.proposal.digest().map_err(err)?
+                || receipt.previous_head != transition.proposal.previous_digest
+                || receipt.new_head != transition.proposal.next.digest().map_err(err)?
+                || receipt.authenticated_signers
+                    != transition.signatures.keys().cloned().collect::<Vec<_>>()
+            {
+                return Err(err("authority-receipt-subject"));
+            }
+        }
         Ok(())
     }
     fn view(&self) -> Result<serde_json::Value> {
         Ok(
-            serde_json::json!({"current":self.current(),"head":self.current().digest().map_err(err)?,"transitions":self.transitions.len(),"legacy_files":self.legacy.keys().collect::<Vec<_>>(),"isolation_enforced":false,"storage_boundary":if self.unprotected_test_store{"unprotected-test"}else{"separate-account-required"},"configured_agent_uid":self.agent_uid,"human_review_established":false}),
+            serde_json::json!({"current":self.current(),"head":self.current().digest().map_err(err)?,"transitions":self.transitions.len(),"legacy_files":self.legacy.keys().collect::<Vec<_>>(),"isolation_enforced":false,"storage_boundary":if self.unprotected_test_store{"unprotected-test"}else{"separate-account-required"},"configured_agent_uid":self.agent_uid,"human_review_established":false,"activation_receipts":self.activation_receipts,"missing_activation_receipts":self.transitions.len()-self.activation_receipts.len(),"activation_time_authenticated":false}),
         )
     }
 }
@@ -171,6 +211,7 @@ pub(super) fn bootstrap(
         genesis,
         legacy: retained,
         transitions: Vec::new(),
+        activation_receipts: BTreeMap::new(),
     };
     persist(root, &state)?;
     state.view()
@@ -184,6 +225,20 @@ pub(super) fn activate(root: &Path, record: Signed, test: bool) -> Result<serde_
     if state.transitions.len() >= 4096 {
         return Err(err("authority-store-full"));
     }
+    let receipt = ActivationReceipt {
+        transition_digest: record.proposal.digest().map_err(err)?,
+        previous_head: record.proposal.previous_digest.clone(),
+        new_head: record.proposal.next.digest().map_err(err)?,
+        authenticated_signers: record.signatures.keys().cloned().collect(),
+        operator_uid: operator_uid(),
+        observed_at_unix_seconds: std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_err(err)?
+            .as_secs(),
+    };
+    state
+        .activation_receipts
+        .insert(record.proposal.next.sequence, receipt);
     state.transitions.push(record);
     persist(root, &state)?;
     state.view()
