@@ -30,3 +30,13 @@ Cryptographic authentication does not establish human presence. A deployment
 must protect key use and the verifier and must route privileged operations through
 trusted current state. Unverified prototyping remains independent. Legacy
 records remain byte-preserved and do not acquire new authority retroactively.
+
+The implementation-local store may include `activation_receipts`, keyed by next
+revision sequence. Each observation records transition digest, previous/new heads,
+authenticated signer IDs, operator UID and local Unix seconds. Receipts share the
+atomic state write. They are not new signing subjects; revision/proposal encodings
+and digest domains remain unchanged. The protected operator store owns observation
+integrity. Exported receipts alone prove neither their origin nor trustworthy time.
+Older snapshots omit the map; missing observations remain visible rather than
+being synthesized. An observation must bind an actual retained transition and its
+verified signer set. Human presence remains unestablished by this adapter.

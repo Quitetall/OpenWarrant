@@ -145,6 +145,108 @@ fn unsigned_proposal_cannot_activate_and_signed_transition_survives_restart() {
     let status: serde_json::Value = serde_json::from_slice(&status.stdout).unwrap();
     assert_eq!(status["result"]["current"]["sequence"], 1);
     assert_eq!(status["result"]["isolation_enforced"], false);
+    let receipt = &status["result"]["activation_receipts"]["1"];
+    assert_eq!(receipt["previous_head"], digest);
+    assert_eq!(receipt["new_head"], status["result"]["head"]);
+    assert_eq!(
+        receipt["authenticated_signers"],
+        serde_json::json!(["owner"])
+    );
+    assert!(receipt["observed_at_unix_seconds"].as_u64().unwrap() > 0);
+    assert_eq!(status["result"]["missing_activation_receipts"], 0);
+    assert_eq!(status["result"]["activation_time_authenticated"], false);
+    assert_eq!(status["result"]["human_review_established"], false);
+    let saved = fs::read(store.join("state.json")).unwrap();
+    let mut changed: serde_json::Value = serde_json::from_slice(&saved).unwrap();
+    changed["activation_receipts"]["1"]["new_head"] = "sha256:wrong".into();
+    fs::write(
+        store.join("state.json"),
+        serde_jcs::to_vec(&changed).unwrap(),
+    )
+    .unwrap();
+    let refused = war(&[
+        "authority",
+        "status",
+        "--store",
+        text(&store),
+        "--unprotected-test-store",
+    ]);
+    assert!(!refused.status.success());
+    assert!(String::from_utf8_lossy(&refused.stderr).contains("authority-receipt-subject"));
+    #[cfg(unix)]
+    assert_eq!(receipt["operator_uid"], rustix::process::geteuid().as_raw());
+    for field in [
+        "transition_digest",
+        "previous_head",
+        "authenticated_signers",
+    ] {
+        let mut planted: serde_json::Value = serde_json::from_slice(&saved).unwrap();
+        planted["activation_receipts"]["1"][field] = if field == "authenticated_signers" {
+            serde_json::json!(["intruder"])
+        } else {
+            serde_json::json!("sha256:wrong")
+        };
+        fs::write(
+            store.join("state.json"),
+            serde_jcs::to_vec(&planted).unwrap(),
+        )
+        .unwrap();
+        let refused = war(&[
+            "authority",
+            "status",
+            "--store",
+            text(&store),
+            "--unprotected-test-store",
+        ]);
+        assert!(!refused.status.success());
+        assert!(String::from_utf8_lossy(&refused.stderr).contains("authority-receipt-subject"));
+    }
+    for sequence in ["0", "2"] {
+        let mut planted: serde_json::Value = serde_json::from_slice(&saved).unwrap();
+        let map = planted["activation_receipts"].as_object_mut().unwrap();
+        let entry = map.remove("1").unwrap();
+        map.insert(sequence.into(), entry);
+        fs::write(
+            store.join("state.json"),
+            serde_jcs::to_vec(&planted).unwrap(),
+        )
+        .unwrap();
+        let refused = war(&[
+            "authority",
+            "status",
+            "--store",
+            text(&store),
+            "--unprotected-test-store",
+        ]);
+        assert!(!refused.status.success());
+        assert!(String::from_utf8_lossy(&refused.stderr).contains("authority-receipt-sequence"));
+    }
+    // Old snapshots remain loadable, but missing receipts stay missing.
+    changed
+        .as_object_mut()
+        .unwrap()
+        .remove("activation_receipts");
+    fs::write(
+        store.join("state.json"),
+        serde_jcs::to_vec(&changed).unwrap(),
+    )
+    .unwrap();
+    let legacy = war(&[
+        "authority",
+        "status",
+        "--store",
+        text(&store),
+        "--unprotected-test-store",
+        "--json",
+    ]);
+    assert!(legacy.status.success());
+    let legacy: serde_json::Value = serde_json::from_slice(&legacy.stdout).unwrap();
+    assert_eq!(legacy["result"]["missing_activation_receipts"], 1);
+    assert_eq!(
+        legacy["result"]["activation_receipts"],
+        serde_json::json!({})
+    );
+    fs::write(store.join("state.json"), saved).unwrap();
     let replay = war(&[
         "authority",
         "activate",

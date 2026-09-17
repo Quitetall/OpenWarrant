@@ -119,3 +119,18 @@ SDK: `openwarrant_core::authority_transition`. Candidate schema, canonicalizatio
 limits and domains: [ADR](../sas/drafts/1.0.0-rc.3/authority-transition.adr.md).
 Current limits:64KiB records,128 principals,32 roles per principal,4096 transitions,
 8MiB retained store. Capacity exhaustion refuses rather than deleting history.
+
+## Activation observations
+
+New activations atomically retain a receipt alongside history and head: proposal
+digest, previous/new heads, principals whose prior-key signatures verified, process
+operator UID and observed Unix seconds. Status/history expose these receipts.
+They identify the verified keys and local process; they do not identify a human
+reviewer or prove physical presence. `activation_time_authenticated` remains false:
+a local wall clock is an observation, not an independently authenticated timestamp.
+
+Older snapshots without receipts remain readable. `missing_activation_receipts`
+reports the gap; the CLI never backfills invented actors or times. Receipt subject
+mismatches refuse loading. The protected store retains observations; exports do not
+cryptographically authenticate these receipt fields or transfer trust. Earlier CLI
+versions may refuse snapshots containing the new optional receipt map.
