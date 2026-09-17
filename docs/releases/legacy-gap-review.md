@@ -53,3 +53,10 @@ questions, last-transition age, strict damaged-input refusal and provisional JSO
 See [implementation evidence and limits](../warrants/OW-WAR-0070/implementation/notes.md).
 This is completed/unverified work; ADR0018 remains proposed and no legacy
 assurance disposition or resolution has been replaced.
+
+## Follow-up: OW11 partial Preflight (2026-09-16)
+
+Source `1bb248699e38ac6de5f279380ab63a4943e1ba40` adds the six-dimension CLI and refusal tests.
+[Evidence and remaining scope](../warrants/OW-WAR-0011/implementation/notes.md)
+keep runtime/gate/authority checks and signed checker wording correction visible.
+OW11 remains in progress and unverified; historical records are unchanged.
