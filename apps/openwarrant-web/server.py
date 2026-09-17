@@ -502,7 +502,7 @@ class Handler(BaseHTTPRequestHandler):
             if self.command == "GET" and history:
                 return self.reply(200, store.get(history[1], int(history[2])))
             if (
-                self.command == "POST" and self.path in ("/api/warrants", "/api/runs")
+                self.command == "POST" and self.path in ("/api/warrants", "/api/runs", "/api/admission")
             ) or (self.command == "PUT" and match):
                 if (
                     self.headers.get_all("Content-Type") != ["application/json"]
@@ -520,9 +520,11 @@ class Handler(BaseHTTPRequestHandler):
                 if len(body) != size:
                     raise Refusal(400, "Incomplete request")
                 fields = decode(body)
-                if self.path == "/api/runs":
+                if self.path in ("/api/runs", "/api/admission"):
                     if self.server.executor is None:
                         raise Refusal(409, "Execution harness not configured")
+                    if self.path == "/api/admission":
+                        return self.reply(200, self.server.executor.admission(fields))
                     return self.reply(202, self.server.executor.start(fields))
                 expected = None
                 if self.command == "PUT":

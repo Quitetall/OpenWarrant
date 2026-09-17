@@ -118,3 +118,17 @@ qualification remain next slices. A successful synthetic run is not Phase3 exit.
 Run `python3 apps/openwarrant-web/test_execution.py ExecutionTests` alongside the
 existing HTTP tests and repository gate. It uses real subprocesses, Git worktrees
 and HTTP, with deterministic synthetic harness responses and no model calls.
+
+## Start requirement preview
+
+`POST /api/admission` accepts the same exact `warrant_id` and `source_sha256`
+as `POST /api/runs`, using the same authenticated session and body limits.
+The browser's **Check start requirements** action displays this read-only snapshot.
+It reports the first blocking requirement, `ready`, or `unknown` when inputs or
+Git observations are unavailable. It never reserves a writer or grants dispatch.
+
+Start re-runs the shared checks under the execution/authoring lock. Worktree
+identity, exclusive writer claim and harness launch remain action-time checks;
+a ready preview cannot guarantee them. Qualification stays false. This reference
+workflow seam does not unify legacy `next`, `frontier`, `perform` or `console`
+admission, and does not establish protected authority or human presence.

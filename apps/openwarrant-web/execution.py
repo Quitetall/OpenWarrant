@@ -211,7 +211,7 @@ class Executor:
             text=True,
         ).strip()
 
-    def start(self, fields):
+    def _check_start(self, fields):
         require(
             isinstance(fields, dict) and set(fields) == {"warrant_id", "source_sha256"},
             "Expected exact Warrant identity and source digest",
@@ -224,65 +224,92 @@ class Executor:
             403,
         )
         p = self.config["warrants"][id]
-        # Lock authoring through admission; later edits create a new draft revision,
-        # while the running attempt keeps its exact immutable old source.
-        with self.lock:
-            record = self.store.get(id)
+        record = self.store.get(id)
+        require(
+            record["source_sha256"]
+            == fields["source_sha256"]
+            == p["source_sha256"],
+            "Changed subject; review execution configuration",
+        )
+        require(
+            not p["verified_start"],
+            "Verified-start requirement unsupported by this unverified workflow",
+            403,
+        )
+        require(
+            self.config["cost_mode"] == "free"
+            or self.config["spend_limit_usd"] is None,
+            "Unknown cost cannot satisfy a hard spend cap",
+            403,
+        )
+        existing = self.records()
+        require(len(existing) < 256, "Attempt inventory limit exceeded")
+        attempts = [
+            self.view(r) for r in existing.values() if r["warrant_id"] == id
+        ]
+        require(
+            not any(r["execution_state"] != "stopped" for r in attempts),
+            "Existing writer running or unknown; replacement refused",
+        )
+        require(
+            not any(
+                r["work_state"] == "completed"
+                and r["source_sha256"] == p["source_sha256"]
+                for r in attempts
+            ),
+            "Exact subject already completed",
+        )
+        require(
+            len(attempts) < 1 + self.config["repair_cycles"],
+            "Repair cycle limit reached",
+        )
+        for dep in p["dependencies"]:
             require(
-                record["source_sha256"]
-                == fields["source_sha256"]
-                == p["source_sha256"],
-                "Changed subject; review execution configuration",
-            )
-            require(
-                not p["verified_start"],
-                "Verified-start requirement unsupported by this unverified workflow",
-                403,
-            )
-            require(
-                self.config["cost_mode"] == "free"
-                or self.config["spend_limit_usd"] is None,
-                "Unknown cost cannot satisfy a hard spend cap",
-                403,
-            )
-            existing = self.records()
-            require(len(existing) < 256, "Attempt inventory limit exceeded")
-            attempts = [
-                self.view(r) for r in existing.values() if r["warrant_id"] == id
-            ]
-            require(
-                not any(r["execution_state"] != "stopped" for r in attempts),
-                "Existing writer running or unknown; replacement refused",
-            )
-            require(
-                not any(
-                    r["work_state"] == "completed"
-                    and r["source_sha256"] == p["source_sha256"]
-                    for r in attempts
+                any(
+                    r["warrant_id"] == dep
+                    and r["source_sha256"]
+                    == self.config["warrants"][dep]["source_sha256"]
+                    and r["work_state"] == "completed"
+                    and r["execution_state"] == "stopped"
+                    for r in existing.values()
                 ),
-                "Exact subject already completed",
+                "Required dependency is incomplete",
             )
-            require(
-                len(attempts) < 1 + self.config["repair_cycles"],
-                "Repair cycle limit reached",
-            )
-            for dep in p["dependencies"]:
-                require(
-                    any(
-                        r["warrant_id"] == dep
-                        and r["source_sha256"]
-                        == self.config["warrants"][dep]["source_sha256"]
-                        and r["work_state"] == "completed"
-                        and r["execution_state"] == "stopped"
-                        for r in existing.values()
-                    ),
-                    "Required dependency is incomplete",
-                )
-            require(
-                self.git("rev-parse", p["base_commit"] + "^{commit}")
-                == p["base_commit"],
-                "Base commit unavailable",
-            )
+        require(
+            self.git("rev-parse", p["base_commit"] + "^{commit}")
+            == p["base_commit"],
+            "Base commit unavailable",
+        )
+        return id, p, record
+
+    def admission(self, fields):
+        """Advisory snapshot. Never reserves a writer or authorizes dispatch."""
+        with self.lock:
+            try:
+                self._check_start(fields)
+            except ExecutionError as error:
+                if error.status == 400:
+                    raise
+                state, reason = "blocked", error.message
+            except (OSError, KeyError, TypeError, ValueError, subprocess.SubprocessError):
+                state, reason = "unknown", "Stored inputs or Git base unavailable"
+            else:
+                state, reason = "ready", "Configured start requirements satisfied"
+            return {
+                "schema": "oh.war/start-preview/v1",
+                "subject": fields,
+                "state": state,
+                "reason": reason,
+                "dispatch_permitted": False,
+                "qualified": False,
+                "remaining_checks": ["worktree identity", "exclusive writer claim", "harness launch"],
+            }
+
+    def start(self, fields):
+        # Re-evaluate live facts under the same lock used by authoring. A preview
+        # is not a grant, reservation, or substitute for this check.
+        with self.lock:
+            id, p, record = self._check_start(fields)
             worktree = self.root / ("worktree-" + id)
             if worktree.exists():
                 require(
@@ -325,7 +352,7 @@ class Executor:
                 "attempt_id": attempt,
                 "sequence": 1,
                 "warrant_id": id,
-                "source_sha256": record["source_sha256"],
+                "source_sha256": p["source_sha256"],
                 "base_commit": p["base_commit"],
                 "worktree": str(worktree),
                 "work_state": "in-progress",
