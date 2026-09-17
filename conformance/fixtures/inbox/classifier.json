@@ -1,0 +1,30 @@
+[
+  {
+    "phase": "draft",
+    "expected": "agent"
+  },
+  {
+    "phase": "proposed",
+    "expected": "agent"
+  },
+  {
+    "phase": "authorized",
+    "expected": "agent"
+  },
+  {
+    "phase": "ready",
+    "expected": "agent"
+  },
+  {
+    "phase": "executing",
+    "expected": "agent"
+  },
+  {
+    "phase": "verifying",
+    "expected": "gate"
+  },
+  {
+    "phase": "resolved",
+    "expected": "none"
+  }
+]

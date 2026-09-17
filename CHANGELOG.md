@@ -6,6 +6,10 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+- Add read-only `war inbox`: human-waiting Warrants, blocking hotline questions,
+  known/unknown transition ages, and a proposed versioned JSON result. Existing
+  signing policy, records and schema pack remain unchanged (OW-WAR-0070).
+
 ## [1.0.0] — released when the `v1.0.0` tag exists; until then this is the plan's ledger
 
 **The protocol is stable from 1.0.0.** Every `oh.war/*/v1` record shape, every

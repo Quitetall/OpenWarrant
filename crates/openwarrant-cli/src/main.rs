@@ -30,6 +30,7 @@ mod evidence;
 mod export;
 mod frontier;
 mod gate_cmd;
+mod inbox;
 mod init;
 mod journal_cmd;
 mod kf;
@@ -789,6 +790,8 @@ enum Command {
     /// What should happen next, and whose act it is. An agent is never handed
     /// a signing act; it is told that a human must sign, and how.
     Next,
+    /// Warrants waiting on a human act (read-only; OW-WAR-0070).
+    Inbox,
     /// List remaining Warrant records and status, read-only, from live sources.
     /// `progress` is an alias. Legacy resolution is not implementation completion.
     #[command(visible_alias = "progress")]
@@ -1790,6 +1793,17 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 return Ok(EXIT_OK);
             }
             mcp::run(repository)?;
+            Ok(EXIT_OK)
+        }
+        Command::Inbox => {
+            let repository = repo::Repository::discover(None)?;
+            let inbox = inbox::run(&repository)?;
+            output::emit(
+                mode,
+                "inbox",
+                inbox::render(&inbox).trim_end(),
+                output::value(&inbox),
+            );
             Ok(EXIT_OK)
         }
         Command::Next => {

@@ -44,3 +44,12 @@ targets, retained contract:N lookup and recomputed digest-input attribution at
 source `4c8d5733e4336a26be34568fc2addebb11c109d9`. See [bounded evidence and limitations](../warrants/OW-WAR-0037/implementation/history-repair.md).
 Implementation is reported complete/unverified. The historical NOT SATISFIED
 outcome and signed records are unchanged; this is not accepted reconciliation.
+
+## Follow-up: OW70 implementation completed (2026-09-16)
+
+The earlier inventory remains historical. OW70 now supplies `war inbox` at source
+`503dc044c9ec2c9308dd13569372bc3d109a6ebc`: signing requests and blocking hotline
+questions, last-transition age, strict damaged-input refusal and provisional JSON.
+See [implementation evidence and limits](../warrants/OW-WAR-0070/implementation/notes.md).
+This is completed/unverified work; ADR0018 remains proposed and no legacy
+assurance disposition or resolution has been replaced.

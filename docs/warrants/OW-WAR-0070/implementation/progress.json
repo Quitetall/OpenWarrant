@@ -1,0 +1,19 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0070",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "503dc044c9ec2c9308dd13569372bc3d109a6ebc",
+  "summary": "Read-only human-waiting inbox complete, unverified: signing requests and blocking hotline questions, transition ages, provisional JSON, strict input refusal. Historical authority and assurance unchanged.",
+  "notes": "docs/warrants/OW-WAR-0070/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0070/implementation/evidence/focused-tests.log",
+    "docs/warrants/OW-WAR-0070/implementation/evidence/schema.log",
+    "docs/warrants/OW-WAR-0070/implementation/evidence/independent-review.md",
+    "docs/warrants/OW-WAR-0070/implementation/evidence/gate-before-final-container-guards.log"
+  ],
+  "next_steps": [
+    "Human adoption of proposed OW-ADR-0018 remains separate; candidate JSON is not in the frozen schema pack.",
+    "Formal assurance disposition and human acceptance/resolution remain separate from this implementation report."
+  ]
+}
