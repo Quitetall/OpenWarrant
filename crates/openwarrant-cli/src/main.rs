@@ -10,6 +10,7 @@ use clap::{Parser, Subcommand};
 use openwarrant_core::Profile;
 
 mod attest;
+mod authority_cmd;
 mod authorize;
 mod blut;
 mod bonsai;
@@ -370,6 +371,10 @@ enum Command {
         emit: Option<camino::Utf8PathBuf>,
     },
     /// Capture or check portable context for an existing Dispatch; never execute it.
+    Authority {
+        #[command(subcommand)]
+        command: authority_cmd::Command,
+    },
     DispatchBundle {
         #[command(subcommand)]
         command: dispatch_bundle_cmd::Command,
@@ -1352,6 +1357,10 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             let repository = repo::Repository::discover(None)?;
             let report = blut::lower(&repository, &alias, verify.as_deref(), emit.as_deref())?;
             Ok(output::finish(mode, "blut", &report, None))
+        }
+        Command::Authority { command } => {
+            let (report, result) = authority_cmd::run(command)?;
+            Ok(output::finish(mode, "authority", &report, Some(result)))
         }
         Command::DispatchBundle { command } => {
             let (report, result) = dispatch_bundle_cmd::run(command)?;

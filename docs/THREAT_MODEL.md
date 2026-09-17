@@ -48,3 +48,28 @@ Each "Exercised by" cell names a test or plant that exists, or an operator duty
 that cannot be one. When a control changes, the entry changes in the same
 commit; when a residual closes, the entry says which slice closed it. A row
 whose control is only a sentence is a row to be suspicious of.
+
+## Candidate signed authority transitions (OW-WAR-0096)
+
+The `war authority` surface is separate from the legacy `roles.toml` and
+`allowed_signers` loader described above. Legacy commands still use those legacy
+files; installing this candidate does not silently migrate their trust or make
+existing signatures authenticate historical role grants. Production cutover
+requires a trusted workflow to consume the new store and refuse legacy fallback.
+
+| Threat | Control | Evidence and residual |
+|---|---|---|
+| An agent edits roles or substitutes its own key | Proposals are inert; activation checks signatures against the previous trusted revision and administration/recovery role | SDK and CLI controls refuse unsigned, self-granted and wrong-key updates. Human custody of administrative/recovery keys is still an operator responsibility; `human_review_established` is always false here. |
+| A signature approves different work or repository | Dedicated signing namespace and domain-separated canonical proposal bytes include repository, parent digest, operation and full next revision | Tampered-proposal CLI refusal and SDK wrong-repository/parent controls. Unknown formats and noncanonical encodings refuse. |
+| An attacker substitutes the signature verifier through PATH | Verification invokes `/usr/bin/ssh-keygen` with a cleared environment | CLI poisoned-PATH control refuses a fake signature despite a replacement executable returning success. System executable, dynamic loader, CLI and host OS must be protected from the execution account. |
+| Old signed state is replayed or two writers race | Current accepted state is outside the execution account; activation locks, reloads and checks parent, then atomically replaces one snapshot containing history and head | Replay and concurrent activation controls. A file-store operator able to replace trusted state can roll it back; signature chains alone do not prevent this. |
+| Crash splits history from current head | One synced snapshot is renamed, followed by directory sync | Old/new complete file is the recovery unit. Orphan pending files are never accepted. A failure after rename but before successful directory sync has uncertain durability: caller reads status before retrying. Physical disk-loss/power-cut qualification is not established by unit tests. |
+| “Outside the repo” is mistaken for isolation | Normal store mode requires a distinct configured execution UID, private owner directory and non-writable ancestors; test mode is explicit | Same-account bootstrap and mode mismatch refuse. `isolation_enforced` stays false: these checks cannot prove actual account deployment, ACLs, sudo rules, host privileges or protected executable installation. |
+| Agent reaches store, signing socket or host credentials | Linux reference runner exposes only runtime libraries and dedicated task workspace; separate namespaces, empty environment, no network/home/socket mounts | Local sandbox probe observed task writes succeed and outside authority writes fail. Workspace must exclude authority and credentials. Runner/bwrap installation must be protected. Unrestricted agents outside this runner are not contained. |
+| Migration rewrites or blesses history | Bootstrap retains exact legacy role/key bytes; independently supplied revision digest establishes the new baseline | CLI migration/history export checks preserve originals. Bootstrap must be performed by the operator through a protected path; it is never inferred from the legacy key list. |
+
+`authority allows` checks a current role and exact head. It does not authenticate
+its caller or perform a privileged action. A trusted workflow must authenticate
+the acting principal and enforce the result atomically with, or recheck it before,
+the protected action. Removing keys affects future transitions; prior signed
+history is verified against the key set that was current for that transition.

@@ -1,0 +1,21 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0096",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "639b866313ccb98981a32c57a28e0e690b9275cf",
+  "summary": "Signed authority SDK, CLI, atomic store, retained migration and Linux sandbox reference implemented and tested. Protected deployment, human key custody and legacy consumer cutover remain unestablished.",
+  "notes": "docs/warrants/OW-WAR-0096/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0096/implementation/evidence/gate.log",
+    "docs/warrants/OW-WAR-0096/implementation/evidence/cli-tests.log",
+    "docs/warrants/OW-WAR-0096/implementation/evidence/clippy.log",
+    "docs/warrants/OW-WAR-0096/implementation/evidence/sandbox.log",
+    "docs/warrants/OW-WAR-0096/implementation/evidence/review.md"
+  ],
+  "next_steps": [
+    "Provision protected operator/key environment and independently bootstrap real authority.",
+    "Route privileged consumers through trusted current-state checks with no legacy fallback.",
+    "Observe human approval/cancellation and deployed account isolation before claiming enforcement."
+  ]
+}

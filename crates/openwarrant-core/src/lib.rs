@@ -12,6 +12,7 @@
 #![forbid(unsafe_code)]
 
 pub mod authority;
+pub mod authority_transition;
 pub mod autonomy;
 pub mod context;
 pub mod deliverable;
