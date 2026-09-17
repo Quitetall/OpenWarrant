@@ -312,8 +312,13 @@ fn missing_or_changed_bytes_refuse_even_when_outer_digest_is_recomputed() {
     }
     let mut raw = original.clone();
     raw.push(b' ');
-    assert!(b::check(&raw, &b::content_digest(&original))
-        .err().unwrap().to_string().contains("bundle-root-digest"));
+    assert!(
+        b::check(&raw, &b::content_digest(&original))
+            .err()
+            .unwrap()
+            .to_string()
+            .contains("bundle-root-digest")
+    );
     assert!(b::check(&raw, &b::content_digest(&raw)).is_err());
     fs::remove_dir_all(root).unwrap();
 }
