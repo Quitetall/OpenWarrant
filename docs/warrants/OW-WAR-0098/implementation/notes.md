@@ -11,4 +11,4 @@ tests. Corpus generated check passed. Spec source review passed with one UI nit:
 preview now uses the same unsaved-edit and history guards as Start. Standards
 source review passed. Neither reviewer independently ran runtime qualification.
 
-Full repository gate and commit review remain pending at this checkpoint.
+Full repository gate passed: 14/14 steps and 308 plants on c1e1f61. LAMU commit review returned PASS WITH NITS; false positives and addressed UI duplication are recorded in evidence/review.md. Final evidence commit review remains recorded in the session.
