@@ -287,15 +287,33 @@ fn missing_or_changed_bytes_refuse_even_when_outer_digest_is_recomputed() {
             "missing"=>{changed.sources.remove("atoms/10-intent.md");},
             "tampered"=>changed.sources.get_mut("atoms/10-intent.md").unwrap().push(b'x'),
             "schema"=>changed.sources.get_mut("schema://oh.war/stage-submission/v1").unwrap().push(b'x'),
-            _=>changed.policy=br#"{"schema":"oh.war/dispatch-capabilities/1","policy_ref":"policy://none-declared","allow":["network:write"]}"#.to_vec(),
+            "reserved"=>{changed.sources.insert(changed.dispatch.capability_authorization.policy_ref.clone(), b"shadow".to_vec());},
+            "basis-metadata"=>changed.contract.integrity.workspace_basis_digest="changed".into(),
+            "composition-metadata"=>changed.contract.integrity.composition_revision_digest="changed".into(),
+            "ir-kind"=>changed.contract.kind="changed".into(),
+            "policy"=>changed.policy=br#"{"schema":"oh.war/dispatch-capabilities/1","policy_ref":"policy://none-declared","allow":["network:write"]}"#.to_vec(),
+            _=>unreachable!("unknown tamper case"),
         }
         let bytes = serde_jcs::to_vec(&changed).unwrap();
         let digest = b::content_digest(&bytes);
-        assert!(b::check(&bytes, &digest).is_err(), "{label}");
+        let expected = match label {
+            "missing" => "bundle-missing-source",
+            "tampered" => "bundle-source-digest",
+            "schema" => "bundle-submission-schema",
+            "reserved" => "bundle-reserved-reference-collision",
+            "basis-metadata" => "bundle-ir-integrity",
+            "composition-metadata" => "bundle-composition-digest",
+            "ir-kind" => "bundle-ir-identity",
+            "policy" => "bundle-undeclared-policy-must-deny",
+            _ => unreachable!("unknown tamper case"),
+        };
+        let error = b::check(&bytes, &digest).err().unwrap().to_string();
+        assert!(error.contains(expected), "{label}: {error}");
     }
     let mut raw = original.clone();
     raw.push(b' ');
-    assert!(b::check(&raw, &b::content_digest(&original)).is_err());
+    assert!(b::check(&raw, &b::content_digest(&original))
+        .err().unwrap().to_string().contains("bundle-root-digest"));
     assert!(b::check(&raw, &b::content_digest(&raw)).is_err());
     fs::remove_dir_all(root).unwrap();
 }

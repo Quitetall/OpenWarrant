@@ -10,7 +10,8 @@
     "docs/warrants/OW-WAR-0023/implementation/evidence/focused-tests.log",
     "docs/warrants/OW-WAR-0023/implementation/evidence/clippy.log",
     "docs/warrants/OW-WAR-0023/implementation/evidence/independent-review.md",
-    "docs/warrants/OW-WAR-0023/implementation/evidence/gate-before-final-metadata-fix.log"
+    "docs/warrants/OW-WAR-0023/implementation/evidence/gate-before-final-metadata-fix.log",
+    "docs/warrants/OW-WAR-0023/implementation/evidence/refusal-controls.log"
   ],
   "next_steps": [
     "Provider/workflow evidence or explicit reconciliation for broader semantic selection and classification requirements.",
