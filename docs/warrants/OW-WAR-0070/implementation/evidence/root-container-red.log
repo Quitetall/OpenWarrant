@@ -1,0 +1,27 @@
+   Compiling ring v0.17.14
+   Compiling openwarrant-compiler v1.0.0 (/mnt/4tb/tmp/ow70-inbox/crates/openwarrant-compiler)
+   Compiling rustls v0.23.43
+   Compiling rustls-webpki v0.103.15
+   Compiling ureq v3.4.0
+   Compiling openwarrant-cli v1.0.0 (/mnt/4tb/tmp/ow70-inbox/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.25s
+     Running tests/inbox_cli.rs (target/debug/deps/inbox_cli-523e62aeaee7757a)
+
+running 1 test
+test damaged_repository_containers_refuse ... FAILED
+
+failures:
+
+---- damaged_repository_containers_refuse stdout ----
+
+thread 'damaged_repository_containers_refuse' (2825290) panicked at crates/openwarrant-cli/tests/inbox_cli.rs:222:9:
+warrants
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    damaged_repository_containers_refuse
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p openwarrant-cli --test inbox_cli`
