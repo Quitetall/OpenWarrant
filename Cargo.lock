@@ -738,6 +738,7 @@ name = "openwarrant-cli"
 version = "1.0.0"
 dependencies = [
  "camino",
+ "chrono",
  "clap",
  "openwarrant-compiler",
  "openwarrant-core",
