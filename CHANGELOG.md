@@ -6,6 +6,11 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+- Add candidate portable Dispatch transport and offline capability membership
+  refusal through `war dispatch-bundle` and the SDK. Exact context bytes travel
+  with their commitments; no execution, authority or semantic closure is claimed
+  (OW-WAR-0023; `docs/cli/dispatch-bundle.md`).
+
 - Add partial read-only `war preflight <alias>` with all six SAS readiness
   dimensions. Unobserved checks remain UNKNOWN and block readiness; no execution
   permission or recorded state changes (OW-WAR-0011, remaining scope documented

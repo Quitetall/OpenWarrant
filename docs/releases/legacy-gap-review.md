@@ -60,3 +60,11 @@ Source `1bb248699e38ac6de5f279380ab63a4943e1ba40` adds the six-dimension CLI and
 [Evidence and remaining scope](../warrants/OW-WAR-0011/implementation/notes.md)
 keep runtime/gate/authority checks and signed checker wording correction visible.
 OW11 remains in progress and unverified; historical records are unchanged.
+
+## Follow-up: OW23 portable transport delivered (2026-09-16)
+
+Source `b6846f7f8e077b794b16102f1a63cc1e93000006` adds a separate portable transport for existing
+Dispatches and explicit capability-membership refusal.
+[Evidence and limits](../warrants/OW-WAR-0023/implementation/notes.md) preserve the
+remaining semantic-selection/classification and runtime evidence gaps. OW23 stays
+in progress; historical records and assurance remain unchanged.

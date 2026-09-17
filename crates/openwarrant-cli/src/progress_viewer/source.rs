@@ -4,7 +4,7 @@
 use std::path::Path;
 
 #[cfg(unix)]
-pub(super) fn read(root: &Path, relative: &Path, limit: usize) -> Result<Vec<u8>, String> {
+pub(crate) fn read(root: &Path, relative: &Path, limit: usize) -> Result<Vec<u8>, String> {
     use rustix::fs::{Mode, OFlags, open, openat};
     use std::{fs::File, io::Read, path::Component};
     let parts: Vec<_> = relative.components().collect();
@@ -37,6 +37,6 @@ pub(super) fn read(root: &Path, relative: &Path, limit: usize) -> Result<Vec<u8>
     Ok(bytes)
 }
 #[cfg(not(unix))]
-pub(super) fn read(_root: &Path, _relative: &Path, _limit: usize) -> Result<Vec<u8>, String> {
+pub(crate) fn read(_root: &Path, _relative: &Path, _limit: usize) -> Result<Vec<u8>, String> {
     Err("Progress viewer safe source reads currently support Linux and macOS".into())
 }

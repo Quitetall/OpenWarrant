@@ -1,0 +1,20 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0023",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "b6846f7f8e077b794b16102f1a63cc1e93000006",
+  "summary": "Portable legacy Dispatch transport and offline capability membership delivered, unverified. Exact sources/support refs, integrity refusals and default denial implemented. Broader semantic-selection/classification and runtime evidence remain.",
+  "notes": "docs/warrants/OW-WAR-0023/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0023/implementation/evidence/focused-tests.log",
+    "docs/warrants/OW-WAR-0023/implementation/evidence/clippy.log",
+    "docs/warrants/OW-WAR-0023/implementation/evidence/independent-review.md",
+    "docs/warrants/OW-WAR-0023/implementation/evidence/gate-before-final-metadata-fix.log"
+  ],
+  "next_steps": [
+    "Provider/workflow evidence or explicit reconciliation for broader semantic selection and classification requirements.",
+    "Harness must enforce pre-action capability decisions under independently established authority.",
+    "Human assurance and legacy resolution remain separate."
+  ]
+}
