@@ -107,6 +107,24 @@ impl Bundle {
         require(size <= MAX_BYTES, "bundle-resource-limit")?;
         let d = &self.dispatch;
         let ir = &self.contract;
+        require(
+            ir.api_version == crate::API_VERSION && ir.kind == crate::KIND,
+            "bundle-ir-identity",
+        )?;
+        require(
+            ir.integrity.algorithm == "sha256"
+                && ir.integrity.workspace_basis_digest == d.workspace_basis_digest,
+            "bundle-ir-integrity",
+        )?;
+        let mut composition = serde_json::json!({"atoms":ir.source_and_composition.atoms});
+        if let Some(scope) = &ir.source_and_composition.scope {
+            composition["scope"] = serde_json::to_value(scope).map_err(convert)?;
+        }
+        require(
+            sha256_digest(DigestDomain::CompositionRevision, &composition).map_err(convert)?
+                == ir.integrity.composition_revision_digest,
+            "bundle-composition-digest",
+        )?;
         for reserved in [
             &d.workspace_basis_ref,
             &d.context_manifest_ref,

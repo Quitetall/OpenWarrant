@@ -279,6 +279,9 @@ fn missing_or_changed_bytes_refuse_even_when_outer_digest_is_recomputed() {
         ("policy", bundle.clone()),
         ("schema", bundle.clone()),
         ("reserved", bundle.clone()),
+        ("basis-metadata", bundle.clone()),
+        ("composition-metadata", bundle.clone()),
+        ("ir-kind", bundle.clone()),
     ] {
         match label {
             "missing"=>{changed.sources.remove("atoms/10-intent.md");},
