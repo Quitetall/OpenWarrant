@@ -113,6 +113,72 @@ print(json.dumps({'schema':'oh.war/execution-result/v1','attempt_id':r['attempt_
             time.sleep(0.02)
         self.fail("attempt never finished")
 
+    def test_admission_is_read_only_and_start_rechecks(self):
+        r = self.eligible()
+        request = {"warrant_id": r["id"], "source_sha256": r["source_sha256"]}
+        state = self.root / "state"
+        def snapshot():
+            return {str(p.relative_to(state)): p.read_bytes()
+                    for p in state.rglob("*") if p.is_file()}
+        before = snapshot()
+        status, preview = self.call("/api/admission", "POST", request)
+        self.assertEqual(status, 200, preview)
+        self.assertEqual(preview["state"], "ready")
+        self.assertEqual(preview["subject"], request)
+        self.assertFalse(preview["dispatch_permitted"])
+        self.assertFalse(preview["qualified"])
+        self.assertEqual(before, snapshot())
+        self.assertFalse((self.repo / ".git/openwarrant-execution").exists())
+        status, run = self.call("/api/runs", "POST", request)
+        self.assertEqual(status, 202, run)
+        self.assertEqual(self.wait_run(run["attempt_id"])["work_state"], "completed")
+        preview = self.call("/api/admission", "POST", request)[1]
+        self.assertEqual(preview["state"], "blocked")
+        self.assertEqual(preview["reason"], "Exact subject already completed")
+        status, refusal = self.call("/api/runs", "POST", request)
+        self.assertEqual(status, 409)
+        self.assertEqual(refusal["error"], preview["reason"])
+
+    def test_admission_refusals_match_start(self):
+        r = self.eligible()
+        request = {"warrant_id": r["id"], "source_sha256": r["source_sha256"]}
+        cases = [
+            ({**request, "source_sha256": "0" * 64}, "Changed subject; review execution configuration"),
+            ({**request, "warrant_id": str(uuid.uuid4())}, "Warrant not configured for execution"),
+        ]
+        for fields, reason in cases:
+            status, preview = self.call("/api/admission", "POST", fields)
+            self.assertEqual(status, 200)
+            self.assertEqual(preview["state"], "blocked")
+            self.assertEqual(preview["reason"], reason)
+            self.assertEqual(self.call("/api/runs", "POST", fields)[1]["error"], reason)
+        self.assertEqual(self.call("/api/admission", "POST", {**request, "actor": "admin"})[0], 400)
+        for verified, cost, expected in [
+            (True, "free", "Verified-start requirement unsupported by this unverified workflow"),
+            (False, "unknown", "Unknown cost cannot satisfy a hard spend cap"),
+        ]:
+            self.stop()
+            self.config["warrants"][r["id"]]["verified_start"] = verified
+            self.config["cost_mode"] = cost
+            self.start()
+            preview = self.call("/api/admission", "POST", request)[1]
+            self.assertEqual(preview["state"], "blocked")
+            self.assertEqual(preview["reason"], expected)
+            self.assertEqual(self.call("/api/runs", "POST", request)[1]["error"], expected)
+        self.assertEqual(self.call("/api/runs")[1]["runs"], [])
+
+    def test_admission_unavailable_base_is_unknown(self):
+        r = self.eligible()
+        self.stop()
+        self.config["warrants"][r["id"]]["base_commit"] = "0" * 40
+        self.start()
+        status, preview = self.call("/api/admission", "POST", {
+            "warrant_id": r["id"], "source_sha256": r["source_sha256"]})
+        self.assertEqual(status, 200)
+        self.assertEqual(preview["state"], "unknown")
+        self.assertFalse(preview["dispatch_permitted"])
+        self.assertEqual(self.call("/api/runs")[1]["runs"], [])
+
     def test_execute_exact_draft_in_isolated_worktree(self):
         record = self.eligible()
         status, run = self.call(
