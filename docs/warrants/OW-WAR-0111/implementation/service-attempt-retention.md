@@ -18,3 +18,8 @@ Stream bytes and archive retention checks remain. 17 preservation tests and stri
 all-target Clippy passed; generated checks report 966 pass, 88 warnings, no errors
 or unknown. The existing service plant now discovers nested receipt paths; its
 runtime checks and the full new-head gate remain pending at this recording.
+
+Existing service plant group ran in independent clone at feb4af8d: 10 passed,
+zero failed. Includes successful service receipt, human-stage refusal, unknown
+gate refusal, timeout, self-completion refusal and external submission checks.
+This focused group does not replace the complete new-head integration gate.
