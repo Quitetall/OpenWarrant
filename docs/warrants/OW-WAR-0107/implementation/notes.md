@@ -82,3 +82,19 @@ refusal and missing/changed/noninteger check evidence. PASS requires an exact bo
 verifier result and all protected checks. FAIL requires an observed finding or
 failed protected check. The controller, HTTP actions, bounded repair and rebuttal
 loop remain unfinished; this is implementation progress, not Warrant completion.
+
+## Authenticated claim consumption
+
+Connected machine signature authentication, current candidate admission and durable
+claim consumption. The protected request must match current Warrant identity,
+candidate, source, execution policy, configured actors and exact checks. Changed
+verifier configuration invalidates the prepared basis. Signed unknown or failed
+protection observations cannot consume a claim. Exact signed bytes, signature and
+issuer public identity are retained before consumption; a replay returns no launch
+permission. Callers must hold the execution lock and supply fresh protected inputs.
+The HTTP controller and actual dispatch integration remain unfinished.
+
+Twenty-six verifier tests pass. Four new cases use disposable machine keys and
+exercise exact signed acceptance, replay, signed UNKNOWN/FAIL, byte tampering,
+wrong nonce, changed candidate/checks/actor/Warrant/configuration. These are bounded
+protocol observations, not proof of production sandboxing or independent review.
