@@ -1,0 +1,17 @@
+{
+  "schema": "oh.war/work-report/v1",
+  "warrant": "OW-WAR-0104",
+  "work_state": "in-progress",
+  "reported_by": "codex",
+  "revision": "9161f97cf6b65718baa8e51bb266f2baaf71c608",
+  "summary": "Read-only board and batch-question candidate implemented; full integration gate pending.",
+  "notes": "CLI and strict lint pass; 47 web tests pass and browser board/refusal observed. Initial gate failure retained and candidate-delivery metadata corrected.",
+  "evidence": [
+    "docs/warrants/OW-WAR-0069/implementation/board-notes.md"
+  ],
+  "next_steps": [
+    "Run full isolated gate on integrated candidate",
+    "Inspect offline rendering and complete bounded obligation audit",
+    "Independent verification and human qualification remain separate"
+  ]
+}

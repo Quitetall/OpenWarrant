@@ -164,6 +164,20 @@ class WorkflowTests(unittest.TestCase):
         )
         self.assertEqual(self.call("/api/warrants")[1]["warrants"], [])
 
+    def test_board_is_authenticated_read_only_and_matches_cli(self):
+        status, result = self.call("/api/board", headers={"Authorization": "Bearer wrong"})
+        self.assertEqual(status, 401)
+        status, result = self.call("/api/board")
+        self.assertEqual(status, 200, result)
+        expected = subprocess.run([WAR, "board", "--json"], cwd=REPO,
+                                  capture_output=True, check=True)
+        expected = json.loads(expected.stdout)["result"]
+        self.assertEqual(result, expected)
+        self.assertEqual(result["schema"], "oh.war/board-draft/v1")
+        self.assertTrue(result["corpus"]["warrants"])
+        status, _ = self.call("/api/board", method="POST", data={})
+        self.assertEqual(status, 404)
+
     def test_project_inventory_keeps_legacy_and_work_separate(self):
         status, project = self.call("/api/project")
         self.assertEqual(status, 200, project)

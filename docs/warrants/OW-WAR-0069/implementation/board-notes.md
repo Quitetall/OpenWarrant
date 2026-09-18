@@ -22,6 +22,18 @@ refusal. Extended signing-list comparison and HTML injection tests also passed (
 
 `cargo clippy -p openwarrant-cli --all-targets -- -D warnings` passed.
 
-Remaining: full isolated gate, rendered HTML inspection, integration
-with the existing platform board, exact delivery/evidence reconciliation for all
+Remaining: full isolated gate, rendered HTML inspection,  exact delivery/evidence reconciliation for all
 OW-WAR-0069 obligations, and independent verification. Signed atoms unchanged.
+
+The reference workbench now reads `/api/board` through the authenticated local API.
+Nine HTTP tests passed; browser observations are in `board-browser-qa.md`.
+
+The full gate at 9161f97 failed three steps because D-004 in unresolved OW68
+still named the prior skill bytes; generated corpus and related plants reflected
+that mismatch. The prior manifest and skill are now preserved under OW68
+`attempts/batch-grill-20260918/`, with a new unverified candidate digest. Tests were
+not weakened. A fresh exact-subject gate remains required.
+
+All 47 reference-web tests pass, including the execution fixture's expected board
+refusal without an OpenWarrant corpus. New unsigned OW104 binds this continuation's
+CI scope; signed OW69 remains intact.
