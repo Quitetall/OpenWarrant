@@ -58,6 +58,8 @@ mod resolve;
 mod run_cmd;
 mod sas;
 #[cfg(feature = "schema")]
+mod schema_typescript;
+#[cfg(feature = "schema")]
 mod schemas;
 mod sdk;
 mod show;
