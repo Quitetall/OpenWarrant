@@ -39,6 +39,12 @@ checks. Limits are 64 enrolled roots and 1,024 intent revisions per root. The
 scheduler owns no credentials for producing protection signatures and launches no
 receipt producer or paid provider.
 
+The loop follows retained rebuttal and human-directed recheck children rather than
+reusing the original failed result. An unresolved leaf waits for its current human
+decision. A verify-again decision prepares one new child for fresh protection
+evidence; a repair decision permits the existing bounded repair path. Hotline
+resume follows the retained resumed attempt without creating another repair cycle.
+
 `verifier_receipts.ReceiptInbox` supplies the read-only lookup. The operator selects
 an existing directory; the adapter pins its directory handle. The harness publishes
 `<verification UUID>.json` there with exactly `payload_base64` and

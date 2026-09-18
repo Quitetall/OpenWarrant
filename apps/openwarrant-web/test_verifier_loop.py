@@ -5,6 +5,8 @@ import subprocess
 import time
 import unittest
 from pathlib import Path
+import hashlib
+import uuid
 
 from test_verifier_repair_execution import RepairExecutionFixture
 from verifier_attestation import NAMESPACE
@@ -12,9 +14,44 @@ from verifier_policy import PROTECTIONS
 from verifier_loop import Loop
 from verifier_receipts import ReceiptInbox
 from verification import VerificationError
+from hotline import Answers
 
 
 class VerifierLoopTests(RepairExecutionFixture, unittest.TestCase):
+    def test_loop_follows_rebuttal_and_human_recheck_then_authorized_repair(self):
+        root = self.original['attempt_id']
+        loop = Loop(self.service, self.receipt)
+        prepared = Loop(self.service, lambda job: None).tick(root)
+        failed = self.verify(root, self.service.get(prepared['verification_id']))
+        child = self.service.rebut(failed['verification_id'], {
+            'verification_id': str(uuid.uuid4()), 'argument': 'Recheck fixture contract',
+            'finding_ids': ['F1'], 'evidence': ['fixture://contract']})
+        rechecked = self.verify(root, child)
+        waiting = loop.tick(root)
+        self.assertEqual(waiting['state'], 'needs_attention')
+        self.assertEqual(waiting['verification_id'], rechecked['verification_id'])
+        self.assertEqual(len(self.executor.records()), 1)
+        token = 'fixture-only-loop-human-credential-0001'
+        answers = Answers(self.executor, {'schema': 'oh.war/hotline-config/v1', 'responders': [{
+            'id': 'fixture-human', 'kind': 'human', 'governing_warrants': [self.original['warrant_id']],
+            'token_sha256': hashlib.sha256(token.encode()).hexdigest()}]})
+        self.service.answers = answers
+        def decide(job, action):
+            q = self.service.dispute(job['verification_id'], answers)
+            self.service.settle(job['verification_id'], {'question_sha256': q['question_sha256'],
+                'action': action, 'reason': 'Fixture decision', 'evidence': ['fixture://contract']}, token, answers)
+        decide(rechecked, 'verify_again')
+        pending = loop.tick(root)
+        self.assertEqual(pending['state'], 'waiting_for_protection')
+        again = self.verify(root, self.service.get(pending['verification_id']))
+        self.assertEqual(loop.tick(root)['state'], 'needs_attention')
+        decide(again, 'repair')
+        result = self.drive(loop)
+        self.assertEqual(result['state'], 'checks_passed', result)
+        self.assertEqual(len(self.executor.records()), 2)
+        self.assertEqual(sorted(j['effective_verdict'] for j in self.service.listing()['jobs']),
+                         ['fail', 'fail', 'fail', 'pass'])
+
     def test_file_inbox_drives_real_repair_loop_without_producer_calls(self):
         directory = self.fixture.root / 'receipt-inbox'; directory.mkdir()
         inbox = ReceiptInbox(directory, self.executor.decode); self.addCleanup(inbox.close)

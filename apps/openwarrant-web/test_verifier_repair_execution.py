@@ -21,6 +21,7 @@ from verifier_policy import PROTECTIONS
 from verification import VerificationError, request
 from hotline import Answers, digest
 from verifier_repair import plan
+from verifier_loop import Loop
 
 
 class RepairExecutionFixture:
@@ -223,7 +224,10 @@ class RepairExecutionTests(RepairExecutionFixture, unittest.TestCase):
         self.assertEqual(len(self.service.listing()['jobs']),1)
 
     def test_repair_hotline_resume_preserves_lineage_budget_and_single_cycle(self):
-        failed=self.verify(self.original['attempt_id'])
+        root=self.original['attempt_id']
+        loop=Loop(self.service,lambda job: None)
+        pending=loop.tick(root)
+        failed=self.verify(root,self.service.get(pending['verification_id']))
         implementation=self.fixture.harness.read_text()
         self.fixture.harness.write_text("""import json,sys
 r=json.load(sys.stdin)
@@ -234,6 +238,7 @@ print(json.dumps({'schema':'oh.war/execution-question/v1','attempt_id':r['attemp
 """)
         paused=self.wait_repair(self.service.repair(failed['verification_id'],{}))
         self.assertEqual(paused['work_state'],'blocked',paused)
+        self.assertEqual(loop.tick(root)['state'],'needs_attention')
         token='fixture-only-responder-credential-001'
         answers=Answers(self.executor,{'schema':'oh.war/hotline-config/v1','responders':[{
             'id':'fixture-adviser','kind':'ai','governing_warrants':[],
@@ -247,7 +252,11 @@ print(json.dumps({'schema':'oh.war/execution-question/v1','attempt_id':r['attemp
         self.assertEqual(resumed['verification_repair'],paused['verification_repair'])
         self.assertLess(resumed['remaining_seconds'],paused['remaining_seconds'])
         self.assertEqual(plan(self.service.get(failed['verification_id']),list(self.executor.records().values()))['cycles_used'],1)
-        self.assertEqual(self.verify(resumed['attempt_id'])['effective_verdict'],'pass')
+        pending=loop.tick(root)
+        self.assertEqual(pending['attempt_id'],resumed['attempt_id'])
+        self.assertEqual(pending['state'],'waiting_for_protection')
+        self.assertEqual(self.verify(resumed['attempt_id'],self.service.get(pending['verification_id']))['effective_verdict'],'pass')
+        self.assertEqual(loop.tick(root)['state'],'checks_passed')
 
     def test_failure_repair_new_revision_and_independent_pass_preserve_history(self):
         failed=self.verify(self.original['attempt_id']);self.assertEqual(failed['effective_verdict'],'fail',failed)

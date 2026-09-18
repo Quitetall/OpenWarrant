@@ -505,3 +505,18 @@ Backend code was unchanged; its suite was not rerun for this HTML change.
 
 Full release gates, remaining lifecycle/refusal coverage and external harness
 qualification remain outstanding. OW-WAR-0107 remains open.
+
+## Follow human recheck and hotline lineage
+
+Scope audit found that the loop stayed on its original failed claim after a
+rebuttal. It now follows the exact retained recheck chain, refuses ambiguous or
+changed-basis children, waits on the unresolved leaf, prepares human-directed
+verify-again children and uses current human repair decisions. Earlier verdicts
+remain retained. The loop also follows actual hotline resume lineage.
+
+Sixteen focused real-process scenarios passed in 8.624 seconds. The new scenario
+traverses original FAIL, rebuttal FAIL, human verify-again FAIL, human repair and
+new PASS. A separate hotline scenario pauses repair, ingests a technical answer,
+resumes implementation, prepares verification for that resumed attempt and reaches
+checks_passed with one repair cycle. Evidence: implementation/lineage-tests.log.
+Full web regression and isolated full-gate validation are the next checks.

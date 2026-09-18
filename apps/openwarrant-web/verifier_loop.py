@@ -49,6 +49,21 @@ class Loop:
                     job = service.prepare({'attempt_id': current['attempt_id'], 'verification_id': id})
                 else:
                     job = service.get(id)
+                jobs = service.listing()['jobs']
+                seen = set()
+                while True:
+                    require(id not in seen, 'Cyclic verification recheck lineage')
+                    seen.add(id)
+                    children = [j for j in jobs if (
+                        j['request'].get('recheck', {}).get('verification_id') == id
+                        or j['request'].get('human_recheck', {}).get('decision', {}).get('question', {}).get('verification_id') == id)]
+                    require(len(children) <= 1, 'Ambiguous verification recheck lineage')
+                    if not children: break
+                    child = children[0]
+                    require(child['basis_sha256'] == job['basis_sha256']
+                            and child['attempt_id'] == job['attempt_id'], 'Recheck changed loop work basis')
+                    job = child
+                    id = job['verification_id']
                 out['verification_id'] = id
                 if job['state'] == 'prepared':
                     receipt = self.receipt_lookup(job)
@@ -64,6 +79,13 @@ class Loop:
                     require(basis['basis_sha256'] == job['basis_sha256'], 'Passing loop result has stale basis')
                     unchanged(snapshot['source_path'], job['request']['candidate_revision'], time.monotonic() + 5)
                     return {**out, 'state': 'checks_passed', 'reason': 'Independent observations passed; acceptance remains separate'}
+                if job['human_review_required'] and service.answers:
+                    decision = service.dispute(id, service.answers)['decision']
+                    if decision and decision['action'] == 'verify_again':
+                        child_id = str(uuid.uuid5(uuid.UUID(attempt_id), 'human-recheck:' + id))
+                        service.reverify(id, {'verification_id': child_id})
+                        return {**out, 'verification_id': child_id, 'state': 'waiting_for_protection',
+                                'reason': 'Human-directed recheck prepared; signed receipt required'}
                 proposal = service.repair_preview(id)
                 if proposal['state'] == 'already_dispatched':
                     current = executor.get(proposal['attempt_id'])
