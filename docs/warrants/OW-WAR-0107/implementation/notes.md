@@ -476,3 +476,32 @@ Browser loop controls, external harness protection production, wider lifecycle
 qualification and full release gates remain unfinished. The synthetic receipt
 fixture does not prove real deployment isolation or human acceptance. No running
 user service was reconfigured or restarted. OW-WAR-0107 remains open.
+
+## Browser loop enrollment and monitoring
+
+Added enable controls on completed attempts and a loop panel with pause/resume,
+latest observation, exact details and two-second refresh. Session and request
+versions prevent stale loop responses from replacing current content. Lock clears
+timers and views. Unchanged loop data retains DOM controls: initial browser testing
+found that replacing buttons every poll made an accessibility click stale, so
+unchanged renders now reuse the existing nodes.
+
+Disposable browser fixture at port 40175 proved enable, missing-protection wait,
+pause, final paused presentation, resume, checks_passed display and lock clearing.
+The external synthetic receipt producer supplied two signed receipts; the service
+performed verification FAIL -> repair -> verification PASS. Root attempt:
+3da2b0ce-d692-4d43-8b75-bd451c716dd8. Repair attempt:
+ee1170bd-7017-4e79-a451-0e2f0fb9728e. Passed verification:
+a084a952-c0fc-59b5-a3de-6a7e675075a9. All views remained unqualified.
+
+Evidence: browser-loop-status.json, browser-loop-jobs.json,
+browser-loop-attempts.json, browser-loop-fixture.py and
+browser-loop-receipt-producer.py. The fixture has no legacy corpus; unavailable
+project-board output was expected and does not assess the real repository board.
+Only fixture processes/keys were used. No real human acceptance, production
+sandbox enforcement or external-provider quality is claimed. Test tab closed;
+owned fixture process stopped. JavaScript syntax and diff whitespace passed.
+Backend code was unchanged; its suite was not rerun for this HTML change.
+
+Full release gates, remaining lifecycle/refusal coverage and external harness
+qualification remain outstanding. OW-WAR-0107 remains open.

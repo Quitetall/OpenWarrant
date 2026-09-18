@@ -16,7 +16,12 @@ Start the service with `--verifier-receipts PATH` in addition to its verifier
 configuration and issuer. This enables loop API access and a two-second scheduler;
 it does not enroll attempts automatically. Missing receipts wait; uncertain workers
 never relaunch; nonrepairable results and human decisions require attention.
-External harness receipt production and browser loop controls remain unfinished.
+Production harness receipt generation remains an integration responsibility.
+The browser exposes enable from completed attempts, pause/resume, latest loop
+observation and expandable exact state. Enabled loops poll every two seconds;
+unchanged observations retain their controls. Session lock clears the panel and
+poll timer. Session/request generations prevent older loop responses from
+repopulating a newer session. Pause does not terminate running work.
 
 - `POST /api/verification-loops` accepts exactly `attempt_id` and boolean `enabled`.
   Enable opts a completed, stopped root attempt into verification and eligible
