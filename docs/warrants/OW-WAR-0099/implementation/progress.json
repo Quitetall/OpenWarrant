@@ -1,0 +1,18 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0099",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "325ce50e242d2e13fc003b5e0dc40d5339a79af3",
+  "summary": "Frontier refuses damaged inputs; full gate passed. Unverified; shared admission and OW68 broader scope remain open.",
+  "notes": "docs/warrants/OW-WAR-0099/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0099/implementation/evidence/gate.log",
+    "docs/warrants/OW-WAR-0099/implementation/evidence/regression.log",
+    "docs/warrants/OW-WAR-0099/implementation/evidence/initial-gate-failure.log.gz"
+  ],
+  "next_steps": [
+    "Integrate shared admission without weakening explicit action gates.",
+    "Complete remaining OW68 skills/runtime observations."
+  ]
+}

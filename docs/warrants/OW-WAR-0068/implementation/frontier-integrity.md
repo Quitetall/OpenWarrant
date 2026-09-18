@@ -18,3 +18,5 @@ journal, directory container, absent journal and malformed milestones. Focused
 unit test and Rust 1.97.1 Clippy also pass. Full gate pending at this checkpoint.
 
 Initial full gate failed on stale D-002 delivery digest and dependent corpus tests. D-002 now records the new unverified implementation, preserving the old digest as an input; prior full record remains in parent Git history. Non-file journals are rejected before reading to avoid special-file hangs. Full gate rerun required.
+
+Corrected full gate passed at 325ce50e242d2e13fc003b5e0dc40d5339a79af3: 14/14 steps, 308 plants. Exact transcripts retained under OW99 implementation/evidence. This does not complete other OW68 obligations.
