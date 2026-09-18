@@ -34,3 +34,11 @@ Until that path exists, `preservation/context.rs` correctly leaves non-human
 runtime coverage unavailable. Source-complete human-stage fixtures and actual
 OW30 selected-local roundtrips do not settle this integration gap. No change to
 legacy resolution, human authorization or assurance status is made by this note.
+
+## Provider reader progress
+
+KF draft PR #5 now implements authenticated offline receipt/dispatch/contract
+selection and optional exact stage packet binding. See `provider-stage-bindings.md`
+for source identity, tests and the observed CLI journal side effect. Local archive
+assembly has not yet consumed this provider reader, so its unavailable runtime
+coverage remains unchanged.

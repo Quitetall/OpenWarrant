@@ -62,3 +62,7 @@ obligation_refs = ["OBL-003", "OBL-005"]
 [[scope]]
 path_glob = "docs/warrants/OW-WAR-0063/deliverables.toml"
 obligation_refs = ["OBL-003", "OBL-005"]
+
+[[scope]]
+path_glob = "docs/warrants/OW-WAR-0075/journal.jsonl"
+obligation_refs = ["OBL-002", "OBL-005"]
