@@ -77,3 +77,11 @@ not a successful replay or an execution failure. This observation proves native
 broker read/refusal logging only. It has no Warrant dispatch binding or PromptIR
 and cannot be relabeled as an OpenWarrant KatanaReceipt. Provider archive ingestion
 still needs the real bound stage receipt rather than a fabricated wrapper.
+
+Provider input refusal correction: `0b95d685c4c371f88af7a5754fc3e3929bbef8b4`
+opens bounded files with O_NONBLOCK as well as O_NOFOLLOW. Before the fix a FIFO
+dispatch argument timed out because open blocked before the regular-file check.
+The built CLI now exits 1 with no stdout and a non-regular-file diagnostic. The
+43-test export suite, TypeScript package build and focused ESLint passed. Retained
+red/green logs prove the concrete failure and refusal; latest hosted checks remain
+separate. No receipt or authority claim changes.
