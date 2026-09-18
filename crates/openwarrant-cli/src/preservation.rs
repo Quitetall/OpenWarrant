@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Experimental archive import and source-detached re-export. No authority activation.
 use std::{collections::BTreeMap, path::Path};
+mod history;
 
 use camino::Utf8PathBuf;
 use clap::Subcommand;
@@ -11,7 +12,13 @@ pub enum Command {
     /// Inspect retained source reconstruction without claiming complete preservation.
     Inspect { input: Utf8PathBuf },
     /// Capture current Warrant sources and local records; unresolved categories stay explicit.
-    Export { alias: String, output: Utf8PathBuf },
+    Export {
+        alias: String,
+        output: Utf8PathBuf,
+        /// Include bounded history reachable from pinned local HEAD; refuse unavailable history.
+        #[arg(long)]
+        history: bool,
+    },
     /// Import experimental canonical archive into a NEW private inert directory.
     Import {
         input: Utf8PathBuf,
@@ -64,9 +71,13 @@ pub fn run(command: Command) -> Result<(String, serde_json::Value), Error> {
             Ok(("Archived current sources reconstruct their IR. Historical/provider completeness remains separate.".into(),
                 serde_json::json!({"schema":"oh.war/preservation-result/v1-draft.1", "operation":"inspect", "source_reconstructed":true, "authority_activated":false})))
         }
-        Command::Export { alias, output } => {
+        Command::Export {
+            alias,
+            output,
+            history,
+        } => {
             let repo = crate::repo::Repository::discover(None).map_err(|e| Error(e.to_string()))?;
-            let archive = assemble(&repo, &alias, limits)?;
+            let archive = assemble(&repo, &alias, limits, history)?;
             let bytes = archive.encode(limits)?;
             write_new(output.as_std_path(), &bytes)?;
             Ok(("Captured current Warrant bytes. Unavailable categories remain open; preservation is incomplete.".into(),
@@ -290,7 +301,12 @@ struct AtomSnapshot {
 const BASIS_PATH: &str = "__ow_archive__/basis.json";
 const IR_PATH: &str = "__ow_archive__/WAR.json";
 
-fn assemble(repo: &crate::repo::Repository, alias: &str, limits: Limits) -> Result<Archive, Error> {
+fn assemble(
+    repo: &crate::repo::Repository,
+    alias: &str,
+    limits: Limits,
+    include_history: bool,
+) -> Result<Archive, Error> {
     use openwarrant_compiler::preservation::{Coverage, Record, SCHEMA};
     use openwarrant_core::{attestation::base64_encode, journal::EXPORT_CONTENTS};
     let dir = repo.warrant_dir(alias).map_err(|e| Error(e.to_string()))?;
@@ -309,6 +325,15 @@ fn assemble(repo: &crate::repo::Repository, alias: &str, limits: Limits) -> Resu
         &mut nodes,
         0,
     )?;
+    if include_history {
+        let retained = history::capture(
+            repo,
+            relative.as_str(),
+            remaining,
+            limits.records.saturating_sub(files.len()),
+        )?;
+        files.extend(retained);
+    }
     // Check every declared source through no-follow reads before legacy loader touches it.
     let manifest_source = format!("{relative}/manifest.toml");
     let manifest_bytes = files

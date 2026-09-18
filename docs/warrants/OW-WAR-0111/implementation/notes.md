@@ -79,3 +79,28 @@ actual shell code was run successfully in isolation. This positive is bounded
 transport evidence, not full §68.3 KF qualification. Battery grows by one control;
 full new-head gate remains pending. Strict CLI all-target Clippy passed before
 comment/reason wording updates; no new dependencies.
+
+## Bounded Git history and delivery-record provenance
+
+`archive export --history` now includes raw commit objects and regular Warrant
+file blobs for history reachable from pinned HEAD, plus a canonical history index.
+No checkout, signing, remote fetch or imported authority. Bounded records/bytes,
+256 relevant commits and bounded Git subprocess reads; shallow/unavailable history
+refuses. Other refs are explicitly excluded in the index and completeness remains
+unavailable. This is not an assertion that all institutional history is present.
+Seven CLI tests pass, including exact historical fixture bytes and source-detached
+inspection; shallow history refuses before output creation. Strict Clippy passed.
+
+The first full gate at e278f3c failed three steps: existing OW30 D-001 and OW63
+D-003 delivery hashes still named prior bytes, causing corpus/projection and
+positive-control failures. Failure log retained. `war correct` confirmed both
+Warrants are unresolved and directs performer-record regeneration rather than a
+human correction act. Original delivery records AND original artifact bytes are
+preserved under legacy-before-repair/ in their original relative structure, with
+hash/index and the exact tool observations. Current entries now name observed new
+hashes, performer agent://codex and OW111's unverified repair attempt. Existing
+verification/judgment/resolution records are unchanged. This does not resolve
+OW30/OW63 or claim their old evidence verifies new code.
+
+Recompiled projections after the record update: 966 pass, 88 warnings, zero errors
+and zero unknown. Full new-head gate still required after history implementation.

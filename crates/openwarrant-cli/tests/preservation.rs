@@ -294,3 +294,93 @@ fn legacy_reconnect_flag_cannot_claim_an_observed_import() {
         "legacy round-trip cannot verify",
     );
 }
+
+#[test]
+fn bounded_git_history_keeps_all_observed_state_bytes_and_commit_identity() {
+    let f = Fixture::new();
+    success(f.run(&[
+        "init",
+        "--namespace",
+        "ARCH",
+        "--program",
+        "Archive history fixture",
+    ]));
+    success(f.run(&["new", "Retain changing historical records"]));
+    let git = |args: &[&str]| {
+        let output = Command::new("git")
+            .current_dir(&f.0)
+            .args([
+                "-c",
+                "user.name=Archive Fixture",
+                "-c",
+                "user.email=archive@example.invalid",
+            ])
+            .args(args)
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        String::from_utf8(output.stdout).unwrap()
+    };
+    git(&["init", "-q"]);
+    let record = "docs/warrants/ARCH-WAR-0001/state-history.json";
+    let mut commits = Vec::new();
+    for state in ["superseded", "disputed", "annulled"] {
+        std::fs::write(
+            f.0.join(record),
+            format!("{{\"fixture_state\":\"{state}\"}}\n"),
+        )
+        .unwrap();
+        git(&["add", "docs", "openwarrant.toml"]);
+        git(&["commit", "-q", "-m", state]);
+        commits.push((state, git(&["rev-parse", "HEAD"]).trim().to_owned()));
+    }
+    success(f.run(&[
+        "archive",
+        "export",
+        "ARCH-WAR-0001",
+        "history.json",
+        "--history",
+    ]));
+    let archive = Archive::decode(
+        &std::fs::read(f.0.join("history.json")).unwrap(),
+        Limits::default(),
+    )
+    .unwrap();
+    for (state, commit) in commits {
+        let path = format!("__ow_archive__/history/{commit}/{record}");
+        let record = archive.records.iter().find(|r| r.path == path).unwrap();
+        let bytes =
+            openwarrant_core::attestation::base64_decode(record.base64.as_ref().unwrap()).unwrap();
+        assert_eq!(
+            bytes,
+            format!("{{\"fixture_state\":\"{state}\"}}\n").as_bytes()
+        );
+        assert!(
+            archive
+                .records
+                .iter()
+                .any(|r| r.path == format!("__ow_archive__/history/{commit}/commit.txt"))
+        );
+    }
+    let head = git(&["rev-parse", "HEAD"]);
+    std::fs::write(f.0.join(".git/shallow"), head).unwrap();
+    refusal(
+        f.run(&[
+            "archive",
+            "export",
+            "ARCH-WAR-0001",
+            "shallow.json",
+            "--history",
+        ]),
+        "shallow history",
+    );
+    assert!(!f.0.join("shallow.json").exists());
+    std::fs::remove_file(f.0.join(".git/shallow")).unwrap();
+    std::fs::rename(f.0.join(".git"), f.0.join("old-git-hidden")).unwrap();
+    std::fs::rename(f.0.join("docs"), f.0.join("old-docs-hidden")).unwrap();
+    success(f.run(&["archive", "inspect", "history.json"]));
+}

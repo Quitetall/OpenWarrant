@@ -50,3 +50,15 @@ obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
 [[scope]]
 path_glob = "docs/warrants/generated/**"
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[[scope]]
+path_glob = "crates/openwarrant-cli/src/preservation/**"
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[[scope]]
+path_glob = "docs/warrants/OW-WAR-0030/deliverables.toml"
+obligation_refs = ["OBL-003", "OBL-005"]
+
+[[scope]]
+path_glob = "docs/warrants/OW-WAR-0063/deliverables.toml"
+obligation_refs = ["OBL-003", "OBL-005"]
