@@ -16,3 +16,13 @@ const invalidKind: NonNullable<Dispatch['attempt_kind']> = 'invented';
 // @ts-expect-error Contract revisions are numbers, not strings.
 const invalidRevision: Dispatch['contract_revision'] = 'one';
 void [dispatch, objective, invalidRequired, invalidKind, invalidRevision];
+
+import type { Document as Deliverables } from '../../../schemas/typescript/deliverables.js';
+const failurePair: Deliverables['failures'][number] = ['source', 'reason'];
+// @ts-expect-error A failure record is exactly a two-element tuple.
+const shortFailure: Deliverables['failures'][number] = ['source'];
+// @ts-expect-error A failure tuple cannot contain a third element.
+const longFailure: Deliverables['failures'][number] = ['source', 'reason', 'extra'];
+// @ts-expect-error Both tuple elements must be strings.
+const numericFailure: Deliverables['failures'][number] = ['source', 7];
+void [failurePair, shortFailure, longFailure, numericFailure];
