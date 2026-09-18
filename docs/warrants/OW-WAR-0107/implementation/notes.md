@@ -47,3 +47,19 @@ Fourteen distinct verifier contract/workspace/process/policy tests pass. Fixture
 protection observations exercise evaluation, not real harness authentication.
 The next controller must authenticate evidence outside performer/verifier output
 before passing it here; that integration and durable jobs remain unfinished.
+
+## Machine-authenticated protection observations
+
+Added SSH Ed25519 signature verification over exact received receipt bytes using
+an operator-pinned public key/principal and dedicated harness-protection namespace.
+Evidence binds admission basis and dispatch nonce, with a maximum five-minute
+validity window. Signed FAIL/UNKNOWN stay FAIL/UNKNOWN; injected qualification
+fields refuse. Signature verification does not make an issuer honest or provide
+human presence. Harness key custody, protected app configuration and actual
+protection enforcement remain deployment obligations. Controller must reserve
+nonces and prevent duplicate dispatch; durable job integration remains next.
+
+Seventeen distinct verifier tests pass, including real ssh-keygen signatures from
+disposable machine keys. Cases refuse changed bytes, different key, different
+namespace, wrong basis/nonce, expired/future/overlong validity and extra authority
+fields. No user keys, human signatures or real-model calls used.
