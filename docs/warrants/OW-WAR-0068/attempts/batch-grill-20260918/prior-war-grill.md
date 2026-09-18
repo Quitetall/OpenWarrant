@@ -1,15 +1,12 @@
 ---
 name: war-grill
-description: "War grill: investigate a request, ask unresolved outcome or architecture questions, retain answers for a Warrant draft, or batch all open Warrant questions."
+description: "War grill: investigate a request, ask unresolved outcome or architecture questions, and retain answers for a Warrant draft."
 ---
 
 # war-grill
 
 Read [shared workflow](../openwarrant/SKILL.md). Method: Matt Pocock's grilling,
 adapted to durable Warrant questions and decisions; [provenance](../openwarrant/ADAPTATIONS.md).
-
-For a request to batch all open Warrant questions, first read [batch questions](batch.md).
-Otherwise use the discovery steps below.
 
 1. Read relevant source, existing decisions and open questions. Reuse answered
    questions. Separate facts the agent can inspect from decisions needing a person.

@@ -101,18 +101,20 @@ class SDK:
         self.war = war
         self.repo = repo
 
-    def run(self, request, overview=False):
+    def run(self, request, overview=False, board=False):
         args = (
             [str(self.war), "overview", "--snapshot", "--json"]
             if overview
             else [str(self.war), "sdk", "--request", "-"]
         )
+        if board:
+            args = [str(self.war), "board", "--json"]
         with tempfile.TemporaryFile() as out, tempfile.TemporaryFile() as err:
             try:
                 result = subprocess.run(
                     check=False,
                     args=args,
-                    input=None if overview else json.dumps(request).encode(),
+                    input=None if overview or board else json.dumps(request).encode(),
                     stdout=out,
                     stderr=err,
                     cwd=self.repo,
@@ -483,6 +485,11 @@ class Handler(BaseHTTPRequestHandler):
             store = self.server.store
             if self.command == "GET" and self.path == "/api/warrants":
                 return self.reply(200, store.listing())
+            if self.command == "GET" and self.path == "/api/board":
+                board = store.sdk.run(None, board=True)
+                if board.get("schema") != "oh.war/board-draft/v1":
+                    raise Refusal(503, "SDK does not support the read-only board")
+                return self.reply(200, board)
             if self.command == "GET" and self.path == "/api/project":
                 return self.reply(200, project_inventory(store.sdk))
             if self.command == "GET" and self.path.startswith("/api/runs"):

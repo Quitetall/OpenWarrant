@@ -519,6 +519,16 @@ print(json.dumps({'schema':'oh.war/execution-result/v1','attempt_id':r['attempt_
         self.assertEqual(result["sequence"], 2, result)
         self.assertEqual(result["work_state"], "failed", result)
 
+    def test_board_is_authenticated_read_only_and_matches_cli(self):
+        # This execution fixture is a Git repo without an OpenWarrant corpus.
+        # Preserve the refusal instead of fabricating an empty successful board.
+        status, _ = self.call("/api/board", headers={"Authorization": "Bearer wrong"})
+        self.assertEqual(status, 401)
+        status, result = self.call("/api/board")
+        self.assertEqual(status, 422, result)
+        self.assertEqual(result["error"], "SDK refused input")
+        self.assertFalse(result["qualified"])
+
     # Existing corpus-inventory test expects the real OpenWarrant repository.
     test_project_inventory_keeps_legacy_and_work_separate = None
 

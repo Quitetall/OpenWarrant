@@ -47,7 +47,12 @@ No CORS access is granted. JSON writes require one Content-Length and exactly
 | GET `/api/warrants/{id}` | Latest exact source and editable fields |
 | PUT `/api/warrants/{id}` | New immutable revision; same fields plus `expected_source_sha256` |
 | GET `/api/warrants/{id}/revisions/{n}` | Exact retained revision |
+| GET `/api/board` | Read-only program, objectives, Warrants, stage frontier, open questions and numbered signing commands |
 | GET `/api/project` | Live legacy/work-report inventory and proposed reconciliation routes |
+
+The board uses `war board --json`; it never executes the displayed signing
+commands. Failed reads clear the board instead of keeping an apparently current
+queue. Legacy record status remains separate from implementation completion.
 
 IDs are lowercase UUIDs. Unknown fields, including authority or qualification
 claims, refuse. Revision conflicts return 409; reload and review current source.

@@ -4,8 +4,6 @@ schema = "oh.war/deliverables/v1"
 # Prior manifest remains byte-exact in attempts/attempt-1/deliverables.toml.
 # Changed entries are attempt-2 candidate deliveries, not independent verdicts.
 # See attempts/attempt-2/delivery-change.json for the exact old/new mapping.
-# D-004 now has a later unverified batch-grill candidate; prior bytes and record
-# remain under attempts/batch-grill-20260918/.
 
 [[deliverable]]
 id = "D-001"
@@ -88,12 +86,12 @@ obligation_refs = ["OBL-001"]
 
 [deliverable.provenance]
 producer = "codex"
-producing_attempt = "OW-WAR-0068/batch-grill-20260918"
+producing_attempt = "OW-WAR-0068/attempt-2"
 contract_digest = "f77a07c9bee13fc2490a248e8e735bafe31ea3ab01399d9b45f5cdf53e115808"
-input_digests = ["sha256:9e3552d7b304c20b38c2580b364fa98bf8c9ba747c49a046f25ca89c84fa9185"]
-tool_or_runtime_identity = "Codex; OW-WAR-0104 batch-question implementation; candidate, unverified"
+input_digests = ["sha256:3a68fdc09e4ced524a39fba754ed4f7cec548cae26cf751fb7ea75e0deb57c68"]
+tool_or_runtime_identity = "Codex; owner-directed RC.3 skill refresh; candidate delivery, qualification pending"
 creation_method = "authored"
-content_digest = "sha256:f3083800af7cc2e6da758d9d36783b8314cf8e7e8577d146eb079dbf87502896"
+content_digest = "sha256:9e3552d7b304c20b38c2580b364fa98bf8c9ba747c49a046f25ca89c84fa9185"
 media_type = "text/markdown"
 classification = "internal"
 retention = "repository-lifetime"
