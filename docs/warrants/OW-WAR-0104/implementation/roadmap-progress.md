@@ -132,3 +132,8 @@ Inspect browser proof on d4c571a4 (2026-09-18): disposable workbench at port
 Revision 1 with its exact saved title, outcome, scope and context. The UI still
 reported zero attempts. No Save or Start action was invoked. Fixture tab closed;
 the test harness stopped the service and removed its disposable state.
+
+Full reference-web test suite passed: 212 tests, 83.113 seconds; exact log retained
+as `roadmap-full-web-tests.log.gz`. Read the legacy-question-reconciliation proposal
+before treating OW69's old recommendations as owner answers. Several conflict
+with later product direction; original question records remain untouched.
