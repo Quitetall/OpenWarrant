@@ -492,6 +492,11 @@ class Handler(BaseHTTPRequestHandler):
             store = self.server.store
             verification = re.fullmatch(r"/api/verification/([0-9a-f-]{36})", self.path)
             repair_preview = re.fullmatch(r"/api/verification/([0-9a-f-]{36})/repair", self.path)
+            verifier_dispute = re.fullmatch(r"/api/verification/([0-9a-f-]{36})/dispute", self.path)
+            if self.command == "GET" and verifier_dispute:
+                if self.server.verification is None:
+                    raise Refusal(409, "Verifier not configured")
+                return self.reply(200,self.server.verification.dispute(verifier_dispute[1],self.server.hotline))
             if self.command == "GET" and repair_preview:
                 if self.server.verification is None:
                     raise Refusal(409, "Verifier not configured")
@@ -559,7 +564,7 @@ class Handler(BaseHTTPRequestHandler):
             verifier_start = re.fullmatch(r"/api/verification/([0-9a-f-]{36})/start", self.path)
             verifier_rebuttal = re.fullmatch(r"/api/verification/([0-9a-f-]{36})/rebuttal", self.path)
             if (
-                self.command == "POST" and (hotline_answer or hotline_resume or hotline_reconfirm or verifier_start or repair_preview or verifier_rebuttal)
+                self.command == "POST" and (hotline_answer or hotline_resume or hotline_reconfirm or verifier_start or repair_preview or verifier_rebuttal or verifier_dispute)
             ) or (
                 self.command == "POST" and self.path in ("/api/warrants", "/api/runs", "/api/admission", "/api/drafting", "/api/verification")
             ) or (self.command == "PUT" and match):
@@ -579,6 +584,13 @@ class Handler(BaseHTTPRequestHandler):
                 if len(body) != size:
                     raise Refusal(400, "Incomplete request")
                 fields = decode(body)
+                if verifier_dispute:
+                    if self.server.verification is None:
+                        raise Refusal(409, "Verifier not configured")
+                    credentials=self.headers.get_all('X-OW-Responder',[])
+                    if len(credentials)!=1:
+                        raise Refusal(401,'One responder credential required')
+                    return self.reply(200,self.server.verification.settle(verifier_dispute[1],fields,credentials[0],self.server.hotline))
                 if verifier_rebuttal:
                     if self.server.verification is None:
                         raise Refusal(409, "Verifier not configured")

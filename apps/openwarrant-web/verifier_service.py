@@ -16,6 +16,7 @@ from verifier_budget import allowance
 from verifier_repair import plan as repair_plan
 from verifier_workspace import unchanged
 from verifier_rebuttal import context as rebuttal_context
+from verifier_decision import question as dispute_question, decide
 
 
 class Verification:
@@ -143,6 +144,43 @@ class Verification:
                    for j in self.listing()['jobs']):
                 preview.update(state='escalate',reason='Unresolved independent recheck requires human decision')
             return preview
+
+    def dispute(self, id, answers):
+        with self.executor.lock:
+            job=self.get(id)
+            q=dispute_question(job,answers.authorization_digest if answers else None)
+            path=self.jobs.root / (id+'.decision-'+digest(q)+'.json')
+            decision=None
+            try:
+                envelope=self.jobs.decode(self.jobs.read_file(path))
+                require(isinstance(envelope,dict) and set(envelope)=={'record','sha256'}
+                        and digest(envelope['record'])==envelope['sha256']
+                        and envelope['record']['question']==q,'Dispute decision integrity mismatch')
+                decision=envelope['record']
+            except FileNotFoundError:
+                pass
+            eligible=[{'id':r['id'],'kind':r['kind']} for r in answers.rows
+                      if r['kind']=='human' and q['warrant_id'] in r['governing_warrants']] if answers else []
+            return {'question':q,'question_sha256':digest(q),'decision':decision,
+                    'eligible_responders':eligible,'state':'decision_recorded' if decision else
+                    ('waiting_for_human' if eligible else 'waiting_for_authorized_responder'),'qualified':False}
+
+    def settle(self, id, fields, credential, answers):
+        require(answers is not None,'Authorized human responders are not configured')
+        with self.executor.lock:
+            job,binding=self.get(id),self.binding(id)
+            current=Snapshot(self.executor,binding['attempt_id'],self.config_path,self.issuer_path)()
+            basis=admission(current['config'],current['attempt'],current['execution_policy'],current['source_sha256'])
+            require(basis['basis_sha256']==job['basis_sha256'],'Dispute basis changed; new verification required')
+            unchanged(current['source_path'],job['request']['candidate_revision'],time.monotonic()+5)
+            pending=self.dispute(id,answers)
+            record=decide(pending['question'],fields,credential,answers.rows)
+            if pending['decision'] is not None:
+                require(pending['decision']==record,'Dispute already has a different retained decision')
+                return pending
+            self.jobs.publish(self.jobs.root/(id+'.decision-'+pending['question_sha256']+'.json'),
+                              json.dumps({'record':record,'sha256':digest(record)}).encode())
+            return self.dispute(id,answers)
 
     def repair(self, id, fields):
         require(isinstance(fields, dict) and not fields, 'Repair accepts no replacement scope or checks')

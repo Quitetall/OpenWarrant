@@ -111,6 +111,21 @@ class RepairExecutionTests(RepairExecutionFixture, unittest.TestCase):
             self.service.rebut(rechecked['verification_id'],{**fields,'verification_id':str(uuid.uuid4())})
         self.assertEqual(self.service.get(failed['verification_id'])['effective_verdict'],'fail')
         self.assertEqual(len(self.executor.records()),1)
+        self.assertEqual(self.service.dispute(rechecked['verification_id'],None)['state'],'waiting_for_authorized_responder')
+        token='fixture-only-human-credential-0001'
+        answers=Answers(self.executor,{'schema':'oh.war/hotline-config/v1','responders':[{
+            'id':'fixture-human','kind':'human','governing_warrants':[self.original['warrant_id']],
+            'token_sha256':hashlib.sha256(token.encode()).hexdigest()}]})
+        pending=self.service.dispute(rechecked['verification_id'],answers)
+        fields={'question_sha256':pending['question_sha256'],'action':'repair','reason':'Keep fixture requirement',
+                'evidence':['fixture requirement']}
+        settled=self.service.settle(rechecked['verification_id'],fields,token,answers)
+        self.assertEqual(settled['state'],'decision_recorded')
+        self.assertFalse(settled['decision']['changes_verdict'])
+        self.assertEqual(self.service.settle(rechecked['verification_id'],fields,token,answers),settled)
+        with self.assertRaises(VerificationError):
+            self.service.settle(rechecked['verification_id'],{**fields,'action':'stop'},token,answers)
+        self.assertEqual(self.service.get(rechecked['verification_id'])['effective_verdict'],'fail')
 
     def test_rebuttal_requires_existing_findings_and_evidence_without_authority_fields(self):
         failed=self.verify(self.original['attempt_id'])

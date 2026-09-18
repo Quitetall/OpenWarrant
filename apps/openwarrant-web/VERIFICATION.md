@@ -54,7 +54,18 @@ Authenticated routes:
   It does not change the original verdict or consume a repair cycle. One recheck
   per challenged result is retained; unresolved rechecks set `human_review_required`
   and prevent repair through either the original or recheck result. Authorized
-  human settlement routing is not yet implemented.
+  human decisions are recorded through the dispute route below; their dispatch
+  effects remain under implementation.
+- `GET /api/verification/<verification_id>/dispute` exposes exact question basis,
+  eligible human responders and retained decision. With no configured responder,
+  state remains `waiting_for_authorized_responder`.
+- `POST /api/verification/<verification_id>/dispute` requires `X-OW-Responder` and
+  exactly `question_sha256`, `action`, `reason`, `evidence`. Actions are `repair`,
+  `verify_again`, `revise_scope`, or `stop`. Identity and Warrant authority come from
+  the configured hotline responder. Decisions are immutable and do not change a
+  verdict, award qualification, alter scope or launch work. Actual human presence
+  depends on protected credential custody; synthetic fixture credentials prove
+  protocol handling only.
 - `POST /api/verification/<verification_id>/start` accepts exactly
   `payload_base64` and `signature_base64`. These encode the original signed
   `oh.war/harness-protection/v1` receipt and SSH signature. The receipt binds

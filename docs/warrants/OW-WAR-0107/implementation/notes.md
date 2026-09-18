@@ -290,3 +290,20 @@ repeat challenge/repair refusal and missing evidence/invented finding/authority
 field refusal. Evidence: `implementation/rebuttal-tests.log`. The new HTTP route
 uses existing authenticated JSON handling; dedicated HTTP/browser rebuttal QA,
 authorized human settlement and automatic orchestration remain unfinished.
+
+## Authorized dispute decision records
+
+Added exact-basis human dispute questions, authenticated decision records and
+GET/POST dispute routes. The existing responder configuration supplies identity,
+human kind and per-Warrant governing scope. Caller fields cannot select actor or
+award acceptance. AI responders, wrong scope/credential, stale basis, unsupported
+acceptance acts and missing evidence refuse. Decisions select repair, verify again,
+revise scope or stop and remain immutable; they do not rewrite findings or launch.
+Missing responders produce visible waiting_for_authorized_responder state.
+
+Eleven decision and real process scenarios passed in 3.672 seconds. Fixtures prove
+decision persistence, exact replay, conflicting-decision refusal and unchanged FAIL
+after a decision, using synthetic human-role credentials only. No real human act
+or presence is claimed. Evidence: `implementation/decision-tests.log`. Applying
+decision effects to dispatch, dedicated HTTP/browser decision QA and automatic
+orchestration remain unfinished.
