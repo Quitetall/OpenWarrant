@@ -31,3 +31,19 @@ stdout. Exact digests and revision limits are in `provider-correct-contract-proo
 Both provider revisions carry the correct digest, but provider revision 2 still
 reuses source revision 1's IR. No distinct local revision or runtime execution is
 inferred. Historical packages remain intact.
+
+### Provider consumer reconciliation
+
+KF PR6 merged at `6ea034037224d779b0b35aaa7d841e98905ec22a` after exact-head
+CI run 35376677769 passed. The next adapter is KF PR7, commit `d69e8181cca5ccd91867d4d178ad4b1c4aea7395`.
+It consumes the producer result through `--archive-basis`, authenticates the
+provider snapshot with external public keys, and compares revision plus digest.
+The real corrected package matched source revision 1; provider revision 2 stayed
+explicitly without retained source. Equal digests do not erase that gap.
+
+Retained output, observation identity and 45-test export suite log accompany this
+record. Built CLI ran from an empty directory with an invalid database URL.
+Type checking, focused lint, package build and measurement generation passed.
+PR7 full CI remains pending at recording time. Source basis authenticity remains
+a producer/caller responsibility; the provider adapter does not claim it.
+No independent disposition, signature, stage coverage or completion is granted.
