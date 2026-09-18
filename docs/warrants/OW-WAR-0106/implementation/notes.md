@@ -113,3 +113,21 @@ collection to skip dependent checks transitively while running independent check
 Retained observed failed exit code and explicit skipped prerequisite identities.
 Twelve stage tests pass, including actual process non-launch and independent
 completion. This does not complete stage dispatch or hotline checkpoint rebinding.
+
+### Configured stage dispatch integration
+
+Execution configuration v2 now binds an explicit stage plan to each configured
+Warrant. Authenticated start/admission requests select exact stage. The controller
+serializes writers, checks current prerequisite evidence, shares Warrant time
+budget and applies repair counts per stage. Harness request v3 supplies selected
+stage and plan. Earlier stage checks rerun after later stage changes. Whole-Warrant
+completion requires all stages plus final checks; reporting independently refuses
+missing or stale stage evidence. V1 remains supported.
+
+Public HTTP/process/Git tests prove out-of-order refusal, partial stage completion,
+one worktree, diminishing time allowance, final completion, and rejection of a
+later stage that regresses its prerequisite. The web regression run passed 104
+tests in 52.214 seconds; an additional reporting refusal test passed in the focused
+four-test reporting suite. Full Rust gate has not yet been rerun for this change.
+Browser stage selection and safe resume after independent checkpoint advancement
+remain open. Existing exact-checkpoint resume refuses such advancement.

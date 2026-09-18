@@ -41,21 +41,31 @@ the same Warrant worktree. A new block against the running stage reports
 stop-required; the planner cannot itself stop or fence a process. Contradictory
 completion/writer observations refuse instead of creating a ready result.
 
-Current library implementation provides validation, read-only planning and actual
-check execution against an exact clean Git revision. The
-existing execution configuration remains v1 and does not yet accept or dispatch
-this plan. Dispatch integration must bind exact plan/source revisions, serialize
-writers, preserve stage evidence, rerun affected checks after shared-worktree
-changes and aggregate final Warrant completion without treating one stage as the
-whole outcome. Hotline resume must handle checkpoint movement caused by legitimate
-independent stages without silently accepting unrelated edits. These checks remain
-required before the stage gap can be closed.
+Execution configuration v2 requires `stage_plan` in each Warrant policy. V1
+remains unchanged. A staged `/api/runs` or `/api/admission` request includes exact
+`warrant_id`, `source_sha256`, and `stage`. Omitting or inventing the stage refuses.
+The harness receives execution-request/v3 with the selected stage, full stage plan
+and prior completed stage identities. Results retain the ordinary v1 result shape;
+its `completed` value refers to the selected stage. The controller decides whether
+the full Warrant is complete.
+
+Dispatch serializes writers in one Warrant worktree and checks stage dependencies
+against retained evidence on its exact current clean revision. Every successful
+stage reruns checks for earlier completed stages. Only completion of every stage
+plus the Warrant checks emits the Warrant completion signal. Stage attempts share
+the Warrant time budget; repair limits apply per stage. Question continuations keep
+the existing cumulative budget rules. A question must name the selected stage and
+may name only configured affected stages.
+
+Stage selection is currently available through the authenticated API. Browser stage
+controls and safe hotline resume after independent stages advance a question's
+checkpoint remain unfinished. The existing exact-checkpoint resume refusal remains;
+no old answer silently authorizes a changed checkpoint.
 
 `completed_from_evidence` validates a current stage checkpoint against exact source,
 plan and code revision. It removes successors whose prerequisite checks are absent
 or failed, even if their own checks passed. A boolean false is not exit code zero.
-The checkpoint producer runs actual checks on the unchanged result revision; the
-future dispatch integration must bind that producer to trusted current inputs; accepting arbitrary browser-submitted records is not supported.
+The checkpoint producer runs actual checks on the unchanged result revision; dispatch binds that producer to configured policy and current Git inputs; accepting arbitrary browser-submitted records is not supported.
 
 Checkpoint checks run in dependency order. A failed prerequisite skips checks for
 its dependent stages; independent checks continue. `skipped_stages` records direct

@@ -115,6 +115,70 @@ print(json.dumps({'schema':'oh.war/execution-result/v1','attempt_id':r['attempt_
             time.sleep(0.02)
         self.fail("attempt never finished")
 
+    def staged(self):
+        draft = self.eligible()
+        self.stop()
+        self.config["schema"] = "oh.war/execution-config/v2"
+        self.config["repair_cycles"] = 0
+        self.config["warrants"][draft["id"]]["stage_plan"] = {
+            "schema": "oh.war/execution-stage-plan/v1", "stages": {
+                "api": {"title": "API", "outcome": "Write API", "dependencies": [],
+                        "checks": [[sys.executable, "-c", "from pathlib import Path; assert Path('api.txt').read_text()=='api'"]]},
+                "ui": {"title": "UI", "outcome": "Write UI", "dependencies": ["api"],
+                       "checks": [[sys.executable, "-c", "from pathlib import Path; assert Path('ui.txt').read_text()=='ui'"]]}}}
+        self.config["warrants"][draft["id"]]["checks"] = [[sys.executable, "-c",
+            "from pathlib import Path; assert Path('api.txt').exists() and Path('ui.txt').exists()"]]
+        self.harness.write_text("""import json,sys,pathlib,subprocess
+r=json.load(sys.stdin)
+assert r['schema']=='oh.war/execution-request/v3'
+p=pathlib.Path(r['worktree']); stage=r['stage']
+(p/(stage+'.txt')).write_text(stage)
+subprocess.run(['git','add','.'],cwd=p,check=True)
+subprocess.run(['git','commit','-qm',stage],cwd=p,check=True)
+print(json.dumps({'schema':'oh.war/execution-result/v1','attempt_id':r['attempt_id'],
+'source_sha256':r['source_sha256'],'work_state':'completed','notes':stage,'next_steps':[]}))
+""")
+        self.start()
+        return {"warrant_id": draft["id"], "source_sha256": draft["source_sha256"]}
+
+    def test_stages_dispatch_in_order_and_only_full_result_completes_warrant(self):
+        fields = self.staged()
+        self.assertEqual(self.call("/api/runs", "POST", fields)[0], 400)
+        self.assertEqual(self.call("/api/runs", "POST", {**fields, "stage": "ui"})[0], 409)
+        status, first = self.call("/api/runs", "POST", {**fields, "stage": "api"})
+        self.assertEqual(status, 202, first)
+        first = self.wait_run(first["attempt_id"])
+        self.assertEqual(first["work_state"], "in-progress", first)
+        self.assertEqual(first["execution_state"], "stopped")
+        report = self.call("/api/runs/" + first["attempt_id"] + "/report")[1]
+        self.assertIsNone(report["completion_signal"])
+        self.assertEqual(report["progress"]["completed"], 0)
+        self.assertEqual(self.call("/api/runs", "POST", {**fields, "stage": "api"})[0], 409)
+        status, last = self.call("/api/runs", "POST", {**fields, "stage": "ui"})
+        self.assertEqual(status, 202, last)
+        last = self.wait_run(last["attempt_id"])
+        self.assertEqual(last["work_state"], "completed", last)
+        self.assertEqual(last["worktree"], first["worktree"])
+        self.assertLess(last["remaining_seconds"], first["remaining_seconds"])
+        report = self.call("/api/runs/" + last["attempt_id"] + "/report")[1]
+        self.assertEqual(report["progress"]["completed"], 1)
+        self.assertEqual(report["completion_signal"], "WORK_DONE")
+
+    def test_stage_cannot_regress_previously_completed_prerequisite(self):
+        fields = self.staged()
+        first = self.call("/api/runs", "POST", {**fields, "stage": "api"})[1]
+        self.assertEqual(self.wait_run(first["attempt_id"])["work_state"], "in-progress")
+        self.harness.write_text(self.harness.read_text().replace(
+            "(p/(stage+'.txt')).write_text(stage)",
+            "(p/(stage+'.txt')).write_text(stage); (p/'api.txt').write_text('broken')"))
+        status, last = self.call("/api/runs", "POST", {**fields, "stage": "ui"})
+        self.assertEqual(status, 202, last)
+        last = self.wait_run(last["attempt_id"])
+        self.assertEqual(last["work_state"], "failed", last)
+        self.assertEqual(last["execution_state"], "stopped")
+        self.assertEqual(last["stage_checkpoint"]["skipped_stages"], {"ui": ["api"]})
+        self.assertIsNone(self.call("/api/runs/" + last["attempt_id"] + "/report")[1]["completion_signal"])
+
     def test_work_report_is_persisted_read_only_and_configurable(self):
         r = self.eligible()
         self.stop()

@@ -14,6 +14,8 @@ from pathlib import Path
 from reporting import eligible, render
 from harness import bounded_command, argv
 from hotline import question, digest as hotline_digest
+from stages import plan as stage_plan, completed_from_evidence, frontier, StageError
+from stage_checks import checkpoint as stage_checkpoint
 
 LIMIT = 1024 * 1024
 
@@ -61,7 +63,7 @@ class Executor:
             "Invalid execution configuration",
         )
         require(
-            c["schema"] == "oh.war/execution-config/v1" and argv(c["argv"]),
+            c["schema"] in ("oh.war/execution-config/v1", "oh.war/execution-config/v2") and argv(c["argv"]),
             "Invalid harness command",
         )
         require(
@@ -100,7 +102,7 @@ class Executor:
                     "verified_start",
                     "dependencies",
                     "checks",
-                },
+                } | ({"stage_plan"} if c["schema"] == "oh.war/execution-config/v2" else set()),
                 "Invalid start policy",
             )
             require(
@@ -127,6 +129,39 @@ class Executor:
                 and all(argv(x) for x in p["checks"]),
                 "Required bounded checks missing",
             )
+
+            if "stage_plan" in p:
+                try:
+                    stage_plan(p["stage_plan"])
+                except StageError as error:
+                    raise ExecutionError(400, str(error)) from error
+
+    def stage_facts(self, id, policy, attempts, resuming=None):
+        """Read retained evidence on the current clean worktree; no writer claim."""
+        config = policy["stage_plan"]
+        graph = {k: v["dependencies"] for k, v in config["stages"].items()}
+        worktree = self.root / ("worktree-" + id)
+        done = set()
+        if worktree.exists():
+            require(not worktree.is_symlink()
+                    and self.git("rev-parse", "--show-toplevel", cwd=worktree) == str(worktree)
+                    and not self.git("status", "--porcelain", "--untracked-files=all", cwd=worktree),
+                    "Stage dispatch requires a clean known worktree")
+            revision = self.git("rev-parse", "HEAD", cwd=worktree)
+            for r in attempts:
+                if r.get("policy") == policy and r.get("execution_state") == "stopped":
+                    done |= completed_from_evidence(config, policy["source_sha256"], revision,
+                                                    r.get("stage_checkpoint"))
+        blocks = set()
+        for r in attempts:
+            if (r.get("question") and r["attempt_id"] != resuming
+                    and not any(child.get("resume_from") == r["attempt_id"] for child in attempts)):
+                blocks.update(r["question"]["affected_stages"])
+        # An unresolved question invalidates completion for its affected graph.
+        blocked = {row["stage"] for row in frontier(graph, question_blocks=blocks)
+                   if row["question_blocked"]}
+        done -= blocked
+        return done, frontier(graph, completed=done, question_blocks=blocks)
 
     def records(self):
         entries = list(self.root.glob("*.json"))
@@ -213,7 +248,8 @@ class Executor:
 
     def _check_start(self, fields, resuming=None):
         require(
-            isinstance(fields, dict) and set(fields) == {"warrant_id", "source_sha256"},
+            isinstance(fields, dict) and set(fields) in ({"warrant_id", "source_sha256"},
+                                                        {"warrant_id", "source_sha256", "stage"}),
             "Expected exact Warrant identity and source digest",
             400,
         )
@@ -224,6 +260,10 @@ class Executor:
             403,
         )
         p = self.config["warrants"][id]
+        stage = fields.get("stage")
+        require(("stage_plan" in p and isinstance(stage, str) and stage in p["stage_plan"]["stages"])
+                or ("stage_plan" not in p and "stage" not in fields),
+                "Select an exact configured stage for staged execution", 400)
         record = self.store.get(id)
         require(
             record["source_sha256"]
@@ -251,8 +291,12 @@ class Executor:
             not any(r["execution_state"] != "stopped" for r in attempts),
             "Existing writer running or unknown; replacement refused",
         )
+        if "stage_plan" in p:
+            _, rows = self.stage_facts(id, p, attempts, resuming)
+            require(next(row for row in rows if row["stage"] == stage)["state"] == "ready",
+                    "Stage prerequisites or hotline questions block dispatch")
         require(
-            not any(r.get("question") and r["attempt_id"] != resuming
+            "stage_plan" in p or not any(r.get("question") and r["attempt_id"] != resuming
                     and not any(child.get("resume_from") == r["attempt_id"] for child in attempts)
                     for r in attempts),
             "Hotline question requires an eligible answer and explicit resume",
@@ -265,7 +309,7 @@ class Executor:
             "Exact subject already completed",
         )
         require(
-            sum(not r.get("resume_from") for r in attempts)
+            sum(not r.get("resume_from") for r in attempts if r.get("stage") == stage)
             < 1 + self.config["repair_cycles"] + (1 if resuming else 0),
             "Repair cycle limit reached",
         )
@@ -349,6 +393,12 @@ class Executor:
                     self.read_file(binding) == binding_bytes,
                     "Warrant already belongs to another execution store",
                 )
+            remaining = resume_context["remaining"] if resume_context else self.config["timeout_seconds"]
+            if "stage_plan" in p:
+                used = sum(r.get("active_seconds", 0) for r in self.records().values()
+                           if r["warrant_id"] == id)
+                remaining = min(remaining, self.config["timeout_seconds"] - used)
+                require(remaining > 0, "Warrant execution time budget exhausted")
             attempt = str(uuid.uuid4())
             r = {
                 "schema": "oh.war/execution-attempt/v1",
@@ -371,8 +421,13 @@ class Executor:
                 "harness_argv": self.config["argv"],
                 "created_at_unix": time.time(),
                 "execution_config_sha256": hotline_digest(self.config),
-                "remaining_seconds": resume_context["remaining"] if resume_context else self.config["timeout_seconds"],
+                "remaining_seconds": remaining,
             }
+            if "stage_plan" in p:
+                done, _ = self.stage_facts(id, p, [self.view(x) for x in self.records().values()
+                                                 if x["warrant_id"] == id],
+                                           resume_context["from"] if resume_context else None)
+                r.update(stage=fields["stage"], prior_completed_stages=sorted(done))
             if resume_context:
                 r.update(resume_from=resume_context["from"], hotline_context=resume_context["history"])
             self.save(r)
@@ -408,7 +463,8 @@ class Executor:
                     "Question checkpoint changed")
             remaining = prior["remaining_seconds"] - prior["active_seconds"]
             require(remaining > 0, "Question execution time budget exhausted")
-            return self.start({"warrant_id": prior["warrant_id"], "source_sha256": prior["source_sha256"]},
+            return self.start({"warrant_id": prior["warrant_id"], "source_sha256": prior["source_sha256"],
+                               **({"stage": prior["stage"]} if "stage" in prior else {})},
                               {"from": attempt_id, "remaining": remaining,
                                "history": prior.get("hotline_context", []) + [{"question": q, "answer": response}]})
 
@@ -438,6 +494,10 @@ class Executor:
             if r.get("resume_from"):
                 request.update(schema="oh.war/execution-request/v2",
                                resume_from=r["resume_from"], hotline_context=r["hotline_context"])
+            if "stage" in r:
+                request.update(schema="oh.war/execution-request/v3", stage=r["stage"],
+                               stage_plan=policy["stage_plan"],
+                               prior_completed_stages=r["prior_completed_stages"])
             code, out, _err = bounded_command(
                 self.config["argv"], worktree, json.dumps(request).encode(), deadline, r
             )
@@ -451,6 +511,10 @@ class Executor:
                 checkpoint = self.git("rev-parse", "HEAD", cwd=worktree)
                 self.git("merge-base", "--is-ancestor", r["base_commit"], checkpoint, cwd=worktree)
                 q = question(result, r, checkpoint)
+                if "stage" in r:
+                    require(r["stage"] in q["affected_stages"]
+                            and set(q["affected_stages"]) <= policy["stage_plan"]["stages"].keys(),
+                            "Question must name current stage and only configured affected stages")
                 r.update(question=q, work_state="blocked", execution_state="stopped",
                          cause="Waiting for hotline answer", notes=q["notes"],
                          next_steps=q["next_steps"])
@@ -505,6 +569,21 @@ class Executor:
                     revision,
                     cwd=worktree,
                 )
+                if "stage" in r:
+                    selected = sorted(set(r["prior_completed_stages"]) | {r["stage"]})
+                    observed = stage_checkpoint(policy["stage_plan"], r["source_sha256"], revision,
+                                                worktree, selected, deadline)
+                    r["stage_checkpoint"] = observed
+                    require(observed["execution_state"] == "stopped", "Stage checks did not stop on unchanged revision")
+                    done = completed_from_evidence(policy["stage_plan"], r["source_sha256"], revision, observed)
+                    if set(selected) != done:
+                        r.update(work_state="failed", execution_state="stopped",
+                                 cause="Required stage checks failed")
+                        return
+                    if done != policy["stage_plan"]["stages"].keys():
+                        r.update(work_state="in-progress", execution_state="stopped",
+                                 cause="Stage finished; Warrant has remaining stages", result_revision=revision)
+                        return
                 for check in policy["checks"]:
                     observed = {"argv": check, "exit_code": None}
                     r["checks"].append(observed)
