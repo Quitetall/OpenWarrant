@@ -15,6 +15,12 @@ on:
   # and a spent version number cannot be reused, because yanked versions stay
   # yanked.
   workflow_dispatch:
+    inputs:
+      preview_tag:
+        description: 'Publish an owner-requested alpha preview after native checks; empty means rehearsal only'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: write
@@ -37,6 +43,7 @@ jobs:
         uses: taiki-e/install-action@b6ff580856c41316412a0b9b60540fbc6f8c82cc # v2
         with:
           tool: cargo-deny
+      - run: python3 conformance/release/test_preview.py
       - run: cargo xtask gate
 
   build:
@@ -85,10 +92,17 @@ jobs:
       # SHA-256 travels with it, matching the algorithm the protocol itself uses
       # for every other digest (§65.1).
       - name: Package
+        env:
+          PREVIEW_TAG: ${{ inputs.preview_tag }}
         shell: bash
         run: |
           set -euo pipefail
           label="${GITHUB_REF_NAME//\//-}"
+          if [[ -n "$PREVIEW_TAG" ]]; then
+            [[ "$PREVIEW_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-alpha\.[0-9]+$ ]] || exit 1
+            [[ "$(./target/${{ matrix.target }}/release/war --version)" == "war ${PREVIEW_TAG#v}" ]] || exit 1
+            label="$PREVIEW_TAG"
+          fi
           mkdir -p dist
           python3 conformance/release/package.py \
             --war "target/${{ matrix.target }}/release/war" \
@@ -214,3 +228,34 @@ jobs:
               sleep 10
             done
           done
+
+  preview:
+    name: publish alpha preview
+    needs: publish
+    if: github.event_name == 'workflow_dispatch' && inputs.preview_tag != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Publish only the checked alpha preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREVIEW_TAG: ${{ inputs.preview_tag }}
+        run: |
+          set -euo pipefail
+          [[ "$PREVIEW_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-alpha\.[0-9]+$ ]] || exit 1
+          python3 conformance/release/check_preview.py --directory dist --tag "$PREVIEW_TAG" --commit "$GITHUB_SHA"
+          # The owner-created draft must exist. Never replace a published version.
+          gh release view "$PREVIEW_TAG" --json isDraft,isPrerelease | jq -e '.isDraft == true and .isPrerelease == true'
+          # A pre-existing tag could point to different source than these artifacts.
+          set +e
+          git ls-remote --exit-code --tags origin "refs/tags/$PREVIEW_TAG" >/dev/null
+          tag_status=$?
+          set -e
+          [[ "$tag_status" == 2 ]] || { echo "Existing tag or unavailable tag check; refusing publication" >&2; exit 1; }
+          gh release upload "$PREVIEW_TAG" dist/*
+          gh release edit "$PREVIEW_TAG" --target "$GITHUB_SHA" --draft=false --prerelease --latest=false --notes-file docs/releases/alpha1.md

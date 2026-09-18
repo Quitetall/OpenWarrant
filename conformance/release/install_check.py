@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Verify and exercise a candidate in a fresh temporary directory. No global install."""
 import argparse
+import os
 import hashlib
 import gzip
 import re
@@ -107,8 +108,10 @@ def exercise(files,manifest):
         observations['installed-skill-links']={'exit_code':skill_check.returncode,'stdout':skill_check.stdout,'stderr':skill_check.stderr}
         if skill_check.returncode:raise ValueError('Installed skill structure check failed')
         war=root/'bin/war'
+        environment=dict(os.environ)
+        environment.pop('SSH_AUTH_SOCK',None)
         def run(name,args,input=None):
-            result=subprocess.run([str(war),*args],cwd=root,input=input,text=True,capture_output=True,timeout=30)
+            result=subprocess.run([str(war),*args],cwd=root,env=environment,input=input,text=True,capture_output=True,timeout=30)
             observations[name]={'argv':args,'exit_code':result.returncode,'stdout':result.stdout,'stderr':result.stderr}
             if result.returncode:raise ValueError(name+' failed')
             return result.stdout
@@ -119,6 +122,13 @@ def exercise(files,manifest):
         if result['result']['validity']!='Valid' or result['result']['qualification_established']:raise ValueError('SDK example standing mismatch')
         result=json.loads(run('interactive',['--json','document','draft','--draft-dir','draft','--output','example.md'],'save\n'))
         if not result['result']['saved'] or result['result']['qualified']:raise ValueError('Authoring walkthrough failed')
+        run('prototype-init',['init','--namespace','MVP','--name','Prototype install check'])
+        run('prototype-new',['new','Record prompt-authorized work'])
+        run('prototype-compile',['compile'])
+        run('prototype-overview',['overview','--html','progress.html'])
+        if not (root/'progress.html').is_file():raise ValueError('Prototype progress view missing')
+        if (root/'docs/authority/roles.toml').exists():raise ValueError('Prototype setup activated authority')
+        if 'without an SSH key' not in (root/'AGENTS.md').read_text():raise ValueError('Prototype guidance missing')
         destination=str(root)
     if Path(destination).exists():raise ValueError('Temporary installation not removed')
     return observations
