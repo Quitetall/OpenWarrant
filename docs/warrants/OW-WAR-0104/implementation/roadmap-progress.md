@@ -98,3 +98,9 @@ Subsequent UI improvement adds the source Warrant title and an Inspect action
 that loads its saved revision without dispatch. All 57 execution tests passed
 again; JavaScript syntax passed. Inspect interaction still needs browser proof.
 Hosted run 35370958832 completed successfully for 82e8629 (earlier PR head).
+
+Source-link/refresh control: actual local HTTP test served the exact configured
+architecture document bytes. Replacing the roadmap configuration with malformed
+JSON retained the prior record digest and returned an explicit Roadmap error.
+The focused integration test passed. This proves server behavior; browser stale
+labeling is a separate remaining observation for the new roadmap.

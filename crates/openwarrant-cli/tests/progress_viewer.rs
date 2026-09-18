@@ -419,3 +419,34 @@ fn roadmap_keeps_frontier_error_visible_instead_of_empty_ready_state() {
     );
     assert_eq!(after["result"]["roadmap"]["title"], "Test");
 }
+
+#[test]
+fn roadmap_document_link_serves_exact_source_and_invalid_refresh_stays_stale() {
+    let fixture = Fixture::new();
+    let path = fixture.0.join("docs/roadmap/view.json");
+    std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+    std::fs::write(
+        fixture.0.join("architecture.md"),
+        "# Architecture\nExact local source.\n",
+    )
+    .unwrap();
+    std::fs::write(&path, r#"{"schema":"oh.war/roadmap-view/v1","title":"Test","nodes":[{"id":"feature","title":"Feature","outcome":"Scope","warrants":["VIEW-WAR-0001"],"documents":["architecture.md"]}]}"#).unwrap();
+    let server = Server::start(&fixture);
+    let before = server.data();
+    let link = before["snapshot"]["links"]["architecture.md"]
+        .as_str()
+        .unwrap();
+    let response = server.request("GET", link, &server.host, "");
+    assert!(response.starts_with("HTTP/1.1 200"));
+    assert_eq!(
+        response.split_once("\r\n\r\n").unwrap().1,
+        "# Architecture\nExact local source.\n"
+    );
+    std::fs::write(&path, "{broken roadmap").unwrap();
+    let stale = server.until(|data| data["error"].is_string());
+    assert_eq!(
+        stale["snapshot"]["record_digest"],
+        before["snapshot"]["record_digest"]
+    );
+    assert!(stale["error"].as_str().unwrap().contains("Roadmap"));
+}
