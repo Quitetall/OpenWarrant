@@ -15,6 +15,7 @@ from verifier_controller import run
 from verifier_budget import allowance
 from verifier_repair import plan as repair_plan
 from verifier_workspace import unchanged
+from verifier_rebuttal import context as rebuttal_context
 
 
 class Verification:
@@ -57,7 +58,9 @@ class Verification:
                          if view["record"]["sequence"] == 3 and evidence_state == "retained" else "unknown")
             return {**view, "attempt_id": binding["attempt_id"],
                     "request": initial["request"], "basis_sha256": initial["basis_sha256"],
-                    "dispatch_permitted": False, "evidence_state": evidence_state, "effective_verdict": effective}
+                    "dispatch_permitted": False, "evidence_state": evidence_state, "effective_verdict": effective,
+                    "human_review_required": initial['request']['schema'] == 'oh.war/verification-request/v2'
+                    and view['record']['sequence'] == 3 and effective != 'pass'}
 
     def listing(self):
         with self.executor.lock:
@@ -69,7 +72,7 @@ class Verification:
             return {"schema": "oh.war/verification-inventory/v1", "jobs": [self.get(id) for id in sorted(ids)],
                     "qualified": False}
 
-    def prepare(self, fields):
+    def prepare(self, fields, recheck=None):
         require(isinstance(fields, dict) and set(fields) == {"attempt_id", "verification_id"}
                 and all(identity(value) for value in fields.values()), "Exact execution and verification identities required")
         e, id = self.executor, fields["verification_id"]
@@ -79,11 +82,12 @@ class Verification:
             config, attempt, execution_policy = snapshot["config"], snapshot["attempt"], snapshot["execution_policy"]
             preview = admission(config, attempt, execution_policy, snapshot["source_sha256"])
             require(preview["state"] != "blocked", preview["reason"])
-            expected = request({"schema": "oh.war/verification-request/v1", "verification_id": id,
+            expected = request({"schema": "oh.war/verification-request/v2" if recheck else "oh.war/verification-request/v1", "verification_id": id,
                 "warrant_id": attempt["warrant_id"], "source_sha256": snapshot["source_sha256"],
                 "candidate_revision": attempt["result_revision"], "policy_sha256": digest(execution_policy),
                 "performer": config["performer"]["id"], "verifier": config["verifier"]["id"],
-                "checks": execution_policy["checks"], "source": e.store.get(attempt["warrant_id"])["source"]})
+                "checks": execution_policy["checks"], "source": e.store.get(attempt["warrant_id"])["source"],
+                **({'recheck':recheck} if recheck else {})})
             binding = {"schema": "oh.war/verifier-binding/v1", "attempt_id": fields["attempt_id"],
                        "request_sha256": request_digest(expected)}
             path = self.jobs.root / f"{id}.binding.json"
@@ -93,6 +97,19 @@ class Verification:
                 require(self.jobs.decode(self.jobs.read_file(path)) == binding, "Verification identity already bound")
             self.jobs.claim(expected, preview["basis_sha256"])
             return self.get(id)
+
+    def rebut(self, id, fields):
+        with self.executor.lock:
+            job,binding=self.get(id),self.binding(id)
+            recheck=rebuttal_context(job,fields)
+            children=[j for j in self.listing()['jobs'] if j['request'].get('recheck',{}).get('verification_id') == id]
+            require(not children or (len(children) == 1 and children[0]['verification_id'] == fields['verification_id']),
+                    'Existing independent recheck must settle before another challenge')
+            current=Snapshot(self.executor,binding['attempt_id'],self.config_path,self.issuer_path)()
+            basis=admission(current['config'],current['attempt'],current['execution_policy'],current['source_sha256'])
+            require(basis['basis_sha256'] == job['basis_sha256'], 'Rebuttal basis changed; new verification required')
+            unchanged(current['source_path'],job['request']['candidate_revision'],time.monotonic()+5)
+            return self.prepare({'attempt_id':binding['attempt_id'],'verification_id':fields['verification_id']},recheck)
 
     def start(self, id, fields):
         require(isinstance(fields, dict) and set(fields) == {"payload_base64", "signature_base64"}
@@ -120,15 +137,19 @@ class Verification:
 
     def repair_preview(self, id):
         with self.executor.lock:
-            return repair_plan(self.get(id), list(self.executor.records().values()),
-                               self.executor.config.get('repair_cycles', 3))
+            preview=repair_plan(self.get(id), list(self.executor.records().values()),
+                                self.executor.config.get('repair_cycles', 3))
+            if any(j['request'].get('recheck',{}).get('verification_id') == id and j['human_review_required']
+                   for j in self.listing()['jobs']):
+                preview.update(state='escalate',reason='Unresolved independent recheck requires human decision')
+            return preview
 
     def repair(self, id, fields):
         require(isinstance(fields, dict) and not fields, 'Repair accepts no replacement scope or checks')
         e = self.executor
         with e.lock:
             job, binding = self.get(id), self.binding(id)
-            proposal = repair_plan(job, list(e.records().values()), e.config.get('repair_cycles', 3))
+            proposal = self.repair_preview(id)
             if proposal['state'] == 'already_dispatched':
                 return e.get(proposal['attempt_id'])
             require(proposal['state'] == 'ready', proposal['reason'])

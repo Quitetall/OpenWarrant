@@ -63,8 +63,9 @@ print(json.dumps({'schema':'oh.war/verification-result/v1','verification_id':r['
             'cost_mode':'free','spend_limit_usd':10,'timeout_seconds':10}))
         self.service=Verification(self.executor,config,issuer)
 
-    def verify(self, attempt):
-        id=str(uuid.uuid4());job=self.service.prepare({'attempt_id':attempt,'verification_id':id})
+    def verify(self, attempt, prepared=None):
+        id=prepared['verification_id'] if prepared else str(uuid.uuid4())
+        job=prepared or self.service.prepare({'attempt_id':attempt,'verification_id':id})
         now=int(time.time());payload=json.dumps({'schema':'oh.war/harness-protection/v1',
             'basis_sha256':job['basis_sha256'],'nonce':id,'issued_at_unix':now,'expires_at_unix':now+120,
             'evidence_ref':'fixture://repair-loop','protections':{p:'pass' for p in PROTECTIONS}}).encode()
@@ -89,6 +90,37 @@ print(json.dumps({'schema':'oh.war/verification-result/v1','verification_id':r['
 
 
 class RepairExecutionTests(RepairExecutionFixture, unittest.TestCase):
+    def test_rebuttal_preserves_fail_and_unresolved_recheck_waits_for_human(self):
+        failed=self.verify(self.original['attempt_id'])
+        fields={'verification_id':str(uuid.uuid4()),'argument':'Inspect the fixture expectation again',
+                'evidence':['fixture contract paragraph 1'],'finding_ids':['F1']}
+        prepared=self.service.rebut(failed['verification_id'],fields)
+        self.assertEqual(prepared['state'],'prepared')
+        self.assertEqual(prepared['request']['schema'],'oh.war/verification-request/v2')
+        self.assertEqual(prepared['request']['recheck']['observation'],failed['record']['observation'])
+        self.assertEqual(self.service.rebut(failed['verification_id'],fields),prepared)
+        rechecked=self.verify(self.original['attempt_id'],prepared)
+        self.assertEqual(rechecked['effective_verdict'],'fail')
+        self.assertTrue(rechecked['human_review_required'])
+        self.assertEqual(self.service.repair_preview(rechecked['verification_id'])['state'],'escalate')
+        self.assertEqual(self.service.repair_preview(failed['verification_id'])['state'],'escalate')
+        with self.assertRaises(VerificationError):self.service.repair(failed['verification_id'],{})
+        with self.assertRaises(VerificationError):
+            self.service.rebut(failed['verification_id'],{**fields,'verification_id':str(uuid.uuid4())})
+        with self.assertRaises(VerificationError):
+            self.service.rebut(rechecked['verification_id'],{**fields,'verification_id':str(uuid.uuid4())})
+        self.assertEqual(self.service.get(failed['verification_id'])['effective_verdict'],'fail')
+        self.assertEqual(len(self.executor.records()),1)
+
+    def test_rebuttal_requires_existing_findings_and_evidence_without_authority_fields(self):
+        failed=self.verify(self.original['attempt_id'])
+        fields={'verification_id':str(uuid.uuid4()),'argument':'Inspect evidence',
+                'evidence':['fixture observation'],'finding_ids':['F1']}
+        for patch in ({'evidence':[]},{'argument':''},{'finding_ids':['invented']},{'qualified':True}):
+            with self.subTest(patch=patch),self.assertRaises(VerificationError):
+                self.service.rebut(failed['verification_id'],{**fields,**patch})
+        self.assertEqual(len(self.service.listing()['jobs']),1)
+
     def test_repair_hotline_resume_preserves_lineage_budget_and_single_cycle(self):
         failed=self.verify(self.original['attempt_id'])
         implementation=self.fixture.harness.read_text()

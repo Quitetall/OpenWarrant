@@ -30,10 +30,16 @@ def identity(value):
 
 def request(value):
     """Validate trusted controller input; caller must establish configured identities."""
-    require(isinstance(value, dict) and set(value) == {
+    require(isinstance(value, dict), "Invalid verification request")
+    version = value.get('schema')
+    require(version in ('oh.war/verification-request/v1', 'oh.war/verification-request/v2') and set(value) == {
         "schema", "verification_id", "warrant_id", "source_sha256", "candidate_revision",
         "policy_sha256", "performer", "verifier", "checks", "source"
-    } and value["schema"] == "oh.war/verification-request/v1", "Invalid verification request")
+    } | ({'recheck'} if version == 'oh.war/verification-request/v2' else set()), "Invalid verification request")
+    if version == 'oh.war/verification-request/v2':
+        from verifier_rebuttal import validate
+        validate(value['recheck'])
+        require(value['recheck']['verification_id'] != value.get('verification_id'), 'Recheck requires a new identity')
     require(identity(value["verification_id"]) and identity(value["warrant_id"]), "Exact request identities required")
     require(all(isinstance(value[k], str) and re.fullmatch(r"[0-9a-f]{64}", value[k])
                 for k in ("source_sha256", "policy_sha256")), "Exact source and policy digests required")

@@ -47,6 +47,14 @@ Authenticated routes:
   `oh.war/execution-request/v4` with `verification_repair` containing exact verifier
   findings, failed checks, original candidate and observation digest. Completion
   remains unverified and requires a new independent verification of the new commit.
+- `POST /api/verification/<verification_id>/rebuttal` accepts a new `verification_id`,
+  `argument`, nonempty `evidence` references and existing `finding_ids` (failed check
+  IDs use `check-1`, etc.). It prepares a v2 verification request carrying the exact
+  prior observation. Fresh protection evidence and explicit start are still needed.
+  It does not change the original verdict or consume a repair cycle. One recheck
+  per challenged result is retained; unresolved rechecks set `human_review_required`
+  and prevent repair through either the original or recheck result. Authorized
+  human settlement routing is not yet implemented.
 - `POST /api/verification/<verification_id>/start` accepts exactly
   `payload_base64` and `signature_base64`. These encode the original signed
   `oh.war/harness-protection/v1` receipt and SSH signature. The receipt binds

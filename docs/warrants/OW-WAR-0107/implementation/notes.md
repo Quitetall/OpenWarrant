@@ -273,3 +273,20 @@ Five focused execution scenarios passed in 2.806 seconds; evidence is retained i
 `implementation/staged-repair-tests.log`. These use synthetic processes and do not
 qualify model quality or harness isolation. Automatic orchestration and
 rebuttal/escalation remain unfinished.
+
+## Evidence-backed rebuttal and independent recheck
+
+Added verification request v2 for exact prior observations plus bounded challenge
+arguments, evidence and existing finding IDs. The service prepares a separate
+immutable recheck job; it does not edit FAIL or launch implicitly. Fresh signed
+protection evidence, shared budget and independent execution remain required.
+One recheck binds each challenged result. Unresolved recheck sets a human-review
+flag and blocks repair through both parent and recheck, preventing a fallback to
+the old repair route from bypassing the disagreement.
+
+Seven real SDK/Git/process repair/recheck scenarios pass in 3.634 seconds, including
+retained original FAIL, independently repeated FAIL, visible human-review need,
+repeat challenge/repair refusal and missing evidence/invented finding/authority
+field refusal. Evidence: `implementation/rebuttal-tests.log`. The new HTTP route
+uses existing authenticated JSON handling; dedicated HTTP/browser rebuttal QA,
+authorized human settlement and automatic orchestration remain unfinished.
