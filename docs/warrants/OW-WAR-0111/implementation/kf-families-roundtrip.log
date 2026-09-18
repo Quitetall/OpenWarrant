@@ -1,0 +1,11 @@
+
+ RUN  v4.1.10 /mnt/4tb/tmp/kf-ow111-preservation
+
+ ✓ tests/database/warrant-preservation.test.ts (1 test) 9139ms
+   ✓ preserves Warrant revisions, standing and action history after source shutdown  9139ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  10:35:30
+   Duration  9.72s (transform 253ms, setup 0ms, import 504ms, tests 9.14s, environment 0ms)
+
