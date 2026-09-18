@@ -1,0 +1,1730 @@
+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF...FFFFFFFFF
+======================================================================
+FAIL: test_access_and_authority_fields_refuse (test_drafting.DraftingTests.test_access_and_authority_fields_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_drafting.py", line 36, in start
+    super().start()
+    ~~~~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_board_is_authenticated_read_only_and_matches_cli (test_drafting.DraftingTests.test_board_is_authenticated_read_only_and_matches_cli)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_drafting.py", line 36, in start
+    super().start()
+    ~~~~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_concurrent_edits_have_one_winner (test_drafting.DraftingTests.test_concurrent_edits_have_one_winner)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_drafting.py", line 36, in start
+    super().start()
+    ~~~~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_corrupt_revision_and_second_writer_refuse (test_drafting.DraftingTests.test_corrupt_revision_and_second_writer_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_drafting.py", line 36, in start
+    super().start()
+    ~~~~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_cost_and_context_refusals_precede_dispatch (test_drafting.DraftingTests.test_cost_and_context_refusals_precede_dispatch)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_drafting.py", line 36, in start
+    super().start()
+    ~~~~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_create_sdk_source_and_restart (test_drafting.DraftingTests.test_create_sdk_source_and_restart)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_drafting.py", line 36, in start
+    super().start()
+    ~~~~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_duplicate_json_and_symlink_revision_refuse (test_drafting.DraftingTests.test_duplicate_json_and_symlink_revision_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_drafting.py", line 36, in start
+    super().start()
+    ~~~~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_field_only_corruption_refuses (test_drafting.DraftingTests.test_field_only_corruption_refuses)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_drafting.py", line 36, in start
+    super().start()
+    ~~~~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_generated_source_is_unsaved_then_saved_through_sdk_and_replay_is_safe (test_drafting.DraftingTests.test_generated_source_is_unsaved_then_saved_through_sdk_and_replay_is_safe)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_drafting.py", line 36, in start
+    super().start()
+    ~~~~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_interrupted_initial_record_survives_restart_as_unknown (test_drafting.DraftingTests.test_interrupted_initial_record_survives_restart_as_unknown)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_drafting.py", line 36, in start
+    super().start()
+    ~~~~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_invalid_authority_fields_and_malformed_output_never_save (test_drafting.DraftingTests.test_invalid_authority_fields_and_malformed_output_never_save)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_drafting.py", line 36, in start
+    super().start()
+    ~~~~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_output_limit_and_authentication (test_drafting.DraftingTests.test_output_limit_and_authentication)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_drafting.py", line 36, in start
+    super().start()
+    ~~~~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_project_inventory_keeps_legacy_and_work_separate (test_drafting.DraftingTests.test_project_inventory_keeps_legacy_and_work_separate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_drafting.py", line 36, in start
+    super().start()
+    ~~~~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_revision_conflict_preserves_history (test_drafting.DraftingTests.test_revision_conflict_preserves_history)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_drafting.py", line 36, in start
+    super().start()
+    ~~~~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_timeout_stays_unknown_and_blocks_replacement (test_drafting.DraftingTests.test_timeout_stays_unknown_and_blocks_replacement)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_drafting.py", line 36, in start
+    super().start()
+    ~~~~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_access_and_authority_fields_refuse (test_workflow.WorkflowTests.test_access_and_authority_fields_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_board_is_authenticated_read_only_and_matches_cli (test_workflow.WorkflowTests.test_board_is_authenticated_read_only_and_matches_cli)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_concurrent_edits_have_one_winner (test_workflow.WorkflowTests.test_concurrent_edits_have_one_winner)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_corrupt_revision_and_second_writer_refuse (test_workflow.WorkflowTests.test_corrupt_revision_and_second_writer_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_create_sdk_source_and_restart (test_workflow.WorkflowTests.test_create_sdk_source_and_restart)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_duplicate_json_and_symlink_revision_refuse (test_workflow.WorkflowTests.test_duplicate_json_and_symlink_revision_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_field_only_corruption_refuses (test_workflow.WorkflowTests.test_field_only_corruption_refuses)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_project_inventory_keeps_legacy_and_work_separate (test_workflow.WorkflowTests.test_project_inventory_keeps_legacy_and_work_separate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_revision_conflict_preserves_history (test_workflow.WorkflowTests.test_revision_conflict_preserves_history)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_access_and_authority_fields_refuse (test_execution.ExecutionTests.test_access_and_authority_fields_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_admission_is_read_only_and_start_rechecks (test_execution.ExecutionTests.test_admission_is_read_only_and_start_rechecks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_admission_refusals_match_start (test_execution.ExecutionTests.test_admission_refusals_match_start)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_admission_unavailable_base_is_unknown (test_execution.ExecutionTests.test_admission_unavailable_base_is_unknown)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_board_is_authenticated_read_only_and_matches_cli (test_execution.ExecutionTests.test_board_is_authenticated_read_only_and_matches_cli)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_changed_dependency_checks_invalidate_completion_eligibility (test_execution.ExecutionTests.test_changed_dependency_checks_invalidate_completion_eligibility)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_changed_subject_and_authority_input_refuse (test_execution.ExecutionTests.test_changed_subject_and_authority_input_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_concurrent_edits_have_one_winner (test_execution.ExecutionTests.test_concurrent_edits_have_one_winner)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_corrupt_revision_and_second_writer_refuse (test_execution.ExecutionTests.test_corrupt_revision_and_second_writer_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_create_sdk_source_and_restart (test_execution.ExecutionTests.test_create_sdk_source_and_restart)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_duplicate_json_and_symlink_revision_refuse (test_execution.ExecutionTests.test_duplicate_json_and_symlink_revision_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_duplicate_result_fields_refuse (test_execution.ExecutionTests.test_duplicate_result_fields_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_duplicate_timeout_and_restart_block_replacement (test_execution.ExecutionTests.test_duplicate_timeout_and_restart_block_replacement)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_execute_exact_draft_in_isolated_worktree (test_execution.ExecutionTests.test_execute_exact_draft_in_isolated_worktree)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_explicit_retry_budget_and_result_identity (test_execution.ExecutionTests.test_explicit_retry_budget_and_result_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_failing_check_never_completes (test_execution.ExecutionTests.test_failing_check_never_completes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_field_only_corruption_refuses (test_execution.ExecutionTests.test_field_only_corruption_refuses)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_forged_result_never_completes (test_execution.ExecutionTests.test_forged_result_never_completes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_invalid_unicode_result_persists_failed_terminal_record (test_execution.ExecutionTests.test_invalid_unicode_result_persists_failed_terminal_record)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_nonreading_harness_respects_deadline (test_execution.ExecutionTests.test_nonreading_harness_respects_deadline)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_other_state_cannot_create_second_warrant_worktree (test_execution.ExecutionTests.test_other_state_cannot_create_second_warrant_worktree)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_restart_during_live_attempt_is_unknown (test_execution.ExecutionTests.test_restart_during_live_attempt_is_unknown)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_revision_conflict_preserves_history (test_execution.ExecutionTests.test_revision_conflict_preserves_history)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_timeout_retains_observed_diagnostics (test_execution.ExecutionTests.test_timeout_retains_observed_diagnostics)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_unicode_check_output_cannot_lose_terminal_record (test_execution.ExecutionTests.test_unicode_check_output_cannot_lose_terminal_record)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_unknown_cost_and_verified_start_refuse (test_execution.ExecutionTests.test_unknown_cost_and_verified_start_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_work_report_failed_checks_have_no_completion_signal (test_execution.ExecutionTests.test_work_report_failed_checks_have_no_completion_signal)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_work_report_is_persisted_read_only_and_configurable (test_execution.ExecutionTests.test_work_report_is_persisted_read_only_and_configurable)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_execution.py", line 75, in start
+    self.fail(self.proc.stderr.read().decode())
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_access_and_authority_fields_refuse (test_workflow.WorkflowTests.test_access_and_authority_fields_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_board_is_authenticated_read_only_and_matches_cli (test_workflow.WorkflowTests.test_board_is_authenticated_read_only_and_matches_cli)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_concurrent_edits_have_one_winner (test_workflow.WorkflowTests.test_concurrent_edits_have_one_winner)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_corrupt_revision_and_second_writer_refuse (test_workflow.WorkflowTests.test_corrupt_revision_and_second_writer_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_create_sdk_source_and_restart (test_workflow.WorkflowTests.test_create_sdk_source_and_restart)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_duplicate_json_and_symlink_revision_refuse (test_workflow.WorkflowTests.test_duplicate_json_and_symlink_revision_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_field_only_corruption_refuses (test_workflow.WorkflowTests.test_field_only_corruption_refuses)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_project_inventory_keeps_legacy_and_work_separate (test_workflow.WorkflowTests.test_project_inventory_keeps_legacy_and_work_separate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_revision_conflict_preserves_history (test_workflow.WorkflowTests.test_revision_conflict_preserves_history)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_access_and_authority_fields_refuse (test_workflow.WorkflowTests.test_access_and_authority_fields_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_board_is_authenticated_read_only_and_matches_cli (test_workflow.WorkflowTests.test_board_is_authenticated_read_only_and_matches_cli)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_concurrent_edits_have_one_winner (test_workflow.WorkflowTests.test_concurrent_edits_have_one_winner)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_corrupt_revision_and_second_writer_refuse (test_workflow.WorkflowTests.test_corrupt_revision_and_second_writer_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_create_sdk_source_and_restart (test_workflow.WorkflowTests.test_create_sdk_source_and_restart)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_duplicate_json_and_symlink_revision_refuse (test_workflow.WorkflowTests.test_duplicate_json_and_symlink_revision_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_field_only_corruption_refuses (test_workflow.WorkflowTests.test_field_only_corruption_refuses)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_project_inventory_keeps_legacy_and_work_separate (test_workflow.WorkflowTests.test_project_inventory_keeps_legacy_and_work_separate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+======================================================================
+FAIL: test_revision_conflict_preserves_history (test_workflow.WorkflowTests.test_revision_conflict_preserves_history)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 25, in setUp
+    self.start()
+    ~~~~~~~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/test_workflow.py", line 55, in start
+    self.fail(message)
+    ~~~~~~~~~^^^^^^^^^
+AssertionError: Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 620, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-agent-drafting/apps/openwarrant-web/server.py", line 597, in main
+    args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
+                    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/pathlib/__init__.py", line 938, in resolve
+    return self.with_segments(os.path.realpath(self, strict=strict))
+                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 457, in realpath
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/ow-agent-drafting/target'
+
+
+----------------------------------------------------------------------
+Ran 73 tests in 6.674s
+
+FAILED (failures=70)

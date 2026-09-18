@@ -19,6 +19,7 @@ from pathlib import Path
 from socketserver import ThreadingMixIn
 
 from execution import ExecutionError, Executor
+from drafting import Drafter
 
 BODY_LIMIT = 64 * 1024
 FILE_LIMIT = 1024 * 1024
@@ -248,7 +249,7 @@ class Store:
         if len(entries) > REVISION_LIMIT + 64:
             raise Refusal(413, "Store entry limit exceeded")
         for path in sorted(entries):
-            if path.name in (".lock", ".execution") or path.name.startswith(
+            if path.name in (".lock", ".execution", ".drafting") or path.name.startswith(
                 ".pending-"
             ):
                 continue
@@ -403,6 +404,7 @@ class Server(ThreadingMixIn, HTTPServer):
         self.store = store
         self.token = token
         self.executor = None
+        self.drafter = None
         self.slots = threading.BoundedSemaphore(8)
         super().__init__(address, Handler)
 
@@ -485,6 +487,11 @@ class Handler(BaseHTTPRequestHandler):
             store = self.server.store
             if self.command == "GET" and self.path == "/api/warrants":
                 return self.reply(200, store.listing())
+            if self.command == "GET" and (self.path == "/api/drafting" or re.fullmatch(r"/api/drafting/[0-9a-f-]{36}", self.path)):
+                if self.server.drafter is None:
+                    raise Refusal(409, "Drafting harness not configured")
+                return self.reply(200, self.server.drafter.listing() if self.path == "/api/drafting"
+                                  else self.server.drafter.get(self.path.rsplit("/", 1)[1]))
             if self.command == "GET" and self.path == "/api/board":
                 board = store.sdk.run(None, board=True)
                 if board.get("schema") != "oh.war/board-draft/v1":
@@ -513,7 +520,7 @@ class Handler(BaseHTTPRequestHandler):
             if self.command == "GET" and history:
                 return self.reply(200, store.get(history[1], int(history[2])))
             if (
-                self.command == "POST" and self.path in ("/api/warrants", "/api/runs", "/api/admission")
+                self.command == "POST" and self.path in ("/api/warrants", "/api/runs", "/api/admission", "/api/drafting")
             ) or (self.command == "PUT" and match):
                 if (
                     self.headers.get_all("Content-Type") != ["application/json"]
@@ -531,6 +538,10 @@ class Handler(BaseHTTPRequestHandler):
                 if len(body) != size:
                     raise Refusal(400, "Incomplete request")
                 fields = decode(body)
+                if self.path == "/api/drafting":
+                    if self.server.drafter is None:
+                        raise Refusal(409, "Drafting harness not configured")
+                    return self.reply(202, self.server.drafter.start(fields))
                 if self.path in ("/api/runs", "/api/admission"):
                     if self.server.executor is None:
                         raise Refusal(409, "Execution harness not configured")
@@ -576,6 +587,7 @@ def main():
     parser.add_argument("--port", type=int, default=8766)
     parser.add_argument("--session-file", type=Path, required=True)
     parser.add_argument("--execution-config", type=Path)
+    parser.add_argument("--drafting-config", type=Path)
     parser.add_argument("--completion-word", default="WORK_DONE")
     parser.add_argument("--report-detail", choices=("minimal", "full"), default="full")
     args = parser.parse_args()
@@ -588,6 +600,8 @@ def main():
     server = Server(("127.0.0.1", args.port), store, token)
     server.completion_word = args.completion_word
     server.report_detail = args.report_detail
+    if args.drafting_config:
+        server.drafter = Drafter(store, args.drafting_config, read_file, publish, decode)
     if args.execution_config:
         server.executor = Executor(
             store, args.execution_config, read_file, publish, decode

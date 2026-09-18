@@ -40,6 +40,7 @@ class WorkflowTests(unittest.TestCase):
                 "0",
                 "--session-file",
                 str(self.session),
+                *getattr(self, "server_args", []),
             ],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.PIPE,
