@@ -1,19 +1,22 @@
 {
   "schema": "oh.war/viewer-work-report/v1",
   "warrant": "OW-WAR-0109",
-  "work_state": "in-progress",
+  "work_state": "completed",
   "reported_by": "agent://codex",
-  "revision": "b908185a22c017ccdcd413511f83a0500c785ef4",
-  "summary": "Durable agent queue implemented with real HTTP/Git/process and browser evidence. Standalone Rust 1.97.1 gate passed 14 steps and 308 plants at b908185. Final hosted checks and merge integration remain pending; unverified.",
+  "revision": "84154a0adde1f3e35fe1c68bb3afc17bfc6cb748",
+  "summary": "Durable agent-availability queue implementation complete, unverified. PR123 merged; final hosted gate, web workflow and exact-head Bonsai checks passed. Local synthetic probe/Git/process/browser evidence does not establish deployed provider capacity or human assurance.",
   "notes": "docs/warrants/OW-WAR-0109/implementation/notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0109/implementation/browser-observation.md",
     "docs/warrants/OW-WAR-0109/implementation/scope-audit.md",
     "docs/warrants/OW-WAR-0109/implementation/gate-b908185.log.gz",
-    "docs/warrants/OW-WAR-0109/implementation/queue-9-tests.log"
+    "docs/warrants/OW-WAR-0109/implementation/queue-9-tests.log",
+    "docs/warrants/OW-WAR-0109/implementation/pr123-final-checks.json",
+    "docs/warrants/OW-WAR-0109/implementation/pr123-bonsai-84154a0.json",
+    "docs/warrants/OW-WAR-0109/implementation/hosted-gate-84154a0.log.gz"
   ],
   "next_steps": [
-    "Finish exact-head hosted checks and merge integration.",
-    "Independent verification and human assurance remain separate."
+    "Continue remaining integration, protected deployment and release scope.",
+    "Independent verification, secure human acceptance and formal resolution remain separate acts."
   ]
 }
