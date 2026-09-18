@@ -4,6 +4,7 @@ import json
 import re
 import base64
 import threading
+import time
 
 from hotline import digest
 from verification import identity, request, request_digest, require
@@ -13,6 +14,7 @@ from verifier_snapshot import Snapshot
 from verifier_controller import run
 from verifier_budget import allowance
 from verifier_repair import plan as repair_plan
+from verifier_workspace import unchanged
 
 
 class Verification:
@@ -120,6 +122,29 @@ class Verification:
         with self.executor.lock:
             return repair_plan(self.get(id), list(self.executor.records().values()),
                                self.executor.config.get('repair_cycles', 3))
+
+    def repair(self, id, fields):
+        require(isinstance(fields, dict) and not fields, 'Repair accepts no replacement scope or checks')
+        e = self.executor
+        with e.lock:
+            job, binding = self.get(id), self.binding(id)
+            proposal = repair_plan(job, list(e.records().values()), e.config.get('repair_cycles', 3))
+            if proposal['state'] == 'already_dispatched':
+                return e.get(proposal['attempt_id'])
+            require(proposal['state'] == 'ready', proposal['reason'])
+            current = Snapshot(e, binding['attempt_id'], self.config_path, self.issuer_path)()
+            preview = admission(current['config'], current['attempt'], current['execution_policy'], current['source_sha256'])
+            require(preview['state'] != 'blocked' and preview['basis_sha256'] == job['basis_sha256'],
+                    'Repair source, policy or verifier configuration changed')
+            unchanged(current['source_path'], job['request']['candidate_revision'], time.monotonic() + 5)
+            jobs = self.listing()['jobs']
+            require(all(j['record']['sequence'] != 2 for j in jobs), 'Verifier still running or uncertain')
+            budget = allowance(job['request']['warrant_id'], e.config, current['config'], list(e.records().values()), jobs)
+            repair = {'verification_id': id, 'observation_sha256': digest(job['record']),
+                      'candidate_revision': job['request']['candidate_revision'],
+                      'findings': proposal['findings'], 'failed_checks': proposal.get('failed_checks', [])}
+            return e.start({'warrant_id': job['request']['warrant_id'], 'source_sha256': current['source_sha256']},
+                           repair_context={'binding': repair, 'remaining_seconds': budget['remaining_seconds']})
 
     def schedule(self, id, work):
         self.live.add(id)

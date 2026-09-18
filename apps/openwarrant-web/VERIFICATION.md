@@ -21,7 +21,7 @@ the verifier timeout also limits each verification. The smaller configured spend
 cap applies. Missing time or unknown cost under a hard cap refuses dispatch before
 claim consumption. Prepared jobs spend no budget. Historical verifier jobs without
 usage observations cannot be treated as zero-cost, zero-time runs. This accounting
-is currently wired to verifier dispatch; repair-loop integration remains pending.
+is wired to verifier dispatch and explicit verifier-directed repair dispatch.
 
 The issuer file contains `schema: "oh.war/verifier-issuer/v1"`, `public_key` and
 `principal`. The public key must be an SSH Ed25519 key for dispatch authentication.
@@ -40,6 +40,13 @@ Authenticated routes:
   blocks; UNKNOWN and nonrepairable findings escalate; configured cycle limits
   override the default of three. A future repair action must recheck current scope,
   candidate, writer claims and aggregate budget before execution.
+- `POST /api/verification/<verification_id>/repair` accepts an empty JSON object.
+  It rechecks current scope, candidate, writer state, evidence and aggregate limits,
+  then dispatches repair through the existing execution harness in the same Warrant
+  worktree. Repeated requests return the existing repair attempt. The harness receives
+  `oh.war/execution-request/v4` with `verification_repair` containing exact verifier
+  findings, failed checks, original candidate and observation digest. Completion
+  remains unverified and requires a new independent verification of the new commit.
 - `POST /api/verification/<verification_id>/start` accepts exactly
   `payload_base64` and `signature_base64`. These encode the original signed
   `oh.war/harness-protection/v1` receipt and SSH signature. The receipt binds

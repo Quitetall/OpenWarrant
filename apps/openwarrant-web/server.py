@@ -558,7 +558,7 @@ class Handler(BaseHTTPRequestHandler):
             hotline_answer = re.fullmatch(r"/api/hotline/([0-9a-f-]{36})/answer", self.path)
             verifier_start = re.fullmatch(r"/api/verification/([0-9a-f-]{36})/start", self.path)
             if (
-                self.command == "POST" and (hotline_answer or hotline_resume or hotline_reconfirm or verifier_start)
+                self.command == "POST" and (hotline_answer or hotline_resume or hotline_reconfirm or verifier_start or repair_preview)
             ) or (
                 self.command == "POST" and self.path in ("/api/warrants", "/api/runs", "/api/admission", "/api/drafting", "/api/verification")
             ) or (self.command == "PUT" and match):
@@ -578,6 +578,10 @@ class Handler(BaseHTTPRequestHandler):
                 if len(body) != size:
                     raise Refusal(400, "Incomplete request")
                 fields = decode(body)
+                if repair_preview:
+                    if self.server.verification is None:
+                        raise Refusal(409, "Verifier not configured")
+                    return self.reply(202, self.server.verification.repair(repair_preview[1], fields))
                 if verifier_start:
                     if self.server.verification is None:
                         raise Refusal(409, "Verifier not configured")

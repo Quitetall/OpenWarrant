@@ -233,3 +233,27 @@ limits, idempotency, unknown evidence, failed-check repair and HTTP PASS preview
 Evidence: `implementation/repair-plan-tests.log`. This plan is based on retained
 observations and grants no dispatch. Actual repair execution, fresh-state admission,
 automatic re-verification and rebuttal/escalation routing remain open.
+
+## Explicit repair execution
+
+Connected verifier-directed repair to the existing execution controller and
+authenticated POST repair route. Before dispatch, the service rechecks exact
+candidate/source/policy/verifier basis, stopped writers, retained evidence, cycle
+limits and shared accounting. Existing worktree ownership and serialized writer
+claims remain in force. Repair context carries the original observation digest,
+findings and failed checks in execution request v4. Repeated requests return the
+same attempt. Hotline resume retains repair lineage without consuming a new cycle.
+Staged repair reruns all stage checks before whole-Warrant checks; that new staged
+repair path still needs its own end-to-end scenario.
+
+Real SDK/Git/process test observed independent FAIL, repair in the same worktree,
+new committed candidate and a new independently dispatched verifier PASS. The old
+FAIL remained unchanged and no qualification was granted. Separate cases refused
+zero repair limit, exhausted time, replacement-check injection and stale candidate
+before creating a repair attempt. Full web regression: 162 tests passed in 49.266
+seconds (`implementation/repair-web-regression.log`). An earlier focused invocation
+also ran 46 existing execution tests because a TestCase was imported into discovery;
+the import now uses a module alias to avoid duplicate discovery.
+
+Automatic repair/reverification scheduling, rebuttal/escalation and dedicated
+staged-repair/hotline-resume evidence remain open. This is not OW107 completion.

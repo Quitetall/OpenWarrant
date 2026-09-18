@@ -1,0 +1,101 @@
+# SPDX-License-Identifier: Apache-2.0
+"""Real SDK/executor/verifier/repair processes; synthetic agents and issuer only."""
+import base64
+import json
+import os
+import subprocess
+import sys
+import time
+import unittest
+import uuid
+from pathlib import Path
+
+from execution import Executor
+from server import Store, SDK, read_file, publish, decode
+import test_execution as execution_tests
+from verifier_service import Verification
+from verifier_attestation import NAMESPACE
+from verifier_policy import PROTECTIONS
+from verification import VerificationError
+
+
+class RepairExecutionTests(unittest.TestCase):
+    def setUp(self):
+        self.fixture = t = execution_tests.ExecutionTests();t.setUp();self.addCleanup(t.tearDown)
+        draft = t.eligible()
+        program = t.harness.read_text().replace("['git','add','result.txt']", "['git','add','.']")
+        program = program.replace("subprocess.run(['git','add'", "if r.get('verification_repair'):(p/'fixed.txt').write_text('fixed')\nsubprocess.run(['git','add'", 1)
+        t.harness.write_text(program)
+        code, attempt = t.call('/api/runs', 'POST', {'warrant_id': draft['id'], 'source_sha256': draft['source_sha256']})
+        self.assertEqual(code, 202)
+        self.original = t.wait_run(attempt['attempt_id']);self.assertEqual(self.original['work_state'], 'completed')
+        t.stop()
+        # Give the whole synthetic lifecycle a bounded time allowance.
+        t.config['timeout_seconds'] = 30;t.config_path.write_text(json.dumps(t.config))
+        self.store = Store(t.root/'state', SDK(Path(execution_tests.WAR), t.repo))
+        self.addCleanup(lambda: os.close(self.store.lock_fd))
+        self.executor = Executor(self.store,t.config_path,read_file,publish,decode)
+        self.key = t.root/'machine-key'
+        subprocess.run(['ssh-keygen','-q','-t','ed25519','-N','','-f',str(self.key)],check=True)
+        issuer=t.root/'issuer.json';issuer.write_text(json.dumps({'schema':'oh.war/verifier-issuer/v1',
+            'public_key':' '.join(self.key.with_suffix('.pub').read_text().split()[:2]),'principal':'fixture'}))
+        verifier=t.root/'reviewer.py';verifier.write_text("""import json,sys,hashlib,pathlib
+r=json.load(sys.stdin)
+h=hashlib.sha256(json.dumps(r,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()
+ok=pathlib.Path('fixed.txt').exists()
+f=[] if ok else [{'id':'F1','observation':'Required marker absent','scope':'fixed.txt fixture','evidence':['fixed.txt missing'],'status':'violation','repairable':True}]
+print(json.dumps({'schema':'oh.war/verification-result/v1','verification_id':r['verification_id'],'request_sha256':h,'verdict':'pass' if ok else 'fail','summary':'Fixture checked marker','findings':f}))
+""")
+        config=t.root/'verification.json';config.write_text(json.dumps({'schema':'oh.war/verifier-config/v1',
+            'performer':{'id':'worker','argv':t.config['argv']},'verifier':{'id':'reviewer','argv':[sys.executable,str(verifier)]},
+            'cost_mode':'free','spend_limit_usd':10,'timeout_seconds':10}))
+        self.service=Verification(self.executor,config,issuer)
+
+    def verify(self, attempt):
+        id=str(uuid.uuid4());job=self.service.prepare({'attempt_id':attempt,'verification_id':id})
+        now=int(time.time());payload=json.dumps({'schema':'oh.war/harness-protection/v1',
+            'basis_sha256':job['basis_sha256'],'nonce':id,'issued_at_unix':now,'expires_at_unix':now+120,
+            'evidence_ref':'fixture://repair-loop','protections':{p:'pass' for p in PROTECTIONS}}).encode()
+        signature=subprocess.run(['ssh-keygen','-Y','sign','-f',str(self.key),'-n',NAMESPACE],input=payload,
+            stdout=subprocess.PIPE,stderr=subprocess.PIPE,check=True).stdout
+        self.service.start(id,{'payload_base64':base64.b64encode(payload).decode(),
+                               'signature_base64':base64.b64encode(signature).decode()})
+        deadline=time.monotonic()+5
+        while time.monotonic()<deadline:
+            job=self.service.get(id)
+            if job['state']=='finished': return job
+            time.sleep(.02)
+        self.fail('Verifier did not finish')
+
+    def test_failure_repair_new_revision_and_independent_pass_preserve_history(self):
+        failed=self.verify(self.original['attempt_id']);self.assertEqual(failed['effective_verdict'],'fail',failed)
+        repaired=self.service.repair(failed['verification_id'],{})
+        replay=self.service.repair(failed['verification_id'],{})
+        self.assertEqual(repaired['attempt_id'],replay['attempt_id'])
+        deadline=time.monotonic()+5
+        while time.monotonic()<deadline:
+            record=self.executor.get(repaired['attempt_id'])
+            if record['execution_state']!='running':break
+            time.sleep(.02)
+        self.assertEqual(record['work_state'],'completed',record)
+        self.assertNotEqual(record['result_revision'],self.original['result_revision'])
+        self.assertEqual(record['worktree'],self.original['worktree'])
+        passed=self.verify(record['attempt_id']);self.assertEqual(passed['effective_verdict'],'pass',passed)
+        self.assertEqual(self.service.get(failed['verification_id'])['effective_verdict'],'fail')
+        self.assertFalse(passed['qualified']);self.assertFalse(record['qualified'])
+
+    def test_limit_budget_and_stale_candidate_refuse_before_repair_claim(self):
+        failed=self.verify(self.original['attempt_id'])
+        self.executor.config['repair_cycles']=0
+        with self.assertRaises(VerificationError):self.service.repair(failed['verification_id'],{})
+        self.executor.config['repair_cycles']=3
+        self.executor.config['timeout_seconds']=0
+        with self.assertRaises(VerificationError):self.service.repair(failed['verification_id'],{})
+        self.executor.config['timeout_seconds']=30
+        with self.assertRaises(VerificationError):self.service.repair(failed['verification_id'],{'checks':[]})
+        candidate=Path(self.original['worktree'])
+        (candidate/'outside.txt').write_text('unrelated change')
+        subprocess.run(['git','add','.'],cwd=candidate,check=True,stdout=subprocess.DEVNULL)
+        subprocess.run(['git','commit','-qm','fixture stale candidate'],cwd=candidate,check=True)
+        with self.assertRaises(VerificationError):self.service.repair(failed['verification_id'],{})
+        self.assertEqual(len(self.executor.records()),1)
