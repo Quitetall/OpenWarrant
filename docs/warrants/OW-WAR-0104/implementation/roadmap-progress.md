@@ -60,3 +60,12 @@ Browser follow-up on 946410102a05d6034a67e6204290e7f6c231acc6, local port
 
 These observations do not cover narrow-screen layout, malformed refresh UI,
 full cross-Warrant workflow admission or independent qualification.
+
+Coverage/refusal follow-up: the committed example's authored grouping now covers
+all 106 manifest aliases in this checkout. The browser observed live configuration
+refresh to 106/106 while retaining the selected feature, collapsed state and
+Warrant search. This is coverage, not completion. The uncovered-record disclosure
+still handles future additions. A new CLI refusal test corrupts the draft journal:
+stage_frontier becomes null, stage_frontier_error contains the journal error,
+roadmap stays available and snapshot digest changes. Test passed. OBL-004 is now
+included in the existing milestone's obligation list.

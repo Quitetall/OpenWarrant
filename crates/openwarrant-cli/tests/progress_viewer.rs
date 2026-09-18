@@ -371,3 +371,45 @@ fn configured_roadmap_changes_snapshot_digest_and_refuses_dangling_warrants() {
     assert!(!refused.status.success());
     assert!(String::from_utf8_lossy(&refused.stdout).contains("unknown Warrant"));
 }
+
+#[test]
+fn roadmap_keeps_frontier_error_visible_instead_of_empty_ready_state() {
+    let fixture = Fixture::new();
+    let path = fixture.0.join("docs/roadmap/view.json");
+    std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+    std::fs::write(&path, r#"{"schema":"oh.war/roadmap-view/v1","title":"Test","nodes":[{"id":"feature","title":"Feature","outcome":"Scope","warrants":["VIEW-WAR-0001"]}]}"#).unwrap();
+    let output = || {
+        Command::new(env!("CARGO_BIN_EXE_war"))
+            .current_dir(&fixture.0)
+            .args(["progress", "--snapshot", "--json"])
+            .output()
+            .unwrap()
+    };
+    let before = output();
+    assert!(before.status.success());
+    let before: serde_json::Value = serde_json::from_slice(&before.stdout).unwrap();
+    std::fs::write(
+        fixture.0.join("docs/warrants/VIEW-WAR-0001/journal.jsonl"),
+        "not a journal\n",
+    )
+    .unwrap();
+    let after = output();
+    assert!(
+        after.status.success(),
+        "{}",
+        String::from_utf8_lossy(&after.stdout)
+    );
+    let after: serde_json::Value = serde_json::from_slice(&after.stdout).unwrap();
+    assert!(after["result"]["stage_frontier"].is_null());
+    assert!(
+        after["result"]["stage_frontier_error"]
+            .as_str()
+            .unwrap()
+            .contains("journal")
+    );
+    assert_ne!(
+        before["result"]["record_digest"],
+        after["result"]["record_digest"]
+    );
+    assert_eq!(after["result"]["roadmap"]["title"], "Test");
+}
