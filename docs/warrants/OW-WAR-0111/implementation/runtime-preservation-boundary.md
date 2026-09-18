@@ -59,3 +59,21 @@ focused ESLint pass. An initial CLI parity run used stale compiled output and
 failed; the rebuilt full suite supplies the passing result. Retained suite log:
 `provider-receipt-gap-tests.log.gz`. Provider PR5 carries this change; archive
 assembly, real runtime proof and formal qualification remain open.
+
+## Native broker observation, no model execution
+
+Installed Katana 0.4.0 served its real MCP broker in an isolated temporary workspace
+under reader policy with bubblewrap configured. Reading the fixture file succeeded;
+writing a new file returned E_DENIED and created no file. The exact nine-event
+provider log and MCP protocol are retained in `katana-native-broker.jsonl.gz` and
+`katana-native-protocol.json.gz`; binary/log digests and bounds are recorded in
+`katana-native-broker-observation.json`. No model event occurred. The configured
+provider endpoint was loopback port 1; no model tool was called.
+
+`katana sessions --cwd` did not enumerate this MCP session: the native MCP path
+uses the separate sessions/mcp store. Its session.created event confirms the exact
+fixture workspace. `katana replay` exited 2 with no main model.request; this is
+not a successful replay or an execution failure. This observation proves native
+broker read/refusal logging only. It has no Warrant dispatch binding or PromptIR
+and cannot be relabeled as an OpenWarrant KatanaReceipt. Provider archive ingestion
+still needs the real bound stage receipt rather than a fabricated wrapper.
