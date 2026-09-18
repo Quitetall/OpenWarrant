@@ -31,3 +31,13 @@ wrong responder credentials, actor injection, stale question digest, immutable
 answer replay, conflicting answer refusal, restart persistence and session refusal.
 All 38 execution-suite tests pass after this change; four contract tests also pass.
 Answers alone do not permit another start. Resume and browser controls remain open.
+
+Explicit resume is now wired through the authenticated API. It requires an exact
+question digest, retained answer under unchanged responder configuration, unchanged
+execution/source policy, stopped prior writer and clean exact checkpoint. The
+retained child claim makes resume replay idempotent. The resumed v2 request carries
+question/answer history and remaining active-time budget; a continuation does not
+spend a repair cycle. HTTP tests run with zero repair cycles, observe reduced time,
+refuse revoked responder configuration, changed timeout and dirty checkpoint, then
+complete through required checks. All 79 web-package tests pass. Browser controls,
+automatic adviser routing and additional time/concurrency faults remain open.

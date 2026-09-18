@@ -141,6 +141,8 @@ print(json.dumps({'schema':'oh.war/execution-result/v1','attempt_id':r['attempt_
 
     def test_hotline_checkpoint_waits_without_completion_or_start_bypass(self):
         draft = self.eligible()
+        completion_harness = self.harness.read_text()
+        self.stop(); self.config["repair_cycles"] = 0; self.start()
         self.harness.write_text("""import json,sys
 r=json.load(sys.stdin)
 print(json.dumps({'schema':'oh.war/execution-question/v1','attempt_id':r['attempt_id'],
@@ -177,6 +179,9 @@ print(json.dumps({'schema':'oh.war/execution-question/v1','attempt_id':r['attemp
         route = "/api/hotline/" + run["attempt_id"] + "/answer"
         response = {"question_sha256": listing["questions"][0]["question_sha256"],
                     "answer": "Use the existing SDK parser.", "evidence": ["SDK parser API"]}
+        resume_route = "/api/hotline/" + run["attempt_id"] + "/resume"
+        resume_request = {"question_sha256": response["question_sha256"]}
+        self.assertEqual(self.call(resume_route, "POST", resume_request)[0], 409)
         headers = {"X-OW-Responder": responder_token}
         self.assertEqual(self.call(route, "POST", response)[0], 401)
         self.assertEqual(self.call(route, "POST", response, {"X-OW-Responder": "wrong" * 10})[0], 401)
@@ -196,6 +201,31 @@ print(json.dumps({'schema':'oh.war/execution-question/v1','attempt_id':r['attemp
         self.assertEqual(self.call("/api/hotline")[1]["questions"][0]["answer"], retained)
         self.assertEqual(self.call("/api/runs", "POST", fields)[0], 409)
         self.assertEqual(self.call(route, "POST", response, {**headers, "Authorization": "Bearer wrong"})[0], 401)
+        original_config = config.read_bytes()
+        self.stop()
+        config.write_text(json.dumps({"schema": "oh.war/hotline-config/v1", "responders": []}))
+        self.start()
+        self.assertEqual(self.call(resume_route, "POST", resume_request)[0], 409)
+        self.stop(); config.write_bytes(original_config); self.start()
+        self.stop(); self.config["timeout_seconds"] = 6; self.start()
+        self.assertEqual(self.call(resume_route, "POST", resume_request)[0], 409)
+        self.stop(); self.config["timeout_seconds"] = 5; self.start()
+        dirty = Path(stopped["worktree"]) / "unreviewed-change.txt"
+        dirty.write_text("changed checkpoint")
+        self.assertEqual(self.call(resume_route, "POST", resume_request)[0], 409)
+        dirty.unlink()
+        self.harness.write_text(completion_harness.replace("r=json.load(sys.stdin)",
+            "r=json.load(sys.stdin)\nassert r['schema']=='oh.war/execution-request/v2'\n"
+            "assert r['hotline_context'][0]['answer']['answer']=='Use the existing SDK parser.'\n"
+            "assert 0 < r['limits']['timeout_seconds'] < 5"))
+        status, resumed = self.call(resume_route, "POST", resume_request)
+        self.assertEqual(status, 202, resumed)
+        self.assertEqual(resumed["resume_from"], run["attempt_id"])
+        finished = self.wait_run(resumed["attempt_id"])
+        self.assertEqual(finished["work_state"], "completed", finished)
+        self.assertEqual(self.call(resume_route, "POST", resume_request)[1], finished)
+        self.assertEqual(len(self.call("/api/runs")[1]["runs"]), 2)
+        self.assertIsNotNone(self.call("/api/runs/" + resumed["attempt_id"] + "/report")[1]["completion_signal"])
 
     def test_work_report_failed_checks_have_no_completion_signal(self):
         r = self.eligible()

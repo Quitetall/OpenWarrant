@@ -25,8 +25,8 @@ trusted harness still owns containment.
 
 Supported kinds are `technical` and `governing`. This result records blocked work,
 not completion. It has no completion signal. Ordinary start refuses to bypass a
-retained question, including after a response. Explicit resume is not implemented
-yet. Current controller pauses the Warrant; concurrent stages inside that Warrant
+retained question, including after a response. Explicit resume rechecks the exact
+checkpoint and current configuration before launching. Current controller pauses the Warrant; concurrent stages inside that Warrant
 are not yet separately scheduled. Independent Warrants retain their own writers.
 
 ## Responder configuration
@@ -64,6 +64,9 @@ Routes require the ordinary service-session bearer token and local-origin checks
 - `GET /api/hotline` lists exact questions, question digests and retained answers.
 - `POST /api/hotline/<attempt_id>/answer` additionally requires one
   `X-OW-Responder` header containing the responder credential.
+- `POST /api/hotline/<attempt_id>/resume` takes only `question_sha256`. It requires
+  a retained answer under the unchanged responder configuration. Ordinary session
+  permission permits dispatch; it does not grant permission to answer.
 
 Answer body contains only `question_sha256`, `answer` and `evidence` (a bounded
 list of references). The controller derives respondent identity from the
@@ -75,7 +78,25 @@ replay returns the original record. A different answer cannot replace that recor
 History remains readable after restart. Checksums detect damage; they are not an
 authentication boundary against a process able to rewrite protected storage.
 
-Remaining work: automatic adviser routing, explicit resume with current responder
-eligibility and checkpoint revalidation, cumulative budgets, browser controls and
-full lifecycle qualification. Do not advertise the partial API as a complete
+## Resume boundaries
+
+Resume requires unchanged source, Warrant policy, execution configuration and
+responder configuration. It refuses dirty, missing or moved worktree checkpoints,
+unanswered questions and any running/unknown writer. The existing registry still
+binds one worktree to one Warrant. The first resumed attempt is published before
+launch; replay returns that attempt and cannot launch another worker.
+
+A resumed harness receives `oh.war/execution-request/v2`, with `resume_from` and
+`hotline_context` containing retained question/answer pairs. It must support this
+version explicitly and follow the exact source and constraints. Its result uses
+the existing result or question protocol. Completion still requires every check.
+
+Active time consumed by each segment is subtracted from the same execution time
+budget; waiting for an answer consumes none. A continuation does not count as a
+repair, but actual retries retain the configured repair limit. The store's attempt
+limit also bounds repeated questions. Unknown-cost refusal and free-cost assertion
+remain unchanged; this does not implement paid metering.
+
+Remaining work: automatic adviser routing, browser controls, further cumulative
+budget and concurrency fault cases, and full lifecycle qualification. Do not advertise the partial API as a complete
 hotline or mark OW106 complete from its component tests.

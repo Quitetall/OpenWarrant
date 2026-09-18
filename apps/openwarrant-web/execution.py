@@ -13,7 +13,7 @@ from pathlib import Path
 
 from reporting import eligible, render
 from harness import bounded_command
-from hotline import question
+from hotline import question, digest as hotline_digest
 
 LIMIT = 1024 * 1024
 
@@ -43,7 +43,7 @@ class Executor:
         self.store = store
         self.decode = decode
         self.read_file, self.publish = read_file, publish
-        self.lock = threading.Lock()
+        self.lock = threading.RLock()
         self.live = set()
         self.root = store.path / ".execution"
         require(not self.root.is_symlink(), "Execution directory cannot be a symlink")
@@ -220,7 +220,7 @@ class Executor:
             text=True,
         ).strip()
 
-    def _check_start(self, fields):
+    def _check_start(self, fields, resuming=None):
         require(
             isinstance(fields, dict) and set(fields) == {"warrant_id", "source_sha256"},
             "Expected exact Warrant identity and source digest",
@@ -261,7 +261,9 @@ class Executor:
             "Existing writer running or unknown; replacement refused",
         )
         require(
-            not any(r.get("question") for r in attempts),
+            not any(r.get("question") and r["attempt_id"] != resuming
+                    and not any(child.get("resume_from") == r["attempt_id"] for child in attempts)
+                    for r in attempts),
             "Hotline question requires an eligible answer and explicit resume",
         )
         require(
@@ -272,7 +274,8 @@ class Executor:
             "Exact subject already completed",
         )
         require(
-            len(attempts) < 1 + self.config["repair_cycles"],
+            sum(not r.get("resume_from") for r in attempts)
+            < 1 + self.config["repair_cycles"] + (1 if resuming else 0),
             "Repair cycle limit reached",
         )
         for dep in p["dependencies"]:
@@ -314,11 +317,11 @@ class Executor:
                 "remaining_checks": ["worktree identity", "exclusive writer claim", "harness launch"],
             }
 
-    def start(self, fields):
+    def start(self, fields, resume_context=None):
         # Re-evaluate live facts under the same lock used by authoring. A preview
         # is not a grant, reservation, or substitute for this check.
         with self.lock:
-            id, p, record = self._check_start(fields)
+            id, p, record = self._check_start(fields, resume_context["from"] if resume_context else None)
             worktree = self.root / ("worktree-" + id)
             if worktree.exists():
                 require(
@@ -376,15 +379,52 @@ class Executor:
                 "policy": p,
                 "harness_argv": self.config["argv"],
                 "created_at_unix": time.time(),
+                "execution_config_sha256": hotline_digest(self.config),
+                "remaining_seconds": resume_context["remaining"] if resume_context else self.config["timeout_seconds"],
             }
+            if resume_context:
+                r.update(resume_from=resume_context["from"], hotline_context=resume_context["history"])
             self.save(r)
             self.live.add(attempt)
             threading.Thread(target=self.run, args=(r, record, p), daemon=True).start()
             return r
 
+    def resume(self, attempt_id, fields, hotline):
+        with self.lock:
+            require(isinstance(fields, dict) and set(fields) == {"question_sha256"},
+                    "Expected exact question digest", 400)
+            records = self.records()
+            require(attempt_id in records and isinstance(records[attempt_id].get("question"), dict),
+                    "Unknown hotline question", 404)
+            prior = records[attempt_id]
+            require(fields["question_sha256"] == hotline_digest(prior["question"]),
+                    "Question basis changed")
+            children = [r for r in records.values() if r.get("resume_from") == attempt_id]
+            require(len(children) <= 1, "Multiple retained resume claims")
+            if children:
+                return self.view(children[0])
+            prior, q = hotline.basis(attempt_id)
+            response = hotline.read(attempt_id, q)
+            require(response is not None and response.get("authorization_sha256") == hotline.authorization_digest,
+                    "Current eligible hotline answer required")
+            require(prior.get("execution_config_sha256") == hotline_digest(self.config),
+                    "Execution configuration changed since question")
+            worktree = Path(prior["worktree"])
+            require(worktree.exists() and not worktree.is_symlink()
+                    and self.git("rev-parse", "--show-toplevel", cwd=worktree) == str(worktree)
+                    and self.git("rev-parse", "HEAD", cwd=worktree) == q["checkpoint"]
+                    and not self.git("status", "--porcelain", "--untracked-files=all", cwd=worktree),
+                    "Question checkpoint changed")
+            remaining = prior["remaining_seconds"] - prior["active_seconds"]
+            require(remaining > 0, "Question execution time budget exhausted")
+            return self.start({"warrant_id": prior["warrant_id"], "source_sha256": prior["source_sha256"]},
+                              {"from": attempt_id, "remaining": remaining,
+                               "history": prior.get("hotline_context", []) + [{"question": q, "answer": response}]})
+
     def run(self, r, draft, policy):
         r = dict(r)
-        deadline = time.monotonic() + self.config["timeout_seconds"]
+        began = time.monotonic()
+        deadline = began + r["remaining_seconds"]
         try:
             worktree = Path(r["worktree"])
             if not worktree.exists():
@@ -400,10 +440,13 @@ class Executor:
                 "qualification": "unverified",
                 "skill": "war start",
                 "limits": {
-                    "timeout_seconds": self.config["timeout_seconds"],
+                    "timeout_seconds": r["remaining_seconds"],
                     "spend_limit_usd": self.config["spend_limit_usd"],
                 },
             }
+            if r.get("resume_from"):
+                request.update(schema="oh.war/execution-request/v2",
+                               resume_from=r["resume_from"], hotline_context=r["hotline_context"])
             code, out, _err = bounded_command(
                 self.config["argv"], worktree, json.dumps(request).encode(), deadline, r
             )
@@ -506,6 +549,7 @@ class Executor:
         finally:
             r["sequence"] = 2
             r["finished_at_unix"] = time.time()
+            r["active_seconds"] = time.monotonic() - began
             with self.lock:
                 try:
                     try:

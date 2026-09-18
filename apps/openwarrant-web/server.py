@@ -525,9 +525,10 @@ class Handler(BaseHTTPRequestHandler):
             )
             if self.command == "GET" and history:
                 return self.reply(200, store.get(history[1], int(history[2])))
+            hotline_resume = re.fullmatch(r"/api/hotline/([0-9a-f-]{36})/resume", self.path)
             hotline_answer = re.fullmatch(r"/api/hotline/([0-9a-f-]{36})/answer", self.path)
             if (
-                self.command == "POST" and hotline_answer
+                self.command == "POST" and (hotline_answer or hotline_resume)
             ) or (
                 self.command == "POST" and self.path in ("/api/warrants", "/api/runs", "/api/admission", "/api/drafting")
             ) or (self.command == "PUT" and match):
@@ -547,6 +548,10 @@ class Handler(BaseHTTPRequestHandler):
                 if len(body) != size:
                     raise Refusal(400, "Incomplete request")
                 fields = decode(body)
+                if hotline_resume:
+                    if self.server.hotline is None:
+                        raise Refusal(409, "Hotline responders not configured")
+                    return self.reply(202, self.server.executor.resume(hotline_resume[1], fields, self.server.hotline))
                 if hotline_answer:
                     if self.server.hotline is None:
                         raise Refusal(409, "Hotline responders not configured")
