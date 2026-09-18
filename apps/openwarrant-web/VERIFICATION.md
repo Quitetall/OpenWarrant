@@ -47,6 +47,10 @@ The internal process controller supports signed protection receipts, a separate
 Git repository, protected-check observations, exact-result binding and durable
 single-use claims. Start authenticates and consumes a claim before scheduling a
 background process; poll the job route for results. Replay never launches again.
+Job views separate the historical observation from `effective_verdict`. Missing
+or corrupt retained protection receipts set `evidence_state` to `unavailable` and
+the effective verdict to `unknown`, while preserving the original observation.
+Restoring the exact receipt restores the evidence view without rewriting history.
 Another running or uncertain verifier blocks new dispatch. Browser controls, aggregate loop budgets,
 automatic repairs and rebuttal routing are not yet wired. A consumed claim without
 a live process observation is UNKNOWN after interruption; it cannot relaunch.

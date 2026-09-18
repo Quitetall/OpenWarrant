@@ -164,3 +164,18 @@ receipt refusal before consumption and interrupted-claim refusal. Executor recor
 are fixture inputs, so production execution-to-verification and actual sandbox
 protection remain unqualified. Browser controls, aggregate budgets and bounded
 repair/rebuttal remain open. Evidence: `implementation/dispatch-web-regression.log`.
+
+## Missing protection evidence
+
+A public HTTP regression exposed missing evidence-loss reporting after deleting a
+protection receipt from an otherwise completed PASS job. Job views now preserve
+the historical observation but report `evidence_state: unavailable` and
+`effective_verdict: unknown` if its retained protection receipt is missing or has
+the wrong digest. Exact receipt restoration restores the evidence view; corrupt
+replacement remains UNKNOWN. New dispatch refuses when prior evidence is missing.
+No authority record or original observation is deleted or rewritten.
+
+Forty verifier tests pass after the fix, including HTTP deletion, exact restoration
+and corruption cases. Evidence: `implementation/evidence-retention-tests.log`.
+The earlier full web run remains 149 passes; this change ran the focused verifier
+suite. Browser controls and repair/budget work remain open.

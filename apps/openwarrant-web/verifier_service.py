@@ -36,9 +36,24 @@ class Verification:
     def get(self, id):
         with self.executor.lock:
             initial, binding = self.initial(id), self.binding(id)
-            return {**self.jobs.view(id, live=id in self.live), "attempt_id": binding["attempt_id"],
+            view = self.jobs.view(id, live=id in self.live)
+            evidence_state = "not_received"
+            if view["record"]["sequence"] >= 2:
+                try:
+                    consumed = self.jobs.decode(self.jobs.read_file(self.jobs.path(id, 2)))["record"]
+                    receipt_hash = consumed["protection_sha256"]
+                    receipt = self.jobs.decode(self.jobs.read_file(self.jobs.root / f"protection-{receipt_hash}.json"))
+                    require(digest(receipt) == receipt_hash, "Protection receipt integrity mismatch")
+                    evidence_state = "retained"
+                except Exception:
+                    # Preserve signed history and verdict; missing/corrupt evidence
+                    # cannot support its current effective verdict.
+                    evidence_state = "unavailable"
+            effective = (view["record"]["observation"]["verdict"]
+                         if view["record"]["sequence"] == 3 and evidence_state == "retained" else "unknown")
+            return {**view, "attempt_id": binding["attempt_id"],
                     "request": initial["request"], "basis_sha256": initial["basis_sha256"],
-                    "dispatch_permitted": False}
+                    "dispatch_permitted": False, "evidence_state": evidence_state, "effective_verdict": effective}
 
     def listing(self):
         with self.executor.lock:
@@ -87,6 +102,7 @@ class Verification:
                 return self.get(id)
             for job in self.listing()["jobs"]:
                 record = job["record"]
+                require(job["evidence_state"] != "unavailable", "Prior verifier evidence unavailable")
                 require(record["sequence"] != 2 and not (
                     record["sequence"] == 3 and record["observation"]["execution_state"] == "unknown"),
                     "Prior verifier running or uncertain; inspect before replacement")
