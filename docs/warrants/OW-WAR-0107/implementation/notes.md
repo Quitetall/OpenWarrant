@@ -130,3 +130,19 @@ of configuration and records against agents with filesystem access.
 Thirty-four verifier tests pass. New snapshot tests use retained-state fixtures,
 not a public HTTP request. Server wiring, dispatch inventory, repair/rebuttal and
 browser qualification remain unfinished.
+
+## Preparation API and retained inventory
+
+Added opt-in service configuration and authenticated preparation/list/get routes.
+Clients submit exact execution and verification UUIDs. The service derives source,
+actors, checks and candidate from protected current state, persists an immutable
+binding and prepares the claim. Reusing an ID for changed work refuses. Preparation
+does not start a process or grant dispatch. Public start and browser controls remain
+next, followed by aggregate budgets and repair/rebuttal.
+
+Full Python web regression: 146 tests passed in 45.876 seconds using
+`OW_TEST_WAR=/mnt/4tb/tmp/ow-question-integrity/target/debug/war`. New HTTP tests
+cover authentication, unsupported authority fields, unknown writers, exact replay,
+changed-candidate refusal and service reconstruction over retained jobs. These use
+executor state fixtures; the full production execution-to-verification HTTP flow
+is not established yet. Evidence: `implementation/web-regression.log`.

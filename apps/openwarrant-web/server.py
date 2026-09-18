@@ -22,6 +22,7 @@ from execution import ExecutionError, Executor
 from drafting import Drafter
 from hotline import Answers, HotlineError, digest as hotline_digest
 from advice import Adviser
+from verifier_service import Verification
 
 BODY_LIMIT = 64 * 1024
 FILE_LIMIT = 1024 * 1024
@@ -408,6 +409,7 @@ class Server(ThreadingMixIn, HTTPServer):
         self.executor = None
         self.drafter = None
         self.hotline = None
+        self.verification = None
         self.slots = threading.BoundedSemaphore(8)
         super().__init__(address, Handler)
 
@@ -488,6 +490,12 @@ class Handler(BaseHTTPRequestHandler):
             ):
                 raise Refusal(401, "Unlock with this service session token")
             store = self.server.store
+            verification = re.fullmatch(r"/api/verification/([0-9a-f-]{36})", self.path)
+            if self.command == "GET" and (self.path == "/api/verification" or verification):
+                if self.server.verification is None:
+                    raise Refusal(409, "Verifier not configured")
+                return self.reply(200, self.server.verification.get(verification[1]) if verification
+                                  else self.server.verification.listing())
             if self.command == "GET" and self.path == "/api/warrants":
                 return self.reply(200, store.listing())
             if self.command == "GET" and (self.path == "/api/drafting" or re.fullmatch(r"/api/drafting/[0-9a-f-]{36}", self.path)):
@@ -546,7 +554,7 @@ class Handler(BaseHTTPRequestHandler):
             if (
                 self.command == "POST" and (hotline_answer or hotline_resume or hotline_reconfirm)
             ) or (
-                self.command == "POST" and self.path in ("/api/warrants", "/api/runs", "/api/admission", "/api/drafting")
+                self.command == "POST" and self.path in ("/api/warrants", "/api/runs", "/api/admission", "/api/drafting", "/api/verification")
             ) or (self.command == "PUT" and match):
                 if (
                     self.headers.get_all("Content-Type") != ["application/json"]
@@ -564,6 +572,10 @@ class Handler(BaseHTTPRequestHandler):
                 if len(body) != size:
                     raise Refusal(400, "Incomplete request")
                 fields = decode(body)
+                if self.path == "/api/verification":
+                    if self.server.verification is None:
+                        raise Refusal(409, "Verifier not configured")
+                    return self.reply(200, self.server.verification.prepare(fields))
                 if hotline_resume:
                     if self.server.hotline is None:
                         raise Refusal(409, "Hotline responders not configured")
@@ -629,6 +641,8 @@ def main():
     parser.add_argument("--drafting-config", type=Path)
     parser.add_argument("--hotline-config", type=Path)
     parser.add_argument("--adviser-config", type=Path)
+    parser.add_argument("--verifier-config", type=Path)
+    parser.add_argument("--verifier-issuer", type=Path)
     parser.add_argument("--completion-word", default="WORK_DONE")
     parser.add_argument("--report-detail", choices=("minimal", "full"), default="full")
     args = parser.parse_args()
@@ -651,6 +665,10 @@ def main():
         if server.executor is None:
             parser.error("hotline requires execution configuration")
         server.hotline = Answers(server.executor, decode(read_file(args.hotline_config, 65536)))
+    if args.verifier_config or args.verifier_issuer:
+        if server.executor is None or not args.verifier_config or not args.verifier_issuer:
+            parser.error("verifier requires execution configuration, verifier configuration and pinned issuer file")
+        server.verification = Verification(server.executor, args.verifier_config, args.verifier_issuer)
     if args.adviser_config:
         if server.hotline is None:
             parser.error("adviser requires hotline configuration")

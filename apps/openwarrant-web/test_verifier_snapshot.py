@@ -11,7 +11,7 @@ from verification import VerificationError
 from verifier_snapshot import Snapshot
 
 
-class VerifierSnapshotTests(unittest.TestCase):
+class SnapshotFixture:
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup)
         root = Path(self.tmp.name)
@@ -37,6 +37,8 @@ class VerifierSnapshotTests(unittest.TestCase):
             store=SimpleNamespace(get=lambda _: self.source))
         self.snapshot = Snapshot(self.executor, self.id, self.config_path, self.issuer_path)
 
+
+class VerifierSnapshotTests(SnapshotFixture, unittest.TestCase):
     def test_reads_fresh_configuration_and_returns_detached_state(self):
         first = self.snapshot()
         first["attempt"]["checks"].clear()
