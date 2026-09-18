@@ -14,3 +14,11 @@ The adapter now supplies fixed valid milestone YAML and clarifies inventory scop
 Tests also refuse replacement of that template. Revised real-model observation and
 full gate remain pending. Earlier failures remain under OW42. No completion or
 qualification claimed.
+
+## Revised observation
+
+The second constrained run preserved fixed milestone YAML but still misunderstood
+requested work. It proposed documenting itself instead of adding a project
+changelog. Retained under local-model-2/. No usable autonomous drafting claim.
+Full gate and a task-faithful backend observation remain open; no more calls in
+this bounded experiment.

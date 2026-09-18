@@ -1,0 +1,32 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "plan.validate",
+  "diagnostics": [
+    {
+      "severity": "warn",
+      "rule": "plan.not-applicable",
+      "file": "docs/warrants/OW-WAR-0101/implementation/local-model-2/proposal.stdout.txt",
+      "message": "validated, not applicable yet: application refused: step show a semantic diff of §74.4's eight has not been run. An unrun step is not a passed step, and the last three steps write to the repository"
+    }
+  ],
+  "notes": [],
+  "counts": {
+    "pass": 0,
+    "warn": 1,
+    "unknown": 0,
+    "error": 0,
+    "worst": "warn"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0,
+  "result": {
+    "completed": [
+      "parse the proposal",
+      "run risk and authority checks",
+      "validate schema",
+      "validate semantic references"
+    ],
+    "failures": []
+  }
+}
