@@ -14,7 +14,7 @@
   ],
   "next_steps": [
     "Clear provider CI account restriction and validate exact provider repair revision.",
-    "Integrate after parent PR #118; run OpenWarrant machine-scope checks and full gate.",
+    "Run final OpenWarrant PR #120 integration checks against main; parent PR #118 merged at 2dba896c.",
     "Preserve separate independent verification and human acceptance requirements."
   ]
 }
