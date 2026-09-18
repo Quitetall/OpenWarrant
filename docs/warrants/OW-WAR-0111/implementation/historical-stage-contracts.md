@@ -21,3 +21,18 @@ Clippy passed with warnings denied. Historical fixtures regenerate IR for two
 commits, then change a shared source without regeneration for two more. Only the
 consistent snapshots receive reconstructed bindings. Current binding also matches
 the producer's reconstructed current contract digest.
+
+
+## Real producer/provider comparison
+
+Producer 009cd54a generated two successive draft editions and a real local service
+dispatch against the first. Both editions use the current compiler's revision 1;
+their contract digests differ. After deleting the temporary source repository,
+provider e87fd4b7 matched the old dispatch to its historical reconstructed source,
+not the current draft, and refused a substituted digest. The retained archive,
+fixture and provider result are in `historical-stage-real-*.json.gz`.
+
+This proves historical digest selection across draft editions. It does not prove
+an approved revision transition, validate signatures, or establish execution
+qualification. The current lowerer emits revision 1; revisions that cannot be
+reconstructed consistently remain unresolved rather than borrowing that value.
