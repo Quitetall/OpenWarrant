@@ -74,3 +74,49 @@ its caller or perform a privileged action. A trusted workflow must authenticate
 the acting principal and enforce the result atomically with, or recheck it before,
 the protected action. Removing keys affects future transitions; prior signed
 history is verified against the key set that was current for that transition.
+
+## Reference workflow dispute decisions (OW-WAR-0107)
+
+The reference web application's dispute credentials select a configured human
+responder with governing scope for the exact Warrant. They do not prove human
+presence or grant the OpenWarrant assurance mark. Operators must protect responder
+credentials, configuration and control storage from the performer. Same-account
+file access is not an isolation boundary.
+
+A retained repair decision binds the question, observation, candidate and responder
+configuration. Dispatch rechecks current source, policy, candidate, writer state
+and aggregate budgets. Removing responder authority makes the old decision
+inapplicable. A human repair decision cannot override unknown observations,
+missing evidence or repair limits, and cannot rewrite the original FAIL.
+`test_verifier_repair`, `test_verifier_decision` and
+`test_verifier_repair_execution` exercise these boundaries with synthetic
+credentials and real local Git/process fixtures. Stop, scope-revision and
+verify-again decisions cannot launch repair through the repair endpoint.
+Human-directed rechecks retain the exact prior observation and decision in a v3
+request. Each decision permits one child check; dispatch rechecks responder
+authority and requires fresh protection evidence. Revoked authority leaves the
+prepared claim unconsumed. Candidate, observation, action and responder-kind
+substitution refuse in the real-process contract fixtures. Broader
+dispatch checks prevent unrelated claims and sibling failed results from bypassing
+an unresolved dispute on the same source and candidate, including after service
+restart. Repair previews use the same check as dispatch. These checks do not
+establish global process containment or stop an agent outside the service. Broader
+decision orchestration remains work in progress; these tests do not establish
+deployment isolation or real human acceptance.
+
+The loop receipt inbox pins an operator-selected directory descriptor and reads
+UUID-named files relative to it, with no-follow and nonblocking open. It rejects
+nonregular files before reading and caps reads at 64 KiB. Tests plant a symlink,
+FIFO, oversized envelope, injected field, path traversal and replaced directory.
+The adapter does not authenticate the envelope: ordinary dispatch still checks
+the signed receipt against the pinned issuer and current claim. Configured parent
+paths, issuer custody and sandbox deployment remain operator responsibilities.
+
+Automatic-loop enable/pause requests use the reference service's authenticated
+session and existing origin controls. They select an existing execution attempt,
+not a command, configuration path or issuer. Append-only intent history is checked
+before polling; corruption prevents dispatch. Pause is serialized with ticks and
+stops future launches, not processes already dispatched. Tests cover authenticated
+HTTP configuration, field injection, duplicate intent, background repair/recheck,
+pause across scheduler restart and corrupt-history refusal. Intent digests detect
+corruption; protected control storage remains required against hostile rewriting.

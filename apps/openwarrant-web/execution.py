@@ -246,7 +246,7 @@ class Executor:
             text=True,
         ).strip()
 
-    def _check_start(self, fields, resuming=None):
+    def _check_start(self, fields, resuming=None, repair=False):
         require(
             isinstance(fields, dict) and set(fields) in ({"warrant_id", "source_sha256"},
                                                         {"warrant_id", "source_sha256", "stage"}),
@@ -261,7 +261,7 @@ class Executor:
         )
         p = self.config["warrants"][id]
         stage = fields.get("stage")
-        require(("stage_plan" in p and isinstance(stage, str) and stage in p["stage_plan"]["stages"])
+        require((repair and "stage" not in fields) or ("stage_plan" in p and isinstance(stage, str) and stage in p["stage_plan"]["stages"])
                 or ("stage_plan" not in p and "stage" not in fields),
                 "Select an exact configured stage for staged execution", 400)
         record = self.store.get(id)
@@ -291,25 +291,25 @@ class Executor:
             not any(r["execution_state"] != "stopped" for r in attempts),
             "Existing writer running or unknown; replacement refused",
         )
-        if "stage_plan" in p:
+        if "stage_plan" in p and not repair:
             _, rows = self.stage_facts(id, p, attempts, resuming)
             require(next(row for row in rows if row["stage"] == stage)["state"] == "ready",
                     "Stage prerequisites or hotline questions block dispatch")
         require(
-            "stage_plan" in p or not any(r.get("question") and r["attempt_id"] != resuming
+            ("stage_plan" in p and not repair) or not any(r.get("question") and r["attempt_id"] != resuming
                     and not any(child.get("resume_from") == r["attempt_id"] for child in attempts)
                     for r in attempts),
             "Hotline question requires an eligible answer and explicit resume",
         )
         require(
-            not any(
+            repair or not any(
                 eligible(r, p)
                 for r in attempts
             ),
             "Exact subject already completed",
         )
         require(
-            sum(not r.get("resume_from") for r in attempts if r.get("stage") == stage)
+            repair or sum(not r.get("resume_from") for r in attempts if r.get("stage") == stage)
             < 1 + self.config["repair_cycles"] + (1 if resuming else 0),
             "Repair cycle limit reached",
         )
@@ -378,11 +378,11 @@ class Executor:
                 "remaining_checks": ["worktree identity", "exclusive writer claim", "harness launch"],
             }
 
-    def start(self, fields, resume_context=None):
+    def start(self, fields, resume_context=None, repair_context=None):
         # Re-evaluate live facts under the same lock used by authoring. A preview
         # is not a grant, reservation, or substitute for this check.
         with self.lock:
-            id, p, record = self._check_start(fields, resume_context["from"] if resume_context else None)
+            id, p, record = self._check_start(fields, resume_context["from"] if resume_context else None, repair=repair_context is not None)
             worktree = self.root / ("worktree-" + id)
             if worktree.exists():
                 require(
@@ -425,6 +425,9 @@ class Executor:
                            if r["warrant_id"] == id)
                 remaining = min(remaining, self.config["timeout_seconds"] - used)
                 require(remaining > 0, "Warrant execution time budget exhausted")
+            if repair_context:
+                remaining = min(remaining, repair_context["remaining_seconds"])
+                require(remaining > 0, "Shared repair time budget exhausted")
             attempt = str(uuid.uuid4())
             r = {
                 "schema": "oh.war/execution-attempt/v1",
@@ -450,7 +453,9 @@ class Executor:
                 "execution_config_sha256": hotline_digest(self.config),
                 "remaining_seconds": remaining,
             }
-            if "stage_plan" in p:
+            if repair_context:
+                r["verification_repair"] = repair_context["binding"]
+            if "stage_plan" in p and not repair_context:
                 done, _ = self.stage_facts(id, p, [self.view(x) for x in self.records().values()
                                                  if x["warrant_id"] == id],
                                            resume_context["from"] if resume_context else None)
@@ -557,7 +562,9 @@ class Executor:
             return self.start({"warrant_id": prior["warrant_id"], "source_sha256": prior["source_sha256"],
                                **({"stage": prior["stage"]} if "stage" in prior else {})},
                               {"from": attempt_id, "remaining": remaining,
-                               "history": history})
+                               "history": history},
+                              {"binding": prior["verification_repair"], "remaining_seconds": remaining}
+                              if "verification_repair" in prior else None)
 
     def run(self, r, draft, policy):
         r = dict(r)
@@ -589,6 +596,8 @@ class Executor:
                 request.update(schema="oh.war/execution-request/v3", stage=r["stage"],
                                stage_plan=policy["stage_plan"],
                                prior_completed_stages=r["prior_completed_stages"])
+            if "verification_repair" in r:
+                request.update(schema="oh.war/execution-request/v4", verification_repair=r["verification_repair"])
             code, out, _err = bounded_command(
                 self.config["argv"], worktree, json.dumps(request).encode(), deadline, r
             )
@@ -660,8 +669,9 @@ class Executor:
                     revision,
                     cwd=worktree,
                 )
-                if "stage" in r:
-                    selected = sorted(set(r["prior_completed_stages"]) | {r["stage"]})
+                if "stage" in r or ("verification_repair" in r and "stage_plan" in policy):
+                    selected = (sorted(policy["stage_plan"]["stages"]) if "verification_repair" in r
+                                else sorted(set(r["prior_completed_stages"]) | {r["stage"]}))
                     observed = stage_checkpoint(policy["stage_plan"], r["source_sha256"], revision,
                                                 worktree, selected, deadline)
                     r["stage_checkpoint"] = observed

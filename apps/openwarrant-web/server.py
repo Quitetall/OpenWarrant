@@ -22,6 +22,10 @@ from execution import ExecutionError, Executor
 from drafting import Drafter
 from hotline import Answers, HotlineError, digest as hotline_digest
 from advice import Adviser
+from verifier_service import Verification
+from verifier_scheduler import Scheduler
+from verifier_receipts import ReceiptInbox
+from verifier_reporting import report as verification_report
 
 BODY_LIMIT = 64 * 1024
 FILE_LIMIT = 1024 * 1024
@@ -408,6 +412,8 @@ class Server(ThreadingMixIn, HTTPServer):
         self.executor = None
         self.drafter = None
         self.hotline = None
+        self.verification = None
+        self.verification_loops = None
         self.slots = threading.BoundedSemaphore(8)
         super().__init__(address, Handler)
 
@@ -488,6 +494,26 @@ class Handler(BaseHTTPRequestHandler):
             ):
                 raise Refusal(401, "Unlock with this service session token")
             store = self.server.store
+            if self.command == 'GET' and self.path == '/api/verification-loops':
+                if self.server.verification_loops is None:
+                    raise Refusal(409, 'Verification loops not configured')
+                return self.reply(200, self.server.verification_loops.listing())
+            verification = re.fullmatch(r"/api/verification/([0-9a-f-]{36})", self.path)
+            repair_preview = re.fullmatch(r"/api/verification/([0-9a-f-]{36})/repair", self.path)
+            verifier_dispute = re.fullmatch(r"/api/verification/([0-9a-f-]{36})/dispute", self.path)
+            if self.command == "GET" and verifier_dispute:
+                if self.server.verification is None:
+                    raise Refusal(409, "Verifier not configured")
+                return self.reply(200,self.server.verification.dispute(verifier_dispute[1],self.server.hotline))
+            if self.command == "GET" and repair_preview:
+                if self.server.verification is None:
+                    raise Refusal(409, "Verifier not configured")
+                return self.reply(200, self.server.verification.repair_preview(repair_preview[1]))
+            if self.command == "GET" and (self.path == "/api/verification" or verification):
+                if self.server.verification is None:
+                    raise Refusal(409, "Verifier not configured")
+                return self.reply(200, self.server.verification.get(verification[1]) if verification
+                                  else self.server.verification.listing())
             if self.command == "GET" and self.path == "/api/warrants":
                 return self.reply(200, store.listing())
             if self.command == "GET" and (self.path == "/api/drafting" or re.fullmatch(r"/api/drafting/[0-9a-f-]{36}", self.path)):
@@ -525,6 +551,9 @@ class Handler(BaseHTTPRequestHandler):
                     raise Refusal(409, "Execution harness not configured")
                 report = re.fullmatch(r"/api/runs/([0-9a-f-]{36})/report", self.path)
                 if report:
+                    if self.server.verification is not None:
+                        return self.reply(200, verification_report(self.server.verification,
+                            report[1], self.server.completion_word, self.server.report_detail))
                     return self.reply(200, self.server.executor.report(
                         report[1], self.server.completion_word, self.server.report_detail))
                 if self.path == "/api/runs":
@@ -543,10 +572,13 @@ class Handler(BaseHTTPRequestHandler):
             hotline_resume = re.fullmatch(r"/api/hotline/([0-9a-f-]{36})/resume", self.path)
             hotline_reconfirm = re.fullmatch(r"/api/hotline/([0-9a-f-]{36})/reconfirm", self.path)
             hotline_answer = re.fullmatch(r"/api/hotline/([0-9a-f-]{36})/answer", self.path)
+            verifier_start = re.fullmatch(r"/api/verification/([0-9a-f-]{36})/start", self.path)
+            verifier_rebuttal = re.fullmatch(r"/api/verification/([0-9a-f-]{36})/rebuttal", self.path)
+            verifier_reverify = re.fullmatch(r"/api/verification/([0-9a-f-]{36})/reverify", self.path)
             if (
-                self.command == "POST" and (hotline_answer or hotline_resume or hotline_reconfirm)
+                self.command == "POST" and (hotline_answer or hotline_resume or hotline_reconfirm or verifier_start or repair_preview or verifier_rebuttal or verifier_dispute or verifier_reverify)
             ) or (
-                self.command == "POST" and self.path in ("/api/warrants", "/api/runs", "/api/admission", "/api/drafting")
+                self.command == "POST" and self.path in ("/api/warrants", "/api/runs", "/api/admission", "/api/drafting", "/api/verification", "/api/verification-loops")
             ) or (self.command == "PUT" and match):
                 if (
                     self.headers.get_all("Content-Type") != ["application/json"]
@@ -564,6 +596,37 @@ class Handler(BaseHTTPRequestHandler):
                 if len(body) != size:
                     raise Refusal(400, "Incomplete request")
                 fields = decode(body)
+                if self.path == '/api/verification-loops':
+                    if self.server.verification_loops is None:
+                        raise Refusal(409, 'Verification loops not configured')
+                    return self.reply(200, self.server.verification_loops.configure(fields))
+                if verifier_reverify:
+                    if self.server.verification is None:
+                        raise Refusal(409, "Verifier not configured")
+                    return self.reply(200, self.server.verification.reverify(verifier_reverify[1], fields))
+                if verifier_dispute:
+                    if self.server.verification is None:
+                        raise Refusal(409, "Verifier not configured")
+                    credentials=self.headers.get_all('X-OW-Responder',[])
+                    if len(credentials)!=1:
+                        raise Refusal(401,'One responder credential required')
+                    return self.reply(200,self.server.verification.settle(verifier_dispute[1],fields,credentials[0],self.server.hotline))
+                if verifier_rebuttal:
+                    if self.server.verification is None:
+                        raise Refusal(409, "Verifier not configured")
+                    return self.reply(200, self.server.verification.rebut(verifier_rebuttal[1], fields))
+                if repair_preview:
+                    if self.server.verification is None:
+                        raise Refusal(409, "Verifier not configured")
+                    return self.reply(202, self.server.verification.repair(repair_preview[1], fields))
+                if verifier_start:
+                    if self.server.verification is None:
+                        raise Refusal(409, "Verifier not configured")
+                    return self.reply(202, self.server.verification.start(verifier_start[1], fields))
+                if self.path == "/api/verification":
+                    if self.server.verification is None:
+                        raise Refusal(409, "Verifier not configured")
+                    return self.reply(200, self.server.verification.prepare(fields))
                 if hotline_resume:
                     if self.server.hotline is None:
                         raise Refusal(409, "Hotline responders not configured")
@@ -629,6 +692,9 @@ def main():
     parser.add_argument("--drafting-config", type=Path)
     parser.add_argument("--hotline-config", type=Path)
     parser.add_argument("--adviser-config", type=Path)
+    parser.add_argument("--verifier-config", type=Path)
+    parser.add_argument("--verifier-issuer", type=Path)
+    parser.add_argument("--verifier-receipts", type=Path)
     parser.add_argument("--completion-word", default="WORK_DONE")
     parser.add_argument("--report-detail", choices=("minimal", "full"), default="full")
     args = parser.parse_args()
@@ -651,6 +717,15 @@ def main():
         if server.executor is None:
             parser.error("hotline requires execution configuration")
         server.hotline = Answers(server.executor, decode(read_file(args.hotline_config, 65536)))
+    if args.verifier_config or args.verifier_issuer:
+        if server.executor is None or not args.verifier_config or not args.verifier_issuer:
+            parser.error("verifier requires execution configuration, verifier configuration and pinned issuer file")
+        server.verification = Verification(server.executor, args.verifier_config, args.verifier_issuer, server.hotline)
+    if args.verifier_receipts:
+        if server.verification is None:
+            parser.error('receipt inbox requires configured verification')
+        receipts = ReceiptInbox(args.verifier_receipts, decode)
+        server.verification_loops = Scheduler(server.verification, receipts)
     if args.adviser_config:
         if server.hotline is None:
             parser.error("adviser requires hotline configuration")
@@ -660,8 +735,13 @@ def main():
     publish(args.session_file, (json.dumps(info) + "\n").encode())
     print(info["url"], flush=True)
     try:
+        if server.verification_loops:
+            server.verification_loops.start()
         server.serve_forever()
     finally:
+        if server.verification_loops:
+            server.verification_loops.close()
+            server.verification_loops.receipts.close()
         server.server_close()
         os.close(store.lock_fd)
 
