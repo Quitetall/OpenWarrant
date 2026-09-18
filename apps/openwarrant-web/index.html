@@ -97,7 +97,7 @@ async function nextWork(){
   const data=await api('/api/next-work');
   if(generation!==sessionGeneration||!token)return;
   const fragment=document.createDocumentFragment();
-  for(const row of data.rows){const item=document.createElement('p');item.textContent=row.warrant_id+(row.stage?' / '+row.stage:'')+' · '+row.state+' · '+row.reason+(row.dependencies?.length?' · Dependencies: '+row.dependencies.join(', '):'');fragment.append(item);}
+  for(const row of data.rows){const item=document.createElement('p');item.textContent=(row.warrant_title||row.warrant_id)+(row.stage?' / '+row.stage:'')+' · '+row.state+' · '+row.reason+(row.dependencies?.length?' · Dependencies: '+row.dependencies.join(', '):'');const inspect=document.createElement('button');inspect.className='secondary';inspect.textContent='Inspect';inspect.onclick=()=>guard(async()=>{const selected=await api('/api/warrants/'+row.warrant_id);if(generation!==sessionGeneration||!token)return;show(selected);await drafts();el('editor-title').scrollIntoView({block:'start'});});item.append(inspect);fragment.append(item);}
   el('next-work-view').replaceChildren(fragment);
   el('next-work-status').textContent=data.rows.length+' configured work entries · checked '+new Date().toLocaleTimeString()+' · no dispatch permission granted.';
  }catch(e){if(generation!==sessionGeneration||!token)return;el('next-work-view').replaceChildren();el('next-work-status').textContent='Unavailable: '+e.message;throw e;}

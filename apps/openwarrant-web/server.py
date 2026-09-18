@@ -508,16 +508,17 @@ class Handler(BaseHTTPRequestHandler):
                 with executor.lock:
                     for warrant_id, policy in sorted(executor.config["warrants"].items()):
                         try:
+                            title = executor.store.get(warrant_id)["title"]
                             listing = executor.stage_listing(warrant_id)
                             if listing["mode"] == "staged":
                                 for stage in listing["stages"]:
-                                    rows.append({"warrant_id": warrant_id,
+                                    rows.append({"warrant_id": warrant_id, "warrant_title": title,
                                                  "source_sha256": listing["source_sha256"], **stage})
                             else:
                                 subject = {"warrant_id": warrant_id,
                                            "source_sha256": listing["source_sha256"]}
                                 preview = executor.admission(subject)
-                                rows.append({**subject, "stage": None,
+                                rows.append({**subject, "warrant_title": title, "stage": None,
                                              "dependencies": policy["dependencies"],
                                              "state": preview["state"], "reason": preview["reason"],
                                              "dispatch_permitted": False})

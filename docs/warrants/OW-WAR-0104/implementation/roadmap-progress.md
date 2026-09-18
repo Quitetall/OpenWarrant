@@ -88,3 +88,13 @@ clears errors/locked state and discards responses from earlier sessions.
 All 57 execution HTTP/process tests passed, including preview/admission parity,
 no-run/no-claim assertions, wrong-token refusal and verified-start blocking.
 JavaScript syntax check passed. New panel browser interaction remains pending.
+
+Next-work browser observation on db7a90cc: disposable authenticated workflow
+showed one ready configured subject and zero attempts after unlock. Lock removed
+the application panels. The fixture had no corpus configuration, so unrelated
+board/project readers refused SDK input; no claim is made about those views.
+Fixture service was stopped and its temporary state removed by the test harness.
+Subsequent UI improvement adds the source Warrant title and an Inspect action
+that loads its saved revision without dispatch. All 57 execution tests passed
+again; JavaScript syntax passed. Inspect interaction still needs browser proof.
+Hosted run 35370958832 completed successfully for 82e8629 (earlier PR head).

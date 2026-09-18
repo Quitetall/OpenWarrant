@@ -1033,6 +1033,7 @@ print(json.dumps({'schema':'oh.war/execution-question/v1','attempt_id':r['attemp
         self.assertEqual(status, 200, listing)
         self.assertFalse(listing["dispatch_permitted"])
         row = next(r for r in listing["rows"] if r["warrant_id"] == record["id"])
+        self.assertEqual(row["warrant_title"], record["title"])
         preview = self.call("/api/admission", "POST", {"warrant_id": record["id"], "source_sha256": record["source_sha256"]})[1]
         self.assertEqual((row["state"], row["reason"]), (preview["state"], preview["reason"]))
         self.assertFalse((self.repo / ".git/openwarrant-execution").exists())
