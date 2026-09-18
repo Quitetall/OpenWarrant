@@ -31,3 +31,9 @@ stream fix and journal-reference resolver. No Warrant resolution is inferred.
 Full local `pnpm gate` at corrected provider commit 32d3afe9 exited 0.
 Exact log retained as `provider-counter-full-gate.log.gz`. Hosted gates remain
 pending; local evidence does not replace the CI-only secret-history scan.
+
+Provider PR8 merged as `de038743405636ae24fcd54ab961868deebfc00e`.
+Exact source head `32d3afe91490d50a13835a0bcaa73cefa4070bae` passed all
+four hosted jobs in run 35381013956, including full tests, clean build,
+generated checks and secret-history scan. Merge used an exact-head guard.
+This integrates the provider implementation, not OW111 qualification.
