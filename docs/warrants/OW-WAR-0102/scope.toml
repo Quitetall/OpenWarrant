@@ -22,3 +22,11 @@ obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
 path_glob = "docs/warrants/generated/**"
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
 
+
+[[scope]]
+path_glob = "docs/warrants/OW-WAR-0041/implementation/progress.json"
+obligation_refs = ["OBL-001"]
+
+[[scope]]
+path_glob = "docs/warrants/OW-WAR-0101/implementation/progress.json"
+obligation_refs = ["OBL-001"]

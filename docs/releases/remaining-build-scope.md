@@ -9,11 +9,11 @@ assign Warrant identifiers, approve contracts or claim phase completion.
 
 | Warrant | Remaining work |
 | --- | --- |
-| OW85 | Native macOS Phase 1 acceptance, matching inputs and final phase review |
+| OW85 | Final phase review; matching Linux/macOS observations now retained |
 | OW86 | Complete Phase 1 prerequisites and freeze final real-provider qualification |
 | OW87 | Implementation complete, unverified |
 | OW88 | Implementation complete, unverified |
-| OW89 | Native macOS candidate install; preserve explicit packaging/provenance limits |
+| OW89 | Packaging completed unverified; retain qualification/provenance limits |
 | OW90 | Collect all four phase exits and exact release review subjects |
 | OW91 | Owner-permitted publication, then download and verify exact public bytes |
 
@@ -98,9 +98,10 @@ ceremony is added to ordinary unverified execution.
   active setup and ≤60 seconds administration for each participant. Obtain actual
   informed consent and freeze build/scenarios before running sessions.
 
-Native macOS capacity is an execution prerequisite, not an architecture decision.
-No native OpenWarrant macOS receipt has been established in this work. LAMU's macOS
-CI result does not substitute for OpenWarrant's acceptance or installation checks.
+Matching native OpenWarrant Linux/macOS observations now exist: [Phase 1](../warrants/OW-WAR-0085/implementation/native-20260918/comparison.json)
+and [candidate installation](../warrants/OW-WAR-0089/implementation/native-20260918/comparison.json).
+Their exact source subjects and limits remain binding. They do not establish
+Phase 3 workflow/user evidence, final phase review or release qualification.
 
 ## Completion target
 
