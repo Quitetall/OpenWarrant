@@ -22,3 +22,16 @@ requested work. It proposed documenting itself instead of adding a project
 changelog. Retained under local-model-2/. No usable autonomous drafting claim.
 Full gate and a task-faithful backend observation remain open; no more calls in
 this bounded experiment.
+
+## Task/context preparation and request-scope refusal
+
+The narrow adapter previously accepted requests for other profiles or assurance
+levels while constraining every response to delivery/basic. It now refuses those
+requests before contacting the backend. Omitted fields retain the documented
+narrow defaults. Separate-process HTTP controls cover unsupported values, no
+backend call on refusal, and unchanged successful proposal output.
+
+The final user message now contains the exact task; preceding JSON retains all
+other input fields without truncating constraints or unknowns. This addresses the
+observed inventory/task confusion as a prompt-layout experiment, not a proven
+model-quality fix. Four adapter tests pass; raw prior model failures remain.

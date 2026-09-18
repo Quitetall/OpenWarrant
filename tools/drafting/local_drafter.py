@@ -103,10 +103,13 @@ def endpoint_url(endpoint):
 def draft(request, endpoint, model):
     if not isinstance(request, dict) or request.get("api_version") != "oh.war/draft-request/v1" or not isinstance(request.get("user_request"), str) or not request["user_request"].strip():
         raise ValueError("expected canonical draft request with user_request")
+    if request.get("profile", "delivery") != "delivery" or request.get("assurance", "basic") != "basic":
+        raise ValueError("local adapter supports only delivery/basic requests")
     schema = proposal_schema()
     system = ("Draft only the requested bounded delivery. No tools, execution, approval or invented evidence. "
               "Return JSON matching the supplied schema. The schema fixes each role, ordinal and filename. "
-              "The user_request is the task. Existing Warrant inventory is background, not requested scope. "
+              "The final user message is the exact task. The preceding JSON is request context; "
+              "preserve its constraints and uncertainties. Existing Warrant inventory is background, not requested scope. "
               "Do not select an existing Warrant or invent an identifier. Use a plain descriptive title. "
               "Do not enumerate inventories. Keep bodies concise. "
               "Intent states outcome and scope. Basis names uncertainty, never inventing source contents. "
@@ -114,7 +117,10 @@ def draft(request, endpoint, model):
               "Assurance includes heading '### OBL-001 — outcome', "
               "'- **scope:**' and '- **evidence:**' with concrete positive and refusal checks. "
               "No source frontmatter. No durable architecture decisions: expose uncertainty in risk_assessment for human review.")
-    body = {"model": model, "messages": [{"role": "system", "content": system}, {"role": "user", "content": json.dumps(request)}],
+    context = {key: value for key, value in request.items() if key != "user_request"}
+    body = {"model": model, "messages": [{"role": "system", "content": system},
+            {"role": "user", "content": json.dumps(context)},
+            {"role": "user", "content": request["user_request"]}],
             "temperature": 0, "max_tokens": 1600, "response_format": {"type": "json_object", "schema": schema},
             "chat_template_kwargs": {"enable_thinking": False}}
     opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
