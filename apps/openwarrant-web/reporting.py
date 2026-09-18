@@ -13,7 +13,7 @@ def complete(record):
             and record.get("work_state") == "completed"
             and record.get("execution_state") == "stopped"
             and isinstance(record.get("result_revision"), str)
-            and re.fullmatch(r"[0-9a-f]{40,64}", record["result_revision"]) is not None
+            and re.fullmatch(r"(?:[0-9a-f]{40}|[0-9a-f]{64})", record["result_revision"]) is not None
             and bool(expected) and len(checks) == len(expected)
             and all(c.get("argv") == argv and type(c.get("exit_code")) is int
                     and c["exit_code"] == 0 for c, argv in zip(checks, expected)))

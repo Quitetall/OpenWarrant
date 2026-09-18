@@ -36,7 +36,7 @@ class ReportTests(unittest.TestCase):
         records, inventory = self.fixture()
         for changes in ({"sequence": 1}, {"work_state": "failed"}, {"work_state": "blocked"},
                         {"execution_state": "running"}, {"execution_state": "unknown"},
-                        {"result_revision": None}, {"checks": []},
+                        {"result_revision": None}, {"result_revision": "b" * 41}, {"checks": []},
                         {"checks": [{"argv": ["test"], "exit_code": False}]},
                         {"checks": [{"argv": ["other"], "exit_code": 0}]}):
             with self.subTest(changes=changes):
