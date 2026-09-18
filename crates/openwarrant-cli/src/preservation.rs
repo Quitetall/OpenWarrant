@@ -120,7 +120,7 @@ pub fn run(command: Command) -> Result<(String, serde_json::Value), Error> {
                     .ok_or_else(|| Error("invalid evidence digest".into()))?;
                 read(root.join(hex).as_std_path(), limit)
             })?;
-            if content.contains_key(BASIS_PATH)
+            if (archive.subject.starts_with("war://") || content.contains_key(BASIS_PATH))
                 && verify_archive_basis(&archive, &content)? != archive.subject
             {
                 return Err(Error(
@@ -190,7 +190,7 @@ pub fn reexport(directory: &Path, limits: Limits) -> Result<Vec<u8>, Error> {
             .ok_or_else(|| Error("missing imported record".into()))?;
         read(&directory.join("records").join(relative), limit)
     })?;
-    if restored.contains_key(BASIS_PATH)
+    if (archive.subject.starts_with("war://") || restored.contains_key(BASIS_PATH))
         && verify_archive_basis(&archive, &restored)? != archive.subject
     {
         return Err(Error(

@@ -1282,3 +1282,25 @@ fn generated_local_archive_roundtrips_and_runtime_absence_cannot_be_forged() {
     success(f.run(&["archive", "reexport", "imported", "again.json"]));
     assert_eq!(std::fs::read(f.0.join("again.json")).unwrap(), original);
 }
+
+#[test]
+fn warrant_subject_cannot_downgrade_to_unchecked_transport() {
+    let f = Fixture::new();
+    let bytes = f.archive(false);
+    success(f.run(&["archive", "import", "source.json", "generic"]));
+    let mut archive = Archive::decode(&bytes, Limits::default()).unwrap();
+    archive.subject = "war://01a0b53a-3315-7ed3-a369-35af9154f89d".into();
+    let changed = archive.encode(Limits::default()).unwrap();
+    std::fs::write(f.0.join("warrant.json"), &changed).unwrap();
+    refusal(
+        f.run(&["archive", "import", "warrant.json", "unchecked"]),
+        "missing basis descriptor",
+    );
+    assert!(!f.0.join("unchecked").exists());
+    std::fs::write(f.0.join("generic/ARCHIVE.json"), changed).unwrap();
+    refusal(
+        f.run(&["archive", "reexport", "generic", "unchecked.json"]),
+        "missing basis descriptor",
+    );
+    assert!(!f.0.join("unchecked.json").exists());
+}
