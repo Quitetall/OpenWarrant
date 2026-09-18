@@ -17,3 +17,7 @@ contract is not rewritten or declared satisfied. Human review before apply,
 full filesystem audit, durable-choice-to-ADR observation and final independent
 qualification remain outstanding. API-only text generation does not by itself
 establish a filesystem audit over the model process.
+
+Adapters are retained as `.py.txt` evidence, not installed scripts. The invalid
+proposal is `proposal.stdout.txt`, preserving exact output without presenting it
+as a parseable document. Renaming changed no evidence bytes or recorded digest.
