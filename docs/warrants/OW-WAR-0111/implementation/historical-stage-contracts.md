@@ -36,3 +36,5 @@ This proves historical digest selection across draft editions. It does not prove
 an approved revision transition, validate signatures, or establish execution
 qualification. The current lowerer emits revision 1; revisions that cannot be
 reconstructed consistently remain unresolved rather than borrowing that value.
+
+Provider e87fd4b7 full `pnpm gate` passed: 1592 tests passed, 4 skipped; build, typecheck, formatting and generated-file checks passed. Existing console lint warning and two moderate audit advisories remain reported by the gate. Provider integration is tracked in KF PR10; archive transport PR9 merged as 7d3ade2f.
