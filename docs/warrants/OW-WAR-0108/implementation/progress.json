@@ -4,11 +4,13 @@
   "work_state": "in-progress",
   "reported_by": "agent://codex",
   "revision": "136c1b3bdfbdbff68f4aadecd19b41cc4e6a37eb",
-  "summary": "Shared repair and actual BLUT runtime evidence prepared. Provider tests and successful two-stage run retained; hosted provider CI blocked by account restriction. Integration not complete; unverified.",
+  "summary": "Shared BLUT repair and real two-stage runtime evidence retained. Standalone OpenWarrant gate passes 14 steps and 308 controls at 90b1eae; provider tests pass 96. Provider hosted CI blocked by account restriction; integration remains incomplete and unverified.",
   "notes": "docs/warrants/OW-WAR-0047/implementation/runtime-notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0047/implementation/repaired-runtime-20260918/references.json",
-    "docs/warrants/OW-WAR-0047/implementation/repaired-runtime-20260918/provider-tests.log"
+    "docs/warrants/OW-WAR-0047/implementation/repaired-runtime-20260918/provider-tests.log",
+    "docs/warrants/OW-WAR-0108/implementation/full-gate-90b1eae.log.gz",
+    "docs/warrants/OW-WAR-0108/implementation/gate-audit.md"
   ],
   "next_steps": [
     "Clear provider CI account restriction and validate exact provider repair revision.",
