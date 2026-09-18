@@ -35,3 +35,9 @@ The final user message now contains the exact task; preceding JSON retains all
 other input fields without truncating constraints or unknowns. This addresses the
 observed inventory/task confusion as a prompt-layout experiment, not a proven
 model-quality fix. Four adapter tests pass; raw prior model failures remain.
+
+Third bounded local run at c62fd2f completed in 88.38 seconds but failed task
+fidelity again. It invented OW-WAR-0100 and offered self-descriptive assurance
+instead of deliverable checks. See local-model-3/ for unchanged raw output,
+identities, non-applying validation and inspection. Server stopped cleanly; no
+paid calls, applied Warrant or qualification. Prompt layout is not a proven fix.
