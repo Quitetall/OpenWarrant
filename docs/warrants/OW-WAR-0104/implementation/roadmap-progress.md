@@ -126,3 +126,9 @@ permission and create no attempts. All 58 execution tests pass. Three JavaScript
 calculation tests pass and are now wired into the reference web CI workflow,
 including viewer-source path triggers. Generated check: 960 pass, 88 warnings,
 zero unknown and zero errors.
+
+Inspect browser proof on d4c571a4 (2026-09-18): disposable workbench at port
+32801 showed “Simpler signup · ready” in Next work. Clicking Inspect loaded
+Revision 1 with its exact saved title, outcome, scope and context. The UI still
+reported zero attempts. No Save or Start action was invoked. Fixture tab closed;
+the test harness stopped the service and removed its disposable state.
