@@ -1,0 +1,15 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0101",
+  "work_state": "in_progress",
+  "reported_by": "agent://codex",
+  "summary": "Constrained local reference drafter prepared; synthetic transport/refusal tests pass. Real-model observation and full gate pending.",
+  "notes": "docs/warrants/OW-WAR-0101/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0101/implementation/tests.log"
+  ],
+  "next_steps": [
+    "Observe exact local model through constrained adapter and retain semantic validation result.",
+    "Run full repository gate."
+  ]
+}
