@@ -1,0 +1,18 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0108",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "136c1b3bdfbdbff68f4aadecd19b41cc4e6a37eb",
+  "summary": "Shared repair and actual BLUT runtime evidence prepared. Provider tests and successful two-stage run retained; hosted provider CI blocked by account restriction. Integration not complete; unverified.",
+  "notes": "docs/warrants/OW-WAR-0047/implementation/runtime-notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0047/implementation/repaired-runtime-20260918/references.json",
+    "docs/warrants/OW-WAR-0047/implementation/repaired-runtime-20260918/provider-tests.log"
+  ],
+  "next_steps": [
+    "Clear provider CI account restriction and validate exact provider repair revision.",
+    "Integrate after parent PR #118; run OpenWarrant machine-scope checks and full gate.",
+    "Preserve separate independent verification and human acceptance requirements."
+  ]
+}
