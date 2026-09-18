@@ -41,7 +41,8 @@ the same Warrant worktree. A new block against the running stage reports
 stop-required; the planner cannot itself stop or fence a process. Contradictory
 completion/writer observations refuse instead of creating a ready result.
 
-Current implementation provides validation and read-only planning only. The
+Current library implementation provides validation, read-only planning and actual
+check execution against an exact clean Git revision. The
 existing execution configuration remains v1 and does not yet accept or dispatch
 this plan. Dispatch integration must bind exact plan/source revisions, serialize
 writers, preserve stage evidence, rerun affected checks after shared-worktree
@@ -53,5 +54,5 @@ required before the stage gap can be closed.
 `completed_from_evidence` validates a current stage checkpoint against exact source,
 plan and code revision. It removes successors whose prerequisite checks are absent
 or failed, even if their own checks passed. A boolean false is not exit code zero.
-The future executor must produce these records from actual checks on the unchanged
-result revision; accepting arbitrary browser-submitted records is not supported.
+The checkpoint producer runs actual checks on the unchanged result revision; the
+future dispatch integration must bind that producer to trusted current inputs; accepting arbitrary browser-submitted records is not supported.

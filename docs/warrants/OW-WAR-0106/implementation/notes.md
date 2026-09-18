@@ -97,3 +97,10 @@ A completed label alone, unknown execution, stale code, missing prerequisite
 evidence or unrelated checks cannot unblock successors. Six stage library tests
 pass. The checkpoint producer and dispatch integration remain unfinished; this
 projection consumes performer observations and does not award assurance.
+
+Stage checkpoint production now runs real configured commands on an exact clean
+Git revision within the remaining deadline. It preserves check exit results,
+rechecks worktree/HEAD after every command, and returns unknown on mutation or
+timeout. Eleven stage-library tests pass using real repositories and processes,
+including failed prerequisite plus passing successor, dirty/moved revision,
+mutation and time exhaustion. Controller dispatch and stage UI remain unwired.
