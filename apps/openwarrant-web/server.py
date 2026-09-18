@@ -20,6 +20,8 @@ from socketserver import ThreadingMixIn
 
 from execution import ExecutionError, Executor
 from drafting import Drafter
+from hotline import Answers, HotlineError, digest as hotline_digest
+from advice import Adviser
 
 BODY_LIMIT = 64 * 1024
 FILE_LIMIT = 1024 * 1024
@@ -405,6 +407,7 @@ class Server(ThreadingMixIn, HTTPServer):
         self.token = token
         self.executor = None
         self.drafter = None
+        self.hotline = None
         self.slots = threading.BoundedSemaphore(8)
         super().__init__(address, Handler)
 
@@ -492,6 +495,19 @@ class Handler(BaseHTTPRequestHandler):
                     raise Refusal(409, "Drafting harness not configured")
                 return self.reply(200, self.server.drafter.listing() if self.path == "/api/drafting"
                                   else self.server.drafter.get(self.path.rsplit("/", 1)[1]))
+            checkpoint_review = re.fullmatch(r"/api/hotline/([0-9a-f-]{36})/checkpoint", self.path)
+            if self.command == "GET" and checkpoint_review:
+                if self.server.hotline is None:
+                    raise Refusal(409, "Hotline responders not configured")
+                review = self.server.executor.question_checkpoint(checkpoint_review[1], self.server.hotline)
+                return self.reply(200, {**review, "checkpoint_sha256": hotline_digest(review),
+                                       "reconfirmation": self.server.hotline.checkpoint_answer(checkpoint_review[1], review)})
+            if self.command == "GET" and self.path == "/api/hotline":
+                if self.server.hotline is None:
+                    raise Refusal(409, "Hotline responders not configured")
+                data = self.server.hotline.listing()
+                data.update(self.server.executor.adviser.listing() if self.server.executor.adviser else {"advice": []})
+                return self.reply(200, data)
             if self.command == "GET" and self.path == "/api/board":
                 board = store.sdk.run(None, board=True)
                 if board.get("schema") != "oh.war/board-draft/v1":
@@ -499,6 +515,11 @@ class Handler(BaseHTTPRequestHandler):
                 return self.reply(200, board)
             if self.command == "GET" and self.path == "/api/project":
                 return self.reply(200, project_inventory(store.sdk))
+            stages = re.fullmatch(r"/api/stages/([0-9a-f-]{36})", self.path)
+            if self.command == "GET" and stages:
+                if self.server.executor is None:
+                    raise Refusal(409, "Execution harness not configured")
+                return self.reply(200, self.server.executor.stage_listing(stages[1]))
             if self.command == "GET" and self.path.startswith("/api/runs"):
                 if self.server.executor is None:
                     raise Refusal(409, "Execution harness not configured")
@@ -519,7 +540,12 @@ class Handler(BaseHTTPRequestHandler):
             )
             if self.command == "GET" and history:
                 return self.reply(200, store.get(history[1], int(history[2])))
+            hotline_resume = re.fullmatch(r"/api/hotline/([0-9a-f-]{36})/resume", self.path)
+            hotline_reconfirm = re.fullmatch(r"/api/hotline/([0-9a-f-]{36})/reconfirm", self.path)
+            hotline_answer = re.fullmatch(r"/api/hotline/([0-9a-f-]{36})/answer", self.path)
             if (
+                self.command == "POST" and (hotline_answer or hotline_resume or hotline_reconfirm)
+            ) or (
                 self.command == "POST" and self.path in ("/api/warrants", "/api/runs", "/api/admission", "/api/drafting")
             ) or (self.command == "PUT" and match):
                 if (
@@ -538,6 +564,19 @@ class Handler(BaseHTTPRequestHandler):
                 if len(body) != size:
                     raise Refusal(400, "Incomplete request")
                 fields = decode(body)
+                if hotline_resume:
+                    if self.server.hotline is None:
+                        raise Refusal(409, "Hotline responders not configured")
+                    return self.reply(202, self.server.executor.resume(hotline_resume[1], fields, self.server.hotline))
+                if hotline_answer or hotline_reconfirm:
+                    if self.server.hotline is None:
+                        raise Refusal(409, "Hotline responders not configured")
+                    credentials = self.headers.get_all("X-OW-Responder", [])
+                    if len(credentials) != 1:
+                        raise Refusal(401, "One responder credential required")
+                    if hotline_reconfirm:
+                        return self.reply(200, self.server.hotline.reconfirm(hotline_reconfirm[1], fields, credentials[0]))
+                    return self.reply(200, self.server.hotline.submit(hotline_answer[1], fields, credentials[0]))
                 if self.path == "/api/drafting":
                     if self.server.drafter is None:
                         raise Refusal(409, "Drafting harness not configured")
@@ -562,7 +601,7 @@ class Handler(BaseHTTPRequestHandler):
                     store.create(fields, expected),
                 )
             raise Refusal(404, "Unsupported route or action")
-        except (Refusal, ExecutionError) as e:
+        except (Refusal, ExecutionError, HotlineError) as e:
             self.reply(e.status, {"error": e.message, "qualified": False})
         except (OSError, KeyError, TypeError, ValueError, subprocess.SubprocessError):
             self.reply(
@@ -588,6 +627,8 @@ def main():
     parser.add_argument("--session-file", type=Path, required=True)
     parser.add_argument("--execution-config", type=Path)
     parser.add_argument("--drafting-config", type=Path)
+    parser.add_argument("--hotline-config", type=Path)
+    parser.add_argument("--adviser-config", type=Path)
     parser.add_argument("--completion-word", default="WORK_DONE")
     parser.add_argument("--report-detail", choices=("minimal", "full"), default="full")
     args = parser.parse_args()
@@ -606,6 +647,15 @@ def main():
         server.executor = Executor(
             store, args.execution_config, read_file, publish, decode
         )
+    if args.hotline_config:
+        if server.executor is None:
+            parser.error("hotline requires execution configuration")
+        server.hotline = Answers(server.executor, decode(read_file(args.hotline_config, 65536)))
+    if args.adviser_config:
+        if server.hotline is None:
+            parser.error("adviser requires hotline configuration")
+        server.executor.adviser = Adviser(server.hotline, decode(read_file(args.adviser_config, 65536)))
+        server.executor.adviser.schedule()
     info = {"url": "http://127.0.0.1:" + str(server.server_port), "token": token}
     publish(args.session_file, (json.dumps(info) + "\n").encode())
     print(info["url"], flush=True)

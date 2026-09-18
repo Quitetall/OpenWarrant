@@ -13,6 +13,21 @@ class ReportTests(unittest.TestCase):
              "next_steps": ["Review"], "cause": "Work finished"}
         return {"attempt": r}, {"warrant": copy.deepcopy(r["policy"]), "waiting": {"source_sha256": "c" * 64}}
 
+    def test_whole_warrant_checks_cannot_replace_required_stage_evidence(self):
+        records, inventory = self.fixture()
+        r = records["attempt"]
+        config = {"schema": "oh.war/execution-stage-plan/v1", "stages": {
+            "api": {"title": "API", "outcome": "Expected API", "dependencies": [], "checks": [["check-api"]]}}}
+        r["policy"]["stage_plan"] = config
+        inventory["warrant"] = copy.deepcopy(r["policy"])
+        self.assertIsNone(render(records, inventory, "attempt")["completion_signal"])
+        r["stage_checkpoint"] = {"schema": "oh.war/stage-checkpoint/v1",
+            "source_sha256": r["source_sha256"], "revision": r["result_revision"], "plan": config,
+            "execution_state": "stopped", "stage_checks": {"api": [{"argv": ["check-api"], "exit_code": 0}]}}
+        self.assertEqual(render(records, inventory, "attempt")["completion_signal"], "WORK_DONE")
+        r["stage_checkpoint"]["revision"] = "c" * 40
+        self.assertIsNone(render(records, inventory, "attempt")["completion_signal"])
+
     def test_deterministic_scoped_overview_and_escaped_offline_html(self):
         records, inventory = self.fixture()
         report = render(records, inventory, "attempt", "FINISHED", "minimal")

@@ -5,8 +5,18 @@ import html
 import json
 import re
 
+from stages import completed_from_evidence, StageError
+
 
 def complete(record):
+    policy = record.get("policy", {})
+    if "stage_plan" in policy:
+        try:
+            if completed_from_evidence(policy["stage_plan"], record.get("source_sha256"),
+                                       record.get("result_revision"), record.get("stage_checkpoint")) != policy["stage_plan"]["stages"].keys():
+                return False
+        except (StageError, KeyError, TypeError):
+            return False
     checks = record.get("checks", [])
     expected = record.get("policy", {}).get("checks", [])
     return (record.get("sequence") == 2

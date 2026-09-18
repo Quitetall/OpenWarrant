@@ -1,0 +1,29 @@
+import sys,tempfile,subprocess,json,uuid,hashlib,os
+from pathlib import Path
+sys.path.insert(0,'/mnt/4tb/tmp/ow-workflow-hotline/apps/openwarrant-web')
+from server import Server,Store,SDK,Executor,Answers,read_file,publish,decode
+with tempfile.TemporaryDirectory(prefix='ow106-browser-') as tmp:
+ root=Path(tmp); repo=root/'repo';repo.mkdir()
+ def git(*args): return subprocess.check_output(['git',*args],cwd=repo,text=True,stderr=subprocess.DEVNULL).strip()
+ git('init','-q');git('config','user.name','Synthetic fixture');git('config','user.email','fixture@example.invalid')
+ (repo/'README.md').write_text('Hotline browser fixture\n');git('add','.');git('commit','-qm','fixture base');base=git('rev-parse','HEAD')
+ store=Store(root/'state',SDK(Path('/mnt/4tb/tmp/ow-question-integrity/target/debug/war'),repo))
+ record=store.create({'id':str(uuid.uuid4()),'title':'Synthetic hotline exercise','outcome':'Write result after answer.','scope':'Only disposable fixture files.','context':'No production work or human assurance.'})
+ harness=root/'harness.py';harness.write_text('''import sys,json,pathlib,subprocess
+r=json.load(sys.stdin)
+if 'resume_from' not in r:
+ print(json.dumps({'schema':'oh.war/execution-question/v1','attempt_id':r['attempt_id'],'source_sha256':r['source_sha256'],'notes':'Fixture checkpoint retained.','next_steps':['Answer and resume'],'question':{'kind':'technical','text':'Which parser should the fixture use?','direct_human':False,'affected_stages':['STAGE-001']}}))
+else:
+ assert r['hotline_context'][0]['answer']['answer']
+ pathlib.Path('result.txt').write_text('done')
+ subprocess.run(['git','add','result.txt'],check=True,stdout=sys.stderr)
+ subprocess.run(['git','commit','-qm','fixture completion'],check=True,stdout=sys.stderr)
+ print(json.dumps({'schema':'oh.war/execution-result/v1','attempt_id':r['attempt_id'],'source_sha256':r['source_sha256'],'work_state':'completed','notes':'Synthetic fixture complete.','next_steps':['Real integration remains separate']}))
+''')
+ config={'schema':'oh.war/execution-config/v1','argv':[sys.executable,str(harness)],'sandbox':'harness-worktree-only','cost_mode':'free','spend_limit_usd':10,'timeout_seconds':20,'repair_cycles':0,'warrants':{record['id']:{'source_sha256':record['source_sha256'],'base_commit':base,'verified_start':False,'dependencies':[],'checks':[[sys.executable,'-c',"from pathlib import Path;assert Path('result.txt').read_text()=='done'"]]}}}
+ cp=root/'execution.json';cp.write_text(json.dumps(config));ex=Executor(store,cp,read_file,publish,decode)
+ srv=Server(('127.0.0.1',0),store,'public-hotline-ui-session-fixture');srv.executor=ex;srv.completion_word='FIXTURE_DONE';srv.report_detail='full'
+ srv.hotline=Answers(ex,{'schema':'oh.war/hotline-config/v1','responders':[{'id':'fixture-adviser','kind':'ai','token_sha256':hashlib.sha256(b'public-hotline-responder-fixture-0001').hexdigest(),'governing_warrants':[]}]})
+ ex.start({'warrant_id':record['id'],'source_sha256':record['source_sha256']})
+ print(json.dumps({'url':f'http://127.0.0.1:{srv.server_port}/','pid':os.getpid()}),flush=True)
+ srv.serve_forever()
