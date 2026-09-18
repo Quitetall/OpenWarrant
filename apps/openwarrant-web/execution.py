@@ -12,6 +12,8 @@ import time
 import uuid
 from pathlib import Path
 
+from reporting import render
+
 LIMIT = 1024 * 1024
 
 
@@ -201,6 +203,12 @@ class Executor:
             records = self.records()
             require(id in records, "Unknown attempt", 404)
             return self.view(records[id])
+
+    def report(self, id, word, detail):
+        with self.lock:
+            records = {k: self.view(r) for k, r in self.records().items()}
+            require(id in records, "Unknown attempt", 404)
+            return render(records, self.config["warrants"], id, word, detail)
 
     def git(self, *args, cwd=None):
         return subprocess.check_output(

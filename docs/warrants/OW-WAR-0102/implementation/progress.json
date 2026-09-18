@@ -1,0 +1,16 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0102",
+  "reported_by": "agent://codex",
+  "work_state": "in_progress",
+  "summary": "Report API, configurable text and offline HTML download implemented; 44 package tests and browser report/download pass. Full gate and offline browser rendering remain pending.",
+  "notes": "docs/warrants/OW-WAR-0102/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0102/implementation/web-tests.log",
+    "docs/warrants/OW-WAR-0102/implementation/browser-qa.md"
+  ],
+  "next_steps": [
+    "Run package suite and browser QA.",
+    "Run repository gate; preserve distinct unverified completion."
+  ]
+}

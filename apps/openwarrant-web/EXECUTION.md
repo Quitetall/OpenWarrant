@@ -132,3 +132,25 @@ identity, exclusive writer claim and harness launch remain action-time checks;
 a ready preview cannot guarantee them. Qualification stays false. This reference
 workflow seam does not unify legacy `next`, `frontier`, `perform` or `console`
 admission, and does not establish protected authority or human presence.
+
+## Deterministic work reports
+
+GET `/api/runs/{attempt_id}/report` uses the same authenticated session. It returns
+short text, a browser pointer, self-contained offline HTML and a snapshot digest.
+Use `--completion-word WORD` (1–64 ASCII letters/digits/underscore/hyphen) and
+`--report-detail minimal|full` at service startup. Default word is `WORK_DONE`.
+Only a saved final completed/stopped result with a result commit and every exact
+required check passing emits that signal. Other reports say `WORK_INCOMPLETE`.
+Qualification is always false in this workflow.
+
+The browser's “Work report / offline HTML” action shows short text and offers a
+complete HTML download. `/#attempt=UUID` restores that view after session unlock.
+Links contain no token. HTML escapes record text and contains no scripts or remote
+assets. It retains notes, next steps, checks and source/result identities even when
+chat text uses minimal mode. Its counts cover configured execution Warrants only,
+not the whole repository. Pending includes configured subjects without a matching
+completed result. Snapshot identity binds inventory and observed attempt records.
+Reads do not create events; retrying report delivery cannot duplicate completion.
+A later service read can show a newer inventory snapshot; downloaded HTML stays
+at the recorded snapshot. Reports are performer evidence, not authority or proof
+that a malicious process was fenced. Hotline and recovery remain separate work.
