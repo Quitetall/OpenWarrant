@@ -31,3 +31,11 @@ OW-WAR-0069 atoms, resolved deliverable manifests and human authority records.
 Prompt-authorized unverified implementation. No model calls are needed. Paid calls
 require reliable accounting under the user's configurable cap. Keep changes scoped;
 revert implementation commits to roll back, preserving evidence and signed history.
+
+## Owner-requested visual roadmap extension (2026-09-18)
+
+Add a configured release/phase/feature tree to the progress viewer, using
+`docs/design/visual-roadmap.md` as the bounded implementation plan. Preserve
+existing board obligations. Grouping configuration does not grant execution
+permission or establish assurance. Include source validation, distinct-Warrant
+counts, offline and live rendering, refusal tests and browser observations.
