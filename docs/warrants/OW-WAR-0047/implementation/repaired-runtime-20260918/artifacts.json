@@ -1,0 +1,34 @@
+[
+  {
+    "meta": {
+      "kind": "dataset.jsonl",
+      "schema": 1,
+      "content_id": "c3786bcd88d5be189c533ed1bb94d027b9cee82df42f0f6d528cd96b2035b692",
+      "identity_scheme": "abir-content-id-v1",
+      "logical_hash": "1d6818cd3e5dbe603f2040a5182dde23e69df9e1bf000e7f51f8d8903e052c4b",
+      "produced_by_stage": "materialize_dataset_path",
+      "produced_at_unix_secs": 1789733662,
+      "extra": {
+        "persisted": true
+      }
+    },
+    "sidecar_path": "/mnt/4tb/tmp/ow47-repaired-runtime-20260918/jobs/20260918-121422-409152626/stages/0-materialize_dataset_path/output.metadata.json",
+    "job_id": "20260918-121422-409152626"
+  },
+  {
+    "meta": {
+      "kind": "dataset.jsonl",
+      "schema": 1,
+      "content_id": "97143b264b7588403d25f7c9562263928cb1c5cd796e0fe0faee0c73b6fa322e",
+      "identity_scheme": "abir-content-id-v1",
+      "logical_hash": "1d6818cd3e5dbe603f2040a5182dde23e69df9e1bf000e7f51f8d8903e052c4b",
+      "produced_by_stage": "filter_dataset",
+      "produced_at_unix_secs": 1789733662,
+      "extra": {
+        "persisted": true
+      }
+    },
+    "sidecar_path": "/mnt/4tb/tmp/ow47-repaired-runtime-20260918/jobs/20260918-121422-409152626/stages/1-filter_dataset/output.metadata.json",
+    "job_id": "20260918-121422-409152626"
+  }
+]

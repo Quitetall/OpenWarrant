@@ -1,0 +1,20 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0108",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "136c1b3bdfbdbff68f4aadecd19b41cc4e6a37eb",
+  "summary": "Shared BLUT repair and real two-stage runtime evidence retained. Standalone OpenWarrant gate passes 14 steps and 308 controls at 90b1eae; provider tests pass 96. Provider hosted CI blocked by account restriction; integration remains incomplete and unverified.",
+  "notes": "docs/warrants/OW-WAR-0047/implementation/runtime-notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0047/implementation/repaired-runtime-20260918/references.json",
+    "docs/warrants/OW-WAR-0047/implementation/repaired-runtime-20260918/provider-tests.log",
+    "docs/warrants/OW-WAR-0108/implementation/full-gate-90b1eae.log.gz",
+    "docs/warrants/OW-WAR-0108/implementation/gate-audit.md"
+  ],
+  "next_steps": [
+    "Clear provider CI account restriction and validate exact provider repair revision.",
+    "Run final OpenWarrant PR #120 integration checks against main; parent PR #118 merged at 2dba896c.",
+    "Preserve separate independent verification and human acceptance requirements."
+  ]
+}
