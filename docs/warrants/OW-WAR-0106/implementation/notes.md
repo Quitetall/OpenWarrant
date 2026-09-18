@@ -175,3 +175,13 @@ and once-only resume, and final remaining-stage completion. Another test proves
 further independent work makes the prior reconfirmation stale and requires a new
 one. Browser controls are wired; live reconfirmation browser QA and latest full
 Rust gate remain outstanding. No Warrant closure or qualification claim.
+
+## Integrated implementation completion
+
+PR 114 merged as 5dd667d38baf6f49f7e951d6e3366b198c561cd1. Exact-head
+hosted gate, reference web checks and Bonsai passed for 03a07a91; downloaded Bonsai
+evidence names that head and has no findings. Local Rust 1.97.1 gate passed all
+14 steps and 308 plants on implementation commit 5e503d08. Retained gate log,
+hosted observation and requirement mapping are under completion-audit/ and
+scope-audit.md. Prior report remains preserved. Implementation completed,
+unverified; no legacy resolution, human signature or qualification was recorded.
