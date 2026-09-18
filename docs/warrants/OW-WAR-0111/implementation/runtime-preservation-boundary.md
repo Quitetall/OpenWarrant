@@ -85,3 +85,10 @@ The built CLI now exits 1 with no stdout and a non-regular-file diagnostic. The
 43-test export suite, TypeScript package build and focused ESLint passed. Retained
 red/green logs prove the concrete failure and refusal; latest hosted checks remain
 separate. No receipt or authority claim changes.
+
+Provider integration: KF PR5 merged on 2026-09-18 as
+`819839274ec49b6b7c23879a35278a41cf0bbb5b`. All four hosted jobs passed for
+exact head `0b95d685c4c371f88af7a5754fc3e3929bbef8b4` in run 35374791986.
+The authenticated runtime reader, stage-binding projection, missing-receipt
+inventory and FIFO refusal are now on provider main. Local archive consumption
+and complete bound-runtime coverage remain open; this merge grants no assurance.
