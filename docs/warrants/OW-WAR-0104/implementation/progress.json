@@ -3,8 +3,8 @@
   "warrant": "OW-WAR-0104",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "revision": "80647f8b5735f65b951e2ab7d6fc33da0a80e0df",
-  "summary": "Board plus configurable visual roadmap and workflow next-work preview implemented, unverified. Roadmap covers all 106 current records; offline controls confirmed by owner. Browser filters, source refresh recovery and safe Inspect observed. Earlier full gate passes 14 steps/308 controls; latest integration and reconciliation remain open.",
+  "revision": "f714298340a28fe3ca3d8499da5ef37ed293a20c",
+  "summary": "Read-only board, configurable roadmap and next-work preview implemented, unverified. Roadmap covers 106 records with exact counts and conservative percentages. Eight viewer tests and four calculation tests pass; narrow layout, keyboard, hostile text and owner-reported offline roadmap controls observed. Legacy-board offline observation and latest integration checks remain open.",
   "notes": "docs/warrants/OW-WAR-0104/implementation/roadmap-progress.md",
   "evidence": [
     "docs/warrants/OW-WAR-0069/implementation/board-notes.md",
@@ -15,8 +15,8 @@
     "docs/warrants/OW-WAR-0104/implementation/offline-roadmap-human-observation.json"
   ],
   "next_steps": [
-    "Complete latest-head CI and integration of PR129",
-    "Finish remaining board-specific evidence and legacy OW69 reconciliation",
-    "Independent assurance and human signatures remain separate"
+    "Record separate legacy-board offline rendering observation; roadmap observation covers a different artifact",
+    "Finish latest-head CI and integrate PR129",
+    "Keep OW69 historical reconciliation separate; independent assurance and human signatures remain separate"
   ]
 }
