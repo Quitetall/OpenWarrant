@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Real SDK/executor/verifier/repair processes; synthetic agents and issuer only."""
 import base64
+import hashlib
 import json
 import os
 import subprocess
@@ -17,21 +18,32 @@ from verifier_service import Verification
 from verifier_attestation import NAMESPACE
 from verifier_policy import PROTECTIONS
 from verification import VerificationError
+from hotline import Answers, digest
+from verifier_repair import plan
 
 
-class RepairExecutionTests(unittest.TestCase):
+class RepairExecutionFixture:
     def setUp(self):
         self.fixture = t = execution_tests.ExecutionTests();t.setUp();self.addCleanup(t.tearDown)
-        draft = t.eligible()
+        if getattr(self, 'staged', False):
+            fields = t.staged()
+        else:
+            draft = t.eligible()
+            fields = {'warrant_id': draft['id'], 'source_sha256': draft['source_sha256']}
         program = t.harness.read_text().replace("['git','add','result.txt']", "['git','add','.']")
+        program = program.replace("stage=r['stage']", "stage=r.get('stage','api')")
+        program = program.replace("assert r['schema']=='oh.war/execution-request/v3'",
+                                  "assert r['schema'] in ('oh.war/execution-request/v3','oh.war/execution-request/v4')")
         program = program.replace("subprocess.run(['git','add'", "if r.get('verification_repair'):(p/'fixed.txt').write_text('fixed')\nsubprocess.run(['git','add'", 1)
         t.harness.write_text(program)
-        code, attempt = t.call('/api/runs', 'POST', {'warrant_id': draft['id'], 'source_sha256': draft['source_sha256']})
-        self.assertEqual(code, 202)
-        self.original = t.wait_run(attempt['attempt_id']);self.assertEqual(self.original['work_state'], 'completed')
+        for stage in (['api','ui'] if getattr(self, 'staged', False) else [None]):
+            code, attempt = t.call('/api/runs', 'POST', {**fields, **({'stage':stage} if stage else {})})
+            self.assertEqual(code, 202)
+            self.original = t.wait_run(attempt['attempt_id'])
+        self.assertEqual(self.original['work_state'], 'completed')
         t.stop()
         # Give the whole synthetic lifecycle a bounded time allowance.
-        t.config['timeout_seconds'] = 30;t.config_path.write_text(json.dumps(t.config))
+        t.config.update(timeout_seconds=30,repair_cycles=3);t.config_path.write_text(json.dumps(t.config))
         self.store = Store(t.root/'state', SDK(Path(execution_tests.WAR), t.repo))
         self.addCleanup(lambda: os.close(self.store.lock_fd))
         self.executor = Executor(self.store,t.config_path,read_file,publish,decode)
@@ -67,6 +79,43 @@ print(json.dumps({'schema':'oh.war/verification-result/v1','verification_id':r['
             time.sleep(.02)
         self.fail('Verifier did not finish')
 
+    def wait_repair(self, attempt):
+        deadline=time.monotonic()+5
+        while time.monotonic()<deadline:
+            record=self.executor.get(attempt['attempt_id'])
+            if record['execution_state']!='running':return record
+            time.sleep(.02)
+        self.fail('Repair did not finish')
+
+
+class RepairExecutionTests(RepairExecutionFixture, unittest.TestCase):
+    def test_repair_hotline_resume_preserves_lineage_budget_and_single_cycle(self):
+        failed=self.verify(self.original['attempt_id'])
+        implementation=self.fixture.harness.read_text()
+        self.fixture.harness.write_text("""import json,sys
+r=json.load(sys.stdin)
+assert r['verification_repair']
+print(json.dumps({'schema':'oh.war/execution-question/v1','attempt_id':r['attempt_id'],
+'source_sha256':r['source_sha256'],'notes':'Repair needs technical answer','next_steps':['Answer then resume'],
+'question':{'kind':'technical','text':'Use existing marker format?','direct_human':False,'affected_stages':['repair']}}))
+""")
+        paused=self.wait_repair(self.service.repair(failed['verification_id'],{}))
+        self.assertEqual(paused['work_state'],'blocked',paused)
+        token='fixture-only-responder-credential-001'
+        answers=Answers(self.executor,{'schema':'oh.war/hotline-config/v1','responders':[{
+            'id':'fixture-adviser','kind':'ai','governing_warrants':[],
+            'token_sha256':hashlib.sha256(token.encode()).hexdigest()}]})
+        question_hash=digest(paused['question'])
+        answers.submit(paused['attempt_id'],{'question_sha256':question_hash,'answer':'Use existing format',
+                                            'evidence':['fixture contract']},token)
+        self.fixture.harness.write_text(implementation)
+        resumed=self.wait_repair(self.executor.resume(paused['attempt_id'],{'question_sha256':question_hash},answers))
+        self.assertEqual(resumed['work_state'],'completed',resumed)
+        self.assertEqual(resumed['verification_repair'],paused['verification_repair'])
+        self.assertLess(resumed['remaining_seconds'],paused['remaining_seconds'])
+        self.assertEqual(plan(self.service.get(failed['verification_id']),list(self.executor.records().values()))['cycles_used'],1)
+        self.assertEqual(self.verify(resumed['attempt_id'])['effective_verdict'],'pass')
+
     def test_failure_repair_new_revision_and_independent_pass_preserve_history(self):
         failed=self.verify(self.original['attempt_id']);self.assertEqual(failed['effective_verdict'],'fail',failed)
         repaired=self.service.repair(failed['verification_id'],{})
@@ -99,3 +148,31 @@ print(json.dumps({'schema':'oh.war/verification-result/v1','verification_id':r['
         subprocess.run(['git','commit','-qm','fixture stale candidate'],cwd=candidate,check=True)
         with self.assertRaises(VerificationError):self.service.repair(failed['verification_id'],{})
         self.assertEqual(len(self.executor.records()),1)
+
+
+class StagedRepairTests(RepairExecutionFixture, unittest.TestCase):
+    staged = True
+
+    def test_repair_rechecks_every_stage_then_independently_verifies_new_commit(self):
+        failed=self.verify(self.original['attempt_id'])
+        record=self.wait_repair(self.service.repair(failed['verification_id'],{}))
+        self.assertEqual(record['work_state'],'completed',record)
+        from stages import completed_from_evidence
+        done=completed_from_evidence(record['policy']['stage_plan'],record['source_sha256'],
+                                     record['result_revision'],record['stage_checkpoint'])
+        self.assertEqual(done,{'api','ui'})
+        self.assertNotIn('stage',record)
+        self.assertEqual(self.verify(record['attempt_id'])['effective_verdict'],'pass')
+
+    def test_regressing_completed_stage_prevents_repair_completion(self):
+        failed=self.verify(self.original['attempt_id'])
+        program=self.fixture.harness.read_text()
+        program=program.replace("if r.get('verification_repair'):",
+            "if r.get('verification_repair'):(p/'api.txt').write_text('broken')\nif r.get('verification_repair'):")
+        self.fixture.harness.write_text(program)
+        record=self.wait_repair(self.service.repair(failed['verification_id'],{}))
+        self.assertEqual(record['work_state'],'failed',record)
+        self.assertEqual(record['execution_state'],'stopped')
+        self.assertEqual(record['cause'],'Required stage checks failed')
+        with self.assertRaises(VerificationError):
+            self.service.prepare({'attempt_id':record['attempt_id'],'verification_id':str(uuid.uuid4())})

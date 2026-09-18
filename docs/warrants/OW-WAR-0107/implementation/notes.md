@@ -257,3 +257,19 @@ the import now uses a module alias to avoid duplicate discovery.
 
 Automatic repair/reverification scheduling, rebuttal/escalation and dedicated
 staged-repair/hotline-resume evidence remain open. This is not OW107 completion.
+
+## Staged repair and hotline recovery evidence
+
+Expanded real SDK/Git/process fixtures to staged Warrants. Successful repair reran
+both API and UI stage checks on the new commit, then passed a fresh independent
+verifier. A planted regression in the previously completed API stage produced a
+stopped failed repair; verification preparation refused that incomplete result.
+
+A repair that emitted a technical hotline question resumed after a configured AI
+responder's fixture answer. The resumed execution retained its verification-repair
+binding, consumed the remaining time allowance and counted one repair cycle across
+the initial and resumed attempts. Its new candidate passed fresh verification.
+Five focused execution scenarios passed in 2.806 seconds; evidence is retained in
+`implementation/staged-repair-tests.log`. These use synthetic processes and do not
+qualify model quality or harness isolation. Automatic orchestration and
+rebuttal/escalation remain unfinished.
