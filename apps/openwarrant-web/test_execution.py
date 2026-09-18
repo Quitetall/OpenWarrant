@@ -204,6 +204,35 @@ print(json.dumps({'schema':'oh.war/execution-result/v1','attempt_id':r['attempt_
             self.assertEqual(self.call("/api/runs", "POST", request)[1]["error"], expected)
         self.assertEqual(self.call("/api/runs")[1]["runs"], [])
 
+    def test_changed_dependency_checks_invalidate_completion_eligibility(self):
+        dependency = self.eligible()
+        status, run = self.call("/api/runs", "POST", {
+            "warrant_id": dependency["id"], "source_sha256": dependency["source_sha256"]})
+        self.assertEqual(status, 202, run)
+        self.assertEqual(self.wait_run(run["attempt_id"])["work_state"], "completed")
+        self.draft_id = str(uuid.uuid4())
+        child = self.eligible()
+        self.stop()
+        self.config["warrants"][child["id"]]["dependencies"] = [dependency["id"]]
+        self.start()
+        request = {"warrant_id": child["id"], "source_sha256": child["source_sha256"]}
+        self.assertEqual(self.call("/api/admission", "POST", request)[1]["state"], "ready")
+        self.stop()
+        self.config["warrants"][dependency["id"]]["checks"].append(
+            [sys.executable, "-c", "raise SystemExit(1)"])
+        self.start()
+        preview = self.call("/api/admission", "POST", request)[1]
+        self.assertEqual(preview["state"], "blocked", preview)
+        status, refusal = self.call("/api/runs", "POST", request)
+        self.assertEqual(status, 409, refusal)
+        self.assertEqual(refusal["error"], preview["reason"])
+        status, report = self.call("/api/runs/" + run["attempt_id"] + "/report")
+        self.assertEqual(status, 200, report)
+        self.assertEqual(report["progress"]["completed"], 0)
+        self.assertIn(dependency["id"], report["progress"]["pending"])
+        # The old result remains a truthful completed historical attempt.
+        self.assertEqual(self.call("/api/runs/" + run["attempt_id"])[1]["work_state"], "completed")
+
     def test_admission_unavailable_base_is_unknown(self):
         r = self.eligible()
         self.stop()
