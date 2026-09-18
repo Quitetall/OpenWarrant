@@ -1,7 +1,7 @@
 {
   "schema": "oh.war/viewer-work-report/v1",
   "warrant": "OW-WAR-0041",
-  "work_state": "in_progress",
+  "work_state": "in-progress",
   "reported_by": "agent://codex",
   "revision": "1d44cc4dadb8bf66f3dc3b2e7e11017242c16753",
   "summary": "Unsupported measurement claims repaired under OW100; isolated full gate passed 14/14 and 308 controls. Derived metrics and historical baseline reconciliation remain open.",

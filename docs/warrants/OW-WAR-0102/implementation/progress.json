@@ -2,7 +2,7 @@
   "schema": "oh.war/viewer-work-report/v1",
   "warrant": "OW-WAR-0102",
   "reported_by": "agent://codex",
-  "work_state": "in_progress",
+  "work_state": "in-progress",
   "summary": "Report API and HTML download implemented; 44 package tests and browser report/download pass. Initial full gate passed 14/14 and 308 controls; latest-head CI and offline rendering observation pending.",
   "notes": "docs/warrants/OW-WAR-0102/implementation/notes.md",
   "evidence": [
@@ -13,5 +13,6 @@
   "next_steps": [
     "Run package suite and browser QA.",
     "Run repository gate; preserve distinct unverified completion."
-  ]
+  ],
+  "revision": "e6242505f612034435cc1847b95fb7530076c03d"
 }
