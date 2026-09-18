@@ -32,3 +32,11 @@ syntax check passes. Direct browser QA and final full gate remain pending.
 One standalone queue rerun omitted OW_TEST_WAR and failed because this worktree
 has no target binary; rerun with the explicit existing built SDK passed seven tests.
 This environment failure was not treated as product evidence or hidden by a skip.
+
+Post-main merge full suite: 207 tests passed in 68.550 seconds at 5456602.
+Direct browser observation on a disposable synthetic fixture confirmed saved
+revision enqueue, waiting-for-agent, cancellation, requeue, automatic dispatch,
+one completed stopped attempt and unverified labeling. Optional board/hotline/
+verifier services were absent in this tiny fixture; their qualification is not
+claimed. Browser polling replaced unchanged controls; preserve the unchanged
+queue DOM to avoid losing focus/click targets. Syntax checked after that fix.
