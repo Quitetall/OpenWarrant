@@ -72,3 +72,14 @@ still alive, then restarts. The initial sequence-one record becomes unknown, no
 answer appears and the launch marker remains one. The test explicitly terminates
 only its own synthetic process group afterward. This proves restart refusal, not
 remote-job fencing or a recovery mechanism.
+
+Full isolated gate at 78d2371e05f475270e887659e2812ebf8ebbf0ba passes 14/14
+steps and 308 controls on Rust 1.97.1, exit 0. This predates the interruption test
+and stage-planner work; it is not proof of later integration.
+
+A workflow-local stage planner now validates explicit bounded DAGs, rejects
+cycles/dangling references and inconsistent observations, propagates question
+blocks, and distinguishes independent readiness from writer serialization. It
+does not parse or replace standard milestone acceptance records. Four library
+tests pass. Stage dispatch/configuration/UI integration is not implemented yet;
+planner readiness explicitly grants no dispatch permission.
