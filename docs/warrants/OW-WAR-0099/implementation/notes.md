@@ -13,3 +13,7 @@ non-string stage fields for these two scheduling event types. Valid claim and
 submission transitions and opaque unrelated events are tested. Historical full
 gate evidence above applies only to its stated revision; this follow-up awaits
 a fresh full gate.
+
+Follow-up full gate at `1d44cc4dadb8bf66f3dc3b2e7e11017242c16753`: PASS,
+14/14 steps and 308 controls on Rust 1.97.1. Transcript: `evidence/payload-gate.log`.
+Implementation completed, unverified. No independent disposition is inferred.
