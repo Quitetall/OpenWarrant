@@ -26,6 +26,8 @@ class VerifierServiceTests(SnapshotFixture, unittest.TestCase):
         self.policy["source_sha256"] = self.source["source_sha256"]
         self.row.update(source_sha256=self.source["source_sha256"], policy=copy.deepcopy(self.policy))
         self.executor.publish = publish
+        self.executor.config.update(timeout_seconds=60, spend_limit_usd=10)
+        self.row.update(active_seconds=.1, cost_usd=0)
         self.executor.lock = threading.RLock()
         self.service = Verification(self.executor, self.config_path, self.issuer_path)
         self.server = Server(("127.0.0.1", 0), self.executor.store, "fixture-token")
@@ -158,3 +160,14 @@ print(json.dumps({'schema':'oh.war/verification-result/v1','verification_id':r['
         route = '/api/verification/' + next_fields['verification_id']
         self.assertEqual(self.call(route + '/start', fields)[0], 409)
         self.assertEqual(self.call(route)[1]['state'], 'prepared')
+
+    def test_http_budget_refusal_precedes_claim_consumption(self):
+        fields = self.dispatch_fixture()
+        route = '/api/verification/' + self.fields['verification_id']
+        self.row['active_seconds'] = 60
+        self.assertEqual(self.call(route + '/start', fields)[0], 409)
+        self.row['active_seconds'] = .1
+        self.row['cost_usd'] = None
+        self.assertEqual(self.call(route + '/start', fields)[0], 409)
+        self.assertEqual(self.call(route)[1]['state'], 'prepared')
+        self.assertFalse((self.service.jobs.root / ('workspace-' + self.fields['verification_id'])).exists())

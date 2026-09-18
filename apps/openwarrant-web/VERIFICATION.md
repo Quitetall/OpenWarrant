@@ -15,6 +15,14 @@ The verifier configuration uses `oh.war/verifier-config/v1` with `performer` and
 Distinct actor names are necessary but do not prove independent execution.
 Unknown cost cannot satisfy a mandatory spend cap.
 
+Before verifier dispatch, accounting includes all retained execution and verifier
+attempts for the Warrant. The execution timeout is the total active-time ceiling;
+the verifier timeout also limits each verification. The smaller configured spend
+cap applies. Missing time or unknown cost under a hard cap refuses dispatch before
+claim consumption. Prepared jobs spend no budget. Historical verifier jobs without
+usage observations cannot be treated as zero-cost, zero-time runs. This accounting
+is currently wired to verifier dispatch; repair-loop integration remains pending.
+
 The issuer file contains `schema: "oh.war/verifier-issuer/v1"`, `public_key` and
 `principal`. The public key must be an SSH Ed25519 key for dispatch authentication.
 Keep its private key outside agent access. A signature establishes origin and

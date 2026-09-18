@@ -11,6 +11,7 @@ from verifier_jobs import Jobs
 from verifier_policy import admission
 from verifier_snapshot import Snapshot
 from verifier_controller import run
+from verifier_budget import allowance
 
 
 class Verification:
@@ -107,9 +108,12 @@ class Verification:
                     record["sequence"] == 3 and record["observation"]["execution_state"] == "unknown"),
                     "Prior verifier running or uncertain; inspect before replacement")
             snapshot = Snapshot(self.executor, binding["attempt_id"], self.config_path, self.issuer_path)
+            current = snapshot()
+            budget = allowance(initial["request"]["warrant_id"], self.executor.config, current["config"],
+                               list(self.executor.records().values()), self.listing()["jobs"])
             return run(self.jobs, initial["request"], snapshot, self.executor.lock,
                        self.jobs.root / ("workspace-" + id), payload=payload, signature=signature,
-                       schedule=lambda work: self.schedule(id, work))
+                       schedule=lambda work: self.schedule(id, work), remaining_seconds=budget["remaining_seconds"])
 
     def schedule(self, id, work):
         self.live.add(id)

@@ -11,7 +11,7 @@ from verifier_run import observe
 from verifier_workspace import unchanged
 
 
-def run(jobs, expected, snapshot, lock, destination, *, payload, signature, schedule=None):
+def run(jobs, expected, snapshot, lock, destination, *, payload, signature, schedule=None, remaining_seconds=None):
     """snapshot() runs under executor lock and must reject active/unknown writers.
 
     It returns protected config, attempt, execution_policy, source_sha256,
@@ -21,13 +21,18 @@ def run(jobs, expected, snapshot, lock, destination, *, payload, signature, sche
     never restarted by this function.
     """
     expected = request(expected)
+    began = time.monotonic()
     with lock:
         current = json.loads(json.dumps(snapshot(), allow_nan=False))
         require(isinstance(current, dict) and set(current) == {
             "config", "attempt", "execution_policy", "source_sha256", "source_path", "issuer"
         }, "Exact protected verifier snapshot required")
         config = policy(current["config"])
-        deadline = time.monotonic() + config["timeout_seconds"]
+        if remaining_seconds is not None:
+            from verifier_budget import number
+            require(number(remaining_seconds) and remaining_seconds > 0, "Positive remaining time required")
+        deadline = began + min(config["timeout_seconds"], remaining_seconds if remaining_seconds is not None
+                               else config["timeout_seconds"])
         unchanged(current["source_path"], expected["candidate_revision"], deadline)
         acquired = consume(jobs, expected, config, current["attempt"], current["execution_policy"],
                            current["source_sha256"], payload=payload, signature=signature,
@@ -49,6 +54,8 @@ def run(jobs, expected, snapshot, lock, destination, *, payload, signature, sche
                             "execution_state": "unknown", "verdict": "unknown", "result": None,
                             "qualified": False, "candidate_observation": observed,
                             "cause": type(error).__name__ + ": " + str(error)[:1000]}
+            observed["active_seconds"] = time.monotonic() - began
+            observed["cost_usd"] = 0 if config["cost_mode"] == "free" else None
             jobs.finish(expected["verification_id"], observed)
             return jobs.view(expected["verification_id"])
 

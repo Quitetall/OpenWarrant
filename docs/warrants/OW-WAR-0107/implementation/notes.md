@@ -200,3 +200,19 @@ service using the real SDK, Git and execution controller. Full bounded evidence 
 limits are in `browser-verification-observation.md`. This establishes that specific
 UI path with synthetic processes; it does not qualify external harness protection,
 model independence or the remaining repair/budget scope.
+
+## Aggregate verifier admission budget
+
+Verifier dispatch now accounts for retained execution and verification attempts
+across IDs for the same Warrant. The execution time ceiling limits total active
+time; the verifier timeout also bounds its individual run. Both configured spend
+caps apply, with the smaller cap controlling. Missing/nonfinite/negative usage,
+uncertain execution and unknown cost under a hard cap refuse before consumption.
+Prepared jobs do not spend budget. Completed verifier observations now retain
+measured active time and explicit zero/unknown cost according to configured mode.
+
+Forty-five verifier tests pass, including aggregate exhaustion across changed IDs,
+unknown/missing accounting, either hard cost cap, and HTTP refusal before creating
+a verifier workspace. Evidence: `implementation/budget-tests.log`. No metered paid
+backend or reliable paid reservation interface is implemented. Repair dispatch
+still needs this shared accounting when the repair loop is connected.
