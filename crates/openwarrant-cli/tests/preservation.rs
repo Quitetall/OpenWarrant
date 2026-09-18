@@ -352,7 +352,27 @@ fn bounded_git_history_keeps_all_observed_state_bytes_and_commit_identity() {
     .unwrap();
     for (state, commit) in commits {
         let path = format!("__ow_archive__/history/{commit}/{record}");
-        let record = archive.records.iter().find(|r| r.path == path).unwrap();
+        let record = archive
+            .records
+            .iter()
+            .find(|r| r.path == path)
+            .unwrap_or_else(|| {
+                let index = archive
+                    .records
+                    .iter()
+                    .find(|r| r.path == "__ow_archive__/artifacts.json")
+                    .unwrap();
+                panic!(
+                    "missing {path}: {}",
+                    String::from_utf8(
+                        openwarrant_core::attestation::base64_decode(
+                            index.base64.as_ref().unwrap()
+                        )
+                        .unwrap()
+                    )
+                    .unwrap()
+                );
+            });
         let bytes =
             openwarrant_core::attestation::base64_decode(record.base64.as_ref().unwrap()).unwrap();
         assert_eq!(
@@ -469,26 +489,7 @@ fn declared_artifact_bytes_survive_source_loss_and_inventory_tampering_refuses()
     ]));
     let content = [0, 255, 13, 10, 65];
     let digest = sha256_hex(&content);
-    let declaration = format!(
-        r#"schema = "oh.war/deliverables/v1"
-[[deliverable]]
-id = "D-001"
-title = "Retained binary"
-kind = "file"
-target_ref = "delivered.bin"
-[deliverable.provenance]
-producer = "fixture"
-producing_attempt = "fixture"
-contract_digest = "unrecorded"
-tool_or_runtime_identity = "fixture"
-creation_method = "fixture"
-content_digest = "sha256:{digest}"
-media_type = "application/octet-stream"
-classification = "internal"
-retention = "fixture"
-source_holder = "git"
-"#
-    );
+    let declaration = artifact_declaration(&digest);
     let manifest = f.0.join("docs/warrants/ARCH-WAR-0001/deliverables.toml");
     std::fs::write(&manifest, &declaration).unwrap();
     std::fs::write(f.0.join("delivered.bin"), content).unwrap();
@@ -575,4 +576,179 @@ source_holder = "git"
         f.run(&["archive", "export", "ARCH-WAR-0001", "unknown.json"]),
         "unknown variant `unknown-required-kind`",
     );
+}
+
+fn artifact_declaration(digest: &str) -> String {
+    format!(
+        r#"schema = "oh.war/deliverables/v1"
+[[deliverable]]
+id = "D-001"
+title = "Retained binary"
+kind = "file"
+target_ref = "delivered.bin"
+[deliverable.provenance]
+producer = "fixture"
+producing_attempt = "fixture"
+contract_digest = "unrecorded"
+tool_or_runtime_identity = "fixture"
+creation_method = "fixture"
+content_digest = "sha256:{digest}"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "fixture"
+source_holder = "git"
+"#
+    )
+}
+
+#[test]
+fn historical_artifact_versions_are_selected_by_digest_not_current_path() {
+    let f = Fixture::new();
+    success(f.run(&[
+        "init",
+        "--namespace",
+        "ARCH",
+        "--program",
+        "Artifact history",
+    ]));
+    let git = |args: &[&str]| {
+        let output = Command::new("git")
+            .args([
+                "-c",
+                "user.name=Archive Fixture",
+                "-c",
+                "user.email=archive@example.invalid",
+            ])
+            .args(args)
+            .current_dir(&f.0)
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        String::from_utf8(output.stdout).unwrap().trim().to_owned()
+    };
+    git(&["init", "-q"]);
+    let declaration = f.0.join("docs/warrants/ARCH-WAR-0001/deliverables.toml");
+    let first = b"original\0artifact";
+    // NUL prevents Git text normalization from discarding the fixture CRLF bytes.
+    let second = b"revised\0\r\nartifact";
+    for (bytes, message) in [(first.as_slice(), "first"), (second.as_slice(), "second")] {
+        std::fs::write(f.0.join("delivered.bin"), bytes).unwrap();
+        std::fs::write(&declaration, artifact_declaration(&sha256_hex(bytes))).unwrap();
+        git(&["add", "."]);
+        git(&["commit", "-qm", message]);
+    }
+    let head = git(&["rev-parse", "HEAD"]);
+    std::fs::write(f.0.join("delivered.bin"), b"uncommitted third version").unwrap();
+    success(f.run(&[
+        "archive",
+        "export",
+        "ARCH-WAR-0001",
+        "history.json",
+        "--history",
+    ]));
+    let archive = Archive::decode(
+        &std::fs::read(f.0.join("history.json")).unwrap(),
+        Limits::default(),
+    )
+    .unwrap();
+    for bytes in [first.as_slice(), second.as_slice()] {
+        let path = format!("__ow_archive__/artifacts/{}", sha256_hex(bytes));
+        let record = archive
+            .records
+            .iter()
+            .find(|r| r.path == path)
+            .unwrap_or_else(|| {
+                let index = archive
+                    .records
+                    .iter()
+                    .find(|r| r.path == "__ow_archive__/artifacts.json")
+                    .unwrap();
+                panic!(
+                    "missing {path}: {}",
+                    String::from_utf8(
+                        openwarrant_core::attestation::base64_decode(
+                            index.base64.as_ref().unwrap()
+                        )
+                        .unwrap()
+                    )
+                    .unwrap()
+                );
+            });
+        assert_eq!(
+            openwarrant_core::attestation::base64_decode(record.base64.as_ref().unwrap()).unwrap(),
+            bytes
+        );
+    }
+    let index = archive
+        .records
+        .iter()
+        .find(|r| r.path == "__ow_archive__/artifacts.json")
+        .unwrap();
+    let index: serde_json::Value = serde_json::from_slice(
+        &openwarrant_core::attestation::base64_decode(index.base64.as_ref().unwrap()).unwrap(),
+    )
+    .unwrap();
+    assert!(
+        index["claims"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|c| c["unavailable"].is_null())
+    );
+    let origins: Vec<_> = index["claims"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|c| !c["git_source"].is_null())
+        .collect();
+    assert_eq!(origins.len(), 2);
+    assert!(origins.iter().all(|c| c["git_source"]["head"] == head));
+    std::fs::remove_file(f.0.join("delivered.bin")).unwrap();
+    success(f.run(&[
+        "archive",
+        "export",
+        "ARCH-WAR-0001",
+        "deleted-path.json",
+        "--history",
+    ]));
+    assert_eq!(
+        std::fs::read(f.0.join("history.json")).unwrap(),
+        std::fs::read(f.0.join("deleted-path.json")).unwrap()
+    );
+    let mut changed = archive.clone();
+    let record = changed
+        .records
+        .iter_mut()
+        .find(|r| r.path == "__ow_archive__/artifacts.json")
+        .unwrap();
+    let mut index: serde_json::Value = serde_json::from_slice(
+        &openwarrant_core::attestation::base64_decode(record.base64.as_ref().unwrap()).unwrap(),
+    )
+    .unwrap();
+    let claim = index["claims"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|c| !c["git_source"].is_null())
+        .unwrap();
+    claim["git_source"]["head"] = "0000000000000000000000000000000000000000".into();
+    let bytes = openwarrant_compiler::to_canonical_bytes(&index).unwrap();
+    record.digest = format!("sha256:{}", sha256_hex(&bytes));
+    record.base64 = Some(base64_encode(&bytes));
+    std::fs::write(
+        f.0.join("changed-origin.json"),
+        changed.encode(Limits::default()).unwrap(),
+    )
+    .unwrap();
+    refusal(
+        f.run(&["archive", "inspect", "changed-origin.json"]),
+        "artifact Git origin differs",
+    );
+    std::fs::remove_dir_all(f.0.join(".git")).unwrap();
+    std::fs::remove_dir_all(f.0.join("docs")).unwrap();
+    success(f.run(&["archive", "inspect", "history.json"]));
 }

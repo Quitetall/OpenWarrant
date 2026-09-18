@@ -336,12 +336,7 @@ fn assemble(
         )?;
         files.extend(retained);
     }
-    artifacts::capture(
-        repo.root.as_std_path(),
-        relative.as_str(),
-        &mut files,
-        limits,
-    )?;
+    artifacts::capture(repo, relative.as_str(), &mut files, limits)?;
     let schema_paths = identity::capture(repo.root.as_std_path(), &mut files, limits)?;
     // Check every declared source through no-follow reads before legacy loader touches it.
     let manifest_source = format!("{relative}/manifest.toml");

@@ -26,3 +26,27 @@ This is collection of observed declared artifacts. Global artifact coverage stay
 unavailable until required historical versions and provider/external inventories
 are reconciled. The archive is still incomplete; collection is not independent
 verification or acceptance of the delivered code.
+
+## Recovery from retained Git history
+
+With `--history`, missing or different local files now trigger a bounded lookup
+of regular-file versions reachable from the same pinned HEAD used for Warrant
+history capture. The declared SHA-256 selects a version. Lookup never checks out
+files, follows symlinks, guesses line-ending conversions, or fetches missing Git
+objects. More than 256 relevant commits refuses; candidates larger than the
+remaining archive budget cannot be retained.
+
+Recovered claims record the observed HEAD, matching commit and Git blob ids.
+Inspection checks that the origin's HEAD matches the captured history descriptor;
+these ids remain provenance observations, not independent authentication of Git
+ancestry. Artifact bytes are independently checked against their declared SHA-256.
+Repeated content is stored once, and claim count is bounded by the archive record
+limit. Missing versions remain unavailable rather than being replaced by current
+bytes.
+
+The test commits two binary versions and declarations, leaves a third uncommitted
+version, and captures both declared versions. Removing the current path produces
+byte-identical archive output. Removing the original Git database and docs still
+permits reconstruction. A rewritten origin HEAD refuses. Git-normalized text
+bytes that were never stored as blobs remain unavailable; the tool does not claim
+to restore bytes that Git discarded.

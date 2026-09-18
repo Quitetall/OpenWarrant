@@ -25,6 +25,15 @@ struct Claim {
     digest: Option<String>,
     record: Option<String>,
     unavailable: Option<String>,
+    #[serde(default)]
+    git_source: Option<GitSource>,
+}
+#[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct GitSource {
+    head: String,
+    commit: String,
+    blob: String,
 }
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -71,11 +80,23 @@ fn add(
     Ok(())
 }
 pub(super) fn capture(
-    root: &Path,
+    repo: &crate::repo::Repository,
     relative: &str,
     files: &mut BTreeMap<String, Vec<u8>>,
     limits: Limits,
 ) -> Result<(), Error> {
+    let root = repo.root.as_std_path();
+    let history_head = files
+        .get("__ow_archive__/history.json")
+        .map(|bytes| {
+            let value: serde_json::Value =
+                serde_json::from_slice(bytes).map_err(|e| Error(e.to_string()))?;
+            value["head"]
+                .as_str()
+                .map(str::to_owned)
+                .ok_or_else(|| Error("missing captured history head".into()))
+        })
+        .transpose()?;
     let current = format!("{relative}/deliverables.toml");
     let declarations: Vec<_> = files
         .iter()
@@ -96,6 +117,9 @@ pub(super) fn capture(
         }
         let mut ids = BTreeSet::new();
         for item in source.deliverable {
+            if claims.len() >= limits.records {
+                return Err(Error("artifact claim count exceeds archive limits".into()));
+            }
             if item.id.is_empty() || !ids.insert(item.id.clone()) {
                 return Err(Error("duplicate or empty artifact id".into()));
             }
@@ -107,6 +131,7 @@ pub(super) fn capture(
                 digest,
                 record: None,
                 unavailable: None,
+                git_source: None,
             };
             let Some(hex) = claim.digest.as_deref().and_then(digest_hex) else {
                 claim.unavailable = Some("No exact SHA-256 content identity declared".into());
@@ -121,30 +146,45 @@ pub(super) fn capture(
             }
             let record = format!("__ow_archive__/artifacts/{hex}");
             if !files.contains_key(&record) {
-                match std::fs::symlink_metadata(root.join(&claim.target)) {
-                    Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
-                        claim.unavailable =
-                            Some("Declared artifact version is not available locally".into());
-                        claims.push(claim);
-                        continue;
-                    }
+                let available = limits
+                    .content_bytes
+                    .saturating_sub(files.values().map(Vec::len).sum());
+                let local = match std::fs::symlink_metadata(root.join(&claim.target)) {
+                    Err(e) if e.kind() == std::io::ErrorKind::NotFound => None,
                     Err(e) => return Err(Error(e.to_string())),
-                    Ok(_) => (),
-                }
-                let bytes = crate::progress_viewer::source::read(
-                    root,
-                    Path::new(&claim.target),
-                    limits.content_bytes,
-                )
-                .map_err(Error)?;
-                if openwarrant_compiler::sha256_hex(&bytes) != hex {
-                    claim.unavailable = Some(
-                        "Current file differs from declared artifact version; original required"
-                            .into(),
-                    );
+                    Ok(metadata) if metadata.is_file() && metadata.len() > available as u64 => None,
+                    Ok(_) => Some(
+                        crate::progress_viewer::source::read(
+                            root,
+                            Path::new(&claim.target),
+                            available,
+                        )
+                        .map_err(Error)?,
+                    ),
+                };
+                let bytes =
+                    match local.filter(|bytes| openwarrant_compiler::sha256_hex(bytes) == hex) {
+                        Some(bytes) => Some(bytes),
+                        None => match &history_head {
+                            Some(head) => {
+                                super::history::artifact(repo, head, &claim.target, hex, available)?
+                                    .map(|recovered| {
+                                        claim.git_source = Some(GitSource {
+                                            head: head.clone(),
+                                            commit: recovered.commit,
+                                            blob: recovered.blob,
+                                        });
+                                        recovered.bytes
+                                    })
+                            }
+                            None => None,
+                        },
+                    };
+                let Some(bytes) = bytes else {
+                    claim.unavailable = Some("Local file differs or is missing; declared version not found within captured history and byte limits".into());
                     claims.push(claim);
                     continue;
-                }
+                };
                 add(files, record.clone(), bytes, limits)?;
             }
             claim.record = Some(record);
@@ -198,6 +238,30 @@ pub(super) fn verify(files: &BTreeMap<String, Vec<u8>>, relative: &str) -> Resul
         }
     }
     for claim in index.claims {
+        if let Some(origin) = &claim.git_source {
+            let oid = |value: &str| {
+                matches!(value.len(), 40 | 64)
+                    && value
+                        .bytes()
+                        .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+            };
+            let history: serde_json::Value = serde_json::from_slice(
+                files
+                    .get("__ow_archive__/history.json")
+                    .ok_or_else(|| Error("artifact Git origin lacks captured history".into()))?,
+            )
+            .map_err(|e| Error(e.to_string()))?;
+            if claim.record.is_none()
+                || !oid(&origin.head)
+                || !oid(&origin.commit)
+                || !oid(&origin.blob)
+                || history["head"] != origin.head
+            {
+                return Err(Error(
+                    "artifact Git origin differs from captured history".into(),
+                ));
+            }
+        }
         if expected.remove(&(claim.declaration, claim.id))
             != Some((claim.target, claim.digest.clone()))
         {

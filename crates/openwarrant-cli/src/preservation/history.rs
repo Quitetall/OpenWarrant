@@ -182,3 +182,93 @@ pub(super) fn capture(
     records.insert("__ow_archive__/history.json".into(), manifest);
     Ok(records)
 }
+
+pub(super) struct ArtifactVersion {
+    pub bytes: Vec<u8>,
+    pub commit: String,
+    pub blob: String,
+}
+
+/// Find the declared bytes in regular-file versions reachable from the captured HEAD.
+/// No checkout or network fetch. The SHA-256 content identity, not recency, selects bytes.
+pub(super) fn artifact(
+    repo: &Repository,
+    head: &str,
+    target: &str,
+    expected: &str,
+    limit: usize,
+) -> Result<Option<ArtifactVersion>, Error> {
+    if !oid(head) {
+        return Err(Error("invalid captured history head".into()));
+    }
+    let commits = text(git(
+        repo,
+        &[
+            "log",
+            "--full-history",
+            "--format=%H",
+            "--max-count=257",
+            head,
+            "--",
+            target,
+        ],
+        32768,
+    )?)?;
+    let commits: Vec<_> = commits.lines().collect();
+    if commits.len() > 256 {
+        return Err(Error("artifact history exceeds 256-commit bound".into()));
+    }
+    let mut seen = std::collections::BTreeSet::new();
+    for commit in commits {
+        if !oid(commit) {
+            return Err(Error("invalid artifact history commit".into()));
+        }
+        let tree = git(
+            repo,
+            &["ls-tree", "-z", "--full-tree", commit, "--", target],
+            4096,
+        )?;
+        if tree.is_empty() {
+            continue;
+        }
+        let entries: Vec<_> = tree.split(|b| *b == 0).filter(|b| !b.is_empty()).collect();
+        if entries.len() != 1 {
+            return Err(Error("artifact history path is not unique".into()));
+        }
+        let entry = std::str::from_utf8(entries[0]).map_err(|e| Error(e.to_string()))?;
+        let (metadata, source) = entry
+            .split_once('\t')
+            .ok_or_else(|| Error("invalid artifact tree entry".into()))?;
+        let fields: Vec<_> = metadata.split(' ').collect();
+        if source != target
+            || fields.len() != 3
+            || !matches!(fields[0], "100644" | "100755")
+            || fields[1] != "blob"
+            || !oid(fields[2])
+        {
+            return Err(Error("artifact history is not a regular Git file".into()));
+        }
+        if !seen.insert(fields[2].to_owned()) {
+            continue;
+        }
+        let size: usize = text(git(repo, &["cat-file", "-s", fields[2]], 64)?)?
+            .trim()
+            .parse()
+            .map_err(|e| Error(format!("invalid artifact blob size: {e}")))?;
+        if size > limit {
+            continue;
+        }
+        let bytes = git(repo, &["cat-file", "blob", fields[2]], size)?;
+        if bytes.len() != size {
+            return Err(Error("artifact history blob size mismatch".into()));
+        }
+        if openwarrant_compiler::sha256_hex(&bytes) == expected {
+            return Ok(Some(ArtifactVersion {
+                bytes,
+                commit: commit.to_owned(),
+                blob: fields[2].to_owned(),
+            }));
+        }
+    }
+    Ok(None)
+}
