@@ -51,8 +51,26 @@ class StageCheckpointTests(unittest.TestCase):
         r = self.observe()
         self.assertEqual(r["execution_state"], "stopped")
         self.assertEqual(r["stage_checks"]["api"][0]["exit_code"], 9)
-        self.assertEqual(r["stage_checks"]["ui"][0]["exit_code"], 0)
+        self.assertNotIn("ui", r["stage_checks"])
+        self.assertEqual(r["skipped_stages"]["ui"], ["api"])
         self.assertEqual(self.done(r), set())
+
+    def test_failed_branch_skips_transitive_checks_but_runs_independent_stage(self):
+        marker = self.root.parent / (self.root.name + "-dependent-ran")
+        self.addCleanup(marker.unlink, missing_ok=True)
+        self.config["stages"]["api"]["checks"] = [[sys.executable, "-c", "raise SystemExit(9)"]]
+        forbidden = [sys.executable, "-c", f"from pathlib import Path;Path({str(marker)!r}).touch()"]
+        self.config["stages"]["ui"]["checks"] = [forbidden]
+        self.config["stages"]["release"] = {"title": "Release", "outcome": "Follow UI",
+            "dependencies": ["ui"], "checks": [forbidden]}
+        self.config["stages"]["docs"] = {"title": "Docs", "outcome": "Independent",
+            "dependencies": [], "checks": [[sys.executable, "-c", "pass"]]}
+        r = checkpoint(self.config, "a" * 64, self.revision, self.root,
+                       list(self.config["stages"]), time.monotonic() + 3)
+        self.assertFalse(marker.exists(), "Dependent process must not launch")
+        self.assertEqual(r["execution_state"], "stopped")
+        self.assertEqual(r["skipped_stages"], {"ui": ["api"], "release": ["ui"]})
+        self.assertEqual(self.done(r), {"docs"})
 
     def test_mutating_check_is_unknown_even_with_zero_exit(self):
         self.config["stages"]["api"]["checks"] = [[sys.executable, "-c", "from pathlib import Path;Path('result.txt').write_text('changed')"]]

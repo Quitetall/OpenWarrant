@@ -56,3 +56,7 @@ plan and code revision. It removes successors whose prerequisite checks are abse
 or failed, even if their own checks passed. A boolean false is not exit code zero.
 The checkpoint producer runs actual checks on the unchanged result revision; the
 future dispatch integration must bind that producer to trusted current inputs; accepting arbitrary browser-submitted records is not supported.
+
+Checkpoint checks run in dependency order. A failed prerequisite skips checks for
+its dependent stages; independent checks continue. `skipped_stages` records direct
+unmet prerequisites. A skip is not an observed check failure or successful check.

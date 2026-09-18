@@ -104,3 +104,12 @@ rechecks worktree/HEAD after every command, and returns unknown on mutation or
 timeout. Eleven stage-library tests pass using real repositories and processes,
 including failed prerequisite plus passing successor, dirty/moved revision,
 mutation and time exhaustion. Controller dispatch and stage UI remain unwired.
+
+### Stage prerequisite check refusal
+
+Found that checkpoint collection ran successor checks after a prerequisite failed.
+Reproduced with a dependent process writing an external fixture marker. Changed
+collection to skip dependent checks transitively while running independent checks.
+Retained observed failed exit code and explicit skipped prerequisite identities.
+Twelve stage tests pass, including actual process non-launch and independent
+completion. This does not complete stage dispatch or hotline checkpoint rebinding.

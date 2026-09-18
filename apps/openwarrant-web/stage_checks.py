@@ -22,7 +22,7 @@ def checkpoint(config, source_sha256, revision, worktree, stages, deadline):
     require(root.is_dir() and not root.is_symlink(), "Real worktree required")
     r = {"schema": "oh.war/stage-checkpoint/v1", "source_sha256": source_sha256,
          "revision": revision, "plan": config, "execution_state": "unknown",
-         "stage_checks": {}, "cause": "Checks not completed"}
+         "stage_checks": {}, "skipped_stages": {}, "cause": "Checks not completed"}
 
     def git(*args):
         remaining = deadline - time.monotonic()
@@ -38,9 +38,15 @@ def checkpoint(config, source_sha256, revision, worktree, stages, deadline):
 
     try:
         unchanged()
-        pending, checked = set(stages), set()
+        pending, checked, passed = set(stages), set(), set()
         while pending:
             stage = next(s for s in sorted(pending) if set(config["stages"][s]["dependencies"]) <= checked)
+            missing = sorted(set(config["stages"][stage]["dependencies"]) - passed)
+            if missing:
+                r["skipped_stages"][stage] = missing
+                pending.remove(stage)
+                checked.add(stage)
+                continue
             observations = r["stage_checks"][stage] = []
             for command in config["stages"][stage]["checks"]:
                 observation = {"argv": command, "exit_code": None}
@@ -50,6 +56,8 @@ def checkpoint(config, source_sha256, revision, worktree, stages, deadline):
                 unchanged()
             pending.remove(stage)
             checked.add(stage)
+            if all(observation["exit_code"] == 0 for observation in observations):
+                passed.add(stage)
         r.update(execution_state="stopped", cause="Configured checks observed on unchanged revision")
     except Exception as error:
         r.update(execution_state="unknown", cause=type(error).__name__ + ": " + str(error)[:500])
