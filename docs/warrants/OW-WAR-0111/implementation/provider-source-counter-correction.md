@@ -27,3 +27,7 @@ retained OW archive; this test does not restore them through KF object storage.
 corrected provider head is pushed to PR8; new full local/hosted gates remain pending.
 OW full local gate at 0fc15c6c passed 14 steps and 309 controls, covering the service
 stream fix and journal-reference resolver. No Warrant resolution is inferred.
+
+Full local `pnpm gate` at corrected provider commit 32d3afe9 exited 0.
+Exact log retained as `provider-counter-full-gate.log.gz`. Hosted gates remain
+pending; local evidence does not replace the CI-only secret-history scan.
