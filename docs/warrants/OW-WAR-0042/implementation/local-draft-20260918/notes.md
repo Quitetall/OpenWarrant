@@ -21,3 +21,14 @@ establish a filesystem audit over the model process.
 Adapters are retained as `.py.txt` evidence, not installed scripts. The invalid
 proposal is `proposal.stdout.txt`, preserving exact output without presenting it
 as a parseable document. Renaming changed no evidence bytes or recorded digest.
+
+Attempt 3 used explicit brevity guidance and suppressed inventory repetition.
+It returned valid JSON (578 completion tokens), but the model converted
+role/ordinal/path shorthand into nested paths and sequential ordinals. The real
+CLI refused the first path before any application. Raw response and exact refusal
+are retained. No fourth call was made; task-owned endpoint was stopped.
+
+Next adapter work should supply explicit field mappings and a constrained JSON
+schema, then still run semantic validation. Do not normalize this observation
+and present repaired output as what the model returned. These failed observations
+do not satisfy the end-to-end applied-draft requirement.

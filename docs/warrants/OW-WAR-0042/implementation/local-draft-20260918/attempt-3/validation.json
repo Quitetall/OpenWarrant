@@ -1,0 +1,23 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "error",
+  "diagnostics": [
+    {
+      "severity": "error",
+      "rule": "cli.error",
+      "file": null,
+      "message": "atom path \"intent/10/10-intent.md\" escapes the atoms/ directory; a path is a file name, not a route"
+    }
+  ],
+  "notes": [],
+  "counts": {
+    "pass": 0,
+    "warn": 0,
+    "unknown": 0,
+    "error": 1,
+    "worst": "error"
+  },
+  "verdict": "not_ready",
+  "verdict_line": "NOT READY",
+  "exit_code": 2
+}
