@@ -40,3 +40,17 @@ round trips. Release creation and crate publication were skipped.
 These observations close the missing native macOS rehearsal, not Phase 3 or
 release qualification. Hosted execution records supply build context; they do
 not establish a cryptographically signed source-to-binary attestation.
+
+## Work completion and qualification
+
+Packaging implementation is completed, unverified, for candidate subject
+`43a3c2f2a3704e9d439b2e2a1f360c49b5191ac6`. OBL-001 covers packaged components,
+provider/workflow boundary documentation and native installs/examples. The native
+receipts supply the missing macOS observation. OBL-002 refusal observations remain
+in `tests.log` and the earlier full gate; packaging code was not changed by this
+evidence collection. OBL-003 explicitly applies to qualification, not unverified
+work completion. Structural checks continue to pass for these records.
+
+This does not promote a release or establish a signed source-to-binary attestation.
+OW90/91 still require Phase 3 evidence, final independent qualification, exact
+release subject and owner publication permission. Their blockers remain visible.

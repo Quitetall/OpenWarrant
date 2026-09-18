@@ -1,10 +1,10 @@
 {
   "schema": "oh.war/viewer-work-report/v1",
   "warrant": "OW-WAR-0089",
-  "work_state": "blocked",
+  "work_state": "completed",
   "reported_by": "agent://codex",
-  "revision": "9e99fbf26df2fc1c5cb3a1bfc2be39f5e4e57e8f64473d530614e4553093a159",
-  "summary": "Matching Linux and native macOS candidate installation observations pass; exact archive hashes and cross-host IR parity retained. Release qualification and publication remain blocked.",
+  "revision": "43a3c2f2a3704e9d439b2e2a1f360c49b5191ac6",
+  "summary": "Candidate packaging implementation completed, unverified: native Linux/macOS installs, documented examples, archive integrity and refusal tests observed. Phase 3 evidence, independent release qualification and publication permission remain separate blockers under OW90/91.",
   "notes": "docs/warrants/OW-WAR-0089/implementation/notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0089/implementation/observation.json",
