@@ -3,7 +3,7 @@
 use crate::repo::Repository;
 use openwarrant_compiler::preservation::Error;
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, BTreeSet},
     io::Read,
     process::{Command, Stdio},
     sync::mpsc,
@@ -123,15 +123,18 @@ pub(super) fn capture(
         ],
         32768,
     )?)?;
-    let mut commits: Vec<_> = commits.lines().collect();
+    let mut commits: BTreeSet<String> = commits.lines().map(str::to_owned).collect();
     if commits.len() > 256 {
         return Err(Error("history exceeds 256-commit bound".into()));
     }
-    commits.sort_unstable();
+    let mut visited = BTreeSet::new();
+    let mut shared_paths = BTreeSet::new();
     let mut records = BTreeMap::new();
     let mut remaining = byte_limit;
     let mut index = Vec::new();
-    for commit in commits {
+    while let Some(commit_id) = commits.pop_first() {
+        visited.insert(commit_id.clone());
+        let commit = commit_id.as_str();
         if !oid(commit) {
             return Err(Error("invalid history commit identity".into()));
         }
@@ -199,6 +202,35 @@ pub(super) fn capture(
                 if records.contains_key(&record) {
                     continue;
                 }
+                if shared_paths.insert(target.clone()) {
+                    if shared_paths.len() > record_limit {
+                        return Err(Error("shared history path count exceeds limit".into()));
+                    }
+                    let changes = text(git(
+                        repo,
+                        &[
+                            "log",
+                            "--full-history",
+                            "--format=%H",
+                            "--max-count=257",
+                            &head,
+                            "--",
+                            &target,
+                        ],
+                        32768,
+                    )?)?;
+                    for changed in changes.lines() {
+                        if !oid(changed) {
+                            return Err(Error("invalid shared history commit identity".into()));
+                        }
+                        if !visited.contains(changed) {
+                            commits.insert(changed.to_owned());
+                        }
+                    }
+                    if visited.len() + commits.len() > 256 {
+                        return Err(Error("history exceeds 256-commit bound".into()));
+                    }
+                }
                 if records.len() >= record_limit {
                     return Err(Error("history record count exceeds limit".into()));
                 }
@@ -242,7 +274,8 @@ pub(super) fn capture(
         }
         index.push(serde_json::json!({"commit":commit,"commit_record":format!("{prefix}/commit.txt"),"files":files}));
     }
-    let manifest = openwarrant_compiler::to_canonical_bytes(&serde_json::json!({"schema":"oh.war/preservation-history/v1-draft.1","head":head,"reachable_from":"HEAD","warrant_path":relative,"commits":index,"other_refs_included":false})).map_err(|e| Error(e.to_string()))?;
+    index.sort_by(|a, b| a["commit"].as_str().cmp(&b["commit"].as_str()));
+    let manifest = openwarrant_compiler::to_canonical_bytes(&serde_json::json!({"schema":"oh.war/preservation-history/v1-draft.1","head":head,"reachable_from":"HEAD","warrant_path":relative,"shared_atom_paths":shared_paths,"commits":index,"other_refs_included":false})).map_err(|e| Error(e.to_string()))?;
     if manifest.len() > remaining || records.len() >= record_limit {
         return Err(Error("history manifest exceeds limits".into()));
     }

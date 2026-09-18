@@ -932,6 +932,11 @@ fn historical_shared_atoms_use_each_manifest_commit_not_current_bytes() {
         git(&["add", "docs", "openwarrant.toml"]);
         git(&["commit", "-q", "-m", name]);
         revisions.push((git(&["rev-parse", "HEAD"]), bytes));
+        let shared_only = format!("{source}\nShared-only revision after {name}\n");
+        std::fs::write(&shared, &shared_only).unwrap();
+        git(&["add", "docs/shared/intent.md"]);
+        git(&["commit", "-q", "-m", "shared atom only"]);
+        revisions.push((git(&["rev-parse", "HEAD"]), shared_only));
     }
     std::fs::write(&shared, format!("{source}\nUncommitted third body\n")).unwrap();
     success(f.run(&[
