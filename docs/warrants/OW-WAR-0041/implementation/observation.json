@@ -1,0 +1,60 @@
+{
+  "source_revision": "1d44cc4dadb8bf66f3dc3b2e7e11017242c16753",
+  "binary_sha256": "1042ad76496581154a261b8c54dbc7a9b2de5e9281939ab913323d39d95c09b4",
+  "commands": [
+    {
+      "name": "current-measurement",
+      "argv": [
+        "/mnt/4tb/tmp/ow-authority-receipts/target/debug/war",
+        "telemetry",
+        "--commit",
+        "1d44cc4dadb8bf66f3dc3b2e7e11017242c16753",
+        "--out",
+        "/mnt/4tb/tmp/ow41-telemetry/docs/warrants/OW-WAR-0041/implementation/current-measurement.json",
+        "--json"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout_sha256": "611fc4d192eb8ec4d7d7952fa9e63ebef5f5785f8885004b7a9681747529ddcd"
+    },
+    {
+      "name": "empty-reviewer",
+      "argv": [
+        "/mnt/4tb/tmp/ow-authority-receipts/target/debug/war",
+        "telemetry",
+        "--commit",
+        "1d44cc4dadb8bf66f3dc3b2e7e11017242c16753",
+        "--attach",
+        "fixture-only: no real attribution",
+        "--warrant",
+        "OW-WAR-0041",
+        "--json"
+      ],
+      "exit_code": 1,
+      "stderr": "",
+      "stdout_sha256": "0d4bb375c9d08317f6acef6cb828af3803a6ac00e3d585a306a87d6b57df4d6c"
+    },
+    {
+      "name": "reviewer-control",
+      "argv": [
+        "/mnt/4tb/tmp/ow-authority-receipts/target/debug/war",
+        "telemetry",
+        "--commit",
+        "1d44cc4dadb8bf66f3dc3b2e7e11017242c16753",
+        "--attach",
+        "fixture-only: no real attribution",
+        "--warrant",
+        "OW-WAR-0041",
+        "--reviewer",
+        "fixture://reviewer",
+        "--json"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout_sha256": "f073c4dccaf3076f8d7b4a41086c133e123edd96ec20ab122927454d99b8d50a"
+    }
+  ],
+  "qualification_established": false,
+  "historical_baseline_replaced": false,
+  "positive_control": "Synthetic reviewer and scope. No real work relation asserted or persisted."
+}

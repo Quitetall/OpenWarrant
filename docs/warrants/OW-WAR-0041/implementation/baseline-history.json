@@ -1,0 +1,47 @@
+{
+  "observed_at_revision": "baba016873a8a970c8f3763aef278fcc376cfc13",
+  "revisions": [
+    {
+      "artifact_commit": "f3ac4b163a4aeea56eccbfb369be4eb6d2fc3627",
+      "artifact_path": "artifacts/telemetry-baseline.json",
+      "artifact_sha256": "3d05bc7099e47c42cc090750f37f1d6e06345fd0e6be6bddde0258a678fbd54a",
+      "claimed_subject": "b54310897a72320b475e1da8d7d20f26972cce45",
+      "resolved_subject": "b54310897a72320b475e1da8d7d20f26972cce45",
+      "subject_is_ancestor_of_artifact_commit": false,
+      "measures": 18
+    },
+    {
+      "artifact_commit": "a6e3e03ea93d0a242969e9ce13041fac05a29cce",
+      "artifact_path": "artifacts/telemetry-baseline.json",
+      "artifact_sha256": "5f01dfe8d9ecdaf4c16f2156696c33da9784804e4a0a1ca07cb220a5a9cf1b76",
+      "claimed_subject": "8da1ca1",
+      "resolved_subject": "8da1ca189dcbd328fe9a6ea226703dd77a003ecb",
+      "subject_is_ancestor_of_artifact_commit": false,
+      "measures": 18
+    },
+    {
+      "artifact_commit": "1a4ec6159a8a1a71af384de9dd28df95a630141d",
+      "artifact_path": "artifacts/telemetry-baseline.json",
+      "artifact_sha256": "2035b99bc2ecfc0b754870fc760bda6127f1459fe6f5cc3e38b56c10d084cf07",
+      "claimed_subject": "4382e0d",
+      "resolved_subject": "4382e0d5f4d215bafa4c2594cd3c335eb390c45e",
+      "subject_is_ancestor_of_artifact_commit": true,
+      "measures": 20
+    },
+    {
+      "artifact_commit": "143f2de97483049c7c553fc61626693884a369c0",
+      "artifact_path": "artifacts/telemetry-baseline.json",
+      "artifact_sha256": "020600c49d437dc0fbd940256efa407ebc67e244c5dbf1ccabcbdffd54e49ef4",
+      "claimed_subject": "6e08dd6",
+      "resolved_subject": "6e08dd6e1315f9ab08e3dd1bec17b82d69c02509",
+      "subject_is_ancestor_of_artifact_commit": true,
+      "measures": 20
+    }
+  ],
+  "limits": [
+    "Git provenance recovers artifact bytes and named subjects, not proof that measurements ran against those subjects.",
+    "Existing OBL-001 verifier names 8da1ca1; current artifact names 6e08dd6. Historical verdict must not be applied to later bytes.",
+    "Before-tuning ordering requires identifying actual policy changes; ancestry alone does not establish it."
+  ],
+  "qualification_established": false
+}
