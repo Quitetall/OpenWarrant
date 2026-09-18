@@ -30,19 +30,22 @@ Connected agents can use this path today through CLI/SDK without a model call in
 the SDK. Keep provider keys outside documents and packets. Preserve prompt, source
 revisions, model/harness identity and validation findings in the drafting history.
 
-The reference webapp still needs an agent-drafting action: send a bounded prompt
-and exact context to a configured local/cloud adapter, validate returned proposals,
-show a readable editable draft, then save through the existing SDK authoring seam.
-Test local and cloud adapters with real observations, invalid output, timeout,
-context limits and cost refusal. A deterministic fixture proves transport only.
+OW105 delivered the reference agent-drafting action through a configured adapter:
+a bounded prompt and pinned context produce an editable proposal, saved through
+the SDK after review. Its synthetic HTTP/process/browser evidence establishes the
+transport and refusal contract, not real model quality. OW101 retains three failed
+local-model drafting observations. Successful real local/cloud provider drafting
+qualification remains open, including invalid output, timeout, context limits and
+cost refusal. A deterministic fixture proves transport only.
 Unknown cost must refuse when a hard spend cap applies; explicit uncapped policy
 may permit it while displaying unknown cost. Drafting grants no execution or
-qualification authority. Track this as a remaining workflow deliverable, not shipped UI.
+qualification authority. Track actual-provider qualification separately from the shipped bounded UI.
 
 ## Prepare bounded implementation Warrants
 
-These are proposed slices, not already-issued or completed Warrants. Each needs a
-bounded contract and positive/refusal fixtures before dispatch.
+The slices below include implemented work and explicitly remaining scope. Each
+implementation uses its own bounded Warrant and positive/refusal fixtures; the
+status of one slice cannot qualify the whole release.
 
 1. **Reference package and local API (OW93 bounded draft slice complete, unverified).** Add a separate workflow package. Reuse SDK
    parsing, validation, authoring and immutable record semantics. Expose persistent
@@ -60,7 +63,13 @@ bounded contract and positive/refusal fixtures before dispatch.
    short overview, vision/SAS/optional PRD summaries, exact source pointers and
    shared progress records. Provider owns assembly; app owns display. Existing
    progress viewer is not yet this complete Master view.
-3. **Questions, stops and recovery.** Route in-scope questions to agents and
+3. **Questions, stops and recovery.** OW106 implements the bounded hotline, stage
+   scheduling and checkpoint-safe resume workflow; OW107 implements independent
+   verification, bounded repair, rebuttal and escalation. Both report implementation
+   complete, unverified. Their fixtures do not qualify actual provider sandboxing
+   or human presence. OW109 adds the agent-availability queue and is under review.
+   Remaining recovery scope includes proving old writers cannot continue after
+   replacement. Continue to enforce the full behavior: route in-scope questions to agents and
    governing questions to authorized humans. Pause affected work and dependents;
    preserve independent progress. Apply work and harness changes at the defined
    boundaries. Prove interrupted writers cannot resume after replacement; emit
@@ -85,7 +94,7 @@ bounded contract and positive/refusal fixtures before dispatch.
    record missing work explicitly before phase exit. Supply results
    to OW90; only then can OW91 request publication permission.
 
-Slices 1–3 can be developed independently of missing external adapters. Adapter
+Remaining local workflow scope can be developed independently of missing external adapters. Adapter
 contracts can be prepared alongside them. Actual-user study depends on the working
 webapp; final qualification depends on all required evidence. No global signature
 ceremony is added to ordinary unverified execution.
