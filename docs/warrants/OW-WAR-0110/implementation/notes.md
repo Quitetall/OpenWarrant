@@ -14,3 +14,9 @@ refs/unions/maps/arrays/tuples/nullability and unsupported shapes, and actual pi
 KF imports/build/runtime tests. See kf-consumer.md and ow32-scope-map.md. Full gate
 and hosted merge integration remain pending. No OW32 assurance or historical
 disposition changed.
+
+Full producer gate completed in independent clone /mnt/4tb/tmp/ow110-full-gate
+at ce6ef1fb6a5613ed57cc4d6637b81dc42d24f20f: Rust 1.97.1, exit 0, 14 steps
+and 308 plants passed. Retained gate-ce6ef1f.log.gz. Later changes are evidence
+and scope-map documentation; final hosted head checks still required. KF consumer
+798094c6 additionally regenerates measured test inventory through its normal tool.
