@@ -3,6 +3,22 @@
 OW-WAR-0107 is in progress. Verification does not award the assurance mark.
 Prototype completion remains available without verification.
 
+## Offline work reports
+
+When verification is configured, the existing work-report endpoint returns
+`oh.war/reference-work-report/v2`. It includes retained verification jobs, repairs
+and current dispute records for the Warrant's exact source revision in both JSON
+and offline HTML. Full text includes their summary; minimal text points readers
+to the offline history. Candidate revisions remain explicit, including older FAIL
+records after a repair passes. Findings and evidence are HTML-escaped.
+
+The original execution `snapshot_sha256` remains unchanged. A separate
+`verification_snapshot_sha256` binds the verification supplement. Evidence loss
+changes its effective verdict and supplement digest while preserving the original
+observation and execution snapshot. Reports describe retained observations; they
+do not grant current authorization, human acceptance or qualification. Services
+without verification retain the v1 execution-only report.
+
 ## Optional automatic loops
 
 `verifier_loop.Loop` advances one dispatch per tick from an exact root execution

@@ -25,6 +25,7 @@ from advice import Adviser
 from verifier_service import Verification
 from verifier_scheduler import Scheduler
 from verifier_receipts import ReceiptInbox
+from verifier_reporting import report as verification_report
 
 BODY_LIMIT = 64 * 1024
 FILE_LIMIT = 1024 * 1024
@@ -550,6 +551,9 @@ class Handler(BaseHTTPRequestHandler):
                     raise Refusal(409, "Execution harness not configured")
                 report = re.fullmatch(r"/api/runs/([0-9a-f-]{36})/report", self.path)
                 if report:
+                    if self.server.verification is not None:
+                        return self.reply(200, verification_report(self.server.verification,
+                            report[1], self.server.completion_word, self.server.report_detail))
                     return self.reply(200, self.server.executor.report(
                         report[1], self.server.completion_word, self.server.report_detail))
                 if self.path == "/api/runs":

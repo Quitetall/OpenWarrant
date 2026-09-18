@@ -520,3 +520,25 @@ new PASS. A separate hotline scenario pauses repair, ingests a technical answer,
 resumes implementation, prepares verification for that resumed attempt and reaches
 checks_passed with one repair cycle. Evidence: implementation/lineage-tests.log.
 Full web regression and isolated full-gate validation are the next checks.
+
+## Offline verification and repair history
+
+Configured work reports now return a v2 supplement with exact-source verification
+jobs, repair attempts and current dispute records. Full text and offline HTML show
+candidate-specific observations; minimal text points to the offline history.
+Historical verdicts and current evidence availability remain distinct. Original
+execution snapshot bytes/digest are unchanged; the supplement has its own digest.
+Services without verification retain v1 reports. No report grants qualification.
+
+Tests prove retained FAIL/PASS candidates after repair, deterministic output,
+compact/full equivalent evidence, HTML escaping, qualification refusal, receipt
+loss changing only effective verification and its digest, no-job prototype reports
+and configured HTTP export. Full web suite: 192 tests passed in 59.903 seconds.
+Evidence: implementation/report-web-tests.log.
+
+The preceding code revision 4a2682f2274000de20b9e22f373666192f53b3e4 passed the
+full Rust gate on rustc 1.97.1 (8bab26f4f 2026-07-14) in a standalone clone:
+14 steps green; 308 planted controls passed; zero failures; exit 0. The clone was
+clean afterward. Evidence: implementation/full-gate-4a2682f.log. The report
+supplement postdates that run; final-head CI remains required. Scope audit updated
+without marking independent obligations established or resolving the Warrant.
