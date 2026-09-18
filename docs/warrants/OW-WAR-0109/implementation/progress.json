@@ -1,0 +1,19 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0109",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "b908185a22c017ccdcd413511f83a0500c785ef4",
+  "summary": "Durable agent queue implemented with real HTTP/Git/process and browser evidence. Standalone Rust 1.97.1 gate passed 14 steps and 308 plants at b908185. Final hosted checks and merge integration remain pending; unverified.",
+  "notes": "docs/warrants/OW-WAR-0109/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0109/implementation/browser-observation.md",
+    "docs/warrants/OW-WAR-0109/implementation/scope-audit.md",
+    "docs/warrants/OW-WAR-0109/implementation/gate-b908185.log.gz",
+    "docs/warrants/OW-WAR-0109/implementation/queue-9-tests.log"
+  ],
+  "next_steps": [
+    "Finish exact-head hosted checks and merge integration.",
+    "Independent verification and human assurance remain separate."
+  ]
+}

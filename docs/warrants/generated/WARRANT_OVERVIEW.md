@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-104 Warrant(s) in this repository.
+105 Warrant(s) in this repository.
 
 ## Summary
 
@@ -115,6 +115,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0106](docs/warrants/OW-WAR-0106/manifest.toml) | Route workflow questions and resume bounded work after answers | `draft` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0107](docs/warrants/OW-WAR-0107/manifest.toml) | Independently verify workflow results and repair within limits | `draft` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0108](docs/warrants/OW-WAR-0108/manifest.toml) | Integrate shared BLUT materialization repair and retained OW47 runtime evidence | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0109](docs/warrants/OW-WAR-0109/manifest.toml) | Durable agent availability queue and automatic bounded dispatch | `draft` | `current` | `valid` | `basic` | 2M / 2S |
 
 ## Claimed SAS requirement coverage
 
