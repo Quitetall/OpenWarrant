@@ -2,12 +2,15 @@
 """Configured verification inventory and exact preparation, without implicit launch."""
 import json
 import re
+import base64
+import threading
 
 from hotline import digest
 from verification import identity, request, request_digest, require
 from verifier_jobs import Jobs
 from verifier_policy import admission
 from verifier_snapshot import Snapshot
+from verifier_controller import run
 
 
 class Verification:
@@ -15,6 +18,7 @@ class Verification:
         self.executor, self.config_path, self.issuer_path = executor, config_path, issuer_path
         self.jobs = Jobs(executor.root / "verification", publish=executor.publish,
                          read_file=executor.read_file, decode=executor.decode)
+        self.live = set()
 
     def initial(self, id):
         require(identity(id), "Exact verification identity required")
@@ -32,7 +36,7 @@ class Verification:
     def get(self, id):
         with self.executor.lock:
             initial, binding = self.initial(id), self.binding(id)
-            return {**self.jobs.view(id), "attempt_id": binding["attempt_id"],
+            return {**self.jobs.view(id, live=id in self.live), "attempt_id": binding["attempt_id"],
                     "request": initial["request"], "basis_sha256": initial["basis_sha256"],
                     "dispatch_permitted": False}
 
@@ -70,3 +74,40 @@ class Verification:
                 require(self.jobs.decode(self.jobs.read_file(path)) == binding, "Verification identity already bound")
             self.jobs.claim(expected, preview["basis_sha256"])
             return self.get(id)
+
+    def start(self, id, fields):
+        require(isinstance(fields, dict) and set(fields) == {"payload_base64", "signature_base64"}
+                and all(isinstance(v, str) and 0 < len(v) <= 21848 for v in fields.values()),
+                "Bounded signed protection receipt required")
+        payload, signature = (base64.b64decode(fields[k], validate=True)
+                              for k in ("payload_base64", "signature_base64"))
+        with self.executor.lock:
+            initial, binding = self.initial(id), self.binding(id)
+            if self.jobs.read(id)["sequence"] != 1:
+                return self.get(id)
+            for job in self.listing()["jobs"]:
+                record = job["record"]
+                require(record["sequence"] != 2 and not (
+                    record["sequence"] == 3 and record["observation"]["execution_state"] == "unknown"),
+                    "Prior verifier running or uncertain; inspect before replacement")
+            snapshot = Snapshot(self.executor, binding["attempt_id"], self.config_path, self.issuer_path)
+            return run(self.jobs, initial["request"], snapshot, self.executor.lock,
+                       self.jobs.root / ("workspace-" + id), payload=payload, signature=signature,
+                       schedule=lambda work: self.schedule(id, work))
+
+    def schedule(self, id, work):
+        self.live.add(id)
+        def worker():
+            try:
+                work()
+            finally:
+                # If final persistence failed, consumed claim remains UNKNOWN.
+                with self.executor.lock:
+                    self.live.discard(id)
+        thread = threading.Thread(target=worker, daemon=True)
+        try:
+            thread.start()
+        except Exception:
+            self.live.discard(id)
+            raise
+        return self.get(id)

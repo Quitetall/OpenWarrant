@@ -146,3 +146,21 @@ cover authentication, unsupported authority fields, unknown writers, exact repla
 changed-candidate refusal and service reconstruction over retained jobs. These use
 executor state fixtures; the full production execution-to-verification HTTP flow
 is not established yet. Evidence: `implementation/web-regression.log`.
+
+## Explicit background dispatch API
+
+Added authenticated `POST /api/verification/<id>/start` with bounded base64
+receipt/signature fields. Signature and current candidate checks happen before
+claim consumption. The service then schedules the isolated verifier in a background
+thread and exposes live/retained state through existing job routes. Replayed claims
+never launch again. Any prior running or uncertain verifier blocks a new dispatch.
+Failure to persist final state leaves the consumed claim UNKNOWN after its worker
+ends; it does not free that claim for retry.
+
+Full web regression: 149 tests passed in 47.303 seconds. New public HTTP cases
+exercise disposable machine signatures, real Git/check/verifier subprocesses,
+durable PASS without qualification, replay after service reconstruction, forged
+receipt refusal before consumption and interrupted-claim refusal. Executor records
+are fixture inputs, so production execution-to-verification and actual sandbox
+protection remain unqualified. Browser controls, aggregate budgets and bounded
+repair/rebuttal remain open. Evidence: `implementation/dispatch-web-regression.log`.

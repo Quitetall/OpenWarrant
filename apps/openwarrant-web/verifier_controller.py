@@ -11,7 +11,7 @@ from verifier_run import observe
 from verifier_workspace import unchanged
 
 
-def run(jobs, expected, snapshot, lock, destination, *, payload, signature):
+def run(jobs, expected, snapshot, lock, destination, *, payload, signature, schedule=None):
     """snapshot() runs under executor lock and must reject active/unknown writers.
 
     It returns protected config, attempt, execution_policy, source_sha256,
@@ -37,16 +37,21 @@ def run(jobs, expected, snapshot, lock, destination, *, payload, signature):
             return jobs.view(expected["verification_id"])
         # Serialize now so later mutable caller data cannot rewrite comparison basis.
         basis = digest(current)
-    observed = observe(expected, current["source_path"], destination, config["verifier"]["argv"],
-                       deadline, jobs.decode)
-    with lock:
-        try:
-            require(digest(snapshot()) == basis, "Candidate or protected configuration changed during verification")
-            unchanged(current["source_path"], expected["candidate_revision"], deadline)
-        except Exception as error:
-            observed = {"schema": "oh.war/verifier-observation/v1", "request_sha256": request_digest(expected),
-                        "execution_state": "unknown", "verdict": "unknown", "result": None,
-                        "qualified": False, "candidate_observation": observed,
-                        "cause": type(error).__name__ + ": " + str(error)[:1000]}
-        jobs.finish(expected["verification_id"], observed)
-        return jobs.view(expected["verification_id"])
+    def execute():
+        observed = observe(expected, current["source_path"], destination, config["verifier"]["argv"],
+                           deadline, jobs.decode)
+        with lock:
+            try:
+                require(digest(snapshot()) == basis, "Candidate or protected configuration changed during verification")
+                unchanged(current["source_path"], expected["candidate_revision"], deadline)
+            except Exception as error:
+                observed = {"schema": "oh.war/verifier-observation/v1", "request_sha256": request_digest(expected),
+                            "execution_state": "unknown", "verdict": "unknown", "result": None,
+                            "qualified": False, "candidate_observation": observed,
+                            "cause": type(error).__name__ + ": " + str(error)[:1000]}
+            jobs.finish(expected["verification_id"], observed)
+            return jobs.view(expected["verification_id"])
+
+    if schedule is not None:
+        return schedule(execute)
+    return execute()
