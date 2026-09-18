@@ -12,12 +12,14 @@ verdict, signed resolution or common assurance mark.
 | Cancel before consumption, no duplicate dispatch | cancellation/requeue/browser flow; repeated poll/enqueue/restart fixtures | Cancellation does not terminate launched process |
 | Sequential stages | real SDK/Git/process queue test: UI waits for checked API, same worktree, final checks complete | Two synthetic stages and existing stage admission |
 | API/browser controls and bounded polling | authenticated HTTP refusal/success; browser-observation.md; unchanged-focus follow-up | Local session, fixture repository, no assurance granted |
-| Gate | gate-b908185.log.gz: Rust 1.97.1, 14 steps PASS, 308 plants pass | Exact implementation source b908185; later explicit report pointers have separate HTTP tests and await fresh hosted gate |
+| Gate | gate-b908185.log.gz: Rust 1.97.1, 14 steps PASS, 308 plants pass | Exact implementation source b908185; later explicit report pointers have separate HTTP tests and final hosted gate at 84154a0 |
 
 Post-main-refresh web suite: 207 tests at 5456602. Subsequent focused queue suite:
 nine tests, including added real admission and sequential-stage cases. Two HTTP
 queue tests exercise real subprocesses and Git. Browser observations identify their
 source revisions; later syntax-tested snapshot preservation was directly observed.
 
-Hosted checks on final PR head and merge integration remain pending. Do not infer
-human acceptance or entire-project completion from this implementation audit.
+Final PR head 84154a0 passed hosted gate, web workflow and Bonsai checks. PR123
+merged as 1eb2cef4. Exact check identities, Bonsai artifact and full hosted gate
+log are retained beside this audit. Implementation complete, unverified. Do not
+infer human acceptance or entire-project completion from this implementation audit.
