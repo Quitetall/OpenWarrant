@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-100 Warrant(s) in this repository.
+101 Warrant(s) in this repository.
 
 ## Summary
 
@@ -111,6 +111,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0102](docs/warrants/OW-WAR-0102/manifest.toml) | Generate deterministic execution work-stop reports | `draft` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0103](docs/warrants/OW-WAR-0103/manifest.toml) | Preserve question-store errors across hotline readers | `draft` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0104](docs/warrants/OW-WAR-0104/manifest.toml) | Complete read-only master board and batch question workflow | `draft` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0105](docs/warrants/OW-WAR-0105/manifest.toml) | Draft human-first Warrants through configured agent harnesses | `draft` | `current` | `valid` | `basic` | 1M / 1S |
 
 ## Claimed SAS requirement coverage
 

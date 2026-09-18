@@ -1,0 +1,17 @@
+import sys,tempfile,json,hashlib
+from pathlib import Path
+sys.path.insert(0,'apps/openwarrant-web')
+from server import Store,SDK,Server,read_file,publish,decode
+from drafting import Drafter
+with tempfile.TemporaryDirectory(prefix='ow105-browser-') as tmp:
+ root=Path(tmp)
+ harness=root/'adapter.py'
+ harness.write_text("import json,sys;r=json.load(sys.stdin);print(json.dumps({'schema':'oh.war/drafting-result/v1','fields':{'title':'Add a changelog','outcome':r['prompt'],'scope':'Document changes only; preserve source behavior.','context':'Use current repository conventions; add positive and refusal checks.'}}))")
+ skill='.claude/skills/war-spec/SKILL.md'
+ config={'schema':'oh.war/drafting-config/v1','argv':[sys.executable,str(harness)],'backend':'Synthetic browser fixture; no model','sandbox':'read-only-repository','cost_mode':'free','spend_limit_usd':10,'timeout_seconds':10,'context':[{'path':skill,'sha256':hashlib.sha256(Path(skill).read_bytes()).hexdigest(),'role':'skill'}]}
+ path=root/'config.json';path.write_text(json.dumps(config))
+ store=Store(root/'state',SDK(Path('/mnt/4tb/tmp/ow-question-integrity/target/debug/war'),Path.cwd()))
+ server=Server(('127.0.0.1',0),store,'public-drafting-test-fixture')
+ server.drafter=Drafter(store,path,read_file,publish,decode)
+ print(f'http://127.0.0.1:{server.server_port}',flush=True)
+ server.serve_forever()

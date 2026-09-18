@@ -1,6 +1,5 @@
 schema = "oh.war/deliverables/v1"
 
-# D-005 prior candidate retained in attempts/agent-drafting-20260918/.
 # §37.1. Declared by the performer; `war resolve` recomputes every digest.
 # Prior manifest remains byte-exact in attempts/attempt-1/deliverables.toml.
 # Changed entries are attempt-2 candidate deliveries, not independent verdicts.
@@ -112,12 +111,12 @@ obligation_refs = ["OBL-001"]
 
 [deliverable.provenance]
 producer = "codex"
-producing_attempt = "OW-WAR-0068/agent-drafting-20260918"
+producing_attempt = "OW-WAR-0068/attempt-2"
 contract_digest = "f77a07c9bee13fc2490a248e8e735bafe31ea3ab01399d9b45f5cdf53e115808"
-input_digests = ["sha256:fd390b4e8c834bccd183987400fb5a77f6a57973299f1cf56b5c735c988d9021"]
-tool_or_runtime_identity = "Codex; OW-WAR-0105 SDK authoring pointer correction; candidate, unverified"
+input_digests = ["sha256:06349ea9693ae405afa1ada51020afd772b3e801087450657068487e7330e97b"]
+tool_or_runtime_identity = "Codex; owner-directed RC.3 skill refresh; candidate delivery, qualification pending"
 creation_method = "authored"
-content_digest = "sha256:00fd217340bb197d82cc04aa3da5a7c3162d0d14087d6d981115a5eb4d1c949c"
+content_digest = "sha256:fd390b4e8c834bccd183987400fb5a77f6a57973299f1cf56b5c735c988d9021"
 media_type = "text/markdown"
 classification = "internal"
 retention = "repository-lifetime"

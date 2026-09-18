@@ -90,3 +90,5 @@ concurrent stale edits, access refusal, malformed input, store corruption, symli
 refusal and competing process ownership. Browser QA is recorded separately.
 The historical aggregate gate remains unchanged because its implementation is a
 resolved pinned deliverable; run this package's tests alongside `cargo xtask gate`.
+
+Optional local/cloud agent-assisted drafting: [configuration and protocol](DRAFTING.md).
