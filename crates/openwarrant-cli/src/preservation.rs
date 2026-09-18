@@ -8,6 +8,10 @@ use openwarrant_compiler::preservation::{Archive, Error, Limits};
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
+    /// Inspect retained source reconstruction without claiming complete preservation.
+    Inspect { input: Utf8PathBuf },
+    /// Capture current Warrant sources and local records; unresolved categories stay explicit.
+    Export { alias: String, output: Utf8PathBuf },
     /// Import experimental canonical archive into a NEW private inert directory.
     Import {
         input: Utf8PathBuf,
@@ -40,6 +44,34 @@ fn read(path: &Path, limit: usize) -> Result<Vec<u8>, Error> {
 pub fn run(command: Command) -> Result<(String, serde_json::Value), Error> {
     let limits = Limits::default();
     match command {
+        Command::Inspect { input } => {
+            let bytes = read(input.as_std_path(), limits.archive_bytes)?;
+            let archive = Archive::decode(&bytes, limits)?;
+            let mut files = BTreeMap::new();
+            for record in &archive.records {
+                if let Some(encoded) = &record.base64 {
+                    files.insert(
+                        record.path.clone(),
+                        openwarrant_core::attestation::base64_decode(encoded).map_err(Error)?,
+                    );
+                }
+            }
+            if verify_basis(&files)? != archive.subject {
+                return Err(Error(
+                    "archive subject differs from reconstructed Warrant".into(),
+                ));
+            }
+            Ok(("Archived current sources reconstruct their IR. Historical/provider completeness remains separate.".into(),
+                serde_json::json!({"schema":"oh.war/preservation-result/v1-draft.1", "operation":"inspect", "source_reconstructed":true, "authority_activated":false})))
+        }
+        Command::Export { alias, output } => {
+            let repo = crate::repo::Repository::discover(None).map_err(|e| Error(e.to_string()))?;
+            let archive = assemble(&repo, &alias, limits)?;
+            let bytes = archive.encode(limits)?;
+            write_new(output.as_std_path(), &bytes)?;
+            Ok(("Captured current Warrant bytes. Unavailable categories remain open; preservation is incomplete.".into(),
+                serde_json::json!({"schema":"oh.war/preservation-result/v1-draft.1", "operation":"export", "archive_digest":archive.digest(limits)?, "output":output.as_str(), "complete":false, "authority_activated":false})))
+        }
         Command::Import {
             input,
             destination,
@@ -56,6 +88,11 @@ pub fn run(command: Command) -> Result<(String, serde_json::Value), Error> {
                     .ok_or_else(|| Error("invalid evidence digest".into()))?;
                 read(root.join(hex).as_std_path(), limit)
             })?;
+            if content.contains_key(BASIS_PATH) && verify_basis(&content)? != archive.subject {
+                return Err(Error(
+                    "archive subject differs from reconstructed Warrant".into(),
+                ));
+            }
             materialize(destination.as_std_path(), &bytes, &content)?;
             let digest = archive.digest(limits)?;
             Ok((
@@ -98,12 +135,17 @@ pub fn reexport(directory: &Path, limits: Limits) -> Result<Vec<u8>, Error> {
             return Err(Error(format!("imported record changed: {}", record.path)));
         }
     }
-    external.reconnect(limits, |digest, limit| {
+    let restored = external.reconnect(limits, |digest, limit| {
         let relative = by_digest
             .get(digest)
             .ok_or_else(|| Error("missing imported record".into()))?;
         read(&directory.join("records").join(relative), limit)
     })?;
+    if restored.contains_key(BASIS_PATH) && verify_basis(&restored)? != archive.subject {
+        return Err(Error(
+            "archive subject differs from reconstructed Warrant".into(),
+        ));
+    }
     archive.encode(limits)
 }
 
@@ -223,4 +265,289 @@ fn write_new(_: &Path, _: &[u8]) -> Result<(), Error> {
     Err(Error(
         "safe archive output currently requires Linux or macOS".into(),
     ))
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct BasisSnapshot {
+    schema: String,
+    namespace: String,
+    manifest_source: String,
+    atoms: Vec<AtomSnapshot>,
+    scope_source: Option<String>,
+    sas: Option<(String, String)>,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct AtomSnapshot {
+    ordinal: u32,
+    role: String,
+    jurisdiction: String,
+    source: String,
+    record: String,
+    required: bool,
+}
+const BASIS_PATH: &str = "__ow_archive__/basis.json";
+const IR_PATH: &str = "__ow_archive__/WAR.json";
+
+fn assemble(repo: &crate::repo::Repository, alias: &str, limits: Limits) -> Result<Archive, Error> {
+    use openwarrant_compiler::preservation::{Coverage, Record, SCHEMA};
+    use openwarrant_core::{attestation::base64_encode, journal::EXPORT_CONTENTS};
+    let dir = repo.warrant_dir(alias).map_err(|e| Error(e.to_string()))?;
+    let relative = dir
+        .strip_prefix(&repo.root)
+        .map_err(|e| Error(e.to_string()))?;
+    let mut files = BTreeMap::new();
+    let mut remaining = limits.content_bytes;
+    let mut nodes = limits.records.saturating_mul(2);
+    collect(
+        repo.root.as_std_path(),
+        relative.as_std_path(),
+        &mut files,
+        &mut remaining,
+        limits.records,
+        &mut nodes,
+        0,
+    )?;
+    // Check every declared source through no-follow reads before legacy loader touches it.
+    let manifest_source = format!("{relative}/manifest.toml");
+    let manifest_bytes = files
+        .get(&manifest_source)
+        .ok_or_else(|| Error("missing manifest".into()))?;
+    let manifest: openwarrant_core::Manifest =
+        toml::from_str(std::str::from_utf8(manifest_bytes).map_err(|e| Error(e.to_string()))?)
+            .map_err(|e| Error(e.to_string()))?;
+    for atom in &manifest.atoms {
+        let source = atom.path.as_ref().ok_or_else(|| {
+            Error("unresolved bound atom cannot be archived as complete source".into())
+        })?;
+        let bytes = crate::progress_viewer::source::read(
+            repo.root.as_std_path(),
+            relative.join(source).as_std_path(),
+            limits.content_bytes,
+        )
+        .map_err(Error)?;
+        if files.get(&format!("{relative}/{source}")) != Some(&bytes) {
+            return Err(Error("atom outside captured tree or source changed".into()));
+        }
+    }
+    let loaded = repo.load_warrant(&dir).map_err(|e| Error(e.to_string()))?;
+    if !loaded.report.is_ready() {
+        return Err(Error("source Warrant is not structurally ready".into()));
+    }
+    let basis = loaded
+        .basis
+        .ok_or_else(|| Error("missing compilation basis".into()))?;
+    let validated = loaded
+        .validated
+        .ok_or_else(|| Error("missing validated manifest".into()))?;
+    if files.get(&basis.manifest_source) != Some(&basis.manifest_bytes) {
+        return Err(Error("manifest changed during capture".into()));
+    }
+    for atom in &basis.atoms {
+        if files.get(&format!("{relative}/{}", atom.source)) != Some(&atom.bytes) {
+            return Err(Error("atom changed during capture".into()));
+        }
+    }
+    if let Some(scope) = &basis.scope
+        && files.get(&scope.source) != Some(&scope.bytes)
+    {
+        return Err(Error("scope changed during capture".into()));
+    }
+    let snapshot = BasisSnapshot {
+        schema: "oh.war/preservation-basis/v1-draft.1".into(),
+        namespace: repo.config.project.namespace.as_str().to_owned(),
+        manifest_source: basis.manifest_source.clone(),
+        atoms: basis
+            .atoms
+            .iter()
+            .map(|a| AtomSnapshot {
+                ordinal: a.ordinal,
+                role: a.role.clone(),
+                jurisdiction: a.jurisdiction.clone(),
+                source: a.source.clone(),
+                record: format!("{relative}/{}", a.source),
+                required: a.required,
+            })
+            .collect(),
+        scope_source: basis.scope.as_ref().map(|v| v.source.clone()),
+        sas: basis
+            .sas
+            .as_ref()
+            .map(|v| (v.version.clone(), v.sha256.clone())),
+    };
+    let ir = openwarrant_compiler::lower(&basis, &validated).map_err(|e| Error(e.to_string()))?;
+    files.insert(
+        BASIS_PATH.into(),
+        openwarrant_compiler::to_canonical_bytes(&snapshot).map_err(|e| Error(e.to_string()))?,
+    );
+    files.insert(
+        IR_PATH.into(),
+        openwarrant_compiler::to_canonical_bytes(&ir).map_err(|e| Error(e.to_string()))?,
+    );
+    verify_basis(&files)?;
+    let mut coverage: BTreeMap<_, _> = EXPORT_CONTENTS.iter().filter(|s| !s.starts_with("optional ")).map(|s| ((*s).into(), Coverage::Unavailable { reason: "Local snapshot alone does not establish complete historical/provider coverage".into() })).collect();
+    for (category, paths) in [
+        ("complete identity", vec![IR_PATH.to_owned()]),
+        ("source manifest", vec![manifest_source]),
+        (
+            "exact atom revisions and digests",
+            snapshot.atoms.iter().map(|a| a.record.clone()).collect(),
+        ),
+        ("Compilation Basis", vec![BASIS_PATH.to_owned()]),
+        ("canonical IR", vec![IR_PATH.to_owned()]),
+        ("evidence manifest", files.keys().cloned().collect()),
+    ] {
+        let mut paths: Vec<String> = paths;
+        paths.sort();
+        coverage.insert(category.into(), Coverage::Retained { paths });
+    }
+    let archive = Archive {
+        schema: SCHEMA.into(),
+        subject: format!("war://{}", basis.manifest.uuid),
+        producer: format!(
+            "openwarrant-cli/{} experimental-current-snapshot",
+            env!("CARGO_PKG_VERSION")
+        ),
+        records: files
+            .into_iter()
+            .map(|(path, bytes)| Record {
+                path,
+                digest: format!("sha256:{}", openwarrant_compiler::sha256_hex(&bytes)),
+                base64: Some(base64_encode(&bytes)),
+            })
+            .collect(),
+        coverage,
+        extensions: BTreeMap::new(),
+    };
+    archive.validate(limits)?;
+    Ok(archive)
+}
+
+fn collect(
+    root: &Path,
+    relative: &Path,
+    files: &mut BTreeMap<String, Vec<u8>>,
+    remaining: &mut usize,
+    count_limit: usize,
+    nodes: &mut usize,
+    depth: usize,
+) -> Result<(), Error> {
+    *nodes = nodes
+        .checked_sub(1)
+        .ok_or_else(|| Error("source entry count exceeds limit".into()))?;
+    if depth > 32 {
+        return Err(Error("source directory depth exceeds limit".into()));
+    }
+    let path = root.join(relative);
+    let metadata = std::fs::symlink_metadata(&path).map_err(|e| Error(e.to_string()))?;
+    if metadata.file_type().is_symlink() {
+        return Err(Error("source symlink refused".into()));
+    }
+    if metadata.is_dir() {
+        for entry in std::fs::read_dir(&path).map_err(|e| Error(e.to_string()))? {
+            let entry = entry.map_err(|e| Error(e.to_string()))?;
+            collect(
+                root,
+                &relative.join(entry.file_name()),
+                files,
+                remaining,
+                count_limit,
+                nodes,
+                depth + 1,
+            )?;
+        }
+    } else if metadata.is_file() {
+        if files.len() >= count_limit {
+            return Err(Error("source record count exceeds limit".into()));
+        }
+        let bytes =
+            crate::progress_viewer::source::read(root, relative, *remaining).map_err(Error)?;
+        *remaining = remaining
+            .checked_sub(bytes.len())
+            .ok_or_else(|| Error("source content exceeds limit".into()))?;
+        let key = relative
+            .to_str()
+            .ok_or_else(|| Error("non-UTF8 source path".into()))?
+            .to_owned();
+        if files.insert(key, bytes).is_some() {
+            return Err(Error("duplicate source record".into()));
+        }
+    } else {
+        return Err(Error("special source file refused".into()));
+    }
+    Ok(())
+}
+
+fn verify_basis(files: &BTreeMap<String, Vec<u8>>) -> Result<String, Error> {
+    use openwarrant_compiler::{AtomSource, CompilationBasis, SasPin, ScopeSource};
+    let bytes = files
+        .get(BASIS_PATH)
+        .ok_or_else(|| Error("missing basis descriptor".into()))?;
+    let snapshot: BasisSnapshot =
+        serde_json::from_slice(bytes).map_err(|e| Error(e.to_string()))?;
+    if snapshot.schema != "oh.war/preservation-basis/v1-draft.1" {
+        return Err(Error("unsupported basis snapshot".into()));
+    }
+    let manifest_bytes = files
+        .get(&snapshot.manifest_source)
+        .ok_or_else(|| Error("missing manifest source".into()))?
+        .clone();
+    let manifest: openwarrant_core::Manifest =
+        toml::from_str(std::str::from_utf8(&manifest_bytes).map_err(|e| Error(e.to_string()))?)
+            .map_err(|e| Error(e.to_string()))?;
+    let validated = manifest
+        .validate(Some(&snapshot.namespace))
+        .map_err(|e| Error(e.to_string()))?;
+    if manifest.atoms.len() != snapshot.atoms.len() {
+        return Err(Error("basis atom membership differs".into()));
+    }
+    let mut atoms = Vec::new();
+    for (entry, atom) in manifest.atoms.iter().zip(snapshot.atoms) {
+        if entry.ordinal != atom.ordinal
+            || entry.role != atom.role
+            || entry.required != atom.required
+            || entry.path.as_deref() != Some(&atom.source)
+        {
+            return Err(Error("basis atom differs from manifest".into()));
+        }
+        let bytes = files
+            .get(&atom.record)
+            .ok_or_else(|| Error("missing atom bytes".into()))?
+            .clone();
+        atoms.push(AtomSource {
+            ordinal: atom.ordinal,
+            role: atom.role,
+            jurisdiction: atom.jurisdiction,
+            source: atom.source,
+            required: atom.required,
+            bytes,
+        });
+    }
+    let scope = snapshot
+        .scope_source
+        .map(|source| {
+            files
+                .get(&source)
+                .cloned()
+                .map(|bytes| ScopeSource { source, bytes })
+                .ok_or_else(|| Error("missing scope bytes".into()))
+        })
+        .transpose()?;
+    let basis = CompilationBasis {
+        manifest,
+        manifest_source: snapshot.manifest_source,
+        manifest_bytes,
+        atoms,
+        scope,
+        sas: snapshot
+            .sas
+            .map(|(version, sha256)| SasPin { version, sha256 }),
+    };
+    let ir = openwarrant_compiler::lower(&basis, &validated).map_err(|e| Error(e.to_string()))?;
+    let actual = openwarrant_compiler::to_canonical_bytes(&ir).map_err(|e| Error(e.to_string()))?;
+    if files.get(IR_PATH) != Some(&actual) {
+        return Err(Error("reconstructed IR differs from archived IR".into()));
+    }
+    Ok(format!("war://{}", basis.manifest.uuid))
 }

@@ -211,3 +211,69 @@ fn machine_output_keeps_report_envelope_and_explicit_authority_bound() {
     assert_eq!(value["result"]["authority_activated"], false);
     assert_eq!(value["result"]["operation"], "import");
 }
+
+#[test]
+fn actual_warrant_sources_reconstruct_after_source_repository_disappears() {
+    let f = Fixture::new();
+    success(f.run(&[
+        "init",
+        "--namespace",
+        "ARCH",
+        "--program",
+        "Archive fixture",
+    ]));
+    success(f.run(&["new", "Retain actual source bytes"]));
+    let output = f.run(&[
+        "--json",
+        "archive",
+        "export",
+        "ARCH-WAR-0001",
+        "snapshot.json",
+    ]);
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(report["result"]["complete"], false);
+    std::fs::rename(f.0.join("docs"), f.0.join("original-docs-hidden")).unwrap();
+    success(f.run(&["archive", "inspect", "snapshot.json"]));
+    // Structural capture does not claim KF or historical completeness.
+    refusal(
+        f.run(&["archive", "import", "snapshot.json", "not-complete"]),
+        "required coverage unavailable",
+    );
+    assert!(!f.0.join("not-complete").exists());
+    let bytes = std::fs::read(f.0.join("snapshot.json")).unwrap();
+    let mut archive = Archive::decode(&bytes, Limits::default()).unwrap();
+    let original_subject = archive.subject.clone();
+    archive.subject = "war://wrong-warrant".into();
+    std::fs::write(
+        f.0.join("wrong-subject.json"),
+        archive.encode(Limits::default()).unwrap(),
+    )
+    .unwrap();
+    refusal(
+        f.run(&["archive", "inspect", "wrong-subject.json"]),
+        "archive subject differs",
+    );
+    archive.subject = original_subject;
+    let ir = archive
+        .records
+        .iter_mut()
+        .find(|r| r.path == "__ow_archive__/WAR.json")
+        .unwrap();
+    let changed = b"{}";
+    ir.base64 = Some(base64_encode(changed));
+    ir.digest = format!("sha256:{}", sha256_hex(changed));
+    std::fs::write(
+        f.0.join("changed.json"),
+        archive.encode(Limits::default()).unwrap(),
+    )
+    .unwrap();
+    refusal(
+        f.run(&["archive", "inspect", "changed.json"]),
+        "reconstructed IR differs",
+    );
+}

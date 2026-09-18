@@ -44,3 +44,23 @@ synthetic bytes, not real signed supersession/dispute/annulment qualification.
 Still missing: actual repository category assembly, IR reconstruction from imported
 sources, full historical selection, legacy export claim repair, accepted format
 decision, and real empty-KF-instance round trip. OW111 remains incomplete.
+
+## Actual current-source capture and reconstruction
+
+`war archive export ALIAS OUTPUT` captures the current Warrant tree through
+bounded no-follow reads, compares loader inputs with captured bytes, embeds a
+versioned Basis descriptor and canonical IR, and records unresolved categories
+as unavailable. It returns complete:false, never a full-preservation claim.
+`war archive inspect INPUT` reconstructs IR from embedded manifest/atom/scope/SAS
+pin inputs and compares exact canonical bytes and Warrant subject. It requires no
+source repository. Import/re-export also check reconstruction when that descriptor
+is present. Historical contract source lookup is not implemented by this capture.
+
+Five CLI integration tests pass, including a newly initialized actual Warrant,
+source docs moved away, altered IR with a recomputed record digest refusing, and
+wrong-subject refusal. Strict all-target Clippy passes. Real OW-WAR-0001 current
+snapshot and export/inspect observations retained here. That snapshot deliberately
+marks historical/provider categories unavailable and cannot claim full import.
+
+Next remains full historical/category assembly, external provider records, legacy
+false-proof replacement, formal format decision and actual KF preservation test.
