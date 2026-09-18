@@ -103,3 +103,67 @@ def answer(fields, token, rows, q):
             "respondent": actor["id"], "respondent_kind": actor["kind"],
             "answer": fields["answer"], "evidence": list(fields["evidence"]),
             "qualified": False}
+
+
+class Answers:
+    """Immutable answer storage under the execution lock and protected state root."""
+    def __init__(self, executor, config):
+        self.executor = executor
+        self.rows = responders(config)
+        self.authorization_digest = digest(config)
+        self.root = executor.root / "hotline-answers"
+        require(not self.root.is_symlink(), "Hotline answer directory cannot be a symlink")
+        self.root.mkdir(mode=0o700, exist_ok=True)
+        require(self.root.stat().st_mode & 0o077 == 0, "Private hotline answer directory required")
+
+    def read(self, attempt_id, q):
+        path = self.root / (attempt_id + ".json")
+        if not path.exists() and not path.is_symlink():
+            return None
+        envelope = self.executor.decode(self.executor.read_file(path))
+        require(isinstance(envelope, dict) and set(envelope) == {"record", "sha256"}
+                and isinstance(envelope["record"], dict)
+                and envelope["sha256"] == digest(envelope["record"]), "Hotline answer integrity mismatch")
+        r = envelope["record"]
+        require(r.get("attempt_id") == attempt_id and r.get("question_sha256") == digest(q)
+                and r.get("schema") == "oh.war/hotline-answer/v1", "Hotline answer basis mismatch")
+        return r
+
+    def basis(self, attempt_id):
+        records = self.executor.records()
+        require(attempt_id in records, "Unknown hotline attempt", 404)
+        r = self.executor.view(records[attempt_id])
+        q = r.get("question")
+        require(isinstance(q, dict) and r["sequence"] == 2
+                and r["execution_state"] == "stopped" and r["work_state"] == "blocked",
+                "Attempt has no stopped hotline question")
+        policy = self.executor.config["warrants"].get(r["warrant_id"])
+        require(policy is not None and digest(policy) == q["policy_sha256"]
+                and policy["source_sha256"] == q["source_sha256"]
+                and self.executor.store.get(r["warrant_id"])["source_sha256"] == q["source_sha256"],
+                "Question source or policy changed")
+        return r, q
+
+    def listing(self):
+        with self.executor.lock:
+            result = []
+            for r in self.executor.records().values():
+                if r.get("question"):
+                    q = r["question"]
+                    result.append({"question": q, "question_sha256": digest(q),
+                                   "answer": self.read(r["attempt_id"], q)})
+            return {"questions": result}
+
+    def submit(self, attempt_id, fields, credential):
+        with self.executor.lock:
+            _, q = self.basis(attempt_id)
+            r = answer(fields, credential, self.rows, q)
+            r.update(attempt_id=attempt_id, authorization_sha256=self.authorization_digest)
+            previous = self.read(attempt_id, q)
+            if previous is not None:
+                require(previous == r, "Question already has a different retained answer")
+                return previous
+            require(len(list(self.root.iterdir())) < 256, "Hotline answer inventory limit exceeded")
+            data = json.dumps({"record": r, "sha256": digest(r)}, ensure_ascii=False).encode()
+            self.executor.publish(self.root / (attempt_id + ".json"), data)
+            return r

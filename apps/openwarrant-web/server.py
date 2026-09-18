@@ -20,6 +20,7 @@ from socketserver import ThreadingMixIn
 
 from execution import ExecutionError, Executor
 from drafting import Drafter
+from hotline import Answers, HotlineError
 
 BODY_LIMIT = 64 * 1024
 FILE_LIMIT = 1024 * 1024
@@ -405,6 +406,7 @@ class Server(ThreadingMixIn, HTTPServer):
         self.token = token
         self.executor = None
         self.drafter = None
+        self.hotline = None
         self.slots = threading.BoundedSemaphore(8)
         super().__init__(address, Handler)
 
@@ -492,6 +494,10 @@ class Handler(BaseHTTPRequestHandler):
                     raise Refusal(409, "Drafting harness not configured")
                 return self.reply(200, self.server.drafter.listing() if self.path == "/api/drafting"
                                   else self.server.drafter.get(self.path.rsplit("/", 1)[1]))
+            if self.command == "GET" and self.path == "/api/hotline":
+                if self.server.hotline is None:
+                    raise Refusal(409, "Hotline responders not configured")
+                return self.reply(200, self.server.hotline.listing())
             if self.command == "GET" and self.path == "/api/board":
                 board = store.sdk.run(None, board=True)
                 if board.get("schema") != "oh.war/board-draft/v1":
@@ -519,7 +525,10 @@ class Handler(BaseHTTPRequestHandler):
             )
             if self.command == "GET" and history:
                 return self.reply(200, store.get(history[1], int(history[2])))
+            hotline_answer = re.fullmatch(r"/api/hotline/([0-9a-f-]{36})/answer", self.path)
             if (
+                self.command == "POST" and hotline_answer
+            ) or (
                 self.command == "POST" and self.path in ("/api/warrants", "/api/runs", "/api/admission", "/api/drafting")
             ) or (self.command == "PUT" and match):
                 if (
@@ -538,6 +547,13 @@ class Handler(BaseHTTPRequestHandler):
                 if len(body) != size:
                     raise Refusal(400, "Incomplete request")
                 fields = decode(body)
+                if hotline_answer:
+                    if self.server.hotline is None:
+                        raise Refusal(409, "Hotline responders not configured")
+                    credentials = self.headers.get_all("X-OW-Responder", [])
+                    if len(credentials) != 1:
+                        raise Refusal(401, "One responder credential required")
+                    return self.reply(200, self.server.hotline.submit(hotline_answer[1], fields, credentials[0]))
                 if self.path == "/api/drafting":
                     if self.server.drafter is None:
                         raise Refusal(409, "Drafting harness not configured")
@@ -562,7 +578,7 @@ class Handler(BaseHTTPRequestHandler):
                     store.create(fields, expected),
                 )
             raise Refusal(404, "Unsupported route or action")
-        except (Refusal, ExecutionError) as e:
+        except (Refusal, ExecutionError, HotlineError) as e:
             self.reply(e.status, {"error": e.message, "qualified": False})
         except (OSError, KeyError, TypeError, ValueError, subprocess.SubprocessError):
             self.reply(
@@ -588,6 +604,7 @@ def main():
     parser.add_argument("--session-file", type=Path, required=True)
     parser.add_argument("--execution-config", type=Path)
     parser.add_argument("--drafting-config", type=Path)
+    parser.add_argument("--hotline-config", type=Path)
     parser.add_argument("--completion-word", default="WORK_DONE")
     parser.add_argument("--report-detail", choices=("minimal", "full"), default="full")
     args = parser.parse_args()
@@ -606,6 +623,10 @@ def main():
         server.executor = Executor(
             store, args.execution_config, read_file, publish, decode
         )
+    if args.hotline_config:
+        if server.executor is None:
+            parser.error("hotline requires execution configuration")
+        server.hotline = Answers(server.executor, decode(read_file(args.hotline_config, 65536)))
     info = {"url": "http://127.0.0.1:" + str(server.server_port), "token": token}
     publish(args.session_file, (json.dumps(info) + "\n").encode())
     print(info["url"], flush=True)

@@ -2,6 +2,7 @@
 """Real HTTP/process/Git execution seam; synthetic harness, no model calls."""
 
 import json
+import hashlib
 import os
 import subprocess
 import sys
@@ -161,6 +162,40 @@ print(json.dumps({'schema':'oh.war/execution-question/v1','attempt_id':r['attemp
         self.stop(); self.start()
         self.assertEqual(self.call("/api/runs/" + run["attempt_id"])[1], stopped)
         self.assertEqual(self.call("/api/admission", "POST", fields)[1]["state"], "blocked")
+
+        self.assertEqual(self.call("/api/hotline")[0], 409)
+        responder_token = "fixture-only-responder-credential-001"
+        config = self.root / "hotline.json"
+        config.write_text(json.dumps({"schema": "oh.war/hotline-config/v1", "responders": [{
+            "id": "configured-adviser", "kind": "ai", "governing_warrants": [],
+            "token_sha256": hashlib.sha256(responder_token.encode()).hexdigest()}]}))
+        self.stop(); self.report_args = ["--hotline-config", str(config)]; self.start()
+        status, listing = self.call("/api/hotline")
+        self.assertEqual(status, 200, listing)
+        self.assertEqual(len(listing["questions"]), 1)
+        self.assertIsNone(listing["questions"][0]["answer"])
+        route = "/api/hotline/" + run["attempt_id"] + "/answer"
+        response = {"question_sha256": listing["questions"][0]["question_sha256"],
+                    "answer": "Use the existing SDK parser.", "evidence": ["SDK parser API"]}
+        headers = {"X-OW-Responder": responder_token}
+        self.assertEqual(self.call(route, "POST", response)[0], 401)
+        self.assertEqual(self.call(route, "POST", response, {"X-OW-Responder": "wrong" * 10})[0], 401)
+        self.assertEqual(self.call(route, "POST", {**response, "actor": "owner"}, headers)[0], 400)
+        self.assertEqual(self.call(route, "POST", {**response, "question_sha256": "0" * 64}, headers)[0], 409)
+        status, retained = self.call(route, "POST", response, headers)
+        self.assertEqual(status, 200, retained)
+        self.assertEqual(retained["respondent"], "configured-adviser")
+        self.assertFalse(retained["qualified"])
+        files = list((self.root / "state/.execution/hotline-answers").glob("*.json"))
+        self.assertEqual(len(files), 1)
+        original = files[0].read_bytes()
+        self.assertEqual(self.call(route, "POST", response, headers)[1], retained)
+        self.assertEqual(files[0].read_bytes(), original)
+        self.assertEqual(self.call(route, "POST", {**response, "answer": "Different advice"}, headers)[0], 409)
+        self.stop(); self.start()
+        self.assertEqual(self.call("/api/hotline")[1]["questions"][0]["answer"], retained)
+        self.assertEqual(self.call("/api/runs", "POST", fields)[0], 409)
+        self.assertEqual(self.call(route, "POST", response, {**headers, "Authorization": "Bearer wrong"})[0], 401)
 
     def test_work_report_failed_checks_have_no_completion_signal(self):
         r = self.eligible()

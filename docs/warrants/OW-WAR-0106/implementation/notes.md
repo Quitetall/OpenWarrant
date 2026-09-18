@@ -25,3 +25,9 @@ retains the question in the stopped, blocked attempt. Ordinary start refuses to
 bypass that question. A real HTTP/process/Git test observed checkpoint retention,
 restart persistence, absent completion signal and admission/start refusal. The
 38-test execution suite passes. Answer delivery and explicit resume remain open.
+
+Authenticated answer storage is now connected to HTTP. Tests exercise missing and
+wrong responder credentials, actor injection, stale question digest, immutable
+answer replay, conflicting answer refusal, restart persistence and session refusal.
+All 38 execution-suite tests pass after this change; four contract tests also pass.
+Answers alone do not permit another start. Resume and browser controls remain open.
