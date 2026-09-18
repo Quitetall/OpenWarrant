@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 """Workflow stage planning. No document parsing, authority grants or execution."""
 import re
+import json
+from harness import argv
 
 
 class StageError(ValueError):
@@ -47,7 +49,7 @@ def frontier(graph, completed=(), question_blocks=(), writer=None):
                 for items in (completed, question_blocks)), "Expected stage observation collections")
     done, seeds = set(completed), set(question_blocks)
     require(done <= graph.keys() and seeds <= graph.keys(), "Unknown stage observation")
-    require(writer is None or writer in graph, "Unknown active writer stage")
+    require(writer is None or isinstance(writer, str) and writer in graph, "Unknown active writer stage")
     require(writer not in done, "Completed stage cannot retain an active writer")
     require(writer is None or set(graph[writer]) <= done, "Active stage has incomplete prerequisite")
     require(all(set(graph[id]) <= done for id in done), "Completed stage has incomplete prerequisite")
@@ -76,3 +78,23 @@ def frontier(graph, completed=(), question_blocks=(), writer=None):
         rows.append({"stage": id, "state": state, "waiting_on": waiting,
                      "question_blocked": id in blocked, "dispatch_permitted": False})
     return rows
+
+
+def plan(config):
+    """Validate an app-owned plan; it does not amend or parse a Warrant document."""
+    require(isinstance(config, dict) and set(config) == {"schema", "stages"}
+            and config["schema"] == "oh.war/execution-stage-plan/v1", "Invalid stage plan schema")
+    stages = config["stages"]
+    require(isinstance(stages, dict) and 1 <= len(stages) <= 64, "Expected 1-64 configured stages")
+    graph = {}
+    for id, stage in stages.items():
+        require(isinstance(stage, dict) and set(stage) == {"title", "outcome", "dependencies", "checks"},
+                "Invalid stage policy fields")
+        require(isinstance(stage["title"], str) and stage["title"].strip() and len(stage["title"].encode()) <= 180
+                and isinstance(stage["outcome"], str) and stage["outcome"].strip() and len(stage["outcome"].encode()) <= 16000,
+                "Bounded stage title and outcome required")
+        require(isinstance(stage["checks"], list) and 1 <= len(stage["checks"]) <= 16
+                and all(argv(check) for check in stage["checks"]), "Required stage checks missing or invalid")
+        graph[id] = stage["dependencies"]
+    validate(graph)
+    return json.loads(json.dumps(config))

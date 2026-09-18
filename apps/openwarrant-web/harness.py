@@ -8,6 +8,16 @@ import time
 
 LIMIT = 1024 * 1024
 
+def argv(value):
+    return (
+        isinstance(value, list)
+        and 0 < len(value) <= 64
+        and all(
+            isinstance(s, str) and s and len(s) <= 8192 and "\0" not in s for s in value
+        )
+    )
+
+
 def bounded_command(args, cwd, stdin, deadline, capture):
     # Pipes cap output in memory. The configured harness must contain descendants;
     # process groups alone cannot fence escaped processes or remote jobs.

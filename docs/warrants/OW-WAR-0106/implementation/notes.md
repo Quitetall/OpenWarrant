@@ -83,3 +83,10 @@ blocks, and distinguishes independent readiness from writer serialization. It
 does not parse or replace standard milestone acceptance records. Four library
 tests pass. Stage dispatch/configuration/UI integration is not implemented yet;
 planner readiness explicitly grants no dispatch permission.
+
+Stage plan configuration now requires explicit title, outcome, dependency graph
+and check commands. Shared argv validation moved into the process transport module
+without changing existing imports or behavior. Five stage tests and the 95-test
+web regression suite pass. STAGES.md records the remaining dispatch, final
+aggregation and legitimate checkpoint-advancement requirements. V1 runtime
+configuration still refuses unsupported stage plans; no readiness claim is added.

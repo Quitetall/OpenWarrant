@@ -12,7 +12,7 @@ import uuid
 from pathlib import Path
 
 from reporting import eligible, render
-from harness import bounded_command
+from harness import bounded_command, argv
 from hotline import question, digest as hotline_digest
 
 LIMIT = 1024 * 1024
@@ -26,16 +26,6 @@ class ExecutionError(Exception):
 def require(condition, message, status=409):
     if not condition:
         raise ExecutionError(status, message)
-
-
-def argv(value):
-    return (
-        isinstance(value, list)
-        and 0 < len(value) <= 64
-        and all(
-            isinstance(s, str) and s and len(s) <= 8192 and "\0" not in s for s in value
-        )
-    )
 
 
 class Executor:

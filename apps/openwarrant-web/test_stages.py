@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 import unittest
-from stages import StageError, frontier, validate
+from stages import StageError, frontier, validate, plan
 
 
 class StagePlanningTests(unittest.TestCase):
@@ -33,6 +33,23 @@ class StagePlanningTests(unittest.TestCase):
                       {"completed": ["ui"]}, {"completed": ["api"], "writer": "api"},
                       {"completed": ["api"], "question_blocks": ["api"]}):
             with self.subTest(facts=facts), self.assertRaises(StageError): frontier(self.graph, **facts)
+
+    def test_stage_policy_requires_outcome_checks_and_valid_graph(self):
+        import copy
+        config = {"schema": "oh.war/execution-stage-plan/v1", "stages": {
+            "api": {"title": "API", "outcome": "Required response and refusal behavior",
+                    "dependencies": [], "checks": [["python", "test_api.py"]]},
+            "ui": {"title": "UI", "outcome": "Show the API result", "dependencies": ["api"],
+                   "checks": [["python", "test_ui.py"]]}}}
+        parsed = plan(config)
+        config["stages"]["api"]["title"] = "Caller mutated"
+        self.assertEqual(parsed["stages"]["api"]["title"], "API")
+        for key, value in (("checks", []), ("checks", [["bad\0command"]]),
+                           ("dependencies", ["missing"]), ("outcome", "")):
+            bad = copy.deepcopy(parsed); bad["stages"]["api"][key] = value
+            with self.subTest(key=key), self.assertRaises(StageError): plan(bad)
+        with self.assertRaises(StageError): plan({**parsed, "qualified": True})
+        with self.assertRaises(StageError): plan({**parsed, "schema": "future-schema"})
 
     def test_plan_is_deterministic_and_does_not_modify_input(self):
         graph = {"b": ["a"], "a": []}
