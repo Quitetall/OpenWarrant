@@ -112,8 +112,8 @@ old harness before any future recovery adapter permits a replacement. This slice
 has no manual "mark stopped" escape hatch and no automatic fencing claim.
 
 Full question routing, resumable unknown-writer recovery, work/harness update
-ordering, configurable work-stop packages, secure acceptance and real-agent/user
-qualification remain next slices. A successful synthetic run is not Phase3 exit.
+ordering, reports for finer-grained stage stops, secure acceptance and real-agent/user
+qualification remain next slices. Attempt-level work reports are documented below. A successful synthetic run is not Phase3 exit.
 
 Run `python3 apps/openwarrant-web/test_execution.py ExecutionTests` alongside the
 existing HTTP tests and repository gate. It uses real subprocesses, Git worktrees

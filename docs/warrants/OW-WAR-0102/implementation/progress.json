@@ -3,11 +3,12 @@
   "warrant": "OW-WAR-0102",
   "reported_by": "agent://codex",
   "work_state": "in_progress",
-  "summary": "Report API, configurable text and offline HTML download implemented; 44 package tests and browser report/download pass. Full gate and offline browser rendering remain pending.",
+  "summary": "Report API and HTML download implemented; 44 package tests and browser report/download pass. Initial full gate passed 14/14 and 308 controls; latest-head CI and offline rendering observation pending.",
   "notes": "docs/warrants/OW-WAR-0102/implementation/notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0102/implementation/web-tests.log",
-    "docs/warrants/OW-WAR-0102/implementation/browser-qa.md"
+    "docs/warrants/OW-WAR-0102/implementation/browser-qa.md",
+    "docs/warrants/OW-WAR-0102/implementation/gate-0541d640.log.gz"
   ],
   "next_steps": [
     "Run package suite and browser QA.",
