@@ -57,3 +57,26 @@ zero errors. A new hosted gate is required; the failed run remains failed.
 The six JSON-envelope integration tests then passed, including the exact test
 that failed in CI. Scope-digest changes in generated WAR.md confirm this cause;
 progress JSON alone did not cause the drift.
+
+## Final implementation closeout
+
+PR #118 merged at 2dba896c055ccf3842c63d7e90005d88140210b0. Its exact head
+was dc22d6c2fdc1c1aacfbd5e903157c7ee2f8441ca, against main
+8e35d00ce4fa0d7193d452538b848c874379acc5. Final gate job 105595831666 in
+run 35343886812 passed with Rust 1.97.1: 14 steps and 308 plants. The compressed
+log retains the toolchain and complete cargo-gate steps, excluding runner setup
+and teardown. Final hosted web checks also passed. Bonsai's actual artifact was
+checked against exact head/base, policy digest and machine scope; it reports no
+scope or architecture findings. Final checks and artifact are retained here.
+
+All seven declared implementation deliverables now have the bounded evidence in
+the table and report supplement above. The later merge incorporated already-tested
+drafting changes from main; it did not replace verification workflow semantics.
+The implementation work report is therefore completed/unverified. The Warrant's
+formal state, signatures and assurance dispositions remain unchanged. Earlier
+failed/skipped runs stay retained and are not reclassified as passes.
+
+Limits remain: synthetic harnesses do not establish a deployed sandbox or model
+quality; fixture human credentials do not prove human presence; no prototype or
+agent output awards an assurance mark, authorizes merge or permits deployment.
+Those are explicit scope limits, not silently completed release requirements.
