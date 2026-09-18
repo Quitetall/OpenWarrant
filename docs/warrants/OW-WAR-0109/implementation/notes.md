@@ -47,3 +47,9 @@ source changed after enqueue. Every case remains queued/blocked, creates no new
 attempt and never calls the availability probe. Eight queue tests passed overall.
 Follow-up browser observation confirms keyboard focus retained across unchanged
 polling and Enter cancellation succeeds.
+
+Final scope audit identified missing explicit report pointers on queue entries.
+Added deterministic attempt_path/report_path fields and direct Queue work report
+button. Real HTTP test reads both returned paths and observes WORK_DONE only after
+actual successful execution. Both HTTP cases pass. The earlier b908185 full gate
+does not cover this later view change; fresh hosted gate remains required.

@@ -109,7 +109,10 @@ class DispatchQueue:
         state = row['state']
         if state == 'consumed': state = 'unknown'
         if state == 'queued' and observation: state = observation['state']
+        attempt_path = '/api/runs/' + row['attempt_id'] if row['attempt_id'] else None
         return {**row, 'state': state, 'durable_state': row['state'],
+                'attempt_path': attempt_path,
+                'report_path': attempt_path + '/report' if attempt_path else None,
                 'observation': observation, 'qualified': False}
 
     def listing(self):

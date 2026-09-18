@@ -40,6 +40,11 @@ class QueueHTTPTests(unittest.TestCase):
         self.assertEqual(t.call('/api/runs')[1]['runs'],[])
         self.marker.touch();row=self.wait_state('dispatched')
         attempt=t.wait_run(row['attempt_id']);self.assertEqual(attempt['work_state'],'completed',attempt)
+        self.assertEqual(row['attempt_path'],'/api/runs/'+row['attempt_id'])
+        self.assertEqual(t.call(row['attempt_path'])[1]['attempt_id'],row['attempt_id'])
+        self.assertEqual(row['report_path'],row['attempt_path']+'/report')
+        code, report=t.call(row['report_path']);self.assertEqual(code,200,report)
+        self.assertEqual(report['completion_signal'],'WORK_DONE')
         t.stop();t.start();self.wait_state('dispatched')
         self.assertEqual(len(t.call('/api/runs')[1]['runs']),1)
 

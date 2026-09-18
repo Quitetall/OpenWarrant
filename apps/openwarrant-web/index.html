@@ -336,6 +336,8 @@ async function queueListing(){
       if(row.attempt_id){
         const attempt=document.createElement('button');attempt.textContent='View attempt';attempt.className='secondary';
         attempt.onclick=()=>guard(async()=>{if(token&&generation===sessionGeneration)await runs()});card.append(attempt);
+        const report=document.createElement('button');report.textContent='Queue work report';report.className='secondary';
+        report.onclick=()=>guard(async()=>{if(token&&generation===sessionGeneration)await workReport(row.attempt_id)});card.append(report);
       }
       el('queue-requests').append(card);
     }

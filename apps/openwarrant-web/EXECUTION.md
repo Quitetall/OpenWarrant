@@ -191,7 +191,9 @@ not a capacity reservation or an authorization; the configured harness still own
 real capacity and isolation. Configure a local, non-billable probe.
 
 `POST /api/queue` takes the same exact subject as direct execution. `GET /api/queue`
-lists retained requests and current observations. `POST /api/queue/cancel` takes
+lists retained requests and current observations. Dispatched requests include
+deterministic `attempt_path` and `report_path` API pointers; unfinished reports
+retain their existing refusal/completion rules. `POST /api/queue/cancel` takes
 only `queue_id`. All require the existing authenticated local session. The browser
 provides Queue saved revision, Refresh agent queue and Cancel queued work controls.
 Waiting requests refresh every two seconds while that queue view remains unlocked.

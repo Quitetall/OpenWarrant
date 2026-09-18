@@ -12,7 +12,7 @@ verdict, signed resolution or common assurance mark.
 | Cancel before consumption, no duplicate dispatch | cancellation/requeue/browser flow; repeated poll/enqueue/restart fixtures | Cancellation does not terminate launched process |
 | Sequential stages | real SDK/Git/process queue test: UI waits for checked API, same worktree, final checks complete | Two synthetic stages and existing stage admission |
 | API/browser controls and bounded polling | authenticated HTTP refusal/success; browser-observation.md; unchanged-focus follow-up | Local session, fixture repository, no assurance granted |
-| Gate | gate-b908185.log.gz: Rust 1.97.1, 14 steps PASS, 308 plants pass | Exact implementation source b908185; later commits add tests/evidence only |
+| Gate | gate-b908185.log.gz: Rust 1.97.1, 14 steps PASS, 308 plants pass | Exact implementation source b908185; later explicit report pointers have separate HTTP tests and await fresh hosted gate |
 
 Post-main-refresh web suite: 207 tests at 5456602. Subsequent focused queue suite:
 nine tests, including added real admission and sequential-stage cases. Two HTTP
