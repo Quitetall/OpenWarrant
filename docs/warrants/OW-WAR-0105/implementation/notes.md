@@ -47,3 +47,8 @@ The first full gate at f458ac9 ended with three unavailable steps because the
 standalone clone lacked target/debug/war while CARGO_TARGET_DIR selected the shared
 build output. Retained log records this failure. The clone-local target symlink
 restores the expected binary location; full rerun is pending.
+
+Full isolated gate rerun at f458ac9884cde74b8e7e55dc8d49577e0088b452
+passes all 14 steps and 308 planted controls on Rust 1.97.1 (exit 0). This
+precedes the later missing-harness test and progress-report commits; exact-head
+CI remains required. No independent assurance or real-model qualification claimed.
