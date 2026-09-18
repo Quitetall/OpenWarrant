@@ -1,0 +1,7 @@
+{
+  "deliverable": "D-004",
+  "reason": "Batch-question branch added under OW-WAR-0069 continuation OW-WAR-0104; old record and source retained.",
+  "old_digest": "sha256:9e3552d7b304c20b38c2580b364fa98bf8c9ba747c49a046f25ca89c84fa9185",
+  "new_digest": "sha256:f3083800af7cc2e6da758d9d36783b8314cf8e7e8577d146eb079dbf87502896",
+  "qualified": false
+}

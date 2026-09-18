@@ -13,6 +13,7 @@ mod attest;
 mod authority_cmd;
 mod authorize;
 mod blut;
+mod board;
 mod bonsai;
 mod bundle;
 mod check;
@@ -691,6 +692,12 @@ enum Command {
     /// (OW-WAR-0069). Check rows, pick a reason from your presets, sign the
     /// batch. It never signs for you: each row is your own ssh confirmation.
     Console,
+    /// Read-only project board, including every stage and exact approval commands.
+    Board {
+        /// Print a self-contained offline HTML document to stdout.
+        #[arg(long, conflicts_with = "json")]
+        html: bool,
+    },
     /// Perform an agent stage with the configured performer (OW-WAR-0069): the
     /// Dispatch goes in on stdin, a Stage Submission comes back on stdout, and
     /// it is ingested through `war submit`'s refusals. It cannot decide the work
@@ -1645,6 +1652,24 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 }
             };
             Ok(output::finish(mode, "attest", &report, None))
+        }
+        Command::Board { html } => {
+            let repository = repo::Repository::discover(None)?;
+            let (report, view) = board::build(&repository)?;
+            if !matches!(mode, output::Mode::Json) {
+                if html {
+                    print!("{}", board::html(&view, &report));
+                    return Ok(output::exit_code(&report));
+                } else {
+                    print!("{}", board::render(&view));
+                }
+            }
+            Ok(output::finish(
+                mode,
+                "board",
+                &report,
+                Some(serde_json::to_value(&view)?),
+            ))
         }
         Command::Console => {
             let repository = repo::Repository::discover(None)?;
