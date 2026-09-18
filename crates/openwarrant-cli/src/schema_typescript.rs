@@ -326,4 +326,66 @@ mod tests {
         assert!(body.contains("\"maybe\"?:"));
         assert_eq!(body, emit(value).unwrap());
     }
+    #[test]
+    fn preserves_local_refs_discriminants_maps_and_array_elements() {
+        let body = emit(json!({
+            "$defs": {"Count": {"type": "integer"}},
+            "oneOf": [
+                {"type": "object", "required": ["kind", "values"], "properties": {
+                    "kind": {"const": "counts"},
+                    "values": {"type": "array", "items": {"$ref": "#/$defs/Count"}}
+                }},
+                {"type": "object", "required": ["kind", "labels"], "properties": {
+                    "kind": {"enum": ["labels"]},
+                    "labels": {"type": "object", "additionalProperties": {"type": "string"}}
+                }}
+            ]
+        }))
+        .unwrap();
+        assert!(body.contains("type Def_Count = (number);"));
+        assert!(body.contains("Array<(Def_Count)>"));
+        assert!(body.contains("[key: string]: (string);"));
+        assert!(body.contains("\"kind\": (\"counts\")"));
+        assert!(body.contains("\"kind\": (\"labels\")"));
+        assert!(body.contains(" | "));
+    }
+
+    #[test]
+    fn refuses_unsupported_shapes_instead_of_widening_them() {
+        for value in [
+            json!({"const": {"key": 1}}),
+            json!({"enum": [[1, 2]]}),
+            json!({"type": "object", "required": ["undeclared"]}),
+            json!({"type": "object", "properties": {"x": {"type": "string"}}, "additionalProperties": {"type": "number"}}),
+            json!({"type": "array", "prefixItems": [{"type": "string"}]}),
+            json!({"type": "array", "prefixItems": [], "minItems": 0, "maxItems": 0, "items": true}),
+            json!({"type": "object", "properties": {"x": {"$defs": {}}}}),
+            json!({"type": []}),
+            json!({"anyOf": []}),
+            json!({"type": "object", "properties": {"x": {"pattern": "x"}}}),
+        ] {
+            assert!(
+                emit(value.clone()).is_err(),
+                "accepted unsupported schema: {value}"
+            );
+        }
+    }
+
+    #[test]
+    fn distinguishes_unconstrained_impossible_and_nullable_values() {
+        let body = emit(json!({"type": "object", "properties": {
+            "free": true,
+            "impossible": false,
+            "nullable": {"type": ["string", "null"]}
+        }}))
+        .unwrap();
+        assert!(body.contains("\"free\"?: unknown;"));
+        assert!(body.contains("\"impossible\"?: never;"));
+        assert!(body.contains("((string)) | ((null))"));
+        assert!(
+            emit(json!({"type": "object", "additionalProperties": false}))
+                .unwrap()
+                .contains("[key: string]: never;")
+        );
+    }
 }
