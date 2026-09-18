@@ -13,6 +13,7 @@ from pathlib import Path
 
 from reporting import eligible, render
 from harness import bounded_command
+from hotline import question
 
 LIMIT = 1024 * 1024
 
@@ -260,6 +261,10 @@ class Executor:
             "Existing writer running or unknown; replacement refused",
         )
         require(
+            not any(r.get("question") for r in attempts),
+            "Hotline question requires an eligible answer and explicit resume",
+        )
+        require(
             not any(
                 eligible(r, p)
                 for r in attempts
@@ -404,6 +409,18 @@ class Executor:
             )
             require(code == 0, "Harness exited unsuccessfully")
             result = self.decode(out)
+            if isinstance(result, dict) and result.get("schema") == "oh.war/execution-question/v1":
+                require(
+                    not self.git("status", "--porcelain", "--untracked-files=all", cwd=worktree),
+                    "Question requires a clean committed checkpoint",
+                )
+                checkpoint = self.git("rev-parse", "HEAD", cwd=worktree)
+                self.git("merge-base", "--is-ancestor", r["base_commit"], checkpoint, cwd=worktree)
+                q = question(result, r, checkpoint)
+                r.update(question=q, work_state="blocked", execution_state="stopped",
+                         cause="Waiting for hotline answer", notes=q["notes"],
+                         next_steps=q["next_steps"])
+                return
             require(
                 isinstance(result, dict)
                 and set(result)

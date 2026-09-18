@@ -130,12 +130,37 @@ print(json.dumps({'schema':'oh.war/execution-result/v1','attempt_id':r['attempt_
         self.assertEqual(report["progress"]["completed"], 1)
         self.assertEqual(report["progress"]["total"], 1)
         self.assertEqual(report, self.call(route)[1])
+
         after = {str(p): p.read_bytes() for p in (self.root / "state").rglob("*") if p.is_file()}
         self.assertEqual(before, after)
         self.assertEqual(self.call(route, headers={"Authorization": "Bearer wrong"})[0], 401)
         self.stop()
         self.start()
         self.assertEqual(report, self.call(route)[1])
+
+    def test_hotline_checkpoint_waits_without_completion_or_start_bypass(self):
+        draft = self.eligible()
+        self.harness.write_text("""import json,sys
+r=json.load(sys.stdin)
+print(json.dumps({'schema':'oh.war/execution-question/v1','attempt_id':r['attempt_id'],
+'source_sha256':r['source_sha256'],'notes':'Existing base is a committed checkpoint.',
+'next_steps':['Answer then resume'],'question':{'kind':'technical','text':'Which parser?',
+'direct_human':False,'affected_stages':['STAGE-001']}}))
+""")
+        fields = {"warrant_id": draft["id"], "source_sha256": draft["source_sha256"]}
+        status, run = self.call("/api/runs", "POST", fields)
+        self.assertEqual(status, 202, run)
+        stopped = self.wait_run(run["attempt_id"])
+        self.assertEqual(stopped["execution_state"], "stopped", stopped)
+        self.assertEqual(stopped["work_state"], "blocked")
+        self.assertEqual(stopped["question"]["checkpoint"], self.base)
+        self.assertIsNone(stopped["result_revision"])
+        report = self.call("/api/runs/" + run["attempt_id"] + "/report")[1]
+        self.assertIsNone(report["completion_signal"])
+        self.assertEqual(self.call("/api/runs", "POST", fields)[0], 409)
+        self.stop(); self.start()
+        self.assertEqual(self.call("/api/runs/" + run["attempt_id"])[1], stopped)
+        self.assertEqual(self.call("/api/admission", "POST", fields)[1]["state"], "blocked")
 
     def test_work_report_failed_checks_have_no_completion_signal(self):
         r = self.eligible()

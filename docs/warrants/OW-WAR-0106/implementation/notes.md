@@ -18,3 +18,10 @@ controls, checkpoint/resume lifecycle, cumulative budgets and integration tests
 remain unfinished. No runtime completion or security deployment is claimed.
 Bearer credential custody belongs to the configured harness/operator; a token
 hash is not proof of human presence or secure acceptance.
+
+Execution now accepts oh.war/execution-question/v1 only after successful harness
+exit and a clean committed checkpoint descended from the configured base. It
+retains the question in the stopped, blocked attempt. Ordinary start refuses to
+bypass that question. A real HTTP/process/Git test observed checkpoint retention,
+restart persistence, absent completion signal and admission/start refusal. The
+38-test execution suite passes. Answer delivery and explicit resume remain open.
