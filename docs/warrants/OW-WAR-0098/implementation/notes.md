@@ -27,3 +27,10 @@ progress exclusion. Projection tests also cover base/dependency/verified-start
 changes and explicit historical-result labels. Full package tests pass; exact-head
 hosted gate and independent qualification are still pending. Prior progress record
 and red/green observations are retained under `policy-completion/`.
+
+## Integrated completion audit
+
+PR 112 merged the policy follow-up with all exact-head checks passed. Fresh
+main-branch admission, changed-policy and reporting tests passed. See
+completion-audit/README.md for requirement mapping and preserved prior report.
+Implementation completion is unverified; global CLI convergence remains separate.
