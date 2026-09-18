@@ -19,9 +19,13 @@ struct Session {
 
 impl Session {
     fn start() -> Self {
+        Self::start_at(&repo_root())
+    }
+
+    fn start_at(root: &std::path::Path) -> Self {
         let mut child = Command::new(env!("CARGO_BIN_EXE_war"))
             .arg("mcp")
-            .current_dir(repo_root())
+            .current_dir(root)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
@@ -224,4 +228,45 @@ fn outside_a_repository_the_server_refuses_before_any_runtime() {
         .expect("runs");
     assert_eq!(out.status.code(), Some(1));
     assert!(out.stdout.is_empty(), "nothing on stdout outside a repo");
+}
+
+#[test]
+fn questions_tool_preserves_partial_store_diagnostics() {
+    fn copy(from: &std::path::Path, to: &std::path::Path) {
+        std::fs::create_dir_all(to).unwrap();
+        for entry in std::fs::read_dir(from).unwrap() {
+            let entry = entry.unwrap();
+            let target = to.join(entry.file_name());
+            if entry.file_type().unwrap().is_dir() {
+                copy(&entry.path(), &target);
+            } else {
+                std::fs::copy(entry.path(), target).unwrap();
+            }
+        }
+    }
+    let root =
+        std::env::temp_dir().join(format!("ow-mcp-question-integrity-{}", std::process::id()));
+    copy(
+        &repo_root().join("conformance/fixtures/inbox/repository"),
+        &root,
+    );
+    let mut s = Session::start_at(&root);
+    let args = serde_json::json!({"alias":"IX-WAR-0002","open":true});
+    let good = s.tool(2, "war_questions", args.clone());
+    assert_eq!(good["result"]["structuredContent"]["exit_code"], 0);
+    std::fs::write(
+        root.join("docs/warrants/IX-WAR-0002/questions/Q-002.toml"),
+        "broken TOML",
+    )
+    .unwrap();
+    let bad = s.tool(3, "war_questions", args);
+    let envelope = &bad["result"]["structuredContent"];
+    assert_eq!(envelope["exit_code"], 2, "{bad}");
+    assert_eq!(bad["result"]["isError"], true);
+    assert_eq!(envelope["result"]["blocking_open"], 1);
+    assert!(envelope.to_string().contains("question.malformed"));
+    let answers = s.tool(4, "war_answers", serde_json::json!({"alias":"IX-WAR-0002"}));
+    assert_eq!(answers["result"]["structuredContent"]["exit_code"], 2);
+    assert_eq!(s.finish(), 0);
+    std::fs::remove_dir_all(root).unwrap();
 }

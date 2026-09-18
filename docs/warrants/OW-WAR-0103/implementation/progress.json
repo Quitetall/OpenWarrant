@@ -1,0 +1,16 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0103",
+  "work_state": "in_progress",
+  "reported_by": "agent://codex",
+  "summary": "Question read integrity fix reproduced and implemented; CLI/MCP/inbox tests pass. Full integration gate pending.",
+  "notes": "docs/warrants/OW-WAR-0103/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0103/implementation/red.log",
+    "docs/warrants/OW-WAR-0103/implementation/tests.log"
+  ],
+  "next_steps": [
+    "Finish clippy and full gate; inspect exact PR evidence.",
+    "Continue runtime hotline/pause/resume work separately."
+  ]
+}
