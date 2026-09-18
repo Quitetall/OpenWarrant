@@ -1,0 +1,255 @@
+{
+  "archive_sha256": "b6318636c97fa0fbae729add05b13a5539e7c7388d5f37f2152a2fc3765e2fbb",
+  "byte_identical": true,
+  "working_directory": "/tmp/ow111-kf-import-9hijro6a",
+  "reports": {
+    "inspect": {
+      "schema": "oh.war/report/v1",
+      "command": "archive",
+      "diagnostics": [],
+      "notes": [],
+      "counts": {
+        "pass": 0,
+        "warn": 0,
+        "unknown": 0,
+        "error": 0,
+        "worst": "pass"
+      },
+      "verdict": "well_formed",
+      "verdict_line": "WELL-FORMED (record only \u2014 Preflight is not implemented, and `war check` does not run gates)",
+      "exit_code": 0,
+      "result": {
+        "schema": "oh.war/preservation-result/v1-draft.1",
+        "operation": "inspect",
+        "source_reconstructed": true,
+        "coverage": {
+          "ADR refs and accepted bodies where policy permits": {
+            "state": "absent",
+            "reason": "No explicit ADR atom references in selected current and historical manifests"
+          },
+          "Compilation Basis": {
+            "state": "retained",
+            "paths": [
+              "__ow_archive__/basis.json"
+            ]
+          },
+          "actions and relevant audit receipts": {
+            "state": "retained",
+            "paths": [
+              "__ow_archive__/history.json",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/commit.txt",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/atoms/10-intent.md",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/atoms/20-basis.md",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/atoms/40-work-order.md",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/atoms/45-milestones.yaml",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/atoms/60-assurance.md",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/journal.jsonl",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/manifest.toml",
+              "docs/warrants/OW-WAR-0002/atoms/10-intent.md",
+              "docs/warrants/OW-WAR-0002/atoms/20-basis.md",
+              "docs/warrants/OW-WAR-0002/atoms/40-work-order.md",
+              "docs/warrants/OW-WAR-0002/atoms/45-milestones.yaml",
+              "docs/warrants/OW-WAR-0002/atoms/60-assurance.md",
+              "docs/warrants/OW-WAR-0002/journal.jsonl",
+              "docs/warrants/OW-WAR-0002/manifest.toml"
+            ]
+          },
+          "artifacts": {
+            "state": "retained",
+            "paths": [
+              "__ow_archive__/artifacts.json",
+              "__ow_archive__/history.json"
+            ]
+          },
+          "assurance case": {
+            "state": "retained",
+            "paths": [
+              "__ow_archive__/history.json",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/atoms/10-intent.md",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/atoms/20-basis.md",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/atoms/40-work-order.md",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/atoms/45-milestones.yaml",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/atoms/60-assurance.md",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/journal.jsonl",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/manifest.toml",
+              "docs/warrants/OW-WAR-0002/atoms/10-intent.md",
+              "docs/warrants/OW-WAR-0002/atoms/20-basis.md",
+              "docs/warrants/OW-WAR-0002/atoms/40-work-order.md",
+              "docs/warrants/OW-WAR-0002/atoms/45-milestones.yaml",
+              "docs/warrants/OW-WAR-0002/atoms/60-assurance.md",
+              "docs/warrants/OW-WAR-0002/journal.jsonl",
+              "docs/warrants/OW-WAR-0002/manifest.toml"
+            ]
+          },
+          "canonical IR": {
+            "state": "retained",
+            "paths": [
+              "__ow_archive__/WAR.json"
+            ]
+          },
+          "complete identity": {
+            "state": "retained",
+            "paths": [
+              "__ow_archive__/WAR.json"
+            ]
+          },
+          "contract revisions": {
+            "state": "retained",
+            "paths": [
+              "__ow_archive__/history.json",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/commit.txt",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/atoms/10-intent.md",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/atoms/20-basis.md",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/atoms/40-work-order.md",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/atoms/45-milestones.yaml",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/atoms/60-assurance.md",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/journal.jsonl",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/manifest.toml",
+              "docs/warrants/OW-WAR-0002/atoms/10-intent.md",
+              "docs/warrants/OW-WAR-0002/atoms/20-basis.md",
+              "docs/warrants/OW-WAR-0002/atoms/40-work-order.md",
+              "docs/warrants/OW-WAR-0002/atoms/45-milestones.yaml",
+              "docs/warrants/OW-WAR-0002/atoms/60-assurance.md",
+              "docs/warrants/OW-WAR-0002/journal.jsonl",
+              "docs/warrants/OW-WAR-0002/manifest.toml"
+            ]
+          },
+          "evidence manifest": {
+            "state": "retained",
+            "paths": [
+              "__ow_archive__/WAR.json",
+              "__ow_archive__/artifacts.json",
+              "__ow_archive__/basis.json",
+              "__ow_archive__/history.json",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/commit.txt",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/atoms/10-intent.md",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/atoms/20-basis.md",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/atoms/40-work-order.md",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/atoms/45-milestones.yaml",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/atoms/60-assurance.md",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/journal.jsonl",
+              "__ow_archive__/history/18fe1a23e8a9393f11993975e570eebe4e98f8ca/docs/warrants/OW-WAR-0002/manifest.toml",
+              "__ow_archive__/producer.json",
+              "docs/warrants/OW-WAR-0002/atoms/10-intent.md",
+              "docs/warrants/OW-WAR-0002/atoms/20-basis.md",
+              "docs/warrants/OW-WAR-0002/atoms/40-work-order.md",
+              "docs/warrants/OW-WAR-0002/atoms/45-milestones.yaml",
+              "docs/warrants/OW-WAR-0002/atoms/60-assurance.md",
+              "docs/warrants/OW-WAR-0002/journal.jsonl",
+              "docs/warrants/OW-WAR-0002/manifest.toml",
+              "schemas/oh.war/atom/v1.json",
+              "schemas/oh.war/authorization/v1.json",
+              "schemas/oh.war/bonsai-evidence/v1.json",
+              "schemas/oh.war/correction/v1.json",
+              "schemas/oh.war/deliverables/v1.json",
+              "schemas/oh.war/journal-event/v1.json",
+              "schemas/oh.war/judgments/v1.json",
+              "schemas/oh.war/manifest/v1.json",
+              "schemas/oh.war/milestones/v1.json",
+              "schemas/oh.war/report/v1.json",
+              "schemas/oh.war/resolution/v1.json",
+              "schemas/oh.war/stage-dispatch/v1.json",
+              "schemas/oh.war/stage-submission/v1.json",
+              "schemas/oh.war/verification/v1.json",
+              "schemas/oh.war/war/v1.json",
+              "schemas/pack.json"
+            ]
+          },
+          "exact atom revisions and digests": {
+            "state": "retained",
+            "paths": [
+              "docs/warrants/OW-WAR-0002/atoms/10-intent.md",
+              "docs/warrants/OW-WAR-0002/atoms/20-basis.md",
+              "docs/warrants/OW-WAR-0002/atoms/40-work-order.md",
+              "docs/warrants/OW-WAR-0002/atoms/45-milestones.yaml",
+              "docs/warrants/OW-WAR-0002/atoms/60-assurance.md"
+            ]
+          },
+          "resolution and standing": {
+            "state": "absent",
+            "reason": "No resolution record exists in the selected local current and historical source inventory"
+          },
+          "runtime receipt refs": {
+            "state": "absent",
+            "reason": "Selected current and historical stage declarations contain no non-human runtime stages"
+          },
+          "schema and compiler identity": {
+            "state": "retained",
+            "paths": [
+              "__ow_archive__/producer.json",
+              "schemas/oh.war/atom/v1.json",
+              "schemas/oh.war/authorization/v1.json",
+              "schemas/oh.war/bonsai-evidence/v1.json",
+              "schemas/oh.war/correction/v1.json",
+              "schemas/oh.war/deliverables/v1.json",
+              "schemas/oh.war/journal-event/v1.json",
+              "schemas/oh.war/judgments/v1.json",
+              "schemas/oh.war/manifest/v1.json",
+              "schemas/oh.war/milestones/v1.json",
+              "schemas/oh.war/report/v1.json",
+              "schemas/oh.war/resolution/v1.json",
+              "schemas/oh.war/stage-dispatch/v1.json",
+              "schemas/oh.war/stage-submission/v1.json",
+              "schemas/oh.war/verification/v1.json",
+              "schemas/oh.war/war/v1.json",
+              "schemas/pack.json"
+            ]
+          },
+          "source manifest": {
+            "state": "retained",
+            "paths": [
+              "docs/warrants/OW-WAR-0002/manifest.toml"
+            ]
+          }
+        },
+        "unavailable_categories": [],
+        "authority_activated": false
+      }
+    },
+    "import": {
+      "schema": "oh.war/report/v1",
+      "command": "archive",
+      "diagnostics": [],
+      "notes": [],
+      "counts": {
+        "pass": 0,
+        "warn": 0,
+        "unknown": 0,
+        "error": 0,
+        "worst": "pass"
+      },
+      "verdict": "well_formed",
+      "verdict_line": "WELL-FORMED (record only \u2014 Preflight is not implemented, and `war check` does not run gates)",
+      "exit_code": 0,
+      "result": {
+        "schema": "oh.war/preservation-result/v1-draft.1",
+        "operation": "import",
+        "archive_digest": "sha256:728c3eac235938e826ff35bb270b5fd84191a364f6f73a2307a3bbcedfb2e3b8",
+        "destination": "/tmp/ow111-kf-import-9hijro6a/imported",
+        "authority_activated": false
+      }
+    },
+    "reexport": {
+      "schema": "oh.war/report/v1",
+      "command": "archive",
+      "diagnostics": [],
+      "notes": [],
+      "counts": {
+        "pass": 0,
+        "warn": 0,
+        "unknown": 0,
+        "error": 0,
+        "worst": "pass"
+      },
+      "verdict": "well_formed",
+      "verdict_line": "WELL-FORMED (record only \u2014 Preflight is not implemented, and `war check` does not run gates)",
+      "exit_code": 0,
+      "result": {
+        "schema": "oh.war/preservation-result/v1-draft.1",
+        "operation": "reexport",
+        "output": "/tmp/ow111-kf-import-9hijro6a/reexport.json",
+        "authority_activated": false
+      }
+    }
+  }
+}
