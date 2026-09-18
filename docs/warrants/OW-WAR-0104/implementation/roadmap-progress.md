@@ -44,3 +44,19 @@ First isolated gate at e7546c9 exited 1: three steps could not locate the clone'
 `target/debug/war`; build used CARGO_TARGET_DIR without the local target link that
 legacy corpus/attestation/plant commands require. Earlier build, lint and tests
 passed. This is not a full-gate pass; rerun after correcting the clone setup.
+
+Browser follow-up on 946410102a05d6034a67e6204290e7f6c231acc6, local port
+33621, in-app browser 2026-09-18:
+- Four phases and coverage disclosure rendered: 21 of 106 Warrants mapped,
+  85 outside the configured grouping. Release aggregate remains 15/21 despite
+  OW90 and OW91 appearing in more than one group.
+- Selecting Visual project overview left that feature as the tree root.
+- Opening stage details showed OW-WAR-0104 / STAGE-001: open, with the explicit
+  legacy-evaluator/no-execution-permission label retained.
+- Collapsing the feature and filtering for OW-WAR-0104 retained the collapse
+  and displayed exactly its tracker row.
+- Generated `/tmp/ow-roadmap-9464101.html`; direct file rendering remains
+  unobserved. Earlier file-URL restriction is not bypassed via a local server.
+
+These observations do not cover narrow-screen layout, malformed refresh UI,
+full cross-Warrant workflow admission or independent qualification.
