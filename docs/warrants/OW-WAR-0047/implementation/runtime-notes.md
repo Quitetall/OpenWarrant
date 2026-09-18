@@ -79,3 +79,9 @@ Provider PR: https://github.com/Quitetall/blut-cookbooks/pull/1 . Hosted run
 payments or a spending-limit restriction. This is unavailable CI, not a code
 failure or pass. Integration/hosted validation and independent acceptance remain
 open; no historical verification or resolution was changed.
+
+Provider follow-up aebd937beb6fee46664ca7bdd691bec3e732a3d3 adds a real publication-failure control: a directory
+occupying the destination remains intact, and the temporary copy is removed.
+This test-only change passes all 96 workspace tests, fmt and all-target clippy.
+The successful runtime remains explicitly bound to the earlier b10f46b source;
+these later tests do not rewrite that observation or its binary identity.
