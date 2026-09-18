@@ -28,6 +28,8 @@ application authority checks. A successful type build does not verify a Warrant.
 `conformance/integration/typescript/records.ts` imports actual generated Dispatch
 types and checks a valid record plus required-field, literal and scalar refusals.
 Run it and all generated `.ts` files with the pinned consumer TypeScript compiler,
-strict mode and no emit. These fixtures are producer-side evidence only; actual
-Knowledge Fabric package imports/build and runtime regression tests remain pending.
+strict mode and no emit. Knowledge Fabric now consumes the pinned declarations in its normal warrants
+package build and submission runtime boundary. The shared implementation evidence
+records exact revisions, 24 passing consumer tests including PostgreSQL actions,
+and structural-type limitations. Full producer/release gates remain pending.
 The shared contract is `docs/warrants/OW-WAR-0110/`.

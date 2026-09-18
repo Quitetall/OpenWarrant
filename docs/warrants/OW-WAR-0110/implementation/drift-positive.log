@@ -1,0 +1,5 @@
+PASS schemas.current                    15 schema(s), TypeScript projections and pack.json match the types; pack openwarrant-schema-pack 0.2.0 transitive 8ee8dc9fb37a
+
+1 pass · 0 warn · 0 unknown · 0 error   (worst: PASS)
+
+WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)
