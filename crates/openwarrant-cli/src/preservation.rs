@@ -2,6 +2,7 @@
 //! Experimental archive import and source-detached re-export. No authority activation.
 use std::{collections::BTreeMap, path::Path};
 mod history;
+mod identity;
 
 use camino::Utf8PathBuf;
 use clap::Subcommand;
@@ -334,6 +335,7 @@ fn assemble(
         )?;
         files.extend(retained);
     }
+    let schema_paths = identity::capture(repo.root.as_std_path(), &mut files, limits)?;
     // Check every declared source through no-follow reads before legacy loader touches it.
     let manifest_source = format!("{relative}/manifest.toml");
     let manifest_bytes = files
@@ -427,6 +429,16 @@ fn assemble(
         paths.sort();
         coverage.insert(category.into(), Coverage::Retained { paths });
     }
+    if let Some(paths) = schema_paths {
+        coverage.insert(
+            "schema and compiler identity".into(),
+            Coverage::Retained { paths },
+        );
+    } else {
+        coverage.insert("schema and compiler identity".into(), Coverage::Unavailable {
+            reason: "Repository schema pack missing; observed executable identity is retained separately".into()
+        });
+    }
     let archive = Archive {
         schema: SCHEMA.into(),
         subject: format!("war://{}", basis.manifest.uuid),
@@ -505,6 +517,7 @@ fn collect(
 }
 
 fn verify_basis(files: &BTreeMap<String, Vec<u8>>) -> Result<String, Error> {
+    identity::verify(files)?;
     use openwarrant_compiler::{AtomSource, CompilationBasis, SasPin, ScopeSource};
     let bytes = files
         .get(BASIS_PATH)

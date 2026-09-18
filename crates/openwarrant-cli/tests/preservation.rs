@@ -384,3 +384,75 @@ fn bounded_git_history_keeps_all_observed_state_bytes_and_commit_identity() {
     std::fs::rename(f.0.join("docs"), f.0.join("old-docs-hidden")).unwrap();
     success(f.run(&["archive", "inspect", "history.json"]));
 }
+
+#[test]
+fn schema_pack_bytes_and_producer_identity_are_retained_and_cross_checked() {
+    let f = Fixture::new();
+    success(f.run(&[
+        "init",
+        "--namespace",
+        "ARCH",
+        "--program",
+        "Schema preservation",
+    ]));
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let pack_bytes = std::fs::read(root.join("schemas/pack.json")).unwrap();
+    let pack: serde_json::Value = serde_json::from_slice(&pack_bytes).unwrap();
+    std::fs::create_dir(f.0.join("schemas")).unwrap();
+    std::fs::write(f.0.join("schemas/pack.json"), &pack_bytes).unwrap();
+    for name in pack["files"].as_object().unwrap().keys() {
+        let path = format!("schemas/oh.war/{name}/v1.json");
+        std::fs::create_dir_all(f.0.join(&path).parent().unwrap()).unwrap();
+        std::fs::copy(root.join(&path), f.0.join(&path)).unwrap();
+    }
+    success(f.run(&["archive", "export", "ARCH-WAR-0001", "snapshot.json"]));
+    let bytes = std::fs::read(f.0.join("snapshot.json")).unwrap();
+    let mut archive = Archive::decode(&bytes, Limits::default()).unwrap();
+    assert!(
+        matches!(&archive.coverage["schema and compiler identity"], Coverage::Retained { paths } if paths.len() == pack["files"].as_object().unwrap().len() + 2)
+    );
+    let producer = archive
+        .records
+        .iter()
+        .find(|r| r.path == "__ow_archive__/producer.json")
+        .unwrap();
+    let producer: serde_json::Value = serde_json::from_slice(
+        &openwarrant_core::attestation::base64_decode(producer.base64.as_ref().unwrap()).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(
+        producer["executable_sha256"],
+        format!(
+            "sha256:{}",
+            sha256_hex(&std::fs::read(env!("CARGO_BIN_EXE_war")).unwrap())
+        )
+    );
+    std::fs::rename(f.0.join("docs"), f.0.join("hidden-docs")).unwrap();
+    std::fs::rename(f.0.join("schemas"), f.0.join("hidden-schemas")).unwrap();
+    success(f.run(&["archive", "inspect", "snapshot.json"]));
+    // Recomputing a record's digest cannot conceal inconsistency with retained pack.
+    let member = archive
+        .records
+        .iter_mut()
+        .find(|r| r.path == "schemas/oh.war/war/v1.json")
+        .unwrap();
+    member.base64 = Some(base64_encode(b"{}"));
+    member.digest = format!("sha256:{}", sha256_hex(b"{}"));
+    std::fs::write(
+        f.0.join("changed.json"),
+        archive.encode(Limits::default()).unwrap(),
+    )
+    .unwrap();
+    refusal(
+        f.run(&["archive", "inspect", "changed.json"]),
+        "schema member digest mismatch",
+    );
+    std::fs::rename(f.0.join("hidden-docs"), f.0.join("docs")).unwrap();
+    std::fs::rename(f.0.join("hidden-schemas"), f.0.join("schemas")).unwrap();
+    std::fs::write(f.0.join("schemas/oh.war/war/v1.json"), b"{}").unwrap();
+    refusal(
+        f.run(&["archive", "export", "ARCH-WAR-0001", "bad.json"]),
+        "schema member digest mismatch",
+    );
+    assert!(!f.0.join("bad.json").exists());
+}
