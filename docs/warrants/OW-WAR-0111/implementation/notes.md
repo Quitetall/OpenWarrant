@@ -64,3 +64,18 @@ marks historical/provider categories unavailable and cannot claim full import.
 
 Next remains full historical/category assembly, external provider records, legacy
 false-proof replacement, formal format decision and actual KF preservation test.
+
+## Legacy false-success repair
+
+Legacy `war export --round-trip --reconnect` now refuses explicitly: a caller
+flag is not observed import. No legacy envelope/digest or pinned core record
+changed. Obsolete global claims that no Warrant has resolved or nothing executed
+are replaced with the actual limitation: this exporter does not collect those
+records. Six CLI integration tests pass, including the false-success regression.
+
+The old battery's false positive becomes a named refusal. A separate positive
+control imports and re-exports exact experimental transport fixture bytes; its
+actual shell code was run successfully in isolation. This positive is bounded
+transport evidence, not full §68.3 KF qualification. Battery grows by one control;
+full new-head gate remains pending. Strict CLI all-target Clippy passed before
+comment/reason wording updates; no new dependencies.

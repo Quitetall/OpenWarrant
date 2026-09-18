@@ -277,3 +277,20 @@ fn actual_warrant_sources_reconstruct_after_source_repository_disappears() {
         "reconstructed IR differs",
     );
 }
+
+#[test]
+fn legacy_reconnect_flag_cannot_claim_an_observed_import() {
+    let f = Fixture::new();
+    success(f.run(&[
+        "init",
+        "--namespace",
+        "ARCH",
+        "--program",
+        "Archive fixture",
+    ]));
+    success(f.run(&["new", "Reject false round-trip claim"]));
+    refusal(
+        f.run(&["export", "ARCH-WAR-0001", "--round-trip", "--reconnect"]),
+        "legacy round-trip cannot verify",
+    );
+}
