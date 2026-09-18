@@ -3,10 +3,12 @@
   "warrant": "OW-WAR-0101",
   "work_state": "in_progress",
   "reported_by": "agent://codex",
-  "summary": "Constrained local reference drafter prepared; synthetic transport/refusal tests pass. Real-model observation and full gate pending.",
+  "summary": "First constrained local-model response retained: structurally valid but wrong scope and malformed YAML. Fixed milestone template; repeat observation and full gate pending.",
   "notes": "docs/warrants/OW-WAR-0101/implementation/notes.md",
   "evidence": [
-    "docs/warrants/OW-WAR-0101/implementation/tests.log"
+    "docs/warrants/OW-WAR-0101/implementation/tests.log",
+    "docs/warrants/OW-WAR-0101/implementation/local-model/inspection.md",
+    "docs/warrants/OW-WAR-0101/implementation/local-model/semantic-validation.json"
   ],
   "next_steps": [
     "Observe exact local model through constrained adapter and retain semantic validation result.",

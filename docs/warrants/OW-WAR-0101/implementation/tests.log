@@ -4,6 +4,6 @@ test_missing_extra_and_overlong_fields_refuse (test_local_drafter.AdapterTests.t
 test_public_process_emits_only_complete_conforming_response (test_local_drafter.AdapterTests.test_public_process_emits_only_complete_conforming_response) ... ok
 
 ----------------------------------------------------------------------
-Ran 4 tests in 0.823s
+Ran 4 tests in 0.839s
 
 OK

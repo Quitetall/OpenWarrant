@@ -26,6 +26,8 @@ an applicable Warrant still happens before application; this adapter supplies no
 review flag. Never repair raw evidence and claim the model produced the repair.
 
 Backend-specific JSON schema constrains role, ordinal and filename individually.
+Milestone YAML is a fixed adapter template linking M1, STAGE-001 and OBL-001;
+model output cannot change it. Other bodies still require content review.
 The adapter also checks those fields locally because a backend can ignore grammar.
 It refuses incomplete responses, unknown keys, malformed JSON and over-limit text.
 This restricted template does not emit architecture decisions, ADRs, relations or
@@ -40,5 +42,7 @@ This script has no model tools or filesystem-write operations. That does not pro
 containment or a filesystem audit of the separately managed model service.
 
 Run tests: `python3 -m unittest discover -s tools/drafting -v`.
-Synthetic HTTP fixtures prove transport/refusal only. No successful real-model
-run or end-to-end application is established by these tests.
+Synthetic HTTP fixtures prove transport/refusal only. These tests do not establish real-model quality or end-to-end application.
+The first constrained-model observation returned structural output, but invented
+existing-Warrant scope and malformed milestone YAML. Retained evidence prompted
+the fixed milestone template; revised real-model behavior remains unobserved.

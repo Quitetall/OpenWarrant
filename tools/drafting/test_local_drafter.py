@@ -8,13 +8,13 @@ import threading
 import unittest
 from pathlib import Path
 
-from local_drafter import ATOMS, check_schema, endpoint_url, loads, proposal_schema
+from local_drafter import ATOMS, MILESTONES, check_schema, endpoint_url, loads, proposal_schema
 
 
 def proposal():
     return {"api_version": "oh.war/draft-proposal/v2",
             "proposed_identity": {"title": "Synthetic adapter fixture", "profile": "delivery", "assurance": "basic"},
-            "operations": [{"op": "create_atom", "role": role, "ordinal": ordinal, "path": path, "body": "Synthetic fixture, not agent evidence"} for role, ordinal, path in ATOMS],
+            "operations": [{"op": "create_atom", "role": role, "ordinal": ordinal, "path": path, "body": MILESTONES if role == "milestones" else "Synthetic fixture, not agent evidence"} for role, ordinal, path in ATOMS],
             "risk_assessment": "Synthetic transport control only"}
 
 
@@ -34,6 +34,10 @@ class AdapterTests(unittest.TestCase):
             mutation(candidate)
             with self.assertRaises(ValueError):
                 check_schema(candidate, proposal_schema())
+        candidate = proposal()
+        candidate["operations"][3]["body"] = "oh.war/milestones/v1:\n  milestones: [M1]"
+        with self.assertRaises(ValueError):
+            check_schema(candidate, proposal_schema())
         with self.assertRaises(ValueError):
             loads('{"x":1,"x":2}')
         with self.assertRaises(ValueError):

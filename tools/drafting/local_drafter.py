@@ -14,6 +14,20 @@ ATOMS = (("intent", 10, "10-intent.md"), ("basis", 20, "20-basis.md"),
          ("assurance", 60, "60-assurance.md"))
 
 
+MILESTONES = """schema: oh.war/milestones/v1
+milestones:
+  - id: M1
+    title: Deliver requested outcome
+    stage_refs: [STAGE-001]
+    obligation_refs: [OBL-001]
+stages:
+  - id: STAGE-001
+    title: Implement and check requested outcome
+    executor_kind: agent
+    responsibility_tier: T1
+"""
+
+
 def object_schema(properties):
     return {"type": "object", "properties": properties, "required": list(properties), "additionalProperties": False}
 
@@ -25,7 +39,7 @@ def text_schema(limit):
 def proposal_schema():
     atoms = [object_schema({"op": {"const": "create_atom"}, "role": {"const": role},
                             "ordinal": {"const": ordinal}, "path": {"const": path},
-                            "body": text_schema(1600)}) for role, ordinal, path in ATOMS]
+                            "body": {"const": MILESTONES} if role == "milestones" else text_schema(1600)}) for role, ordinal, path in ATOMS]
     # llama.cpp supports tuple items; this is backend guidance, not the OW schema.
     return object_schema({"api_version": {"const": "oh.war/draft-proposal/v2"},
                           "proposed_identity": object_schema({"title": text_schema(160), "profile": {"const": "delivery"}, "assurance": {"const": "basic"}}),
@@ -92,11 +106,12 @@ def draft(request, endpoint, model):
     schema = proposal_schema()
     system = ("Draft only the requested bounded delivery. No tools, execution, approval or invented evidence. "
               "Return JSON matching the supplied schema. The schema fixes each role, ordinal and filename. "
-              "Do not enumerate existing Warrant/ADR inventories. Keep bodies concise. "
+              "The user_request is the task. Existing Warrant inventory is background, not requested scope. "
+              "Do not select an existing Warrant or invent an identifier. Use a plain descriptive title. "
+              "Do not enumerate inventories. Keep bodies concise. "
               "Intent states outcome and scope. Basis names uncertainty, never inventing source contents. "
-              "Work order states deliverables, constraints and rollback. Milestones body must be YAML schema oh.war/milestones/v1 "
-              "with milestones M1, stage_refs [STAGE-001], obligation_refs [OBL-001], and stages STAGE-001 with title, "
-              "executor_kind agent and responsibility_tier T1. Assurance includes heading '### OBL-001 — outcome', "
+              "Work order states deliverables, constraints and rollback. Milestones body is the exact fixed template in the schema. "
+              "Assurance includes heading '### OBL-001 — outcome', "
               "'- **scope:**' and '- **evidence:**' with concrete positive and refusal checks. "
               "No source frontmatter. No durable architecture decisions: expose uncertainty in risk_assessment for human review.")
     body = {"model": model, "messages": [{"role": "system", "content": system}, {"role": "user", "content": json.dumps(request)}],
