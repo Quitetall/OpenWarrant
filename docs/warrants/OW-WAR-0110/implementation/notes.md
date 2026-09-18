@@ -9,6 +9,8 @@ strict/no-emit mode. Producer fixtures prove required-field, enum and scalar
 refusals through @ts-expect-error checks. Rust tests cover unsupported keyword/ref
 refusal, required/optional fields, tuple shape and deterministic output.
 
-Unfinished: generated-drift refusal observation, wider generator edge cases,
-actual pinned KF package imports and runtime regressions, full gate and hosted
-integration. No OW32 assurance or historical disposition changed.
+Completed follow-up: retained generated-drift refusal, five generator tests covering
+refs/unions/maps/arrays/tuples/nullability and unsupported shapes, and actual pinned
+KF imports/build/runtime tests. See kf-consumer.md and ow32-scope-map.md. Full gate
+and hosted merge integration remain pending. No OW32 assurance or historical
+disposition changed.
