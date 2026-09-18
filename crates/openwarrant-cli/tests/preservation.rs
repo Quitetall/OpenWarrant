@@ -1421,3 +1421,59 @@ fn runtime_query_basis_comes_from_reconstructed_sources_not_caller_identity() {
         "archive subject differs",
     );
 }
+
+#[test]
+fn service_run_receipt_points_to_retained_stream_bytes() {
+    let f = Fixture::new();
+    success(f.run(&[
+        "init",
+        "--namespace",
+        "STREAM",
+        "--program",
+        "Service streams",
+    ]));
+    success(f.run(&["new", "Retain actual service output"]));
+    let dir = f.0.join("docs/warrants/STREAM-WAR-0001");
+    let stage_path = dir.join("atoms/45-milestones.yaml");
+    let stages = std::fs::read_to_string(&stage_path).unwrap().replace(
+        "executor_kind: \"agent\"",
+        "executor_kind: \"service\"\n    executor_ref: \"gate://ops.echo@1.0.0\"\n    wall_time_seconds: 5",
+    );
+    std::fs::write(stage_path, stages).unwrap();
+    let gate = include_str!("../../../docs/gates/ops.echo@1.0.0.yaml").replace(
+        "argv: [\"true\"]",
+        "argv: [\"sh\", \"-c\", \"printf service-out; printf service-err >&2\"]",
+    );
+    std::fs::write(f.0.join("docs/gates/ops.echo@1.0.0.yaml"), gate).unwrap();
+    success(f.run(&["run", "STREAM-WAR-0001", "STAGE-001"]));
+    let receipt: openwarrant_core::GateReceipt = serde_json::from_slice(
+        &std::fs::read(dir.join("gate-runs/ops_echo_1_0_0.receipt.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(
+        std::fs::read(f.0.join(&receipt.stdout_ref)).unwrap(),
+        b"service-out"
+    );
+    assert_eq!(
+        std::fs::read(f.0.join(&receipt.stderr_ref)).unwrap(),
+        b"service-err"
+    );
+    assert!(!dir.join("ops_echo_1_0_0.stdout.txt").exists());
+    assert!(!dir.join("ops_echo_1_0_0.stderr.txt").exists());
+    success(f.run(&["archive", "export", "STREAM-WAR-0001", "service.json"]));
+    let archive = Archive::decode(
+        &std::fs::read(f.0.join("service.json")).unwrap(),
+        Limits::default(),
+    )
+    .unwrap();
+    for (path, expected) in [
+        (receipt.stdout_ref, b"service-out".as_slice()),
+        (receipt.stderr_ref, b"service-err".as_slice()),
+    ] {
+        let record = archive.records.iter().find(|r| r.path == path).unwrap();
+        assert_eq!(
+            openwarrant_core::attestation::base64_decode(record.base64.as_ref().unwrap()).unwrap(),
+            expected
+        );
+    }
+}

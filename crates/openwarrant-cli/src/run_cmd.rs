@@ -250,8 +250,8 @@ pub fn run(repo: &Repository, alias: &str, stage_id: &str) -> Result<Report, Rep
     let mut bounded = def.clone();
     bounded.timeout_secs = Some(bound);
     let started_at = now_rfc3339();
-    let gate_run = crate::gate_cmd::run_gate(&bounded, repo, &dir);
     let runs_dir = dir.join("gate-runs");
+    let gate_run = crate::gate_cmd::run_gate(&bounded, repo, &runs_dir);
     if let Err(e) = crate::gate_cmd::persist_run(&gate_run, &runs_dir) {
         report.push(Diagnostic::error(
             "gate-run.not-persisted",

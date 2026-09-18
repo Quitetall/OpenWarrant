@@ -1,0 +1,29 @@
+{
+  "schema": "oh.war/implementation-observation/v1",
+  "command": "war run OW-WAR-0066 STAGE-001 --json",
+  "source_clone": "/mnt/4tb/tmp/ow111-service-runtime-capture",
+  "configured_gate_argv": [
+    "true"
+  ],
+  "run_report_counts": {
+    "pass": 3,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "receipt_references": {
+    "stdout_ref": {
+      "reference": "docs/warrants/OW-WAR-0066/gate-runs/ops_echo_1_0_0.stdout.txt",
+      "exists": false
+    },
+    "stderr_ref": {
+      "reference": "docs/warrants/OW-WAR-0066/gate-runs/ops_echo_1_0_0.stderr.txt",
+      "exists": false
+    }
+  },
+  "actual_stream_directory": "docs/warrants/OW-WAR-0066",
+  "receipt_stream_directory": "docs/warrants/OW-WAR-0066/gate-runs",
+  "qualified": false,
+  "scope": "Disposable clone execution proves service seam, not actual project work or production correctness."
+}
