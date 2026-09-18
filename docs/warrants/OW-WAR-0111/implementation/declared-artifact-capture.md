@@ -50,3 +50,15 @@ byte-identical archive output. Removing the original Git database and docs still
 permits reconstruction. A rewritten origin HEAD refuses. Git-normalized text
 bytes that were never stored as blobs remain unavailable; the tool does not claim
 to restore bytes that Git discarded.
+
+## Git process isolation
+
+A regression reproduced inherited `GIT_DIR` overriding the selected repository
+and making its available history appear unavailable. History subprocesses now
+remove inherited Git directory, worktree, common-directory, object-directory,
+alternate-object-directory, index, shallow-file and namespace overrides. The
+selected checkout still supplies its own Git metadata and configuration.
+
+The regression injects conflicting locations and requires byte-identical archive
+output compared with the normal run. This protects repository selection; it does
+not authenticate the selected repository or bypass missing-history refusals.

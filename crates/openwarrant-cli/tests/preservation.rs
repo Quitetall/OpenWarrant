@@ -650,6 +650,32 @@ fn historical_artifact_versions_are_selected_by_digest_not_current_path() {
         "history.json",
         "--history",
     ]));
+    let redirected = Command::new(env!("CARGO_BIN_EXE_war"))
+        .current_dir(&f.0)
+        .args([
+            "archive",
+            "export",
+            "ARCH-WAR-0001",
+            "ambient-git.json",
+            "--history",
+        ])
+        .env("GIT_DIR", f.0.join("not-the-selected-repository"))
+        .env("GIT_WORK_TREE", f.0.join("wrong-worktree"))
+        .env("GIT_COMMON_DIR", f.0.join("wrong-common-dir"))
+        .env("GIT_OBJECT_DIRECTORY", f.0.join("wrong-objects"))
+        .env(
+            "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+            f.0.join("wrong-alternates"),
+        )
+        .env("GIT_INDEX_FILE", f.0.join("wrong-index"))
+        .env("GIT_SHALLOW_FILE", f.0.join("wrong-shallow"))
+        .output()
+        .unwrap();
+    success(redirected);
+    assert_eq!(
+        std::fs::read(f.0.join("history.json")).unwrap(),
+        std::fs::read(f.0.join("ambient-git.json")).unwrap()
+    );
     let archive = Archive::decode(
         &std::fs::read(f.0.join("history.json")).unwrap(),
         Limits::default(),
