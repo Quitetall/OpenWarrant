@@ -137,3 +137,19 @@ Full reference-web test suite passed: 212 tests, 83.113 seconds; exact log retai
 as `roadmap-full-web-tests.log.gz`. Read the legacy-question-reconciliation proposal
 before treating OW69's old recommendations as owner answers. Several conflict
 with later product direction; original question records remain untouched.
+
+Additional browser proof at source 3d445b68 (2026-09-18): isolated live viewer
+port 33347 showed all 106 mapped Warrants and the Visual project overview group.
+With a requested 390-by-844 viewport override, the browser reported an effective
+375px document viewport and 375px page width: no page-level horizontal overflow.
+Search for OW-WAR-0104 retained its exact row. Tab from the phase selector focused
+the feature summary; Enter collapsed it and a second Enter reopened it. The
+viewport override was reset. This is a bounded narrow-layout and keyboard proof,
+not an exhaustive accessibility audit.
+
+A disposable VIEW fixture at port 42937 supplied an img/onerror title and a
+closing-script/script outcome. The rendered roadmap retained both literal strings
+and quoted text, contained zero img or script elements, and showed no JavaScript
+dialog. This observes hostile-text rendering in the live browser; offline controls
+remain covered only by the separately retained owner observation. No real source
+record was changed for the hostile-input fixture.
