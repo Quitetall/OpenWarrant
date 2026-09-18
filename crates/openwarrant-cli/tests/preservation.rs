@@ -1211,6 +1211,19 @@ fn explicit_additional_history_root_preserves_unmerged_records() {
     success(f.run(&["archive", "inspect", "extra.json"]));
 }
 
+fn install_schema_pack(f: &Fixture) {
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let pack = std::fs::read(root.join("schemas/pack.json")).unwrap();
+    let value: serde_json::Value = serde_json::from_slice(&pack).unwrap();
+    std::fs::create_dir_all(f.0.join("schemas")).unwrap();
+    std::fs::write(f.0.join("schemas/pack.json"), pack).unwrap();
+    for name in value["files"].as_object().unwrap().keys() {
+        let path = format!("schemas/oh.war/{name}/v1.json");
+        std::fs::create_dir_all(f.0.join(&path).parent().unwrap()).unwrap();
+        std::fs::copy(root.join(&path), f.0.join(&path)).unwrap();
+    }
+}
+
 #[test]
 fn generated_local_archive_roundtrips_and_runtime_absence_cannot_be_forged() {
     let f = Fixture::new();
@@ -1222,16 +1235,7 @@ fn generated_local_archive_roundtrips_and_runtime_absence_cannot_be_forged() {
         "Complete local transport fixture",
     ]));
     success(f.run(&["new", "Retain complete declared local sources"]));
-    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
-    let pack = std::fs::read(root.join("schemas/pack.json")).unwrap();
-    let value: serde_json::Value = serde_json::from_slice(&pack).unwrap();
-    std::fs::create_dir_all(f.0.join("schemas")).unwrap();
-    std::fs::write(f.0.join("schemas/pack.json"), pack).unwrap();
-    for name in value["files"].as_object().unwrap().keys() {
-        let path = format!("schemas/oh.war/{name}/v1.json");
-        std::fs::create_dir_all(f.0.join(&path).parent().unwrap()).unwrap();
-        std::fs::copy(root.join(&path), f.0.join(&path)).unwrap();
-    }
+    install_schema_pack(&f);
     for args in [
         vec!["init", "-q"],
         vec!["add", "docs", "schemas", "openwarrant.toml"],
@@ -1433,6 +1437,7 @@ fn service_run_receipt_points_to_retained_stream_bytes() {
         "Service streams",
     ]));
     success(f.run(&["new", "Retain actual service output"]));
+    install_schema_pack(&f);
     let dir = f.0.join("docs/warrants/STREAM-WAR-0001");
     let stage_path = dir.join("atoms/45-milestones.yaml");
     let stages = std::fs::read_to_string(&stage_path).unwrap().replace(
@@ -1671,6 +1676,22 @@ fn service_run_receipt_points_to_retained_stream_bytes() {
     .unwrap();
     assert!(
         matches!(wrong.coverage.get("actions and relevant audit receipts"), Some(Coverage::Unavailable { reason }) if reason.contains("submission identity or outcome differs"))
+    );
+    let original = std::fs::read(f.0.join("service.json")).unwrap();
+    for path in ["docs", "schemas", ".git"] {
+        std::fs::rename(f.0.join(path), f.0.join(format!("hidden-{path}"))).unwrap();
+    }
+    success(f.run(&["archive", "import", "service.json", "imported-service"]));
+    std::fs::remove_file(f.0.join("service.json")).unwrap();
+    success(f.run(&[
+        "archive",
+        "reexport",
+        "imported-service",
+        "service-again.json",
+    ]));
+    assert_eq!(
+        std::fs::read(f.0.join("service-again.json")).unwrap(),
+        original
     );
 }
 

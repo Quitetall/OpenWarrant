@@ -1,0 +1,21 @@
+{
+  "fixture_only": true,
+  "archive_sha256": "99161d9b3d3131f3ca51e2028615b5929270377436f08bee7e5a2c1b67bc54fb",
+  "source_removed_before_local_import": true,
+  "provider_source_shutdown_before_restore": true,
+  "provider_test": "preserves local-runtime Warrant archive after source shutdown",
+  "native_runtime_records_in_archive": true,
+  "provider_runtime_rows": "synthetic fixture rows, not native attempt ingestion",
+  "restored_archive_and_reexport_byte_identical": true,
+  "authority_activated": false,
+  "qualified": false,
+  "provider_revision": "34d4182e",
+  "provider_pr": "https://github.com/Quitetall/openhuman-knowledge-fabric/pull/9",
+  "producer_full_gate": {
+    "revision": "b223fc241c04eceffcec570acf6a13c6e99fd083",
+    "rust": "1.97.1",
+    "steps_passed": 14,
+    "plants_passed": 309,
+    "plants_failed": 0
+  }
+}

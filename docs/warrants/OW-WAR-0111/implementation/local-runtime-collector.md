@@ -24,3 +24,13 @@ The preservation integration suite exercises real repeated success, failure and
 timeout commands. Controls remove run/receipt records and substitute a different
 attempt's valid receipt. Existing history and external-backend refusal tests
 remain in the suite.
+
+## Standalone source-removal observation
+
+`local-runtime-source-detached-archive.json.gz` preserves a real two-attempt
+service fixture made with producer b223fc24. Its temporary source repository was
+deleted before importing into a new empty destination. Re-export bytes matched:
+SHA-256 `99161d9b3d3131f3ca51e2028615b5929270377436f08bee7e5a2c1b67bc54fb`.
+Every required category was retained or explicitly absent. Runtime receipts were
+retained. The gzip observation records the invoked binary digest; the proof
+script records the procedure. This is a fixture, not production work acceptance.
