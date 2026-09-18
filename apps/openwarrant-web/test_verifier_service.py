@@ -62,6 +62,9 @@ class VerifierServiceTests(SnapshotFixture, unittest.TestCase):
 
     def test_http_refuses_unlocked_authority_injection_and_changed_identity(self):
         self.assertEqual(self.call('/api/verification', self.fields, token='wrong')[0], 401)
+        route = '/api/verification/' + self.fields['verification_id'] + '/reverify'
+        self.assertEqual(self.call(route, {'verification_id': self.fields['verification_id']}, token='wrong')[0], 401)
+        self.assertEqual(self.call(route, {'verification_id': self.fields['verification_id']})[0], 409)
         self.assertEqual(self.call('/api/verification', {**self.fields, 'qualified': True})[0], 409)
         self.assertEqual(self.call('/api/verification')[1]['jobs'], [])
         self.assertEqual(self.call('/api/verification', self.fields)[0], 200)

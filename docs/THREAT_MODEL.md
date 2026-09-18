@@ -91,6 +91,11 @@ missing evidence or repair limits, and cannot rewrite the original FAIL.
 `test_verifier_repair`, `test_verifier_decision` and
 `test_verifier_repair_execution` exercise these boundaries with synthetic
 credentials and real local Git/process fixtures. Stop, scope-revision and
-verify-again decisions cannot launch repair through the repair endpoint. Broader
+verify-again decisions cannot launch repair through the repair endpoint.
+Human-directed rechecks retain the exact prior observation and decision in a v3
+request. Each decision permits one child check; dispatch rechecks responder
+authority and requires fresh protection evidence. Revoked authority leaves the
+prepared claim unconsumed. Candidate, observation, action and responder-kind
+substitution refuse in the real-process contract fixtures. Broader
 decision orchestration remains work in progress; these tests do not establish
 deployment isolation or real human acceptance.

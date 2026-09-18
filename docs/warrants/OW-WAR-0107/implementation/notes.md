@@ -328,3 +328,27 @@ fixtures; they do not prove real human presence or deployment isolation.
 Verify-again dispatch, broader stop/scope-change orchestration, dedicated browser
 repair/dispute controls, automatic loop orchestration and the full Rust/release
 gates remain unfinished. This evidence does not close or qualify OW-WAR-0107.
+
+## Human-directed independent recheck
+
+The reverify API prepares one v3 verification request per retained human
+verify-again decision. It carries the exact prior final record and decision.
+Preparation and dispatch require current authority and unchanged work basis;
+dispatch still needs a fresh signed protection receipt and aggregate budget.
+Exact replay returns the existing child. A different child identity refuses.
+An unresolved v3 result requires another human decision, without clearing prior
+FAIL observations or granting qualification. Revoked authority leaves the claim
+prepared and unconsumed. Stop and scope-revision decisions cannot use this route.
+
+Real-process fixtures prove preparation, replay, duplicate refusal, authority
+removal before dispatch, restored-authority dispatch and repeated unresolved FAIL.
+Contract checks refuse candidate, observation, decision-action and responder-kind
+substitution. HTTP tests cover authentication and invalid-identity refusal; a
+positive HTTP/browser human recheck ceremony remains untested.
+
+The full web suite passed 173 tests in 52.772 seconds with
+`OW_TEST_WAR=/mnt/4tb/tmp/ow-question-integrity/target/debug/war python3 -m unittest discover -q`.
+Evidence: `implementation/reverify-web-tests.log`. Synthetic credentials and
+processes establish protocol behavior, not human presence or deployment isolation.
+Automatic orchestration, browser repair/dispute controls, broader stop/scope-change
+handling and full release gates remain unfinished. OW-WAR-0107 remains open.

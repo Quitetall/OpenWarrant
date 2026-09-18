@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Real SDK/executor/verifier/repair processes; synthetic agents and issuer only."""
 import base64
+import copy
 import hashlib
 import json
 import os
@@ -17,7 +18,7 @@ import test_execution as execution_tests
 from verifier_service import Verification
 from verifier_attestation import NAMESPACE
 from verifier_policy import PROTECTIONS
-from verification import VerificationError
+from verification import VerificationError, request
 from hotline import Answers, digest
 from verifier_repair import plan
 
@@ -113,6 +114,35 @@ class RepairExecutionTests(RepairExecutionFixture, unittest.TestCase):
                 with self.assertRaises(VerificationError):
                     self.service.repair(rechecked['verification_id'], {})
                 self.assertEqual(len(self.executor.records()), 1)
+                self.assertEqual(self.service.get(rechecked['verification_id'])['effective_verdict'], 'fail')
+                if action != 'verify_again':
+                    with self.assertRaises(VerificationError):
+                        self.service.reverify(rechecked['verification_id'], {'verification_id': str(uuid.uuid4())})
+                    continue
+                fields = {'verification_id': str(uuid.uuid4())}
+                prepared = self.service.reverify(rechecked['verification_id'], fields)
+                self.assertEqual(prepared['request']['schema'], 'oh.war/verification-request/v3')
+                self.assertEqual(prepared['request']['human_recheck']['prior_record'], rechecked['record'])
+                for target in ('candidate', 'decision', 'observation', 'respondent'):
+                    altered = copy.deepcopy(prepared['request'])
+                    context = altered['human_recheck']
+                    if target == 'candidate': altered['candidate_revision'] = 'a' * 40
+                    if target == 'decision': context['decision']['action'] = 'repair'
+                    if target == 'observation': context['prior_record']['observation']['verdict'] = 'pass'
+                    if target == 'respondent': context['decision']['response']['respondent_kind'] = 'ai'
+                    with self.subTest(target=target), self.assertRaises(VerificationError): request(altered)
+                self.assertEqual(self.service.reverify(rechecked['verification_id'], fields), prepared)
+                with self.assertRaises(VerificationError):
+                    self.service.reverify(rechecked['verification_id'], {'verification_id': str(uuid.uuid4())})
+                self.service.answers = None
+                with self.assertRaises(VerificationError):
+                    self.verify(self.original['attempt_id'], prepared)
+                self.assertEqual(self.service.get(prepared['verification_id'])['state'], 'prepared')
+                self.service.answers = answers
+                result = self.verify(self.original['attempt_id'], prepared)
+                self.assertEqual(result['effective_verdict'], 'fail')
+                self.assertTrue(result['human_review_required'])
+                self.assertEqual(self.service.repair_preview(result['verification_id'])['state'], 'escalate')
                 self.assertEqual(self.service.get(rechecked['verification_id'])['effective_verdict'], 'fail')
 
     def test_rebuttal_preserves_fail_and_unresolved_recheck_waits_for_human(self):

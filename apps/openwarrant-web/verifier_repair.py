@@ -29,7 +29,7 @@ def plan(job, attempts, repair_cycles=3, *, human_repair=False):
         out.update(state='not_required', reason='Exact candidate passed verification')
     elif job['effective_verdict'] != 'fail':
         out.update(state='escalate', reason='Unknown observation is not an automatic repair instruction')
-    elif expected.get('schema') == 'oh.war/verification-request/v2' and not human_repair:
+    elif expected.get('schema') in ('oh.war/verification-request/v2', 'oh.war/verification-request/v3') and not human_repair:
         out.update(state='escalate', reason='Unresolved recheck requires human decision')
     elif len(repairs) >= repair_cycles:
         out.update(state='exhausted', reason='Configured repair-cycle limit reached')

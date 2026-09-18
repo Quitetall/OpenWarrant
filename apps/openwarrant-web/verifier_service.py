@@ -61,7 +61,7 @@ class Verification:
             return {**view, "attempt_id": binding["attempt_id"],
                     "request": initial["request"], "basis_sha256": initial["basis_sha256"],
                     "dispatch_permitted": False, "evidence_state": evidence_state, "effective_verdict": effective,
-                    "human_review_required": initial['request']['schema'] == 'oh.war/verification-request/v2'
+                    "human_review_required": initial['request']['schema'] in ('oh.war/verification-request/v2', 'oh.war/verification-request/v3')
                     and view['record']['sequence'] == 3 and effective != 'pass'}
 
     def listing(self):
@@ -74,7 +74,7 @@ class Verification:
             return {"schema": "oh.war/verification-inventory/v1", "jobs": [self.get(id) for id in sorted(ids)],
                     "qualified": False}
 
-    def prepare(self, fields, recheck=None):
+    def prepare(self, fields, recheck=None, human_recheck=None):
         require(isinstance(fields, dict) and set(fields) == {"attempt_id", "verification_id"}
                 and all(identity(value) for value in fields.values()), "Exact execution and verification identities required")
         e, id = self.executor, fields["verification_id"]
@@ -84,12 +84,13 @@ class Verification:
             config, attempt, execution_policy = snapshot["config"], snapshot["attempt"], snapshot["execution_policy"]
             preview = admission(config, attempt, execution_policy, snapshot["source_sha256"])
             require(preview["state"] != "blocked", preview["reason"])
-            expected = request({"schema": "oh.war/verification-request/v2" if recheck else "oh.war/verification-request/v1", "verification_id": id,
+            expected = request({"schema": "oh.war/verification-request/v3" if human_recheck else "oh.war/verification-request/v2" if recheck else "oh.war/verification-request/v1", "verification_id": id,
                 "warrant_id": attempt["warrant_id"], "source_sha256": snapshot["source_sha256"],
                 "candidate_revision": attempt["result_revision"], "policy_sha256": digest(execution_policy),
                 "performer": config["performer"]["id"], "verifier": config["verifier"]["id"],
                 "checks": execution_policy["checks"], "source": e.store.get(attempt["warrant_id"])["source"],
-                **({'recheck':recheck} if recheck else {})})
+                **({'recheck':recheck} if recheck else {}),
+                **({'human_recheck':human_recheck} if human_recheck else {})})
             binding = {"schema": "oh.war/verifier-binding/v1", "attempt_id": fields["attempt_id"],
                        "request_sha256": request_digest(expected)}
             path = self.jobs.root / f"{id}.binding.json"
@@ -113,6 +114,26 @@ class Verification:
             unchanged(current['source_path'],job['request']['candidate_revision'],time.monotonic()+5)
             return self.prepare({'attempt_id':binding['attempt_id'],'verification_id':fields['verification_id']},recheck)
 
+    def reverify(self, id, fields):
+        require(isinstance(fields, dict) and set(fields) == {'verification_id'}
+                and identity(fields['verification_id']) and fields['verification_id'] != id,
+                'New verification identity required')
+        with self.executor.lock:
+            job, binding = self.get(id), self.binding(id)
+            decision = self.dispute(id, self.answers)['decision'] if self.answers else None
+            require(decision is not None and decision['action'] == 'verify_again',
+                    'Current human verify-again decision required')
+            children = [j for j in self.listing()['jobs']
+                        if j['request'].get('human_recheck', {}).get('decision', {}).get('question', {}).get('verification_id') == id]
+            require(not children or (len(children) == 1 and children[0]['verification_id'] == fields['verification_id']),
+                    'Human decision already has a recheck')
+            current = Snapshot(self.executor, binding['attempt_id'], self.config_path, self.issuer_path)()
+            basis = admission(current['config'], current['attempt'], current['execution_policy'], current['source_sha256'])
+            require(basis['basis_sha256'] == job['basis_sha256'], 'Human recheck basis changed')
+            unchanged(current['source_path'], job['request']['candidate_revision'], time.monotonic() + 5)
+            return self.prepare({'attempt_id': binding['attempt_id'], 'verification_id': fields['verification_id']},
+                                human_recheck={'decision': decision, 'prior_record': job['record']})
+
     def start(self, id, fields):
         require(isinstance(fields, dict) and set(fields) == {"payload_base64", "signature_base64"}
                 and all(isinstance(v, str) and 0 < len(v) <= 21848 for v in fields.values()),
@@ -123,6 +144,11 @@ class Verification:
             initial, binding = self.initial(id), self.binding(id)
             if self.jobs.read(id)["sequence"] != 1:
                 return self.get(id)
+            human_recheck = initial['request'].get('human_recheck')
+            if human_recheck:
+                parent = human_recheck['decision']['question']['verification_id']
+                current_decision = self.dispute(parent, self.answers)['decision'] if self.answers else None
+                require(current_decision == human_recheck['decision'], 'Human recheck decision no longer current')
             for job in self.listing()["jobs"]:
                 record = job["record"]
                 require(job["evidence_state"] != "unavailable", "Prior verifier evidence unavailable")
@@ -146,7 +172,9 @@ class Verification:
                                 human_repair=decision is not None and decision['action']=='repair')
             if decision and decision['action']!='repair':
                 preview.update(state='blocked',reason='Human decision requires '+decision['action'])
-            if any(j['request'].get('recheck',{}).get('verification_id') == id and j['human_review_required']
+            if any((j['request'].get('recheck',{}).get('verification_id') == id
+                    or j['request'].get('human_recheck',{}).get('decision',{}).get('question',{}).get('verification_id') == id)
+                   and j['human_review_required']
                    for j in self.listing()['jobs']):
                 preview.update(state='escalate',reason='Unresolved independent recheck requires human decision')
             return preview

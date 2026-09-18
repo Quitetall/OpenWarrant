@@ -69,8 +69,15 @@ Authenticated routes:
   retained in `verification_repair.decision_sha256`. Changed responder configuration
   invalidates reuse of the decision. Other decision actions block this repair path;
   none overrides budgets, missing evidence or UNKNOWN observations. The original
-  FAIL remains unchanged. Dispatch for `verify_again` and broader stop/scope-change
-  orchestration remain unfinished.
+  FAIL remains unchanged. Broader stop/scope-change orchestration remains unfinished.
+- `POST /api/verification/<verification_id>/reverify` accepts exactly a new
+  `verification_id` after a current human `verify_again` decision. It prepares a
+  v3 verification request containing `human_recheck`: the retained decision and
+  exact prior final record. It cannot replace source, checks, policy or candidate.
+  One child check may use each decision; exact preparation replay returns that
+  child. Dispatch still requires a fresh signed protection receipt and rechecks
+  current responder authority. An unresolved result requires a new human decision;
+  no prior FAIL is erased and no repair budget is reset.
 - `POST /api/verification/<verification_id>/start` accepts exactly
   `payload_base64` and `signature_base64`. These encode the original signed
   `oh.war/harness-protection/v1` receipt and SSH signature. The receipt binds

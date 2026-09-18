@@ -32,10 +32,15 @@ def request(value):
     """Validate trusted controller input; caller must establish configured identities."""
     require(isinstance(value, dict), "Invalid verification request")
     version = value.get('schema')
-    require(version in ('oh.war/verification-request/v1', 'oh.war/verification-request/v2') and set(value) == {
+    require(version in ('oh.war/verification-request/v1', 'oh.war/verification-request/v2',
+                        'oh.war/verification-request/v3') and set(value) == {
         "schema", "verification_id", "warrant_id", "source_sha256", "candidate_revision",
         "policy_sha256", "performer", "verifier", "checks", "source"
-    } | ({'recheck'} if version == 'oh.war/verification-request/v2' else set()), "Invalid verification request")
+    } | ({'recheck'} if version == 'oh.war/verification-request/v2' else
+         {'human_recheck'} if version == 'oh.war/verification-request/v3' else set()), "Invalid verification request")
+    if version == 'oh.war/verification-request/v3':
+        from verifier_decision import validate_recheck
+        validate_recheck(value['human_recheck'], value)
     if version == 'oh.war/verification-request/v2':
         from verifier_rebuttal import validate
         validate(value['recheck'])
