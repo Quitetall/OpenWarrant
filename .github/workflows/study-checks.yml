@@ -1,0 +1,23 @@
+name: Study measurement checks
+on:
+  pull_request:
+    paths:
+      - 'conformance/study/**'
+      - '.github/workflows/study-checks.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'conformance/study/**'
+      - '.github/workflows/study-checks.yml'
+permissions:
+  contents: read
+concurrency:
+  group: study-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  measurement:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - run: python3 -m unittest discover -s conformance/study -v
