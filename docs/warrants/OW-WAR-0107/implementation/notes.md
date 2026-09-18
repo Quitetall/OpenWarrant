@@ -98,3 +98,21 @@ Twenty-six verifier tests pass. Four new cases use disposable machine keys and
 exercise exact signed acceptance, replay, signed UNKNOWN/FAIL, byte tampering,
 wrong nonce, changed candidate/checks/actor/Warrant/configuration. These are bounded
 protocol observations, not proof of production sandboxing or independent review.
+
+## Process lifecycle integration
+
+Added a synchronous controller seam connecting protected snapshot reads, exact
+candidate cleanliness, signed claim consumption, isolated verifier execution and
+durable final observations. It copies the initial snapshot and compares fresh
+protected inputs after execution. A changed candidate or configuration yields
+UNKNOWN while retaining the original verifier observation. Replayed consumed jobs
+return retained state without launching another process. Callers must provide the
+execution lock and a trusted snapshot reader that refuses active or unknown writers.
+No public request can supply that reader; server route integration is still pending.
+
+Thirty verifier tests pass, including a real Git/process/signature lifecycle,
+replay after replacing the verifier program with a failing one, dirty-candidate
+refusal before consumption, changed policy after PASS, and a synthetic verifier
+that changes the performer workspace. The latter demonstrates stale-result
+refusal, not sandbox enforcement. HTTP/browser integration, aggregate budgets,
+repair/rebuttal and production protection qualification remain open.
