@@ -488,6 +488,10 @@ class Handler(BaseHTTPRequestHandler):
             if self.command == "GET" and self.path.startswith("/api/runs"):
                 if self.server.executor is None:
                     raise Refusal(409, "Execution harness not configured")
+                report = re.fullmatch(r"/api/runs/([0-9a-f-]{36})/report", self.path)
+                if report:
+                    return self.reply(200, self.server.executor.report(
+                        report[1], self.server.completion_word, self.server.report_detail))
                 if self.path == "/api/runs":
                     return self.reply(200, self.server.executor.listing())
                 return self.reply(
@@ -565,12 +569,18 @@ def main():
     parser.add_argument("--port", type=int, default=8766)
     parser.add_argument("--session-file", type=Path, required=True)
     parser.add_argument("--execution-config", type=Path)
+    parser.add_argument("--completion-word", default="WORK_DONE")
+    parser.add_argument("--report-detail", choices=("minimal", "full"), default="full")
     args = parser.parse_args()
+    if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", args.completion_word):
+        parser.error("completion word must contain 1-64 letters, digits, underscore or hyphen")
     store = Store(
         args.state, SDK(args.war.resolve(strict=True), args.repo.resolve(strict=True))
     )
     token = secrets.token_hex(32)
     server = Server(("127.0.0.1", args.port), store, token)
+    server.completion_word = args.completion_word
+    server.report_detail = args.report_detail
     if args.execution_config:
         server.executor = Executor(
             store, args.execution_config, read_file, publish, decode

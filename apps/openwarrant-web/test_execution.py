@@ -63,6 +63,7 @@ print(json.dumps({'schema':'oh.war/execution-result/v1','attempt_id':r['attempt_
                 str(self.session),
                 "--execution-config",
                 str(self.config_path),
+                *getattr(self, "report_args", []),
             ],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.PIPE,
@@ -112,6 +113,42 @@ print(json.dumps({'schema':'oh.war/execution-result/v1','attempt_id':r['attempt_
                 return r
             time.sleep(0.02)
         self.fail("attempt never finished")
+
+    def test_work_report_is_persisted_read_only_and_configurable(self):
+        r = self.eligible()
+        self.stop()
+        self.report_args = ["--completion-word", "DONE_TEST", "--report-detail", "minimal"]
+        self.start()
+        status, run = self.call("/api/runs", "POST", {"warrant_id": r["id"], "source_sha256": r["source_sha256"]})
+        self.assertEqual(status, 202)
+        self.assertEqual(self.wait_run(run["attempt_id"])["work_state"], "completed")
+        route = "/api/runs/" + run["attempt_id"] + "/report"
+        before = {str(p): p.read_bytes() for p in (self.root / "state").rglob("*") if p.is_file()}
+        status, report = self.call(route)
+        self.assertEqual(status, 200, report)
+        self.assertEqual(report["completion_signal"], "DONE_TEST")
+        self.assertEqual(report["progress"]["completed"], 1)
+        self.assertEqual(report["progress"]["total"], 1)
+        self.assertEqual(report, self.call(route)[1])
+        after = {str(p): p.read_bytes() for p in (self.root / "state").rglob("*") if p.is_file()}
+        self.assertEqual(before, after)
+        self.assertEqual(self.call(route, headers={"Authorization": "Bearer wrong"})[0], 401)
+        self.stop()
+        self.start()
+        self.assertEqual(report, self.call(route)[1])
+
+    def test_work_report_failed_checks_have_no_completion_signal(self):
+        r = self.eligible()
+        self.stop()
+        self.config["warrants"][r["id"]]["checks"] = [[sys.executable, "-c", "raise SystemExit(1)"]]
+        self.start()
+        status, run = self.call("/api/runs", "POST", {"warrant_id": r["id"], "source_sha256": r["source_sha256"]})
+        self.assertEqual(status, 202)
+        self.wait_run(run["attempt_id"])
+        status, report = self.call("/api/runs/" + run["attempt_id"] + "/report")
+        self.assertEqual(status, 200)
+        self.assertIsNone(report["completion_signal"])
+        self.assertEqual(report["progress"]["completed"], 0)
 
     def test_admission_is_read_only_and_start_rechecks(self):
         r = self.eligible()

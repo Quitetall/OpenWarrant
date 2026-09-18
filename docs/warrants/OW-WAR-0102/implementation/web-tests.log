@@ -1,0 +1,49 @@
+test_access_and_authority_fields_refuse (test_execution.ExecutionTests.test_access_and_authority_fields_refuse) ... ok
+test_admission_is_read_only_and_start_rechecks (test_execution.ExecutionTests.test_admission_is_read_only_and_start_rechecks) ... ok
+test_admission_refusals_match_start (test_execution.ExecutionTests.test_admission_refusals_match_start) ... ok
+test_admission_unavailable_base_is_unknown (test_execution.ExecutionTests.test_admission_unavailable_base_is_unknown) ... ok
+test_changed_subject_and_authority_input_refuse (test_execution.ExecutionTests.test_changed_subject_and_authority_input_refuse) ... ok
+test_concurrent_edits_have_one_winner (test_execution.ExecutionTests.test_concurrent_edits_have_one_winner) ... ok
+test_corrupt_revision_and_second_writer_refuse (test_execution.ExecutionTests.test_corrupt_revision_and_second_writer_refuse) ... ok
+test_create_sdk_source_and_restart (test_execution.ExecutionTests.test_create_sdk_source_and_restart) ... ok
+test_duplicate_json_and_symlink_revision_refuse (test_execution.ExecutionTests.test_duplicate_json_and_symlink_revision_refuse) ... ok
+test_duplicate_result_fields_refuse (test_execution.ExecutionTests.test_duplicate_result_fields_refuse) ... ok
+test_duplicate_timeout_and_restart_block_replacement (test_execution.ExecutionTests.test_duplicate_timeout_and_restart_block_replacement) ... ok
+test_execute_exact_draft_in_isolated_worktree (test_execution.ExecutionTests.test_execute_exact_draft_in_isolated_worktree) ... ok
+test_explicit_retry_budget_and_result_identity (test_execution.ExecutionTests.test_explicit_retry_budget_and_result_identity) ... ok
+test_failing_check_never_completes (test_execution.ExecutionTests.test_failing_check_never_completes) ... ok
+test_field_only_corruption_refuses (test_execution.ExecutionTests.test_field_only_corruption_refuses) ... ok
+test_forged_result_never_completes (test_execution.ExecutionTests.test_forged_result_never_completes) ... ok
+test_invalid_unicode_result_persists_failed_terminal_record (test_execution.ExecutionTests.test_invalid_unicode_result_persists_failed_terminal_record) ... ok
+test_nonreading_harness_respects_deadline (test_execution.ExecutionTests.test_nonreading_harness_respects_deadline) ... ok
+test_other_state_cannot_create_second_warrant_worktree (test_execution.ExecutionTests.test_other_state_cannot_create_second_warrant_worktree) ... ok
+test_restart_during_live_attempt_is_unknown (test_execution.ExecutionTests.test_restart_during_live_attempt_is_unknown) ... ok
+test_revision_conflict_preserves_history (test_execution.ExecutionTests.test_revision_conflict_preserves_history) ... ok
+test_timeout_retains_observed_diagnostics (test_execution.ExecutionTests.test_timeout_retains_observed_diagnostics) ... ok
+test_unicode_check_output_cannot_lose_terminal_record (test_execution.ExecutionTests.test_unicode_check_output_cannot_lose_terminal_record) ... ok
+test_unknown_cost_and_verified_start_refuse (test_execution.ExecutionTests.test_unknown_cost_and_verified_start_refuse) ... ok
+test_work_report_failed_checks_have_no_completion_signal (test_execution.ExecutionTests.test_work_report_failed_checks_have_no_completion_signal) ... ok
+test_work_report_is_persisted_read_only_and_configurable (test_execution.ExecutionTests.test_work_report_is_persisted_read_only_and_configurable) ... ok
+test_access_and_authority_fields_refuse (test_workflow.WorkflowTests.test_access_and_authority_fields_refuse) ... ok
+test_concurrent_edits_have_one_winner (test_workflow.WorkflowTests.test_concurrent_edits_have_one_winner) ... ok
+test_corrupt_revision_and_second_writer_refuse (test_workflow.WorkflowTests.test_corrupt_revision_and_second_writer_refuse) ... ok
+test_create_sdk_source_and_restart (test_workflow.WorkflowTests.test_create_sdk_source_and_restart) ... ok
+test_duplicate_json_and_symlink_revision_refuse (test_workflow.WorkflowTests.test_duplicate_json_and_symlink_revision_refuse) ... ok
+test_field_only_corruption_refuses (test_workflow.WorkflowTests.test_field_only_corruption_refuses) ... ok
+test_project_inventory_keeps_legacy_and_work_separate (test_workflow.WorkflowTests.test_project_inventory_keeps_legacy_and_work_separate) ... ok
+test_revision_conflict_preserves_history (test_workflow.WorkflowTests.test_revision_conflict_preserves_history) ... ok
+test_deterministic_scoped_overview_and_escaped_offline_html (test_reporting.ReportTests.test_deterministic_scoped_overview_and_escaped_offline_html) ... ok
+test_incomplete_or_unestablished_results_never_emit_signal (test_reporting.ReportTests.test_incomplete_or_unestablished_results_never_emit_signal) ... ok
+test_access_and_authority_fields_refuse (test_workflow.WorkflowTests.test_access_and_authority_fields_refuse) ... ok
+test_concurrent_edits_have_one_winner (test_workflow.WorkflowTests.test_concurrent_edits_have_one_winner) ... ok
+test_corrupt_revision_and_second_writer_refuse (test_workflow.WorkflowTests.test_corrupt_revision_and_second_writer_refuse) ... ok
+test_create_sdk_source_and_restart (test_workflow.WorkflowTests.test_create_sdk_source_and_restart) ... ok
+test_duplicate_json_and_symlink_revision_refuse (test_workflow.WorkflowTests.test_duplicate_json_and_symlink_revision_refuse) ... ok
+test_field_only_corruption_refuses (test_workflow.WorkflowTests.test_field_only_corruption_refuses) ... ok
+test_project_inventory_keeps_legacy_and_work_separate (test_workflow.WorkflowTests.test_project_inventory_keeps_legacy_and_work_separate) ... ok
+test_revision_conflict_preserves_history (test_workflow.WorkflowTests.test_revision_conflict_preserves_history) ... ok
+
+----------------------------------------------------------------------
+Ran 44 tests in 11.658s
+
+OK
