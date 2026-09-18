@@ -1,0 +1,10 @@
+   Compiling openwarrant-cli v1.0.0 (/mnt/4tb/tmp/ow-export-preservation/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.99s
+     Running unittests src/main.rs (/mnt/4tb/tmp/ow107-gate-lineage/target/debug/deps/war-e3e52e6c899677d3)
+
+running 2 tests
+test preservation::audit::tests::journal_digest_requires_retained_bytes_and_known_event_semantics ... ok
+test preservation::audit::tests::receipt_seal_and_referenced_output_are_required ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 154 filtered out; finished in 0.00s
+
