@@ -3,6 +3,21 @@
 OW-WAR-0107 is in progress. Verification does not award the assurance mark.
 Prototype completion remains available without verification.
 
+## Loop driver under integration
+
+`verifier_loop.Loop` advances one dispatch per tick from an exact root execution
+attempt. Deterministic verification identities reuse retained claims across driver
+restarts. It waits for signed protection receipts, runs existing verification,
+dispatches eligible bounded repairs and follows retained repair/resume lineage.
+Passing checks still leave `qualified: false`; current policy and candidate are
+rechecked before reporting `checks_passed`.
+
+The host must schedule ticks and provide a read-only receipt lookup. This lookup
+must not launch a paid provider or hide cost. No CLI option or daemon currently
+enables this driver. Missing receipts wait; uncertain workers never relaunch;
+nonrepairable results and human decisions require attention. Service integration
+and external harness receipt production remain unfinished.
+
 ## Prepare a job
 
 Start the service with its existing execution configuration plus

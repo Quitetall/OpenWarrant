@@ -406,3 +406,29 @@ Retained artifacts: `browser-repair-jobs.json`, `browser-repair-attempts.json`,
 passed. This HTML-only change did not rerun the unchanged backend suite. Test tab
 closed and owned fixture process stopped. Automatic orchestration, refusal/race UI
 coverage and full release gates remain open; OW-WAR-0107 is not closed or qualified.
+
+## Durable loop transition driver
+
+Added an internal tick driver over existing verification and repair services.
+It derives deterministic claim identities from root/current execution attempts,
+waits for signed receipt lookup, dispatches verification and bounded repair, and
+follows retained repair/resume lineage. It reuses service authority and budget
+checks. A retained PASS is returned as checks_passed only after current policy,
+source and clean candidate revalidation; qualification remains false.
+
+Real-process fixtures exercised FAIL -> repair -> PASS with retained history and
+no duplicate work after driver restart, absent receipt waiting, forged receipt
+refusal, zero repair budget refusal and changed-candidate refusal. A scheduler-loss
+fixture consumes the real signed claim without launching its worker; subsequent
+ticks retain UNKNOWN and request no new receipt or writer.
+
+The full web suite passed 178 tests in 55.202 seconds before the final state-label
+rename and added scheduler-loss test. Four final focused loop tests passed in
+1.456 seconds. Both used OW_TEST_WAR=/mnt/4tb/tmp/ow-question-integrity/target/debug/war.
+Exact logs: implementation/loop-tests.log and implementation/loop-final-tests.log.
+
+The driver is not yet enabled in the service. Host scheduling, protected receipt
+lookup, public API/browser status and real external harness receipt production
+remain unfinished. The receipt callback must remain read-only and must not launch
+unaccounted paid calls. This work does not establish independent assurance or close
+OW-WAR-0107; full release gates and remaining scope still apply.
