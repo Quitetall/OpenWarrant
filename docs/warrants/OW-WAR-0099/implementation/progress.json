@@ -1,15 +1,17 @@
 {
   "schema": "oh.war/viewer-work-report/v1",
   "warrant": "OW-WAR-0099",
-  "work_state": "completed",
+  "work_state": "in_progress",
   "reported_by": "agent://codex",
   "revision": "325ce50e242d2e13fc003b5e0dc40d5339a79af3",
-  "summary": "Frontier refuses damaged inputs; full gate passed. Unverified; shared admission and OW68 broader scope remain open.",
+  "summary": "Scheduling payload refusal added after reproducing hidden claimed work. Focused controls pass; fresh full gate pending. Unverified.",
   "notes": "docs/warrants/OW-WAR-0099/implementation/notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0099/implementation/evidence/gate.log",
     "docs/warrants/OW-WAR-0099/implementation/evidence/regression.log",
-    "docs/warrants/OW-WAR-0099/implementation/evidence/initial-gate-failure.log.gz"
+    "docs/warrants/OW-WAR-0099/implementation/evidence/initial-gate-failure.log.gz",
+    "docs/warrants/OW-WAR-0099/implementation/evidence/payload-red.log",
+    "docs/warrants/OW-WAR-0099/implementation/evidence/payload-green.log"
   ],
   "next_steps": [
     "Integrate shared admission without weakening explicit action gates.",

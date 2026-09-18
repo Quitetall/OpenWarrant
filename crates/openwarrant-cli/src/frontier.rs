@@ -93,21 +93,33 @@ fn stage_events(dir: &camino::Utf8Path) -> Result<(BTreeSet<String>, BTreeSet<St
     })?;
     let j =
         crate::journal_cmd::parse(&text).map_err(|e| RepoError::Message(format!("{path}: {e}")))?;
-    {
-        for e in &j.events {
-            let stage = serde_json::from_str::<serde_json::Value>(&e.payload)
-                .ok()
-                .and_then(|v| v.get("stage").and_then(|s| s.as_str()).map(str::to_owned));
-            let Some(stage) = stage else { continue };
-            match e.event_type.as_str() {
-                "dispatch.compiled" => {
-                    claimed.insert(stage);
-                }
-                "submission.recorded" => {
-                    done.insert(stage);
-                }
-                _ => {}
-            }
+    for e in &j.events {
+        if !matches!(
+            e.event_type.as_str(),
+            "dispatch.compiled" | "submission.recorded"
+        ) {
+            continue;
+        }
+        let payload: serde_json::Value = serde_json::from_str(&e.payload).map_err(|_| {
+            RepoError::Message(format!(
+                "{path}: {} event {} has invalid JSON payload",
+                e.event_type, e.id
+            ))
+        })?;
+        let stage = payload
+            .get("stage")
+            .and_then(serde_json::Value::as_str)
+            .filter(|stage| !stage.trim().is_empty())
+            .ok_or_else(|| {
+                RepoError::Message(format!(
+                    "{path}: {} event {} requires a nonempty string stage",
+                    e.event_type, e.id
+                ))
+            })?;
+        if e.event_type == "dispatch.compiled" {
+            claimed.insert(stage.to_owned());
+        } else {
+            done.insert(stage.to_owned());
         }
     }
     Ok((claimed, done))
