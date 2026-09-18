@@ -1,0 +1,18 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0101",
+  "work_state": "in_progress",
+  "reported_by": "agent://codex",
+  "summary": "Local adapter transport and fixed milestone template exercised; two real-model outputs failed task-fidelity inspection. Candidate remains unverified and in progress.",
+  "notes": "docs/warrants/OW-WAR-0101/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0101/implementation/tests.log",
+    "docs/warrants/OW-WAR-0101/implementation/local-model/inspection.md",
+    "docs/warrants/OW-WAR-0101/implementation/local-model/semantic-validation.json",
+    "docs/warrants/OW-WAR-0101/implementation/local-model-2/inspection.md"
+  ],
+  "next_steps": [
+    "Qualify a capable configured drafting backend with actual task-faithful output.",
+    "Complete full gate and keep automatic application disabled."
+  ]
+}

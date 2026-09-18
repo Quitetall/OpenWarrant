@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-96 Warrant(s) in this repository.
+97 Warrant(s) in this repository.
 
 ## Summary
 
@@ -107,6 +107,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0098](docs/warrants/OW-WAR-0098/manifest.toml) | Share reference workflow start checks with read-only admission preview | `draft` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0099](docs/warrants/OW-WAR-0099/manifest.toml) | Preserve frontier integrity when stage history is damaged | `draft` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0100](docs/warrants/OW-WAR-0100/manifest.toml) | Report unsupported telemetry as unknown without changing historical baselines | `draft` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0101](docs/warrants/OW-WAR-0101/manifest.toml) | Constrain local drafting responses before semantic validation | `draft` | `current` | `valid` | `basic` | 2M / 2S |
 
 ## Claimed SAS requirement coverage
 
