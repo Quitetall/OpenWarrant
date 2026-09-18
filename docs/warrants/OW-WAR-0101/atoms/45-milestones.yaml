@@ -1,0 +1,20 @@
+schema: "oh.war/milestones/v1"
+milestones:
+  - id: "M1"
+    title: "Prepare constrained adapter and refusal tests"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-002"]
+  - id: "M2"
+    title: "Observe real local drafting"
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-003"]
+    depends_on: ["M1"]
+stages:
+  - id: "STAGE-001"
+    title: "Implement structural adapter"
+    executor_kind: "agent"
+    responsibility_tier: "T1"
+  - id: "STAGE-002"
+    title: "Capture actual model outcome"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
