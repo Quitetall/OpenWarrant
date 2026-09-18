@@ -94,3 +94,16 @@ resolved pinned deliverable; run this package's tests alongside `cargo xtask gat
 Optional local/cloud agent-assisted drafting: [configuration and protocol](DRAFTING.md).
 
 Optional verification candidate: [preparation API and current limits](VERIFICATION.md).
+
+## Next-work preview
+
+Authenticated `GET /api/next-work` evaluates configured whole-Warrant and stage
+subjects through the same admission methods used by Start. The browser's Next
+work panel shows current ready, blocked, completed-stage or unknown observations.
+It cannot grant dispatch permission, reserve a writer, or start work. Start
+rechecks current inputs. Failed refresh clears prior entries; locking clears
+the panel and discards pending responses from the old session.
+
+This workflow-specific preview is separate from `war progress`'s offline
+roadmap. The offline view shows legacy stage facts and cannot establish live
+workflow permission without the configured workflow service.

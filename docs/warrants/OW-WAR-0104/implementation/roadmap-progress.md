@@ -79,3 +79,12 @@ The next-work permission preview remains incomplete: the active reference
 workflow evaluator is the application `/api/admission`, which cannot be replaced
 by the legacy frontier projection. No permission claim is inferred from open
 stages in this viewer.
+
+Workflow next-work implementation: authenticated GET `/api/next-work` calls
+existing stage_listing/admission for each configured subject under the executor
+lock. Missing inputs produce explicit unknown rows. No worker start or writer
+claim occurs. The reference app has a separate refreshable Next work panel,
+clears errors/locked state and discards responses from earlier sessions.
+All 57 execution HTTP/process tests passed, including preview/admission parity,
+no-run/no-claim assertions, wrong-token refusal and verified-start blocking.
+JavaScript syntax check passed. New panel browser interaction remains pending.

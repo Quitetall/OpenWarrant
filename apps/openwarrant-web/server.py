@@ -500,6 +500,34 @@ class Handler(BaseHTTPRequestHandler):
             ):
                 raise Refusal(401, "Unlock with this service session token")
             store = self.server.store
+            if self.command == "GET" and self.path == "/api/next-work":
+                executor = self.server.executor
+                if executor is None:
+                    raise Refusal(409, "Execution harness not configured")
+                rows = []
+                with executor.lock:
+                    for warrant_id, policy in sorted(executor.config["warrants"].items()):
+                        try:
+                            listing = executor.stage_listing(warrant_id)
+                            if listing["mode"] == "staged":
+                                for stage in listing["stages"]:
+                                    rows.append({"warrant_id": warrant_id,
+                                                 "source_sha256": listing["source_sha256"], **stage})
+                            else:
+                                subject = {"warrant_id": warrant_id,
+                                           "source_sha256": listing["source_sha256"]}
+                                preview = executor.admission(subject)
+                                rows.append({**subject, "stage": None,
+                                             "dependencies": policy["dependencies"],
+                                             "state": preview["state"], "reason": preview["reason"],
+                                             "dispatch_permitted": False})
+                        except (ExecutionError, Refusal, OSError, KeyError, TypeError, ValueError, subprocess.SubprocessError):
+                            rows.append({"warrant_id": warrant_id, "state": "unknown",
+                                         "reason": "Current execution inputs unavailable",
+                                         "dispatch_permitted": False})
+                return self.reply(200, {"schema": "oh.war/next-work-preview/v1",
+                                        "rows": rows, "dispatch_permitted": False,
+                                        "qualified": False})
             if self.command == 'GET' and self.path == '/api/queue':
                 if self.server.dispatch_queue is None:
                     raise Refusal(409, 'Agent queue not configured')

@@ -24,23 +24,23 @@ obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
 
 [[scope]]
 path_glob = "apps/openwarrant-web/server.py"
-obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
 
 [[scope]]
 path_glob = "apps/openwarrant-web/index.html"
-obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
 
 [[scope]]
 path_glob = "apps/openwarrant-web/test_workflow.py"
-obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
 
 [[scope]]
 path_glob = "apps/openwarrant-web/test_execution.py"
-obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
 
 [[scope]]
 path_glob = "apps/openwarrant-web/README.md"
-obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
 
 [[scope]]
 path_glob = "docs/warrants/OW-WAR-0069/implementation/**"
