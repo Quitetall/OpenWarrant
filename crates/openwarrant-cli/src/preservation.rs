@@ -3,6 +3,7 @@
 use std::{collections::BTreeMap, path::Path};
 mod artifacts;
 mod audit;
+mod cases;
 mod contracts;
 mod history;
 mod identity;
@@ -529,6 +530,7 @@ fn assemble(
         "actions and relevant audit receipts".into(),
         audit::coverage(&files, relative.as_str())?,
     );
+    coverage.extend(cases::coverage(&files, relative.as_str())?);
     let archive = Archive {
         schema: SCHEMA.into(),
         subject: format!("war://{}", basis.manifest.uuid),
@@ -611,57 +613,47 @@ fn verify_archive_basis(
     files: &BTreeMap<String, Vec<u8>>,
 ) -> Result<String, Error> {
     let subject = verify_basis(files)?;
-    if matches!(
-        archive.coverage.get("artifacts"),
-        Some(openwarrant_compiler::preservation::Coverage::Retained { .. })
-    ) {
-        let snapshot: BasisSnapshot =
-            serde_json::from_slice(&files[BASIS_PATH]).map_err(|e| Error(e.to_string()))?;
-        let directory = snapshot
-            .manifest_source
-            .strip_suffix("/manifest.toml")
-            .ok_or_else(|| Error("invalid manifest source path".into()))?;
-        let observed = artifacts::coverage(files, directory)?;
-        if archive.coverage.get("artifacts") != Some(&observed) {
-            return Err(Error(
-                "artifact coverage differs from checked declaration inventory".into(),
-            ));
+    let snapshot: BasisSnapshot =
+        serde_json::from_slice(&files[BASIS_PATH]).map_err(|e| Error(e.to_string()))?;
+    let directory = snapshot
+        .manifest_source
+        .strip_suffix("/manifest.toml")
+        .ok_or_else(|| Error("invalid manifest source path".into()))?;
+    let observations = [
+        (
+            "artifacts",
+            artifacts::coverage(files, directory)?,
+            "artifact coverage differs from checked declaration inventory",
+        ),
+        (
+            "contract revisions",
+            contracts::coverage(files, directory)?,
+            "contract revision coverage differs from retained history",
+        ),
+        (
+            "actions and relevant audit receipts",
+            audit::coverage(files, directory)?,
+            "action coverage differs from retained journal evidence",
+        ),
+    ];
+    for (name, observed, message) in observations {
+        if !matches!(
+            archive.coverage.get(name),
+            Some(openwarrant_compiler::preservation::Coverage::Unavailable { .. })
+        ) && archive.coverage.get(name) != Some(&observed)
+        {
+            return Err(Error(message.into()));
         }
     }
-    if matches!(
-        archive.coverage.get("contract revisions"),
-        Some(openwarrant_compiler::preservation::Coverage::Retained { .. })
-    ) {
-        let snapshot: BasisSnapshot =
-            serde_json::from_slice(&files[BASIS_PATH]).map_err(|e| Error(e.to_string()))?;
-        let directory = snapshot
-            .manifest_source
-            .strip_suffix("/manifest.toml")
-            .ok_or_else(|| Error("invalid manifest source path".into()))?;
-        if archive.coverage.get("contract revisions")
-            != Some(&contracts::coverage(files, directory)?)
+    for (name, observed) in cases::coverage(files, directory)? {
+        if !matches!(
+            archive.coverage.get(&name),
+            Some(openwarrant_compiler::preservation::Coverage::Unavailable { .. })
+        ) && archive.coverage.get(&name) != Some(&observed)
         {
-            return Err(Error(
-                "contract revision coverage differs from retained history".into(),
-            ));
-        }
-    }
-    if matches!(
-        archive.coverage.get("actions and relevant audit receipts"),
-        Some(openwarrant_compiler::preservation::Coverage::Retained { .. })
-    ) {
-        let snapshot: BasisSnapshot =
-            serde_json::from_slice(&files[BASIS_PATH]).map_err(|e| Error(e.to_string()))?;
-        let directory = snapshot
-            .manifest_source
-            .strip_suffix("/manifest.toml")
-            .ok_or_else(|| Error("invalid manifest source path".into()))?;
-        if archive.coverage.get("actions and relevant audit receipts")
-            != Some(&audit::coverage(files, directory)?)
-        {
-            return Err(Error(
-                "action coverage differs from retained journal evidence".into(),
-            ));
+            return Err(Error(format!(
+                "{name} coverage differs from retained source records"
+            )));
         }
     }
     Ok(subject)

@@ -289,6 +289,22 @@ fn actual_warrant_sources_reconstruct_after_source_repository_disappears() {
         f.run(&["archive", "inspect", "false-contract-coverage.json"]),
         "contract revision coverage differs",
     );
+    let mut false_absence = archive.clone();
+    false_absence.coverage.insert(
+        "artifacts".into(),
+        Coverage::Absent {
+            reason: "caller claims nothing exists".into(),
+        },
+    );
+    std::fs::write(
+        f.0.join("false-absence.json"),
+        false_absence.encode(Limits::default()).unwrap(),
+    )
+    .unwrap();
+    refusal(
+        f.run(&["archive", "inspect", "false-absence.json"]),
+        "artifact coverage differs",
+    );
     let original_subject = archive.subject.clone();
     archive.subject = "war://wrong-warrant".into();
     std::fs::write(
