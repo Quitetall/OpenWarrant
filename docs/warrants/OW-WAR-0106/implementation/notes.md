@@ -66,3 +66,9 @@ no governing/direct-human dispatch, timeout persistence and authority-field refu
 JavaScript syntax passes. Synthetic tests do not qualify real models or containment.
 Full gate, exact-head integration and any remaining stage-granularity limits remain
 open; no completion or assurance claim is made by this implementation note.
+
+A focused real-process interruption test stops the service while its adviser is
+still alive, then restarts. The initial sequence-one record becomes unknown, no
+answer appears and the launch marker remains one. The test explicitly terminates
+only its own synthetic process group afterward. This proves restart refusal, not
+remote-job fencing or a recovery mechanism.

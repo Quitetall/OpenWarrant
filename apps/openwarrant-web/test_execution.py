@@ -337,6 +337,33 @@ print(json.dumps({'schema':'oh.war/execution-question/v1','attempt_id':r['attemp
         self.stop(); self.start()
         self.assertEqual(marker.read_text(), "x")
 
+    def test_interrupted_adviser_keeps_initial_record_unknown(self):
+        import signal
+        self.prepare_answered_question(submit=False)
+        pidfile = self.root / "owned-adviser.pid"
+        marker = self.enable_fixture_adviser(
+            "import os;pathlib.Path(" + repr(str(pidfile)) + ").write_text(str(os.getpid()));time.sleep(20)")
+        for _ in range(100):
+            if pidfile.exists():
+                break
+            time.sleep(0.01)
+        self.assertTrue(pidfile.exists())
+        pid = int(pidfile.read_text())
+        self.stop()
+        try:
+            self.start()
+            data = self.call("/api/hotline")[1]
+            self.assertEqual(data["advice"][0]["state"], "unknown")
+            self.assertEqual(data["advice"][0]["sequence"], 1)
+            self.assertIsNone(data["questions"][0]["answer"])
+            self.assertEqual(marker.read_text(), "x")
+        finally:
+            # Only the synthetic process launched by this test, never a shared service.
+            try:
+                os.killpg(pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+
     def test_governing_question_is_never_sent_to_automatic_adviser(self):
         self.prepare_answered_question(submit=False, kind="governing")
         marker = self.enable_fixture_adviser()
