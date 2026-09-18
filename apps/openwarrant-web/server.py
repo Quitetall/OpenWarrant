@@ -76,13 +76,16 @@ def identity(value):
 
 
 def read_file(path, limit=FILE_LIMIT):
-    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
-    with os.fdopen(fd, "rb") as file:
-        import stat
+    import stat
 
-        if not stat.S_ISREG(os.fstat(file.fileno()).st_mode):
+    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    try:
+        if not stat.S_ISREG(os.fstat(fd).st_mode):
             raise Refusal(409, "Regular file required")
-        data = file.read(limit + 1)
+        with os.fdopen(fd, "rb", closefd=False) as file:
+            data = file.read(limit + 1)
+    finally:
+        os.close(fd)
     if len(data) > limit:
         raise Refusal(413, "File limit exceeded")
     return data
