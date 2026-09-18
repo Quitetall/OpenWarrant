@@ -1,19 +1,20 @@
 {
   "schema": "oh.war/viewer-work-report/v1",
   "warrant": "OW-WAR-0089",
-  "work_state": "blocked",
+  "work_state": "completed",
   "reported_by": "agent://codex",
-  "revision": "9e99fbf26df2fc1c5cb3a1bfc2be39f5e4e57e8f64473d530614e4553093a159",
-  "summary": "Linux candidate packaging/install and six refusal tests pass; full gate 14/14, 308/308. Native macOS install remains missing; no release qualification or publication.",
+  "revision": "43a3c2f2a3704e9d439b2e2a1f360c49b5191ac6",
+  "summary": "Candidate packaging implementation completed, unverified: native Linux/macOS installs, documented examples, archive integrity and refusal tests observed. Phase 3 evidence, independent release qualification and publication permission remain separate blockers under OW90/91.",
   "notes": "docs/warrants/OW-WAR-0089/implementation/notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0089/implementation/observation.json",
     "docs/warrants/OW-WAR-0089/implementation/linux-install.json",
     "docs/warrants/OW-WAR-0089/implementation/tests.log",
-    "docs/warrants/OW-WAR-0089/implementation/gate.log"
+    "docs/warrants/OW-WAR-0089/implementation/gate.log",
+    "docs/warrants/OW-WAR-0089/implementation/native-20260918/comparison.json"
   ],
   "next_steps": [
-    "Obtain matching native macOS installation and final build provenance.",
-    "Finish Phase 3 workflow/user evidence before OW90 qualification."
+    "Finish Phase 3 workflow/user evidence and independent release qualification under OW90.",
+    "Establish final release build provenance and obtain OW91 publication permission."
   ]
 }

@@ -24,12 +24,13 @@ provenance_required = true
 obligation_refs = ["OBL-002", "OBL-003"]
 
 [deliverable.provenance]
-producer = "claude"
-producing_attempt = "OW-WAR-0041/attempt-1"
+producer = "codex"
+producing_attempt = "OW-WAR-0041/measurement-integrity"
+input_digests = ["sha256:baf6340b04f5955fb4bcb4ef5ba7b306544cf27c44e3d32a56031b85a6ad90af"]
 contract_digest = "unrecorded"
 tool_or_runtime_identity = "rustc 1.97.1"
 creation_method = "authored"
-content_digest = "sha256:baf6340b04f5955fb4bcb4ef5ba7b306544cf27c44e3d32a56031b85a6ad90af"
+content_digest = "sha256:15c84ece45d05466954db16ab2712692a9329adfc13066dd387089222841b792"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"
