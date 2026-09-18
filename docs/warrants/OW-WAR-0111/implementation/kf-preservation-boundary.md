@@ -64,3 +64,17 @@ bounded transport, IR reconstruction and retained Git bytes only. Complete
 provider coverage and the empty-KF round trip remain open. Keep OW111 incomplete
 until these observations exist; do not change unavailable categories to absent
 to make import pass.
+
+## Later observations
+
+This document's inspection findings above describe the initial boundary, not the
+current test result. Provider PR #3 merged at
+`876efc7fc1248bc1dab666375e18b634ebbd834e`, adding real source-shutdown database
+and object-store restoration. Provider draft PR #4 uses the current source-complete
+archive and expanded synthetic runtime receipt records. See
+`kf-source-complete-roundtrip.md` for the observed local result and exact archive
+identity. Hosted checks for that extension remain separate.
+
+These observations cover provider record preservation and source-detached local
+IR reconstruction. They do not supply a local non-human runtime receipt resolver,
+real runtime execution proof, accepted format decision or independent disposition.
