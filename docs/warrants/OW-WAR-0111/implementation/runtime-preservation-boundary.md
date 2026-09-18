@@ -42,3 +42,20 @@ selection and optional exact stage packet binding. See `provider-stage-bindings.
 for source identity, tests and the observed CLI journal side effect. Local archive
 assembly has not yet consumed this provider reader, so its unavailable runtime
 coverage remains unchanged.
+
+## Missing-receipt inventory
+
+KF candidate `dffe06858d8d60e753f1496dadf56eba4799d867` adds
+`dispatchesWithoutReceipts` to the authenticated offline projection. This lists
+selected provider dispatches with no retained receipt row, separately from
+`unmappedDispatchDigests`. A failed receipt still counts as retained evidence;
+absence is not an assertion that a worker never ran. Neither list establishes
+complete stage coverage or permits changing local archive coverage to retained.
+
+The new signed-package fixture retains two dispatches, a failed receipt for one,
+and reports only the other as lacking receipt evidence. Five reader tests and
+all 43 export-package tests pass after rebuilding the CLI; TypeScript build and
+focused ESLint pass. An initial CLI parity run used stale compiled output and
+failed; the rebuilt full suite supplies the passing result. Retained suite log:
+`provider-receipt-gap-tests.log.gz`. Provider PR5 carries this change; archive
+assembly, real runtime proof and formal qualification remain open.
