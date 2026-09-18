@@ -1,0 +1,20 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0107",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "9ac52333a421677743fbdbcbf6b2815c4b081942",
+  "summary": "Verification, repair, dispute, loop and report implementation candidate complete; final-head CI and closeout pending. Unverified.",
+  "notes": "docs/warrants/OW-WAR-0107/implementation/scope-audit.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0107/implementation/report-web-tests.log",
+    "docs/warrants/OW-WAR-0107/implementation/full-gate-4a2682f.log",
+    "docs/warrants/OW-WAR-0107/implementation/browser-loop-status.json",
+    "docs/warrants/OW-WAR-0107/implementation/scope-audit.md"
+  ],
+  "next_steps": [
+    "Obtain actual exact-head Bonsai evidence after correcting PR Warrant metadata.",
+    "Finish hosted gate and web checks; audit scope before unverified implementation closeout.",
+    "Keep independent verification and secure human acceptance separate."
+  ]
+}

@@ -6,6 +6,11 @@ policy_digest = "sha256:cd98584ef76d326881ea17eaa65904657063733c7ecf907f07c18ecf
 bonsai_source = "github:Quitetall/bonsai"
 bonsai_revision = "4c8cc1043cbc4d30d2c41cbb25ba1afe25c6ad7c"
 
+# CONTRIBUTING.md requires threat documentation alongside control changes.
+[[scope]]
+path_glob = "docs/THREAT_MODEL.md"
+obligation_refs = ["OBL-001", "OBL-002"]
+
 [[scope]]
 path_glob = "apps/openwarrant-web/**"
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]

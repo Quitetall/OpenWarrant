@@ -542,3 +542,20 @@ full Rust gate on rustc 1.97.1 (8bab26f4f 2026-07-14) in a standalone clone:
 clean afterward. Evidence: implementation/full-gate-4a2682f.log. The report
 supplement postdates that run; final-head CI remains required. Scope audit updated
 without marking independent obligations established or resolving the Warrant.
+
+## PR metadata and scope inventory correction
+
+PR118 at 9ac52333a421677743fbdbcbf6b2815c4b081942 had a green Bonsai job but
+no artifact. Source inspection established that CI skips report generation when
+the PR body lacks its exact Warrant line. Added `Warrant: OW-WAR-0107` to the body;
+the original skipped check is not treated as compliance evidence. Its observed
+status is retained in implementation/pr118-initial-checks.json. The workflow does
+not run on body edits alone, so the following real documentation/progress commit
+supplies a new synchronize event with corrected metadata.
+
+The unsigned scope inventory also omitted docs/THREAT_MODEL.md, although
+CONTRIBUTING.md requires that document for control changes. Added that exact path
+against OBL-001/002. The implementation branch's only path outside the previously
+listed scope was this required threat documentation; no signed contract or broad
+scope rule was changed. Added an in-progress viewer report while final checks and
+closeout remain pending. No independent disposition or Verified mark is claimed.
