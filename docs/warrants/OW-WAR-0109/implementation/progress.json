@@ -1,0 +1,17 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0109",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "b908185a22c017ccdcd413511f83a0500c785ef4",
+  "summary": "Durable one-shot agent queue, bounded availability probe, authenticated API and browser controls implemented. Post-merge 207 tests and synthetic browser flow pass; final gate and remaining failure-case audit pending. Unverified.",
+  "notes": "docs/warrants/OW-WAR-0109/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0109/implementation/browser-observation.md"
+  ],
+  "next_steps": [
+    "Observe unchanged-control focus after polling fix.",
+    "Finish full gate and exact-head hosted checks.",
+    "Audit all queue obligations, including stale source, explicit start gates and uncertain dispatch."
+  ]
+}
