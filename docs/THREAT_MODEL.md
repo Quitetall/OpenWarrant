@@ -121,6 +121,27 @@ HTTP configuration, field injection, duplicate intent, background repair/recheck
 pause across scheduler restart and corrupt-history refusal. Intent digests detect
 corruption; protected control storage remains required against hostile rewriting.
 
+## Availability observations and queued dispatch (OW-WAR-0109)
+
+The candidate availability adapter runs only an operator-configured command. It
+bounds transport time/output, accepts a small exact response schema, and requires
+the fresh request nonce. Missing, stale, duplicated, malformed, oversized, timed-out
+or unsuccessful observations produce UNKNOWN, never available. Availability is
+advisory and grants no authority, writer claim, capacity reservation or assurance.
+`test_availability` exercises real subprocesses, including timeout and bad output.
+The operator must protect the command and its configuration; the shared process
+transport is not a sandbox and cannot contain escaped or remote descendants.
+The candidate durable queue records consumption before launch and binds the exact
+queue record digest into the execution attempt. A consumed request with no matching
+retained attempt stays unknown and is never retried. Restart may recover a single
+exact matching attempt. Current configuration identity and shared admission checks
+remain necessary. Hashes detect corruption, not hostile rewriting or deletion by
+an account that owns control storage. Tests exercise both launch crash boundaries,
+restart and corruption. Queue endpoints require the existing authenticated local
+session and origin checks. Requests cannot select probe commands or edit server
+configuration. Cancellation stops future launch only. Background polling bounds
+each tick to one probe and stops on unreadable or corrupt history. Browser lock
+does not cancel an already authorized queue request.
 ## Reference workflow file inputs (OW-WAR-0102)
 
 The shared state/report file reader opens inputs with no-follow and nonblocking

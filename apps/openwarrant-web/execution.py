@@ -378,7 +378,7 @@ class Executor:
                 "remaining_checks": ["worktree identity", "exclusive writer claim", "harness launch"],
             }
 
-    def start(self, fields, resume_context=None, repair_context=None):
+    def start(self, fields, resume_context=None, repair_context=None, queue_context=None):
         # Re-evaluate live facts under the same lock used by authoring. A preview
         # is not a grant, reservation, or substitute for this check.
         with self.lock:
@@ -462,6 +462,8 @@ class Executor:
                 r.update(stage=fields["stage"], prior_completed_stages=sorted(done))
             if resume_context:
                 r.update(resume_from=resume_context["from"], hotline_context=resume_context["history"])
+            if queue_context is not None:
+                r["queue_dispatch"] = dict(queue_context)
             self.save(r)
             self.live.add(attempt)
             threading.Thread(target=self.run, args=(r, record, p), daemon=True).start()
