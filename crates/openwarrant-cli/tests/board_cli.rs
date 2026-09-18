@@ -58,6 +58,9 @@ fn board_is_complete_read_only_and_refuses_corrupt_questions() {
         serde_json::from_slice(&run(&["frontier", "--json"]).stdout).unwrap();
     assert_eq!(board["result"]["approvals"], console["result"]["acts"]);
     assert_eq!(board["result"]["frontier"], frontier["result"]);
+    let status: serde_json::Value =
+        serde_json::from_slice(&run(&["status", "--json"]).stdout).unwrap();
+    assert_eq!(board["result"]["corpus"], status["result"]);
     assert!(
         !board["result"]["corpus"]["warrants"]
             .as_array()
@@ -92,5 +95,15 @@ fn board_is_complete_read_only_and_refuses_corrupt_questions() {
     .unwrap();
     assert!(!run(&["board", "--json"]).status.success());
     assert!(!run(&["board", "--html"]).status.success());
+    fs::remove_file(root.join("docs/warrants/IX-WAR-0002/questions/Q-002.toml")).unwrap();
+    fs::write(
+        root.join("docs/warrants/IX-WAR-0002/journal.jsonl"),
+        "broken journal",
+    )
+    .unwrap();
+    assert!(
+        !run(&["board", "--json"]).status.success(),
+        "damaged stage history must not become an empty frontier"
+    );
     fs::remove_dir_all(root).unwrap();
 }

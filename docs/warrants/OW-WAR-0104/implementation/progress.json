@@ -3,15 +3,18 @@
   "warrant": "OW-WAR-0104",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "revision": "2a12ae8864236406209b224c30256f20f38118b9",
-  "summary": "Read-only board and batch-question candidate implemented; full integration gate pending.",
+  "revision": "7ba66ae6f635d0f746e7ca8e85a261a2cf4d3f22",
+  "summary": "CLI and web board implemented; full isolated gate passes 14/14 with 308 controls, 47 web tests pass, browser stage/approval rendering and failed-refresh clearing observed. Offline-file rendering and final integration remain open.",
   "notes": "docs/warrants/OW-WAR-0069/implementation/board-notes.md",
   "evidence": [
-    "docs/warrants/OW-WAR-0069/implementation/board-notes.md"
+    "docs/warrants/OW-WAR-0069/implementation/board-notes.md",
+    "docs/warrants/OW-WAR-0104/implementation/gate-7ba66ae.log.gz",
+    "docs/warrants/OW-WAR-0069/implementation/board-web-tests.log",
+    "docs/warrants/OW-WAR-0069/implementation/board-browser-qa.md"
   ],
   "next_steps": [
-    "Run full isolated gate on integrated candidate",
-    "Inspect offline rendering and complete bounded obligation audit",
+    "Finish exact-head CI and merge board continuation",
+    "Confirm offline-file rendering and reconcile remaining legacy OW69 evidence",
     "Independent verification and human qualification remain separate"
   ]
 }

@@ -22,7 +22,7 @@ refusal. Extended signing-list comparison and HTML injection tests also passed (
 
 `cargo clippy -p openwarrant-cli --all-targets -- -D warnings` passed.
 
-Remaining: full isolated gate, rendered HTML inspection,  exact delivery/evidence reconciliation for all
+Remaining: final hosted integration checks, offline-file rendering inspection,  exact delivery/evidence reconciliation for all
 OW-WAR-0069 obligations, and independent verification. Signed atoms unchanged.
 
 The reference workbench now reads `/api/board` through the authenticated local API.
@@ -37,3 +37,11 @@ not weakened. A fresh exact-subject gate remains required.
 All 47 reference-web tests pass, including the execution fixture's expected board
 refusal without an OpenWarrant corpus. New unsigned OW104 binds this continuation's
 CI scope; signed OW69 remains intact.
+
+Fresh isolated gate at 7ba66ae passed all 14 steps and 308 planted controls,
+including the question/performer/signing refusal cases. Terminal exit 0 observed.
+Retained log: `docs/warrants/OW-WAR-0104/implementation/gate-7ba66ae.log.gz`.
+
+Legacy OW69 still has unanswered Q-001 through Q-006 records. No answer was forged.
+This delivery provides the reference workbench board; the historical question
+proposing a separate Pages board is not silently treated as answered or accepted.
