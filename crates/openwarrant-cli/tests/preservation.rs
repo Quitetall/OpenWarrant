@@ -1469,10 +1469,41 @@ fn service_run_receipt_points_to_retained_stream_bytes() {
         );
     }
     success(f.run(&["run", "STREAM-WAR-0001", "STAGE-001"]));
-    let receipt: openwarrant_core::GateReceipt = serde_json::from_slice(
-        &std::fs::read(dir.join("gate-runs/ops_echo_1_0_0.receipt.json")).unwrap(),
-    )
-    .unwrap();
+    let first_dispatch = std::fs::read_dir(dir.join("dispatches"))
+        .unwrap()
+        .next()
+        .unwrap()
+        .unwrap()
+        .path();
+    let dispatch_id = first_dispatch.file_stem().unwrap().to_str().unwrap();
+    let receipt_path = dir
+        .join("gate-runs")
+        .join(dispatch_id)
+        .join("ops_echo_1_0_0.receipt.json");
+    let receipt_bytes = std::fs::read(&receipt_path).unwrap();
+    let receipt: openwarrant_core::GateReceipt = serde_json::from_slice(&receipt_bytes).unwrap();
+    let first_run_bytes =
+        std::fs::read(receipt_path.with_file_name("ops_echo_1_0_0.run.toml")).unwrap();
+    success(f.run(&["run", "STREAM-WAR-0001", "STAGE-001"]));
+    assert_eq!(std::fs::read(&receipt_path).unwrap(), receipt_bytes);
+    assert_eq!(
+        std::fs::read(receipt_path.with_file_name("ops_echo_1_0_0.run.toml")).unwrap(),
+        first_run_bytes
+    );
+    let attempts: Vec<_> = std::fs::read_dir(dir.join("gate-runs"))
+        .unwrap()
+        .map(|r| r.unwrap().path())
+        .collect();
+    assert_eq!(attempts.len(), 2);
+    let second_path = attempts
+        .iter()
+        .find(|p| p.file_name().unwrap().to_str().unwrap() != dispatch_id)
+        .unwrap()
+        .join("ops_echo_1_0_0.receipt.json");
+    let second: openwarrant_core::GateReceipt =
+        serde_json::from_slice(&std::fs::read(second_path).unwrap()).unwrap();
+    assert_ne!(receipt.run_id, second.run_id);
+    assert_ne!(receipt.subject_digests, second.subject_digests);
     assert_eq!(
         std::fs::read(f.0.join(&receipt.stdout_ref)).unwrap(),
         b"service-out"
