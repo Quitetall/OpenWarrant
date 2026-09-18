@@ -12,6 +12,7 @@ from verifier_policy import admission
 from verifier_snapshot import Snapshot
 from verifier_controller import run
 from verifier_budget import allowance
+from verifier_repair import plan as repair_plan
 
 
 class Verification:
@@ -114,6 +115,11 @@ class Verification:
             return run(self.jobs, initial["request"], snapshot, self.executor.lock,
                        self.jobs.root / ("workspace-" + id), payload=payload, signature=signature,
                        schedule=lambda work: self.schedule(id, work), remaining_seconds=budget["remaining_seconds"])
+
+    def repair_preview(self, id):
+        with self.executor.lock:
+            return repair_plan(self.get(id), list(self.executor.records().values()),
+                               self.executor.config.get('repair_cycles', 3))
 
     def schedule(self, id, work):
         self.live.add(id)

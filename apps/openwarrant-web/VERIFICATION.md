@@ -35,6 +35,11 @@ Authenticated routes:
 - `GET /api/verification` lists retained jobs.
 - `GET /api/verification/<verification_id>` returns the exact request, admission
   basis and retained state.
+- `GET /api/verification/<verification_id>/repair` derives an advisory repair plan
+  from retained findings and repair history. It does not dispatch. Missing evidence
+  blocks; UNKNOWN and nonrepairable findings escalate; configured cycle limits
+  override the default of three. A future repair action must recheck current scope,
+  candidate, writer claims and aggregate budget before execution.
 - `POST /api/verification/<verification_id>/start` accepts exactly
   `payload_base64` and `signature_base64`. These encode the original signed
   `oh.war/harness-protection/v1` receipt and SSH signature. The receipt binds

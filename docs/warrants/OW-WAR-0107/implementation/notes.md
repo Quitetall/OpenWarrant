@@ -216,3 +216,20 @@ unknown/missing accounting, either hard cost cap, and HTTP refusal before creati
 a verifier workspace. Evidence: `implementation/budget-tests.log`. No metered paid
 backend or reliable paid reservation interface is implemented. Repair dispatch
 still needs this shared accounting when the repair loop is connected.
+
+## Bounded repair planning
+
+Added retained-evidence repair planning and its authenticated read-only API.
+Repairable findings and failed protected checks can produce an advisory ready plan.
+UNKNOWN/nonrepairable findings escalate; missing evidence or uncertain verifier
+execution block. Explicit cycle limits override the fallback of three, including
+zero. Repair history counts initial repair dispatches across verification IDs,
+not hotline resumptions or unrelated Warrants. A prior repair for the same result
+returns that attempt instead of proposing another dispatch. No performer can clear
+the independent finding through this API.
+
+Thirteen focused repair/service tests pass, including default/selected/exhausted
+limits, idempotency, unknown evidence, failed-check repair and HTTP PASS preview.
+Evidence: `implementation/repair-plan-tests.log`. This plan is based on retained
+observations and grants no dispatch. Actual repair execution, fresh-state admission,
+automatic re-verification and rebuttal/escalation routing remain open.

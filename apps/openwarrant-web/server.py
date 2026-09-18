@@ -491,6 +491,11 @@ class Handler(BaseHTTPRequestHandler):
                 raise Refusal(401, "Unlock with this service session token")
             store = self.server.store
             verification = re.fullmatch(r"/api/verification/([0-9a-f-]{36})", self.path)
+            repair_preview = re.fullmatch(r"/api/verification/([0-9a-f-]{36})/repair", self.path)
+            if self.command == "GET" and repair_preview:
+                if self.server.verification is None:
+                    raise Refusal(409, "Verifier not configured")
+                return self.reply(200, self.server.verification.repair_preview(repair_preview[1]))
             if self.command == "GET" and (self.path == "/api/verification" or verification):
                 if self.server.verification is None:
                     raise Refusal(409, "Verifier not configured")
