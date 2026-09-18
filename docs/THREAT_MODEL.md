@@ -131,4 +131,10 @@ advisory and grants no authority, writer claim, capacity reservation or assuranc
 `test_availability` exercises real subprocesses, including timeout and bad output.
 The operator must protect the command and its configuration; the shared process
 transport is not a sandbox and cannot contain escaped or remote descendants.
-Durable queue consumption, public interfaces and dispatch integration are pending.
+The candidate durable queue records consumption before launch and binds the exact
+queue record digest into the execution attempt. A consumed request with no matching
+retained attempt stays unknown and is never retried. Restart may recover a single
+exact matching attempt. Current configuration identity and shared admission checks
+remain necessary. Hashes detect corruption, not hostile rewriting or deletion by
+an account that owns control storage. Tests exercise both launch crash boundaries,
+restart and corruption; public interfaces and background scheduling remain pending.
