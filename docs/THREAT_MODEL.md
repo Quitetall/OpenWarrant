@@ -137,4 +137,8 @@ retained attempt stays unknown and is never retried. Restart may recover a singl
 exact matching attempt. Current configuration identity and shared admission checks
 remain necessary. Hashes detect corruption, not hostile rewriting or deletion by
 an account that owns control storage. Tests exercise both launch crash boundaries,
-restart and corruption; public interfaces and background scheduling remain pending.
+restart and corruption. Queue endpoints require the existing authenticated local
+session and origin checks. Requests cannot select probe commands or edit server
+configuration. Cancellation stops future launch only. Background polling bounds
+each tick to one probe and stops on unreadable or corrupt history. Browser lock
+does not cancel an already authorized queue request.

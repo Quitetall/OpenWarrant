@@ -2,6 +2,7 @@
 """Durable one-shot dispatch requests; uncertain consumption never replays."""
 import json
 import re
+import threading
 import uuid
 
 from execution import require
@@ -17,6 +18,9 @@ class DispatchQueue:
         require(self.root.stat().st_mode & 0o077 == 0, 'Private queue directory required')
         self.observations = {}
         self.cursor = None
+        self.stop = threading.Event()
+        self.thread = None
+        self.scheduler_error = None
 
     def records(self):
         paths = list(self.root.iterdir())
@@ -70,6 +74,7 @@ class DispatchQueue:
 
     def enqueue(self, subject):
         with self.executor.lock:
+            require(not self.stop.is_set(), 'Queue scheduler closed')
             # This validates field shape; blocked prerequisites can remain queued.
             self.executor.admission(subject)
             policy = self.executor.config['warrants'].get(subject['warrant_id'])
@@ -110,6 +115,7 @@ class DispatchQueue:
     def listing(self):
         with self.executor.lock:
             return {'schema': 'oh.war/dispatch-queue/v1', 'qualified': False,
+                    'scheduler_error': self.scheduler_error,
                     'requests': [self.view(row) for row in self.records().values()]}
 
     def poll(self):
@@ -121,6 +127,7 @@ class DispatchQueue:
                 rows = rows[split:] + rows[:split]
             probed = False
             for id, row in rows:
+                if self.stop.is_set(): return
                 if row['state'] == 'consumed':
                     # Recover only an exact durable association. No second launch.
                     binding = {'queue_id': id, 'consumed_sha256': digest(row)}
@@ -143,6 +150,7 @@ class DispatchQueue:
                 self.cursor = id
                 available = self.availability.observe(row['subject'], row['execution_config_sha256'])
                 self.observations[id] = {**available, 'state': 'waiting_for_agent' if available['state'] == 'unavailable' else available['state']}
+                if self.stop.is_set(): return
                 if available['state'] != 'available': continue
                 # Save before any dispatch side effect. A thrown exception leaves
                 # consumed UNKNOWN, even when it happened before process creation.
@@ -154,3 +162,22 @@ class DispatchQueue:
                     self.transition(consumed, 'dispatched', attempt['attempt_id'])
                 except Exception:
                     self.observations[id] = {'state': 'unknown', 'reason': 'Dispatch outcome uncertain; inspect retained attempt before recovery'}
+
+    def start(self, interval=2):
+        require(type(interval) in (int, float) and .02 <= interval <= 60,
+                'Invalid queue polling interval')
+        require(self.thread is None and not self.stop.is_set(), 'Queue scheduler already started or closed')
+        def worker():
+            while not self.stop.wait(interval):
+                try:
+                    self.poll()
+                except Exception:
+                    self.scheduler_error = 'Queue state unavailable or invalid; scheduler stopped'
+                    self.stop.set()
+        self.thread = threading.Thread(target=worker, daemon=True)
+        self.thread.start()
+
+    def close(self):
+        self.stop.set()
+        if self.thread is not None:
+            self.thread.join(timeout=10)

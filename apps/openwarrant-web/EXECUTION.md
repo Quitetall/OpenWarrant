@@ -169,3 +169,43 @@ conservative: even reordering checks requires a fresh result.
 This is deterministic eligibility checking, not authentication of the policy file
 or evidence. The configured harness must still protect controller storage and
 required checks. Secure human assurance remains separate.
+
+## Wait for a configured agent (OW109)
+
+Opt in with `--availability-config /absolute/private/availability.json`:
+
+```json
+{
+  "schema": "oh.war/availability-config/v1",
+  "argv": ["/absolute/path/to/availability-adapter"],
+  "timeout_seconds": 2
+}
+```
+
+The adapter receives `oh.war/availability-request/v1` with a fresh `nonce`, exact
+`subject` and `execution_config_sha256`. It returns only `schema` set to
+`oh.war/availability-result/v1`, the same `nonce`, and `state` set to `available`,
+`unavailable` or `unknown`. The response limit is 4096 bytes; timeout is 1–5 seconds.
+Unknown, invalid and failed observations cannot launch work. This observation is
+not a capacity reservation or an authorization; the configured harness still owns
+real capacity and isolation. Configure a local, non-billable probe.
+
+`POST /api/queue` takes the same exact subject as direct execution. `GET /api/queue`
+lists retained requests and current observations. `POST /api/queue/cancel` takes
+only `queue_id`. All require the existing authenticated local session. The browser
+provides Queue saved revision, Refresh agent queue and Cancel queued work controls.
+Waiting requests refresh every two seconds while that queue view remains unlocked.
+
+The service polls every two seconds, performs at most one availability probe per
+poll and rotates eligible requests. It reuses execution admission and writer
+controls. Changed source or execution configuration blocks old requests. Cancel
+and enqueue again after reviewing the new configuration. Enqueueing is explicit;
+the scheduler does not enroll arbitrary Warrants from the repository.
+
+Requests bind source, optional stage and execution configuration. Consumption is
+persisted before launch and the attempt retains its exact queue association. A
+restart never repeats a consumed request: an exact retained attempt can be linked,
+otherwise the outcome remains unknown and requires investigation. Cancelling a
+consumed request refuses, since cancellation cannot stop a process already launched.
+Locking the browser does not cancel previously requested work. Scheduler errors
+remain visible and stop future automatic dispatch. No queue action awards assurance.

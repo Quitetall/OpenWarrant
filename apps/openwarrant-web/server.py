@@ -18,6 +18,8 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from socketserver import ThreadingMixIn
 
+from availability import Availability
+from dispatch_queue import DispatchQueue
 from execution import ExecutionError, Executor
 from drafting import Drafter
 from hotline import Answers, HotlineError, digest as hotline_digest
@@ -414,6 +416,7 @@ class Server(ThreadingMixIn, HTTPServer):
         self.hotline = None
         self.verification = None
         self.verification_loops = None
+        self.dispatch_queue = None
         self.slots = threading.BoundedSemaphore(8)
         super().__init__(address, Handler)
 
@@ -494,6 +497,10 @@ class Handler(BaseHTTPRequestHandler):
             ):
                 raise Refusal(401, "Unlock with this service session token")
             store = self.server.store
+            if self.command == 'GET' and self.path == '/api/queue':
+                if self.server.dispatch_queue is None:
+                    raise Refusal(409, 'Agent queue not configured')
+                return self.reply(200, self.server.dispatch_queue.listing())
             if self.command == 'GET' and self.path == '/api/verification-loops':
                 if self.server.verification_loops is None:
                     raise Refusal(409, 'Verification loops not configured')
@@ -578,7 +585,7 @@ class Handler(BaseHTTPRequestHandler):
             if (
                 self.command == "POST" and (hotline_answer or hotline_resume or hotline_reconfirm or verifier_start or repair_preview or verifier_rebuttal or verifier_dispute or verifier_reverify)
             ) or (
-                self.command == "POST" and self.path in ("/api/warrants", "/api/runs", "/api/admission", "/api/drafting", "/api/verification", "/api/verification-loops")
+                self.command == "POST" and self.path in ("/api/warrants", "/api/runs", "/api/admission", "/api/drafting", "/api/verification", "/api/verification-loops", "/api/queue", "/api/queue/cancel")
             ) or (self.command == "PUT" and match):
                 if (
                     self.headers.get_all("Content-Type") != ["application/json"]
@@ -596,6 +603,14 @@ class Handler(BaseHTTPRequestHandler):
                 if len(body) != size:
                     raise Refusal(400, "Incomplete request")
                 fields = decode(body)
+                if self.path in ('/api/queue', '/api/queue/cancel'):
+                    if self.server.dispatch_queue is None:
+                        raise Refusal(409, 'Agent queue not configured')
+                    if self.path == '/api/queue/cancel':
+                        if not isinstance(fields, dict) or set(fields) != {'queue_id'} or not isinstance(fields['queue_id'], str):
+                            raise Refusal(400, 'Exact queue identity required')
+                        return self.reply(200, self.server.dispatch_queue.cancel(fields['queue_id']))
+                    return self.reply(202, self.server.dispatch_queue.enqueue(fields))
                 if self.path == '/api/verification-loops':
                     if self.server.verification_loops is None:
                         raise Refusal(409, 'Verification loops not configured')
@@ -689,6 +704,7 @@ def main():
     parser.add_argument("--port", type=int, default=8766)
     parser.add_argument("--session-file", type=Path, required=True)
     parser.add_argument("--execution-config", type=Path)
+    parser.add_argument("--availability-config", type=Path)
     parser.add_argument("--drafting-config", type=Path)
     parser.add_argument("--hotline-config", type=Path)
     parser.add_argument("--adviser-config", type=Path)
@@ -713,6 +729,11 @@ def main():
         server.executor = Executor(
             store, args.execution_config, read_file, publish, decode
         )
+    if args.availability_config:
+        if server.executor is None:
+            parser.error('agent queue requires execution configuration')
+        availability = Availability(decode(read_file(args.availability_config, 65536)), store.sdk.repo)
+        server.dispatch_queue = DispatchQueue(server.executor, availability)
     if args.hotline_config:
         if server.executor is None:
             parser.error("hotline requires execution configuration")
@@ -737,8 +758,12 @@ def main():
     try:
         if server.verification_loops:
             server.verification_loops.start()
+        if server.dispatch_queue:
+            server.dispatch_queue.start()
         server.serve_forever()
     finally:
+        if server.dispatch_queue:
+            server.dispatch_queue.close()
         if server.verification_loops:
             server.verification_loops.close()
             server.verification_loops.receipts.close()
