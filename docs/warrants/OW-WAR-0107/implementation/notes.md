@@ -17,3 +17,18 @@ Those checks belong to the forthcoming runtime boundary. No result accepts an
 actor or qualification field. PASS cannot retain unresolved findings; FAIL needs
 an observed violation; UNKNOWN stays distinct and cannot instruct automatic repair.
 Four refusal-oriented contract tests pass. No harness was launched by these tests.
+
+## Separate workspace and bounded process seam
+
+Verifier workspace is a fresh Git repository populated by exact-commit fetch,
+with separate object/ref storage. It excludes performer uncommitted scratch.
+Existing, symlink and performer-nested destinations refuse without overwrite.
+Required checks run on the exact unchanged candidate before the configured
+verifier command. A failed check is retained and skips verifier launch. Candidate
+mutation, stale output and timeout remain UNKNOWN, never PASS. Eleven distinct
+contract/workspace/process tests pass, including real Git and subprocess refusal
+observations. This seam is not yet exposed as a server action and is not a sandbox.
+
+Next: protected configuration/admission, persistent verification attempts and
+public HTTP integration, then bounded repair/rebuttal/escalation and browser QA.
+No real model calls, independent qualification or human acceptance occurred.
