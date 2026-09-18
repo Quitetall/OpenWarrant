@@ -1,0 +1,21 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0099",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "1d44cc4dadb8bf66f3dc3b2e7e11017242c16753",
+  "summary": "Frontier refuses damaged inputs and malformed scheduling payloads; Rust 1.97.1 full gate passed, 14/14 steps and 308 controls. Completed unverified; shared admission remains open.",
+  "notes": "docs/warrants/OW-WAR-0099/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0099/implementation/evidence/gate.log",
+    "docs/warrants/OW-WAR-0099/implementation/evidence/regression.log",
+    "docs/warrants/OW-WAR-0099/implementation/evidence/initial-gate-failure.log.gz",
+    "docs/warrants/OW-WAR-0099/implementation/evidence/payload-red.log",
+    "docs/warrants/OW-WAR-0099/implementation/evidence/payload-green.log",
+    "docs/warrants/OW-WAR-0099/implementation/evidence/payload-gate.log"
+  ],
+  "next_steps": [
+    "Integrate shared admission without weakening explicit action gates.",
+    "Complete remaining OW68 skills/runtime observations."
+  ]
+}

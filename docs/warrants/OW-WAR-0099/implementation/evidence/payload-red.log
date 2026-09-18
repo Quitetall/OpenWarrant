@@ -1,0 +1,27 @@
+   Compiling ring v0.17.14
+   Compiling openwarrant-compiler v1.0.0 (/mnt/4tb/tmp/ow-admission-integrity/crates/openwarrant-compiler)
+   Compiling rustls v0.23.43
+   Compiling rustls-webpki v0.103.15
+   Compiling ureq v3.4.0
+   Compiling openwarrant-cli v1.0.0 (/mnt/4tb/tmp/ow-admission-integrity/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.26s
+     Running tests/frontier_integrity_cli.rs (target/debug/deps/frontier_integrity_cli-7387818e4f136707)
+
+running 1 test
+test damaged_journal_never_becomes_open_work ... FAILED
+
+failures:
+
+---- damaged_journal_never_becomes_open_work stdout ----
+
+thread 'damaged_journal_never_becomes_open_work' (2034288) panicked at crates/openwarrant-cli/tests/frontier_integrity_cli.rs:75:13:
+ignored dispatch.compiled payload not json
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    damaged_journal_never_becomes_open_work
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+error: test failed, to rerun pass `-p openwarrant-cli --test frontier_integrity_cli`
