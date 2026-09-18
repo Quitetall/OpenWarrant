@@ -12,6 +12,12 @@ the operator must ensure it is an actual local model, not a paid forwarding prox
 Pin executable/model hashes in retained run evidence. No model is started,
 downloaded or selected implicitly.
 
+Only `delivery/basic` requests are supported. Explicit requests for other profiles
+or assurance levels fail before any backend call; omitted values use those defaults.
+The exact task is sent as the final user message. All remaining request fields are
+preserved in a separate JSON context message, including constraints and unknowns.
+This layout does not establish semantic fidelity or defeat prompt injection.
+
 The process reads one canonical `oh.war/draft-request/v1` on stdin and writes one
 proposal on stdout. Failure writes only a diagnostic to stderr and exits nonzero.
 For example, configure the existing `[plan].drafter_argv` with absolute paths:
@@ -45,4 +51,6 @@ Run tests: `python3 -m unittest discover -s tools/drafting -v`.
 Synthetic HTTP fixtures prove transport/refusal only. These tests do not establish real-model quality or end-to-end application.
 The first constrained-model observation returned structural output, but invented
 existing-Warrant scope and malformed milestone YAML. Retained evidence prompted
-the fixed milestone template; revised real-model behavior remains unobserved.
+the fixed milestone template. A second real-model run preserved that template but
+still drafted the wrong deliverable. Both failures remain retained; the revised
+task/context message layout requires a new observation.
