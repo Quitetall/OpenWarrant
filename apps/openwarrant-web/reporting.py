@@ -50,9 +50,17 @@ def render(records, inventory, attempt_id, word="WORK_DONE", detail="full"):
                 '<h1>' + esc(first) + '</h1><p>Qualification: unverified</p>'
                 '<p>' + esc(progress["scope"]) + '</p><progress max="' + str(max(1, len(inventory)))
                 + '" value="' + str(len(done)) + '"></progress><p>' + str(len(done)) + ' / '
-                + str(len(inventory)) + ' complete</p><pre>'
+                + str(len(inventory)) + ' complete</p><h2>Work</h2><p>'
+                + esc(record["warrant_id"]) + ' · ' + esc(record["work_state"])
+                + ' · execution ' + esc(record["execution_state"]) + '</p>'
+                + '<h2>Implementation notes</h2><pre>' + esc(record.get("notes", ""))
+                + '</pre><h2>Next steps</h2><ul>'
+                + ''.join('<li>' + esc(step) + '</li>' for step in record.get("next_steps", []))
+                + '</ul><h2>Pending configured work</h2><ul>'
+                + ''.join('<li>' + esc(item) + '</li>' for item in pending)
+                + '</ul><details><summary>Exact source, checks and recorded evidence</summary><pre>'
                 + esc(json.dumps({"snapshot_sha256": digest, "attempt": record,
-                                  "progress": progress}, indent=2, ensure_ascii=False)) + '</pre></html>')
+                                  "progress": progress}, indent=2, ensure_ascii=False)) + '</pre></details></html>')
     return {"schema": "oh.war/reference-work-report/v1", "attempt_id": attempt_id,
             "snapshot_sha256": digest, "completion_signal": word if finished else None,
             "qualified": False, "progress": progress, "text": "\n".join(lines) + "\n",

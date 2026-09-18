@@ -9,3 +9,8 @@ JavaScript syntax and generated corpus checks pass.
 Browser observed exact saved report and downloaded HTML. Opening file:// was
 blocked by browser policy, so offline browser rendering remains unobserved.
 Repository gate remains pending. No independent assurance or completion claimed.
+
+Follow-up: offline HTML now puts implementation notes, next steps and pending
+work before an expandable exact-evidence block. Two projection tests and the
+public HTTP/restart report test pass for this layout. Retained browser download
+shows the earlier layout; offline file rendering is still unobserved.

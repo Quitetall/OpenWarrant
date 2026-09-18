@@ -24,6 +24,9 @@ class ReportTests(unittest.TestCase):
         self.assertNotIn("<script>", report["html"])
         self.assertIn("&lt;script&gt;", report["html"])
         self.assertFalse(report["qualified"])
+        self.assertLess(report["html"].index("Implementation notes"), report["html"].index("<details>"))
+        self.assertIn("<li>Review</li>", report["html"])
+        self.assertIn("<li>waiting</li>", report["html"])
         inventory["warrant"]["source_sha256"] = "d" * 64
         changed = render(records, inventory, "attempt")
         self.assertEqual(changed["progress"]["completed"], 0)
