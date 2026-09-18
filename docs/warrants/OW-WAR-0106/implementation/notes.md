@@ -47,3 +47,11 @@ answer/evidence form and explicit resume. Credential is cleared before submissio
 lock removes hotline contents. The retained browser observation demonstrates
 credential refusal, answer-without-start, resume, completion and generated report.
 No real-provider or secure-human qualification is claimed.
+
+Additional real HTTP/process/Git faults pass in the 42-test execution suite:
+concurrent resume requests retain one child attempt; consumed active time reduces
+the resumed allowance and timeout remains unknown without a completion signal;
+replay cannot replace that unknown writer; a pending answered-but-unresumed
+question blocks dependents while an independent Warrant completes; editing the
+source after answering refuses resume. No manually fabricated success records
+were used to establish these scenarios. Automatic adviser routing remains open.

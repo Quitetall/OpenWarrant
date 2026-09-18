@@ -227,6 +227,86 @@ print(json.dumps({'schema':'oh.war/execution-question/v1','attempt_id':r['attemp
         self.assertEqual(len(self.call("/api/runs")[1]["runs"]), 2)
         self.assertIsNotNone(self.call("/api/runs/" + resumed["attempt_id"] + "/report")[1]["completion_signal"])
 
+    def prepare_answered_question(self, delay=0):
+        draft = self.eligible()
+        completion = self.harness.read_text()
+        credential = "public-hotline-fault-fixture-credential"
+        config = self.root / "hotline-fault.json"
+        config.write_text(json.dumps({"schema": "oh.war/hotline-config/v1", "responders": [{
+            "id": "fixture-adviser", "kind": "ai", "governing_warrants": [],
+            "token_sha256": hashlib.sha256(credential.encode()).hexdigest()}]}))
+        self.stop(); self.config["timeout_seconds"] = 2
+        self.report_args = ["--hotline-config", str(config)]; self.start()
+        self.harness.write_text("import json,sys,time\nr=json.load(sys.stdin)\ntime.sleep(" + str(delay) + ")\n" +
+            "print(json.dumps({'schema':'oh.war/execution-question/v1','attempt_id':r['attempt_id'],"
+            "'source_sha256':r['source_sha256'],'notes':'Checkpoint retained','next_steps':[],"
+            "'question':{'kind':'technical','text':'Which parser?','direct_human':False,'affected_stages':['STAGE-001']}}))")
+        fields = {"warrant_id": draft["id"], "source_sha256": draft["source_sha256"]}
+        status, run = self.call("/api/runs", "POST", fields)
+        self.assertEqual(status, 202, run)
+        stopped = self.wait_run(run["attempt_id"])
+        self.assertEqual(stopped["execution_state"], "stopped", stopped)
+        q = self.call("/api/hotline")[1]["questions"][0]
+        answer = {"question_sha256": q["question_sha256"], "answer": "Use the SDK", "evidence": []}
+        self.assertEqual(self.call("/api/hotline/" + run["attempt_id"] + "/answer", "POST", answer,
+                                   {"X-OW-Responder": credential})[0], 200)
+        return draft, stopped, completion, {"question_sha256": q["question_sha256"]}
+
+    def test_resume_preserves_consumed_time_and_unknown_refuses_new_writer(self):
+        draft, prior, completion, request = self.prepare_answered_question(delay=0.8)
+        self.harness.write_text(completion.replace("r=json.load(sys.stdin)",
+                               "r=json.load(sys.stdin)\nimport time;time.sleep(1.6)"))
+        route = "/api/hotline/" + prior["attempt_id"] + "/resume"
+        status, run = self.call(route, "POST", request)
+        self.assertEqual(status, 202, run)
+        self.assertLess(run["remaining_seconds"], 1.6)
+        final = self.wait_run(run["attempt_id"])
+        self.assertEqual(final["execution_state"], "unknown", final)
+        self.assertNotEqual(final["work_state"], "completed")
+        self.assertIsNone(self.call("/api/runs/" + run["attempt_id"] + "/report")[1]["completion_signal"])
+        self.assertEqual(self.call(route, "POST", request)[1], final)
+        self.assertEqual(len(self.call("/api/runs")[1]["runs"]), 2)
+        fields = {"warrant_id": draft["id"], "source_sha256": draft["source_sha256"]}
+        self.assertEqual(self.call("/api/runs", "POST", fields)[0], 409)
+
+    def test_concurrent_resume_claims_launch_one_attempt(self):
+        from concurrent.futures import ThreadPoolExecutor
+        _, prior, completion, request = self.prepare_answered_question()
+        self.harness.write_text(completion)
+        route = "/api/hotline/" + prior["attempt_id"] + "/resume"
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            replies = list(pool.map(lambda _: self.call(route, "POST", request), range(2)))
+        self.assertTrue(all(status == 202 for status, _ in replies), replies)
+        self.assertEqual(replies[0][1]["attempt_id"], replies[1][1]["attempt_id"])
+        self.assertEqual(self.wait_run(replies[0][1]["attempt_id"])["work_state"], "completed")
+        self.assertEqual(len(self.call("/api/runs")[1]["runs"]), 2)
+
+    def test_hotline_blocks_dependency_but_not_independent_warrant(self):
+        parent, _, completion, _ = self.prepare_answered_question()
+        self.harness.write_text(completion)
+        subjects = []
+        for dependent in (False, True):
+            status, draft = self.call("/api/warrants", "POST", {**self.draft(), "id": str(uuid.uuid4())})
+            self.assertEqual(status, 201, draft)
+            self.config["warrants"][draft["id"]] = {
+                **self.config["warrants"][parent["id"]], "source_sha256": draft["source_sha256"],
+                "dependencies": [parent["id"]] if dependent else []}
+            subjects.append({"warrant_id": draft["id"], "source_sha256": draft["source_sha256"]})
+        self.stop(); self.start()
+        self.assertEqual(self.call("/api/runs", "POST", subjects[1])[0], 409)
+        status, independent = self.call("/api/runs", "POST", subjects[0])
+        self.assertEqual(status, 202, independent)
+        self.assertEqual(self.wait_run(independent["attempt_id"])["work_state"], "completed")
+        self.assertEqual(self.call("/api/admission", "POST", subjects[1])[1]["state"], "blocked")
+
+    def test_editing_question_source_refuses_resume(self):
+        draft, prior, _, request = self.prepare_answered_question()
+        changed = {**self.draft(), "id": draft["id"], "outcome": "A different required outcome",
+                   "expected_source_sha256": draft["source_sha256"]}
+        self.assertEqual(self.call("/api/warrants/" + draft["id"], "PUT", changed)[0], 200)
+        self.assertEqual(self.call("/api/hotline/" + prior["attempt_id"] + "/resume", "POST", request)[0], 409)
+        self.assertEqual(len(self.call("/api/runs")[1]["runs"]), 1)
+
     def test_work_report_failed_checks_have_no_completion_signal(self):
         r = self.eligible()
         self.stop()

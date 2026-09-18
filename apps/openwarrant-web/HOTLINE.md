@@ -103,6 +103,9 @@ answer. The credential clears before submission. Answering leaves work paused;
 Resume answered work is a separate action and rechecks current state. Lock clears
 the hotline view. Failed refresh clears the question list.
 
-Remaining work: automatic adviser routing, further cumulative
-budget and concurrency fault cases, and full lifecycle qualification. Do not advertise the partial API as a complete
+Observed refusal cases include consumed-time exhaustion, concurrent resume replay,
+stale source, revoked responder configuration, changed execution limits and dirty
+checkpoint. Independent Warrant execution proceeds while a dependent remains blocked.
+
+Remaining work: automatic adviser routing and full lifecycle qualification. Do not advertise the partial API as a complete
 hotline or mark OW106 complete from its component tests.
