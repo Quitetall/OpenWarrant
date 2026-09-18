@@ -1053,6 +1053,21 @@ print(json.dumps({'schema':'oh.war/execution-question/v1','attempt_id':r['attemp
         self.assertFalse(row["dispatch_permitted"])
         self.assertEqual(self.call("/api/runs")[1]["runs"], [])
 
+    def test_next_work_preserves_stage_dependencies_and_blocked_order(self):
+        fields = self.staged()
+        status, listing = self.call("/api/next-work")
+        self.assertEqual(status, 200, listing)
+        rows = {r["stage"]: r for r in listing["rows"]}
+        self.assertEqual(rows["api"]["state"], "ready")
+        self.assertEqual(rows["ui"]["state"], "blocked")
+        self.assertEqual(rows["ui"]["dependencies"], ["api"])
+        for stage, row in rows.items():
+            preview = self.call("/api/admission", "POST", {**fields, "stage": stage})[1]
+            self.assertEqual(row["state"], preview["state"])
+            self.assertEqual(row["reason"], preview["reason"])
+            self.assertFalse(row["dispatch_permitted"])
+        self.assertEqual(self.call("/api/runs")[1]["runs"], [])
+
 
 if __name__ == "__main__":
     import unittest

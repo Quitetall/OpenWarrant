@@ -81,3 +81,7 @@ obligation_refs = ["OBL-004"]
 [[scope]]
 path_glob = "crates/openwarrant-cli/tests/progress_viewer.rs"
 obligation_refs = ["OBL-004"]
+
+[[scope]]
+path_glob = ".github/workflows/reference-web-checks.yml"
+obligation_refs = ["OBL-004"]

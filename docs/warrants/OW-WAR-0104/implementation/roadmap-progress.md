@@ -111,3 +111,18 @@ only its configuration with malformed JSON, Refresh showed “Stale · refresh
 failed; last good snapshot retained”, retaining the same record digest. Restoring
 valid bytes and refreshing returned “Live · refresh every 1s”. Fixture tab closed
 and its owned viewer process stopped. No real repository record was altered.
+
+Owner offline observation received 2026-09-18: “All listed controls work offline”
+in response to the request to open `/tmp/ow-roadmap-review.html` directly with
+network disconnected and check roadmap, phase selector, search and collapse.
+Retained reviewed bytes in `offline-roadmap-reviewed.html.gz`; exact uncompressed
+SHA-256 and bounds are in `offline-roadmap-human-observation.json`. This closes
+that manual observation gap for those controls and that artifact only. It is
+not a signature, assurance disposition, SAS acceptance or Warrant resolution.
+
+Stage-preview test confirms ready API stage and blocked dependent UI stage agree
+with direct admission results, preserve the dependency edge, grant no dispatch
+permission and create no attempts. All 58 execution tests pass. Three JavaScript
+calculation tests pass and are now wired into the reference web CI workflow,
+including viewer-source path triggers. Generated check: 960 pass, 88 warnings,
+zero unknown and zero errors.
