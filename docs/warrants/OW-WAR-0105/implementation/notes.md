@@ -36,3 +36,7 @@ to shipped SDK commands. OW68's prior D-005 manifest and skill bytes remain unde
 Remaining: full gate and exact-head integration, source inspection, actual
 local/cloud adapters and their model-quality/cost/isolation evidence. Synthetic
 fixtures establish transport behavior only. This does not close Phase 3 or OW42.
+
+Integration with policy-bound completion passes 73 package tests. The first run
+failed at service startup because OW_TEST_WAR was unset in this worktree; the
+retained retry sets the built binary path. Both logs remain available.
