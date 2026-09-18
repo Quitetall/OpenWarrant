@@ -191,3 +191,12 @@ check session identity before updating the view. Text uses DOM textContent.
 Extracted script passes `node --check`; `git diff --check` passes. Real browser
 interaction is not yet observed, so UI qualification remains pending. This change
 does not complete OW107 or its remaining aggregate budget/repair/rebuttal scope.
+
+## Browser observation
+
+Real browser preparation, signed receipt upload, explicit start, running-to-PASS
+display, evidence-loss UNKNOWN and lock clearing were observed against a disposable
+service using the real SDK, Git and execution controller. Full bounded evidence and
+limits are in `browser-verification-observation.md`. This establishes that specific
+UI path with synthetic processes; it does not qualify external harness protection,
+model independence or the remaining repair/budget scope.

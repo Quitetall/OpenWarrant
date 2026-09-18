@@ -54,8 +54,9 @@ Restoring the exact receipt restores the evidence view without rewriting history
 Another running or uncertain verifier blocks new dispatch. The browser offers
 preparation from completed attempts, exact-request download, signed receipt upload,
 explicit start and result refresh. Running jobs poll every two seconds; locking
-the session clears their view and polling. Browser runtime qualification remains
-pending. Aggregate loop budgets,
+the session clears their view and polling. The prepare/upload/start/result/lock path
+has been observed in a disposable browser fixture with synthetic processes and
+machine keys. This does not qualify deployment protection. Aggregate loop budgets,
 automatic repairs and rebuttal routing are not yet wired. A consumed claim without
 a live process observation is UNKNOWN after interruption; it cannot relaunch.
 Tests use synthetic processes and disposable machine keys, not independent human
