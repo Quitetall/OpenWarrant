@@ -120,3 +120,15 @@ stops future launches, not processes already dispatched. Tests cover authenticat
 HTTP configuration, field injection, duplicate intent, background repair/recheck,
 pause across scheduler restart and corrupt-history refusal. Intent digests detect
 corruption; protected control storage remains required against hostile rewriting.
+
+## Availability observations (OW-WAR-0109, not yet connected to dispatch)
+
+The candidate availability adapter runs only an operator-configured command. It
+bounds transport time/output, accepts a small exact response schema, and requires
+the fresh request nonce. Missing, stale, duplicated, malformed, oversized, timed-out
+or unsuccessful observations produce UNKNOWN, never available. Availability is
+advisory and grants no authority, writer claim, capacity reservation or assurance.
+`test_availability` exercises real subprocesses, including timeout and bad output.
+The operator must protect the command and its configuration; the shared process
+transport is not a sandbox and cannot contain escaped or remote descendants.
+Durable queue consumption, public interfaces and dispatch integration are pending.
