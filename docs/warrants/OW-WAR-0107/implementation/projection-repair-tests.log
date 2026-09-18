@@ -1,0 +1,19 @@
+   Compiling ring v0.17.14
+   Compiling openwarrant-compiler v1.0.0 (/mnt/4tb/tmp/ow-workflow-verification/crates/openwarrant-compiler)
+   Compiling rustls v0.23.43
+   Compiling rustls-webpki v0.103.15
+   Compiling ureq v3.4.0
+   Compiling openwarrant-cli v1.0.0 (/mnt/4tb/tmp/ow-workflow-verification/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 11.97s
+     Running tests/json_envelope.rs (/mnt/4tb/tmp/ow107-gate-lineage/target/debug/deps/json_envelope-a392083ad6f49d8c)
+
+running 6 tests
+test the_error_path_is_still_json_on_stdout_and_exits_one ... ok
+test a_request_document_rides_inside_result_with_its_own_schema ... ok
+test without_the_flag_stdout_never_begins_with_a_brace ... ok
+test check_emits_an_envelope_whose_exit_code_is_the_process_exit_code ... ok
+test the_flag_works_after_the_subcommand_too ... ok
+test the_corpus_projection_is_the_result_payload_verbatim ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.47s
+

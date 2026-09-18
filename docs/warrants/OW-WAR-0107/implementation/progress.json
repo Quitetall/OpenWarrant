@@ -4,7 +4,7 @@
   "work_state": "in-progress",
   "reported_by": "agent://codex",
   "revision": "843901d6fa43ad0528017c4e6fe784886d4cb998",
-  "summary": "Verification, repair, dispute, loop and report implementation candidate complete. Exact-head hosted web checks and retained Bonsai evidence pass; hosted Rust gate remains running. Unverified.",
+  "summary": "Verification, repair, dispute, loop and report implementation candidate complete, unverified. Hosted web/Bonsai checks passed; hosted Rust gate found stale generated views after the machine-scope update. Views regenerated; new CI required.",
   "notes": "docs/warrants/OW-WAR-0107/implementation/scope-audit.md",
   "evidence": [
     "docs/warrants/OW-WAR-0107/implementation/report-web-tests.log",
@@ -14,7 +14,7 @@
     "docs/warrants/OW-WAR-0107/implementation/pr118-bonsai-843901d.json"
   ],
   "next_steps": [
-    "Observe hosted Rust gate run 35341196754, job 105587307610; do not infer success from local gate or restart a live job.",
+    "Rerun hosted checks on regenerated views; prior gate run 35341779967 failed the committed-projection equality test.",
     "After required checks pass, finish implementation closeout and integrate through PR #118.",
     "Keep independent verification and secure human acceptance separate."
   ]

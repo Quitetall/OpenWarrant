@@ -44,3 +44,16 @@ to missing PR-body metadata and is not counted as Bonsai evidence.
 
 Rust gate job `105587307610` in run `35341196754` was still in progress at this
 observation. No final-head gate success or implementation closeout is claimed.
+
+## Hosted gate correction
+
+Run 35341779967 later failed `the_corpus_projection_is_the_result_payload_verbatim`:
+the machine scope gained the required threat-model path without regenerating
+Warrant and corpus projections. The scope record is correct; projections were
+regenerated through `war compile` rather
+than edited by hand. `war check --generated` then reported 942 pass, 88 warnings,
+zero errors. A new hosted gate is required; the failed run remains failed.
+
+The six JSON-envelope integration tests then passed, including the exact test
+that failed in CI. Scope-digest changes in generated WAR.md confirm this cause;
+progress JSON alone did not cause the drift.
