@@ -26,6 +26,8 @@ test('unscoped and empty groups cannot display 100 percent',()=>{
 test('query and status filters retain only matching branches',()=>{
  const s=model.roadmapStats(nodes,'release',entries);
  assert.equal(model.roadmapMatches(s,'PARSER','active'),true);
+ assert.equal(model.roadmapMatches(s,'','blocked'),true);
+ assert.equal(model.roadmapMatches(model.roadmapStats(nodes,'b',entries),'','blocked'),false);
  assert.equal(model.roadmapMatches(s,'missing','active'),false);
  assert.equal(model.roadmapMatches(model.roadmapStats(nodes,'b',entries),'','active'),false);
  assert.equal(model.roadmapMatches(model.roadmapStats(nodes,'b',entries),'W1','completed'),true);

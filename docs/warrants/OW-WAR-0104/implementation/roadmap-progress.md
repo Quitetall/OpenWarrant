@@ -69,3 +69,13 @@ still handles future additions. A new CLI refusal test corrupts the draft journa
 stage_frontier becomes null, stage_frontier_error contains the journal error,
 roadmap stays available and snapshot digest changes. Test passed. OBL-004 is now
 included in the existing milestone's obligation list.
+
+The corrected isolated Rust 1.97.1 gate completed successfully at 9464101:
+14 steps green, 308 planted controls passed, zero failed. Retained exact log:
+`roadmap-gate-9464101.log.gz`. Later coverage/tests/document-link changes are not
+covered by that exact revision. Added blocked-only filtering and bounded source
+links for governing documents; new traversal refusal test exercises the CLI.
+The next-work permission preview remains incomplete: the active reference
+workflow evaluator is the application `/api/admission`, which cannot be replaced
+by the legacy frontier projection. No permission claim is inferred from open
+stages in this viewer.

@@ -8,6 +8,10 @@
       "outcome": "Publish the standard and SDK after phase exits and release qualification. All current repository Warrants appear in this map; retained legacy work remains explicit.",
       "warrants": [
         "OW-WAR-0091"
+      ],
+      "documents": [
+        "docs/sas/drafts/1.0.0-rc.3/README.md",
+        "docs/sas/drafts/1.0.0-rc.3/phase-plan.md"
       ]
     },
     {

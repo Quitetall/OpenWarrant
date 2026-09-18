@@ -247,7 +247,11 @@ fn capture(repo: &Repository, live: bool) -> Result<Snapshot, RepoError> {
     if path.try_exists().map_err(|e| err(e.to_string()))? {
         let bytes = bounded_read(&path, SOURCE_LIMIT).map_err(err)?;
         let aliases = known_aliases.iter().map(String::as_str).collect();
-        snapshot.roadmap = Some(roadmap::parse(&bytes, &aliases).map_err(err)?);
+        let roadmap = roadmap::parse(&bytes, &aliases).map_err(err)?;
+        for name in roadmap.nodes.iter().flat_map(|node| &node.documents) {
+            link(&mut snapshot, &root, name, live).map_err(err)?;
+        }
+        snapshot.roadmap = Some(roadmap);
         match crate::frontier::run(repo, None) {
             Ok((report, frontier)) if report.is_ready() => snapshot.stage_frontier = Some(frontier),
             Ok((report, _)) => {

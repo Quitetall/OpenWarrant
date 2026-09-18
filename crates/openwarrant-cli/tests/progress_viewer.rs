@@ -365,6 +365,12 @@ fn configured_roadmap_changes_snapshot_digest_and_refuses_dangling_warrants() {
             .unwrap()
             .contains("<script>bad()</script>")
     );
+    roadmap["nodes"][0]["documents"] = serde_json::json!(["../outside.md"]);
+    std::fs::write(&config, serde_json::to_vec(&roadmap).unwrap()).unwrap();
+    let unsafe_link = capture();
+    assert!(!unsafe_link.status.success());
+    assert!(String::from_utf8_lossy(&unsafe_link.stdout).contains("without traversal"));
+    roadmap["nodes"][0]["documents"] = serde_json::json!([]);
     roadmap["nodes"][0]["warrants"] = serde_json::json!(["VIEW-WAR-9999"]);
     std::fs::write(&config, serde_json::to_vec(&roadmap).unwrap()).unwrap();
     let refused = capture();

@@ -98,3 +98,9 @@ records omitted by the authored map. Group counts deduplicate shared references.
 An unscoped leaf suppresses the percentage for its ancestors. Stage dependencies
 are projected from the legacy frontier evaluator, and errors remain visible;
 these states do not grant current workflow execution permission.
+
+Nodes may also supply `documents`, at most 32 repository-relative file paths.
+The viewer validates each path and serves it through the same restricted source
+link mechanism as evidence. Parent traversal and files outside the repository
+are refused. The reference release node links to the current SAS candidate and
+phase plan; these links do not constitute SAS acceptance.

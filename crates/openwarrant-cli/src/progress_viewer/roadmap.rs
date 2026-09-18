@@ -8,11 +8,11 @@ use std::collections::{BTreeMap, BTreeSet};
 pub(super) struct Roadmap {
     schema: String,
     title: String,
-    nodes: Vec<Node>,
+    pub(super) nodes: Vec<Node>,
 }
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-struct Node {
+pub(super) struct Node {
     id: String,
     title: String,
     outcome: String,
@@ -20,6 +20,8 @@ struct Node {
     parent: Option<String>,
     #[serde(default)]
     warrants: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub(super) documents: Vec<String>,
 }
 pub(super) fn parse(bytes: &[u8], aliases: &BTreeSet<&str>) -> Result<Roadmap, String> {
     let map: Roadmap = serde_json::from_slice(bytes).map_err(|e| format!("Roadmap: {e}"))?;
@@ -35,6 +37,7 @@ pub(super) fn parse(bytes: &[u8], aliases: &BTreeSet<&str>) -> Result<Roadmap, S
             || n.id.len() > 128
             || n.title.trim().is_empty()
             || n.outcome.len() > 4096
+            || n.documents.len() > 32
         {
             return Err(format!("Invalid roadmap node {}", n.id));
         }

@@ -14,6 +14,6 @@ function roadmapStats(nodes, id, entries) {
 }
 function roadmapMatches(stats, query, filter) {
  const {members,reports,completed,unscoped}=stats;
- const state=filter==='all'||filter==='completed'&&completed>0||filter==='reported'&&reports.some(Boolean)||filter==='unknown'&&(reports.some(r=>!r)||unscoped>0)||filter==='active'&&reports.some(r=>['in-progress','blocked'].includes(r?.work_state));
+ const state=filter==='all'||filter==='completed'&&completed>0||filter==='reported'&&reports.some(Boolean)||filter==='blocked'&&reports.some(r=>r?.work_state==='blocked')||filter==='unknown'&&(reports.some(r=>!r)||unscoped>0)||filter==='active'&&reports.some(r=>['in-progress','blocked'].includes(r?.work_state));
  return Boolean(state&&members.some(n=>(n.title+' '+n.outcome+' '+n.warrants.join(' ')).toLowerCase().includes(query.toLowerCase())));
 }
