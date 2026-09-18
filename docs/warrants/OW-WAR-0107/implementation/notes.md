@@ -116,3 +116,17 @@ refusal before consumption, changed policy after PASS, and a synthetic verifier
 that changes the performer workspace. The latter demonstrates stale-result
 refusal, not sandbox enforcement. HTTP/browser integration, aggregate budgets,
 repair/rebuttal and production protection qualification remain open.
+
+## Protected executor snapshot reader
+
+Added the concrete internal snapshot reader for executor records and owner-configured
+verifier/issuer files. It rereads verifier configuration on each call and returns a
+detached value. Active or unknown Warrant/dependency writers, missing dependency
+completion, changed source, stale policy, changed performer command and unrelated
+worktree paths refuse. File reads use the server's bounded non-symlink reader.
+The caller must hold the executor lock. Harness enforcement still owns protection
+of configuration and records against agents with filesystem access.
+
+Thirty-four verifier tests pass. New snapshot tests use retained-state fixtures,
+not a public HTTP request. Server wiring, dispatch inventory, repair/rebuttal and
+browser qualification remain unfinished.
