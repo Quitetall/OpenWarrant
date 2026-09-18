@@ -1639,3 +1639,87 @@ fn service_run_receipt_points_to_retained_stream_bytes() {
         matches!(wrong.coverage.get("actions and relevant audit receipts"), Some(Coverage::Unavailable { reason }) if reason.contains("submission identity or outcome differs"))
     );
 }
+
+#[test]
+fn service_failed_and_timed_out_attempts_keep_distinct_truthful_evidence() {
+    for (script, expected_status, expected_verdict) in [
+        (
+            "printf failure-out; printf failure-err >&2; exit 7",
+            "completed",
+            "fail",
+        ),
+        ("printf timeout-out; exec sleep 3", "timeout", "unknown"),
+    ] {
+        let f = Fixture::new();
+        success(f.run(&["init", "--namespace", "STOP", "--program", "Service stops"]));
+        success(f.run(&["new", "Retain unsuccessful service attempts"]));
+        let dir = f.0.join("docs/warrants/STOP-WAR-0001");
+        let stage_path = dir.join("atoms/45-milestones.yaml");
+        let stages = std::fs::read_to_string(&stage_path).unwrap().replace(
+            "executor_kind: \"agent\"",
+            "executor_kind: \"service\"\n    executor_ref: \"gate://ops.echo@1.0.0\"\n    wall_time_seconds: 1",
+        );
+        std::fs::write(stage_path, stages).unwrap();
+        let gate = include_str!("../../../docs/gates/ops.echo@1.0.0.yaml").replace(
+            "argv: [\"true\"]",
+            &format!("argv: [\"sh\", \"-c\", {script:?}]"),
+        );
+        std::fs::write(f.0.join("docs/gates/ops.echo@1.0.0.yaml"), gate).unwrap();
+        let mut retained = BTreeMap::new();
+        for _ in 0..2 {
+            // A failed or timed-out gate must not erase an earlier attempt.
+            let _report = f.run(&["run", "STOP-WAR-0001", "STAGE-001"]);
+            for (path, bytes) in &retained {
+                assert_eq!(&std::fs::read(path).unwrap(), bytes);
+            }
+            for entry in std::fs::read_dir(dir.join("gate-runs")).unwrap() {
+                let attempt = entry.unwrap().path();
+                let id = attempt.file_name().unwrap().to_str().unwrap();
+                let run_path = attempt.join("ops_echo_1_0_0.run.toml");
+                let bytes = std::fs::read(&run_path).unwrap();
+                let run: openwarrant_core::GateRun =
+                    toml::from_str(std::str::from_utf8(&bytes).unwrap()).unwrap();
+                run.validate().unwrap();
+                assert_eq!(run.id, format!("GR-{id}"));
+                assert_eq!(run.execution_status.to_string(), expected_status);
+                assert_eq!(run.verdict.to_string(), expected_verdict);
+                assert!(!run.satisfies_required_pass());
+                let submission: openwarrant_core::execution::StageSubmission =
+                    serde_json::from_slice(
+                        &std::fs::read(dir.join("submissions").join(format!("{id}.json"))).unwrap(),
+                    )
+                    .unwrap();
+                assert!(!submission.blockers.is_empty());
+                assert_eq!(
+                    serde_json::to_value(submission.requested_next_action).unwrap(),
+                    "block"
+                );
+                let receipt_path = attempt.join("ops_echo_1_0_0.receipt.json");
+                if expected_status == "completed" {
+                    let receipt_bytes = std::fs::read(&receipt_path).unwrap();
+                    let receipt: openwarrant_core::GateReceipt =
+                        serde_json::from_slice(&receipt_bytes).unwrap();
+                    receipt.validate().unwrap();
+                    assert_eq!(receipt.run_id, run.id);
+                    assert_eq!(receipt.verdict, openwarrant_core::Verdict::Fail);
+                    assert_eq!(
+                        std::fs::read(f.0.join(receipt.stdout_ref)).unwrap(),
+                        b"failure-out"
+                    );
+                    assert_eq!(
+                        std::fs::read(f.0.join(receipt.stderr_ref)).unwrap(),
+                        b"failure-err"
+                    );
+                    retained.insert(receipt_path, receipt_bytes);
+                } else {
+                    assert!(
+                        !receipt_path.exists(),
+                        "timeout cannot mint completion receipt"
+                    );
+                }
+                retained.insert(run_path, bytes);
+            }
+        }
+        assert_eq!(std::fs::read_dir(dir.join("gate-runs")).unwrap().count(), 2);
+    }
+}
