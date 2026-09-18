@@ -14,3 +14,5 @@ Independent phase review and human qualification remain separate requirements.
 This workflow publishes no release and performs no human authorization.
 
 The first run remains pending. No macOS result is claimed by adding this file.
+
+First native run 35296418894: Linux passed; macOS failed only inventory executable-path assertion. macOS temporary paths resolve through /private/var. A Linux directory-symlink reproduction confirmed the same mismatch. Test now compares canonical executable identity and exercises a symlink explicitly; runner behavior and required expectations remain unchanged. Native rerun pending. Failed receipts retained by the original Actions run.
