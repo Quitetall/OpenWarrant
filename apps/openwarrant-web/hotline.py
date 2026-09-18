@@ -121,6 +121,48 @@ class Answers:
         self.root.mkdir(mode=0o700, exist_ok=True)
         require(self.root.stat().st_mode & 0o077 == 0, "Private hotline answer directory required")
 
+    def checkpoint_answer(self, attempt_id, review):
+        path = self.root / (attempt_id + ".checkpoint-" + digest(review) + ".json")
+        if not path.exists() and not path.is_symlink():
+            return None
+        envelope = self.executor.decode(self.executor.read_file(path))
+        require(isinstance(envelope, dict) and set(envelope) == {"record", "sha256"}
+                and isinstance(envelope["record"], dict) and digest(envelope["record"]) == envelope["sha256"],
+                "Checkpoint answer integrity mismatch")
+        r = envelope["record"]
+        require(r.get("schema") == "oh.war/hotline-reconfirmation/v1"
+                and r.get("attempt_id") == attempt_id and r.get("review") == review
+                and r.get("authorization_sha256") == self.authorization_digest,
+                "Checkpoint answer basis or authorization changed")
+        return r
+
+    def reconfirm(self, attempt_id, fields, credential):
+        with self.executor.lock:
+            require(isinstance(fields, dict) and set(fields) == {"checkpoint_sha256", "answer", "evidence"},
+                    "Expected checkpoint digest, answer and evidence", 400)
+            _, q = self.basis(attempt_id)
+            previous = self.read(attempt_id, q)
+            require(previous is not None and previous.get("authorization_sha256") == self.authorization_digest,
+                    "Current original answer required before reconfirmation")
+            review = self.executor.question_checkpoint(attempt_id, self)
+            require(review["answer_reconfirmation_required"] and fields["checkpoint_sha256"] == digest(review),
+                    "Checkpoint review changed or reconfirmation unnecessary")
+            updated = {**q, "checkpoint": review["to_revision"], "previous_question_sha256": digest(q),
+                       "checkpoint_review_sha256": digest(review)}
+            response = answer({"question_sha256": digest(updated), "answer": fields["answer"],
+                               "evidence": fields["evidence"]}, credential, self.rows, updated)
+            r = {"schema": "oh.war/hotline-reconfirmation/v1", "attempt_id": attempt_id,
+                 "review": review, "question": updated, "answer": response,
+                 "original_answer_sha256": digest(previous), "authorization_sha256": self.authorization_digest}
+            existing = self.checkpoint_answer(attempt_id, review)
+            if existing is not None:
+                require(existing == r, "Checkpoint already has a different retained answer")
+                return existing
+            require(len(list(self.root.iterdir())) < 256, "Hotline answer inventory limit exceeded")
+            self.executor.publish(self.root / (attempt_id + ".checkpoint-" + digest(review) + ".json"),
+                                  json.dumps({"record": r, "sha256": digest(r)}, ensure_ascii=False).encode())
+            return r
+
     def read(self, attempt_id, q):
         path = self.root / (attempt_id + ".json")
         if not path.exists() and not path.is_symlink():

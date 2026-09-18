@@ -20,7 +20,7 @@ from socketserver import ThreadingMixIn
 
 from execution import ExecutionError, Executor
 from drafting import Drafter
-from hotline import Answers, HotlineError
+from hotline import Answers, HotlineError, digest as hotline_digest
 from advice import Adviser
 
 BODY_LIMIT = 64 * 1024
@@ -499,7 +499,9 @@ class Handler(BaseHTTPRequestHandler):
             if self.command == "GET" and checkpoint_review:
                 if self.server.hotline is None:
                     raise Refusal(409, "Hotline responders not configured")
-                return self.reply(200, self.server.executor.question_checkpoint(checkpoint_review[1], self.server.hotline))
+                review = self.server.executor.question_checkpoint(checkpoint_review[1], self.server.hotline)
+                return self.reply(200, {**review, "checkpoint_sha256": hotline_digest(review),
+                                       "reconfirmation": self.server.hotline.checkpoint_answer(checkpoint_review[1], review)})
             if self.command == "GET" and self.path == "/api/hotline":
                 if self.server.hotline is None:
                     raise Refusal(409, "Hotline responders not configured")
@@ -539,9 +541,10 @@ class Handler(BaseHTTPRequestHandler):
             if self.command == "GET" and history:
                 return self.reply(200, store.get(history[1], int(history[2])))
             hotline_resume = re.fullmatch(r"/api/hotline/([0-9a-f-]{36})/resume", self.path)
+            hotline_reconfirm = re.fullmatch(r"/api/hotline/([0-9a-f-]{36})/reconfirm", self.path)
             hotline_answer = re.fullmatch(r"/api/hotline/([0-9a-f-]{36})/answer", self.path)
             if (
-                self.command == "POST" and (hotline_answer or hotline_resume)
+                self.command == "POST" and (hotline_answer or hotline_resume or hotline_reconfirm)
             ) or (
                 self.command == "POST" and self.path in ("/api/warrants", "/api/runs", "/api/admission", "/api/drafting")
             ) or (self.command == "PUT" and match):
@@ -565,12 +568,14 @@ class Handler(BaseHTTPRequestHandler):
                     if self.server.hotline is None:
                         raise Refusal(409, "Hotline responders not configured")
                     return self.reply(202, self.server.executor.resume(hotline_resume[1], fields, self.server.hotline))
-                if hotline_answer:
+                if hotline_answer or hotline_reconfirm:
                     if self.server.hotline is None:
                         raise Refusal(409, "Hotline responders not configured")
                     credentials = self.headers.get_all("X-OW-Responder", [])
                     if len(credentials) != 1:
                         raise Refusal(401, "One responder credential required")
+                    if hotline_reconfirm:
+                        return self.reply(200, self.server.hotline.reconfirm(hotline_reconfirm[1], fields, credentials[0]))
                     return self.reply(200, self.server.hotline.submit(hotline_answer[1], fields, credentials[0]))
                 if self.path == "/api/drafting":
                     if self.server.drafter is None:

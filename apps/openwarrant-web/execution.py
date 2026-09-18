@@ -536,18 +536,28 @@ class Executor:
                     "Current eligible hotline answer required")
             require(prior.get("execution_config_sha256") == hotline_digest(self.config),
                     "Execution configuration changed since question")
-            worktree = Path(prior["worktree"])
-            require(worktree.exists() and not worktree.is_symlink()
-                    and self.git("rev-parse", "--show-toplevel", cwd=worktree) == str(worktree)
-                    and self.git("rev-parse", "HEAD", cwd=worktree) == q["checkpoint"]
-                    and not self.git("status", "--porcelain", "--untracked-files=all", cwd=worktree),
-                    "Question checkpoint changed")
+            history = prior.get("hotline_context", []) + [{"question": q, "answer": response}]
+            if "stage" in prior:
+                review = self.question_checkpoint(attempt_id, hotline)
+                if review["answer_reconfirmation_required"]:
+                    renewed = hotline.checkpoint_answer(attempt_id, review)
+                    require(renewed is not None and renewed.get("original_answer_sha256") == hotline_digest(response),
+                            "Current checkpoint answer reconfirmation required")
+                    history.append({"question": renewed["question"], "answer": renewed["answer"],
+                                    "checkpoint_review": review})
+            else:
+                worktree = Path(prior["worktree"])
+                require(worktree.exists() and not worktree.is_symlink()
+                        and self.git("rev-parse", "--show-toplevel", cwd=worktree) == str(worktree)
+                        and self.git("rev-parse", "HEAD", cwd=worktree) == q["checkpoint"]
+                        and not self.git("status", "--porcelain", "--untracked-files=all", cwd=worktree),
+                        "Question checkpoint changed")
             remaining = prior["remaining_seconds"] - prior["active_seconds"]
             require(remaining > 0, "Question execution time budget exhausted")
             return self.start({"warrant_id": prior["warrant_id"], "source_sha256": prior["source_sha256"],
                                **({"stage": prior["stage"]} if "stage" in prior else {})},
                               {"from": attempt_id, "remaining": remaining,
-                               "history": prior.get("hotline_context", []) + [{"question": q, "answer": response}]})
+                               "history": history})
 
     def run(self, r, draft, policy):
         r = dict(r)

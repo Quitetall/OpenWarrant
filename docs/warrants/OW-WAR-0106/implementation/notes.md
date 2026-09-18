@@ -160,3 +160,18 @@ the exact review digest and that immutable response is consumed by resume.
 
 Checkpoint-lineage web regression: 107 tests passed in 56.105 seconds. Full Rust
 gate has not been rerun for this batch.
+
+### Authenticated checkpoint reconfirmation
+
+Added immutable per-checkpoint answer records with original answer and review
+digests, responder policy identity and a new question basis retaining its original
+question digest. Existing answer authentication and direct-human/governing scope
+rules also apply to reconfirmation. Resume supplies original and updated contexts
+and still requires explicit dispatch, current lineage, stopped writers and limits.
+
+HTTP/process/Git tests cover absent credential, stale review digest, idempotent
+reconfirmation, conflicting answer refusal, original answer preservation, restart
+and once-only resume, and final remaining-stage completion. Another test proves
+further independent work makes the prior reconfirmation stale and requires a new
+one. Browser controls are wired; live reconfirmation browser QA and latest full
+Rust gate remain outstanding. No Warrant closure or qualification claim.

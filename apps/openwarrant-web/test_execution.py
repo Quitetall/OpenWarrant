@@ -164,15 +164,21 @@ print(json.dumps({'schema':'oh.war/execution-result/v1','attempt_id':r['attempt_
         self.assertEqual(report["progress"]["completed"], 1)
         self.assertEqual(report["completion_signal"], "WORK_DONE")
 
-    def test_stage_question_blocks_dependents_but_independent_stage_runs(self):
+    def prepare_advanced_stage_question(self, extra_stage=False):
         fields = self.staged()
         self.stop()
         hotline_config = self.root / "stage-hotline.json"
-        hotline_config.write_text(json.dumps({"schema": "oh.war/hotline-config/v1", "responders": []}))
+        self.stage_credential = "public-stage-reconfirmation-fixture-0001"
+        hotline_config.write_text(json.dumps({"schema": "oh.war/hotline-config/v1", "responders": [{
+            "id": "fixture-adviser", "kind": "ai", "token_sha256": hashlib.sha256(self.stage_credential.encode()).hexdigest(),
+            "governing_warrants": []}]}))
         self.report_args = ["--hotline-config", str(hotline_config)]
         stages = self.config["warrants"][fields["warrant_id"]]["stage_plan"]["stages"]
         stages["docs"] = {"title": "Docs", "outcome": "Independent docs", "dependencies": [],
                           "checks": [[sys.executable, "-c", "from pathlib import Path; assert Path('docs.txt').exists()"]]}
+        if extra_stage:
+            stages["docs2"] = {"title": "More docs", "outcome": "Independent docs2", "dependencies": [],
+                               "checks": [[sys.executable, "-c", "from pathlib import Path; assert Path('docs2.txt').exists()"]]}
         completion = self.harness.read_text()
         self.harness.write_text("""import json,sys
 r=json.load(sys.stdin)
@@ -189,7 +195,7 @@ print(json.dumps({'schema':'oh.war/execution-question/v1','attempt_id':r['attemp
         self.assertEqual(first["work_state"], "blocked")
         rows = self.call("/api/stages/" + fields["warrant_id"])[1]
         self.assertEqual({r["stage"]: r["state"] for r in rows["stages"]},
-                         {"api": "blocked", "ui": "blocked", "docs": "ready"})
+                         {"api": "blocked", "ui": "blocked", "docs": "ready", **({"docs2": "ready"} if extra_stage else {})})
         self.assertEqual(self.call("/api/runs", "POST", {**fields, "stage": "ui"})[0], 409)
         self.harness.write_text(completion)
         status, independent = self.call("/api/runs", "POST", {**fields, "stage": "docs"})
@@ -208,6 +214,11 @@ print(json.dumps({'schema':'oh.war/execution-question/v1','attempt_id':r['attemp
             "stage": "docs", "from_revision": first["question"]["checkpoint"],
             "to_revision": independent["result_revision"]}])
         self.assertEqual(self.call(route, headers={"Authorization": "Bearer wrong"})[0], 401)
+        return fields, first, independent, review
+
+    def test_stage_question_blocks_dependents_but_independent_stage_runs(self):
+        fields, first, independent, review = self.prepare_advanced_stage_question()
+        route = "/api/hotline/" + first["attempt_id"] + "/checkpoint"
         worktree = Path(independent["worktree"])
         (worktree / "unrelated.txt").write_text("not a dispatched stage")
         self.assertEqual(self.call(route)[0], 409)
@@ -217,6 +228,61 @@ print(json.dumps({'schema':'oh.war/execution-question/v1','attempt_id':r['attemp
         self.assertEqual(status, 409, refusal)
         self.assertIn("independent stage evidence", refusal["error"])
 
+
+    def test_reconfirm_changed_checkpoint_preserves_answers_and_resumes_once(self):
+        fields, first, independent, review = self.prepare_advanced_stage_question()
+        route = "/api/hotline/" + first["attempt_id"]
+        headers = {"X-OW-Responder": self.stage_credential}
+        original_fields = {"question_sha256": review["question_sha256"], "answer": "Use JSON", "evidence": []}
+        status, original = self.call(route + "/answer", "POST", original_fields, headers=headers)
+        self.assertEqual(status, 200, original)
+        resume = {"question_sha256": review["question_sha256"]}
+        self.assertEqual(self.call(route + "/resume", "POST", resume)[0], 409)
+        reconfirm = {"checkpoint_sha256": review["checkpoint_sha256"], "answer": "JSON still applies after docs", "evidence": [independent["result_revision"]]}
+        self.assertEqual(self.call(route + "/reconfirm", "POST", reconfirm)[0], 401)
+        self.assertEqual(self.call(route + "/reconfirm", "POST", {**reconfirm, "checkpoint_sha256": "0" * 64}, headers=headers)[0], 409)
+        status, retained = self.call(route + "/reconfirm", "POST", reconfirm, headers=headers)
+        self.assertEqual(status, 200, retained)
+        self.assertEqual(retained["question"]["checkpoint"], independent["result_revision"])
+        self.assertEqual(self.call(route + "/reconfirm", "POST", reconfirm, headers=headers), (200, retained))
+        self.assertEqual(self.call(route + "/reconfirm", "POST", {**reconfirm, "answer": "Different"}, headers=headers)[0], 409)
+        self.assertEqual(self.call(route + "/answer", "POST", original_fields, headers=headers), (200, original))
+        self.stop(); self.start()
+        status, child = self.call(route + "/resume", "POST", resume)
+        self.assertEqual(status, 202, child)
+        finished = self.wait_run(child["attempt_id"])
+        self.assertEqual(finished["execution_state"], "stopped", finished)
+        self.assertEqual(finished["work_state"], "in-progress", finished)
+        self.assertEqual(finished["hotline_context"][-2]["question"]["checkpoint"], first["question"]["checkpoint"])
+        self.assertEqual(finished["hotline_context"][-1]["question"]["checkpoint"], independent["result_revision"])
+        self.assertEqual(self.call(route + "/resume", "POST", resume)[1]["attempt_id"], child["attempt_id"])
+        final = self.call("/api/runs", "POST", {**fields, "stage": "ui"})
+        self.assertEqual(final[0], 202, final)
+        self.assertEqual(self.wait_run(final[1]["attempt_id"])["work_state"], "completed")
+
+    def test_checkpoint_reconfirmation_expires_after_more_independent_work(self):
+        fields, first, independent, review = self.prepare_advanced_stage_question(extra_stage=True)
+        route = "/api/hotline/" + first["attempt_id"]
+        headers = {"X-OW-Responder": self.stage_credential}
+        answer = {"question_sha256": review["question_sha256"], "answer": "JSON", "evidence": []}
+        self.assertEqual(self.call(route + "/answer", "POST", answer, headers=headers)[0], 200)
+        renewed = {"checkpoint_sha256": review["checkpoint_sha256"], "answer": "Still JSON", "evidence": []}
+        self.assertEqual(self.call(route + "/reconfirm", "POST", renewed, headers=headers)[0], 200)
+        next_run = self.call("/api/runs", "POST", {**fields, "stage": "docs2"})
+        self.assertEqual(next_run[0], 202, next_run)
+        self.assertEqual(self.wait_run(next_run[1]["attempt_id"])["execution_state"], "stopped")
+        resume = {"question_sha256": review["question_sha256"]}
+        self.assertEqual(self.call(route + "/resume", "POST", resume)[0], 409)
+        self.assertEqual(self.call(route + "/reconfirm", "POST", renewed, headers=headers)[0], 409)
+        refreshed = self.call(route + "/checkpoint")[1]
+        self.assertIsNone(refreshed["reconfirmation"])
+        self.assertEqual(len(refreshed["independent_stages"]), 2)
+        self.assertNotEqual(refreshed["checkpoint_sha256"], review["checkpoint_sha256"])
+        self.assertEqual(self.call(route + "/reconfirm", "POST", {**renewed,
+            "checkpoint_sha256": refreshed["checkpoint_sha256"]}, headers=headers)[0], 200)
+        child = self.call(route + "/resume", "POST", resume)
+        self.assertEqual(child[0], 202, child)
+        self.assertEqual(self.wait_run(child[1]["attempt_id"])["execution_state"], "stopped")
 
     def test_stage_selection_is_authenticated_current_and_does_not_dispatch(self):
         fields = self.staged()

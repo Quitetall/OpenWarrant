@@ -60,9 +60,8 @@ may name only configured affected stages.
 Stage selection is available through the authenticated API and browser execution
 controls. GET `/api/stages/<warrant-id>` reports configured stages and advisory
 readiness without creating attempts. Browser selection requires an explicit stage
-choice. Safe hotline resume after independent stages advance a question's
-checkpoint remains unfinished. The existing exact-checkpoint resume refusal remains;
-no old answer silently authorizes a changed checkpoint.
+choice. A moved question checkpoint requires explicit authenticated answer
+reconfirmation before resume; no old answer silently authorizes new code.
 
 `completed_from_evidence` validates a current stage checkpoint against exact source,
 plan and code revision. It removes successors whose prerequisite checks are absent
@@ -80,4 +79,19 @@ same source, policy, execution configuration and worktree, and passing current
 stage evidence. Dirty state, unknown/running writers, unrelated commits, missing
 lineage or an already resumed question refuse. The preview explicitly requires
 answer reconfirmation when the checkpoint changed; it does not authorize resume.
-Authenticated reconfirmation storage and its browser/resume integration remain open.
+POST `/api/hotline/<attempt-id>/reconfirm` accepts exactly `checkpoint_sha256`,
+`answer`, and `evidence`, with the same responder credential header and eligibility
+rules as original answers. The checkpoint preview supplies its digest. An eligible
+original answer must exist. Reconfirmation stores a separate immutable record
+bound to the exact review, original answer digest, responder policy, and updated
+question. It does not replace the original answer or launch work.
+
+Resume rechecks lineage and consumes only a reconfirmation for the current
+checkpoint. Additional independent work invalidates a previous reconfirmation;
+the old record stays available. The resumed harness receives both original and
+updated question/answer contexts. Browser users can review current checkpoint,
+record a new answer, then explicitly resume. Technical answers may come from
+configured AI responders; direct-human and governing scope restrictions still apply.
+The controller cannot prove a responder read the code. Authenticated record means
+that responder supplied that answer for those exact inputs, not independent
+assurance or human qualification. Browser reconfirmation QA remains pending.

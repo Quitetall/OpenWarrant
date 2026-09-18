@@ -87,6 +87,21 @@ async function board(){
   } catch(e) {el('board-view').replaceChildren();el('board-status').textContent='Board unavailable: '+e.message;throw e}
 }
 el('board-refresh').onclick=()=>guard(board);
+async function reviewCheckpoint(card,item){
+  const session=token,q=item.question;
+  const review=await api('/api/hotline/'+q.attempt_id+'/checkpoint');
+  if(session!==token||!card.isConnected)return;
+  const previous=card.querySelector('.checkpoint-review');if(previous)previous.remove();
+  const box=document.createElement('section');box.className='checkpoint-review';
+  const basis=document.createElement('pre');basis.textContent=['Old checkpoint: '+review.from_revision,'Current checkpoint: '+review.to_revision,'Review: '+review.checkpoint_sha256,...review.independent_stages.map(s=>s.stage+' · '+s.from_revision+' → '+s.to_revision)].join('\n');box.append(basis);card.append(box);
+  if(!review.answer_reconfirmation_required){box.append(document.createTextNode('Checkpoint unchanged. Ordinary resume applies.'));return;}
+  if(review.reconfirmation){const answer=review.reconfirmation.answer;box.append(document.createTextNode('Reconfirmed by '+answer.respondent+': '+answer.answer+'. Work remains paused until Resume.'));return;}
+  const form=document.createElement('form'),credential=document.createElement('input'),value=document.createElement('textarea'),refs=document.createElement('textarea');
+  credential.type='password';credential.autocomplete='off';credential.required=true;value.required=true;value.maxLength=12000;refs.maxLength=12000;
+  for(const [label,node,name] of [['Responder credential',credential,'credential'],['Answer for current checkpoint',value,'answer'],['Evidence references · one per line',refs,'evidence']]){const l=document.createElement('label');node.id='checkpoint-'+q.attempt_id+'-'+name;l.htmlFor=node.id;l.textContent=label;form.append(l,node);}
+  const submit=document.createElement('button');submit.textContent='Reconfirm for this checkpoint';form.append(submit);
+  form.onsubmit=e=>{e.preventDefault();guard(async()=>{const secret=credential.value;credential.value='';await api('/api/hotline/'+q.attempt_id+'/reconfirm','POST',{checkpoint_sha256:review.checkpoint_sha256,answer:value.value,evidence:refs.value.split('\n').map(x=>x.trim()).filter(Boolean)},{'X-OW-Responder':secret});notice('Checkpoint answer retained. Resume remains explicit.');await reviewCheckpoint(card,item);});};box.append(form);
+}
 async function hotline(){
   const session=token;
   el('hotline-status').textContent='Reading questions…';
@@ -102,7 +117,7 @@ async function hotline(){
       if(item.answer){
         const response=document.createElement('pre');response.textContent='Answer from '+item.answer.respondent+' ('+item.answer.respondent_kind+')\n'+item.answer.answer+'\nEvidence: '+item.answer.evidence.join(', ');card.append(response);
         if(item.resumed_attempt){const p=document.createElement('p');p.textContent='Resumed as '+item.resumed_attempt;card.append(p)}
-        else{const resume=document.createElement('button');resume.textContent='Resume answered work';resume.onclick=()=>guard(async()=>{const r=await api('/api/hotline/'+q.attempt_id+'/resume','POST',{question_sha256:item.question_sha256});notice('Resume attempt '+r.attempt_id+' · '+r.work_state+'. Qualification remains separate.');await Promise.all([hotline(),runs()])});card.append(resume)}
+        else{const resume=document.createElement('button');resume.textContent='Resume answered work';resume.onclick=()=>guard(async()=>{const r=await api('/api/hotline/'+q.attempt_id+'/resume','POST',{question_sha256:item.question_sha256});notice('Resume attempt '+r.attempt_id+' · '+r.work_state+'. Qualification remains separate.');await Promise.all([hotline(),runs()])});const review=document.createElement('button');review.textContent='Review current checkpoint';review.onclick=()=>guard(()=>reviewCheckpoint(card,item));card.append(review,resume)}
       }else{
         const route=document.createElement('p');route.className='small muted';route.textContent=item.eligible_responders.length?'Configured responders: '+item.eligible_responders.map(a=>a.id+' ('+a.kind+')').join(', '):'Waiting: no eligible responder configured.';card.append(route);
         if(item.eligible_responders.length){
