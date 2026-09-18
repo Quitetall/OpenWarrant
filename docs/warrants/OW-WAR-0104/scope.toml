@@ -61,3 +61,23 @@ obligation_refs = ["OBL-003"]
 [[scope]]
 path_glob = "docs/warrants/OW-WAR-0068/attempts/batch-grill-20260918/**"
 obligation_refs = ["OBL-003"]
+
+[[scope]]
+path_glob = "crates/openwarrant-cli/src/progress_viewer.rs"
+obligation_refs = ["OBL-004"]
+
+[[scope]]
+path_glob = "crates/openwarrant-cli/src/progress_viewer/**"
+obligation_refs = ["OBL-004"]
+
+[[scope]]
+path_glob = "docs/design/visual-roadmap.md"
+obligation_refs = ["OBL-004"]
+
+[[scope]]
+path_glob = "docs/roadmap/view.json"
+obligation_refs = ["OBL-004"]
+
+[[scope]]
+path_glob = "crates/openwarrant-cli/tests/progress_viewer.rs"
+obligation_refs = ["OBL-004"]

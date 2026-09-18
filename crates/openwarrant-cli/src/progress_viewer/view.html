@@ -9,6 +9,7 @@
 <section class="cards" aria-label="Progress totals"><div class="card"><label>Warrants in repository</label><span class="number" id="total">—</span></div><div class="card"><label>Reported completed · unverified</label><span class="number" id="completed">—</span><progress id="bar" aria-label="Completed among explicit work reports" max="1" value="0"></progress><small id="denominator"></small></div><div class="card"><label>Reported active / blocked</label><span class="number" id="active">—</span></div><div class="card"><label>No valid work report</label><span class="number" id="unknown">—</span></div></section>
 <div class="notice">Work state comes from attributed implementation reports. Reports do not prove verification. Legacy resolution remains separate; this viewer awards no Verified mark.</div>
 <div class="controls"><input id="search" type="search" placeholder="Find Warrant, title or outcome…" aria-label="Search Warrants"><select id="filter" aria-label="Filter work state"><option value="all">All work</option><option value="reported">Has work report</option><option value="completed">Completed · unverified</option><option value="active">In progress / blocked</option><option value="unknown">No valid work report</option></select><button id="refresh" type="button">Refresh now</button></div>
+<section id="roadmap" aria-label="Release roadmap"></section>
 <div class="table-wrap"><table><thead><tr><th>Warrant</th><th>Outcome &amp; evidence</th><th>Implementation</th><th>Legacy record</th></tr></thead><tbody id="rows"></tbody></table><p id="empty" class="hidden">No matching Warrants.</p></div>
 <footer class="muted"><p id="asof"></p><p id="basis"></p><p id="mode"></p></footer>
 <noscript>This viewer requires JavaScript to render its embedded snapshot. It does not require network access in offline mode.</noscript>
@@ -20,6 +21,36 @@ let snapshot=JSON.parse(document.getElementById('progress-data').textContent),bu
 const $=id=>document.getElementById(id),text=(tag,value,cls)=>{const e=document.createElement(tag);e.textContent=value;if(cls)e.className=cls;return e;};
 const label=s=>({'in-progress':'In progress',completed:'Completed · unverified',blocked:'Blocked',failed:'Failed',cancelled:'Cancelled',unknown:'Unknown'}[s]||'No report');
 function sourceLink(name,title){const a=text('a',title);const url=snapshot.links[name];if(!url)return text('span',title+' unavailable','muted');a.href=url;a.target='_blank';a.rel='noopener noreferrer';return a;}
+const roadmapExpansion=new Map();
+function renderRoadmap(){
+ const host=$('roadmap');host.replaceChildren();const map=snapshot.roadmap;if(!map)return;
+ host.append(text('h2',map.title));
+ const mapped=new Set(map.nodes.flatMap(n=>n.warrants));
+ const unmapped=snapshot.legacy.warrants.filter(w=>!mapped.has(w.alias));
+ host.append(text('p',`${mapped.size} of ${snapshot.legacy.warrants.length} repository Warrants mapped. Counts below cover configured scope only.`,'muted'));
+ if(unmapped.length){const outside=document.createElement('details');outside.append(text('summary',`${unmapped.length} Warrants outside configured roadmap`));for(const w of unmapped){const b=text('button',w.alias+' — '+w.title);b.type='button';b.addEventListener('click',()=>{$('search').value=w.alias;$('filter').value='all';render();$('rows').scrollIntoView({block:'start'});});outside.append(b);}host.append(outside);}
+ if(snapshot.stage_frontier_error)host.append(text('p','Stage information unavailable: '+snapshot.stage_frontier_error,'report-error'));
+
+ const q=$('search').value.toLowerCase(),filter=$('filter').value;
+ const children=id=>map.nodes.filter(n=>(n.parent||null)===id);
+ const allNodes=n=>[n,...children(n.id).flatMap(allNodes)];
+ function branch(n){
+  const members=allNodes(n),aliases=[...new Set(members.flatMap(x=>x.warrants))];
+  const reports=aliases.map(a=>snapshot.reports[a]?.report),done=reports.filter(r=>r?.work_state==='completed').length;
+  const unscoped=members.filter(x=>!x.warrants.length&&!children(x.id).length).length;
+  const match=filter==='all'||filter==='completed'&&done>0||filter==='reported'&&reports.some(Boolean)||filter==='unknown'&&(reports.some(r=>!r)||unscoped>0)||filter==='active'&&reports.some(r=>['in-progress','blocked'].includes(r?.work_state));
+  if(!match||!members.some(x=>(x.title+' '+x.outcome+' '+x.warrants.join(' ')).toLowerCase().includes(q)))return null;
+  const box=document.createElement('details');box.open=roadmapExpansion.get(n.id)??true;box.className='card';box.addEventListener('toggle',()=>roadmapExpansion.set(n.id,box.open));
+  box.append(text('summary',n.title));box.append(text('p',n.outcome));
+  box.append(text('p',`${done} / ${aliases.length} distinct Warrants reported complete · ${unscoped} unscoped features`,'muted'));
+  if(aliases.length&&!unscoped){const bar=document.createElement('progress');bar.max=aliases.length;bar.value=done;bar.setAttribute('aria-label',n.title+' reported implementation progress');box.append(bar);}else{box.append(text('p','Completion percentage unavailable: '+(unscoped?'unscoped features remain.':'no Warrants assigned.'),'muted'));}
+  for(const alias of n.warrants){const r=snapshot.reports[alias]?.report;const button=text('button',alias+' · '+(r?label(r.work_state):'No valid report'));button.type='button';button.addEventListener('click',()=>{$('search').value=alias;$('filter').value='all';render();$('rows').scrollIntoView({block:'start'});});box.append(button);}
+  const stages=(snapshot.stage_frontier?.rows||[]).filter(s=>n.warrants.includes(s.warrant));
+  if(stages.length){const detail=document.createElement('details');detail.append(text('summary','Stage dependencies (legacy evaluator; not permission to execute)'));const list=document.createElement('ul');for(const stage of stages){list.append(text('li',`${stage.warrant} / ${stage.stage}: ${stage.state}${stage.waiting_on?.length?' · waiting on '+stage.waiting_on.join(', '):''}`));}detail.append(list);box.append(detail);}
+  for(const child of children(n.id)){const b=branch(child);if(b)box.append(b);}return box;
+ }
+ for(const n of children(null)){const b=branch(n);if(b)host.append(b);}
+}
 function render(updateRows=true){
  const all=snapshot.legacy.warrants,reports=snapshot.reports;
  const known=all.filter(w=>reports[w.alias]?.report),completed=known.filter(w=>reports[w.alias].report.work_state==='completed').length;
@@ -28,6 +59,7 @@ function render(updateRows=true){
  $('asof').textContent=`Snapshot captured ${new Date(Number(snapshot.as_of_unix_ms)).toLocaleString()} · revision ${snapshot.source_revision}`;
  $('basis').textContent=`Record digest ${snapshot.record_digest} · legacy resolutions ${snapshot.legacy.recorded_resolutions}. Revision names checkout HEAD; digest identifies observed record content, including uncommitted records.`;
  if(!updateRows)return;
+ renderRoadmap();
  const expanded=new Set([...$('rows').querySelectorAll('tr')].filter(tr=>tr.querySelector('details')?.open).map(tr=>tr.dataset.warrant));
  const q=$('search').value.toLowerCase(),filter=$('filter').value;
  const rows=all.filter(w=>{const r=reports[w.alias]?.report;return (w.alias+' '+w.title+' '+(r?.summary||'')).toLowerCase().includes(q)&&(filter==='all'||filter==='reported'&&r||filter==='completed'&&r?.work_state==='completed'||filter==='active'&&['in-progress','blocked'].includes(r?.work_state)||filter==='unknown'&&!r);});

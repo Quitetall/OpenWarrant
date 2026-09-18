@@ -12,6 +12,7 @@ use std::{
     path::{Component, Path, PathBuf},
     time::{SystemTime, UNIX_EPOCH},
 };
+mod roadmap;
 mod server;
 pub(crate) mod source;
 
@@ -63,6 +64,9 @@ pub(super) struct Snapshot {
     record_digest: String,
     legacy: overview::Overview,
     reports: BTreeMap<String, ReportEntry>,
+    roadmap: Option<roadmap::Roadmap>,
+    stage_frontier: Option<crate::frontier::Frontier>,
+    stage_frontier_error: Option<String>,
     /// Relative repository names mapped to links. Live server serves only these sources.
     links: BTreeMap<String, String>,
     #[serde(skip)]
@@ -181,10 +185,14 @@ fn capture(repo: &Repository, live: bool) -> Result<Snapshot, RepoError> {
         record_digest: String::new(),
         legacy,
         reports: BTreeMap::new(),
+        roadmap: None,
+        stage_frontier: None,
+        stage_frontier_error: None,
         links: BTreeMap::new(),
         sources: BTreeMap::new(),
         root: root.clone(),
     };
+    let mut known_aliases = std::collections::BTreeSet::new();
     // The configured Warrant directories, not a hard-coded docs path, define scope.
     for dir in repo.warrant_dirs()? {
         let manifest = repo.load_warrant(&dir)?;
@@ -192,6 +200,7 @@ fn capture(repo: &Repository, live: bool) -> Result<Snapshot, RepoError> {
             continue;
         };
         let alias = basis.manifest.local_alias.to_string();
+        known_aliases.insert(alias.clone());
         let path = dir.join("implementation/progress.json");
         if !path.try_exists().map_err(|e| err(e.to_string()))? {
             continue;
@@ -234,8 +243,31 @@ fn capture(repo: &Repository, live: bool) -> Result<Snapshot, RepoError> {
         };
         snapshot.reports.insert(alias, entry);
     }
-    snapshot.record_digest = sha(&serde_json::to_vec(&(&snapshot.legacy, &snapshot.reports))
-        .map_err(|e| err(e.to_string()))?);
+    let path = root.join("docs/roadmap/view.json");
+    if path.try_exists().map_err(|e| err(e.to_string()))? {
+        let bytes = bounded_read(&path, SOURCE_LIMIT).map_err(err)?;
+        let aliases = known_aliases.iter().map(String::as_str).collect();
+        snapshot.roadmap = Some(roadmap::parse(&bytes, &aliases).map_err(err)?);
+        match crate::frontier::run(repo, None) {
+            Ok((report, frontier)) if report.is_ready() => snapshot.stage_frontier = Some(frontier),
+            Ok((report, _)) => {
+                snapshot.stage_frontier_error = Some(format!(
+                    "{}: {:?}",
+                    report.verdict_line(),
+                    report.diagnostics
+                ))
+            }
+            Err(error) => snapshot.stage_frontier_error = Some(error.to_string()),
+        }
+    }
+    snapshot.record_digest = sha(&serde_json::to_vec(&(
+        &snapshot.legacy,
+        &snapshot.reports,
+        &snapshot.roadmap,
+        &snapshot.stage_frontier,
+        &snapshot.stage_frontier_error,
+    ))
+    .map_err(|e| err(e.to_string()))?);
     Ok(snapshot)
 }
 fn html(snapshot: &Snapshot, live: bool, interval: u64) -> Result<String, RepoError> {

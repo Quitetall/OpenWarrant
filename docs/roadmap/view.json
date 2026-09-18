@@ -1,0 +1,76 @@
+{
+  "schema": "oh.war/roadmap-view/v1",
+  "title": "Road to OpenWarrant 1.0",
+  "nodes": [
+    {
+      "id": "release",
+      "title": "Stable 1.0",
+      "outcome": "Publish the standard and SDK after phase exits and release qualification. This map groups the principal delivery Warrants; remaining repository records appear in the coverage list.",
+      "warrants": [
+        "OW-WAR-0091"
+      ]
+    },
+    {
+      "id": "library",
+      "parent": "release",
+      "title": "1. Standard and library",
+      "outcome": "Parse and validate documents; expose tested SDK primitives.",
+      "warrants": [
+        "OW-WAR-0075",
+        "OW-WAR-0076",
+        "OW-WAR-0077",
+        "OW-WAR-0078",
+        "OW-WAR-0079",
+        "OW-WAR-0080",
+        "OW-WAR-0081",
+        "OW-WAR-0082",
+        "OW-WAR-0083",
+        "OW-WAR-0084",
+        "OW-WAR-0085"
+      ]
+    },
+    {
+      "id": "integration",
+      "parent": "release",
+      "title": "2. SDK and compiler integration",
+      "outcome": "Exchange context through provider interfaces and usable CLI/skills.",
+      "warrants": [
+        "OW-WAR-0086",
+        "OW-WAR-0087",
+        "OW-WAR-0088",
+        "OW-WAR-0089"
+      ]
+    },
+    {
+      "id": "workflow",
+      "parent": "release",
+      "title": "3. Real workflows",
+      "outcome": "Exercise reference application, execution and real-user study.",
+      "warrants": [
+        "OW-WAR-0090",
+        "OW-WAR-0093",
+        "OW-WAR-0094",
+        "OW-WAR-0095"
+      ]
+    },
+    {
+      "id": "overview",
+      "parent": "workflow",
+      "title": "Visual project overview",
+      "outcome": "See feature progress, evidence and remaining work.",
+      "warrants": [
+        "OW-WAR-0104"
+      ]
+    },
+    {
+      "id": "hardening",
+      "parent": "release",
+      "title": "4. Hardening and adoption",
+      "outcome": "Qualify all phase exits, reconcile remaining records and prepare stable publication.",
+      "warrants": [
+        "OW-WAR-0090",
+        "OW-WAR-0091"
+      ]
+    }
+  ]
+}

@@ -27,3 +27,9 @@ classification: internal
 - **scope:** adapted war-grill skill and repository integration.
 - **evidence:** every queue item keeps its identity and unanswered status; no invented
   human answers. Focused tests, package suite, lint and full gate with exact subjects.
+
+### OBL-004 — configurable visual roadmap
+- **scope:** configured roadmap parser, progress snapshot and HTML tree.
+- **evidence:** mixed and shared Warrant fixtures yield exact distinct counts;
+  invalid references, duplicate IDs and cycles refuse. Offline and live browser
+  observations cover filtering, details, refresh and hostile source text.
