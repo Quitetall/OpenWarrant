@@ -61,3 +61,22 @@ Sixteen preservation integration tests passed on Rust 1.97.1. Source-detached
 query tests compare graph content and exact bytes; historical tests require each
 retained commit's declaration independently. Existing forged-subject/history
 refusals remain intact. All-target CLI Clippy with warnings denied passed.
+
+### Current source stage membership adapter
+
+KF revision reconciliation PR7 merged at
+`e5b1af6ad64b8f506911d5baf5e5f4d21ffe658e` after CI run 35377437037 passed.
+The next provider change (commit `e29bc18ad5fa589102422b6e2e3fcf528dd944b8`) matches current dispatch stage and milestone membership against source
+declarations, retains exact paths/digests, and exposes unresolved historical or
+missing mappings. It does not grant runtime coverage.
+
+A fresh OW75 archive produced with c3ae3658 reconstructs the exact contract
+digest of its retained dispatch. Its source stage STAGE-001 belongs to M1;
+eight historical graph copies are not substituted for the current graph.
+The source archive and query report are retained here. Provider rows in the
+regression are synthetic, no receipt is invented, and the missing receipt stays
+visible. This proves membership comparison, not actual execution.
+
+47 export tests passed before fixture integration; the seven-test runtime suite
+passed again with the real source fixture. Build, focused lint, TypeScript and
+measurement generation passed. Full provider CI remains pending.
