@@ -1178,3 +1178,107 @@ fn explicit_additional_history_root_preserves_unmerged_records() {
     std::fs::rename(f.0.join("docs"), f.0.join("hidden-docs")).unwrap();
     success(f.run(&["archive", "inspect", "extra.json"]));
 }
+
+#[test]
+fn generated_local_archive_roundtrips_and_runtime_absence_cannot_be_forged() {
+    let f = Fixture::new();
+    success(f.run(&[
+        "init",
+        "--namespace",
+        "ARCH",
+        "--program",
+        "Complete local transport fixture",
+    ]));
+    success(f.run(&["new", "Retain complete declared local sources"]));
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let pack = std::fs::read(root.join("schemas/pack.json")).unwrap();
+    let value: serde_json::Value = serde_json::from_slice(&pack).unwrap();
+    std::fs::create_dir_all(f.0.join("schemas")).unwrap();
+    std::fs::write(f.0.join("schemas/pack.json"), pack).unwrap();
+    for name in value["files"].as_object().unwrap().keys() {
+        let path = format!("schemas/oh.war/{name}/v1.json");
+        std::fs::create_dir_all(f.0.join(&path).parent().unwrap()).unwrap();
+        std::fs::copy(root.join(&path), f.0.join(&path)).unwrap();
+    }
+    for args in [
+        vec!["init", "-q"],
+        vec!["add", "docs", "schemas", "openwarrant.toml"],
+        vec!["commit", "-qm", "fixture source"],
+    ] {
+        let out = Command::new("git")
+            .current_dir(&f.0)
+            .args([
+                "-c",
+                "user.name=Archive Fixture",
+                "-c",
+                "user.email=archive@example.invalid",
+            ])
+            .args(args)
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+    }
+    success(f.run(&[
+        "archive",
+        "export",
+        "ARCH-WAR-0002",
+        "complete.json",
+        "--history",
+    ]));
+    let original = std::fs::read(f.0.join("complete.json")).unwrap();
+    let archive = Archive::decode(&original, Limits::default()).unwrap();
+    assert!(
+        archive
+            .coverage
+            .values()
+            .all(|value| !matches!(value, Coverage::Unavailable { .. })),
+        "{:?}",
+        archive.coverage
+    );
+    let milestones =
+        f.0.join("docs/warrants/ARCH-WAR-0002/atoms/45-milestones.yaml");
+    let before = std::fs::read_to_string(&milestones).unwrap();
+    let after = before.replace("executor_kind: \"human\"", "executor_kind: \"katana\"");
+    assert_ne!(before, after);
+    std::fs::write(&milestones, after).unwrap();
+    success(f.run(&[
+        "archive",
+        "export",
+        "ARCH-WAR-0002",
+        "runtime.json",
+        "--history",
+    ]));
+    let mut runtime = Archive::decode(
+        &std::fs::read(f.0.join("runtime.json")).unwrap(),
+        Limits::default(),
+    )
+    .unwrap();
+    assert!(matches!(
+        runtime.coverage["runtime receipt refs"],
+        Coverage::Unavailable { .. }
+    ));
+    runtime.coverage.insert(
+        "runtime receipt refs".into(),
+        archive.coverage["runtime receipt refs"].clone(),
+    );
+    std::fs::write(
+        f.0.join("false-runtime.json"),
+        runtime.encode(Limits::default()).unwrap(),
+    )
+    .unwrap();
+    refusal(
+        f.run(&["archive", "inspect", "false-runtime.json"]),
+        "runtime receipt refs coverage differs",
+    );
+    for path in ["docs", "schemas", ".git"] {
+        std::fs::rename(f.0.join(path), f.0.join(format!("hidden-{path}"))).unwrap();
+    }
+    success(f.run(&["archive", "import", "complete.json", "imported"]));
+    std::fs::remove_file(f.0.join("complete.json")).unwrap();
+    success(f.run(&["archive", "reexport", "imported", "again.json"]));
+    assert_eq!(std::fs::read(f.0.join("again.json")).unwrap(), original);
+}

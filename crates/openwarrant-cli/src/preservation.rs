@@ -4,6 +4,7 @@ use std::{collections::BTreeMap, path::Path};
 mod artifacts;
 mod audit;
 mod cases;
+mod context;
 mod contracts;
 mod history;
 mod identity;
@@ -96,10 +97,11 @@ pub fn run(command: Command) -> Result<(String, serde_json::Value), Error> {
             write_new(output.as_std_path(), &bytes)?;
             Ok((
                 format!(
-                    "Captured current Warrant bytes. Preservation incomplete. Unavailable categories: {}.",
+                    "Captured selected local sources and history. Category coverage complete: {}. Unavailable categories: {}. No authority or qualification granted.",
+                    unavailable_categories(&archive).is_empty(),
                     unavailable_categories(&archive).join(", ")
                 ),
-                serde_json::json!({"schema":"oh.war/preservation-result/v1-draft.1", "operation":"export", "archive_digest":archive.digest(limits)?, "output":output.as_str(), "complete":false, "coverage":archive.coverage, "unavailable_categories":unavailable_categories(&archive), "authority_activated":false}),
+                serde_json::json!({"schema":"oh.war/preservation-result/v1-draft.1", "operation":"export", "archive_digest":archive.digest(limits)?, "output":output.as_str(), "complete":unavailable_categories(&archive).is_empty(), "completeness_scope":"selected-local-current-and-history", "coverage":archive.coverage, "unavailable_categories":unavailable_categories(&archive), "authority_activated":false}),
             ))
         }
         Command::Import {
@@ -531,6 +533,7 @@ fn assemble(
         audit::coverage(&files, relative.as_str())?,
     );
     coverage.extend(cases::coverage(&files, relative.as_str())?);
+    coverage.extend(context::coverage(&files, relative.as_str())?);
     let archive = Archive {
         schema: SCHEMA.into(),
         subject: format!("war://{}", basis.manifest.uuid),
@@ -645,7 +648,9 @@ fn verify_archive_basis(
             return Err(Error(message.into()));
         }
     }
-    for (name, observed) in cases::coverage(files, directory)? {
+    let mut source_coverage = cases::coverage(files, directory)?;
+    source_coverage.extend(context::coverage(files, directory)?);
+    for (name, observed) in source_coverage {
         if !matches!(
             archive.coverage.get(&name),
             Some(openwarrant_compiler::preservation::Coverage::Unavailable { .. })
