@@ -51,7 +51,11 @@ Job views separate the historical observation from `effective_verdict`. Missing
 or corrupt retained protection receipts set `evidence_state` to `unavailable` and
 the effective verdict to `unknown`, while preserving the original observation.
 Restoring the exact receipt restores the evidence view without rewriting history.
-Another running or uncertain verifier blocks new dispatch. Browser controls, aggregate loop budgets,
+Another running or uncertain verifier blocks new dispatch. The browser offers
+preparation from completed attempts, exact-request download, signed receipt upload,
+explicit start and result refresh. Running jobs poll every two seconds; locking
+the session clears their view and polling. Browser runtime qualification remains
+pending. Aggregate loop budgets,
 automatic repairs and rebuttal routing are not yet wired. A consumed claim without
 a live process observation is UNKNOWN after interruption; it cannot relaunch.
 Tests use synthetic processes and disposable machine keys, not independent human

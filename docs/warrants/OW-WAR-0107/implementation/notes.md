@@ -179,3 +179,15 @@ Forty verifier tests pass after the fix, including HTTP deletion, exact restorat
 and corruption cases. Evidence: `implementation/evidence-retention-tests.log`.
 The earlier full web run remains 149 passes; this change ran the focused verifier
 suite. Browser controls and repair/budget work remain open.
+
+## Browser control candidate
+
+Added preparation buttons on completed stopped runs and a verification panel with
+exact request/evidence details, request download, bounded signed receipt file upload,
+explicit start, readable findings and effective evidence status. Running jobs refresh
+every two seconds. Lock clears the panel and polling; late verification responses
+check session identity before updating the view. Text uses DOM textContent.
+
+Extracted script passes `node --check`; `git diff --check` passes. Real browser
+interaction is not yet observed, so UI qualification remains pending. This change
+does not complete OW107 or its remaining aggregate budget/repair/rebuttal scope.
