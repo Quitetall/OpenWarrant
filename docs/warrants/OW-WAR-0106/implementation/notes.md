@@ -90,3 +90,10 @@ without changing existing imports or behavior. Five stage tests and the 95-test
 web regression suite pass. STAGES.md records the remaining dispatch, final
 aggregation and legitimate checkpoint-advancement requirements. V1 runtime
 configuration still refuses unsupported stage plans; no readiness claim is added.
+
+Stage completion projection now requires exact current code revision, source digest,
+plan identity and observed matching check commands with integer zero exit results.
+A completed label alone, unknown execution, stale code, missing prerequisite
+evidence or unrelated checks cannot unblock successors. Six stage library tests
+pass. The checkpoint producer and dispatch integration remain unfinished; this
+projection consumes performer observations and does not award assurance.

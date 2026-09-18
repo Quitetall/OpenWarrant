@@ -98,3 +98,38 @@ def plan(config):
         graph[id] = stage["dependencies"]
     validate(graph)
     return json.loads(json.dumps(config))
+
+
+def completed_from_evidence(config, source_sha256, revision, record):
+    """Current-revision performer evidence only; never independent assurance."""
+    config = plan(config)
+    require(isinstance(source_sha256, str) and re.fullmatch(r"[0-9a-f]{64}", source_sha256),
+            "Exact source digest required")
+    require(isinstance(revision, str) and re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", revision),
+            "Exact current revision required")
+    if not isinstance(record, dict):
+        return set()
+    if (record.get("schema") != "oh.war/stage-checkpoint/v1"
+            or record.get("source_sha256") != source_sha256
+            or record.get("revision") != revision
+            or record.get("plan") != config
+            or record.get("execution_state") != "stopped"):
+        return set()
+    observed = record.get("stage_checks")
+    require(isinstance(observed, dict) and observed.keys() <= config["stages"].keys(),
+            "Unknown or malformed stage evidence")
+    passed = set()
+    for id, checks in observed.items():
+        expected = config["stages"][id]["checks"]
+        if (isinstance(checks, list) and len(checks) == len(expected)
+                and all(isinstance(check, dict) and check.get("argv") == command
+                        and type(check.get("exit_code")) is int and check["exit_code"] == 0
+                        for check, command in zip(checks, expected))):
+            passed.add(id)
+    # A passing leaf cannot make missing prerequisites disappear. Remove it
+    # conservatively; retained raw checks remain available to the caller.
+    while True:
+        valid = {id for id in passed if set(config["stages"][id]["dependencies"]) <= passed}
+        if valid == passed:
+            return valid
+        passed = valid

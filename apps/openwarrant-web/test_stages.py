@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 import unittest
-from stages import StageError, frontier, validate, plan
+from stages import StageError, frontier, validate, plan, completed_from_evidence
 
 
 class StagePlanningTests(unittest.TestCase):
@@ -50,6 +50,31 @@ class StagePlanningTests(unittest.TestCase):
             with self.subTest(key=key), self.assertRaises(StageError): plan(bad)
         with self.assertRaises(StageError): plan({**parsed, "qualified": True})
         with self.assertRaises(StageError): plan({**parsed, "schema": "future-schema"})
+
+    def test_stage_completion_needs_exact_source_revision_plan_and_checks(self):
+        import copy
+        config = {"schema": "oh.war/execution-stage-plan/v1", "stages": {
+            "api": {"title": "API", "outcome": "API behavior", "dependencies": [], "checks": [["check-api"]]},
+            "ui": {"title": "UI", "outcome": "UI behavior", "dependencies": ["api"], "checks": [["check-ui"]]}}}
+        record = {"schema": "oh.war/stage-checkpoint/v1", "source_sha256": "a" * 64,
+                  "revision": "b" * 40, "plan": config, "execution_state": "stopped", "stage_checks": {
+                      "api": [{"argv": ["check-api"], "exit_code": 0}],
+                      "ui": [{"argv": ["check-ui"], "exit_code": 0}]}}
+        def observed(r): return completed_from_evidence(config, "a" * 64, "b" * 40, r)
+        self.assertEqual(observed(record), {"api", "ui"})
+        for key, value in (("source_sha256", "c" * 64), ("revision", "c" * 40),
+                           ("execution_state", "unknown"), ("plan", {})):
+            self.assertEqual(observed({**record, key: value}), set())
+        for result in (None, 1, False, "0"):
+            bad = copy.deepcopy(record); bad["stage_checks"]["api"][0]["exit_code"] = result
+            self.assertEqual(observed(bad), set())
+        bad = copy.deepcopy(record); bad["stage_checks"]["api"][0]["argv"] = ["unrelated-check"]
+        self.assertEqual(observed(bad), set())
+        bad = copy.deepcopy(record); del bad["stage_checks"]["api"]
+        self.assertEqual(observed(bad), set())
+        bad = copy.deepcopy(record); bad["stage_checks"]["invented"] = []
+        with self.assertRaises(StageError): observed(bad)
+        self.assertEqual(observed({"work_state": "completed"}), set())
 
     def test_plan_is_deterministic_and_does_not_modify_input(self):
         graph = {"b": ["a"], "a": []}

@@ -49,3 +49,9 @@ changes and aggregate final Warrant completion without treating one stage as the
 whole outcome. Hotline resume must handle checkpoint movement caused by legitimate
 independent stages without silently accepting unrelated edits. These checks remain
 required before the stage gap can be closed.
+
+`completed_from_evidence` validates a current stage checkpoint against exact source,
+plan and code revision. It removes successors whose prerequisite checks are absent
+or failed, even if their own checks passed. A boolean false is not exit code zero.
+The future executor must produce these records from actual checks on the unchanged
+result revision; accepting arbitrary browser-submitted records is not supported.
