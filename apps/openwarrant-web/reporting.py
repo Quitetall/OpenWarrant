@@ -19,6 +19,14 @@ def complete(record):
                     and c["exit_code"] == 0 for c, argv in zip(checks, expected)))
 
 
+def eligible(record, policy):
+    """A historical result discharges only the exact current start/check policy."""
+    return (isinstance(policy, dict)
+            and record.get("source_sha256") == policy.get("source_sha256")
+            and record.get("policy") == policy
+            and complete(record))
+
+
 def render(records, inventory, attempt_id, word="WORK_DONE", detail="full"):
     record = records[attempt_id]
     # Snapshot includes both configured denominator and every observed attempt.
@@ -26,17 +34,19 @@ def render(records, inventory, attempt_id, word="WORK_DONE", detail="full"):
     digest = hashlib.sha256(json.dumps(snapshot, sort_keys=True, ensure_ascii=False,
                                      separators=(",", ":"), allow_nan=False).encode()).hexdigest()
     done = sorted(k for k, policy in inventory.items() if any(
-        r["warrant_id"] == k and r["source_sha256"] == policy["source_sha256"] and complete(r)
+        r["warrant_id"] == k and eligible(r, policy)
         for r in records.values()))
     pending = sorted(set(inventory) - set(done))
     finished = complete(record)
+    current = eligible(record, inventory.get(record["warrant_id"]))
     link = "/#attempt=" + attempt_id
     first = word if finished else "WORK_INCOMPLETE"
     lines = [first, "Progress: " + link]
-    if detail == "full" or not finished:
+    if detail == "full" or not finished or not current:
         lines += ["Scope: " + record["warrant_id"], "Source: " + record["source_sha256"],
                   "Work: " + ("completed" if finished else "incomplete"),
                   "Execution: " + record["execution_state"], "Qualification: unverified",
+                  "Current policy eligible: " + ("yes" if current else "no; historical result only"),
                   "Snapshot: " + digest, "Notes: " + record.get("notes", ""),
                   "Cause: " + record.get("cause", ""),
                   "Next steps: " + "; ".join(record.get("next_steps", []))]
@@ -48,6 +58,7 @@ def render(records, inventory, attempt_id, word="WORK_DONE", detail="full"):
                 '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'">'
                 '<title>OpenWarrant work report</title><style>body{font:16px system-ui;max-width:850px;margin:3rem auto;padding:1rem}pre{white-space:pre-wrap;overflow-wrap:anywhere}progress{width:100%}</style>'
                 '<h1>' + esc(first) + '</h1><p>Qualification: unverified</p>'
+                '<p>Current policy eligible: ' + ('yes' if current else 'no; historical result only') + '</p>'
                 '<p>' + esc(progress["scope"]) + '</p><progress max="' + str(max(1, len(inventory)))
                 + '" value="' + str(len(done)) + '"></progress><p>' + str(len(done)) + ' / '
                 + str(len(inventory)) + ' complete</p><h2>Work</h2><p>'
@@ -63,5 +74,5 @@ def render(records, inventory, attempt_id, word="WORK_DONE", detail="full"):
                                   "progress": progress}, indent=2, ensure_ascii=False)) + '</pre></details></html>')
     return {"schema": "oh.war/reference-work-report/v1", "attempt_id": attempt_id,
             "snapshot_sha256": digest, "completion_signal": word if finished else None,
-            "qualified": False, "progress": progress, "text": "\n".join(lines) + "\n",
+            "qualified": False, "current_policy_eligible": current, "progress": progress, "text": "\n".join(lines) + "\n",
             "html": document, "overview_link": link}

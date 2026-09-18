@@ -1,17 +1,17 @@
 # SPDX-License-Identifier: Apache-2.0
 import copy
 import unittest
-from reporting import render
+from reporting import render, eligible
 
 
 class ReportTests(unittest.TestCase):
     def fixture(self):
         r = {"attempt_id": "attempt", "warrant_id": "warrant", "source_sha256": "a" * 64,
              "sequence": 2, "work_state": "completed", "execution_state": "stopped",
-             "result_revision": "b" * 40, "policy": {"checks": [["test"]]},
+             "result_revision": "b" * 40, "policy": {"checks": [["test"]], "source_sha256": "a" * 64},
              "checks": [{"argv": ["test"], "exit_code": 0}], "notes": "<script>bad()</script>",
              "next_steps": ["Review"], "cause": "Work finished"}
-        return {"attempt": r}, {"warrant": {"source_sha256": "a" * 64}, "waiting": {"source_sha256": "c" * 64}}
+        return {"attempt": r}, {"warrant": copy.deepcopy(r["policy"]), "waiting": {"source_sha256": "c" * 64}}
 
     def test_deterministic_scoped_overview_and_escaped_offline_html(self):
         records, inventory = self.fixture()
@@ -31,6 +31,21 @@ class ReportTests(unittest.TestCase):
         changed = render(records, inventory, "attempt")
         self.assertEqual(changed["progress"]["completed"], 0)
         self.assertNotEqual(report["snapshot_sha256"], changed["snapshot_sha256"])
+
+    def test_changed_policy_preserves_history_but_cannot_discharge_current_work(self):
+        records, inventory = self.fixture()
+        original = copy.deepcopy(records)
+        for change in ({"checks": [["new-test"]]}, {"base_commit": "e" * 40},
+                       {"dependencies": ["new-dependency"]}, {"verified_start": True}):
+            with self.subTest(change=change):
+                policy = {**inventory["warrant"], **change}
+                self.assertFalse(eligible(records["attempt"], policy))
+                report = render(records, {"warrant": policy}, "attempt", detail="minimal")
+                self.assertEqual(report["progress"]["completed"], 0)
+                self.assertFalse(report["current_policy_eligible"])
+                self.assertIn("historical result only", report["text"])
+                self.assertIn("historical result only", report["html"])
+                self.assertEqual(records, original)
 
     def test_incomplete_or_unestablished_results_never_emit_signal(self):
         records, inventory = self.fixture()

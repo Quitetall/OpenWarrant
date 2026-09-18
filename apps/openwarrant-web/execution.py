@@ -11,7 +11,7 @@ import time
 import uuid
 from pathlib import Path
 
-from reporting import render
+from reporting import eligible, render
 from harness import bounded_command
 
 LIMIT = 1024 * 1024
@@ -261,8 +261,7 @@ class Executor:
         )
         require(
             not any(
-                r["work_state"] == "completed"
-                and r["source_sha256"] == p["source_sha256"]
+                eligible(r, p)
                 for r in attempts
             ),
             "Exact subject already completed",
@@ -275,10 +274,7 @@ class Executor:
             require(
                 any(
                     r["warrant_id"] == dep
-                    and r["source_sha256"]
-                    == self.config["warrants"][dep]["source_sha256"]
-                    and r["work_state"] == "completed"
-                    and r["execution_state"] == "stopped"
+                    and eligible(r, self.config["warrants"][dep])
                     for r in existing.values()
                 ),
                 "Required dependency is incomplete",
