@@ -1,0 +1,37 @@
+import hashlib,http.server,json,pathlib,subprocess,threading,time,urllib.request
+root=pathlib.Path('/mnt/4tb/tmp/ow101-task-context')
+out=root/'docs/warrants/OW-WAR-0101/implementation/local-model-3'
+out.mkdir(exist_ok=True)
+request=(root/'docs/warrants/OW-WAR-0101/implementation/local-model-2/request.json').read_bytes()
+(out/'request.json').write_bytes(request)
+ident={}
+for name,path in {'model':'/home/brianklam/models/qwen3.5-4b-gguf/Qwen3.5-4B-Q4_K_M.gguf','server':'/home/brianklam/llama.cpp/build/bin/llama-server','adapter':str(root/'tools/drafting/local_drafter.py'),'request':str(out/'request.json')}.items():
+ p=pathlib.Path(path); h=hashlib.sha256()
+ with p.open('rb') as f:
+  while chunk:=f.read(1048576): h.update(chunk)
+ ident[name]={'path':path,'sha256':h.hexdigest(),'bytes':p.stat().st_size}
+ident.update(source_revision=subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip(),paid_calls=False,gpu_layers=0,cpu_threads=4,context_tokens=8192,max_output_tokens=1600,process_deadline_seconds=300,applied=False,qualified=False)
+(out/'identity.json').write_text(json.dumps(ident,indent=2)+'\n')
+opener=urllib.request.build_opener(urllib.request.ProxyHandler({}))
+class Capture(http.server.BaseHTTPRequestHandler):
+ def do_POST(self):
+  raw=self.rfile.read(int(self.headers['Content-Length'])); (out/'backend-request.json').write_bytes(raw)
+  req=urllib.request.Request('http://127.0.0.1:18023/v1/chat/completions',data=raw,headers={'Content-Type':'application/json'})
+  try:
+   with opener.open(req,timeout=260) as r: result=r.read(); status=r.status
+  except urllib.error.HTTPError as e: result=e.read(); status=e.code
+  (out/'backend-response.json').write_bytes(result)
+  self.send_response(status); self.send_header('Content-Length',str(len(result))); self.end_headers(); self.wfile.write(result)
+ def log_message(self,*args):pass
+server=http.server.ThreadingHTTPServer(('127.0.0.1',0),Capture)
+thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
+start=time.monotonic()
+try:
+ result=subprocess.run(['python3',str(root/'tools/drafting/local_drafter.py'),'--endpoint',f'http://127.0.0.1:{server.server_port}','--model','Qwen3.5-4B-Q4_K_M'],input=request,capture_output=True,timeout=300)
+ (out/'proposal.stdout.txt').write_bytes(result.stdout);(out/'adapter.stderr.txt').write_bytes(result.stderr)
+ status={'exit_code':result.returncode,'elapsed_seconds':time.monotonic()-start,'applied':False,'qualified':False}
+except subprocess.TimeoutExpired as e:
+ status={'exit_code':None,'timeout':True,'elapsed_seconds':time.monotonic()-start,'applied':False,'qualified':False}
+ (out/'proposal.stdout.txt').write_bytes(e.stdout or b'');(out/'adapter.stderr.txt').write_bytes(e.stderr or b'')
+finally:server.shutdown();server.server_close()
+(out/'result.json').write_text(json.dumps(status,indent=2)+'\n');print(json.dumps(status))

@@ -92,3 +92,5 @@ The historical aggregate gate remains unchanged because its implementation is a
 resolved pinned deliverable; run this package's tests alongside `cargo xtask gate`.
 
 Optional local/cloud agent-assisted drafting: [configuration and protocol](DRAFTING.md).
+
+Optional verification candidate: [preparation API and current limits](VERIFICATION.md).

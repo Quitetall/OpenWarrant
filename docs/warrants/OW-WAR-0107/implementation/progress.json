@@ -1,0 +1,21 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0107",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "843901d6fa43ad0528017c4e6fe784886d4cb998",
+  "summary": "Verification, repair, dispute, loop and report implementation candidate complete, unverified. Hosted web/Bonsai checks passed; hosted Rust gate found stale generated views after the machine-scope update. Views regenerated; new CI required.",
+  "notes": "docs/warrants/OW-WAR-0107/implementation/scope-audit.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0107/implementation/report-web-tests.log",
+    "docs/warrants/OW-WAR-0107/implementation/full-gate-4a2682f.log",
+    "docs/warrants/OW-WAR-0107/implementation/browser-loop-status.json",
+    "docs/warrants/OW-WAR-0107/implementation/scope-audit.md",
+    "docs/warrants/OW-WAR-0107/implementation/pr118-bonsai-843901d.json"
+  ],
+  "next_steps": [
+    "Rerun hosted checks on regenerated views; prior gate run 35341779967 failed the committed-projection equality test.",
+    "After required checks pass, finish implementation closeout and integrate through PR #118.",
+    "Keep independent verification and secure human acceptance separate."
+  ]
+}

@@ -1,0 +1,18 @@
+test_failed_protected_check_can_request_repair_but_pass_cannot (test_verifier_repair.VerifierRepairTests.test_failed_protected_check_can_request_repair_but_pass_cannot) ... ok
+test_repairable_failure_keeps_default_three_and_no_dispatch_grant (test_verifier_repair.VerifierRepairTests.test_repairable_failure_keeps_default_three_and_no_dispatch_grant) ... ok
+test_resume_and_other_warrants_do_not_consume_repair_cycles (test_verifier_repair.VerifierRepairTests.test_resume_and_other_warrants_do_not_consume_repair_cycles) ... ok
+test_same_verification_cannot_dispatch_second_repair (test_verifier_repair.VerifierRepairTests.test_same_verification_cannot_dispatch_second_repair) ... ok
+test_selected_zero_or_one_limit_overrides_default (test_verifier_repair.VerifierRepairTests.test_selected_zero_or_one_limit_overrides_default) ... ok
+test_unknown_nonrepairable_missing_evidence_and_live_verifier_block (test_verifier_repair.VerifierRepairTests.test_unknown_nonrepairable_missing_evidence_and_live_verifier_block) ... ok
+test_disabled_service_and_unknown_writer_refuse_without_preparation (test_verifier_service.VerifierServiceTests.test_disabled_service_and_unknown_writer_refuse_without_preparation) ... ok
+test_http_budget_refusal_precedes_claim_consumption (test_verifier_service.VerifierServiceTests.test_http_budget_refusal_precedes_claim_consumption) ... ok
+test_http_forged_receipt_refuses_before_consumption (test_verifier_service.VerifierServiceTests.test_http_forged_receipt_refuses_before_consumption) ... ok
+test_http_preparation_is_idempotent_and_restart_preserves_request (test_verifier_service.VerifierServiceTests.test_http_preparation_is_idempotent_and_restart_preserves_request) ... ok
+test_http_refuses_unlocked_authority_injection_and_changed_identity (test_verifier_service.VerifierServiceTests.test_http_refuses_unlocked_authority_injection_and_changed_identity) ... ok
+test_http_signed_dispatch_finishes_and_replay_cannot_launch_again (test_verifier_service.VerifierServiceTests.test_http_signed_dispatch_finishes_and_replay_cannot_launch_again) ... ok
+test_interrupted_consumed_job_blocks_new_dispatch (test_verifier_service.VerifierServiceTests.test_interrupted_consumed_job_blocks_new_dispatch) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 3.693s
+
+OK

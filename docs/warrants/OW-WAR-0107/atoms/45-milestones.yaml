@@ -1,0 +1,12 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "Independent verification and bounded repair loop observed"
+    stage_refs: ["STAGE-001"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Implement and exercise verification workflow"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
