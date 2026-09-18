@@ -63,3 +63,22 @@ Seventeen distinct verifier tests pass, including real ssh-keygen signatures fro
 disposable machine keys. Cases refuse changed bytes, different key, different
 namespace, wrong basis/nonce, expired/future/overlong validity and extra authority
 fields. No user keys, human signatures or real-model calls used.
+
+## Durable verification claims
+
+Added an append-only three-record store: prepared request and admission basis,
+consumed dispatch claim with protection receipt digest, then final observation.
+Atomic nonreplacement publication permits one controller to consume a claim.
+Restart cannot relaunch a consumed claim; without a live process observation it
+shows UNKNOWN. Hash-linked records reject missing predecessors and changed bytes.
+These hashes detect corruption; they do not authenticate storage against an actor
+with write access. The harness must protect storage and the controller must check
+authenticated admission before consuming a claim. The store itself grants neither
+dispatch authority nor qualification.
+
+Twenty-two verifier tests pass, including sixteen concurrent claim consumers with
+exactly one winner, restart/replay, stale candidate reuse, altered history, symlink
+refusal and missing/changed/noninteger check evidence. PASS requires an exact bound
+verifier result and all protected checks. FAIL requires an observed finding or
+failed protected check. The controller, HTTP actions, bounded repair and rebuttal
+loop remain unfinished; this is implementation progress, not Warrant completion.
