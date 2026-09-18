@@ -104,3 +104,10 @@ architecture document bytes. Replacing the roadmap configuration with malformed
 JSON retained the prior record digest and returned an explicit Roadmap error.
 The focused integration test passed. This proves server behavior; browser stale
 labeling is a separate remaining observation for the new roadmap.
+
+Browser stale/recovery proof (2026-09-18): disposable VIEW fixture served on
+127.0.0.1:46353. Valid roadmap appeared with one unreported Warrant. After replacing
+only its configuration with malformed JSON, Refresh showed “Stale · refresh
+failed; last good snapshot retained”, retaining the same record digest. Restoring
+valid bytes and refreshing returned “Live · refresh every 1s”. Fixture tab closed
+and its owned viewer process stopped. No real repository record was altered.
