@@ -97,6 +97,7 @@ async function hotline(){
       const heading=document.createElement('h3');heading.textContent=q.warrant_id+' · '+q.question.kind+(q.question.direct_human?' · direct human requested':'');
       const basis=document.createElement('pre');basis.textContent=[q.question.text,'Stages: '+q.question.affected_stages.join(', '),'Source: '+q.source_sha256,'Checkpoint: '+q.checkpoint,'Question: '+item.question_sha256,q.notes].join('\n');
       card.append(heading,basis);
+      const advice=(data.advice||[]).find(a=>a.attempt_id===q.attempt_id);if(advice){const p=document.createElement('p');p.className='small muted';p.textContent='AI adviser: '+advice.state+' · cost '+(advice.cost_usd===null?'unknown':advice.cost_usd+' USD')+(advice.error?' · '+advice.error:'');card.append(p)}
       if(item.answer){
         const response=document.createElement('pre');response.textContent='Answer from '+item.answer.respondent+' ('+item.answer.respondent_kind+')\n'+item.answer.answer+'\nEvidence: '+item.answer.evidence.join(', ');card.append(response);
         if(item.resumed_attempt){const p=document.createElement('p');p.textContent='Resumed as '+item.resumed_attempt;card.append(p)}

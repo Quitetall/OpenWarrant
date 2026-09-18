@@ -89,7 +89,12 @@ def answer(fields, token, rows, q):
     token_hash = hashlib.sha256(token.encode()).hexdigest()
     matches = [r for r in rows if hmac.compare_digest(r["token_sha256"], token_hash)]
     require(len(matches) == 1, "Responder authentication required", 401)
-    actor = matches[0]
+    return authorized_answer(fields, matches[0], q)
+
+
+def authorized_answer(fields, actor, q):
+    require(isinstance(fields, dict) and set(fields) == {"question_sha256", "answer", "evidence"},
+            "Expected question digest, answer and evidence only", 400)
     require(fields["question_sha256"] == digest(q), "Question basis changed")
     kind = q["question"]["kind"]
     require(not q["question"]["direct_human"] or actor["kind"] == "human",
@@ -168,12 +173,24 @@ class Answers:
         with self.executor.lock:
             _, q = self.basis(attempt_id)
             r = answer(fields, credential, self.rows, q)
-            r.update(attempt_id=attempt_id, authorization_sha256=self.authorization_digest)
-            previous = self.read(attempt_id, q)
-            if previous is not None:
-                require(previous == r, "Question already has a different retained answer")
-                return previous
-            require(len(list(self.root.iterdir())) < 256, "Hotline answer inventory limit exceeded")
-            data = json.dumps({"record": r, "sha256": digest(r)}, ensure_ascii=False).encode()
-            self.executor.publish(self.root / (attempt_id + ".json"), data)
-            return r
+            return self.retain(attempt_id, q, r)
+
+    def record_advice(self, attempt_id, fields, respondent):
+        with self.executor.lock:
+            _, q = self.basis(attempt_id)
+            require(q["question"]["kind"] == "technical" and not q["question"]["direct_human"],
+                    "Automatic advice is limited to technical questions", 403)
+            actors = [r for r in self.rows if r["id"] == respondent and r["kind"] == "ai"]
+            require(len(actors) == 1, "Configured AI adviser unavailable", 403)
+            return self.retain(attempt_id, q, authorized_answer(fields, actors[0], q))
+
+    def retain(self, attempt_id, q, r):
+        r.update(attempt_id=attempt_id, authorization_sha256=self.authorization_digest)
+        previous = self.read(attempt_id, q)
+        if previous is not None:
+            require(previous == r, "Question already has a different retained answer")
+            return previous
+        require(len(list(self.root.iterdir())) < 256, "Hotline answer inventory limit exceeded")
+        data = json.dumps({"record": r, "sha256": digest(r)}, ensure_ascii=False).encode()
+        self.executor.publish(self.root / (attempt_id + ".json"), data)
+        return r

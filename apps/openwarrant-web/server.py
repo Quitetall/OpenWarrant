@@ -21,6 +21,7 @@ from socketserver import ThreadingMixIn
 from execution import ExecutionError, Executor
 from drafting import Drafter
 from hotline import Answers, HotlineError
+from advice import Adviser
 
 BODY_LIMIT = 64 * 1024
 FILE_LIMIT = 1024 * 1024
@@ -497,7 +498,9 @@ class Handler(BaseHTTPRequestHandler):
             if self.command == "GET" and self.path == "/api/hotline":
                 if self.server.hotline is None:
                     raise Refusal(409, "Hotline responders not configured")
-                return self.reply(200, self.server.hotline.listing())
+                data = self.server.hotline.listing()
+                data.update(self.server.executor.adviser.listing() if self.server.executor.adviser else {"advice": []})
+                return self.reply(200, data)
             if self.command == "GET" and self.path == "/api/board":
                 board = store.sdk.run(None, board=True)
                 if board.get("schema") != "oh.war/board-draft/v1":
@@ -610,6 +613,7 @@ def main():
     parser.add_argument("--execution-config", type=Path)
     parser.add_argument("--drafting-config", type=Path)
     parser.add_argument("--hotline-config", type=Path)
+    parser.add_argument("--adviser-config", type=Path)
     parser.add_argument("--completion-word", default="WORK_DONE")
     parser.add_argument("--report-detail", choices=("minimal", "full"), default="full")
     args = parser.parse_args()
@@ -632,6 +636,11 @@ def main():
         if server.executor is None:
             parser.error("hotline requires execution configuration")
         server.hotline = Answers(server.executor, decode(read_file(args.hotline_config, 65536)))
+    if args.adviser_config:
+        if server.hotline is None:
+            parser.error("adviser requires hotline configuration")
+        server.executor.adviser = Adviser(server.hotline, decode(read_file(args.adviser_config, 65536)))
+        server.executor.adviser.schedule()
     info = {"url": "http://127.0.0.1:" + str(server.server_port), "token": token}
     publish(args.session_file, (json.dumps(info) + "\n").encode())
     print(info["url"], flush=True)

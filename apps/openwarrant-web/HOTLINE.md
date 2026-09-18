@@ -107,5 +107,62 @@ Observed refusal cases include consumed-time exhaustion, concurrent resume repla
 stale source, revoked responder configuration, changed execution limits and dirty
 checkpoint. Independent Warrant execution proceeds while a dependent remains blocked.
 
-Remaining work: automatic adviser routing and full lifecycle qualification. Do not advertise the partial API as a complete
+Full integration and lifecycle qualification remain pending. Do not advertise the partial API as a complete
 hotline or mark OW106 complete from its component tests.
+
+## Automatic technical adviser
+
+Add `--adviser-config /private/path/adviser.json` alongside hotline configuration:
+
+```json
+{
+  "schema": "oh.war/hotline-adviser/v1",
+  "argv": ["/absolute/path/to/trusted-adviser-adapter"],
+  "respondent": "configured-ai-adviser",
+  "sandbox": "read-only-repository",
+  "cost_mode": "unknown",
+  "spend_limit_usd": 10,
+  "timeout_seconds": 60
+}
+```
+
+`respondent` must match a configured `kind: ai` hotline responder. The example
+refuses execution because unknown cost cannot meet a hard cap. Use `free` only
+for a harness that makes no paid calls; this is an owner assertion, not metering.
+An explicit null cap permits unknown cost. No raw responder credential is sent to
+the adviser. Credentials/provider keys remain in the trusted adapter environment.
+The harness must enforce read-only repository access and protect controller state;
+the configuration assertion does not establish sandbox qualification.
+
+The controller routes newly retained technical questions and eligible unanswered
+questions found at startup. Governing and direct-human questions never use this
+automatic path, even if the AI has separately delegated governing scope. The
+adviser receives `oh.war/hotline-advice-request/v1` with the exact question,
+question digest, source document, technical-only scope and limits. It returns:
+
+```json
+{
+  "schema": "oh.war/hotline-advice/v1",
+  "question_sha256": "<exact request digest>",
+  "answer": "Use the existing SDK parser.",
+  "evidence": ["<relevant source reference>"]
+}
+```
+
+Extra fields refuse. The controller rechecks source/policy and records the answer
+as the configured AI identity; output cannot choose its actor or claim authority.
+A valid answer leaves work paused for explicit resume. This identity identifies
+the configured adapter, not independent proof of which model ran.
+
+Advice runs serially, with one immutable attempt per question. Initial records
+precede launch. Restart does not repeat a retained attempt. Timeout or interrupted
+execution stays unknown and blocks further automatic adviser calls; no replacement
+or paid retry is inferred. Failed or refused attempts remain visible and can be
+answered through an eligible authenticated responder. Other Warrants can continue.
+Process stdout/stderr is bounded; raw streams are not stored. Browser question
+cards show adviser state, cost status and failure text.
+
+Synthetic process tests cover initial and live routing, authority-field refusal,
+unknown-cost refusal before launch, timeout/restart behavior and no automatic work
+resume. Actual model quality, deployment isolation and release qualification remain
+separate. A single Warrant's internal stages are still not separately scheduled.

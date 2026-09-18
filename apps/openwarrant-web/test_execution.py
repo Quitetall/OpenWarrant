@@ -227,7 +227,7 @@ print(json.dumps({'schema':'oh.war/execution-question/v1','attempt_id':r['attemp
         self.assertEqual(len(self.call("/api/runs")[1]["runs"]), 2)
         self.assertIsNotNone(self.call("/api/runs/" + resumed["attempt_id"] + "/report")[1]["completion_signal"])
 
-    def prepare_answered_question(self, delay=0):
+    def prepare_answered_question(self, delay=0, submit=True, kind="technical", direct_human=False):
         draft = self.eligible()
         completion = self.harness.read_text()
         credential = "public-hotline-fault-fixture-credential"
@@ -241,6 +241,8 @@ print(json.dumps({'schema':'oh.war/execution-question/v1','attempt_id':r['attemp
             "print(json.dumps({'schema':'oh.war/execution-question/v1','attempt_id':r['attempt_id'],"
             "'source_sha256':r['source_sha256'],'notes':'Checkpoint retained','next_steps':[],"
             "'question':{'kind':'technical','text':'Which parser?','direct_human':False,'affected_stages':['STAGE-001']}}))")
+        self.harness.write_text(self.harness.read_text().replace("'kind':'technical'", "'kind':" + repr(kind))
+                                .replace("'direct_human':False", "'direct_human':" + repr(direct_human)))
         fields = {"warrant_id": draft["id"], "source_sha256": draft["source_sha256"]}
         status, run = self.call("/api/runs", "POST", fields)
         self.assertEqual(status, 202, run)
@@ -248,9 +250,104 @@ print(json.dumps({'schema':'oh.war/execution-question/v1','attempt_id':r['attemp
         self.assertEqual(stopped["execution_state"], "stopped", stopped)
         q = self.call("/api/hotline")[1]["questions"][0]
         answer = {"question_sha256": q["question_sha256"], "answer": "Use the SDK", "evidence": []}
-        self.assertEqual(self.call("/api/hotline/" + run["attempt_id"] + "/answer", "POST", answer,
-                                   {"X-OW-Responder": credential})[0], 200)
+        if submit:
+            self.assertEqual(self.call("/api/hotline/" + run["attempt_id"] + "/answer", "POST", answer,
+                                       {"X-OW-Responder": credential})[0], 200)
         return draft, stopped, completion, {"question_sha256": q["question_sha256"]}
+
+    def enable_fixture_adviser(self, suffix="", cost_mode="free", cap=10):
+        self.stop()
+        script, marker = self.root / "adviser.py", self.root / "adviser-calls"
+        script.write_text("import json,sys,pathlib,time\nr=json.load(sys.stdin)\n"
+                         + "p=pathlib.Path(" + repr(str(marker)) + ");p.write_text(p.read_text()+'x' if p.exists() else 'x')\n"
+                         + "assert r['scope'].startswith('technical advice only') and r['source']\n"
+                         + (suffix or "print(json.dumps({'schema':'oh.war/hotline-advice/v1','question_sha256':r['question_sha256'],'answer':'Use the SDK parser','evidence':['SDK reference']}))"))
+        config = self.root / "adviser.json"
+        config.write_text(json.dumps({"schema": "oh.war/hotline-adviser/v1", "argv": [sys.executable, str(script)],
+            "respondent": "fixture-adviser", "sandbox": "read-only-repository", "cost_mode": cost_mode,
+            "spend_limit_usd": cap, "timeout_seconds": 1}))
+        self.report_args += ["--adviser-config", str(config)]
+        self.start()
+        return marker
+
+    def wait_advice(self):
+        for _ in range(200):
+            status, data = self.call("/api/hotline")
+            self.assertEqual(status, 200, data)
+            if data["advice"] and data["advice"][0]["state"] != "running":
+                return data
+            time.sleep(0.02)
+        self.fail("adviser did not terminate")
+
+    def test_automatic_advice_is_retained_without_resume_or_restart_duplicate(self):
+        self.prepare_answered_question(submit=False)
+        marker = self.enable_fixture_adviser()
+        data = self.wait_advice()
+        self.assertEqual(data["advice"][0]["state"], "answered", data)
+        self.assertEqual(data["questions"][0]["answer"]["respondent"], "fixture-adviser")
+        self.assertFalse(data["questions"][0]["answer"]["qualified"])
+        self.assertEqual(len(self.call("/api/runs")[1]["runs"]), 1)
+        self.stop(); self.start()
+        self.assertEqual(self.call("/api/hotline")[1], data)
+        self.assertEqual(marker.read_text(), "x")
+
+        status, draft = self.call("/api/warrants", "POST", {**self.draft(), "id": str(uuid.uuid4())})
+        self.assertEqual(status, 201, draft)
+        self.config["warrants"][draft["id"]] = {
+            **next(iter(self.config["warrants"].values())), "source_sha256": draft["source_sha256"]}
+        self.stop(); self.start()
+        status, run = self.call("/api/runs", "POST", {"warrant_id": draft["id"], "source_sha256": draft["source_sha256"]})
+        self.assertEqual(status, 202, run)
+        self.wait_run(run["attempt_id"])
+        for _ in range(200):
+            observed = self.call("/api/hotline")[1]["advice"]
+            if len(observed) == 2 and all(r["state"] == "answered" for r in observed):
+                break
+            time.sleep(0.02)
+        self.assertEqual(len(observed), 2)
+        self.assertTrue(all(r["state"] == "answered" for r in observed), observed)
+        self.assertEqual(marker.read_text(), "xx")
+
+    def test_advice_unknown_cost_refuses_before_process_launch(self):
+        self.prepare_answered_question(submit=False)
+        marker = self.enable_fixture_adviser(cost_mode="unknown")
+        data = self.wait_advice()
+        self.assertEqual(data["advice"][0]["state"], "failed")
+        self.assertIn("hard cap", data["advice"][0]["error"])
+        self.assertIsNone(data["advice"][0]["cost_usd"])
+        self.assertIsNone(data["questions"][0]["answer"])
+        self.assertFalse(marker.exists())
+
+    def test_advice_timeout_remains_unknown_without_restart_retry(self):
+        self.prepare_answered_question(submit=False)
+        marker = self.enable_fixture_adviser("time.sleep(20)")
+        data = self.wait_advice()
+        self.assertEqual(data["advice"][0]["state"], "unknown")
+        self.assertIsNone(data["questions"][0]["answer"])
+        self.stop(); self.start()
+        self.assertEqual(self.call("/api/hotline")[1], data)
+        self.assertEqual(marker.read_text(), "x")
+
+    def test_adviser_cannot_inject_authority_fields(self):
+        self.prepare_answered_question(submit=False)
+        marker = self.enable_fixture_adviser("print(json.dumps({'schema':'oh.war/hotline-advice/v1','question_sha256':r['question_sha256'],'answer':'Invented permission','evidence':[],'qualified':True}))")
+        data = self.wait_advice()
+        self.assertEqual(data["advice"][0]["state"], "failed")
+        self.assertIsNone(data["questions"][0]["answer"])
+        self.stop(); self.start()
+        self.assertEqual(marker.read_text(), "x")
+
+    def test_governing_question_is_never_sent_to_automatic_adviser(self):
+        self.prepare_answered_question(submit=False, kind="governing")
+        marker = self.enable_fixture_adviser()
+        self.assertEqual(self.call("/api/hotline")[1]["advice"], [])
+        self.assertFalse(marker.exists())
+
+    def test_direct_human_question_is_never_sent_to_automatic_adviser(self):
+        self.prepare_answered_question(submit=False, direct_human=True)
+        marker = self.enable_fixture_adviser()
+        self.assertEqual(self.call("/api/hotline")[1]["advice"], [])
+        self.assertFalse(marker.exists())
 
     def test_resume_preserves_consumed_time_and_unknown_refuses_new_writer(self):
         draft, prior, completion, request = self.prepare_answered_question(delay=0.8)

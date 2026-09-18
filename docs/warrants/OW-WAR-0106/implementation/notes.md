@@ -55,3 +55,14 @@ replay cannot replace that unknown writer; a pending answered-but-unresumed
 question blocks dependents while an independent Warrant completes; editing the
 source after answering refuses resume. No manually fabricated success records
 were used to establish these scenarios. Automatic adviser routing remains open.
+
+Configured automatic technical advice is implemented. Exact source/question basis
+travels to a bounded process; configured AI identity is assigned by the controller.
+Governing and direct-human questions are excluded. Immutable attempt records stop
+restart duplicates; unknown advice blocks further automatic calls. Unknown cost
+refuses a hard cap before process launch. Answers never resume implementation.
+All 89 web tests pass, including live-question routing, initial startup routing,
+no governing/direct-human dispatch, timeout persistence and authority-field refusal.
+JavaScript syntax passes. Synthetic tests do not qualify real models or containment.
+Full gate, exact-head integration and any remaining stage-granularity limits remain
+open; no completion or assurance claim is made by this implementation note.

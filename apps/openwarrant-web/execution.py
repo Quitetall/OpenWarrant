@@ -45,6 +45,7 @@ class Executor:
         self.read_file, self.publish = read_file, publish
         self.lock = threading.RLock()
         self.live = set()
+        self.adviser = None
         self.root = store.path / ".execution"
         require(not self.root.is_symlink(), "Execution directory cannot be a symlink")
         self.root.mkdir(mode=0o700, exist_ok=True)
@@ -569,3 +570,6 @@ class Executor:
                         self.save(r)
                 finally:
                     self.live.discard(r["attempt_id"])
+
+            if r.get("question") and self.adviser is not None:
+                self.adviser.schedule()
