@@ -495,6 +495,11 @@ class Handler(BaseHTTPRequestHandler):
                     raise Refusal(409, "Drafting harness not configured")
                 return self.reply(200, self.server.drafter.listing() if self.path == "/api/drafting"
                                   else self.server.drafter.get(self.path.rsplit("/", 1)[1]))
+            checkpoint_review = re.fullmatch(r"/api/hotline/([0-9a-f-]{36})/checkpoint", self.path)
+            if self.command == "GET" and checkpoint_review:
+                if self.server.hotline is None:
+                    raise Refusal(409, "Hotline responders not configured")
+                return self.reply(200, self.server.executor.question_checkpoint(checkpoint_review[1], self.server.hotline))
             if self.command == "GET" and self.path == "/api/hotline":
                 if self.server.hotline is None:
                     raise Refusal(409, "Hotline responders not configured")

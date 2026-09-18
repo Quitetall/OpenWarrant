@@ -142,3 +142,21 @@ and readiness transitions. Actual browser flow proved dependent refusal, partial
 completion, final stage completion and unverified work report. See retained
 stage-browser-observation.md and fixture source. Checkpoint-advance resume remains
 open; no OW-WAR-0106 completion claim.
+
+### Stage hotline integration and checkpoint lineage
+
+A new real-process test exposed a wrong-level lookup of `affected_stages` in the
+controller-bound question envelope. Fixed it in both question validation and
+frontier derivation. The test now proves a paused API stage blocks API/UI while an
+independent docs stage uses the same worktree and advances its checkpoint.
+
+Added exact input revision to dispatch records and an authenticated read-only
+checkpoint-review endpoint. It traces changed checkpoints through uniquely retained
+independent stage results; it refuses dirty state and unrelated committed changes.
+Tests use actual Git commits and HTTP, including unauthorized preview refusal.
+This is not answer reconfirmation or permission to resume. Existing changed-head
+resume refusal remains until an eligible responder can explicitly reconfirm against
+the exact review digest and that immutable response is consumed by resume.
+
+Checkpoint-lineage web regression: 107 tests passed in 56.105 seconds. Full Rust
+gate has not been rerun for this batch.

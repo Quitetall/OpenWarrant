@@ -156,7 +156,7 @@ class Executor:
         for r in attempts:
             if (r.get("question") and r["attempt_id"] != resuming
                     and not any(child.get("resume_from") == r["attempt_id"] for child in attempts)):
-                blocks.update(r["question"]["affected_stages"])
+                blocks.update(r["question"]["question"]["affected_stages"])
         # An unresolved question invalidates completion for its affected graph.
         blocked = {row["stage"] for row in frontier(graph, question_blocks=blocks)
                    if row["question_blocked"]}
@@ -433,6 +433,7 @@ class Executor:
                 "warrant_id": id,
                 "source_sha256": p["source_sha256"],
                 "base_commit": p["base_commit"],
+                "input_revision": self.git("rev-parse", "HEAD", cwd=worktree) if worktree.exists() else p["base_commit"],
                 "worktree": str(worktree),
                 "work_state": "in-progress",
                 "execution_state": "running",
@@ -460,6 +461,60 @@ class Executor:
             self.live.add(attempt)
             threading.Thread(target=self.run, args=(r, record, p), daemon=True).start()
             return r
+
+    def question_checkpoint(self, attempt_id, hotline):
+        """Prove checkpoint movement from recorded independent stage results only."""
+        with self.lock:
+            prior, q = hotline.basis(attempt_id)
+            require(prior.get("execution_config_sha256") == hotline_digest(self.config),
+                    "Execution configuration changed since question")
+            records = [self.view(r) for r in self.records().values()
+                       if r["warrant_id"] == prior["warrant_id"]]
+            require(all(r["execution_state"] == "stopped" for r in records),
+                    "Existing writer running or unknown; checkpoint review refused")
+            require(not any(r.get("resume_from") == attempt_id for r in records),
+                    "Question already resumed")
+            worktree = Path(prior["worktree"])
+            require(worktree.exists() and not worktree.is_symlink()
+                    and self.git("rev-parse", "--show-toplevel", cwd=worktree) == str(worktree)
+                    and not self.git("status", "--porcelain", "--untracked-files=all", cwd=worktree),
+                    "Checkpoint review requires clean known worktree")
+            revision = self.git("rev-parse", "HEAD", cwd=worktree)
+            chain, cursor = [], revision
+            policy = prior["policy"]
+            if cursor != q["checkpoint"]:
+                require("stage_plan" in policy, "Changed checkpoint requires staged execution")
+                graph = {k: v["dependencies"] for k, v in policy["stage_plan"]["stages"].items()}
+                blocked = {r["stage"] for r in frontier(graph, question_blocks=q["question"]["affected_stages"])
+                           if r["question_blocked"]}
+                visited = set()
+                while cursor != q["checkpoint"]:
+                    require(cursor not in visited, "Checkpoint lineage cycle")
+                    visited.add(cursor)
+                    candidates = []
+                    for r in records:
+                        if (r.get("result_revision") == cursor and r.get("input_revision") != cursor
+                                and r.get("stage") in graph and r["stage"] not in blocked
+                                and r.get("policy") == policy and r.get("worktree") == str(worktree)
+                                and r.get("execution_config_sha256") == prior["execution_config_sha256"]
+                                and r.get("created_at_unix", 0) >= prior["finished_at_unix"]
+                                and r["stage"] in completed_from_evidence(policy["stage_plan"], q["source_sha256"],
+                                                                        cursor, r.get("stage_checkpoint"))):
+                            candidates.append(r)
+                    require(len(candidates) == 1, "Checkpoint movement lacks unique independent stage evidence")
+                    r = candidates[0]
+                    require(isinstance(r.get("input_revision"), str)
+                            and re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", r["input_revision"]),
+                            "Recorded stage input revision required")
+                    self.git("merge-base", "--is-ancestor", r["input_revision"], cursor, cwd=worktree)
+                    chain.append({"attempt_id": r["attempt_id"], "stage": r["stage"],
+                                  "from_revision": r["input_revision"], "to_revision": cursor})
+                    cursor = r["input_revision"]
+            return {"schema": "oh.war/question-checkpoint-review/v1", "attempt_id": attempt_id,
+                    "question_sha256": hotline_digest(q), "from_revision": q["checkpoint"],
+                    "to_revision": revision, "independent_stages": list(reversed(chain)),
+                    "answer_reconfirmation_required": revision != q["checkpoint"],
+                    "dispatch_permitted": False}
 
     def resume(self, attempt_id, fields, hotline):
         with self.lock:
@@ -538,8 +593,8 @@ class Executor:
                 self.git("merge-base", "--is-ancestor", r["base_commit"], checkpoint, cwd=worktree)
                 q = question(result, r, checkpoint)
                 if "stage" in r:
-                    require(r["stage"] in q["affected_stages"]
-                            and set(q["affected_stages"]) <= policy["stage_plan"]["stages"].keys(),
+                    require(r["stage"] in q["question"]["affected_stages"]
+                            and set(q["question"]["affected_stages"]) <= policy["stage_plan"]["stages"].keys(),
                             "Question must name current stage and only configured affected stages")
                 r.update(question=q, work_state="blocked", execution_state="stopped",
                          cause="Waiting for hotline answer", notes=q["notes"],

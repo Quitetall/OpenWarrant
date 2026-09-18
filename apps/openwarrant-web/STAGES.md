@@ -72,3 +72,12 @@ The checkpoint producer runs actual checks on the unchanged result revision; dis
 Checkpoint checks run in dependency order. A failed prerequisite skips checks for
 its dependent stages; independent checks continue. `skipped_stages` records direct
 unmet prerequisites. A skip is not an observed check failure or successful check.
+
+GET `/api/hotline/<attempt-id>/checkpoint` provides a read-only checkpoint review.
+Every dispatch records its input Git revision. Movement from the original question
+checkpoint must trace uniquely through stopped independent-stage results with the
+same source, policy, execution configuration and worktree, and passing current
+stage evidence. Dirty state, unknown/running writers, unrelated commits, missing
+lineage or an already resumed question refuse. The preview explicitly requires
+answer reconfirmation when the checkpoint changed; it does not authorize resume.
+Authenticated reconfirmation storage and its browser/resume integration remain open.

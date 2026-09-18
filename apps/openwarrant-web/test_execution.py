@@ -164,6 +164,60 @@ print(json.dumps({'schema':'oh.war/execution-result/v1','attempt_id':r['attempt_
         self.assertEqual(report["progress"]["completed"], 1)
         self.assertEqual(report["completion_signal"], "WORK_DONE")
 
+    def test_stage_question_blocks_dependents_but_independent_stage_runs(self):
+        fields = self.staged()
+        self.stop()
+        hotline_config = self.root / "stage-hotline.json"
+        hotline_config.write_text(json.dumps({"schema": "oh.war/hotline-config/v1", "responders": []}))
+        self.report_args = ["--hotline-config", str(hotline_config)]
+        stages = self.config["warrants"][fields["warrant_id"]]["stage_plan"]["stages"]
+        stages["docs"] = {"title": "Docs", "outcome": "Independent docs", "dependencies": [],
+                          "checks": [[sys.executable, "-c", "from pathlib import Path; assert Path('docs.txt').exists()"]]}
+        completion = self.harness.read_text()
+        self.harness.write_text("""import json,sys
+r=json.load(sys.stdin)
+print(json.dumps({'schema':'oh.war/execution-question/v1','attempt_id':r['attempt_id'],
+'source_sha256':r['source_sha256'],'notes':'API paused at clean checkpoint.',
+'next_steps':['Answer API question'],'question':{'kind':'technical','text':'Which API format?',
+'direct_human':False,'affected_stages':['api']}}))
+""")
+        self.start()
+        status, first = self.call("/api/runs", "POST", {**fields, "stage": "api"})
+        self.assertEqual(status, 202, first)
+        first = self.wait_run(first["attempt_id"])
+        self.assertEqual(first["execution_state"], "stopped", first)
+        self.assertEqual(first["work_state"], "blocked")
+        rows = self.call("/api/stages/" + fields["warrant_id"])[1]
+        self.assertEqual({r["stage"]: r["state"] for r in rows["stages"]},
+                         {"api": "blocked", "ui": "blocked", "docs": "ready"})
+        self.assertEqual(self.call("/api/runs", "POST", {**fields, "stage": "ui"})[0], 409)
+        self.harness.write_text(completion)
+        status, independent = self.call("/api/runs", "POST", {**fields, "stage": "docs"})
+        self.assertEqual(status, 202, independent)
+        independent = self.wait_run(independent["attempt_id"])
+        self.assertEqual(independent["execution_state"], "stopped", independent)
+        self.assertEqual(independent["work_state"], "in-progress")
+        self.assertEqual(first["worktree"], independent["worktree"])
+        self.assertNotEqual(first["question"]["checkpoint"], independent["result_revision"])
+        route = "/api/hotline/" + first["attempt_id"] + "/checkpoint"
+        status, review = self.call(route)
+        self.assertEqual(status, 200, review)
+        self.assertTrue(review["answer_reconfirmation_required"])
+        self.assertFalse(review["dispatch_permitted"])
+        self.assertEqual(review["independent_stages"], [{"attempt_id": independent["attempt_id"],
+            "stage": "docs", "from_revision": first["question"]["checkpoint"],
+            "to_revision": independent["result_revision"]}])
+        self.assertEqual(self.call(route, headers={"Authorization": "Bearer wrong"})[0], 401)
+        worktree = Path(independent["worktree"])
+        (worktree / "unrelated.txt").write_text("not a dispatched stage")
+        self.assertEqual(self.call(route)[0], 409)
+        subprocess.run(["git", "add", "."], cwd=worktree, check=True, capture_output=True)
+        subprocess.run(["git", "commit", "-qm", "unrelated change"], cwd=worktree, check=True, capture_output=True)
+        status, refusal = self.call(route)
+        self.assertEqual(status, 409, refusal)
+        self.assertIn("independent stage evidence", refusal["error"])
+
+
     def test_stage_selection_is_authenticated_current_and_does_not_dispatch(self):
         fields = self.staged()
         route = "/api/stages/" + fields["warrant_id"]
