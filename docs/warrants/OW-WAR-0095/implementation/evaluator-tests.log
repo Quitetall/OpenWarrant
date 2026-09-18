@@ -1,0 +1,11 @@
+test_assistance_failure_and_duplicate_remain_visible (test_evaluate.EvaluationTests.test_assistance_failure_and_duplicate_remain_visible) ... ok
+test_cli_with_no_sessions_reports_missing_not_success (test_evaluate.EvaluationTests.test_cli_with_no_sessions_reports_missing_not_success) ... ok
+test_exact_thresholds_and_fixed_denominator (test_evaluate.EvaluationTests.test_exact_thresholds_and_fixed_denominator) ... ok
+test_gap_overlap_and_missing_consent_refuse (test_evaluate.EvaluationTests.test_gap_overlap_and_missing_consent_refuse) ... ok
+test_invalid_numbers_exclusion_and_duplicate_keys_refuse (test_evaluate.EvaluationTests.test_invalid_numbers_exclusion_and_duplicate_keys_refuse) ... ok
+test_overrun_and_unknown_are_distinct (test_evaluate.EvaluationTests.test_overrun_and_unknown_are_distinct) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.044s
+
+OK
