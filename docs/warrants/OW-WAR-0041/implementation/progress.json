@@ -1,0 +1,18 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0041",
+  "work_state": "in_progress",
+  "reported_by": "agent://codex",
+  "revision": "1d44cc4dadb8bf66f3dc3b2e7e11017242c16753",
+  "summary": "Current telemetry and reviewer-refusal controls observed. False unobserved-zero and historical-absence claims repaired; CLI regression passes. Full gate, historical baseline and derived metrics remain open.",
+  "notes": "docs/warrants/OW-WAR-0041/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0041/implementation/observation.json",
+    "docs/warrants/OW-WAR-0041/implementation/regression.log"
+  ],
+  "next_steps": [
+    "Test measurement repair and collect corrected current observation.",
+    "Implement supported derived metrics with explicit denominator semantics.",
+    "Review historical before-tuning evidence without replacing signed records."
+  ]
+}
