@@ -153,3 +153,9 @@ and quoted text, contained zero img or script elements, and showed no JavaScript
 dialog. This observes hostile-text rendering in the live browser; offline controls
 remain covered only by the separately retained owner observation. No real source
 record was changed for the hostile-input fixture.
+
+Final viewer suite at 1409be45: all eight integration tests passed on Rust 1.97.1,
+including exact-source HTTP serving, malformed refresh retention, unsafe paths,
+FIFO/symlink refusal and no-write/bad-origin controls. Exact output retained in
+`roadmap-viewer-final.log.gz`. Hosted reference-web checks at 3d445b68 also passed
+(run 35373051658); the separate full gate was still running when recorded.
