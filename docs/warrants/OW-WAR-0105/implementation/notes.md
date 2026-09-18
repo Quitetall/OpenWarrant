@@ -52,3 +52,9 @@ Full isolated gate rerun at f458ac9884cde74b8e7e55dc8d49577e0088b452
 passes all 14 steps and 308 planted controls on Rust 1.97.1 (exit 0). This
 precedes the later missing-harness test and progress-report commits; exact-head
 CI remains required. No independent assurance or real-model qualification claimed.
+
+Hosted gate/web checks passed at 05df6333, but Bonsai run 35307266960 skipped
+scope analysis because the PR body omitted its machine-readable Warrant line.
+The missing artifact exposed the skip before merge. PR metadata now names
+OW-WAR-0105; a fresh synchronization run must supply actual scope evidence.
+A green skipped job is not retained as a passed scope assessment.
