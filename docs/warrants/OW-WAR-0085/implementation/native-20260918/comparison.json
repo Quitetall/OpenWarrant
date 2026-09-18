@@ -1,0 +1,32 @@
+{
+  "schema": "oh.war/native-phase1-comparison/v1",
+  "run_url": "https://github.com/Quitetall/OpenWarrant/actions/runs/35296727063",
+  "subject_commit": "a9ae33bba7864d84f77eae034eb990eab2d9df60",
+  "source_digest": "7c850a9f3027407e47f8fdb368a7b270ec677af07ccf978f2603f5782f6695ea",
+  "matching_source_inventory": true,
+  "matching_case_assignments": true,
+  "source_files": 4788,
+  "observations": [
+    {
+      "host": "Linux",
+      "architecture": "x86_64",
+      "receipt": "phase1-Linux.json",
+      "sha256": "7297e77e9fc8f2a9a1ff7b4af924161c082387fea4b80770a413258e5720d7ea",
+      "current_host_passed": true,
+      "checks": 11
+    },
+    {
+      "host": "Darwin",
+      "architecture": "arm64",
+      "receipt": "phase1-macOS.json",
+      "sha256": "0f9cfef7efd1f4c261d7a423bd5e92e11030be0c5e7ab0a6c974aa4a779cebe4",
+      "current_host_passed": true,
+      "checks": 11
+    }
+  ],
+  "qualification_established": false,
+  "remaining": [
+    "Independent phase review and exact final phase acceptance",
+    "No real-user or model-quality claim from these fixed artifacts"
+  ]
+}
