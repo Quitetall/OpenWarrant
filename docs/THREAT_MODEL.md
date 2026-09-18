@@ -74,3 +74,23 @@ its caller or perform a privileged action. A trusted workflow must authenticate
 the acting principal and enforce the result atomically with, or recheck it before,
 the protected action. Removing keys affects future transitions; prior signed
 history is verified against the key set that was current for that transition.
+
+## Reference workflow dispute decisions (OW-WAR-0107)
+
+The reference web application's dispute credentials select a configured human
+responder with governing scope for the exact Warrant. They do not prove human
+presence or grant the OpenWarrant assurance mark. Operators must protect responder
+credentials, configuration and control storage from the performer. Same-account
+file access is not an isolation boundary.
+
+A retained repair decision binds the question, observation, candidate and responder
+configuration. Dispatch rechecks current source, policy, candidate, writer state
+and aggregate budgets. Removing responder authority makes the old decision
+inapplicable. A human repair decision cannot override unknown observations,
+missing evidence or repair limits, and cannot rewrite the original FAIL.
+`test_verifier_repair`, `test_verifier_decision` and
+`test_verifier_repair_execution` exercise these boundaries with synthetic
+credentials and real local Git/process fixtures. Stop, scope-revision and
+verify-again decisions cannot launch repair through the repair endpoint. Broader
+decision orchestration remains work in progress; these tests do not establish
+deployment isolation or real human acceptance.

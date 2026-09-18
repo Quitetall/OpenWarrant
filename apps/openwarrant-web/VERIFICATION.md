@@ -38,7 +38,7 @@ Authenticated routes:
 - `GET /api/verification/<verification_id>/repair` derives an advisory repair plan
   from retained findings and repair history. It does not dispatch. Missing evidence
   blocks; UNKNOWN and nonrepairable findings escalate; configured cycle limits
-  override the default of three. A future repair action must recheck current scope,
+  override the default of three. The repair action rechecks current scope,
   candidate, writer claims and aggregate budget before execution.
 - `POST /api/verification/<verification_id>/repair` accepts an empty JSON object.
   It rechecks current scope, candidate, writer state, evidence and aggregate limits,
@@ -53,9 +53,8 @@ Authenticated routes:
   prior observation. Fresh protection evidence and explicit start are still needed.
   It does not change the original verdict or consume a repair cycle. One recheck
   per challenged result is retained; unresolved rechecks set `human_review_required`
-  and prevent repair through either the original or recheck result. Authorized
-  human decisions are recorded through the dispute route below; their dispatch
-  effects remain under implementation.
+  and prevent repair through either the original or recheck result until a current
+  human repair decision permits repair through the recheck result.
 - `GET /api/verification/<verification_id>/dispute` exposes exact question basis,
   eligible human responders and retained decision. With no configured responder,
   state remains `waiting_for_authorized_responder`.
@@ -66,6 +65,12 @@ Authenticated routes:
   verdict, award qualification, alter scope or launch work. Actual human presence
   depends on protected credential custody; synthetic fixture credentials prove
   protocol handling only.
+  A subsequent repair request may use a current `repair` decision. Its digest is
+  retained in `verification_repair.decision_sha256`. Changed responder configuration
+  invalidates reuse of the decision. Other decision actions block this repair path;
+  none overrides budgets, missing evidence or UNKNOWN observations. The original
+  FAIL remains unchanged. Dispatch for `verify_again` and broader stop/scope-change
+  orchestration remain unfinished.
 - `POST /api/verification/<verification_id>/start` accepts exactly
   `payload_base64` and `signature_base64`. These encode the original signed
   `oh.war/harness-protection/v1` receipt and SSH signature. The receipt binds
@@ -96,7 +101,9 @@ explicit start and result refresh. Running jobs poll every two seconds; locking
 the session clears their view and polling. The prepare/upload/start/result/lock path
 has been observed in a disposable browser fixture with synthetic processes and
 machine keys. This does not qualify deployment protection. Aggregate loop budgets,
-automatic repairs and rebuttal routing are not yet wired. A consumed claim without
+explicit repairs, rebuttals and human-directed repair are wired into the API.
+Automatic orchestration and browser controls for repair/dispute remain unfinished.
+A consumed claim without
 a live process observation is UNKNOWN after interruption; it cannot relaunch.
 Tests use synthetic processes and disposable machine keys, not independent human
 review or deployment sandbox qualification.

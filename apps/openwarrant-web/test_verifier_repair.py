@@ -59,3 +59,14 @@ class VerifierRepairTests(unittest.TestCase):
         with self.assertRaises(VerificationError): plan(self.job, [])
         self.job['effective_verdict'] = 'pass'
         self.assertEqual(plan(self.job, [])['state'], 'not_required')
+
+    def test_human_repair_decision_preserves_limits_evidence_and_unknown_refusal(self):
+        self.job['request']['schema'] = 'oh.war/verification-request/v2'
+        self.finding['repairable'] = False
+        self.assertEqual(plan(self.job, [])['state'], 'escalate')
+        self.assertEqual(plan(self.job, [], human_repair=True)['state'], 'ready')
+        self.assertEqual(plan(self.job, [], 0, human_repair=True)['state'], 'exhausted')
+        self.finding['status'] = 'unknown'
+        self.assertEqual(plan(self.job, [], human_repair=True)['state'], 'escalate')
+        self.job['evidence_state'] = 'unavailable'
+        self.assertEqual(plan(self.job, [], human_repair=True)['state'], 'blocked')

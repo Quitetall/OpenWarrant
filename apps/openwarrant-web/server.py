@@ -699,7 +699,7 @@ def main():
     if args.verifier_config or args.verifier_issuer:
         if server.executor is None or not args.verifier_config or not args.verifier_issuer:
             parser.error("verifier requires execution configuration, verifier configuration and pinned issuer file")
-        server.verification = Verification(server.executor, args.verifier_config, args.verifier_issuer)
+        server.verification = Verification(server.executor, args.verifier_config, args.verifier_issuer, server.hotline)
     if args.adviser_config:
         if server.hotline is None:
             parser.error("adviser requires hotline configuration")

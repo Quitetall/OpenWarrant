@@ -307,3 +307,24 @@ after a decision, using synthetic human-role credentials only. No real human act
 or presence is claimed. Evidence: `implementation/decision-tests.log`. Applying
 decision effects to dispatch, dedicated HTTP/browser decision QA and automatic
 orchestration remain unfinished.
+
+## Applying human repair decisions
+
+A current retained human repair decision now permits repair of an unresolved
+recheck through its exact verification identity. The repair record retains the
+decision digest. Responder configuration changes prevent decision reuse; scope,
+candidate, protected checks, writer state and aggregate budgets still revalidate.
+Stop, revise-scope and verify-again decisions refuse repair through this endpoint.
+Human repair permission does not turn unknown findings into known defects or
+bypass missing evidence and cycle limits. Original FAIL observations remain.
+
+Nineteen focused decision/repair scenarios passed in 4.719 seconds. The full web
+suite passed 173 tests in 52.561 seconds using
+`OW_TEST_WAR=/mnt/4tb/tmp/ow-question-integrity/target/debug/war python3 -m unittest discover -q`.
+Evidence: `implementation/human-repair-web-tests.log`. Tests use synthetic human
+credentials, real local Git/process execution and configured protected-receipt
+fixtures; they do not prove real human presence or deployment isolation.
+
+Verify-again dispatch, broader stop/scope-change orchestration, dedicated browser
+repair/dispute controls, automatic loop orchestration and the full Rust/release
+gates remain unfinished. This evidence does not close or qualify OW-WAR-0107.

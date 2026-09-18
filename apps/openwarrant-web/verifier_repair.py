@@ -3,7 +3,7 @@
 from verification import require
 
 
-def plan(job, attempts, repair_cycles=3):
+def plan(job, attempts, repair_cycles=3, *, human_repair=False):
     require(type(repair_cycles) is int and 0 <= repair_cycles <= 20, 'Invalid repair-cycle limit')
     expected, id = job['request'], job['verification_id']
     repairs = [r for r in attempts if r['warrant_id'] == expected['warrant_id']
@@ -29,14 +29,14 @@ def plan(job, attempts, repair_cycles=3):
         out.update(state='not_required', reason='Exact candidate passed verification')
     elif job['effective_verdict'] != 'fail':
         out.update(state='escalate', reason='Unknown observation is not an automatic repair instruction')
-    elif expected.get('schema') == 'oh.war/verification-request/v2':
+    elif expected.get('schema') == 'oh.war/verification-request/v2' and not human_repair:
         out.update(state='escalate', reason='Unresolved recheck requires human decision')
     elif len(repairs) >= repair_cycles:
         out.update(state='exhausted', reason='Configured repair-cycle limit reached')
     else:
         result = observed.get('result')
         findings = result['findings'] if result else []
-        if result and (not findings or any(f['status'] != 'violation' or not f['repairable'] for f in findings)):
+        if result and (not findings or any(f['status'] != 'violation' or (not human_repair and not f['repairable']) for f in findings)):
             out.update(state='escalate', reason='Finding requires decision or additional evidence')
         else:
             failed_checks = [c for c in observed.get('checks', [])

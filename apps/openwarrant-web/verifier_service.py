@@ -20,11 +20,12 @@ from verifier_decision import question as dispute_question, decide
 
 
 class Verification:
-    def __init__(self, executor, config_path, issuer_path):
+    def __init__(self, executor, config_path, issuer_path, answers=None):
         self.executor, self.config_path, self.issuer_path = executor, config_path, issuer_path
         self.jobs = Jobs(executor.root / "verification", publish=executor.publish,
                          read_file=executor.read_file, decode=executor.decode)
         self.live = set()
+        self.answers = answers
 
     def initial(self, id):
         require(identity(id), "Exact verification identity required")
@@ -138,8 +139,13 @@ class Verification:
 
     def repair_preview(self, id):
         with self.executor.lock:
-            preview=repair_plan(self.get(id), list(self.executor.records().values()),
-                                self.executor.config.get('repair_cycles', 3))
+            job=self.get(id)
+            decision=self.dispute(id,self.answers)['decision'] if job['human_review_required'] and self.answers else None
+            preview=repair_plan(job, list(self.executor.records().values()),
+                                self.executor.config.get('repair_cycles', 3),
+                                human_repair=decision is not None and decision['action']=='repair')
+            if decision and decision['action']!='repair':
+                preview.update(state='blocked',reason='Human decision requires '+decision['action'])
             if any(j['request'].get('recheck',{}).get('verification_id') == id and j['human_review_required']
                    for j in self.listing()['jobs']):
                 preview.update(state='escalate',reason='Unresolved independent recheck requires human decision')
@@ -202,6 +208,10 @@ class Verification:
             repair = {'verification_id': id, 'observation_sha256': digest(job['record']),
                       'candidate_revision': job['request']['candidate_revision'],
                       'findings': proposal['findings'], 'failed_checks': proposal.get('failed_checks', [])}
+            if job['human_review_required']:
+                decision=self.dispute(id,self.answers)['decision'] if self.answers else None
+                require(decision is not None and decision['action']=='repair','Current human repair decision required')
+                repair['decision_sha256']=digest(decision)
             return e.start({'warrant_id': job['request']['warrant_id'], 'source_sha256': current['source_sha256']},
                            repair_context={'binding': repair, 'remaining_seconds': budget['remaining_seconds']})
 
