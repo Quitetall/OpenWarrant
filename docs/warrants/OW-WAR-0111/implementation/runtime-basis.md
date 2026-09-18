@@ -20,3 +20,14 @@ fixture mismatch: the UUID agrees, but the provider test used
 Existing retained provider observations remain unchanged and prove byte
 preservation only; they do not establish this cross-system contract binding.
 The provider fixture must use the producer's recomputed contract digest.
+
+Correction observed under KF `cb7442541dbf8103ced99fca540289d9599fbe42`, PR6.
+A new real PostgreSQL/MinIO round trip passed after the old binding failed the
+producer-digest comparison. Its signed package and fixture public key are retained
+in `provider-correct-contract-package.tar.gz`; private keys are not retained.
+The offline reader ran from an empty temporary directory with an unusable database
+URL and preserved the producer's contract digest. Missing trust refused with empty
+stdout. Exact digests and revision limits are in `provider-correct-contract-proof.json`.
+Both provider revisions carry the correct digest, but provider revision 2 still
+reuses source revision 1's IR. No distinct local revision or runtime execution is
+inferred. Historical packages remain intact.
