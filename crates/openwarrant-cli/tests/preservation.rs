@@ -273,6 +273,22 @@ fn actual_warrant_sources_reconstruct_after_source_repository_disappears() {
     assert!(!f.0.join("not-complete").exists());
     let bytes = std::fs::read(f.0.join("snapshot.json")).unwrap();
     let mut archive = Archive::decode(&bytes, Limits::default()).unwrap();
+    let mut false_contracts = archive.clone();
+    false_contracts.coverage.insert(
+        "contract revisions".into(),
+        Coverage::Retained {
+            paths: vec!["__ow_archive__/basis.json".into()],
+        },
+    );
+    std::fs::write(
+        f.0.join("false-contract-coverage.json"),
+        false_contracts.encode(Limits::default()).unwrap(),
+    )
+    .unwrap();
+    refusal(
+        f.run(&["archive", "inspect", "false-contract-coverage.json"]),
+        "contract revision coverage differs",
+    );
     let original_subject = archive.subject.clone();
     archive.subject = "war://wrong-warrant".into();
     std::fs::write(

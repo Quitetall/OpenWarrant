@@ -2,6 +2,7 @@
 //! Experimental archive import and source-detached re-export. No authority activation.
 use std::{collections::BTreeMap, path::Path};
 mod artifacts;
+mod contracts;
 mod history;
 mod identity;
 
@@ -513,6 +514,10 @@ fn assemble(
         "artifacts".into(),
         artifacts::coverage(&files, relative.as_str())?,
     );
+    coverage.insert(
+        "contract revisions".into(),
+        contracts::coverage(&files, relative.as_str())?,
+    );
     let archive = Archive {
         schema: SCHEMA.into(),
         subject: format!("war://{}", basis.manifest.uuid),
@@ -609,6 +614,24 @@ fn verify_archive_basis(
         if archive.coverage.get("artifacts") != Some(&observed) {
             return Err(Error(
                 "artifact coverage differs from checked declaration inventory".into(),
+            ));
+        }
+    }
+    if matches!(
+        archive.coverage.get("contract revisions"),
+        Some(openwarrant_compiler::preservation::Coverage::Retained { .. })
+    ) {
+        let snapshot: BasisSnapshot =
+            serde_json::from_slice(&files[BASIS_PATH]).map_err(|e| Error(e.to_string()))?;
+        let directory = snapshot
+            .manifest_source
+            .strip_suffix("/manifest.toml")
+            .ok_or_else(|| Error("invalid manifest source path".into()))?;
+        if archive.coverage.get("contract revisions")
+            != Some(&contracts::coverage(files, directory)?)
+        {
+            return Err(Error(
+                "contract revision coverage differs from retained history".into(),
             ));
         }
     }

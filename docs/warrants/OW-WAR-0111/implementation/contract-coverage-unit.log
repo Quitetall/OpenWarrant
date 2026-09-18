@@ -1,0 +1,118 @@
+   Compiling openwarrant-cli v1.0.0 (/mnt/4tb/tmp/ow-export-preservation/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.81s
+     Running unittests src/main.rs (/mnt/4tb/tmp/ow107-gate-lineage/target/debug/deps/war-e3e52e6c899677d3)
+
+running 1 test
+test preservation::contracts::tests::retained_revision_chain_requires_exact_predecessor_and_number ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 153 filtered out; finished in 0.00s
+
+     Running tests/authority_transition_cli.rs (/mnt/4tb/tmp/ow107-gate-lineage/target/debug/deps/authority_transition_cli-3e9c1e4bf6e1828e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/board_cli.rs (/mnt/4tb/tmp/ow107-gate-lineage/target/debug/deps/board_cli-56b4c594c48da7d5)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/diff_target.rs (/mnt/4tb/tmp/ow107-gate-lineage/target/debug/deps/diff_target-eadfb22d99a1d44b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+     Running tests/dispatch_bundle_cli.rs (/mnt/4tb/tmp/ow107-gate-lineage/target/debug/deps/dispatch_bundle_cli-08b6d7afd0975393)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.00s
+
+     Running tests/doctor_cli.rs (/mnt/4tb/tmp/ow107-gate-lineage/target/debug/deps/doctor_cli-674d9f205df3c49e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+     Running tests/document_draft.rs (/mnt/4tb/tmp/ow107-gate-lineage/target/debug/deps/document_draft-4c55cfc6c5459f56)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.00s
+
+     Running tests/frontier_integrity_cli.rs (/mnt/4tb/tmp/ow107-gate-lineage/target/debug/deps/frontier_integrity_cli-7387818e4f136707)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/inbox_classify.rs (/mnt/4tb/tmp/ow107-gate-lineage/target/debug/deps/inbox_classify-8f808b21edc9fbd3)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+
+     Running tests/inbox_cli.rs (/mnt/4tb/tmp/ow107-gate-lineage/target/debug/deps/inbox_cli-2d9566746b41f5c9)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+     Running tests/json_envelope.rs (/mnt/4tb/tmp/ow107-gate-lineage/target/debug/deps/json_envelope-a392083ad6f49d8c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s
+
+     Running tests/mcp_stdio.rs (/mnt/4tb/tmp/ow107-gate-lineage/target/debug/deps/mcp_stdio-848c41c0adb3886e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+     Running tests/overview.rs (/mnt/4tb/tmp/ow107-gate-lineage/target/debug/deps/overview-b7fa651298aa8940)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+     Running tests/preflight_cli.rs (/mnt/4tb/tmp/ow107-gate-lineage/target/debug/deps/preflight_cli-0dab1e753fd92f8c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s
+
+     Running tests/preservation.rs (/mnt/4tb/tmp/ow107-gate-lineage/target/debug/deps/preservation-46c2467d1ffd0ba6)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.00s
+
+     Running tests/progress_viewer.rs (/mnt/4tb/tmp/ow107-gate-lineage/target/debug/deps/progress_viewer-b22657b63beda2de)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+
+     Running tests/question_integrity_cli.rs (/mnt/4tb/tmp/ow107-gate-lineage/target/debug/deps/question_integrity_cli-d7d691cff10d0b41)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/sdk_cli.rs (/mnt/4tb/tmp/ow107-gate-lineage/target/debug/deps/sdk_cli-b3b331ed75022abb)
+
+running 1 test
+test preservation_and_agent_records_match_public_sdk_without_authentication ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.01s
+
+     Running tests/telemetry_integrity_cli.rs (/mnt/4tb/tmp/ow107-gate-lineage/target/debug/deps/telemetry_integrity_cli-a5680502cb9be597)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
