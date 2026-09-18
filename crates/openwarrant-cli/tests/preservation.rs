@@ -535,6 +535,22 @@ fn declared_artifact_bytes_survive_source_loss_and_inventory_tampering_refuses()
     std::fs::remove_file(f.0.join("delivered.bin")).unwrap();
     std::fs::rename(f.0.join("docs"), f.0.join("hidden-docs")).unwrap();
     success(f.run(&["archive", "inspect", "artifact.json"]));
+    let mut forged = original.clone();
+    forged.coverage.insert(
+        "artifacts".into(),
+        Coverage::Retained {
+            paths: vec!["__ow_archive__/artifacts.json".into()],
+        },
+    );
+    std::fs::write(
+        f.0.join("false-coverage.json"),
+        forged.encode(Limits::default()).unwrap(),
+    )
+    .unwrap();
+    refusal(
+        f.run(&["archive", "inspect", "false-coverage.json"]),
+        "artifact coverage differs",
+    );
     let mut changed = original.clone();
     let record = changed
         .records
@@ -708,6 +724,10 @@ fn historical_artifact_versions_are_selected_by_digest_not_current_path() {
         Limits::default(),
     )
     .unwrap();
+    assert!(
+        matches!(&archive.coverage["artifacts"], Coverage::Retained { paths } if paths.iter().any(|p| p.starts_with("__ow_archive__/artifacts/")))
+    );
+
     for bytes in [first.as_slice(), second.as_slice()] {
         let path = format!("__ow_archive__/artifacts/{}", sha256_hex(bytes));
         let record = archive

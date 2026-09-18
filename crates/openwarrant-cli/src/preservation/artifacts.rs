@@ -298,3 +298,52 @@ pub(super) fn verify(files: &BTreeMap<String, Vec<u8>>, relative: &str) -> Resul
     }
     Ok(())
 }
+
+/// Coverage of declared artifacts in the selected local source/history boundary.
+/// Provider-owned artifacts need their provider's export; no external inventory
+/// is inferred from a local declaration set.
+pub(super) fn coverage(
+    files: &BTreeMap<String, Vec<u8>>,
+    relative: &str,
+) -> Result<openwarrant_compiler::preservation::Coverage, Error> {
+    use openwarrant_compiler::preservation::Coverage;
+    verify(files, relative)?;
+    let Some(bytes) = files.get(INDEX) else {
+        return Ok(Coverage::Unavailable {
+            reason: "Artifact inventory missing".into(),
+        });
+    };
+    if !files.contains_key("__ow_archive__/history.json") {
+        return Ok(Coverage::Unavailable {
+            reason: "Current declared artifacts captured where available; retained declaration history requires --history".into(),
+        });
+    }
+    let index: Index = serde_json::from_slice(bytes).map_err(|e| Error(e.to_string()))?;
+    let mut paths = BTreeSet::from([INDEX.to_owned(), "__ow_archive__/history.json".to_owned()]);
+    let mut unavailable = Vec::new();
+    for claim in index.claims {
+        paths.insert(claim.declaration.clone());
+        match claim.record {
+            Some(record) => {
+                paths.insert(record);
+            }
+            None => unavailable.push(format!(
+                "{}#{}: {}",
+                claim.declaration,
+                claim.id,
+                claim.unavailable.unwrap_or_else(|| "unavailable".into())
+            )),
+        }
+    }
+    if !unavailable.is_empty() {
+        return Ok(Coverage::Unavailable {
+            reason: format!(
+                "Declared artifact versions unavailable: {}",
+                unavailable.join("; ")
+            ),
+        });
+    }
+    Ok(Coverage::Retained {
+        paths: paths.into_iter().collect(),
+    })
+}

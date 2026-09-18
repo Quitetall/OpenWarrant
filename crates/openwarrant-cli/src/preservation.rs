@@ -65,7 +65,7 @@ pub fn run(command: Command) -> Result<(String, serde_json::Value), Error> {
                     );
                 }
             }
-            if verify_basis(&files)? != archive.subject {
+            if verify_archive_basis(&archive, &files)? != archive.subject {
                 return Err(Error(
                     "archive subject differs from reconstructed Warrant".into(),
                 ));
@@ -111,7 +111,9 @@ pub fn run(command: Command) -> Result<(String, serde_json::Value), Error> {
                     .ok_or_else(|| Error("invalid evidence digest".into()))?;
                 read(root.join(hex).as_std_path(), limit)
             })?;
-            if content.contains_key(BASIS_PATH) && verify_basis(&content)? != archive.subject {
+            if content.contains_key(BASIS_PATH)
+                && verify_archive_basis(&archive, &content)? != archive.subject
+            {
                 return Err(Error(
                     "archive subject differs from reconstructed Warrant".into(),
                 ));
@@ -179,7 +181,9 @@ pub fn reexport(directory: &Path, limits: Limits) -> Result<Vec<u8>, Error> {
             .ok_or_else(|| Error("missing imported record".into()))?;
         read(&directory.join("records").join(relative), limit)
     })?;
-    if restored.contains_key(BASIS_PATH) && verify_basis(&restored)? != archive.subject {
+    if restored.contains_key(BASIS_PATH)
+        && verify_archive_basis(&archive, &restored)? != archive.subject
+    {
         return Err(Error(
             "archive subject differs from reconstructed Warrant".into(),
         ));
@@ -505,6 +509,10 @@ fn assemble(
             reason: "Repository schema pack missing; observed executable identity is retained separately".into()
         });
     }
+    coverage.insert(
+        "artifacts".into(),
+        artifacts::coverage(&files, relative.as_str())?,
+    );
     let archive = Archive {
         schema: SCHEMA.into(),
         subject: format!("war://{}", basis.manifest.uuid),
@@ -580,6 +588,31 @@ fn collect(
         return Err(Error("special source file refused".into()));
     }
     Ok(())
+}
+
+fn verify_archive_basis(
+    archive: &Archive,
+    files: &BTreeMap<String, Vec<u8>>,
+) -> Result<String, Error> {
+    let subject = verify_basis(files)?;
+    if matches!(
+        archive.coverage.get("artifacts"),
+        Some(openwarrant_compiler::preservation::Coverage::Retained { .. })
+    ) {
+        let snapshot: BasisSnapshot =
+            serde_json::from_slice(&files[BASIS_PATH]).map_err(|e| Error(e.to_string()))?;
+        let directory = snapshot
+            .manifest_source
+            .strip_suffix("/manifest.toml")
+            .ok_or_else(|| Error("invalid manifest source path".into()))?;
+        let observed = artifacts::coverage(files, directory)?;
+        if archive.coverage.get("artifacts") != Some(&observed) {
+            return Err(Error(
+                "artifact coverage differs from checked declaration inventory".into(),
+            ));
+        }
+    }
+    Ok(subject)
 }
 
 fn verify_basis(files: &BTreeMap<String, Vec<u8>>) -> Result<String, Error> {
