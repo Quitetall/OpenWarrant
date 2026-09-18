@@ -124,21 +124,19 @@ pub fn board(repo: &Repository) -> Result<Board, RepoError> {
             }
         })
         .collect();
-    let questions: Vec<Question> = crate::questions::list(repo, None, true)
-        .map(|(_, l)| {
-            l.questions
-                .into_iter()
-                .map(|q| Question {
-                    command: format!("war answer {} {} \"…\" --as <you>", q.warrant, q.id),
-                    warrant: q.warrant,
-                    id: q.id,
-                    blocking: q.blocking,
-                    question: q.question,
-                    recommended: q.recommended,
-                })
-                .collect()
-        })
-        .unwrap_or_default();
+    let questions: Vec<Question> = crate::questions::complete_list(repo, true).map(|l| {
+        l.questions
+            .into_iter()
+            .map(|q| Question {
+                command: format!("war answer {} {} \"…\" --as <you>", q.warrant, q.id),
+                warrant: q.warrant,
+                id: q.id,
+                blocking: q.blocking,
+                question: q.question,
+                recommended: q.recommended,
+            })
+            .collect()
+    })?;
     let stages: Vec<Stage> = crate::frontier::run(repo, None)
         .map(|(_, f)| {
             f.rows
