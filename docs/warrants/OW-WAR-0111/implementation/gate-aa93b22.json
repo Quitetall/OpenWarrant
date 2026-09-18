@@ -1,0 +1,9 @@
+{
+  "source_revision": "aa93b22eed7d9711738cc671a2f334a1a2667416",
+  "command": "cargo xtask gate",
+  "exit_code": 0,
+  "steps_passed": 14,
+  "plants_passed": 309,
+  "plants_failed": 0,
+  "scope": "Schema identity implementation; subsequent artifact collector not covered by this gate"
+}

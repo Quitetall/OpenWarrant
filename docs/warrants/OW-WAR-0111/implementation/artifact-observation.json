@@ -1,0 +1,9 @@
+{
+  "source_revision": "2842647d0178b8b289ab2d8f6e35a06b8f46c3e0",
+  "tests": 9,
+  "test_exit": 0,
+  "all_targets_clippy_exit": 0,
+  "real_sample": "OW-WAR-0030 D-001",
+  "result": "Exact declared source bytes retained and reconstructed inspection passed",
+  "remaining": "Historical missing artifact resolution and complete category qualification"
+}
