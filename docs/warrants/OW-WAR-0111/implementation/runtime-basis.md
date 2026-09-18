@@ -1,3 +1,5 @@
+> Current correction: [Provider ledger and source contract counters differ](provider-source-counter-correction.md). Earlier revision-2 gap observations below were incorrect; original evidence is preserved.
+
 # Archive-derived runtime query basis
 
 `war archive runtime-basis ARCHIVE --json` validates the experimental archive,
