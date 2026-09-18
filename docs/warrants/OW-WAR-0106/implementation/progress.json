@@ -3,19 +3,21 @@
   "warrant": "OW-WAR-0106",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "revision": "812618398170f4d44d5d73e741577a1adaa64b6e",
-  "summary": "Hotline question, authenticated answer, resume APIs and browser controls implemented; synthetic browser ask/answer/resume/completion observed. Adviser routing, fault tests and full integration remain open.",
+  "revision": "78d2371e05f475270e887659e2812ebf8ebbf0ba",
+  "summary": "Hotline question/answer/resume and configured technical adviser implemented. 89 web tests pass; synthetic browser workflow observed. Full gate and exact-head integration pending; stage-granularity and real-provider limits remain explicit.",
   "notes": "docs/warrants/OW-WAR-0106/implementation/notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0106/implementation/contracts-tests.log",
     "docs/warrants/OW-WAR-0106/implementation/answer-http-tests.log",
     "docs/warrants/OW-WAR-0106/implementation/resume-all-tests.log",
     "docs/warrants/OW-WAR-0106/implementation/browser-observation.md",
-    "docs/warrants/OW-WAR-0106/implementation/browser-api-tests.log"
+    "docs/warrants/OW-WAR-0106/implementation/browser-api-tests.log",
+    "docs/warrants/OW-WAR-0106/implementation/adviser-all-tests.log",
+    "docs/warrants/OW-WAR-0106/implementation/fault-tests.log"
   ],
   "next_steps": [
-    "Implement configured adviser routing and additional budget/concurrency fault cases",
-    "Run full gate and exact-head integration",
+    "Finish full gate and exact-head integration",
+    "Audit remaining Warrant scope including internal stage scheduling",
     "Real-provider and secure human qualification remain separate"
   ]
 }
