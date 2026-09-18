@@ -120,3 +120,14 @@ stops future launches, not processes already dispatched. Tests cover authenticat
 HTTP configuration, field injection, duplicate intent, background repair/recheck,
 pause across scheduler restart and corrupt-history refusal. Intent digests detect
 corruption; protected control storage remains required against hostile rewriting.
+
+## Reference workflow file inputs (OW-WAR-0102)
+
+The shared state/report file reader opens inputs with no-follow and nonblocking
+flags, checks the opened descriptor is a regular file before wrapping or reading
+it, and closes that descriptor on every exit. Reads retain their byte limit.
+`test_file_reads` exercises a FIFO with no writer in a timeout-bounded subprocess,
+a directory, and exact/oversized regular-file reads. This prevents the observed
+FIFO-open hang and refuses directories without leaking the descriptor. Parent
+paths and control storage still require operator protection; this is not a
+general filesystem sandbox or a guarantee against slow regular-file I/O.
