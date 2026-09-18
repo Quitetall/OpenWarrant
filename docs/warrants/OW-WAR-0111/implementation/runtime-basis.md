@@ -80,3 +80,13 @@ visible. This proves membership comparison, not actual execution.
 47 export tests passed before fixture integration; the seven-test runtime suite
 passed again with the real source fixture. Build, focused lint, TypeScript and
 measurement generation passed. Full provider CI remains pending.
+
+### Full provider gate at e29bc18a
+
+`pnpm gate` exited 0 on the exact KF source-stage adapter revision.
+160 test files / 1,588 tests passed; one file / four tests skipped. Build,
+formatting, lint, type checking, generated checks and configured dependency
+audit passed. Audit reported two moderate vulnerabilities below its high
+failure threshold. Local gate excludes CI-only full-history secret scanning.
+Full log and structured observation retained beside this note. Hosted run
+35378231324 remains queued; no hosted pass or assurance is inferred.
