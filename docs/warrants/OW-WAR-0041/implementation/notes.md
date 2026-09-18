@@ -40,3 +40,8 @@ delivers `telemetry.rs` and its unresolved delivery provenance still named old
 bytes. Both delivery records now retain the previous source digest as input and
 name the actual new content. No signed contract, resolved pin or original
 baseline changed. Full failed transcript retained in `initial-gate-failure.log.gz`.
+
+Second gate: 308/308 battery controls passed; Bonsai qualification test failed
+because concurrent fetch changed shared `origin/main` during its worktree test.
+Transcript retained in `shared-ref-gate-failure.log.gz`. Subsequent full gate
+runs use a standalone clone to isolate Git refs from integration worktrees.
