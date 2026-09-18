@@ -36,3 +36,18 @@ references.json records its path and digest. No lineage graph or event stream wa
 copied into this Warrant. A failed-job reference does not establish successful
 lineage or OBL-001 completion. OBL-001 and successful OBL-003 remain open, as do
 exact source identity and independent acceptance. No historical status changed.
+
+## Source-pinned reproduction
+
+A clean archive of LamQuant commit 7ac7f519c92477370d735a349eec32962b0a9ab1,
+cookbook subtree 43ee27189f6b817abac4f493123fe701c076fab5, was built offline with
+its unchanged Cargo.lock and Rust 1.97.1. Published engine/cookbook checksums and
+VCS metadata are retained in pinned-runtime-20260918/identity.json. Build passed.
+The resulting binary reproduced the same packaging failure as job
+20260918-120933-659122097. The real jobs endpoint reports failed, no PID.
+
+The unknown binary is therefore no longer the only reproduction. The shared
+materialization repair contract in this directory assigns provider implementation
+and OpenWarrant validation without weakening engine controls. Provider repair is
+being prepared on blut-backends base 12d09c5d2f00ecf52394c11657c50b14bc04bb7c;
+no successful rerun or provider release is claimed yet.

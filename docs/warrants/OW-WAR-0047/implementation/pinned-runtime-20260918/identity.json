@@ -1,0 +1,144 @@
+{
+  "repository": "/mnt/4tb/LamQuant",
+  "revision": "7ac7f519c92477370d735a349eec32962b0a9ab1",
+  "subtree": "training/cookbooks/lamquant",
+  "subtree_oid": "43ee27189f6b817abac4f493123fe701c076fab5",
+  "archive_sha256": "48d04a6243a8fde6487135e793473b025bc30ce585af2681574866251a36176f",
+  "lock_sha256": "4340cd53b954bbf31c4eac4ca190183efa4baa9ae91553ae196301855cf3f00c",
+  "source_directory": "/mnt/4tb/tmp/ow47-pinned-cookbook-20260918/training/cookbooks/lamquant",
+  "engine_packages": [
+    {
+      "name": "blut",
+      "version": "0.2.0-alpha.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "4bd1d9b165cc3cb2bca15c84015f9f21bb0e28676759e8ddb9588fd48b676c22",
+      "dependencies": [
+        "anyhow",
+        "async-trait",
+        "bincode",
+        "blake3",
+        "blut-types",
+        "chrono",
+        "clap",
+        "cron",
+        "dirs",
+        "faster-hex",
+        "futures",
+        "humantime",
+        "memmap2",
+        "nix",
+        "parking_lot",
+        "rand 0.8.6",
+        "rayon",
+        "rusqlite",
+        "schemars",
+        "serde",
+        "serde_json",
+        "serde_yaml",
+        "sha2",
+        "tempfile",
+        "thiserror 1.0.69",
+        "tokio",
+        "tokio-util",
+        "toml",
+        "tracing",
+        "tracing-subscriber",
+        "uuid",
+        "which"
+      ],
+      "published_vcs_info": {
+        "git": {
+          "sha1": "e34c557b834a7b45e61bdd3bc0324df1b06be482"
+        },
+        "path_in_vcs": ""
+      }
+    },
+    {
+      "name": "blut-cookbook-standard",
+      "version": "0.1.0",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "d0394c5e58180c0fcbcbcec6179f596ecac1fcc763a46e3d38978d21b8ba43c3",
+      "dependencies": [
+        "anyhow",
+        "async-trait",
+        "blut",
+        "dirs",
+        "nix",
+        "parking_lot",
+        "rand 0.8.6",
+        "rusqlite",
+        "schemars",
+        "serde",
+        "serde_json",
+        "tempfile",
+        "thiserror 1.0.69",
+        "tokio",
+        "tracing",
+        "which"
+      ],
+      "published_vcs_info": {
+        "git": {
+          "sha1": "c3746059708c89fa1cad0c6b3c74cc28367fbd3c"
+        },
+        "path_in_vcs": ""
+      }
+    },
+    {
+      "name": "blut-tui",
+      "version": "0.2.0-alpha.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "98351509fdb5d7eca58ea15505feeeffaee3ba639e07123b780be8e1dd0e20b9",
+      "dependencies": [
+        "anyhow",
+        "blut",
+        "crossterm 0.28.1",
+        "fuzzy-matcher",
+        "ratatui",
+        "serde_json",
+        "tokio"
+      ],
+      "published_vcs_info": {
+        "git": {
+          "sha1": "ffecee56abc87175a55dedc9f92d3537fa5a4227"
+        },
+        "path_in_vcs": "crates/blut-tui"
+      }
+    },
+    {
+      "name": "blut-types",
+      "version": "0.2.0-alpha.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "checksum": "0a74cfdcf20015697abf9e4e5edc28ee7188b18b54a85776d96b94f6173d525e",
+      "dependencies": [
+        "faster-hex",
+        "schemars",
+        "serde",
+        "serde_json",
+        "sha2"
+      ],
+      "published_vcs_info": {
+        "git": {
+          "sha1": "e34c557b834a7b45e61bdd3bc0324df1b06be482"
+        },
+        "path_in_vcs": "crates/blut-types"
+      }
+    }
+  ],
+  "binary": {
+    "path": "/mnt/4tb/tmp/ow47-cookbook-target/debug/lqt",
+    "sha256": "fa8428932286c0dbbbb8568a0d97dc296d4c9f444f675d636507dec860ea4f34",
+    "version": "blut 0.2.0-alpha.1+unknown"
+  },
+  "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "build_argv": [
+    "cargo",
+    "+1.97.1",
+    "build",
+    "--offline",
+    "--locked",
+    "--bin",
+    "lqt",
+    "-j",
+    "2"
+  ]
+}

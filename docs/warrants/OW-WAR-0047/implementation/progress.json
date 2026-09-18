@@ -4,17 +4,18 @@
   "work_state": "in-progress",
   "reported_by": "agent://codex",
   "revision": "1c852b064ce20de9befb4724052bb9292c2f04a4",
-  "summary": "Real BLUT plan typecheck and dry run pass; actual two-stage job fails at first-stage artifact packaging. Failed status and external lineage reference retained. Binary build-source identity unknown; no successful runtime qualification.",
+  "summary": "Source-pinned offline build reproduces real BLUT first-stage artifact-packaging failure. Exact dependencies, binary identity and failed job status retained. Shared provider repair contract drafted; successful execution remains open.",
   "notes": "docs/warrants/OW-WAR-0047/implementation/runtime-notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0047/implementation/runtime-20260918/identity.json",
     "docs/warrants/OW-WAR-0047/implementation/runtime-20260918/lowering.json",
     "docs/warrants/OW-WAR-0047/implementation/runtime-20260918/run.json",
     "docs/warrants/OW-WAR-0047/implementation/runtime-20260918/jobs.json",
-    "docs/warrants/OW-WAR-0047/implementation/runtime-20260918/references.json"
+    "docs/warrants/OW-WAR-0047/implementation/runtime-20260918/references.json",
+    "docs/warrants/OW-WAR-0047/implementation/pinned-runtime-20260918/identity.json"
   ],
   "next_steps": [
-    "Reproduce with an exact source-pinned cookbook binary; installed PATH binaries lack plan run.",
+    "Implement and validate shared provider repair for stage-owned dataset materialization, preserving artifact checks.",
     "Prepare shared provider work for the source-path versus stage-root materialization failure; do not bypass artifact checks.",
     "Run the original graph to successful status, artifact and lineage receipts, then obtain independent verification."
   ]
