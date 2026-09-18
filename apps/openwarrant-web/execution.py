@@ -329,6 +329,32 @@ class Executor:
         )
         return id, p, record
 
+    def stage_listing(self, id):
+        """Owner-configured selection and advisory readiness for browser callers."""
+        with self.lock:
+            require(id in self.config["warrants"], "Warrant not configured for execution", 403)
+            policy = self.config["warrants"][id]
+            source = self.store.get(id)["source_sha256"]
+            rows = []
+            done = set()
+            if "stage_plan" in policy and source == policy["source_sha256"]:
+                attempts = [self.view(r) for r in self.records().values() if r["warrant_id"] == id]
+                if all(r["execution_state"] == "stopped" for r in attempts):
+                    try:
+                        done, _ = self.stage_facts(id, policy, attempts)
+                    except (ExecutionError, StageError, OSError, subprocess.SubprocessError):
+                        pass  # Admission below reports the unavailable/currently blocked basis.
+            for stage, spec in policy.get("stage_plan", {}).get("stages", {}).items():
+                subject = {"warrant_id": id, "source_sha256": source, "stage": stage}
+                preview = self.admission(subject)
+                rows.append({"stage": stage, "title": spec["title"], "outcome": spec["outcome"],
+                             "dependencies": spec["dependencies"], "state": "completed" if stage in done else preview["state"],
+                             "reason": "Checks passed on current revision" if stage in done else preview["reason"],
+                             "dispatch_permitted": False})
+            return {"schema": "oh.war/stage-selection/v1", "warrant_id": id,
+                    "source_sha256": source, "mode": "staged" if "stage_plan" in policy else "whole-warrant",
+                    "stages": rows, "dispatch_permitted": False}
+
     def admission(self, fields):
         """Advisory snapshot. Never reserves a writer or authorizes dispatch."""
         with self.lock:

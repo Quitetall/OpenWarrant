@@ -164,6 +164,23 @@ print(json.dumps({'schema':'oh.war/execution-result/v1','attempt_id':r['attempt_
         self.assertEqual(report["progress"]["completed"], 1)
         self.assertEqual(report["completion_signal"], "WORK_DONE")
 
+    def test_stage_selection_is_authenticated_current_and_does_not_dispatch(self):
+        fields = self.staged()
+        route = "/api/stages/" + fields["warrant_id"]
+        self.assertEqual(self.call(route, headers={"Authorization": "Bearer wrong"})[0], 401)
+        status, result = self.call(route)
+        self.assertEqual(status, 200, result)
+        self.assertEqual(result["mode"], "staged")
+        self.assertEqual(result["source_sha256"], fields["source_sha256"])
+        self.assertEqual({r["stage"]: r["state"] for r in result["stages"]}, {"api": "ready", "ui": "blocked"})
+        self.assertFalse(result["dispatch_permitted"])
+        self.assertTrue(all(not r["dispatch_permitted"] for r in result["stages"]))
+        self.assertEqual(self.call("/api/runs")[1]["runs"], [])
+        first = self.call("/api/runs", "POST", {**fields, "stage": "api"})[1]
+        self.assertEqual(self.wait_run(first["attempt_id"])["work_state"], "in-progress")
+        result = self.call(route)[1]
+        self.assertEqual({r["stage"]: r["state"] for r in result["stages"]}, {"api": "completed", "ui": "ready"})
+
     def test_stage_cannot_regress_previously_completed_prerequisite(self):
         fields = self.staged()
         first = self.call("/api/runs", "POST", {**fields, "stage": "api"})[1]

@@ -57,9 +57,11 @@ the Warrant time budget; repair limits apply per stage. Question continuations k
 the existing cumulative budget rules. A question must name the selected stage and
 may name only configured affected stages.
 
-Stage selection is currently available through the authenticated API. Browser stage
-controls and safe hotline resume after independent stages advance a question's
-checkpoint remain unfinished. The existing exact-checkpoint resume refusal remains;
+Stage selection is available through the authenticated API and browser execution
+controls. GET `/api/stages/<warrant-id>` reports configured stages and advisory
+readiness without creating attempts. Browser selection requires an explicit stage
+choice. Safe hotline resume after independent stages advance a question's
+checkpoint remains unfinished. The existing exact-checkpoint resume refusal remains;
 no old answer silently authorizes a changed checkpoint.
 
 `completed_from_evidence` validates a current stage checkpoint against exact source,

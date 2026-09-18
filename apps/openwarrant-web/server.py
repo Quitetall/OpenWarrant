@@ -508,6 +508,11 @@ class Handler(BaseHTTPRequestHandler):
                 return self.reply(200, board)
             if self.command == "GET" and self.path == "/api/project":
                 return self.reply(200, project_inventory(store.sdk))
+            stages = re.fullmatch(r"/api/stages/([0-9a-f-]{36})", self.path)
+            if self.command == "GET" and stages:
+                if self.server.executor is None:
+                    raise Refusal(409, "Execution harness not configured")
+                return self.reply(200, self.server.executor.stage_listing(stages[1]))
             if self.command == "GET" and self.path.startswith("/api/runs"):
                 if self.server.executor is None:
                     raise Refusal(409, "Execution harness not configured")

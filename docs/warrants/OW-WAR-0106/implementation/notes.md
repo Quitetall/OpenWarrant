@@ -131,3 +131,14 @@ tests in 52.214 seconds; an additional reporting refusal test passed in the focu
 four-test reporting suite. Full Rust gate has not yet been rerun for this change.
 Browser stage selection and safe resume after independent checkpoint advancement
 remain open. Existing exact-checkpoint resume refuses such advancement.
+
+### Browser stage selection
+
+Added authenticated read-only stage-selection endpoint and explicit browser stage
+selector. Preview does not dispatch; Start rechecks. Completed stages are labeled
+from current evidence. Source changes, editor changes and session lock invalidate
+selection. Public HTTP tests cover authentication, zero attempts from preview,
+and readiness transitions. Actual browser flow proved dependent refusal, partial
+completion, final stage completion and unverified work report. See retained
+stage-browser-observation.md and fixture source. Checkpoint-advance resume remains
+open; no OW-WAR-0106 completion claim.
