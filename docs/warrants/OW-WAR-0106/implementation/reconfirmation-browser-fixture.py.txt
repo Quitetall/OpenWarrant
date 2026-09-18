@@ -1,0 +1,34 @@
+import sys,tempfile,subprocess,json,uuid,os,hashlib,time
+from pathlib import Path
+sys.path.insert(0,'/mnt/4tb/tmp/ow-workflow-hotline/apps/openwarrant-web')
+from server import Server,Store,SDK,Executor,Answers,read_file,publish,decode
+with tempfile.TemporaryDirectory(prefix='ow106-stage-browser-') as tmp:
+ root=Path(tmp);repo=root/'repo';repo.mkdir()
+ def git(*args):return subprocess.check_output(['git',*args],cwd=repo,text=True,stderr=subprocess.DEVNULL).strip()
+ git('init','-q');git('config','user.name','Synthetic fixture');git('config','user.email','fixture@example.invalid')
+ (repo/'README.md').write_text('Stage browser fixture');git('add','.');git('commit','-qm','fixture');base=git('rev-parse','HEAD')
+ store=Store(root/'state',SDK(Path('/mnt/4tb/tmp/ow-question-integrity/target/debug/war'),repo))
+ record=store.create({'id':str(uuid.uuid4()),'title':'Synthetic staged outcome','outcome':'API then UI','scope':'Disposable fixture files only','context':'No real model, protected sandbox claim or human assurance'})
+ harness=root/'harness.py';harness.write_text('''import sys,json,pathlib,subprocess
+r=json.load(sys.stdin);stage=r['stage']
+if stage=='api' and 'resume_from' not in r:
+ print(json.dumps({'schema':'oh.war/execution-question/v1','attempt_id':r['attempt_id'],'source_sha256':r['source_sha256'],'notes':'API question checkpoint','next_steps':['Answer API question'],'question':{'kind':'technical','text':'Which API format?','direct_human':False,'affected_stages':['api']}}));sys.exit(0)
+pathlib.Path(stage+'.txt').write_text(stage)
+subprocess.run(['git','add','.'],check=True,stdout=sys.stderr)
+subprocess.run(['git','commit','-qm',stage],check=True,stdout=sys.stderr)
+print(json.dumps({'schema':'oh.war/execution-result/v1','attempt_id':r['attempt_id'],'source_sha256':r['source_sha256'],'work_state':'completed','notes':stage+' fixture done','next_steps':[]}))
+''')
+ plan={'schema':'oh.war/execution-stage-plan/v1','stages':{s:{'title':s.upper(),'outcome':'Write '+s,'dependencies':['api'] if s=='ui' else [],'checks':[[sys.executable,'-c',f"from pathlib import Path;assert Path('{s}.txt').read_text()=='{s}'"]]} for s in ['api','ui','docs']}}
+ config={'schema':'oh.war/execution-config/v2','argv':[sys.executable,str(harness)],'sandbox':'harness-worktree-only','cost_mode':'free','spend_limit_usd':10,'timeout_seconds':20,'repair_cycles':0,'warrants':{record['id']:{'source_sha256':record['source_sha256'],'base_commit':base,'verified_start':False,'dependencies':[],'checks':[[sys.executable,'-c',"from pathlib import Path;assert Path('api.txt').exists() and Path('ui.txt').exists()"]],'stage_plan':plan}}}
+ cp=root/'execution.json';cp.write_text(json.dumps(config));ex=Executor(store,cp,read_file,publish,decode)
+ srv=Server(('127.0.0.1',0),store,'public-stage-ui-session-fixture');srv.executor=ex;srv.completion_word='FIXTURE_DONE';srv.report_detail='full'
+ srv.hotline=Answers(ex,{'schema':'oh.war/hotline-config/v1','responders':[{'id':'fixture-ai','kind':'ai','token_sha256':hashlib.sha256(b'public-checkpoint-responder-fixture-0001').hexdigest(),'governing_warrants':[]}]})
+ first=ex.start({'warrant_id':record['id'],'source_sha256':record['source_sha256'],'stage':'api'})
+ while ex.get(first['attempt_id'])['execution_state']=='running':time.sleep(.02)
+ from hotline import digest
+ q=ex.get(first['attempt_id'])['question']
+ srv.hotline.submit(first['attempt_id'],{'question_sha256':digest(q),'answer':'Use JSON','evidence':[]},'public-checkpoint-responder-fixture-0001')
+ docs=ex.start({'warrant_id':record['id'],'source_sha256':record['source_sha256'],'stage':'docs'})
+ while ex.get(docs['attempt_id'])['execution_state']=='running':time.sleep(.02)
+ print(json.dumps({'url':f'http://127.0.0.1:{srv.server_port}/','pid':os.getpid()}),flush=True)
+ srv.serve_forever()

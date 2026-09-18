@@ -3,8 +3,8 @@
   "warrant": "OW-WAR-0106",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "revision": "78d2371e05f475270e887659e2812ebf8ebbf0ba",
-  "summary": "Hotline question/answer/resume and configured technical adviser implemented. 89 web tests pass; synthetic browser workflow observed. Full gate and exact-head integration pending; stage-granularity and real-provider limits remain explicit.",
+  "revision": "5e503d08c92a46b4ded912c31059da3c1f8426a5",
+  "summary": "Hotline, internal stage dispatch, browser selection and exact checkpoint answer reconfirmation implemented. Synthetic HTTP/process/browser evidence retained. Current full gate and integration pending.",
   "notes": "docs/warrants/OW-WAR-0106/implementation/notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0106/implementation/contracts-tests.log",
@@ -13,11 +13,15 @@
     "docs/warrants/OW-WAR-0106/implementation/browser-observation.md",
     "docs/warrants/OW-WAR-0106/implementation/browser-api-tests.log",
     "docs/warrants/OW-WAR-0106/implementation/adviser-all-tests.log",
-    "docs/warrants/OW-WAR-0106/implementation/fault-tests.log"
+    "docs/warrants/OW-WAR-0106/implementation/fault-tests.log",
+    "docs/warrants/OW-WAR-0106/implementation/stage-browser-observation.md",
+    "docs/warrants/OW-WAR-0106/implementation/reconfirmation-browser-observation.md",
+    "docs/warrants/OW-WAR-0106/implementation/reconfirmation-regression.log",
+    "docs/warrants/OW-WAR-0106/implementation/reconfirmation-focused.log"
   ],
   "next_steps": [
-    "Finish full gate and exact-head integration",
-    "Audit remaining Warrant scope including internal stage scheduling",
-    "Real-provider and secure human qualification remain separate"
+    "Finish current full repository gate",
+    "Integrate exact reviewed candidate and audit completion",
+    "Keep real-provider and secure human qualification separate"
   ]
 }

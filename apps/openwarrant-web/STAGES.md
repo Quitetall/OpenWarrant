@@ -94,4 +94,4 @@ record a new answer, then explicitly resume. Technical answers may come from
 configured AI responders; direct-human and governing scope restrictions still apply.
 The controller cannot prove a responder read the code. Authenticated record means
 that responder supplied that answer for those exact inputs, not independent
-assurance or human qualification. Browser reconfirmation QA remains pending.
+assurance or human qualification. Synthetic browser reconfirmation QA is retained under OW-WAR-0106 implementation evidence.
