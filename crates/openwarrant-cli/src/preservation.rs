@@ -595,6 +595,7 @@ fn verify_basis(files: &BTreeMap<String, Vec<u8>>) -> Result<String, Error> {
         .strip_suffix("/manifest.toml")
         .ok_or_else(|| Error("invalid manifest source path".into()))?;
     artifacts::verify(files, directory)?;
+    history::verify(files, directory)?;
     if snapshot.schema != "oh.war/preservation-basis/v1-draft.1" {
         return Err(Error("unsupported basis snapshot".into()));
     }

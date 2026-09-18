@@ -372,3 +372,120 @@ pub(super) fn artifact(
     }
     Ok(None)
 }
+
+#[derive(serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct History {
+    schema: String,
+    head: String,
+    reachable_from: String,
+    warrant_path: String,
+    #[serde(default)]
+    shared_atom_paths: Vec<String>,
+    commits: Vec<Commit>,
+    other_refs_included: bool,
+}
+#[derive(serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Commit {
+    commit: String,
+    commit_record: String,
+    files: Vec<HistoricalFile>,
+}
+#[derive(serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct HistoricalFile {
+    source: String,
+    mode: String,
+    git_blob: String,
+    record: String,
+}
+
+/// Cross-check the retained inventory. Git object identities remain observations;
+/// this does not authenticate ancestry, signatures or omitted upstream history.
+pub(super) fn verify(records: &BTreeMap<String, Vec<u8>>, directory: &str) -> Result<(), Error> {
+    let prefix = "__ow_archive__/history/";
+    let Some(bytes) = records.get("__ow_archive__/history.json") else {
+        if records.keys().any(|path| path.starts_with(prefix)) {
+            return Err(Error("historical records lack inventory".into()));
+        }
+        return Ok(());
+    };
+    let history: History = serde_json::from_slice(bytes)
+        .map_err(|e| Error(format!("invalid history inventory: {e}")))?;
+    if history.schema != "oh.war/preservation-history/v1-draft.1"
+        || !oid(&history.head)
+        || history.reachable_from != "HEAD"
+        || history.warrant_path != directory
+        || history.other_refs_included
+        || history.commits.len() > 256
+    {
+        return Err(Error(
+            "unsupported history inventory or source boundary".into(),
+        ));
+    }
+    let mut shared = BTreeSet::new();
+    for path in history.shared_atom_paths {
+        if !shared.insert(path.clone())
+            || path.split('/').any(|part| matches!(part, "" | "." | ".."))
+        {
+            return Err(Error("invalid shared history path inventory".into()));
+        }
+    }
+    let mut claimed = BTreeSet::new();
+    let mut commits = BTreeSet::new();
+    for commit in history.commits {
+        if !oid(&commit.commit) || !commits.insert(commit.commit.clone()) {
+            return Err(Error("invalid or duplicate history commit".into()));
+        }
+        let base = format!("{prefix}{}", commit.commit);
+        if commit.commit_record != format!("{base}/commit.txt")
+            || !records.contains_key(&commit.commit_record)
+            || !claimed.insert(commit.commit_record)
+        {
+            return Err(Error(
+                "missing or inconsistent history commit record".into(),
+            ));
+        }
+        let mut sources = BTreeSet::new();
+        for file in commit.files {
+            if !matches!(file.mode.as_str(), "100644" | "100755")
+                || !oid(&file.git_blob)
+                || file.record != format!("{base}/{}", file.source)
+                || !records.contains_key(&file.record)
+                || !sources.insert(file.source)
+                || !claimed.insert(file.record)
+            {
+                return Err(Error(
+                    "missing, duplicate or inconsistent historical file".into(),
+                ));
+            }
+        }
+        let manifest_key = format!("{base}/{directory}/manifest.toml");
+        if let Some(bytes) = records.get(&manifest_key) {
+            let manifest: openwarrant_core::Manifest =
+                toml::from_str(std::str::from_utf8(bytes).map_err(|e| Error(e.to_string()))?)
+                    .map_err(|e| Error(format!("invalid historical manifest: {e}")))?;
+            for atom in manifest.atoms {
+                let source = atom
+                    .path
+                    .ok_or_else(|| Error("historical bound atom requires a resolver".into()))?;
+                let source = super::atom_record(directory, &source)?;
+                if !sources.contains(&source) {
+                    return Err(Error("history inventory omits a referenced atom".into()));
+                }
+            }
+        }
+    }
+    let actual: BTreeSet<_> = records
+        .keys()
+        .filter(|p| p.starts_with(prefix))
+        .cloned()
+        .collect();
+    if actual != claimed {
+        return Err(Error(
+            "history inventory does not cover retained records".into(),
+        ));
+    }
+    Ok(())
+}

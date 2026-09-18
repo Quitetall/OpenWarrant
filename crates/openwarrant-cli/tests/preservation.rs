@@ -951,6 +951,45 @@ fn historical_shared_atoms_use_each_manifest_commit_not_current_bytes() {
         Limits::default(),
     )
     .unwrap();
+    // Rehashing modified index bytes cannot hide omitted or duplicate claims.
+    for mutation in ["duplicate", "omit", "redirect"] {
+        let mut changed = archive.clone();
+        let index = changed
+            .records
+            .iter_mut()
+            .find(|r| r.path == "__ow_archive__/history.json")
+            .unwrap();
+        let mut value: serde_json::Value = serde_json::from_slice(
+            &openwarrant_core::attestation::base64_decode(index.base64.as_ref().unwrap()).unwrap(),
+        )
+        .unwrap();
+        match mutation {
+            "duplicate" => {
+                let copy = value["commits"][0].clone();
+                value["commits"].as_array_mut().unwrap().push(copy);
+            }
+            "omit" => {
+                value["commits"][0]["files"].as_array_mut().unwrap().pop();
+            }
+            _ => {
+                value["commits"][0]["files"][0]["source"] = "different-source.md".into();
+            }
+        }
+        let bytes = openwarrant_compiler::to_canonical_bytes(&value).unwrap();
+        index.digest = format!("sha256:{}", sha256_hex(&bytes));
+        index.base64 = Some(base64_encode(&bytes));
+        std::fs::write(
+            f.0.join("bad-index.json"),
+            changed.encode(Limits::default()).unwrap(),
+        )
+        .unwrap();
+        assert!(
+            !f.run(&["archive", "inspect", "bad-index.json"])
+                .status
+                .success(),
+            "accepted {mutation}"
+        );
+    }
     for (commit, expected) in revisions {
         let path = format!("__ow_archive__/history/{commit}/docs/shared/intent.md");
         let record = archive.records.iter().find(|r| r.path == path).unwrap();
