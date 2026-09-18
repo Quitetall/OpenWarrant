@@ -10,7 +10,7 @@ function roadmapStats(nodes, id, entries) {
  const reports=aliases.map(alias=>entries[alias]?.report);
  const completed=reports.filter(r=>r?.work_state==='completed').length;
  const unscoped=members.filter(n=>!n.warrants.length&&!nodes.some(c=>c.parent===n.id)).length;
- return {members,aliases,reports,completed,unscoped,percent:aliases.length&&!unscoped?Math.round(completed*100/aliases.length):null};
+ return {members,aliases,reports,completed,unscoped,percent:aliases.length&&!unscoped?Math.floor(completed*100/aliases.length):null};
 }
 function roadmapMatches(stats, query, filter) {
  const {members,reports,completed,unscoped}=stats;

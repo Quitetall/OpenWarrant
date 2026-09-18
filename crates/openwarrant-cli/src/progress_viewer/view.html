@@ -40,12 +40,12 @@ function renderRoadmap(){
  const children=id=>map.nodes.filter(n=>(n.parent||null)===id);
  function branch(n){
   const stats=roadmapStats(map.nodes,n.id,snapshot.reports);
-  const {aliases,completed:done,unscoped}=stats;
+  const {aliases,completed:done,unscoped,percent}=stats;
   if(!roadmapMatches(stats,q,filter))return null;
   const box=document.createElement('details');box.open=roadmapExpansion.get(n.id)??true;box.className='card';box.addEventListener('toggle',()=>roadmapExpansion.set(n.id,box.open));
   box.append(text('summary',n.title));box.append(text('p',n.outcome));
   for(const name of n.documents||[])box.append(sourceLink(name,name.split('/').pop()));
-  box.append(text('p',`${done} / ${aliases.length} distinct Warrants reported complete · ${unscoped} unscoped features`,'muted'));
+  box.append(text('p',`${done} / ${aliases.length} distinct Warrants reported complete${percent===null?'':' · '+percent+'%'} · ${unscoped} unscoped features`,'muted'));
   if(aliases.length&&!unscoped){const bar=document.createElement('progress');bar.max=aliases.length;bar.value=done;bar.setAttribute('aria-label',n.title+' reported implementation progress');box.append(bar);}else{box.append(text('p','Completion percentage unavailable: '+(unscoped?'unscoped features remain.':'no Warrants assigned.'),'muted'));}
   for(const alias of n.warrants){const r=snapshot.reports[alias]?.report;const button=text('button',alias+' · '+(r?label(r.work_state):'No valid report'));button.type='button';button.addEventListener('click',()=>{$('search').value=alias;$('filter').value='all';render();$('rows').scrollIntoView({block:'start'});});box.append(button);}
   const stages=(snapshot.stage_frontier?.rows||[]).filter(s=>n.warrants.includes(s.warrant));

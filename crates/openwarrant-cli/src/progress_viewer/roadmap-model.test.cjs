@@ -32,3 +32,13 @@ test('query and status filters retain only matching branches',()=>{
  assert.equal(model.roadmapMatches(model.roadmapStats(nodes,'b',entries),'','active'),false);
  assert.equal(model.roadmapMatches(model.roadmapStats(nodes,'b',entries),'W1','completed'),true);
 });
+
+test('percentage cannot reach 100 while a referenced Warrant lacks completion',()=>{
+ const warrants=Array.from({length:201},(_,i)=>'W'+i);
+ const groups=[{id:'release',title:'Release',outcome:'Ship',warrants}];
+ const reports=Object.fromEntries(warrants.slice(0,-1).map(id=>[id,{report:{work_state:'completed'}}]));
+ const partial=model.roadmapStats(groups,'release',reports);
+ assert.equal(partial.completed,200);assert.equal(partial.percent,99);
+ reports.W200={report:{work_state:'completed'}};
+ assert.equal(model.roadmapStats(groups,'release',reports).percent,100);
+});

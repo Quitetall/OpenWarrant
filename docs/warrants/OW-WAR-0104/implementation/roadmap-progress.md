@@ -159,3 +159,11 @@ including exact-source HTTP serving, malformed refresh retention, unsafe paths,
 FIFO/symlink refusal and no-write/bad-origin controls. Exact output retained in
 `roadmap-viewer-final.log.gz`. Hosted reference-web checks at 3d445b68 also passed
 (run 35373051658); the separate full gate was still running when recorded.
+
+Percentage completion follow-up: roadmap groups now show whole-number percentage
+next to the exact numerator/denominator. A 200-of-201 fixture exposed the previous
+rounding result of 100%; floor rounding now yields 99%, while all 201 complete
+yields 100%. Unscoped/empty groups still suppress percentages. Four model tests,
+eight viewer integration tests and embedded JavaScript syntax checking pass.
+Browser at isolated port 38527 rendered 65/106 as 61% and 10/11 as 90%.
+Retained red/green and viewer logs accompany this note.

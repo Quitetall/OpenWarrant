@@ -49,7 +49,8 @@ as reported where its source is a performer report. Never map a signed legacy
 state to current implementation completion without an explicit supported rule.
 
 For each group, count distinct referenced Warrants across its descendants;
-shared references count once. Show numerator and denominator beside percentages.
+shared references count once. Show numerator and denominator beside percentages. Round percentages down to
+whole numbers so unfinished work cannot display 100%.
 Unscoped features and unknown/invalid reports remain visible and cannot create
 100% completion. Empty groups show no measured completion rather than 100%.
 Feature grouping is not an effort estimate. No predicted release date without
