@@ -78,6 +78,12 @@ Authenticated routes:
   child. Dispatch still requires a fresh signed protection receipt and rechecks
   current responder authority. An unresolved result requires a new human decision;
   no prior FAIL is erased and no repair budget is reset.
+  Pending disputes also block unrelated verification claims and sibling-result
+  repairs for the same Warrant source and candidate. Preparing another claim does
+  not bypass a stop, scope-revision or human-review requirement. This check survives
+  service restart. Completed child checks advance the dispute chain; historical
+  parent findings remain retained. A different source revision is evaluated under
+  its own execution policy and current checks.
 - `POST /api/verification/<verification_id>/start` accepts exactly
   `payload_base64` and `signature_base64`. These encode the original signed
   `oh.war/harness-protection/v1` receipt and SSH signature. The receipt binds

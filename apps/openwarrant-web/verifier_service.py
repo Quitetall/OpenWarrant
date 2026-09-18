@@ -7,7 +7,7 @@ import threading
 import time
 
 from hotline import digest
-from verification import identity, request, request_digest, require
+from verification import identity, request, request_digest, require, VerificationError
 from verifier_jobs import Jobs
 from verifier_policy import admission
 from verifier_snapshot import Snapshot
@@ -149,6 +149,8 @@ class Verification:
                 parent = human_recheck['decision']['question']['verification_id']
                 current_decision = self.dispute(parent, self.answers)['decision'] if self.answers else None
                 require(current_decision == human_recheck['decision'], 'Human recheck decision no longer current')
+            self.check_disputes(initial['request'], 'verify_again',
+                                human_recheck['decision']['question']['verification_id'] if human_recheck else None)
             for job in self.listing()["jobs"]:
                 record = job["record"]
                 require(job["evidence_state"] != "unavailable", "Prior verifier evidence unavailable")
@@ -162,6 +164,27 @@ class Verification:
             return run(self.jobs, initial["request"], snapshot, self.executor.lock,
                        self.jobs.root / ("workspace-" + id), payload=payload, signature=signature,
                        schedule=lambda work: self.schedule(id, work), remaining_seconds=budget["remaining_seconds"])
+
+    def check_disputes(self, expected, action, decision_id):
+        """A new claim cannot evade an unresolved decision on the same exact work."""
+        jobs = self.listing()['jobs']
+        completed_parents = set()
+        for job in jobs:
+            if job['record']['sequence'] == 3:
+                source = job['request']
+                parent = source.get('recheck', {}).get('verification_id')
+                parent = parent or source.get('human_recheck', {}).get('decision', {}).get('question', {}).get('verification_id')
+                if parent:
+                    completed_parents.add(parent)
+        for job in jobs:
+            if not job['human_review_required'] or job['verification_id'] in completed_parents:
+                continue
+            if not all(job['request'][key] == expected[key]
+                       for key in ('warrant_id', 'source_sha256', 'candidate_revision')):
+                continue
+            decision = self.dispute(job['verification_id'], self.answers)['decision'] if self.answers else None
+            require(job['verification_id'] == decision_id and decision is not None and decision['action'] == action,
+                    'Unresolved dispute requires its current human-directed action')
 
     def repair_preview(self, id):
         with self.executor.lock:
@@ -177,6 +200,11 @@ class Verification:
                    and j['human_review_required']
                    for j in self.listing()['jobs']):
                 preview.update(state='escalate',reason='Unresolved independent recheck requires human decision')
+            if preview['state'] == 'ready':
+                try:
+                    self.check_disputes(job['request'], 'repair', id)
+                except VerificationError as error:
+                    preview.update(state='blocked', reason=str(error))
             return preview
 
     def dispute(self, id, answers):
@@ -225,6 +253,7 @@ class Verification:
             if proposal['state'] == 'already_dispatched':
                 return e.get(proposal['attempt_id'])
             require(proposal['state'] == 'ready', proposal['reason'])
+            self.check_disputes(job['request'], 'repair', id)
             current = Snapshot(e, binding['attempt_id'], self.config_path, self.issuer_path)()
             preview = admission(current['config'], current['attempt'], current['execution_policy'], current['source_sha256'])
             require(preview['state'] != 'blocked' and preview['basis_sha256'] == job['basis_sha256'],

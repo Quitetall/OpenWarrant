@@ -97,5 +97,9 @@ request. Each decision permits one child check; dispatch rechecks responder
 authority and requires fresh protection evidence. Revoked authority leaves the
 prepared claim unconsumed. Candidate, observation, action and responder-kind
 substitution refuse in the real-process contract fixtures. Broader
+dispatch checks prevent unrelated claims and sibling failed results from bypassing
+an unresolved dispute on the same source and candidate, including after service
+restart. Repair previews use the same check as dispatch. These checks do not
+establish global process containment or stop an agent outside the service. Broader
 decision orchestration remains work in progress; these tests do not establish
 deployment isolation or real human acceptance.

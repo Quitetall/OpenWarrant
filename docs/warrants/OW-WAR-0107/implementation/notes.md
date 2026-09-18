@@ -352,3 +352,25 @@ Evidence: `implementation/reverify-web-tests.log`. Synthetic credentials and
 processes establish protocol behavior, not human presence or deployment isolation.
 Automatic orchestration, browser repair/dispute controls, broader stop/scope-change
 handling and full release gates remain unfinished. OW-WAR-0107 remains open.
+
+## Refuse dispute bypass through sibling claims
+
+Inspection found that a generic prepared verification or sibling failed result
+could bypass an unresolved human dispute. Verification and repair dispatch now
+check unresolved leaf disputes for the same Warrant, source and candidate. Only
+the matching current human-directed action may proceed. Completed child checks
+advance the chain without deleting prior verdicts. A different source is evaluated
+under its own policy; this control does not stop processes outside the service.
+
+Real-process tests plant spare claims before the dispute, attempt sibling repairs,
+restart the service and confirm refusal with no claim consumption or new writer.
+Stop, revise-scope and verify-again each run in a separate fixture. Repair preview
+uses the same dispute check so it cannot advertise a blocked sibling as ready.
+
+The full web suite passed 175 tests in 53.605 seconds before the final preview
+alignment. A subsequent focused run covers the final preview and dispatch code;
+its exact result is retained in `implementation/dispute-preview-tests.log`.
+Full-suite evidence: `implementation/dispute-guard-tests.log`. Both runs use
+`OW_TEST_WAR=/mnt/4tb/tmp/ow-question-integrity/target/debug/war` and unittest.
+No independent assurance or full release gate is claimed. Browser controls,
+automatic orchestration and remaining OW-WAR-0107 scope remain unfinished.

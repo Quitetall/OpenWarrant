@@ -91,59 +91,80 @@ print(json.dumps({'schema':'oh.war/verification-result/v1','verification_id':r['
 
 
 class RepairExecutionTests(RepairExecutionFixture, unittest.TestCase):
-    def test_other_human_decisions_cannot_launch_repair(self):
+    def check_human_action(self, action):
         token = 'fixture-only-human-credential-0001'
         answers = Answers(self.executor, {'schema': 'oh.war/hotline-config/v1', 'responders': [{
             'id': 'fixture-human', 'kind': 'human', 'governing_warrants': [self.original['warrant_id']],
             'token_sha256': hashlib.sha256(token.encode()).hexdigest()}]})
         self.service.answers = answers
-        for action in ('stop', 'revise_scope', 'verify_again'):
-            with self.subTest(action=action):
-                failed = self.verify(self.original['attempt_id'])
-                prepared = self.service.rebut(failed['verification_id'], {
-                    'verification_id': str(uuid.uuid4()), 'argument': 'Recheck fixture requirement',
-                    'evidence': ['fixture contract'], 'finding_ids': ['F1']})
-                rechecked = self.verify(self.original['attempt_id'], prepared)
-                pending = self.service.dispute(rechecked['verification_id'], answers)
-                self.service.settle(rechecked['verification_id'], {
-                    'question_sha256': pending['question_sha256'], 'action': action,
-                    'reason': 'Human selected next action', 'evidence': ['fixture contract']}, token, answers)
-                preview = self.service.repair_preview(rechecked['verification_id'])
-                self.assertEqual(preview['state'], 'blocked')
-                self.assertIn(action, preview['reason'])
-                with self.assertRaises(VerificationError):
-                    self.service.repair(rechecked['verification_id'], {})
-                self.assertEqual(len(self.executor.records()), 1)
-                self.assertEqual(self.service.get(rechecked['verification_id'])['effective_verdict'], 'fail')
-                if action != 'verify_again':
-                    with self.assertRaises(VerificationError):
-                        self.service.reverify(rechecked['verification_id'], {'verification_id': str(uuid.uuid4())})
-                    continue
-                fields = {'verification_id': str(uuid.uuid4())}
-                prepared = self.service.reverify(rechecked['verification_id'], fields)
-                self.assertEqual(prepared['request']['schema'], 'oh.war/verification-request/v3')
-                self.assertEqual(prepared['request']['human_recheck']['prior_record'], rechecked['record'])
-                for target in ('candidate', 'decision', 'observation', 'respondent'):
-                    altered = copy.deepcopy(prepared['request'])
-                    context = altered['human_recheck']
-                    if target == 'candidate': altered['candidate_revision'] = 'a' * 40
-                    if target == 'decision': context['decision']['action'] = 'repair'
-                    if target == 'observation': context['prior_record']['observation']['verdict'] = 'pass'
-                    if target == 'respondent': context['decision']['response']['respondent_kind'] = 'ai'
-                    with self.subTest(target=target), self.assertRaises(VerificationError): request(altered)
-                self.assertEqual(self.service.reverify(rechecked['verification_id'], fields), prepared)
-                with self.assertRaises(VerificationError):
-                    self.service.reverify(rechecked['verification_id'], {'verification_id': str(uuid.uuid4())})
-                self.service.answers = None
-                with self.assertRaises(VerificationError):
-                    self.verify(self.original['attempt_id'], prepared)
-                self.assertEqual(self.service.get(prepared['verification_id'])['state'], 'prepared')
-                self.service.answers = answers
-                result = self.verify(self.original['attempt_id'], prepared)
-                self.assertEqual(result['effective_verdict'], 'fail')
-                self.assertTrue(result['human_review_required'])
-                self.assertEqual(self.service.repair_preview(result['verification_id'])['state'], 'escalate')
-                self.assertEqual(self.service.get(rechecked['verification_id'])['effective_verdict'], 'fail')
+        failed = self.verify(self.original['attempt_id'])
+        sibling = self.verify(self.original['attempt_id'])
+        spare = self.service.prepare({'attempt_id': self.original['attempt_id'], 'verification_id': str(uuid.uuid4())})
+        prepared = self.service.rebut(failed['verification_id'], {
+            'verification_id': str(uuid.uuid4()), 'argument': 'Recheck fixture requirement',
+            'evidence': ['fixture contract'], 'finding_ids': ['F1']})
+        rechecked = self.verify(self.original['attempt_id'], prepared)
+        pending = self.service.dispute(rechecked['verification_id'], answers)
+        self.service.settle(rechecked['verification_id'], {
+            'question_sha256': pending['question_sha256'], 'action': action,
+            'reason': 'Human selected next action', 'evidence': ['fixture contract']}, token, answers)
+        preview = self.service.repair_preview(rechecked['verification_id'])
+        self.assertEqual(preview['state'], 'blocked')
+        self.assertIn(action, preview['reason'])
+        with self.assertRaises(VerificationError):
+            self.service.repair(rechecked['verification_id'], {})
+        self.assertEqual(len(self.executor.records()), 1)
+        self.assertEqual(self.service.get(rechecked['verification_id'])['effective_verdict'], 'fail')
+        with self.assertRaises(VerificationError):
+            self.verify(self.original['attempt_id'], spare)
+        self.assertEqual(self.service.get(spare['verification_id'])['state'], 'prepared')
+        self.service = Verification(self.executor, self.service.config_path, self.service.issuer_path, answers)
+        with self.assertRaises(VerificationError):
+            self.verify(self.original['attempt_id'], spare)
+        with self.assertRaises(VerificationError):
+            self.service.repair(sibling['verification_id'], {})
+        self.assertEqual(self.service.repair_preview(sibling['verification_id'])['state'], 'blocked')
+        self.assertEqual(len(self.executor.records()), 1)
+        other_source = {**spare['request'], 'source_sha256': '0' * 64}
+        self.service.check_disputes(other_source, 'verify_again', None)
+        if action != 'verify_again':
+            with self.assertRaises(VerificationError):
+                self.service.reverify(rechecked['verification_id'], {'verification_id': str(uuid.uuid4())})
+            return
+        fields = {'verification_id': str(uuid.uuid4())}
+        prepared = self.service.reverify(rechecked['verification_id'], fields)
+        self.assertEqual(prepared['request']['schema'], 'oh.war/verification-request/v3')
+        self.assertEqual(prepared['request']['human_recheck']['prior_record'], rechecked['record'])
+        for target in ('candidate', 'decision', 'observation', 'respondent'):
+            altered = copy.deepcopy(prepared['request'])
+            context = altered['human_recheck']
+            if target == 'candidate': altered['candidate_revision'] = 'a' * 40
+            if target == 'decision': context['decision']['action'] = 'repair'
+            if target == 'observation': context['prior_record']['observation']['verdict'] = 'pass'
+            if target == 'respondent': context['decision']['response']['respondent_kind'] = 'ai'
+            with self.subTest(target=target), self.assertRaises(VerificationError): request(altered)
+        self.assertEqual(self.service.reverify(rechecked['verification_id'], fields), prepared)
+        with self.assertRaises(VerificationError):
+            self.service.reverify(rechecked['verification_id'], {'verification_id': str(uuid.uuid4())})
+        self.service.answers = None
+        with self.assertRaises(VerificationError):
+            self.verify(self.original['attempt_id'], prepared)
+        self.assertEqual(self.service.get(prepared['verification_id'])['state'], 'prepared')
+        self.service.answers = answers
+        result = self.verify(self.original['attempt_id'], prepared)
+        self.assertEqual(result['effective_verdict'], 'fail')
+        self.assertTrue(result['human_review_required'])
+        self.assertEqual(self.service.repair_preview(result['verification_id'])['state'], 'escalate')
+        self.assertEqual(self.service.get(rechecked['verification_id'])['effective_verdict'], 'fail')
+
+    def test_stop_blocks_dispatch(self):
+        self.check_human_action('stop')
+
+    def test_scope_revision_blocks_dispatch(self):
+        self.check_human_action('revise_scope')
+
+    def test_verify_again_requires_current_decision(self):
+        self.check_human_action('verify_again')
 
     def test_rebuttal_preserves_fail_and_unresolved_recheck_waits_for_human(self):
         failed=self.verify(self.original['attempt_id'])
