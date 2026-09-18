@@ -3,17 +3,19 @@
   "warrant": "OW-WAR-0086",
   "work_state": "blocked",
   "reported_by": "agent://codex",
-  "revision": "4b626f23b3076ff7e764f08eeb15e8bdfa6af5cd",
-  "summary": "Merged LAMU provider and current SDK record/legacy exchange pass on Linux. All ten LAMU PR checks passed. Full Phase 2 exit awaits Phase 1 macOS evidence and final review; unverified.",
+  "revision": "b97db965681ea22372573881fc06478753608c31",
+  "summary": "Retained real LAMU/SDK exchange observations pass. Matching native Phase 1 Linux/macOS evidence is now available; final phase review and qualification remain open. Unverified.",
   "notes": "docs/warrants/OW-WAR-0086/implementation/notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0086/implementation/adapter-observation.json",
     "docs/warrants/OW-WAR-0086/implementation/windows-isolation.json",
     "docs/warrants/OW-WAR-0086/implementation/merged-exchange-observation.json",
-    "docs/warrants/OW-WAR-0086/implementation/lamu-merged-pr.json"
+    "docs/warrants/OW-WAR-0086/implementation/lamu-merged-pr.json",
+    "docs/warrants/OW-WAR-0085/implementation/native-20260918/comparison.json",
+    "docs/warrants/OW-WAR-0089/implementation/native-20260918/comparison.json"
   ],
   "next_steps": [
-    "Obtain native macOS Phase 1 receipt and complete full-phase review.",
-    "Continue independent interactive authoring and packaging rehearsal."
+    "Complete final Phase 1 and Phase 2 review against exact retained subjects.",
+    "Retain actual provider/version limits; do not substitute native packaging for integration qualification."
   ]
 }
