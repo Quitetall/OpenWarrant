@@ -8,6 +8,7 @@ mod context;
 mod contracts;
 mod history;
 mod identity;
+mod runtime_basis;
 
 use camino::Utf8PathBuf;
 use clap::Subcommand;
@@ -17,6 +18,8 @@ use openwarrant_compiler::preservation::{Archive, Error, Limits};
 pub enum Command {
     /// Inspect retained source reconstruction without claiming complete preservation.
     Inspect { input: Utf8PathBuf },
+    /// Reconstruct exact contract identities for an external runtime evidence reader.
+    RuntimeBasis { input: Utf8PathBuf },
     /// Capture current Warrant sources and local records; unresolved categories stay explicit.
     Export {
         alias: String,
@@ -60,6 +63,7 @@ fn read(path: &Path, limit: usize) -> Result<Vec<u8>, Error> {
 pub fn run(command: Command) -> Result<(String, serde_json::Value), Error> {
     let limits = Limits::default();
     match command {
+        Command::RuntimeBasis { input } => runtime_basis::run(input.as_std_path(), limits),
         Command::Inspect { input } => {
             let bytes = read(input.as_std_path(), limits.archive_bytes)?;
             let archive = Archive::decode(&bytes, limits)?;

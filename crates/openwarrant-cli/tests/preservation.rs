@@ -1304,3 +1304,67 @@ fn warrant_subject_cannot_downgrade_to_unchecked_transport() {
     );
     assert!(!f.0.join("unchecked.json").exists());
 }
+
+#[test]
+fn runtime_query_basis_comes_from_reconstructed_sources_not_caller_identity() {
+    let f = Fixture::new();
+    success(f.run(&[
+        "init",
+        "--namespace",
+        "BASIS",
+        "--program",
+        "Runtime basis fixture",
+    ]));
+    success(f.run(&["new", "Retain a runtime query basis"]));
+    success(f.run(&["archive", "export", "BASIS-WAR-0001", "snapshot.json"]));
+    let bytes = std::fs::read(f.0.join("snapshot.json")).unwrap();
+    let mut archive = Archive::decode(&bytes, Limits::default()).unwrap();
+    std::fs::rename(f.0.join("docs"), f.0.join("source-hidden")).unwrap();
+    let out = f.run(&["archive", "runtime-basis", "snapshot.json", "--json"]);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let report: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    let basis = &report["result"];
+    assert_eq!(basis["schema"], "oh.war/runtime-archive-basis/v1-draft.1");
+    assert_eq!(basis["subject"], archive.subject);
+    assert_eq!(
+        basis["archive_digest"],
+        archive.digest(Limits::default()).unwrap()
+    );
+    let ir_record = archive
+        .records
+        .iter()
+        .find(|r| r.path == "__ow_archive__/WAR.json")
+        .unwrap();
+    let ir: openwarrant_compiler::WarIr = serde_json::from_slice(
+        &openwarrant_core::attestation::base64_decode(ir_record.base64.as_ref().unwrap()).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(
+        basis["current_contract"]["digest"],
+        ir.contract_digest().unwrap()
+    );
+    assert_eq!(basis["warrant_id"], ir.identity.uuid);
+    assert_eq!(basis["current_contract"]["revision"], 1);
+    assert_eq!(
+        basis["current_contract"]["digest"].as_str().unwrap().len(),
+        64
+    );
+    assert_eq!(basis["contract_history_coverage"]["state"], "unavailable");
+    assert_eq!(basis["authority_activated"], false);
+    assert_eq!(basis["qualified"], false);
+    assert_eq!(std::fs::read(f.0.join("snapshot.json")).unwrap(), bytes);
+    archive.subject = "war://different-warrant".into();
+    std::fs::write(
+        f.0.join("forged.json"),
+        archive.encode(Limits::default()).unwrap(),
+    )
+    .unwrap();
+    refusal(
+        f.run(&["archive", "runtime-basis", "forged.json"]),
+        "archive subject differs",
+    );
+}
