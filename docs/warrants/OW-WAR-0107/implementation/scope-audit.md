@@ -23,3 +23,24 @@ Read the authored work order and assurance atoms for the actual scope.
   model reviews remains in effect; independent release/human gates remain intact.
 - This Warrant is still open. Do not infer completion from this audit or from
   implementing the API endpoints.
+
+## Report supplement and exact-head CI observation
+
+At `843901d6fa43ad0528017c4e6fe784886d4cb998`, work-order item 6 also
+includes `verifier_reporting.py`: deterministic v2 report supplements retain
+verification observations, repair records and dispute decisions. The original
+execution snapshot digest remains distinct from the verification snapshot digest.
+The 192-test web suite covers real failed-candidate repair followed by PASS,
+escaped findings, repeated reads, minimal output, missing-receipt UNKNOWN while
+preserving historical PASS, no-job prototypes and the authenticated HTTP route.
+This extends the earlier 189-test audit; it does not imply independent assurance.
+
+Hosted web workflow run `35341196200` passed at this head. The actual Bonsai
+artifact from run `35341196754` is retained as `pr118-bonsai-843901d.json`.
+Its head, Git tree, scope-file digest and policy digest were checked against this
+checkout. Verdict is PASS with no scope or architecture findings. This replaces
+neither human acceptance nor the Rust gate. The first PR run skipped Bonsai due
+to missing PR-body metadata and is not counted as Bonsai evidence.
+
+Rust gate job `105587307610` in run `35341196754` was still in progress at this
+observation. No final-head gate success or implementation closeout is claimed.

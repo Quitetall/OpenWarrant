@@ -3,18 +3,19 @@
   "warrant": "OW-WAR-0107",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "revision": "9ac52333a421677743fbdbcbf6b2815c4b081942",
-  "summary": "Verification, repair, dispute, loop and report implementation candidate complete; final-head CI and closeout pending. Unverified.",
+  "revision": "843901d6fa43ad0528017c4e6fe784886d4cb998",
+  "summary": "Verification, repair, dispute, loop and report implementation candidate complete. Exact-head hosted web checks and retained Bonsai evidence pass; hosted Rust gate remains running. Unverified.",
   "notes": "docs/warrants/OW-WAR-0107/implementation/scope-audit.md",
   "evidence": [
     "docs/warrants/OW-WAR-0107/implementation/report-web-tests.log",
     "docs/warrants/OW-WAR-0107/implementation/full-gate-4a2682f.log",
     "docs/warrants/OW-WAR-0107/implementation/browser-loop-status.json",
-    "docs/warrants/OW-WAR-0107/implementation/scope-audit.md"
+    "docs/warrants/OW-WAR-0107/implementation/scope-audit.md",
+    "docs/warrants/OW-WAR-0107/implementation/pr118-bonsai-843901d.json"
   ],
   "next_steps": [
-    "Obtain actual exact-head Bonsai evidence after correcting PR Warrant metadata.",
-    "Finish hosted gate and web checks; audit scope before unverified implementation closeout.",
+    "Observe hosted Rust gate run 35341196754, job 105587307610; do not infer success from local gate or restart a live job.",
+    "After required checks pass, finish implementation closeout and integrate through PR #118.",
     "Keep independent verification and secure human acceptance separate."
   ]
 }
