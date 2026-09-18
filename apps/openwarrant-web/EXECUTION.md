@@ -154,3 +154,18 @@ Reads do not create events; retrying report delivery cannot duplicate completion
 A later service read can show a newer inventory snapshot; downloaded HTML stays
 at the recorded snapshot. Reports are performer evidence, not authority or proof
 that a malicious process was fenced. Hotline and recovery remain separate work.
+
+## Completion eligibility after policy changes
+
+A retained completed attempt satisfies a current dependency only when its exact
+source digest and saved start policy match the configured policy and its required
+checks establish completion. The shared predicate also drives progress counts and
+the same-subject duplicate-start refusal. Changing required checks, base commit,
+dependencies or verified-start requirements makes the old result ineligible for
+current work; it does not rewrite the historical attempt. Reports explicitly label
+historical results that no longer satisfy current policy. Policy comparison is
+conservative: even reordering checks requires a fresh result.
+
+This is deterministic eligibility checking, not authentication of the policy file
+or evidence. The configured harness must still protect controller storage and
+required checks. Secure human assurance remains separate.
