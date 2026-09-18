@@ -1,21 +1,23 @@
 {
   "schema": "oh.war/viewer-work-report/v1",
   "warrant": "OW-WAR-0107",
-  "work_state": "in-progress",
+  "work_state": "completed",
   "reported_by": "agent://codex",
-  "revision": "843901d6fa43ad0528017c4e6fe784886d4cb998",
-  "summary": "Verification, repair, dispute, loop and report implementation candidate complete, unverified. Hosted web/Bonsai checks passed; hosted Rust gate found stale generated views after the machine-scope update. Views regenerated; new CI required.",
+  "revision": "dc22d6c2fdc1c1aacfbd5e903157c7ee2f8441ca",
+  "summary": "Bounded verification, repair, rebuttal/human-decision, loop scheduling and report workflow complete, unverified. PR118 merged; exact-head hosted gate 14/14 and 308 controls, web checks and retained Bonsai evidence pass. Synthetic harness proof is not deployment qualification.",
   "notes": "docs/warrants/OW-WAR-0107/implementation/scope-audit.md",
   "evidence": [
     "docs/warrants/OW-WAR-0107/implementation/report-web-tests.log",
     "docs/warrants/OW-WAR-0107/implementation/full-gate-4a2682f.log",
     "docs/warrants/OW-WAR-0107/implementation/browser-loop-status.json",
     "docs/warrants/OW-WAR-0107/implementation/scope-audit.md",
-    "docs/warrants/OW-WAR-0107/implementation/pr118-bonsai-843901d.json"
+    "docs/warrants/OW-WAR-0107/implementation/pr118-bonsai-843901d.json",
+    "docs/warrants/OW-WAR-0107/implementation/pr118-final-checks.json",
+    "docs/warrants/OW-WAR-0107/implementation/pr118-bonsai-dc22d6c.json",
+    "docs/warrants/OW-WAR-0107/implementation/hosted-gate-dc22d6c.log.gz"
   ],
   "next_steps": [
-    "Rerun hosted checks on regenerated views; prior gate run 35341779967 failed the committed-projection equality test.",
-    "After required checks pass, finish implementation closeout and integrate through PR #118.",
-    "Keep independent verification and secure human acceptance separate."
+    "Continue remaining integration and release scope, including OW108, real-user study and protected deployment.",
+    "Independent verification, secure human acceptance and legacy resolution remain separate acts."
   ]
 }
