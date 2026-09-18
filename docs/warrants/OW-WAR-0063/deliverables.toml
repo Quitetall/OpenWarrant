@@ -68,12 +68,12 @@ provenance_required = true
 obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
-producer = "claude"
-producing_attempt = "OW-WAR-0063/attempt-1"
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0111/unverified-preservation-repair"
 contract_digest = "unrecorded"
 tool_or_runtime_identity = "rustc 1.97.1"
 creation_method = "authored"
-content_digest = "sha256:95f4a8c570247483884b40dee7b890640491fd92abc3eb50bf8d9695f773d437"
+content_digest = "sha256:cb1a0cbcda76d86c93fd884043a078b8e8999b1718d53b8a65cab3c64fbb527c"
 media_type = "application/octet-stream"
 classification = "internal"
 retention = "repository-lifetime"

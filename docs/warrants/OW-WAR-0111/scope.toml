@@ -1,0 +1,68 @@
+schema = "oh.war/bonsai-scope/v1"
+repository = "github:Quitetall/OpenWarrant"
+base_ref = "main"
+policy_path = "bonsai.toml"
+policy_digest = "sha256:cd98584ef76d326881ea17eaa65904657063733c7ecf907f07c18ecfa5dfcd28"
+bonsai_source = "github:Quitetall/bonsai"
+bonsai_revision = "4c8cc1043cbc4d30d2c41cbb25ba1afe25c6ad7c"
+
+
+[[scope]]
+path_glob = "crates/openwarrant-compiler/src/preservation.rs"
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[[scope]]
+path_glob = "crates/openwarrant-compiler/src/lib.rs"
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[[scope]]
+path_glob = "crates/openwarrant-cli/src/preservation.rs"
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[[scope]]
+path_glob = "crates/openwarrant-cli/src/export.rs"
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[[scope]]
+path_glob = "crates/openwarrant-cli/src/main.rs"
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[[scope]]
+path_glob = "crates/openwarrant-cli/tests/preservation.rs"
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[[scope]]
+path_glob = "conformance/plants.d/00-corpus.sh"
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[[scope]]
+path_glob = "conformance/fixtures/preservation/**"
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[[scope]]
+path_glob = "docs/warrants/OW-WAR-0030/implementation/**"
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[[scope]]
+path_glob = "docs/warrants/OW-WAR-0111/**"
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[[scope]]
+path_glob = "docs/warrants/generated/**"
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[[scope]]
+path_glob = "crates/openwarrant-cli/src/preservation/**"
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[[scope]]
+path_glob = "docs/warrants/OW-WAR-0030/deliverables.toml"
+obligation_refs = ["OBL-003", "OBL-005"]
+
+[[scope]]
+path_glob = "docs/warrants/OW-WAR-0063/deliverables.toml"
+obligation_refs = ["OBL-003", "OBL-005"]
+
+[[scope]]
+path_glob = "docs/warrants/OW-WAR-0075/journal.jsonl"
+obligation_refs = ["OBL-002", "OBL-005"]

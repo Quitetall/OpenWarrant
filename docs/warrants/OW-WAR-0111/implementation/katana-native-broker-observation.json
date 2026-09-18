@@ -1,0 +1,16 @@
+{
+  "observed_on": "2026-09-18",
+  "binary_version": "katana 0.4.0",
+  "binary_sha256": "cd5deda9ad37fddadc1b938b15f3d0f5b987523284e75e4c2d3e3818e0f85a71",
+  "log_sha256": "bea7932af86d3be8f09cea6c981d276707b3f50b8254f6a79bf3362eaccf51c1",
+  "event_count": 9,
+  "model_requests": 0,
+  "read_observed": true,
+  "mutation_refused": "E_DENIED",
+  "forbidden_file_absent": true,
+  "replay_exit": 2,
+  "replay_reason": "no main model.request",
+  "qualifies_warrant": false,
+  "dispatch_binding": null,
+  "prompt_ir_digest": null
+}

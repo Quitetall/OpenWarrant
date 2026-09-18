@@ -1,0 +1,12 @@
+{
+  "dispatch_records": 2,
+  "receipt_records": 1,
+  "first_subject": [
+    "dispatch:a16851e04a58fce711176e11690782e87661e6a0e7daead2a59d633a75a3abcd"
+  ],
+  "second_subject": [
+    "dispatch:6ac27cf9228db9d4e26c7bfaf633d6a68a583210225aa1661339802350432050"
+  ],
+  "first_run_id": "GR-ops.echo@1.0.0",
+  "second_run_id": "GR-ops.echo@1.0.0"
+}

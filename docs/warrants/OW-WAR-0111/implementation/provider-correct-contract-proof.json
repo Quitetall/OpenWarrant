@@ -1,0 +1,23 @@
+{
+  "warrant_id": "01a0b53a-3315-7ed3-a369-35af9154f89d",
+  "provider_revision": "working tree on 81983927 with producer contract correction",
+  "archive_digest": "sha256:728c3eac235938e826ff35bb270b5fd84191a364f6f73a2307a3bbcedfb2e3b8",
+  "source_contract": {
+    "revision": 1,
+    "digest": "c508a1eac053965c53730e993847a9cfce8a84922a6811a9586a254834117dd0"
+  },
+  "provider_contract_revisions": [
+    2,
+    1
+  ],
+  "all_contract_digests_match": true,
+  "provider_manifest_digest": "660b281d36bd8456cf7ef408a9826795f4d7cd4f1c5a9e9f4c1be5ecbdcd2276",
+  "runtime_output_sha256": "573501fb0131075942ea14bf1a2b0b3ad75090e9000af0779e4b365cc0834dbf",
+  "offline_reader_exit": 0,
+  "untrusted_exit": 1,
+  "untrusted_stdout_empty": true,
+  "qualified": false,
+  "limitation": "Provider revision 2 reuses source IR; no distinct local revision or real execution asserted.",
+  "tested_provider_commit": "cb7442541dbf8103ced99fca540289d9599fbe42",
+  "producer_commit": "85ab27cb"
+}

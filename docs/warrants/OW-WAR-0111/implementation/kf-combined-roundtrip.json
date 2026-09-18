@@ -1,0 +1,23 @@
+{
+  "provider_revision": "05eec4b248574cf9fb664f7493ed23d9e68e97b2",
+  "producer_fixture_revision": "f51b016434c7baeb822dd3557fe6f9fd81fdfca7",
+  "fixture": "conformance/fixtures/preservation/kf-source-archive.json",
+  "archive_sha256": "3b03c08088402e76708c2eb9a730a3cc239f3dddf1d6e4c0a6b9d2947f958e2a",
+  "result": "PASS",
+  "observations": [
+    "original disposable source repository removed before provider test",
+    "KF registers source UUID and exact producer IR/digests",
+    "source PostgreSQL stopped before restoration",
+    "source MinIO stopped and removed before restored service",
+    "restored artifact bytes equal producer archive",
+    "restored contract revisions equal producer IR and digests",
+    "producer archive inspect from empty directory reconstructs IR from restored atoms",
+    "authority_activated is false"
+  ],
+  "remaining": [
+    "complete required category assembly",
+    "all Warrant record families and historical cases",
+    "accepted stable archive format",
+    "independent qualification"
+  ]
+}

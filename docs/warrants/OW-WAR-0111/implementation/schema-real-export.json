@@ -1,0 +1,24 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "archive",
+  "diagnostics": [],
+  "notes": [],
+  "counts": {
+    "pass": 0,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0,
+  "result": {
+    "schema": "oh.war/preservation-result/v1-draft.1",
+    "operation": "export",
+    "archive_digest": "sha256:35c760c99bc64393d107992df7f004c3c0dc413b0318b0d0504fd06ad9765657",
+    "output": "/tmp/ow111-real-schema-capture.json",
+    "complete": false,
+    "authority_activated": false
+  }
+}

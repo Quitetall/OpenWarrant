@@ -329,10 +329,23 @@ plant_cmd "a §68 export missing required contents" "68.2 requires" "audit recei
 plant_cmd "a round trip that never reconnected the bytes" "not reconnected" "missing the same data" 1 \
     "true" export OW-WAR-0044 --round-trip
 
-# The positive control. Without it, a build that refused EVERY round trip would
-# satisfy the plant above and look like a working §68.3 check.
-plant_cmd "a round trip with the bytes reconnected" "round trip verified" "sha256:" 0 \
+# A caller flag never established an import. Keep that false-success regression
+# refusing; the source-detached positive transport control below observes bytes.
+plant_cmd "a reconnect claim without an import" "legacy round-trip cannot verify" "not an import" 1 \
     "true" export OW-WAR-0044 --round-trip --reconnect
+
+# Experimental transport positive control, not full KF/SAS preservation qualification.
+ARCHIVE_TMP=$(mktemp -d)
+if "$WAR" archive import "conformance/fixtures/preservation/roundtrip.json" "$ARCHIVE_TMP/imported" >/dev/null 2>&1 \
+    && "$WAR" archive reexport "$ARCHIVE_TMP/imported" "$ARCHIVE_TMP/reexport.json" >/dev/null 2>&1 \
+    && cmp -s "conformance/fixtures/preservation/roundtrip.json" "$ARCHIVE_TMP/reexport.json"; then
+    printf 'ok    %-34s canonical bytes retained through real import\n' "source-detached archive round trip"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s real import/re-export failed\n' "source-detached archive round trip"
+    FAILED=$((FAILED + 1))
+fi
+rm -rf "$ARCHIVE_TMP"
 
 # §67 — the Knowledge Fabric seam WRITES, and must be hard to reach by accident.
 #
