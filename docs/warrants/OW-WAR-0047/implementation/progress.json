@@ -1,0 +1,28 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0047",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "1c852b064ce20de9befb4724052bb9292c2f04a4",
+  "summary": "Provider repair executes original BLUT graph successfully: two stages, real artifact receipts and external lineage reference; exact port-refusal control passes. Provider tests 95/95 plus fmt/clippy pass. Provider PR integration and hosted checks remain open due GitHub billing restriction. Unverified.",
+  "notes": "docs/warrants/OW-WAR-0047/implementation/runtime-notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0047/implementation/runtime-20260918/identity.json",
+    "docs/warrants/OW-WAR-0047/implementation/runtime-20260918/lowering.json",
+    "docs/warrants/OW-WAR-0047/implementation/runtime-20260918/run.json",
+    "docs/warrants/OW-WAR-0047/implementation/runtime-20260918/jobs.json",
+    "docs/warrants/OW-WAR-0047/implementation/runtime-20260918/references.json",
+    "docs/warrants/OW-WAR-0047/implementation/pinned-runtime-20260918/identity.json",
+    "docs/warrants/OW-WAR-0047/implementation/repaired-runtime-20260918/identity.json",
+    "docs/warrants/OW-WAR-0047/implementation/repaired-runtime-20260918/run.json",
+    "docs/warrants/OW-WAR-0047/implementation/repaired-runtime-20260918/artifacts.json",
+    "docs/warrants/OW-WAR-0047/implementation/repaired-runtime-20260918/references.json",
+    "docs/warrants/OW-WAR-0047/implementation/repaired-runtime-20260918/port-probe.json",
+    "docs/warrants/OW-WAR-0047/implementation/repaired-runtime-20260918/provider-tests.log"
+  ],
+  "next_steps": [
+    "Clear provider GitHub Actions billing/spending restriction and run required hosted checks for blut-cookbooks PR #1.",
+    "Integrate shared provider repair and retain exact source/binary/registry provenance; do not substitute a published-release claim.",
+    "Obtain independent verification and human acceptance for legacy resolution; no dispositions are self-assigned."
+  ]
+}

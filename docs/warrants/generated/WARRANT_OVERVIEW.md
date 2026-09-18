@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-103 Warrant(s) in this repository.
+104 Warrant(s) in this repository.
 
 ## Summary
 
@@ -114,6 +114,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0105](docs/warrants/OW-WAR-0105/manifest.toml) | Draft human-first Warrants through configured agent harnesses | `draft` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0106](docs/warrants/OW-WAR-0106/manifest.toml) | Route workflow questions and resume bounded work after answers | `draft` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0107](docs/warrants/OW-WAR-0107/manifest.toml) | Independently verify workflow results and repair within limits | `draft` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0108](docs/warrants/OW-WAR-0108/manifest.toml) | Integrate shared BLUT materialization repair and retained OW47 runtime evidence | `draft` | `current` | `valid` | `basic` | 2M / 2S |
 
 ## Claimed SAS requirement coverage
 

@@ -1,0 +1,14 @@
+{
+  "exit_code": 1,
+  "timeout": false,
+  "argv": [
+    "/mnt/4tb/LamQuant/training/cookbooks/lamquant/target/debug/lqt",
+    "plan",
+    "run",
+    "/tmp/ow47-plan-20260918.json",
+    "--no-cache"
+  ],
+  "elapsed_seconds": 0.11219053401146084,
+  "storage_root": "/mnt/4tb/tmp/ow47-blut-runtime-20260918",
+  "qualified": false
+}

@@ -1,0 +1,25 @@
+{
+  "name": "OW-WAR-0047",
+  "nodes": [
+    {
+      "stage": "materialize_dataset_path",
+      "args": {
+        "path": "conformance/fixtures/ow-war-0047-corpus.jsonl"
+      }
+    },
+    {
+      "stage": "filter_dataset",
+      "args": {
+        "min_turns": 2,
+        "drop_errors": true
+      }
+    }
+  ],
+  "edges": [
+    [
+      0,
+      1
+    ]
+  ],
+  "version": 1
+}

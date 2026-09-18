@@ -1,0 +1,9 @@
+{
+  "job_id": "20260918-120309-976285603",
+  "lineage_query_exit_code": 0,
+  "lineage_ref": "/mnt/4tb/tmp/ow47-blut-runtime-20260918/lineage-show.stdout.txt",
+  "lineage_response_sha256": "044578ab4ce411eec82d1fed8e6e3d4f05df05c4ff4290b16aa7dbf80179f131",
+  "job_storage_ref": "/mnt/4tb/tmp/ow47-blut-runtime-20260918/jobs/20260918-120309-976285603",
+  "successful_artifact_receipts": false,
+  "qualified": false
+}
