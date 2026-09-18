@@ -1,0 +1,7 @@
+test_auth_wait_automatic_dispatch_and_restart (test_queue_http.QueueHTTPTests.test_auth_wait_automatic_dispatch_and_restart) ... ok
+test_cancelled_work_never_launches_after_restart (test_queue_http.QueueHTTPTests.test_cancelled_work_never_launches_after_restart) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 6.860s
+
+OK

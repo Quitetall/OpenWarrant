@@ -4,14 +4,16 @@
   "work_state": "in-progress",
   "reported_by": "agent://codex",
   "revision": "b908185a22c017ccdcd413511f83a0500c785ef4",
-  "summary": "Durable one-shot agent queue, bounded availability probe, authenticated API and browser controls implemented. Post-merge 207 tests and synthetic browser flow pass; final gate and remaining failure-case audit pending. Unverified.",
+  "summary": "Durable agent queue implemented with real HTTP/Git/process and browser evidence. Standalone Rust 1.97.1 gate passed 14 steps and 308 plants at b908185. Final hosted checks and merge integration remain pending; unverified.",
   "notes": "docs/warrants/OW-WAR-0109/implementation/notes.md",
   "evidence": [
-    "docs/warrants/OW-WAR-0109/implementation/browser-observation.md"
+    "docs/warrants/OW-WAR-0109/implementation/browser-observation.md",
+    "docs/warrants/OW-WAR-0109/implementation/scope-audit.md",
+    "docs/warrants/OW-WAR-0109/implementation/gate-b908185.log.gz",
+    "docs/warrants/OW-WAR-0109/implementation/queue-9-tests.log"
   ],
   "next_steps": [
-    "Observe unchanged-control focus after polling fix.",
-    "Finish full gate and exact-head hosted checks.",
-    "Audit all queue obligations, including stale source, explicit start gates and uncertain dispatch."
+    "Finish exact-head hosted checks and merge integration.",
+    "Independent verification and human assurance remain separate."
   ]
 }

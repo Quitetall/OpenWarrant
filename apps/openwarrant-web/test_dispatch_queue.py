@@ -177,3 +177,35 @@ class QueueExecutionTests(unittest.TestCase):
                         self.assertEqual(row['durable_state'], 'queued')
                     finally: os.close(store.lock_fd)
                 finally: fixture.tearDown()
+
+    def test_queued_stages_wait_for_checked_predecessor_in_one_worktree(self):
+        import os
+        import time
+        import test_execution
+        from execution import Executor
+        from server import Store, SDK
+        fixture = test_execution.ExecutionTests(); fixture.setUp()
+        self.addCleanup(fixture.tearDown)
+        subject = fixture.staged(); fixture.stop()
+        store = Store(fixture.root / 'state', SDK(Path(test_execution.WAR), fixture.repo))
+        self.addCleanup(lambda: os.close(store.lock_fd))
+        executor = Executor(store, fixture.config_path, read_file, publish, decode)
+        probe = type('Probe', (), {'observe':lambda *args:{'state':'available','reason':'synthetic'}})()
+        queue = DispatchQueue(executor, probe)
+        ui = queue.enqueue({**subject, 'stage':'ui'})
+        queue.poll()
+        self.assertEqual(queue.listing()['requests'][0]['state'], 'blocked')
+        self.assertEqual(executor.records(), {})
+        api = queue.enqueue({**subject, 'stage':'api'})
+        deadline = time.monotonic()+8
+        while time.monotonic()<deadline:
+            queue.poll()
+            attempts = list(executor.records().values())
+            if len(attempts)==2 and all(executor.view(r)['execution_state']=='stopped' for r in attempts): break
+            time.sleep(.02)
+        self.assertEqual(len(attempts),2)
+        ordered = sorted(attempts,key=lambda r:r['created_at_unix'])
+        self.assertEqual([r['stage'] for r in ordered],['api','ui'])
+        self.assertEqual([r['work_state'] for r in ordered],['in-progress','completed'])
+        self.assertEqual(ordered[0]['worktree'],ordered[1]['worktree'])
+        self.assertEqual([r['queue_dispatch']['queue_id'] for r in ordered],[api['queue_id'],ui['queue_id']])
