@@ -86,17 +86,24 @@ pub(super) fn capture(
     limits: Limits,
 ) -> Result<(), Error> {
     let root = repo.root.as_std_path();
-    let history_head = files
+    let history_heads = files
         .get("__ow_archive__/history.json")
         .map(|bytes| {
             let value: serde_json::Value =
                 serde_json::from_slice(bytes).map_err(|e| Error(e.to_string()))?;
-            value["head"]
+            let head = value["head"]
                 .as_str()
-                .map(str::to_owned)
-                .ok_or_else(|| Error("missing captured history head".into()))
+                .ok_or_else(|| Error("missing captured history head".into()))?;
+            let mut roots = vec![head.to_owned()];
+            if let Some(extra) = value.get("additional_heads") {
+                let extra: Vec<String> =
+                    serde_json::from_value(extra.clone()).map_err(|e| Error(e.to_string()))?;
+                roots.extend(extra);
+            }
+            Ok::<_, Error>(roots)
         })
-        .transpose()?;
+        .transpose()?
+        .unwrap_or_default();
     let current = format!("{relative}/deliverables.toml");
     let declarations: Vec<_> = files
         .iter()
@@ -162,24 +169,28 @@ pub(super) fn capture(
                         .map_err(Error)?,
                     ),
                 };
-                let bytes =
-                    match local.filter(|bytes| openwarrant_compiler::sha256_hex(bytes) == hex) {
-                        Some(bytes) => Some(bytes),
-                        None => match &history_head {
-                            Some(head) => {
+                let bytes = match local
+                    .filter(|bytes| openwarrant_compiler::sha256_hex(bytes) == hex)
+                {
+                    Some(bytes) => Some(bytes),
+                    None => {
+                        let mut bytes = None;
+                        for head in &history_heads {
+                            if let Some(recovered) =
                                 super::history::artifact(repo, head, &claim.target, hex, available)?
-                                    .map(|recovered| {
-                                        claim.git_source = Some(GitSource {
-                                            head: head.clone(),
-                                            commit: recovered.commit,
-                                            blob: recovered.blob,
-                                        });
-                                        recovered.bytes
-                                    })
+                            {
+                                claim.git_source = Some(GitSource {
+                                    head: head.clone(),
+                                    commit: recovered.commit,
+                                    blob: recovered.blob,
+                                });
+                                bytes = Some(recovered.bytes);
+                                break;
                             }
-                            None => None,
-                        },
-                    };
+                        }
+                        bytes
+                    }
+                };
                 let Some(bytes) = bytes else {
                     claim.unavailable = Some("Local file differs or is missing; declared version not found within captured history and byte limits".into());
                     claims.push(claim);
@@ -255,7 +266,10 @@ pub(super) fn verify(files: &BTreeMap<String, Vec<u8>>, relative: &str) -> Resul
                 || !oid(&origin.head)
                 || !oid(&origin.commit)
                 || !oid(&origin.blob)
-                || history["head"] != origin.head
+                || (history["head"] != origin.head
+                    && !history["additional_heads"]
+                        .as_array()
+                        .is_some_and(|roots| roots.iter().any(|root| root == &origin.head)))
             {
                 return Err(Error(
                     "artifact Git origin differs from captured history".into(),

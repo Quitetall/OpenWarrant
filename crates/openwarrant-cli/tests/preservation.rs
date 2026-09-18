@@ -1063,3 +1063,102 @@ fn historical_shared_atoms_use_each_manifest_commit_not_current_bytes() {
     );
     assert!(!f.0.join("missing.json").exists());
 }
+
+#[test]
+fn explicit_additional_history_root_preserves_unmerged_records() {
+    let f = Fixture::new();
+    success(f.run(&[
+        "init",
+        "--namespace",
+        "ARCH",
+        "--program",
+        "Additional history root",
+    ]));
+    success(f.run(&["new", "Retain unmerged evidence"]));
+    let git = |args: &[&str]| {
+        let out = Command::new("git")
+            .current_dir(&f.0)
+            .args([
+                "-c",
+                "user.name=Archive Fixture",
+                "-c",
+                "user.email=archive@example.invalid",
+            ])
+            .args(args)
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        String::from_utf8(out.stdout).unwrap().trim().to_owned()
+    };
+    git(&["init", "-q"]);
+    git(&["add", "docs", "openwarrant.toml"]);
+    git(&["commit", "-qm", "base"]);
+    let base = git(&["rev-parse", "HEAD"]);
+    git(&["checkout", "-qb", "retained-evidence"]);
+    let source = "docs/warrants/ARCH-WAR-0001/retained.txt";
+    std::fs::write(f.0.join(source), b"unmerged retained evidence").unwrap();
+    git(&["add", "docs"]);
+    git(&["commit", "-qm", "unmerged evidence"]);
+    let extra = git(&["rev-parse", "HEAD"]);
+    git(&["checkout", "-q", "--detach", &base]);
+    success(f.run(&[
+        "archive",
+        "export",
+        "ARCH-WAR-0001",
+        "head-only.json",
+        "--history",
+    ]));
+    let read = |name: &str| {
+        Archive::decode(&std::fs::read(f.0.join(name)).unwrap(), Limits::default()).unwrap()
+    };
+    let target = format!("__ow_archive__/history/{extra}/{source}");
+    assert!(
+        !read("head-only.json")
+            .records
+            .iter()
+            .any(|r| r.path == target)
+    );
+    success(f.run(&[
+        "archive",
+        "export",
+        "ARCH-WAR-0001",
+        "extra.json",
+        "--history",
+        "--history-ref",
+        "retained-evidence",
+    ]));
+    let archive = read("extra.json");
+    assert!(archive.records.iter().any(|r| r.path == target));
+    let history = archive
+        .records
+        .iter()
+        .find(|r| r.path == "__ow_archive__/history.json")
+        .unwrap();
+    let value: serde_json::Value = serde_json::from_slice(
+        &openwarrant_core::attestation::base64_decode(history.base64.as_ref().unwrap()).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(value["head"], base);
+    assert_eq!(value["additional_heads"], serde_json::json!([extra]));
+    assert_eq!(value["other_refs_included"], true);
+    refusal(
+        f.run(&[
+            "archive",
+            "export",
+            "ARCH-WAR-0001",
+            "bad-root.json",
+            "--history",
+            "--history-ref",
+            "missing-root",
+        ]),
+        "required local Git history unavailable",
+    );
+    assert!(!f.0.join("bad-root.json").exists());
+    std::fs::rename(f.0.join(".git"), f.0.join("hidden-git")).unwrap();
+    std::fs::rename(f.0.join("docs"), f.0.join("hidden-docs")).unwrap();
+    success(f.run(&["archive", "inspect", "extra.json"]));
+}

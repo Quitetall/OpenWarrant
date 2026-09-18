@@ -22,6 +22,9 @@ pub enum Command {
         /// Include bounded history reachable from pinned local HEAD; refuse unavailable history.
         #[arg(long)]
         history: bool,
+        /// Include another local history root, pinned to a commit before capture. Repeatable.
+        #[arg(long, requires = "history")]
+        history_ref: Vec<String>,
     },
     /// Import experimental canonical archive into a NEW private inert directory.
     Import {
@@ -84,9 +87,10 @@ pub fn run(command: Command) -> Result<(String, serde_json::Value), Error> {
             alias,
             output,
             history,
+            history_ref,
         } => {
             let repo = crate::repo::Repository::discover(None).map_err(|e| Error(e.to_string()))?;
-            let archive = assemble(&repo, &alias, limits, history)?;
+            let archive = assemble(&repo, &alias, limits, history, &history_ref)?;
             let bytes = archive.encode(limits)?;
             write_new(output.as_std_path(), &bytes)?;
             Ok((
@@ -364,6 +368,7 @@ fn assemble(
     alias: &str,
     limits: Limits,
     include_history: bool,
+    history_refs: &[String],
 ) -> Result<Archive, Error> {
     use openwarrant_compiler::preservation::{Coverage, Record, SCHEMA};
     use openwarrant_core::{attestation::base64_encode, journal::EXPORT_CONTENTS};
@@ -387,6 +392,7 @@ fn assemble(
         let retained = history::capture(
             repo,
             relative.as_str(),
+            history_refs,
             remaining,
             limits.records.saturating_sub(files.len()),
         )?;

@@ -87,9 +87,43 @@ fn oid(value: &str) -> bool {
             .all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
 }
 
+fn selected_commits(
+    repo: &Repository,
+    roots: &BTreeSet<String>,
+    target: &str,
+) -> Result<BTreeSet<String>, Error> {
+    let mut result = BTreeSet::new();
+    for root in roots {
+        let changes = text(git(
+            repo,
+            &[
+                "log",
+                "--full-history",
+                "--format=%H",
+                "--max-count=257",
+                root,
+                "--",
+                target,
+            ],
+            32768,
+        )?)?;
+        for commit in changes.lines() {
+            if !oid(commit) {
+                return Err(Error("invalid selected history commit".into()));
+            }
+            result.insert(commit.to_owned());
+        }
+        if result.len() > 256 {
+            return Err(Error("history exceeds 256-commit bound".into()));
+        }
+    }
+    Ok(result)
+}
+
 pub(super) fn capture(
     repo: &Repository,
     relative: &str,
+    additional_refs: &[String],
     byte_limit: usize,
     record_limit: usize,
 ) -> Result<BTreeMap<String, Vec<u8>>, Error> {
@@ -110,23 +144,34 @@ pub(super) fn capture(
     if !oid(&head) {
         return Err(Error("invalid history HEAD identity".into()));
     }
-    let commits = text(git(
-        repo,
-        &[
-            "log",
-            "--full-history",
-            "--format=%H",
-            "--max-count=257",
-            &head,
-            "--",
-            relative,
-        ],
-        32768,
-    )?)?;
-    let mut commits: BTreeSet<String> = commits.lines().map(str::to_owned).collect();
-    if commits.len() > 256 {
-        return Err(Error("history exceeds 256-commit bound".into()));
+    if additional_refs.len() > 16 {
+        return Err(Error("history exceeds 16 additional-root bound".into()));
     }
+    let mut roots = BTreeSet::from([head.clone()]);
+    for reference in additional_refs {
+        let resolved = text(git(
+            repo,
+            &[
+                "rev-parse",
+                "--verify",
+                "--end-of-options",
+                &format!("{reference}^{{commit}}"),
+            ],
+            128,
+        )?)?
+        .trim()
+        .to_owned();
+        if !oid(&resolved) {
+            return Err(Error("invalid additional history root".into()));
+        }
+        roots.insert(resolved);
+    }
+    let additional_heads: Vec<_> = roots
+        .iter()
+        .filter(|root| **root != head)
+        .cloned()
+        .collect();
+    let mut commits = selected_commits(repo, &roots, relative)?;
     let mut visited = BTreeSet::new();
     let mut shared_paths = BTreeSet::new();
     let mut records = BTreeMap::new();
@@ -206,25 +251,9 @@ pub(super) fn capture(
                     if shared_paths.len() > record_limit {
                         return Err(Error("shared history path count exceeds limit".into()));
                     }
-                    let changes = text(git(
-                        repo,
-                        &[
-                            "log",
-                            "--full-history",
-                            "--format=%H",
-                            "--max-count=257",
-                            &head,
-                            "--",
-                            &target,
-                        ],
-                        32768,
-                    )?)?;
-                    for changed in changes.lines() {
-                        if !oid(changed) {
-                            return Err(Error("invalid shared history commit identity".into()));
-                        }
-                        if !visited.contains(changed) {
-                            commits.insert(changed.to_owned());
+                    for changed in selected_commits(repo, &roots, &target)? {
+                        if !visited.contains(&changed) {
+                            commits.insert(changed);
                         }
                     }
                     if visited.len() + commits.len() > 256 {
@@ -275,7 +304,7 @@ pub(super) fn capture(
         index.push(serde_json::json!({"commit":commit,"commit_record":format!("{prefix}/commit.txt"),"files":files}));
     }
     index.sort_by(|a, b| a["commit"].as_str().cmp(&b["commit"].as_str()));
-    let manifest = openwarrant_compiler::to_canonical_bytes(&serde_json::json!({"schema":"oh.war/preservation-history/v1-draft.1","head":head,"reachable_from":"HEAD","warrant_path":relative,"shared_atom_paths":shared_paths,"commits":index,"other_refs_included":false})).map_err(|e| Error(e.to_string()))?;
+    let manifest = openwarrant_compiler::to_canonical_bytes(&serde_json::json!({"schema":"oh.war/preservation-history/v1-draft.1","head":head,"reachable_from":"HEAD","warrant_path":relative,"shared_atom_paths":shared_paths,"commits":index,"other_refs_included":!additional_heads.is_empty(),"additional_heads":additional_heads})).map_err(|e| Error(e.to_string()))?;
     if manifest.len() > remaining || records.len() >= record_limit {
         return Err(Error("history manifest exceeds limits".into()));
     }
@@ -384,6 +413,8 @@ struct History {
     shared_atom_paths: Vec<String>,
     commits: Vec<Commit>,
     other_refs_included: bool,
+    #[serde(default)]
+    additional_heads: Vec<String>,
 }
 #[derive(serde::Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -417,7 +448,16 @@ pub(super) fn verify(records: &BTreeMap<String, Vec<u8>>, directory: &str) -> Re
         || !oid(&history.head)
         || history.reachable_from != "HEAD"
         || history.warrant_path != directory
-        || history.other_refs_included
+        || history.other_refs_included == history.additional_heads.is_empty()
+        || history.additional_heads.len() > 16
+        || history
+            .additional_heads
+            .iter()
+            .any(|head| !oid(head) || *head == history.head)
+        || history
+            .additional_heads
+            .windows(2)
+            .any(|pair| pair[0] >= pair[1])
         || history.commits.len() > 256
     {
         return Err(Error(
