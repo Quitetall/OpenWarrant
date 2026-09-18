@@ -4,14 +4,15 @@
   "work_state": "in-progress",
   "reported_by": "agent://codex",
   "revision": "d5a60202505a979d666bc5c334bc74c0ca7f6f10",
-  "summary": "Experimental archive and source-detached reconstruction implemented. Local and empty-KF round trips retained; provider contract identity and source stage adapters tested. Runtime receipt collection, historical graph-to-contract binding, exact-head integration gates and formal qualification remain incomplete.",
+  "summary": "Experimental archive and source-detached reconstruction implemented. Local service runtime retention now connects dispatches, runs, submissions and receipts. External provider collection, historical graph-to-contract binding, integration gates and formal qualification remain incomplete.",
   "notes": "docs/warrants/OW-WAR-0111/implementation/runtime-basis.md",
   "evidence": [
     "docs/warrants/OW-WAR-0111/implementation/kf-source-complete-roundtrip.md",
     "docs/warrants/OW-WAR-0111/implementation/provider-archive-binding-observation.json",
     "docs/warrants/OW-WAR-0111/implementation/runtime-stage-inventory-tests.log.gz",
     "docs/warrants/OW-WAR-0111/implementation/provider-source-stage-real-fixture.log.gz",
-    "docs/warrants/OW-WAR-0111/implementation/service-stop-retention.md"
+    "docs/warrants/OW-WAR-0111/implementation/service-stop-retention.md",
+    "docs/warrants/OW-WAR-0111/implementation/local-runtime-collector.md"
   ],
   "next_steps": [
     "Finish OpenWarrant PR128 exact-head CI; KF PR8 is merged with all four exact-head checks passing.",

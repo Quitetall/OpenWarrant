@@ -1558,8 +1558,42 @@ fn service_run_receipt_points_to_retained_stream_bytes() {
     );
     assert!(matches!(
         archive.coverage.get("runtime receipt refs"),
-        Some(Coverage::Unavailable { .. })
+        Some(Coverage::Retained { .. })
     ));
+    // A valid receipt from another attempt cannot satisfy this attempt.
+    std::fs::write(&receipt_path, serde_json::to_vec(&second).unwrap()).unwrap();
+    success(f.run(&[
+        "archive",
+        "export",
+        "STREAM-WAR-0001",
+        "swapped-receipt.json",
+        "--history",
+    ]));
+    let swapped = Archive::decode(
+        &std::fs::read(f.0.join("swapped-receipt.json")).unwrap(),
+        Limits::default(),
+    )
+    .unwrap();
+    assert!(
+        matches!(swapped.coverage.get("runtime receipt refs"), Some(Coverage::Unavailable { reason }) if reason.contains("receipt differs"))
+    );
+    std::fs::remove_file(&receipt_path).unwrap();
+    success(f.run(&[
+        "archive",
+        "export",
+        "STREAM-WAR-0001",
+        "missing-receipt.json",
+        "--history",
+    ]));
+    let missing = Archive::decode(
+        &std::fs::read(f.0.join("missing-receipt.json")).unwrap(),
+        Limits::default(),
+    )
+    .unwrap();
+    assert!(
+        matches!(missing.coverage.get("runtime receipt refs"), Some(Coverage::Unavailable { reason }) if reason.contains("missing completed attempt receipt"))
+    );
+    std::fs::write(&receipt_path, &receipt_bytes).unwrap();
     for (path, expected) in [
         (receipt.stdout_ref, b"service-out".as_slice()),
         (receipt.stderr_ref, b"service-err".as_slice()),
@@ -1665,6 +1699,29 @@ fn service_failed_and_timed_out_attempts_keep_distinct_truthful_evidence() {
             &format!("argv: [\"sh\", \"-c\", {script:?}]"),
         );
         std::fs::write(f.0.join("docs/gates/ops.echo@1.0.0.yaml"), gate).unwrap();
+        for args in [
+            vec!["init", "-q"],
+            vec!["add", "."],
+            vec![
+                "-c",
+                "user.name=Fixture",
+                "-c",
+                "user.email=fixture@example.invalid",
+                "commit",
+                "-qm",
+                "source fixture",
+            ],
+        ] {
+            assert!(
+                Command::new("git")
+                    .current_dir(&f.0)
+                    .args(args)
+                    .output()
+                    .unwrap()
+                    .status
+                    .success()
+            );
+        }
         let mut retained = BTreeMap::new();
         for _ in 0..2 {
             // A failed or timed-out gate must not erase an earlier attempt.
@@ -1721,5 +1778,45 @@ fn service_failed_and_timed_out_attempts_keep_distinct_truthful_evidence() {
             }
         }
         assert_eq!(std::fs::read_dir(dir.join("gate-runs")).unwrap().count(), 2);
+        success(f.run(&[
+            "archive",
+            "export",
+            "STOP-WAR-0001",
+            "stops.json",
+            "--history",
+        ]));
+        let archive = Archive::decode(
+            &std::fs::read(f.0.join("stops.json")).unwrap(),
+            Limits::default(),
+        )
+        .unwrap();
+        assert!(
+            matches!(
+                archive.coverage.get("runtime receipt refs"),
+                Some(Coverage::Retained { .. })
+            ),
+            "{:?}",
+            archive.coverage
+        );
+        let run_path = retained
+            .keys()
+            .find(|p| p.extension().is_some_and(|x| x == "toml"))
+            .unwrap();
+        std::fs::remove_file(run_path).unwrap();
+        success(f.run(&[
+            "archive",
+            "export",
+            "STOP-WAR-0001",
+            "missing-run.json",
+            "--history",
+        ]));
+        let archive = Archive::decode(
+            &std::fs::read(f.0.join("missing-run.json")).unwrap(),
+            Limits::default(),
+        )
+        .unwrap();
+        assert!(
+            matches!(archive.coverage.get("runtime receipt refs"), Some(Coverage::Unavailable { reason }) if reason.contains("missing attempt run"))
+        );
     }
 }

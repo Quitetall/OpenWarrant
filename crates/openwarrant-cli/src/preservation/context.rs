@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Reconcile explicit ADR sources and declared runtime requirements.
+mod service;
 use openwarrant_compiler::preservation::{Coverage, Error};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -26,6 +27,7 @@ pub(super) fn coverage(
     let mut adr_paths = BTreeSet::new();
     let mut adr_gaps = BTreeSet::new();
     let mut runtime_gaps = BTreeSet::new();
+    let mut runtime_paths = BTreeSet::new();
     let mut milestones = 0;
     for (path, bytes) in files {
         if path != &manifest_path
@@ -75,6 +77,23 @@ pub(super) fn coverage(
                     Ok(graph) => {
                         for stage in graph.stages {
                             if stage.executor_kind
+                                == openwarrant_core::milestones::ExecutorKind::Service
+                            {
+                                match service::collect(
+                                    files,
+                                    &format!("{prefix}{directory}"),
+                                    &stage,
+                                ) {
+                                    Ok(paths) => {
+                                        runtime_paths.extend(paths);
+                                        runtime_paths.extend([path.clone(), target.clone()]);
+                                    }
+                                    Err(error) => {
+                                        runtime_gaps
+                                            .insert(format!("{target}#{}: {error}", stage.id));
+                                    }
+                                }
+                            } else if stage.executor_kind
                                 != openwarrant_core::milestones::ExecutorKind::Human
                             {
                                 runtime_gaps.insert(format!(
@@ -110,7 +129,45 @@ pub(super) fn coverage(
     if milestones == 0 {
         runtime_gaps.insert("No retained stage declarations establish runtime scope".into());
     }
-    let runtime = if runtime_gaps.is_empty() {
+    {
+        // No dispatch may disappear merely because its stage was removed or renamed.
+        for path in files.keys() {
+            let dispatch_receipt = path.ends_with(".receipt.json")
+                && serde_json::from_slice::<openwarrant_core::GateReceipt>(&files[path]).is_ok_and(
+                    |receipt| {
+                        receipt
+                            .subject_digests
+                            .iter()
+                            .any(|subject| subject.starts_with("dispatch:"))
+                    },
+                );
+            if (dispatch_receipt
+                || path.starts_with(&format!("{directory}/dispatches/"))
+                || (path.starts_with("__ow_archive__/history/")
+                    && path.contains(&format!("/{directory}/dispatches/"))))
+                && !runtime_paths.contains(path)
+            {
+                runtime_gaps.insert(format!(
+                    "{path}: runtime record has no supported retained stage"
+                ));
+            }
+        }
+    }
+    if !runtime_paths.is_empty() {
+        match super::audit::coverage(files, directory)? {
+            Coverage::Retained { paths } => runtime_paths.extend(paths),
+            _ => {
+                runtime_gaps
+                    .insert("Local runtime journal or receipt evidence is incomplete".into());
+            }
+        }
+    }
+    let runtime = if runtime_gaps.is_empty() && !runtime_paths.is_empty() {
+        runtime_paths.insert("__ow_archive__/history.json".into());
+        Coverage::Retained {
+            paths: runtime_paths.into_iter().collect(),
+        }
+    } else if runtime_gaps.is_empty() {
         Coverage::Absent { reason: "Selected current and historical stage declarations contain no non-human runtime stages".into() }
     } else {
         Coverage::Unavailable {
