@@ -328,6 +328,31 @@ struct AtomSnapshot {
 const BASIS_PATH: &str = "__ow_archive__/basis.json";
 const IR_PATH: &str = "__ow_archive__/WAR.json";
 
+/// Resolve leading parent references without letting the legacy loader traverse
+/// an eliminated symlink component. Interior dot segments are refused.
+fn atom_record(directory: &str, source: &str) -> Result<String, Error> {
+    let mut parts: Vec<&str> = directory.split('/').collect();
+    let mut descended = false;
+    for part in source.split('/') {
+        match part {
+            ".." if !descended => {
+                if parts.pop().is_none() {
+                    return Err(Error("atom reference escapes repository".into()));
+                }
+            }
+            "" | "." | ".." => return Err(Error("noncanonical atom reference".into())),
+            _ => {
+                descended = true;
+                parts.push(part);
+            }
+        }
+    }
+    if !descended {
+        return Err(Error("atom reference must name a file".into()));
+    }
+    Ok(parts.join("/"))
+}
+
 fn assemble(
     repo: &crate::repo::Repository,
     alias: &str,
@@ -375,16 +400,28 @@ fn assemble(
         let source = atom.path.as_ref().ok_or_else(|| {
             Error("unresolved bound atom cannot be archived as complete source".into())
         })?;
+        let record = atom_record(relative.as_str(), source)?;
         let bytes = crate::progress_viewer::source::read(
             repo.root.as_std_path(),
-            relative.join(source).as_std_path(),
+            Path::new(&record),
             limits.content_bytes,
         )
         .map_err(Error)?;
-        if files.get(&format!("{relative}/{source}")) != Some(&bytes) {
-            return Err(Error("atom outside captured tree or source changed".into()));
+        if let Some(captured) = files.get(&record) {
+            if captured != &bytes {
+                return Err(Error("atom changed during capture".into()));
+            }
+        } else {
+            let used: usize = files.values().map(Vec::len).sum();
+            if files.len() >= limits.records
+                || bytes.len() > limits.content_bytes.saturating_sub(used)
+            {
+                return Err(Error("atom capture exceeds archive limits".into()));
+            }
+            files.insert(record, bytes);
         }
     }
+
     let loaded = repo.load_warrant(&dir).map_err(|e| Error(e.to_string()))?;
     if !loaded.report.is_ready() {
         return Err(Error("source Warrant is not structurally ready".into()));
@@ -399,7 +436,7 @@ fn assemble(
         return Err(Error("manifest changed during capture".into()));
     }
     for atom in &basis.atoms {
-        if files.get(&format!("{relative}/{}", atom.source)) != Some(&atom.bytes) {
+        if files.get(&atom_record(relative.as_str(), &atom.source)?) != Some(&atom.bytes) {
             return Err(Error("atom changed during capture".into()));
         }
     }
@@ -415,15 +452,17 @@ fn assemble(
         atoms: basis
             .atoms
             .iter()
-            .map(|a| AtomSnapshot {
-                ordinal: a.ordinal,
-                role: a.role.clone(),
-                jurisdiction: a.jurisdiction.clone(),
-                source: a.source.clone(),
-                record: format!("{relative}/{}", a.source),
-                required: a.required,
+            .map(|a| {
+                Ok(AtomSnapshot {
+                    ordinal: a.ordinal,
+                    role: a.role.clone(),
+                    jurisdiction: a.jurisdiction.clone(),
+                    source: a.source.clone(),
+                    record: atom_record(relative.as_str(), &a.source)?,
+                    required: a.required,
+                })
             })
-            .collect(),
+            .collect::<Result<Vec<_>, Error>>()?,
         scope_source: basis.scope.as_ref().map(|v| v.source.clone()),
         sas: basis
             .sas
@@ -578,6 +617,7 @@ fn verify_basis(files: &BTreeMap<String, Vec<u8>>) -> Result<String, Error> {
             || entry.role != atom.role
             || entry.required != atom.required
             || entry.path.as_deref() != Some(&atom.source)
+            || atom.record != atom_record(directory, &atom.source)?
         {
             return Err(Error("basis atom differs from manifest".into()));
         }

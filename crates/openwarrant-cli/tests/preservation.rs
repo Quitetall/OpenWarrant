@@ -805,3 +805,81 @@ fn historical_artifact_versions_are_selected_by_digest_not_current_path() {
     std::fs::remove_dir_all(f.0.join("docs")).unwrap();
     success(f.run(&["archive", "inspect", "history.json"]));
 }
+
+#[test]
+fn explicit_external_atoms_survive_source_removal_without_repository_escape() {
+    let f = Fixture::new();
+    success(f.run(&[
+        "init",
+        "--namespace",
+        "ARCH",
+        "--program",
+        "External atom fixture",
+    ]));
+    success(f.run(&["new", "Preserve explicit shared atoms"]));
+    let manifest_path = f.0.join("docs/warrants/ARCH-WAR-0001/manifest.toml");
+    let original = std::fs::read_to_string(&manifest_path).unwrap();
+    let shared = f.0.join("docs/shared");
+    std::fs::create_dir(&shared).unwrap();
+    let bytes = std::fs::read(f.0.join("docs/warrants/ARCH-WAR-0001/atoms/10-intent.md")).unwrap();
+    std::fs::write(shared.join("intent.md"), &bytes).unwrap();
+    let amended = original.replace("atoms/10-intent.md", "../../shared/intent.md");
+    std::fs::write(&manifest_path, &amended).unwrap();
+    success(f.run(&["archive", "export", "ARCH-WAR-0001", "shared.json"]));
+    let mut archive = Archive::decode(
+        &std::fs::read(f.0.join("shared.json")).unwrap(),
+        Limits::default(),
+    )
+    .unwrap();
+    assert!(
+        archive
+            .records
+            .iter()
+            .any(|r| r.path == "docs/shared/intent.md")
+    );
+    std::fs::rename(f.0.join("docs"), f.0.join("hidden-docs")).unwrap();
+    success(f.run(&["archive", "inspect", "shared.json"]));
+    // A descriptor must preserve the manifest's source-to-record binding even
+    // if a different archive record happens to contain identical bytes.
+    let basis = archive
+        .records
+        .iter_mut()
+        .find(|r| r.path == "__ow_archive__/basis.json")
+        .unwrap();
+    let mut value: serde_json::Value = serde_json::from_slice(
+        &openwarrant_core::attestation::base64_decode(basis.base64.as_ref().unwrap()).unwrap(),
+    )
+    .unwrap();
+    value["atoms"][0]["record"] = "docs/warrants/ARCH-WAR-0001/atoms/10-intent.md".into();
+    let changed = openwarrant_compiler::to_canonical_bytes(&value).unwrap();
+    basis.digest = format!("sha256:{}", sha256_hex(&changed));
+    basis.base64 = Some(base64_encode(&changed));
+    std::fs::write(
+        f.0.join("substituted.json"),
+        archive.encode(Limits::default()).unwrap(),
+    )
+    .unwrap();
+    refusal(
+        f.run(&["archive", "inspect", "substituted.json"]),
+        "basis atom differs",
+    );
+    std::fs::rename(f.0.join("hidden-docs"), f.0.join("docs")).unwrap();
+    for bad in ["../../../../outside.md", "../../shared/../shared/intent.md"] {
+        std::fs::write(&manifest_path, original.replace("atoms/10-intent.md", bad)).unwrap();
+        let output = f.run(&["archive", "export", "ARCH-WAR-0001", "refused.json"]);
+        assert!(!output.status.success());
+        assert!(!f.0.join("refused.json").exists());
+    }
+    #[cfg(unix)]
+    {
+        std::fs::write(&manifest_path, &amended).unwrap();
+        std::fs::rename(&shared, f.0.join("real-shared")).unwrap();
+        std::os::unix::fs::symlink(f.0.join("real-shared"), &shared).unwrap();
+        assert!(
+            !f.run(&["archive", "export", "ARCH-WAR-0001", "symlink.json"])
+                .status
+                .success()
+        );
+        assert!(!f.0.join("symlink.json").exists());
+    }
+}
