@@ -34,3 +34,13 @@ errors are carried separately and included in snapshot identity. The source
 example now names phase 4, shares release Warrants without duplicating aggregate
 counts, and the renderer exposes every unmapped repository Warrant. Current
 browser observation predates these follow-up UI changes; repeat before closure.
+
+Calculation follow-up: extracted the exact browser calculations into embedded
+`roadmap-model.js`. Three Node built-in tests pass for distinct shared references,
+missing/blocked reports, unscoped/empty groups and query/state combinations.
+Added a roadmap phase/feature selector. JavaScript syntax check passes.
+
+First isolated gate at e7546c9 exited 1: three steps could not locate the clone's
+`target/debug/war`; build used CARGO_TARGET_DIR without the local target link that
+legacy corpus/attestation/plant commands require. Earlier build, lint and tests
+passed. This is not a full-gate pass; rerun after correcting the clone setup.

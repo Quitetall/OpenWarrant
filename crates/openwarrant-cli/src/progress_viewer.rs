@@ -279,6 +279,10 @@ fn html(snapshot: &Snapshot, live: bool, interval: u64) -> Result<String, RepoEr
         .replace('\u{2028}', "\\u2028")
         .replace('\u{2029}', "\\u2029");
     Ok(HTML
+        .replace(
+            "__ROADMAP_MODEL__",
+            include_str!("progress_viewer/roadmap-model.js"),
+        )
         .replace("__LIVE__", if live { "true" } else { "false" })
         .replace("__INTERVAL__", &interval.to_string())
         .replace("__SNAPSHOT__", &json))

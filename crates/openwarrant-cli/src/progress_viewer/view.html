@@ -9,6 +9,7 @@
 <section class="cards" aria-label="Progress totals"><div class="card"><label>Warrants in repository</label><span class="number" id="total">—</span></div><div class="card"><label>Reported completed · unverified</label><span class="number" id="completed">—</span><progress id="bar" aria-label="Completed among explicit work reports" max="1" value="0"></progress><small id="denominator"></small></div><div class="card"><label>Reported active / blocked</label><span class="number" id="active">—</span></div><div class="card"><label>No valid work report</label><span class="number" id="unknown">—</span></div></section>
 <div class="notice">Work state comes from attributed implementation reports. Reports do not prove verification. Legacy resolution remains separate; this viewer awards no Verified mark.</div>
 <div class="controls"><input id="search" type="search" placeholder="Find Warrant, title or outcome…" aria-label="Search Warrants"><select id="filter" aria-label="Filter work state"><option value="all">All work</option><option value="reported">Has work report</option><option value="completed">Completed · unverified</option><option value="active">In progress / blocked</option><option value="unknown">No valid work report</option></select><button id="refresh" type="button">Refresh now</button></div>
+<label for="roadmap-group">Roadmap phase or feature</label> <select id="roadmap-group"><option value="">All roadmap groups</option></select>
 <section id="roadmap" aria-label="Release roadmap"></section>
 <div class="table-wrap"><table><thead><tr><th>Warrant</th><th>Outcome &amp; evidence</th><th>Implementation</th><th>Legacy record</th></tr></thead><tbody id="rows"></tbody></table><p id="empty" class="hidden">No matching Warrants.</p></div>
 <footer class="muted"><p id="asof"></p><p id="basis"></p><p id="mode"></p></footer>
@@ -16,6 +17,7 @@
 </main><script id="progress-data" type="application/json">__SNAPSHOT__</script>
 <script>
 'use strict';
+__ROADMAP_MODEL__
 const live=__LIVE__, interval=__INTERVAL__;
 let snapshot=JSON.parse(document.getElementById('progress-data').textContent),busy=false,timer;
 const $=id=>document.getElementById(id),text=(tag,value,cls)=>{const e=document.createElement(tag);e.textContent=value;if(cls)e.className=cls;return e;};
@@ -24,6 +26,9 @@ function sourceLink(name,title){const a=text('a',title);const url=snapshot.links
 const roadmapExpansion=new Map();
 function renderRoadmap(){
  const host=$('roadmap');host.replaceChildren();const map=snapshot.roadmap;if(!map)return;
+ const picker=$('roadmap-group'),selected=picker.value;
+ picker.replaceChildren();const allOption=text('option','All roadmap groups');allOption.value='';picker.append(allOption);
+ for(const node of map.nodes){const option=text('option',node.title);option.value=node.id;picker.append(option);}picker.value=map.nodes.some(n=>n.id===selected)?selected:'';
  host.append(text('h2',map.title));
  const mapped=new Set(map.nodes.flatMap(n=>n.warrants));
  const unmapped=snapshot.legacy.warrants.filter(w=>!mapped.has(w.alias));
@@ -33,13 +38,10 @@ function renderRoadmap(){
 
  const q=$('search').value.toLowerCase(),filter=$('filter').value;
  const children=id=>map.nodes.filter(n=>(n.parent||null)===id);
- const allNodes=n=>[n,...children(n.id).flatMap(allNodes)];
  function branch(n){
-  const members=allNodes(n),aliases=[...new Set(members.flatMap(x=>x.warrants))];
-  const reports=aliases.map(a=>snapshot.reports[a]?.report),done=reports.filter(r=>r?.work_state==='completed').length;
-  const unscoped=members.filter(x=>!x.warrants.length&&!children(x.id).length).length;
-  const match=filter==='all'||filter==='completed'&&done>0||filter==='reported'&&reports.some(Boolean)||filter==='unknown'&&(reports.some(r=>!r)||unscoped>0)||filter==='active'&&reports.some(r=>['in-progress','blocked'].includes(r?.work_state));
-  if(!match||!members.some(x=>(x.title+' '+x.outcome+' '+x.warrants.join(' ')).toLowerCase().includes(q)))return null;
+  const stats=roadmapStats(map.nodes,n.id,snapshot.reports);
+  const {aliases,completed:done,unscoped}=stats;
+  if(!roadmapMatches(stats,q,filter))return null;
   const box=document.createElement('details');box.open=roadmapExpansion.get(n.id)??true;box.className='card';box.addEventListener('toggle',()=>roadmapExpansion.set(n.id,box.open));
   box.append(text('summary',n.title));box.append(text('p',n.outcome));
   box.append(text('p',`${done} / ${aliases.length} distinct Warrants reported complete · ${unscoped} unscoped features`,'muted'));
@@ -49,7 +51,7 @@ function renderRoadmap(){
   if(stages.length){const detail=document.createElement('details');detail.append(text('summary','Stage dependencies (legacy evaluator; not permission to execute)'));const list=document.createElement('ul');for(const stage of stages){list.append(text('li',`${stage.warrant} / ${stage.stage}: ${stage.state}${stage.waiting_on?.length?' · waiting on '+stage.waiting_on.join(', '):''}`));}detail.append(list);box.append(detail);}
   for(const child of children(n.id)){const b=branch(child);if(b)box.append(b);}return box;
  }
- for(const n of children(null)){const b=branch(n);if(b)host.append(b);}
+ for(const n of picker.value?map.nodes.filter(n=>n.id===picker.value):children(null)){const b=branch(n);if(b)host.append(b);}
 }
 function render(updateRows=true){
  const all=snapshot.legacy.warrants,reports=snapshot.reports;
@@ -74,6 +76,8 @@ function render(updateRows=true){
 }
 function connection(message,stale=false){$('connection').textContent=message;$('connection').classList.toggle('stale',stale);}
 async function refresh(){if(!live||busy)return;busy=true;clearTimeout(timer);try{const response=await fetch('/api/progress',{cache:'no-store',signal:AbortSignal.timeout(15000)});if(!response.ok)throw new Error(`HTTP ${response.status}`);const value=await response.json();if(value.snapshot?.schema!=='oh.war/progress-view/v1'||!Array.isArray(value.snapshot.legacy?.warrants))throw new Error('Invalid progress response');if(value.error){connection('Stale · refresh failed; last good snapshot retained',true);}else{const changed=snapshot.record_digest!==value.snapshot.record_digest;snapshot=value.snapshot;render(changed);connection(`Live · refresh every ${interval}s`);}}catch(e){connection('Disconnected / stale · last good snapshot retained',true);}finally{busy=false;timer=setTimeout(refresh,interval*1000);}}
+$('roadmap-group').addEventListener('change',render);
+$('roadmap-group').hidden=!snapshot.roadmap;
 $('search').addEventListener('input',render);$('filter').addEventListener('change',render);$('refresh').addEventListener('click',refresh);
 $('refresh').hidden=!live;$('mode').textContent=live?'Local read-only viewer. Refresh reads current repository records; it never signs or edits them.':'Offline snapshot. Data and assets embedded; source links require original repository. Regenerate with war progress --html.';
 render();connection(live?'Live · checking freshness…':'Offline snapshot · refresh disabled');if(live)refresh();
