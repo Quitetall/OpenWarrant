@@ -456,3 +456,123 @@ fn schema_pack_bytes_and_producer_identity_are_retained_and_cross_checked() {
     );
     assert!(!f.0.join("bad.json").exists());
 }
+
+#[test]
+fn declared_artifact_bytes_survive_source_loss_and_inventory_tampering_refuses() {
+    let f = Fixture::new();
+    success(f.run(&[
+        "init",
+        "--namespace",
+        "ARCH",
+        "--program",
+        "Artifact preservation",
+    ]));
+    let content = [0, 255, 13, 10, 65];
+    let digest = sha256_hex(&content);
+    let declaration = format!(
+        r#"schema = "oh.war/deliverables/v1"
+[[deliverable]]
+id = "D-001"
+title = "Retained binary"
+kind = "file"
+target_ref = "delivered.bin"
+[deliverable.provenance]
+producer = "fixture"
+producing_attempt = "fixture"
+contract_digest = "unrecorded"
+tool_or_runtime_identity = "fixture"
+creation_method = "fixture"
+content_digest = "sha256:{digest}"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "fixture"
+source_holder = "git"
+"#
+    );
+    let manifest = f.0.join("docs/warrants/ARCH-WAR-0001/deliverables.toml");
+    std::fs::write(&manifest, &declaration).unwrap();
+    std::fs::write(f.0.join("delivered.bin"), content).unwrap();
+    success(f.run(&["archive", "export", "ARCH-WAR-0001", "artifact.json"]));
+    let original = Archive::decode(
+        &std::fs::read(f.0.join("artifact.json")).unwrap(),
+        Limits::default(),
+    )
+    .unwrap();
+    let address = format!("__ow_archive__/artifacts/{digest}");
+    let record = original.records.iter().find(|r| r.path == address).unwrap();
+    assert_eq!(
+        openwarrant_core::attestation::base64_decode(record.base64.as_ref().unwrap()).unwrap(),
+        content
+    );
+    std::fs::remove_file(f.0.join("delivered.bin")).unwrap();
+    std::fs::rename(f.0.join("docs"), f.0.join("hidden-docs")).unwrap();
+    success(f.run(&["archive", "inspect", "artifact.json"]));
+    let mut changed = original.clone();
+    let record = changed
+        .records
+        .iter_mut()
+        .find(|r| r.path == address)
+        .unwrap();
+    record.base64 = Some(base64_encode(b"changed"));
+    record.digest = format!("sha256:{}", sha256_hex(b"changed"));
+    std::fs::write(
+        f.0.join("changed-artifact.json"),
+        changed.encode(Limits::default()).unwrap(),
+    )
+    .unwrap();
+    refusal(
+        f.run(&["archive", "inspect", "changed-artifact.json"]),
+        "retained artifact digest mismatch",
+    );
+    let mut changed = original;
+    let index = changed
+        .records
+        .iter_mut()
+        .find(|r| r.path == "__ow_archive__/artifacts.json")
+        .unwrap();
+    let bytes = br#"{"schema":"oh.war/preservation-artifacts/v1-draft.1","claims":[]}"#;
+    index.base64 = Some(base64_encode(bytes));
+    index.digest = format!("sha256:{}", sha256_hex(bytes));
+    std::fs::write(
+        f.0.join("omitted-claim.json"),
+        changed.encode(Limits::default()).unwrap(),
+    )
+    .unwrap();
+    refusal(
+        f.run(&["archive", "inspect", "omitted-claim.json"]),
+        "artifact inventory omits declared records",
+    );
+    std::fs::rename(f.0.join("hidden-docs"), f.0.join("docs")).unwrap();
+    std::fs::write(f.0.join("delivered.bin"), b"newer version").unwrap();
+    success(f.run(&["archive", "export", "ARCH-WAR-0001", "unavailable.json"]));
+    let archive = Archive::decode(
+        &std::fs::read(f.0.join("unavailable.json")).unwrap(),
+        Limits::default(),
+    )
+    .unwrap();
+    assert!(!archive.records.iter().any(|r| r.path == address));
+    let index = archive
+        .records
+        .iter()
+        .find(|r| r.path == "__ow_archive__/artifacts.json")
+        .unwrap();
+    let index: serde_json::Value = serde_json::from_slice(
+        &openwarrant_core::attestation::base64_decode(index.base64.as_ref().unwrap()).unwrap(),
+    )
+    .unwrap();
+    assert!(
+        index["claims"][0]["unavailable"]
+            .as_str()
+            .unwrap()
+            .contains("differs")
+    );
+    std::fs::write(
+        manifest,
+        declaration.replace("kind = \"file\"", "kind = \"unknown-required-kind\""),
+    )
+    .unwrap();
+    refusal(
+        f.run(&["archive", "export", "ARCH-WAR-0001", "unknown.json"]),
+        "unknown variant `unknown-required-kind`",
+    );
+}

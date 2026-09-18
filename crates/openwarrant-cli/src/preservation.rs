@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Experimental archive import and source-detached re-export. No authority activation.
 use std::{collections::BTreeMap, path::Path};
+mod artifacts;
 mod history;
 mod identity;
 
@@ -335,6 +336,12 @@ fn assemble(
         )?;
         files.extend(retained);
     }
+    artifacts::capture(
+        repo.root.as_std_path(),
+        relative.as_str(),
+        &mut files,
+        limits,
+    )?;
     let schema_paths = identity::capture(repo.root.as_std_path(), &mut files, limits)?;
     // Check every declared source through no-follow reads before legacy loader touches it.
     let manifest_source = format!("{relative}/manifest.toml");
@@ -524,6 +531,11 @@ fn verify_basis(files: &BTreeMap<String, Vec<u8>>) -> Result<String, Error> {
         .ok_or_else(|| Error("missing basis descriptor".into()))?;
     let snapshot: BasisSnapshot =
         serde_json::from_slice(bytes).map_err(|e| Error(e.to_string()))?;
+    let directory = snapshot
+        .manifest_source
+        .strip_suffix("/manifest.toml")
+        .ok_or_else(|| Error("invalid manifest source path".into()))?;
+    artifacts::verify(files, directory)?;
     if snapshot.schema != "oh.war/preservation-basis/v1-draft.1" {
         return Err(Error("unsupported basis snapshot".into()));
     }
