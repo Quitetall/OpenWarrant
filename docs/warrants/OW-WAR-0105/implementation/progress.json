@@ -1,0 +1,19 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0105",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "f458ac9884cde74b8e7e55dc8d49577e0088b452",
+  "summary": "Configured agent drafting implemented; 73 integrated web tests pass and synthetic browser draft/import/save observed. Full repository gate and exact-head integration pending. Real-provider qualification remains separate.",
+  "notes": "docs/warrants/OW-WAR-0105/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0105/implementation/all-tests.log",
+    "docs/warrants/OW-WAR-0105/implementation/integration-tests.log",
+    "docs/warrants/OW-WAR-0105/implementation/notes.md"
+  ],
+  "next_steps": [
+    "Finish full repository gate and exact-head integration",
+    "Collect real local/cloud adapter evidence for Phase 3",
+    "Independent verification and human qualification remain separate"
+  ]
+}
