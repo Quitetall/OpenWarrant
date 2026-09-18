@@ -32,3 +32,18 @@ observations. This seam is not yet exposed as a server action and is not a sandb
 Next: protected configuration/admission, persistent verification attempts and
 public HTTP integration, then bounded repair/rebuttal/escalation and browser QA.
 No real model calls, independent qualification or human acceptance occurred.
+
+## Verifier policy and advisory admission
+
+Added strict configured performer/verifier identities and commands, finite time
+limits and explicit cost policy. Admission matches retained performer command and
+current completed candidate policy. Unknown cost refuses a mandatory hard cap.
+Configuration does not accept capability flags as proof. Missing authenticated
+protection evidence is UNKNOWN; stale, failed or unavailable observations cannot
+produce ready. The evaluator takes trusted observations only at an internal caller
+boundary; no browser route supplies them. Ready is advisory and grants no dispatch.
+
+Fourteen distinct verifier contract/workspace/process/policy tests pass. Fixture
+protection observations exercise evaluation, not real harness authentication.
+The next controller must authenticate evidence outside performer/verifier output
+before passing it here; that integration and durable jobs remain unfinished.
