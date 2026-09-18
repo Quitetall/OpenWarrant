@@ -40,3 +40,10 @@ fixtures establish transport behavior only. This does not close Phase 3 or OW42.
 Integration with policy-bound completion passes 73 package tests. The first run
 failed at service startup because OW_TEST_WAR was unset in this worktree; the
 retained retry sets the built binary path. Both logs remain available.
+
+Missing adapter command now has a direct HTTP refusal test: retained failed attempt,
+no source saved, identical replay returns the same record without dispatch.
+The first full gate at f458ac9 ended with three unavailable steps because the
+standalone clone lacked target/debug/war while CARGO_TARGET_DIR selected the shared
+build output. Retained log records this failure. The clone-local target symlink
+restores the expected binary location; full rerun is pending.

@@ -98,6 +98,19 @@ class DraftingTests(WorkflowTests):
         self.assertEqual(self.call("/api/drafting", "POST", other)[0], 409)
         self.assertEqual(self.call("/api/drafting", "POST", fields)[1]["state"], "unknown")
 
+    def test_missing_harness_records_failure_without_saving_or_replaying(self):
+        self.stop()
+        self.config["argv"] = [str(self.root / "missing-adapter")]
+        self.start()
+        fields = self.request()
+        record = self.result(fields["request_id"])
+        self.assertEqual(record["state"], "failed")
+        self.assertIn("FileNotFoundError", record["error"])
+        self.assertIsNone(record["result"])
+        self.assertEqual(self.call("/api/warrants")[1]["warrants"], [])
+        self.assertEqual(self.call("/api/drafting", "POST", fields)[1], record)
+        self.assertFalse(self.marker.exists())
+
     def test_interrupted_initial_record_survives_restart_as_unknown(self):
         pidfile = self.root / "owned-harness.pid"
         self.harness.write_text("import os,pathlib,time;pathlib.Path(" + repr(str(pidfile)) + ").write_text(str(os.getpid()));time.sleep(20)")
