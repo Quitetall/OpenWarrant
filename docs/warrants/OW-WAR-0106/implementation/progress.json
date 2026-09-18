@@ -1,0 +1,19 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0106",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "1544bea3ae63533e808c95ec66bacfa3abcfdb2c",
+  "summary": "Hotline question, authenticated immutable answer and explicit resume APIs implemented; 79 web tests pass. Browser controls, adviser routing, further fault cases and full integration remain open.",
+  "notes": "docs/warrants/OW-WAR-0106/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0106/implementation/contracts-tests.log",
+    "docs/warrants/OW-WAR-0106/implementation/answer-http-tests.log",
+    "docs/warrants/OW-WAR-0106/implementation/resume-all-tests.log"
+  ],
+  "next_steps": [
+    "Add browser question, answer and resume controls",
+    "Implement configured adviser routing and fault cases",
+    "Run full gate and exact-head integration; qualification remains separate"
+  ]
+}
