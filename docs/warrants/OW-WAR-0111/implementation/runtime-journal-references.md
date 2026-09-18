@@ -21,3 +21,9 @@ with the historical good records still retained.
 17 preservation tests passed. The expanded refusal case passed again after adding
 digest tampering. All-target CLI Clippy passed. Full new-head gate remains required.
 No historical records, signatures or assurance dispositions were rewritten.
+
+A second disposable clone at 948400ad ran OW66's configured `true` gate.
+Both receipt stream references now exist. Actual archive export reports retained
+actions/audit receipts and only one unavailable category: runtime receipt refs.
+The original broken archive remains untouched. Corrected archive, run report and
+export report are retained alongside it; no project completion is implied.
