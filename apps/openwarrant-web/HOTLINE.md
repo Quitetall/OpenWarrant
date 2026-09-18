@@ -97,6 +97,12 @@ repair, but actual retries retain the configured repair limit. The store's attem
 limit also bounds repeated questions. Unknown-cost refusal and free-cost assertion
 remain unchanged; this does not implement paid metering.
 
-Remaining work: automatic adviser routing, browser controls, further cumulative
+The workbench hotline section shows exact question basis and configured responder
+identities. Enter a responder credential, answer and evidence, then record the
+answer. The credential clears before submission. Answering leaves work paused;
+Resume answered work is a separate action and rechecks current state. Lock clears
+the hotline view. Failed refresh clears the question list.
+
+Remaining work: automatic adviser routing, further cumulative
 budget and concurrency fault cases, and full lifecycle qualification. Do not advertise the partial API as a complete
 hotline or mark OW106 complete from its component tests.

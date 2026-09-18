@@ -41,3 +41,9 @@ spend a repair cycle. HTTP tests run with zero repair cycles, observe reduced ti
 refuse revoked responder configuration, changed timeout and dirty checkpoint, then
 complete through required checks. All 79 web-package tests pass. Browser controls,
 automatic adviser routing and additional time/concurrency faults remain open.
+
+Browser controls now show exact question basis, configured eligible responders,
+answer/evidence form and explicit resume. Credential is cleared before submission;
+lock removes hotline contents. The retained browser observation demonstrates
+credential refusal, answer-without-start, resume, completion and generated report.
+No real-provider or secure-human qualification is claimed.

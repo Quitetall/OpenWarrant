@@ -147,11 +147,21 @@ class Answers:
     def listing(self):
         with self.executor.lock:
             result = []
-            for r in self.executor.records().values():
+            records = self.executor.records()
+            for r in records.values():
                 if r.get("question"):
                     q = r["question"]
+                    candidates = [{"id": actor["id"], "kind": actor["kind"]} for actor in self.rows
+                                  if (not q["question"]["direct_human"] or actor["kind"] == "human")
+                                  and (q["question"]["kind"] != "governing"
+                                       or q["warrant_id"] in actor["governing_warrants"])]
+                    children = [child["attempt_id"] for child in records.values()
+                                if child.get("resume_from") == r["attempt_id"]]
+                    require(len(children) <= 1, "Multiple retained resume claims")
                     result.append({"question": q, "question_sha256": digest(q),
-                                   "answer": self.read(r["attempt_id"], q)})
+                                   "answer": self.read(r["attempt_id"], q),
+                                   "eligible_responders": sorted(candidates, key=lambda a: a["kind"] != "ai"),
+                                   "resumed_attempt": children[0] if children else None})
             return {"questions": result}
 
     def submit(self, attempt_id, fields, credential):
