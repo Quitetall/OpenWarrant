@@ -3,7 +3,7 @@
 OW-WAR-0107 is in progress. Verification does not award the assurance mark.
 Prototype completion remains available without verification.
 
-## Loop driver under integration
+## Optional automatic loops
 
 `verifier_loop.Loop` advances one dispatch per tick from an exact root execution
 attempt. Deterministic verification identities reuse retained claims across driver
@@ -12,11 +12,27 @@ dispatches eligible bounded repairs and follows retained repair/resume lineage.
 Passing checks still leave `qualified: false`; current policy and candidate are
 rechecked before reporting `checks_passed`.
 
-The host must schedule ticks and provide a read-only receipt lookup. This lookup
-must not launch a paid provider or hide cost. No CLI option or daemon currently
-enables this driver. Missing receipts wait; uncertain workers never relaunch;
-nonrepairable results and human decisions require attention. Service integration
-and external harness receipt production remain unfinished.
+Start the service with `--verifier-receipts PATH` in addition to its verifier
+configuration and issuer. This enables loop API access and a two-second scheduler;
+it does not enroll attempts automatically. Missing receipts wait; uncertain workers
+never relaunch; nonrepairable results and human decisions require attention.
+External harness receipt production and browser loop controls remain unfinished.
+
+- `POST /api/verification-loops` accepts exactly `attempt_id` and boolean `enabled`.
+  Enable opts a completed, stopped root attempt into verification and eligible
+  repairs. Disable pauses future dispatch; an already launched process continues
+  under its existing bounds. Only one root loop per Warrant may be enabled.
+- `GET /api/verification-loops` reports retained intent and the scheduler's latest
+  observation. Observations are absent after restart until another tick; they are
+  not fabricated from old cache. Results remain unqualified.
+
+Enable/pause records form append-only digest-linked histories. Exact repeated
+requests do not add records. Enabled intent resumes on service restart; the
+driver still refuses to relaunch consumed or uncertain claims. Corrupt history
+stops scheduling. Both routes use existing local session authentication and origin
+checks. Limits are 64 enrolled roots and 1,024 intent revisions per root. The
+scheduler owns no credentials for producing protection signatures and launches no
+receipt producer or paid provider.
 
 `verifier_receipts.ReceiptInbox` supplies the read-only lookup. The operator selects
 an existing directory; the adapter pins its directory handle. The harness publishes

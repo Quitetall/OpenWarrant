@@ -111,3 +111,12 @@ FIFO, oversized envelope, injected field, path traversal and replaced directory.
 The adapter does not authenticate the envelope: ordinary dispatch still checks
 the signed receipt against the pinned issuer and current claim. Configured parent
 paths, issuer custody and sandbox deployment remain operator responsibilities.
+
+Automatic-loop enable/pause requests use the reference service's authenticated
+session and existing origin controls. They select an existing execution attempt,
+not a command, configuration path or issuer. Append-only intent history is checked
+before polling; corruption prevents dispatch. Pause is serialized with ticks and
+stops future launches, not processes already dispatched. Tests cover authenticated
+HTTP configuration, field injection, duplicate intent, background repair/recheck,
+pause across scheduler restart and corrupt-history refusal. Intent digests detect
+corruption; protected control storage remains required against hostile rewriting.

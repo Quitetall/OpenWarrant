@@ -23,6 +23,8 @@ from drafting import Drafter
 from hotline import Answers, HotlineError, digest as hotline_digest
 from advice import Adviser
 from verifier_service import Verification
+from verifier_scheduler import Scheduler
+from verifier_receipts import ReceiptInbox
 
 BODY_LIMIT = 64 * 1024
 FILE_LIMIT = 1024 * 1024
@@ -410,6 +412,7 @@ class Server(ThreadingMixIn, HTTPServer):
         self.drafter = None
         self.hotline = None
         self.verification = None
+        self.verification_loops = None
         self.slots = threading.BoundedSemaphore(8)
         super().__init__(address, Handler)
 
@@ -490,6 +493,10 @@ class Handler(BaseHTTPRequestHandler):
             ):
                 raise Refusal(401, "Unlock with this service session token")
             store = self.server.store
+            if self.command == 'GET' and self.path == '/api/verification-loops':
+                if self.server.verification_loops is None:
+                    raise Refusal(409, 'Verification loops not configured')
+                return self.reply(200, self.server.verification_loops.listing())
             verification = re.fullmatch(r"/api/verification/([0-9a-f-]{36})", self.path)
             repair_preview = re.fullmatch(r"/api/verification/([0-9a-f-]{36})/repair", self.path)
             verifier_dispute = re.fullmatch(r"/api/verification/([0-9a-f-]{36})/dispute", self.path)
@@ -567,7 +574,7 @@ class Handler(BaseHTTPRequestHandler):
             if (
                 self.command == "POST" and (hotline_answer or hotline_resume or hotline_reconfirm or verifier_start or repair_preview or verifier_rebuttal or verifier_dispute or verifier_reverify)
             ) or (
-                self.command == "POST" and self.path in ("/api/warrants", "/api/runs", "/api/admission", "/api/drafting", "/api/verification")
+                self.command == "POST" and self.path in ("/api/warrants", "/api/runs", "/api/admission", "/api/drafting", "/api/verification", "/api/verification-loops")
             ) or (self.command == "PUT" and match):
                 if (
                     self.headers.get_all("Content-Type") != ["application/json"]
@@ -585,6 +592,10 @@ class Handler(BaseHTTPRequestHandler):
                 if len(body) != size:
                     raise Refusal(400, "Incomplete request")
                 fields = decode(body)
+                if self.path == '/api/verification-loops':
+                    if self.server.verification_loops is None:
+                        raise Refusal(409, 'Verification loops not configured')
+                    return self.reply(200, self.server.verification_loops.configure(fields))
                 if verifier_reverify:
                     if self.server.verification is None:
                         raise Refusal(409, "Verifier not configured")
@@ -679,6 +690,7 @@ def main():
     parser.add_argument("--adviser-config", type=Path)
     parser.add_argument("--verifier-config", type=Path)
     parser.add_argument("--verifier-issuer", type=Path)
+    parser.add_argument("--verifier-receipts", type=Path)
     parser.add_argument("--completion-word", default="WORK_DONE")
     parser.add_argument("--report-detail", choices=("minimal", "full"), default="full")
     args = parser.parse_args()
@@ -705,6 +717,11 @@ def main():
         if server.executor is None or not args.verifier_config or not args.verifier_issuer:
             parser.error("verifier requires execution configuration, verifier configuration and pinned issuer file")
         server.verification = Verification(server.executor, args.verifier_config, args.verifier_issuer, server.hotline)
+    if args.verifier_receipts:
+        if server.verification is None:
+            parser.error('receipt inbox requires configured verification')
+        receipts = ReceiptInbox(args.verifier_receipts, decode)
+        server.verification_loops = Scheduler(server.verification, receipts)
     if args.adviser_config:
         if server.hotline is None:
             parser.error("adviser requires hotline configuration")
@@ -714,8 +731,13 @@ def main():
     publish(args.session_file, (json.dumps(info) + "\n").encode())
     print(info["url"], flush=True)
     try:
+        if server.verification_loops:
+            server.verification_loops.start()
         server.serve_forever()
     finally:
+        if server.verification_loops:
+            server.verification_loops.close()
+            server.verification_loops.receipts.close()
         server.server_close()
         os.close(store.lock_fd)
 

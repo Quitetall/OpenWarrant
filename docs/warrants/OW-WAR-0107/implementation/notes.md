@@ -452,3 +452,27 @@ not deployed sandbox enforcement or human acceptance.
 Service scheduling, opt-in loop API/browser controls and real harness integration
 remain outstanding. This adds the receipt lookup seam; it does not enable an
 unattended service or close OW-WAR-0107.
+
+## Opt-in service loop scheduling
+
+Added a background scheduler, append-only enable/pause intent histories and
+GET/POST /api/verification-loops. The operator enables the facility with
+--verifier-receipts PATH alongside verifier configuration; each completed root
+attempt must then be explicitly enrolled. Browser/API callers cannot select
+commands or inbox paths. Duplicate requests retain one intent revision. Pause
+serializes with ticks and prevents future launches, while existing processes stay
+under their original bounds. Enabled histories are read on restart; observations
+start empty and consumed/uncertain claims still cannot relaunch.
+
+Tests demonstrate background FAIL -> repair -> PASS, pause across scheduler
+restart, HTTP authentication and exact-field refusal, missing-receipt waiting,
+registration without immediate dispatch, and corrupt-history refusal. Full web
+suite: 188 tests passed in 57.213 seconds using
+OW_TEST_WAR=/mnt/4tb/tmp/ow-question-integrity/target/debug/war and unittest discover.
+Evidence: implementation/scheduler-tests.log. Python syntax and diff whitespace
+checks also passed.
+
+Browser loop controls, external harness protection production, wider lifecycle
+qualification and full release gates remain unfinished. The synthetic receipt
+fixture does not prove real deployment isolation or human acceptance. No running
+user service was reconfigured or restarted. OW-WAR-0107 remains open.
