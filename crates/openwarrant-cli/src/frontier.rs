@@ -76,6 +76,15 @@ fn stage_events(dir: &camino::Utf8Path) -> Result<(BTreeSet<String>, BTreeSet<St
         }
         Ok(_) => {}
     }
+    let metadata = std::fs::metadata(&path).map_err(|source| RepoError::Io {
+        context: format!("could not inspect {path}"),
+        source,
+    })?;
+    if !metadata.is_file() {
+        return Err(RepoError::Message(format!(
+            "{path}: journal must be a regular file"
+        )));
+    }
     // The legacy loader treats non-files as absent. Admission must distinguish
     // missing history from damaged containers and dangling links.
     let text = std::fs::read_to_string(&path).map_err(|source| RepoError::Io {

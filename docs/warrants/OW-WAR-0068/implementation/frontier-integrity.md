@@ -16,3 +16,5 @@ of all OW68 skill/runtime obligations, or a unified execution permission model.
 Validation: public CLI regression covers readable positive fixture, malformed
 journal, directory container, absent journal and malformed milestones. Focused
 unit test and Rust 1.97.1 Clippy also pass. Full gate pending at this checkpoint.
+
+Initial full gate failed on stale D-002 delivery digest and dependent corpus tests. D-002 now records the new unverified implementation, preserving the old digest as an input; prior full record remains in parent Git history. Non-file journals are rejected before reading to avoid special-file hangs. Full gate rerun required.

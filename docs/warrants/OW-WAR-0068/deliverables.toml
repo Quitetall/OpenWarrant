@@ -39,13 +39,13 @@ provenance_required = true
 obligation_refs = ["OBL-002"]
 
 [deliverable.provenance]
-producer = "claude"
-producing_attempt = "OW-WAR-0068/attempt-1"
+producer = "codex"
+producing_attempt = "OW-WAR-0068/frontier-integrity"
 contract_digest = "unrecorded"
-input_digests = []
-tool_or_runtime_identity = "the performer, after mattpocock/skills 3cca18b (MIT)"
+input_digests = ["sha256:490d90ae8c705016a54025488d918e9bc363b2a0f6dce70056ea98716ff65481"]
+tool_or_runtime_identity = "Codex; Rust 1.97.1; frontier integrity hardening; unverified"
 creation_method = "authored"
-content_digest = "sha256:490d90ae8c705016a54025488d918e9bc363b2a0f6dce70056ea98716ff65481"
+content_digest = "sha256:9a861e450c21642ccd0b6bef65ed9fc811b8532a336c121e542e7cf4e057a792"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"

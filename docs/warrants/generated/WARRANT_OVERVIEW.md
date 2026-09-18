@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-94 Warrant(s) in this repository.
+95 Warrant(s) in this repository.
 
 ## Summary
 
@@ -105,6 +105,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0096](docs/warrants/OW-WAR-0096/manifest.toml) | Authenticate authority changes through signed transitions and protected activation | `draft` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0097](docs/warrants/OW-WAR-0097/manifest.toml) | Read-only repository doctor and actionable readiness diagnostics | `draft` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0098](docs/warrants/OW-WAR-0098/manifest.toml) | Share reference workflow start checks with read-only admission preview | `draft` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0099](docs/warrants/OW-WAR-0099/manifest.toml) | Preserve frontier integrity when stage history is damaged | `draft` | `current` | `valid` | `basic` | 1M / 1S |
 
 ## Claimed SAS requirement coverage
 
