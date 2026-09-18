@@ -1,10 +1,10 @@
 {
   "schema": "oh.war/viewer-work-report/v1",
   "warrant": "OW-WAR-0106",
-  "work_state": "completed",
+  "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "revision": "5dd667d38baf6f49f7e951d6e3366b198c561cd1",
-  "summary": "Hotline, stage scheduling and checkpoint-safe resume integrated through PR 114. Local 14-step/308-plant gate and exact-head hosted checks passed; synthetic HTTP/process/browser evidence retained. Implementation complete, unverified.",
+  "revision": "5e503d08c92a46b4ded912c31059da3c1f8426a5",
+  "summary": "Hotline, internal stage dispatch, browser selection and exact checkpoint answer reconfirmation implemented. Synthetic HTTP/process/browser evidence retained. Current full gate and integration pending.",
   "notes": "docs/warrants/OW-WAR-0106/implementation/notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0106/implementation/contracts-tests.log",
@@ -17,13 +17,11 @@
     "docs/warrants/OW-WAR-0106/implementation/stage-browser-observation.md",
     "docs/warrants/OW-WAR-0106/implementation/reconfirmation-browser-observation.md",
     "docs/warrants/OW-WAR-0106/implementation/reconfirmation-regression.log",
-    "docs/warrants/OW-WAR-0106/implementation/reconfirmation-focused.log",
-    "docs/warrants/OW-WAR-0106/implementation/completion-audit/pr114-observed.json",
-    "docs/warrants/OW-WAR-0106/implementation/completion-audit/bonsai-evidence.json",
-    "docs/warrants/OW-WAR-0106/implementation/completion-audit/gate-5e503d0-pass.log.gz"
+    "docs/warrants/OW-WAR-0106/implementation/reconfirmation-focused.log"
   ],
   "next_steps": [
-    "OW-WAR-0107: independent verification, bounded repair and escalation",
-    "Real-provider quality, protected deployment and human assurance remain separate"
+    "Finish current full repository gate",
+    "Integrate exact reviewed candidate and audit completion",
+    "Keep real-provider and secure human qualification separate"
   ]
 }

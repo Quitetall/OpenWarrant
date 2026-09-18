@@ -1,0 +1,20 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0098",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "753a1f02fd5575e56b1597f432e7f4c4f6fcb5e5",
+  "summary": "Policy-bound completion follow-up implemented: reproduced stale dependency admission and aligned admission/progress eligibility; package tests pass, exact-head gate pending. Historical completion remains retained.",
+  "notes": "docs/warrants/OW-WAR-0098/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0098/implementation/evidence/gate.log",
+    "docs/warrants/OW-WAR-0098/implementation/evidence/web-tests.log",
+    "docs/warrants/OW-WAR-0098/implementation/evidence/review.md",
+    "docs/warrants/OW-WAR-0098/implementation/policy-completion/red.log",
+    "docs/warrants/OW-WAR-0098/implementation/policy-completion/tests.log"
+  ],
+  "next_steps": [
+    "Pass exact-head integration checks and merge the policy eligibility fix",
+    "Independent verification and remaining global CLI admission remain separate"
+  ]
+}
