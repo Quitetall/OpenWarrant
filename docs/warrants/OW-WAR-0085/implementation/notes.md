@@ -29,3 +29,7 @@ was restored. Native macOS Phase 1 evidence remains missing, so full phase exit
 stays blocked. LAMU reviewed the correction commit PASS WITH NITS: receipt names
 are explicit caller output paths, the referenced file exists, and Linux success
 does not justify marking the entire phase complete or Verified.
+
+## Native follow-up (2026-09-18)
+
+Linux and macOS now pass the same complete Phase 1 runner at PR merge subject `a9ae33bba7864d84f77eae034eb990eab2d9df60`. Both receipts bind identical 4,788-file before/after inventories and case assignments; all 11 checks pass. See [comparison and exact receipts](native-20260918/comparison.json). Earlier missing-platform statements above describe their original observations. Native platform collection is no longer missing at this subject. Final independent phase review and acceptance remain open; no Verified mark is claimed.

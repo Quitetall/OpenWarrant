@@ -46,8 +46,11 @@ class Inventory(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             binary=Path(tmp)/'custom-target'/'debug'/'war'
             binary.parent.mkdir(parents=True);binary.write_bytes(b'fixture executable identity')
+            alias=Path(tmp)/'alias'
+            alias.symlink_to(binary.parent,target_is_directory=True)
+            binary=alias/'war'
             line=json.dumps({'reason':'compiler-artifact','target':{'name':'war'},'executable':str(binary)})
-            self.assertEqual(built_executable(line),binary)
+            self.assertEqual(built_executable(line),binary.resolve(strict=True))
             with self.assertRaisesRegex(ValueError,'build.executable'):
                 built_executable(json.dumps({'reason':'build-finished','success':True}))
 
