@@ -24,23 +24,23 @@ obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
 
 [[scope]]
 path_glob = "apps/openwarrant-web/server.py"
-obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
 
 [[scope]]
 path_glob = "apps/openwarrant-web/index.html"
-obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
 
 [[scope]]
 path_glob = "apps/openwarrant-web/test_workflow.py"
-obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
 
 [[scope]]
 path_glob = "apps/openwarrant-web/test_execution.py"
-obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
 
 [[scope]]
 path_glob = "apps/openwarrant-web/README.md"
-obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
 
 [[scope]]
 path_glob = "docs/warrants/OW-WAR-0069/implementation/**"
@@ -61,3 +61,27 @@ obligation_refs = ["OBL-003"]
 [[scope]]
 path_glob = "docs/warrants/OW-WAR-0068/attempts/batch-grill-20260918/**"
 obligation_refs = ["OBL-003"]
+
+[[scope]]
+path_glob = "crates/openwarrant-cli/src/progress_viewer.rs"
+obligation_refs = ["OBL-004"]
+
+[[scope]]
+path_glob = "crates/openwarrant-cli/src/progress_viewer/**"
+obligation_refs = ["OBL-004"]
+
+[[scope]]
+path_glob = "docs/design/visual-roadmap.md"
+obligation_refs = ["OBL-004"]
+
+[[scope]]
+path_glob = "docs/roadmap/view.json"
+obligation_refs = ["OBL-004"]
+
+[[scope]]
+path_glob = "crates/openwarrant-cli/tests/progress_viewer.rs"
+obligation_refs = ["OBL-004"]
+
+[[scope]]
+path_glob = ".github/workflows/reference-web-checks.yml"
+obligation_refs = ["OBL-004"]

@@ -1027,6 +1027,47 @@ print(json.dumps({'schema':'oh.war/execution-question/v1','attempt_id':r['attemp
     # Existing corpus-inventory test expects the real OpenWarrant repository.
     test_project_inventory_keeps_legacy_and_work_separate = None
 
+    def test_next_work_reuses_admission_without_dispatch(self):
+        record = self.eligible()
+        status, listing = self.call("/api/next-work")
+        self.assertEqual(status, 200, listing)
+        self.assertFalse(listing["dispatch_permitted"])
+        row = next(r for r in listing["rows"] if r["warrant_id"] == record["id"])
+        self.assertEqual(row["warrant_title"], record["title"])
+        preview = self.call("/api/admission", "POST", {"warrant_id": record["id"], "source_sha256": record["source_sha256"]})[1]
+        self.assertEqual((row["state"], row["reason"]), (preview["state"], preview["reason"]))
+        self.assertFalse((self.repo / ".git/openwarrant-execution").exists())
+        self.assertEqual(self.call("/api/runs")[1]["runs"], [])
+
+    def test_next_work_authentication_and_verified_start_refusal(self):
+        record = self.eligible()
+        self.assertEqual(self.call("/api/next-work", headers={"Authorization":"Bearer wrong"})[0], 401)
+        self.stop()
+        self.config["warrants"][record["id"]]["verified_start"] = True
+        self.start()
+        status, listing = self.call("/api/next-work")
+        self.assertEqual(status, 200)
+        row = next(r for r in listing["rows"] if r["warrant_id"] == record["id"])
+        self.assertEqual(row["state"], "blocked")
+        self.assertIn("Verified-start", row["reason"])
+        self.assertFalse(row["dispatch_permitted"])
+        self.assertEqual(self.call("/api/runs")[1]["runs"], [])
+
+    def test_next_work_preserves_stage_dependencies_and_blocked_order(self):
+        fields = self.staged()
+        status, listing = self.call("/api/next-work")
+        self.assertEqual(status, 200, listing)
+        rows = {r["stage"]: r for r in listing["rows"]}
+        self.assertEqual(rows["api"]["state"], "ready")
+        self.assertEqual(rows["ui"]["state"], "blocked")
+        self.assertEqual(rows["ui"]["dependencies"], ["api"])
+        for stage, row in rows.items():
+            preview = self.call("/api/admission", "POST", {**fields, "stage": stage})[1]
+            self.assertEqual(row["state"], preview["state"])
+            self.assertEqual(row["reason"], preview["reason"])
+            self.assertFalse(row["dispatch_permitted"])
+        self.assertEqual(self.call("/api/runs")[1]["runs"], [])
+
 
 if __name__ == "__main__":
     import unittest

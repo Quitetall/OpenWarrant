@@ -3,18 +3,20 @@
   "warrant": "OW-WAR-0104",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "revision": "7ba66ae6f635d0f746e7ca8e85a261a2cf4d3f22",
-  "summary": "CLI and web board implemented; full isolated gate passes 14/14 with 308 controls, 47 web tests pass, browser stage/approval rendering and failed-refresh clearing observed. Offline-file rendering and final integration remain open.",
-  "notes": "docs/warrants/OW-WAR-0069/implementation/board-notes.md",
+  "revision": "f714298340a28fe3ca3d8499da5ef37ed293a20c",
+  "summary": "Read-only board, configurable roadmap and next-work preview implemented, unverified. Roadmap covers 106 records with exact counts and conservative percentages. Eight viewer tests and four calculation tests pass; narrow layout, keyboard, hostile text and owner-reported offline roadmap controls observed. Legacy-board offline observation and latest integration checks remain open.",
+  "notes": "docs/warrants/OW-WAR-0104/implementation/roadmap-progress.md",
   "evidence": [
     "docs/warrants/OW-WAR-0069/implementation/board-notes.md",
     "docs/warrants/OW-WAR-0104/implementation/gate-7ba66ae.log.gz",
     "docs/warrants/OW-WAR-0069/implementation/board-web-tests.log",
-    "docs/warrants/OW-WAR-0069/implementation/board-browser-qa.md"
+    "docs/warrants/OW-WAR-0069/implementation/board-browser-qa.md",
+    "docs/warrants/OW-WAR-0104/implementation/roadmap-gate-9464101.log.gz",
+    "docs/warrants/OW-WAR-0104/implementation/offline-roadmap-human-observation.json"
   ],
   "next_steps": [
-    "Finish exact-head CI and merge board continuation",
-    "Confirm offline-file rendering and reconcile remaining legacy OW69 evidence",
-    "Independent verification and human qualification remain separate"
+    "Record separate legacy-board offline rendering observation; roadmap observation covers a different artifact",
+    "Finish latest-head CI and integrate PR129",
+    "Keep OW69 historical reconciliation separate; independent assurance and human signatures remain separate"
   ]
 }

@@ -328,3 +328,125 @@ fn json_snapshot_reuses_report_validation_and_preserves_unknown() {
     assert!(invalid["reports"]["VIEW-WAR-0001"]["report"].is_null());
     assert!(invalid["reports"]["VIEW-WAR-0001"]["error"].is_string());
 }
+
+#[test]
+fn configured_roadmap_changes_snapshot_digest_and_refuses_dangling_warrants() {
+    let fixture = Fixture::new();
+    let config = fixture.0.join("docs/roadmap/view.json");
+    std::fs::create_dir_all(config.parent().unwrap()).unwrap();
+    let capture = || {
+        Command::new(env!("CARGO_BIN_EXE_war"))
+            .current_dir(&fixture.0)
+            .args(["progress", "--snapshot", "--json"])
+            .output()
+            .unwrap()
+    };
+    let before = capture();
+    assert!(before.status.success());
+    let before: serde_json::Value = serde_json::from_slice(&before.stdout).unwrap();
+    let mut roadmap = serde_json::json!({"schema":"oh.war/roadmap-view/v1","title":"Release",
+        "nodes":[{"id":"feature","parent":null,"title":"<script>bad()</script>","outcome":"Useful",
+        "warrants":["VIEW-WAR-0001"]}]});
+    std::fs::write(&config, serde_json::to_vec(&roadmap).unwrap()).unwrap();
+    let after = capture();
+    assert!(after.status.success());
+    let after: serde_json::Value = serde_json::from_slice(&after.stdout).unwrap();
+    assert_eq!(after["result"]["roadmap"], roadmap);
+    assert!(after["result"]["stage_frontier"].is_object());
+    assert!(after["result"]["stage_frontier_error"].is_null());
+    assert_ne!(
+        before["result"]["record_digest"],
+        after["result"]["record_digest"]
+    );
+    let html = fixture.0.join("roadmap.html");
+    fixture.war(&["progress", "--html", html.to_str().unwrap()]);
+    assert!(
+        !std::fs::read_to_string(html)
+            .unwrap()
+            .contains("<script>bad()</script>")
+    );
+    roadmap["nodes"][0]["documents"] = serde_json::json!(["../outside.md"]);
+    std::fs::write(&config, serde_json::to_vec(&roadmap).unwrap()).unwrap();
+    let unsafe_link = capture();
+    assert!(!unsafe_link.status.success());
+    assert!(String::from_utf8_lossy(&unsafe_link.stdout).contains("without traversal"));
+    roadmap["nodes"][0]["documents"] = serde_json::json!([]);
+    roadmap["nodes"][0]["warrants"] = serde_json::json!(["VIEW-WAR-9999"]);
+    std::fs::write(&config, serde_json::to_vec(&roadmap).unwrap()).unwrap();
+    let refused = capture();
+    assert!(!refused.status.success());
+    assert!(String::from_utf8_lossy(&refused.stdout).contains("unknown Warrant"));
+}
+
+#[test]
+fn roadmap_keeps_frontier_error_visible_instead_of_empty_ready_state() {
+    let fixture = Fixture::new();
+    let path = fixture.0.join("docs/roadmap/view.json");
+    std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+    std::fs::write(&path, r#"{"schema":"oh.war/roadmap-view/v1","title":"Test","nodes":[{"id":"feature","title":"Feature","outcome":"Scope","warrants":["VIEW-WAR-0001"]}]}"#).unwrap();
+    let output = || {
+        Command::new(env!("CARGO_BIN_EXE_war"))
+            .current_dir(&fixture.0)
+            .args(["progress", "--snapshot", "--json"])
+            .output()
+            .unwrap()
+    };
+    let before = output();
+    assert!(before.status.success());
+    let before: serde_json::Value = serde_json::from_slice(&before.stdout).unwrap();
+    std::fs::write(
+        fixture.0.join("docs/warrants/VIEW-WAR-0001/journal.jsonl"),
+        "not a journal\n",
+    )
+    .unwrap();
+    let after = output();
+    assert!(
+        after.status.success(),
+        "{}",
+        String::from_utf8_lossy(&after.stdout)
+    );
+    let after: serde_json::Value = serde_json::from_slice(&after.stdout).unwrap();
+    assert!(after["result"]["stage_frontier"].is_null());
+    assert!(
+        after["result"]["stage_frontier_error"]
+            .as_str()
+            .unwrap()
+            .contains("journal")
+    );
+    assert_ne!(
+        before["result"]["record_digest"],
+        after["result"]["record_digest"]
+    );
+    assert_eq!(after["result"]["roadmap"]["title"], "Test");
+}
+
+#[test]
+fn roadmap_document_link_serves_exact_source_and_invalid_refresh_stays_stale() {
+    let fixture = Fixture::new();
+    let path = fixture.0.join("docs/roadmap/view.json");
+    std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+    std::fs::write(
+        fixture.0.join("architecture.md"),
+        "# Architecture\nExact local source.\n",
+    )
+    .unwrap();
+    std::fs::write(&path, r#"{"schema":"oh.war/roadmap-view/v1","title":"Test","nodes":[{"id":"feature","title":"Feature","outcome":"Scope","warrants":["VIEW-WAR-0001"],"documents":["architecture.md"]}]}"#).unwrap();
+    let server = Server::start(&fixture);
+    let before = server.data();
+    let link = before["snapshot"]["links"]["architecture.md"]
+        .as_str()
+        .unwrap();
+    let response = server.request("GET", link, &server.host, "");
+    assert!(response.starts_with("HTTP/1.1 200"));
+    assert_eq!(
+        response.split_once("\r\n\r\n").unwrap().1,
+        "# Architecture\nExact local source.\n"
+    );
+    std::fs::write(&path, "{broken roadmap").unwrap();
+    let stale = server.until(|data| data["error"].is_string());
+    assert_eq!(
+        stale["snapshot"]["record_digest"],
+        before["snapshot"]["record_digest"]
+    );
+    assert!(stale["error"].as_str().unwrap().contains("Roadmap"));
+}
