@@ -20,3 +20,27 @@ proposal, not stable standard or human-accepted amendment.
 
 Next: assemble actual retained categories, implement isolated import and source-
 detached re-export, then replace false CLI proof and test KF interoperability.
+
+## Inert filesystem import and detached re-export
+
+`war archive import INPUT DESTINATION [--evidence DIRECTORY]` now decodes the
+experimental archive, reconnects actual bytes, and creates a new private inert
+bundle. Descriptor-relative no-follow opens and exclusive creation protect paths.
+Completion marker is written last; partial failures retain diagnostic files and
+cannot re-export as complete. Existing destinations and output files refuse.
+
+`war archive reexport DIRECTORY OUTPUT` re-reads every imported record and checks
+its digest, including originally embedded records. Original source archive and
+external evidence directory can be removed before re-export; resulting canonical
+archive bytes remain identical. No repository configuration or authority is
+activated. JSON mode returns the common report envelope with authority_activated
+false. Linux/macOS implementation only; no Windows capability claim.
+
+Four actual CLI integration tests pass: detached embedded/history-label fixture,
+external evidence with source deletion, overwrite/tampering/symlink refusal, and
+machine envelope. Strict CLI all-target Clippy passes. History labels here are
+synthetic bytes, not real signed supersession/dispute/annulment qualification.
+
+Still missing: actual repository category assembly, IR reconstruction from imported
+sources, full historical selection, legacy export claim repair, accepted format
+decision, and real empty-KF-instance round trip. OW111 remains incomplete.

@@ -48,6 +48,7 @@ mod perform;
 mod pins;
 mod plan;
 mod preflight_cmd;
+mod preservation;
 mod progress;
 mod progress_viewer;
 mod questions;
@@ -495,6 +496,12 @@ enum Command {
         /// It must always fail; a build where this succeeds is the defect.
         #[arg(long)]
         attempt_promotion: bool,
+    },
+
+    /// Experimental preservation transport. Imported records grant no authority.
+    Archive {
+        #[command(subcommand)]
+        cmd: preservation::Command,
     },
 
     /// §68 portable export and round trip.
@@ -1037,6 +1044,11 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 Ok(EXIT_OK)
             }
         },
+        Command::Archive { cmd } => {
+            let (human, result) = preservation::run(cmd)?;
+            output::emit(mode, "archive", &human, result);
+            Ok(EXIT_OK)
+        }
         Command::Export {
             alias,
             force,
