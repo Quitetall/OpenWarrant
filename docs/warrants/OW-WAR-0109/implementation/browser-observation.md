@@ -22,3 +22,10 @@ subsequent b908185 caches unchanged queue snapshots to preserve focus. That patc
 has syntax evidence; follow-up direct focus observation remains pending. Optional
 project board, hotline and verifier were absent in this tiny repository fixture.
 This observation does not qualify those services or establish external isolation.
+
+Follow-up at b908185 (with later evidence-only commit present): fresh fixture
+50f9aed3-7e4d-49fe-a581-dd19a778444a queued to waiting-for-agent. Keyboard Tab moved
+focus to Cancel queued work. Later read-only DOM inspection after the polling
+interval still reported that button as document.activeElement, with waiting state
+unchanged. Enter cancelled the request. Fixture tab closed. This settles the
+previously pending direct focus observation for unchanged queue data.

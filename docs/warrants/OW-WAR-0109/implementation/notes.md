@@ -40,3 +40,10 @@ one completed stopped attempt and unverified labeling. Optional board/hotline/
 verifier services were absent in this tiny fixture; their qualification is not
 claimed. Browser polling replaced unchanged controls; preserve the unchanged
 queue DOM to avoid losing focus/click targets. Syntax checked after that fix.
+
+Additional real-executor admission audit passed five refusal cases: verified-start,
+unknown cost with mandatory cap, incomplete dependency, unknown previous writer and
+source changed after enqueue. Every case remains queued/blocked, creates no new
+attempt and never calls the availability probe. Eight queue tests passed overall.
+Follow-up browser observation confirms keyboard focus retained across unchanged
+polling and Enter cancellation succeeds.

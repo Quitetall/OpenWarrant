@@ -135,3 +135,45 @@ class QueueExecutionTests(unittest.TestCase):
         self.assertTrue(attempt['checks'])
         queue = DispatchQueue(executor, probe); queue.poll()
         self.assertEqual(len(executor.records()), 1)
+
+    def test_real_admission_gates_remain_binding_for_queued_work(self):
+        import os
+        import test_execution
+        from execution import Executor
+        from server import Store, SDK
+        cases = {'verified': 'Verified-start', 'cost': 'Unknown cost',
+                 'dependency': 'Required dependency', 'writer': 'Existing writer',
+                 'source': 'Changed subject'}
+        for case, reason in cases.items():
+            with self.subTest(case=case):
+                fixture = test_execution.ExecutionTests(); fixture.setUp()
+                try:
+                    draft = fixture.eligible(); fixture.stop()
+                    policy = fixture.config['warrants'][draft['id']]
+                    if case == 'verified': policy['verified_start'] = True
+                    if case == 'cost': fixture.config['cost_mode'] = 'unknown'
+                    if case == 'dependency': policy['dependencies'] = [draft['id']]
+                    fixture.config_path.write_text(json.dumps(fixture.config))
+                    store = Store(fixture.root / 'state', SDK(Path(test_execution.WAR), fixture.repo))
+                    try:
+                        executor = Executor(store, fixture.config_path, read_file, publish, decode)
+                        def probe(*args): self.fail('Blocked subject reached availability probe')
+                        queue = DispatchQueue(executor, type('Probe', (), {'observe': probe})())
+                        subject = {'warrant_id': draft['id'], 'source_sha256': draft['source_sha256']}
+                        queue.enqueue(subject)
+                        if case == 'writer':
+                            executor.save({'attempt_id':'00000000-0000-0000-0000-000000000002',
+                                'sequence':1,'warrant_id':draft['id'],'execution_state':'running',
+                                'work_state':'in-progress'})
+                        if case == 'source':
+                            fields = {key:draft[key] for key in ('id','title','outcome','scope','context')}
+                            fields['outcome'] = 'Changed outcome'
+                            store.create(fields, draft['source_sha256'])
+                        before = len(executor.records()); queue.poll()
+                        row = queue.listing()['requests'][0]
+                        self.assertEqual(row['state'], 'blocked', row)
+                        self.assertIn(reason, row['observation']['reason'])
+                        self.assertEqual(len(executor.records()), before)
+                        self.assertEqual(row['durable_state'], 'queued')
+                    finally: os.close(store.lock_fd)
+                finally: fixture.tearDown()
