@@ -1,0 +1,19 @@
+{
+  "provider_revision": "93e459d93ea34b85775a777a7ca0f01bc620f7f2",
+  "subject": "01a0b53a-3315-7ed3-a369-35af9154f89d",
+  "manifest_digest": "53c4a3a6005ee1ebce8c3c2c68587134944106316f22874e85b50faf8ef7d6b1",
+  "database_snapshot_digest": "d3de51700cb71b1e256faa6c98367e91aff739a04942bf0ec983535a7b827719",
+  "receipt_count": 1,
+  "unmapped_dispatches": [
+    "5787da4d63f5a776291a81c8d7d459621b14cc0657bca09797135c22aa047f86"
+  ],
+  "output_sha256": "73467947e94edf6bcae38017ccca8c24ab6a707ebd60bd2812af8fc6e03c21c4",
+  "offline_cli_exit": 0,
+  "untrusted_exit": 1,
+  "untrusted_stdout_empty": true,
+  "source_fixture_test": "/tmp/ow111-runtime-provider-capture.log",
+  "qualification": false,
+  "capture_test_revision": "ebd1c141",
+  "capture_test_sha256": "c04469a64a09d071107b5e867539319491470cb476ecac46409f9a6b58815b55",
+  "cli_js_sha256": "8a36ba039b1330574628690cb8ff7de07072dcc9f3d7d2b657c7360faca1c055"
+}
