@@ -27,7 +27,7 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 
 | Objective | Exit Warrant | Achieved | invalid | draft | ready | would_satisfy | resolved |
 |---|---|---|---|---|---|---|---|
-| roadmap://OW-PHASE-0: Telemetry shim | OW-WAR-0041 | blocked by OW-WAR-0039, OW-WAR-0041 | 0 | 1 | 1 | 0 | 0 |
+| roadmap://OW-PHASE-0: Telemetry shim | OW-WAR-0041 | blocked by OW-WAR-0039, OW-WAR-0041 | 0 | 0 | 2 | 0 | 0 |
 | roadmap://OW-PHASE-1: File-native WAR compiler | OW-WAR-0061 | recorded | 0 | 1 | 5 | 0 | 13 |
 | roadmap://OW-PHASE-2: Agent planner | OW-WAR-0042 | blocked by OW-WAR-0035, OW-WAR-0037, OW-WAR-0042, OW-WAR-0068, OW-WAR-0070 | 0 | 4 | 1 | 0 | 1 |
 | roadmap://OW-PHASE-3: ADR federation | OW-WAR-0043 | blocked by OW-WAR-0006, OW-WAR-0036, OW-WAR-0043, OW-WAR-0064 | 0 | 1 | 3 | 0 | 3 |
@@ -54,7 +54,7 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 
 ## Next actionable
 
-- `OW-WAR-0039` / `M2` / `STAGE-002` (roadmap://OW-PHASE-0) — M2 is unblocked; OW-WAR-0039 is draft; roadmap://OW-PHASE-0 is the lowest unachieved Objective
+- `OW-WAR-0039` / `M2` / `STAGE-002` (roadmap://OW-PHASE-0) — M2 is unblocked; OW-WAR-0039 is ready to resolve; roadmap://OW-PHASE-0 is the lowest unachieved Objective
 - `OW-WAR-0041` / `M3` / `STAGE-002` (roadmap://OW-PHASE-0) — M3 is unblocked; OW-WAR-0041 is ready to resolve; roadmap://OW-PHASE-0 is the lowest unachieved Objective
 
 ## What blocks resolution, by §56.1 requirement
@@ -63,7 +63,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | requirement | Warrants blocked |
 |---|---|
-| artifact digests verify | 42 |
+| artifact digests verify | 41 |
 | required deliverables exist | 41 |
 | every required gate has admissible result | 39 |
 | no blocker remains | 38 |
@@ -151,7 +151,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-084` | claimed | 0 | OW-WAR-0030 (complete), OW-WAR-0064 (partial) |
 | `WAR-SAS-RQ-085` | claimed | 0 | OW-WAR-0067 (partial), OW-WAR-0071 (partial), OW-WAR-0072 (partial) |
 
-## Warrants (95) — invalid 0 · draft 48 · ready_to_resolve 18 · would_satisfy 0 · resolved **29**
+## Warrants (95) — invalid 0 · draft 47 · ready_to_resolve 19 · would_satisfy 0 · resolved **29**
 
 | Warrant | rung | §38.6 | blocking unknowns | milestones evidenced | first unmet |
 |---|---|---|---|---|---|
@@ -193,7 +193,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0036` Implement normative-decision detection and proposed-ADR generation | ready_to_resolve | NOT satisfied | 0 | 2 of 3 | — |
 | `OW-WAR-0037` Implement `war diff`: semantic difference between revisions | ready_to_resolve | NOT satisfied | 0 | 1 of 2 | — |
 | `OW-WAR-0038` Implement the existing-ADR importer, preserving unknown classes | resolved | would satisfy | 0 | 4 of 4 | — |
-| `OW-WAR-0039` Implement telemetry, unit economics, and untracked-work detection | draft | NOT satisfied | 0 | 2 of 3 | artifact digests verify |
+| `OW-WAR-0039` Implement telemetry, unit economics, and untracked-work detection | ready_to_resolve | NOT satisfied | 0 | 2 of 3 | — |
 | `OW-WAR-0040` Implement the Liminal adapter and measured parity harness | draft | would satisfy | 1 | 4 of 4 | required deliverables exist |
 | `OW-WAR-0041` Discharge the Phase 0 exit: real telemetry distributions, with a baseline | ready_to_resolve | NOT satisfied | 0 | 3 of 4 | — |
 | `OW-WAR-0042` Discharge the Phase 2 exit: a vague request becomes a reviewable draft | draft | NOT satisfied | 0 | 1 of 4 | required deliverables exist |

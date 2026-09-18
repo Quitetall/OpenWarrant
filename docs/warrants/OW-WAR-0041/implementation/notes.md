@@ -32,3 +32,11 @@ need defined, observed inputs and calculations. A current measurement cannot
 prove the historical before-tuning baseline requirement. Independent review and
 any reconciliation of historical obligations remain outstanding; no completion
 or assurance disposition is asserted.
+
+## Initial integration failure
+
+The first full gate failed corpus and dependent battery cases because OW39 also
+delivers `telemetry.rs` and its unresolved delivery provenance still named old
+bytes. Both delivery records now retain the previous source digest as input and
+name the actual new content. No signed contract, resolved pin or original
+baseline changed. Full failed transcript retained in `initial-gate-failure.log.gz`.
