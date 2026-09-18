@@ -1003,6 +1003,38 @@ fn historical_shared_atoms_use_each_manifest_commit_not_current_bytes() {
         Limits::default(),
     )
     .unwrap();
+    let query = f.run(&["archive", "runtime-basis", "history.json", "--json"]);
+    assert!(
+        query.status.success(),
+        "{}",
+        String::from_utf8_lossy(&query.stderr)
+    );
+    let report: serde_json::Value = serde_json::from_slice(&query.stdout).unwrap();
+    let inventory = &report["result"]["stage_inventory"];
+    assert_eq!(inventory["history_retained"], true);
+    assert_eq!(inventory["execution_coverage_established"], false);
+    let declarations = inventory["declarations"].as_array().unwrap();
+    assert!(
+        declarations
+            .iter()
+            .any(|d| d["source"].as_str().unwrap().starts_with("docs/"))
+    );
+    for (commit, _) in &revisions {
+        let prefix = format!("__ow_archive__/history/{commit}/");
+        assert!(
+            declarations
+                .iter()
+                .any(|d| d["source"].as_str().unwrap().starts_with(&prefix))
+        );
+    }
+    for declaration in declarations {
+        let record = archive
+            .records
+            .iter()
+            .find(|r| r.path == declaration["source"].as_str().unwrap())
+            .unwrap();
+        assert_eq!(declaration["source_digest"], record.digest);
+    }
     // Rehashing modified index bytes cannot hide omitted or duplicate claims.
     for mutation in ["duplicate", "omit", "redirect"] {
         let mut changed = archive.clone();
@@ -1354,6 +1386,27 @@ fn runtime_query_basis_comes_from_reconstructed_sources_not_caller_identity() {
         64
     );
     assert_eq!(basis["contract_history_coverage"]["state"], "unavailable");
+    let stages = &basis["stage_inventory"];
+    assert_eq!(stages["history_retained"], false);
+    assert_eq!(stages["execution_coverage_established"], false);
+    let declarations = stages["declarations"].as_array().unwrap();
+    assert!(!declarations.is_empty());
+    for declaration in declarations {
+        let record = archive
+            .records
+            .iter()
+            .find(|r| r.path == declaration["source"].as_str().unwrap())
+            .unwrap();
+        let source =
+            openwarrant_core::attestation::base64_decode(record.base64.as_ref().unwrap()).unwrap();
+        assert_eq!(
+            declaration["source_digest"],
+            format!("sha256:{}", sha256_hex(&source))
+        );
+        let graph =
+            openwarrant_core::milestones::parse(std::str::from_utf8(&source).unwrap()).unwrap();
+        assert_eq!(declaration["graph"], serde_json::to_value(graph).unwrap());
+    }
     assert_eq!(basis["authority_activated"], false);
     assert_eq!(basis["qualified"], false);
     assert_eq!(std::fs::read(f.0.join("snapshot.json")).unwrap(), bytes);

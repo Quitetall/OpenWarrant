@@ -47,3 +47,17 @@ Type checking, focused lint, package build and measurement generation passed.
 PR7 full CI remains pending at recording time. Source basis authenticity remains
 a producer/caller responsibility; the provider adapter does not claim it.
 No independent disposition, signature, stage coverage or completion is granted.
+
+### Source-bound stage query inventory
+
+The runtime query basis now includes current and retained historical stage graphs,
+exact source digests, manifest locations and unresolved references. The source
+fixture yields two distinct declarations with no unresolved reference, but this
+is not runtime coverage: `execution_coverage_established` remains false.
+History availability is reported separately. No source graph implies that its
+stages ran, that a provider receipt exists, or that an actor had permission.
+
+Sixteen preservation integration tests passed on Rust 1.97.1. Source-detached
+query tests compare graph content and exact bytes; historical tests require each
+retained commit's declaration independently. Existing forged-subject/history
+refusals remain intact. All-target CLI Clippy with warnings denied passed.
