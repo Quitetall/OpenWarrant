@@ -1,0 +1,81 @@
+{
+  "schema": "oh.war/bonsai-evidence/v1",
+  "warrant": {
+    "alias": "OW-WAR-0109",
+    "contract_digest": "df55654b8dafa2a3a30814e50fb23dc30d0523cb6407d623aeb35da18949a6c8",
+    "scope_source": "docs/warrants/OW-WAR-0109/scope.toml",
+    "scope_source_digest": "sha256:4675177ed261e5b7b398b1ccb3cce1130bd519bc5a790f89d766f705963235c5"
+  },
+  "git": {
+    "repository": "github:Quitetall/OpenWarrant",
+    "base": "cd4e3985d113b4ab96d84c1610291625e3c09073",
+    "head": "84154a0adde1f3e35fe1c68bb3afc17bfc6cb748",
+    "tree": "a21766c120be23984e405f4ce1794026c996907f"
+  },
+  "policy": {
+    "path": "bonsai.toml",
+    "digest": "sha256:cd98584ef76d326881ea17eaa65904657063733c7ecf907f07c18ecfa5dfcd28"
+  },
+  "changed_paths": [
+    "apps/openwarrant-web/EXECUTION.md",
+    "apps/openwarrant-web/availability.py",
+    "apps/openwarrant-web/dispatch_queue.py",
+    "apps/openwarrant-web/execution.py",
+    "apps/openwarrant-web/index.html",
+    "apps/openwarrant-web/server.py",
+    "apps/openwarrant-web/test_availability.py",
+    "apps/openwarrant-web/test_dispatch_queue.py",
+    "apps/openwarrant-web/test_queue_http.py",
+    "docs/THREAT_MODEL.md",
+    "docs/warrants/OW-WAR-0109/atoms/10-intent.md",
+    "docs/warrants/OW-WAR-0109/atoms/20-basis.md",
+    "docs/warrants/OW-WAR-0109/atoms/40-work-order.md",
+    "docs/warrants/OW-WAR-0109/atoms/45-milestones.yaml",
+    "docs/warrants/OW-WAR-0109/atoms/60-assurance.md",
+    "docs/warrants/OW-WAR-0109/generated/WAR.json",
+    "docs/warrants/OW-WAR-0109/generated/WAR.md",
+    "docs/warrants/OW-WAR-0109/implementation/browser-fixture/32db4b34-3932-4091-a6e7-2841905363ad.1.json",
+    "docs/warrants/OW-WAR-0109/implementation/browser-fixture/32db4b34-3932-4091-a6e7-2841905363ad.2.json",
+    "docs/warrants/OW-WAR-0109/implementation/browser-fixture/queue/12f82481-341b-4b67-837a-54a8c768d946.1.json",
+    "docs/warrants/OW-WAR-0109/implementation/browser-fixture/queue/12f82481-341b-4b67-837a-54a8c768d946.2.json",
+    "docs/warrants/OW-WAR-0109/implementation/browser-fixture/queue/44cf1439-d4df-47ca-92bf-da4a4dadf170.1.json",
+    "docs/warrants/OW-WAR-0109/implementation/browser-fixture/queue/44cf1439-d4df-47ca-92bf-da4a4dadf170.2.json",
+    "docs/warrants/OW-WAR-0109/implementation/browser-fixture/queue/44cf1439-d4df-47ca-92bf-da4a4dadf170.3.json",
+    "docs/warrants/OW-WAR-0109/implementation/browser-observation.md",
+    "docs/warrants/OW-WAR-0109/implementation/gate-b908185.log.gz",
+    "docs/warrants/OW-WAR-0109/implementation/notes.md",
+    "docs/warrants/OW-WAR-0109/implementation/progress.json",
+    "docs/warrants/OW-WAR-0109/implementation/queue-9-tests.log",
+    "docs/warrants/OW-WAR-0109/implementation/queue-http-tests.log",
+    "docs/warrants/OW-WAR-0109/implementation/scope-audit.md",
+    "docs/warrants/OW-WAR-0109/implementation/web-207-tests.log",
+    "docs/warrants/OW-WAR-0109/journal.jsonl",
+    "docs/warrants/OW-WAR-0109/manifest.toml",
+    "docs/warrants/OW-WAR-0109/scope.toml",
+    "docs/warrants/generated/CORPUS_PENDING.json",
+    "docs/warrants/generated/CORPUS_STATUS.html",
+    "docs/warrants/generated/CORPUS_STATUS.json",
+    "docs/warrants/generated/CORPUS_STATUS.md",
+    "docs/warrants/generated/CORPUS_TIMELINE.json",
+    "docs/warrants/generated/WARRANT_OVERVIEW.md"
+  ],
+  "scope_findings": [],
+  "bonsai": {
+    "executable": "/home/runner/work/_temp/bonsai/target/release/bonsai",
+    "binary_digest": "sha256:28dd099eeaa638e5a1c6bcf5d4500fa9f4803e7fa94d84619a549b10193bf421",
+    "expected_source": "github:Quitetall/bonsai",
+    "expected_revision": "4c8cc1043cbc4d30d2c41cbb25ba1afe25c6ad7c",
+    "version": "bonsai 0.1.0",
+    "exit_code": 0,
+    "raw_output": {
+      "tool": "bonsai",
+      "version": "0.1.0",
+      "findings": []
+    },
+    "stderr": "",
+    "spawn_error": null
+  },
+  "architecture_findings": [],
+  "advisory_findings": [],
+  "verdict": "pass"
+}
