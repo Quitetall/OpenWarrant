@@ -51,3 +51,31 @@ materialization repair contract in this directory assigns provider implementatio
 and OpenWarrant validation without weakening engine controls. Provider repair is
 being prepared on blut-backends base 12d09c5d2f00ecf52394c11657c50b14bc04bb7c;
 no successful rerun or provider release is claimed yet.
+
+## Repaired provider observation
+
+Provider commit b10f46b (blut-cookbooks PR #1) copies source bytes into owned stage
+storage, computes count/hash there and atomically publishes. Behavior schema 2
+invalidates locator-only cache results; DatasetJsonl wire schema is unchanged.
+The focused test failed before the repair. Afterwards all 95 provider workspace
+tests, fmt and all-target clippy with warnings denied passed on Rust 1.97.1.
+
+Using the unchanged OW47 PlanSpec, real job 20260918-121422-409152626 completed
+both stages with zero cache hits. Jobs endpoint reports done/no PID. Artifact
+listing names both actual outputs; owned and filtered bytes equal the original
+three-record fixture. Exact binary, code-file hash, provider base/commit and
+locked engine source identities are retained. The binary was built before commit;
+its code-file hash was checked against the committed source. It is not described
+as an untouched build from the published release.
+
+The real lineage query remains in provider-owned task storage, referenced by path
+and digest. No lineage stream or graph is copied into the Warrant. A disposable
+OpenWarrant clone exercised the exact incompatible-port control: mapped input
+passed, war/not-a-kind failed with STAGE-003.corpus named, original fixture restored.
+Canonical signed atoms were never edited. See repaired-runtime-20260918/.
+
+Provider PR: https://github.com/Quitetall/blut-cookbooks/pull/1 . Hosted run
+35343738646 did not start either job because GitHub reported failed account
+payments or a spending-limit restriction. This is unavailable CI, not a code
+failure or pass. Integration/hosted validation and independent acceptance remain
+open; no historical verification or resolution was changed.
