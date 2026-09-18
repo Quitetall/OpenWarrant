@@ -1,0 +1,6 @@
+ERROR schemas.drift                      differs from what the types generate; run `war schemas` (cargo feature `schema`) and commit the result
+                                             → schemas/typescript/stage-dispatch.ts
+
+0 pass · 0 warn · 0 unknown · 1 error   (worst: ERROR)
+
+NOT READY
