@@ -237,8 +237,34 @@ fn actual_warrant_sources_reconstruct_after_source_repository_disappears() {
     );
     let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
     assert_eq!(report["result"]["complete"], false);
+    let captured = Archive::decode(
+        &std::fs::read(f.0.join("snapshot.json")).unwrap(),
+        Limits::default(),
+    )
+    .unwrap();
+    assert_eq!(
+        report["result"]["coverage"],
+        serde_json::to_value(&captured.coverage).unwrap()
+    );
+    let unavailable = report["result"]["unavailable_categories"]
+        .as_array()
+        .unwrap();
+    assert!(unavailable.iter().any(|v| v == "artifacts"));
+    assert!(!unavailable.iter().any(|v| v == "canonical IR"));
+
     std::fs::rename(f.0.join("docs"), f.0.join("original-docs-hidden")).unwrap();
-    success(f.run(&["archive", "inspect", "snapshot.json"]));
+    let inspected = f.run(&["archive", "inspect", "snapshot.json", "--json"]);
+    assert!(inspected.status.success());
+    let inspected: serde_json::Value = serde_json::from_slice(&inspected.stdout).unwrap();
+    assert_eq!(
+        inspected["result"]["coverage"],
+        report["result"]["coverage"]
+    );
+    assert_eq!(
+        inspected["result"]["unavailable_categories"],
+        report["result"]["unavailable_categories"]
+    );
+
     // Structural capture does not claim KF or historical completeness.
     refusal(
         f.run(&["archive", "import", "snapshot.json", "not-complete"]),
@@ -450,6 +476,7 @@ fn schema_pack_bytes_and_producer_identity_are_retained_and_cross_checked() {
     std::fs::rename(f.0.join("docs"), f.0.join("hidden-docs")).unwrap();
     std::fs::rename(f.0.join("schemas"), f.0.join("hidden-schemas")).unwrap();
     success(f.run(&["archive", "inspect", "snapshot.json"]));
+
     // Recomputing a record's digest cannot conceal inconsistency with retained pack.
     let member = archive
         .records

@@ -70,8 +70,13 @@ pub fn run(command: Command) -> Result<(String, serde_json::Value), Error> {
                     "archive subject differs from reconstructed Warrant".into(),
                 ));
             }
-            Ok(("Archived current sources reconstruct their IR. Historical/provider completeness remains separate.".into(),
-                serde_json::json!({"schema":"oh.war/preservation-result/v1-draft.1", "operation":"inspect", "source_reconstructed":true, "authority_activated":false})))
+            Ok((
+                format!(
+                    "Archived current sources reconstruct their IR. Coverage remains a source declaration. Unavailable categories: {}.",
+                    unavailable_categories(&archive).join(", ")
+                ),
+                serde_json::json!({"schema":"oh.war/preservation-result/v1-draft.1", "operation":"inspect", "source_reconstructed":true, "coverage":archive.coverage, "unavailable_categories":unavailable_categories(&archive), "authority_activated":false}),
+            ))
         }
         Command::Export {
             alias,
@@ -82,8 +87,13 @@ pub fn run(command: Command) -> Result<(String, serde_json::Value), Error> {
             let archive = assemble(&repo, &alias, limits, history)?;
             let bytes = archive.encode(limits)?;
             write_new(output.as_std_path(), &bytes)?;
-            Ok(("Captured current Warrant bytes. Unavailable categories remain open; preservation is incomplete.".into(),
-                serde_json::json!({"schema":"oh.war/preservation-result/v1-draft.1", "operation":"export", "archive_digest":archive.digest(limits)?, "output":output.as_str(), "complete":false, "authority_activated":false})))
+            Ok((
+                format!(
+                    "Captured current Warrant bytes. Preservation incomplete. Unavailable categories: {}.",
+                    unavailable_categories(&archive).join(", ")
+                ),
+                serde_json::json!({"schema":"oh.war/preservation-result/v1-draft.1", "operation":"export", "archive_digest":archive.digest(limits)?, "output":output.as_str(), "complete":false, "coverage":archive.coverage, "unavailable_categories":unavailable_categories(&archive), "authority_activated":false}),
+            ))
         }
         Command::Import {
             input,
@@ -122,6 +132,21 @@ pub fn run(command: Command) -> Result<(String, serde_json::Value), Error> {
                 serde_json::json!({"schema": "oh.war/preservation-result/v1-draft.1", "operation": "reexport", "output": output.as_str(), "authority_activated": false})))
         }
     }
+}
+
+/// Report declared coverage without upgrading it to independently verified completeness.
+fn unavailable_categories(archive: &Archive) -> Vec<&str> {
+    archive
+        .coverage
+        .iter()
+        .filter_map(|(name, coverage)| {
+            matches!(
+                coverage,
+                openwarrant_compiler::preservation::Coverage::Unavailable { .. }
+            )
+            .then_some(name.as_str())
+        })
+        .collect()
 }
 
 pub fn reexport(directory: &Path, limits: Limits) -> Result<Vec<u8>, Error> {
