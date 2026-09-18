@@ -1445,6 +1445,29 @@ fn service_run_receipt_points_to_retained_stream_bytes() {
         "argv: [\"sh\", \"-c\", \"printf service-out; printf service-err >&2\"]",
     );
     std::fs::write(f.0.join("docs/gates/ops.echo@1.0.0.yaml"), gate).unwrap();
+    for args in [
+        vec!["init", "-q"],
+        vec!["add", "."],
+        vec![
+            "-c",
+            "user.name=Service Fixture",
+            "-c",
+            "user.email=fixture@example.invalid",
+            "commit",
+            "-qm",
+            "fixture sources",
+        ],
+    ] {
+        assert!(
+            Command::new("git")
+                .current_dir(&f.0)
+                .args(args)
+                .output()
+                .unwrap()
+                .status
+                .success()
+        );
+    }
     success(f.run(&["run", "STREAM-WAR-0001", "STAGE-001"]));
     let receipt: openwarrant_core::GateReceipt = serde_json::from_slice(
         &std::fs::read(dir.join("gate-runs/ops_echo_1_0_0.receipt.json")).unwrap(),
@@ -1460,12 +1483,52 @@ fn service_run_receipt_points_to_retained_stream_bytes() {
     );
     assert!(!dir.join("ops_echo_1_0_0.stdout.txt").exists());
     assert!(!dir.join("ops_echo_1_0_0.stderr.txt").exists());
-    success(f.run(&["archive", "export", "STREAM-WAR-0001", "service.json"]));
+    for args in [
+        vec!["add", "."],
+        vec![
+            "-c",
+            "user.name=Service Fixture",
+            "-c",
+            "user.email=fixture@example.invalid",
+            "commit",
+            "-qm",
+            "retain fixture runtime",
+        ],
+    ] {
+        assert!(
+            Command::new("git")
+                .current_dir(&f.0)
+                .args(args)
+                .output()
+                .unwrap()
+                .status
+                .success()
+        );
+    }
+    success(f.run(&[
+        "archive",
+        "export",
+        "STREAM-WAR-0001",
+        "service.json",
+        "--history",
+    ]));
     let archive = Archive::decode(
         &std::fs::read(f.0.join("service.json")).unwrap(),
         Limits::default(),
     )
     .unwrap();
+    assert!(
+        matches!(
+            archive.coverage.get("actions and relevant audit receipts"),
+            Some(Coverage::Retained { .. })
+        ),
+        "{:?}",
+        archive.coverage
+    );
+    assert!(matches!(
+        archive.coverage.get("runtime receipt refs"),
+        Some(Coverage::Unavailable { .. })
+    ));
     for (path, expected) in [
         (receipt.stdout_ref, b"service-out".as_slice()),
         (receipt.stderr_ref, b"service-err".as_slice()),
@@ -1476,4 +1539,72 @@ fn service_run_receipt_points_to_retained_stream_bytes() {
             expected
         );
     }
+    let dispatch_path = std::fs::read_dir(dir.join("dispatches"))
+        .unwrap()
+        .next()
+        .unwrap()
+        .unwrap()
+        .path();
+    let dispatch_bytes = std::fs::read(&dispatch_path).unwrap();
+    std::fs::remove_file(&dispatch_path).unwrap();
+    success(f.run(&[
+        "archive",
+        "export",
+        "STREAM-WAR-0001",
+        "missing-dispatch.json",
+        "--history",
+    ]));
+    let missing = Archive::decode(
+        &std::fs::read(f.0.join("missing-dispatch.json")).unwrap(),
+        Limits::default(),
+    )
+    .unwrap();
+    assert!(
+        matches!(missing.coverage.get("actions and relevant audit receipts"), Some(Coverage::Unavailable { reason }) if reason.contains("dispatch bytes not retained"))
+    );
+    std::fs::write(&dispatch_path, &dispatch_bytes).unwrap();
+    let mut dispatch: serde_json::Value = serde_json::from_slice(&dispatch_bytes).unwrap();
+    dispatch["dispatch_digest"] = "f".repeat(64).into();
+    std::fs::write(&dispatch_path, serde_json::to_vec(&dispatch).unwrap()).unwrap();
+    success(f.run(&[
+        "archive",
+        "export",
+        "STREAM-WAR-0001",
+        "wrong-dispatch.json",
+        "--history",
+    ]));
+    let wrong_dispatch = Archive::decode(
+        &std::fs::read(f.0.join("wrong-dispatch.json")).unwrap(),
+        Limits::default(),
+    )
+    .unwrap();
+    assert!(
+        matches!(wrong_dispatch.coverage.get("actions and relevant audit receipts"), Some(Coverage::Unavailable { reason }) if reason.contains("dispatch identity, stage or digest differs"))
+    );
+    std::fs::write(&dispatch_path, &dispatch_bytes).unwrap();
+    let submission_path = std::fs::read_dir(dir.join("submissions"))
+        .unwrap()
+        .next()
+        .unwrap()
+        .unwrap()
+        .path();
+    let mut submission: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(&submission_path).unwrap()).unwrap();
+    submission["attempt_id"] = "different-attempt".into();
+    std::fs::write(submission_path, serde_json::to_vec(&submission).unwrap()).unwrap();
+    success(f.run(&[
+        "archive",
+        "export",
+        "STREAM-WAR-0001",
+        "wrong-submission.json",
+        "--history",
+    ]));
+    let wrong = Archive::decode(
+        &std::fs::read(f.0.join("wrong-submission.json")).unwrap(),
+        Limits::default(),
+    )
+    .unwrap();
+    assert!(
+        matches!(wrong.coverage.get("actions and relevant audit receipts"), Some(Coverage::Unavailable { reason }) if reason.contains("submission identity or outcome differs"))
+    );
 }

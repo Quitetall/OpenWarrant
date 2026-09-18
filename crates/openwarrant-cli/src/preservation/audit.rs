@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Reconnect local journal references to retained record and receipt bytes.
+mod runtime_events;
+
 use openwarrant_compiler::preservation::{Coverage, Error};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -104,6 +106,13 @@ pub(super) fn coverage(
                 | "verification.recorded"
                 | "correction.recorded"
                 | "sync.receipt_attached" => {}
+                "dispatch.compiled" | "submission.recorded" => {
+                    if let Err(error) =
+                        runtime_events::check(files, path, directory, &event, &payload)
+                    {
+                        gaps.insert(format!("{path}#{}: {error}", event.id));
+                    }
+                }
                 other => {
                     gaps.insert(format!(
                         "{path}#{}: {other} reference resolver unavailable",
