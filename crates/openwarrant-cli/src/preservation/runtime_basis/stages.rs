@@ -20,6 +20,14 @@ pub(super) fn inventory(
         let manifest: openwarrant_core::Manifest =
             toml::from_str(std::str::from_utf8(bytes).map_err(|e| Error(e.to_string()))?)
                 .map_err(|e| Error(e.to_string()))?;
+        let contract_binding =
+            match super::stage_contract::reconstruct(files, prefix, directory, &manifest, bytes) {
+                Ok(binding) => Some(binding),
+                Err(error) => {
+                    gaps.insert(format!("{path}: contract binding unavailable: {error}"));
+                    None
+                }
+            };
         let mut found = false;
         for atom in manifest
             .atoms
@@ -56,7 +64,8 @@ pub(super) fn inventory(
                     "source":target,
                     "source_digest":format!("sha256:{}", openwarrant_compiler::sha256_hex(source)),
                     "manifest_source":path,
-                    "graph":graph
+                    "graph":graph,
+                    "contract_binding":contract_binding
                 }),
             );
         }

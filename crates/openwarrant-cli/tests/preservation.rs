@@ -981,6 +981,7 @@ fn historical_shared_atoms_use_each_manifest_commit_not_current_bytes() {
         let bytes = format!("{source}\nHistorical body: {name}\n");
         std::fs::write(&shared, &bytes).unwrap();
         std::fs::write(&manifest_path, format!("{manifest}\n# revision {name}\n")).unwrap();
+        success(f.run(&["compile"]));
         git(&["add", "docs", "openwarrant.toml"]);
         git(&["commit", "-q", "-m", name]);
         revisions.push((git(&["rev-parse", "HEAD"]), bytes));
@@ -1026,6 +1027,33 @@ fn historical_shared_atoms_use_each_manifest_commit_not_current_bytes() {
                 .iter()
                 .any(|d| d["source"].as_str().unwrap().starts_with(&prefix))
         );
+    }
+    for (index, (commit, _)) in revisions.iter().enumerate() {
+        let declaration = declarations
+            .iter()
+            .find(|d| {
+                d["manifest_source"]
+                    .as_str()
+                    .unwrap()
+                    .starts_with(&format!("__ow_archive__/history/{commit}/"))
+            })
+            .unwrap();
+        if index % 2 == 0 {
+            assert_eq!(
+                declaration["contract_binding"]["reconstructed"], true,
+                "{declaration}"
+            );
+            assert_eq!(
+                declaration["contract_binding"]["digest"]
+                    .as_str()
+                    .unwrap()
+                    .len(),
+                64
+            );
+        } else {
+            // Source changed without regenerating its historical IR: never borrow a newer binding.
+            assert!(declaration["contract_binding"].is_null(), "{declaration}");
+        }
     }
     for declaration in declarations {
         let record = archive
@@ -1410,6 +1438,11 @@ fn runtime_query_basis_comes_from_reconstructed_sources_not_caller_identity() {
         let graph =
             openwarrant_core::milestones::parse(std::str::from_utf8(&source).unwrap()).unwrap();
         assert_eq!(declaration["graph"], serde_json::to_value(graph).unwrap());
+        assert_eq!(
+            declaration["contract_binding"]["digest"],
+            basis["current_contract"]["digest"]
+        );
+        assert_eq!(declaration["contract_binding"]["reconstructed"], true);
     }
     assert_eq!(basis["authority_activated"], false);
     assert_eq!(basis["qualified"], false);

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Source-derived provider query basis, not a trust or execution verdict.
+mod stage_contract;
 mod stages;
 
 use super::*;
