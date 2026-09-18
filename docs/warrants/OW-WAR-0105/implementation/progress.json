@@ -1,20 +1,20 @@
 {
   "schema": "oh.war/viewer-work-report/v1",
   "warrant": "OW-WAR-0105",
-  "work_state": "in-progress",
+  "work_state": "completed",
   "reported_by": "agent://codex",
-  "revision": "f458ac9884cde74b8e7e55dc8d49577e0088b452",
-  "summary": "Configured agent drafting implemented; 73 integrated web tests pass, synthetic browser flow observed, isolated gate at f458ac9 passes 14/14 and 308 controls. Latest-head CI and merge remain pending.",
-  "notes": "docs/warrants/OW-WAR-0105/implementation/notes.md",
+  "revision": "491d87297d7e84d5681c8e39dda8d939e2e54807",
+  "summary": "Configured drafting workflow complete within OW105 synthetic-adapter scope; browser behavior, full gate and exact-head CI observed; PR113 merged. Unverified; actual-provider qualification remains separate.",
+  "notes": "docs/warrants/OW-WAR-0105/implementation/completion-audit.md",
   "evidence": [
     "docs/warrants/OW-WAR-0105/implementation/all-tests.log",
     "docs/warrants/OW-WAR-0105/implementation/integration-tests.log",
     "docs/warrants/OW-WAR-0105/implementation/notes.md",
-    "docs/warrants/OW-WAR-0105/implementation/gate-f458ac9-pass.log.gz"
+    "docs/warrants/OW-WAR-0105/implementation/gate-f458ac9-pass.log.gz",
+    "docs/warrants/OW-WAR-0105/implementation/completion-audit.md"
   ],
   "next_steps": [
-    "Finish exact-head CI and merge drafting workflow",
-    "Collect real local/cloud adapter evidence for Phase 3",
-    "Independent verification and human qualification remain separate"
+    "Actual local/cloud provider and sandbox qualification under Phase 3",
+    "Independent verification and secure human acceptance remain separate"
   ]
 }
