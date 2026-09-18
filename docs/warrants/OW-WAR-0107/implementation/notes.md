@@ -432,3 +432,23 @@ lookup, public API/browser status and real external harness receipt production
 remain unfinished. The receipt callback must remain read-only and must not launch
 unaccounted paid calls. This work does not establish independent assurance or close
 OW-WAR-0107; full release gates and remaining scope still apply.
+
+## Read-only harness receipt inbox
+
+Added a directory-descriptor-based inbox adapter for signed harness receipts.
+It reads only exact UUID-named regular files, refuses symlinks/FIFOs/oversize or
+unexpected fields, and retains original evidence. Missing receipt returns wait;
+invalid receipt refuses. Directory replacement does not redirect the open reader.
+No receipt producer or paid provider runs inside the adapter. Signature and
+current-claim authentication remain in the existing dispatch service.
+
+Nine inbox and loop tests passed in 1.955 seconds. A real Git/process loop consumed
+two atomically published synthetic receipts and completed FAIL -> repair -> PASS,
+retaining both receipts and both execution attempts. Separate tests cover
+filesystem refusal cases and unchanged loop limits/recovery. Evidence:
+implementation/receipt-inbox-tests.log. Synthetic signing proves protocol behavior,
+not deployed sandbox enforcement or human acceptance.
+
+Service scheduling, opt-in loop API/browser controls and real harness integration
+remain outstanding. This adds the receipt lookup seam; it does not enable an
+unattended service or close OW-WAR-0107.

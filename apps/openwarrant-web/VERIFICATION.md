@@ -18,6 +18,15 @@ enables this driver. Missing receipts wait; uncertain workers never relaunch;
 nonrepairable results and human decisions require attention. Service integration
 and external harness receipt production remain unfinished.
 
+`verifier_receipts.ReceiptInbox` supplies the read-only lookup. The operator selects
+an existing directory; the adapter pins its directory handle. The harness publishes
+`<verification UUID>.json` there with exactly `payload_base64` and
+`signature_base64`, using atomic file publication. Reads refuse symlinks, nonregular
+files and files above 64 KiB. Missing files return no receipt; malformed files
+refuse. Reads never delete evidence or start a producer. Signature, expiry, nonce,
+basis and capability checks still run in normal dispatch. Inbox permissions do
+not prove harness isolation; protect the issuer key and control storage separately.
+
 ## Prepare a job
 
 Start the service with its existing execution configuration plus

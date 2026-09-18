@@ -103,3 +103,11 @@ restart. Repair previews use the same check as dispatch. These checks do not
 establish global process containment or stop an agent outside the service. Broader
 decision orchestration remains work in progress; these tests do not establish
 deployment isolation or real human acceptance.
+
+The loop receipt inbox pins an operator-selected directory descriptor and reads
+UUID-named files relative to it, with no-follow and nonblocking open. It rejects
+nonregular files before reading and caps reads at 64 KiB. Tests plant a symlink,
+FIFO, oversized envelope, injected field, path traversal and replaced directory.
+The adapter does not authenticate the envelope: ordinary dispatch still checks
+the signed receipt against the pinned issuer and current claim. Configured parent
+paths, issuer custody and sandbox deployment remain operator responsibilities.

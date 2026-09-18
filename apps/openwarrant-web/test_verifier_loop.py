@@ -10,10 +10,37 @@ from test_verifier_repair_execution import RepairExecutionFixture
 from verifier_attestation import NAMESPACE
 from verifier_policy import PROTECTIONS
 from verifier_loop import Loop
+from verifier_receipts import ReceiptInbox
 from verification import VerificationError
 
 
 class VerifierLoopTests(RepairExecutionFixture, unittest.TestCase):
+    def test_file_inbox_drives_real_repair_loop_without_producer_calls(self):
+        directory = self.fixture.root / 'receipt-inbox'; directory.mkdir()
+        inbox = ReceiptInbox(directory, self.executor.decode); self.addCleanup(inbox.close)
+        loop = Loop(self.service, inbox)
+        deadline = time.monotonic() + 8
+        issued = set()
+        while time.monotonic() < deadline:
+            status = loop.tick(self.original['attempt_id'])
+            if status['state'] == 'checks_passed':
+                break
+            if status['state'] == 'waiting_for_protection':
+                id = status['verification_id']
+                self.assertNotIn(id, issued)
+                issued.add(id)
+                # External synthetic harness publishes the response. The driver
+                # only reads this file; production issuers must enforce isolation.
+                self.executor.publish(directory / (id + '.json'),
+                    json.dumps(self.receipt(self.service.get(id))).encode())
+            else:
+                self.assertIn(status['state'], ('waiting_for_execution', 'waiting_for_verification'))
+            time.sleep(.02)
+        self.assertEqual(status['state'], 'checks_passed', status)
+        self.assertEqual(len(issued), 2)
+        self.assertEqual(len(list(directory.glob('*.json'))), 2)
+        self.assertEqual(len(self.executor.records()), 2)
+
     def receipt(self, job):
         now = int(time.time())
         payload = json.dumps({'schema': 'oh.war/harness-protection/v1',
