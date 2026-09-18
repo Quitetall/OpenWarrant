@@ -62,10 +62,29 @@ pub struct Frontier {
 
 pub const SCHEMA: &str = "oh.war/frontier/v1";
 
-fn stage_events(dir: &camino::Utf8Path) -> (BTreeSet<String>, BTreeSet<String>) {
+fn stage_events(dir: &camino::Utf8Path) -> Result<(BTreeSet<String>, BTreeSet<String>), RepoError> {
     let mut claimed = BTreeSet::new();
     let mut done = BTreeSet::new();
-    if let Ok(j) = crate::journal_cmd::load(dir) {
+    let path = dir.join(crate::journal_cmd::FILE);
+    match std::fs::symlink_metadata(&path) {
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok((claimed, done)),
+        Err(source) => {
+            return Err(RepoError::Io {
+                context: format!("could not inspect {path}"),
+                source,
+            });
+        }
+        Ok(_) => {}
+    }
+    // The legacy loader treats non-files as absent. Admission must distinguish
+    // missing history from damaged containers and dangling links.
+    let text = std::fs::read_to_string(&path).map_err(|source| RepoError::Io {
+        context: format!("could not read {path}"),
+        source,
+    })?;
+    let j =
+        crate::journal_cmd::parse(&text).map_err(|e| RepoError::Message(format!("{path}: {e}")))?;
+    {
         for e in &j.events {
             let stage = serde_json::from_str::<serde_json::Value>(&e.payload)
                 .ok()
@@ -82,7 +101,7 @@ fn stage_events(dir: &camino::Utf8Path) -> (BTreeSet<String>, BTreeSet<String>) 
             }
         }
     }
-    (claimed, done)
+    Ok((claimed, done))
 }
 
 /// The frontier of one Warrant, or of every unresolved Warrant.
@@ -94,35 +113,37 @@ pub fn run(repo: &Repository, alias: Option<&str>) -> Result<(Report, Frontier),
     };
     let mut rows = Vec::new();
     for dir in dirs {
-        let Ok(one) = repo.load_warrant(&dir) else {
-            continue;
-        };
+        let one = repo.load_warrant(&dir)?;
         let alias = dir.file_name().unwrap_or_default().to_owned();
         if repo.load_resolution(&dir)?.is_some() {
             continue;
         }
-        let Some(basis) = &one.basis else { continue };
+        let basis = one.basis.as_ref().ok_or_else(|| {
+            RepoError::Message(format!("{alias}: no readable workspace basis for frontier"))
+        })?;
         let Some(text) = basis
             .atoms
             .iter()
             .find(|a| a.role == "milestones")
             .and_then(|a| String::from_utf8(a.bytes.clone()).ok())
         else {
-            continue;
+            if one
+                .validated
+                .as_ref()
+                .is_some_and(|v| !v.raw.atoms.iter().any(|a| a.role == "milestones"))
+            {
+                continue;
+            }
+            return Err(RepoError::Message(format!(
+                "{alias}: no readable milestones atom for frontier"
+            )));
         };
-        let Ok(graph) = openwarrant_core::milestones::parse(&text) else {
-            report.push(Diagnostic::warn(
-                "frontier.milestones",
-                repo.relative(&dir),
-                format!(
-                    "{alias}: the milestones atom does not parse; `war check {alias}` names why"
-                ),
-            ));
-            continue;
-        };
-        let established: BTreeSet<String> = crate::resolve::assess(repo, &one)
-            .map(|a| a.established.into_iter().collect())
-            .unwrap_or_default();
+        let graph = openwarrant_core::milestones::parse(&text)
+            .map_err(|e| RepoError::Message(format!("{alias}: invalid milestones: {e}")))?;
+        let established: BTreeSet<String> = crate::resolve::assess(repo, &one)?
+            .established
+            .into_iter()
+            .collect();
         let complete: BTreeMap<&str, bool> = graph
             .milestones
             .iter()
@@ -154,7 +175,7 @@ pub fn run(repo: &Repository, alias: Option<&str>) -> Result<(Report, Frontier),
                 ));
             }
         }
-        let (claimed, done) = stage_events(&dir);
+        let (claimed, done) = stage_events(&dir)?;
         // One row per stage: its milestones' waits are unioned.
         let mut per_stage: BTreeMap<String, (Vec<String>, BTreeSet<String>)> = BTreeMap::new();
         for m in &graph.milestones {
