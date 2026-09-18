@@ -75,12 +75,29 @@ class AdapterTests(unittest.TestCase):
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()
         command = [sys.executable, str(Path(__file__).with_name("local_drafter.py")), "--endpoint", f"http://127.0.0.1:{server.server_port}", "--model", "fixture"]
-        request = json.dumps({"api_version": "oh.war/draft-request/v1", "user_request": "add a changelog"})
+        request_data = {"api_version": "oh.war/draft-request/v1", "user_request": "add a changelog",
+                        "profile": "delivery", "assurance": "basic",
+                        "existing_warrants": ["OW-WAR-0099"],
+                        "constraints": ["Preserve existing release notes"]}
+        request = json.dumps(request_data)
         try:
             good = subprocess.run(command, input=request, text=True, capture_output=True, timeout=10)
             self.assertEqual(good.returncode, 0, good.stderr)
             self.assertEqual(json.loads(good.stdout), proposal())
             self.assertEqual(received[0]["response_format"]["schema"], proposal_schema())
+            messages = received[0]["messages"]
+            self.assertEqual(messages[-1], {"role": "user", "content": request_data["user_request"]})
+            context = json.loads(messages[-2]["content"])
+            self.assertEqual(context, {k: v for k, v in request_data.items() if k != "user_request"})
+            calls_before = len(received)
+            for field, unsupported in (("profile", "decision"), ("assurance", "critical"),
+                                       ("profile", None), ("assurance", ["basic"])):
+                bad = subprocess.run(command, input=json.dumps({**request_data, field: unsupported}),
+                                     text=True, capture_output=True, timeout=10)
+                self.assertEqual(bad.returncode, 1, bad.stderr)
+                self.assertEqual(bad.stdout, "")
+                self.assertIn("only delivery/basic", bad.stderr)
+            self.assertEqual(len(received), calls_before, "unsupported scope must not contact backend")
             for response_mode, diagnostic in (("redirect", "redirect refused"), ("oversize", "response exceeds limit")):
                 mode[0] = response_mode
                 bad = subprocess.run(command, input=request, text=True, capture_output=True, timeout=10)

@@ -1,0 +1,31 @@
+{
+  "model": {
+    "path": "/home/brianklam/models/qwen3.5-4b-gguf/Qwen3.5-4B-Q4_K_M.gguf",
+    "sha256": "00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4",
+    "bytes": 2740937888
+  },
+  "server": {
+    "path": "/home/brianklam/llama.cpp/build/bin/llama-server",
+    "sha256": "d9aa538dc8f6363ad9633c4a74eb5615d19461e8e35cc3b559a4a8c332f0b838",
+    "bytes": 9447088
+  },
+  "adapter": {
+    "path": "/mnt/4tb/tmp/ow101-task-context/tools/drafting/local_drafter.py",
+    "sha256": "852e6de52d3db95a38292867da5f22c1c14c139ffbd2e05eb87d7b0657cc67a8",
+    "bytes": 7879
+  },
+  "request": {
+    "path": "/mnt/4tb/tmp/ow101-task-context/docs/warrants/OW-WAR-0101/implementation/local-model-3/request.json",
+    "sha256": "da2e564de21b8773e4c4d4b5e2d12db23a7b9ea092682c7d63f012b4af05eb39",
+    "bytes": 2393
+  },
+  "source_revision": "c62fd2ff98436568d9a34313582583ae3b43785c",
+  "paid_calls": false,
+  "gpu_layers": 0,
+  "cpu_threads": 4,
+  "context_tokens": 8192,
+  "max_output_tokens": 1600,
+  "process_deadline_seconds": 300,
+  "applied": false,
+  "qualified": false
+}

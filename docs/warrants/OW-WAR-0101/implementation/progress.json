@@ -3,17 +3,20 @@
   "warrant": "OW-WAR-0101",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "Local adapter transport and fixed milestone template exercised; two real-model outputs failed task-fidelity inspection. Candidate remains unverified and in progress.",
+  "summary": "Local adapter now refuses unsupported profile/assurance before backend contact and preserves task/context separately. Four transport/refusal tests pass; third real-model run still failed task fidelity. Unverified and incomplete.",
   "notes": "docs/warrants/OW-WAR-0101/implementation/notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0101/implementation/tests.log",
     "docs/warrants/OW-WAR-0101/implementation/local-model/inspection.md",
     "docs/warrants/OW-WAR-0101/implementation/local-model/semantic-validation.json",
-    "docs/warrants/OW-WAR-0101/implementation/local-model-2/inspection.md"
+    "docs/warrants/OW-WAR-0101/implementation/local-model-2/inspection.md",
+    "docs/warrants/OW-WAR-0101/implementation/task-context/tests.log",
+    "docs/warrants/OW-WAR-0101/implementation/local-model-3/inspection.md"
   ],
   "next_steps": [
-    "Qualify a capable configured drafting backend with actual task-faithful output.",
-    "Complete full gate and keep automatic application disabled."
+    "Qualify a capable explicitly configured backend or a separately tested planning approach; do not relabel structural success as task fidelity.",
+    "Finish PR #119 checks; preserve all three failed observations.",
+    "Keep document application, independent verification and human qualification separate."
   ],
-  "revision": "c40c9d9cba5adbf699dbfdad4a847e8be307971d"
+  "revision": "c62fd2ff98436568d9a34313582583ae3b43785c"
 }
