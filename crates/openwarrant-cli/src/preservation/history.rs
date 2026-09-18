@@ -183,6 +183,63 @@ pub(super) fn capture(
             records.insert(record.clone(), bytes);
             files.push(serde_json::json!({"source":source,"mode":fields[0],"git_blob":fields[2],"record":record}));
         }
+        // Shared atoms belong to the historical manifest's own tree. Current
+        // checkout bytes cannot stand in for a previous ADR revision.
+        let manifest_path = format!("{prefix}/{relative}/manifest.toml");
+        if let Some(bytes) = records.get(&manifest_path) {
+            let manifest: openwarrant_core::Manifest =
+                toml::from_str(std::str::from_utf8(bytes).map_err(|e| Error(e.to_string()))?)
+                    .map_err(|e| Error(format!("historical manifest cannot be parsed: {e}")))?;
+            for atom in manifest.atoms {
+                let source = atom
+                    .path
+                    .ok_or_else(|| Error("historical bound atom requires a resolver".into()))?;
+                let target = super::atom_record(relative, &source)?;
+                let record = format!("{prefix}/{target}");
+                if records.contains_key(&record) {
+                    continue;
+                }
+                if records.len() >= record_limit {
+                    return Err(Error("history record count exceeds limit".into()));
+                }
+                let tree = git(
+                    repo,
+                    &["ls-tree", "-z", "--full-tree", commit, "--", &target],
+                    4096,
+                )?;
+                let entries: Vec<_> = tree.split(|b| *b == 0).filter(|b| !b.is_empty()).collect();
+                if entries.len() != 1 {
+                    return Err(Error("historical atom source missing or nonunique".into()));
+                }
+                let entry = std::str::from_utf8(entries[0]).map_err(|e| Error(e.to_string()))?;
+                let (metadata, path) = entry
+                    .split_once('\t')
+                    .ok_or_else(|| Error("invalid historical atom entry".into()))?;
+                let fields: Vec<_> = metadata.split(' ').collect();
+                if path != target
+                    || fields.len() != 3
+                    || !matches!(fields[0], "100644" | "100755")
+                    || fields[1] != "blob"
+                    || !oid(fields[2])
+                {
+                    return Err(Error("historical atom is not a regular Git file".into()));
+                }
+                let size: usize = text(git(repo, &["cat-file", "-s", fields[2]], 64)?)?
+                    .trim()
+                    .parse()
+                    .map_err(|e| Error(format!("invalid historical atom size: {e}")))?;
+                if size > remaining {
+                    return Err(Error("history byte limit exceeded".into()));
+                }
+                let bytes = git(repo, &["cat-file", "blob", fields[2]], size)?;
+                if bytes.len() != size {
+                    return Err(Error("historical atom size mismatch".into()));
+                }
+                remaining -= bytes.len();
+                records.insert(record.clone(), bytes);
+                files.push(serde_json::json!({"source":target,"mode":fields[0],"git_blob":fields[2],"record":record}));
+            }
+        }
         index.push(serde_json::json!({"commit":commit,"commit_record":format!("{prefix}/commit.txt"),"files":files}));
     }
     let manifest = openwarrant_compiler::to_canonical_bytes(&serde_json::json!({"schema":"oh.war/preservation-history/v1-draft.1","head":head,"reachable_from":"HEAD","warrant_path":relative,"commits":index,"other_refs_included":false})).map_err(|e| Error(e.to_string()))?;

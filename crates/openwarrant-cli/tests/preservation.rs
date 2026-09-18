@@ -883,3 +883,103 @@ fn explicit_external_atoms_survive_source_removal_without_repository_escape() {
         assert!(!f.0.join("symlink.json").exists());
     }
 }
+
+#[test]
+fn historical_shared_atoms_use_each_manifest_commit_not_current_bytes() {
+    let f = Fixture::new();
+    success(f.run(&[
+        "init",
+        "--namespace",
+        "ARCH",
+        "--program",
+        "Historical shared atom",
+    ]));
+    success(f.run(&["new", "Retain historical shared source"]));
+    let git = |args: &[&str]| {
+        let out = Command::new("git")
+            .current_dir(&f.0)
+            .args([
+                "-c",
+                "user.name=Archive Fixture",
+                "-c",
+                "user.email=archive@example.invalid",
+            ])
+            .args(args)
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        String::from_utf8(out.stdout).unwrap().trim().to_owned()
+    };
+    git(&["init", "-q"]);
+    let manifest_path = f.0.join("docs/warrants/ARCH-WAR-0001/manifest.toml");
+    let manifest = std::fs::read_to_string(&manifest_path)
+        .unwrap()
+        .replace("atoms/10-intent.md", "../../shared/intent.md");
+    let source =
+        std::fs::read_to_string(f.0.join("docs/warrants/ARCH-WAR-0001/atoms/10-intent.md"))
+            .unwrap();
+    std::fs::create_dir(f.0.join("docs/shared")).unwrap();
+    let shared = f.0.join("docs/shared/intent.md");
+    let mut revisions = Vec::new();
+    for name in ["first", "second"] {
+        let bytes = format!("{source}\nHistorical body: {name}\n");
+        std::fs::write(&shared, &bytes).unwrap();
+        std::fs::write(&manifest_path, format!("{manifest}\n# revision {name}\n")).unwrap();
+        git(&["add", "docs", "openwarrant.toml"]);
+        git(&["commit", "-q", "-m", name]);
+        revisions.push((git(&["rev-parse", "HEAD"]), bytes));
+    }
+    std::fs::write(&shared, format!("{source}\nUncommitted third body\n")).unwrap();
+    success(f.run(&[
+        "archive",
+        "export",
+        "ARCH-WAR-0001",
+        "history.json",
+        "--history",
+    ]));
+    let archive = Archive::decode(
+        &std::fs::read(f.0.join("history.json")).unwrap(),
+        Limits::default(),
+    )
+    .unwrap();
+    for (commit, expected) in revisions {
+        let path = format!("__ow_archive__/history/{commit}/docs/shared/intent.md");
+        let record = archive.records.iter().find(|r| r.path == path).unwrap();
+        assert_eq!(
+            openwarrant_core::attestation::base64_decode(record.base64.as_ref().unwrap()).unwrap(),
+            expected.as_bytes()
+        );
+    }
+    std::fs::rename(f.0.join("docs"), f.0.join("hidden-docs")).unwrap();
+    std::fs::rename(f.0.join(".git"), f.0.join("hidden-git")).unwrap();
+    success(f.run(&["archive", "inspect", "history.json"]));
+    std::fs::rename(f.0.join("hidden-docs"), f.0.join("docs")).unwrap();
+    std::fs::rename(f.0.join("hidden-git"), f.0.join(".git")).unwrap();
+    // A historical reference to missing bytes cannot be silently replaced with
+    // today's uncommitted file, even though current compilation succeeds.
+    git(&["rm", "-f", "--", "docs/shared/intent.md"]);
+    std::fs::write(
+        &manifest_path,
+        format!("{manifest}\n# missing shared source\n"),
+    )
+    .unwrap();
+    git(&["add", "docs"]);
+    git(&["commit", "-q", "-m", "missing historical source"]);
+    std::fs::create_dir_all(shared.parent().unwrap()).unwrap();
+    std::fs::write(&shared, &source).unwrap();
+    refusal(
+        f.run(&[
+            "archive",
+            "export",
+            "ARCH-WAR-0001",
+            "missing.json",
+            "--history",
+        ]),
+        "historical atom source missing",
+    );
+    assert!(!f.0.join("missing.json").exists());
+}
