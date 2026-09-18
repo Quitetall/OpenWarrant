@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-98 Warrant(s) in this repository.
+99 Warrant(s) in this repository.
 
 ## Summary
 
@@ -109,6 +109,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0100](docs/warrants/OW-WAR-0100/manifest.toml) | Report unsupported telemetry as unknown without changing historical baselines | `draft` | `current` | `valid` | `basic` | 1M / 1S |
 | [OW-WAR-0101](docs/warrants/OW-WAR-0101/manifest.toml) | Constrain local drafting responses before semantic validation | `draft` | `current` | `valid` | `basic` | 2M / 2S |
 | [OW-WAR-0102](docs/warrants/OW-WAR-0102/manifest.toml) | Generate deterministic execution work-stop reports | `draft` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0103](docs/warrants/OW-WAR-0103/manifest.toml) | Preserve question-store errors across hotline readers | `draft` | `current` | `valid` | `basic` | 1M / 1S |
 
 ## Claimed SAS requirement coverage
 
