@@ -17,3 +17,8 @@ Follow-up: offline HTML now puts implementation notes, next steps and pending
 work before an expandable exact-evidence block. Two projection tests and the
 public HTTP/restart report test pass for this layout. Retained browser download
 shows the earlier layout; offline file rendering is still unobserved.
+
+Tracker integration correction: OW41/101/102 used invalid `in_progress`; the
+viewer requires `in-progress`. OW101/102 also lacked required source revisions.
+Authored records now use valid spelling and exact observed source commits, while
+all remain incomplete. This fixes our reporting error; no evidence gate is loosened.

@@ -20,6 +20,9 @@ classification: internal
 - Test actual HTTP/process/Git success, failed checks, auth refusal and restart;
   inspect running/unknown/incomplete result refusal and escaped report output.
 
+- Repair invalid authored tracker report state/revision fields found during
+  integration; retain actual incomplete work status and exact source identities.
+
 ## Limits
 No new execution, signing, qualification, auto-retry or fencing rights. Reports
 observe existing trusted local controller records. They cannot prove host isolation.
