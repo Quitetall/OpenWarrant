@@ -142,6 +142,93 @@ async function workReport(id){const report=await api('/api/runs/'+encodeURICompo
 window.addEventListener('hashchange',()=>{const m=location.hash.match(/^#attempt=([0-9a-f-]{36})$/);if(m&&token)guard(()=>workReport(m[1]))});
 el('runs-refresh').onclick=()=>guard(runs);
 
+async function verificationRepair(card,job){
+  const session=token,route='/api/verification/'+job.verification_id+'/repair';
+  const plan=await api(route);if(!token||session!==token||!card.isConnected)return;
+  card.querySelector('.repair-review')?.remove();
+  const box=document.createElement('section');box.className='repair-review';
+  const details=document.createElement('pre');details.textContent=[
+    'Repair: '+plan.state,plan.reason,
+    'Cycles used: '+plan.cycles_used+' / '+plan.repair_cycles,
+    'Candidate: '+plan.candidate_revision,
+    ...(plan.findings||[]).map(f=>f.id+' · '+f.observation),
+    ...(plan.failed_checks||[]).map(c=>'Failed check: '+JSON.stringify(c.argv))
+  ].join('\n');box.append(details);
+  if(plan.state==='ready'){
+    const start=document.createElement('button');start.textContent='Start bounded repair';
+    start.onclick=()=>guard(async()=>{
+      if(!token||session!==token||!card.isConnected)return;
+      start.disabled=true;
+      try{
+        const attempt=await api(route,'POST',{});
+        if(!token||session!==token||!card.isConnected)return;
+        notice('Repair started: '+attempt.attempt_id+'. Result still requires independent verification.');
+        await runs();if(!token||session!==token)return;await verificationJobs();
+      }finally{if(card.isConnected&&session===token)start.disabled=false;}
+    });box.append(start);
+  }
+  if(plan.attempt_id){
+    const report=document.createElement('button');report.className='secondary';report.textContent='Repair work report';
+    report.onclick=()=>guard(async()=>{if(token&&session===token&&card.isConnected)await workReport(plan.attempt_id)});box.append(report);
+  }
+  card.append(box);
+}
+function verificationField(form,label,id,node){
+  const caption=document.createElement('label');node.id=id;caption.htmlFor=id;caption.textContent=label;form.append(caption,node);return node;
+}
+function verificationRebuttal(card,job){
+  const session=token;card.querySelector('.rebuttal-form')?.remove();
+  const form=document.createElement('form');form.className='rebuttal-form';
+  const argument=verificationField(form,'Reason for independent recheck','argument-'+job.verification_id,document.createElement('textarea'));
+  const evidence=verificationField(form,'Evidence references · one per line','evidence-'+job.verification_id,document.createElement('textarea'));
+  argument.required=true;argument.maxLength=15000;evidence.required=true;evidence.maxLength=30000;
+  const choices=[];
+  const ids=(job.record.observation.result?.findings||[]).map(f=>f.id);
+  (job.record.observation.checks||[]).forEach((c,i)=>{if(Number.isInteger(c.exit_code)&&c.exit_code!==0)ids.push('check-'+(i+1))});
+  for(const id of [...new Set(ids)]){const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';input.value=id;input.style.width='auto';label.append(input,document.createTextNode(' '+id));form.append(label);choices.push(input)}
+  const submit=document.createElement('button');submit.textContent='Prepare independent recheck';form.append(submit);
+  form.onsubmit=event=>{event.preventDefault();guard(async()=>{
+    if(!token||session!==token||!card.isConnected)return;
+    const finding_ids=choices.filter(c=>c.checked).map(c=>c.value);if(!finding_ids.length)throw new Error('Select at least one finding.');
+    submit.disabled=true;
+    try{await api('/api/verification/'+job.verification_id+'/rebuttal','POST',{verification_id:crypto.randomUUID(),argument:argument.value,evidence:evidence.value.split('\n').map(s=>s.trim()).filter(Boolean),finding_ids});
+      if(!token||session!==token||!card.isConnected)return;notice('Recheck prepared. Fresh protection receipt required before start.');await verificationJobs();
+    }finally{if(card.isConnected&&session===token)submit.disabled=false;}
+  })};card.append(form);
+}
+async function verificationDispute(card,job){
+  const session=token,route='/api/verification/'+job.verification_id;
+  const review=await api(route+'/dispute');if(!token||session!==token||!card.isConnected)return;
+  card.querySelector('.dispute-review')?.remove();const box=document.createElement('section');box.className='dispute-review';
+  const state=document.createElement('p');state.textContent='Decision: '+(review.decision?.action||review.state)+'. '+(review.decision?.reason||'An authorized human must choose the next action.');box.append(state);
+  const details=document.createElement('details'),summary=document.createElement('summary'),basis=document.createElement('pre');summary.textContent='Exact decision and evidence';basis.textContent=JSON.stringify(review,null,2);details.append(summary,basis);box.append(details);
+  if(review.decision?.action==='verify_again'){
+    const next=document.createElement('button');next.textContent='Prepare human-directed recheck';
+    next.onclick=()=>guard(async()=>{if(!token||session!==token||!card.isConnected)return;next.disabled=true;
+      try{await api(route+'/reverify','POST',{verification_id:crypto.randomUUID()});if(!token||session!==token||!card.isConnected)return;notice('Recheck prepared. Fresh protection receipt required.');await verificationJobs();}
+      finally{if(card.isConnected&&session===token)next.disabled=false;}
+    });box.append(next);
+  }
+  if(!review.decision&&review.eligible_responders.length){
+    const form=document.createElement('form');
+    const credential=verificationField(form,'Authorized responder credential','decision-credential-'+job.verification_id,document.createElement('input'));
+    credential.type='password';credential.autocomplete='off';credential.required=true;
+    const action=verificationField(form,'Next action','decision-action-'+job.verification_id,document.createElement('select'));
+    for(const [value,label] of [['repair','Repair within current scope'],['verify_again','Verify again'],['revise_scope','Revise scope before more work'],['stop','Stop this work']]){const option=document.createElement('option');option.value=value;option.textContent=label;action.append(option)}
+    const reason=verificationField(form,'Decision reason','decision-reason-'+job.verification_id,document.createElement('textarea'));
+    const evidence=verificationField(form,'Evidence references · one per line','decision-evidence-'+job.verification_id,document.createElement('textarea'));
+    reason.required=true;reason.maxLength=14000;evidence.required=true;evidence.maxLength=30000;
+    const submit=document.createElement('button');submit.textContent='Record human decision';form.append(submit);
+    form.onsubmit=event=>{event.preventDefault();guard(async()=>{
+      if(!token||session!==token||!card.isConnected)return;
+      const secret=credential.value;credential.value='';submit.disabled=true;
+      try{await api(route+'/dispute','POST',{question_sha256:review.question_sha256,action:action.value,reason:reason.value,evidence:evidence.value.split('\n').map(s=>s.trim()).filter(Boolean)},{'X-OW-Responder':secret});
+        if(!token||session!==token||!card.isConnected)return;notice('Decision recorded. No acceptance or launch implied.');await verificationJobs();
+      }finally{if(card.isConnected&&session===token)submit.disabled=false;}
+    })};box.append(form);
+  }
+  card.append(box);
+}
 async function verificationJobs(){
   clearTimeout(verificationTimer);const session=token;
   try{
@@ -156,6 +243,14 @@ async function verificationJobs(){
       summary.textContent='Exact request and retained evidence';pre.textContent=JSON.stringify(job,null,2);details.append(summary,pre);card.append(title,status,info,details);
       const observation=job.record.observation;
       if(observation){const result=document.createElement('p');result.textContent=observation.result?.summary||observation.cause||'Observation retained';card.append(result);for(const finding of observation.result?.findings||[]){const item=document.createElement('pre');item.textContent=finding.id+' · '+finding.status+'\n'+finding.observation+'\nScope: '+finding.scope+'\n'+finding.evidence.join('\n');card.append(item)}}
+      if(job.state==='finished'){
+        const repair=document.createElement('button');repair.className='secondary';repair.textContent='Review repair eligibility';
+        repair.onclick=()=>guard(()=>verificationRepair(card,job));card.append(repair);
+        if(job.effective_verdict==='fail'&&job.request.schema==='oh.war/verification-request/v1'){
+          const rebut=document.createElement('button');rebut.className='secondary';rebut.textContent='Challenge findings';rebut.onclick=()=>verificationRebuttal(card,job);card.append(rebut);
+        }
+        if(job.human_review_required){const decision=document.createElement('button');decision.className='secondary';decision.textContent='Review human decision';decision.onclick=()=>guard(()=>verificationDispute(card,job));card.append(decision);}
+      }
       if(job.state==='prepared'){
         const download=document.createElement('button');download.className='secondary';download.textContent='Download protection request';
         download.onclick=()=>{const blob=new Blob([JSON.stringify({verification_id:job.verification_id,basis_sha256:job.basis_sha256,request:job.request},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='verification-'+job.verification_id+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};card.append(download);

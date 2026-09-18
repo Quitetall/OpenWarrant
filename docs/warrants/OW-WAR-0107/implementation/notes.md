@@ -374,3 +374,35 @@ Full-suite evidence: `implementation/dispute-guard-tests.log`. Both runs use
 `OW_TEST_WAR=/mnt/4tb/tmp/ow-question-integrity/target/debug/war` and unittest.
 No independent assurance or full release gate is claimed. Browser controls,
 automatic orchestration and remaining OW-WAR-0107 scope remain unfinished.
+
+## Browser repair, rebuttal and human-decision controls
+
+The workbench now exposes repair plans, bounded repair dispatch, retained repair
+report links, selected-finding rebuttals, configured human decision forms and
+human-directed recheck preparation. Each async action checks its original session
+and attached card before updating UI. Responder credentials clear on submission.
+Decisions display short summaries with expandable exact evidence.
+
+A disposable browser fixture at port 41161 demonstrated:
+- ready repair preview, zero of three cycles;
+- browser rebuttal with selected F1 and evidence;
+- synthetic verify-again decision and v3 recheck preparation;
+- synthetic repair decision after repeated FAIL;
+- browser repair dispatch, then completed stopped attempt
+  dfe9bb84-e010-44b4-80a1-786992875a1d at
+  990df3bc9fa62d1f9845ebaf794162e680afd09b;
+- retained original candidate ec689f6de879e0c50be37e07bbda46374625d1eb
+  and all three FAIL observations;
+- already-dispatched repair view with one of three cycles and report link;
+- lock clearing all workflow panels, then final compact decision presentation.
+
+Verifier starts used a synthetic machine signature through the HTTP API; this run
+did not retest browser receipt upload. Human-role credentials were disposable test
+values, not real human acts. The fixture's project board lacked a legacy corpus;
+its unavailable state is not evidence about the actual repository board.
+
+Retained artifacts: `browser-repair-jobs.json`, `browser-repair-attempts.json`,
+`browser-repair-fixture.py`. JavaScript syntax passed `node --check`; diff whitespace
+passed. This HTML-only change did not rerun the unchanged backend suite. Test tab
+closed and owned fixture process stopped. Automatic orchestration, refusal/race UI
+coverage and full release gates remain open; OW-WAR-0107 is not closed or qualified.

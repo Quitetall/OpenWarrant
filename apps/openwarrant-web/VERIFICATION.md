@@ -115,7 +115,12 @@ the session clears their view and polling. The prepare/upload/start/result/lock 
 has been observed in a disposable browser fixture with synthetic processes and
 machine keys. This does not qualify deployment protection. Aggregate loop budgets,
 explicit repairs, rebuttals and human-directed repair are wired into the API.
-Automatic orchestration and browser controls for repair/dispute remain unfinished.
+The browser exposes repair eligibility and dispatch, evidence-backed rebuttals,
+human decision recording and human-directed recheck preparation. Decisions show a
+short summary with expandable exact evidence. Credentials clear on submission;
+locking clears the panels. A disposable browser fixture exercised these actions
+with synthetic credentials and local processes, including retained FAIL history
+and completed repair. Automatic orchestration remains unfinished.
 A consumed claim without
 a live process observation is UNKNOWN after interruption; it cannot relaunch.
 Tests use synthetic processes and disposable machine keys, not independent human
