@@ -119,8 +119,16 @@ plant "a second correction applied as an edit to the first" "correction.edited" 
     "$TARGET_ALIAS"
 restore_corrections
 
-# 7. Positive: after a valid correction, the check passes and names the supersession.
-plant "a corrected deliverable passes and names the superseded digest" "deliverable.corrected" "superseded" 0 \
+# 7. Positive: after a valid correction, the deliverable's digest check passes
+# and names the supersession — `deliverable.corrected`, not `digest-drift`.
+#
+# The run exits 2 rather than 0, and that is the second half of the positive: a
+# correction this battery wrote is one no human signed, so `authority.unsigned`
+# reports it. There is no key in a conformance run and there must not be — a
+# battery that could sign could sign anything. So the assertion is that the
+# CORRECTION is honoured and the MISSING SIGNATURE is still refused, which is
+# exactly the state a plant can reach.
+plant "a corrected deliverable passes and names the superseded digest" "deliverable.corrected" "superseded" 2 \
     "drift_target; write_response $RESP 'Brian Lam' \$(recorded_digest) \$(current_digest);
      \$WAR correct $TARGET_ALIAS $TARGET_DID --response $RESP > /dev/null 2>&1 || { echo 'setup: valid correction was refused' >&2; exit 9; }" \
     "$TARGET_ALIAS"
