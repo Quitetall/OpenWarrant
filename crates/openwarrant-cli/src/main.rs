@@ -1435,11 +1435,13 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 &repository,
                 &alias,
                 &stage,
-                kind,
-                &prior_failure,
-                emit.as_deref(),
-                emit_context.as_deref(),
-                prototype,
+                dispatch::Options {
+                    attempt_kind: kind,
+                    prior_failure_evidence: &prior_failure,
+                    emit_to: emit.as_deref(),
+                    emit_context_to: emit_context.as_deref(),
+                    prototype,
+                },
             )?;
             // The packet is the only thing on stdout when it goes there. An
             // actor piping `war dispatch` into a parser must get canonical JSON

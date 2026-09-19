@@ -310,11 +310,13 @@ fn compile(
         repo,
         alias,
         stage_id,
-        openwarrant_core::execution::AttemptKind::Initial,
-        &[],
-        Some(&scratch),
-        None,
-        prototype,
+        crate::dispatch::Options {
+            attempt_kind: openwarrant_core::execution::AttemptKind::Initial,
+            prior_failure_evidence: &[],
+            emit_to: Some(&scratch),
+            emit_context_to: None,
+            prototype,
+        },
     )?;
     if !compiled.is_ready() {
         let _ = std::fs::remove_file(&scratch);

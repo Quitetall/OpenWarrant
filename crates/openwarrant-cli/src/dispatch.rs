@@ -33,16 +33,40 @@ use crate::diagnostic::{Diagnostic, Report};
 use crate::repo::{RepoError, Repository};
 
 /// Build and emit one dispatch.
+/// What the caller asks of a compilation, beyond which stage of which Warrant.
+///
+/// A struct rather than five more parameters: the two paths are both
+/// `Option<&Utf8Path>` and the two flags are both plain, so a positional list
+/// of them is a list of things a caller can silently transpose.
+#[derive(Debug, Clone, Copy)]
+pub struct Options<'a> {
+    /// §52: initial, replay, repair, restart.
+    pub attempt_kind: AttemptKind,
+    /// Required for a repair (§52.3).
+    pub prior_failure_evidence: &'a [String],
+    /// Write the packet here instead of stdout.
+    pub emit_to: Option<&'a Utf8Path>,
+    /// Write the §33 context manifest beside it.
+    pub emit_context_to: Option<&'a Utf8Path>,
+    /// Compile for a contract no human has signed, recording
+    /// `prototype://unauthorized` as the authority it acted under. The operator
+    /// types this; §27.2 leaves an agent no way to decide it.
+    pub prototype: bool,
+}
+
 pub fn run(
     repo: &Repository,
     alias: &str,
     stage_id: &str,
-    attempt_kind: AttemptKind,
-    prior_failure_evidence: &[String],
-    emit_to: Option<&Utf8Path>,
-    emit_context_to: Option<&Utf8Path>,
-    prototype: bool,
+    opts: Options<'_>,
 ) -> Result<Report, RepoError> {
+    let Options {
+        attempt_kind,
+        prior_failure_evidence,
+        emit_to,
+        emit_context_to,
+        prototype,
+    } = opts;
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
     let mut report = Report::default();

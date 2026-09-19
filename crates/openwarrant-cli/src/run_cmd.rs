@@ -218,11 +218,13 @@ pub fn run(
         repo,
         alias,
         stage_id,
-        AttemptKind::Initial,
-        &[],
-        Some(&scratch),
-        None,
-        prototype,
+        crate::dispatch::Options {
+            attempt_kind: AttemptKind::Initial,
+            prior_failure_evidence: &[],
+            emit_to: Some(&scratch),
+            emit_context_to: None,
+            prototype,
+        },
     )?;
     if !dispatch_report.is_ready() {
         let _ = std::fs::remove_file(&scratch);

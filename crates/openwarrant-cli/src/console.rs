@@ -583,14 +583,17 @@ fn start_stages(repo: &Repository, b: &Board, report: &mut Report) -> Result<(),
                 repo,
                 &st.warrant,
                 &st.stage,
-                openwarrant_core::execution::AttemptKind::Initial,
-                &[],
-                None,
-                None,
-                // Never a prototype from here: the console runs stages for the
-                // human sitting at it, and an unauthorized contract is a
-                // refusal they should see, not one a default answers for them.
-                false,
+                crate::dispatch::Options {
+                    attempt_kind: openwarrant_core::execution::AttemptKind::Initial,
+                    prior_failure_evidence: &[],
+                    emit_to: None,
+                    emit_context_to: None,
+                    // Never a prototype from here: the console runs stages for
+                    // the human sitting at it, and an unauthorized contract is
+                    // a refusal they should see, not one a default answers for
+                    // them.
+                    prototype: false,
+                },
             ),
         };
         match r {
