@@ -1,0 +1,10 @@
+schema = "oh.war/authorization-response/v1"
+warrant = "OW-WAR-0110"
+contract_digest = "5e479bc9f61d49a64308856be42c72533674afb3d846e0b41565d2c7d25dfad0"
+authorizer = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0110 (Generate OpenWarrant TypeScript record types and integrate KF consumption) at this contract digest means the signer accepts its intent, scope and 4 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.1` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-09-19T02:38:19Z"
+independence = "separate_role"
+judgment = []
+signed_via = "ssh"
