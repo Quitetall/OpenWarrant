@@ -143,6 +143,16 @@ plant_cmd "war show names the superseded digest" "Corrections" "superseded" 0 \
 restore_corrections
 
 # 9. Before resolution the ordinary remedy applies: a correction is refused.
+#
+# This plant drifts a file in `conformance/` and restores it with `git checkout`,
+# which lib.sh's guard does not cover — so an uncommitted edit to that file is
+# destroyed without a word. It ate one on 2026-09-19. Refuse instead.
+if ! git diff --quiet -- conformance/plants.d/00-corpus.sh; then
+    echo "conformance/plants.d/00-corpus.sh has uncommitted changes." >&2
+    echo "This plant drifts and restores that file with 'git checkout', which" >&2
+    echo "would discard them. Commit or stash it first." >&2
+    exit 9
+fi
 plant_cmd "a correction on an unresolved warrant" "correction.not-resolved" "regenerate deliverables.toml" 2 \
     "printf '# planted\n' >> conformance/plants.d/00-corpus.sh; TARGET_ALIAS=OW-WAR-0063 TARGET_DID=D-003 write_response $RESP 'Brian Lam' sha256:$(printf '2%.0s' {1..64}) sha256:$(printf '3%.0s' {1..64})" \
     correct OW-WAR-0063 D-003 --response "$RESP"

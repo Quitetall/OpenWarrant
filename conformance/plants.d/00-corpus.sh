@@ -961,9 +961,16 @@ plant "a journal line edited in place" "journal.rewritten" "extended, never edit
     OW-WAR-0010
 
 # OBL-002. The last committed line deleted: history shortened is history rewritten.
+#
+# The guard names the deleted line by its own event id, never by an event TYPE.
+# `resolution.recorded` was the last line until this Warrant's resolution was
+# signed and `resolution.signature_recorded` followed it — the type was then
+# still present after the delete, the no-op guard fired, and the whole battery
+# stopped. An id belongs to one line; a type does not.
 plant "a journal line deleted" "journal.rewritten" "extended, never edited" 2 \
-    "sed -i '\$d' docs/warrants/OW-WAR-0010/journal.jsonl; \
-     assert_gone 'resolution.recorded' docs/warrants/OW-WAR-0010/journal.jsonl" \
+    "LAST_ID=\$(grep -o '\"id\":\"[^\"]*\"' docs/warrants/OW-WAR-0010/journal.jsonl | tail -1); \
+     sed -i '\$d' docs/warrants/OW-WAR-0010/journal.jsonl; \
+     assert_gone \"\$LAST_ID\" docs/warrants/OW-WAR-0010/journal.jsonl" \
     OW-WAR-0010
 
 # An event appended for a different Warrant's uuid: append-only holds, identity does not.
