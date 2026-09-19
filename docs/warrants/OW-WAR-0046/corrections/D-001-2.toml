@@ -1,0 +1,16 @@
+schema = "oh.war/correction/v1"
+warrant = "OW-WAR-0046"
+
+[correction]
+id = "01a0ba49-24a8-76d1-bd1c-15d57276ae3c"
+deliverable_id = "D-001"
+target_ref = "crates/openwarrant-cli/src/resolve.rs"
+sequence = 2
+superseded_digest = "sha256:e626f1a605e653c366721609de293b8858347d9ee7fc1ba8e300cb6e42ae1b9e"
+new_digest = "sha256:cf6aa86ef6d67c9bcd80cd8e612fb5d08f6a9d7f83fe574fe3e66a0ef17c2a96"
+reason = """crates/openwarrant-cli/src/resolve.rs moved after its resolution at 2026-09-03T03:30:00Z: 2 commit(s) touched it, "authority: a Dispatch and a resolution both require the signature, not the claim"; "fix: requirement 3 reads the correction chain, and the projection asks about admissibility". Each states its own          change; this correction records that the delivered bytes moved with them. Presented on a terminal by `war sign 1.0.0-alpha.1` and confirmed by the signer; the decision is the signer's and the template is the tool's."""
+kind = "behaviour-change"
+authorized_by_ref = "person://Brian Lam"
+acting_role_ref = "role://authorizer"
+effective_at = "2026-09-19T15:29:10Z"
+recorded_at = "2026-09-19T15:29:10Z"
