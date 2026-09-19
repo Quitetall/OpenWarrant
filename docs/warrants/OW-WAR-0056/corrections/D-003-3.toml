@@ -1,11 +1,16 @@
-schema = "oh.war/correction-response/v1"
+schema = "oh.war/correction/v1"
 warrant = "OW-WAR-0056"
+
+[correction]
+id = "01a0baa9-eef1-7730-90af-f8b62b40f53b"
 deliverable_id = "D-003"
+target_ref = "crates/openwarrant-cli/src/dispatch.rs"
+sequence = 3
 superseded_digest = "sha256:e999ffd9ed1637193f9bc76ad0549965bf58b4d11417740af4b09bd36c9ab3ea"
 new_digest = "sha256:c47c43ad518f5d0a7137c0e8a4e3ef9ee4159e08a18a7f13224f69303634db09"
 reason = "dispatch.rs takes an Options struct; five positional arguments were transposable Presented on a terminal by `war sign 1.0.0-alpha.1` and confirmed by the signer; the decision is the signer's and the template is the tool's."
 kind = "behaviour-change"
-corrected_by = "Brian Lam"
-acting_role = "authorizer"
-effective_time = "2026-09-19T17:14:53Z"
-signed_via = "ssh"
+authorized_by_ref = "person://Brian Lam"
+acting_role_ref = "role://authorizer"
+effective_at = "2026-09-19T17:14:53Z"
+recorded_at = "2026-09-19T17:14:54Z"
