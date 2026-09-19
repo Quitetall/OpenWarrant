@@ -67,7 +67,7 @@ fi
 #    packet for a Warrant nobody had signed compiled exactly like one for a
 #    Warrant the owner had, and the actor reading it could not tell.
 DISPATCHABLE="OW-WAR-0074"
-plant_cmd "a Dispatch of an unsigned contract" "dispatch.unauthorized" "$DISPATCHABLE" 1 \
+plant_cmd "a Dispatch of an unsigned contract" "dispatch.unauthorized" "$DISPATCHABLE" 2 \
     "rm -f docs/authority/responses/$DISPATCHABLE.response.toml.sig; \
      assert_gone_file docs/authority/responses/$DISPATCHABLE.response.toml.sig" \
     dispatch "$DISPATCHABLE" STAGE-001
@@ -90,7 +90,7 @@ plant "a hand-written authorization with no response" "authority.unsigned" "$DIS
 
 # 11. §56.1 requirement 1 asks for the EXACT AUTHORIZED revision, and
 #     "authorized" means signed. A resolution dry run must report it unmet.
-plant_cmd "requirement 1 is unmet without a signature" "resolution.requirement-unmet" "exact authorized Contract Revision" 0 \
+plant_cmd "requirement 1 is unmet without a signature" "resolution.requirement-unmet" "exact authorized Contract Revision" 2 \
     "rm -f docs/authority/responses/$DISPATCHABLE.response.toml.sig; \
      assert_gone_file docs/authority/responses/$DISPATCHABLE.response.toml.sig" \
     resolve "$DISPATCHABLE" --dry-run
