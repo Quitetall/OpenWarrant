@@ -1037,7 +1037,9 @@ fn check_one(
                     repo,
                     crate::authority_check::Act::Correct,
                     &subject,
-                    c.correction.authorized_by_ref.trim_start_matches("person://"),
+                    c.correction
+                        .authorized_by_ref
+                        .trim_start_matches("person://"),
                     Some(&c.correction.new_digest),
                 );
                 if verdict.is_signed() {

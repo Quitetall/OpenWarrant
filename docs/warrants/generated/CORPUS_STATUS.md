@@ -33,7 +33,7 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 | roadmap://OW-PHASE-3: ADR federation | OW-WAR-0043 | blocked by OW-WAR-0006, OW-WAR-0036, OW-WAR-0043, OW-WAR-0064 | 0 | 1 | 3 | 0 | 3 |
 | roadmap://OW-PHASE-4: Knowledge Fabric registration | OW-WAR-0044 | blocked by OW-WAR-0028, OW-WAR-0029, OW-WAR-0030, OW-WAR-0032, OW-WAR-0044 | 0 | 1 | 4 | 0 | 0 |
 | roadmap://OW-PHASE-5: Dispatch and Katana execution | OW-WAR-0045 | blocked by OW-WAR-0011, OW-WAR-0023, OW-WAR-0026, OW-WAR-0045, OW-WAR-0065, OW-WAR-0069 | 0 | 4 | 2 | 0 | 4 |
-| roadmap://OW-PHASE-6: Gate Registry and assurance case | OW-WAR-0046 | recorded | 0 | 2 | 0 | 0 | 8 |
+| roadmap://OW-PHASE-6: Gate Registry and assurance case | OW-WAR-0046 | recorded | 0 | 1 | 1 | 0 | 8 |
 | roadmap://OW-PHASE-7: BLUT adapter | OW-WAR-0047 | blocked by OW-WAR-0027, OW-WAR-0047 | 0 | 1 | 1 | 0 | 0 |
 | roadmap://OW-PHASE-8: Liminal production compiler | OW-WAR-0048 | blocked by OW-WAR-0040, OW-WAR-0048 | 0 | 2 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-9: High-assurance controls | — | not derivable — no member carries the `exit` slug | 0 | 4 | 0 | 0 | 0 |
@@ -63,7 +63,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | requirement | Warrants blocked |
 |---|---|
-| artifact digests verify | 58 |
+| artifact digests verify | 59 |
 | required deliverables exist | 53 |
 | every required gate has admissible result | 51 |
 | no blocker remains | 50 |
@@ -150,7 +150,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-084` | claimed | 0 | OW-WAR-0030 (complete), OW-WAR-0064 (partial) |
 | `WAR-SAS-RQ-085` | claimed | 0 | OW-WAR-0067 (partial), OW-WAR-0071 (partial), OW-WAR-0072 (partial) |
 
-## Warrants (107) — invalid 0 · draft 60 · ready_to_resolve 18 · would_satisfy 0 · resolved **29**
+## Warrants (107) — invalid 0 · draft 59 · ready_to_resolve 19 · would_satisfy 0 · resolved **29**
 
 | Warrant | rung | §38.6 | blocking unknowns | milestones evidenced | first unmet |
 |---|---|---|---|---|---|
@@ -199,16 +199,16 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0043` Discharge the Phase 3 exit: migrate the LamQuant ADR corpus, fabricating nothing | ready_to_resolve | NOT satisfied | 0 | 3 of 4 | — |
 | `OW-WAR-0044` Discharge the Phase 4 exit: KF is institutional authority, Git stays Source Holder | ready_to_resolve | NOT satisfied | 0 | 2 of 5 | — |
 | `OW-WAR-0045` Discharge the Phase 5 exit: a stateless actor executes one Dispatch | draft | NOT satisfied | 0 | 3 of 5 | required deliverables exist |
-| `OW-WAR-0046` Discharge the Phase 6 exit: a delivery closes only through bounded proof | resolved | would satisfy | 0 | 5 of 5 | — |
+| `OW-WAR-0046` Discharge the Phase 6 exit: a delivery closes only through bounded proof | resolved | would satisfy | 0 | 5 of 5 | artifact digests verify |
 | `OW-WAR-0047` Discharge the Phase 7 exit: compatible WARs execute without duplicating BLUT | draft | would satisfy | 0 | 3 of 3 | every required gate has admissible result |
 | `OW-WAR-0048` Discharge the Phase 8 exit: measured adapter parity and the two-host canonical run | draft | NOT satisfied | 0 | 0 of 4 | required deliverables exist |
 | `OW-WAR-0049` Close the alpha residue: the gaps alpha carried forward and one false claim | draft | NOT satisfied | 0 | 1 of 4 | required deliverables exist |
 | `OW-WAR-0050` Governed Bonsai evidence for pull-request workflow | draft | would satisfy | 1 | 0 of 2 | every required gate has admissible result |
 | `OW-WAR-0055` Compute the goal hierarchy: war status and the corpus projection | resolved | would satisfy | 0 | 4 of 4 | — |
-| `OW-WAR-0056` Compile a real Stage Dispatch (§47) | resolved | would satisfy | 0 | 3 of 3 | — |
+| `OW-WAR-0056` Compile a real Stage Dispatch (§47) | resolved | would satisfy | 0 | 3 of 3 | artifact digests verify |
 | `OW-WAR-0057` The viewer: a static page over the corpus projection | resolved | would satisfy | 0 | 2 of 2 | — |
 | `OW-WAR-0058` Put the SAS under §101 governance: controlled revisions and the Release axis | resolved | would satisfy | 0 | 3 of 3 | artifact digests verify |
-| `OW-WAR-0059` Commit gate receipts as evidence and record the first resolutions | draft | NOT satisfied | 0 | 2 of 4 | artifact digests verify |
+| `OW-WAR-0059` Commit gate receipts as evidence and record the first resolutions | ready_to_resolve | NOT satisfied | 0 | 2 of 4 | — |
 | `OW-WAR-0060` Publish the corpus viewer: GitHub Pages from the committed projection | resolved | would satisfy | 0 | 2 of 2 | — |
 | `OW-WAR-0061` Discharge the Phase 1 exit: OpenWarrant development uses WARs | resolved | would satisfy | 0 | 1 of 1 | — |
 | `OW-WAR-0062` Lock down the levels: what a SAS, a Warrant, and every other object are | resolved | would satisfy | 0 | 1 of 1 | — |

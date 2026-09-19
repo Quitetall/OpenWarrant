@@ -535,7 +535,9 @@ pub fn ingest(
             })
     });
     let revision = match existing {
-        Some(prev) if prev.revision.contract_digest == current_digest && unsigned_at_this_digest => {
+        Some(prev)
+            if prev.revision.contract_digest == current_digest && unsigned_at_this_digest =>
+        {
             report.push(Diagnostic::warn(
                 "authorize.signature-supplied",
                 response_path.to_string(),
@@ -549,13 +551,11 @@ pub fn ingest(
             // Same contract, same revision number, now carrying a signature.
             // Built through the state machine so the record's shape is the one
             // every reader expects, then numbered back to the revision it is.
-            let mut signed = ContractRevision::draft(
-                current_digest.clone(),
-                ir.contract_coverage.clone(),
-            )
-            .propose(proposer)
-            .and_then(|proposed| proposed.authorize(authorization))
-            .map_err(|e| RepoError::Message(format!("{alias}: {e}")))?;
+            let mut signed =
+                ContractRevision::draft(current_digest.clone(), ir.contract_coverage.clone())
+                    .propose(proposer)
+                    .and_then(|proposed| proposed.authorize(authorization))
+                    .map_err(|e| RepoError::Message(format!("{alias}: {e}")))?;
             signed.revision = prev.revision.revision;
             signed
         }

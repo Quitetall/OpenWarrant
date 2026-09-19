@@ -1018,9 +1018,10 @@ impl Drafted {
 
     fn file_stem(&self) -> String {
         match self {
-            Self::Authorize(r) => {
-                crate::authority_check::response_stem(crate::authority_check::Act::Authorize, &r.warrant)
-            }
+            Self::Authorize(r) => crate::authority_check::response_stem(
+                crate::authority_check::Act::Authorize,
+                &r.warrant,
+            ),
             Self::Resolve(r) => crate::authority_check::response_stem(
                 crate::authority_check::Act::Resolve,
                 &r.warrant,
@@ -2307,7 +2308,10 @@ mod tests {
         // Same digest, no signature beside it: a draft, retired aside so a human
         // can supply the signature the record never had.
         retire_prior(&final_path, "aabb").expect("an unsigned draft retires");
-        assert!(!final_path.exists(), "the path is freed for the new response");
+        assert!(
+            !final_path.exists(),
+            "the path is freed for the new response"
+        );
         // Same digest WITH a signature: a decision, and it is not overwritten.
         std::fs::write(&final_path, toml::to_string_pretty(&real).unwrap()).unwrap();
         std::fs::write(sig_path(&final_path), "signature").unwrap();

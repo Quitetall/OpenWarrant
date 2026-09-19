@@ -62,3 +62,35 @@ else
     printf 'FAIL  %-34s no act reports a verified signature\n' "signatures verify"
     FAILED=$((FAILED + 1))
 fi
+
+# 8. A Dispatch projects an AUTHORIZED contract (§47). Nothing checked that: a
+#    packet for a Warrant nobody had signed compiled exactly like one for a
+#    Warrant the owner had, and the actor reading it could not tell.
+DISPATCHABLE="OW-WAR-0074"
+plant_cmd "a Dispatch of an unsigned contract" "dispatch.unauthorized" "$DISPATCHABLE" 1 \
+    "rm -f docs/authority/responses/$DISPATCHABLE.response.toml.sig; \
+     assert_gone_file docs/authority/responses/$DISPATCHABLE.response.toml.sig" \
+    dispatch "$DISPATCHABLE" STAGE-001
+
+# 9. Prototyping before authorization is legitimate, admitted explicitly, and
+#    says so in the packet — the escape is not a way to look authorized.
+plant_cmd "--prototype names the missing authority" "prototype://unauthorized" "$DISPATCHABLE" 0 \
+    "rm -f docs/authority/responses/$DISPATCHABLE.response.toml.sig; \
+     assert_gone_file docs/authority/responses/$DISPATCHABLE.response.toml.sig" \
+    dispatch "$DISPATCHABLE" STAGE-001 --prototype
+
+# 10. A forged authorization: the record says `authorized`, names the owner, and
+#     nobody signed it. This is the exact artifact that passed `war check` with
+#     zero errors on the published alpha, reduced to its essence — no response
+#     at all, which is what an agent writing authorization.toml by hand produces.
+plant "a hand-written authorization with no response" "authority.unsigned" "$DISPATCHABLE" 2 \
+    "rm -f docs/authority/responses/$DISPATCHABLE.response.toml \
+           docs/authority/responses/$DISPATCHABLE.response.toml.sig; \
+     assert_gone_file docs/authority/responses/$DISPATCHABLE.response.toml"
+
+# 11. §56.1 requirement 1 asks for the EXACT AUTHORIZED revision, and
+#     "authorized" means signed. A resolution dry run must report it unmet.
+plant_cmd "requirement 1 is unmet without a signature" "resolution.requirement-unmet" "exact authorized Contract Revision" 0 \
+    "rm -f docs/authority/responses/$DISPATCHABLE.response.toml.sig; \
+     assert_gone_file docs/authority/responses/$DISPATCHABLE.response.toml.sig" \
+    resolve "$DISPATCHABLE" --dry-run

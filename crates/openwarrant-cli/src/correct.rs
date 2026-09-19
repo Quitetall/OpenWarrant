@@ -237,26 +237,21 @@ pub fn ingest(
     // and the refusals below — which would all fire, starting with
     // `correction.no-drift`, because the file already IS the corrected bytes —
     // do not apply.
-    if let Some(recorded_head) = s
-        .corrections
-        .iter()
-        .max_by_key(|c| c.sequence)
-        .filter(|c| {
-            c.superseded_digest == response.superseded_digest
-                && c.new_digest == response.new_digest
-                && c.reason == response.reason
-                && c.kind == response.kind
-                && !crate::authority_check::verify_excluding(
-                    repo,
-                    crate::authority_check::Act::Correct,
-                    &format!("{alias}.{id}"),
-                    c.authorized_by_ref.trim_start_matches("person://"),
-                    Some(&c.new_digest),
-                    Some(path),
-                )
-                .is_signed()
-        })
-    {
+    if let Some(recorded_head) = s.corrections.iter().max_by_key(|c| c.sequence).filter(|c| {
+        c.superseded_digest == response.superseded_digest
+            && c.new_digest == response.new_digest
+            && c.reason == response.reason
+            && c.kind == response.kind
+            && !crate::authority_check::verify_excluding(
+                repo,
+                crate::authority_check::Act::Correct,
+                &format!("{alias}.{id}"),
+                c.authorized_by_ref.trim_start_matches("person://"),
+                Some(&c.new_digest),
+                Some(path),
+            )
+            .is_signed()
+    }) {
         if let Some(v) = &one.validated {
             crate::journal_cmd::record(
                 &dir,

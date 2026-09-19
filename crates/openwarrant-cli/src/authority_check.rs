@@ -430,7 +430,8 @@ mod tests {
             assert!(a.as_str().ends_with("OW-WAR-0063.response.toml"), "{a}");
             let c = response_path(&repo, Act::Correct, "OW-WAR-0055.D-001");
             assert!(
-                c.as_str().ends_with("OW-WAR-0055.D-001.correction.response.toml"),
+                c.as_str()
+                    .ends_with("OW-WAR-0055.D-001.correction.response.toml"),
                 "{c}"
             );
         }

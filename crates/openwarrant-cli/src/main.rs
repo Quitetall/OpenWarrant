@@ -10,8 +10,8 @@ use clap::{Parser, Subcommand};
 use openwarrant_core::Profile;
 
 mod attest;
-mod authority_cmd;
 mod authority_check;
+mod authority_cmd;
 mod authorize;
 mod blut;
 mod board;
@@ -413,6 +413,11 @@ enum Command {
         /// omitted, with reasons) beside the packet.
         #[arg(long, value_name = "PATH")]
         emit_context: Option<Utf8PathBuf>,
+        /// Compile a packet for a contract no human has signed. The packet
+        /// records `prototype://unauthorized` as the authority it acted under,
+        /// so nothing downstream can mistake the work for authorized.
+        #[arg(long)]
+        prototype: bool,
     },
 
     /// Evaluate §56.1's thirteen resolution requirements without recording one.
@@ -670,6 +675,11 @@ enum Command {
         alias: String,
         /// The stage id, e.g. `STAGE-002`.
         stage: String,
+        /// Run a stage of a contract no human has signed. The Dispatch the run
+        /// is built from records `prototype://unauthorized`, and so does the
+        /// receipt's subject.
+        #[arg(long)]
+        prototype: bool,
     },
     /// Ingest a Stage Submission something else produced (§51): it must name a
     /// dispatch this Warrant compiled and may not request its own resolution.
@@ -720,6 +730,11 @@ enum Command {
         /// Every open agent stage on the frontier, one at a time.
         #[arg(long)]
         all: bool,
+        /// Perform a stage of a contract no human has signed. The operator
+        /// types this, never the agent: the Dispatch records
+        /// `prototype://unauthorized` and the work is not authorized work.
+        #[arg(long)]
+        prototype: bool,
     },
     /// The commit message, drafted from the records that changed (OW-WAR-0069).
     Commit {
@@ -1410,6 +1425,7 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             prior_failure,
             emit,
             emit_context,
+            prototype,
         } => {
             let repository = repo::Repository::discover(None)?;
             let kind = attempt_kind
@@ -1423,6 +1439,7 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 &prior_failure,
                 emit.as_deref(),
                 emit_context.as_deref(),
+                prototype,
             )?;
             // The packet is the only thing on stdout when it goes there. An
             // actor piping `war dispatch` into a parser must get canonical JSON
@@ -1629,9 +1646,13 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             );
             Ok(EXIT_OK)
         }
-        Command::Run { alias, stage } => {
+        Command::Run {
+            alias,
+            stage,
+            prototype,
+        } => {
             let repository = repo::Repository::discover(None)?;
-            let report = run_cmd::run(&repository, &alias, &stage)?;
+            let report = run_cmd::run(&repository, &alias, &stage, prototype)?;
             Ok(output::finish(mode, "run", &report, None))
         }
         Command::Submit { alias, file } => {
@@ -1703,11 +1724,16 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             let report = console::run(&repository)?;
             Ok(output::finish(mode, "console", &report, None))
         }
-        Command::Perform { alias, stage, all } => {
+        Command::Perform {
+            alias,
+            stage,
+            all,
+            prototype,
+        } => {
             let repository = repo::Repository::discover(None)?;
             let report = match (alias.as_deref(), stage.as_deref(), all) {
-                (Some(a), Some(st), false) => perform::run(&repository, a, st)?,
-                (None, None, true) => perform::all(&repository)?,
+                (Some(a), Some(st), false) => perform::run(&repository, a, st, prototype)?,
+                (None, None, true) => perform::all(&repository, prototype)?,
                 _ => {
                     return Err(Box::new(repo::RepoError::Message(
                         "war perform: name a Warrant and a stage, or pass --all".to_owned(),

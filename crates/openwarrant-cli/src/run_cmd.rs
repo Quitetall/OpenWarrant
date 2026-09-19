@@ -113,7 +113,12 @@ fn record_submission(
 }
 
 /// `war run <alias> <stage>`.
-pub fn run(repo: &Repository, alias: &str, stage_id: &str) -> Result<Report, RepoError> {
+pub fn run(
+    repo: &Repository,
+    alias: &str,
+    stage_id: &str,
+    prototype: bool,
+) -> Result<Report, RepoError> {
     let mut report = Report::default();
     let dir = repo.warrant_dir(alias)?;
     let loaded = repo.load_warrant(&dir)?;
@@ -217,6 +222,7 @@ pub fn run(repo: &Repository, alias: &str, stage_id: &str) -> Result<Report, Rep
         &[],
         Some(&scratch),
         None,
+        prototype,
     )?;
     if !dispatch_report.is_ready() {
         let _ = std::fs::remove_file(&scratch);

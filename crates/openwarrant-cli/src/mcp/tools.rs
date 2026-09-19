@@ -544,6 +544,8 @@ impl WarServer {
             &p.prior_failure,
             Some(&scratch),
             None,
+            // An agent cannot decide to work under no authority (§27.2).
+            false,
         );
         let packet = std::fs::read_to_string(&scratch).ok();
         let _ = std::fs::remove_file(&scratch);

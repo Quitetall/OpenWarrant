@@ -1506,7 +1506,7 @@ fn service_run_receipt_points_to_retained_stream_bytes() {
                 .success()
         );
     }
-    success(f.run(&["run", "STREAM-WAR-0001", "STAGE-001"]));
+    success(f.run(&["run", "STREAM-WAR-0001", "STAGE-001", "--prototype"]));
     let first_dispatch = std::fs::read_dir(dir.join("dispatches"))
         .unwrap()
         .next()
@@ -1522,7 +1522,7 @@ fn service_run_receipt_points_to_retained_stream_bytes() {
     let receipt: openwarrant_core::GateReceipt = serde_json::from_slice(&receipt_bytes).unwrap();
     let first_run_bytes =
         std::fs::read(receipt_path.with_file_name("ops_echo_1_0_0.run.toml")).unwrap();
-    success(f.run(&["run", "STREAM-WAR-0001", "STAGE-001"]));
+    success(f.run(&["run", "STREAM-WAR-0001", "STAGE-001", "--prototype"]));
     assert_eq!(std::fs::read(&receipt_path).unwrap(), receipt_bytes);
     assert_eq!(
         std::fs::read(receipt_path.with_file_name("ops_echo_1_0_0.run.toml")).unwrap(),
@@ -1779,7 +1779,7 @@ fn service_failed_and_timed_out_attempts_keep_distinct_truthful_evidence() {
         let mut retained = BTreeMap::new();
         for _ in 0..2 {
             // A failed or timed-out gate must not erase an earlier attempt.
-            let _report = f.run(&["run", "STOP-WAR-0001", "STAGE-001"]);
+            let _report = f.run(&["run", "STOP-WAR-0001", "STAGE-001", "--prototype"]);
             for (path, bytes) in &retained {
                 assert_eq!(&std::fs::read(path).unwrap(), bytes);
             }
