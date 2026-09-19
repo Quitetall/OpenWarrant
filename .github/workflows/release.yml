@@ -257,5 +257,10 @@ jobs:
           tag_status=$?
           set -e
           [[ "$tag_status" == 2 ]] || { echo "Existing tag or unavailable tag check; refusing publication" >&2; exit 1; }
+          # The notes follow the tag. Hardcoding alpha1.md meant the second
+          # preview would have shipped the first one's notes — describing a
+          # build whose defining change was that it had a security hole.
+          NOTES="docs/releases/$(sed -E 's/^v[0-9]+\.[0-9]+\.[0-9]+-alpha\.([0-9]+)$/alpha\1/' <<<"$PREVIEW_TAG").md"
+          [[ -f "$NOTES" ]] || { echo "no release notes at $NOTES for $PREVIEW_TAG" >&2; exit 1; }
           gh release upload "$PREVIEW_TAG" dist/*
-          gh release edit "$PREVIEW_TAG" --target "$GITHUB_SHA" --draft=false --prerelease --latest=false --notes-file docs/releases/alpha1.md
+          gh release edit "$PREVIEW_TAG" --target "$GITHUB_SHA" --draft=false --prerelease --latest=false --notes-file "$NOTES"
