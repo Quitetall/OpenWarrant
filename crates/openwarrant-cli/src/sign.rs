@@ -332,24 +332,24 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
             // only when a content-addressed deliverable no longer matches its
             // chain head.
             let deliverables = repo.load_deliverables(&dir)?;
-            for d in deliverables.records.iter().filter(|d| d.content_addressed) {
-                if let Ok(request) = crate::correct::request(repo, &alias, &d.id)
-                    && request.drift
-                {
-                    out.push(Pending::Correct {
-                        alias: alias.clone(),
-                        deliverable_id: d.id.clone(),
-                        request,
-                        recorded: None,
-                    });
-                }
-            }
             // A recorded correction with no verified signature is the third
             // shape of the same problem: the record moved a delivered file past
             // the wall and nothing proves a human said so. Only the chain head
             // is offered — an earlier link's signature would have to live at the
             // same path as the head's, and overwriting one signature to place
             // another is not a repair.
+            //
+            // This comes BEFORE the drift rows and suppresses them for the same
+            // deliverable. Offering both in one sweep had the first act record a
+            // correction the second then found nothing to correct
+            // (`correction.no-drift`), or had the second collide with the
+            // signature the first had just placed (`sign.response-exists`) —
+            // five errors in one batch, both of them the same double offer. The
+            // head's missing signature is history and settles first; a new
+            // drift is new work and waits for the next sweep, which is one more
+            // `war sign --all` away.
+            let mut supplied: std::collections::BTreeSet<String> =
+                std::collections::BTreeSet::new();
             if let Ok(set) = repo.load_corrections(&dir) {
                 let mut heads: std::collections::BTreeMap<String, &Correction> =
                     std::collections::BTreeMap::new();
@@ -377,6 +377,7 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
                         continue;
                     }
                     if let Ok(request) = crate::correct::request(repo, &alias, &deliverable_id) {
+                        supplied.insert(deliverable_id.clone());
                         out.push(Pending::Correct {
                             alias: alias.clone(),
                             deliverable_id,
@@ -389,6 +390,22 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
                             }),
                         });
                     }
+                }
+            }
+            for d in deliverables
+                .records
+                .iter()
+                .filter(|d| d.content_addressed && !supplied.contains(&d.id))
+            {
+                if let Ok(request) = crate::correct::request(repo, &alias, &d.id)
+                    && request.drift
+                {
+                    out.push(Pending::Correct {
+                        alias: alias.clone(),
+                        deliverable_id: d.id.clone(),
+                        request,
+                        recorded: None,
+                    });
                 }
             }
             continue;
@@ -759,7 +776,7 @@ fn drafted_correction_reason(repo: &Repository, alias: &str, target_ref: &str) -
     );
     if subjects.is_empty() {
         return format!(
-            "{target_ref} moved after {when}; the repository records no commit touching it since,              so the bytes changed without a commit message to cite."
+            "{target_ref} moved after {when}; the repository records no commit touching it since, so the bytes changed without a commit message to cite."
         );
     }
     let shown: Vec<String> = subjects
