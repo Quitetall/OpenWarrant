@@ -52,6 +52,15 @@ pub const AUTHORIZATION_RECORDED: &str = "authorization.recorded";
 pub const VERIFICATION_RECORDED: &str = "verification.recorded";
 pub const RECEIPT_ATTACHED: &str = "sync.receipt_attached";
 pub const RESOLUTION_RECORDED: &str = "resolution.recorded";
+/// A record that already existed, now carrying the human signature it was
+/// written without. A separate event type rather than a second
+/// `*.recorded`: the payload of a re-recorded authorization is identical to
+/// the first, so the idempotency key collides and the append is refused —
+/// which aborted a signing sweep mid-batch. It is also the truer history:
+/// the record was recorded then, and signed now.
+pub const AUTHORIZATION_SIGNATURE_RECORDED: &str = "authorization.signature_recorded";
+pub const RESOLUTION_SIGNATURE_RECORDED: &str = "resolution.signature_recorded";
+pub const CORRECTION_SIGNATURE_RECORDED: &str = "correction.signature_recorded";
 /// OW-WAR-0064 — a delivered artifact superseded for a reason. The payload
 /// carries the digest of the correction file as written, which is how
 /// `war check` tells an authorized record from one edited afterwards.

@@ -64,8 +64,8 @@ use std::io::{IsTerminal, Write};
 
 use camino::{Utf8Path, Utf8PathBuf};
 use openwarrant_core::{
-    Independence, JudgmentAuthority, epistemic::Judgment, resolution::CommonOutcome,
-    sas::SasRevisionState,
+    Independence, JudgmentAuthority, correction::Correction, epistemic::Judgment,
+    resolution::CommonOutcome, sas::SasRevisionState,
 };
 
 use crate::{
@@ -101,6 +101,12 @@ pub enum Pending {
         alias: String,
         request: ResolutionRequest,
         profile: String,
+        /// Present when a resolution is already recorded for this contract and
+        /// carries no verified signature. The act is then not a decision to
+        /// resolve — that decision is history — but the signature that decision
+        /// was recorded without, so the outcome comes from the record rather
+        /// than from §38.6 or a flag.
+        recorded: Option<RecordedOutcome>,
     },
     Accept {
         version: String,
@@ -112,7 +118,29 @@ pub enum Pending {
         alias: String,
         deliverable_id: String,
         request: crate::correct::CorrectionRequest,
+        /// Present when the correction is already recorded and carries no
+        /// verified signature: the act then repeats the record, so the reason
+        /// and the kind come from it and `--kind` is not asked for again.
+        recorded: Option<RecordedCorrection>,
     },
+}
+
+/// The outcome an existing resolution recorded, so a signature supplied for it
+/// says what the record says and not something new.
+#[derive(Debug, Clone)]
+pub struct RecordedOutcome {
+    pub common: CommonOutcome,
+    pub profile: String,
+}
+
+/// The correction a record already holds, so a signature supplied for it says
+/// exactly what was recorded.
+#[derive(Debug, Clone)]
+pub struct RecordedCorrection {
+    pub superseded_digest: String,
+    pub new_digest: String,
+    pub reason: String,
+    pub kind: openwarrant_core::correction::CorrectionKind,
 }
 
 /// What an amendment says it changed, read for display only. Validation of the
@@ -222,13 +250,33 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
             continue;
         };
         let authorization = repo.load_authorization(&dir)?;
-        let authorized_current = authorization
-            .as_ref()
-            .is_some_and(|a| authorize::authorizes_current_contract(a, &request.contract_digest));
+        // Authorized means SIGNED and current, not merely recorded and current.
+        // A record whose digest matches but whose signature does not verify is
+        // pending again — that is how 57 file-only authorizations became acts
+        // the owner can clear in one pass, rather than a corpus-wide exception.
+        let authorized_current = authorization.as_ref().is_some_and(|a| {
+            authorize::authorizes_current_contract(a, &request.contract_digest)
+                && a.revision.authorization.as_ref().is_some_and(|auth| {
+                    crate::authority_check::verify(
+                        repo,
+                        crate::authority_check::Act::Authorize,
+                        &alias,
+                        &auth.authorizer,
+                        Some(&a.revision.contract_digest),
+                    )
+                    .is_signed()
+                })
+        });
         if !authorized_current {
-            let revision = authorization
-                .as_ref()
-                .map_or(1, |a| a.revision.revision + 1);
+            let revision = authorization.as_ref().map_or(1, |a| {
+                if a.revision.contract_digest == request.contract_digest {
+                    // Same bytes, missing signature: sign THIS revision. A bump
+                    // here would claim the contract changed, and it did not.
+                    a.revision.revision
+                } else {
+                    a.revision.revision + 1
+                }
+            });
             let amendment = if revision > 1 {
                 read_latest_amendment(&dir)
             } else {
@@ -242,9 +290,47 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
             });
             continue;
         }
-        if repo.load_resolution(&dir)?.is_some() {
-            // Resolved: the only act left is a correction, and only when a
-            // content-addressed deliverable no longer matches its chain head.
+        if let Some(existing) = repo.load_resolution(&dir)? {
+            // A recorded resolution with no verified signature is the same
+            // situation as an unsigned authorization: the record exists, the
+            // human act behind it was never proved, and the remedy is one
+            // signature over the resolution as recorded. Offered only at the
+            // digest the resolution itself binds — a resolution of a contract
+            // that has since moved is stale, and `war check` says so rather
+            // than inviting a signature that would launder the drift.
+            let signed = crate::authority_check::verify(
+                repo,
+                crate::authority_check::Act::Resolve,
+                &alias,
+                existing
+                    .resolution
+                    .resolved_by_ref
+                    .trim_start_matches("person://"),
+                Some(&existing.resolution.contract_digest),
+            )
+            .is_signed();
+            if !signed
+                && let Ok(request) = resolution_cmd::request(repo, &alias)
+                && request.contract_digest == existing.resolution.contract_digest
+            {
+                let profile = one
+                    .validated
+                    .as_ref()
+                    .map(|v| v.raw.profile.clone())
+                    .unwrap_or_default();
+                out.push(Pending::Resolve {
+                    alias: alias.clone(),
+                    request,
+                    profile,
+                    recorded: Some(RecordedOutcome {
+                        common: existing.resolution.common_outcome,
+                        profile: existing.resolution.profile_outcome.clone(),
+                    }),
+                });
+            }
+            // The only other act a resolved Warrant admits is a correction, and
+            // only when a content-addressed deliverable no longer matches its
+            // chain head.
             let deliverables = repo.load_deliverables(&dir)?;
             for d in deliverables.records.iter().filter(|d| d.content_addressed) {
                 if let Ok(request) = crate::correct::request(repo, &alias, &d.id)
@@ -254,7 +340,55 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
                         alias: alias.clone(),
                         deliverable_id: d.id.clone(),
                         request,
+                        recorded: None,
                     });
+                }
+            }
+            // A recorded correction with no verified signature is the third
+            // shape of the same problem: the record moved a delivered file past
+            // the wall and nothing proves a human said so. Only the chain head
+            // is offered — an earlier link's signature would have to live at the
+            // same path as the head's, and overwriting one signature to place
+            // another is not a repair.
+            if let Ok(set) = repo.load_corrections(&dir) {
+                let mut heads: std::collections::BTreeMap<String, &Correction> =
+                    std::collections::BTreeMap::new();
+                for c in set.records.iter().map(|(_, r)| &r.correction) {
+                    heads
+                        .entry(c.deliverable_id.clone())
+                        .and_modify(|cur| {
+                            if c.sequence > cur.sequence {
+                                *cur = c;
+                            }
+                        })
+                        .or_insert(c);
+                }
+                for (deliverable_id, c) in heads {
+                    let subject = format!("{alias}.{deliverable_id}");
+                    if crate::authority_check::verify(
+                        repo,
+                        crate::authority_check::Act::Correct,
+                        &subject,
+                        c.authorized_by_ref.trim_start_matches("person://"),
+                        Some(&c.new_digest),
+                    )
+                    .is_signed()
+                    {
+                        continue;
+                    }
+                    if let Ok(request) = crate::correct::request(repo, &alias, &deliverable_id) {
+                        out.push(Pending::Correct {
+                            alias: alias.clone(),
+                            deliverable_id,
+                            request,
+                            recorded: Some(RecordedCorrection {
+                                superseded_digest: c.superseded_digest.clone(),
+                                new_digest: c.new_digest.clone(),
+                                reason: c.reason.clone(),
+                                kind: c.kind,
+                            }),
+                        });
+                    }
                 }
             }
             continue;
@@ -272,11 +406,29 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
                 alias,
                 request,
                 profile,
+                recorded: None,
             });
         }
     }
-    for rev in repo.load_sas_revisions()? {
-        if rev.state == SasRevisionState::Proposed {
+    let revisions = repo.load_sas_revisions()?;
+    // Only the normative revision is offered for a signature it lacks. A
+    // superseded revision governs nothing, and inviting a signature on it in
+    // 2026 for an acceptance made in 2025 would date the act wrongly.
+    let pin = crate::sas::pin_of(&revisions).map(|p| p.version.clone());
+    for rev in revisions {
+        let unsigned_pin = rev.state == SasRevisionState::Accepted
+            && pin.as_deref() == Some(rev.version.as_str())
+            && rev.acceptance.as_ref().is_some_and(|a| {
+                !crate::authority_check::verify(
+                    repo,
+                    crate::authority_check::Act::Accept,
+                    &format!("SAS-{}", rev.version),
+                    &a.accepted_by,
+                    Some(&rev.sha256),
+                )
+                .is_signed()
+            });
+        if rev.state == SasRevisionState::Proposed || unsigned_pin {
             let request = sas::accept_request(repo, &rev.version)?;
             out.push(Pending::Accept {
                 version: rev.version,
@@ -359,6 +511,15 @@ pub fn line(p: &Pending) -> String {
                 .map(|a| format!("  [{}]", a.id))
                 .unwrap_or_default()
         ),
+        Pending::Resolve {
+            alias,
+            request,
+            recorded: Some(rec),
+            ..
+        } => format!(
+            "{alias}  resolve  signature only, recorded {}  {}",
+            rec.common, request.title
+        ),
         Pending::Resolve { alias, request, .. } => format!(
             "{alias}  resolve  would resolve {}  {}",
             if request.would_resolve_satisfied == Some(true) {
@@ -381,6 +542,7 @@ pub fn line(p: &Pending) -> String {
             alias,
             deliverable_id,
             request,
+            ..
         } => format!(
             "{alias}/{deliverable_id}  correct  {} drifted (correction {})  {}",
             request.target_ref, request.next_sequence, request.title
@@ -497,6 +659,7 @@ fn screen(p: &Pending, actor: &str, role: &str, reason: Option<&str>) -> String 
             alias,
             deliverable_id,
             request,
+            ..
         } => {
             s.push_str(&format!(
                 "┌ {alias} · correct {deliverable_id} · correction {} of a RESOLVED Warrant\n│ {}\n│ {}\n",
@@ -691,27 +854,37 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
             alias,
             request,
             profile,
+            recorded,
         } => {
-            let outcome = match (request.would_resolve_satisfied, opts.outcome) {
-                (_, Some(o)) => o,
-                (Some(true), None) => CommonOutcome::Satisfied,
-                _ => {
-                    return Err(format!(
-                        "{alias}: §38.6 does not permit `satisfied` ({} obligation(s) \
-                         unestablished); pass --outcome not_satisfied|cancelled|blocked",
-                        request.unestablished.len()
-                    ));
-                }
+            // A signature supplied for a recorded resolution repeats that
+            // record's outcome. Re-deciding it here would let a signature say
+            // something the resolution never said.
+            let outcome = match recorded {
+                Some(rec) => rec.common,
+                None => match (request.would_resolve_satisfied, opts.outcome) {
+                    (_, Some(o)) => o,
+                    (Some(true), None) => CommonOutcome::Satisfied,
+                    _ => {
+                        return Err(format!(
+                            "{alias}: §38.6 does not permit `satisfied` ({} obligation(s) \
+                             unestablished); pass --outcome not_satisfied|cancelled|blocked",
+                            request.unestablished.len()
+                        ));
+                    }
+                },
             };
-            if !request.permitted_outcomes.contains(&outcome.to_string()) {
+            if recorded.is_none() && !request.permitted_outcomes.contains(&outcome.to_string()) {
                 return Err(format!(
                     "{alias}: outcome {outcome} is not permitted here; permitted: {}",
                     request.permitted_outcomes.join(", ")
                 ));
             }
-            let profile_outcome = match (profile.as_str(), outcome) {
-                ("delivery", CommonOutcome::Satisfied) => "delivered".to_owned(),
-                _ => outcome.to_string(),
+            let profile_outcome = match recorded {
+                Some(rec) => rec.profile.clone(),
+                None => match (profile.as_str(), outcome) {
+                    ("delivery", CommonOutcome::Satisfied) => "delivered".to_owned(),
+                    _ => outcome.to_string(),
+                },
             };
             Ok(Drafted::Resolve(ResolutionResponse {
                 schema: resolution_cmd::RESPONSE_SCHEMA.to_owned(),
@@ -722,10 +895,15 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
                 common_outcome: outcome,
                 profile_outcome,
                 meaning: format!(
-                    "Resolving {alias} ({}) {outcome} at revision {} means the signer accepts \
+                    "{} {alias} ({}) {outcome} at revision {} means the signer accepts \
                      the §56.1 record as it stands: {} obligation(s) established, {} not, every \
                      required gate with an admissible result, and the assurance case as \
                      snapshotted.{extra} {}",
+                    if recorded.is_some() {
+                        "Signing the recorded resolution of"
+                    } else {
+                        "Resolving"
+                    },
                     request.title,
                     request.contract_revision,
                     request.established.len(),
@@ -767,7 +945,26 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
             alias,
             deliverable_id,
             request,
+            recorded,
         } => {
+            // A signature supplied for a recorded correction repeats that
+            // record: same digests, same reason, same kind. Nothing is decided
+            // here, so nothing is asked for.
+            if let Some(rec) = recorded {
+                return Ok(Drafted::Correct(crate::correct::CorrectionResponse {
+                    schema: crate::correct::RESPONSE_SCHEMA.to_owned(),
+                    warrant: alias.clone(),
+                    deliverable_id: deliverable_id.clone(),
+                    superseded_digest: rec.superseded_digest.clone(),
+                    new_digest: rec.new_digest.clone(),
+                    reason: rec.reason.clone(),
+                    kind: rec.kind,
+                    corrected_by: actor.to_owned(),
+                    acting_role: "authorizer".to_owned(),
+                    effective_time: now.to_owned(),
+                    signed_via: Some(opts.channel().to_owned()),
+                }));
+            }
             // Nothing is guessed: the kind and the reason are the human's
             // whole contribution to a correction, and both are required.
             let Some(kind) = opts.kind else {
@@ -821,10 +1018,21 @@ impl Drafted {
 
     fn file_stem(&self) -> String {
         match self {
-            Self::Authorize(r) => r.warrant.clone(),
-            Self::Resolve(r) => r.warrant.clone(),
-            Self::Accept(r) => format!("SAS-{}", r.version),
-            Self::Correct(r) => format!("{}.{}.correction", r.warrant, r.deliverable_id),
+            Self::Authorize(r) => {
+                crate::authority_check::response_stem(crate::authority_check::Act::Authorize, &r.warrant)
+            }
+            Self::Resolve(r) => crate::authority_check::response_stem(
+                crate::authority_check::Act::Resolve,
+                &r.warrant,
+            ),
+            Self::Accept(r) => crate::authority_check::response_stem(
+                crate::authority_check::Act::Accept,
+                &format!("SAS-{}", r.version),
+            ),
+            Self::Correct(r) => crate::authority_check::response_stem(
+                crate::authority_check::Act::Correct,
+                &format!("{}.{}", r.warrant, r.deliverable_id),
+            ),
         }
     }
 
@@ -908,6 +1116,20 @@ fn select<'a>(all: &'a [Pending], target: &str) -> Option<&'a Pending> {
     })
 }
 
+/// The token `war sign <target>` takes for one pending act — the inverse of
+/// [`select`], so a diagnostic can hand the operator a command that runs.
+fn target_of(p: &Pending) -> String {
+    match p {
+        Pending::Authorize { alias, .. } | Pending::Resolve { alias, .. } => alias.clone(),
+        Pending::Accept { version, .. } => version.clone(),
+        Pending::Correct {
+            alias,
+            deliverable_id,
+            ..
+        } => format!("{alias}/{deliverable_id}"),
+    }
+}
+
 /// Ask on the terminal. `y`/`yes`, case-insensitive; anything else is no.
 fn confirm(prompt: &str) -> Result<bool, RepoError> {
     let mut out = std::io::stdout();
@@ -986,11 +1208,36 @@ fn retire_prior(final_path: &Utf8Path, current_digest: &str) -> Result<(), Strin
             )
         })?;
     if prior == current_digest {
-        return Err(format!(
-            "{final_path} already holds a response for this exact digest. Ingest it \
-             (`war authorize/resolve/sas accept … --response`) or remove it; it is not \
-             overwritten"
+        // Same digest, and the question is whether anything signed it. A
+        // response carrying a verified signature is a decision: refuse, because
+        // there is nothing to add and overwriting would destroy it. A response
+        // with no signature, or one that does not verify, is a DRAFT that
+        // happens to sit at the target path — retiring it aside is what lets a
+        // human supply the signature the record never had. Fifty of these
+        // blocked a re-signing pass on 2026-09-19.
+        let signed = sig_path(final_path).is_file();
+        if signed {
+            return Err(format!(
+                "{final_path} already holds a SIGNED response for this exact digest. Ingest it \
+                 (`war authorize/resolve/sas accept … --response`) or remove it; it is not \
+                 overwritten"
+            ));
+        }
+        let aside = final_path.with_file_name(format!(
+            "{}.unsigned-draft.toml",
+            final_path
+                .file_name()
+                .unwrap_or_default()
+                .trim_end_matches(".response.toml")
         ));
+        if aside.exists() {
+            return Err(format!(
+                "{final_path} is an unsigned draft and {aside} already exists; nothing is \
+                 overwritten — move one aside by hand"
+            ));
+        }
+        return std::fs::rename(final_path, &aside)
+            .map_err(|e| format!("could not retire the unsigned draft {final_path}: {e}"));
     }
     let tag = if prior.len() >= 8 {
         &prior[..8]
@@ -1438,7 +1685,25 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
         let drafted = match draft(p, &actor, opts, &now) {
             Ok(d) => d,
             Err(why) => {
-                report.push(Diagnostic::error("sign.not-draftable", line(p), why));
+                // `--all` signs what is signable. An act that needs a
+                // decision the batch cannot make — which §38.6 outcome, which
+                // kind of correction — is not a failure of the batch: it is one
+                // act waiting on its own answer, reported with the command that
+                // asks for it. As an ERROR here, one such row made the whole
+                // sweep exit 2 and read as broken.
+                if opts.all {
+                    report.push(Diagnostic::warn(
+                        "sign.needs-decision",
+                        line(p),
+                        format!(
+                            "{why} — not signed by this sweep; run `war sign {} --ssh-sign …` \
+                             with that flag",
+                            target_of(p)
+                        ),
+                    ));
+                } else {
+                    report.push(Diagnostic::error("sign.not-draftable", line(p), why));
+                }
                 continue;
             }
         };
@@ -1521,10 +1786,16 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
                 source,
             })?;
         }
+        // One act's failure is one act's failure. Propagating it aborted a
+        // 107-act sweep at the seventh row, leaving the rest unsigned and the
+        // operator with one line of context — so an ingest error becomes a
+        // diagnostic against that act and the sweep goes on. The signed
+        // response stays on disk either way: it is a human's signature, and
+        // nothing here deletes one.
         let ingested = match (p, &drafted) {
-            (Pending::Authorize { alias, .. }, _) => authorize::ingest(repo, alias, &path)?,
-            (Pending::Resolve { alias, .. }, _) => resolution_cmd::ingest(repo, alias, &path)?,
-            (Pending::Accept { version, .. }, _) => sas::accept_ingest(repo, version, &path)?,
+            (Pending::Authorize { alias, .. }, _) => authorize::ingest(repo, alias, &path),
+            (Pending::Resolve { alias, .. }, _) => resolution_cmd::ingest(repo, alias, &path),
+            (Pending::Accept { version, .. }, _) => sas::accept_ingest(repo, version, &path),
             (
                 Pending::Correct {
                     alias,
@@ -1532,7 +1803,21 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
                     ..
                 },
                 _,
-            ) => crate::correct::ingest(repo, alias, deliverable_id, &path)?,
+            ) => crate::correct::ingest(repo, alias, deliverable_id, &path),
+        };
+        let ingested = match ingested {
+            Ok(r) => r,
+            Err(e) => {
+                report.push(Diagnostic::error(
+                    "sign.ingest-failed",
+                    line(p),
+                    format!(
+                        "the signature over {} is on disk and verified; recording it failed: {e}",
+                        repo.relative(&path)
+                    ),
+                ));
+                continue;
+            }
         };
         let accepted = ingested.is_ready();
         for d in ingested.diagnostics {
@@ -1927,6 +2212,7 @@ mod tests {
         let p = Pending::Resolve {
             alias: "OW-WAR-0002".to_owned(),
             profile: "delivery".to_owned(),
+            recorded: None,
             request: ResolutionRequest {
                 schema: resolution_cmd::REQUEST_SCHEMA.to_owned(),
                 warrant: "OW-WAR-0002".to_owned(),
@@ -2018,9 +2304,17 @@ mod tests {
             signed_via: None,
         };
         std::fs::write(&final_path, toml::to_string_pretty(&real).unwrap()).unwrap();
+        // Same digest, no signature beside it: a draft, retired aside so a human
+        // can supply the signature the record never had.
+        retire_prior(&final_path, "aabb").expect("an unsigned draft retires");
+        assert!(!final_path.exists(), "the path is freed for the new response");
+        // Same digest WITH a signature: a decision, and it is not overwritten.
+        std::fs::write(&final_path, toml::to_string_pretty(&real).unwrap()).unwrap();
+        std::fs::write(sig_path(&final_path), "signature").unwrap();
         let err = retire_prior(&final_path, "aabb").expect_err("must refuse");
         assert!(err.contains("not overwritten"), "{err}");
         assert!(final_path.is_file());
+        std::fs::remove_file(sig_path(&final_path)).unwrap();
         // Not TOML, or TOML with no digest: refused, never archived.
         std::fs::write(&final_path, "not = [toml\n").unwrap();
         assert!(retire_prior(&final_path, "zz").is_err());
@@ -2079,6 +2373,11 @@ mod tests {
         // The same digest twice is still a refusal: an unsent response is not
         // silently replaced by a second signature over the same bytes.
         std::fs::write(&final_path, prior).unwrap();
+        // Unsigned: retired. Signed: refused. The signature is what makes it a
+        // decision rather than a draft.
+        retire_prior(&final_path, "sha256:54deac321773e933").expect("unsigned draft retires");
+        std::fs::write(&final_path, prior).unwrap();
+        std::fs::write(sig_path(&final_path), "signature").unwrap();
         let err = retire_prior(&final_path, "sha256:54deac321773e933").expect_err("must refuse");
         assert!(err.contains("not overwritten"), "{err}");
         std::fs::remove_dir_all(dir).unwrap();

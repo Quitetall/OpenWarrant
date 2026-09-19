@@ -397,7 +397,17 @@ fn judgment_is_permitted(judgment: &Judgment, register: &AuthorityRegister) -> R
     }
 }
 
-/// Ingest an authorization response, writing records only if it is admissible.
+/// Ingest a signed authorization response, writing records only if it is
+/// admissible.
+///
+/// Whether this response supplies a signature a prior record lacked is decided
+/// HERE rather than by the caller, and the response being ingested is excluded
+/// from that question. `war sign` writes and signs the response before calling
+/// this, so a naive "is this record signed?" sees the signature it is about to
+/// ingest and answers yes — which refused 57 re-signatures in one run of
+/// `war sign --all --ssh-sign` on 2026-09-19. Excluding the one file under
+/// consideration makes both callers (this command and `war sign`) correct
+/// without either having to know about the other.
 pub fn ingest(
     repo: &Repository,
     alias: &str,
@@ -503,7 +513,52 @@ pub fn ingest(
     // signature is accepted. Re-signing the SAME digest is refused: an
     // authorized revision is immutable (§28.3), and there is nothing to add.
     let existing = repo.load_authorization(&dir)?;
+    // An existing record at this digest with no verified signature is not an
+    // authorized revision — it is an unsigned draft that happens to sit in the
+    // authorization's place. Accepting a signature for it adds the one thing it
+    // lacks and changes nothing else, so §28.3's immutability has nothing to
+    // protect here. This is how 57 file-only records became signable without a
+    // corpus-wide exception, and it is narrow on purpose: same digest, same
+    // revision number, and only while the record is unsigned.
+    let unsigned_at_this_digest = existing.as_ref().is_some_and(|prev| {
+        prev.revision.contract_digest == current_digest
+            && prev.revision.authorization.as_ref().is_none_or(|auth| {
+                !crate::authority_check::verify_excluding(
+                    repo,
+                    crate::authority_check::Act::Authorize,
+                    alias,
+                    &auth.authorizer,
+                    Some(&prev.revision.contract_digest),
+                    Some(response_path.as_path()),
+                )
+                .is_signed()
+            })
+    });
     let revision = match existing {
+        Some(prev) if prev.revision.contract_digest == current_digest && unsigned_at_this_digest => {
+            report.push(Diagnostic::warn(
+                "authorize.signature-supplied",
+                response_path.to_string(),
+                format!(
+                    "{alias}: revision {} was recorded without a verified signature; this \
+                     signature supplies it. The revision number does not move, because the \
+                     contract did not",
+                    prev.revision.revision
+                ),
+            ));
+            // Same contract, same revision number, now carrying a signature.
+            // Built through the state machine so the record's shape is the one
+            // every reader expects, then numbered back to the revision it is.
+            let mut signed = ContractRevision::draft(
+                current_digest.clone(),
+                ir.contract_coverage.clone(),
+            )
+            .propose(proposer)
+            .and_then(|proposed| proposed.authorize(authorization))
+            .map_err(|e| RepoError::Message(format!("{alias}: {e}")))?;
+            signed.revision = prev.revision.revision;
+            signed
+        }
         Some(prev) if prev.revision.contract_digest == current_digest => {
             report.push(Diagnostic::error(
                 "authorize.already-authorized",
@@ -573,7 +628,11 @@ pub fn ingest(
         crate::journal_cmd::record(
             &dir,
             &v.uuid.to_string(),
-            crate::journal_cmd::AUTHORIZATION_RECORDED,
+            if unsigned_at_this_digest {
+                crate::journal_cmd::AUTHORIZATION_SIGNATURE_RECORDED
+            } else {
+                crate::journal_cmd::AUTHORIZATION_RECORDED
+            },
             &format!("person://{}", response.authorizer),
             &format!(
                 "{{\"contract_digest\":\"{}\",\"acting_role\":\"{}\",\"channel\":\"{}\"}}",

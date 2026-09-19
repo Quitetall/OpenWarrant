@@ -11,6 +11,7 @@ use openwarrant_core::Profile;
 
 mod attest;
 mod authority_cmd;
+mod authority_check;
 mod authorize;
 mod blut;
 mod board;

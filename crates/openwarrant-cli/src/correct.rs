@@ -230,6 +230,58 @@ pub fn ingest(
         );
         return Ok(report);
     }
+    // One narrow exception, symmetric with the authorization and resolution
+    // seams: the chain head is already recorded, this response repeats it
+    // exactly, and no verified signature exists for it. Then this is the
+    // signature that record was written without, the records are left alone,
+    // and the refusals below — which would all fire, starting with
+    // `correction.no-drift`, because the file already IS the corrected bytes —
+    // do not apply.
+    if let Some(recorded_head) = s
+        .corrections
+        .iter()
+        .max_by_key(|c| c.sequence)
+        .filter(|c| {
+            c.superseded_digest == response.superseded_digest
+                && c.new_digest == response.new_digest
+                && c.reason == response.reason
+                && c.kind == response.kind
+                && !crate::authority_check::verify_excluding(
+                    repo,
+                    crate::authority_check::Act::Correct,
+                    &format!("{alias}.{id}"),
+                    c.authorized_by_ref.trim_start_matches("person://"),
+                    Some(&c.new_digest),
+                    Some(path),
+                )
+                .is_signed()
+        })
+    {
+        if let Some(v) = &one.validated {
+            crate::journal_cmd::record(
+                &dir,
+                &v.uuid.to_string(),
+                crate::journal_cmd::CORRECTION_SIGNATURE_RECORDED,
+                &format!("person://{}", response.corrected_by),
+                &format!(
+                    "{{\"deliverable_id\":\"{id}\",\"sequence\":{},\"new_digest\":\"{}\",\"response\":\"{}\"}}",
+                    recorded_head.sequence,
+                    recorded_head.new_digest,
+                    repo.relative(path)
+                ),
+            )?;
+        }
+        report.push(Diagnostic::warn(
+            "correction.signature-supplied",
+            path.to_string(),
+            format!(
+                "{alias}/{id}: correction {} was recorded without a verified signature; this \
+                 signature supplies it. The correction record is unchanged",
+                recorded_head.sequence
+            ),
+        ));
+        return Ok(report);
+    }
     let head = match chain_head(&s.recorded, &s.corrections) {
         Ok(h) => h,
         Err(e) => {

@@ -1,0 +1,10 @@
+# SYNTHETIC FIXTURE. Never ingest into a real repository.
+schema = "oh.war/authorization-response/v1"
+warrant = "IX-WAR-0004"
+contract_digest = "f91cea865f8a0c12d23601150016e7a3683c3bd2d08b3853b00b6d8d69d1e352"
+authorizer = "Fixture Human"
+acting_role = "authorizer"
+meaning = "Synthetic test data only; no authority or acceptance is claimed."
+effective_time = "2026-09-13T03:48:40Z"
+independence = "separate_role"
+signed_via = "ssh"
