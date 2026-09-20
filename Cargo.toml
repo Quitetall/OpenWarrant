@@ -73,7 +73,7 @@ uuid = { version = "1", features = ["v7", "serde"] }
 # a current-thread tokio runtime is admitted inside `openwarrant-cli/src/mcp/`
 # and nowhere else — a unit test in main.rs greps every other source file.
 # Exact pin; a bump re-measures the crate count and licence families in the ADR.
-rmcp = { version = "=3.3.0", default-features = false, features = ["server", "macros", "transport-io"] }
+rmcp = { version = "=3.4.0", default-features = false, features = ["server", "macros", "transport-io"] }
 tokio = { version = "1", default-features = false, features = ["rt", "io-std", "macros"] }
 # Loose pin on purpose: rmcp 3.3 requires `schemars ^1` and resolves it itself;
 # an exact pin here would only fight the SDK's own requirement.
