@@ -12,6 +12,14 @@ readme.workspace = true
 keywords.workspace = true
 categories.workspace = true
 
+[lib]
+name = "openwarrant_cli"
+path = "src/lib.rs"
+# A lib target runs doctests; a bin target does not. Turning this crate into a
+# library would start doctesting ~40k lines of doc comments that were never
+# written as doctests, in one step. Off deliberately, reversible on its own.
+doctest = false
+
 [[bin]]
 name = "war"
 path = "src/main.rs"
