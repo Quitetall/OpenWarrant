@@ -21,7 +21,7 @@ use rmcp::ServerHandler;
 use rmcp::handler::server::tool::ToolRouter;
 use rmcp::model::{
     ErrorData as McpError, ListResourcesResult, PaginatedRequestParams, ReadResourceRequestParams,
-    ReadResourceResponse, ServerCapabilities, ServerInfo,
+    ReadResourceResponse, ServerCapabilities, ServerConfig,
 };
 use rmcp::service::{RequestContext, RoleServer};
 
@@ -100,8 +100,8 @@ impl WarServer {
 
 #[rmcp::tool_handler(router = self.tool_router)]
 impl ServerHandler for WarServer {
-    fn get_info(&self) -> ServerInfo {
-        let mut info = ServerInfo::new(
+    fn get_info(&self) -> ServerConfig {
+        let mut info = ServerConfig::new(
             ServerCapabilities::builder()
                 .enable_tools()
                 .enable_resources()
