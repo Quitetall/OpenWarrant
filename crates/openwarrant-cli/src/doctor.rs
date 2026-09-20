@@ -21,7 +21,11 @@ fn unavailable(report: &mut Report, component: &str, error: RepoError) {
     });
 }
 
-pub fn run(alias: Option<&str>, generated: bool) -> (Report, Value) {
+pub fn run(
+    root: Option<camino::Utf8PathBuf>,
+    alias: Option<&str>,
+    generated: bool,
+) -> (Report, Value) {
     let mut report = Report::default();
     let mut result = json!({
         "schema": "oh.war/doctor/v1", "read_only": true,
@@ -36,7 +40,7 @@ pub fn run(alias: Option<&str>, generated: bool) -> (Report, Value) {
     report.diagnostics.extend(install.report().diagnostics);
     result["install"] = install.json();
     report.note("Doctor reports records and configuration only. Admission and protected authority are UNKNOWN; no execution permission or assurance is issued.");
-    let repo = match Repository::discover(None) {
+    let repo = match Repository::discover(root) {
         Ok(repo) => repo,
         Err(error) => {
             unavailable(&mut report, "repository", error);

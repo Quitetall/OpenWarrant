@@ -101,7 +101,10 @@ fn insert(
     }
     Ok(())
 }
-pub fn run(command: Command) -> Result<(Report, serde_json::Value), RepoError> {
+pub fn run(
+    root: Option<camino::Utf8PathBuf>,
+    command: Command,
+) -> Result<(Report, serde_json::Value), RepoError> {
     let mut report = Report::default();
     let result = match command {
         Command::Create {
@@ -112,7 +115,7 @@ pub fn run(command: Command) -> Result<(Report, serde_json::Value), RepoError> {
             attachment,
             policy,
         } => {
-            let repo = Repository::discover(None)?;
+            let repo = Repository::discover(root)?;
             let dir = repo.warrant_dir(&alias)?;
             let loaded = repo.load_warrant(&dir)?;
             if loaded

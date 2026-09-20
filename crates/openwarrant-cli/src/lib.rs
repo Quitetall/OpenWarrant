@@ -191,6 +191,16 @@ pub struct Cli {
     /// for every command. Errors are envelopes too.
     #[arg(long, global = true)]
     json: bool,
+    /// The repository to act on. Defaults to the nearest ancestor of the
+    /// current directory holding `openwarrant.toml`. A command that reads no
+    /// repository (`init`, `sdk`, `install`) ignores it.
+    ///
+    /// A flag and not an environment variable on purpose: which repository was
+    /// checked is a fact a reader should be able to recover from the process
+    /// table, the journal and the gate argv, not one the ambient environment
+    /// can change out from under them.
+    #[arg(long, global = true, value_name = "ROOT")]
+    root: Option<Utf8PathBuf>,
     #[command(subcommand)]
     command: Command,
 }
@@ -266,9 +276,6 @@ enum Command {
         /// Project name. Defaults to the directory name.
         #[arg(long, conflicts_with = "program")]
         name: Option<String>,
-        /// Repository root. Defaults to the current directory.
-        #[arg(long)]
-        root: Option<Utf8PathBuf>,
         /// Scaffold a whole program: a SAS the tool reads, the authority
         /// examples, the `war check` gate, and a first Warrant with real
         /// atoms. `war check` on the result exits 0.
@@ -930,10 +937,27 @@ pub fn entrypoint() -> ExitCode {
         Err(error) => {
             // Preserve legacy argument handling. SDK callers always receive a
             // report for invocation errors; --help and --version remain help.
-            let sdk = std::env::args_os()
-                .skip(1)
-                .find(|arg| arg != "--json")
-                .is_some_and(|arg| arg == "sdk");
+            //
+            // The global flags have to be stepped over to find the subcommand.
+            // `--root` also takes a VALUE, so the token after a bare `--root`
+            // is skipped too; without that, `war --root /x sdk` finds `/x`,
+            // decides this is not an SDK call, and hands an SDK caller clap's
+            // help instead of the envelope it parses.
+            let mut args = std::env::args_os().skip(1);
+            let sdk = loop {
+                let Some(arg) = args.next() else { break false };
+                if arg == "--json" {
+                    continue;
+                }
+                if arg == "--root" {
+                    let _ = args.next();
+                    continue;
+                }
+                if arg.to_string_lossy().starts_with("--root=") {
+                    continue;
+                }
+                break arg == "sdk";
+            };
             if sdk && error.use_stderr() {
                 return ExitCode::from(sdk::argument_error(&error.to_string()));
             }
@@ -954,12 +978,19 @@ pub fn entrypoint() -> ExitCode {
 
 pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
     let mode = output::Mode::from_flag(cli.json);
+    let root = cli.root;
+    // One place decides which repository every command acts on, and it stays
+    // LAZY. `init`, `sdk`, `install` and `schemas` must work where no
+    // `openwarrant.toml` exists, and `doctor` reports a discovery failure
+    // itself, inside a valid envelope, rather than aborting on it. Resolving
+    // eagerly here would turn all of those into `repository.not-found` and
+    // reorder error reporting for the rest.
+    let open_repo = || repo::Repository::discover(root.clone());
     match cli.command {
         Command::Sdk { request, output } => Ok(sdk::run(&request, output.as_deref())),
         Command::Init {
             namespace,
             name,
-            root,
             program,
         } => {
             match program {
@@ -972,7 +1003,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         }
 
         Command::AgentsMd { stdout, force } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let ns = repository.config.project.namespace.as_str().to_owned();
             if stdout {
                 print!("{}", init::render_agents_md(&ns));
@@ -1002,7 +1033,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         }
         Command::New { title, profile } => {
             let profile: Profile = profile.parse()?;
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let dir = new::run(&repository, &title, profile)?;
             let rel = repository.relative(&dir);
             let alias = dir.file_name().unwrap_or_default().to_owned();
@@ -1047,7 +1078,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     "--subject-digest and --evidence-ref require --record".to_owned(),
                 )));
             }
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let report = gate_cmd::run(
                 &repository,
                 run,
@@ -1074,7 +1105,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 head,
                 bonsai: binary,
             } => {
-                let repository = repo::Repository::discover(None)?;
+                let repository = open_repo()?;
                 let evidence = bonsai::check(&repository, &warrant, &base, &head, &binary)?;
                 println!("{}", serde_json::to_string_pretty(&evidence)?);
                 Ok(match evidence.verdict {
@@ -1084,14 +1115,14 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 })
             }
             BonsaiCommand::VerifyEvidence { evidence } => {
-                let repository = repo::Repository::discover(None)?;
+                let repository = open_repo()?;
                 bonsai::verify_evidence_file(&repository, &evidence)?;
                 println!("Bonsai evidence is a valid passing v1 document");
                 Ok(EXIT_OK)
             }
         },
         Command::Archive { cmd } => {
-            let (human, result) = preservation::run(cmd)?;
+            let (human, result) = preservation::run(root.clone(), cmd)?;
             output::emit(mode, "archive", &human, result);
             Ok(EXIT_OK)
         }
@@ -1112,7 +1143,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     None,
                 ));
             }
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             if let Some(dir) = progress {
                 let report = progress::export(&repository, &dir)?;
                 return Ok(output::finish(mode, "export.progress", &report, None));
@@ -1225,7 +1256,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             warrant,
             reviewer,
         } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             if let Some(scope) = attach {
                 println!("{}", telemetry::attach(&scope, &warrant, &reviewer)?);
                 return Ok(EXIT_OK);
@@ -1283,7 +1314,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             answers,
             apply,
         } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let answer_map: std::collections::BTreeMap<String, String> = answers
                 .iter()
                 .filter_map(|a| {
@@ -1431,7 +1462,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             verify,
             emit,
         } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let report = blut::lower(&repository, &alias, verify.as_deref(), emit.as_deref())?;
             Ok(output::finish(mode, "blut", &report, None))
         }
@@ -1440,7 +1471,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             Ok(output::finish(mode, "authority", &report, Some(result)))
         }
         Command::DispatchBundle { command } => {
-            let (report, result) = dispatch_bundle_cmd::run(command)?;
+            let (report, result) = dispatch_bundle_cmd::run(root.clone(), command)?;
             Ok(output::finish(
                 mode,
                 "dispatch-bundle",
@@ -1457,7 +1488,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             emit_context,
             prototype,
         } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let kind = attempt_kind
                 .parse::<openwarrant_core::execution::AttemptKind>()
                 .map_err(|e| repo::RepoError::Message(e.to_string()))?;
@@ -1503,7 +1534,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             deliverable_id,
             response,
         } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             match response {
                 Some(path) => {
                     let report = correct::ingest(&repository, &alias, &deliverable_id, &path)?;
@@ -1545,7 +1576,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             dry_run,
             response,
         } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             if dry_run {
                 let report = resolve::run(&repository, &alias)?;
                 return Ok(output::finish(mode, "resolve.dry_run", &report, None));
@@ -1590,7 +1621,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             }
         }
         Command::Journal { alias, backfill } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             if backfill {
                 let report = journal_cmd::backfill(&repository, &alias)?;
                 Ok(output::finish(mode, "journal", &report, None))
@@ -1609,13 +1640,13 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             }
         }
         Command::Evidence { command } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let EvidenceCommand::Record { alias, gate } = command;
             let report = evidence::record(&repository, &alias, gate.as_deref())?;
             Ok(output::finish(mode, "evidence", &report, None))
         }
         Command::Sas { command } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let ready = |report: diagnostic::Report| Ok(output::finish(mode, "sas", &report, None));
             match command {
                 SasCommand::Propose { version } => ready(sas::propose(&repository, &version)?),
@@ -1672,13 +1703,13 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             alias,
             resolved_only,
         } if refresh => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let report = pins::refresh(&repository, alias.as_deref())?;
             let _ = resolved_only;
             Ok(output::finish(mode, "pins", &report, None))
         }
         Command::Pins { resolved_only, .. } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let pins = pins::list(&repository, resolved_only)?;
             output::emit(
                 mode,
@@ -1693,12 +1724,12 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             stage,
             prototype,
         } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let report = run_cmd::run(&repository, &alias, &stage, prototype)?;
             Ok(output::finish(mode, "run", &report, None))
         }
         Command::Submit { alias, file } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let report = run_cmd::submit(&repository, &alias, &file)?;
             Ok(output::finish(mode, "submit", &report, None))
         }
@@ -1709,7 +1740,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 resume,
             } => Ok(document::draft::run(&draft_dir, &output, resume, mode)),
             DocumentCommand::Review { alias } => {
-                let repository = repo::Repository::discover(None)?;
+                let repository = open_repo()?;
                 let report = document::review(&repository, alias.as_deref())?;
                 Ok(output::finish(mode, "document.review", &report, None))
             }
@@ -1719,7 +1750,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             verify,
             all,
         } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let report = match (target, all) {
                 (_, true) => attest::verify_all(&repository)?,
                 (Some(t), false) => attest::run(&repository, &t, verify)?,
@@ -1732,7 +1763,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             Ok(output::finish(mode, "attest", &report, None))
         }
         Command::Board { html } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let (report, view) = board::build(&repository)?;
             if !matches!(mode, output::Mode::Json) {
                 if html {
@@ -1750,7 +1781,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             ))
         }
         Command::Console => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             // `--json` is a reader, not a screen: a harness asking what a human
             // owes gets the board and no prompt. Signing is a TTY act.
             if matches!(mode, output::Mode::Json) {
@@ -1772,7 +1803,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             all,
             prototype,
         } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let report = match (alias.as_deref(), stage.as_deref(), all) {
                 (Some(a), Some(st), false) => perform::run(&repository, a, st, prototype)?,
                 (None, None, true) => perform::all(&repository, prototype)?,
@@ -1785,7 +1816,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             Ok(output::finish(mode, "perform", &report, None))
         }
         Command::Commit { write } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let (report, result) = commit::run(&repository, write, mode)?;
             Ok(output::finish(mode, "commit", &report, result))
         }
@@ -1796,7 +1827,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             recommend,
             blocking,
         } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let report =
                 questions::ask(&repository, &alias, &stage, &question, &recommend, blocking)?;
             Ok(output::finish(mode, "ask", &report, None))
@@ -1807,12 +1838,12 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             answer,
             actor,
         } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let report = questions::answer(&repository, &alias, &id, &answer, &actor)?;
             Ok(output::finish(mode, "answer", &report, None))
         }
         Command::Questions { alias, open } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let (report, list) = questions::list(&repository, alias.as_deref(), open)?;
             match mode {
                 output::Mode::Human => {
@@ -1828,7 +1859,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             }
         }
         Command::Answers { alias, stage } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let answered = questions::answers_for(&repository, &alias, stage.as_deref())?;
             let human = if answered.is_empty() {
                 "no answered question for this stage\n".to_owned()
@@ -1850,7 +1881,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             Ok(EXIT_OK)
         }
         Command::Frontier { alias } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let (report, f) = frontier::run(&repository, alias.as_deref())?;
             match mode {
                 output::Mode::Human => {
@@ -1867,12 +1898,12 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         }
         #[cfg(feature = "schema")]
         Command::Schemas { check } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let report = schemas::run(&repository, check)?;
             Ok(output::finish(mode, "schemas", &report, None))
         }
         Command::Eval { command } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             match command {
                 EvalCommand::Run {
                     task,
@@ -1912,7 +1943,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             notify_send,
             ticks,
         } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             if once {
                 let snap = watch::snapshot(&repository)?;
                 output::emit(
@@ -1929,7 +1960,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         Command::Mcp { describe } => {
             // Discover BEFORE any runtime exists: outside a repository this
             // is an ordinary CLI refusal, never a half-started server.
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             if describe {
                 print!("{}", mcp::describe(repository));
                 return Ok(EXIT_OK);
@@ -1938,7 +1969,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             Ok(EXIT_OK)
         }
         Command::Preflight { alias } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let (result, report) = preflight_cmd::run(&repository, &alias)?;
             match mode {
                 output::Mode::Human => print!("{}", preflight_cmd::render(&result)),
@@ -1950,7 +1981,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             Ok(output::exit_code(&report))
         }
         Command::Inbox => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let inbox = inbox::run(&repository)?;
             output::emit(
                 mode,
@@ -1961,7 +1992,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             Ok(EXIT_OK)
         }
         Command::Next => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let next = next::run(&repository)?;
             output::emit(
                 mode,
@@ -1979,7 +2010,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             port,
             refresh_secs,
         } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             if snapshot {
                 let view = progress_viewer::json_snapshot(&repository)?;
                 output::emit(
@@ -2018,7 +2049,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             timeline,
             pending,
         } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             if timeline || pending {
                 let (what, value) = if timeline {
                     let t = timeline::build_timeline(&repository)?;
@@ -2080,7 +2111,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             Ok(EXIT_OK)
         }
         Command::Show { alias, view } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let rendered = show::run(&repository, &alias, &view)?;
             output::emit(
                 mode,
@@ -2091,7 +2122,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             Ok(EXIT_OK)
         }
         Command::Diff { alias, from, to } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let report = if let Some(to) = to {
                 diff_target::compare(&repository, &alias, from.as_deref(), &to)?
             } else {
@@ -2139,11 +2170,11 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             Ok(output::finish(mode, "update", &report, None))
         }
         Command::Doctor { alias, generated } => {
-            let (report, result) = doctor::run(alias.as_deref(), generated);
+            let (report, result) = doctor::run(root.clone(), alias.as_deref(), generated);
             Ok(output::finish(mode, "doctor", &report, Some(result)))
         }
         Command::Check { alias, generated } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             let report = check::run(&repository, alias.as_deref(), generated)?;
             // A non-zero exit for an unsound Warrant is what lets CI gate on it.
             Ok(output::finish(mode, "check", &report, None))
@@ -2156,7 +2187,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             bundle,
             run,
         } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             if bundle {
                 let report = bundle::emit(&repository, &alias, &performer)?;
                 return Ok(output::finish(mode, "verify.bundle", &report, None));
@@ -2213,7 +2244,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             verify,
             kind,
         } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             if list {
                 let waiting = sign::list(&repository)?;
                 if waiting.is_empty() {
@@ -2273,7 +2304,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             Ok(output::finish(mode, "sign", &report, None))
         }
         Command::Authorize { alias, response } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             match response {
                 Some(path) => {
                     let report = authorize::ingest(&repository, &alias, &path)?;
@@ -2319,7 +2350,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         }
 
         Command::Compile { alias } => {
-            let repository = repo::Repository::discover(None)?;
+            let repository = open_repo()?;
             compile::run(&repository, alias.as_deref())?;
             if mode == output::Mode::Json {
                 output::emit(mode, "compile", "", serde_json::json!({"alias": alias}));
