@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Existing-ADR migration (SAS §96, §97), protocol versioning (§69), and
 //! federated identity (§12, §83). RQ-003, RQ-004, RQ-005.
 //!

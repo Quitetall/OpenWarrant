@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war gate list` and `war gate run` — local gate execution (SAS §44).
 //!
 //! # Askability is decided BEFORE execution

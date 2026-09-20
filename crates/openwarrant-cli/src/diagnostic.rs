@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! The diagnostic model behind `war check` (SAS §71.7, §76.2).
 
 use std::fmt;

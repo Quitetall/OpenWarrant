@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! The generated Warrant Overview — the corpus-wide status projection (SAS §17.5
 //! `status`, §20.4).
 //!

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war verify` — the independent-verification seam (SAS §46, §38.5, §75.2).
 //!
 //! # Two halves, and why this command cannot verify anything itself

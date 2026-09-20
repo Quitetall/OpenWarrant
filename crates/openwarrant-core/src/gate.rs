@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Gate Definitions, qualification, and Gate Bindings (SAS §43, RQ-056).
 //!
 //! # Why a gate is an object and not a string

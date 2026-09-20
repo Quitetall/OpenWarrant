@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Governance of the SAS itself (SAS §101; §34.1, §34.3, §34.4).
 //!
 //! # The SAS is a document, and until now nothing held it

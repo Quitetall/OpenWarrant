@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! `war new` — create a draft Warrant (SAS §71.2).
 
 use std::fs::{self, OpenOptions};

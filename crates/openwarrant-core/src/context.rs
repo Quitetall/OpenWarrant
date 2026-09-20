@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0
 //! Context items, trust classes, precedence, and the context manifest (SAS §33).
 //!
 //! # The sentence this module is built around
