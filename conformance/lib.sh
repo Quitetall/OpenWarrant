@@ -29,18 +29,39 @@ if [[ ! -x "$WAR" ]]; then
     exit 1
 fi
 
+# Every path the plants mutate, named ONCE.
+#
+# The guard below and `restore` must name the same set. They were two lists kept
+# by hand and they had already drifted apart in both directions: `schemas/` was
+# in the restore and not the guard, so uncommitted work there was discarded by a
+# battery run while the guard said nothing; `docs/SKILLS.md` was in NEITHER, so
+# the pins plant appended to it and nothing put it back — twice into a commit,
+# which is where this corpus's `deliverable.digest-drift` on OW-WAR-0068 D-009
+# comes from. One array, read by both, so they cannot disagree again.
+PLANT_PATHS=(
+    docs/warrants/
+    docs/adr/
+    docs/gates/
+    docs/sas/
+    docs/authority/
+    docs/roadmap/
+    docs/research/
+    docs/SKILLS.md
+    schemas/
+    openwarrant.toml
+)
+
 # Only the tree the plants actually mutate has to be clean.
 #
 # Requiring a clean WORKING TREE would mean this step is skipped during ordinary
 # development — and a gate step that is usually skipped is a gate step that is
 # never run, which is the whole failure this battery exists to disprove. Editing
 # Rust while the plants run is fine; editing docs/warrants/ is not, because the
-# restore is `git checkout` and would discard that work. docs/gates/ joined this
-# list when gate plants landed: the guard and the restore must name the same
-# paths, or a plant silently deletes work the guard said it was protecting.
-if ! git diff --quiet -- docs/warrants/ docs/adr/ docs/gates/ docs/sas/ docs/authority/ docs/roadmap/ docs/research/ openwarrant.toml \
-    || ! git diff --cached --quiet -- docs/warrants/ docs/adr/ docs/gates/ docs/sas/ docs/authority/ docs/roadmap/ docs/research/ openwarrant.toml; then
-    echo "docs/warrants/, docs/adr/, docs/gates/, docs/sas/, docs/authority/, docs/roadmap/, docs/research/ or openwarrant.toml has uncommitted changes." >&2
+# restore is `git checkout` and would discard that work.
+if ! git diff --quiet -- "${PLANT_PATHS[@]}" \
+    || ! git diff --cached --quiet -- "${PLANT_PATHS[@]}"; then
+    echo "A path the plants mutate has uncommitted changes:" >&2
+    printf '  %s\n' "${PLANT_PATHS[@]}" >&2
     echo "Plants mutate those files and restore with 'git checkout', which would" >&2
     echo "discard your work. Commit or stash those first." >&2
     exit 1
@@ -50,7 +71,7 @@ PASSED=0
 FAILED=0
 
 restore() {
-    git checkout -- docs/warrants/ docs/adr/ docs/gates/ docs/sas/ docs/authority/ docs/roadmap/ docs/research/ schemas/ openwarrant.toml 2>/dev/null || true
+    git checkout -- "${PLANT_PATHS[@]}" 2>/dev/null || true
     # `git checkout` restores TRACKED files and leaves untracked ones behind, so
     # a plant that CREATES a file is not undone by it. AM-999 is exactly that —
     # the §91.4 test 24 positive fixture — and it leaked into a commit once
