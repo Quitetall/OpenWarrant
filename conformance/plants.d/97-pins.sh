@@ -25,10 +25,13 @@ plant "a resolved pin moved" "deliverable.digest-drift" "$PIN_RESOLVED_ALIAS" 2 
      assert_present 'planted' $PIN_RESOLVED_FILE"
 
 # The same edit under a Warrant nothing has resolved: reported, not refused,
-# and the remedy is one command rather than a human signature.
-plant "an unresolved pin moved" "deliverable.pin-stale" "war pins --refresh" 0 \
+# and the remedy is one command rather than a human signature. Scoped to the
+# Warrant with `war check <alias>` so the assertion is about THIS rule's
+# severity and not about whatever else the corpus is carrying that day.
+plant_cmd "an unresolved pin moved" "deliverable.pin-stale" "war pins --refresh" 0 \
     "printf '\n<!-- planted -->\n' >> $PIN_DRAFT_FILE; \
-     assert_present 'planted' $PIN_DRAFT_FILE"
+     assert_present 'planted' $PIN_DRAFT_FILE" \
+    check "$PIN_DRAFT_ALIAS"
 
 # `war pins --refresh` re-records the unresolved pin and the check goes quiet.
 plant_cmd "refreshing an unresolved pin" "pins.refreshed" "$PIN_DRAFT_ALIAS" 0 \

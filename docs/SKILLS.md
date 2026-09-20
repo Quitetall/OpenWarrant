@@ -61,3 +61,11 @@ The suite adapts Matt Pocock methods at a fixed revision, with a distributed
 The full earlier command walkthrough is [legacy skills](../archive/legacy-20260914/original/docs/SKILLS.md).
 [Audit](design/war-skills-audit.md) distinguishes structural checks, executed CLI
 cases and model/harness evaluations that have not run.
+
+<!-- planted -->
+
+<!-- planted -->
+
+<!-- planted -->
+
+<!-- planted -->
