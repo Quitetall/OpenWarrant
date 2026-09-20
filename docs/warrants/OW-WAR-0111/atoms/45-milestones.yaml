@@ -1,0 +1,26 @@
+schema: "oh.war/milestones/v1"
+milestones:
+  - id: M1
+    title: Specify and implement archive primitives
+    stage_refs: [STAGE-001]
+  - id: M2
+    title: Source-detached CLI round trip and history proof
+    depends_on: [M1]
+    stage_refs: [STAGE-002]
+  - id: M3
+    title: Empty KF instance interoperability and gates
+    depends_on: [M2]
+    stage_refs: [STAGE-003]
+stages:
+  - id: STAGE-001
+    title: Versioned format draft and strict codec
+    executor_kind: agent
+    responsibility_tier: T1
+  - id: STAGE-002
+    title: Real archive assembly and isolated import
+    executor_kind: agent
+    responsibility_tier: T1
+  - id: STAGE-003
+    title: Shared KF import and re-export evidence
+    executor_kind: agent
+    responsibility_tier: T1

@@ -278,6 +278,32 @@ pub fn accept_ingest(
             return Ok(report);
         }
     }
+    // The same exception the other three seams carry: the revision is already
+    // accepted, this response accepts the same digest, and no verified
+    // signature exists for it. Then the record is left alone and the signature
+    // is what changes — `record.accept()` below would refuse it outright,
+    // leaving an accepted-but-unsigned revision with no way to ever be signed.
+    if let Some(existing) = &record.acceptance
+        && record.state == openwarrant_core::sas::SasRevisionState::Accepted
+        && !crate::authority_check::verify_excluding(
+            repo,
+            crate::authority_check::Act::Accept,
+            &format!("SAS-{version}"),
+            &existing.accepted_by,
+            Some(&record.sha256),
+            Some(response_path),
+        )
+        .is_signed()
+    {
+        report.push(Diagnostic::warn(
+            "sas.signature-supplied",
+            response_path.to_string(),
+            format!(
+                "{version} was accepted without a verified signature; this signature supplies                  it. The revision record is unchanged"
+            ),
+        ));
+        return Ok(report);
+    }
     let accepted = record
         .accept(SasAcceptance {
             accepted_by: response.accepted_by.clone(),

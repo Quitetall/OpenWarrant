@@ -540,10 +540,14 @@ impl WarServer {
             &self.repo,
             &p.alias,
             &p.stage,
-            kind,
-            &p.prior_failure,
-            Some(&scratch),
-            None,
+            crate::dispatch::Options {
+                attempt_kind: kind,
+                prior_failure_evidence: &p.prior_failure,
+                emit_to: Some(&scratch),
+                emit_context_to: None,
+                // An agent cannot decide to work under no authority (§27.2).
+                prototype: false,
+            },
         );
         let packet = std::fs::read_to_string(&scratch).ok();
         let _ = std::fs::remove_file(&scratch);

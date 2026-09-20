@@ -1,0 +1,12 @@
+{
+  "schema": "oh.war/implementation-observation/v1",
+  "source_revision": "625b815249cda0efc33bd126c280c5efaa51252e",
+  "checkout": "/mnt/4tb/tmp/ow111-gate-repaired",
+  "command": "cargo xtask gate",
+  "exit_code": 0,
+  "steps_passed": 14,
+  "plants_passed": 309,
+  "plants_failed": 0,
+  "log": "gate-625b8152.log.gz",
+  "scope": "Local repository gate for experimental preservation implementation; does not establish full category coverage, KF restore, independent verification or accepted format status."
+}

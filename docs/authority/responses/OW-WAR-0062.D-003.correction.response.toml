@@ -7,5 +7,5 @@ reason = """README.md moved after its resolution at 2026-09-03T03:30:00Z: 2 comm
 kind = "behaviour-change"
 corrected_by = "Brian Lam"
 acting_role = "authorizer"
-effective_time = "2026-09-15T00:00:01Z"
-signed_via = "tty"
+effective_time = "2026-09-19T15:29:11Z"
+signed_via = "ssh"

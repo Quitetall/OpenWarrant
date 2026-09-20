@@ -1,0 +1,15 @@
+{
+  "source_revision": "c6a7363e87d2cf5413bfee83fb3499f26c0fcba3",
+  "test_exit": 0,
+  "tests_passed": 10,
+  "all_targets_clippy_exit": 0,
+  "real_sample": "OW-WAR-0030",
+  "archive_sha256": "852eabe30d100cb9bea788d7a8f5b4237a87139f3558f04f4bae1af78304b3e1",
+  "claims": 16,
+  "retained_claims": 16,
+  "unique_artifacts": 3,
+  "unavailable_claims": 0,
+  "archive_records": 374,
+  "archive_complete": false,
+  "bounds": "Pinned HEAD reachable history and declared artifacts; other required categories remain incomplete"
+}

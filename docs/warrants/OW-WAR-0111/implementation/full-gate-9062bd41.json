@@ -1,0 +1,10 @@
+{
+  "revision": "9062bd41",
+  "command": "cargo +1.97.1 xtask gate",
+  "exit_code": 0,
+  "steps_passed": 14,
+  "plants_passed": 309,
+  "plants_failed": 0,
+  "log_sha256": "839167afe054c91e676980efaa4b4279a3a7f434e4fe1a067500c89c778195c7",
+  "scope": "Before service stream path fix; independent clone with shared build cache. No independent assurance."
+}

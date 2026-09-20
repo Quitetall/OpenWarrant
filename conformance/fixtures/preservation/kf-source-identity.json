@@ -1,0 +1,100 @@
+{
+  "producer_revision": "625b815249cda0efc33bd126c280c5efaa51252e",
+  "producer_binary_sha256": "5ccf8a85f6259e9a26bd4b51da2efcb9cca234be788571d32552a20aa73d9a78",
+  "archive_sha256": "3b03c08088402e76708c2eb9a730a3cc239f3dddf1d6e4c0a6b9d2947f958e2a",
+  "subject": "war://01a0b4ec-8dca-7893-a4e2-3a124b9da581",
+  "canonical_ir": {
+    "api_version": "oh.war/v1",
+    "contract_coverage": {
+      "covered": [
+        "intent",
+        "scope",
+        "basis_requirements",
+        "assumptions",
+        "constraints",
+        "adr_references",
+        "milestones",
+        "stages"
+      ]
+    },
+    "contract_revision": 1,
+    "format_basis": {
+      "package_id": "openwarrant-schema-pack",
+      "profile_schema_id": "delivery",
+      "root_schema_id": "work_authorization_record",
+      "version": "0.2.0"
+    },
+    "identity": {
+      "assurance_level": "basic",
+      "local_alias": "OW-WAR-0001",
+      "profile": "delivery",
+      "title": "Adopt OpenWarrant in Disposable preservation fixture",
+      "uuid": "01a0b4ec-8dca-7893-a4e2-3a124b9da581"
+    },
+    "integrity": {
+      "algorithm": "sha256",
+      "composition_revision_digest": "907d7d68533d3ef9a29753fa1171eeb1f21db0a30f718ef67b3e398dbdd8d410",
+      "workspace_basis_digest": "86b2c9c43f958c7b7391dcfe74fd3f9ff34cb902b3712dd388f0ce5b93cc8129"
+    },
+    "kind": "work_authorization_record",
+    "relations": {
+      "implements": [
+        {
+          "contribution": "complete",
+          "ref": "sas://OW-SAS-RQ-001"
+        }
+      ],
+      "roadmap": [
+        "roadmap://OW-PHASE-1/adopt"
+      ]
+    },
+    "source_and_composition": {
+      "atoms": [
+        {
+          "atom_source_digest": "5dac2ac2839c830c60eb18542e6534a77c8fcb532f038bfb2bf20723a9fb8e08",
+          "jurisdiction": "authored",
+          "ordinal": 10,
+          "required": true,
+          "role": "intent",
+          "source": "atoms/10-intent.md"
+        },
+        {
+          "atom_source_digest": "cf8933bbb1696f74d72a085774110d4e196b28ec5bd368b2e4fa3eb2856f5f81",
+          "jurisdiction": "authored",
+          "ordinal": 20,
+          "required": true,
+          "role": "basis",
+          "source": "atoms/20-basis.md"
+        },
+        {
+          "atom_source_digest": "9ed6b0b78d87074f4bd63a82e87f972b4e40fc6df7903eca03c83c41ced3d091",
+          "jurisdiction": "authored",
+          "ordinal": 40,
+          "required": true,
+          "role": "work_order",
+          "source": "atoms/40-work-order.md"
+        },
+        {
+          "atom_source_digest": "1b713ebd482c679e5d488d772cc4d4fd92edb87f04b423b1796c147a5a828cf3",
+          "jurisdiction": "authored",
+          "ordinal": 45,
+          "required": true,
+          "role": "milestones",
+          "source": "atoms/45-milestones.yaml"
+        },
+        {
+          "atom_source_digest": "ee1a90cff61a088e5592391e8a88fd5c1fcbd82b69b949b6162a0cd6e5489137",
+          "jurisdiction": "authored",
+          "ordinal": 60,
+          "required": true,
+          "role": "assurance",
+          "source": "atoms/60-assurance.md"
+        }
+      ],
+      "manifest_digest": "395135ed0d507faf7568beeacc43e47bef890fd78bc012e2d3a2504bfe3b6213",
+      "manifest_source": "docs/warrants/OW-WAR-0001/manifest.toml"
+    }
+  },
+  "source_removed": true,
+  "scope": "Disposable draft source fixture; no project authorization or assurance; coverage remains incomplete."
+}

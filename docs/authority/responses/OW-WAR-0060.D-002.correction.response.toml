@@ -7,5 +7,5 @@ reason = """xtask/src/main.rs moved after its resolution at 2026-09-03T03:30:00Z
 kind = "behaviour-change"
 corrected_by = "Brian Lam"
 acting_role = "authorizer"
-effective_time = "2026-09-14T23:59:58Z"
-signed_via = "tty"
+effective_time = "2026-09-19T15:29:10Z"
+signed_via = "ssh"

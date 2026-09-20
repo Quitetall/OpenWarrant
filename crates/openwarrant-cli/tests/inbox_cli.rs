@@ -217,7 +217,12 @@ fn damaged_repository_containers_refuse() {
             fs::remove_dir_all(&path).unwrap();
             fs::write(path, "not a directory").unwrap();
         } else {
-            fs::create_dir_all(root.join("docs/authority/roles.toml")).unwrap();
+            // The fixture now ships a real register (the signed responses need
+            // one), so replace the file with a directory rather than assuming
+            // the path is free.
+            let path = root.join("docs/authority/roles.toml");
+            fs::remove_file(&path).unwrap();
+            fs::create_dir_all(&path).unwrap();
         }
         assert!(!war(&root, &["inbox"]).status.success(), "{name}");
         fs::remove_dir_all(root).unwrap();

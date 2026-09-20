@@ -6,6 +6,47 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+## [1.0.0-alpha.2] — 2026-09-19
+
+### Security
+
+- An authority record is believed because a human signed it, not because the
+  file says so. Every authorization, resolution, correction and SAS acceptance
+  is read through `authority_check`: a response for that act, over that digest,
+  whose `.sig` `ssh-keygen -Y verify` accepts as the principal `roles.toml`
+  binds to the actor, who must be `human` there. In 1.0.0-alpha.1 a hand-written
+  `authorization.toml` naming anyone as authorizer passed `war check` with zero
+  errors and satisfied §56.1 requirement 1.
+- §56.1 requirement 1 ("the EXACT authorized Contract Revision") requires that
+  signature, so a forged record cannot carry a Warrant to a resolution.
+- `war dispatch` refuses a contract no human signed (`dispatch.unauthorized`);
+  `--prototype` on `dispatch`, `run` and `perform` compiles anyway and records
+  `prototype://unauthorized` as the authority acted under. `war console`,
+  `war mcp` and `war perform --all` never pass it — §27.2 leaves an agent no way
+  to decide it may work under no authority.
+- Eleven planted violations exercise it, including a signature replayed onto
+  another Warrant and a principal no key answers for. `docs/THREAT_MODEL.md`
+  entry 11 states the residual: an agent can still WRITE a record; the refusal
+  is on the read path.
+
+### Added
+
+- `war sign` offers a recorded-but-unsigned act as an ordinary pending row for
+  all four act kinds. The act repeats the record — outcome, reason, kind and
+  revision number all come from it — so a signature can only say what was
+  already said. Reported as `*.signature-supplied` and journalled as
+  `*.signature_recorded`, never as a second `*.recorded`.
+
+### Fixed
+
+- `war sign --all` no longer aborts on one act's failure, and an act needing a
+  decision the batch cannot make (`--outcome`, `--kind`, `--adr`) is a
+  `sign.needs-decision` warning naming the command rather than an error.
+- One response filename per act kind. An authorization and a resolution of the
+  same Warrant both bind `contract_digest`; sharing `<alias>.response.toml` made
+  whichever signed second retire the first.
+
+
 - Add candidate portable Dispatch transport and offline capability membership
   refusal through `war dispatch-bundle` and the SDK. Exact context bytes travel
   with their commitments; no execution, authority or semantic closure is claimed

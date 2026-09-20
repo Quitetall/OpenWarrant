@@ -1,0 +1,15 @@
+{
+  "producer_source_revision": "10dbe32816d0bea18d7d8ad0af02c98e82e0be42",
+  "producer_binary_sha256": "c67662c67c581506b0f72e0d8e2b5cab0f25e18759621f16db50c1e9d8954012",
+  "packet_sha256": "de4d1cdf51de398ee4d710aa4990df1c91104d0fffecda83e582e2cbee19a019",
+  "command": [
+    "war",
+    "dispatch",
+    "OW-WAR-0075",
+    "STAGE-001",
+    "--emit",
+    "<packet>",
+    "--json"
+  ],
+  "scope": "Dispatch compilation only; no work executed, authority granted, or runtime receipt fabricated."
+}

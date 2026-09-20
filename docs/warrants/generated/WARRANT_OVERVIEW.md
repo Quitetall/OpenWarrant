@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-106 Warrant(s) in this repository.
+107 Warrant(s) in this repository.
 
 ## Summary
 
@@ -80,43 +80,44 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0071](docs/warrants/OW-WAR-0071/manifest.toml) | SAS 1.1.0: the batch act, and the dashboard as a rendering of the record | `authorized` | `current` | `valid` | `basic` | — |
 | [OW-WAR-0072](docs/warrants/OW-WAR-0072/manifest.toml) | The batch act: one human signature over many pending acts | `authorized` | `current` | `valid` | `basic` | 3M / 5S |
 | [OW-WAR-0073](docs/warrants/OW-WAR-0073/manifest.toml) | war tui: the dashboard in the terminal | `authorized` | `current` | `valid` | `basic` | 4M / 6S |
-| [OW-WAR-0074](docs/warrants/OW-WAR-0074/manifest.toml) | Adopt the exact RC.2 build basis without rewriting history | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0075](docs/warrants/OW-WAR-0075/manifest.toml) | Parse and validate human-first OpenWarrant documents | `draft` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0076](docs/warrants/OW-WAR-0076/manifest.toml) | Author and edit human-first OpenWarrant documents | `draft` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0077](docs/warrants/OW-WAR-0077/manifest.toml) | Define SDK source types and prove provider resolution integration | `draft` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0078](docs/warrants/OW-WAR-0078/manifest.toml) | Validate condition syntax and prove provider evaluation integration | `draft` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0079](docs/warrants/OW-WAR-0079/manifest.toml) | Prove provider context selection and dependency closure | `draft` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0080](docs/warrants/OW-WAR-0080/manifest.toml) | Prove provider master context and task projections | `draft` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0081](docs/warrants/OW-WAR-0081/manifest.toml) | Inspect packet integrity and prove offline provider packages | `draft` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0082](docs/warrants/OW-WAR-0082/manifest.toml) | Prove provider context budgets and cache invalidation | `draft` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0083](docs/warrants/OW-WAR-0083/manifest.toml) | Evaluate supplied work and assurance records | `draft` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0084](docs/warrants/OW-WAR-0084/manifest.toml) | Preserve legacy history and explicit successor lineage | `draft` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0085](docs/warrants/OW-WAR-0085/manifest.toml) | Prove Phase 1 SDK, CLI and adapted skill scope | `draft` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0086](docs/warrants/OW-WAR-0086/manifest.toml) | Integrate SDK with LAMU and a second minimal consumer | `draft` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0087](docs/warrants/OW-WAR-0087/manifest.toml) | Expose document and record primitives through CLI | `draft` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0088](docs/warrants/OW-WAR-0088/manifest.toml) | Make SDK document authoring interactive and recoverable | `draft` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0089](docs/warrants/OW-WAR-0089/manifest.toml) | Prepare standard and SDK release artifacts | `draft` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0090](docs/warrants/OW-WAR-0090/manifest.toml) | Qualify four-phase release and freeze Stable source set | `draft` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0091](docs/warrants/OW-WAR-0091/manifest.toml) | Publish and verify OpenWarrant Stable 1.0 | `draft` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0092](docs/warrants/OW-WAR-0092/manifest.toml) | View project progress as offline HTML and a locally refreshed dashboard | `draft` | `current` | `valid` | `basic` | 1M / 1S |
-| [OW-WAR-0093](docs/warrants/OW-WAR-0093/manifest.toml) | Reference workflow package: local API and draft webapp | `draft` | `current` | `valid` | `basic` | 1M / 1S |
-| [OW-WAR-0094](docs/warrants/OW-WAR-0094/manifest.toml) | Connected-agent execution workflow and model-neutral drafting roadmap | `draft` | `current` | `valid` | `basic` | 1M / 1S |
-| [OW-WAR-0095](docs/warrants/OW-WAR-0095/manifest.toml) | Three-developer reference workflow qualification study | `draft` | `current` | `valid` | `basic` | 1M / 1S |
-| [OW-WAR-0096](docs/warrants/OW-WAR-0096/manifest.toml) | Authenticate authority changes through signed transitions and protected activation | `draft` | `current` | `valid` | `basic` | 1M / 1S |
-| [OW-WAR-0097](docs/warrants/OW-WAR-0097/manifest.toml) | Read-only repository doctor and actionable readiness diagnostics | `draft` | `current` | `valid` | `basic` | 1M / 1S |
-| [OW-WAR-0098](docs/warrants/OW-WAR-0098/manifest.toml) | Share reference workflow start checks with read-only admission preview | `draft` | `current` | `valid` | `basic` | 1M / 1S |
-| [OW-WAR-0099](docs/warrants/OW-WAR-0099/manifest.toml) | Preserve frontier integrity when stage history is damaged | `draft` | `current` | `valid` | `basic` | 1M / 1S |
-| [OW-WAR-0100](docs/warrants/OW-WAR-0100/manifest.toml) | Report unsupported telemetry as unknown without changing historical baselines | `draft` | `current` | `valid` | `basic` | 1M / 1S |
-| [OW-WAR-0101](docs/warrants/OW-WAR-0101/manifest.toml) | Constrain local drafting responses before semantic validation | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0102](docs/warrants/OW-WAR-0102/manifest.toml) | Generate deterministic execution work-stop reports | `draft` | `current` | `valid` | `basic` | 1M / 1S |
-| [OW-WAR-0103](docs/warrants/OW-WAR-0103/manifest.toml) | Preserve question-store errors across hotline readers | `draft` | `current` | `valid` | `basic` | 1M / 1S |
-| [OW-WAR-0104](docs/warrants/OW-WAR-0104/manifest.toml) | Complete read-only master board and batch question workflow | `draft` | `current` | `valid` | `basic` | 1M / 1S |
-| [OW-WAR-0105](docs/warrants/OW-WAR-0105/manifest.toml) | Draft human-first Warrants through configured agent harnesses | `draft` | `current` | `valid` | `basic` | 1M / 1S |
-| [OW-WAR-0106](docs/warrants/OW-WAR-0106/manifest.toml) | Route workflow questions and resume bounded work after answers | `draft` | `current` | `valid` | `basic` | 1M / 1S |
-| [OW-WAR-0107](docs/warrants/OW-WAR-0107/manifest.toml) | Independently verify workflow results and repair within limits | `draft` | `current` | `valid` | `basic` | 1M / 1S |
-| [OW-WAR-0108](docs/warrants/OW-WAR-0108/manifest.toml) | Integrate shared BLUT materialization repair and retained OW47 runtime evidence | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0109](docs/warrants/OW-WAR-0109/manifest.toml) | Durable agent availability queue and automatic bounded dispatch | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0110](docs/warrants/OW-WAR-0110/manifest.toml) | Generate OpenWarrant TypeScript record types and integrate KF consumption | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0074](docs/warrants/OW-WAR-0074/manifest.toml) | Adopt the exact RC.2 build basis without rewriting history | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0075](docs/warrants/OW-WAR-0075/manifest.toml) | Parse and validate human-first OpenWarrant documents | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0076](docs/warrants/OW-WAR-0076/manifest.toml) | Author and edit human-first OpenWarrant documents | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0077](docs/warrants/OW-WAR-0077/manifest.toml) | Define SDK source types and prove provider resolution integration | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0078](docs/warrants/OW-WAR-0078/manifest.toml) | Validate condition syntax and prove provider evaluation integration | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0079](docs/warrants/OW-WAR-0079/manifest.toml) | Prove provider context selection and dependency closure | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0080](docs/warrants/OW-WAR-0080/manifest.toml) | Prove provider master context and task projections | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0081](docs/warrants/OW-WAR-0081/manifest.toml) | Inspect packet integrity and prove offline provider packages | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0082](docs/warrants/OW-WAR-0082/manifest.toml) | Prove provider context budgets and cache invalidation | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0083](docs/warrants/OW-WAR-0083/manifest.toml) | Evaluate supplied work and assurance records | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0084](docs/warrants/OW-WAR-0084/manifest.toml) | Preserve legacy history and explicit successor lineage | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0085](docs/warrants/OW-WAR-0085/manifest.toml) | Prove Phase 1 SDK, CLI and adapted skill scope | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0086](docs/warrants/OW-WAR-0086/manifest.toml) | Integrate SDK with LAMU and a second minimal consumer | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0087](docs/warrants/OW-WAR-0087/manifest.toml) | Expose document and record primitives through CLI | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0088](docs/warrants/OW-WAR-0088/manifest.toml) | Make SDK document authoring interactive and recoverable | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0089](docs/warrants/OW-WAR-0089/manifest.toml) | Prepare standard and SDK release artifacts | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0090](docs/warrants/OW-WAR-0090/manifest.toml) | Qualify four-phase release and freeze Stable source set | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0091](docs/warrants/OW-WAR-0091/manifest.toml) | Publish and verify OpenWarrant Stable 1.0 | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0092](docs/warrants/OW-WAR-0092/manifest.toml) | View project progress as offline HTML and a locally refreshed dashboard | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0093](docs/warrants/OW-WAR-0093/manifest.toml) | Reference workflow package: local API and draft webapp | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0094](docs/warrants/OW-WAR-0094/manifest.toml) | Connected-agent execution workflow and model-neutral drafting roadmap | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0095](docs/warrants/OW-WAR-0095/manifest.toml) | Three-developer reference workflow qualification study | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0096](docs/warrants/OW-WAR-0096/manifest.toml) | Authenticate authority changes through signed transitions and protected activation | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0097](docs/warrants/OW-WAR-0097/manifest.toml) | Read-only repository doctor and actionable readiness diagnostics | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0098](docs/warrants/OW-WAR-0098/manifest.toml) | Share reference workflow start checks with read-only admission preview | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0099](docs/warrants/OW-WAR-0099/manifest.toml) | Preserve frontier integrity when stage history is damaged | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0100](docs/warrants/OW-WAR-0100/manifest.toml) | Report unsupported telemetry as unknown without changing historical baselines | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0101](docs/warrants/OW-WAR-0101/manifest.toml) | Constrain local drafting responses before semantic validation | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0102](docs/warrants/OW-WAR-0102/manifest.toml) | Generate deterministic execution work-stop reports | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0103](docs/warrants/OW-WAR-0103/manifest.toml) | Preserve question-store errors across hotline readers | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0104](docs/warrants/OW-WAR-0104/manifest.toml) | Complete read-only master board and batch question workflow | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0105](docs/warrants/OW-WAR-0105/manifest.toml) | Draft human-first Warrants through configured agent harnesses | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0106](docs/warrants/OW-WAR-0106/manifest.toml) | Route workflow questions and resume bounded work after answers | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0107](docs/warrants/OW-WAR-0107/manifest.toml) | Independently verify workflow results and repair within limits | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0108](docs/warrants/OW-WAR-0108/manifest.toml) | Integrate shared BLUT materialization repair and retained OW47 runtime evidence | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0109](docs/warrants/OW-WAR-0109/manifest.toml) | Durable agent availability queue and automatic bounded dispatch | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0110](docs/warrants/OW-WAR-0110/manifest.toml) | Generate OpenWarrant TypeScript record types and integrate KF consumption | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0111](docs/warrants/OW-WAR-0111/manifest.toml) | Implement content-bearing preservation archives and honest import round trips | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
 
 ## Claimed SAS requirement coverage
 

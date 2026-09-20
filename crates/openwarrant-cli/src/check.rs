@@ -239,6 +239,52 @@ pub fn run(
         },
     }
 
+    // Accepting a SAS revision is the act that makes a specification normative
+    // for every Warrant that pins it, so it is held to the same rule as an
+    // authorization: a human signature over the acceptance response's exact
+    // bytes, naming the digest of the document accepted. Leaving this act out
+    // would have left one path where a record is believed for its contents.
+    let sas_revisions = repo.load_sas_revisions().unwrap_or_default();
+    let sas_pin = crate::sas::pin_of(&sas_revisions).map(|p| p.version.clone());
+    for rev in &sas_revisions {
+        let Some(acceptance) = &rev.acceptance else {
+            continue;
+        };
+        let subject = format!("SAS-{}", rev.version);
+        let verdict = crate::authority_check::verify(
+            repo,
+            crate::authority_check::Act::Accept,
+            &subject,
+            &acceptance.accepted_by,
+            Some(&rev.sha256),
+        );
+        if verdict.is_signed() {
+            report.push(Diagnostic::pass(
+                "authority.signed",
+                format!("{subject}: {}", verdict.why()),
+            ));
+        } else if sas_pin.as_deref() == Some(rev.version.as_str()) {
+            report.push(Diagnostic::error(
+                verdict.rule(),
+                format!("docs/sas/revisions/{}.toml", rev.version),
+                format!("{subject}: {}", verdict.why()),
+            ));
+        } else {
+            // A superseded revision is normative for nothing. Its acceptance
+            // predates enforcement and cannot be signed now without dating the
+            // act wrongly, so it is reported and not treated as a live failure.
+            report.push(Diagnostic::warn(
+                verdict.rule(),
+                format!("docs/sas/revisions/{}.toml", rev.version),
+                format!(
+                    "{subject}: superseded by {} and normative for nothing; {}",
+                    sas_pin.as_deref().unwrap_or("no accepted revision"),
+                    verdict.why()
+                ),
+            ));
+        }
+    }
+
     // Both corpus-wide projections drift-check through the same function, so
     // they cannot come to report drift differently.
     if check_generated && repo.config.generated.verify_drift {
@@ -925,6 +971,88 @@ fn check_one(
                             format!("{alias}: re-pinned to SAS {v} after resolution; the resolution binds the contract as it was and is reported stale, never moved (§56.3)"),
                         ));
                     }
+                }
+            }
+        }
+        // Is this authorization one a human signed? Until this call existed the
+        // answer was "it says so in the file". A forged authorization.toml
+        // naming the owner passed `war check` with zero errors and satisfied
+        // §56.1 requirement 1 (demonstrated 2026-09-19 against 1.0.0-alpha.1).
+        if let Ok(Some(a)) = repo.load_authorization(&one.dir)
+            && let Some(auth) = &a.revision.authorization
+        {
+            {
+                let verdict = crate::authority_check::verify(
+                    repo,
+                    crate::authority_check::Act::Authorize,
+                    &alias,
+                    &auth.authorizer,
+                    Some(&a.revision.contract_digest),
+                );
+                let at = repo.relative(&one.dir.join("authorization.toml"));
+                if verdict.is_signed() {
+                    report.push(Diagnostic::pass(
+                        verdict.rule(),
+                        format!("{alias}: {}", verdict.why()),
+                    ));
+                } else {
+                    report.push(Diagnostic::error(
+                        verdict.rule(),
+                        at,
+                        format!("{alias}: {}", verdict.why()),
+                    ));
+                }
+            }
+        }
+        // A resolution is the act that says the work is done. It was trusted on
+        // content alone for exactly as long as the authorization was.
+        if let Ok(Some(r)) = repo.load_resolution(&one.dir) {
+            let verdict = crate::authority_check::verify(
+                repo,
+                crate::authority_check::Act::Resolve,
+                &alias,
+                r.resolution.resolved_by_ref.trim_start_matches("person://"),
+                Some(&r.resolution.contract_digest),
+            );
+            let at = repo.relative(&one.dir.join("resolution.toml"));
+            if verdict.is_signed() {
+                report.push(Diagnostic::pass(
+                    "authority.signed",
+                    format!("{alias} resolution: {}", verdict.why()),
+                ));
+            } else {
+                report.push(Diagnostic::error(
+                    verdict.rule(),
+                    at,
+                    format!("{alias} resolution: {}", verdict.why()),
+                ));
+            }
+        }
+        // Each correction moves a delivered file past the wall, so each needs
+        // its own signature over its own bytes.
+        if let Ok(set) = repo.load_corrections(&one.dir) {
+            for (_, c) in &set.records {
+                let subject = format!("{alias}.{}", c.correction.deliverable_id);
+                let verdict = crate::authority_check::verify(
+                    repo,
+                    crate::authority_check::Act::Correct,
+                    &subject,
+                    c.correction
+                        .authorized_by_ref
+                        .trim_start_matches("person://"),
+                    Some(&c.correction.new_digest),
+                );
+                if verdict.is_signed() {
+                    report.push(Diagnostic::pass(
+                        "authority.signed",
+                        format!("{subject} correction: {}", verdict.why()),
+                    ));
+                } else {
+                    report.push(Diagnostic::error(
+                        verdict.rule(),
+                        repo.relative(&one.dir.join("corrections")),
+                        format!("{subject} correction: {}", verdict.why()),
+                    ));
                 }
             }
         }

@@ -329,10 +329,23 @@ plant_cmd "a §68 export missing required contents" "68.2 requires" "audit recei
 plant_cmd "a round trip that never reconnected the bytes" "not reconnected" "missing the same data" 1 \
     "true" export OW-WAR-0044 --round-trip
 
-# The positive control. Without it, a build that refused EVERY round trip would
-# satisfy the plant above and look like a working §68.3 check.
-plant_cmd "a round trip with the bytes reconnected" "round trip verified" "sha256:" 0 \
+# A caller flag never established an import. Keep that false-success regression
+# refusing; the source-detached positive transport control below observes bytes.
+plant_cmd "a reconnect claim without an import" "legacy round-trip cannot verify" "not an import" 1 \
     "true" export OW-WAR-0044 --round-trip --reconnect
+
+# Experimental transport positive control, not full KF/SAS preservation qualification.
+ARCHIVE_TMP=$(mktemp -d)
+if "$WAR" archive import "conformance/fixtures/preservation/roundtrip.json" "$ARCHIVE_TMP/imported" >/dev/null 2>&1 \
+    && "$WAR" archive reexport "$ARCHIVE_TMP/imported" "$ARCHIVE_TMP/reexport.json" >/dev/null 2>&1 \
+    && cmp -s "conformance/fixtures/preservation/roundtrip.json" "$ARCHIVE_TMP/reexport.json"; then
+    printf 'ok    %-34s canonical bytes retained through real import\n' "source-detached archive round trip"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s real import/re-export failed\n' "source-detached archive round trip"
+    FAILED=$((FAILED + 1))
+fi
+rm -rf "$ARCHIVE_TMP"
 
 # §67 — the Knowledge Fabric seam WRITES, and must be hard to reach by accident.
 #
@@ -948,9 +961,16 @@ plant "a journal line edited in place" "journal.rewritten" "extended, never edit
     OW-WAR-0010
 
 # OBL-002. The last committed line deleted: history shortened is history rewritten.
+#
+# The guard names the deleted line by its own event id, never by an event TYPE.
+# `resolution.recorded` was the last line until this Warrant's resolution was
+# signed and `resolution.signature_recorded` followed it — the type was then
+# still present after the delete, the no-op guard fired, and the whole battery
+# stopped. An id belongs to one line; a type does not.
 plant "a journal line deleted" "journal.rewritten" "extended, never edited" 2 \
-    "sed -i '\$d' docs/warrants/OW-WAR-0010/journal.jsonl; \
-     assert_gone 'resolution.recorded' docs/warrants/OW-WAR-0010/journal.jsonl" \
+    "LAST_ID=\$(grep -o '\"id\":\"[^\"]*\"' docs/warrants/OW-WAR-0010/journal.jsonl | tail -1); \
+     sed -i '\$d' docs/warrants/OW-WAR-0010/journal.jsonl; \
+     assert_gone \"\$LAST_ID\" docs/warrants/OW-WAR-0010/journal.jsonl" \
     OW-WAR-0010
 
 # An event appended for a different Warrant's uuid: append-only holds, identity does not.
