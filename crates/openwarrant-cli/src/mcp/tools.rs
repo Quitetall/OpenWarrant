@@ -282,6 +282,12 @@ fn self_exec(repo_root: &camino::Utf8Path, args: &[&str]) -> Result<(String, i32
         .map_err(|e| RepoError::Message(format!("cannot locate the war binary: {e}")))?;
     let out = std::process::Command::new(exe)
         .arg("--json")
+        // `--root` is what actually names the repository; `current_dir` stays
+        // because the child's OWN subprocesses — a gate's argv — resolve their
+        // relative paths against it. Before the flag existed, moving the
+        // process was the only way to say which tree this was about.
+        .arg("--root")
+        .arg(repo_root.as_str())
         .args(args)
         .current_dir(repo_root)
         .output()
