@@ -1656,7 +1656,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                         let request = sas::accept_request(&repository, &version)?;
                         output::emit(
                             mode,
-                            "accept.accept.request",
+                            "sas.accept.request",
                             &toml::to_string_pretty(&request).map_err(|e| {
                                 repo::RepoError::Message(format!(
                                     "could not render the request: {e}"
