@@ -177,7 +177,21 @@ pub fn derive(pending: &[Pending], status: &openwarrant_core::status::CorpusStat
             status
                 .nothing_actionable
                 .as_ref()
-                .map(|n| format!("{n:?}"))
+                .map(|n| {
+                    // `n.why` is already the sentence. Debug-printing the
+                    // struct put `NothingActionable { objective: None,
+                    // blocked_by: [], why: "..." }` on the terminal of anyone
+                    // whose corpus had nothing to do — on the first command
+                    // QUICKSTART tells a new reader to trust.
+                    let mut s = n.why.clone();
+                    if let Some(o) = &n.objective {
+                        s.push_str(&format!(" ({o})"));
+                    }
+                    if !n.blocked_by.is_empty() {
+                        s.push_str(&format!("; blocked by {}", n.blocked_by.join(", ")));
+                    }
+                    s
+                })
                 .unwrap_or_else(|| {
                     "nothing awaits a signature and no stage is actionable".to_owned()
                 }),
