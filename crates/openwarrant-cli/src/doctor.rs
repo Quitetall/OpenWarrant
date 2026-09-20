@@ -29,6 +29,12 @@ pub fn run(alias: Option<&str>, generated: bool) -> (Report, Value) {
         "execution_authorized": false, "remedies": [],
         "scope": "legacy-record-diagnostics-and-configuration"
     });
+    // Which binary is answering, before anything it says can be read. An
+    // operator debugging `war` needs this line first: one name on PATH can
+    // hide a wrapper, a stale debug build, or three frozen snapshots.
+    let install = crate::install::observe();
+    report.diagnostics.extend(install.report().diagnostics);
+    result["install"] = install.json();
     report.note("Doctor reports records and configuration only. Admission and protected authority are UNKNOWN; no execution permission or assurance is issued.");
     let repo = match Repository::discover(None) {
         Ok(repo) => repo,

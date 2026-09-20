@@ -37,6 +37,7 @@ mod frontier;
 mod gate_cmd;
 mod inbox;
 mod init;
+mod install;
 mod journal_cmd;
 mod kf;
 mod mcp;
@@ -299,6 +300,27 @@ enum Command {
         /// Also compare committed generated views against a fresh compilation.
         #[arg(long)]
         generated: bool,
+    },
+    /// Which `war` this is, where it came from, and what else answers to that
+    /// name on PATH. Needs no repository.
+    Version,
+    /// Install a published release into ~/.local/lib/openwarrant and repoint
+    /// the links this tool put on PATH. Reads the network; never touches a
+    /// `war` it did not install.
+    Update {
+        /// Report what is published and stop.
+        #[arg(long)]
+        check: bool,
+        /// Offer prereleases (1.0.0-alpha.2 and the like). Without it, only
+        /// releases marked stable.
+        #[arg(long)]
+        preview: bool,
+        /// A specific version, e.g. `1.0.0-alpha.2`.
+        #[arg(long, value_name = "VERSION")]
+        to: Option<String>,
+        /// Install even when the version is the one already running.
+        #[arg(long)]
+        force: bool,
     },
     /// Read-only repository diagnostics; never signs, repairs, or starts work.
     Doctor {
@@ -834,6 +856,14 @@ enum Command {
         describe: bool,
     },
     Pins {
+        /// Re-record each DRAFT Warrant's content digests from the bytes on
+        /// disk. Refused for anything a human has signed for; `war correct`
+        /// is the act that moves those.
+        #[arg(long)]
+        refresh: bool,
+        /// One Warrant instead of every draft.
+        #[arg(long, value_name = "ALIAS")]
+        alias: Option<String>,
         /// Only pins held by a resolution.
         #[arg(long)]
         resolved_only: bool,
@@ -1637,7 +1667,17 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 SasCommand::Status => ready(sas::status(&repository)?),
             }
         }
-        Command::Pins { resolved_only } => {
+        Command::Pins {
+            refresh,
+            alias,
+            resolved_only,
+        } if refresh => {
+            let repository = repo::Repository::discover(None)?;
+            let report = pins::refresh(&repository, alias.as_deref())?;
+            let _ = resolved_only;
+            Ok(output::finish(mode, "pins", &report, None))
+        }
+        Command::Pins { resolved_only, .. } => {
             let repository = repo::Repository::discover(None)?;
             let pins = pins::list(&repository, resolved_only)?;
             output::emit(
@@ -2069,6 +2109,34 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             // A diff is information, not a verdict: exit 0 whatever it found.
             let _ = output::finish(mode, "diff", &report, None);
             Ok(EXIT_OK)
+        }
+        Command::Version => {
+            let install = install::observe();
+            let report = install.report();
+            Ok(output::finish(
+                mode,
+                "version",
+                &report,
+                Some(install.json()),
+            ))
+        }
+        Command::Update {
+            check,
+            preview,
+            to,
+            force,
+        } => {
+            let channel = if preview || to.is_some() {
+                install::Channel::Preview
+            } else {
+                install::Channel::Stable
+            };
+            let report = if check {
+                install::check(channel)
+            } else {
+                install::update(channel, to.as_deref(), force)
+            };
+            Ok(output::finish(mode, "update", &report, None))
         }
         Command::Doctor { alias, generated } => {
             let (report, result) = doctor::run(alias.as_deref(), generated);

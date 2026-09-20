@@ -115,3 +115,125 @@ pub fn render(p: &Pins) -> String {
     }
     s
 }
+
+/// `war pins --refresh [alias]` — bring an unresolved Warrant's recorded
+/// digests back to the bytes on disk.
+///
+/// The gap this fills: a Warrant is written at the start of the work, its
+/// deliverables name files that are still being written, and every commit moves
+/// them. Before this existed the only way to re-record a digest was to edit
+/// `deliverables.toml` by hand, so `war check` reported drift on every run and
+/// the operator learned to ignore it — which is worse than not checking, because
+/// the same rule guards resolved records where it matters.
+///
+/// Refused for a RESOLVED Warrant, whose §56.2 record binds
+/// `sha256(deliverables.toml)`: moving a pin there changes what was accepted,
+/// and `war correct` is the act that exists for it. An authorization binds the
+/// contract, not the bytes, so an authorized-but-unresolved Warrant refreshes
+/// like any draft.
+pub fn refresh(repo: &Repository, alias: Option<&str>) -> Result<crate::diagnostic::Report, RepoError> {
+    use crate::diagnostic::{Diagnostic, Report};
+    let mut report = Report::default();
+    for dir in repo.warrant_dirs()? {
+        let Some(name) = dir.file_name().map(str::to_owned) else {
+            continue;
+        };
+        if alias.is_some_and(|want| want != name) {
+            continue;
+        }
+        let one = repo.load_warrant(&dir)?;
+        if crate::check::resolution_binds(repo, &one) {
+            if alias.is_some() {
+                report.push(Diagnostic::error(
+                    "pins.signed",
+                    repo.relative(&dir.join("deliverables.toml")),
+                    format!(
+                        "{name} is resolved: its §56.2 record binds sha256(deliverables.toml). \
+                         Moving a pin here would change what was accepted — \
+                         `war correct {name} <D-id>` records why the file moved"
+                    ),
+                ));
+            }
+            continue;
+        }
+        let deliverables = repo.load_deliverables(&dir)?;
+        let path = dir.join("deliverables.toml");
+        let Ok(original) = std::fs::read_to_string(&path) else {
+            continue;
+        };
+        let mut text = original.clone();
+        let mut moved = Vec::new();
+        for d in deliverables.records.iter().filter(|d| d.content_addressed) {
+            let Some(provenance) = &d.provenance else {
+                continue;
+            };
+            let recorded = provenance.content_digest.trim_start_matches("sha256:");
+            let Ok(bytes) = std::fs::read(repo.root.join(&d.target_ref)) else {
+                report.push(Diagnostic::warn(
+                    "pins.unreadable",
+                    repo.relative(&path),
+                    format!(
+                        "{name}: {} names {} and it cannot be read; its pin is left as recorded",
+                        d.id, d.target_ref
+                    ),
+                ));
+                continue;
+            };
+            let actual = openwarrant_compiler::sha256_hex(&bytes);
+            if actual == recorded {
+                continue;
+            }
+            // Textual, on the exact recorded digest: the file is hand-written
+            // and hand-commented, and a round trip through the parser would
+            // rewrite the operator's prose along with the digest.
+            if !text.contains(recorded) {
+                report.push(Diagnostic::error(
+                    "pins.not-found",
+                    repo.relative(&path),
+                    format!(
+                        "{name}: {} records sha256:{recorded} and that string is not in the file; \
+                         nothing is rewritten",
+                        d.id
+                    ),
+                ));
+                continue;
+            }
+            text = text.replace(recorded, &actual);
+            moved.push((d.id.clone(), d.target_ref.clone(), recorded.to_owned(), actual));
+        }
+        if moved.is_empty() {
+            if alias.is_some() {
+                report.push(Diagnostic::pass(
+                    "pins.current",
+                    format!("{name}: every content-addressed pin matches its bytes"),
+                ));
+            }
+            continue;
+        }
+        std::fs::write(&path, &text).map_err(|source| RepoError::Io {
+            context: format!("could not write {path}"),
+            source,
+        })?;
+        for (id, target, before, after) in moved {
+            report.push(Diagnostic::pass(
+                "pins.refreshed",
+                format!(
+                    "{name}: {id} — {target} sha256:{} → sha256:{}",
+                    &before[..12],
+                    &after[..12]
+                ),
+            ));
+        }
+    }
+    if report.diagnostics.is_empty() {
+        report.push(Diagnostic::pass(
+            "pins.current",
+            "every draft Warrant's pins match their bytes".to_owned(),
+        ));
+    }
+    report.note(
+        "A refreshed pin records what a file IS, not that anyone approved it. Signing is what \
+         makes a pin a promise.",
+    );
+    Ok(report)
+}

@@ -599,7 +599,30 @@ pub(crate) fn load_gate_registry(
 /// target that cannot be read, is reported rather than skipped. "The digest does
 /// not match" and "there is nothing to match against" are different problems and
 /// a check that collapsed them would send the reader to the wrong fix.
+/// Does a signed record bind this Warrant's deliverable digests?
+///
+/// Exactly one thing does: a resolution, whose §56.2 record carries
+/// `artifact_manifest_digest` = sha256 of `deliverables.toml`. Moving a pin
+/// under it would change what the resolution resolved, so that is an ERROR and
+/// `war correct` is the act for it (OW-WAR-0064).
+///
+/// An authorization does NOT. The contract digest covers intent, scope,
+/// obligations, milestones and stages — not which bytes a file happens to have
+/// while the work is being done. Treating it as binding sent a signed but
+/// unresolved Warrant to `war correct`, which refuses with
+/// `correction.not-resolved`: an error whose only remedy was itself refused.
+///
+/// So a pin that no one has resolved against is out of date, not violated —
+/// `war pins --refresh` re-records it. That distinction is why `war check` can
+/// run during ordinary work: a repository with nineteen unsigned Warrants
+/// pinning living source files reported ten ERRORs and NOT READY on every
+/// commit, forever, protecting nothing.
+pub fn resolution_binds(repo: &Repository, one: &Loaded) -> bool {
+    repo.load_resolution(&one.dir).ok().flatten().is_some()
+}
+
 fn check_deliverable_digests(repo: &Repository, one: &Loaded, alias: &str, report: &mut Report) {
+    let bound = resolution_binds(repo, one);
     let deliverables = match repo.load_deliverables(&one.dir) {
         Ok(set) => set,
         Err(err) => {
@@ -726,32 +749,55 @@ fn check_deliverable_digests(repo: &Repository, one: &Loaded, alias: &str, repor
                         ),
                     ));
                     drifted += 1;
-                } else {
+                } else if bound {
                     report.push(Diagnostic::error(
                         "deliverable.digest-drift",
                         file.clone(),
                         format!(
                             "{alias}: {} records sha256:{recorded} for {} but the file is now \
-                             sha256:{actual}. The artifact moved after the record was written — \
-                             regenerate the record, or restore the artifact; for a RESOLVED \
-                             Warrant, `war correct {alias} {}` (OW-WAR-0064)",
+                             sha256:{actual}. A resolution binds this manifest, so the artifact \
+                             moved after the work was accepted — restore it, or record why it \
+                             moved: \
+                             `war correct {alias} {}` (OW-WAR-0064)",
                             deliverable.id, deliverable.target_ref, deliverable.id
                         ),
                     ));
                     drifted += 1;
+                } else {
+                    // Nobody has signed for this Warrant, so the pin is a note
+                    // about a file, not a promise about it.
+                    report.push(Diagnostic::warn(
+                        "deliverable.pin-stale",
+                        file.clone(),
+                        format!(
+                            "{alias}: {} records sha256:{recorded} for {} and the file is now \
+                             sha256:{actual}. No resolution binds this manifest, so the pin is \
+                             out of date rather than violated — `war pins --refresh {alias}`",
+                            deliverable.id, deliverable.target_ref
+                        ),
+                    ));
                 }
             }
             Err(err) => {
-                report.push(Diagnostic::error(
-                    "deliverable.target-unreadable",
-                    file.clone(),
-                    format!(
-                        "{alias}: {} names {} and it cannot be read: {err}. An unreadable artifact \
-                         is not a verified one",
-                        deliverable.id, deliverable.target_ref
-                    ),
-                ));
-                drifted += 1;
+                let why = format!(
+                    "{alias}: {} names {} and it cannot be read: {err}. An unreadable artifact \
+                     is not a verified one",
+                    deliverable.id, deliverable.target_ref
+                );
+                if bound {
+                    report.push(Diagnostic::error(
+                        "deliverable.target-unreadable",
+                        file.clone(),
+                        why,
+                    ));
+                    drifted += 1;
+                } else {
+                    report.push(Diagnostic::warn(
+                        "deliverable.target-unreadable",
+                        file.clone(),
+                        why,
+                    ));
+                }
             }
         }
     }
