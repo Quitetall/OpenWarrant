@@ -1,0 +1,95 @@
+{
+  "schema": "oh.war/sdk-record-cases/v1",
+  "cases": [
+    {
+      "id": "observation-untrusted",
+      "file": "observation-untrusted.json",
+      "operation": "record",
+      "subject": {
+        "warrant": "test:work",
+        "contract_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "result_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "error": null
+    },
+    {
+      "id": "unavailable-pass",
+      "file": "unavailable-pass.json",
+      "operation": "record",
+      "subject": {
+        "warrant": "test:work",
+        "contract_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "result_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "error": "record.payload"
+    },
+    {
+      "id": "unknown-observation",
+      "file": "unknown-observation.json",
+      "operation": "record",
+      "subject": {
+        "warrant": "test:work",
+        "contract_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "result_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "error": null
+    },
+    {
+      "id": "unknown-core-field",
+      "file": "unknown-core-field.json",
+      "operation": "record",
+      "subject": {
+        "warrant": "test:work",
+        "contract_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "result_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "error": "record.syntax"
+    },
+    {
+      "id": "wrong-result",
+      "file": "wrong-result.json",
+      "operation": "record",
+      "subject": {
+        "warrant": "test:work",
+        "contract_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "result_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "error": "record.subject"
+    },
+    {
+      "id": "unsigned-completion",
+      "file": "unsigned-completion.json",
+      "operation": "agent-act",
+      "subject": null,
+      "error": null
+    },
+    {
+      "id": "agent-human-spoof",
+      "file": "agent-human-spoof.json",
+      "operation": "agent-act",
+      "subject": null,
+      "error": "agent-act.invalid"
+    },
+    {
+      "id": "agent-authorization-without-policy",
+      "file": "agent-authorization-without-policy.json",
+      "operation": "agent-act",
+      "subject": null,
+      "error": "agent-act.invalid"
+    },
+    {
+      "id": "complete-unverified-view",
+      "file": "complete-unverified-view.json",
+      "operation": "workflow",
+      "subject": null,
+      "error": null
+    },
+    {
+      "id": "conflated-state",
+      "file": "conflated-state.json",
+      "operation": "workflow",
+      "subject": null,
+      "error": "workflow.syntax"
+    }
+  ]
+}

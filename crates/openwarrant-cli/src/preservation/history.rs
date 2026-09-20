@@ -1,0 +1,531 @@
+// SPDX-License-Identifier: Apache-2.0
+//! Bounded local Git history capture. No checkout, signing, lazy fetch or authority act.
+use crate::repo::Repository;
+use openwarrant_compiler::preservation::Error;
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    io::Read,
+    process::{Command, Stdio},
+    sync::mpsc,
+    time::{Duration, Instant},
+};
+
+fn git(repo: &Repository, args: &[&str], limit: usize) -> Result<Vec<u8>, Error> {
+    let mut child = Command::new("git")
+        .current_dir(&repo.root)
+        .args(["--no-pager", "--no-replace-objects"])
+        .args(args)
+        // Repository discovery belongs to the explicitly selected checkout. Inherited
+        // Git process state must not redirect history or disguise its shallow boundary.
+        .env_remove("GIT_DIR")
+        .env_remove("GIT_WORK_TREE")
+        .env_remove("GIT_COMMON_DIR")
+        .env_remove("GIT_OBJECT_DIRECTORY")
+        .env_remove("GIT_ALTERNATE_OBJECT_DIRECTORIES")
+        .env_remove("GIT_INDEX_FILE")
+        .env_remove("GIT_SHALLOW_FILE")
+        .env_remove("GIT_NAMESPACE")
+        .env("GIT_NO_LAZY_FETCH", "1")
+        .env("GIT_TERMINAL_PROMPT", "0")
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .spawn()
+        .map_err(|e| Error(format!("history Git unavailable: {e}")))?;
+    let stdout = child
+        .stdout
+        .take()
+        .ok_or_else(|| Error("history stdout unavailable".into()))?;
+    let (send, receive) = mpsc::sync_channel(1);
+    let reader = std::thread::spawn(move || {
+        let mut bytes = Vec::new();
+        let result = stdout
+            .take(limit as u64 + 1)
+            .read_to_end(&mut bytes)
+            .map(|_| bytes);
+        let _ = send.send(result);
+    });
+    let bytes = match receive.recv_timeout(Duration::from_secs(10)) {
+        Ok(Ok(bytes)) if bytes.len() <= limit => bytes,
+        _ => {
+            let _ = child.kill();
+            let _ = child.wait();
+            let _ = reader.join();
+            return Err(Error(
+                "history read failed, timed out or exceeded limit".into(),
+            ));
+        }
+    };
+    let deadline = Instant::now() + Duration::from_secs(10);
+    let status = loop {
+        if let Some(status) = child.try_wait().map_err(|e| Error(e.to_string()))? {
+            break status;
+        }
+        if Instant::now() >= deadline {
+            let _ = child.kill();
+            let _ = child.wait();
+            let _ = reader.join();
+            return Err(Error(
+                "history process did not terminate within limit".into(),
+            ));
+        }
+        std::thread::sleep(Duration::from_millis(10));
+    };
+    let _ = reader.join();
+    if !status.success() {
+        return Err(Error("required local Git history unavailable".into()));
+    }
+    Ok(bytes)
+}
+fn text(bytes: Vec<u8>) -> Result<String, Error> {
+    String::from_utf8(bytes).map_err(|_| Error("history metadata is not UTF-8".into()))
+}
+fn oid(value: &str) -> bool {
+    matches!(value.len(), 40 | 64)
+        && value
+            .bytes()
+            .all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
+}
+
+fn selected_commits(
+    repo: &Repository,
+    roots: &BTreeSet<String>,
+    target: &str,
+) -> Result<BTreeSet<String>, Error> {
+    let mut result = BTreeSet::new();
+    for root in roots {
+        let changes = text(git(
+            repo,
+            &[
+                "log",
+                "--full-history",
+                "--format=%H",
+                "--max-count=257",
+                root,
+                "--",
+                target,
+            ],
+            32768,
+        )?)?;
+        for commit in changes.lines() {
+            if !oid(commit) {
+                return Err(Error("invalid selected history commit".into()));
+            }
+            result.insert(commit.to_owned());
+        }
+        if result.len() > 256 {
+            return Err(Error("history exceeds 256-commit bound".into()));
+        }
+    }
+    Ok(result)
+}
+
+pub(super) fn capture(
+    repo: &Repository,
+    relative: &str,
+    additional_refs: &[String],
+    byte_limit: usize,
+    record_limit: usize,
+) -> Result<BTreeMap<String, Vec<u8>>, Error> {
+    if text(git(repo, &["rev-parse", "--is-shallow-repository"], 16)?)?.trim() != "false" {
+        return Err(Error(
+            "shallow history cannot establish preservation".into(),
+        ));
+    }
+    if !text(git(repo, &["rev-parse", "--show-prefix"], 4096)?)?
+        .trim()
+        .is_empty()
+    {
+        return Err(Error("history capture requires repository root".into()));
+    }
+    let head = text(git(repo, &["rev-parse", "--verify", "HEAD^{commit}"], 128)?)?
+        .trim()
+        .to_owned();
+    if !oid(&head) {
+        return Err(Error("invalid history HEAD identity".into()));
+    }
+    if additional_refs.len() > 16 {
+        return Err(Error("history exceeds 16 additional-root bound".into()));
+    }
+    let mut roots = BTreeSet::from([head.clone()]);
+    for reference in additional_refs {
+        let resolved = text(git(
+            repo,
+            &[
+                "rev-parse",
+                "--verify",
+                "--end-of-options",
+                &format!("{reference}^{{commit}}"),
+            ],
+            128,
+        )?)?
+        .trim()
+        .to_owned();
+        if !oid(&resolved) {
+            return Err(Error("invalid additional history root".into()));
+        }
+        roots.insert(resolved);
+    }
+    let additional_heads: Vec<_> = roots
+        .iter()
+        .filter(|root| **root != head)
+        .cloned()
+        .collect();
+    let mut commits = selected_commits(repo, &roots, relative)?;
+    let mut visited = BTreeSet::new();
+    let mut shared_paths = BTreeSet::new();
+    let mut records = BTreeMap::new();
+    let mut remaining = byte_limit;
+    let mut index = Vec::new();
+    while let Some(commit_id) = commits.pop_first() {
+        visited.insert(commit_id.clone());
+        let commit = commit_id.as_str();
+        if !oid(commit) {
+            return Err(Error("invalid history commit identity".into()));
+        }
+        let prefix = format!("__ow_archive__/history/{commit}");
+        let commit_bytes = git(repo, &["cat-file", "commit", commit], remaining)?;
+        remaining = remaining
+            .checked_sub(commit_bytes.len())
+            .ok_or_else(|| Error("history byte limit exceeded".into()))?;
+        records.insert(format!("{prefix}/commit.txt"), commit_bytes);
+        let tree = git(
+            repo,
+            &["ls-tree", "-r", "-z", "--full-tree", commit, "--", relative],
+            remaining.min(2 * 1024 * 1024),
+        )?;
+        let mut files = Vec::new();
+        for entry in tree.split(|b| *b == 0).filter(|b| !b.is_empty()) {
+            let entry =
+                std::str::from_utf8(entry).map_err(|_| Error("non-UTF8 historical path".into()))?;
+            let (metadata, source) = entry
+                .split_once('\t')
+                .ok_or_else(|| Error("invalid history tree entry".into()))?;
+            let fields: Vec<_> = metadata.split(' ').collect();
+            if fields.len() != 3
+                || !matches!(fields[0], "100644" | "100755")
+                || fields[1] != "blob"
+                || !oid(fields[2])
+            {
+                return Err(Error("historical source is not a regular Git blob".into()));
+            }
+            if !source.starts_with(&format!("{relative}/")) {
+                return Err(Error("historical path escaped requested Warrant".into()));
+            }
+            if records.len() >= record_limit {
+                return Err(Error("history record count exceeds limit".into()));
+            }
+            let size: usize = text(git(repo, &["cat-file", "-s", fields[2]], 64)?)?
+                .trim()
+                .parse()
+                .map_err(|_| Error("invalid historical blob size".into()))?;
+            if size > remaining {
+                return Err(Error("history byte limit exceeded".into()));
+            }
+            let bytes = git(repo, &["cat-file", "blob", fields[2]], size)?;
+            if bytes.len() != size {
+                return Err(Error("historical blob size mismatch".into()));
+            }
+            remaining -= bytes.len();
+            let record = format!("{prefix}/{source}");
+            records.insert(record.clone(), bytes);
+            files.push(serde_json::json!({"source":source,"mode":fields[0],"git_blob":fields[2],"record":record}));
+        }
+        // Shared atoms belong to the historical manifest's own tree. Current
+        // checkout bytes cannot stand in for a previous ADR revision.
+        let manifest_path = format!("{prefix}/{relative}/manifest.toml");
+        if let Some(bytes) = records.get(&manifest_path) {
+            let manifest: openwarrant_core::Manifest =
+                toml::from_str(std::str::from_utf8(bytes).map_err(|e| Error(e.to_string()))?)
+                    .map_err(|e| Error(format!("historical manifest cannot be parsed: {e}")))?;
+            for atom in manifest.atoms {
+                let source = atom
+                    .path
+                    .ok_or_else(|| Error("historical bound atom requires a resolver".into()))?;
+                let target = super::atom_record(relative, &source)?;
+                let record = format!("{prefix}/{target}");
+                if records.contains_key(&record) {
+                    continue;
+                }
+                if shared_paths.insert(target.clone()) {
+                    if shared_paths.len() > record_limit {
+                        return Err(Error("shared history path count exceeds limit".into()));
+                    }
+                    for changed in selected_commits(repo, &roots, &target)? {
+                        if !visited.contains(&changed) {
+                            commits.insert(changed);
+                        }
+                    }
+                    if visited.len() + commits.len() > 256 {
+                        return Err(Error("history exceeds 256-commit bound".into()));
+                    }
+                }
+                if records.len() >= record_limit {
+                    return Err(Error("history record count exceeds limit".into()));
+                }
+                let tree = git(
+                    repo,
+                    &["ls-tree", "-z", "--full-tree", commit, "--", &target],
+                    4096,
+                )?;
+                let entries: Vec<_> = tree.split(|b| *b == 0).filter(|b| !b.is_empty()).collect();
+                if entries.len() != 1 {
+                    return Err(Error("historical atom source missing or nonunique".into()));
+                }
+                let entry = std::str::from_utf8(entries[0]).map_err(|e| Error(e.to_string()))?;
+                let (metadata, path) = entry
+                    .split_once('\t')
+                    .ok_or_else(|| Error("invalid historical atom entry".into()))?;
+                let fields: Vec<_> = metadata.split(' ').collect();
+                if path != target
+                    || fields.len() != 3
+                    || !matches!(fields[0], "100644" | "100755")
+                    || fields[1] != "blob"
+                    || !oid(fields[2])
+                {
+                    return Err(Error("historical atom is not a regular Git file".into()));
+                }
+                let size: usize = text(git(repo, &["cat-file", "-s", fields[2]], 64)?)?
+                    .trim()
+                    .parse()
+                    .map_err(|e| Error(format!("invalid historical atom size: {e}")))?;
+                if size > remaining {
+                    return Err(Error("history byte limit exceeded".into()));
+                }
+                let bytes = git(repo, &["cat-file", "blob", fields[2]], size)?;
+                if bytes.len() != size {
+                    return Err(Error("historical atom size mismatch".into()));
+                }
+                remaining -= bytes.len();
+                records.insert(record.clone(), bytes);
+                files.push(serde_json::json!({"source":target,"mode":fields[0],"git_blob":fields[2],"record":record}));
+            }
+        }
+        index.push(serde_json::json!({"commit":commit,"commit_record":format!("{prefix}/commit.txt"),"files":files}));
+    }
+    index.sort_by(|a, b| a["commit"].as_str().cmp(&b["commit"].as_str()));
+    let manifest = openwarrant_compiler::to_canonical_bytes(&serde_json::json!({"schema":"oh.war/preservation-history/v1-draft.1","head":head,"reachable_from":"HEAD","warrant_path":relative,"shared_atom_paths":shared_paths,"commits":index,"other_refs_included":!additional_heads.is_empty(),"additional_heads":additional_heads})).map_err(|e| Error(e.to_string()))?;
+    if manifest.len() > remaining || records.len() >= record_limit {
+        return Err(Error("history manifest exceeds limits".into()));
+    }
+    records.insert("__ow_archive__/history.json".into(), manifest);
+    Ok(records)
+}
+
+pub(super) struct ArtifactVersion {
+    pub bytes: Vec<u8>,
+    pub commit: String,
+    pub blob: String,
+}
+
+/// Find the declared bytes in regular-file versions reachable from the captured HEAD.
+/// No checkout or network fetch. The SHA-256 content identity, not recency, selects bytes.
+pub(super) fn artifact(
+    repo: &Repository,
+    head: &str,
+    target: &str,
+    expected: &str,
+    limit: usize,
+) -> Result<Option<ArtifactVersion>, Error> {
+    if !oid(head) {
+        return Err(Error("invalid captured history head".into()));
+    }
+    let commits = text(git(
+        repo,
+        &[
+            "log",
+            "--full-history",
+            "--format=%H",
+            "--max-count=257",
+            head,
+            "--",
+            target,
+        ],
+        32768,
+    )?)?;
+    let commits: Vec<_> = commits.lines().collect();
+    if commits.len() > 256 {
+        return Err(Error("artifact history exceeds 256-commit bound".into()));
+    }
+    let mut seen = std::collections::BTreeSet::new();
+    for commit in commits {
+        if !oid(commit) {
+            return Err(Error("invalid artifact history commit".into()));
+        }
+        let tree = git(
+            repo,
+            &["ls-tree", "-z", "--full-tree", commit, "--", target],
+            4096,
+        )?;
+        if tree.is_empty() {
+            continue;
+        }
+        let entries: Vec<_> = tree.split(|b| *b == 0).filter(|b| !b.is_empty()).collect();
+        if entries.len() != 1 {
+            return Err(Error("artifact history path is not unique".into()));
+        }
+        let entry = std::str::from_utf8(entries[0]).map_err(|e| Error(e.to_string()))?;
+        let (metadata, source) = entry
+            .split_once('\t')
+            .ok_or_else(|| Error("invalid artifact tree entry".into()))?;
+        let fields: Vec<_> = metadata.split(' ').collect();
+        if source != target
+            || fields.len() != 3
+            || !matches!(fields[0], "100644" | "100755")
+            || fields[1] != "blob"
+            || !oid(fields[2])
+        {
+            return Err(Error("artifact history is not a regular Git file".into()));
+        }
+        if !seen.insert(fields[2].to_owned()) {
+            continue;
+        }
+        let size: usize = text(git(repo, &["cat-file", "-s", fields[2]], 64)?)?
+            .trim()
+            .parse()
+            .map_err(|e| Error(format!("invalid artifact blob size: {e}")))?;
+        if size > limit {
+            continue;
+        }
+        let bytes = git(repo, &["cat-file", "blob", fields[2]], size)?;
+        if bytes.len() != size {
+            return Err(Error("artifact history blob size mismatch".into()));
+        }
+        if openwarrant_compiler::sha256_hex(&bytes) == expected {
+            return Ok(Some(ArtifactVersion {
+                bytes,
+                commit: commit.to_owned(),
+                blob: fields[2].to_owned(),
+            }));
+        }
+    }
+    Ok(None)
+}
+
+#[derive(serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct History {
+    schema: String,
+    head: String,
+    reachable_from: String,
+    warrant_path: String,
+    #[serde(default)]
+    shared_atom_paths: Vec<String>,
+    commits: Vec<Commit>,
+    other_refs_included: bool,
+    #[serde(default)]
+    additional_heads: Vec<String>,
+}
+#[derive(serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Commit {
+    commit: String,
+    commit_record: String,
+    files: Vec<HistoricalFile>,
+}
+#[derive(serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct HistoricalFile {
+    source: String,
+    mode: String,
+    git_blob: String,
+    record: String,
+}
+
+/// Cross-check the retained inventory. Git object identities remain observations;
+/// this does not authenticate ancestry, signatures or omitted upstream history.
+pub(super) fn verify(records: &BTreeMap<String, Vec<u8>>, directory: &str) -> Result<(), Error> {
+    let prefix = "__ow_archive__/history/";
+    let Some(bytes) = records.get("__ow_archive__/history.json") else {
+        if records.keys().any(|path| path.starts_with(prefix)) {
+            return Err(Error("historical records lack inventory".into()));
+        }
+        return Ok(());
+    };
+    let history: History = serde_json::from_slice(bytes)
+        .map_err(|e| Error(format!("invalid history inventory: {e}")))?;
+    if history.schema != "oh.war/preservation-history/v1-draft.1"
+        || !oid(&history.head)
+        || history.reachable_from != "HEAD"
+        || history.warrant_path != directory
+        || history.other_refs_included == history.additional_heads.is_empty()
+        || history.additional_heads.len() > 16
+        || history
+            .additional_heads
+            .iter()
+            .any(|head| !oid(head) || *head == history.head)
+        || history
+            .additional_heads
+            .windows(2)
+            .any(|pair| pair[0] >= pair[1])
+        || history.commits.len() > 256
+    {
+        return Err(Error(
+            "unsupported history inventory or source boundary".into(),
+        ));
+    }
+    let mut shared = BTreeSet::new();
+    for path in history.shared_atom_paths {
+        if !shared.insert(path.clone())
+            || path.split('/').any(|part| matches!(part, "" | "." | ".."))
+        {
+            return Err(Error("invalid shared history path inventory".into()));
+        }
+    }
+    let mut claimed = BTreeSet::new();
+    let mut commits = BTreeSet::new();
+    for commit in history.commits {
+        if !oid(&commit.commit) || !commits.insert(commit.commit.clone()) {
+            return Err(Error("invalid or duplicate history commit".into()));
+        }
+        let base = format!("{prefix}{}", commit.commit);
+        if commit.commit_record != format!("{base}/commit.txt")
+            || !records.contains_key(&commit.commit_record)
+            || !claimed.insert(commit.commit_record)
+        {
+            return Err(Error(
+                "missing or inconsistent history commit record".into(),
+            ));
+        }
+        let mut sources = BTreeSet::new();
+        for file in commit.files {
+            if !matches!(file.mode.as_str(), "100644" | "100755")
+                || !oid(&file.git_blob)
+                || file.record != format!("{base}/{}", file.source)
+                || !records.contains_key(&file.record)
+                || !sources.insert(file.source)
+                || !claimed.insert(file.record)
+            {
+                return Err(Error(
+                    "missing, duplicate or inconsistent historical file".into(),
+                ));
+            }
+        }
+        let manifest_key = format!("{base}/{directory}/manifest.toml");
+        if let Some(bytes) = records.get(&manifest_key) {
+            let manifest: openwarrant_core::Manifest =
+                toml::from_str(std::str::from_utf8(bytes).map_err(|e| Error(e.to_string()))?)
+                    .map_err(|e| Error(format!("invalid historical manifest: {e}")))?;
+            for atom in manifest.atoms {
+                let source = atom
+                    .path
+                    .ok_or_else(|| Error("historical bound atom requires a resolver".into()))?;
+                let source = super::atom_record(directory, &source)?;
+                if !sources.contains(&source) {
+                    return Err(Error("history inventory omits a referenced atom".into()));
+                }
+            }
+        }
+    }
+    let actual: BTreeSet<_> = records
+        .keys()
+        .filter(|p| p.starts_with(prefix))
+        .cloned()
+        .collect();
+    if actual != claimed {
+        return Err(Error(
+            "history inventory does not cover retained records".into(),
+        ));
+    }
+    Ok(())
+}

@@ -1,0 +1,18 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0037",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "4c8d5733e4336a26be34568fc2addebb11c109d9",
+  "summary": "OW37 implementation complete, unverified: explicit JSON and retained contract:N comparisons, recomputed contract-digest input attribution, bounded history and refusal cases. Historical assurance and resolution unchanged.",
+  "notes": "docs/warrants/OW-WAR-0037/implementation/history-repair.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0037/implementation/evidence/history/gate.log",
+    "docs/warrants/OW-WAR-0037/implementation/evidence/history/cli-tests.log",
+    "docs/warrants/OW-WAR-0037/implementation/evidence/history/actual-revision.json",
+    "docs/warrants/OW-WAR-0037/implementation/evidence/history/independent-review.md"
+  ],
+  "next_steps": [
+    "Independent legacy assurance disposition and human acceptance/resolution remain separate from this implementation report."
+  ]
+}

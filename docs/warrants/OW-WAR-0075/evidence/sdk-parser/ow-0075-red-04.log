@@ -1,0 +1,22 @@
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-war-0075-sdk/crates/openwarrant-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.12s
+     Running tests/document.rs (target/debug/deps/document-b0fa1e91232fbf0d)
+
+running 1 test
+test unknown_extensions_preserve_content_and_block_only_required_interpretation ... FAILED
+
+failures:
+
+---- unknown_extensions_preserve_content_and_block_only_required_interpretation stdout ----
+
+thread 'unknown_extensions_preserve_content_and_block_only_required_interpretation' (1651743) panicked at crates/openwarrant-core/tests/document.rs:64:5:
+assertion failed: report.diagnostics.iter().any(|d| d.code == "extension-unknown")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    unknown_extensions_preserve_content_and_block_only_required_interpretation
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p openwarrant-core --test document`

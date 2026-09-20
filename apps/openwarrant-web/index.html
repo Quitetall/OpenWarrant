@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OpenWarrant · Workbench</title>
+<style>
+:root{color-scheme:dark;--bg:#101615;--panel:#18211e;--line:#34443c;--ink:#eef4ed;--muted:#acbcb0;--accent:#bbf178;--warn:#f5ca82}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,sans-serif}button,input,textarea,select{font:inherit}button{cursor:pointer;background:var(--accent);border:1px solid transparent;color:#17230c;border-radius:7px;padding:.6rem 1rem;font-weight:650}button.secondary{background:transparent;border-color:var(--line);color:var(--ink)}button:disabled{opacity:.4;cursor:wait}input,textarea,select{width:100%;background:#101714;color:var(--ink);border:1px solid var(--line);padding:.7rem;border-radius:6px}input:focus,textarea:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}textarea{resize:vertical;min-height:95px}a{color:var(--accent)}header{border-bottom:1px solid var(--line);padding:20px 4vw;display:flex;justify-content:space-between;align-items:center;gap:20px}.brand{font-weight:780;font-size:20px;letter-spacing:-.6px}.brand span{color:var(--accent)}.eyebrow{font:11px/1.4 ui-monospace,monospace;text-transform:uppercase;letter-spacing:2px;color:var(--accent)}main{max-width:1440px;padding:34px 4vw;margin:auto}h1{font-size:36px;line-height:1.15;letter-spacing:-1.2px;margin:10px 0}h2{font-size:20px;margin:0 0 12px}p{margin:8px 0 20px}.muted{color:var(--muted)}.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.spread{justify-content:space-between}.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:24px;margin:22px 0}.workspace{display:grid;grid-template-columns:minmax(230px,1fr) minmax(350px,2fr);gap:24px}.workspace .card{margin-top:0}label{display:block;font-weight:600;margin:14px 0 6px}.small{font-size:12px}.badge{font-size:12px;border:1px solid var(--line);border-radius:20px;padding:3px 9px;color:var(--muted)}#notice{min-height:28px;color:var(--warn);white-space:pre-wrap}#unlock{max-width:620px;margin:65px auto}#drafts{display:grid;gap:9px}.draft{background:#101714;text-align:left;color:var(--ink);border:1px solid var(--line);font-weight:400}.draft strong{display:block}.draft.selected{border-color:var(--accent)}pre{padding:18px;background:#0c110f;border-radius:8px;border:1px solid var(--line);white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.6 ui-monospace,monospace;max-height:520px;overflow:auto}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin:25px 0}.stat{border-left:2px solid var(--accent);padding-left:15px}.stat strong{font-size:28px;display:block}.table-scroll{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px}th{text-align:left;color:var(--muted);font-weight:500;padding:12px;border-bottom:1px solid var(--line)}td{padding:14px 12px;border-bottom:1px solid var(--line);vertical-align:top}td:first-child{min-width:310px}td strong{display:block}progress{width:100%;height:6px;accent-color:var(--accent)}[hidden]{display:none!important}@media(max-width:800px){.workspace{grid-template-columns:1fr}header{align-items:flex-start}main{padding:24px 5vw}.card{padding:18px}.stats{grid-template-columns:1fr}h1{font-size:29px}}
+</style></head><body>
+<header><div class="brand"><span>◈</span> OpenWarrant <span class="badge">Reference workbench</span></div><div class="row"><span id="connection" class="muted small">Locked</span><button id="lock" class="secondary" hidden>Lock session</button></div></header>
+<main><section id="unlock" class="card"><div class="eyebrow">Local workspace</div><h1>Describe work.<br>Keep its history.</h1><p class="muted">Draft clear Warrants, inspect exact source, and track what remains. Drafting does not implement code or award verification.</p><form id="unlock-form"><label for="token">Session token</label><input id="token" type="password" autocomplete="off" required placeholder="Token from your local session file"><p class="small muted">Kept in this page's memory only. Restarting the service requires a new token.</p><button>Unlock workbench</button></form></section>
+<div id="notice" role="status" aria-live="polite"></div>
+<section id="app" hidden><div class="row spread"><div><div class="eyebrow">Authoring / unverified</div><h1>Make the next outcome clear.</h1><p class="muted">Readable source. Exact revisions. No hidden approval steps.</p></div><button id="new">+ New draft</button></div>
+<section class="card"><div class="row spread"><h2>Draft with your agent</h2><button id="drafting-refresh" class="secondary">Refresh draft attempts</button></div><p class="muted small">Your configured local or cloud harness uses the drafting skill and pinned context. Results stay unsaved until you review and save them. No implementation starts.</p><form id="drafting-form"><label for="drafting-prompt">Describe the outcome</label><textarea id="drafting-prompt" maxlength="12000" required placeholder="What should this Warrant accomplish?"></textarea><button style="margin-top:12px">Generate draft</button></form><p id="drafting-status" class="small muted">Requires a configured drafting harness.</p><div id="drafting-attempts"></div></section>
+<div class="workspace"><aside class="card"><div class="row spread"><h2>Your drafts</h2><button class="secondary" id="refresh">Refresh</button></div><div id="drafts"></div></aside>
+<section class="card"><div class="row spread"><h2 id="editor-title">New Warrant</h2><span class="badge" id="revision">Draft · unverified</span></div><form id="editor"><label for="title">Title</label><input id="title" required maxlength="180" placeholder="Make signup easier"><label for="outcome">Required outcome</label><textarea id="outcome" required maxlength="12000" placeholder="What should be true when the work is complete?"></textarea><label for="scope">Scope and constraints</label><textarea id="scope" required maxlength="12000" placeholder="What may change? What must stay unchanged?"></textarea><label for="context">Context and open questions</label><textarea id="context" required maxlength="12000" placeholder="Relevant sources, decisions, unknowns and required rules."></textarea><div class="row" style="margin-top:20px"><button id="save">Save draft</button><span id="saved" class="small muted"></span></div></form>
+<details id="source-panel" hidden style="margin-top:24px"><summary>Inspect exact document and history</summary><div class="row" style="margin:15px 0"><label for="history" style="margin:0">Revision</label><select id="history" style="width:auto"></select><button id="download" class="secondary">Download Markdown</button></div><pre id="source"></pre></details></section></div>
+<section class="card"><div class="row spread"><h2>Project board</h2><button id="board-refresh" class="secondary">Refresh board</button></div><p class="muted small">Read-only snapshot. Approval commands require your separate signing action. Stage state does not grant permission.</p><p id="board-status" class="small muted">Load objectives, stages, questions and approvals.</p><div id="board-view"></div></section>
+<section class="card"><div class="row spread"><h2>Next work</h2><button id="next-work-refresh" class="secondary">Check configured work</button></div><p class="muted small">Current workflow requirements. Advisory only; Start checks again. No work starts here.</p><p id="next-work-status" class="small muted">Not checked.</p><div id="next-work-view"></div></section>
+<section class="card"><div class="row spread"><div><div class="eyebrow">Repository / release preparation</div><h2>Finish or reconcile every Warrant.</h2></div><button id="project-refresh" class="secondary">Refresh project</button></div><p class="muted small">Historical resolution and reported implementation completion stay separate. Proposed routes are not accepted reconciliations.</p><div id="project-status" class="small muted">Load project records to inspect remaining work.</div><div class="stats" id="stats"></div><div class="row"><input id="search" aria-label="Search Warrants" placeholder="Search title or designation" style="flex:2"><select id="filter" aria-label="Filter work status" style="flex:1"><option value="all">All records</option><option value="remaining">Work not reported complete</option><option value="completed">Reported complete</option><option value="blocked">Blocked</option><option value="unresolved">Legacy unresolved</option></select><select id="sort" aria-label="Sort Warrants" style="flex:1"><option value="alias">Designation</option><option value="title">Title</option><option value="work_state">Work status</option></select></div><div class="table-scroll"><table><thead><tr><th>Warrant</th><th>Reported work</th><th>Legacy record</th><th>Proposed next route</th></tr></thead><tbody id="project-rows"></tbody></table></div></section>
+<section class="card"><div class="row spread"><h2>Agent hotline</h2><button id="hotline-refresh" class="secondary">Refresh questions</button></div><p class="muted small">Answer exact questions through a configured responder. Advice does not sign work or change execution permissions. Resume rechecks current source, checkpoint and limits.</p><p id="hotline-status" class="small muted">Requires configured responders.</p><div id="hotline-questions"></div></section>
+<section class="card"><div class="row spread"><div><div class="eyebrow">Execution / unverified</div><h2>Run saved work.</h2></div><button id="runs-refresh" class="secondary">Refresh attempts</button></div><p class="muted">Start the selected saved revision through your configured harness. Required checks must pass before completion. Qualification remains separate.</p><button id="stages-refresh" class="secondary">Load stages</button><label for="stage-select">Work scope</label><select id="stage-select"><option value="">Load configured scope first</option></select><p id="stage-status" class="small muted">Select saved Warrant, then load its execution scope.</p><button id="check-start" class="secondary">Check start requirements</button><button id="start-run">Start saved revision</button><button id="queue-run" class="secondary">Queue saved revision</button><button id="queue-refresh" class="secondary">Refresh agent queue</button><p id="queue-status" class="small muted">Queue requires configured availability adapter.</p><div id="queue-requests"></div><p id="run-status" class="small muted">Execution requires owner-configured harness and exact eligible source.</p><div id="runs"></div></section>
+<section class="card"><div class="row spread"><h2>Independent verification</h2><button id="verification-refresh" class="secondary">Refresh verification</button></div><p class="muted small">Prepare from a completed attempt below its work report. Inspect the exact request, then load the configured harness's signed protection receipt to start. Results do not award the assurance mark.</p><p id="verification-status" class="small muted">Requires a configured verifier and protection issuer.</p><div id="verification-jobs"></div></section><section class="card"><div class="row spread"><h2>Automatic verification loops</h2><button id="loops-refresh" class="secondary">Refresh loops</button></div><p class="muted small">Enable from a completed attempt to verify and repair within configured limits. Harness protection receipts remain required. Pause prevents future launches; running work continues under its existing limits. No human acceptance is implied.</p><p id="loops-status" class="small muted">Requires a configured receipt inbox.</p><div id="loops"></div></section></section></main>
+<script>
+let queueTimer=null,queueSnapshot='';
+let candidateId=null, draftingTimer=null, verificationTimer=null, loopTimer=null, loopGeneration=0, sessionGeneration=0, loopSnapshot='';
+'use strict';
+let token='',current=null,shownSource='',rows=[],stageSelection=null;let busy=false;
+const el=id=>document.getElementById(id);
+const notice=text=>{el('notice').textContent=text};
+async function api(path,method='GET',body,extraHeaders={}){const response=await fetch(path,{method,headers:{Authorization:'Bearer '+token,...extraHeaders,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store',signal:AbortSignal.timeout(20000)});const data=await response.json();if(!response.ok)throw new Error(data.error||'Request failed');return data;}
+function clearStages(){stageSelection=null;el('stage-select').replaceChildren();el('stage-status').textContent='Load configured scope for selected saved Warrant.'}
+function clearEditor(){clearStages();candidateId=null;current=null;shownSource='';el('editor').reset();el('source').textContent='';el('source-panel').hidden=true;el('editor-title').textContent='New Warrant';el('revision').textContent='Draft · unverified';el('saved').textContent='';el('save').textContent='Save draft';}
+function show(record){clearStages();current=record;for(const k of ['title','outcome','scope','context'])el(k).value=record[k];el('editor-title').textContent='Edit Warrant';el('revision').textContent='Revision '+record.revision+' · unverified';el('save').textContent='Save new revision';el('saved').textContent=record.id;shownSource=record.source;el('source').textContent=record.source;el('source-panel').hidden=false;el('history').replaceChildren();for(let i=record.revision;i>=1;i--){const option=document.createElement('option');option.value=i;option.textContent='Revision '+i;el('history').append(option);}}
+async function drafts(){const data=await api('/api/warrants');el('drafts').replaceChildren();if(!data.warrants.length){const p=document.createElement('p');p.className='muted';p.textContent='No drafts yet. Start with one reviewable outcome.';el('drafts').append(p);}for(const row of data.warrants){const b=document.createElement('button');b.className='draft'+(current?.id===row.id?' selected':'');const title=document.createElement('strong');title.textContent=row.title;const detail=document.createElement('span');detail.className='small muted';detail.textContent='Revision '+row.revision+' · draft';b.append(title,detail);b.onclick=()=>guard(async()=>{show(await api('/api/warrants/'+row.id));await drafts()});el('drafts').append(b);}}
+async function guard(fn){if(busy)return;busy=true;for(const node of document.querySelectorAll('#editor input,#editor textarea,#editor button,#new,#lock,#start-run,#stage-select,#stages-refresh,#check-start'))node.disabled=true;notice('');try{await fn()}catch(e){notice(e.message+'. No successful action is assumed. Refresh before retrying.')}finally{busy=false;for(const node of document.querySelectorAll('#editor input,#editor textarea,#editor button,#new,#lock,#start-run,#stage-select,#stages-refresh,#check-start'))node.disabled=false}}
+el('unlock-form').onsubmit=e=>{e.preventDefault();guard(async()=>{sessionGeneration++;token=el('token').value;await drafts();el('token').value='';el('unlock').hidden=true;el('app').hidden=false;el('lock').hidden=false;el('connection').textContent='Local session · unlocked';await Promise.allSettled([project(),runs(),board(),nextWork(),draftAttempts(),hotline(),verificationJobs(),verificationLoops()]);const match=location.hash.match(/^#attempt=([0-9a-f-]{36})$/);if(match)await workReport(match[1])})};
+el('lock').onclick=()=>{token='';clearTimeout(queueTimer);queueSnapshot='';el('queue-requests').replaceChildren();el('queue-status').textContent='Locked';sessionGeneration++;loopGeneration++;loopSnapshot='';clearTimeout(loopTimer);el('loops').replaceChildren();el('loops-status').textContent='Locked';clearTimeout(draftingTimer);clearTimeout(verificationTimer);el('verification-jobs').replaceChildren();el('verification-status').textContent='Locked';el('drafting-attempts').replaceChildren();el('drafting-prompt').value='';el('hotline-questions').replaceChildren();el('hotline-status').textContent='Locked';clearEditor();rows=[];el('drafts').replaceChildren();el('project-rows').replaceChildren();el('stats').replaceChildren();el('runs').replaceChildren();el('board-view').replaceChildren();el('board-status').textContent='Locked';el('next-work-view').replaceChildren();el('next-work-status').textContent='Locked';el('app').hidden=true;el('unlock').hidden=false;el('lock').hidden=true;el('connection').textContent='Locked';notice('')};
+el('new').onclick=()=>{clearEditor();el('title').focus()};el('refresh').onclick=()=>guard(drafts);
+el('editor').onsubmit=e=>{e.preventDefault();guard(async()=>{const body={id:current?.id||candidateId||crypto.randomUUID()};for(const k of ['title','outcome','scope','context'])body[k]=el(k).value;if(current)body.expected_source_sha256=current.source_sha256;const result=await api(current?'/api/warrants/'+current.id:'/api/warrants',current?'PUT':'POST',body);show(result);await drafts();notice('Saved revision '+result.revision+'. Draft remains unverified; no work started.')})};
+el('history').onchange=()=>guard(async()=>{const result=await api('/api/warrants/'+current.id+'/revisions/'+el('history').value);shownSource=result.source;el('source').textContent=shownSource});
+el('download').onclick=()=>{const a=document.createElement('a');const url=URL.createObjectURL(new Blob([shownSource],{type:'text/markdown'}));a.href=url;a.download='warrant-'+current.id+'-r'+el('history').value+'.md';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+function renderRows(){const query=el('search').value.toLowerCase(),filter=el('filter').value;const selected=rows.filter(r=>(r.alias+' '+r.title).toLowerCase().includes(query)).filter(r=>filter==='all'||filter==='remaining'&&r.work_state!=='completed'&&r.legacy_phase!=='resolved'||filter==='completed'&&r.work_state==='completed'||filter==='blocked'&&r.work_state==='blocked'||filter==='unresolved'&&r.legacy_phase!=='resolved');selected.sort((a,b)=>a[el('sort').value].localeCompare(b[el('sort').value]));el('project-rows').replaceChildren();for(const r of selected){const tr=document.createElement('tr');const name=document.createElement('td');const alias=document.createElement('strong');alias.textContent=r.alias;name.append(alias,document.createTextNode(r.title));tr.append(name);for(const v of [r.work_state,r.legacy_phase,r.route.replaceAll('-',' ')]){const td=document.createElement('td');td.textContent=v;tr.append(td)}el('project-rows').append(tr)}}
+async function project(){el('project-status').textContent='Reading current repository records…';try{const data=await api('/api/project');rows=data.warrants;el('stats').replaceChildren();const complete=rows.filter(r=>r.work_state==='completed').length;for(const [value,label] of [[data.total,'Warrant records'],[complete,'Reported implementation complete'],[rows.filter(r=>r.legacy_phase!=='resolved').length,'Legacy unresolved']]){const d=document.createElement('div');d.className='stat';const n=document.createElement('strong');n.textContent=value;const span=document.createElement('span');span.className='muted small';span.textContent=label;d.append(n,span);el('stats').append(d)}const p=document.createElement('progress');p.max=Math.max(1,data.total);p.value=complete;p.setAttribute('aria-label','Reported implementation completion');el('stats').append(p);el('project-status').textContent='Refreshed '+new Date().toLocaleTimeString()+' · '+Math.round(100*complete/Math.max(1,data.total))+'% reported complete · release reconciliation pending';renderRows()}catch(e){el('project-status').textContent='Refresh failed. Previous view may be stale.';throw e}}
+el('project-refresh').onclick=()=>guard(project);for(const id of ['search','filter','sort'])el(id).oninput=renderRows;
+async function draftAttempts(){
+  clearTimeout(draftingTimer); const session=token;
+  try {
+    const data=await api('/api/drafting'); if(token!==session||!token)return;
+    const container=el('drafting-attempts'); container.replaceChildren();
+    for(const r of data.attempts){
+      const details=document.createElement('details'),summary=document.createElement('summary'),pre=document.createElement('pre');
+      summary.textContent=r.backend+' · '+r.state+' · '+r.request_id;
+      pre.textContent='Cost: '+(r.cost_usd===null?'unknown':r.cost_usd+' USD')+'\n'+(r.error||'')+'\n'+(r.result?.source||r.request.prompt);
+      details.append(summary,pre);
+      if(r.state==='ready'){
+        const button=document.createElement('button');button.textContent='Use as new editable draft';
+        button.onclick=()=>guard(async()=>{
+          const keys=['title','outcome','scope','context'];
+          if(keys.some(k=>el(k).value!==(current?.[k]||'')))throw new Error('Save current edits or open an empty new draft before importing.');
+          clearEditor(); candidateId=r.request_id;
+          for(const k of keys)el(k).value=r.result.fields[k];
+          notice('Generated fields loaded. Review and edit, then Save draft. Nothing saved or started.');
+          el('title').focus();
+        });details.append(button);
+      }
+      container.append(details);
+    }
+    el('drafting-status').textContent=data.attempts.length+' retained attempts · unverified';
+    if(data.attempts.some(r=>r.state==='running'))draftingTimer=setTimeout(()=>guard(draftAttempts),1500);
+  }catch(e){if(token===session)el('drafting-status').textContent='Drafting unavailable: '+e.message;throw e}
+}
+el('drafting-form').onsubmit=e=>{e.preventDefault();guard(async()=>{
+  await api('/api/drafting','POST',{request_id:crypto.randomUUID(),prompt:el('drafting-prompt').value});
+  await draftAttempts();
+})};
+el('drafting-refresh').onclick=()=>guard(draftAttempts);
+async function board(){
+  el('board-status').textContent='Reading board…';
+  try {
+    const data=await api('/api/board');
+    const sections=[
+      ['Program',data.program],
+      ['Objectives',data.corpus.objectives.map(o=>o.title+' · '+JSON.stringify(o.achieved)+' · '+o.warrants.length+' Warrants').join('\n')],
+      ['Warrants · legacy record state',data.corpus.warrants.map(w=>w.alias+' · '+(w.title||'untitled')+' · '+w.rung).join('\n')],
+      ['Stages',data.frontier.rows.map(r=>r.warrant+' / '+r.stage+' · '+r.title+' · '+r.state+(r.waiting_on?.length?' · waits: '+r.waiting_on.join(', '):'')).join('\n')],
+      ['Open questions',data.questions.map(q=>q.warrant+' / '+q.id+(q.blocking?' [blocking]':'')+' · '+q.question+'\nRecommendation: '+q.recommended).join('\n\n')],
+      ['Approval commands',data.approvals.map(a=>a.n+'. '+a.line+'\n'+a.command).join('\n\n')]
+    ];
+    const fragment=document.createDocumentFragment();
+    for(const [title,text] of sections){const details=document.createElement('details');details.open=title==='Program'||title==='Approval commands';const summary=document.createElement('summary');summary.textContent=title;const pre=document.createElement('pre');pre.textContent=text||'None recorded';details.append(summary,pre);fragment.append(details)}
+    el('board-view').replaceChildren(fragment);
+    el('board-status').textContent='Refreshed '+new Date().toLocaleTimeString()+' · current file observations; not an atomic snapshot or approval.';
+  } catch(e) {el('board-view').replaceChildren();el('board-status').textContent='Board unavailable: '+e.message;throw e}
+}
+el('board-refresh').onclick=()=>guard(board);
+async function nextWork(){
+ const generation=sessionGeneration;
+ el('next-work-status').textContent='Checking configured requirements…';
+ try{
+  const data=await api('/api/next-work');
+  if(generation!==sessionGeneration||!token)return;
+  const fragment=document.createDocumentFragment();
+  for(const row of data.rows){const item=document.createElement('p');item.textContent=(row.warrant_title||row.warrant_id)+(row.stage?' / '+row.stage:'')+' · '+row.state+' · '+row.reason+(row.dependencies?.length?' · Dependencies: '+row.dependencies.join(', '):'');const inspect=document.createElement('button');inspect.className='secondary';inspect.textContent='Inspect';inspect.onclick=()=>guard(async()=>{const selected=await api('/api/warrants/'+row.warrant_id);if(generation!==sessionGeneration||!token)return;show(selected);await drafts();el('editor-title').scrollIntoView({block:'start'});});item.append(inspect);fragment.append(item);}
+  el('next-work-view').replaceChildren(fragment);
+  el('next-work-status').textContent=data.rows.length+' configured work entries · checked '+new Date().toLocaleTimeString()+' · no dispatch permission granted.';
+ }catch(e){if(generation!==sessionGeneration||!token)return;el('next-work-view').replaceChildren();el('next-work-status').textContent='Unavailable: '+e.message;throw e;}
+}
+el('next-work-refresh').onclick=()=>guard(nextWork);
+
+async function reviewCheckpoint(card,item){
+  const session=token,q=item.question;
+  const review=await api('/api/hotline/'+q.attempt_id+'/checkpoint');
+  if(session!==token||!card.isConnected)return;
+  const previous=card.querySelector('.checkpoint-review');if(previous)previous.remove();
+  const box=document.createElement('section');box.className='checkpoint-review';
+  const basis=document.createElement('pre');basis.textContent=['Old checkpoint: '+review.from_revision,'Current checkpoint: '+review.to_revision,'Review: '+review.checkpoint_sha256,...review.independent_stages.map(s=>s.stage+' · '+s.from_revision+' → '+s.to_revision)].join('\n');box.append(basis);card.append(box);
+  if(!review.answer_reconfirmation_required){box.append(document.createTextNode('Checkpoint unchanged. Ordinary resume applies.'));return;}
+  if(review.reconfirmation){const answer=review.reconfirmation.answer;box.append(document.createTextNode('Reconfirmed by '+answer.respondent+': '+answer.answer+'. Work remains paused until Resume.'));return;}
+  const form=document.createElement('form'),credential=document.createElement('input'),value=document.createElement('textarea'),refs=document.createElement('textarea');
+  credential.type='password';credential.autocomplete='off';credential.required=true;value.required=true;value.maxLength=12000;refs.maxLength=12000;
+  for(const [label,node,name] of [['Responder credential',credential,'credential'],['Answer for current checkpoint',value,'answer'],['Evidence references · one per line',refs,'evidence']]){const l=document.createElement('label');node.id='checkpoint-'+q.attempt_id+'-'+name;l.htmlFor=node.id;l.textContent=label;form.append(l,node);}
+  const submit=document.createElement('button');submit.textContent='Reconfirm for this checkpoint';form.append(submit);
+  form.onsubmit=e=>{e.preventDefault();guard(async()=>{const secret=credential.value;credential.value='';await api('/api/hotline/'+q.attempt_id+'/reconfirm','POST',{checkpoint_sha256:review.checkpoint_sha256,answer:value.value,evidence:refs.value.split('\n').map(x=>x.trim()).filter(Boolean)},{'X-OW-Responder':secret});notice('Checkpoint answer retained. Resume remains explicit.');await reviewCheckpoint(card,item);});};box.append(form);
+}
+async function hotline(){
+  const session=token;
+  el('hotline-status').textContent='Reading questions…';
+  try{
+    const data=await api('/api/hotline');if(!token||session!==token)return;
+    const fragment=document.createDocumentFragment();
+    for(const item of data.questions){
+      const q=item.question, card=document.createElement('section');card.className='card';
+      const heading=document.createElement('h3');heading.textContent=q.warrant_id+' · '+q.question.kind+(q.question.direct_human?' · direct human requested':'');
+      const basis=document.createElement('pre');basis.textContent=[q.question.text,'Stages: '+q.question.affected_stages.join(', '),'Source: '+q.source_sha256,'Checkpoint: '+q.checkpoint,'Question: '+item.question_sha256,q.notes].join('\n');
+      card.append(heading,basis);
+      const advice=(data.advice||[]).find(a=>a.attempt_id===q.attempt_id);if(advice){const p=document.createElement('p');p.className='small muted';p.textContent='AI adviser: '+advice.state+' · cost '+(advice.cost_usd===null?'unknown':advice.cost_usd+' USD')+(advice.error?' · '+advice.error:'');card.append(p)}
+      if(item.answer){
+        const response=document.createElement('pre');response.textContent='Answer from '+item.answer.respondent+' ('+item.answer.respondent_kind+')\n'+item.answer.answer+'\nEvidence: '+item.answer.evidence.join(', ');card.append(response);
+        if(item.resumed_attempt){const p=document.createElement('p');p.textContent='Resumed as '+item.resumed_attempt;card.append(p)}
+        else{const resume=document.createElement('button');resume.textContent='Resume answered work';resume.onclick=()=>guard(async()=>{const r=await api('/api/hotline/'+q.attempt_id+'/resume','POST',{question_sha256:item.question_sha256});notice('Resume attempt '+r.attempt_id+' · '+r.work_state+'. Qualification remains separate.');await Promise.all([hotline(),runs()])});const review=document.createElement('button');review.textContent='Review current checkpoint';review.onclick=()=>guard(()=>reviewCheckpoint(card,item));card.append(review,resume)}
+      }else{
+        const route=document.createElement('p');route.className='small muted';route.textContent=item.eligible_responders.length?'Configured responders: '+item.eligible_responders.map(a=>a.id+' ('+a.kind+')').join(', '):'Waiting: no eligible responder configured.';card.append(route);
+        if(item.eligible_responders.length){
+          const form=document.createElement('form');
+          const credential=document.createElement('input');credential.type='password';credential.autocomplete='off';credential.required=true;
+          const value=document.createElement('textarea');value.required=true;value.maxLength=12000;
+          const refs=document.createElement('textarea');refs.maxLength=12000;
+          for(const [label,node,name] of [['Responder credential',credential,'credential'],['Answer',value,'answer'],['Evidence references · one per line',refs,'evidence']]){const l=document.createElement('label');node.id='hotline-'+q.attempt_id+'-'+name;l.htmlFor=node.id;l.textContent=label;form.append(l,node)}
+          const submit=document.createElement('button');submit.textContent='Record answer';submit.style.marginTop='12px';form.append(submit);
+          form.onsubmit=e=>{e.preventDefault();guard(async()=>{const secret=credential.value;credential.value='';await api('/api/hotline/'+q.attempt_id+'/answer','POST',{question_sha256:item.question_sha256,answer:value.value,evidence:refs.value.split('\n').map(x=>x.trim()).filter(Boolean)},{'X-OW-Responder':secret});notice('Answer recorded. Work remains paused until explicit resume.');await hotline()})};card.append(form);
+        }
+      }
+      fragment.append(card);
+    }
+    el('hotline-questions').replaceChildren(fragment);el('hotline-status').textContent=data.questions.length+' retained questions · unverified workflow';
+  }catch(e){if(session===token){el('hotline-questions').replaceChildren();el('hotline-status').textContent='Hotline unavailable: '+e.message}throw e}
+}
+el('hotline-refresh').onclick=()=>guard(hotline);
+async function runs(){try{const data=await api('/api/runs');el('runs').replaceChildren();el('run-status').textContent=data.runs.length+' attempts · performer reports, unverified';for(const r of data.runs){const p=document.createElement('pre');p.textContent=[r.warrant_id+' · '+r.work_state+' · execution '+r.execution_state,'Attempt '+r.attempt_id,r.stage?'Stage '+r.stage:'Whole Warrant','Source '+r.source_sha256,'Cost '+(r.cost_usd===null?'unknown':r.cost_usd+' USD'),r.cause,r.result_revision?'Result '+r.result_revision:'',r.notes,...r.next_steps].filter(Boolean).join('\n');el('runs').append(p);const button=document.createElement('button');button.textContent='Work report / offline HTML';button.onclick=()=>guard(()=>workReport(r.attempt_id));el('runs').append(button);if(r.work_state==='completed'&&r.execution_state==='stopped'){const prepare=document.createElement('button');prepare.className='secondary';prepare.textContent='Prepare independent verification';prepare.onclick=()=>guard(async()=>{const session=token;await api('/api/verification','POST',{attempt_id:r.attempt_id,verification_id:crypto.randomUUID()});if(session!==token||!token)return;notice('Verification prepared. No process started.');await verificationJobs()});el('runs').append(prepare);const loop=document.createElement('button');loop.className='secondary';loop.textContent='Enable bounded verification loop';loop.onclick=()=>guard(()=>configureLoop(r.attempt_id,true));el('runs').append(loop)}}}catch(e){el('run-status').textContent=e.message;throw e}}
+async function workReport(id){const report=await api('/api/runs/'+encodeURIComponent(id)+'/report');location.hash='attempt='+id;const box=document.createElement('pre');box.textContent=report.text;const a=document.createElement('a');a.href='#';a.textContent='Download complete offline report';a.onclick=e=>{e.preventDefault();const link=document.createElement('a');const url=URL.createObjectURL(new Blob([report.html],{type:'text/html'}));link.href=url;link.download='work-report-'+id+'.html';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};const old=el('work-report');if(old)old.remove();const section=document.createElement('section');section.id='work-report';section.className='card';section.append(box,a);el('runs').append(section);}
+window.addEventListener('hashchange',()=>{const m=location.hash.match(/^#attempt=([0-9a-f-]{36})$/);if(m&&token)guard(()=>workReport(m[1]))});
+el('runs-refresh').onclick=()=>guard(runs);
+
+async function configureLoop(attemptId,enabled){
+  const session=token,epoch=sessionGeneration;if(!session)return;
+  await api('/api/verification-loops','POST',{attempt_id:attemptId,enabled});
+  if(!token||session!==token||epoch!==sessionGeneration)return;
+  notice(enabled?'Loop enabled. Signed protection receipts and configured limits still apply.':'Loop paused. Already running work continues under its existing limits.');
+  await verificationLoops();
+}
+async function verificationLoops(){
+  clearTimeout(loopTimer);const session=token,epoch=sessionGeneration,generation=++loopGeneration;
+  const current=()=>token&&session===token&&epoch===sessionGeneration&&generation===loopGeneration;
+  try{
+    const data=await api('/api/verification-loops');if(!current())return;
+    const snapshot=JSON.stringify(data.loops);
+    if(snapshot!==loopSnapshot){
+    const fragment=document.createDocumentFragment();
+    for(const loop of data.loops){
+      const card=document.createElement('article');card.className='card';
+      const title=document.createElement('h3');title.textContent=(loop.enabled?'Enabled':'Paused')+' · '+loop.attempt_id;
+      const state=document.createElement('p');state.textContent=loop.observation?loop.observation.state+' · '+loop.observation.reason:(loop.enabled?'Waiting for first scheduler observation':'Paused; no new dispatch will start');
+      const toggle=document.createElement('button');toggle.textContent=loop.enabled?'Pause loop':'Resume loop';
+      toggle.onclick=()=>guard(async()=>{if(!token||session!==token||epoch!==sessionGeneration||!card.isConnected)return;toggle.disabled=true;try{await configureLoop(loop.attempt_id,!loop.enabled)}finally{if(card.isConnected)toggle.disabled=false}});
+      const details=document.createElement('details'),summary=document.createElement('summary'),pre=document.createElement('pre');summary.textContent='Exact loop state';pre.textContent=JSON.stringify(loop,null,2);details.append(summary,pre);card.append(title,state,toggle,details);fragment.append(card);
+    }
+    el('loops').replaceChildren(fragment);el('loops-status').textContent=data.loops.length+' enrolled loops · acceptance remains separate';
+    loopSnapshot=snapshot;
+    }
+    if(data.loops.some(loop=>loop.enabled))loopTimer=setTimeout(()=>{if(current())guard(verificationLoops)},2000);
+  }catch(error){if(current()){loopSnapshot='';el('loops').replaceChildren();el('loops-status').textContent='Loops unavailable: '+error.message}throw error}
+}
+el('loops-refresh').onclick=()=>guard(verificationLoops);
+
+async function verificationRepair(card,job){
+  const session=token,route='/api/verification/'+job.verification_id+'/repair';
+  const plan=await api(route);if(!token||session!==token||!card.isConnected)return;
+  card.querySelector('.repair-review')?.remove();
+  const box=document.createElement('section');box.className='repair-review';
+  const details=document.createElement('pre');details.textContent=[
+    'Repair: '+plan.state,plan.reason,
+    'Cycles used: '+plan.cycles_used+' / '+plan.repair_cycles,
+    'Candidate: '+plan.candidate_revision,
+    ...(plan.findings||[]).map(f=>f.id+' · '+f.observation),
+    ...(plan.failed_checks||[]).map(c=>'Failed check: '+JSON.stringify(c.argv))
+  ].join('\n');box.append(details);
+  if(plan.state==='ready'){
+    const start=document.createElement('button');start.textContent='Start bounded repair';
+    start.onclick=()=>guard(async()=>{
+      if(!token||session!==token||!card.isConnected)return;
+      start.disabled=true;
+      try{
+        const attempt=await api(route,'POST',{});
+        if(!token||session!==token||!card.isConnected)return;
+        notice('Repair started: '+attempt.attempt_id+'. Result still requires independent verification.');
+        await runs();if(!token||session!==token)return;await verificationJobs();
+      }finally{if(card.isConnected&&session===token)start.disabled=false;}
+    });box.append(start);
+  }
+  if(plan.attempt_id){
+    const report=document.createElement('button');report.className='secondary';report.textContent='Repair work report';
+    report.onclick=()=>guard(async()=>{if(token&&session===token&&card.isConnected)await workReport(plan.attempt_id)});box.append(report);
+  }
+  card.append(box);
+}
+function verificationField(form,label,id,node){
+  const caption=document.createElement('label');node.id=id;caption.htmlFor=id;caption.textContent=label;form.append(caption,node);return node;
+}
+function verificationRebuttal(card,job){
+  const session=token;card.querySelector('.rebuttal-form')?.remove();
+  const form=document.createElement('form');form.className='rebuttal-form';
+  const argument=verificationField(form,'Reason for independent recheck','argument-'+job.verification_id,document.createElement('textarea'));
+  const evidence=verificationField(form,'Evidence references · one per line','evidence-'+job.verification_id,document.createElement('textarea'));
+  argument.required=true;argument.maxLength=15000;evidence.required=true;evidence.maxLength=30000;
+  const choices=[];
+  const ids=(job.record.observation.result?.findings||[]).map(f=>f.id);
+  (job.record.observation.checks||[]).forEach((c,i)=>{if(Number.isInteger(c.exit_code)&&c.exit_code!==0)ids.push('check-'+(i+1))});
+  for(const id of [...new Set(ids)]){const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';input.value=id;input.style.width='auto';label.append(input,document.createTextNode(' '+id));form.append(label);choices.push(input)}
+  const submit=document.createElement('button');submit.textContent='Prepare independent recheck';form.append(submit);
+  form.onsubmit=event=>{event.preventDefault();guard(async()=>{
+    if(!token||session!==token||!card.isConnected)return;
+    const finding_ids=choices.filter(c=>c.checked).map(c=>c.value);if(!finding_ids.length)throw new Error('Select at least one finding.');
+    submit.disabled=true;
+    try{await api('/api/verification/'+job.verification_id+'/rebuttal','POST',{verification_id:crypto.randomUUID(),argument:argument.value,evidence:evidence.value.split('\n').map(s=>s.trim()).filter(Boolean),finding_ids});
+      if(!token||session!==token||!card.isConnected)return;notice('Recheck prepared. Fresh protection receipt required before start.');await verificationJobs();
+    }finally{if(card.isConnected&&session===token)submit.disabled=false;}
+  })};card.append(form);
+}
+async function verificationDispute(card,job){
+  const session=token,route='/api/verification/'+job.verification_id;
+  const review=await api(route+'/dispute');if(!token||session!==token||!card.isConnected)return;
+  card.querySelector('.dispute-review')?.remove();const box=document.createElement('section');box.className='dispute-review';
+  const state=document.createElement('p');state.textContent='Decision: '+(review.decision?.action||review.state)+'. '+(review.decision?.reason||'An authorized human must choose the next action.');box.append(state);
+  const details=document.createElement('details'),summary=document.createElement('summary'),basis=document.createElement('pre');summary.textContent='Exact decision and evidence';basis.textContent=JSON.stringify(review,null,2);details.append(summary,basis);box.append(details);
+  if(review.decision?.action==='verify_again'){
+    const next=document.createElement('button');next.textContent='Prepare human-directed recheck';
+    next.onclick=()=>guard(async()=>{if(!token||session!==token||!card.isConnected)return;next.disabled=true;
+      try{await api(route+'/reverify','POST',{verification_id:crypto.randomUUID()});if(!token||session!==token||!card.isConnected)return;notice('Recheck prepared. Fresh protection receipt required.');await verificationJobs();}
+      finally{if(card.isConnected&&session===token)next.disabled=false;}
+    });box.append(next);
+  }
+  if(!review.decision&&review.eligible_responders.length){
+    const form=document.createElement('form');
+    const credential=verificationField(form,'Authorized responder credential','decision-credential-'+job.verification_id,document.createElement('input'));
+    credential.type='password';credential.autocomplete='off';credential.required=true;
+    const action=verificationField(form,'Next action','decision-action-'+job.verification_id,document.createElement('select'));
+    for(const [value,label] of [['repair','Repair within current scope'],['verify_again','Verify again'],['revise_scope','Revise scope before more work'],['stop','Stop this work']]){const option=document.createElement('option');option.value=value;option.textContent=label;action.append(option)}
+    const reason=verificationField(form,'Decision reason','decision-reason-'+job.verification_id,document.createElement('textarea'));
+    const evidence=verificationField(form,'Evidence references · one per line','decision-evidence-'+job.verification_id,document.createElement('textarea'));
+    reason.required=true;reason.maxLength=14000;evidence.required=true;evidence.maxLength=30000;
+    const submit=document.createElement('button');submit.textContent='Record human decision';form.append(submit);
+    form.onsubmit=event=>{event.preventDefault();guard(async()=>{
+      if(!token||session!==token||!card.isConnected)return;
+      const secret=credential.value;credential.value='';submit.disabled=true;
+      try{await api(route+'/dispute','POST',{question_sha256:review.question_sha256,action:action.value,reason:reason.value,evidence:evidence.value.split('\n').map(s=>s.trim()).filter(Boolean)},{'X-OW-Responder':secret});
+        if(!token||session!==token||!card.isConnected)return;notice('Decision recorded. No acceptance or launch implied.');await verificationJobs();
+      }finally{if(card.isConnected&&session===token)submit.disabled=false;}
+    })};box.append(form);
+  }
+  card.append(box);
+}
+async function verificationJobs(){
+  clearTimeout(verificationTimer);const session=token;
+  try{
+    const data=await api('/api/verification');if(!token||session!==token)return;
+    const fragment=document.createDocumentFragment();
+    for(const job of data.jobs){
+      const card=document.createElement('article');card.className='card';
+      const title=document.createElement('h3');title.textContent=job.request.warrant_id+' · '+job.state;
+      const status=document.createElement('p');status.textContent='Result: '+job.effective_verdict+' · evidence '+job.evidence_state+' · qualification: unverified';
+      const info=document.createElement('p');info.className='small muted';info.textContent='Attempt '+job.attempt_id+' · candidate '+job.request.candidate_revision;
+      const details=document.createElement('details'),summary=document.createElement('summary'),pre=document.createElement('pre');
+      summary.textContent='Exact request and retained evidence';pre.textContent=JSON.stringify(job,null,2);details.append(summary,pre);card.append(title,status,info,details);
+      const observation=job.record.observation;
+      if(observation){const result=document.createElement('p');result.textContent=observation.result?.summary||observation.cause||'Observation retained';card.append(result);for(const finding of observation.result?.findings||[]){const item=document.createElement('pre');item.textContent=finding.id+' · '+finding.status+'\n'+finding.observation+'\nScope: '+finding.scope+'\n'+finding.evidence.join('\n');card.append(item)}}
+      if(job.state==='finished'){
+        const repair=document.createElement('button');repair.className='secondary';repair.textContent='Review repair eligibility';
+        repair.onclick=()=>guard(()=>verificationRepair(card,job));card.append(repair);
+        if(job.effective_verdict==='fail'&&job.request.schema==='oh.war/verification-request/v1'){
+          const rebut=document.createElement('button');rebut.className='secondary';rebut.textContent='Challenge findings';rebut.onclick=()=>verificationRebuttal(card,job);card.append(rebut);
+        }
+        if(job.human_review_required){const decision=document.createElement('button');decision.className='secondary';decision.textContent='Review human decision';decision.onclick=()=>guard(()=>verificationDispute(card,job));card.append(decision);}
+      }
+      if(job.state==='prepared'){
+        const download=document.createElement('button');download.className='secondary';download.textContent='Download protection request';
+        download.onclick=()=>{const blob=new Blob([JSON.stringify({verification_id:job.verification_id,basis_sha256:job.basis_sha256,request:job.request},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='verification-'+job.verification_id+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};card.append(download);
+        const form=document.createElement('form'),label=document.createElement('label'),file=document.createElement('input'),start=document.createElement('button');
+        file.type='file';file.accept='.json,application/json';file.required=true;file.id='receipt-'+job.verification_id;label.htmlFor=file.id;label.textContent='Signed harness protection receipt';start.textContent='Start independent verification';start.style.marginTop='12px';form.append(label,file,start);
+        form.onsubmit=event=>{event.preventDefault();guard(async()=>{const selected=file.files[0];if(!selected||selected.size>65536)throw new Error('Select a receipt JSON file of at most 64 KiB.');const receipt=JSON.parse(await selected.text());if(session!==token||!token)return;await api('/api/verification/'+job.verification_id+'/start','POST',receipt);if(session!==token||!token)return;notice('Dispatch recorded. Qualification remains unverified.');await verificationJobs()})};card.append(form);
+      }
+      fragment.append(card);
+    }
+    el('verification-jobs').replaceChildren(fragment);el('verification-status').textContent=data.jobs.length+' retained jobs · no human acceptance implied';
+    if(data.jobs.some(j=>j.state==='running'))verificationTimer=setTimeout(()=>{if(token===session)guard(verificationJobs)},2000);
+  }catch(error){if(token===session){el('verification-jobs').replaceChildren();el('verification-status').textContent='Verification unavailable: '+error.message}throw error}
+}
+el('verification-refresh').onclick=()=>guard(verificationJobs);
+
+function validateStartPreconditions(){if(!current)throw new Error('Save and select a Warrant first');if(['title','outcome','scope','context'].some(k=>el(k).value!==current[k]))throw new Error('Save or discard edits before starting');if(Number(el('history').value)!==current.revision)throw new Error('Select the latest saved revision before starting');}
+async function loadStages(){
+  validateStartPreconditions();const subject=current,session=token;clearStages();
+  const data=await api('/api/stages/'+subject.id);
+  if(session!==token||current?.id!==subject.id||current?.source_sha256!==subject.source_sha256)return;
+  if(data.source_sha256!==subject.source_sha256)throw new Error('Saved source changed; reload Warrant');
+  stageSelection=data;
+  if(data.mode==='whole-warrant'){const option=document.createElement('option');option.value='';option.textContent='Whole Warrant';el('stage-select').append(option);}
+  else {const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent='Choose stage';el('stage-select').append(placeholder);for(const row of data.stages){const option=document.createElement('option');option.value=row.stage;option.textContent=row.title+' · '+row.state;el('stage-select').append(option);}}
+  showStage();
+}
+function showStage(){const row=stageSelection?.stages.find(s=>s.stage===el('stage-select').value);el('stage-status').textContent=row?row.outcome+' · Needs: '+(row.dependencies.join(', ')||'none')+' · '+row.reason+' · advisory only.':stageSelection?.mode==='staged'?'Choose stage. Start rechecks current requirements.':'Whole Warrant selected. Start rechecks current requirements.';}
+async function startSubject(){validateStartPreconditions();if(!stageSelection)await loadStages();if(!stageSelection||stageSelection.warrant_id!==current.id||stageSelection.source_sha256!==current.source_sha256)throw new Error('Reload execution scope');if(stageSelection.mode==='staged'&&!stageSelection.stages.some(s=>s.stage===el('stage-select').value))throw new Error('Choose a configured stage');return {warrant_id:current.id,source_sha256:current.source_sha256,...(stageSelection.mode==='staged'?{stage:el('stage-select').value}:{})};}
+el('stage-select').onchange=showStage;
+el('stages-refresh').onclick=()=>guard(loadStages);
+el('check-start').onclick=()=>guard(async()=>{const subject=await startSubject();const r=await api('/api/admission','POST',subject);el('run-status').textContent=r.state+' · '+r.reason+' · advisory only; Start rechecks current state. Remaining: '+r.remaining_checks.join(', ')});
+async function queueListing(){
+  clearTimeout(queueTimer);const generation=sessionGeneration;
+  try{
+    const data=await api('/api/queue');if(!token||generation!==sessionGeneration)return;
+    el('queue-status').textContent=data.scheduler_error||'Automatic queue · unverified. Cancellation prevents future launch only.';
+    const snapshot=JSON.stringify(data);
+    if(snapshot!==queueSnapshot){
+    queueSnapshot=snapshot;
+    el('queue-requests').replaceChildren();
+    for(const row of data.requests){
+      const card=document.createElement('section');card.className='repair-review';
+      const text=document.createElement('p');text.textContent=row.subject.warrant_id+
+        (row.subject.stage?' / '+row.subject.stage:'')+' · '+row.state.replaceAll('_',' ')+
+        (row.observation?' · '+row.observation.reason:'');card.append(text);
+      if(row.durable_state==='queued'){
+        const cancel=document.createElement('button');cancel.textContent='Cancel queued work';cancel.className='secondary';
+        cancel.onclick=()=>guard(async()=>{if(!token||generation!==sessionGeneration)return;
+          await api('/api/queue/cancel','POST',{queue_id:row.queue_id});await queueListing()});card.append(cancel);
+      }
+      if(row.attempt_id){
+        const attempt=document.createElement('button');attempt.textContent='View attempt';attempt.className='secondary';
+        attempt.onclick=()=>guard(async()=>{if(token&&generation===sessionGeneration)await runs()});card.append(attempt);
+        const report=document.createElement('button');report.textContent='Queue work report';report.className='secondary';
+        report.onclick=()=>guard(async()=>{if(token&&generation===sessionGeneration)await workReport(row.attempt_id)});card.append(report);
+      }
+      el('queue-requests').append(card);
+    }
+    }
+    if(data.requests.some(row=>row.durable_state==='queued'||row.durable_state==='consumed'))
+      queueTimer=setTimeout(()=>queueListing().catch(()=>{}),2000);
+  }catch(error){if(token&&generation===sessionGeneration)el('queue-status').textContent=error.message;throw error}
+}
+el('queue-refresh').onclick=()=>guard(queueListing);
+el('queue-run').onclick=()=>guard(async()=>{const subject=await startSubject();
+  const row=await api('/api/queue','POST',subject);notice('Queued '+row.queue_id+'. Current requirements rechecked before launch.');await queueListing()});
+el('start-run').onclick=()=>guard(async()=>{const subject=await startSubject();const r=await api('/api/runs','POST',subject);notice('Started attempt '+r.attempt_id+'. Completion remains pending.');await runs()});
+</script></body></html>

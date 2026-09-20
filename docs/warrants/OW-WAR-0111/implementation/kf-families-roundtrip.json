@@ -1,0 +1,23 @@
+{
+  "provider_revision": "bf4b873c9851fee38e967b2165bdab2c09b495da",
+  "result": "PASS",
+  "test": "tests/database/warrant-preservation.test.ts",
+  "populated_families": 15,
+  "checks": [
+    "each current warrant-prefixed export family populated",
+    "each exported row column inventory matches live source database catalogue",
+    "each missing family file refused on import",
+    "target remains empty after refusal attempts",
+    "intact package restores every exact section",
+    "all previous real MinIO and identity/digest checks retained"
+  ],
+  "validation": {
+    "integration_exit": 0,
+    "typescript_test_check_exit": 0,
+    "focused_eslint_exit": 0
+  },
+  "bounds": [
+    "fixture covers current table/column inventory, not every possible value or historical combination",
+    "does not complete OpenWarrant archive category assembly or formal qualification"
+  ]
+}

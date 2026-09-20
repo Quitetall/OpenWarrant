@@ -1,0 +1,21 @@
+name: Reference web checks
+on:
+  pull_request:
+    paths: ['apps/openwarrant-web/**', 'crates/openwarrant-cli/src/progress_viewer/**', '.github/workflows/reference-web-checks.yml']
+  push:
+    branches: [main]
+    paths: ['apps/openwarrant-web/**', 'crates/openwarrant-cli/src/progress_viewer/**', '.github/workflows/reference-web-checks.yml']
+permissions:
+  contents: read
+jobs:
+  workflow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - run: cargo build -p openwarrant-cli --bin war
+      - run: python3 -m unittest discover -s apps/openwarrant-web -v
+      - name: Roadmap calculation and filter tests
+        run: |
+          node --version
+          node --test crates/openwarrant-cli/src/progress_viewer/roadmap-model.test.cjs

@@ -1,48 +1,30 @@
 ---
 name: war-spec
-description: Turn the current conversation into an oh.war/draft-proposal/v2 and validate it, with no interview, only synthesis of what was already discussed. Use after a grilling session, or when the user says to-spec, write it up, make a Warrant from this.
-disable-model-invocation: true
+description: "War spec: turn settled conversation into a bounded Warrant with context, constraints and testable outcomes."
 ---
 
 # war-spec
 
-After mattpocock/skills `engineering/to-spec` (3cca18b, MIT). His spec goes
-to an issue tracker; ours becomes a Warrant's atoms through the §74.4
-gauntlet. Do not interview; synthesize.
+Read [shared workflow](../openwarrant/SKILL.md) and
+[drafting transport](../openwarrant/references/drafting.md).
+Method: Matt Pocock's spec synthesis; [provenance](../openwarrant/ADAPTATIONS.md).
 
-## Process
+1. Reuse settled outcomes, applicable ADRs and actual repository interfaces. Name
+   missing material decisions; infer routine implementation details within scope.
+2. Draft one reviewable outcome with scope/non-goals, exact context pointers,
+   explicit constraints, input prerequisites and positive/refusal evidence plan.
+   Mark qualification-only conditions separately from named execution gates.
+3. Use the format supported by the selected tool: `war plan` reads a v2 proposal
+   into legacy atoms. For RC.3 human-first documents, use the shipped
+   [SDK authoring commands](../openwarrant/references/sdk-artifacts.md). A workflow
+   adapter may request bounded draft fields and validate them through that SDK.
+   Proposed architecture belongs in linked ADR drafts, not an invented acceptance.
+4. Validate the proposal, inspect every operation and fix actual defects. If the
+   user requested drafting/applying, an agent may apply its reviewed proposal via
+   `war plan --proposal <file> --reviewed --apply`. This is not a human signature.
+5. Return artifact path, validation result and unresolved material decisions.
+   Planning completion says nothing about implementation being complete.
 
-1. Read `CONTEXT.md` and use its words. Read the ADRs in the area
-   (`docs/adr/atoms/`) and respect them. Explore the code you will touch.
-2. **Seams.** Name the seams the work will be tested at, existing seams
-   first, the highest seam possible, ideally one. Confirm them with the user
-   in one message; they become the obligations' scopes.
-3. Write the proposal as one JSON file, `oh.war/draft-proposal/v2`, with
-   these operations and nothing else:
-
-| his template | our atom |
-|---|---|
-| Problem Statement, Solution | `10-intent.md`: Problem, Desired Outcome, Scope, Non-goals, SAS and Roadmap Traceability |
-| User Stories | the Desired Outcome as numbered stories; every story an obligation can point at |
-| Implementation Decisions | `40-work-order.md`: Deliverables (each a path), Frozen Surfaces, Premade Instructions; a durable choice is `propose_adr`, never a paragraph |
-| Testing Decisions | `60-assurance.md`: one `OBL-nnn` per seam with its gate and evidence; Gate Adequacy with the adversarial question |
-| Out of Scope | Non-goals in the intent |
-| (implicit) | `45-milestones.yaml`: stages with `context_sections` and `budget_tokens`; `add_relation` for `roadmap://` |
-
-No file paths in prose that will go stale, except the deliverables list,
-which is what gets pinned. A snippet from a prototype that encodes a decision
-more precisely than prose may be inlined, trimmed to the decision.
-
-4. Validate, and only validate:
-
-```bash
-war plan --proposal <file>
-```
-
-Fix what steps 1 to 4 refuse. `plan.applicable` is the end of this skill.
-
-5. Hand over the path. `--apply --reviewed` is the human's step (§74.4 5 to 6).
-
-## Never
-
-A skill never signs, and never claims a step it did not run.
+Ask only when a missing answer changes required behavior, scope or authority.
+Concrete context pointers are useful; retain exact revisions and symbol/unit IDs
+where available instead of banning source paths or copying entire files.

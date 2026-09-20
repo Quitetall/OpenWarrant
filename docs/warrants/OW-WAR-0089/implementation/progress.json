@@ -1,0 +1,20 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0089",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "43a3c2f2a3704e9d439b2e2a1f360c49b5191ac6",
+  "summary": "Candidate packaging implementation completed, unverified: native Linux/macOS installs, documented examples, archive integrity and refusal tests observed. Phase 3 evidence, independent release qualification and publication permission remain separate blockers under OW90/91.",
+  "notes": "docs/warrants/OW-WAR-0089/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0089/implementation/observation.json",
+    "docs/warrants/OW-WAR-0089/implementation/linux-install.json",
+    "docs/warrants/OW-WAR-0089/implementation/tests.log",
+    "docs/warrants/OW-WAR-0089/implementation/gate.log",
+    "docs/warrants/OW-WAR-0089/implementation/native-20260918/comparison.json"
+  ],
+  "next_steps": [
+    "Finish Phase 3 workflow/user evidence and independent release qualification under OW90.",
+    "Establish final release build provenance and obtain OW91 publication permission."
+  ]
+}

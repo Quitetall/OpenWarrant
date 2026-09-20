@@ -78,6 +78,17 @@ assert_present() {
     fi
 }
 
+# The same guard for a mutation that REMOVES a file rather than a line. A plant
+# that deletes a signature proves nothing if the signature was not there.
+assert_gone_file() {
+    if [[ -e "$1" ]]; then
+        printf 'PLANT MUTATION WAS A NO-OP: %s still exists\n' "$1" >&2
+        printf 'The plant would have scored the UNMUTATED corpus. Fix the pattern.\n' >&2
+        restore
+        exit 9
+    fi
+}
+
 assert_gone() {
     if grep -Fq -- "$1" "$2"; then
         printf 'PLANT MUTATION WAS A NO-OP: %s still present in %s\n' "$1" "$2" >&2

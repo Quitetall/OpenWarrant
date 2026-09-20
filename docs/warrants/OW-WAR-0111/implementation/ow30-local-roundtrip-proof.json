@@ -1,0 +1,52 @@
+{
+  "commands": [
+    {
+      "schema": "oh.war/report/v1",
+      "command": "archive",
+      "diagnostics": [],
+      "notes": [],
+      "counts": {
+        "pass": 0,
+        "warn": 0,
+        "unknown": 0,
+        "error": 0,
+        "worst": "pass"
+      },
+      "verdict": "well_formed",
+      "verdict_line": "WELL-FORMED (record only \u2014 Preflight is not implemented, and `war check` does not run gates)",
+      "exit_code": 0,
+      "result": {
+        "schema": "oh.war/preservation-result/v1-draft.1",
+        "operation": "import",
+        "archive_digest": "sha256:25b6b0ec4e3478dc63ffe82831836cb829c3e1c9a5b2246c7631cd9165259047",
+        "destination": "restored",
+        "authority_activated": false
+      }
+    },
+    {
+      "schema": "oh.war/report/v1",
+      "command": "archive",
+      "diagnostics": [],
+      "notes": [],
+      "counts": {
+        "pass": 0,
+        "warn": 0,
+        "unknown": 0,
+        "error": 0,
+        "worst": "pass"
+      },
+      "verdict": "well_formed",
+      "verdict_line": "WELL-FORMED (record only \u2014 Preflight is not implemented, and `war check` does not run gates)",
+      "exit_code": 0,
+      "result": {
+        "schema": "oh.war/preservation-result/v1-draft.1",
+        "operation": "reexport",
+        "output": "again.json",
+        "authority_activated": false
+      }
+    }
+  ],
+  "byte_identical": true,
+  "archive_sha256": "c7e549a09a2a732f87b4e9ce00044c02260695aa82c16ed4d838997342bae799",
+  "scope": "empty destination directory; real source repository not modified"
+}

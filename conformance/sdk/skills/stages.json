@@ -1,0 +1,51 @@
+{
+  "api_version": "oh.war/draft-proposal/v2",
+  "proposed_identity": {
+    "title": "Signup stages under one Warrant",
+    "profile": "delivery",
+    "assurance": "basic"
+  },
+  "operations": [
+    {
+      "op": "create_atom",
+      "role": "intent",
+      "ordinal": 10,
+      "path": "10-intent.md",
+      "body": "# Intent\n\n## Problem\n\nPlanted by conformance/fixtures/proposals/v2-minimal.json.\n\n## Desired Outcome\n\nA Warrant exists that `war plan --apply` created.\n\n## Scope\n\nThis fixture.\n\n## Non-goals\n\n- Nothing else.\n\n## SAS and Roadmap Traceability\n\nNone; a fixture.\n"
+    },
+    {
+      "op": "create_atom",
+      "role": "basis",
+      "ordinal": 20,
+      "path": "20-basis.md",
+      "body": "# Basis\n\n## Governing text\n\n- SAS \u00a774.\n\n## Assumptions carried in\n\n- None.\n"
+    },
+    {
+      "op": "create_atom",
+      "role": "work_order",
+      "ordinal": 40,
+      "path": "40-work-order.md",
+      "body": "# Work Order\n\n## Deliverables\n\n1. Nothing; a fixture.\n\n## Frozen Surfaces\n\nEverything.\n\n## Premade Instructions\n\n- None.\n\n## Autonomy and Escalation\n\nTier T1.\n\n## Rollback\n\nDelete the directory.\n"
+    },
+    {
+      "op": "create_atom",
+      "role": "milestones",
+      "ordinal": 45,
+      "path": "45-milestones.yaml",
+      "body": "schema: \"oh.war/milestones/v1\"\n\nmilestones:\n  - id: \"M1\"\n    title: \"Prepare acceptance cases\"\n    stage_refs: [\"STAGE-001\"]\n    obligation_refs: [\"OBL-001\"]\n  - id: \"M2\"\n    title: \"Deliver signup feature\"\n    depends_on: [\"M1\"]\n    stage_refs: [\"STAGE-002\"]\n    obligation_refs: [\"OBL-001\"]\n\nstages:\n  - id: \"STAGE-001\"\n    title: \"Prepare checks\"\n    executor_kind: \"human\"\n    responsibility_tier: \"T1\"\n  - id: \"STAGE-002\"\n    title: \"Implement and check signup\"\n    executor_kind: \"human\"\n    responsibility_tier: \"T1\"\n"
+    },
+    {
+      "op": "create_atom",
+      "role": "assurance",
+      "ordinal": 60,
+      "path": "60-assurance.md",
+      "body": "# Assurance\n\n## Acceptance Obligations\n\n### OBL-001 \u2014 the fixture exists\n- **scope:** this directory.\n- **gate:** `gate://software.repo.war-check@1.0.0`\n- **evidence:** `war check` passes.\n\n## Gate Adequacy\n\nRequired at `basic`.\n\n**Adversarial question:** none; a fixture.\n\n- **outcome:** gap_accepted\n\n## Residual Risk\n\n- None.\n"
+    },
+    {
+      "op": "add_relation",
+      "relation_kind": "roadmap",
+      "relation_ref": "roadmap://OW-PHASE-2/planted"
+    }
+  ],
+  "risk_assessment": "none; a fixture"
+}

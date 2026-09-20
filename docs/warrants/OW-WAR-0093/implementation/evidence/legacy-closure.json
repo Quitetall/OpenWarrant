@@ -1,0 +1,345 @@
+{
+  "schema": "oh.war/legacy-closure-observations/v1",
+  "observed_from_revision": "746e773f5d7eac2653b16956e0f90af0115cec0a",
+  "command": "war resolve --dry-run <alias> --json",
+  "records": {
+    "OW-WAR-0006": {
+      "schema": "oh.war/report/v1",
+      "command": "resolve.dry_run",
+      "diagnostics": [
+        {
+          "severity": "pass",
+          "rule": "resolution.requirements",
+          "file": null,
+          "message": "OW-WAR-0006: all 13 \u00a756.1 requirements are met"
+        }
+      ],
+      "notes": [
+        "All thirteen are met, but no resolution has been RECORDED. \u00a756.2's record needs an authorizer, an acting role, and a stated meaning \u2014 none of which this command may invent.",
+        "\u00a738.6: OW-WAR-0006 would resolve NOT SATISFIED even once the \u00a756.1 requirements are met. 1 obligation(s) are on record as not established or refuted: OBL-003. A disposition is not an establishment \u2014 requirement 4 asks whether the question was answered, and \u00a738.6 asks what the answer was."
+      ],
+      "counts": {
+        "pass": 1,
+        "warn": 0,
+        "unknown": 0,
+        "error": 0,
+        "worst": "pass"
+      },
+      "verdict": "well_formed",
+      "verdict_line": "WELL-FORMED (record only \u2014 Preflight is not implemented, and `war check` does not run gates)",
+      "exit_code": 0
+    },
+    "OW-WAR-0011": {
+      "schema": "oh.war/report/v1",
+      "command": "resolve.dry_run",
+      "diagnostics": [
+        {
+          "severity": "pass",
+          "rule": "resolution.requirements",
+          "file": null,
+          "message": "OW-WAR-0011: all 13 \u00a756.1 requirements are met"
+        }
+      ],
+      "notes": [
+        "All thirteen are met, but no resolution has been RECORDED. \u00a756.2's record needs an authorizer, an acting role, and a stated meaning \u2014 none of which this command may invent.",
+        "\u00a738.6: OW-WAR-0011 would resolve NOT SATISFIED even once the \u00a756.1 requirements are met. 1 obligation(s) are on record as not established or refuted: OBL-002. A disposition is not an establishment \u2014 requirement 4 asks whether the question was answered, and \u00a738.6 asks what the answer was."
+      ],
+      "counts": {
+        "pass": 1,
+        "warn": 0,
+        "unknown": 0,
+        "error": 0,
+        "worst": "pass"
+      },
+      "verdict": "well_formed",
+      "verdict_line": "WELL-FORMED (record only \u2014 Preflight is not implemented, and `war check` does not run gates)",
+      "exit_code": 0
+    },
+    "OW-WAR-0023": {
+      "schema": "oh.war/report/v1",
+      "command": "resolve.dry_run",
+      "diagnostics": [
+        {
+          "severity": "pass",
+          "rule": "resolution.requirements",
+          "file": null,
+          "message": "OW-WAR-0023: all 13 \u00a756.1 requirements are met"
+        }
+      ],
+      "notes": [
+        "All thirteen are met, but no resolution has been RECORDED. \u00a756.2's record needs an authorizer, an acting role, and a stated meaning \u2014 none of which this command may invent.",
+        "\u00a738.6: OW-WAR-0023 would resolve NOT SATISFIED even once the \u00a756.1 requirements are met. 2 obligation(s) are on record as not established or refuted: OBL-001, OBL-003. A disposition is not an establishment \u2014 requirement 4 asks whether the question was answered, and \u00a738.6 asks what the answer was."
+      ],
+      "counts": {
+        "pass": 1,
+        "warn": 0,
+        "unknown": 0,
+        "error": 0,
+        "worst": "pass"
+      },
+      "verdict": "well_formed",
+      "verdict_line": "WELL-FORMED (record only \u2014 Preflight is not implemented, and `war check` does not run gates)",
+      "exit_code": 0
+    },
+    "OW-WAR-0027": {
+      "schema": "oh.war/report/v1",
+      "command": "resolve.dry_run",
+      "diagnostics": [
+        {
+          "severity": "pass",
+          "rule": "resolution.requirements",
+          "file": null,
+          "message": "OW-WAR-0027: all 13 \u00a756.1 requirements are met"
+        }
+      ],
+      "notes": [
+        "All thirteen are met, but no resolution has been RECORDED. \u00a756.2's record needs an authorizer, an acting role, and a stated meaning \u2014 none of which this command may invent.",
+        "\u00a738.6: OW-WAR-0027 would resolve NOT SATISFIED even once the \u00a756.1 requirements are met. 1 obligation(s) are on record as not established or refuted: OBL-002. A disposition is not an establishment \u2014 requirement 4 asks whether the question was answered, and \u00a738.6 asks what the answer was."
+      ],
+      "counts": {
+        "pass": 1,
+        "warn": 0,
+        "unknown": 0,
+        "error": 0,
+        "worst": "pass"
+      },
+      "verdict": "well_formed",
+      "verdict_line": "WELL-FORMED (record only \u2014 Preflight is not implemented, and `war check` does not run gates)",
+      "exit_code": 0
+    },
+    "OW-WAR-0028": {
+      "schema": "oh.war/report/v1",
+      "command": "resolve.dry_run",
+      "diagnostics": [
+        {
+          "severity": "pass",
+          "rule": "resolution.requirements",
+          "file": null,
+          "message": "OW-WAR-0028: all 13 \u00a756.1 requirements are met"
+        }
+      ],
+      "notes": [
+        "All thirteen are met, but no resolution has been RECORDED. \u00a756.2's record needs an authorizer, an acting role, and a stated meaning \u2014 none of which this command may invent.",
+        "\u00a738.6: OW-WAR-0028 would resolve NOT SATISFIED even once the \u00a756.1 requirements are met. 2 obligation(s) are on record as not established or refuted: OBL-001, OBL-003. A disposition is not an establishment \u2014 requirement 4 asks whether the question was answered, and \u00a738.6 asks what the answer was."
+      ],
+      "counts": {
+        "pass": 1,
+        "warn": 0,
+        "unknown": 0,
+        "error": 0,
+        "worst": "pass"
+      },
+      "verdict": "well_formed",
+      "verdict_line": "WELL-FORMED (record only \u2014 Preflight is not implemented, and `war check` does not run gates)",
+      "exit_code": 0
+    },
+    "OW-WAR-0029": {
+      "schema": "oh.war/report/v1",
+      "command": "resolve.dry_run",
+      "diagnostics": [
+        {
+          "severity": "pass",
+          "rule": "resolution.requirements",
+          "file": null,
+          "message": "OW-WAR-0029: all 13 \u00a756.1 requirements are met"
+        }
+      ],
+      "notes": [
+        "All thirteen are met, but no resolution has been RECORDED. \u00a756.2's record needs an authorizer, an acting role, and a stated meaning \u2014 none of which this command may invent.",
+        "\u00a738.6: OW-WAR-0029 would resolve NOT SATISFIED even once the \u00a756.1 requirements are met. 1 obligation(s) are on record as not established or refuted: OBL-002. A disposition is not an establishment \u2014 requirement 4 asks whether the question was answered, and \u00a738.6 asks what the answer was."
+      ],
+      "counts": {
+        "pass": 1,
+        "warn": 0,
+        "unknown": 0,
+        "error": 0,
+        "worst": "pass"
+      },
+      "verdict": "well_formed",
+      "verdict_line": "WELL-FORMED (record only \u2014 Preflight is not implemented, and `war check` does not run gates)",
+      "exit_code": 0
+    },
+    "OW-WAR-0030": {
+      "schema": "oh.war/report/v1",
+      "command": "resolve.dry_run",
+      "diagnostics": [
+        {
+          "severity": "pass",
+          "rule": "resolution.requirements",
+          "file": null,
+          "message": "OW-WAR-0030: all 13 \u00a756.1 requirements are met"
+        }
+      ],
+      "notes": [
+        "All thirteen are met, but no resolution has been RECORDED. \u00a756.2's record needs an authorizer, an acting role, and a stated meaning \u2014 none of which this command may invent.",
+        "\u00a738.6: OW-WAR-0030 would resolve NOT SATISFIED even once the \u00a756.1 requirements are met. 1 obligation(s) are on record as not established or refuted: OBL-003. A disposition is not an establishment \u2014 requirement 4 asks whether the question was answered, and \u00a738.6 asks what the answer was."
+      ],
+      "counts": {
+        "pass": 1,
+        "warn": 0,
+        "unknown": 0,
+        "error": 0,
+        "worst": "pass"
+      },
+      "verdict": "well_formed",
+      "verdict_line": "WELL-FORMED (record only \u2014 Preflight is not implemented, and `war check` does not run gates)",
+      "exit_code": 0
+    },
+    "OW-WAR-0036": {
+      "schema": "oh.war/report/v1",
+      "command": "resolve.dry_run",
+      "diagnostics": [
+        {
+          "severity": "pass",
+          "rule": "resolution.requirements",
+          "file": null,
+          "message": "OW-WAR-0036: all 13 \u00a756.1 requirements are met"
+        }
+      ],
+      "notes": [
+        "All thirteen are met, but no resolution has been RECORDED. \u00a756.2's record needs an authorizer, an acting role, and a stated meaning \u2014 none of which this command may invent.",
+        "\u00a738.6: OW-WAR-0036 would resolve NOT SATISFIED even once the \u00a756.1 requirements are met. 1 obligation(s) are on record as not established or refuted: OBL-001. A disposition is not an establishment \u2014 requirement 4 asks whether the question was answered, and \u00a738.6 asks what the answer was."
+      ],
+      "counts": {
+        "pass": 1,
+        "warn": 0,
+        "unknown": 0,
+        "error": 0,
+        "worst": "pass"
+      },
+      "verdict": "well_formed",
+      "verdict_line": "WELL-FORMED (record only \u2014 Preflight is not implemented, and `war check` does not run gates)",
+      "exit_code": 0
+    },
+    "OW-WAR-0037": {
+      "schema": "oh.war/report/v1",
+      "command": "resolve.dry_run",
+      "diagnostics": [
+        {
+          "severity": "pass",
+          "rule": "resolution.requirements",
+          "file": null,
+          "message": "OW-WAR-0037: all 13 \u00a756.1 requirements are met"
+        }
+      ],
+      "notes": [
+        "All thirteen are met, but no resolution has been RECORDED. \u00a756.2's record needs an authorizer, an acting role, and a stated meaning \u2014 none of which this command may invent.",
+        "\u00a738.6: OW-WAR-0037 would resolve NOT SATISFIED even once the \u00a756.1 requirements are met. 1 obligation(s) are on record as not established or refuted: OBL-002. A disposition is not an establishment \u2014 requirement 4 asks whether the question was answered, and \u00a738.6 asks what the answer was."
+      ],
+      "counts": {
+        "pass": 1,
+        "warn": 0,
+        "unknown": 0,
+        "error": 0,
+        "worst": "pass"
+      },
+      "verdict": "well_formed",
+      "verdict_line": "WELL-FORMED (record only \u2014 Preflight is not implemented, and `war check` does not run gates)",
+      "exit_code": 0
+    },
+    "OW-WAR-0039": {
+      "schema": "oh.war/report/v1",
+      "command": "resolve.dry_run",
+      "diagnostics": [
+        {
+          "severity": "pass",
+          "rule": "resolution.requirements",
+          "file": null,
+          "message": "OW-WAR-0039: all 13 \u00a756.1 requirements are met"
+        }
+      ],
+      "notes": [
+        "All thirteen are met, but no resolution has been RECORDED. \u00a756.2's record needs an authorizer, an acting role, and a stated meaning \u2014 none of which this command may invent.",
+        "\u00a738.6: OW-WAR-0039 would resolve NOT SATISFIED even once the \u00a756.1 requirements are met. 1 obligation(s) are on record as not established or refuted: OBL-002. A disposition is not an establishment \u2014 requirement 4 asks whether the question was answered, and \u00a738.6 asks what the answer was."
+      ],
+      "counts": {
+        "pass": 1,
+        "warn": 0,
+        "unknown": 0,
+        "error": 0,
+        "worst": "pass"
+      },
+      "verdict": "well_formed",
+      "verdict_line": "WELL-FORMED (record only \u2014 Preflight is not implemented, and `war check` does not run gates)",
+      "exit_code": 0
+    },
+    "OW-WAR-0041": {
+      "schema": "oh.war/report/v1",
+      "command": "resolve.dry_run",
+      "diagnostics": [
+        {
+          "severity": "pass",
+          "rule": "resolution.requirements",
+          "file": null,
+          "message": "OW-WAR-0041: all 13 \u00a756.1 requirements are met"
+        }
+      ],
+      "notes": [
+        "All thirteen are met, but no resolution has been RECORDED. \u00a756.2's record needs an authorizer, an acting role, and a stated meaning \u2014 none of which this command may invent.",
+        "\u00a738.6: OW-WAR-0041 would resolve NOT SATISFIED even once the \u00a756.1 requirements are met. 1 obligation(s) are on record as not established or refuted: OBL-003. A disposition is not an establishment \u2014 requirement 4 asks whether the question was answered, and \u00a738.6 asks what the answer was."
+      ],
+      "counts": {
+        "pass": 1,
+        "warn": 0,
+        "unknown": 0,
+        "error": 0,
+        "worst": "pass"
+      },
+      "verdict": "well_formed",
+      "verdict_line": "WELL-FORMED (record only \u2014 Preflight is not implemented, and `war check` does not run gates)",
+      "exit_code": 0
+    },
+    "OW-WAR-0043": {
+      "schema": "oh.war/report/v1",
+      "command": "resolve.dry_run",
+      "diagnostics": [
+        {
+          "severity": "pass",
+          "rule": "resolution.requirements",
+          "file": null,
+          "message": "OW-WAR-0043: all 13 \u00a756.1 requirements are met"
+        }
+      ],
+      "notes": [
+        "All thirteen are met, but no resolution has been RECORDED. \u00a756.2's record needs an authorizer, an acting role, and a stated meaning \u2014 none of which this command may invent.",
+        "\u00a738.6: OW-WAR-0043 would resolve NOT SATISFIED even once the \u00a756.1 requirements are met. 1 obligation(s) are on record as not established or refuted: OBL-004. A disposition is not an establishment \u2014 requirement 4 asks whether the question was answered, and \u00a738.6 asks what the answer was."
+      ],
+      "counts": {
+        "pass": 1,
+        "warn": 0,
+        "unknown": 0,
+        "error": 0,
+        "worst": "pass"
+      },
+      "verdict": "well_formed",
+      "verdict_line": "WELL-FORMED (record only \u2014 Preflight is not implemented, and `war check` does not run gates)",
+      "exit_code": 0
+    },
+    "OW-WAR-0044": {
+      "schema": "oh.war/report/v1",
+      "command": "resolve.dry_run",
+      "diagnostics": [
+        {
+          "severity": "pass",
+          "rule": "resolution.requirements",
+          "file": null,
+          "message": "OW-WAR-0044: all 13 \u00a756.1 requirements are met"
+        }
+      ],
+      "notes": [
+        "All thirteen are met, but no resolution has been RECORDED. \u00a756.2's record needs an authorizer, an acting role, and a stated meaning \u2014 none of which this command may invent.",
+        "\u00a738.6: OW-WAR-0044 would resolve NOT SATISFIED even once the \u00a756.1 requirements are met. 3 obligation(s) are on record as not established or refuted: OBL-002, OBL-003, OBL-005. A disposition is not an establishment \u2014 requirement 4 asks whether the question was answered, and \u00a738.6 asks what the answer was."
+      ],
+      "counts": {
+        "pass": 1,
+        "warn": 0,
+        "unknown": 0,
+        "error": 0,
+        "worst": "pass"
+      },
+      "verdict": "well_formed",
+      "verdict_line": "WELL-FORMED (record only \u2014 Preflight is not implemented, and `war check` does not run gates)",
+      "exit_code": 0
+    }
+  }
+}

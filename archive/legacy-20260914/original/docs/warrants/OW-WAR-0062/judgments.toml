@@ -1,0 +1,22 @@
+schema = "oh.war/judgments/v1"
+warrant = "OW-WAR-0062"
+
+[[judgment]]
+id = "J-001"
+kind = "residual_risk_acceptance"
+statement = "Adding §6.10 is a definitions change, not an architecture change, under §101.3."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0062: if the assumption is false, the consequence is 0.1.0-draft.3 should have carried an ADR; the next revision adds one and nothing recorded is invalidated. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02; the decision is the owner's, the wording is the agent's."
+basis_refs = ["assumption://A-001"]
+authority = "authorized"
+
+[[judgment]]
+id = "J-002"
+kind = "residual_risk_acceptance"
+statement = "A restatement that can drift from the controlled text is acceptable while the SAS wins by rule."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0062: if the assumption is false, the consequence is docs/DEFINITIONS.md says something §6.10 does not, and a reader who never opens the SAS acts on it. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02; the decision is the owner's, the wording is the agent's."
+basis_refs = ["assumption://A-002"]
+authority = "authorized"

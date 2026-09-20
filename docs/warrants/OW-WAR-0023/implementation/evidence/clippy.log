@@ -1,0 +1,7 @@
+    Checking ring v0.17.14
+    Checking openwarrant-compiler v1.0.0 (/mnt/4tb/tmp/ow23-portable/crates/openwarrant-compiler)
+    Checking rustls-webpki v0.103.15
+    Checking rustls v0.23.43
+    Checking ureq v3.4.0
+    Checking openwarrant-cli v1.0.0 (/mnt/4tb/tmp/ow23-portable/crates/openwarrant-cli)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 5.39s

@@ -1,245 +1,140 @@
+![OpenWarrant — documents, connected work and a clear record](assets/brand/openwarrant-banner.png)
+
 # OpenWarrant
 
-**WAR — Work Authorization Record.** The human noun is a **Warrant**; the CLI is
-`war`.
+**A document standard and SDK for work shared by humans and agents.**
 
-A Warrant is one semantic work object compiled from ordered source atoms into
-role-specific projections. It carries the authority for a bounded piece of work,
-the basis it was authorized on, what was actually attempted, what independent
-methods observed, and what the organization concluded — as one auditable record
-rather than a trail of documents that disagree.
+Describe the outcome. Keep the right context. Record what happened.
+Start small with a prompt, then add review and verification where your work needs it.
 
-> A WAR does not claim that work is correct because an agent stopped working or a
-> command exited zero.
+[Design draft](docs/sas/drafts/1.0.0-rc.3/README.md) ·
+[Recorded progress](docs/warrants/generated/CORPUS_STATUS.md) ·
+[Build the CLI](#build-the-current-cli) ·
+[Contribute](CONTRIBUTING.md)
 
-## Status
+> **Under development.** The standard and SDK described here are the RC.3 design
+> direction. This repository also contains the existing Rust libraries and `war`
+> CLI, whose current formats and rules remain documented separately. Planned
+> workflows and integrations are not claims of shipped functionality.
 
-**Read the ladder, not this paragraph.** The corpus projection
-`docs/warrants/generated/CORPUS_STATUS.md` (published at
-<https://quitetall.github.io/OpenWarrant/>) is regenerated on every push and
-drift-checked in CI; every number on it is derived from records — journals,
-authorizations, receipts, verifications, resolutions — and nothing on it is
-typed by hand. Earlier versions of this README stated counts of "resolved"
-Warrants that no record supported; that is exactly the failure this system
-exists to end, so the counts now live only where they are computed.
+## One outcome, one Warrant
 
-What the levels are — Release, Objective, Requirement, Warrant, Milestone,
-Stage — and the one rule about a SAS versus a Warrant, are fixed in SAS §6.10
-and restated in [`docs/DEFINITIONS.md`](docs/DEFINITIONS.md). Start there if
-you are deciding whether to write a Warrant or a SAS.
+A **Warrant** describes a reviewable outcome, such as “add password reset.”
+It can include scope, implementation guidance, architecture decisions, test fixtures,
+questions, evidence and explicit start or signoff requirements. Internal stages
+divide the work without making every file change a separate Warrant.
 
-## What works
+OpenWarrant gives tools a shared way to read these documents and preserve their
+meaning. Requirements stay linked to their source. Work and review keep an honest
+history. Agents spend less time reconstructing context; developers spend less time
+copying records between tools.
 
-```bash
-war init --namespace OW      # initialize a repository
-war new "Ship the thing"     # create a draft Warrant
-war check                    # validate, deterministically, with no agent
-war check --generated        # also detect drift in committed projections
-war compile                  # write the Markdown parent and canonical JSON
-```
+The planned source format is readable Markdown with structured metadata and
+defined sections. Small drafts remain useful before they contain execution or
+verification records. WAR expands to **Work Authorization Record**; the everyday
+name is **Warrant**.
 
-`war check` over this repository's own Warrants:
+## Work first. Review when needed.
 
-```text
-PASS manifest.valid                     OW-WAR-0003: manifest and composition are well-formed
-PASS assurance.adequacy-review          OW-WAR-0003: controlled assurance carries an adequacy review
-PASS relations.parent-digest            OW-WAR-0003: parent war://01a018db-…  contract digest matches
-PASS composition.acyclic                parent graph is acyclic across 1 Warrant(s)
+![Planned workflow: prompt, work, complete, next prompt; optional review earns Verified status](assets/brand/work-cycle.svg)
 
-4 pass · 0 warn · 0 unknown · 0 error   (worst: PASS)
+Ordinary work is prompt-only: ask an agent to start a Warrant, let it work, receive
+its completion response, then ask it to start the next one. Human work follows
+the same record model.
 
-NOT CHECKED:
-  · gate execution — `war gate --run` runs a registered gate, but `war check`
-    does not invoke it, so nothing here is evidence a Warrant's gates were run
-  · Preflight readiness (§32.7) — 'well-formed' is a claim about the record only
-  · bound-atom resolution — `ref =` atoms cannot be fetched offline
-  · Source Holder ambiguity and classification propagation (§91.2 tests 14, 15)
-  · generated-view drift — pass --generated to compare committed projections
+**Complete · Unverified** and **Complete · Verified** both mean the work is complete.
+Verification is a separate status. A Warrant can explicitly require a verified
+prerequisite, preparation review or signoff before starting; those declared gates
+still apply. OpenWarrant adds no universal signing ceremony to ordinary work.
 
-WELL-FORMED (record only — Preflight and gate execution are not implemented)
-```
+When review is needed, independent checks and human review establish the result
+against its declared requirements. Secure human acceptance is required for the
+common Verified mark. One release review and signing ceremony can cover several
+exact Warrant results. Their actual history and individual evidence remain visible.
 
-Two things in that output are deliberate and worth noticing.
+## Short responses. Useful records.
 
-**The verdict is never the bare word "READY."** §32 defines readiness as
-including Preflight, which does not exist yet, so the checker says what it
-actually established and names the exclusion inline.
+At every completed work stop, the planned workflow returns the configured safeword
+on the first line, followed by a compact set of links and next steps.
 
-**The NOT CHECKED block prints on every run, including a clean one.** A report
-that answers "ok" while whole classes of check go unasked reads as full coverage.
+The linked progress overview is generated from tracker records. It contains
+pending work, completion indicators, statistics and data views, plus implementation
+notes and the document trail. Completion and verification are shown separately.
+Configuration controls brevity and presentation; the agent need not paste large
+documents or invent a new project-status summary in chat.
 
-## The specification
+A work stop means its declared unit finished. An agent stop means execution paused;
+work may remain unfinished. The tracker preserves both facts.
 
-The WAR Software Architecture Specification is vendored at
-**`docs/sas/WAR_Software_Architecture_Specification.md`**. Every `§n` in this
-repository — obligations, ADRs, conformance test numbers — refers to it, and the
-§91 conformance tests are one line each in §91.1 through §91.13.
+Agents can ask other agents or authorized humans for decisions during work.
+Affected work pauses when needed; independent work can continue. Each Warrant's
+worktree has one writer at a time, and the agent harness supplies execution isolation.
 
-Stated here because it was not stated anywhere, and on 2026-08-22 an ADR was
-accepted that narrowed four conformance tests as "unreadable" after two failed
-globs failed to find this file. A repository whose subject is verifiable claims
-should not make its own source of truth hard to locate.
+## A small core with clear boundaries
 
-## How a Warrant is stored
+![Target architecture: OpenWarrant standard and SDK, external context compilers, workflow applications](assets/brand/architecture.svg)
 
-Authored atoms are the editable sources. The parent is a projection and is never
-edited.
+| Layer | Responsibility |
+| --- | --- |
+| **OpenWarrant standard + SDK** | Define documents and records; author, parse, validate and inspect supplied data; provide typed integration helpers. |
+| **LAMU and other compilers** | Resolve source context, preserve exact applicable rules and build task projections. |
+| **Workflow applications** | Run agents, track state, route questions, generate overviews and handle review/signing. |
 
-```text
-docs/warrants/OW-WAR-0003/
-├── manifest.toml            composition and relations (SAS §61)
-├── atoms/
-│   ├── 10-intent.md         what problem, what outcome, what is out of scope
-│   ├── 20-basis.md          governing sources, prerequisites, unknowns
-│   ├── 40-work-order.md     deliverables, frozen surfaces, autonomy, rollback
-│   ├── 45-milestones.yaml   acceptance checkpoints and dispatchable stages
-│   └── 60-assurance.md      obligations, adequacy review, residual risk
-└── generated/
-    ├── WAR.md               the human parent — do not edit
-    └── WAR.json             RFC 8785 canonical JSON
-```
+Supervisors receive one progress view with pointers to decisions, draft amendments,
+API contracts and skills. Workers receive relevant task context with exact required
+rules. Cross-project work shares one Warrant contract, so teams do not maintain
+drifting copies of the same requirements.
 
-Every generated file opens with its provenance:
+The SDK is intended to work without a model, database or running compiler.
+AI can draft documents and implementation notes. Compilers and trackers produce
+reproducible context and progress views from explicit inputs.
 
-```markdown
-<!--
-GENERATED BY OPENWARRANT. DO NOT EDIT.
-WAR: OW-WAR-0003
-Compilation basis: sha256:7660c2f0edab420e…
-Contract revision: 1
-Source manifest: docs/warrants/OW-WAR-0003/manifest.toml
--->
-```
+OpenWarrant also adapts methods from [Matt Pocock's skills](https://github.com/mattpocock/skills)
+into `war` skills: clarification, specifications, decomposition and review produce
+Warrants and related standard artifacts. See the [skill contract](docs/sas/drafts/1.0.0-rc.3/skill-adaptation.md).
 
-`war check --generated` compares committed projections against a fresh
-compilation and fails on any difference, so a hand-edited parent cannot quietly
-diverge from what its sources say.
+## Delivery plan
 
-## Governing specification
+| Phase | Deliverable |
+| --- | --- |
+| **1 · Library and Standard** | Define the standard and prove SDK primitives directly, then expose them through the CLI. |
+| **2 · SDK and Compiler Integration** | Prove the SDK with LAMU and other consumers using shared fixtures and exact versioned inputs. |
+| **3 · Workflow Integration** | Build a real reference webapp with first-party integrations, test applications and real users. |
+| **4 · Hardening and Adoption** | Prove reliability, compatibility and release readiness; publish the stable standard. |
 
-`docs/sas/WAR_Software_Architecture_Specification.md`, v0.1.0-draft.1,
-sha256 `aad5256cb59e3e589313b7e2d5b48360ad8c85cf1c1d65d21f9260e692dfe8e5`.
+Read the [SAS candidate](docs/sas/drafts/1.0.0-rc.3/README.md),
+[phase scope](docs/sas/drafts/1.0.0-rc.3/phase-plan.md) and
+[concrete workflow cases](docs/sas/drafts/1.0.0-rc.3/prototype-and-release-cases.md).
+For current repository records, use the [existing specification](docs/sas/WAR_Software_Architecture_Specification.md)
+and [generated status](docs/warrants/generated/CORPUS_STATUS.md).
 
-The copy here is byte-identical to the drafted document. Section references
-throughout the source (`§65.2`, `RQ-014`, …) cite it.
+## Build the current CLI
 
-## Installing
-
-**No release has been cut yet**, so today the only route is building from
-source. When one exists:
+Use the Rust toolchain pinned in `rust-toolchain.toml`.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh | bash
+git clone https://github.com/Quitetall/OpenWarrant
+cd OpenWarrant
+cargo build --release -p openwarrant-cli
+./target/release/war --help
 ```
 
-The installer verifies the SHA-256 of what it downloads against the published
-checksum and refuses to install without one — a curl-to-shell installer that
-skips that check is a remote-code-execution vector with good manners. It builds
-nothing and needs no Rust toolchain.
-
-Until then:
+Inspect this repository's existing records and generated-file consistency:
 
 ```bash
-git clone https://github.com/Quitetall/OpenWarrant && cd OpenWarrant
-cargo build --release          # binary at target/release/war
+./target/release/war check --generated
 ```
 
-## If an AI agent works in your repository
+That command checks records and generated-file drift. It does not run every
+implementation test or provide human acceptance. The current format uses manifests
+and authored atoms, with generated Markdown and JSON views.
 
-Copy [`AGENTS.md`](AGENTS.md) into the repository root. It states the rules an
-agent must not break — chiefly that it may not verify its own work, and may not
-write a disposition it did not receive from an independent verifier.
-
-These are enforced by the tool, but an agent that learns them by tripping over
-refusals wastes a lot of everyone's time first. Claude Code users can also copy
-[`.claude/skills/openwarrant/`](.claude/skills/openwarrant); it points at
-`AGENTS.md` rather than restating it, so there is one place to correct.
-
-## Building
-
-```bash
-cargo build --workspace
-cargo xtask gate
-```
-
-`cargo xtask gate` is the aggregate gate (SAS §92): `fmt`, `clippy`, tests,
-licenses, and a planted-violation battery. It exits zero only when every positive
-fixture passes **and every planted violation is rejected by its intended
-control** — the battery deliberately mutates the working tree, confirms the right
-rule fires for the right reason, and restores it.
-
-That second half is the point. A validator that returns `Ok(())` unconditionally
-passes every positive test ever written.
-
-## Layout
-
-```text
-crates/openwarrant-core/       domain types and validators, no I/O   (SAS §79.1)
-crates/openwarrant-compiler/   manifest → IR → canonicalize → render (SAS §79.2)
-crates/openwarrant-agent/      planning protocol surface only        (SAS §79.3)
-crates/openwarrant-cli/        the `war` binary                      (SAS §79.4)
-conformance/                   RFC 8785 vectors and the plant battery
-docs/adr/                      architecture decisions
-docs/sas/                      the governing specification
-docs/warrants/                 this repository's own Warrants
-```
-
-## What exists, and what has never run
-
-This section was stale in both directions until beta opened, so it now separates
-three things a reader would otherwise conflate.
-
-**Implemented and reachable from the binary.** The compiler, `war check`,
-`war compile`, all nine §17.5 projections (`war show`), `war diff`, `war plan`'s
-two-way agent seam, the Gate Registry, and gate execution — `war gate --run`
-really runs a gate and reports §44's askability, execution status and verdict
-separately.
-
-**Implemented, tested, and NOT reachable from the binary.** §40's epistemic
-classes and their six prohibited substitutions, §46 independence, §56.1's
-thirteen resolution requirements, §44.6 receipts, §32 Preflight, §33 context
-manifests, §66 the local journal, §67 the Knowledge Fabric action envelope, §68
-portable export. These are real code with real tests that no `war` command calls.
-OW-WAR-0046 wires them in.
-
-**Not implemented at all.** Preflight execution, and any live conversation with
-Katana, BLUT, Knowledge Fabric or Liminal.
-
-See [`CHANGELOG.md`](CHANGELOG.md) and
-[`docs/roadmap/PRODUCTION_ROADMAP.md`](docs/roadmap/PRODUCTION_ROADMAP.md).
-
-## About the LamQuant figures
-
-Several Warrants cite measurements from LamQuant, the project OpenWarrant was
-built for and is meant to succeed — "of 94 declared gates, 23 invoke a tool,
-script, or crate that is not in the tree", and similar. They are quoted rather
-than summarised because they are the *evidence* for why particular controls here
-exist. A control justified by "gates can be wrong in principle" is a preference;
-one justified by a count is a response to something that happened.
-
-Three things about those numbers:
-
-**They are a single measurement, at one commit, on one day.** LamQuant
-`5369da81`, 2026-08-17. They were never a running metric.
-
-**They are already stale, provably.** That measurement recorded 167 ADRs. Three
-days later the same corpus held 173. The figures describe a corpus at a moment
-and should not be read as a current defect count.
-
-**LamQuant is being repaired against exactly these findings.** That is the point
-of the exercise — the audit that produced these numbers is what OpenWarrant was
-commissioned to make unnecessary, and the repairs are in progress. Citing a
-project's own worst measurement is not a criticism of it; it is the reason the
-tool exists, and no honest case for OpenWarrant can be made without it.
-
-If you want the current state of LamQuant, measure LamQuant. Do not use these.
+[QUICKSTART.md](QUICKSTART.md) covers the current workflow.
+Read [AGENTS.md](AGENTS.md) before agent work and
+[CONTRIBUTING.md](CONTRIBUTING.md) for development checks.
 
 ## License
 
-**Apache-2.0** (relicensed 2026-09-12, OW-ADR-0017). Versions distributed before that date remain available under AGPL-3.0-or-later.
-
-That intent constrains the code now rather than later: every dependency must be
-MIT and/or Apache-2.0, enforced by `cargo deny check licenses` inside the gate,
-because a copyleft dependency adopted today could not be relicensed afterwards.
-See [`RELICENSING.md`](RELICENSING.md) for the preconditions and the exact steps,
-and [`CONTRIBUTING.md`](CONTRIBUTING.md) before opening a pull request.
+[Apache-2.0](LICENSE). Versions distributed before the 2026-09-12 relicensing
+remain available under AGPL-3.0-or-later. See [RELICENSING.md](RELICENSING.md).
+Adapted third-party skills retain their attribution and license notices.

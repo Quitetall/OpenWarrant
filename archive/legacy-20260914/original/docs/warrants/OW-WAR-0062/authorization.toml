@@ -1,0 +1,29 @@
+schema = "oh.war/authorization/v1"
+warrant = "OW-WAR-0062"
+sas_revision = "0.1.0-draft.3"
+
+[revision]
+revision = 1
+state = "authorized"
+contract_digest = "78251bb2202e2692eb9540ccab1a21f5a8956c3edcb47a505a7bc71070d6d3c2"
+proposer = "claude"
+
+[revision.coverage]
+covered = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+
+[revision.authorization]
+authorizer = "Brian Lam"
+actor_kind = "human"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0062 (Lock down the levels: what a SAS, a Warrant, and every other object are) at this contract digest means the owner accepts its intent, scope and obligations as the work to be done and judged, and accepts each residual risk declared below with its stated consequence. It does not resolve the Warrant. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02; the decision is the owner's, the wording is the agent's."
+effective_time = "2026-09-03T00:40:00Z"
+independence = "separate_role"

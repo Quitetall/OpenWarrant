@@ -1,0 +1,31 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.24
+   Compiling serde_core v1.0.229
+   Compiling libc v0.2.189
+   Compiling serde v1.0.229
+   Compiling getrandom v0.4.3
+   Compiling zmij v1.0.23
+   Compiling equivalent v1.0.2
+   Compiling thiserror v2.0.20
+   Compiling hashbrown v0.17.1
+   Compiling cfg-if v1.0.4
+   Compiling serde_json v1.0.151
+   Compiling memchr v2.8.3
+   Compiling itoa v1.0.18
+   Compiling ryu-js v0.2.2
+   Compiling indexmap v2.14.0
+   Compiling syn v3.0.3
+   Compiling serde_derive v1.0.229
+   Compiling thiserror-impl v2.0.20
+   Compiling uuid v1.25.0
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-war-0075-sdk/crates/openwarrant-core)
+   Compiling serde_jcs v0.2.0
+error[E0432]: unresolved import `openwarrant_core::document`
+ --> crates/openwarrant-core/tests/document.rs:1:23
+  |
+1 | use openwarrant_core::document::{parse_document, Dialect, ParseLimits};
+  |                       ^^^^^^^^ could not find `document` in `openwarrant_core`
+
+For more information about this error, try `rustc --explain E0432`.
+error: could not compile `openwarrant-core` (test "document") due to 1 previous error

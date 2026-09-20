@@ -1,0 +1,22 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0093",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "1655871dee2a97cdd68942520b1f6150e4cee09f",
+  "summary": "Reference draft webapp and authenticated local API complete: immutable revisions, browser authoring and canonical project inventory. 8 HTTP tests, 5 viewer tests and full 14-step/308-control gate passed. Unverified; execution workflow remains separate.",
+  "notes": "docs/warrants/OW-WAR-0093/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0093/implementation/completion.md",
+    "docs/warrants/OW-WAR-0093/implementation/evidence/gate.log",
+    "docs/warrants/OW-WAR-0093/implementation/evidence/http-tests.log",
+    "docs/warrants/OW-WAR-0093/implementation/evidence/viewer-tests.log",
+    "docs/warrants/OW-WAR-0093/implementation/evidence/source-review.log",
+    "docs/warrants/OW-WAR-0093/implementation/evidence/legacy-closure.json"
+  ],
+  "next_steps": [
+    "Build execution, questions, work-stop and recovery workflow slices.",
+    "Complete or explicitly reconcile remaining Warrants; 13 structurally ready legacy closures currently report NOT SATISFIED.",
+    "Obtain remaining native macOS, integration and actual-user evidence before release qualification."
+  ]
+}

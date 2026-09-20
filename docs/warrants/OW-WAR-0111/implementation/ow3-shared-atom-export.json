@@ -1,0 +1,175 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "archive",
+  "diagnostics": [],
+  "notes": [],
+  "counts": {
+    "pass": 0,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0,
+  "result": {
+    "schema": "oh.war/preservation-result/v1-draft.1",
+    "operation": "export",
+    "archive_digest": "sha256:3cb1c9f6fc36181c67f9db148f49c30325b9fc6fce38a6c3e992935e9c1f5541",
+    "output": "/tmp/ow111-real-ow3-external-atom.json",
+    "complete": false,
+    "coverage": {
+      "ADR refs and accepted bodies where policy permits": {
+        "state": "unavailable",
+        "reason": "Local snapshot alone does not establish complete historical/provider coverage"
+      },
+      "Compilation Basis": {
+        "state": "retained",
+        "paths": [
+          "__ow_archive__/basis.json"
+        ]
+      },
+      "actions and relevant audit receipts": {
+        "state": "unavailable",
+        "reason": "Local snapshot alone does not establish complete historical/provider coverage"
+      },
+      "artifacts": {
+        "state": "unavailable",
+        "reason": "Local snapshot alone does not establish complete historical/provider coverage"
+      },
+      "assurance case": {
+        "state": "unavailable",
+        "reason": "Local snapshot alone does not establish complete historical/provider coverage"
+      },
+      "canonical IR": {
+        "state": "retained",
+        "paths": [
+          "__ow_archive__/WAR.json"
+        ]
+      },
+      "complete identity": {
+        "state": "retained",
+        "paths": [
+          "__ow_archive__/WAR.json"
+        ]
+      },
+      "contract revisions": {
+        "state": "unavailable",
+        "reason": "Local snapshot alone does not establish complete historical/provider coverage"
+      },
+      "evidence manifest": {
+        "state": "retained",
+        "paths": [
+          "__ow_archive__/WAR.json",
+          "__ow_archive__/artifacts.json",
+          "__ow_archive__/artifacts/134bc4b56168f621598f7dbe6299d9bbdaf4805951143f5506366cdd0da5267b",
+          "__ow_archive__/artifacts/56de2f331c79a3ab3d86cebb228f1d9b9e13211c2da2fc2bc724b96ee6c582af",
+          "__ow_archive__/artifacts/9c8a277c5641baa9074d96f0044f945aa5e28214e1c6896423b93c88c2029150",
+          "__ow_archive__/artifacts/fbd26b931e56b662c37dfaf272e70f2419e4b13ccc7f2edd2d810574d7cfe570",
+          "__ow_archive__/basis.json",
+          "__ow_archive__/producer.json",
+          "docs/adr/atoms/OW-ADR-0001-canonical-json-implementation.md",
+          "docs/warrants/OW-WAR-0003/amendments/AM-001.yaml",
+          "docs/warrants/OW-WAR-0003/atoms/10-intent.md",
+          "docs/warrants/OW-WAR-0003/atoms/20-basis.md",
+          "docs/warrants/OW-WAR-0003/atoms/40-work-order.md",
+          "docs/warrants/OW-WAR-0003/atoms/45-milestones.yaml",
+          "docs/warrants/OW-WAR-0003/atoms/60-assurance.md",
+          "docs/warrants/OW-WAR-0003/authorization.toml",
+          "docs/warrants/OW-WAR-0003/deliverables.toml",
+          "docs/warrants/OW-WAR-0003/gate-runs/software_repo_war-check_1_0_0.receipt.json",
+          "docs/warrants/OW-WAR-0003/gate-runs/software_repo_war-check_1_0_0.run.toml",
+          "docs/warrants/OW-WAR-0003/gate-runs/software_repo_war-check_1_0_0.stderr.txt",
+          "docs/warrants/OW-WAR-0003/gate-runs/software_repo_war-check_1_0_0.stdout.txt",
+          "docs/warrants/OW-WAR-0003/generated/WAR.json",
+          "docs/warrants/OW-WAR-0003/generated/WAR.md",
+          "docs/warrants/OW-WAR-0003/implementation/completion-audit.md",
+          "docs/warrants/OW-WAR-0003/implementation/progress.json",
+          "docs/warrants/OW-WAR-0003/journal.jsonl",
+          "docs/warrants/OW-WAR-0003/judgments.toml",
+          "docs/warrants/OW-WAR-0003/manifest.toml",
+          "docs/warrants/OW-WAR-0003/rationale.toml",
+          "docs/warrants/OW-WAR-0003/verifications/OBL-000.toml",
+          "docs/warrants/OW-WAR-0003/verifications/OBL-001.toml",
+          "docs/warrants/OW-WAR-0003/verifications/OBL-002.toml",
+          "docs/warrants/OW-WAR-0003/verifications/OBL-003.toml",
+          "docs/warrants/OW-WAR-0003/verifications/OBL-004.toml",
+          "schemas/oh.war/atom/v1.json",
+          "schemas/oh.war/authorization/v1.json",
+          "schemas/oh.war/bonsai-evidence/v1.json",
+          "schemas/oh.war/correction/v1.json",
+          "schemas/oh.war/deliverables/v1.json",
+          "schemas/oh.war/journal-event/v1.json",
+          "schemas/oh.war/judgments/v1.json",
+          "schemas/oh.war/manifest/v1.json",
+          "schemas/oh.war/milestones/v1.json",
+          "schemas/oh.war/report/v1.json",
+          "schemas/oh.war/resolution/v1.json",
+          "schemas/oh.war/stage-dispatch/v1.json",
+          "schemas/oh.war/stage-submission/v1.json",
+          "schemas/oh.war/verification/v1.json",
+          "schemas/oh.war/war/v1.json",
+          "schemas/pack.json"
+        ]
+      },
+      "exact atom revisions and digests": {
+        "state": "retained",
+        "paths": [
+          "docs/adr/atoms/OW-ADR-0001-canonical-json-implementation.md",
+          "docs/warrants/OW-WAR-0003/atoms/10-intent.md",
+          "docs/warrants/OW-WAR-0003/atoms/20-basis.md",
+          "docs/warrants/OW-WAR-0003/atoms/40-work-order.md",
+          "docs/warrants/OW-WAR-0003/atoms/45-milestones.yaml",
+          "docs/warrants/OW-WAR-0003/atoms/60-assurance.md"
+        ]
+      },
+      "resolution and standing": {
+        "state": "unavailable",
+        "reason": "Local snapshot alone does not establish complete historical/provider coverage"
+      },
+      "runtime receipt refs": {
+        "state": "unavailable",
+        "reason": "Local snapshot alone does not establish complete historical/provider coverage"
+      },
+      "schema and compiler identity": {
+        "state": "retained",
+        "paths": [
+          "__ow_archive__/producer.json",
+          "schemas/oh.war/atom/v1.json",
+          "schemas/oh.war/authorization/v1.json",
+          "schemas/oh.war/bonsai-evidence/v1.json",
+          "schemas/oh.war/correction/v1.json",
+          "schemas/oh.war/deliverables/v1.json",
+          "schemas/oh.war/journal-event/v1.json",
+          "schemas/oh.war/judgments/v1.json",
+          "schemas/oh.war/manifest/v1.json",
+          "schemas/oh.war/milestones/v1.json",
+          "schemas/oh.war/report/v1.json",
+          "schemas/oh.war/resolution/v1.json",
+          "schemas/oh.war/stage-dispatch/v1.json",
+          "schemas/oh.war/stage-submission/v1.json",
+          "schemas/oh.war/verification/v1.json",
+          "schemas/oh.war/war/v1.json",
+          "schemas/pack.json"
+        ]
+      },
+      "source manifest": {
+        "state": "retained",
+        "paths": [
+          "docs/warrants/OW-WAR-0003/manifest.toml"
+        ]
+      }
+    },
+    "unavailable_categories": [
+      "ADR refs and accepted bodies where policy permits",
+      "actions and relevant audit receipts",
+      "artifacts",
+      "assurance case",
+      "contract revisions",
+      "resolution and standing",
+      "runtime receipt refs"
+    ],
+    "authority_activated": false
+  }
+}

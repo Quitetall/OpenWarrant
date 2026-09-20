@@ -1,0 +1,20 @@
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "The measured evidence includes 646 passing tests and 138 plant violations, but none cite a file, test, or receipt that demonstrates generated TypeScript types exist or that KF imports them, as required by §83.4."
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

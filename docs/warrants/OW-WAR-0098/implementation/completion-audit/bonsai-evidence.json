@@ -1,0 +1,50 @@
+{
+  "schema": "oh.war/bonsai-evidence/v1",
+  "warrant": {
+    "alias": "OW-WAR-0098",
+    "contract_digest": "355830c409466baf23ec8b94ae675bde7aea3628b3b231336e8539b59d10fcdb",
+    "scope_source": "docs/warrants/OW-WAR-0098/scope.toml",
+    "scope_source_digest": "sha256:f4b5f36b30f9cdf320a95e0d9cb6a539047e237f7b208cd1e93d0d4f30ceebd6"
+  },
+  "git": {
+    "repository": "github:Quitetall/OpenWarrant",
+    "base": "d9119ed5103955115b3bc62f4dea7136ccc9bf7d",
+    "head": "14544c444e8f72bc47f6b9f337088031b259813b",
+    "tree": "b4179c655853147cbf641ad64f3d1e00b62bcdd7"
+  },
+  "policy": {
+    "path": "bonsai.toml",
+    "digest": "sha256:cd98584ef76d326881ea17eaa65904657063733c7ecf907f07c18ecfa5dfcd28"
+  },
+  "changed_paths": [
+    "apps/openwarrant-web/EXECUTION.md",
+    "apps/openwarrant-web/execution.py",
+    "apps/openwarrant-web/reporting.py",
+    "apps/openwarrant-web/test_execution.py",
+    "apps/openwarrant-web/test_reporting.py",
+    "docs/warrants/OW-WAR-0098/implementation/notes.md",
+    "docs/warrants/OW-WAR-0098/implementation/policy-completion/prior-progress.json",
+    "docs/warrants/OW-WAR-0098/implementation/policy-completion/red.log",
+    "docs/warrants/OW-WAR-0098/implementation/policy-completion/tests.log",
+    "docs/warrants/OW-WAR-0098/implementation/progress.json"
+  ],
+  "scope_findings": [],
+  "bonsai": {
+    "executable": "/home/runner/work/_temp/bonsai/target/release/bonsai",
+    "binary_digest": "sha256:28dd099eeaa638e5a1c6bcf5d4500fa9f4803e7fa94d84619a549b10193bf421",
+    "expected_source": "github:Quitetall/bonsai",
+    "expected_revision": "4c8cc1043cbc4d30d2c41cbb25ba1afe25c6ad7c",
+    "version": "bonsai 0.1.0",
+    "exit_code": 0,
+    "raw_output": {
+      "tool": "bonsai",
+      "version": "0.1.0",
+      "findings": []
+    },
+    "stderr": "",
+    "spawn_error": null
+  },
+  "architecture_findings": [],
+  "advisory_findings": [],
+  "verdict": "pass"
+}

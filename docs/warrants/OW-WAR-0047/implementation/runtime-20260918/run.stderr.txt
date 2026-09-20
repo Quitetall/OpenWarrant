@@ -1,0 +1,11 @@
+warning: no stage in 'OW-WAR-0047' declares a resource envelope — billing the 2G compatibility floor. Implement Stage::resource_envelope (ADR 0133) for real admission.
+recipe OW-WAR-0047
+job    20260918-120309-976285603
+dir    /mnt/4tb/tmp/ow47-blut-runtime-20260918/jobs/20260918-120309-976285603
+lock   /home/brianklam/.local/share/lamu/scheduler.lock
+Error: plan execution failed
+
+Caused by:
+    0: plan stage 'materialize_dataset_path' (idx 0) failed: io at /mnt/4tb/tmp/ow47-blut-runtime-20260918/jobs/20260918-120309-976285603/stages/0-materialize_dataset_path: nothing to ship: no backing files under src_root /mnt/4tb/tmp/ow47-blut-runtime-20260918/jobs/20260918-120309-976285603/stages/0-materialize_dataset_path
+    1: io at /mnt/4tb/tmp/ow47-blut-runtime-20260918/jobs/20260918-120309-976285603/stages/0-materialize_dataset_path: nothing to ship: no backing files under src_root /mnt/4tb/tmp/ow47-blut-runtime-20260918/jobs/20260918-120309-976285603/stages/0-materialize_dataset_path
+    2: nothing to ship: no backing files under src_root /mnt/4tb/tmp/ow47-blut-runtime-20260918/jobs/20260918-120309-976285603/stages/0-materialize_dataset_path

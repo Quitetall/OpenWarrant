@@ -1,0 +1,12 @@
+   Compiling openwarrant-cli v1.0.0 (/mnt/4tb/tmp/ow-export-preservation/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.27s
+     Running tests/preservation.rs (/mnt/4tb/tmp/ow107-gate-lineage/target/debug/deps/preservation-46c2467d1ffd0ba6)
+
+running 4 tests
+test machine_output_keeps_report_envelope_and_explicit_authority_bound ... ok
+test symlink_sources_destinations_and_imported_records_refuse ... ok
+test source_detached_history_roundtrip_preserves_exact_bytes_without_authority ... ok
+test external_evidence_is_observed_and_then_source_can_disappear ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

@@ -1,0 +1,22 @@
+{
+  "path": "task.md",
+  "source_digest": "sha256:0432a7936b897824f060aaaa63a4ccc94d6dffa1c88f9909d38c7c0d1f29c347",
+  "byte_length": 677,
+  "holder": {
+    "kind": "example",
+    "locator": "example:fixture"
+  },
+  "metadata": {
+    "trust": "untrusted",
+    "classification": "internal",
+    "taints": [],
+    "authority": "unestablished",
+    "basis_refs": []
+  },
+  "document": {
+    "id": "example:minimal-signup",
+    "revision": 1,
+    "schema": "oh.war/document/1.0.0-rc.3",
+    "kind": "warrant"
+  }
+}

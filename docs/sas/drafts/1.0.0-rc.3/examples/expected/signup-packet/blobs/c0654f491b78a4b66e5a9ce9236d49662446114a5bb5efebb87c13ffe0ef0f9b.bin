@@ -1,0 +1,8 @@
+{
+  "fixture_status": "illustrative expectations; not executed",
+  "cases": [
+    {"id": "without-company", "input": {"email": "reader@example.invalid", "password": "test-only-password"}, "expected": {"account_created": true, "active": false}},
+    {"id": "bad-email", "input": {"email": "not-an-email", "password": "test-only-password"}, "expected": {"account_created": false}},
+    {"id": "unverified-activation", "input": {"verified": false, "action": "activate"}, "expected": {"active": false}}
+  ]
+}

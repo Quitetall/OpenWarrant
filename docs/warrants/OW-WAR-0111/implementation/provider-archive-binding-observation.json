@@ -1,0 +1,23 @@
+{
+  "schema": "oh.war/implementation-observation/v1",
+  "provider_commit": "d69e8181cca5ccd91867d4d178ad4b1c4aea7395",
+  "provider_pr": "https://github.com/Quitetall/openhuman-knowledge-fabric/pull/7",
+  "producer_commit": "85ab27cb",
+  "provider_correction_merge": "6ea034037224d779b0b35aaa7d841e98905ec22a",
+  "provider_correction_ci_run": 35376677769,
+  "provider_correction_ci_conclusion": "success",
+  "binding_sha256": "4fbe0ce4c5cf931972c1e4677fd678aa45a0d0cfbb70072047e6ffe379cfb806",
+  "matched_source_revisions": [
+    1
+  ],
+  "provider_revisions_without_source": [
+    2
+  ],
+  "database_access_required": false,
+  "qualified": false,
+  "limits": [
+    "Source basis is reconstructed by OW; provider adapter checks shape and compares claims, not source authenticity.",
+    "Provider revision 2 has no distinct retained source revision.",
+    "No runtime stage coverage, execution success, independent verification or format acceptance established."
+  ]
+}

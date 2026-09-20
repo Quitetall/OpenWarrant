@@ -1,0 +1,27 @@
+{
+  "source_revision": "11b4479b2d56e44e810beed22026bc4e03f4bdf7",
+  "result": "PASS",
+  "tests": 8,
+  "clippy": "all targets, warnings denied",
+  "real_sample": "OW-WAR-0001",
+  "schema_identity_records": [
+    "__ow_archive__/producer.json",
+    "schemas/oh.war/atom/v1.json",
+    "schemas/oh.war/authorization/v1.json",
+    "schemas/oh.war/bonsai-evidence/v1.json",
+    "schemas/oh.war/correction/v1.json",
+    "schemas/oh.war/deliverables/v1.json",
+    "schemas/oh.war/journal-event/v1.json",
+    "schemas/oh.war/judgments/v1.json",
+    "schemas/oh.war/manifest/v1.json",
+    "schemas/oh.war/milestones/v1.json",
+    "schemas/oh.war/report/v1.json",
+    "schemas/oh.war/resolution/v1.json",
+    "schemas/oh.war/stage-dispatch/v1.json",
+    "schemas/oh.war/stage-submission/v1.json",
+    "schemas/oh.war/verification/v1.json",
+    "schemas/oh.war/war/v1.json",
+    "schemas/pack.json"
+  ],
+  "complete_preservation": false
+}

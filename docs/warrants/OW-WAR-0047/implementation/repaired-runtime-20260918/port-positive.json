@@ -1,0 +1,31 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "blut",
+  "diagnostics": [
+    {
+      "severity": "pass",
+      "rule": "blut.ports-mapped",
+      "file": null,
+      "message": "OW-WAR-0047: 3 port(s) map to kinds BLUT declares at 33b3e047fd8e"
+    },
+    {
+      "severity": "pass",
+      "rule": "blut.lowered",
+      "file": null,
+      "message": "OW-WAR-0047: lowered 2 stage(s) against a pinned registry (blut@33b3e047fd8e)"
+    }
+  ],
+  "notes": [
+    "This PlanSpec is structurally faithful to a schema read from BLUT at 33b3e047fd8e, and has NOT been through BLUT's parser — no binary was named. Pass --verify <blut-binary> to get BLUT's own verdict; \"BLUT accepted this\" is a strictly stronger claim than anything here establishes.\n\n{\n  \"name\": \"OW-WAR-0047\",\n  \"nodes\": [\n    {\n      \"stage\": \"materialize_dataset_path\",\n      \"args\": {\n        \"path\": \"conformance/fixtures/ow-war-0047-corpus.jsonl\"\n      }\n    },\n    {\n      \"stage\": \"filter_dataset\",\n      \"args\": {\n        \"min_turns\": 2,\n        \"drop_errors\": true\n      }\n    }\n  ],\n  \"edges\": [\n    [\n      0,\n      1\n    ]\n  ],\n  \"version\": 1\n}"
+  ],
+  "counts": {
+    "pass": 2,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0
+}

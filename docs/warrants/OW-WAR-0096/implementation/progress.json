@@ -1,0 +1,23 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0096",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "f5acf9c09954907a1c5f6f21f535322291cdb185",
+  "summary": "Signed authority reference now retains atomic activation receipts with verified signer/subject bindings and honest legacy gaps. Protected deployment, human key custody and legacy consumer cutover remain unestablished.",
+  "notes": "docs/warrants/OW-WAR-0096/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0096/implementation/evidence/gate.log",
+    "docs/warrants/OW-WAR-0096/implementation/evidence/cli-tests.log",
+    "docs/warrants/OW-WAR-0096/implementation/evidence/clippy.log",
+    "docs/warrants/OW-WAR-0096/implementation/evidence/sandbox.log",
+    "docs/warrants/OW-WAR-0096/implementation/evidence/review.md",
+    "docs/warrants/OW-WAR-0096/implementation/activation-receipts/evidence/gate.log",
+    "docs/warrants/OW-WAR-0096/implementation/activation-receipts/evidence/review.md"
+  ],
+  "next_steps": [
+    "Provision protected operator/key environment and independently bootstrap real authority.",
+    "Route privileged consumers through trusted current-state checks with no legacy fallback.",
+    "Observe human approval/cancellation and deployed account isolation before claiming enforcement."
+  ]
+}

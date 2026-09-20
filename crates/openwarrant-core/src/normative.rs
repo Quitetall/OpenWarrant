@@ -83,8 +83,8 @@ pub struct NormativeSentence {
 /// Sentences split on `. ` and line ends within a paragraph. A lead-in that
 /// ends with `:` and carries a keyword ("The compiler SHALL:") makes each
 /// bullet under it one sentence, prefixed with the lead-in (§47.2 style).
-/// Code fences and table rows are skipped; §3 itself (which defines the
-/// words) is skipped so the definitions do not project as requirements.
+/// Code fences and table rows are skipped. The legacy §3 "Normative language"
+/// definition is skipped, but section 3 in another document is not special.
 #[must_use]
 pub fn normative_sentences(text: &str) -> Vec<NormativeSentence> {
     let mut out = Vec::new();
@@ -95,7 +95,9 @@ pub fn normative_sentences(text: &str) -> Vec<NormativeSentence> {
     let mut lead_in: Option<String> = None;
 
     fn push_sentences(out: &mut Vec<NormativeSentence>, section: &str, heading: &str, text: &str) {
-        if section.is_empty() || section == "3" {
+        if section.is_empty()
+            || (section == "3" && heading.eq_ignore_ascii_case("Normative language"))
+        {
             return;
         }
         for raw in split_sentences(text) {
@@ -140,7 +142,7 @@ pub fn normative_sentences(text: &str) -> Vec<NormativeSentence> {
             flush(&mut paragraph, &mut out, &section, &heading);
             lead_in = None;
             if let Some((num, title)) = rest.split_once(". ")
-                && is_section_token(num)
+                && section_number(num)
             {
                 section = num.to_owned();
                 heading = title.trim().to_owned();
@@ -154,11 +156,8 @@ pub fn normative_sentences(text: &str) -> Vec<NormativeSentence> {
             flush(&mut paragraph, &mut out, &section, &heading);
             lead_in = None;
             if let Some((num, title)) = rest.split_once(' ')
+                && section_number(num.trim_end_matches('.'))
                 && num.contains('.')
-                && num
-                    .split('.')
-                    .filter(|part| !part.is_empty())
-                    .all(is_section_token)
                 && num.starts_with(|c: char| c.is_ascii_digit())
             {
                 section = num.trim_end_matches('.').to_owned();
@@ -261,7 +260,7 @@ pub fn dropped_sections(text: &str) -> Vec<String> {
             let looks_numbered = rest.starts_with(|c: char| c.is_ascii_digit());
             let parses = rest
                 .split_once(". ")
-                .is_some_and(|(num, _)| is_section_token(num));
+                .is_some_and(|(num, _)| section_number(num));
             if looks_numbered && !parses {
                 current = Some((rest.trim().to_owned(), false));
             }
@@ -293,25 +292,14 @@ fn strip_emphasis(text: &str) -> String {
         .to_owned()
 }
 
-/// Whether `num` names a section: a number, optionally with a letter suffix.
-///
-/// `8A` and `8B` are sections, not typos. A document that has shipped §8 adds a
-/// section at the end of that part as §8A rather than renumbering everything
-/// after it — the same reason requirement ids are append-only. The previous rule
-/// was "every byte is a digit", and a heading that failed it did not merely lose
-/// its number: the parser cleared the current section, and `push_sentences`
-/// drops every sentence while the section is empty. The Knowledge Fabric SAS
-/// lost 28 of its 162 requirements to that branch, silently, in the artifact
-/// whose own header tells an agent to read it instead of the document.
-fn is_section_token(num: &str) -> bool {
-    let mut bytes = num.bytes();
-    let Some(first) = bytes.next() else {
-        return false;
-    };
-    first.is_ascii_digit()
-        && bytes
-            .clone()
-            .all(|b| b.is_ascii_digit() || b.is_ascii_uppercase())
+/// A decimal section component may have one uppercase suffix, as in 8A.1.
+fn section_number(number: &str) -> bool {
+    number.split('.').all(|part| {
+        let digits = part.trim_end_matches(|c: char| c.is_ascii_uppercase());
+        !digits.is_empty()
+            && digits.bytes().all(|b| b.is_ascii_digit())
+            && part.len() - digits.len() <= 1
+    })
 }
 
 /// Split prose into sentences at `. ` followed by an uppercase letter, `(`,
@@ -349,6 +337,47 @@ fn split_sentences(text: &str) -> Vec<String> {
 #[cfg(test)]
 mod normative_tests {
     use super::*;
+
+    #[test]
+    fn section_numbers_refuse_titles_and_malformed_components() {
+        for valid in ["3", "8A", "104A", "8A.1", "47.2", "47.2B"] {
+            assert!(section_number(valid), "{valid}");
+        }
+        for invalid in ["", "A", "8AA", "8a", ".8", "8.", "8..1", "Scope"] {
+            assert!(!section_number(invalid), "{invalid}");
+        }
+    }
+
+    #[test]
+    fn lettered_sections_and_subsections_keep_exact_identity() {
+        let text = "## 8A. Capture\nThe source SHALL retain identity.\n\n### 8A.1 Retry\nA retry SHALL recheck access.\n\n## 104A. Runtime\nThe index SHALL NOT persist text.\n";
+        let got = normative_sentences(text);
+        let actual: Vec<(&str, &str)> = got
+            .iter()
+            .map(|s| (s.section.as_str(), s.sentence.as_str()))
+            .collect();
+        assert_eq!(
+            actual,
+            vec![
+                ("8A", "The source SHALL retain identity."),
+                ("8A.1", "A retry SHALL recheck access."),
+                ("104A", "The index SHALL NOT persist text."),
+            ]
+        );
+    }
+
+    #[test]
+    fn section_three_is_not_always_a_language_definition() {
+        let got = normative_sentences(
+            "## 3. Architecture and component ownership\nThe runtime SHALL preserve source authority.\n",
+        );
+        assert_eq!(got.len(), 1);
+        assert_eq!(got[0].section, "3");
+        assert_eq!(
+            got[0].sentence,
+            "The runtime SHALL preserve source authority."
+        );
+    }
 
     #[test]
     fn keywords_are_whole_uppercase_words_strongest_first() {

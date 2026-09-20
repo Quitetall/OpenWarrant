@@ -1,7 +1,7 @@
 # Threat model
 
 What OpenWarrant defends, what it does not, and which control carries each
-claim. Ten entries; each names the threat, the control, the residual, and what
+claim. Eleven entries; each names the threat, the control, the residual, and what
 exercises the control today. "Exercised by" is a test, a plant, or an operator
 duty — never a sentence in a document. Where the honest answer is "the
 operator", it says so.
@@ -26,6 +26,8 @@ control holds them; where it does not, the entry says so.
 | 9 | **The correction act as a laundering path.** A resolved Warrant's pinned file is edited and a "correction" recorded to make the drift legal. | A correction is a human act (`correction.agent` refuses the agent by kind); it is refused when nothing drifted (`correction.no-drift`), when the new digest is not the file's bytes (`correction.stale`), when the superseded digest is not the chain head (`correction.superseded-mismatch`), when the reason is empty, when the Warrant is not resolved; the journal event carries the record's digest so a later edit of the correction file is `correction.edited`. `deliverables.toml` is never regenerated — the resolution's digest still binds it. | A human can sign a correction whose reason is false. That is a lie in a signed record, which is what the record is for. | Plants `plants.d/64-corrections.sh`: six refusals and the positive `deliverable.corrected`; OBL-005 (superseded digest removed → `correction.malformed`). |
 | 10 | **Attestation replay across namespaces.** A signature made for one purpose (a response) presented as another (an attestation), or an attestation for one record presented for another. | Signatures are namespaced: responses sign under `oh.war/response`; attestations sign under `oh.war/dsse` over the DSSE PAE, which binds payload type and length, and the in-toto subjects carry the record digests. A signature under one namespace does not verify under the other (OW-ADR-0015). | An `allowed_signers` line without the `oh.war/dsse` namespace refuses the attestation, not the act; the act stands unattested with `attest.not-emitted`. | Plant `plants.d/67-attest.sh`: a response-namespace signature replayed as DSSE is refused; a moved payload byte, an edited subject and an unknown principal are each refused by name. Unit test in `attest.rs` against a generated key. |
 
+| 11 | **The record believed for its contents.** An agent writes `authorization.toml` saying `authorized`, naming the owner as authorizer, and nothing ever asks who signed it. Demonstrated 2026-09-19 against the published 1.0.0-alpha.1: a hand-written record whose `meaning` read "FORGED BY AN AGENT. No human saw this" produced `war check` with zero errors and `PASS §56.1 exact authorized Contract Revision`. | Every authority record is now read through `authority_check`: a response for THAT act, over THAT digest, whose `.sig` `ssh-keygen -Y verify` accepts as the principal `roles.toml` binds to the actor, who is `human` there. Authorizations, resolutions, corrections and SAS acceptances all pass through it; §56.1 requirement 1 and `war dispatch` depend on the verdict, so an unsigned record stops the work it claims to authorize. Fail-closed by construction: a missing `ssh-keygen` is `authority.verify-unavailable`, never a pass. | An agent can still WRITE the record — the refusal is on the read path, which is the point: the file is a draft until a human signs it. Response filenames are per act, so one signature cannot answer for two. Pre-enforcement acts are signable as themselves (`*.signature-supplied`) and nothing is back-dated. | Plants `plants.d/96-authority.sh`: a missing signature, a response edited after signing, a signature replayed onto another Warrant, a principal no key answers for, an agent named as authorizer, an unsigned resolution, a Dispatch of an unsigned contract, `--prototype` naming the missing authority in the packet, an authorization with no response at all, and requirement 1 reported unmet — plus the positive that the committed corpus verifies. |
+
 ## What is out of scope, stated
 
 - **A hostile human with the signing key.** Every control above assumes the
@@ -48,3 +50,107 @@ Each "Exercised by" cell names a test or plant that exists, or an operator duty
 that cannot be one. When a control changes, the entry changes in the same
 commit; when a residual closes, the entry says which slice closed it. A row
 whose control is only a sentence is a row to be suspicious of.
+
+## Candidate signed authority transitions (OW-WAR-0096)
+
+The `war authority` surface is separate from the legacy `roles.toml` and
+`allowed_signers` loader described above. Legacy commands still use those legacy
+files; installing this candidate does not silently migrate their trust or make
+existing signatures authenticate historical role grants. Production cutover
+requires a trusted workflow to consume the new store and refuse legacy fallback.
+
+| Threat | Control | Evidence and residual |
+|---|---|---|
+| An agent edits roles or substitutes its own key | Proposals are inert; activation checks signatures against the previous trusted revision and administration/recovery role | SDK and CLI controls refuse unsigned, self-granted and wrong-key updates. Human custody of administrative/recovery keys is still an operator responsibility; `human_review_established` is always false here. |
+| A signature approves different work or repository | Dedicated signing namespace and domain-separated canonical proposal bytes include repository, parent digest, operation and full next revision | Tampered-proposal CLI refusal and SDK wrong-repository/parent controls. Unknown formats and noncanonical encodings refuse. |
+| An attacker substitutes the signature verifier through PATH | Verification invokes `/usr/bin/ssh-keygen` with a cleared environment | CLI poisoned-PATH control refuses a fake signature despite a replacement executable returning success. System executable, dynamic loader, CLI and host OS must be protected from the execution account. |
+| Old signed state is replayed or two writers race | Current accepted state is outside the execution account; activation locks, reloads and checks parent, then atomically replaces one snapshot containing history and head | Replay and concurrent activation controls. A file-store operator able to replace trusted state can roll it back; signature chains alone do not prevent this. |
+| Crash splits history from current head | One synced snapshot is renamed, followed by directory sync | Old/new complete file is the recovery unit. Orphan pending files are never accepted. A failure after rename but before successful directory sync has uncertain durability: caller reads status before retrying. Physical disk-loss/power-cut qualification is not established by unit tests. |
+| “Outside the repo” is mistaken for isolation | Normal store mode requires a distinct configured execution UID, private owner directory and non-writable ancestors; test mode is explicit | Same-account bootstrap and mode mismatch refuse. `isolation_enforced` stays false: these checks cannot prove actual account deployment, ACLs, sudo rules, host privileges or protected executable installation. |
+| Agent reaches store, signing socket or host credentials | Linux reference runner exposes only runtime libraries and dedicated task workspace; separate namespaces, empty environment, no network/home/socket mounts | Local sandbox probe observed task writes succeed and outside authority writes fail. Workspace must exclude authority and credentials. Runner/bwrap installation must be protected. Unrestricted agents outside this runner are not contained. |
+| Receipt names a different transition, signer set or sequence | Receipt subject fields are checked against the retained, signature-verified transition; receipt and head share one atomic write | CLI plants wrong digest, previous/new head, signer set, zero/out-of-range sequence. Operator storage protects observations: UID/time are unsigned metadata, exports do not authenticate their origin or clock, and old snapshots may lack receipts. Missing receipt counts stay visible; no invented backfill. |
+| Migration rewrites or blesses history | Bootstrap retains exact legacy role/key bytes; independently supplied revision digest establishes the new baseline | CLI migration/history export checks preserve originals. Bootstrap must be performed by the operator through a protected path; it is never inferred from the legacy key list. |
+
+`authority allows` checks a current role and exact head. It does not authenticate
+its caller or perform a privileged action. A trusted workflow must authenticate
+the acting principal and enforce the result atomically with, or recheck it before,
+the protected action. Removing keys affects future transitions; prior signed
+history is verified against the key set that was current for that transition.
+
+## Reference workflow dispute decisions (OW-WAR-0107)
+
+The reference web application's dispute credentials select a configured human
+responder with governing scope for the exact Warrant. They do not prove human
+presence or grant the OpenWarrant assurance mark. Operators must protect responder
+credentials, configuration and control storage from the performer. Same-account
+file access is not an isolation boundary.
+
+A retained repair decision binds the question, observation, candidate and responder
+configuration. Dispatch rechecks current source, policy, candidate, writer state
+and aggregate budgets. Removing responder authority makes the old decision
+inapplicable. A human repair decision cannot override unknown observations,
+missing evidence or repair limits, and cannot rewrite the original FAIL.
+`test_verifier_repair`, `test_verifier_decision` and
+`test_verifier_repair_execution` exercise these boundaries with synthetic
+credentials and real local Git/process fixtures. Stop, scope-revision and
+verify-again decisions cannot launch repair through the repair endpoint.
+Human-directed rechecks retain the exact prior observation and decision in a v3
+request. Each decision permits one child check; dispatch rechecks responder
+authority and requires fresh protection evidence. Revoked authority leaves the
+prepared claim unconsumed. Candidate, observation, action and responder-kind
+substitution refuse in the real-process contract fixtures. Broader
+dispatch checks prevent unrelated claims and sibling failed results from bypassing
+an unresolved dispute on the same source and candidate, including after service
+restart. Repair previews use the same check as dispatch. These checks do not
+establish global process containment or stop an agent outside the service. Broader
+decision orchestration remains work in progress; these tests do not establish
+deployment isolation or real human acceptance.
+
+The loop receipt inbox pins an operator-selected directory descriptor and reads
+UUID-named files relative to it, with no-follow and nonblocking open. It rejects
+nonregular files before reading and caps reads at 64 KiB. Tests plant a symlink,
+FIFO, oversized envelope, injected field, path traversal and replaced directory.
+The adapter does not authenticate the envelope: ordinary dispatch still checks
+the signed receipt against the pinned issuer and current claim. Configured parent
+paths, issuer custody and sandbox deployment remain operator responsibilities.
+
+Automatic-loop enable/pause requests use the reference service's authenticated
+session and existing origin controls. They select an existing execution attempt,
+not a command, configuration path or issuer. Append-only intent history is checked
+before polling; corruption prevents dispatch. Pause is serialized with ticks and
+stops future launches, not processes already dispatched. Tests cover authenticated
+HTTP configuration, field injection, duplicate intent, background repair/recheck,
+pause across scheduler restart and corrupt-history refusal. Intent digests detect
+corruption; protected control storage remains required against hostile rewriting.
+
+## Availability observations and queued dispatch (OW-WAR-0109)
+
+The candidate availability adapter runs only an operator-configured command. It
+bounds transport time/output, accepts a small exact response schema, and requires
+the fresh request nonce. Missing, stale, duplicated, malformed, oversized, timed-out
+or unsuccessful observations produce UNKNOWN, never available. Availability is
+advisory and grants no authority, writer claim, capacity reservation or assurance.
+`test_availability` exercises real subprocesses, including timeout and bad output.
+The operator must protect the command and its configuration; the shared process
+transport is not a sandbox and cannot contain escaped or remote descendants.
+The candidate durable queue records consumption before launch and binds the exact
+queue record digest into the execution attempt. A consumed request with no matching
+retained attempt stays unknown and is never retried. Restart may recover a single
+exact matching attempt. Current configuration identity and shared admission checks
+remain necessary. Hashes detect corruption, not hostile rewriting or deletion by
+an account that owns control storage. Tests exercise both launch crash boundaries,
+restart and corruption. Queue endpoints require the existing authenticated local
+session and origin checks. Requests cannot select probe commands or edit server
+configuration. Cancellation stops future launch only. Background polling bounds
+each tick to one probe and stops on unreadable or corrupt history. Browser lock
+does not cancel an already authorized queue request.
+## Reference workflow file inputs (OW-WAR-0102)
+
+The shared state/report file reader opens inputs with no-follow and nonblocking
+flags, checks the opened descriptor is a regular file before wrapping or reading
+it, and closes that descriptor on every exit. Reads retain their byte limit.
+`test_file_reads` exercises a FIFO with no writer in a timeout-bounded subprocess,
+a directory, and exact/oversized regular-file reads. This prevents the observed
+FIFO-open hang and refuses directories without leaking the descriptor. Parent
+paths and control storage still require operator protection; this is not a
+general filesystem sandbox or a guarantee against slow regular-file I/O.

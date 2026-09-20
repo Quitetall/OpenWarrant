@@ -1,0 +1,33 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "correct.request",
+  "diagnostics": [],
+  "notes": [],
+  "counts": {
+    "pass": 0,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0,
+  "result": {
+    "schema": "oh.war/correction-request/v1",
+    "warrant": "OW-WAR-0030",
+    "deliverable_id": "D-001",
+    "target_ref": "crates/openwarrant-cli/src/export.rs",
+    "title": "Portable one-file export and round trip (§68)",
+    "resolved": false,
+    "recorded_digest": "sha256:d7eb05ed0f78298dddb95a7c9105e14984fc07daf27f28cad755cad08b369333",
+    "chain_head": "sha256:d7eb05ed0f78298dddb95a7c9105e14984fc07daf27f28cad755cad08b369333",
+    "current_digest": "sha256:14fa96518d53a0476e9ccb9e84d6e8c581ad5b4465fd684a4e0981807ad82b48",
+    "drift": true,
+    "prior_corrections": 0,
+    "next_sequence": 1,
+    "eligible_correctors": [
+      "Brian Lam"
+    ]
+  }
+}

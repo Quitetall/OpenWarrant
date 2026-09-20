@@ -1,0 +1,11 @@
+schema: oh.war/milestones/v1
+milestones:
+  - id: M1
+    title: Configured draft generation and editable web workflow
+    stage_refs: [STAGE-001]
+    obligation_refs: [OBL-001, OBL-002, OBL-003]
+stages:
+  - id: STAGE-001
+    title: Implement bounded agent drafting and exercise refusal controls
+    executor_kind: agent
+    responsibility_tier: T1

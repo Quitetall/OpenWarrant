@@ -1,0 +1,4 @@
+## Activation requirement
+
+Email verification is required before account activation.
+

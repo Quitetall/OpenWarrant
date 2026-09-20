@@ -1,0 +1,18 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0064",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "178dda4d486fa2a8abd0a22f152284213bb6e580",
+  "summary": "Correction request/ingest path, accepted ADR, append-only history and six named refusals are delivered and exercised by the current gate. Existing signed corrections remain unchanged.",
+  "notes": "docs/warrants/OW-WAR-0064/implementation/completion-audit.md",
+  "evidence": [
+    "docs/design/completion-audit-20260915/audit.json",
+    "docs/warrants/OW-WAR-0077/evidence/source-sdk/gate.log",
+    "docs/adr/atoms/OW-ADR-0012-correction-act.md",
+    "conformance/plants.d/64-corrections.sh"
+  ],
+  "next_steps": [
+    "Human qualification/legacy resolution remains separate; this report changes no signed record."
+  ]
+}

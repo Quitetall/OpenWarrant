@@ -10,8 +10,11 @@ use clap::{Parser, Subcommand};
 use openwarrant_core::Profile;
 
 mod attest;
+mod authority_check;
+mod authority_cmd;
 mod authorize;
 mod blut;
+mod board;
 mod bonsai;
 mod bundle;
 mod check;
@@ -19,15 +22,20 @@ mod commit;
 mod compile;
 mod console;
 mod context_select;
+mod contract_history;
 mod correct;
 mod diagnostic;
+mod diff_target;
 mod dispatch;
+mod dispatch_bundle_cmd;
+mod doctor;
 mod document;
 mod eval;
 mod evidence;
 mod export;
 mod frontier;
 mod gate_cmd;
+mod inbox;
 mod init;
 mod journal_cmd;
 mod kf;
@@ -36,10 +44,14 @@ mod migrate;
 mod new;
 mod next;
 mod output;
+mod overview;
 mod perform;
 mod pins;
 mod plan;
+mod preflight_cmd;
+mod preservation;
 mod progress;
+mod progress_viewer;
 mod questions;
 mod relations;
 mod repo;
@@ -48,7 +60,10 @@ mod resolve;
 mod run_cmd;
 mod sas;
 #[cfg(feature = "schema")]
+mod schema_typescript;
+#[cfg(feature = "schema")]
 mod schemas;
+mod sdk;
 mod show;
 mod sign;
 mod status;
@@ -215,6 +230,15 @@ enum EvalCommand {
 
 #[derive(Subcommand)]
 enum DocumentCommand {
+    /// Author a draft interactively; checkpoints remain on cancel or failure.
+    Draft {
+        #[arg(long)]
+        draft_dir: Utf8PathBuf,
+        #[arg(long)]
+        output: Utf8PathBuf,
+        #[arg(long)]
+        resume: bool,
+    },
     /// Review Markdown deliverables (the gate `document.review@1.0.0` runs this).
     Review {
         /// One Warrant; omit for every Warrant with a Markdown deliverable.
@@ -224,6 +248,15 @@ enum DocumentCommand {
 
 #[derive(Subcommand)]
 enum Command {
+    /// Run an offline SDK operation from an explicit JSON request. Always emits JSON.
+    Sdk {
+        /// Request JSON file, or - for stdin.
+        #[arg(long)]
+        request: String,
+        /// Also save the result envelope to a new file; existing files are never replaced.
+        #[arg(long)]
+        output: Option<Utf8PathBuf>,
+    },
     /// Initialize repository configuration and directories (§71.1).
     Init {
         /// Namespace prefixing every local alias, e.g. `OW` in `OW-WAR-0001`.
@@ -264,6 +297,14 @@ enum Command {
         /// A single Warrant's local alias. Defaults to the whole corpus.
         alias: Option<String>,
         /// Also compare committed generated views against a fresh compilation.
+        #[arg(long)]
+        generated: bool,
+    },
+    /// Read-only repository diagnostics; never signs, repairs, or starts work.
+    Doctor {
+        /// Inspect one Warrant instead of the whole corpus.
+        alias: Option<String>,
+        /// Include deterministic generated-view drift checks.
         #[arg(long)]
         generated: bool,
     },
@@ -343,10 +384,17 @@ enum Command {
         #[arg(long, value_name = "PATH")]
         emit: Option<camino::Utf8PathBuf>,
     },
+    /// Draft, authenticate and activate authority changes under previous trusted state.
+    Authority {
+        #[command(subcommand)]
+        command: authority_cmd::Command,
+    },
+    /// Capture or check portable context for an existing Dispatch; never execute it.
+    DispatchBundle {
+        #[command(subcommand)]
+        command: dispatch_bundle_cmd::Command,
+    },
     /// Compile a Stage Dispatch for one stage of a Warrant (§47).
-    ///
-    /// The only packet a stateless actor receives. Built from the Warrant's
-    /// own atoms; digested under §65's Dispatch domain; never executed here.
     Dispatch {
         /// The Warrant's local alias.
         alias: String,
@@ -365,6 +413,11 @@ enum Command {
         /// omitted, with reasons) beside the packet.
         #[arg(long, value_name = "PATH")]
         emit_context: Option<Utf8PathBuf>,
+        /// Compile a packet for a contract no human has signed. The packet
+        /// records `prototype://unauthorized` as the authority it acted under,
+        /// so nothing downstream can mistake the work for authorized.
+        #[arg(long)]
+        prototype: bool,
     },
 
     /// Evaluate §56.1's thirteen resolution requirements without recording one.
@@ -422,9 +475,12 @@ enum Command {
     Diff {
         /// The Warrant's local alias.
         alias: String,
-        /// A canonical JSON file to compare against. Defaults to the committed one.
+        /// JSON baseline or contract:N retained revision (requires --to). Defaults to committed JSON.
         #[arg(long)]
         from: Option<Utf8PathBuf>,
+        /// Explicit JSON target or contract:N retained revision. Defaults to fresh compilation.
+        #[arg(long)]
+        to: Option<Utf8PathBuf>,
     },
     /// Import a legacy ADR corpus (§96), discharging OW-WAR-0043.
     Migrate {
@@ -446,6 +502,12 @@ enum Command {
         /// It must always fail; a build where this succeeds is the defect.
         #[arg(long)]
         attempt_promotion: bool,
+    },
+
+    /// Experimental preservation transport. Imported records grant no authority.
+    Archive {
+        #[command(subcommand)]
+        cmd: preservation::Command,
     },
 
     /// §68 portable export and round trip.
@@ -613,6 +675,11 @@ enum Command {
         alias: String,
         /// The stage id, e.g. `STAGE-002`.
         stage: String,
+        /// Run a stage of a contract no human has signed. The Dispatch the run
+        /// is built from records `prototype://unauthorized`, and so does the
+        /// receipt's subject.
+        #[arg(long)]
+        prototype: bool,
     },
     /// Ingest a Stage Submission something else produced (§51): it must name a
     /// dispatch this Warrant compiled and may not request its own resolution.
@@ -645,6 +712,12 @@ enum Command {
     /// (OW-WAR-0069). Check rows, pick a reason from your presets, sign the
     /// batch. It never signs for you: each row is your own ssh confirmation.
     Console,
+    /// Read-only project board, including every stage and exact approval commands.
+    Board {
+        /// Print a self-contained offline HTML document to stdout.
+        #[arg(long, conflicts_with = "json")]
+        html: bool,
+    },
     /// Perform an agent stage with the configured performer (OW-WAR-0069): the
     /// Dispatch goes in on stdin, a Stage Submission comes back on stdout, and
     /// it is ingested through `war submit`'s refusals. It cannot decide the work
@@ -657,6 +730,11 @@ enum Command {
         /// Every open agent stage on the frontier, one at a time.
         #[arg(long)]
         all: bool,
+        /// Perform a stage of a contract no human has signed. The operator
+        /// types this, never the agent: the Dispatch records
+        /// `prototype://unauthorized` and the work is not authorized work.
+        #[arg(long)]
+        prototype: bool,
     },
     /// The commit message, drafted from the records that changed (OW-WAR-0069).
     Commit {
@@ -763,6 +841,33 @@ enum Command {
     /// What should happen next, and whose act it is. An agent is never handed
     /// a signing act; it is told that a human must sign, and how.
     Next,
+    /// Warrants waiting on a human act (read-only; OW-WAR-0070).
+    Inbox,
+    /// Report six readiness dimensions; unavailable checks block readiness.
+    Preflight { alias: String },
+    /// List remaining Warrant records and status, read-only, from live sources.
+    /// `progress` is an alias. Legacy resolution is not implementation completion.
+    #[command(visible_alias = "progress")]
+    Overview {
+        /// Include records with an existing resolution in text/JSON output.
+        #[arg(long)]
+        all: bool,
+        /// Return the validated viewer snapshot, including attributed work reports.
+        #[arg(long, conflicts_with_all = ["html", "serve"])]
+        snapshot: bool,
+        /// Write a self-contained HTML snapshot (all records), with no implicit server.
+        #[arg(long, num_args=0..=1, default_missing_value=".openwarrant/state/progress.html", conflicts_with="serve")]
+        html: Option<std::path::PathBuf>,
+        /// Serve a read-only, periodically refreshed view on 127.0.0.1.
+        #[arg(long)]
+        serve: bool,
+        /// Local server port; 0 selects an available port.
+        #[arg(long, default_value_t = 8765, requires = "serve")]
+        port: u16,
+        /// Refresh interval, in seconds (1..=3600).
+        #[arg(long, default_value_t=5, value_parser=clap::value_parser!(u64).range(1..=3600), requires="serve")]
+        refresh_secs: u64,
+    },
     /// Where the corpus stands, from records (§17.5 `status`; §34.3; §98).
     ///
     /// Bare `war status` is the corpus projection. `war status <alias>` is the
@@ -790,7 +895,21 @@ enum Command {
 }
 
 fn main() -> ExitCode {
-    let cli = Cli::parse();
+    let cli = match Cli::try_parse() {
+        Ok(cli) => cli,
+        Err(error) => {
+            // Preserve legacy argument handling. SDK callers always receive a
+            // report for invocation errors; --help and --version remain help.
+            let sdk = std::env::args_os()
+                .skip(1)
+                .find(|arg| arg != "--json")
+                .is_some_and(|arg| arg == "sdk");
+            if sdk && error.use_stderr() {
+                return ExitCode::from(sdk::argument_error(&error.to_string()));
+            }
+            error.exit();
+        }
+    };
     let mode = output::Mode::from_flag(cli.json);
     match run(cli) {
         Ok(code) => ExitCode::from(code),
@@ -806,6 +925,7 @@ fn main() -> ExitCode {
 fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
     let mode = output::Mode::from_flag(cli.json);
     match cli.command {
+        Command::Sdk { request, output } => Ok(sdk::run(&request, output.as_deref())),
         Command::Init {
             namespace,
             name,
@@ -940,6 +1060,11 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 Ok(EXIT_OK)
             }
         },
+        Command::Archive { cmd } => {
+            let (human, result) = preservation::run(cmd)?;
+            output::emit(mode, "archive", &human, result);
+            Ok(EXIT_OK)
+        }
         Command::Export {
             alias,
             force,
@@ -1280,6 +1405,19 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             let report = blut::lower(&repository, &alias, verify.as_deref(), emit.as_deref())?;
             Ok(output::finish(mode, "blut", &report, None))
         }
+        Command::Authority { command } => {
+            let (report, result) = authority_cmd::run(command)?;
+            Ok(output::finish(mode, "authority", &report, Some(result)))
+        }
+        Command::DispatchBundle { command } => {
+            let (report, result) = dispatch_bundle_cmd::run(command)?;
+            Ok(output::finish(
+                mode,
+                "dispatch-bundle",
+                &report,
+                Some(result),
+            ))
+        }
         Command::Dispatch {
             alias,
             stage,
@@ -1287,6 +1425,7 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             prior_failure,
             emit,
             emit_context,
+            prototype,
         } => {
             let repository = repo::Repository::discover(None)?;
             let kind = attempt_kind
@@ -1296,10 +1435,13 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 &repository,
                 &alias,
                 &stage,
-                kind,
-                &prior_failure,
-                emit.as_deref(),
-                emit_context.as_deref(),
+                dispatch::Options {
+                    attempt_kind: kind,
+                    prior_failure_evidence: &prior_failure,
+                    emit_to: emit.as_deref(),
+                    emit_context_to: emit_context.as_deref(),
+                    prototype,
+                },
             )?;
             // The packet is the only thing on stdout when it goes there. An
             // actor piping `war dispatch` into a parser must get canonical JSON
@@ -1506,9 +1648,13 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             );
             Ok(EXIT_OK)
         }
-        Command::Run { alias, stage } => {
+        Command::Run {
+            alias,
+            stage,
+            prototype,
+        } => {
             let repository = repo::Repository::discover(None)?;
-            let report = run_cmd::run(&repository, &alias, &stage)?;
+            let report = run_cmd::run(&repository, &alias, &stage, prototype)?;
             Ok(output::finish(mode, "run", &report, None))
         }
         Command::Submit { alias, file } => {
@@ -1516,12 +1662,18 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             let report = run_cmd::submit(&repository, &alias, &file)?;
             Ok(output::finish(mode, "submit", &report, None))
         }
-        Command::Document { command } => {
-            let repository = repo::Repository::discover(None)?;
-            let DocumentCommand::Review { alias } = command;
-            let report = document::review(&repository, alias.as_deref())?;
-            Ok(output::finish(mode, "document.review", &report, None))
-        }
+        Command::Document { command } => match command {
+            DocumentCommand::Draft {
+                draft_dir,
+                output,
+                resume,
+            } => Ok(document::draft::run(&draft_dir, &output, resume, mode)),
+            DocumentCommand::Review { alias } => {
+                let repository = repo::Repository::discover(None)?;
+                let report = document::review(&repository, alias.as_deref())?;
+                Ok(output::finish(mode, "document.review", &report, None))
+            }
+        },
         Command::Attest {
             target,
             verify,
@@ -1538,6 +1690,24 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 }
             };
             Ok(output::finish(mode, "attest", &report, None))
+        }
+        Command::Board { html } => {
+            let repository = repo::Repository::discover(None)?;
+            let (report, view) = board::build(&repository)?;
+            if !matches!(mode, output::Mode::Json) {
+                if html {
+                    print!("{}", board::html(&view, &report));
+                    return Ok(output::exit_code(&report));
+                } else {
+                    print!("{}", board::render(&view));
+                }
+            }
+            Ok(output::finish(
+                mode,
+                "board",
+                &report,
+                Some(serde_json::to_value(&view)?),
+            ))
         }
         Command::Console => {
             let repository = repo::Repository::discover(None)?;
@@ -1556,11 +1726,16 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             let report = console::run(&repository)?;
             Ok(output::finish(mode, "console", &report, None))
         }
-        Command::Perform { alias, stage, all } => {
+        Command::Perform {
+            alias,
+            stage,
+            all,
+            prototype,
+        } => {
             let repository = repo::Repository::discover(None)?;
             let report = match (alias.as_deref(), stage.as_deref(), all) {
-                (Some(a), Some(st), false) => perform::run(&repository, a, st)?,
-                (None, None, true) => perform::all(&repository)?,
+                (Some(a), Some(st), false) => perform::run(&repository, a, st, prototype)?,
+                (None, None, true) => perform::all(&repository, prototype)?,
                 _ => {
                     return Err(Box::new(repo::RepoError::Message(
                         "war perform: name a Warrant and a stage, or pass --all".to_owned(),
@@ -1722,6 +1897,29 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             mcp::run(repository)?;
             Ok(EXIT_OK)
         }
+        Command::Preflight { alias } => {
+            let repository = repo::Repository::discover(None)?;
+            let (result, report) = preflight_cmd::run(&repository, &alias)?;
+            match mode {
+                output::Mode::Human => print!("{}", preflight_cmd::render(&result)),
+                output::Mode::Json => println!(
+                    "{}",
+                    output::envelope("preflight", &report, Some(output::value(&result)))
+                ),
+            }
+            Ok(output::exit_code(&report))
+        }
+        Command::Inbox => {
+            let repository = repo::Repository::discover(None)?;
+            let inbox = inbox::run(&repository)?;
+            output::emit(
+                mode,
+                "inbox",
+                inbox::render(&inbox).trim_end(),
+                output::value(&inbox),
+            );
+            Ok(EXIT_OK)
+        }
         Command::Next => {
             let repository = repo::Repository::discover(None)?;
             let next = next::run(&repository)?;
@@ -1730,6 +1928,48 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 "next",
                 next::render(&next).trim_end(),
                 output::value(&next),
+            );
+            Ok(EXIT_OK)
+        }
+        Command::Overview {
+            all,
+            snapshot,
+            html,
+            serve,
+            port,
+            refresh_secs,
+        } => {
+            let repository = repo::Repository::discover(None)?;
+            if snapshot {
+                let view = progress_viewer::json_snapshot(&repository)?;
+                output::emit(
+                    mode,
+                    "overview",
+                    &serde_json::to_string_pretty(&view).unwrap(),
+                    view,
+                );
+                return Ok(EXIT_OK);
+            }
+            if let Some(path) = html {
+                progress_viewer::export(&repository, &path)?;
+                output::emit(
+                    mode,
+                    "overview",
+                    &format!("Progress: {}", path.display()),
+                    serde_json::json!({"html":path}),
+                );
+                return Ok(EXIT_OK);
+            }
+            if serve {
+                progress_viewer::serve(repository, port, refresh_secs, mode)?;
+                return Ok(EXIT_OK);
+            }
+            let view = overview::build(status::build(&repository)?, all);
+            output::emit(
+                mode,
+                "overview",
+                &overview::render(&view),
+                output::value(&view),
             );
             Ok(EXIT_OK)
         }
@@ -1810,12 +2050,29 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             );
             Ok(EXIT_OK)
         }
-        Command::Diff { alias, from } => {
+        Command::Diff { alias, from, to } => {
             let repository = repo::Repository::discover(None)?;
-            let report = show::diff(&repository, &alias, from.as_ref())?;
+            let report = if let Some(to) = to {
+                diff_target::compare(&repository, &alias, from.as_deref(), &to)?
+            } else {
+                if from
+                    .as_ref()
+                    .is_some_and(|value| value.as_str().starts_with("contract:"))
+                {
+                    return Err(repo::RepoError::Message(
+                        "contract baseline requires explicit --to target".into(),
+                    )
+                    .into());
+                }
+                show::diff(&repository, &alias, from.as_ref())?
+            };
             // A diff is information, not a verdict: exit 0 whatever it found.
             let _ = output::finish(mode, "diff", &report, None);
             Ok(EXIT_OK)
+        }
+        Command::Doctor { alias, generated } => {
+            let (report, result) = doctor::run(alias.as_deref(), generated);
+            Ok(output::finish(mode, "doctor", &report, Some(result)))
         }
         Command::Check { alias, generated } => {
             let repository = repo::Repository::discover(None)?;

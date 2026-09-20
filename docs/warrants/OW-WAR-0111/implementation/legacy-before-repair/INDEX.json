@@ -1,0 +1,24 @@
+[
+  {
+    "warrant": "OW-WAR-0030",
+    "deliverable": "D-001",
+    "resolved": false,
+    "source_revision": "bbef6cd8b036449718c4092b6ea6353f63b85e89",
+    "target": "crates/openwarrant-cli/src/export.rs",
+    "prior_digest": "sha256:d7eb05ed0f78298dddb95a7c9105e14984fc07daf27f28cad755cad08b369333",
+    "current_digest": "sha256:14fa96518d53a0476e9ccb9e84d6e8c581ad5b4465fd684a4e0981807ad82b48",
+    "prior_record_digest": "sha256:a5998278122521c86ea24ee88f831b34bcacf8093530c56ff49ee8a4b2fcf072",
+    "update": "unverified performer provenance; no assurance disposition changed"
+  },
+  {
+    "warrant": "OW-WAR-0063",
+    "deliverable": "D-003",
+    "resolved": false,
+    "source_revision": "bbef6cd8b036449718c4092b6ea6353f63b85e89",
+    "target": "conformance/plants.d/00-corpus.sh",
+    "prior_digest": "sha256:95f4a8c570247483884b40dee7b890640491fd92abc3eb50bf8d9695f773d437",
+    "current_digest": "sha256:cb1a0cbcda76d86c93fd884043a078b8e8999b1718d53b8a65cab3c64fbb527c",
+    "prior_record_digest": "sha256:80b67178dfb1720b2b49b1c2ddf580ff2db1a04b6c5a8a1493dcafed347f3a1b",
+    "update": "unverified performer provenance; no assurance disposition changed"
+  }
+]

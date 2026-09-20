@@ -1,0 +1,30 @@
+schema = "oh.war/authorization/v1"
+warrant = "OW-WAR-0047"
+sas_revision = "0.1.0-draft.1"
+
+[revision]
+revision = 2
+state = "authorized"
+contract_digest = "f987d39f897ee8c138d01585cbfc6fa0363e5d91c738733885b07d12bd187578"
+predecessor_digest = "c69a32d987c71d123f3eb04f1bcf1270aa1f7cad859f25707208ec84cb9e900e"
+proposer = "claude"
+
+[revision.coverage]
+covered = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+
+[revision.authorization]
+authorizer = "Brian Lam"
+actor_kind = "human"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0047 (Discharge the Phase 7 exit: compatible WARs execute without duplicating BLUT) at this contract digest means the signer accepts its intent, scope and 3 obligation(s) as the work to be done and judged, and accepts each of the 1 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-09-12T20:49:45Z"
+independence = "separate_role"

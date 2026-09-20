@@ -124,21 +124,19 @@ pub fn board(repo: &Repository) -> Result<Board, RepoError> {
             }
         })
         .collect();
-    let questions: Vec<Question> = crate::questions::list(repo, None, true)
-        .map(|(_, l)| {
-            l.questions
-                .into_iter()
-                .map(|q| Question {
-                    command: format!("war answer {} {} \"…\" --as <you>", q.warrant, q.id),
-                    warrant: q.warrant,
-                    id: q.id,
-                    blocking: q.blocking,
-                    question: q.question,
-                    recommended: q.recommended,
-                })
-                .collect()
-        })
-        .unwrap_or_default();
+    let questions: Vec<Question> = crate::questions::complete_list(repo, true).map(|l| {
+        l.questions
+            .into_iter()
+            .map(|q| Question {
+                command: format!("war answer {} {} \"…\" --as <you>", q.warrant, q.id),
+                warrant: q.warrant,
+                id: q.id,
+                blocking: q.blocking,
+                question: q.question,
+                recommended: q.recommended,
+            })
+            .collect()
+    })?;
     let stages: Vec<Stage> = crate::frontier::run(repo, None)
         .map(|(_, f)| {
             f.rows
@@ -576,19 +574,26 @@ fn start_stages(repo: &Repository, b: &Board, report: &mut Report) -> Result<(),
     for st in &b.stages {
         println!("\n  ── {} {} [{}]", st.warrant, st.stage, st.executor_kind);
         let r = match (st.executor_kind.as_str(), performer) {
-            ("service", _) => crate::run_cmd::run(repo, &st.warrant, &st.stage),
+            ("service", _) => crate::run_cmd::run(repo, &st.warrant, &st.stage, false),
             // With a performer configured, `r` starts the work rather than
             // preparing it: the agent reads the Dispatch and answers over the
             // submission seam, which still refuses to resolve anything.
-            ("agent", true) => crate::perform::run(repo, &st.warrant, &st.stage),
+            ("agent", true) => crate::perform::run(repo, &st.warrant, &st.stage, false),
             _ => crate::dispatch::run(
                 repo,
                 &st.warrant,
                 &st.stage,
-                openwarrant_core::execution::AttemptKind::Initial,
-                &[],
-                None,
-                None,
+                crate::dispatch::Options {
+                    attempt_kind: openwarrant_core::execution::AttemptKind::Initial,
+                    prior_failure_evidence: &[],
+                    emit_to: None,
+                    emit_context_to: None,
+                    // Never a prototype from here: the console runs stages for
+                    // the human sitting at it, and an unauthorized contract is
+                    // a refusal they should see, not one a default answers for
+                    // them.
+                    prototype: false,
+                },
             ),
         };
         match r {

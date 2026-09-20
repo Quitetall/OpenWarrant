@@ -1,0 +1,12 @@
+    Blocking waiting for file lock on build directory
+    Checking serde_core v1.0.229
+    Checking serde v1.0.229
+    Checking uuid v1.25.0
+    Checking serde_json v1.0.151
+    Checking toml_datetime v0.6.11
+    Checking serde_spanned v0.6.9
+    Checking toml_edit v0.22.27
+    Checking serde_jcs v0.2.0
+    Checking toml v0.8.23
+    Checking openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-war-0075-sdk/crates/openwarrant-core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 7.84s

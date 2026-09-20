@@ -1,0 +1,20 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0105",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "491d87297d7e84d5681c8e39dda8d939e2e54807",
+  "summary": "Configured drafting workflow complete within OW105 synthetic-adapter scope; browser behavior, full gate and exact-head CI observed; PR113 merged. Unverified; actual-provider qualification remains separate.",
+  "notes": "docs/warrants/OW-WAR-0105/implementation/completion-audit.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0105/implementation/all-tests.log",
+    "docs/warrants/OW-WAR-0105/implementation/integration-tests.log",
+    "docs/warrants/OW-WAR-0105/implementation/notes.md",
+    "docs/warrants/OW-WAR-0105/implementation/gate-f458ac9-pass.log.gz",
+    "docs/warrants/OW-WAR-0105/implementation/completion-audit.md"
+  ],
+  "next_steps": [
+    "Actual local/cloud provider and sandbox qualification under Phase 3",
+    "Independent verification and secure human acceptance remain separate"
+  ]
+}

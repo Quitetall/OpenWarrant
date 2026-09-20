@@ -1,0 +1,17 @@
+schema = "oh.war/rationale/v1"
+
+[[assumption]]
+id = "A-001"
+statement = "Formal RC.3 adoption for qualification is not established by this unsigned implementation plan."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "For a claim requiring adopted RC.3: retain exact candidate adoption and applicable independent authority evidence."
+consequence_if_false = "That qualification claim and legacy resolution remain blocked. Prompt-only unverified work and independent preparation may continue."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-002"
+statement = "The consumed interface/data from OW-WAR-0089 exists at an exact known revision."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "Inspect the needed output and its checks; record its actual revision. For a Phase 1 consumer, only the SDK subset is required."
+consequence_if_false = "Only stages consuming the missing output wait; preparation and independent stages continue."
+judgment_ref = ""

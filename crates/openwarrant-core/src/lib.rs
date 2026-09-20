@@ -12,9 +12,11 @@
 #![forbid(unsafe_code)]
 
 pub mod authority;
+pub mod authority_transition;
 pub mod autonomy;
 pub mod context;
 pub mod deliverable;
+pub mod document;
 pub mod preflight;
 pub mod rationale;
 pub mod traceability;

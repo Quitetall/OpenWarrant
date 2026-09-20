@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "/mnt/4tb/tmp/ow47-cookbook-target/debug/lqt",
+    "plan",
+    "run",
+    "/tmp/ow47-plan-20260918.json",
+    "--no-cache"
+  ],
+  "exit_code": 1,
+  "elapsed_seconds": 0.10279167100088671,
+  "storage_root": "/mnt/4tb/tmp/ow47-pinned-runtime-20260918",
+  "qualified": false
+}

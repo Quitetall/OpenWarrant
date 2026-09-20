@@ -540,10 +540,14 @@ impl WarServer {
             &self.repo,
             &p.alias,
             &p.stage,
-            kind,
-            &p.prior_failure,
-            Some(&scratch),
-            None,
+            crate::dispatch::Options {
+                attempt_kind: kind,
+                prior_failure_evidence: &p.prior_failure,
+                emit_to: Some(&scratch),
+                emit_context_to: None,
+                // An agent cannot decide to work under no authority (§27.2).
+                prototype: false,
+            },
         );
         let packet = std::fs::read_to_string(&scratch).ok();
         let _ = std::fs::remove_file(&scratch);
@@ -668,11 +672,16 @@ impl WarServer {
         annotations(read_only_hint = true)
     )]
     fn war_questions(&self, Parameters(p): Parameters<QuestionsParams>) -> ToolResult {
-        value_of(
-            "questions",
-            crate::questions::list(&self.repo, p.alias.as_deref(), p.open).map(|(_, l)| l),
-            "questions listed",
-        )
+        match crate::questions::list(&self.repo, p.alias.as_deref(), p.open) {
+            Ok((report, list)) => {
+                let mut result = envelope("questions", &report, Some(crate::output::value(&list)))?;
+                if !report.is_ready() {
+                    result.is_error = Some(true);
+                }
+                Ok(result)
+            }
+            Err(e) => refused("questions", &e),
+        }
     }
 
     #[tool(

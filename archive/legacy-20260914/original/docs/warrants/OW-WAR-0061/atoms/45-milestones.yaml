@@ -1,0 +1,13 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "The Exit is measurable and measured"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Write PHASE1_EXIT.md from measurements; plant"
+    executor_kind: "agent"
+    responsibility_tier: "T2"

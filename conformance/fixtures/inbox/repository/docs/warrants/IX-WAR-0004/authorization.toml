@@ -1,0 +1,30 @@
+# SYNTHETIC FIXTURE. Never ingest into a real repository.
+schema = "oh.war/authorization/v1"
+warrant = "IX-WAR-0004"
+sas_revision = "1.0.0"
+
+[revision]
+revision = 1
+state = "authorized"
+contract_digest = "f91cea865f8a0c12d23601150016e7a3683c3bd2d08b3853b00b6d8d69d1e352"
+proposer = "claude"
+
+[revision.coverage]
+covered = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+
+[revision.authorization]
+authorizer = "Fixture Human"
+actor_kind = "human"
+acting_role = "authorizer"
+meaning = "Synthetic test data only; no authority or acceptance is claimed."
+effective_time = "2026-09-13T03:48:40Z"
+independence = "separate_role"

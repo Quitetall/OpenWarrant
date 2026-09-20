@@ -1,0 +1,53 @@
+# A Warrant is the contract for ONE bounded intervention inside a program,
+# and it traces to that program's SAS through [[implements]] and [[roadmap]].
+# Starting a program? Write its SAS instead (SAS §6.10; docs/DEFINITIONS.md).
+schema = "oh.war/manifest/v1"
+uuid = "01a0983e-32d7-7473-b6e1-fbef061a1e5f"
+local_alias = "OW-WAR-0071"
+
+# Allocated only by Knowledge Fabric (SAS §12.4). Leave empty.
+enterprise_id = ""
+
+title = "SAS 1.1.0: the batch act, and the dashboard as a rendering of the record"
+profile = "decision"
+assurance_level = "basic"
+
+# [[implements]]
+# ref = "sas://WAR-SAS-RQ-000"
+# contribution = "partial"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-020"
+contribution = "partial"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-085"
+contribution = "partial"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 30
+role = "adr"
+path = "../../adr/atoms/OW-ADR-0019-sas-1-1-0-batch-act-and-renderings.md"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true
+
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-9/release"

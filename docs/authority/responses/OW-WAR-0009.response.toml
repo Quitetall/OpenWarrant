@@ -1,0 +1,19 @@
+schema = "oh.war/authorization-response/v1"
+warrant = "OW-WAR-0009"
+contract_digest = "00d35ab4f9f3100d71513f8f7e63ff872cf2af158cd3b9382d563f2cb3e119f4"
+authorizer = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0009 (Implement contract revisions and their immutability) at this contract digest means the signer accepts its intent, scope and 4 obligation(s) as the work to be done and judged, and accepts each of the 1 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.1` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-09-19T02:38:17Z"
+independence = "separate_role"
+signed_via = "ssh"
+
+[[judgment]]
+id = "J-001"
+kind = "residual_risk_acceptance"
+statement = "Local authorization as a placeholder is acceptable, bounded by OBL-000's honesty about it."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "Accepting residual risk A-001 for OW-WAR-0009: if the assumption is false, the consequence is: The contract model detects rather than prevents, and the only thing keeping that visible is a sentence somebody has to keep writing. Presented on a terminal by `war sign 1.0.0-alpha.1` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+basis_refs = ["assumption://A-001"]
+authority = "authorized"

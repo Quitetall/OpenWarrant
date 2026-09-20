@@ -1,0 +1,41 @@
+schema = "oh.war/manifest/v1"
+uuid = "01a021a1-4e5e-7fab-b57f-5ff71bea4973"
+local_alias = "OW-WAR-0041"
+enterprise_id = ""
+title = "Discharge the Phase 0 exit: real telemetry distributions, with a baseline"
+profile = "delivery"
+assurance_level = "controlled"
+
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-0/exit"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true

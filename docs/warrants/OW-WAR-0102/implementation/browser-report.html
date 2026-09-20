@@ -1,0 +1,67 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'"><title>OpenWarrant work report</title><style>body{font:16px system-ui;max-width:850px;margin:3rem auto;padding:1rem}pre{white-space:pre-wrap;overflow-wrap:anywhere}progress{width:100%}</style><h1>WORK_DONE</h1><p>Qualification: unverified</p><p>configured execution inventory, not whole repository</p><progress max="1" value="1"></progress><p>1 / 1 complete</p><pre>{
+  &quot;snapshot_sha256&quot;: &quot;0b3072e367634b4430af428243572f598a1d6629248d51e8dea869ef29355dea&quot;,
+  &quot;attempt&quot;: {
+    &quot;schema&quot;: &quot;oh.war/execution-attempt/v1&quot;,
+    &quot;attempt_id&quot;: &quot;96ae6eb4-2b1e-4929-a9fa-29393a77065c&quot;,
+    &quot;sequence&quot;: 2,
+    &quot;warrant_id&quot;: &quot;b633bd3c-24e1-4052-a848-57fbe805c064&quot;,
+    &quot;source_sha256&quot;: &quot;314ef50fb0e01859face4768fbb04b04ba152d363bbae5d820932ca0f1102352&quot;,
+    &quot;base_commit&quot;: &quot;deb9c8befa5ee5e699feff562db480d59fb5542a&quot;,
+    &quot;worktree&quot;: &quot;/tmp/tmpizg25asc/state/.execution/worktree-b633bd3c-24e1-4052-a848-57fbe805c064&quot;,
+    &quot;work_state&quot;: &quot;completed&quot;,
+    &quot;execution_state&quot;: &quot;stopped&quot;,
+    &quot;cause&quot;: &quot;Work finished&quot;,
+    &quot;qualified&quot;: false,
+    &quot;cost_usd&quot;: 0,
+    &quot;result_revision&quot;: &quot;e11d1b1c5b52aba65e31a1400d6035500ca524e4&quot;,
+    &quot;notes&quot;: &quot;Fixture implemented file.&quot;,
+    &quot;next_steps&quot;: [
+      &quot;Independent review&quot;
+    ],
+    &quot;checks&quot;: [
+      {
+        &quot;argv&quot;: [
+          &quot;/usr/bin/python3&quot;,
+          &quot;-c&quot;,
+          &quot;from pathlib import Path; assert Path(&#x27;result.txt&#x27;).read_text() == &#x27;implemented\\n&#x27;&quot;
+        ],
+        &quot;exit_code&quot;: 0,
+        &quot;stdout&quot;: &quot;&quot;,
+        &quot;stdout_truncated&quot;: false,
+        &quot;stderr&quot;: &quot;&quot;,
+        &quot;stderr_truncated&quot;: false,
+        &quot;capture_incomplete&quot;: false
+      }
+    ],
+    &quot;policy&quot;: {
+      &quot;source_sha256&quot;: &quot;314ef50fb0e01859face4768fbb04b04ba152d363bbae5d820932ca0f1102352&quot;,
+      &quot;base_commit&quot;: &quot;deb9c8befa5ee5e699feff562db480d59fb5542a&quot;,
+      &quot;verified_start&quot;: false,
+      &quot;dependencies&quot;: [],
+      &quot;checks&quot;: [
+        [
+          &quot;/usr/bin/python3&quot;,
+          &quot;-c&quot;,
+          &quot;from pathlib import Path; assert Path(&#x27;result.txt&#x27;).read_text() == &#x27;implemented\\n&#x27;&quot;
+        ]
+      ]
+    },
+    &quot;harness_argv&quot;: [
+      &quot;/usr/bin/python3&quot;,
+      &quot;/tmp/tmpizg25asc/harness.py&quot;
+    ],
+    &quot;created_at_unix&quot;: 1789700827.4854999,
+    &quot;stdout&quot;: &quot;{\&quot;schema\&quot;: \&quot;oh.war/execution-result/v1\&quot;, \&quot;attempt_id\&quot;: \&quot;96ae6eb4-2b1e-4929-a9fa-29393a77065c\&quot;, \&quot;source_sha256\&quot;: \&quot;314ef50fb0e01859face4768fbb04b04ba152d363bbae5d820932ca0f1102352\&quot;, \&quot;work_state\&quot;: \&quot;completed\&quot;, \&quot;notes\&quot;: \&quot;Fixture implemented file.\&quot;, \&quot;next_steps\&quot;: [\&quot;Independent review\&quot;]}\n&quot;,
+    &quot;stdout_truncated&quot;: false,
+    &quot;stderr&quot;: &quot;&quot;,
+    &quot;stderr_truncated&quot;: false,
+    &quot;capture_incomplete&quot;: false,
+    &quot;finished_at_unix&quot;: 1789700827.556773
+  },
+  &quot;progress&quot;: {
+    &quot;scope&quot;: &quot;configured execution inventory, not whole repository&quot;,
+    &quot;completed&quot;: 1,
+    &quot;total&quot;: 1,
+    &quot;pending&quot;: []
+  }
+}</pre></html>

@@ -1,0 +1,9 @@
+schema = "oh.war/rationale/v1"
+
+[[assumption]]
+id = "A-001"
+statement = "Formal RC.3 adoption for qualification is not established by this unsigned implementation plan."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "For a claim requiring adopted RC.3: retain exact candidate adoption and applicable independent authority evidence."
+consequence_if_false = "That qualification claim and legacy resolution remain blocked. Prompt-only unverified work and independent preparation may continue."
+judgment_ref = ""

@@ -1,0 +1,1 @@
+{"model": "Qwen3.5-4B-Q4_K_M.gguf", "usage": {"completion_tokens": 578, "prompt_tokens": 1557, "total_tokens": 2135, "prompt_tokens_details": {"cached_tokens": 0}}, "finish_reason": "stop"}

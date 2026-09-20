@@ -1,0 +1,20 @@
+schema: "oh.war/milestones/v1"
+milestones:
+  - id: M1
+    title: Preserve failed reproduction and repair provider
+    stage_refs: [STAGE-001]
+    obligation_refs: [OBL-001]
+  - id: M2
+    title: Validate exact graph and integrate evidence
+    depends_on: [M1]
+    stage_refs: [STAGE-002]
+    obligation_refs: [OBL-002, OBL-003]
+stages:
+  - id: STAGE-001
+    title: Prepare and check shared provider repair
+    executor_kind: agent
+    responsibility_tier: T1
+  - id: STAGE-002
+    title: Run graph and preserve integration evidence
+    executor_kind: agent
+    responsibility_tier: T1

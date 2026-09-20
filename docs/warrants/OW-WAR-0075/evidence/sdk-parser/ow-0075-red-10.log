@@ -1,0 +1,4 @@
+exit=-6
+
+thread 'main' (1689441) has overflowed its stack
+fatal runtime error: stack overflow, aborting

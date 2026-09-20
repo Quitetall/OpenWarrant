@@ -1,0 +1,52 @@
+schema = "oh.war/manifest/v1"
+uuid = "01a021a4-be73-76f7-9aa7-d883cc39d51e"
+local_alias = "OW-WAR-0044"
+enterprise_id = ""
+title = "Discharge the Phase 4 exit: KF is institutional authority, Git stays Source Holder"
+profile = "delivery"
+assurance_level = "controlled"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-003"
+contribution = "complete"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-004"
+contribution = "complete"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-005"
+contribution = "complete"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-4/exit"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true

@@ -1,0 +1,16 @@
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-war-0084-sdk/crates/openwarrant-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.95s
+     Running tests/document_legacy.rs (target/debug/deps/document_legacy-b53809a2b6f1f8e8)
+
+running 8 tests
+test historical_colon_names_are_preserved_but_drive_and_traversal_paths_refuse ... ok
+test explicit_import_roundtrips_original_bytes_without_new_authority ... ok
+test unrelated_unresolved_history_does_not_gate_new_work_but_named_failure_does ... ok
+test successor_keeps_both_versions_without_copying_old_authority ... ok
+test oversized_json_strings_keys_and_escapes_refuse_before_decoding ... ok
+test tiny_limits_refuse_import_before_retaining_blobs_and_metadata ... ok
+test signed_legacy_inventory_keeps_resolution_subjects_and_refuses_tampering ... ok
+test corruption_missing_files_escaping_paths_and_unknown_editions_refuse ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+

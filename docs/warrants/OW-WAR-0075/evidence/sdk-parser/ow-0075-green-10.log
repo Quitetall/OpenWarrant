@@ -1,0 +1,5 @@
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-war-0075-sdk/crates/openwarrant-core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.86s
+     Running `target/debug/examples/sdk_probe --scope 75 --fixtures /tmp/ow-0075-depth-repro`
+PASS nested-dotted-depth
+1 document cases passed; context/readiness not evaluated; author/edit outside scope 75

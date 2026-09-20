@@ -1,0 +1,21 @@
+    Updating crates.io index
+     Locking 4 packages to latest Rust 1.97.1 compatible versions
+      Adding bitflags v2.13.2
+      Adding errno v0.3.14
+      Adding linux-raw-sys v0.12.1
+      Adding rustix v1.1.4
+   Compiling rustix v1.1.4
+   Compiling linux-raw-sys v0.12.1
+   Compiling bitflags v2.13.2
+   Compiling openwarrant-cli v1.0.0 (/mnt/4tb/tmp/ow-progress-viewer/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 17.32s
+     Running tests/progress_viewer.rs (target/debug/deps/progress_viewer-15fb9da8a6633647)
+
+running 4 tests
+test unknown_report_and_symlink_sources_never_become_completed ... ok
+test cached_evidence_replaced_by_fifo_or_symlink_refuses_without_hanging ... ok
+test offline_view_contains_live_data_and_refuses_source_overwrite ... ok
+test live_refresh_keeps_last_good_snapshot_and_refuses_writes_and_bad_origins ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.28s
+

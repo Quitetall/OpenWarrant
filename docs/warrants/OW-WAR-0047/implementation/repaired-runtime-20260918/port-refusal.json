@@ -1,0 +1,23 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "error",
+  "diagnostics": [
+    {
+      "severity": "error",
+      "rule": "cli.error",
+      "file": null,
+      "message": "OW-WAR-0047: BLUT adapter rejected stage \"OW-WAR-0047\": port \"STAGE-003.corpus\" maps to incompatible kind \"war/not-a-kind\". §49.2 requires the adapter to reject incompatible kinds and unsupported conditions rather than lowering them into something that runs but means something else"
+    }
+  ],
+  "notes": [],
+  "counts": {
+    "pass": 0,
+    "warn": 0,
+    "unknown": 0,
+    "error": 1,
+    "worst": "error"
+  },
+  "verdict": "not_ready",
+  "verdict_line": "NOT READY",
+  "exit_code": 2
+}

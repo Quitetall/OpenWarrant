@@ -1,0 +1,12 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "Frontier integrity and refusal evidence"
+    stage_refs: ["STAGE-001"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Frontier integrity and refusal evidence"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
