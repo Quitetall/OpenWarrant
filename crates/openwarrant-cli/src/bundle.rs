@@ -20,6 +20,7 @@
 //! wrong Warrant, malformed envelope) applies to a configured verifier too.
 
 use camino::Utf8PathBuf;
+use openwarrant_compiler::digest::sha256_hex;
 use openwarrant_compiler::{DigestDomain, sha256_digest};
 use serde::Serialize;
 
@@ -69,13 +70,6 @@ pub struct Bundle {
     pub prior_verifications: Vec<openwarrant_core::verification::Verification>,
     pub estimated_tokens: u64,
     pub token_method: String,
-}
-
-fn sha256_hex(bytes: &[u8]) -> String {
-    use sha2::Digest;
-    let mut h = sha2::Sha256::new();
-    h.update(bytes);
-    h.finalize().iter().map(|b| format!("{b:02x}")).collect()
 }
 
 /// `#[test]` function names, by a line scan that needs no parser.

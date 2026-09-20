@@ -22,11 +22,11 @@
 //! this command and one xtask step.
 
 use camino::{Utf8Path, Utf8PathBuf};
+use openwarrant_compiler::digest::sha256_hex;
 use openwarrant_core::attestation::{
     Envelope, PAYLOAD_TYPE, SSH_NAMESPACE, Signature, Statement, Subject, armor, base64_decode,
     base64_encode, dearmor, pae,
 };
-use sha2::{Digest, Sha256};
 
 use crate::diagnostic::{Diagnostic, Report};
 use crate::repo::{RepoError, Repository};
@@ -89,12 +89,6 @@ impl Drop for Scratch {
     fn drop(&mut self) {
         let _ = std::fs::remove_dir_all(&self.0);
     }
-}
-
-fn sha256_hex(bytes: &[u8]) -> String {
-    let mut h = Sha256::new();
-    h.update(bytes);
-    h.finalize().iter().map(|b| format!("{b:02x}")).collect()
 }
 
 /// Where attestations for a target live.

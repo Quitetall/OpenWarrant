@@ -19,18 +19,12 @@
 pub mod draft;
 
 use camino::Utf8Path;
+use openwarrant_compiler::digest::sha256_hex;
 
 use crate::diagnostic::{Diagnostic, Report};
 use crate::repo::{RepoError, Repository};
 
 const PLACEHOLDERS: [&str; 5] = ["TODO", "TBD", "FIXME", "lorem ipsum", "<placeholder>"];
-
-fn sha256_hex(bytes: &[u8]) -> String {
-    use sha2::Digest;
-    let mut h = sha2::Sha256::new();
-    h.update(bytes);
-    h.finalize().iter().map(|b| format!("{b:02x}")).collect()
-}
 
 /// `(line number, target)` of every Markdown link or image target.
 ///
