@@ -131,7 +131,10 @@ pub fn render(p: &Pins) -> String {
 /// and `war correct` is the act that exists for it. An authorization binds the
 /// contract, not the bytes, so an authorized-but-unresolved Warrant refreshes
 /// like any draft.
-pub fn refresh(repo: &Repository, alias: Option<&str>) -> Result<crate::diagnostic::Report, RepoError> {
+pub fn refresh(
+    repo: &Repository,
+    alias: Option<&str>,
+) -> Result<crate::diagnostic::Report, RepoError> {
     use crate::diagnostic::{Diagnostic, Report};
     let mut report = Report::default();
     for dir in repo.warrant_dirs()? {
@@ -199,7 +202,12 @@ pub fn refresh(repo: &Repository, alias: Option<&str>) -> Result<crate::diagnost
                 continue;
             }
             text = text.replace(recorded, &actual);
-            moved.push((d.id.clone(), d.target_ref.clone(), recorded.to_owned(), actual));
+            moved.push((
+                d.id.clone(),
+                d.target_ref.clone(),
+                recorded.to_owned(),
+                actual,
+            ));
         }
         if moved.is_empty() {
             if alias.is_some() {

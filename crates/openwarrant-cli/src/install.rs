@@ -94,7 +94,10 @@ fn classify(path: &Utf8Path) -> Kind {
         return Kind::Symlink;
     }
     let mut head = [0u8; 2];
-    if std::fs::File::open(path).and_then(|mut f| f.read_exact(&mut head)).is_ok() && head == *b"#!"
+    if std::fs::File::open(path)
+        .and_then(|mut f| f.read_exact(&mut head))
+        .is_ok()
+        && head == *b"#!"
     {
         return Kind::Script;
     }
@@ -244,7 +247,10 @@ pub fn host_asset(version: &str) -> Option<String> {
 
 fn get(url: &str) -> Result<Vec<u8>, String> {
     let mut response = ureq::get(url)
-        .header("user-agent", concat!("openwarrant/", env!("CARGO_PKG_VERSION")))
+        .header(
+            "user-agent",
+            concat!("openwarrant/", env!("CARGO_PKG_VERSION")),
+        )
         .call()
         .map_err(|e| format!("{url}: {e}"))?;
     let mut body = Vec::new();
@@ -556,8 +562,7 @@ pub fn update(channel: Channel, want: Option<&str>, force: bool) -> Report {
     // the install root. Everything else is reported, never rewritten.
     let mut repointed = 0;
     for entry in &install.on_path {
-        let ours =
-            entry.kind == Kind::Symlink && entry.resolved.starts_with(&install.install_root);
+        let ours = entry.kind == Kind::Symlink && entry.resolved.starts_with(&install.install_root);
         if !ours {
             report.push(Diagnostic::warn(
                 "update.not-ours",
@@ -609,10 +614,16 @@ mod tests {
         let asset = host_asset("1.2.3");
         match (std::env::consts::OS, std::env::consts::ARCH) {
             ("linux", "x86_64") => {
-                assert_eq!(asset.as_deref(), Some("openwarrant-v1.2.3-linux-x86_64.tar.gz"));
+                assert_eq!(
+                    asset.as_deref(),
+                    Some("openwarrant-v1.2.3-linux-x86_64.tar.gz")
+                );
             }
             ("macos", "aarch64") => {
-                assert_eq!(asset.as_deref(), Some("openwarrant-v1.2.3-darwin-arm64.tar.gz"));
+                assert_eq!(
+                    asset.as_deref(),
+                    Some("openwarrant-v1.2.3-darwin-arm64.tar.gz")
+                );
             }
             _ => assert!(asset.is_none()),
         }
@@ -638,7 +649,11 @@ mod tests {
         let dir = std::env::temp_dir().join(format!("ow-install-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let script = dir.join("war");
-        std::fs::write(&script, "#!/bin/sh\nexec /somewhere/else/war \"$@\" --ssh-sign\n").unwrap();
+        std::fs::write(
+            &script,
+            "#!/bin/sh\nexec /somewhere/else/war \"$@\" --ssh-sign\n",
+        )
+        .unwrap();
         let path = Utf8PathBuf::from_path_buf(script.clone()).unwrap();
         assert_eq!(classify(&path), Kind::Script);
         std::fs::remove_dir_all(&dir).unwrap();
