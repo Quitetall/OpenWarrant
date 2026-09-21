@@ -24,9 +24,14 @@ if [[ ${#PLANT_FILES[@]} -eq 0 ]]; then
     exit 1
 fi
 for plants in "${PLANT_FILES[@]}"; do
+    # Per FILE, never inherited: a plant file that forgets to unset PLANT_ROOT
+    # would otherwise silently redirect the next file's plants at its own
+    # scratch, and they would pass against a tree they never meant to test.
+    unset PLANT_ROOT
     # shellcheck source=/dev/null
     source "$plants"
 done
+unset PLANT_ROOT
 
 
 echo

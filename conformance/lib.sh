@@ -22,6 +22,7 @@ set -uo pipefail
 # fleet a 13-repository operation that did nothing while reporting success.
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 1
+REPO_ROOT="$PWD"
 WAR="./target/debug/war"
 
 if [[ ! -x "$WAR" ]]; then
@@ -71,20 +72,20 @@ PASSED=0
 FAILED=0
 
 restore() {
-    git checkout -- "${PLANT_PATHS[@]}" 2>/dev/null || true
+    git -C "$REPO_ROOT" checkout -- "${PLANT_PATHS[@]}" 2>/dev/null || true
     # `git checkout` restores TRACKED files and leaves untracked ones behind, so
     # a plant that CREATES a file is not undone by it. AM-999 is exactly that —
     # the §91.4 test 24 positive fixture — and it leaked into a commit once
     # before this line existed. Named explicitly rather than `git clean`, which
     # would delete a developer's untracked work.
-    rm -f docs/warrants/OW-WAR-0046/amendments/AM-999.yaml
+    rm -f "$REPO_ROOT"/docs/warrants/OW-WAR-0046/amendments/AM-999.yaml
     # `war plan --draft` without --apply leaves its scratch proposal behind.
-    rm -f docs/warrants/generated/draft-proposal-*.json
+    rm -f "$REPO_ROOT"/docs/warrants/generated/draft-proposal-*.json
     # The agent-acceptance plant proposes a throwaway SAS revision.
-    rm -f docs/sas/revisions/0.1.0-draft.9.toml
+    rm -f "$REPO_ROOT"/docs/sas/revisions/0.1.0-draft.9.toml
     # The re-pin plants (88) fabricate a revision and an amendment each.
-    rm -f docs/sas/revisions/9.9.9.toml docs/warrants/OW-WAR-0047/amendments/AM-901.yaml docs/warrants/OW-WAR-0062/amendments/AM-901.yaml
-    rmdir docs/warrants/OW-WAR-0047/amendments docs/warrants/OW-WAR-0062/amendments 2>/dev/null || true
+    rm -f "$REPO_ROOT"/docs/sas/revisions/9.9.9.toml "$REPO_ROOT"/docs/warrants/OW-WAR-0047/amendments/AM-901.yaml "$REPO_ROOT"/docs/warrants/OW-WAR-0062/amendments/AM-901.yaml
+    rmdir "$REPO_ROOT"/docs/warrants/OW-WAR-0047/amendments "$REPO_ROOT"/docs/warrants/OW-WAR-0062/amendments 2>/dev/null || true
 }
 
 # The mirror of `assert_gone`, for a mutation that ADDS rather than removes.
@@ -94,7 +95,7 @@ assert_present() {
     if ! grep -Fq -- "$1" "$2"; then
         printf 'PLANT MUTATION WAS A NO-OP: %s never appeared in %s\n' "$1" "$2" >&2
         printf 'The plant would have scored the UNMUTATED corpus. Fix the pattern.\n' >&2
-        restore
+        plant_restore
         exit 9
     fi
 }
@@ -105,7 +106,7 @@ assert_gone_file() {
     if [[ -e "$1" ]]; then
         printf 'PLANT MUTATION WAS A NO-OP: %s still exists\n' "$1" >&2
         printf 'The plant would have scored the UNMUTATED corpus. Fix the pattern.\n' >&2
-        restore
+        plant_restore
         exit 9
     fi
 }
@@ -114,12 +115,90 @@ assert_gone() {
     if grep -Fq -- "$1" "$2"; then
         printf 'PLANT MUTATION WAS A NO-OP: %s still present in %s\n' "$1" "$2" >&2
         printf 'The plant would have scored the UNMUTATED corpus. Fix the pattern.\n' >&2
-        restore
+        plant_restore
         exit 9
     fi
 }
 
-trap restore EXIT
+# A throwaway program for a plant to break, instead of this repository.
+#
+# `scratch_warrant` above exists because plants named real Warrants and broke
+# the night the owner signed one — four at once on 2026-09-13. This is the same
+# lesson one level up: the tree a plant mutates should be one nobody owns. It
+# also buys what the live corpus cannot give a plant — a clean `war check`, and
+# a target under `crates/` — because the reset is `git reset --hard` on a
+# scaffold rather than a list of paths somebody has to keep correct.
+#
+# A plant file opts in by setting PLANT_ROOT; every helper below then redirects
+# to it. Unset, which is what every plant file does today, nothing changes.
+SCRATCH_CORPORA=()
+
+# scratch_corpus <NAMESPACE>  ->  echoes the root of a fresh program
+scratch_corpus() {
+    local ns="$1" d
+    d=$(mktemp -d) || { printf 'PLANT SETUP FAILED: mktemp\n' >&2; exit 9; }
+    ( cd "$d" && git init -q . ) \
+        || { printf 'PLANT SETUP FAILED: git init in %s\n' "$d" >&2; exit 9; }
+    "$WAR" init --program "Plant Corpus $ns" --namespace "$ns" --root "$d" >/dev/null 2>&1 \
+        || { printf 'PLANT SETUP FAILED: war init --program in %s\n' "$d" >&2; exit 9; }
+    "$WAR" --root "$d" compile >/dev/null 2>&1 \
+        || { printf 'PLANT SETUP FAILED: war compile in %s\n' "$d" >&2; exit 9; }
+    git -C "$d" add -A >/dev/null 2>&1
+    git -C "$d" -c user.email=plant@invalid -c user.name=plant commit -qm baseline >/dev/null 2>&1 \
+        || { printf 'PLANT SETUP FAILED: baseline commit in %s\n' "$d" >&2; exit 9; }
+    SCRATCH_CORPORA+=("$d")
+    printf '%s' "$d"
+}
+
+corpus_reset() { git -C "$1" reset --hard -q && git -C "$1" clean -fdq; }
+
+corpus_gone() {
+    [[ -n "${1:-}" ]] || return 0
+    rm -rf "$1"
+}
+
+scratch_corpora_gone() {
+    local d
+    for d in ${SCRATCH_CORPORA[@]+"${SCRATCH_CORPORA[@]}"}; do
+        rm -rf "$d"
+    done
+}
+
+# Undo what the current plant mutated: its scratch program if it declared one,
+# this repository otherwise.
+plant_restore() {
+    if [[ -n "${PLANT_ROOT:-}" ]]; then
+        corpus_reset "$PLANT_ROOT"
+    else
+        restore
+    fi
+}
+
+# Run the mutation where its target lives. Deliberately NOT a subshell: the
+# assert_* guards call `exit 9` to abort the whole battery when a mutation was
+# a no-op, and a subshell would swallow that into an ordinary failure. The cwd
+# is therefore left in the scratch on that path, which is why `restore` is
+# anchored to REPO_ROOT above.
+plant_mutate() {
+    if [[ -n "${PLANT_ROOT:-}" ]]; then
+        cd "$PLANT_ROOT" || return 1
+        eval "$1"
+        local rc=$?
+        cd "$REPO_ROOT" || return 1
+        return "$rc"
+    fi
+    eval "$1"
+}
+
+plant_war() {
+    if [[ -n "${PLANT_ROOT:-}" ]]; then
+        "$WAR" --root "$PLANT_ROOT" "$@"
+    else
+        "$WAR" "$@"
+    fi
+}
+
+trap 'restore; scratch_corpora_gone' EXIT
 
 # scratch_warrant <what-for>  ->  echoes a fresh alias awaiting authorization
 #
@@ -160,13 +239,13 @@ plant_cmd() {
     local name="$1" rule="$2" detail="$3" want_exit="$4" mutate="$5"
     shift 5
 
-    restore
-    eval "$mutate"
+    plant_restore
+    plant_mutate "$mutate" || { FAILED=$((FAILED + 1)); return; }
 
     local out status
-    out="$("$WAR" "$@" 2>&1)"
+    out="$(plant_war "$@" 2>&1)"
     status=$?
-    restore
+    plant_restore
 
     if [[ "$status" -ne "$want_exit" ]]; then
         printf 'FAIL  %-34s exit %s, wanted %s\n' "$name" "$status" "$want_exit"
@@ -196,13 +275,13 @@ plant_cmd() {
 plant_gate() {
     local name="$1" rule="$2" detail="$3" want_exit="$4" mutate="$5"
 
-    restore
-    eval "$mutate"
+    plant_restore
+    plant_mutate "$mutate" || { FAILED=$((FAILED + 1)); return; }
 
     local out status
-    out="$("$WAR" gate --run 2>&1)"
+    out="$(plant_war gate --run 2>&1)"
     status=$?
-    restore
+    plant_restore
 
     if [[ "$status" -ne "$want_exit" ]]; then
         printf 'FAIL  %-34s exit %s, wanted %s\n' "$name" "$status" "$want_exit"
@@ -233,13 +312,13 @@ plant() {
     local name="$1" rule="$2" detail="$3" want_exit="$4" mutate="$5"
     shift 5
 
-    restore
-    eval "$mutate"
+    plant_restore
+    plant_mutate "$mutate" || { FAILED=$((FAILED + 1)); return; }
 
     local out status
-    out="$("$WAR" check "$@" 2>&1)"
+    out="$(plant_war check "$@" 2>&1)"
     status=$?
-    restore
+    plant_restore
 
     if [[ "$status" -ne "$want_exit" ]]; then
         printf 'FAIL  %-34s exit %s, wanted %s\n' "$name" "$status" "$want_exit"
