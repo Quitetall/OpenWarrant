@@ -7,5 +7,6 @@ type Def_ContractCoverage = ({ "covered": (Array<(Def_ContractElement)>); [key: 
 type Def_ContractElement = ("intent" | "scope" | "basis_requirements" | "assumptions" | "constraints" | "adr_references" | "deliverables" | "milestones" | "stages" | "capabilities" | "autonomy" | "resources" | "gates" | "obligations" | "rollback" | "amendment_policy" | "assurance_requirements") & (string);
 type Def_ContractRevision = ({ "authorization"?: (((Def_Authorization)) | ((null))); "contract_digest": (string); "coverage": (Def_ContractCoverage); "predecessor_digest"?: ((string)) | ((null)); "proposer"?: ((string)) | ((null)); "revision": (number); "state": (Def_RevisionState); [key: string]: unknown; });
 type Def_Independence = ((("none") & (string)) | (("separate_role") & (string)) | (("organizational") & (string)));
+type Def_OwnedDeliverable = ({ "id": (string); "target_ref": (string); [key: string]: unknown; });
 type Def_RevisionState = ((("draft") & (string)) | (("proposed") & (string)) | (("authorized") & (string)));
-export type Document = ({ "revision": (Def_ContractRevision); "sas_revision"?: ((string)) | ((null)); "schema": (string); "warrant": (string); [key: string]: unknown; });
+export type Document = ({ "deliverable_set_digest"?: ((string)) | ((null)); "owned"?: (Array<(Def_OwnedDeliverable)>); "revision": (Def_ContractRevision); "sas_revision"?: ((string)) | ((null)); "schema": (string); "warrant": (string); [key: string]: unknown; });

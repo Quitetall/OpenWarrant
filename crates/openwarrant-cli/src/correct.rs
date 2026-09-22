@@ -140,6 +140,24 @@ pub fn request(repo: &Repository, alias: &str, id: &str) -> Result<CorrectionReq
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
     let s = standing(repo, &one, alias, id)?;
+    // OW-ADR-0021: a pin a later authorized Warrant governs is historical.
+    // There is nothing to correct — the file moved under that Warrant's
+    // authority, and this Warrant's delivery verifies at its own resolution.
+    let authorized_at = repo
+        .load_authorization(&dir)?
+        .and_then(|a| a.revision.authorization.map(|x| x.effective_time));
+    if let Some(owner) = crate::ownership::Ownership::index(repo)?.newer_than(
+        &s.target_ref,
+        alias,
+        authorized_at.as_deref(),
+    ) {
+        return Err(RepoError::Message(format!(
+            "correction.historical: nothing to correct — {} is governed by {}/{} (authorized {}), \
+             so {alias}/{id}'s pin is historical. It verifies at {alias}'s resolution, not against \
+             the working tree (OW-ADR-0021). To move the file, work under {}",
+            s.target_ref, owner.alias, owner.deliverable_id, owner.authorized_at, owner.alias
+        )));
+    }
     let head = chain_head(&s.recorded, &s.corrections)
         .map_err(|e| RepoError::Message(format!("{alias}/{id}: {e}")))?;
     let current = sha256_of(&repo.root.join(&s.target_ref))?;

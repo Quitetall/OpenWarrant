@@ -46,6 +46,7 @@ pub mod new;
 pub mod next;
 pub mod output;
 pub mod overview;
+pub mod ownership;
 pub mod perform;
 pub mod pins;
 pub mod plan;
@@ -874,6 +875,10 @@ enum Command {
         /// Only pins held by a resolution.
         #[arg(long)]
         resolved_only: bool,
+        /// Every Warrant that ever governed one path, oldest first, and
+        /// whether each delivery still verifies from history (OW-ADR-0021).
+        #[arg(long, value_name = "PATH")]
+        history: Option<String>,
     },
     /// What should happen next, and whose act it is. An agent is never handed
     /// a signing act; it is told that a human must sign, and how.
@@ -1702,11 +1707,26 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             refresh,
             alias,
             resolved_only,
+            ..
         } if refresh => {
             let repository = open_repo()?;
             let report = pins::refresh(&repository, alias.as_deref())?;
             let _ = resolved_only;
             Ok(output::finish(mode, "pins", &report, None))
+        }
+        Command::Pins {
+            history: Some(path),
+            ..
+        } => {
+            let repository = open_repo()?;
+            let text = pins::history(&repository, &path)?;
+            output::emit(
+                mode,
+                "pins",
+                text.trim_end(),
+                serde_json::json!({ "schema": "oh.war/pins-history/v1", "path": path, "rendered": text }),
+            );
+            Ok(EXIT_OK)
         }
         Command::Pins { resolved_only, .. } => {
             let repository = open_repo()?;

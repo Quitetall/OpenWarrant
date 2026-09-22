@@ -626,6 +626,25 @@ fn screen(p: &Pending, actor: &str, role: &str, reason: Option<&str>) -> String 
                 &request.contract_digest[..16],
                 request.contract_coverage.join(", ")
             ));
+            // OW-ADR-0021: the signature grants ownership of these paths.
+            // Listed in full — a signer who cannot see what they grant is
+            // signing a digest, and a digest hides a path as well as it
+            // protects one.
+            if request.deliverables.is_empty() {
+                s.push_str("│ grants ownership of: nothing declared\n");
+            } else {
+                s.push_str(&format!(
+                    "│ grants ownership of {} path(s)  ·  set {}\n",
+                    request.deliverables.len(),
+                    request
+                        .deliverable_set_digest
+                        .strip_prefix("sha256:")
+                        .map_or("", |d| &d[..12])
+                ));
+                for d in &request.deliverables {
+                    s.push_str(&format!("│   {}  {}\n", d.id, d.target_ref));
+                }
+            }
         }
         Pending::Resolve { alias, request, .. } => {
             s.push_str(&format!(
@@ -864,6 +883,7 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
                 independence: opts.independence,
                 judgment,
                 signed_via: Some(opts.channel().to_owned()),
+                deliverable_set_digest: Some(request.deliverable_set_digest.clone()),
             };
             Ok(Drafted::Authorize(response))
         }
@@ -1502,6 +1522,16 @@ fn attest_after(
     {
         extra.push((format!("contract:{target}"), d.to_owned()));
     }
+    // OW-ADR-0021: the deliverable set the signer granted is a subject too,
+    // so a foreign verifier sees what was granted, not only what was signed.
+    if let Some(d) = response_toml
+        .get("deliverable_set_digest")
+        .and_then(toml::Value::as_str)
+        .map(|d| d.strip_prefix("sha256:").unwrap_or(d))
+        .filter(|d| d.len() == 64)
+    {
+        extra.push((format!("deliverables:{target}"), d.to_owned()));
+    }
     let a = crate::attest::Attestable {
         act,
         target: &target,
@@ -2133,6 +2163,8 @@ mod tests {
             revision: 1,
             amendment: None,
             request: AuthorizationRequest {
+                deliverables: vec![],
+                deliverable_set_digest: String::new(),
                 schema: authorize::REQUEST_SCHEMA.to_owned(),
                 warrant: "OW-WAR-0001".to_owned(),
                 title: "t".to_owned(),
@@ -2299,6 +2331,7 @@ mod tests {
         // shape, with judgments after the scalar, so a serializer that moves
         // things around still parses.
         let real = AuthorizationResponse {
+            deliverable_set_digest: None,
             schema: authorize::RESPONSE_SCHEMA.to_owned(),
             warrant: "OW-WAR-0040".to_owned(),
             contract_digest: "aabb".to_owned(),

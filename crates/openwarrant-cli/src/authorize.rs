@@ -79,6 +79,16 @@ pub struct AuthorizationRequest {
     /// Actors the register says may authorize this. Informational — ingestion
     /// re-derives it rather than trusting the response to have used the list.
     pub eligible_authorizers: Vec<String>,
+    /// OW-ADR-0021 — every deliverable the Warrant declares, as `(id, path)`.
+    /// This is what the signature GRANTS: the paths this Warrant will govern.
+    /// Absent from `contract_digest` on purpose (§28.5 coverage is frozen), so
+    /// the set gets its own digest, echoed by the response and checked at
+    /// ingest.
+    #[serde(default)]
+    pub deliverables: Vec<crate::ownership::OwnedDeliverable>,
+    /// `ownership::set_digest` of `deliverables`.
+    #[serde(default)]
+    pub deliverable_set_digest: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -123,6 +133,11 @@ pub struct AuthorizationResponse {
     /// authority — ingestion trusts the register, never this field.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub signed_via: Option<String>,
+    /// OW-ADR-0021 — the set digest the signer saw. Must equal the manifest's
+    /// set at ingest or the response is refused; absent on a hand-written
+    /// response, in which case the set is recorded unsigned and said so.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deliverable_set_digest: Option<String>,
 }
 
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
@@ -139,6 +154,16 @@ pub struct AuthorizationRecord {
     /// records written before this field existed; those read as the latest.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sas_revision: Option<String>,
+    /// OW-ADR-0021 — the digest of `owned` as the authorizer signed it, or
+    /// as ingest recorded it from the manifest when the response carried none.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deliverable_set_digest: Option<String>,
+    /// OW-ADR-0021 — the paths this authorization governs. Copied here at
+    /// ingest because `deliverables.toml` can move afterwards and this record
+    /// cannot: `authorization.toml` is an attestation subject. Empty on every
+    /// record made before this field existed, and an empty set owns nothing.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub owned: Vec<crate::ownership::OwnedDeliverable>,
 }
 
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
@@ -177,6 +202,8 @@ pub fn request(repo: &Repository, alias: &str) -> Result<AuthorizationRequest, R
 
     let register = repo.load_authority_register()?;
     let assumptions = repo.load_rationale(&dir)?.unwrap_or_default();
+    let deliverables = crate::ownership::declared_set(repo, &dir)?;
+    let deliverable_set_digest = crate::ownership::set_digest(&deliverables);
 
     Ok(AuthorizationRequest {
         schema: REQUEST_SCHEMA.to_owned(),
@@ -202,6 +229,8 @@ pub fn request(repo: &Repository, alias: &str) -> Result<AuthorizationRequest, R
             .filter(|a| a.may_authorize(&repo.performer()).is_ok())
             .map(|a| a.actor.clone())
             .collect(),
+        deliverables,
+        deliverable_set_digest,
     })
 }
 
@@ -271,6 +300,20 @@ pub enum Refusal {
     NotPermitted {
         detail: String,
     },
+    /// OW-ADR-0021 — the response signs a deliverable set the manifest no
+    /// longer has.
+    StaleDeliverables {
+        signed: String,
+        current: String,
+    },
+    /// OW-ADR-0021 — the response is dated before an existing owner of a path
+    /// it declares.
+    TimeBeforeOwner {
+        path: String,
+        owner: String,
+        owner_time: String,
+        this_time: String,
+    },
 }
 
 impl std::fmt::Display for Refusal {
@@ -303,7 +346,44 @@ impl std::fmt::Display for Refusal {
                  human wrote, never from a name supplied in the response itself"
             ),
             Self::NotPermitted { detail } => f.write_str(detail),
+            Self::StaleDeliverables { signed, current } => write!(
+                f,
+                "the declared deliverable set moved after the request was drafted: the \
+                 response signs set {signed} and the manifest is now {current}. What was \
+                 drafted is what is signed (OW-ADR-0021) — re-draft and re-sign"
+            ),
+            Self::TimeBeforeOwner {
+                path,
+                owner,
+                owner_time,
+                this_time,
+            } => write!(
+                f,
+                "effective_time {this_time} precedes {owner_time}, when {owner} was authorized \
+                 for {path}. Ownership is ordered by authorization time (OW-ADR-0021), so an \
+                 authorization dated before an existing owner would take the path away from it \
+                 silently — set effective_time to now"
+            ),
         }
+    }
+}
+
+/// Check the signed deliverable set against the manifest, writing nothing.
+///
+/// `Ok(true)` when the response signed the set and it matches; `Ok(false)`
+/// when the response carried no set (a hand-written or pre-ADR response), in
+/// which case the caller records the current set and says it was unsigned.
+pub fn validate_deliverables(
+    response: &AuthorizationResponse,
+    current_set_digest: &str,
+) -> Result<bool, Refusal> {
+    match response.deliverable_set_digest.as_deref() {
+        None => Ok(false),
+        Some(signed) if signed == current_set_digest => Ok(true),
+        Some(signed) => Err(Refusal::StaleDeliverables {
+            signed: signed.to_owned(),
+            current: current_set_digest.to_owned(),
+        }),
     }
 }
 
@@ -459,6 +539,8 @@ pub fn ingest(
             Refusal::EffectiveTime { .. } => "authorize.effective-time",
             Refusal::UnknownActor { .. } => "authorize.unknown-actor",
             Refusal::NotPermitted { .. } => "authorize.not-permitted",
+            Refusal::StaleDeliverables { .. } => "authorize.stale-deliverables",
+            Refusal::TimeBeforeOwner { .. } => "authorize.time-before-owner",
         };
         report.push(Diagnostic::error(
             rule,
@@ -466,6 +548,59 @@ pub fn ingest(
             refusal.to_string(),
         ));
         return Ok(report);
+    }
+
+    // OW-ADR-0021: what the signer saw is what is recorded. The set is read
+    // from the manifest NOW and compared to what the response signed; a moved
+    // set is refused before anything else is considered.
+    let owned = crate::ownership::declared_set(repo, &dir)?;
+    let current_set_digest = crate::ownership::set_digest(&owned);
+    let set_signed = match validate_deliverables(&response, &current_set_digest) {
+        Ok(signed) => signed,
+        Err(refusal) => {
+            report.push(Diagnostic::error(
+                "authorize.stale-deliverables",
+                response_path.to_string(),
+                refusal.to_string(),
+            ));
+            return Ok(report);
+        }
+    };
+    if !set_signed && !owned.is_empty() {
+        report.push(Diagnostic::warn(
+            "authorize.deliverables-unsigned",
+            response_path.to_string(),
+            format!(
+                "{alias}: the response carries no deliverable_set_digest, so the {} declared \
+                 path(s) are recorded from the manifest at ingest and the signature does not \
+                 cover them. A response drafted by `war sign` signs the set",
+                owned.len()
+            ),
+        ));
+    }
+    // Ownership is ordered by effective time; a signature dated before an
+    // existing owner of one of these paths would silently take it away.
+    if !owned.is_empty() {
+        let ownership = crate::ownership::Ownership::index(repo)?;
+        for d in &owned {
+            if let Some(cur) = ownership.current(&d.target_ref)
+                && cur.alias != alias
+                && response.effective_time.as_str() < cur.authorized_at.as_str()
+            {
+                let refusal = Refusal::TimeBeforeOwner {
+                    path: d.target_ref.clone(),
+                    owner: cur.alias.clone(),
+                    owner_time: cur.authorized_at.clone(),
+                    this_time: response.effective_time.clone(),
+                };
+                report.push(Diagnostic::error(
+                    "authorize.time-before-owner",
+                    response_path.to_string(),
+                    refusal.to_string(),
+                ));
+                return Ok(report);
+            }
+        }
     }
 
     // Every judgment is checked BEFORE anything is written. A response that
@@ -559,7 +694,17 @@ pub fn ingest(
             signed.revision = prev.revision.revision;
             signed
         }
-        Some(prev) if prev.revision.contract_digest == current_digest => {
+        // Same contract digest AND same (or never-recorded) set: nothing to
+        // add. A moved set at the same contract digest is §31 material — it
+        // widens what the Warrant governs — and falls through to the amendment
+        // branch below, which demands AM-nnn and produces revision N+1.
+        Some(prev)
+            if prev.revision.contract_digest == current_digest
+                && prev
+                    .deliverable_set_digest
+                    .as_deref()
+                    .is_none_or(|d| d == current_set_digest) =>
+        {
             report.push(Diagnostic::error(
                 "authorize.already-authorized",
                 response_path.to_string(),
@@ -622,6 +767,8 @@ pub fn ingest(
         warrant: alias.to_owned(),
         revision,
         sas_revision: basis.sas.as_ref().map(|p| p.version.clone()),
+        deliverable_set_digest: Some(current_set_digest.clone()),
+        owned,
     };
     write_toml(&dir.join("authorization.toml"), &record)?;
     if let Some(v) = &one.validated {
@@ -635,10 +782,12 @@ pub fn ingest(
             },
             &format!("person://{}", response.authorizer),
             &format!(
-                "{{\"contract_digest\":\"{}\",\"acting_role\":\"{}\",\"channel\":\"{}\"}}",
+                "{{\"contract_digest\":\"{}\",\"acting_role\":\"{}\",\"channel\":\"{}\",\"deliverable_set_digest\":\"{}\",\"set_signed\":{}}}",
                 response.contract_digest,
                 response.acting_role,
-                response.signed_via.as_deref().unwrap_or("file")
+                response.signed_via.as_deref().unwrap_or("file"),
+                current_set_digest,
+                set_signed
             ),
         )?;
     }
@@ -735,6 +884,7 @@ mod tests {
 
     fn response(authorizer: &str, digest: &str) -> AuthorizationResponse {
         AuthorizationResponse {
+            deliverable_set_digest: None,
             schema: RESPONSE_SCHEMA.to_owned(),
             warrant: "OW-WAR-0014".to_owned(),
             contract_digest: digest.to_owned(),
@@ -1028,6 +1178,8 @@ mod tests {
     #[test]
     fn an_authorization_must_be_authorized_and_current() {
         let record = AuthorizationRecord {
+            deliverable_set_digest: None,
+            owned: vec![],
             schema: AUTHORIZATION_SCHEMA.to_owned(),
             warrant: "OW-WAR-0014".to_owned(),
             revision: ContractRevision::draft(

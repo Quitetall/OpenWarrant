@@ -38,6 +38,14 @@ pub struct Pin {
     pub content_digest: Option<String>,
     /// Corrections on file for this deliverable (OW-WAR-0064).
     pub corrections: u32,
+    /// OW-ADR-0021 — a resolved pin that a LATER authorized Warrant's recorded
+    /// set governs. Still recorded, still verifiable at its own resolution, and
+    /// not drift. The hook lets an edit through when this is true.
+    pub historical: bool,
+    /// `<alias>/<D-id>` of the Warrant that governs this path now, when it is
+    /// not this pin's own Warrant.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub governed_by: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -49,6 +57,7 @@ pub struct Pins {
 /// Every pin in the corpus, sorted by path then Warrant.
 pub fn list(repo: &Repository, resolved_only: bool) -> Result<Pins, RepoError> {
     let mut pins = Vec::new();
+    let ownership = crate::ownership::Ownership::index(repo)?;
     for dir in repo.warrant_dirs()? {
         let Some(alias) = dir.file_name().map(str::to_owned) else {
             continue;
@@ -57,18 +66,24 @@ pub fn list(repo: &Repository, resolved_only: bool) -> Result<Pins, RepoError> {
         if deliverables.records.is_empty() {
             continue;
         }
+        let authorization = repo.load_authorization(&dir)?;
         let state = if repo.load_resolution(&dir)?.is_some() {
             PinState::Resolved
-        } else if repo.load_authorization(&dir)?.is_some() {
+        } else if authorization.is_some() {
             PinState::Authorized
         } else {
             PinState::Draft
         };
+        let authorized_at = authorization
+            .as_ref()
+            .and_then(|a| a.revision.authorization.as_ref())
+            .map(|a| a.effective_time.clone());
         if resolved_only && state != PinState::Resolved {
             continue;
         }
         let corrections = repo.load_corrections(&dir)?;
         for d in &deliverables.records {
+            let newer = ownership.newer_than(&d.target_ref, &alias, authorized_at.as_deref());
             pins.push(Pin {
                 path: d.target_ref.clone(),
                 warrant: alias.clone(),
@@ -78,6 +93,8 @@ pub fn list(repo: &Repository, resolved_only: bool) -> Result<Pins, RepoError> {
                 content_digest: d.provenance.as_ref().map(|p| p.content_digest.clone()),
                 corrections: u32::try_from(corrections.for_deliverable(&d.id).len())
                     .unwrap_or(u32::MAX),
+                historical: state == PinState::Resolved && newer.is_some(),
+                governed_by: newer.map(|o| format!("{}/{}", o.alias, o.deliverable_id)),
             });
         }
     }
@@ -94,11 +111,12 @@ pub fn render(p: &Pins) -> String {
     let mut s = String::new();
     for pin in &p.pins {
         s.push_str(&format!(
-            "{:<10} {:<12} {:<6} {}{}\n",
-            match pin.state {
-                PinState::Resolved => "resolved",
-                PinState::Authorized => "authorized",
-                PinState::Draft => "draft",
+            "{:<10} {:<12} {:<6} {}{}{}\n",
+            match (pin.state, pin.historical) {
+                (PinState::Resolved, true) => "historical",
+                (PinState::Resolved, false) => "resolved",
+                (PinState::Authorized, _) => "authorized",
+                (PinState::Draft, _) => "draft",
             },
             pin.warrant,
             pin.deliverable_id,
@@ -107,6 +125,10 @@ pub fn render(p: &Pins) -> String {
                 format!("  (corrected {}×)", pin.corrections)
             } else {
                 String::new()
+            },
+            match &pin.governed_by {
+                Some(g) => format!("  → governed by {g}"),
+                None => String::new(),
             }
         ));
     }
@@ -114,6 +136,101 @@ pub fn render(p: &Pins) -> String {
         s.push_str("no deliverables are pinned\n");
     }
     s
+}
+
+/// `war pins --history <path>` — every Warrant that ever governed a path,
+/// oldest first, and whether each delivery still verifies from history.
+///
+/// A historical pin is a claim about bytes at a moment. The moment is the
+/// resolution's `[locator]` when one was recorded (OW-ADR-0021); before that
+/// ADR nothing recorded a commit, and the honest answer for those is UNKNOWN,
+/// not a guess from `git log`.
+pub fn history(repo: &Repository, path: &str) -> Result<String, RepoError> {
+    let ownership = crate::ownership::Ownership::index(repo)?;
+    let mut s = String::new();
+    let mut rows: Vec<(String, String, String, String)> = Vec::new();
+    // Every pin on this path, owner or not: legacy Warrants own nothing but
+    // did deliver, and the lineage is incomplete without them.
+    for dir in repo.warrant_dirs()? {
+        let Some(alias) = dir.file_name().map(str::to_owned) else {
+            continue;
+        };
+        let deliverables = repo.load_deliverables(&dir)?;
+        for d in deliverables.records.iter().filter(|d| d.target_ref == path) {
+            let resolved = repo.load_resolution(&dir)?;
+            let recorded = d
+                .provenance
+                .as_ref()
+                .map(|p| p.content_digest.clone())
+                .unwrap_or_else(|| "(no digest)".into());
+            // A broken chain has no head; the recorded digest stands in and
+            // the row says so through `verifies`, never through a guess.
+            let head = crate::correct::head_for(&repo.load_corrections(&dir)?, &d.id, &recorded)
+                .1
+                .unwrap_or_else(|_| recorded.clone());
+            let standing = match (&resolved, ownership.current(path)) {
+                (None, _) => "draft or authorized".to_owned(),
+                (Some(_), Some(cur)) if cur.alias == alias => "current".to_owned(),
+                (Some(_), Some(cur)) => format!("historical → {}", cur.alias),
+                (Some(_), None) => "resolved, ungoverned".to_owned(),
+            };
+            let verifies = match resolved.as_ref().map(|r| r.locator.as_ref()) {
+                // An unresolved pin is a note about a file, not a delivery;
+                // asking whether it verifies from history is the wrong question.
+                None => "not yet resolved".to_owned(),
+                Some(None) => "UNKNOWN (no locator; resolved before OW-ADR-0021)".to_owned(),
+                Some(Some(loc)) => {
+                    let want = head.trim_start_matches("sha256:");
+                    let out = std::process::Command::new("git")
+                        .args(["show", &format!("{}:{}", loc.commit_sha, path)])
+                        .current_dir(&repo.root)
+                        .output();
+                    match out {
+                        Ok(o)
+                            if o.status.success()
+                                && openwarrant_compiler::sha256_hex(&o.stdout) == want =>
+                        {
+                            format!("verifies at {}", &loc.commit_sha[..12])
+                        }
+                        Ok(o) if o.status.success() => {
+                            format!("DIFFERS at {}", &loc.commit_sha[..12])
+                        }
+                        _ => format!("UNKNOWN (commit {} not readable)", &loc.commit_sha[..12]),
+                    }
+                }
+            };
+            let when = resolved
+                .as_ref()
+                .map(|r| r.resolution.effective_at.clone())
+                .unwrap_or_default();
+            rows.push((
+                when,
+                format!("{alias}/{}", d.id),
+                format!("{standing}  {}", &head[..std::cmp::min(19, head.len())]),
+                verifies,
+            ));
+        }
+    }
+    rows.sort();
+    if rows.is_empty() {
+        s.push_str(&format!("no Warrant declares {path}\n"));
+        return Ok(s);
+    }
+    s.push_str(&format!("{path}\n"));
+    for (when, who, what, verifies) in rows {
+        s.push_str(&format!(
+            "  {:<22} {:<20} {:<40} {}\n",
+            if when.is_empty() {
+                "—".to_owned()
+            } else {
+                when
+            },
+            who,
+            what,
+            verifies
+        ));
+    }
+    Ok(s)
 }
 
 /// `war pins --refresh [alias]` — bring an unresolved Warrant's recorded

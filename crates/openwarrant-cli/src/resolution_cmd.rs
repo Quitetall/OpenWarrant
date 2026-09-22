@@ -102,12 +102,72 @@ pub struct ResolutionResponse {
 }
 
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+/// Where the delivered bytes were when the resolution was recorded
+/// (OW-ADR-0021, §56.2 `locator`). Optional: records made before this
+/// existed have none and read as UNKNOWN when history is asked for, which is
+/// the honest answer rather than a commit guessed from the log.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Locator {
+    /// `git rev-parse HEAD` at ingest, forty lowercase hex.
+    pub commit_sha: String,
+    /// Whether every declared deliverable was committed at that moment. A
+    /// dirty path means the bytes the resolution bound are NOT the ones at
+    /// `commit_sha`, and `paths_dirty` says which.
+    pub worktree_clean: bool,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub paths_dirty: Vec<String>,
+}
+
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// The persisted record: `docs/warrants/<alias>/resolution.toml`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResolutionRecord {
     pub schema: String,
     pub warrant: String,
     pub resolution: Resolution,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub locator: Option<Locator>,
+}
+
+/// The commit the tree is at, and which of `paths` are not committed there.
+/// `None` when git cannot answer — a resolution outside a repository records
+/// no locator rather than a made-up one.
+fn locate(root: &camino::Utf8Path, paths: &[String]) -> Option<Locator> {
+    let head = std::process::Command::new("git")
+        .args(["rev-parse", "HEAD"])
+        .current_dir(root)
+        .output()
+        .ok()
+        .filter(|o| o.status.success())?;
+    let commit_sha = String::from_utf8_lossy(&head.stdout).trim().to_owned();
+    if commit_sha.len() != 40
+        || !commit_sha
+            .bytes()
+            .all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
+    {
+        return None;
+    }
+    let mut args = vec![
+        "status".to_owned(),
+        "--porcelain".to_owned(),
+        "--".to_owned(),
+    ];
+    args.extend(paths.iter().cloned());
+    let status = std::process::Command::new("git")
+        .args(&args)
+        .current_dir(root)
+        .output()
+        .ok()
+        .filter(|o| o.status.success())?;
+    let paths_dirty: Vec<String> = String::from_utf8_lossy(&status.stdout)
+        .lines()
+        .filter_map(|l| l.get(3..).map(str::to_owned))
+        .collect();
+    Some(Locator {
+        commit_sha,
+        worktree_clean: paths_dirty.is_empty(),
+        paths_dirty,
+    })
 }
 
 fn load_response(path: &Utf8Path) -> Result<ResolutionResponse, RepoError> {
@@ -523,10 +583,17 @@ pub fn ingest(repo: &Repository, alias: &str, path: &Utf8Path) -> Result<Report,
         return Ok(report);
     }
 
+    let declared: Vec<String> = repo
+        .load_deliverables(&dir)?
+        .records
+        .iter()
+        .map(|d| d.target_ref.clone())
+        .collect();
     let record = ResolutionRecord {
         schema: RECORD_SCHEMA.to_owned(),
         warrant: alias.to_owned(),
         resolution,
+        locator: locate(&repo.root, &declared),
     };
     let out = dir.join("resolution.toml");
     let body = toml::to_string_pretty(&record)

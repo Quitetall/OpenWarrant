@@ -1,12 +1,21 @@
 #!/usr/bin/env bash
 # PreToolUse hook (Edit|Write|MultiEdit|NotebookEdit): refuse an edit to a file
-# a RESOLVED Warrant pins, or to anything under a generated/ directory.
+# a RESOLVED Warrant pins and no later authorized Warrant governs, or to
+# anything under a generated/ directory.
 #
 # The pin list is `war pins --resolved-only --json`, so the hook can never
-# disagree with `war check`: both read the same records. A pinned file changes
-# only through the correction act (`war correct`), which a human signs.
+# disagree with `war check`: both read the same records. A pin a LATER
+# authorized Warrant's recorded set governs is `historical` (OW-ADR-0021) and
+# the edit goes through under that Warrant's authority; a current pin changes
+# only through the correction act (`war correct`), which a human signs. A pin
+# with no `historical` field at all comes from a binary older than the rule and
+# is treated as current — fail-closed.
 #
-# Fail-open with a note when `war` is not installed: a missing guard is said,
+# The checkout's own binary is preferred over the one on PATH, as
+# `stop-check.sh` does: the rule that decides an edit should be the rule the
+# tree was built with, not whatever an older install still says.
+#
+# Fail-open with a note when neither is available: a missing guard is said,
 # not silently skipped, and `war check` still catches the drift later.
 set -uo pipefail
 
@@ -46,22 +55,32 @@ case "$rel" in
 esac
 
 [[ -f openwarrant.toml ]] || exit 0
-if ! command -v war >/dev/null 2>&1; then
-    printf 'openwarrant guard-pins: `war` is not on PATH; the pin guard did not run\n' >&2
+if [[ -x ./target/debug/war ]]; then
+    war_cmd=./target/debug/war
+elif command -v war >/dev/null 2>&1; then
+    war_cmd=war
+else
+    printf 'openwarrant guard-pins: no `war` binary (./target/debug/war or PATH); the pin guard did not run\n' >&2
     exit 0
 fi
 
-pinned=$(war --json pins --resolved-only 2>/dev/null | python3 -c 'import sys, json
+pinned=$("$war_cmd" --json pins --resolved-only 2>/dev/null | python3 -c 'import sys, json
 rel = sys.argv[1]
 try:
     pins = json.load(sys.stdin).get("result", {}).get("pins", [])
 except Exception:
     sys.exit(0)
+current = []
 for p in pins:
-    if p.get("path") == rel:
-        print(p.get("warrant", "?") + "/" + p.get("deliverable_id", "?"))
-        break' "$rel")
+    if p.get("path") != rel:
+        continue
+    # Absent means an older binary that knows no ownership: treat as current.
+    if p.get("historical", False) is True:
+        continue
+    current.append(p.get("warrant", "?") + "/" + p.get("deliverable_id", "?"))
+if current:
+    print(current[0])' "$rel")
 if [[ -n "$pinned" ]]; then
-    deny "OpenWarrant: $rel is pinned by resolved $pinned. A resolved Warrant's delivered file changes only through the correction act: edit it, run \`war correct ${pinned%/*} ${pinned#*/}\`, and a human signs (\`war sign ${pinned} --ssh-sign\`). Do not edit it under this Warrant's authority."
+    deny "OpenWarrant: $rel is pinned by resolved $pinned and no later authorized Warrant governs it. It changes under a Warrant that declares it and is authorized (OW-ADR-0021), or through the correction act: edit it, run \`war correct ${pinned%/*} ${pinned#*/}\`, and a human signs (\`war sign ${pinned} --ssh-sign\`)."
 fi
 exit 0
