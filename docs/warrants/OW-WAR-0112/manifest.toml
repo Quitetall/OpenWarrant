@@ -1,0 +1,94 @@
+# A Warrant is the contract for ONE bounded intervention inside a program,
+# and it traces to that program's SAS through [[implements]] and [[roadmap]].
+# Starting a program? Write its SAS instead (SAS §6.10; docs/DEFINITIONS.md).
+schema = "oh.war/manifest/v1"
+uuid = "01a0ca4a-0c02-7cd3-b49d-786377a1aa06"
+local_alias = "OW-WAR-0112"
+
+# Allocated only by Knowledge Fabric (SAS §12.4). Leave empty.
+enterprise_id = ""
+
+title = "war is the app: ownership, a guided start, and remedies"
+profile = "delivery"
+assurance_level = "controlled"
+
+# RQ-036 is retitled and RQ-037 added by SAS 1.1.0, which this Warrant
+# proposes and OW-ADR-0021 carries. Both rows exist in the SAS text from the
+# first commit of this Warrant, so `war check` resolves them now.
+[[implements]]
+ref = "sas://WAR-SAS-RQ-036"
+contribution = "complete"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-037"
+contribution = "complete"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-033"
+contribution = "partial"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-070"
+contribution = "partial"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-074"
+contribution = "partial"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-075"
+contribution = "partial"
+
+# §21.2 / RQ-025. OW-WAR-0073 ("war tui: the dashboard in the terminal") is
+# authorized at revision 1 and unexecuted. Its work order escalated whether the
+# dashboard becomes the default of `war` with no subcommand (draft: no); the
+# owner answered yes on 2026-09-22. §28.7 forbids patching a signed contract,
+# so this Warrant supersedes it, adopts its eight deliverables and four
+# obligations verbatim, and extends them. 0073 stays on record, non-current.
+[[supersedes]]
+ref = "war://01a0983e-32db-7240-9a9d-cef5e5b41a38"
+reason = "The owner resolved 0073's T2 escalation on 2026-09-22: `war` with no subcommand opens the dashboard. That decision, the Setup and Help panes, and the remedies pane sit outside 0073's signed digest, so a superseding Warrant carries the whole app rather than an amendment that would move a signature already given."
+adopts = [
+    "deliverables 1-8 of OW-WAR-0073's work order, verbatim",
+    "OBL-001 through OBL-004 of OW-WAR-0073's assurance atom",
+    "OW-ADR-0020 (ratatui), whose `governs` gains this Warrant",
+]
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 30
+role = "adr"
+path = "../../adr/atoms/OW-ADR-0021-pin-ownership.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-1/console"

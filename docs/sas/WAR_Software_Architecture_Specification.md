@@ -1704,7 +1704,8 @@ Authorization creates an immutable authorized Contract Revision with:
 - authorization meaning;
 - effective time;
 - policy basis;
-- exact Compilation Basis.
+- exact Compilation Basis;
+- the set of declared deliverable paths, as the authorizer saw it (§37.5).
 
 ### 28.5 Contract digest
 
@@ -2268,6 +2269,14 @@ A generated report SHALL NOT replace its source observations or bytes.
 ### 37.4 Performer submission
 
 The submission manifest is normally not a deliverable. It is a claim envelope describing artifacts, blockers, deviations, and requested next action.
+
+### 37.5 Ownership of a delivered path
+
+Authorization of a WAR SHALL record the set of deliverable paths the WAR declares, as the authorizer saw it. A path is governed by the most recently authorized WAR whose recorded set names it; an authorization recorded without a set governs nothing.
+
+A resolved WAR's pin on a path that a later authorized WAR governs is historical: it remains recorded, its resolution keeps binding it, and it SHALL NOT be reported as drift. A change to a path that no authorized WAR currently governs is drift, and moves only through a recorded correction (§34.4, OW-ADR-0012).
+
+Widening a WAR's declared set after authorization is a material amendment (§31). A path declared in the manifest but absent from the recorded set is not governed and SHALL be reported as such.
 
 ## 38. Acceptance argument
 
@@ -3228,7 +3237,12 @@ resolution:
   effective_at: "..."
   recorded_at: "server-assigned"
   standing: "valid"
+locator:
+  commit_sha: "..."
+  worktree_clean: true
 ```
+
+`locator` is optional and MAY be absent on records made before it was specified; when present it names the commit whose tree held the delivered bytes at ingest, so a historical pin (§37.5) can be re-verified from history.
 
 ### 56.3 Falsification
 
@@ -5568,7 +5582,8 @@ The following requirement IDs provide stable traceability for implementation WAR
 | WAR-SAS-RQ-033 | Material amendment creates new revision |
 | WAR-SAS-RQ-034 | Prior attempts retain original contract basis |
 | WAR-SAS-RQ-035 | Readiness requires Preflight |
-| WAR-SAS-RQ-036 | A delivered artifact of a resolved WAR changes only through a recorded correction |
+| WAR-SAS-RQ-036 | A delivered artifact changes only under a later authorized WAR that declares it, or through a recorded correction |
+| WAR-SAS-RQ-037 | Ownership of a delivered path is recorded at authorization and belongs to the latest such authorization |
 
 ### Execution
 

@@ -1,0 +1,22 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-001"
+band: "manual_revision"
+reason: "The revision this Warrant delivers is renumbered from 1.1.0 to 1.2.0. OW-WAR-0112 proposes SAS 1.1.0 on 2026-09-22 carrying OW-ADR-0021 (pin ownership), because that rule blocks daily work now and a revision's `adr_ref` admits one ADR. This Warrant's text — the batch act and the rendering rule, OW-ADR-0019 — is unchanged and follows as 1.2.0. A-003 in this Warrant's rationale accepted exactly this outcome: the revision is renumbered; no downstream record changes, since a revision's identity is its version and digest together. The drafter wrote this record; the authorizer adopts it by signing revision 2."
+governing_adr_or_policy: "sas://WAR-SAS-101"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. Wherever this Warrant's atoms say 1.1.0, read 1.2.0; `war sas propose 1.2.0` when the text is ready. Nothing delivered is invalidated: no revision file, no signature and no receipt was recorded under the old number."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-22"
+
+semantic_diff:
+  - element: "intent"
+    before: "Desired Outcome: SAS 1.1.0, accepted by the owner's signature, in which a batch act is defined and a rendering is defined."
+    after: "Desired Outcome: SAS 1.2.0, accepted by the owner's signature, in which a batch act is defined and a rendering is defined. 1.1.0 is taken by OW-ADR-0021 (OW-WAR-0112)."
+  - element: "basis_requirements"
+    before: "1.1.0, not 1.0.1: this adds requirements rather than correcting text."
+    after: "1.2.0, not 1.1.1: this adds requirements rather than correcting text, and follows 1.1.0, which added RQ-037 and retitled RQ-036."
+
+affected_stages: []
+affected_milestones: []

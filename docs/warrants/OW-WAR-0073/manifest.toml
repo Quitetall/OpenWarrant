@@ -10,6 +10,13 @@ enterprise_id = ""
 
 title = "war tui: the dashboard in the terminal"
 profile = "delivery"
+
+# §21.2 / RQ-025. Superseded by OW-WAR-0112 on 2026-09-22, which adopts this
+# work order's eight deliverables and four obligations verbatim and answers the
+# T2 escalation below it: `war` with no subcommand opens the dashboard. This
+# record stays available (§21.4). `currency` is a lifecycle state outside the
+# contract digest (`ir.rs current_coverage`), so revision 1's signature stands.
+currency = "superseded"
 assurance_level = "basic"
 
 # [[implements]]

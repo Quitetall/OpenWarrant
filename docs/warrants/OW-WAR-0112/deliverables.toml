@@ -1,0 +1,804 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1. Declared by the performer — declaring a deliverable is a performer
+# statement (§51), which is permitted. It is the VERIFICATION of the obligations
+# these support that must be independent (§46), not the declaration itself.
+#
+# Under OW-ADR-0021 the SET of (id, target_ref) pairs below is what the
+# authorizer signs and what this Warrant then governs. It is complete at
+# authorization: every path this Warrant will touch is here, including the
+# ones that do not exist yet. Those carry `content_addressed = false` until
+# they are delivered; their digests are recorded then, and adding a digest
+# does not change the set. Adding a PATH after authorization would, and is
+# reported as `deliverable.undeclared-at-authorization`.
+#
+# `contract_digest` is "unrecorded" because it is true: no authorized contract
+# revision exists for this Warrant yet (§28.4 needs a human).
+
+[[deliverable]]
+id = "D-001"
+title = "OW-ADR-0021, the ownership decision"
+kind = "document"
+target_ref = "docs/adr/atoms/OW-ADR-0021-pin-ownership.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:4f10c79289d5e7ecc8f944c8b293ce7e8b2a68dbff572f5028a14f560ba3407b"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "The SAS text: RQ-036 retitled, RQ-037, §37.5, §28.4, §56.2"
+kind = "document"
+target_ref = "docs/sas/WAR_Software_Architecture_Specification.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:321413359168c176faaddefc1a7057d66059d5de8d98d20feeca995c7f89a1bc"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-003"
+title = "OW-WAR-0071 re-targeted to 1.2.0"
+kind = "document"
+target_ref = "docs/warrants/OW-WAR-0071/amendments/AM-001.yaml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+# Not yet delivered: created under this Warrant. Digest recorded on delivery.
+
+[[deliverable]]
+id = "D-004"
+title = "The ownership index"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/ownership.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002"]
+# Not yet delivered: created under this Warrant. Digest recorded on delivery.
+
+[[deliverable]]
+id = "D-005"
+title = "Authorization records the declared set"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/authorize.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:590bb58991254bd591db9850620c5dc38b58b161dc9b1e82c6d8d319a06e46d1"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-006"
+title = "The signing screen shows what it grants"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/sign.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:3c956d45e606d966033897acfc53e8c5123d6f68c2f7344055d8e5683da0f61c"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-007"
+title = "Historical pins and the lineage"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/pins.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:a2339e8d4ea0884aa15b0ca2db6dd7657ca0f7a1e2c7b821eebd231c8163b3c9"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-008"
+title = "A correction against a historical pin is refused"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/correct.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:6658319221ebcb339cbf534a001d4c186caa2e2fbc96674ee898a0ed8eb25504"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-009"
+title = "The resolution locator"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/resolution_cmd.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:e923ac0c0472807627e5eccd5859c9f2883f352599563428775c64fa94c4b5d2"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-010"
+title = "The pin guard reads ownership"
+kind = "file"
+target_ref = ".claude/hooks/guard-pins.sh"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:1744a80c7a47521221908034fb598ad58ab5f9624dc04a5c29b3dff99e285973"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-011"
+title = "The drift rule"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/check.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:2fd2d034c25c418c14dda10d8ef32972f6a5ee2fc77bcbe7f2b97051314a0109"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-012"
+title = "Requirement 3's reason names a newer owner"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/resolve.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:7794567b4edea07826ca20b0f68d7b6e190344cc541d7d2a2dfc98975eb4bb4a"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-013"
+title = "The ownership plants"
+kind = "file"
+target_ref = "conformance/plants.d/98-ownership.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002"]
+# Not yet delivered: created under this Warrant. Digest recorded on delivery.
+
+[[deliverable]]
+id = "D-014"
+title = "The authorization schema"
+kind = "file"
+target_ref = "schemas/oh.war/authorization/v1.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:0191bdfb010595aba7c65b7aa56a4a96bc54e422163c34e9ddb68de60d347f48"
+media_type = "application/json"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-015"
+title = "The threat-model row"
+kind = "document"
+target_ref = "docs/THREAT_MODEL.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:ae25e2af03a244b76e055063deb61640041fb0ad56d29f77a8ab762e35599997"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-016"
+title = "Remedies"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/remedy.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+# Not yet delivered: created under this Warrant. Digest recorded on delivery.
+
+[[deliverable]]
+id = "D-017"
+title = "A diagnostic carries its remedy"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/diagnostic.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:78c15dcc33161537eb046a9770a27db480771ec8912f73c3a7f72b89f71be969"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-018"
+title = "The remedy on the wire and in the REMEDIES block"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/output.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:ad3daf33472a79ff60fb66c3f189c2a9d42f0e62a618c590e39ba9726019ad38"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-019"
+title = "The report schema"
+kind = "file"
+target_ref = "schemas/oh.war/report/v1.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:0a5ebe967de7d306616578c207674e827285857c8b80492e0eafbf8c7cfb6894"
+media_type = "application/json"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-020"
+title = "The schema pack"
+kind = "file"
+target_ref = "schemas/pack.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:5ae1a102a66f0de5cc4c2c1910cfa0315e8a4fa5241a6822062c96e51abe4ce2"
+media_type = "application/json"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-021"
+title = "init, unchanged in behaviour, as a module directory"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/init/mod.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+# Not yet delivered: created under this Warrant. Digest recorded on delivery.
+
+[[deliverable]]
+id = "D-022"
+title = "The guided init"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/init/guided.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+# Not yet delivered: created under this Warrant. Digest recorded on delivery.
+
+[[deliverable]]
+id = "D-023"
+title = "roles.toml.example states the rule"
+kind = "document"
+target_ref = "docs/authority/roles.toml.example"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:c3f4e40da1450e3dc1d8f1868312a323a65c3b3f96aee2ba4017a391ba5cf2d0"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-024"
+title = "allowed_signers.example states the rule"
+kind = "document"
+target_ref = "docs/authority/allowed_signers.example"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:f1d670f6fc678277c6633106db15e047b40f12119c367fb24e193bbfe1e14088"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-025"
+title = "RESOLVING.md states the rule"
+kind = "document"
+target_ref = "docs/RESOLVING.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:fcbfb49ef0b6656deffb037dc25f229e16018f8802594ca9563772a369506527"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-026"
+title = "QUICKSTART.md: three questions, two signatures"
+kind = "document"
+target_ref = "QUICKSTART.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:6ed65612718872d71f83a84aea6897163347e045803015de2d6c415c63d1bc6f"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-027"
+title = "The init plants"
+kind = "file"
+target_ref = "conformance/plants.d/99-init.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+# Not yet delivered: created under this Warrant. Digest recorded on delivery.
+
+[[deliverable]]
+id = "D-028"
+title = "ratatui and crossterm, exact versions"
+kind = "file"
+target_ref = "Cargo.toml"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:33c49ba5e520e24debdf36984a39434258782b400537fa08a97606ee03665394"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-029"
+title = "The lockfile"
+kind = "file"
+target_ref = "Cargo.lock"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:5892bc67bf2e8cabff8d54b993fbec6093bc3a4bc5512882282698b95b0f0103"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-030"
+title = "The app"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/tui/mod.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-005", "OBL-006"]
+# Not yet delivered: created under this Warrant. Digest recorded on delivery.
+
+[[deliverable]]
+id = "D-031"
+title = "The way in: no-args, tui.json, tui.no-tty"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-006"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:827bfa88c5775537657dc7640db4c5bb62ce4e5e3113e2481433c57b0cc7a5a9"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-032"
+title = "The confinement test and NOT_YET"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/main.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-005", "OBL-006"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:8581762abde269adf44fb9dd59218d43099da940226d00f810f224279cc58295"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-033"
+title = "The poller opened to the app"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/watch.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:ed2069b6fd86bab1c1950b5175cb1b5b6aafab2b3ceb44f17a36bb4d15e6734c"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-034"
+title = "The app plants"
+kind = "file"
+target_ref = "conformance/plants.d/97-tui.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-005", "OBL-006"]
+# Not yet delivered: created under this Warrant. Digest recorded on delivery.
+
+[[deliverable]]
+id = "D-035"
+title = "docs/TUI.md: every pane, every key, the rendering rule"
+kind = "document"
+target_ref = "docs/TUI.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-005", "OBL-006"]
+# Not yet delivered: created under this Warrant. Digest recorded on delivery.
+
+[[deliverable]]
+id = "D-036"
+title = "README: one line"
+kind = "document"
+target_ref = "README.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-006"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:468c44364589226235012fa7be7c434b0602ac03d47189f70b92dddb79aba450"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-037"
+title = "AGENTS.md: agents call war status and war next, never bare war"
+kind = "document"
+target_ref = "AGENTS.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-006"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:62c71336128ccbb22fd07510bf2bfb7c90926a40a29502ecf054d289d7d7dae0"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-038"
+title = "OW-ADR-0020 accepted, governs this Warrant"
+kind = "document"
+target_ref = "docs/adr/atoms/OW-ADR-0020-ratatui-for-the-terminal-dashboard.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:abb05792751165118bc67bd9101a793e75d68babfe692962a5031b87be9d8bfa"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-039"
+title = "The re-pin act"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/sas_repin.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-007"]
+# Not yet delivered: created under this Warrant. Digest recorded on delivery.
+
+[[deliverable]]
+id = "D-040"
+title = "The re-pin plants"
+kind = "file"
+target_ref = "conformance/plants.d/88-sas-repin.sh"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-007"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:fc2321d160d856f86a1c0a76e569d90897b5c0e853fe42e6c238df0c22a2a921"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository"
+source_holder = "git"

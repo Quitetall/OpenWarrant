@@ -1,0 +1,96 @@
+schema: "oh.war/milestones/v1"
+
+# M1 first: once this Warrant is authorized it owns check.rs, diagnostic.rs
+# and resolve.rs, and every later milestone edits them under that authority.
+#
+#   M1 ownership --+-- M3 remedies ----+
+#                  +-- M4 guided init -+-- M2 the app -- M5 re-pin
+#                  +-------------------+
+milestones:
+  - id: "M1"
+    title: "Pins mean ownership: OW-ADR-0021, SAS 1.1.0, the record, the rule"
+    stage_refs: ["STAGE-001", "STAGE-002", "STAGE-003"]
+    obligation_refs: ["OBL-001", "OBL-002"]
+  - id: "M3"
+    title: "Every diagnostic carries its remedy"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-004"]
+    obligation_refs: ["OBL-003"]
+  - id: "M4"
+    title: "war init is a conversation"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-005", "STAGE-006"]
+    obligation_refs: ["OBL-004"]
+  - id: "M2"
+    title: "war is the app: 0073 executed, then Setup, Help, remedies, no-args"
+    depends_on: ["M1", "M3", "M4"]
+    stage_refs: ["STAGE-007", "STAGE-008", "STAGE-009"]
+    obligation_refs: ["OBL-005", "OBL-006"]
+  - id: "M5"
+    title: "The 65 warnings become one act"
+    depends_on: ["M1", "M3"]
+    stage_refs: ["STAGE-010"]
+    obligation_refs: ["OBL-007"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Phase A: ADR, SAS text, 0071 AM-001, ownership in the free files, schema regen"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Premade Instructions"]
+    budget_tokens: 24000
+  - id: "STAGE-002"
+    title: "Accept SAS 1.1.0; authorize this Warrant; re-authorize OW-WAR-0071"
+    executor_kind: "human"
+    responsibility_tier: "T2"
+  - id: "STAGE-003"
+    title: "Phase B: the drift rule in check.rs and resolve.rs, the plants, the threat-model row"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Premade Instructions"]
+    budget_tokens: 20000
+  - id: "STAGE-004"
+    title: "remedy.rs, the field on Diagnostic, the wire, the REMEDIES block, schema regen"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Premade Instructions"]
+    budget_tokens: 16000
+  - id: "STAGE-005"
+    title: "init/guided.rs, the line front end, the four documents, 99-init.sh"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Premade Instructions"]
+    budget_tokens: 20000
+  - id: "STAGE-006"
+    title: "Walk the guided init on a scratch program from an empty directory to a signed adopt Warrant"
+    executor_kind: "human"
+    responsibility_tier: "T2"
+  - id: "STAGE-007"
+    title: "0073 deliverables 1-8: dependencies, the frame, the seven panes, live refresh, 97-tui.sh, docs/TUI.md"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Premade Instructions"]
+    budget_tokens: 32000
+  - id: "STAGE-008"
+    title: "No-args as the way in, the Setup and Help panes, the remedies pane, AGENTS.md"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Premade Instructions"]
+    budget_tokens: 24000
+  - id: "STAGE-009"
+    title: "Clear a real queue in the app: check rows, pick a preset, sign"
+    executor_kind: "human"
+    responsibility_tier: "T2"
+  - id: "STAGE-010"
+    title: "sas_repin.rs, the clap variant, 88-sas-repin.sh extended"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Premade Instructions"]
+    budget_tokens: 12000
