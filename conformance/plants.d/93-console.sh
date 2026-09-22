@@ -6,7 +6,10 @@
 
 # The board is the signing queue, not a second opinion about it: whatever
 # `war sign --list` names, the screen numbers, and nothing else.
-C_LIST=$("$WAR" sign --list 2>/dev/null | grep -cE '^  (OW-WAR-[0-9]{4}|[0-9]+\.[0-9]+\.[0-9]+)')
+# A pending SAS acceptance renders as `  SAS <version>`, which the first
+# version of this pattern missed — invisible until a revision was actually
+# proposed while the battery ran (OW-WAR-0112 proposing 1.1.0).
+C_LIST=$("$WAR" sign --list 2>/dev/null | grep -cE '^  (OW-WAR-[0-9]{4}|SAS [0-9]+\.[0-9]+\.[0-9]+|[0-9]+\.[0-9]+\.[0-9]+)')
 C_BOARD=$("$WAR" console --json 2>/dev/null | python3 -c 'import json,sys; print(len(json.load(sys.stdin)["result"]["acts"]))')
 if [[ "$C_LIST" -gt 0 && "$C_LIST" == "$C_BOARD" ]]; then
     printf 'ok    %-34s %s acts, the same ones war sign lists\n' "the board is the signing queue" "$C_BOARD"
