@@ -118,7 +118,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0109](docs/warrants/OW-WAR-0109/manifest.toml) | Durable agent availability queue and automatic bounded dispatch | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
 | [OW-WAR-0110](docs/warrants/OW-WAR-0110/manifest.toml) | Generate OpenWarrant TypeScript record types and integrate KF consumption | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
 | [OW-WAR-0111](docs/warrants/OW-WAR-0111/manifest.toml) | Implement content-bearing preservation archives and honest import round trips | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0112](docs/warrants/OW-WAR-0112/manifest.toml) | war is the app: ownership, a guided start, and remedies | `draft` | `current` | `valid` | `controlled` | 5M / 10S |
+| [OW-WAR-0112](docs/warrants/OW-WAR-0112/manifest.toml) | war is the app: ownership, a guided start, and remedies | `authorized` | `current` | `valid` | `controlled` | 5M / 10S |
 
 ## Claimed SAS requirement coverage
 
