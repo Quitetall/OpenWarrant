@@ -64,7 +64,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | requirement | Warrants blocked |
 |---|---|
 | artifact digests verify | 72 |
-| required deliverables exist | 54 |
+| required deliverables exist | 53 |
 | every required gate has admissible result | 52 |
 | no blocker remains | 51 |
 | no required unknown remains | 51 |
@@ -263,7 +263,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0109` Durable agent availability queue and automatic bounded dispatch | draft | unknown | 0 | 0 of 2 | required deliverables exist |
 | `OW-WAR-0110` Generate OpenWarrant TypeScript record types and integrate KF consumption | draft | unknown | 0 | 0 of 2 | required deliverables exist |
 | `OW-WAR-0111` Implement content-bearing preservation archives and honest import round trips | draft | unknown | 0 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0112` war is the app: ownership, a guided start, and remedies | draft | unknown | 0 | 0 of 5 | required deliverables exist |
+| `OW-WAR-0112` war is the app: ownership, a guided start, and remedies | draft | unknown | 0 | 0 of 5 | every required obligation is dispositioned |
 
 ## Not reported here
 

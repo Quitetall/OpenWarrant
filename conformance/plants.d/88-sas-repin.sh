@@ -76,3 +76,58 @@ REPIN_NEXT=$((REPIN_NOW + 1))
 plant_cmd "a sound re-pin asks for authorization rev $REPIN_NEXT" "rev $REPIN_NEXT" "authorize" 0 \
     "repin_amendment $REPIN_DIR 1.0.0 STAGE-001 M1" \
     sign --list
+
+# ---------------------------------------------------------------------------
+# `war sas repin` (OW-WAR-0112 M5): the tool writes the amendment the plants
+# above fabricate by hand. Each plant removes what the command wrote — the
+# battery's restore knows AM-901, not the ids the tool numbers.
+echo "== sas repin (OW-WAR-0112) =="
+REPIN_TOOL_ID=$(printf 'AM-%03d' $(( $(ls "$REPIN_DIR/amendments" 2>/dev/null | grep -c '^AM-[0-9]*\.yaml$') + 1 )))
+
+# One Warrant: the amendment lands and the queue asks for revision N+1.
+plant_cmd "repin writes the amendment; rev $REPIN_NEXT pending" "rev $REPIN_NEXT" "authorize" 0 \
+    "\"$WAR\" sas repin $REPIN_ALIAS >/dev/null 2>&1; assert_present 'predecessor_sas_revision' '$REPIN_DIR/amendments/$REPIN_TOOL_ID.yaml'" \
+    sign --list
+rm -f "$REPIN_DIR/amendments/$REPIN_TOOL_ID.yaml"
+
+# The amendment the tool writes is the one `check` reads: it names the
+# latest revision and the pin it moved from, and no `sas.repin-*` fires.
+REPIN_LATEST=$(ls docs/sas/revisions/*.toml | xargs -n1 basename | sed 's/\.toml$//' | sort -V | tail -1)
+"$WAR" sas repin "$REPIN_ALIAS" >/dev/null 2>&1
+REPIN_CHK=$("$WAR" check "$REPIN_ALIAS" 2>&1)
+if grep -q "sas_revision: \"$REPIN_LATEST\"" "$REPIN_DIR/amendments/$REPIN_TOOL_ID.yaml" \
+    && ! grep -q 'sas.repin-unknown-requirement\|sas.pin-unknown' <<<"$REPIN_CHK" \
+    && ! grep -q "sas.pin-superseded .*$REPIN_ALIAS" <<<"$REPIN_CHK"; then
+    printf 'ok    %-34s pinned to %s, the warning gone\n' "the written re-pin checks clean" "$REPIN_LATEST"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s %s\n' "the written re-pin checks clean" "$(grep -E 'sas\.' <<<"$REPIN_CHK" | grep -v '^PASS' | head -2 | tr '\n' '|')"
+    FAILED=$((FAILED + 1))
+fi
+rm -f "$REPIN_DIR/amendments/$REPIN_TOOL_ID.yaml"
+plant_restore
+
+# A resolved Warrant named outright: refused by name, nothing written.
+REPIN_OUT=$("$WAR" sas repin "$REPIN_RESOLVED" 2>&1)
+REPIN_STATUS=$?
+if [[ $REPIN_STATUS -eq 2 ]] && grep -q 'sas.repin-resolved' <<<"$REPIN_OUT" && [[ ! -d "docs/warrants/$REPIN_RESOLVED/amendments" ]]; then
+    printf 'ok    %-34s refused, nothing written\n' "repin of a resolved Warrant"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s exit %s; amendments dir: %s\n' "repin of a resolved Warrant" "$REPIN_STATUS" "$([[ -d docs/warrants/$REPIN_RESOLVED/amendments ]] && echo present || echo absent)"
+    FAILED=$((FAILED + 1))
+fi
+plant_restore
+
+# `--all --dry-run`: every candidate named, nothing written, tree unchanged.
+REPIN_BEFORE=$(git status --porcelain | sort)
+REPIN_DRY=$("$WAR" sas repin --all --dry-run 2>&1)
+REPIN_AFTER=$(git status --porcelain | sort)
+REPIN_N=$(grep -c 'sas.repin-would-write' <<<"$REPIN_DRY")
+if [[ "$REPIN_BEFORE" == "$REPIN_AFTER" ]] && [[ $REPIN_N -gt 0 ]] && ! grep -q 'sas.repin-written' <<<"$REPIN_DRY"; then
+    printf 'ok    %-34s %s candidate(s), nothing written\n' "repin --all --dry-run" "$REPIN_N"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s %s candidate(s); tree moved: %s\n' "repin --all --dry-run" "$REPIN_N" "$([[ "$REPIN_BEFORE" == "$REPIN_AFTER" ]] && echo no || echo yes)"
+    FAILED=$((FAILED + 1))
+fi

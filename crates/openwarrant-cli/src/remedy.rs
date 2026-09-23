@@ -104,6 +104,7 @@ pub const TABLE: &[&str] = &[
     "authorize.no-amendment",
     "sas.pin-unknown",
     "sas.proposed-unaccepted",
+    "sas.pin-superseded",
     "schemas.drift",
     "schemas.missing",
     "evidence.stale-binding",
@@ -188,6 +189,12 @@ pub fn remedy_for(d: &Diagnostic) -> Option<Remedy> {
             &["war", "diff", a],
             "see what moved the contract; §31 wants an amendment record under amendments/ \
              before revision N+1 is signed",
+        ),
+        "sas.pin-superseded" => Remedy::new(
+            Kind::Human,
+            &["war", "sas", "repin", a],
+            "write the amendment that re-pins the Basis to the latest revision; a human then \
+             re-authorizes with `war sign <alias> --ssh-sign` (revision N+1)",
         ),
         "sas.pin-unknown" | "sas.proposed-unaccepted" => Remedy::new(
             Kind::Informational,

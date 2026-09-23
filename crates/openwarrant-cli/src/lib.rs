@@ -62,6 +62,7 @@ pub mod resolution_cmd;
 pub mod resolve;
 pub mod run_cmd;
 pub mod sas;
+pub mod sas_repin;
 #[cfg(feature = "schema")]
 pub mod schema_typescript;
 #[cfg(feature = "schema")]
@@ -146,6 +147,23 @@ enum SasCommand {
     Diff { candidate: Utf8PathBuf },
     /// Every revision on record, and which one the document matches.
     Status,
+    /// Write the amendment that re-pins an authorized, unresolved Warrant to
+    /// the latest recorded revision (OW-ADR-0016); a human then re-authorizes
+    /// it. `sas.pin-superseded`'s remedy (OW-WAR-0112).
+    Repin {
+        /// One Warrant. Refuses a resolved one by name.
+        alias: Option<String>,
+        /// Every authorized, unresolved Warrant behind the latest revision;
+        /// resolved ones are skipped. All-or-nothing.
+        #[arg(long, conflicts_with = "alias")]
+        all: bool,
+        /// The amendment's reason, instead of the one the tool writes.
+        #[arg(long)]
+        reason: Option<String>,
+        /// Say what would be written and write nothing.
+        #[arg(long)]
+        dry_run: bool,
+    },
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -1710,6 +1728,20 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             let ready = |report: diagnostic::Report| Ok(output::finish(mode, "sas", &report, None));
             match command {
                 SasCommand::Propose { version } => ready(sas::propose(&repository, &version)?),
+                SasCommand::Repin {
+                    alias,
+                    all,
+                    reason,
+                    dry_run,
+                } => ready(sas_repin::run(
+                    &repository,
+                    &sas_repin::Options {
+                        alias,
+                        all,
+                        reason,
+                        dry_run,
+                    },
+                )?),
                 SasCommand::Accept { version, response } => match response {
                     Some(path) => ready(sas::accept_ingest(&repository, &version, &path)?),
                     None => {
