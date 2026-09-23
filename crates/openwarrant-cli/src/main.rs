@@ -81,11 +81,65 @@ mod tests {
         );
     }
 
+    /// OW-ADR-0020: ratatui and crossterm are admitted under `src/tui/` only —
+    /// the same shape as the async confinement above, so a pane cannot grow
+    /// in a file the app's declaration never named.
+    #[test]
+    fn the_terminal_library_lives_only_in_the_tui_module() {
+        fn walk(dir: &std::path::Path, out: &mut Vec<std::path::PathBuf>) {
+            for entry in std::fs::read_dir(dir).expect("readable dir").flatten() {
+                let path = entry.path();
+                if path.is_dir() {
+                    walk(&path, out);
+                } else if path.extension().is_some_and(|e| e == "rs") {
+                    out.push(path);
+                }
+            }
+        }
+        let crates = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+        let mut files = Vec::new();
+        walk(&crates, &mut files);
+        assert!(files.len() > 40, "walked too few files: {}", files.len());
+        let this = std::path::Path::new(file!())
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("main.rs");
+        let mut offenders = Vec::new();
+        for path in files {
+            let rel = path
+                .strip_prefix(&crates)
+                .unwrap_or(&path)
+                .to_string_lossy()
+                .replace('\\', "/");
+            if rel.starts_with("openwarrant-cli/src/tui/")
+                || rel.ends_with(this)
+                || rel.contains("/target/")
+            {
+                continue;
+            }
+            let text = std::fs::read_to_string(&path).expect("readable source");
+            for needle in ["ratatui", "crossterm"] {
+                if text
+                    .lines()
+                    .any(|l| !l.trim_start().starts_with("//") && l.contains(needle))
+                {
+                    offenders.push(format!("{rel}: {needle}"));
+                }
+            }
+        }
+        assert!(
+            offenders.is_empty(),
+            "ratatui or crossterm outside openwarrant-cli/src/tui/ (OW-ADR-0020): {offenders:?}"
+        );
+    }
+
     #[test]
     fn every_subcommand_supports_json_or_is_listed_as_not_yet() {
         // `mcp` speaks JSON-RPC on stdout; an envelope there would corrupt
         // the transport, so it is listed as not-yet on purpose, not by gap.
-        const NOT_YET: &[&str] = &["init", "kf", "telemetry", "migrate", "export", "mcp"];
+        // `tui` is a terminal application: no envelope on purpose, and
+        // `war tui --json` says so (OW-WAR-0073 deliverable 6).
+        const NOT_YET: &[&str] = &["init", "kf", "telemetry", "migrate", "export", "mcp", "tui"];
         let cmd = openwarrant_cli::Cli::command();
         let all: Vec<String> = cmd
             .get_subcommands()

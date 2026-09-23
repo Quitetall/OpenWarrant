@@ -28,7 +28,7 @@ Source: ADR atoms under the configured adrs path.
 | [OW-ADR-0017](docs/adr/atoms/OW-ADR-0017-relicense-apache-2-0.md) | ADR OW-0017: relicense from AGPL-3.0-or-later to Apache-2.0 | `accepted` | yes | `war://01a021a2-b570-7f57-85b2-0f8189873d9e` |
 | [OW-ADR-0018](docs/adr/atoms/OW-ADR-0018-adopt-oh-war-inbox-v1-as.md) | ADR OW-0018: Adopt oh.war/inbox/v1 as the machine-readable output of war inbox | `proposed` | no | `war://01a09762-3fa2-7dd0-b794-0190b44fe879` |
 | [OW-ADR-0019](docs/adr/atoms/OW-ADR-0019-sas-1-1-0-batch-act-and-renderings.md) | ADR OW-0019: SAS 1.1.0 — the batch act, and renderings hold no authority | `proposed` | no | `war://01a0983e-32d7-7473-b6e1-fbef061a1e5f` |
-| [OW-ADR-0020](docs/adr/atoms/OW-ADR-0020-ratatui-for-the-terminal-dashboard.md) | ADR OW-0020: ratatui and crossterm for the terminal dashboard | `proposed` | no | `war://01a0983e-32db-7240-9a9d-cef5e5b41a38` |
+| [OW-ADR-0020](docs/adr/atoms/OW-ADR-0020-ratatui-for-the-terminal-dashboard.md) | ADR OW-0020: ratatui and crossterm for the terminal dashboard | `accepted` | yes | `war://01a0983e-32db-7240-9a9d-cef5e5b41a38`<br>`war://01a0ca4a-0c02-7cd3-b49d-786377a1aa06` |
 | [OW-ADR-0021](docs/adr/atoms/OW-ADR-0021-pin-ownership.md) | ADR OW-0021: A delivered path is governed by the latest authorized Warrant that declares it | `proposed` | no | `war://01a0ca4a-0c02-7cd3-b49d-786377a1aa06` |
 
 ## Proposed
@@ -43,7 +43,6 @@ Source: ADR atoms under the configured adrs path.
 - **OW-ADR-0016** ADR OW-0016: SAS 1.0.0 — one architecture-changing revision, accepted with the release
 - **OW-ADR-0018** ADR OW-0018: Adopt oh.war/inbox/v1 as the machine-readable output of war inbox
 - **OW-ADR-0019** ADR OW-0019: SAS 1.1.0 — the batch act, and renderings hold no authority
-- **OW-ADR-0020** ADR OW-0020: ratatui and crossterm for the terminal dashboard
 - **OW-ADR-0021** ADR OW-0021: A delivered path is governed by the latest authorized Warrant that declares it
 
 ## Accepted and Current
@@ -56,6 +55,7 @@ Source: ADR atoms under the configured adrs path.
 - **OW-ADR-0006** ADR OW-0006: Execution status and migration class are two vocabularies, and the verdict keeps its unknown — 2026-08-19
 - **OW-ADR-0008** ADR OW-0008: §91.2 tests 11, 13, 14 and 15, dispositioned against the specification text — 2026-08-22
 - **OW-ADR-0017** ADR OW-0017: relicense from AGPL-3.0-or-later to Apache-2.0
+- **OW-ADR-0020** ADR OW-0020: ratatui and crossterm for the terminal dashboard
 
 ## Rejected, Withdrawn, or Falsified
 
@@ -1720,7 +1720,9 @@ the rendering rule, each with the conformance test that demonstrates it.
 
 ## Status
 
-Proposed. Accepted when the owner authorizes OW-WAR-0073.
+Accepted. The owner authorized OW-WAR-0073 (revision 1) with this ADR in its
+basis, and OW-WAR-0112 — which supersedes 0073 and executes the dashboard as
+`war` with no arguments — cites it and was authorized on 2026-09-22.
 
 ## Context
 

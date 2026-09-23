@@ -6,16 +6,19 @@ role: adr
 jurisdiction: bound
 order: 30
 classification: internal
-status: proposed
+status: accepted
 governs:
   - "war://01a0983e-32db-7240-9a9d-cef5e5b41a38"
+  - "war://01a0ca4a-0c02-7cd3-b49d-786377a1aa06"
 ---
 
 # ADR OW-0020: ratatui and crossterm for the terminal dashboard
 
 ## Status
 
-Proposed. Accepted when the owner authorizes OW-WAR-0073.
+Accepted. The owner authorized OW-WAR-0073 (revision 1) with this ADR in its
+basis, and OW-WAR-0112 — which supersedes 0073 and executes the dashboard as
+`war` with no arguments — cites it and was authorized on 2026-09-22.
 
 ## Context
 

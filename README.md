@@ -119,6 +119,12 @@ cargo build --release -p openwarrant-cli
 ./target/release/war --help
 ```
 
+Then type `war` in the repository: at a terminal it opens the app — setup,
+help, the signing queue and every pane of the corpus, with the exact command
+behind each row ([docs/TUI.md](docs/TUI.md)). It signs nothing itself; every
+act runs `war sign --ssh-sign` in your terminal. On a pipe, `war` refuses by
+name and points at `war status --json`.
+
 Inspect this repository's existing records and generated-file consistency:
 
 ```bash

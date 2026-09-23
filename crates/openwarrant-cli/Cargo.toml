@@ -42,6 +42,11 @@ camino = { workspace = true }
 ureq = { workspace = true }
 clap = { workspace = true }
 toml = { workspace = true }
+# OW-ADR-0020: the terminal app, confined to `src/tui/` by a unit test in
+# main.rs. Both MIT; both synchronous — crossterm WITHOUT `event-stream`,
+# which would pull `futures` and engage OW-ADR-0014's refusal.
+ratatui = { version = "=0.29.0", default-features = false, features = ["crossterm"] }
+crossterm = { version = "=0.28.1", default-features = false, features = ["events", "windows"] }
 
 [features]
 # `war schemas`: the JSON Schema pack, generated from the record types.

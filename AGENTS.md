@@ -84,6 +84,10 @@ links to generated progress, implementation notes, document trail and next steps
 Use actual tracker output; report missing generation support instead of fabricating
 state. Completion does not imply qualification, merge, deployment or Stable release.
 
+Never run bare `war`: at a terminal — a pty inside a harness included — it
+opens the full-screen app and waits for keys. An agent reads `war status
+--json`, `war next --json`, `war check --json`; the app is a human's.
+
 Before a handoff that asks a human to sign, run `war sign <target> --dry-run`
 (or `war sign --all --dry-run` for the queue). It drafts the response and runs
 the act's ingest with the write withheld: every refusal the real signature

@@ -72,6 +72,7 @@ pub mod sign;
 pub mod status;
 pub mod telemetry;
 pub mod timeline;
+pub mod tui;
 pub mod verify;
 pub mod watch;
 
@@ -203,8 +204,11 @@ pub struct Cli {
     /// can change out from under them.
     #[arg(long, global = true, value_name = "ROOT")]
     root: Option<Utf8PathBuf>,
+    /// None: `war` alone. At a terminal that is the app (OW-WAR-0112); on a
+    /// pipe it is a refusal by name, so no script ever meets a full-screen
+    /// application by accident.
     #[command(subcommand)]
-    command: Command,
+    command: Option<Command>,
 }
 
 #[derive(Subcommand)]
@@ -269,6 +273,14 @@ enum Command {
         /// Also save the result envelope to a new file; existing files are never replaced.
         #[arg(long)]
         output: Option<Utf8PathBuf>,
+    },
+    /// The app: every pane of the corpus, the queue, help and setup, in the
+    /// terminal. `war` with no arguments is the same thing (OW-WAR-0112).
+    Tui {
+        /// Panic right after the terminal is set up — the fixture that proves
+        /// it is restored. Hidden; the battery's.
+        #[arg(long, hide = true)]
+        panic_after_setup: bool,
     },
     /// Initialize repository configuration and directories (§71.1). With no
     /// `--namespace`, at a terminal, it asks — and walks the whole setup:
@@ -1005,7 +1017,20 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
     // eagerly here would turn all of those into `repository.not-found` and
     // reorder error reporting for the rest.
     let open_repo = || repo::Repository::discover(root.clone());
-    match cli.command {
+    let Some(command) = cli.command else {
+        // `war` alone. `--json` has no envelope to give — a terminal
+        // application is not a projection — so it names the commands that do.
+        if cli.json {
+            return Err(Box::new(repo::RepoError::Message(
+                "`war --json` has no envelope: the app is a rendering. Use `war status --json`, \
+                 `war console --json`, `war next --json` or `war check --json`"
+                    .to_owned(),
+            )));
+        }
+        return Ok(tui::run(root, false)?);
+    };
+    match command {
+        Command::Tui { panic_after_setup } => Ok(tui::run(root, panic_after_setup)?),
         Command::Sdk { request, output } => Ok(sdk::run(&request, output.as_deref())),
         Command::Init {
             namespace,
