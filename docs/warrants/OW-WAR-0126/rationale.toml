@@ -1,0 +1,29 @@
+schema = "oh.war/rationale/v1"
+
+# §36 — the basis atom's blocking unknowns, in a form the tool reads.
+# `judgment_ref` is empty: nobody has answered these. The owner's answers to
+# Q-001..Q-003 in 20-basis.md resolve them.
+
+[[assumption]]
+id = "A-001"
+statement = "The tool has a signal that a Warrant is registered with Knowledge Fabric."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "The owner answers Q-001, or OW-WAR-0029 delivers its registration record."
+consequence_if_false = "The ADR cannot say when a local act is refused, and STAGE-001 does not start."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-002"
+statement = "The owner has decided what a local human act does on a registered Warrant: refused, forwarded, or unchanged."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "The owner answers Q-002."
+consequence_if_false = "The act table has no after-registration column, which is the decision this Warrant exists to record."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-003"
+statement = "It is decided whether a local authorization made before registration carries into Knowledge Fabric."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "The owner and Knowledge Fabric's owner answer Q-003."
+consequence_if_false = "The authorize row is incomplete; registration of an already-authorized Warrant has no defined meaning."
+judgment_ref = ""

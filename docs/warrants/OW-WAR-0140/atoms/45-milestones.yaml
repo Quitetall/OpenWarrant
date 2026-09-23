@@ -1,0 +1,52 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "The profile seam: a pinned registry, delivery and decision unchanged as data"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-002"]
+  - id: "M2"
+    title: "The contractor profile, war new --profile contractor, the non-binding fixture"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002", "OBL-003"]
+  - id: "M3"
+    title: "Acceptance through the existing resolution act; references resolve or report UNKNOWN"
+    depends_on: ["M2"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-004"]
+  - id: "M4"
+    title: "The Exit shown: IR comparison, frozen-core diff, PROFILES.md, 56-contractor.sh"
+    depends_on: ["M1", "M2", "M3"]
+    stage_refs: ["STAGE-004"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+stages:
+  - id: "STAGE-001"
+    title: "role.rs registry, manifest.rs profile-required namespaced roles, profiles/delivery|decision.toml"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Frozen Surfaces"]
+    budget_tokens: 14000
+  - id: "STAGE-002"
+    title: "profiles/contractor.toml, new.rs, the fixture and example"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Premade Instructions"]
+    budget_tokens: 12000
+  - id: "STAGE-003"
+    title: "acceptance authority check; reference resolution with UNKNOWN"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 10000
+  - id: "STAGE-004"
+    title: "56-contractor.sh and PROFILES.md"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Frozen Surfaces"]
+    budget_tokens: 10000

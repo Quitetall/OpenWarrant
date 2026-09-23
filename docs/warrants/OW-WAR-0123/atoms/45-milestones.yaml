@@ -1,0 +1,28 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "The cited revision and its digest must agree, checked against the parent's records"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-006"]
+  - id: "M2"
+    title: "war new --parent writes the exact citation"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-005"]
+
+stages:
+  - id: "STAGE-001"
+    title: "check.rs parent citation rules, and 58-parent-revision.sh's check plants"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "20-basis.md#What the code does today (read 2026-09-23)"]
+    budget_tokens: 12000
+  - id: "STAGE-002"
+    title: "war new --parent in new.rs and lib.rs, and its plants"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 6000

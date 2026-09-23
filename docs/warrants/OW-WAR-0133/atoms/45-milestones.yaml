@@ -1,0 +1,28 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "Receipts name their source, and a moved source is a record, not evidence"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003"]
+  - id: "M2"
+    title: "The context manifest claims no conflict check it did not make"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-004", "OBL-005"]
+
+stages:
+  - id: "STAGE-001"
+    title: "gate_cmd.rs subjects and fixtures, evidence.rs admissibility, 55-evidence-reuse.sh, RESOLVING.md"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "20-basis.md#Unknowns"]
+    budget_tokens: 14000
+  - id: "STAGE-002"
+    title: "context_select.rs and dispatch.rs conflicts per Q-002, and their plants"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "20-basis.md#Unknowns"]
+    budget_tokens: 10000

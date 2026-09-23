@@ -1,0 +1,67 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+# Shared paths (20-basis.md): perform.rs (OW-WAR-0131), frontier.rs
+# (OW-WAR-0068), config.rs (OW-WAR-0113, 0130), openwarrant.toml
+# (OW-WAR-0113, 0117).
+
+[[deliverable]]
+id = "D-001"
+title = "war frontier: a blocking question blocks its stage; no responder is UNKNOWN"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/frontier.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-002"
+title = "war perform: question, spend and attempt admission; perform.ended"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/perform.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-003", "OBL-004"]
+
+[[deliverable]]
+id = "D-003"
+title = "[perform] allow_unmetered, hard_spend_cap, max_repairs, max_recoveries"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/config.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003", "OBL-004"]
+
+[[deliverable]]
+id = "D-004"
+title = "This repository's allow_unmetered = true"
+kind = "file"
+target_ref = "openwarrant.toml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-005"
+title = "How the hotline blocks, who can answer, and the time, spend and attempt defaults"
+kind = "file"
+target_ref = "docs/HOTLINE.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[[deliverable]]
+id = "D-006"
+title = "The hotline-defaults plants"
+kind = "file"
+target_ref = "conformance/plants.d/52-hotline-defaults.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]

@@ -1,0 +1,44 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+
+[[deliverable]]
+id = "D-001"
+title = "The corpus identity rules"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/identity_check.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[[deliverable]]
+id = "D-002"
+title = "war check runs the identity rules"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/check.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[[deliverable]]
+id = "D-003"
+title = "war blut names the stage by UUID"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/blut.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-004"
+title = "The identity plants"
+kind = "file"
+target_ref = "conformance/plants.d/51-identity.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]

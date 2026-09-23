@@ -1,0 +1,16 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "war check enforces identity across the corpus, and blut writes a UUID"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+stages:
+  - id: "STAGE-001"
+    title: "identity_check.rs, its call in check.rs, blut.rs stage identity, 51-identity.sh"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "10-intent.md#Problem"]
+    budget_tokens: 12000

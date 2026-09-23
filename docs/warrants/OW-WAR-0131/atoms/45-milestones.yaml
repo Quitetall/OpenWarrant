@@ -1,0 +1,32 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "One writer, cancelled cleanly, on the OSes it claims"
+    stage_refs: ["STAGE-001", "STAGE-002"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003"]
+  - id: "M2"
+    title: "A real adapter, documented"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-004"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Owner answers U-001 (signal handler) and U-002 (adapter tools)"
+    executor_kind: "human"
+    responsibility_tier: "T2"
+  - id: "STAGE-002"
+    title: "perform.rs: OS admission, writer record, handoff, cancellation; the fixture and 60-perform-cancel.sh"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 16000
+  - id: "STAGE-003"
+    title: "tools/performer/claude-performer.sh and docs/PERFORM.md"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 10000

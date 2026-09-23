@@ -1,0 +1,84 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+
+[[deliverable]]
+id = "D-001"
+title = "the assignment record and its validation"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/assignment.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-002"
+title = "the authorization request lists and echoes the assignment"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/authorize.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-003"
+title = "eligibility narrowed by assignment; the per-actor list"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/sign.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-004"
+title = "war inbox --as"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/inbox/mod.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-005"
+title = "verify ingest checks the assigned verifier and its role"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/verify.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-006"
+title = "docs/TEAMS.md"
+kind = "file"
+target_ref = "docs/TEAMS.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-007"
+title = "THREAT_MODEL row: assignment and verdict attribution"
+kind = "file"
+target_ref = "docs/THREAT_MODEL.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[deliverable]]
+id = "D-008"
+title = "the plants"
+kind = "file"
+target_ref = "conformance/plants.d/57-teams.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]

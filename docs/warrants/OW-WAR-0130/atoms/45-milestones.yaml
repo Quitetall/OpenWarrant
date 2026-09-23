@@ -1,0 +1,44 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "The owner picks the version mechanism; every act's retry is inventoried"
+    stage_refs: ["STAGE-001", "STAGE-002"]
+    obligation_refs: ["OBL-002"]
+  - id: "M2"
+    title: "A batch killed mid-record is found and undone"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-001"]
+  - id: "M3"
+    title: "war and its records negotiate in one place"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-004"]
+    obligation_refs: ["OBL-003"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Owner answers U-001 (A, B or C) before authorization"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+  - id: "STAGE-002"
+    title: "Inventory every act's retry; journal replay and conflict; per-act idempotency"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T1"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 16000
+  - id: "STAGE-003"
+    title: "batch_cmd.rs step 6: the durable marker, batch.interrupted, --recover"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T1"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 14000
+  - id: "STAGE-004"
+    title: "compat.rs, requires_war, discovery check, COMPATIBILITY.md"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T1"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 12000

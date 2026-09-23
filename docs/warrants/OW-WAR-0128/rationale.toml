@@ -1,0 +1,28 @@
+schema = "oh.war/rationale/v1"
+
+# §36 — the basis atom's blocking unknowns, in a form the tool reads.
+# `judgment_ref` is empty: nobody has answered these.
+
+[[assumption]]
+id = "A-001"
+statement = "It is decided who runs the OpenWarrant compiler: the repository side, Knowledge Fabric, or both."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "The owner and Knowledge Fabric's owner answer Q-001 in 20-basis.md."
+consequence_if_false = "The product spec and KF ADR 0019 describe different interfaces; any document written now picks one silently."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-002"
+statement = "It is known which component is the Knowledge Fabric Compiler."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "Knowledge Fabric's owner answers Q-002."
+consequence_if_false = "The interface has no named caller, and its KF column cannot cite anything."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-003"
+statement = "It is decided whether Knowledge Fabric may hold authored atom bytes in order to compile them."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "Knowledge Fabric's owner answers Q-003. Needed only if Q-001 is answered (b) or (c)."
+consequence_if_false = "An interface in which KF supplies source bytes contradicts KF ADR 0019."
+judgment_ref = ""

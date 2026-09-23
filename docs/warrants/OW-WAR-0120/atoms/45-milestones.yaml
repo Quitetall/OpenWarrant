@@ -1,0 +1,28 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "The generator, the budget and the gate, held by plants at a small N"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003"]
+  - id: "M2"
+    title: "The 1,000-Warrant measurement and the retention answers"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-004", "OBL-005"]
+
+stages:
+  - id: "STAGE-001"
+    title: "synth-corpus.sh, budget.toml, budget.sh, 52-retention.sh"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "20-basis.md#Unknowns"]
+    budget_tokens: 14000
+  - id: "STAGE-002"
+    title: "baseline-1000.json from a release build, and docs/RETENTION.md"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "10-intent.md#Problem"]
+    budget_tokens: 8000

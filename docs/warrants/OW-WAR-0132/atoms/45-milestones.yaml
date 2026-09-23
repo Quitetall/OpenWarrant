@@ -1,0 +1,37 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "Owner settles the defaults"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-003"]
+  - id: "M2"
+    title: "A blocking question stops its stage, and no responder is visible"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-001", "OBL-002"]
+  - id: "M3"
+    title: "Spend is unknown, never zero; attempts are counted and bounded"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-003", "OBL-004"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Owner answers U-001 (max_repairs, max_recoveries, allow_unmetered default)"
+    executor_kind: "human"
+    responsibility_tier: "T2"
+  - id: "STAGE-002"
+    title: "frontier.rs question blocking and no-responder; perform.question-open"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 12000
+  - id: "STAGE-003"
+    title: "config.rs keys, perform.ended, spend and attempt refusals, HOTLINE.md, plants"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 14000

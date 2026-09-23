@@ -1,0 +1,46 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+# D-001 and D-002 are delivered paths of resolved OW-WAR-0056 (D-002, D-003):
+# on authorization this Warrant governs them and 0056's pins become historical.
+
+[[deliverable]]
+id = "D-001"
+title = "compile_dispatch computes the estimate and refuses over budget or unrecorded"
+kind = "file"
+target_ref = "crates/openwarrant-compiler/src/dispatch.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-002"
+title = "war dispatch delegates the budget rule to the compiler"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/dispatch.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-003"
+title = "war dispatch-bundle create judges a Dispatch's tokens before bundling"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/dispatch_bundle_cmd.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-004"
+title = "The budget plants: perform, perform --all, run, dispatch-bundle"
+kind = "file"
+target_ref = "conformance/plants.d/83-tokens.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]

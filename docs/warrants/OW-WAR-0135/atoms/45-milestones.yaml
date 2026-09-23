@@ -1,0 +1,32 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "The mark decided: baseline v1, issuance, binding (ADR accepted by the owner)"
+    stage_refs: ["STAGE-001", "STAGE-002"]
+    obligation_refs: ["OBL-001"]
+  - id: "M2"
+    title: "war mark: evaluate, emit or refuse, and verify"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Draft the ADR and baseline-v1.toml from Q43-Q49 and the owner's answers to Q-001 and Q-002"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["20-basis.md#Unknowns", "40-work-order.md#Deliverables"]
+    budget_tokens: 8000
+  - id: "STAGE-002"
+    title: "The owner accepts or amends the ADR"
+    executor_kind: "human"
+    responsibility_tier: "T2"
+  - id: "STAGE-003"
+    title: "mark.rs, war mark, 57-assurance-mark.sh, ASSURANCE_MARK.md"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 14000

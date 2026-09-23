@@ -1,0 +1,28 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "One atomic write path, with prestate and symlink refusals"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003"]
+  - id: "M2"
+    title: "Durable journal appends, named crash damage, and the storage doc"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-004", "OBL-005"]
+
+stages:
+  - id: "STAGE-001"
+    title: "atomic.rs, the six routed writers, the fault hook, the first plants"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Frozen Surfaces"]
+    budget_tokens: 16000
+  - id: "STAGE-002"
+    title: "journal fsync and journal.torn-tail, storage.stray-temp, docs/STORAGE.md, the rest of 53-storage.sh"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "10-intent.md#Non-goals"]
+    budget_tokens: 12000

@@ -1,0 +1,28 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "The compiler refuses; every caller inherits it"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-003"]
+  - id: "M2"
+    title: "Planted on every path that starts an actor"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002"]
+
+stages:
+  - id: "STAGE-001"
+    title: "compile_dispatch refuses over budget and unrecorded; the CLI delegates; dispatch-bundle refuses"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 12000
+  - id: "STAGE-002"
+    title: "83-tokens.sh: perform, perform --all, run, dispatch-bundle"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 10000

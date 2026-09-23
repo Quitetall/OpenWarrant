@@ -1,0 +1,94 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+
+[[deliverable]]
+id = "D-001"
+title = "Profile resolves through a pinned registry"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/role.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-002"
+title = "profile-required namespaced roles; fail closed elsewhere"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/manifest.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-003"
+title = "the delivery profile as data"
+kind = "file"
+target_ref = "profiles/delivery.toml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-004"
+title = "the decision profile as data"
+kind = "file"
+target_ref = "profiles/decision.toml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-005"
+title = "the contractor profile"
+kind = "file"
+target_ref = "profiles/contractor.toml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-006"
+title = "war new --profile contractor"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/new.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-007"
+title = "the walked contractor example"
+kind = "file"
+target_ref = "docs/EXAMPLES/04-contractor.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-005"]
+
+[[deliverable]]
+id = "D-008"
+title = "docs/PROFILES.md"
+kind = "file"
+target_ref = "docs/PROFILES.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-009"
+title = "the plants"
+kind = "file"
+target_ref = "conformance/plants.d/56-contractor.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002", "OBL-003", "OBL-004"]

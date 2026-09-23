@@ -1,0 +1,25 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+# Two new files. No existing file is declared.
+
+[[deliverable]]
+id = "D-001"
+title = "The Knowledge Fabric compiler interface: request, result, process contract, examples"
+kind = "document"
+target_ref = "docs/integrations/kf-compiler.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[[deliverable]]
+id = "D-002"
+title = "Who compiles, and the alternatives not chosen: OW-ADR-0027"
+kind = "document"
+target_ref = "docs/adr/atoms/OW-ADR-0027-kf-compiler-interface.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003", "OBL-005"]

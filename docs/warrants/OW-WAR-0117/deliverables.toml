@@ -1,0 +1,44 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+
+[[deliverable]]
+id = "D-001"
+title = "The blind, tool-less verifier wrapper"
+kind = "file"
+target_ref = "tools/verifier/claude-verifier.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[[deliverable]]
+id = "D-002"
+title = "[verify] verifier_argv and the declared [independence]"
+kind = "file"
+target_ref = "openwarrant.toml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-003"
+title = "The verifier plants"
+kind = "file"
+target_ref = "conformance/plants.d/62-verifier.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[[deliverable]]
+id = "D-004"
+title = "How to run the verifier and read what it says"
+kind = "file"
+target_ref = "docs/VERIFICATION.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]

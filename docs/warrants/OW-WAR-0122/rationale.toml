@@ -1,0 +1,9 @@
+schema = "oh.war/rationale/v1"
+
+[[assumption]]
+id = "U-001"
+statement = "The grammar this Warrant records is the SAS 1.1.0 atom format, not the RC.3 human-first document format."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "The owner confirms the scope (atom format only, RC.3 only, or both) before authorization. If it changes, the deliverables are redrafted before signing."
+consequence_if_false = "The grammar document and plants describe a format the owner does not consider the standard; the work would be redone."
+judgment_ref = ""

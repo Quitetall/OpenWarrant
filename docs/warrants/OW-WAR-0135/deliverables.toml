@@ -1,0 +1,67 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+# The ADR number is the next free one at delivery; 0024 is claimed by
+# OW-WAR-0126's draft. Renumbering before authorization is an edit, not an
+# amendment.
+
+[[deliverable]]
+id = "D-001"
+title = "The assurance mark decision: baseline v1, issuance, what it binds"
+kind = "file"
+target_ref = "docs/adr/atoms/OW-ADR-0025-assurance-mark.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-002"
+title = "Evaluate a resolved Warrant against a baseline; emit or refuse the mark"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/mark.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[[deliverable]]
+id = "D-003"
+title = "The war mark command"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-004"
+title = "Baseline v1 as data, versioned"
+kind = "file"
+target_ref = "docs/assurance/baseline-v1.toml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-004"]
+
+[[deliverable]]
+id = "D-005"
+title = "The mark plants"
+kind = "file"
+target_ref = "conformance/plants.d/57-assurance-mark.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[[deliverable]]
+id = "D-006"
+title = "What the mark says, and what it does not"
+kind = "file"
+target_ref = "docs/ASSURANCE_MARK.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-005"]

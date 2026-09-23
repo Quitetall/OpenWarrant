@@ -1,0 +1,52 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "AUTHENTICATION.md: what authenticates a human act, what a session is, which policy is protected"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-004"]
+  - id: "M2"
+    title: "The actor from the store with no legacy fallback; presence recorded and, by policy, required"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-001", "OBL-002"]
+  - id: "M3"
+    title: "Policy keys that govern closure read from the store; divergence is an error"
+    depends_on: ["M2"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-003"]
+  - id: "M4"
+    title: "THREAT_MODEL rows narrowed, authority.md cutover, 58-authn.sh"
+    depends_on: ["M2", "M3"]
+    stage_refs: ["STAGE-004"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+stages:
+  - id: "STAGE-001"
+    title: "docs/AUTHENTICATION.md"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 8000
+  - id: "STAGE-002"
+    title: "authority_check.rs store binding; presence.rs; sign.rs presence and actor-key match"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Premade Instructions"]
+    budget_tokens: 20000
+  - id: "STAGE-003"
+    title: "revision v2 with kind and policy; config.rs reads protected keys"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Premade Instructions"]
+    budget_tokens: 16000
+  - id: "STAGE-004"
+    title: "docs and plants"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 10000

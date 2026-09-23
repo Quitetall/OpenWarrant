@@ -1,0 +1,114 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+
+[[deliverable]]
+id = "D-001"
+title = "One atomic write path: temp, fsync, rename, prestate, no symlinks"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/atomic.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-002"
+title = "Authorization and judgments written atomically"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/authorize.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-005"]
+
+[[deliverable]]
+id = "D-003"
+title = "Resolution written atomically, against its prestate"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/resolution_cmd.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-005"]
+
+[[deliverable]]
+id = "D-004"
+title = "Verification records written atomically"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/verify.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-005"]
+
+[[deliverable]]
+id = "D-005"
+title = "Gate receipts written atomically"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/gate_cmd.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-005"]
+
+[[deliverable]]
+id = "D-006"
+title = "No partial generated parent: views and projections written atomically"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/compile.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-005"]
+
+[[deliverable]]
+id = "D-007"
+title = "Response drafts written atomically before their rename"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/sign.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-003", "OBL-005"]
+
+[[deliverable]]
+id = "D-008"
+title = "Durable journal appends and journal.torn-tail"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/journal_cmd.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-009"
+title = "storage.stray-temp in war check"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/check.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-010"
+title = "The storage protocol, crash points, and the retained-artifact rule"
+kind = "file"
+target_ref = "docs/STORAGE.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-004"]
+
+[[deliverable]]
+id = "D-011"
+title = "The storage plants"
+kind = "file"
+target_ref = "conformance/plants.d/53-storage.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]

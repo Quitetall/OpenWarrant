@@ -84,7 +84,11 @@ fi
 C_HUNG=""
 for C_IN in '' '1' '1
 s'; do
-    printf '%s\n' "$C_IN" | timeout 20 "$WAR" console >/dev/null 2>&1
+    # A hang detector, not a speed limit: `1,s` walks the board four times
+    # and took 22 s on this 140-Warrant corpus (2026-09-23, debug build, load
+    # 20), the same before and after that day's changes. Speed is
+    # OW-WAR-0120's budget; this only has to tell slow from never.
+    printf '%s\n' "$C_IN" | timeout 60 "$WAR" console >/dev/null 2>&1
     [[ $? -eq 124 ]] && C_HUNG="$C_HUNG $(tr '\n' ',' <<< "$C_IN")"
 done
 if [[ -z "$C_HUNG" ]]; then

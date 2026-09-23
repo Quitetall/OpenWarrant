@@ -1,0 +1,64 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+
+[[deliverable]]
+id = "D-001"
+title = "What changed between the accepted candidate and this one"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/acceptance.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-002"
+title = "war pins --candidate: the finding beside each resolved pin"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/pins.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-003"
+title = "The --candidate flag"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-004"
+title = "The pull-request step that runs it against the merge candidate"
+kind = "file"
+target_ref = ".github/workflows/ci.yml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-005"
+title = "The acceptance-validity plants"
+kind = "file"
+target_ref = "conformance/plants.d/56-acceptance-validity.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-005"]
+
+[[deliverable]]
+id = "D-006"
+title = "After you sign: when the accepted candidate changes before merge"
+kind = "file"
+target_ref = "docs/SIGNING.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]

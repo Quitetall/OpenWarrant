@@ -1,0 +1,28 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "The header is checked against the manifest"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-002"]
+  - id: "M2"
+    title: "The grammar document, bound to the tool by plants"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-003", "OBL-004"]
+
+stages:
+  - id: "STAGE-001"
+    title: "atom.header in repo.rs and its plants in 57-grammar.sh"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 8000
+  - id: "STAGE-002"
+    title: "docs/GRAMMAR.md, the reader plants and the drift control"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "20-basis.md#What the code does today (read 2026-09-23)"]
+    budget_tokens: 14000

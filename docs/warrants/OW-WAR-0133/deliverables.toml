@@ -1,0 +1,64 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+
+[[deliverable]]
+id = "D-001"
+title = "Receipts name the tree, the deliverable bytes and the fixtures they ran over"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/gate_cmd.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-002"
+title = "Admissibility: a moved source is a record, a missing one is UNKNOWN"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/evidence.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-003"
+title = "The context manifest's conflict field, stage selection"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/context_select.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004", "OBL-005"]
+
+[[deliverable]]
+id = "D-004"
+title = "The context manifest's conflict field, compiled Dispatch"
+kind = "file"
+target_ref = "crates/openwarrant-compiler/src/dispatch.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-005"
+title = "The evidence-reuse and context plants"
+kind = "file"
+target_ref = "conformance/plants.d/55-evidence-reuse.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[[deliverable]]
+id = "D-006"
+title = "When recorded evidence still counts: the reuse rule and the compiler's three rules"
+kind = "file"
+target_ref = "docs/RESOLVING.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002", "OBL-004"]

@@ -1,0 +1,52 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "LAN mode is TLS-only, exact Host and Origin; loopback unchanged"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-005"]
+  - id: "M2"
+    title: "Pairing confirmed at the host; revocable, expiring credentials; single-use nonces"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002", "OBL-004"]
+  - id: "M3"
+    title: "No LAN request starts a signing act"
+    depends_on: ["M2"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-003"]
+  - id: "M4"
+    title: "WEBUI.md Reach, THREAT_MODEL row 13 split, 59-webui-lan.sh"
+    depends_on: ["M1", "M2", "M3"]
+    stage_refs: ["STAGE-004"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+stages:
+  - id: "STAGE-001"
+    title: "--lan, tls.rs, LAN Host/Origin/HSTS, refusal to start without a certificate"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Premade Instructions"]
+    budget_tokens: 16000
+  - id: "STAGE-002"
+    title: "pairing.rs, war ui devices, nonces, the pairing page"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Premade Instructions"]
+    budget_tokens: 18000
+  - id: "STAGE-003"
+    title: "host-only signing rows for LAN sessions"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 8000
+  - id: "STAGE-004"
+    title: "docs and plants"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 10000

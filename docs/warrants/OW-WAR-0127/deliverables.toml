@@ -1,0 +1,96 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+# D-002..D-008 are existing files: on authorization this Warrant becomes
+# their owner. Each is a place that joins target_ref to the repository root.
+
+[[deliverable]]
+id = "D-001"
+title = "The native reference form, decided: OW-ADR-0026"
+kind = "document"
+target_ref = "docs/adr/atoms/OW-ADR-0026-native-held-deliverables.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-005"]
+
+[[deliverable]]
+id = "D-002"
+title = "Classify a target_ref; refuse a native reference without a non-Git holder"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/deliverable.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-006"]
+
+[[deliverable]]
+id = "D-003"
+title = "§56.1 requirements 2 and 3 never read a native reference from disk"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/resolve.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-004"
+title = "Drift skips native references; validation surfaces the refusals"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/check.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-006"]
+
+[[deliverable]]
+id = "D-005"
+title = "pins and pins --refresh leave a native reference alone"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/pins.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-006"
+title = "A correction of a native reference is refused"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/correct.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-007"
+title = "The verification bundle carries the reference, not bytes"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/bundle.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-008"
+title = "Digest state says held by its system"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/status.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-009"
+title = "The native-authority plants"
+kind = "file"
+target_ref = "conformance/plants.d/61-native-authority.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]

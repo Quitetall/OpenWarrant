@@ -1,0 +1,28 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "The reference form, decided and recorded; recognized and refused in one place"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-005", "OBL-006"]
+  - id: "M2"
+    title: "No command reads, rewrites, corrects or passes a native-held artifact"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002", "OBL-003", "OBL-004"]
+
+stages:
+  - id: "STAGE-001"
+    title: "OW-ADR-0026 from the owner's answer to Q-001; deliverable.rs classification and refusals"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["20-basis.md#Questions for the owner", "40-work-order.md#Deliverables"]
+    budget_tokens: 10000
+  - id: "STAGE-002"
+    title: "resolve.rs, check.rs, pins.rs, correct.rs, bundle.rs, status.rs, and 61-native-authority.sh"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Frozen Surfaces"]
+    budget_tokens: 16000

@@ -1,0 +1,64 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+
+[[deliverable]]
+id = "D-001"
+title = "The synthetic corpus generator"
+kind = "file"
+target_ref = "tools/scale/synth-corpus.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-004"]
+
+[[deliverable]]
+id = "D-002"
+title = "The declared budget"
+kind = "file"
+target_ref = "tools/scale/budget.toml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002", "OBL-005"]
+
+[[deliverable]]
+id = "D-003"
+title = "The budget gate"
+kind = "file"
+target_ref = "tools/scale/budget.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-004"
+title = "The 1,000-Warrant measurement"
+kind = "file"
+target_ref = "docs/scale/baseline-1000.json"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004", "OBL-005"]
+
+[[deliverable]]
+id = "D-005"
+title = "Journals, archiving and the budget, answered from the numbers"
+kind = "file"
+target_ref = "docs/RETENTION.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-006"
+title = "The retention plants"
+kind = "file"
+target_ref = "conformance/plants.d/52-retention.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]

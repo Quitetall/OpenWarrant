@@ -1,0 +1,36 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+# repo.rs is governed by OW-WAR-0114 today; on authorization this Warrant
+# becomes its owner.
+
+[[deliverable]]
+id = "D-001"
+title = "The grammar of the SAS 1.1.0 atom format: standard and tool conformance, divergences, proposed SAS text"
+kind = "file"
+target_ref = "docs/GRAMMAR.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003", "OBL-004"]
+
+[[deliverable]]
+id = "D-002"
+title = "atom.header: the atom header checked against its manifest entry"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/repo.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-003"
+title = "The grammar plants: header, reader, positive controls, drift control"
+kind = "file"
+target_ref = "conformance/plants.d/57-grammar.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-003"]

@@ -1,0 +1,129 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+# D-004..D-006 follow option B of U-001 (20-basis.md). If the owner picks
+# another option, this set is redrafted BEFORE authorization.
+# Shared paths (see 20-basis.md): journal_cmd.rs (resolved OW-WAR-0031),
+# repo.rs (OW-WAR-0114), config.rs (OW-WAR-0113), verify.rs and authorize.rs
+# (OW-WAR-0137 draft), evidence.rs (OW-WAR-0059, 0133, 0136).
+
+[[deliverable]]
+id = "D-001"
+title = "Batch step 6: the durable .recording marker, batch.interrupted, --recover"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/batch_cmd.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-002"
+title = "The journal replays an equivalent append and refuses a conflicting one"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/journal_cmd.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-003a"
+title = "war ask checks before its first write"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/questions.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-003b"
+title = "war submit checks before its first write"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/run_cmd.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-003c"
+title = "war verify --response checks before its first write"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/verify.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-003d"
+title = "war evidence record checks before its first write"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/evidence.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-003e"
+title = "The single-act authorization ingest checks before its first write"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/authorize.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-004"
+title = "compat.rs: requires_war and schema-major recognition"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/compat.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-005"
+title = "[project] requires_war"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/config.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-006"
+title = "Repository::discover runs the compat check once"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/repo.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-007"
+title = "Reading backward: what an older war does with newer records"
+kind = "file"
+target_ref = "docs/COMPATIBILITY.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-008"
+title = "The idempotency, batch-atomicity and version plants"
+kind = "file"
+target_ref = "conformance/plants.d/69-idempotency.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]

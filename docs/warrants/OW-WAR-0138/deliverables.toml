@@ -1,0 +1,94 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+
+[[deliverable]]
+id = "D-001"
+title = "docs/AUTHENTICATION.md: the human and session authentication contract"
+kind = "file"
+target_ref = "docs/AUTHENTICATION.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-002"
+title = "authority_check reads the store; no legacy fallback"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/authority_check.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-003"
+title = "presence flags from the sshsig blob"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/presence.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-004"
+title = "sign records presence; refuses by policy and on actor-key mismatch"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/sign.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-005"
+title = "revision v2: actor kind and protected policy"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/authority_transition.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-006"
+title = "protected policy keys resolved from the store"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/config.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-007"
+title = "THREAT_MODEL rows 1 and 6 narrowed"
+kind = "file"
+target_ref = "docs/THREAT_MODEL.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-008"
+title = "authority.md: the cutover"
+kind = "file"
+target_ref = "docs/cli/authority.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-009"
+title = "the plants"
+kind = "file"
+target_ref = "conformance/plants.d/58-authn.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]

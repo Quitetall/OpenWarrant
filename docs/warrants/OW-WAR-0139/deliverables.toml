@@ -1,0 +1,76 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+# Cargo.toml / Cargo.lock are NOT declared: a TLS dependency needs an
+# amendment that declares them first (40-work-order.md, U-002).
+
+[[deliverable]]
+id = "D-001"
+title = "war ui --lan: TLS-only, exact Host and Origin, loopback unchanged"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/webui/mod.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-003", "OBL-005"]
+
+[[deliverable]]
+id = "D-002"
+title = "TLS for the LAN listener"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/webui/tls.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-003"
+title = "pairing, device credentials, nonces"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/webui/pairing.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002", "OBL-004"]
+
+[[deliverable]]
+id = "D-004"
+title = "the page: pairing, nonces, host-only rows"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/webui/assets/app.js"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-005"
+title = "WEBUI.md: Reach on the LAN"
+kind = "file"
+target_ref = "docs/WEBUI.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-006"
+title = "THREAT_MODEL row 13: loopback and LAN"
+kind = "file"
+target_ref = "docs/THREAT_MODEL.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-007"
+title = "the plants"
+kind = "file"
+target_ref = "conformance/plants.d/59-webui-lan.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]

@@ -1,0 +1,87 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+# init/mod.rs and init/guided.rs (OW-WAR-0112), telemetry.rs (OW-WAR-0039,
+# 0041) and lib.rs (OW-WAR-0116) are governed by other Warrants today; on
+# authorization this Warrant becomes their owner.
+
+[[deliverable]]
+id = "D-001"
+title = "The optional [adoption] baseline in repository configuration"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/config.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-002"
+title = "war init records the baseline, refuses a non-commit, points at existing ADRs"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/init/mod.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-003", "OBL-004"]
+
+[[deliverable]]
+id = "D-003"
+title = "The --baseline flag on war init"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-004"
+title = "The adopt Warrant's Basis names the baseline and what it does not claim"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/adopt/20-basis.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-005"
+title = "The guided Baseline step"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/init/guided.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-006"]
+
+[[deliverable]]
+id = "D-006"
+title = "Untracked work from the baseline, in the repository's namespace"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/telemetry.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002", "OBL-005"]
+
+[[deliverable]]
+id = "D-007"
+title = "Adopting OpenWarrant in a repository with history"
+kind = "file"
+target_ref = "docs/ADOPTING.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003", "OBL-004"]
+
+[[deliverable]]
+id = "D-008"
+title = "The adoption plants"
+kind = "file"
+target_ref = "conformance/plants.d/59-adoption.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]

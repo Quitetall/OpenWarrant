@@ -1,0 +1,97 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+# compile.rs (OW-WAR-0004), check.rs and core lib.rs (OW-WAR-0114) and the
+# CLI's sas.rs (OW-WAR-0058, resolved) are governed by other Warrants today;
+# on authorization this Warrant becomes their owner.
+
+[[deliverable]]
+id = "D-001"
+title = "OW-ADR-0028: SAS sections are atoms — identity, the two steps, the proposed §105 form"
+kind = "file"
+target_ref = "docs/adr/atoms/OW-ADR-0028-sas-sections-are-atoms.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-006"]
+
+[[deliverable]]
+id = "D-002"
+title = "The lossless, fence-aware section split and join"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/sas_sections.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-003"
+title = "The sas_sections export"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/lib.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-004"
+title = "SECTIONS.json and SECTIONS.md written by war compile"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/compile.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-005"
+title = "The generated section index"
+kind = "file"
+target_ref = "docs/sas/generated/SECTIONS.json"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-006"
+title = "The generated section index, for reading"
+kind = "file"
+target_ref = "docs/sas/generated/SECTIONS.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-007"
+title = "sas.section-ref and sas.section-current"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/check.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003", "OBL-004"]
+
+[[deliverable]]
+id = "D-008"
+title = "war sas diff names changed sections"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/sas.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-005"]
+
+[[deliverable]]
+id = "D-009"
+title = "The SAS section plants"
+kind = "file"
+target_ref = "conformance/plants.d/56-sas-sections.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]

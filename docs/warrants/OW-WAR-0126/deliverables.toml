@@ -1,0 +1,16 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+# One new file. No existing file is declared, so this Warrant owns nothing
+# another Warrant governs today.
+
+[[deliverable]]
+id = "D-001"
+title = "The authority split: what stays local, and what a registered Warrant's acts become"
+kind = "document"
+target_ref = "docs/adr/atoms/OW-ADR-0024-kf-owns-registered-lifecycle.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
