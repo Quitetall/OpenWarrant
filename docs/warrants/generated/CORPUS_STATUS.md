@@ -66,9 +66,9 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 |---|---|
 | artifact digests verify | 77 |
 | every required gate has admissible result | 56 |
-| required deliverables exist | 56 |
 | no blocker remains | 55 |
 | no required unknown remains | 55 |
+| required deliverables exist | 55 |
 | every required obligation is dispositioned | 53 |
 | independence requirements are met | 53 |
 | required judgments exist | 29 |
@@ -266,7 +266,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0112` war is the app: ownership, a guided start, and remedies | draft | unknown | 0 | 0 of 5 | every required obligation is dispositioned |
 | `OW-WAR-0113` Two projections from atoms by relation: the current master document, and the history | draft | unknown | 0 | 0 of 5 | exact authorized Contract Revision |
 | `OW-WAR-0114` The roadmap becomes a record: one per program, beside the SAS | draft | unknown | 0 | 0 of 5 | required deliverables exist |
-| `OW-WAR-0115` The hub: war opens from anywhere, with every project and its progress | draft | unknown | 0 | 0 of 2 | required deliverables exist |
+| `OW-WAR-0115` The hub: war opens from anywhere, with every project and its progress | draft | unknown | 0 | 0 of 2 | artifact digests verify |
 | `OW-WAR-0116` war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap | draft | unknown | 0 | 0 of 4 | artifact digests verify |
 
 ## Not reported here

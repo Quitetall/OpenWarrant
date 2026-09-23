@@ -344,6 +344,19 @@ enum Command {
         #[arg(long = "as")]
         actor: Option<String>,
     },
+    /// The repositories this user works in, remembered on use (OW-WAR-0115):
+    /// the list `war` opens from anywhere. Each row is read from that
+    /// project's own records; a path that no longer holds one is reported
+    /// missing, never dropped silently. `OPENWARRANT_NO_PROJECTS=1` turns
+    /// remembering off.
+    Projects {
+        /// Remember a repository without running a command in it.
+        #[arg(long, conflicts_with = "forget")]
+        add: Option<Utf8PathBuf>,
+        /// Take one off the list (the repository itself is untouched).
+        #[arg(long)]
+        forget: Option<Utf8PathBuf>,
+    },
     /// The roadmap: one per program, beside the SAS (OW-ADR-0023). Without a
     /// subcommand, its phases in dependency order with members, exits and
     /// whether each is achieved.
@@ -1090,7 +1103,16 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
     // itself, inside a valid envelope, rather than aborting on it. Resolving
     // eagerly here would turn all of those into `repository.not-found` and
     // reorder error reporting for the rest.
-    let open_repo = || repo::Repository::discover(root.clone());
+    //
+    // Every command that opened a repository remembers it for the hub
+    // (OW-WAR-0115): best-effort, and nothing it does changes the result.
+    let open_repo = || {
+        let r = repo::Repository::discover(root.clone());
+        if let Ok(r) = &r {
+            projects::touch(&r.root);
+        }
+        r
+    };
     let Some(command) = cli.command else {
         // `war` alone. `--json` has no envelope to give — a terminal
         // application is not a projection — so it names the commands that do.
@@ -1778,6 +1800,18 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             let EvidenceCommand::Record { alias, gate } = command;
             let report = evidence::record(&repository, &alias, gate.as_deref())?;
             Ok(output::finish(mode, "evidence", &report, None))
+        }
+        Command::Projects { add, forget } => {
+            let (report, rows) = projects::run(add.as_deref(), forget.as_deref());
+            if matches!(mode, output::Mode::Human) {
+                print!("{}", projects::render(&rows));
+            }
+            Ok(output::finish(
+                mode,
+                "projects",
+                &report,
+                Some(serde_json::json!({ "projects": rows })),
+            ))
         }
         Command::Ui { port, page, actor } => {
             let repository = open_repo()?;

@@ -17,6 +17,12 @@
 
 set -uo pipefail
 
+# `war` remembers every repository it opens (OW-WAR-0115). The battery opens
+# dozens of scratch corpora that are gone a second later; none of them belongs
+# in the list of whoever runs it. 71-hub.sh opts back in, against its own
+# temporary XDG_CONFIG_HOME.
+export OPENWARRANT_NO_PROJECTS=1
+
 # No unquoted word-splitting anywhere in this file: a `for X in $LIST` loop does
 # not split in zsh, and the silent no-op that produces has already cost this
 # fleet a 13-repository operation that did nothing while reporting success.

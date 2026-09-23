@@ -70,6 +70,9 @@ pub fn run(root: Option<Utf8PathBuf>, panic_after_setup: bool) -> Result<u8, Rep
         return Ok(crate::EXIT_NOT_READY);
     }
     let repo = Repository::discover(root.clone()).ok();
+    // OW-WAR-0115: `war` where no repository is found opens the hub. Setup
+    // for this directory stays one keypress away (`1`).
+    let hub = repo.is_none() && root.is_none();
     let root = match (&repo, root) {
         (Some(r), _) => r.root.clone(),
         (None, Some(r)) => r,
@@ -79,6 +82,10 @@ pub fn run(root: Option<Utf8PathBuf>, panic_after_setup: bool) -> Result<u8, Rep
         .map_err(|_| RepoError::Message("the current directory is not UTF-8".to_owned()))?,
     };
     let mut model = Model::load(root, repo);
+    if hub {
+        model.pane = Pane::Projects;
+        model.load_projects();
+    }
 
     let guard = term::Guard::enter()?;
     // The hook runs before the default one prints the panic, so the message
@@ -158,10 +165,11 @@ enum Pane {
     Evidence,
     Journal,
     Roadmap,
+    Projects,
 }
 
 impl Pane {
-    const ALL: [Pane; 10] = [
+    const ALL: [Pane; 11] = [
         Pane::Setup,
         Pane::Help,
         Pane::Queue,
@@ -172,6 +180,7 @@ impl Pane {
         Pane::Evidence,
         Pane::Journal,
         Pane::Roadmap,
+        Pane::Projects,
     ];
 
     const fn title(self) -> &'static str {
@@ -186,6 +195,7 @@ impl Pane {
             Self::Evidence => "8 Evidence",
             Self::Journal => "9 Journal",
             Self::Roadmap => "0 Roadmap",
+            Self::Projects => "p Projects",
         }
     }
 }
@@ -237,6 +247,15 @@ struct Model {
     fingerprint: u64,
     fingerprint_pending: Option<u64>,
     idle_ticks: u32,
+    /// The Projects pane's projects, index-aligned with its first rows;
+    /// facts are read one project per idle tick (`tick_projects`).
+    projects: Vec<crate::projects::Row>,
+    /// Which project the next idle tick looks at.
+    project_cursor: usize,
+    /// `n` on Projects: the directory being typed for a new project.
+    new_dir: Option<String>,
+    /// The Help pane's first row: this binary, and PATH's `war` if it differs.
+    binary: Row,
 }
 
 impl Model {
@@ -274,6 +293,10 @@ impl Model {
             fingerprint: 0,
             fingerprint_pending: None,
             idle_ticks: 0,
+            projects: Vec::new(),
+            project_cursor: 0,
+            new_dir: None,
+            binary: binary_row(),
             root,
             repo,
         };
@@ -287,7 +310,10 @@ impl Model {
         self.setup
             .observe(crate::init::guided::Facts::read(&self.root));
         let Some(repo) = self.repo.as_ref() else {
-            self.status = "not initialized — Setup (1) starts here".to_owned();
+            self.status = format!(
+                "{} is not a repository — p lists your projects, 1 sets one up here",
+                self.root
+            );
             for p in Pane::ALL {
                 self.rows.insert(p as u8, vec![]);
             }
@@ -625,8 +651,8 @@ impl Model {
             }
         }
         self.status = format!(
-            "{} · SAS {} · {} act(s) awaiting a signature",
-            self.program, self.sas_in_force, self.pending_count
+            "{} · {} · SAS {} · {} act(s) awaiting a signature · p projects",
+            self.program, self.root, self.sas_in_force, self.pending_count
         );
     }
 
@@ -639,7 +665,7 @@ impl Model {
         doctor: Option<&Report>,
         check: Option<&Report>,
     ) -> Vec<Row> {
-        let mut rows = Vec::new();
+        let mut rows = vec![self.binary.clone()];
         if self.setup.step != crate::init::guided::Step::Done {
             rows.push(Row {
                 text: format!(
@@ -711,7 +737,7 @@ impl Model {
                 rows.push(remedy_row(diag, n));
             }
         }
-        if rows.is_empty() {
+        if rows.len() == 1 {
             rows.push(Row {
                 text: "nothing pending, nothing red — `war next` agrees".to_owned(),
                 command: "war next".to_owned(),
@@ -806,6 +832,182 @@ impl Model {
         let v = self.visible();
         v.get(self.selected()).map(|(i, _)| *i)
     }
+
+    /// The Projects pane: every project named at once, from the list alone;
+    /// each one's facts arrive on later idle ticks (OW-WAR-0115's basis: at
+    /// most one project read per tick, re-read only when its fingerprint
+    /// moves), so a long list never stalls the app.
+    fn load_projects(&mut self) {
+        self.projects = crate::projects::listed();
+        self.project_cursor = 0;
+        if self.projects.is_empty() {
+            self.status =
+                "no projects yet: run any `war` command inside a repository and it is remembered"
+                    .to_owned();
+        }
+        self.render_projects();
+        self.selected.insert(Pane::Projects as u8, 0);
+    }
+
+    /// One idle tick's worth: the first project not yet read, or else the
+    /// next one round-robin, re-read only if its fingerprint moved.
+    fn tick_projects(&mut self) {
+        let n = self.projects.len();
+        if n == 0 {
+            return;
+        }
+        let i = self
+            .projects
+            .iter()
+            .position(|r| !r.missing && r.fingerprint.is_none() && r.unreadable.is_none())
+            .unwrap_or_else(|| {
+                self.project_cursor = (self.project_cursor + 1) % n;
+                self.project_cursor
+            });
+        let row = &mut self.projects[i];
+        if row.missing {
+            return;
+        }
+        if row.fingerprint.is_some() && crate::projects::fingerprint(&row.root) == row.fingerprint {
+            return;
+        }
+        crate::projects::read_facts(row);
+        if row.fingerprint.is_none() {
+            // Unreadable: keep the reason and stop retrying it every tick.
+            row.fingerprint = Some(0);
+        }
+        self.render_projects();
+    }
+
+    fn render_projects(&mut self) {
+        let mut rows = Vec::new();
+        for r in &self.projects {
+            let facts = if r.missing {
+                "(missing)".to_owned()
+            } else if r.fingerprint.is_none() {
+                "reading…".to_owned()
+            } else {
+                crate::projects::summary(r)
+            };
+            rows.push(Row {
+                text: format!(
+                    "{:<26} {}  {facts}",
+                    r.program.as_deref().unwrap_or("?"),
+                    r.root
+                ),
+                command: format!("war --root {}", r.root),
+                sign_target: None,
+                auto: None,
+                detail: Some(if r.missing {
+                    format!(
+                        "{} holds no openwarrant.toml any more.\n\n`war projects --forget {}` removes it from the list.",
+                        r.root, r.root
+                    )
+                } else {
+                    format!("{}\n\n{facts}", r.root)
+                }),
+            });
+        }
+        for (text, command, detail) in [
+            (
+                "+ a new project in another directory (n)".to_owned(),
+                "war init --root <directory>".to_owned(),
+                "`n` asks for a directory, creates it if needed, and runs `war init` there.",
+            ),
+            (
+                format!("+ set up {} (1)", self.root),
+                "war init".to_owned(),
+                "The Setup pane runs `war init` in this directory.",
+            ),
+        ] {
+            rows.push(Row {
+                text,
+                command,
+                sign_target: None,
+                auto: None,
+                detail: Some(detail.to_owned()),
+            });
+        }
+        self.rows.insert(Pane::Projects as u8, rows);
+    }
+
+    /// Switch the whole app to another project: a fresh model, as if `war`
+    /// had been started there — nothing of this one carries over.
+    fn open_project(&mut self, root: Utf8PathBuf) {
+        let repo = Repository::discover(Some(root.clone())).ok();
+        if let Some(r) = &repo {
+            crate::projects::touch(&r.root);
+        }
+        let opened = repo.is_some();
+        *self = Model::load(root, repo);
+        if !opened {
+            self.pane = Pane::Setup;
+        }
+    }
+}
+
+/// This binary's version and path, and a warning when `war` on PATH is a
+/// different version — the 2026-09-23 failure, where a command handed over
+/// ran an older `war` than the one that drafted it.
+fn binary_row() -> Row {
+    let here = env!("CARGO_PKG_VERSION");
+    let exe = std::env::current_exe()
+        .ok()
+        .and_then(|p| p.canonicalize().ok())
+        .map_or_else(|| "?".to_owned(), |p| p.display().to_string());
+    let on_path = std::env::var_os("PATH").and_then(|paths| {
+        std::env::split_paths(&paths)
+            .map(|d| d.join("war"))
+            .find(|p| p.is_file())
+    });
+    let install = "cargo install --path crates/openwarrant-cli";
+    let (text, detail) = match on_path {
+        None => (
+            format!("INFO    this is war {here} at {exe}; no `war` on PATH"),
+            format!(
+                "Commands this app hands over say `war`. To put this one on PATH: `{install}`."
+            ),
+        ),
+        Some(p) => {
+            let canonical = p
+                .canonicalize()
+                .map_or_else(|_| p.display().to_string(), |c| c.display().to_string());
+            let version = std::process::Command::new(&p)
+                .arg("--version")
+                .output()
+                .ok()
+                .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_owned())
+                .unwrap_or_default();
+            if canonical == exe || version.split_whitespace().last() == Some(here) {
+                (
+                    format!("INFO    war {here} at {exe} — the `war` on PATH"),
+                    format!("`war` on PATH is {canonical}, the same version."),
+                )
+            } else {
+                (
+                    format!(
+                        "WARN    this is war {here} at {exe}; `war` on PATH is {} at {canonical}",
+                        if version.is_empty() {
+                            "unknown".to_owned()
+                        } else {
+                            version.clone()
+                        }
+                    ),
+                    format!(
+                        "A command you copy from here and run as `war` runs {canonical} ({version}), not this {here}. \
+                         Install this one: `{install}` from its checkout, or run it by path: {exe}."
+                    ),
+                )
+            }
+        }
+    };
+    Row {
+        text,
+        command: install.to_owned(),
+        sign_target: None,
+        auto: None,
+        detail: Some(detail),
+    }
 }
 
 fn remedy_row(diag: &Diagnostic, n: usize) -> Row {
@@ -868,6 +1070,9 @@ fn event_loop(
         // Idle: every fourth tick look at the tree; a change is applied on
         // the tick after it settles (debounced one more).
         m.idle_ticks = m.idle_ticks.wrapping_add(1);
+        if m.pane == Pane::Projects {
+            m.tick_projects();
+        }
         if m.idle_ticks.is_multiple_of(4)
             && let Some(repo) = m.repo.as_ref()
         {
@@ -927,6 +1132,31 @@ fn handle_key(
         m.show_keys = false;
         return Ok(Flow::Continue);
     }
+    // `n` on Projects: a directory is being typed.
+    if let Some(buf) = m.new_dir.as_mut() {
+        match k.code {
+            KeyCode::Esc => m.new_dir = None,
+            KeyCode::Backspace => {
+                buf.pop();
+            }
+            KeyCode::Char(c) => buf.push(c),
+            KeyCode::Enter => {
+                let dir = Utf8PathBuf::from(expand_home(buf.trim()));
+                m.new_dir = None;
+                if dir.as_str().is_empty() {
+                    return Ok(Flow::Continue);
+                }
+                if let Err(e) = std::fs::create_dir_all(&dir) {
+                    m.status = format!("could not create {dir}: {e}");
+                    return Ok(Flow::Continue);
+                }
+                run_child_inherit(terminal, &dir, &["init"])?;
+                m.open_project(dir);
+            }
+            _ => {}
+        }
+        return Ok(Flow::Continue);
+    }
     let n = m.visible().len();
     match (k.code, k.modifiers) {
         (KeyCode::Char('q'), _) | (KeyCode::Char('c'), KeyModifiers::CONTROL) => {
@@ -941,15 +1171,28 @@ fn handle_key(
             m.pane = Pane::Roadmap;
             m.reading = false;
         }
+        (KeyCode::Char('p'), _) => {
+            m.pane = Pane::Projects;
+            m.reading = false;
+            m.load_projects();
+        }
+        (KeyCode::Char('n'), _) if m.pane == Pane::Projects => m.new_dir = Some(String::new()),
+        (KeyCode::Char('r'), _) if m.pane == Pane::Projects => m.load_projects(),
         (KeyCode::Tab, _) => {
             let i = Pane::ALL.iter().position(|p| *p == m.pane).unwrap_or(0);
             m.pane = Pane::ALL[(i + 1) % Pane::ALL.len()];
             m.reading = false;
+            if m.pane == Pane::Projects {
+                m.load_projects();
+            }
         }
         (KeyCode::BackTab, _) => {
             let i = Pane::ALL.iter().position(|p| *p == m.pane).unwrap_or(0);
             m.pane = Pane::ALL[(i + Pane::ALL.len() - 1) % Pane::ALL.len()];
             m.reading = false;
+            if m.pane == Pane::Projects {
+                m.load_projects();
+            }
         }
         (KeyCode::Char('j'), _) | (KeyCode::Down, _) => {
             if m.reading {
@@ -1007,10 +1250,15 @@ fn handle_key(
                 .collect();
             if targets.is_empty() {
                 m.status = "nothing checked — space checks a row, a checks all".to_owned();
+            } else if let [t] = targets.as_slice() {
+                sign_in_child(terminal, m, t)?;
+                m.checked.clear();
+                m.refresh();
             } else {
-                for t in targets {
-                    sign_in_child(terminal, m, &t)?;
-                }
+                // More than one: one batch, one dialog (OW-WAR-0072).
+                let list = format!("--batch={}", targets.join(","));
+                run_child_inherit(terminal, &m.root, &["sign", &list, "--ssh-sign"])?;
+                m.status = format!("returned from war sign {list}");
                 m.checked.clear();
                 m.refresh();
             }
@@ -1066,6 +1314,20 @@ fn handle_key(
                     m.refresh();
                 }
             }
+            Pane::Projects => match m.current_index() {
+                Some(i) if m.projects.get(i).is_some_and(|r| !r.missing) => {
+                    let root = Utf8PathBuf::from(&m.projects[i].root);
+                    m.open_project(root);
+                }
+                Some(i) if i + 2 == m.rows().len() => m.new_dir = Some(String::new()),
+                Some(i) if i + 1 == m.rows().len() => m.pane = Pane::Setup,
+                _ => {
+                    if let Some(r) = m.current() {
+                        m.popup =
+                            Some((r.command.clone(), r.detail.clone().unwrap_or_default(), 0));
+                    }
+                }
+            },
             // One editor, two doors: the pane hands the terminal to
             // `war roadmap edit`, which ends in one signature.
             Pane::Roadmap => {
@@ -1130,6 +1392,15 @@ fn run_child_inherit(
         .clear()
         .map_err(io("could not clear the terminal"))?;
     Ok(())
+}
+
+/// `~/x` → `$HOME/x`: a directory typed at the prompt reads as a shell would.
+fn expand_home(s: &str) -> String {
+    match (s.strip_prefix("~/"), std::env::var("HOME")) {
+        (Some(rest), Ok(home)) => format!("{home}/{rest}"),
+        _ if s == "~" => std::env::var("HOME").unwrap_or_else(|_| s.to_owned()),
+        _ => s.to_owned(),
+    }
 }
 
 /// A child whose output the app shows in a popup: `--show`, an auto remedy.
@@ -1200,7 +1471,9 @@ fn draw(f: &mut ratatui::Frame, m: &Model) {
         ])),
         cmd_line,
     );
-    let status = if m.filtering {
+    let status = if let Some(buf) = &m.new_dir {
+        format!("  new project directory (Enter runs war init there, Esc cancels): {buf}_")
+    } else if m.filtering {
         format!("  / {}_", m.filter)
     } else if !m.filter.is_empty() {
         format!("  {}   filter: {}   (Esc clears)", m.status, m.filter)
@@ -1290,6 +1563,9 @@ fn draw_list(f: &mut ratatui::Frame, m: &Model, body: Rect) {
         Pane::Roadmap => {
             " Roadmap — phases in order; Enter edits by keystroke and signs once ".to_owned()
         }
+        Pane::Projects => {
+            " Projects — every repository you use; Enter opens, n starts a new one ".to_owned()
+        }
     };
     let mut state = ListState::default();
     if !rows.is_empty() {
@@ -1350,12 +1626,13 @@ fn centered(area: Rect, pct_w: u16, pct_h: u16) -> Rect {
 /// The one table of keys, rendered by `?` and tested against `docs/TUI.md`.
 pub const KEYS: &str = "\
 0-9 / Tab / Shift-Tab   panes
+p                       projects: every repository you use (Enter opens one, n starts one)
 j k                     move (in a document: next/previous document)
 /                       filter this pane (Esc clears)
 Enter                   act on the row: sign (queue, help), open the detail (others), run `war init` (setup)
 v                       show the request behind a signing row (`war sign <target> --show`)
 space  a  n             queue: check row / check all / check none
-s                       queue: sign every checked act, one `war sign --ssh-sign` each
+s                       queue: sign the checked acts — one, or a batch in one dialog
 x                       run the row's auto remedy (never a signing act)
 c                       show the commit message `war commit --write` would use
 d  [  ]                 help: documents on/off, previous/next document

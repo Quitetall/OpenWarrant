@@ -1,6 +1,8 @@
 # `war` — the app
 
-`war` with no arguments, at a terminal, opens the app. It is a **rendering**
+`war` with no arguments, at a terminal, opens the app — from anywhere.
+Inside a repository it opens that project; anywhere else it opens
+**Projects**, every repository you use, and `Enter` opens one. It is a **rendering**
 (SAS §76.6, OW-ADR-0019, OW-ADR-0020): it issues commands and holds no key.
 Every act it starts runs the same `war sign --ssh-sign` a hand would run, as
 a child that inherits your terminal, so the `ssh-add -c` dialog is still the
@@ -21,16 +23,17 @@ a second answer to a question the records already answer. A pane that cannot
 answer says so ("not established", "UNREADABLE …"), never a blank.
 
 The bottom line of every pane shows the exact command behind the highlighted
-row. The status bar names the repository, the SAS revision in force and the
-number of acts awaiting a signature. The tree is re-read on its own (the
+row. The status bar names the project and its path, the SAS revision in force
+and the number of acts awaiting a signature. The tree is re-read on its own (the
 `war watch` fingerprint, every second, debounced) so a signature given in
 another terminal shows up without a keypress.
 
 ## Setup
 
-Shown first whenever setup is incomplete — including when no
-`openwarrant.toml` exists: the app opens without a repository and the other
-panes render "not initialized". The row names the step; `Enter` runs `war
+Shown first whenever setup is incomplete. Started outside any repository,
+the app opens Projects instead, and Setup for the current directory is one
+keypress away (`1`); with `--root` naming a directory that is not yet a
+repository, it opens here and the other panes render "not initialized". The row names the step; `Enter` runs `war
 init`, the conversation, in your terminal, and the app resumes where the
 tree says. Steps: name the program, say who signs, confirm the key asks you
 (`ssh-add -c`), record the SAS, sign the SAS, prepare the first Warrant, sign
@@ -38,7 +41,10 @@ it.
 
 ## Help
 
-Two things. **What next** (the default): the Setup step if incomplete, then
+Two things. **What next** (the default): first, which `war` this is — its
+version and path — with a warning when `war` on PATH is a different version,
+naming the install command (a command you copy runs PATH's `war`, not this
+one). Then the Setup step if incomplete, then
 `war next`'s actions with humans first, then `war doctor`'s non-passes, then
 `war check`'s errors — one row per rule with a count — each carrying its
 remedy (§76.2). `Enter` on a signing row signs; `x` runs an *auto* remedy
@@ -53,7 +59,9 @@ namespace.
 ## Queue
 
 `war sign --list`, numbered. `space` checks a row, `a` all, `n` none; `s`
-signs every checked act, one `war sign <target> --ssh-sign` each; `Enter`
+signs the checked acts — one checked is `war sign <target> --ssh-sign`, more
+are one batch, `war sign --batch=<targets> --ssh-sign`, in one dialog
+(docs/SIGNING.md); `Enter`
 signs the highlighted row; `v` shows its request (`war sign <target>
 --show`). Presets and reasons are asked by `war sign` itself, in the child.
 
@@ -106,17 +114,38 @@ or remove phases by keystroke — which writes the phases atom, proposes the
 revision, and ends in one `war sign roadmap --ssh-sign` dialog. No file is
 opened (OW-ADR-0023).
 
+## Projects
+
+Every repository you use (OW-WAR-0115). Nobody registers one: any `war`
+command that opens a repository remembers it, in
+`$XDG_CONFIG_HOME/openwarrant/projects.toml` (default `~/.config/…`), outside
+every repository. The list stores where a project is and when you last used
+it — never what it says. Each row is read from that project's own records
+through the CLI's functions: its branch, SAS, acts awaiting a signature,
+blocking questions, and Warrants resolved. `war projects` prints the same
+rows; `--json` gives them as an envelope.
+
+`p` opens this pane from anywhere; `Enter` opens a project — the whole app
+switches to it, as if `war` had started there. `n` asks for a directory,
+creates it, and runs `war init` there. A project whose directory no longer
+holds a repository shows as `(missing)`, never silently dropped; `war
+projects --forget <path>` takes it off the list, and `--add <path>` puts one
+on without running a command in it. `OPENWARRANT_NO_PROJECTS=1` stops the
+remembering (the conformance battery sets it). The pane is read when you open
+it, not every second: `r` re-reads it.
+
 ## Keys
 
 | key | does |
 |---|---|
 | `0-9`, `Tab`, `Shift-Tab` | switch pane (`0` is Roadmap) |
+| `p` | Projects: every repository you use; `Enter` opens one, `n` starts one |
 | `j` `k` | move (in a document: next/previous document) |
 | `/` | filter this pane; `Esc` clears |
 | `Enter` | act on the row: sign (queue, help), open the detail (others), run `war init` (setup) |
 | `v` | show the request behind a signing row |
 | `space` `a` `n` | queue: check row / all / none |
-| `s` | queue: sign every checked act |
+| `s` | queue: sign the checked acts — more than one is a batch, one dialog |
 | `x` | run the row's auto remedy |
 | `c` | show the commit message `war commit --write` would use |
 | `d` `[` `]` | help: documents on/off, previous/next |

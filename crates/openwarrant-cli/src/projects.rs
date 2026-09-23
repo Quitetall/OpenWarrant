@@ -104,10 +104,46 @@ pub struct Row {
     pub missing: bool,
     pub program: Option<String>,
     pub namespace: Option<String>,
+    /// The checked-out branch, as git names it.
+    pub branch: Option<String>,
+    /// The SAS revision in force.
+    pub sas: Option<String>,
+    /// Acts awaiting a human signature: `war sign --list`'s count.
+    pub pending: Option<usize>,
+    /// Open questions that block a Warrant.
+    pub blocking: Option<usize>,
+    /// Warrants, and how many of them are resolved.
+    pub warrants: Option<usize>,
+    pub resolved: Option<usize>,
+    /// Roadmap phases, and how many are achieved: the roadmap record's when
+    /// there is one (OW-WAR-0114), the §98 Objectives otherwise.
+    pub phases: Option<usize>,
+    pub phases_achieved: Option<usize>,
+    /// The project's `war watch` fingerprint when these facts were read: a
+    /// reader re-reads a row only when it moves.
+    #[serde(skip)]
+    pub fingerprint: Option<u64>,
+    /// Why a fact above could not be read, when one could not.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub unreadable: Option<String>,
 }
 
+/// Every project with its facts read: `war projects`.
 #[must_use]
 pub fn rows() -> Vec<Row> {
+    let mut rows = listed();
+    for r in &mut rows {
+        if !r.missing {
+            read_facts(r);
+        }
+    }
+    rows
+}
+
+/// Every project, named but with no fact read yet: what the hub shows at
+/// once, before it reads each project one idle tick at a time.
+#[must_use]
+pub fn listed() -> Vec<Row> {
     load()
         .projects
         .into_iter()
@@ -125,11 +161,98 @@ pub fn rows() -> Vec<Row> {
                 missing: parsed.is_none(),
                 program: field("name"),
                 namespace: field("namespace"),
+                branch: None,
+                sas: None,
+                pending: None,
+                blocking: None,
+                warrants: None,
+                resolved: None,
+                phases: None,
+                phases_achieved: None,
+                fingerprint: None,
+                unreadable: None,
                 root,
                 last_seen,
             }
         })
         .collect()
+}
+
+/// The fingerprint `war watch` keeps for a project, or `None` when it no
+/// longer opens.
+#[must_use]
+pub fn fingerprint(root: &str) -> Option<u64> {
+    let repo = crate::repo::Repository::open(Utf8PathBuf::from(root)).ok()?;
+    Some(crate::watch::fingerprint(&crate::watch::watched_dirs(
+        &repo,
+    )))
+}
+
+/// Every fact on a row, read through the functions the CLI answers with in
+/// that project — never stored in the list, never computed here.
+pub fn read_facts(row: &mut Row) {
+    let root = Utf8PathBuf::from(&row.root);
+    row.unreadable = None;
+    let repo = match crate::repo::Repository::open(root.clone()) {
+        Ok(r) => r,
+        Err(e) => {
+            row.unreadable = Some(e.to_string());
+            return;
+        }
+    };
+    row.branch = std::process::Command::new("git")
+        .args(["-C", root.as_str(), "rev-parse", "--abbrev-ref", "HEAD"])
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_owned());
+    row.fingerprint = Some(crate::watch::fingerprint(&crate::watch::watched_dirs(
+        &repo,
+    )));
+    row.sas = repo.latest_sas_revision().ok().flatten().map(|r| r.version);
+    if let Ok((_, view)) = crate::roadmap_cmd::view(&repo)
+        && !view.phases.is_empty()
+    {
+        row.phases = Some(view.phases.len());
+        row.phases_achieved = Some(
+            view.phases
+                .iter()
+                .filter(|p| p.achieved == "achieved")
+                .count(),
+        );
+    }
+    match crate::console::board(&repo) {
+        Ok(b) => {
+            row.pending = Some(b.acts.len());
+            row.blocking = Some(b.questions.iter().filter(|q| q.blocking).count());
+        }
+        Err(e) => row.unreadable = Some(e.to_string()),
+    }
+    match crate::status::build(&repo) {
+        Ok(s) => {
+            if row.phases.is_none() {
+                let states: Vec<String> = s
+                    .objectives
+                    .iter()
+                    .filter_map(|o| {
+                        serde_json::to_value(o).ok()?["achieved"]["state"]
+                            .as_str()
+                            .map(str::to_owned)
+                    })
+                    .collect();
+                row.phases = Some(s.objectives.len());
+                row.phases_achieved = Some(states.iter().filter(|s| *s == "achieved").count());
+            }
+            row.warrants = Some(s.warrants.len());
+            row.resolved = Some(
+                s.warrants
+                    .iter()
+                    .filter(|w| w.rung == openwarrant_core::status::WarrantRung::Resolved)
+                    .count(),
+            );
+        }
+        Err(e) => row.unreadable = Some(e.to_string()),
+    }
 }
 
 /// `war projects [--add <path> | --forget <path>]`.
@@ -205,6 +328,29 @@ pub fn render(rows: &[Row]) -> String {
             r.root,
             if r.missing { "  (missing)" } else { "" }
         ));
+        if !r.missing {
+            s.push_str(&format!("    {}\n", summary(r)));
+        }
     }
     s
+}
+
+/// One line of a project's state, for `war projects` and the hub's row.
+#[must_use]
+pub fn summary(r: &Row) -> String {
+    let n = |v: Option<usize>| v.map_or_else(|| "?".to_owned(), |n| n.to_string());
+    format!(
+        "{} · SAS {} · {} awaiting a signature · {} blocking question(s) · phases {} of {} achieved · {} of {} Warrants resolved{}",
+        r.branch.as_deref().unwrap_or("?"),
+        r.sas.as_deref().unwrap_or("none"),
+        n(r.pending),
+        n(r.blocking),
+        n(r.phases_achieved),
+        n(r.phases),
+        n(r.resolved),
+        n(r.warrants),
+        r.unreadable
+            .as_deref()
+            .map_or_else(String::new, |e| format!(" · unreadable: {e}"))
+    )
 }

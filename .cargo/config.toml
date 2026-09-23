@@ -1,3 +1,10 @@
 [alias]
 # `cargo xtask gate` is the aggregate gate (SAS §92).
 xtask = "run --quiet --package xtask --"
+
+[env]
+# `war` remembers every repository it opens (OW-WAR-0115). Tests spawn it in
+# throwaway directories that vanish a second later; none of them belongs in
+# the developer's own list. The hub plant opts back in with its own
+# XDG_CONFIG_HOME.
+OPENWARRANT_NO_PROJECTS = "1"
