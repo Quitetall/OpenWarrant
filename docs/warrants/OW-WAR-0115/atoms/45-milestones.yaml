@@ -1,0 +1,28 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "The per-user project list, remembered on use"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+  - id: "M2"
+    title: "The hub: war from anywhere, the Projects pane, switching, the binary line"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002"]
+
+stages:
+  - id: "STAGE-001"
+    title: "projects.rs, war projects, touch-on-use in lib.rs, the opt-out"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 10000
+  - id: "STAGE-002"
+    title: "The Projects pane, p to switch, the binary line, TUI.md, README, the plants"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Premade Instructions"]
+    budget_tokens: 16000

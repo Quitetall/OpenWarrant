@@ -15,7 +15,7 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 
 - **SAS revision:** 1.1.0
 - **digest:** `sha256:321413359168c176faaddefc1a7057d66059d5de8d98d20feeca995c7f89a1bc`
-- Revision 1.1.0 is ACCEPTED (§101.2) and normative. A Warrant compiles against the revision its authorization recorded (§14), so a later revision does not move an authorized contract: 57 against 0.1.0-draft.1, 8 against 0.1.0-draft.3, 42 against 1.0.0, 3 against 1.1.0.
+- Revision 1.1.0 is ACCEPTED (§101.2) and normative. A Warrant compiles against the revision its authorization recorded (§14), so a later revision does not move an authorized contract: 57 against 0.1.0-draft.1, 8 against 0.1.0-draft.3, 42 against 1.0.0, 4 against 1.1.0.
 
 **Requirements (62 in §106)** — strictest rung first:
 
@@ -28,7 +28,7 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 | Objective | Exit Warrant | Achieved | invalid | draft | ready | would_satisfy | resolved |
 |---|---|---|---|---|---|---|---|
 | roadmap://OW-PHASE-0: Telemetry shim | OW-WAR-0041 | blocked by OW-WAR-0039, OW-WAR-0041 | 0 | 0 | 2 | 0 | 0 |
-| roadmap://OW-PHASE-1: File-native WAR compiler | OW-WAR-0061 | recorded | 0 | 4 | 5 | 0 | 13 |
+| roadmap://OW-PHASE-1: File-native WAR compiler | OW-WAR-0061 | recorded | 0 | 5 | 5 | 0 | 13 |
 | roadmap://OW-PHASE-2: Agent planner | OW-WAR-0042 | blocked by OW-WAR-0035, OW-WAR-0037, OW-WAR-0042, OW-WAR-0068, OW-WAR-0070 | 0 | 4 | 1 | 0 | 1 |
 | roadmap://OW-PHASE-3: ADR federation | OW-WAR-0043 | blocked by OW-WAR-0006, OW-WAR-0036, OW-WAR-0043, OW-WAR-0064 | 0 | 2 | 2 | 0 | 3 |
 | roadmap://OW-PHASE-4: Knowledge Fabric registration | OW-WAR-0044 | blocked by OW-WAR-0028, OW-WAR-0029, OW-WAR-0030, OW-WAR-0032, OW-WAR-0044 | 0 | 1 | 4 | 0 | 0 |
@@ -63,16 +63,16 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | requirement | Warrants blocked |
 |---|---|
-| artifact digests verify | 72 |
-| required deliverables exist | 55 |
-| every required gate has admissible result | 54 |
-| no blocker remains | 53 |
-| no required unknown remains | 53 |
-| every required obligation is dispositioned | 51 |
-| independence requirements are met | 51 |
-| required judgments exist | 27 |
-| residual risks have sufficient authority | 27 |
-| exact authorized Contract Revision | 3 |
+| artifact digests verify | 73 |
+| required deliverables exist | 56 |
+| every required gate has admissible result | 55 |
+| no blocker remains | 54 |
+| no required unknown remains | 54 |
+| every required obligation is dispositioned | 52 |
+| independence requirements are met | 52 |
+| required judgments exist | 28 |
+| residual risks have sufficient authority | 28 |
+| exact authorized Contract Revision | 4 |
 | runtime receipts match the basis | 3 |
 
 ## Requirements (SAS §106, §34.3)
@@ -136,12 +136,12 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-063` | claimed | 0 | OW-WAR-0027 (complete), OW-WAR-0047 (complete) |
 | `WAR-SAS-RQ-064` | claimed | 0 | OW-WAR-0001 (partial) |
 | `WAR-SAS-RQ-065` | unaddressed | 0 | — |
-| `WAR-SAS-RQ-070` | claimed | 0 | OW-WAR-0001 (partial), OW-WAR-0069 (partial), OW-WAR-0072 (partial), OW-WAR-0073 (partial), OW-WAR-0112 (partial) |
+| `WAR-SAS-RQ-070` | claimed | 0 | OW-WAR-0001 (partial), OW-WAR-0069 (partial), OW-WAR-0072 (partial), OW-WAR-0073 (partial), OW-WAR-0112 (partial), OW-WAR-0115 (partial) |
 | `WAR-SAS-RQ-071` | claimed | 0 | OW-WAR-0035 (complete), OW-WAR-0042 (complete), OW-WAR-0068 (partial) |
 | `WAR-SAS-RQ-072` | satisfied | 1 | OW-WAR-0034 (complete), OW-WAR-0042 (complete), OW-WAR-0068 (partial) |
 | `WAR-SAS-RQ-073` | claimed | 0 | OW-WAR-0036 (complete) |
 | `WAR-SAS-RQ-074` | satisfied | 1 | OW-WAR-0005 (complete), OW-WAR-0055 (partial), OW-WAR-0112 (partial) |
-| `WAR-SAS-RQ-075` | in_progress | 0 | OW-WAR-0004 (complete), OW-WAR-0055 (partial), OW-WAR-0057 (partial), OW-WAR-0060 (partial), OW-WAR-0073 (partial), OW-WAR-0112 (partial) |
+| `WAR-SAS-RQ-075` | in_progress | 0 | OW-WAR-0004 (complete), OW-WAR-0055 (partial), OW-WAR-0057 (partial), OW-WAR-0060 (partial), OW-WAR-0073 (partial), OW-WAR-0112 (partial), OW-WAR-0115 (partial) |
 | `WAR-SAS-RQ-076` | claimed | 0 | OW-WAR-0028 (complete) |
 | `WAR-SAS-RQ-077` | claimed | 0 | OW-WAR-0068 (partial) |
 | `WAR-SAS-RQ-080` | claimed | 0 | OW-WAR-0003 (complete) |
@@ -151,7 +151,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-084` | claimed | 0 | OW-WAR-0030 (complete), OW-WAR-0064 (partial), OW-WAR-0113 (complete), OW-WAR-0114 (partial) |
 | `WAR-SAS-RQ-085` | claimed | 0 | OW-WAR-0067 (partial), OW-WAR-0071 (partial), OW-WAR-0072 (partial) |
 
-## Warrants (110) — invalid 0 · draft 64 · ready_to_resolve 17 · would_satisfy 0 · resolved **29**
+## Warrants (111) — invalid 0 · draft 65 · ready_to_resolve 17 · would_satisfy 0 · resolved **29**
 
 | Warrant | rung | §38.6 | blocking unknowns | milestones evidenced | first unmet |
 |---|---|---|---|---|---|
@@ -265,6 +265,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0112` war is the app: ownership, a guided start, and remedies | draft | unknown | 0 | 0 of 5 | every required obligation is dispositioned |
 | `OW-WAR-0113` Two projections from atoms by relation: the current master document, and the history | draft | unknown | 0 | 0 of 5 | exact authorized Contract Revision |
 | `OW-WAR-0114` The roadmap becomes a record: one per program, beside the SAS | draft | unknown | 0 | 0 of 5 | exact authorized Contract Revision |
+| `OW-WAR-0115` The hub: war opens from anywhere, with every project and its progress | draft | unknown | 0 | 0 of 2 | exact authorized Contract Revision |
 
 ## Not reported here
 

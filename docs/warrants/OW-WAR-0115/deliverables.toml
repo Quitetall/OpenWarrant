@@ -1,0 +1,64 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+
+[[deliverable]]
+id = "D-001"
+title = "The per-user project list"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/projects.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-002"
+title = "war projects; touch on use; war from anywhere"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-003"
+title = "The Projects pane, switching, the binary line"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/tui/mod.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-004"
+title = "docs/TUI.md: the hub"
+kind = "file"
+target_ref = "docs/TUI.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-005"
+title = "README.md: war from anywhere"
+kind = "file"
+target_ref = "README.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-006"
+title = "The hub plants"
+kind = "file"
+target_ref = "conformance/plants.d/71-hub.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
