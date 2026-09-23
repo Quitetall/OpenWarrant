@@ -69,9 +69,9 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | every required gate has admissible result | 80 |
 | no blocker remains | 79 |
 | no required unknown remains | 79 |
-| required deliverables exist | 78 |
 | every required obligation is dispositioned | 77 |
 | independence requirements are met | 77 |
+| required deliverables exist | 77 |
 | required judgments exist | 48 |
 | residual risks have sufficient authority | 48 |
 | runtime receipts match the basis | 3 |
@@ -262,7 +262,7 @@ Every §106 requirement is named by at least one Warrant.
 | `OW-WAR-0114` The roadmap becomes a record: one per program, beside the SAS | draft | unknown | 0 | 0 of 5 | required deliverables exist |
 | `OW-WAR-0115` The hub: war opens from anywhere, with every project and its progress | draft | unknown | 0 | 0 of 2 | artifact digests verify |
 | `OW-WAR-0116` war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap | draft | unknown | 0 | 0 of 4 | artifact digests verify |
-| `OW-WAR-0117` An independent verifier: a blind, tool-less process that war verify --run hands each bundle to | draft | unknown | 0 | 0 of 1 | required deliverables exist |
+| `OW-WAR-0117` An independent verifier: a blind, tool-less process that war verify --run hands each bundle to | draft | unknown | 0 | 0 of 1 | artifact digests verify |
 | `OW-WAR-0118` Measure the friction targets: setup in ten minutes, a routine act in sixty seconds | draft | unknown | 0 | 0 of 2 | required deliverables exist |
 | `OW-WAR-0119` Identity is the UUIDv7: immutable across revisions, and no alias ever stands in for it | draft | unknown | 0 | 0 of 1 | required deliverables exist |
 | `OW-WAR-0120` Retention: compact journals, archive resolved Warrants, and hold a budget at 1,000 Warrants | draft | unknown | 0 | 0 of 2 | required deliverables exist |

@@ -14,28 +14,34 @@ warrants = "docs/warrants"
 commit = true
 verify_drift = true
 
-# §46.1's nine dimensions, for verification performed in this repository.
+# The verifier `war verify <alias> --run` hands each bundle to (OW-WAR-0117;
+# docs/VERIFICATION.md). A separate `claude -p` process with no tool, no MCP
+# server, no settings and an empty working directory; it reads only the
+# bundle `war` compiled. Its verdicts are its own; the flags on each verdict
+# are written by the script from how it is built, not by the model.
+[verify]
+verifier_argv = ["tools/verifier/claude-verifier.sh"]
+verifier_timeout_secs = 900
+
+# §46.1's nine dimensions, declared for the arrangement above — every
+# verification this repository runs through `[verify]`. Each ingested verdict
+# is still judged on its OWN flags (`verify.rs`, admissible_for); this table
+# only says what the configured verifier provides, so `war check` can report
+# §46.3's minimums per assurance level.
 #
-# Every value here is false, and that is not a placeholder. OpenWarrant is
-# authored and verified by one actor, so there is no blind reviewer, no separate
-# workspace, and no separate context compilation. §27.4 is explicit that role
-# separation by one person is not organizational independence, and OW-ADR-0004
-# required this to be RECORDED rather than omitted — an absent field reads as
-# unexamined, `false` reads as examined and absent.
-#
-# `war check` therefore reports every `controlled` Warrant here as not meeting
-# §46.3's minimum. That is the correct report, not a misconfiguration, and it is
-# roadmap limit 4 stated where a machine can see it instead of only in prose.
+# Until 2026-09-23 every value here was false: the performer verified its own
+# work, which §27.4 says is not independence. OW-WAR-0117 changed the
+# arrangement, not the words.
 [independence]
-performer_transcript_blind = false
-performer_rationale_blind = false
-separate_writable_workspace = false
-cannot_modify_subject_artifacts = false
-cannot_modify_gate_definition = false
-cannot_modify_gate_fixtures = false
-separate_context_compilation = false
-distinct_model_required = false
-distinct_human_required = false
+performer_transcript_blind = true       # the bundle carries no transcript
+performer_rationale_blind = true        # nor rationale or journal; no memory is loaded
+separate_writable_workspace = true      # an empty temporary directory, and nothing to write with
+cannot_modify_subject_artifacts = true  # no tool and no MCP server
+cannot_modify_gate_definition = true    # no tool and no MCP server
+cannot_modify_gate_fixtures = true      # no tool and no MCP server
+separate_context_compilation = true     # `war` compiles the bundle, not the performer
+distinct_model_required = false         # per verdict: true only when CLAUDE_PERFORMER_MODEL differs
+distinct_human_required = false         # no human verifies here; §27.4, no four-eyes claim
 
 # OW-WAR-0042: the drafting agent over §75.2 — Claude Code non-interactive,
 # version recorded per run under the Warrant's evidence/.
