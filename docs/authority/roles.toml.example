@@ -1,18 +1,28 @@
 # Actor role assignments (SAS §27.4).
 #
-# Copy to `roles.toml` and edit. This file is a TEMPLATE and grants nothing:
-# only `docs/authority/roles.toml` is read, and an absent register grants
-# nobody anything — which is the fail-closed direction and the correct default.
+# Copy to `roles.toml` and edit — or answer `war init` at a terminal, which
+# writes `roles.toml` from what you type. This file is a TEMPLATE and grants
+# nothing: only `docs/authority/roles.toml` is read, and an absent register
+# grants nobody anything — which is the fail-closed direction and the correct
+# default.
 #
 # ---------------------------------------------------------------------------
-# WHY THERE IS NO `war authority grant` COMMAND
+# THE RULE FOR `roles.toml` (OW-ADR-0021, Consequences)
 # ---------------------------------------------------------------------------
 #
 # Authority has to come from outside the system it governs. A command that
-# wrote this file would let an agent assign itself the roles §27.2 exists to
-# withhold — and it would do so through the same tool that later checks whether
-# the assignment is valid. So this file is written by a human in an editor, and
-# by nothing else. Every tool in this workspace reads it; none write it.
+# could write this file at will would let an agent assign itself the roles
+# §27.2 exists to withhold — through the same tool that later checks whether
+# the assignment is valid. So the rule is narrow: a tool writes this file only
+# from a human's answers typed at a terminal, once. `war init` does that, behind
+# the same terminal gate `war sign` uses, and refuses to touch a `roles.toml`
+# that exists. No command edits it afterwards; every tool in this workspace
+# reads it. There is no `war authority grant`. The agent entry `war init`
+# writes is `performer` and nothing else — no answer can widen it.
+#
+# What that gate cannot do: a pseudo-terminal defeats it, exactly as it
+# defeats `war sign`'s plain path (THREAT_MODEL entry 2). The trust rests where
+# it always did — on the key, and on `ssh-add -c`.
 #
 # ---------------------------------------------------------------------------
 # ROLES

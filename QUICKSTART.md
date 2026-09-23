@@ -60,8 +60,11 @@ cp docs/authority/allowed_signers.example docs/authority/allowed_signers  # edit
 ssh-add -c ~/.ssh/id_ed25519      # -c: every signature asks you. Test Deny before you trust Allow.
 ```
 
-No tool writes these two files. Read the comments in the examples; the one
-thing `war` cannot check is that the key was loaded with `-c`.
+Or let `war init` at a terminal ask for these and write both files from your
+answers — once; no command edits them afterwards, and the agent entry it writes
+is `performer` only (OW-ADR-0021, Consequences). Read the comments in the
+examples; the one thing `war` cannot check is that the key was loaded with `-c`
+— `war init` asks, and records your answer as yours.
 
 ## 3. Accept the SAS
 

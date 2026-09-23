@@ -27,12 +27,16 @@ Measured across the fifty Warrants in this repository:
 
 ## Step 1 — grant the roles
 
-Nothing in this repository can write `docs/authority/roles.toml`, and there is no
-`war authority grant`. A command that could write it would let an agent assign
-itself the roles §27.2 exists to withhold, through the same tool that later
-checks whether the assignment is valid. Authority has to enter from outside.
+There is no `war authority grant`. A command that could write
+`docs/authority/roles.toml` at will would let an agent assign itself the roles
+§27.2 exists to withhold, through the same tool that later checks whether the
+assignment is valid. Authority has to enter from outside — so the one tool
+that writes this file does it only from a human's answers typed at a terminal,
+once, and never edits it afterwards (OW-ADR-0021, Consequences):
 
 ```bash
+war init                              # at a terminal: asks your name, your key, and writes both files once
+# or by hand:
 cp docs/authority/roles.toml.example docs/authority/roles.toml
 $EDITOR docs/authority/roles.toml     # put your name in, keep `claude` as performer only
 ```

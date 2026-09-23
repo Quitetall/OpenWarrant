@@ -1,9 +1,11 @@
 # Who may sign a response with an ssh key (`war sign --ssh-sign`).
 #
-# Copy to `allowed_signers` and edit. Like `roles.toml`, this file is written by
-# a human in an editor and by nothing else: it is the list of keys whose
-# signatures this repository accepts, and a tool that wrote it could let an
-# agent add its own key.
+# Copy to `allowed_signers` and edit — or answer `war init` at a terminal,
+# which writes it from the key you pick out of `ssh-add -L`. Like `roles.toml`
+# it follows one rule (OW-ADR-0021, Consequences): a tool writes it only from a
+# human's answers at a terminal, once; no command edits it afterwards. It is
+# the list of keys whose signatures this repository accepts, and a tool that
+# wrote it at will could let an agent add its own key.
 #
 # Format is OpenSSH's ALLOWED SIGNERS (see ssh-keygen(1), "-Y verify"):
 #

@@ -270,11 +270,14 @@ enum Command {
         #[arg(long)]
         output: Option<Utf8PathBuf>,
     },
-    /// Initialize repository configuration and directories (§71.1).
+    /// Initialize repository configuration and directories (§71.1). With no
+    /// `--namespace`, at a terminal, it asks — and walks the whole setup:
+    /// who signs, the SAS, the first Warrant (OW-WAR-0112).
     Init {
         /// Namespace prefixing every local alias, e.g. `OW` in `OW-WAR-0001`.
+        /// Required unless `war init` runs at a terminal, where it is asked.
         #[arg(long)]
-        namespace: String,
+        namespace: Option<String>,
         /// Project name. Defaults to the directory name.
         #[arg(long, conflicts_with = "program")]
         name: Option<String>,
@@ -283,6 +286,10 @@ enum Command {
         /// atoms. `war check` on the result exits 0.
         #[arg(long, value_name = "PROGRAM")]
         program: Option<String>,
+        /// Never ask, even at a terminal: `--namespace` is then required and
+        /// only the examples are written, exactly as a script gets them.
+        #[arg(long)]
+        non_interactive: bool,
     },
     /// Write the AGENTS.md this repository ships, for the repository's
     /// namespace. `war init` writes it once; this rewrites (--force) or prints it.
@@ -1004,12 +1011,28 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             namespace,
             name,
             program,
+            non_interactive,
         } => {
-            match program {
-                Some(program) => {
+            match (namespace, program) {
+                (Some(namespace), Some(program)) => {
                     init::run_program(&program, &namespace, root)?;
                 }
-                None => init::run(&namespace, name.as_deref(), root)?,
+                (Some(namespace), None) => init::run(&namespace, name.as_deref(), root)?,
+                // No namespace: a conversation, and only at a real terminal.
+                // A script, a pipe, `--json` or `--non-interactive` gets the
+                // refusal below, byte-for-byte what it always got from a
+                // missing required flag, and never a prompt it cannot answer.
+                (None, program) => {
+                    if non_interactive || cli.json || !sign::at_a_terminal() {
+                        return Err(Box::new(repo::RepoError::Message(
+                            "`--namespace` is required here. At a terminal `war init` asks for \
+                             it and walks the setup; a script passes `--namespace <NS>` (and \
+                             `--program <name>` for a whole scaffold)"
+                                .to_owned(),
+                        )));
+                    }
+                    init::guided(root, program.as_deref())?;
+                }
             }
             Ok(EXIT_OK)
         }

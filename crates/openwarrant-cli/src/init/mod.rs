@@ -5,6 +5,8 @@ use std::fmt;
 use std::fs;
 
 use camino::{Utf8Path, Utf8PathBuf};
+
+pub mod guided;
 use openwarrant_core::{Namespace, RepositoryConfig};
 
 /// The repository configuration file name (§60).
@@ -271,23 +273,24 @@ pub fn run_program(
     Ok(root)
 }
 
-const PROGRAM_SAS_TEMPLATE: &str = include_str!("../templates/PROGRAM_SAS.md.tmpl");
-const ROLES_EXAMPLE: &str = include_str!("../../../docs/authority/roles.toml.example");
+const PROGRAM_SAS_TEMPLATE: &str = include_str!("../../templates/PROGRAM_SAS.md.tmpl");
+const ROLES_EXAMPLE: &str = include_str!("../../../../docs/authority/roles.toml.example");
 const ALLOWED_SIGNERS_EXAMPLE: &str =
-    include_str!("../../../docs/authority/allowed_signers.example");
-const WAR_CHECK_GATE: &str = include_str!("../../../docs/gates/software.repo.war-check@1.0.0.yaml");
-const ADOPT_INTENT: &str = include_str!("../templates/adopt/10-intent.md");
-const ADOPT_BASIS: &str = include_str!("../templates/adopt/20-basis.md");
-const ADOPT_WORK_ORDER: &str = include_str!("../templates/adopt/40-work-order.md");
-const ADOPT_MILESTONES: &str = include_str!("../templates/adopt/45-milestones.yaml");
-const ADOPT_ASSURANCE: &str = include_str!("../templates/adopt/60-assurance.md");
+    include_str!("../../../../docs/authority/allowed_signers.example");
+const WAR_CHECK_GATE: &str =
+    include_str!("../../../../docs/gates/software.repo.war-check@1.0.0.yaml");
+const ADOPT_INTENT: &str = include_str!("../../templates/adopt/10-intent.md");
+const ADOPT_BASIS: &str = include_str!("../../templates/adopt/20-basis.md");
+const ADOPT_WORK_ORDER: &str = include_str!("../../templates/adopt/40-work-order.md");
+const ADOPT_MILESTONES: &str = include_str!("../../templates/adopt/45-milestones.yaml");
+const ADOPT_ASSURANCE: &str = include_str!("../../templates/adopt/60-assurance.md");
 
 /// The agent instructions this repository ships, parameterised by namespace.
 ///
 /// This legacy template is also the repository's linked workflow reference.
 /// Root `AGENTS.md` adds project-specific routing and successor design guidance;
 /// installing an additive context pointer is a separate, planned operation.
-pub const AGENTS_MD_TEMPLATE: &str = include_str!("../templates/AGENTS.md.tmpl");
+pub const AGENTS_MD_TEMPLATE: &str = include_str!("../../templates/AGENTS.md.tmpl");
 
 #[must_use]
 pub fn render_agents_md(namespace: &str) -> String {
@@ -490,4 +493,306 @@ mod agents_md_tests {
         );
         std::fs::remove_dir_all(root).unwrap();
     }
+}
+
+// ---------------------------------------------------------------------------
+// `war init` as a conversation — the line front end (OW-WAR-0112 M4).
+// ---------------------------------------------------------------------------
+
+/// `war init` with no `--namespace`, at a terminal. Drives `guided::Machine`
+/// with what the human types; applies each `Effect`; re-reads the tree.
+///
+/// The invariants the machine cannot hold are held here: the terminal gate
+/// (`sign::at_a_terminal()`, checked by the caller and again before any
+/// write), and write-once — an authority file that exists is never touched,
+/// whatever was answered.
+pub fn guided(root: Option<Utf8PathBuf>, program_hint: Option<&str>) -> Result<(), InitError> {
+    let root = match root {
+        Some(r) => r,
+        None => {
+            Utf8PathBuf::from_path_buf(std::env::current_dir().map_err(|source| InitError::Io {
+                context: "could not read the current directory".to_owned(),
+                source,
+            })?)
+            .map_err(|_| InitError::NonUtf8Path)?
+        }
+    };
+    if !root.is_dir() {
+        return Err(InitError::RootMissing { path: root });
+    }
+    let io = |context: String| move |source: std::io::Error| InitError::Io { context, source };
+    let now = {
+        let secs = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_or(0, |d| d.as_secs());
+        crate::gate_cmd::receipt::rfc3339_from_secs(secs)
+    };
+    let mut m = guided::Machine::new(guided::Facts::read(&root), now);
+    let resumed = m.step != guided::Step::Program;
+    println!("war init — setting up {}", root);
+    if resumed {
+        println!("resuming at: {}", m.step.title());
+    }
+    loop {
+        use guided::{Answer, Effect, Step};
+        println!();
+        println!("{}", m.question());
+        if m.step == Step::Done {
+            return Ok(());
+        }
+        let answer = match m.step {
+            Step::Program => {
+                let default = program_hint
+                    .map(str::to_owned)
+                    .or_else(|| root.file_name().map(str::to_owned))
+                    .unwrap_or_default();
+                let Some(name) = ask(&format!("  program name [{default}]: "))? else {
+                    return Ok(());
+                };
+                let name = if name.is_empty() { default } else { name };
+                let Some(namespace) = ask("  namespace (A–Z): ")? else {
+                    return Ok(());
+                };
+                Answer::Program {
+                    name,
+                    namespace: namespace.to_ascii_uppercase(),
+                }
+            }
+            Step::Signer => {
+                let git_name = git_user_name();
+                let Some(name) = ask(&format!(
+                    "  your name [{}]: ",
+                    git_name.as_deref().unwrap_or("")
+                ))?
+                else {
+                    return Ok(());
+                };
+                let name = if name.is_empty() {
+                    git_name.unwrap_or_default()
+                } else {
+                    name
+                };
+                let default_principal: String = name
+                    .to_ascii_lowercase()
+                    .chars()
+                    .map(|c| if c.is_ascii_alphanumeric() { c } else { '-' })
+                    .collect();
+                let Some(principal) =
+                    ask(&format!("  principal, no spaces [{default_principal}]: "))?
+                else {
+                    return Ok(());
+                };
+                let principal = if principal.is_empty() {
+                    default_principal
+                } else {
+                    principal
+                };
+                let keys = loaded_keys();
+                if keys.is_empty() {
+                    println!(
+                        "  (`ssh-add -L` lists no keys; paste one as `<keytype> <base64> [comment]`)"
+                    );
+                } else {
+                    for (i, k) in keys.iter().enumerate() {
+                        println!("  [{}] {}", i + 1, shorten(k));
+                    }
+                }
+                let Some(pick) = ask("  which key (number, or paste a line): ")? else {
+                    return Ok(());
+                };
+                let key = match pick.parse::<usize>() {
+                    Ok(n) if n >= 1 && n <= keys.len() => keys[n - 1].clone(),
+                    _ => pick,
+                };
+                Answer::Signer {
+                    name,
+                    principal,
+                    key,
+                }
+            }
+            Step::KeyLoaded => {
+                let Some(a) = ask("  loaded with -c? [y/N]: ")? else {
+                    return Ok(());
+                };
+                Answer::KeyLoaded(yes(&a))
+            }
+            Step::Sas | Step::Authorize => {
+                let Some(a) = ask("  go ahead? [Y/n]: ")? else {
+                    return Ok(());
+                };
+                if !a.is_empty() && !yes(&a) {
+                    println!("stopped; run `war init` again to resume here");
+                    return Ok(());
+                }
+                Answer::Proceed
+            }
+            Step::SignSas | Step::SignAuthorize => {
+                let Some(a) = ask("  sign now? [y/N]: ")? else {
+                    return Ok(());
+                };
+                Answer::SignNow(yes(&a))
+            }
+            Step::Done => unreachable!("handled above"),
+        };
+        let effects = match m.answer(answer) {
+            Ok(e) => e,
+            Err(why) => {
+                println!("  refused: {why}");
+                continue;
+            }
+        };
+        for effect in effects {
+            match effect {
+                Effect::Scaffold { program, namespace } => {
+                    run_program(&program, &namespace, Some(root.clone()))?;
+                }
+                Effect::Write { path, text } => {
+                    // The two gates the machine cannot hold: a terminal, and
+                    // write-once. Both are checked at the write, not before
+                    // the questions, so a pipe that got this far still
+                    // writes nothing.
+                    if !crate::sign::at_a_terminal() {
+                        return Err(InitError::Io {
+                            context: format!("{path}: written only from answers at a terminal"),
+                            source: std::io::Error::other("no terminal"),
+                        });
+                    }
+                    let full = root.join(&path);
+                    if full.exists() {
+                        println!("  {path} exists — left untouched (a tool writes it once)");
+                        continue;
+                    }
+                    println!("\n--- {path} ---\n{text}--- end ---");
+                    let Some(ok) = ask(&format!("  write {path}? [Y/n]: "))? else {
+                        return Ok(());
+                    };
+                    if !ok.is_empty() && !yes(&ok) {
+                        println!("  not written");
+                        continue;
+                    }
+                    if let Some(parent) = full.parent() {
+                        fs::create_dir_all(parent)
+                            .map_err(io(format!("could not create {parent}")))?;
+                    }
+                    fs::write(&full, text).map_err(io(format!("could not write {full}")))?;
+                    println!("  wrote {path}");
+                }
+                Effect::ProposeSas { version } => {
+                    child(&root, &["sas", "propose", &version])?;
+                }
+                Effect::Sign { target } => {
+                    println!("  running: war sign {target} --ssh-sign");
+                    child(&root, &["sign", &target, "--ssh-sign"])?;
+                }
+                Effect::Prepare { alias } => {
+                    child(&root, &["check", &alias])?;
+                    child(&root, &["compile"])?;
+                    child(&root, &["authorize", &alias])?;
+                    m.prepared();
+                }
+                Effect::Say(text) => println!("{text}"),
+            }
+        }
+        let facts = guided::Facts::read(&root);
+        m.observe(facts);
+    }
+}
+
+/// One line from the human. `None` is end of input: a closed stdin stops the
+/// conversation rather than spinning on empty answers.
+fn ask(text: &str) -> Result<Option<String>, InitError> {
+    use std::io::Write;
+    let mut out = std::io::stdout();
+    out.write_all(text.as_bytes())
+        .and_then(|()| out.flush())
+        .map_err(|source| InitError::Io {
+            context: "could not write the prompt".to_owned(),
+            source,
+        })?;
+    let mut line = String::new();
+    let read = std::io::stdin()
+        .read_line(&mut line)
+        .map_err(|source| InitError::Io {
+            context: "could not read the answer".to_owned(),
+            source,
+        })?;
+    if read == 0 {
+        println!();
+        return Ok(None);
+    }
+    Ok(Some(line.trim().to_owned()))
+}
+
+fn yes(a: &str) -> bool {
+    matches!(a.trim().to_ascii_lowercase().as_str(), "y" | "yes")
+}
+
+/// `git config user.name`, when git and a name exist; the default answer,
+/// never the recorded one.
+fn git_user_name() -> Option<String> {
+    let out = std::process::Command::new("git")
+        .args(["config", "user.name"])
+        .output()
+        .ok()?;
+    let s = String::from_utf8_lossy(&out.stdout).trim().to_owned();
+    (out.status.success() && !s.is_empty()).then_some(s)
+}
+
+/// `ssh-add -L`: every loaded public key, one per line, in exactly the shape
+/// `allowed_signers` wants after the principal.
+fn loaded_keys() -> Vec<String> {
+    std::process::Command::new("ssh-add")
+        .arg("-L")
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .map(|o| {
+            String::from_utf8_lossy(&o.stdout)
+                .lines()
+                .map(str::trim)
+                .filter(|l| l.starts_with("ssh-") || l.starts_with("sk-"))
+                .map(str::to_owned)
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+fn shorten(key: &str) -> String {
+    let mut it = key.split_whitespace();
+    let kt = it.next().unwrap_or("");
+    let b64 = it.next().unwrap_or("");
+    let comment = it.collect::<Vec<_>>().join(" ");
+    let short = if b64.len() > 20 {
+        format!("{}…{}", &b64[..8], &b64[b64.len() - 8..])
+    } else {
+        b64.to_owned()
+    };
+    format!("{kt} {short} {comment}").trim_end().to_owned()
+}
+
+/// Run this same `war` on the repository, inheriting the terminal — so
+/// `war sign` can raise the key's dialog and the human can answer it. The
+/// app (M2) does the same; nothing here holds a key.
+fn child(root: &Utf8Path, args: &[&str]) -> Result<(), InitError> {
+    let exe = std::env::current_exe().map_err(|source| InitError::Io {
+        context: "could not find this executable".to_owned(),
+        source,
+    })?;
+    let status = std::process::Command::new(exe)
+        .arg("--root")
+        .arg(root.as_str())
+        .args(args)
+        .status()
+        .map_err(|source| InitError::Io {
+            context: format!("could not run war {}", args.join(" ")),
+            source,
+        })?;
+    if !status.success() {
+        println!(
+            "  (war {} exited {}; the conversation continues from what the tree says)",
+            args.join(" "),
+            status.code().unwrap_or(-1)
+        );
+    }
+    Ok(())
 }
