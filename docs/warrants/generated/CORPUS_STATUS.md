@@ -73,8 +73,8 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | independence requirements are met | 53 |
 | required judgments exist | 29 |
 | residual risks have sufficient authority | 29 |
-| exact authorized Contract Revision | 3 |
 | runtime receipts match the basis | 3 |
+| exact authorized Contract Revision | 2 |
 
 ## Requirements (SAS §106, §34.3)
 
@@ -267,7 +267,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0113` Two projections from atoms by relation: the current master document, and the history | draft | unknown | 0 | 0 of 5 | exact authorized Contract Revision |
 | `OW-WAR-0114` The roadmap becomes a record: one per program, beside the SAS | draft | unknown | 0 | 0 of 5 | required deliverables exist |
 | `OW-WAR-0115` The hub: war opens from anywhere, with every project and its progress | draft | unknown | 0 | 0 of 2 | required deliverables exist |
-| `OW-WAR-0116` war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap | draft | unknown | 0 | 0 of 4 | exact authorized Contract Revision |
+| `OW-WAR-0116` war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap | draft | unknown | 0 | 0 of 4 | required deliverables exist |
 
 ## Not reported here
 

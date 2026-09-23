@@ -1,0 +1,7 @@
+schema = "oh.war/roadmap-acceptance-response/v1"
+revision = 2
+sha256 = "c696f33422c2d4cae4238b010831314ccbd94cc27d67f2fd4aed4068236e06db"
+accepted_by = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Accepting roadmap revision 2 at this digest means the signer adopts it as the program's order of work: 11 phase(s); against revision 1: no phase added, removed or retitled (the predecessor recorded titles only: exits, tiers, order and open work cannot be compared against it). Warrants are held to these phases until it is superseded. Presented on a terminal by `war sign 1.0.0-alpha.2` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-09-23T20:52:17Z"

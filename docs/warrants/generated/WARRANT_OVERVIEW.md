@@ -122,7 +122,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0113](docs/warrants/OW-WAR-0113/manifest.toml) | Two projections from atoms by relation: the current master document, and the history | `draft` | `current` | `valid` | `basic` | 5M / 5S |
 | [OW-WAR-0114](docs/warrants/OW-WAR-0114/manifest.toml) | The roadmap becomes a record: one per program, beside the SAS | `authorized` | `current` | `valid` | `basic` | 5M / 7S |
 | [OW-WAR-0115](docs/warrants/OW-WAR-0115/manifest.toml) | The hub: war opens from anywhere, with every project and its progress | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0116](docs/warrants/OW-WAR-0116/manifest.toml) | war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap | `draft` | `current` | `valid` | `controlled` | 4M / 4S |
+| [OW-WAR-0116](docs/warrants/OW-WAR-0116/manifest.toml) | war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap | `authorized` | `current` | `valid` | `controlled` | 4M / 4S |
 
 ## Claimed SAS requirement coverage
 
