@@ -1,0 +1,411 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer. Under OW-ADR-0021 this SET of
+# (id, target_ref) pairs is what the authorizer signs and what this Warrant
+# then governs; every path it will touch is here, including the ones that
+# do not exist yet (`content_addressed = false` until delivered).
+#
+# `contract_digest` is "unrecorded": no authorized revision exists yet.
+
+# ---- M1: currency by relation ---------------------------------------------
+
+[[deliverable]]
+id = "D-001"
+title = "OW-ADR-0022, the two-projections decision"
+kind = "document"
+target_ref = "docs/adr/atoms/OW-ADR-0022-current-by-relation.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0113/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:7a8b347bf360856f8a062b31c5d78120ee431ff1ed4f7c3b48ccb15133210623"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "relations.rs: currency derived, the two refusals"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/relations.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-003"
+title = "ownership.rs reads the derived currency"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/ownership.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-004"
+title = "warrant_overview.rs reads the derived currency"
+kind = "file"
+target_ref = "crates/openwarrant-compiler/src/warrant_overview.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-005"
+title = "OW-WAR-0073's manifest, reverted to its signed bytes"
+kind = "document"
+target_ref = "docs/warrants/OW-WAR-0073/manifest.toml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+# ---- M2: the two projections ---------------------------------------------
+
+[[deliverable]]
+id = "D-006"
+title = "current.rs: the master document"
+kind = "file"
+target_ref = "crates/openwarrant-compiler/src/current.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-007"
+title = "history.rs: the optional history"
+kind = "file"
+target_ref = "crates/openwarrant-compiler/src/history.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-008"
+title = "compile.rs writes and drift-checks both"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/compile.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-009"
+title = "the compiler's module list"
+kind = "file"
+target_ref = "crates/openwarrant-compiler/src/lib.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-010"
+title = "docs/generated/CURRENT.md"
+kind = "document"
+target_ref = "docs/generated/CURRENT.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-011"
+title = "docs/generated/HISTORY.md"
+kind = "document"
+target_ref = "docs/generated/HISTORY.md"
+required = false
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-012"
+title = "the [generated] history key"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/config.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-013"
+title = "openwarrant.toml: history = true here"
+kind = "file"
+target_ref = "openwarrant.toml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-014"
+title = "check.rs: atom.role-unprojected, atom.preset-unanswered"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/check.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002", "OBL-004"]
+
+# ---- M3: the dry run in front of every handed-over command --------------
+
+[[deliverable]]
+id = "D-015"
+title = "next.rs: judged actions"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/next.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-016"
+title = "the app's Help pane shows the verdict"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/tui/mod.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+# ---- M4: presets ----------------------------------------------------------
+
+[[deliverable]]
+id = "D-017"
+title = "preset: feature, intent"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/feature/10-intent.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-018"
+title = "preset: feature, basis"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/feature/20-basis.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-019"
+title = "preset: feature, work order"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/feature/40-work-order.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-020"
+title = "preset: feature, milestones"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/feature/45-milestones.yaml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-021"
+title = "preset: feature, assurance"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/feature/60-assurance.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-022"
+title = "preset: fix, intent"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/fix/10-intent.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-023"
+title = "preset: fix, basis"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/fix/20-basis.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-024"
+title = "preset: fix, work order"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/fix/40-work-order.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-025"
+title = "preset: fix, milestones"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/fix/45-milestones.yaml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-026"
+title = "preset: fix, assurance"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/fix/60-assurance.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-027"
+title = "preset: decision, intent"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/decision/10-intent.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-028"
+title = "preset: decision, basis"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/decision/20-basis.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-029"
+title = "preset: decision, the decision atom"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/decision/30-decision.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-030"
+title = "preset: decision, assurance"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/presets/decision/60-assurance.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-031"
+title = "new.rs: --preset, the TODO skeleton retired"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/new.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-032"
+title = "lib.rs: the flag"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+# ---- M5: where to read ----------------------------------------------------
+
+[[deliverable]]
+id = "D-033"
+title = "CONTEXT.md: the terms"
+kind = "document"
+target_ref = "CONTEXT.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-034"
+title = "README.md points at CURRENT.md"
+kind = "document"
+target_ref = "README.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-035"
+title = "QUICKSTART.md points at CURRENT.md"
+kind = "document"
+target_ref = "QUICKSTART.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-036"
+title = "AGENTS.md: read CURRENT.md first"
+kind = "document"
+target_ref = "AGENTS.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-037"
+title = "docs/TUI.md: Help lists CURRENT.md first"
+kind = "document"
+target_ref = "docs/TUI.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-038"
+title = "the plants"
+kind = "file"
+target_ref = "conformance/plants.d/69-current.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]

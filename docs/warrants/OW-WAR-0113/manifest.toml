@@ -1,0 +1,78 @@
+# A Warrant is the contract for ONE bounded intervention inside a program,
+# and it traces to that program's SAS through [[implements]] and [[roadmap]].
+schema = "oh.war/manifest/v1"
+uuid = "01a0cc13-dd90-71b1-9fc5-9989932b3bae"
+local_alias = "OW-WAR-0113"
+
+# Allocated only by Knowledge Fabric (SAS §12.4). Leave empty.
+enterprise_id = ""
+
+title = "Two projections from atoms by relation: the current master document, and the history"
+profile = "delivery"
+assurance_level = "basic"
+
+# §34 — which §106 rows this Warrant claims to implement. `partial` is the
+# honest word for every row but one: each is a standard the whole tool meets
+# over many Warrants.
+[[implements]]
+ref = "sas://WAR-SAS-RQ-010"
+contribution = "partial"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-012"
+contribution = "partial"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-013"
+contribution = "partial"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-021"
+contribution = "partial"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-032"
+contribution = "partial"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-084"
+contribution = "complete"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-1/projections"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 30
+role = "adr"
+path = "../../adr/atoms/OW-ADR-0022-current-by-relation.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true

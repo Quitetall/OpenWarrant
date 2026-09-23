@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-108 Warrant(s) in this repository.
+109 Warrant(s) in this repository.
 
 ## Summary
 
@@ -119,29 +119,31 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0110](docs/warrants/OW-WAR-0110/manifest.toml) | Generate OpenWarrant TypeScript record types and integrate KF consumption | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
 | [OW-WAR-0111](docs/warrants/OW-WAR-0111/manifest.toml) | Implement content-bearing preservation archives and honest import round trips | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0112](docs/warrants/OW-WAR-0112/manifest.toml) | war is the app: ownership, a guided start, and remedies | `authorized` | `current` | `valid` | `controlled` | 5M / 10S |
+| [OW-WAR-0113](docs/warrants/OW-WAR-0113/manifest.toml) | Two projections from atoms by relation: the current master document, and the history | `draft` | `current` | `valid` | `basic` | 5M / 5S |
 
 ## Claimed SAS requirement coverage
 
-55 distinct requirement(s) are claimed by at least one Warrant.
+56 distinct requirement(s) are claimed by at least one Warrant.
 
 > **Claimed, not verified.** A Warrant declaring `[[implements]]` is an assertion by its author. §34.3 treats requirement status as a separate record; nothing here checks that the requirement is actually met.
 
 - `WAR-SAS-RQ-003` — OW-WAR-0029, OW-WAR-0044
 - `WAR-SAS-RQ-004` — OW-WAR-0029, OW-WAR-0044
 - `WAR-SAS-RQ-005` — OW-WAR-0029, OW-WAR-0044
-- `WAR-SAS-RQ-010` — OW-WAR-0002
+- `WAR-SAS-RQ-010` — OW-WAR-0002, OW-WAR-0113
 - `WAR-SAS-RQ-011` — OW-WAR-0002
-- `WAR-SAS-RQ-012` — OW-WAR-0002, OW-WAR-0004, OW-WAR-0057
-- `WAR-SAS-RQ-013` — OW-WAR-0002
+- `WAR-SAS-RQ-012` — OW-WAR-0002, OW-WAR-0004, OW-WAR-0057, OW-WAR-0113
+- `WAR-SAS-RQ-013` — OW-WAR-0002, OW-WAR-0113
 - `WAR-SAS-RQ-014` — OW-WAR-0003, OW-WAR-0004, OW-WAR-0058
 - `WAR-SAS-RQ-015` — OW-WAR-0002, OW-WAR-0005
 - `WAR-SAS-RQ-020` — OW-WAR-0036, OW-WAR-0058, OW-WAR-0063, OW-WAR-0064, OW-WAR-0071
+- `WAR-SAS-RQ-021` — OW-WAR-0113
 - `WAR-SAS-RQ-022` — OW-WAR-0013, OW-WAR-0055, OW-WAR-0061, OW-WAR-0062, OW-WAR-0063
 - `WAR-SAS-RQ-024` — OW-WAR-0006
 - `WAR-SAS-RQ-025` — OW-WAR-0006
 - `WAR-SAS-RQ-030` — OW-WAR-0009, OW-WAR-0067
 - `WAR-SAS-RQ-031` — OW-WAR-0009
-- `WAR-SAS-RQ-032` — OW-WAR-0008
+- `WAR-SAS-RQ-032` — OW-WAR-0008, OW-WAR-0113
 - `WAR-SAS-RQ-033` — OW-WAR-0009, OW-WAR-0112
 - `WAR-SAS-RQ-034` — OW-WAR-0009
 - `WAR-SAS-RQ-035` — OW-WAR-0011
@@ -179,7 +181,7 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-081` — OW-WAR-0003
 - `WAR-SAS-RQ-082` — OW-WAR-0030
 - `WAR-SAS-RQ-083` — OW-WAR-0030
-- `WAR-SAS-RQ-084` — OW-WAR-0030, OW-WAR-0064
+- `WAR-SAS-RQ-084` — OW-WAR-0030, OW-WAR-0064, OW-WAR-0113
 - `WAR-SAS-RQ-085` — OW-WAR-0067, OW-WAR-0071, OW-WAR-0072
 
 ## Relations
@@ -252,6 +254,7 @@ Source: the Warrants under the configured warrants path.
 - **OW-WAR-0072** · roadmap: roadmap://OW-PHASE-9/release
 - **OW-WAR-0073** · roadmap: roadmap://OW-PHASE-9/release
 - **OW-WAR-0112** · roadmap: roadmap://OW-PHASE-1/console
+- **OW-WAR-0113** · roadmap: roadmap://OW-PHASE-1/projections
 
 ## Not reported here
 

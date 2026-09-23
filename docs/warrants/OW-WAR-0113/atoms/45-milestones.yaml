@@ -1,0 +1,70 @@
+schema: "oh.war/milestones/v1"
+
+# M1 first: currency by relation is what the master document is built on,
+# and it restores OW-WAR-0073's signature. M2 and M3 need it; M4 and M5
+# need M2 (presets tie roles to sections; the docs point at the document).
+#
+#   M1 currency --+-- M2 projections --+-- M4 presets
+#                 +-- M3 dry-run next  +-- M5 where to read
+milestones:
+  - id: "M1"
+    title: "Currency by relation; OW-WAR-0073's signature restored"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+  - id: "M2"
+    title: "CURRENT.md and HISTORY.md, generated and drift-checked"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002"]
+  - id: "M3"
+    title: "war next hands over only commands the dry run has judged"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-003"]
+  - id: "M4"
+    title: "Presets: typed authored atoms, the TODO skeleton retired"
+    depends_on: ["M2"]
+    stage_refs: ["STAGE-004"]
+    obligation_refs: ["OBL-004"]
+  - id: "M5"
+    title: "Where to read first: CONTEXT, README, QUICKSTART, AGENTS, the app"
+    depends_on: ["M2"]
+    stage_refs: ["STAGE-005"]
+    obligation_refs: ["OBL-002"]
+
+stages:
+  - id: "STAGE-001"
+    title: "relations.rs currency derivation, the two refusals, consumers read the derivation, 0073 reverted"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Premade Instructions"]
+    budget_tokens: 16000
+  - id: "STAGE-002"
+    title: "current.rs, history.rs, compile.rs, the role→section table, the drift plant"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Premade Instructions"]
+    budget_tokens: 24000
+  - id: "STAGE-003"
+    title: "next.rs judged actions; the app's Help pane shows the verdict"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 10000
+  - id: "STAGE-004"
+    title: "presets, war new --preset, atom.preset-unanswered"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Premade Instructions"]
+    budget_tokens: 14000
+  - id: "STAGE-005"
+    title: "CONTEXT.md terms; README, QUICKSTART, AGENTS, TUI.md point at CURRENT.md"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 6000
