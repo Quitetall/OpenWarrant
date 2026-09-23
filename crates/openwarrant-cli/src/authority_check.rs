@@ -298,6 +298,19 @@ pub fn verify_excluding(
         }
         let sig = Utf8PathBuf::from(format!("{response}.sig"));
         if !sig.is_file() {
+            // OW-WAR-0072: a response signed as part of a batch carries no
+            // `.sig` of its own. It is signed when a batch whose signer is
+            // this record's actor, and whose signature verifies as their
+            // principal, lists this response by name and exact sha256.
+            // Nothing in the record claims the batch; the batch claims it.
+            match batch_covering(repo, &principal, actor, response) {
+                Some(v @ (Verdict::Signed { .. } | Verdict::Unavailable { .. })) => return v,
+                Some(v) => {
+                    strongest = Some(v);
+                    continue;
+                }
+                None => {}
+            }
             strongest = Some(Verdict::Unsigned {
                 why: format!(
                     "{} carries no `.sig` sidecar, so nothing signed it. A response written by \
@@ -368,6 +381,42 @@ fn candidate_responses(
     out.sort();
     out.dedup();
     out
+}
+
+/// The batch that signs `response`, if one does: its signer is `actor`, it
+/// lists the response's file name and exact sha256, and its signature
+/// verifies as `principal`. `Some(Invalid)` when a listing batch's signature
+/// fails; `None` when no batch lists these bytes.
+fn batch_covering(
+    repo: &Repository,
+    principal: &str,
+    actor: &str,
+    response: &Utf8Path,
+) -> Option<Verdict> {
+    let name = response.file_name()?;
+    let bytes = std::fs::read(response).ok()?;
+    let digest = openwarrant_compiler::sha256_hex(&bytes);
+    let mut failed = None;
+    for (path, batch) in crate::batch_cmd::load_all(repo) {
+        if batch.signer != actor || batch.covers(name, &digest).is_none() {
+            continue;
+        }
+        let sig = Utf8PathBuf::from(format!("{path}.sig"));
+        if !sig.is_file() {
+            continue;
+        }
+        match ssh_verify(repo, principal, &path, &sig) {
+            Ok(()) => {
+                return Some(Verdict::Signed {
+                    principal: principal.to_owned(),
+                    response: format!("{} (in batch {})", repo.relative(response), batch.batch_id),
+                });
+            }
+            Err(SshFailure::Unavailable(why)) => return Some(Verdict::Unavailable { why }),
+            Err(SshFailure::Rejected(why)) => failed = Some(Verdict::Invalid { why }),
+        }
+    }
+    failed
 }
 
 enum SshFailure {

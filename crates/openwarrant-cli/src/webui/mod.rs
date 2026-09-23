@@ -579,7 +579,12 @@ impl Server {
                     })
                     .map(|o| String::from_utf8_lossy(&o.stdout).into_owned())
                     .unwrap_or_default();
-                if !text.contains("sign.would-record") {
+                let want = if argv.iter().any(|a| a.starts_with("--batch")) {
+                    "batch.would-record"
+                } else {
+                    "sign.would-record"
+                };
+                if !text.contains(want) {
                     if let Ok(mut g) = state.lock() {
                         *g = ActState::Done {
                             id,
@@ -672,6 +677,22 @@ impl Server {
                         );
                     }
                 }
+            }
+            if let (Some(id), Some(targets)) = (
+                q["batch"]["act_id"].as_str(),
+                q["batch"]["targets"].as_array(),
+            ) {
+                let targets: Vec<&str> = targets.iter().filter_map(Value::as_str).collect();
+                out.insert(
+                    id.to_owned(),
+                    self.with_actor(vec![
+                        "sign".to_owned(),
+                        // One argument, so `with_actor`'s `--as` cannot land
+                        // between the flag and its list.
+                        format!("--batch={}", targets.join(",")),
+                        "--ssh-sign".to_owned(),
+                    ]),
+                );
             }
         }
         if let Some(h) = self.view("help")? {
@@ -882,8 +903,24 @@ fn queue(repo: &Repository, actor: Option<&str>) -> Result<Value, RepoError> {
             v
         })
         .collect();
+    // Two or more acts that would record and need no decision: one batch
+    // (OW-WAR-0072), one dialog. The targets are named, not "all", so what
+    // the button signs is what the page showed.
+    let batchable: Vec<String> = acts
+        .iter()
+        .filter(|a| a.get("act_id").is_some())
+        .filter_map(|a| a["target"].as_str().map(str::to_owned))
+        .collect();
+    let batch = (batchable.len() >= 2).then(|| {
+        json!({
+            "act_id": act_id("batch", &batchable.join(",")),
+            "targets": batchable,
+            "command": format!("war sign --batch {} --ssh-sign", batchable.join(",")),
+        })
+    });
     Ok(json!({
         "acts": acts,
+        "batch": batch,
         "signer": actor,
         "who": who.map(|m| json!({
             "why": m,

@@ -14,6 +14,7 @@
 pub mod authority;
 pub mod authority_transition;
 pub mod autonomy;
+pub mod batch;
 pub mod context;
 pub mod deliverable;
 pub mod document;

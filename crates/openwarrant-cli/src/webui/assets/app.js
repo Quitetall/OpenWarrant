@@ -86,6 +86,8 @@
         el("p", { class: "note", text: "A button runs the same `war sign <target> --ssh-sign` a terminal would. Your key's confirm dialog is the signature — load the key with `ssh-add -c`, or a click signs without asking." }));
       if (d.who) main.append(el("p", { class: "note" }, d.who.why, " — restart with ", code(d.who.command)));
       if (d.signer) main.append(el("p", { class: "muted" }, "signing as ", code(d.signer)));
+      if (d.batch) main.append(el("p", {}, actButton(d.batch.act_id, "Sign these " + d.batch.targets.length + " in one dialog"),
+        " ", el("span", { class: "muted" }, "one signature over the list — ", code(d.batch.command), ". An act for another signer or role is left out and named.")));
       if (!(d.acts || []).length) main.append(el("p", { class: "muted", text: "Nothing awaits a signature." }));
       else main.append(table(["#", "act", "dry run", "", "command"], d.acts.map((a) => [
         String(a.n), el("span", {}, a.act, " ", code(a.target)),

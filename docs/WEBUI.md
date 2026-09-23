@@ -29,6 +29,8 @@ It holds no key.
 - **needs a decision** — one button per permitted choice, for a resolution's
   outcome or a correction's kind.
 - **would be refused** — the refusal's reason, and no button.
+- two or more **would record** — also **Sign these N in one dialog**, one
+  batch signature over the listed acts (docs/SIGNING.md).
 
 The exact terminal command is always beside the row.
 

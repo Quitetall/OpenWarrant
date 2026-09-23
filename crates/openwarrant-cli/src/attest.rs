@@ -99,6 +99,15 @@ pub fn dir_for(repo: &Repository, act: &str, target: &str) -> Result<Utf8PathBuf
             .join(&repo.config.paths.sas)
             .join("revisions")
             .join("attestations"))
+    } else if act == "roadmap-accept" {
+        Ok(crate::roadmap_cmd::dir(repo)
+            .join("revisions")
+            .join("attestations"))
+    } else if act == "batch" {
+        Ok(repo
+            .root
+            .join(crate::batch_cmd::BATCHES)
+            .join("attestations"))
     } else {
         Ok(repo.warrant_dir(target)?.join("attestations"))
     }
@@ -235,6 +244,9 @@ pub fn emit_with_key(
     let payload = serde_jcs::to_string(&statement)
         .map_err(|e| RepoError::Message(format!("could not canonicalise the statement: {e}")))?;
     let pae_bytes = pae(PAYLOAD_TYPE, payload.as_bytes());
+    // Where it will live is settled before the key is asked: a target with no
+    // home fails here, not after the human has answered a dialog for nothing.
+    let dir = dir_for(repo, a.act, a.target)?;
     let sig = sign_pae(key_file, &pae_bytes)
         .map_err(|why| RepoError::Message(format!("attest.not-signed: {why}")))?;
     let envelope = Envelope {
@@ -245,13 +257,12 @@ pub fn emit_with_key(
             sig,
         }],
     };
-    let dir = dir_for(repo, a.act, a.target)?;
     std::fs::create_dir_all(&dir).map_err(|source| RepoError::Io {
         context: format!("could not create {dir}"),
         source,
     })?;
-    let stem = if a.act == "sas-accept" {
-        format!("sas-accept-{}", a.target)
+    let stem = if matches!(a.act, "sas-accept" | "roadmap-accept" | "batch") {
+        format!("{}-{}", a.act, a.target)
     } else {
         a.act.to_owned()
     };
@@ -558,9 +569,11 @@ pub fn verify_all(repo: &Repository) -> Result<Report, RepoError> {
             count += 1;
         }
     }
-    for path in list(repo, &dir_for(repo, "sas-accept", "")?) {
-        verify_file(repo, &path, &mut report);
-        count += 1;
+    for act in ["sas-accept", "roadmap-accept", "batch"] {
+        for path in list(repo, &dir_for(repo, act, "")?) {
+            verify_file(repo, &path, &mut report);
+            count += 1;
+        }
     }
     report.push(Diagnostic::pass(
         "attest.checked",
@@ -597,6 +610,36 @@ mod tests {
             .collect::<Vec<_>>()
             .join(" ");
         (key, pubkey)
+    }
+
+    /// A roadmap acceptance and a batch are not Warrants: their envelopes
+    /// live beside their own records, and the directory is known without a
+    /// Warrant lookup, so it is settled before the dialog. ROADMAP-1 and
+    /// ROADMAP-2 went unattested because this fell through to `warrant_dir`.
+    #[test]
+    fn roadmap_and_batch_attestations_have_a_home_that_is_not_a_warrant() {
+        let dir = scratch("home");
+        let repo_root = Utf8PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../..")
+            .canonicalize_utf8()
+            .unwrap();
+        std::fs::copy(
+            repo_root.join("openwarrant.toml"),
+            dir.join("openwarrant.toml"),
+        )
+        .unwrap();
+        let repo = Repository::open(dir.clone()).expect("scratch repository opens");
+        assert_eq!(
+            dir_for(&repo, "roadmap-accept", "ROADMAP-3").unwrap(),
+            crate::roadmap_cmd::dir(&repo).join("revisions/attestations")
+        );
+        assert_eq!(
+            dir_for(&repo, "batch", "B-1").unwrap(),
+            dir.join("docs/authority/batches/attestations")
+        );
+        // The refusal: an act that IS a Warrant's still needs that Warrant.
+        assert!(dir_for(&repo, "authorize", "OW-WAR-9999").is_err());
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]

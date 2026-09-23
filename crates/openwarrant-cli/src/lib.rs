@@ -13,6 +13,7 @@ pub mod attest;
 pub mod authority_check;
 pub mod authority_cmd;
 pub mod authorize;
+pub mod batch_cmd;
 pub mod blut;
 pub mod board;
 pub mod bonsai;
@@ -54,6 +55,7 @@ pub mod preflight_cmd;
 pub mod preservation;
 pub mod progress;
 pub mod progress_viewer;
+pub mod projects;
 pub mod questions;
 pub mod relations;
 pub mod remedy;
@@ -780,6 +782,11 @@ enum Command {
         /// For a correction (`<alias>/<D-id>`): behaviour-change | added-refusal.
         #[arg(long)]
         kind: Option<String>,
+        /// One signature over many acts (OW-WAR-0072). Alone: every pending
+        /// act that can be batched. With a comma-separated list: just those.
+        /// Needs --ssh-sign; one dialog signs the list (docs/SIGNING.md).
+        #[arg(long, num_args = 0..=1, value_delimiter = ',', default_missing_value = "")]
+        batch: Option<Vec<String>>,
     },
 
     /// The SAS as a controlled document (§101): propose, accept, diff, status.
@@ -2437,6 +2444,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             ssh_sign,
             verify,
             kind,
+            batch,
         } => {
             let repository = open_repo()?;
             if list {
@@ -2495,6 +2503,13 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 verify,
                 kind,
             };
+            if let Some(targets) = batch {
+                let mut targets: Vec<String> =
+                    targets.into_iter().filter(|t| !t.is_empty()).collect();
+                targets.extend(target);
+                let report = batch_cmd::run(&repository, &targets, &opts)?;
+                return Ok(output::finish(mode, "sign", &report, None));
+            }
             let report = sign::run(&repository, target.as_deref(), &opts)?;
             Ok(output::finish(mode, "sign", &report, None))
         }

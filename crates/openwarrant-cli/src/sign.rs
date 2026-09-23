@@ -868,7 +868,7 @@ fn drafted_correction_reason(repo: &Repository, alias: &str, target_ref: &str) -
 /// The reason a correction will record: the signer's words when they typed
 /// any, else the draft from the record. `None` for every other act, whose
 /// meaning is templated inside `draft`.
-fn reason_for(repo: &Repository, p: &Pending, opts: &Options) -> Option<String> {
+pub(crate) fn reason_for(repo: &Repository, p: &Pending, opts: &Options) -> Option<String> {
     if let Some(m) = opts.meaning.as_deref().filter(|m| !m.trim().is_empty()) {
         return Some(m.to_owned());
     }
@@ -1126,7 +1126,7 @@ impl Drafted {
         r.map_err(|e| RepoError::Message(format!("could not render the response: {e}")))
     }
 
-    fn file_stem(&self) -> String {
+    pub(crate) fn file_stem(&self) -> String {
         match self {
             Self::Authorize(r) => crate::authority_check::response_stem(
                 crate::authority_check::Act::Authorize,
@@ -1153,7 +1153,7 @@ impl Drafted {
 
     /// The digest this response binds to — what distinguishes "the same act
     /// again" from "an earlier revision's record".
-    fn digest(&self) -> &str {
+    pub(crate) fn digest(&self) -> &str {
         match self {
             Self::Authorize(r) => &r.contract_digest,
             Self::Resolve(r) => &r.contract_digest,
@@ -1171,7 +1171,7 @@ pub fn at_a_terminal() -> bool {
 }
 
 /// Who may sign, from the register — refusing to guess between two.
-fn choose_actor(eligible: &[String], opts: &Options) -> Result<String, String> {
+pub(crate) fn choose_actor(eligible: &[String], opts: &Options) -> Result<String, String> {
     if let Some(a) = &opts.actor {
         if eligible.iter().any(|e| e == a) {
             return Ok(a.clone());
@@ -1199,7 +1199,7 @@ fn choose_actor(eligible: &[String], opts: &Options) -> Result<String, String> {
     }
 }
 
-fn eligible(p: &Pending) -> &[String] {
+pub(crate) fn eligible(p: &Pending) -> &[String] {
     match p {
         Pending::Authorize { request, .. } => &request.eligible_authorizers,
         Pending::Resolve { request, .. } => &request.eligible_resolvers,
@@ -1209,7 +1209,7 @@ fn eligible(p: &Pending) -> &[String] {
     }
 }
 
-fn role(p: &Pending) -> &'static str {
+pub(crate) fn role(p: &Pending) -> &'static str {
     match p {
         Pending::Authorize { .. }
         | Pending::Accept { .. }
@@ -1222,7 +1222,7 @@ fn role(p: &Pending) -> &'static str {
 /// Which pending act a target names. A Warrant alias may have an authorization
 /// AND a resolution pending in sequence; the first is what is signed now. A
 /// correction is named `<alias>/<deliverable-id>`.
-fn select<'a>(all: &'a [Pending], target: &str) -> Option<&'a Pending> {
+pub(crate) fn select<'a>(all: &'a [Pending], target: &str) -> Option<&'a Pending> {
     all.iter().find(|p| match p {
         Pending::Authorize { alias, .. } | Pending::Resolve { alias, .. } => alias == target,
         Pending::Accept { version, .. } => version == target || format!("SAS-{version}") == target,
@@ -1239,7 +1239,7 @@ fn select<'a>(all: &'a [Pending], target: &str) -> Option<&'a Pending> {
 
 /// The token `war sign <target>` takes for one pending act — the inverse of
 /// [`select`], so a diagnostic can hand the operator a command that runs.
-fn target_of(p: &Pending) -> String {
+pub(crate) fn target_of(p: &Pending) -> String {
     match p {
         Pending::Authorize { alias, .. } | Pending::Resolve { alias, .. } => alias.clone(),
         Pending::Accept { version, .. } => version.clone(),
@@ -1422,7 +1422,10 @@ fn dry_run(
     Ok(report)
 }
 
-fn write_response(repo: &Repository, drafted: &Drafted) -> Result<Utf8PathBuf, RepoError> {
+pub(crate) fn write_response(
+    repo: &Repository,
+    drafted: &Drafted,
+) -> Result<Utf8PathBuf, RepoError> {
     let dir = repo.root.join("docs/authority/responses");
     std::fs::create_dir_all(&dir).map_err(|source| RepoError::Io {
         context: format!("could not create {dir}"),
@@ -1452,7 +1455,7 @@ fn write_response(repo: &Repository, drafted: &Drafted) -> Result<Utf8PathBuf, R
 /// history: it is renamed to carry its digest, never overwritten. The
 /// responses directory is committed precisely so that signed decisions
 /// travel; a rename that lost one would undo that.
-fn retire_prior(final_path: &Utf8Path, current_digest: &str) -> Result<(), String> {
+pub(crate) fn retire_prior(final_path: &Utf8Path, current_digest: &str) -> Result<(), String> {
     if !final_path.is_file() {
         return Ok(());
     }
@@ -1596,7 +1599,7 @@ pub(crate) fn pubkey_for_principal(
 /// `-c` was used — that is the one thing the operator must get right, and the
 /// docs say so. Verification against the allowed_signers file happens before
 /// anything is renamed, so a signature that does not verify writes nothing.
-fn ssh_sign_file(
+pub(crate) fn ssh_sign_file(
     allowed_signers: &Utf8Path,
     principal: &str,
     file: &Utf8Path,
@@ -1669,6 +1672,62 @@ fn ssh_verify_file(
 
 /// What an ssh-signed act attests to: the record it wrote and the response
 /// that carried the signature, with the response's own fields as predicate.
+/// The record an act writes — the file its attestation names beside the
+/// response. The batch attests every one of these in one envelope.
+pub(crate) fn record_of(repo: &Repository, p: &Pending) -> Result<Utf8PathBuf, String> {
+    Ok(match p {
+        Pending::Authorize { alias, .. } => repo
+            .warrant_dir(alias)
+            .map_err(|e| e.to_string())?
+            .join("authorization.toml"),
+        Pending::Resolve { alias, .. } => repo
+            .warrant_dir(alias)
+            .map_err(|e| e.to_string())?
+            .join("resolution.toml"),
+        Pending::Correct {
+            alias,
+            deliverable_id,
+            ..
+        } => {
+            let cdir = repo
+                .warrant_dir(alias)
+                .map_err(|e| e.to_string())?
+                .join("corrections");
+            let seq = |f: &Utf8PathBuf| -> u32 {
+                f.file_stem()
+                    .and_then(|st| st.rsplit('-').next())
+                    .and_then(|n| n.parse().ok())
+                    .unwrap_or(u32::MAX)
+            };
+            let mut files: Vec<Utf8PathBuf> = std::fs::read_dir(&cdir)
+                .map_err(|e| format!("{cdir}: {e}"))?
+                .filter_map(Result::ok)
+                .filter_map(|e| Utf8PathBuf::from_path_buf(e.path()).ok())
+                .filter(|f| {
+                    f.file_name().is_some_and(|n| {
+                        n.starts_with(&format!("{deliverable_id}-")) && n.ends_with(".toml")
+                    })
+                })
+                .collect();
+            files.sort_by_key(seq);
+            files
+                .pop()
+                .ok_or_else(|| format!("no correction file under {cdir}"))?
+        }
+        Pending::Accept { version, .. } => repo
+            .root
+            .join(&repo.config.paths.sas)
+            .join("revisions")
+            .join(format!("{version}.toml")),
+        Pending::AcceptRoadmap { revision, .. } => {
+            let loaded = crate::roadmap_cmd::load(repo)
+                .map_err(|e| e.to_string())?
+                .ok_or("no roadmap record")?;
+            crate::roadmap_cmd::revision_path(&loaded, *revision)
+        }
+    })
+}
+
 fn attest_after(
     repo: &Repository,
     p: &Pending,
@@ -1839,7 +1898,7 @@ pub(crate) fn allowed_signers_path(repo: &Repository) -> Utf8PathBuf {
 /// A `.sig` whose `.toml` is gone signs nothing, and to anyone listing the
 /// directory it reads like a signature that went missing. Both go together on
 /// every path that abandons a draft.
-fn discard_draft(draft: &Utf8Path) {
+pub(crate) fn discard_draft(draft: &Utf8Path) {
     let _ = std::fs::remove_file(draft);
     let sig = sig_path(draft);
     if sig.is_file() {
@@ -1847,7 +1906,7 @@ fn discard_draft(draft: &Utf8Path) {
     }
 }
 
-fn signed_path(draft: &Utf8Path) -> Utf8PathBuf {
+pub(crate) fn signed_path(draft: &Utf8Path) -> Utf8PathBuf {
     let name = draft
         .file_name()
         .unwrap_or_default()
