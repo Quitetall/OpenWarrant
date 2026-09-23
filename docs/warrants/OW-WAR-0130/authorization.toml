@@ -1,0 +1,78 @@
+schema = "oh.war/authorization/v1"
+warrant = "OW-WAR-0130"
+sas_revision = "1.1.0"
+deliverable_set_digest = "sha256:1ff54f4f844fda69f81766aae028d88ef0ffdab286b5b07b9c326abdcc71c54e"
+
+[revision]
+revision = 1
+state = "authorized"
+contract_digest = "b27de4f7fa96e7320d29025a79d1c0d98ae04e87690989e7d9c43c51f9a183dd"
+proposer = "claude"
+
+[revision.coverage]
+covered = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+
+[revision.authorization]
+authorizer = "Brian Lam"
+actor_kind = "human"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0130 (Idempotent acts, all-or-nothing batches, and version negotiation between war and its records) at this contract digest means the signer accepts its intent, scope and 3 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.2` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-09-23T23:23:42Z"
+independence = "separate_role"
+
+[[owned]]
+id = "D-001"
+target_ref = "crates/openwarrant-cli/src/batch_cmd.rs"
+
+[[owned]]
+id = "D-002"
+target_ref = "crates/openwarrant-cli/src/journal_cmd.rs"
+
+[[owned]]
+id = "D-003a"
+target_ref = "crates/openwarrant-cli/src/questions.rs"
+
+[[owned]]
+id = "D-003b"
+target_ref = "crates/openwarrant-cli/src/run_cmd.rs"
+
+[[owned]]
+id = "D-003c"
+target_ref = "crates/openwarrant-cli/src/verify.rs"
+
+[[owned]]
+id = "D-003d"
+target_ref = "crates/openwarrant-cli/src/evidence.rs"
+
+[[owned]]
+id = "D-003e"
+target_ref = "crates/openwarrant-cli/src/authorize.rs"
+
+[[owned]]
+id = "D-004"
+target_ref = "crates/openwarrant-cli/src/compat.rs"
+
+[[owned]]
+id = "D-005"
+target_ref = "crates/openwarrant-core/src/config.rs"
+
+[[owned]]
+id = "D-006"
+target_ref = "crates/openwarrant-cli/src/repo.rs"
+
+[[owned]]
+id = "D-007"
+target_ref = "docs/COMPATIBILITY.md"
+
+[[owned]]
+id = "D-008"
+target_ref = "conformance/plants.d/69-idempotency.sh"

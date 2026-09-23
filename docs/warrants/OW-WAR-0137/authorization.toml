@@ -1,0 +1,62 @@
+schema = "oh.war/authorization/v1"
+warrant = "OW-WAR-0137"
+sas_revision = "1.1.0"
+deliverable_set_digest = "sha256:bf4f3f1502926ac6db755408c5376d51381a6d40c9ed08c47c9d85997b02719c"
+
+[revision]
+revision = 1
+state = "authorized"
+contract_digest = "028bfb040337a2257264b59530ea6637033a43cbae942a77436d2141baa0f640"
+proposer = "claude"
+
+[revision.coverage]
+covered = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+
+[revision.authorization]
+authorizer = "Brian Lam"
+actor_kind = "human"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0137 (Teams: review assignment and a queue shared by more than one person) at this contract digest means the signer accepts its intent, scope and 4 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.2` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-09-23T23:23:42Z"
+independence = "separate_role"
+
+[[owned]]
+id = "D-001"
+target_ref = "crates/openwarrant-core/src/assignment.rs"
+
+[[owned]]
+id = "D-002"
+target_ref = "crates/openwarrant-cli/src/authorize.rs"
+
+[[owned]]
+id = "D-003"
+target_ref = "crates/openwarrant-cli/src/sign.rs"
+
+[[owned]]
+id = "D-004"
+target_ref = "crates/openwarrant-cli/src/inbox/mod.rs"
+
+[[owned]]
+id = "D-005"
+target_ref = "crates/openwarrant-cli/src/verify.rs"
+
+[[owned]]
+id = "D-006"
+target_ref = "docs/TEAMS.md"
+
+[[owned]]
+id = "D-007"
+target_ref = "docs/THREAT_MODEL.md"
+
+[[owned]]
+id = "D-008"
+target_ref = "conformance/plants.d/57-teams.sh"

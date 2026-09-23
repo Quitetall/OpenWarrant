@@ -1,0 +1,38 @@
+schema = "oh.war/authorization/v1"
+warrant = "OW-WAR-0128"
+sas_revision = "1.1.0"
+deliverable_set_digest = "sha256:f51b76b745e211c5ebfdd4ba057e9ece5e42a8e35b005f67a4ae57b0fc66d957"
+
+[revision]
+revision = 1
+state = "authorized"
+contract_digest = "e330857777dd08724b2e76e63377f74b952613547fcef0314aed88d3deac2fc6"
+proposer = "claude"
+
+[revision.coverage]
+covered = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+
+[revision.authorization]
+authorizer = "Brian Lam"
+actor_kind = "human"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0128 (The Knowledge Fabric compiler interface: what OpenWarrant hands KF and what it gets back) at this contract digest means the signer accepts its intent, scope and 5 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.2` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-09-23T23:23:42Z"
+independence = "separate_role"
+
+[[owned]]
+id = "D-001"
+target_ref = "docs/integrations/kf-compiler.md"
+
+[[owned]]
+id = "D-002"
+target_ref = "docs/adr/atoms/OW-ADR-0027-kf-compiler-interface.md"

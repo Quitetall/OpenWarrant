@@ -119,34 +119,34 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0110](docs/warrants/OW-WAR-0110/manifest.toml) | Generate OpenWarrant TypeScript record types and integrate KF consumption | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
 | [OW-WAR-0111](docs/warrants/OW-WAR-0111/manifest.toml) | Implement content-bearing preservation archives and honest import round trips | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0112](docs/warrants/OW-WAR-0112/manifest.toml) | war is the app: ownership, a guided start, and remedies | `authorized` | `current` | `valid` | `controlled` | 5M / 10S |
-| [OW-WAR-0113](docs/warrants/OW-WAR-0113/manifest.toml) | Two projections from atoms by relation: the current master document, and the history | `draft` | `current` | `valid` | `basic` | 5M / 5S |
+| [OW-WAR-0113](docs/warrants/OW-WAR-0113/manifest.toml) | Two projections from atoms by relation: the current master document, and the history | `authorized` | `current` | `valid` | `basic` | 5M / 5S |
 | [OW-WAR-0114](docs/warrants/OW-WAR-0114/manifest.toml) | The roadmap becomes a record: one per program, beside the SAS | `authorized` | `current` | `valid` | `basic` | 5M / 7S |
 | [OW-WAR-0115](docs/warrants/OW-WAR-0115/manifest.toml) | The hub: war opens from anywhere, with every project and its progress | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
 | [OW-WAR-0116](docs/warrants/OW-WAR-0116/manifest.toml) | war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap | `authorized` | `current` | `valid` | `controlled` | 4M / 4S |
-| [OW-WAR-0117](docs/warrants/OW-WAR-0117/manifest.toml) | An independent verifier: a blind, tool-less process that war verify --run hands each bundle to | `draft` | `current` | `valid` | `basic` | 1M / 1S |
-| [OW-WAR-0118](docs/warrants/OW-WAR-0118/manifest.toml) | Measure the friction targets: setup in ten minutes, a routine act in sixty seconds | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0119](docs/warrants/OW-WAR-0119/manifest.toml) | Identity is the UUIDv7: immutable across revisions, and no alias ever stands in for it | `draft` | `current` | `valid` | `basic` | 1M / 1S |
-| [OW-WAR-0120](docs/warrants/OW-WAR-0120/manifest.toml) | Retention: compact journals, archive resolved Warrants, and hold a budget at 1,000 Warrants | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0121](docs/warrants/OW-WAR-0121/manifest.toml) | Storage: atomic writes, crash recovery, and migration of retained artifacts | `draft` | `current` | `valid` | `controlled` | 2M / 2S |
-| [OW-WAR-0122](docs/warrants/OW-WAR-0122/manifest.toml) | The document grammar: a schema for atoms, headers and Markdown, and what a conforming tool must accept | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0123](docs/warrants/OW-WAR-0123/manifest.toml) | A child cites the exact revision of its parent, and a moved parent is a finding | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0124](docs/warrants/OW-WAR-0124/manifest.toml) | Brownfield adoption: a guided path into OpenWarrant for a repository with history and no Warrants | `draft` | `current` | `valid` | `controlled` | 2M / 2S |
-| [OW-WAR-0125](docs/warrants/OW-WAR-0125/manifest.toml) | The SAS as atoms: sections as governed records with their own currency | `draft` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0126](docs/warrants/OW-WAR-0126/manifest.toml) | Knowledge Fabric owns authority and lifecycle: the registration seam and what stays local | `draft` | `current` | `valid` | `basic` | 1M / 1S |
-| [OW-WAR-0127](docs/warrants/OW-WAR-0127/manifest.toml) | Native systems keep artifact authority: OpenWarrant references, never re-owns, what another system holds | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0128](docs/warrants/OW-WAR-0128/manifest.toml) | The Knowledge Fabric compiler interface: what OpenWarrant hands KF and what it gets back | `draft` | `current` | `valid` | `basic` | 1M / 1S |
-| [OW-WAR-0129](docs/warrants/OW-WAR-0129/manifest.toml) | A Dispatch over its budget is refused, by name, before any agent starts | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0130](docs/warrants/OW-WAR-0130/manifest.toml) | Idempotent acts, all-or-nothing batches, and version negotiation between war and its records | `draft` | `current` | `valid` | `controlled` | 3M / 4S |
-| [OW-WAR-0131](docs/warrants/OW-WAR-0131/manifest.toml) | Agent and harness adapters per OS: writer handoff and cancellation | `draft` | `current` | `valid` | `basic` | 2M / 3S |
-| [OW-WAR-0132](docs/warrants/OW-WAR-0132/manifest.toml) | Hotline defaults: time and spend limits, repair accounting, and delivery when nobody answers | `draft` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0133](docs/warrants/OW-WAR-0133/manifest.toml) | Evidence reuse after a source change, and the compiler's source, conflict and omission rules | `draft` | `current` | `valid` | `controlled` | 2M / 2S |
-| [OW-WAR-0134](docs/warrants/OW-WAR-0134/manifest.toml) | Acceptance stays valid only for the candidate accepted: a change before merge is a finding | `draft` | `current` | `valid` | `controlled` | 2M / 2S |
-| [OW-WAR-0135](docs/warrants/OW-WAR-0135/manifest.toml) | The assurance mark: a baseline, its issuance, and what it binds | `draft` | `current` | `valid` | `controlled` | 2M / 3S |
-| [OW-WAR-0136](docs/warrants/OW-WAR-0136/manifest.toml) | Discharge the Phase 9 exit: signed resolutions, audited evidence custody, and invalidation that propagates | `draft` | `current` | `valid` | `controlled` | 3M / 3S |
-| [OW-WAR-0137](docs/warrants/OW-WAR-0137/manifest.toml) | Teams: review assignment and a queue shared by more than one person | `draft` | `current` | `valid` | `controlled` | 4M / 4S |
-| [OW-WAR-0138](docs/warrants/OW-WAR-0138/manifest.toml) | Human and session authentication, and policy state protected from the performer | `draft` | `current` | `valid` | `controlled` | 4M / 4S |
-| [OW-WAR-0139](docs/warrants/OW-WAR-0139/manifest.toml) | The web UI beyond this machine: LAN and other devices, authenticated | `draft` | `current` | `valid` | `controlled` | 4M / 4S |
-| [OW-WAR-0140](docs/warrants/OW-WAR-0140/manifest.toml) | The Contractor Work Order profile: acceptance, invoicing and legal terms outside the technical core | `draft` | `current` | `valid` | `controlled` | 4M / 4S |
+| [OW-WAR-0117](docs/warrants/OW-WAR-0117/manifest.toml) | An independent verifier: a blind, tool-less process that war verify --run hands each bundle to | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0118](docs/warrants/OW-WAR-0118/manifest.toml) | Measure the friction targets: setup in ten minutes, a routine act in sixty seconds | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0119](docs/warrants/OW-WAR-0119/manifest.toml) | Identity is the UUIDv7: immutable across revisions, and no alias ever stands in for it | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0120](docs/warrants/OW-WAR-0120/manifest.toml) | Retention: compact journals, archive resolved Warrants, and hold a budget at 1,000 Warrants | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0121](docs/warrants/OW-WAR-0121/manifest.toml) | Storage: atomic writes, crash recovery, and migration of retained artifacts | `authorized` | `current` | `valid` | `controlled` | 2M / 2S |
+| [OW-WAR-0122](docs/warrants/OW-WAR-0122/manifest.toml) | The document grammar: a schema for atoms, headers and Markdown, and what a conforming tool must accept | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0123](docs/warrants/OW-WAR-0123/manifest.toml) | A child cites the exact revision of its parent, and a moved parent is a finding | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0124](docs/warrants/OW-WAR-0124/manifest.toml) | Brownfield adoption: a guided path into OpenWarrant for a repository with history and no Warrants | `authorized` | `current` | `valid` | `controlled` | 2M / 2S |
+| [OW-WAR-0125](docs/warrants/OW-WAR-0125/manifest.toml) | The SAS as atoms: sections as governed records with their own currency | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0126](docs/warrants/OW-WAR-0126/manifest.toml) | Knowledge Fabric owns authority and lifecycle: the registration seam and what stays local | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0127](docs/warrants/OW-WAR-0127/manifest.toml) | Native systems keep artifact authority: OpenWarrant references, never re-owns, what another system holds | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0128](docs/warrants/OW-WAR-0128/manifest.toml) | The Knowledge Fabric compiler interface: what OpenWarrant hands KF and what it gets back | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0129](docs/warrants/OW-WAR-0129/manifest.toml) | A Dispatch over its budget is refused, by name, before any agent starts | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0130](docs/warrants/OW-WAR-0130/manifest.toml) | Idempotent acts, all-or-nothing batches, and version negotiation between war and its records | `authorized` | `current` | `valid` | `controlled` | 3M / 4S |
+| [OW-WAR-0131](docs/warrants/OW-WAR-0131/manifest.toml) | Agent and harness adapters per OS: writer handoff and cancellation | `authorized` | `current` | `valid` | `basic` | 2M / 3S |
+| [OW-WAR-0132](docs/warrants/OW-WAR-0132/manifest.toml) | Hotline defaults: time and spend limits, repair accounting, and delivery when nobody answers | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0133](docs/warrants/OW-WAR-0133/manifest.toml) | Evidence reuse after a source change, and the compiler's source, conflict and omission rules | `authorized` | `current` | `valid` | `controlled` | 2M / 2S |
+| [OW-WAR-0134](docs/warrants/OW-WAR-0134/manifest.toml) | Acceptance stays valid only for the candidate accepted: a change before merge is a finding | `authorized` | `current` | `valid` | `controlled` | 2M / 2S |
+| [OW-WAR-0135](docs/warrants/OW-WAR-0135/manifest.toml) | The assurance mark: a baseline, its issuance, and what it binds | `authorized` | `current` | `valid` | `controlled` | 2M / 3S |
+| [OW-WAR-0136](docs/warrants/OW-WAR-0136/manifest.toml) | Discharge the Phase 9 exit: signed resolutions, audited evidence custody, and invalidation that propagates | `authorized` | `current` | `valid` | `controlled` | 3M / 3S |
+| [OW-WAR-0137](docs/warrants/OW-WAR-0137/manifest.toml) | Teams: review assignment and a queue shared by more than one person | `authorized` | `current` | `valid` | `controlled` | 4M / 4S |
+| [OW-WAR-0138](docs/warrants/OW-WAR-0138/manifest.toml) | Human and session authentication, and policy state protected from the performer | `authorized` | `current` | `valid` | `controlled` | 4M / 4S |
+| [OW-WAR-0139](docs/warrants/OW-WAR-0139/manifest.toml) | The web UI beyond this machine: LAN and other devices, authenticated | `authorized` | `current` | `valid` | `controlled` | 4M / 4S |
+| [OW-WAR-0140](docs/warrants/OW-WAR-0140/manifest.toml) | The Contractor Work Order profile: acceptance, invoicing and legal terms outside the technical core | `authorized` | `current` | `valid` | `controlled` | 4M / 4S |
 
 ## Claimed SAS requirement coverage
 
