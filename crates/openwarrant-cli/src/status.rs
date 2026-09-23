@@ -278,33 +278,74 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
         .map(|(p, _)| p)
         .unwrap_or_else(|| repo.config.project.namespace.as_str().to_owned());
 
-    // §98 from the SAS as it stands; the compiled-in table is the fallback for
-    // a repository whose document cannot be read.
-    let phases: Vec<(u8, String, Option<String>)> = repo
-        .sas_document()
-        .ok()
-        .map(|(_, bytes)| openwarrant_core::sas::section_98(&String::from_utf8_lossy(&bytes)))
-        .filter(|v| v.len() == openwarrant_core::status::PHASES.len())
-        .unwrap_or_else(|| {
-            openwarrant_core::status::PHASES
+    // OW-ADR-0023: the roadmap record owns the phases when the program has
+    // one. Without it, §98 from the SAS as it stands, and the compiled-in
+    // table as the fallback for a repository whose document cannot be read.
+    let roadmap = crate::roadmap_cmd::load(repo).ok().flatten();
+    let prefix = roadmap
+        .as_ref()
+        .map_or(prefix, |r| r.manifest.prefix.clone());
+    // A signed Warrant that names no phase may be placed by the record
+    // (`[[placement]]`), pending its next amendment: read as its first ref.
+    let placed: BTreeMap<String, RoadmapRef> = roadmap
+        .as_ref()
+        .map(|r| {
+            r.manifest
+                .placements
                 .iter()
-                .map(|(n, t, e)| (*n, (*t).to_owned(), e.map(str::to_owned)))
+                .filter_map(|p| {
+                    let text = match &p.slug {
+                        Some(s) => format!("{}/{s}", p.phase),
+                        None => p.phase.clone(),
+                    };
+                    RoadmapRef::parse(&text)
+                        .ok()
+                        .map(|rr| (p.warrant.clone(), rr))
+                })
                 .collect()
-        });
+        })
+        .unwrap_or_default();
+    let first_ref = |w: &WarrantStatus| -> Option<RoadmapRef> {
+        w.roadmap
+            .first()
+            .cloned()
+            .or_else(|| placed.get(&w.alias).cloned())
+    };
+    let phases: Vec<(u8, String, Option<String>)> = match roadmap.as_ref() {
+        Some(r) => r
+            .phases
+            .phases
+            .iter()
+            .map(|p| {
+                (
+                    p.number,
+                    p.title.clone(),
+                    (!p.exit.trim().is_empty()).then(|| p.exit.clone()),
+                )
+            })
+            .collect(),
+        None => repo
+            .sas_document()
+            .ok()
+            .map(|(_, bytes)| openwarrant_core::sas::section_98(&String::from_utf8_lossy(&bytes)))
+            .filter(|v| v.len() == openwarrant_core::status::PHASES.len())
+            .unwrap_or_else(|| {
+                openwarrant_core::status::PHASES
+                    .iter()
+                    .map(|(n, t, e)| (*n, (*t).to_owned(), e.map(str::to_owned)))
+                    .collect()
+            }),
+    };
     let mut objectives: Vec<ObjectiveStatus> = Vec::new();
     for (n, title, exit) in phases {
         let (title, exit) = (title.as_str(), exit.as_deref());
         let members: Vec<&WarrantStatus> = warrants
             .iter()
-            .filter(|w| {
-                w.roadmap
-                    .first()
-                    .is_some_and(|r| r.phase == n && r.prefix == prefix)
-            })
+            .filter(|w| first_ref(w).is_some_and(|r| r.phase == n && r.prefix == prefix))
             .collect();
         let exit_warrant = members
             .iter()
-            .find(|w| w.roadmap.first().is_some_and(RoadmapRef::is_exit))
+            .find(|w| first_ref(w).is_some_and(|r| r.is_exit()))
             .map(|w| w.alias.clone());
         let mut ladder = WarrantLadder::default();
         for m in &members {
@@ -354,7 +395,7 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
     }
     {
         let members: Vec<&WarrantStatus> =
-            warrants.iter().filter(|w| w.roadmap.is_empty()).collect();
+            warrants.iter().filter(|w| first_ref(w).is_none()).collect();
         let mut ladder = WarrantLadder::default();
         for m in &members {
             ladder.count(m.rung);

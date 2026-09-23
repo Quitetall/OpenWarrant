@@ -98,6 +98,9 @@ pub fn run(
             .collect();
         crate::relations::check(&related, &mut report);
     }
+    // OW-ADR-0023: the roadmap record, and the Warrants it holds to a phase.
+    crate::roadmap_cmd::check(repo, &corpus, &mut report);
+    let roadmap = crate::roadmap_cmd::load(repo).ok().flatten();
 
     // OW-ADR-0021: which Warrant governs each path NOW. Built once — it
     // verifies one attestation per owning Warrant, and the drift decision
@@ -109,6 +112,7 @@ pub fn run(
         parent_digests: &parent_digests,
         gates: &gates,
         ownership: &ownership,
+        roadmap: roadmap.as_ref(),
     };
     for one in &loaded {
         check_one(repo, one, shared, check_generated, &mut report);
@@ -949,7 +953,13 @@ fn check_deliverable_digests(
 /// An absent contribution is a warning, not an error: §34.2 says a WAR SHOULD
 /// declare it, and turning a SHOULD into a refusal would be reading a rule into
 /// the text.
-fn check_traceability(repo: &Repository, one: &Loaded, alias: &str, report: &mut Report) {
+fn check_traceability(
+    repo: &Repository,
+    one: &Loaded,
+    alias: &str,
+    roadmap: Option<&crate::roadmap_cmd::Loaded>,
+    report: &mut Report,
+) {
     use openwarrant_core::traceability::{Contribution, RequirementRef, RoadmapRef};
 
     let Some(basis) = one.basis.as_ref() else {
@@ -984,7 +994,27 @@ fn check_traceability(repo: &Repository, one: &Loaded, alias: &str, report: &mut
                 ));
                 bad += 1;
             }
-            Ok(_) => {}
+            // OW-ADR-0023: with a roadmap record, the phase must be one of its
+            // phases; without one, §98's 0..=10.
+            Ok(parsed) => match roadmap {
+                Some(rm) => {
+                    if !crate::roadmap_cmd::check_ref(rm, alias, &parsed, &file, report) {
+                        bad += 1;
+                    }
+                }
+                None if parsed.phase > RoadmapRef::MAX_PHASE => {
+                    report.push(Diagnostic::error(
+                        "roadmap.malformed",
+                        file.clone(),
+                        format!(
+                            "{alias}: {} names phase {}; §98 defines 0..=10 and this program has no roadmap record to say otherwise",
+                            r.r#ref, parsed.phase
+                        ),
+                    ));
+                    bad += 1;
+                }
+                None => {}
+            },
         }
     }
 
@@ -1065,6 +1095,8 @@ struct Shared<'a> {
     gates: &'a openwarrant_core::GateRegistry,
     /// OW-ADR-0021: which Warrant governs each path now.
     ownership: &'a crate::ownership::Ownership,
+    /// OW-ADR-0023: the roadmap record, when the program has one.
+    roadmap: Option<&'a crate::roadmap_cmd::Loaded>,
 }
 
 fn check_one(
@@ -1079,6 +1111,7 @@ fn check_one(
         parent_digests,
         gates,
         ownership,
+        roadmap,
     } = shared;
     let alias = one.alias();
 
@@ -1099,7 +1132,7 @@ fn check_one(
     ));
 
     check_deliverable_digests(repo, one, &alias, ownership, report);
-    check_traceability(repo, one, &alias, report);
+    check_traceability(repo, one, &alias, roadmap, report);
     {
         // §44.6 recorded runs and the §56.2 record, both held to the contract
         // as it compiles NOW (OW-WAR-0059).

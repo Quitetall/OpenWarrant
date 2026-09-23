@@ -60,6 +60,7 @@ pub mod remedy;
 pub mod repo;
 pub mod resolution_cmd;
 pub mod resolve;
+pub mod roadmap_cmd;
 pub mod run_cmd;
 pub mod sas;
 pub mod sas_repin;
@@ -127,6 +128,20 @@ enum EvidenceCommand {
         #[arg(long)]
         gate: Option<String>,
     },
+}
+
+#[derive(clap::Subcommand, Debug)]
+enum RoadmapCommand {
+    /// Write the roadmap ref on an UNSIGNED Warrant. A signed one is refused
+    /// by name: its ref is inside the contract digest.
+    Assign {
+        alias: String,
+        /// `OW-PHASE-3` or `OW-PHASE-3/slug`.
+        phase: String,
+    },
+    /// Record the roadmap atoms as they stand as the next revision; a human
+    /// then accepts it with `war sign roadmap --ssh-sign`.
+    Propose,
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -299,6 +314,13 @@ enum Command {
         /// it is restored. Hidden; the battery's.
         #[arg(long, hide = true)]
         panic_after_setup: bool,
+    },
+    /// The roadmap: one per program, beside the SAS (OW-ADR-0023). Without a
+    /// subcommand, its phases in dependency order with members, exits and
+    /// whether each is achieved.
+    Roadmap {
+        #[command(subcommand)]
+        command: Option<RoadmapCommand>,
     },
     /// Initialize repository configuration and directories (§71.1). With no
     /// `--namespace`, at a terminal, it asks — and walks the whole setup:
@@ -1722,6 +1744,38 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             let EvidenceCommand::Record { alias, gate } = command;
             let report = evidence::record(&repository, &alias, gate.as_deref())?;
             Ok(output::finish(mode, "evidence", &report, None))
+        }
+        Command::Roadmap { command } => {
+            let repository = open_repo()?;
+            match command {
+                None => {
+                    let (report, view) = roadmap_cmd::view(&repository)?;
+                    match mode {
+                        output::Mode::Human => {
+                            print!("{}", roadmap_cmd::render(&view));
+                            Ok(EXIT_OK)
+                        }
+                        output::Mode::Json => Ok(output::finish(
+                            mode,
+                            "roadmap",
+                            &report,
+                            Some(output::value(&view)),
+                        )),
+                    }
+                }
+                Some(RoadmapCommand::Assign { alias, phase }) => Ok(output::finish(
+                    mode,
+                    "roadmap",
+                    &roadmap_cmd::assign(&repository, &alias, &phase)?,
+                    None,
+                )),
+                Some(RoadmapCommand::Propose) => Ok(output::finish(
+                    mode,
+                    "roadmap",
+                    &roadmap_cmd::propose(&repository)?,
+                    None,
+                )),
+            }
         }
         Command::Sas { command } => {
             let repository = open_repo()?;

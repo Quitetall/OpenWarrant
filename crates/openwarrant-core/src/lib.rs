@@ -46,6 +46,7 @@ pub mod milestones;
 pub mod normative;
 pub mod obligation;
 pub mod resolution;
+pub mod roadmap;
 pub mod role;
 pub mod sas;
 pub mod seam;

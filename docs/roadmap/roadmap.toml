@@ -1,0 +1,229 @@
+# The roadmap: one per program, beside the SAS (OW-ADR-0023, OW-WAR-0114).
+#
+# The SAS says what the system is; this says in what order it is built —
+# sequencing, dependency, priority and phase (SAS §6.3). It lists no
+# Warrants and carries no status: a Warrant joins a phase through its own
+# `[[roadmap]]` ref, and a phase is achieved when its `exit` Warrant
+# resolves satisfied. Both are computed, never written here.
+#
+# A change to the atoms below is proposed with `war roadmap propose` (or
+# made by keystroke in `war roadmap` / the app) and takes effect when a
+# human accepts the revision: one `war sign roadmap --ssh-sign` dialog.
+schema = "oh.war/roadmap/v1"
+uuid = "01a0cd3a-0a24-74cb-9a4b-5a83dfe420f9"
+program = "OpenWarrant"
+prefix = "OW"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 20
+role = "phases"
+path = "atoms/20-phases.yaml"
+
+# Signed Warrants that name no phase, placed here pending their next
+# amendment (OW-WAR-0114 A-002). Refused for any Warrant with its own ref,
+# and for an unsigned one — `war roadmap assign` gives that its own ref.
+
+[[placement]]
+warrant = "OW-WAR-0050"
+phase = "OW-PHASE-6"
+slug = "evidence"
+
+[[placement]]
+warrant = "OW-WAR-0066"
+phase = "OW-PHASE-6"
+slug = "conformance"
+
+[[placement]]
+warrant = "OW-WAR-0074"
+phase = "OW-PHASE-3"
+slug = "sas-governance"
+
+[[placement]]
+warrant = "OW-WAR-0075"
+phase = "OW-PHASE-1"
+slug = "documents"
+
+[[placement]]
+warrant = "OW-WAR-0076"
+phase = "OW-PHASE-1"
+slug = "documents"
+
+[[placement]]
+warrant = "OW-WAR-0077"
+phase = "OW-PHASE-5"
+slug = "context"
+
+[[placement]]
+warrant = "OW-WAR-0078"
+phase = "OW-PHASE-5"
+slug = "context"
+
+[[placement]]
+warrant = "OW-WAR-0079"
+phase = "OW-PHASE-5"
+slug = "context"
+
+[[placement]]
+warrant = "OW-WAR-0080"
+phase = "OW-PHASE-5"
+slug = "context"
+
+[[placement]]
+warrant = "OW-WAR-0081"
+phase = "OW-PHASE-5"
+slug = "context"
+
+[[placement]]
+warrant = "OW-WAR-0082"
+phase = "OW-PHASE-5"
+slug = "context"
+
+[[placement]]
+warrant = "OW-WAR-0083"
+phase = "OW-PHASE-6"
+slug = "records"
+
+[[placement]]
+warrant = "OW-WAR-0084"
+phase = "OW-PHASE-3"
+slug = "lineage"
+
+[[placement]]
+warrant = "OW-WAR-0085"
+phase = "OW-PHASE-1"
+slug = "sdk"
+
+[[placement]]
+warrant = "OW-WAR-0086"
+phase = "OW-PHASE-5"
+slug = "lamu"
+
+[[placement]]
+warrant = "OW-WAR-0087"
+phase = "OW-PHASE-1"
+slug = "cli"
+
+[[placement]]
+warrant = "OW-WAR-0088"
+phase = "OW-PHASE-2"
+slug = "authoring"
+
+[[placement]]
+warrant = "OW-WAR-0089"
+phase = "OW-PHASE-9"
+slug = "release"
+
+[[placement]]
+warrant = "OW-WAR-0090"
+phase = "OW-PHASE-9"
+slug = "qualification"
+
+[[placement]]
+warrant = "OW-WAR-0091"
+phase = "OW-PHASE-9"
+slug = "stable"
+
+[[placement]]
+warrant = "OW-WAR-0092"
+phase = "OW-PHASE-1"
+slug = "projections"
+
+[[placement]]
+warrant = "OW-WAR-0093"
+phase = "OW-PHASE-5"
+slug = "workflow"
+
+[[placement]]
+warrant = "OW-WAR-0094"
+phase = "OW-PHASE-5"
+slug = "workflow"
+
+[[placement]]
+warrant = "OW-WAR-0095"
+phase = "OW-PHASE-5"
+slug = "workflow-study"
+
+[[placement]]
+warrant = "OW-WAR-0096"
+phase = "OW-PHASE-9"
+slug = "authority"
+
+[[placement]]
+warrant = "OW-WAR-0097"
+phase = "OW-PHASE-1"
+slug = "console"
+
+[[placement]]
+warrant = "OW-WAR-0098"
+phase = "OW-PHASE-5"
+slug = "workflow"
+
+[[placement]]
+warrant = "OW-WAR-0099"
+phase = "OW-PHASE-5"
+slug = "frontier"
+
+[[placement]]
+warrant = "OW-WAR-0100"
+phase = "OW-PHASE-0"
+slug = "telemetry"
+
+[[placement]]
+warrant = "OW-WAR-0101"
+phase = "OW-PHASE-2"
+slug = "plan"
+
+[[placement]]
+warrant = "OW-WAR-0102"
+phase = "OW-PHASE-5"
+slug = "work-stop"
+
+[[placement]]
+warrant = "OW-WAR-0103"
+phase = "OW-PHASE-5"
+slug = "hotline"
+
+[[placement]]
+warrant = "OW-WAR-0104"
+phase = "OW-PHASE-5"
+slug = "hotline"
+
+[[placement]]
+warrant = "OW-WAR-0105"
+phase = "OW-PHASE-2"
+slug = "plan"
+
+[[placement]]
+warrant = "OW-WAR-0106"
+phase = "OW-PHASE-5"
+slug = "hotline"
+
+[[placement]]
+warrant = "OW-WAR-0107"
+phase = "OW-PHASE-6"
+slug = "verification"
+
+[[placement]]
+warrant = "OW-WAR-0108"
+phase = "OW-PHASE-7"
+slug = "blut"
+
+[[placement]]
+warrant = "OW-WAR-0109"
+phase = "OW-PHASE-5"
+slug = "workflow"
+
+[[placement]]
+warrant = "OW-WAR-0110"
+phase = "OW-PHASE-4"
+slug = "schema-pack"
+
+[[placement]]
+warrant = "OW-WAR-0111"
+phase = "OW-PHASE-4"
+slug = "preservation"

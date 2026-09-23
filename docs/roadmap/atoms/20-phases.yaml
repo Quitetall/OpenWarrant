@@ -1,0 +1,106 @@
+schema: "oh.war/roadmap-phases/v1"
+
+# Titles, deliverables and Exit criteria are SAS §98's, verbatim; the SAS
+# revision that points §98 here follows (OW-WAR-0114 M5). `depends_on` is
+# what each phase's Exit needs from another's, not the order of the numbers.
+# `open` lists work placed in a phase that no Warrant carries yet — the
+# slug is the name the Warrant written for it will cite.
+
+tiers:
+  - id: "1"
+    title: "Library and Standard"
+  - id: "2"
+    title: "SDK and Compiler Integration"
+  - id: "3"
+    title: "Workflow Integration"
+  - id: "4"
+    title: "Hardening and Adoption"
+
+phases:
+  - id: "OW-PHASE-0"
+    title: "Telemetry shim"
+    outcome: "WAR UUID and local alias; commit/PR linkage; lightweight event logging; amendment, escalation, and gate-result classification; untracked-work detection."
+    exit: "real distributions for authoring cost, amendment types, and failure causes."
+    depends_on: []
+    priority: "3"
+    open: ["friction-baseline"]
+
+  - id: "OW-PHASE-1"
+    title: "File-native WAR compiler"
+    outcome: "war init; war new; manifest; authored atom profile; canonical IR; war check; war compile; full Markdown parent; canonical JSON; generated drift gate."
+    exit: "OpenWarrant development uses WARs."
+    depends_on: []
+    priority: "1"
+    open: ["identity", "retention", "storage", "document-grammar"]
+
+  - id: "OW-PHASE-2"
+    title: "Agent planner"
+    outcome: "war plan; interview; Draft Proposal protocol; Katana drafter adapter; semantic diff; proposed ADR generation."
+    exit: "a vague engineering request produces a reviewable valid draft without direct model file mutation."
+    depends_on: ["OW-PHASE-1"]
+    priority: "3"
+    open: []
+
+  - id: "OW-PHASE-3"
+    title: "ADR federation"
+    outcome: "first-class ADR atoms; local and global identity; ADR Overview; WAR/ADR relations; existing ADR importer."
+    exit: "no managed normative decision exists only inline."
+    depends_on: ["OW-PHASE-1"]
+    priority: "1"
+    open: ["parent-revision", "adoption", "sas-atoms"]
+
+  - id: "OW-PHASE-4"
+    title: "Knowledge Fabric registration"
+    outcome: "typed KF actions; global allocation; lifecycle; contract revisions; synchronization; audit; preservation."
+    exit: "registered WARs use KF as institutional authority while Git may remain Source Holder."
+    depends_on: ["OW-PHASE-1", "OW-PHASE-3"]
+    priority: "2"
+    open: ["kf-authority", "native-authority", "kf-compiler"]
+
+  - id: "OW-PHASE-5"
+    title: "Dispatch and Katana execution"
+    outcome: "Preflight; Stage Dispatch; Katana runtime receipt; Stage Submission; attempts; blockers and deviations."
+    exit: "one WAR stage can be compiled, executed by a stateless Katana agent, and returned without authority confusion."
+    depends_on: ["OW-PHASE-1"]
+    priority: "2"
+    open: ["budget-refusal", "idempotency", "adapters", "hotline-defaults"]
+
+  - id: "OW-PHASE-6"
+    title: "Gate Registry and assurance case"
+    outcome: "Gate Definitions; qualifications; bindings; runs; evidence; observations; inferences; judgments; adequacy review; resolution."
+    exit: "a delivery can close only through bounded, provenance-preserving proof."
+    depends_on: ["OW-PHASE-1"]
+    priority: "1"
+    open: ["verification-pipeline", "evidence-reuse", "acceptance-validity", "assurance-mark"]
+
+  - id: "OW-PHASE-7"
+    title: "BLUT adapter"
+    outcome: "named-port stage graph; PlanSpec lowering; resources; artifacts; BLUT lineage receipt."
+    exit: "compatible computational WARs execute without duplicating BLUT."
+    depends_on: ["OW-PHASE-5"]
+    priority: "3"
+    open: []
+
+  - id: "OW-PHASE-8"
+    title: "Liminal production compiler"
+    outcome: "WAR Liminal profile; exact-source CST/HIR/CIR path as available; Workspace Basis; Jurisdiction; source maps; human and AI targets; adapter parity; cutover."
+    exit: "Liminal is the single production document semantic compiler."
+    depends_on: ["OW-PHASE-1"]
+    priority: "2"
+    open: []
+
+  - id: "OW-PHASE-9"
+    title: "High-assurance controls"
+    outcome: "as required: signatures; audit checkpoints; controlled evidence custody; physical test profile; independent human workflow; invalidation propagation; regulatory mapping."
+    exit: "a resolution is signed, its evidence custody is audited, and one gate invalidation propagates to every dependent resolution, with no step performed by the actor who produced the work."
+    depends_on: ["OW-PHASE-6"]
+    priority: "4"
+    open: ["exit", "teams", "authentication"]
+
+  - id: "OW-PHASE-10"
+    title: "Contractor Work Order profile"
+    outcome: "only after separate legal, finance, and QMS decisions: contractor profile; Work Order mapping; acceptance; invoices and payments; signatures and legal terms. The technical WAR core remains unchanged."
+    exit: "a contractor Work Order compiles through the unchanged technical WAR core, and acceptance, invoicing and legal terms live entirely in the profile."
+    depends_on: ["OW-PHASE-6", "OW-PHASE-9"]
+    priority: "4"
+    open: ["contractor-profile", "exit"]

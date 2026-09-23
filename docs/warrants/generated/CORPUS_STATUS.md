@@ -27,18 +27,18 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 
 | Objective | Exit Warrant | Achieved | invalid | draft | ready | would_satisfy | resolved |
 |---|---|---|---|---|---|---|---|
-| roadmap://OW-PHASE-0: Telemetry shim | OW-WAR-0041 | blocked by OW-WAR-0039, OW-WAR-0041 | 0 | 0 | 2 | 0 | 0 |
-| roadmap://OW-PHASE-1: File-native WAR compiler | OW-WAR-0061 | recorded | 0 | 5 | 5 | 0 | 13 |
-| roadmap://OW-PHASE-2: Agent planner | OW-WAR-0042 | blocked by OW-WAR-0035, OW-WAR-0037, OW-WAR-0042, OW-WAR-0068, OW-WAR-0070 | 0 | 4 | 1 | 0 | 1 |
-| roadmap://OW-PHASE-3: ADR federation | OW-WAR-0043 | blocked by OW-WAR-0006, OW-WAR-0036, OW-WAR-0043, OW-WAR-0064 | 0 | 2 | 2 | 0 | 3 |
-| roadmap://OW-PHASE-4: Knowledge Fabric registration | OW-WAR-0044 | blocked by OW-WAR-0028, OW-WAR-0029, OW-WAR-0030, OW-WAR-0032, OW-WAR-0044 | 0 | 1 | 4 | 0 | 0 |
-| roadmap://OW-PHASE-5: Dispatch and Katana execution | OW-WAR-0045 | blocked by OW-WAR-0011, OW-WAR-0023, OW-WAR-0026, OW-WAR-0045, OW-WAR-0065, OW-WAR-0069 | 0 | 4 | 2 | 0 | 4 |
-| roadmap://OW-PHASE-6: Gate Registry and assurance case | OW-WAR-0046 | recorded | 0 | 2 | 0 | 0 | 8 |
-| roadmap://OW-PHASE-7: BLUT adapter | OW-WAR-0047 | blocked by OW-WAR-0027, OW-WAR-0047 | 0 | 1 | 1 | 0 | 0 |
+| roadmap://OW-PHASE-0: Telemetry shim | OW-WAR-0041 | blocked by OW-WAR-0039, OW-WAR-0041, OW-WAR-0100 | 0 | 1 | 2 | 0 | 0 |
+| roadmap://OW-PHASE-1: File-native WAR compiler | OW-WAR-0061 | recorded | 0 | 12 | 4 | 0 | 13 |
+| roadmap://OW-PHASE-2: Agent planner | OW-WAR-0042 | blocked by OW-WAR-0035, OW-WAR-0037, OW-WAR-0042, OW-WAR-0068, OW-WAR-0070, OW-WAR-0088, OW-WAR-0101, OW-WAR-0105 | 0 | 7 | 1 | 0 | 1 |
+| roadmap://OW-PHASE-3: ADR federation | OW-WAR-0043 | blocked by OW-WAR-0006, OW-WAR-0036, OW-WAR-0043, OW-WAR-0064, OW-WAR-0074, OW-WAR-0084 | 0 | 4 | 2 | 0 | 3 |
+| roadmap://OW-PHASE-4: Knowledge Fabric registration | OW-WAR-0044 | blocked by OW-WAR-0028, OW-WAR-0029, OW-WAR-0030, OW-WAR-0032, OW-WAR-0044, OW-WAR-0110, OW-WAR-0111 | 0 | 3 | 4 | 0 | 0 |
+| roadmap://OW-PHASE-5: Dispatch and Katana execution | OW-WAR-0045 | blocked by OW-WAR-0011, OW-WAR-0023, OW-WAR-0026, OW-WAR-0045, OW-WAR-0065, OW-WAR-0069, OW-WAR-0077, OW-WAR-0078, OW-WAR-0079, OW-WAR-0080, OW-WAR-0081, OW-WAR-0082, OW-WAR-0086, OW-WAR-0093, OW-WAR-0094, OW-WAR-0095, OW-WAR-0098, OW-WAR-0099, OW-WAR-0102, OW-WAR-0103, OW-WAR-0104, OW-WAR-0106, OW-WAR-0109 | 0 | 21 | 2 | 0 | 4 |
+| roadmap://OW-PHASE-6: Gate Registry and assurance case | OW-WAR-0046 | recorded | 0 | 6 | 0 | 0 | 8 |
+| roadmap://OW-PHASE-7: BLUT adapter | OW-WAR-0047 | blocked by OW-WAR-0027, OW-WAR-0047, OW-WAR-0108 | 0 | 2 | 1 | 0 | 0 |
 | roadmap://OW-PHASE-8: Liminal production compiler | OW-WAR-0048 | blocked by OW-WAR-0040, OW-WAR-0048 | 0 | 2 | 0 | 0 | 0 |
-| roadmap://OW-PHASE-9: High-assurance controls | — | not derivable — no member carries the `exit` slug | 0 | 4 | 0 | 0 | 0 |
+| roadmap://OW-PHASE-9: High-assurance controls | — | not derivable — no member carries the `exit` slug | 0 | 8 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-10: Contractor Work Order profile | — | not derivable — no Warrant names this phase | 0 | 0 | 0 | 0 | 0 |
-| *unassigned — declares no [[roadmap]]* | — | not derivable — a Warrant naming no phase belongs to no Objective | 0 | 40 | 0 | 0 | 0 |
+| *unassigned — declares no [[roadmap]]* | — | not derivable — a Warrant naming no phase belongs to no Objective | 0 | 0 | 0 | 0 | 0 |
 
 - **roadmap://OW-PHASE-0** exit: real distributions for authoring cost, amendment types, and failure causes.
 - **roadmap://OW-PHASE-1** exit: OpenWarrant development uses WARs.
@@ -56,6 +56,7 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 
 - `OW-WAR-0039` / `M2` / `STAGE-002` (roadmap://OW-PHASE-0) — M2 is unblocked; OW-WAR-0039 is ready to resolve; roadmap://OW-PHASE-0 is the lowest unachieved Objective
 - `OW-WAR-0041` / `M3` / `STAGE-002` (roadmap://OW-PHASE-0) — M3 is unblocked; OW-WAR-0041 is ready to resolve; roadmap://OW-PHASE-0 is the lowest unachieved Objective
+- `OW-WAR-0100` / `M1` / `STAGE-001` (roadmap://OW-PHASE-0) — M1 is unblocked; OW-WAR-0100 is draft; roadmap://OW-PHASE-0 is the lowest unachieved Objective
 
 ## What blocks resolution, by §56.1 requirement
 
@@ -63,7 +64,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | requirement | Warrants blocked |
 |---|---|
-| artifact digests verify | 73 |
+| artifact digests verify | 77 |
 | required deliverables exist | 56 |
 | every required gate has admissible result | 55 |
 | no blocker remains | 54 |
@@ -151,7 +152,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-084` | claimed | 0 | OW-WAR-0030 (complete), OW-WAR-0064 (partial), OW-WAR-0113 (complete), OW-WAR-0114 (partial) |
 | `WAR-SAS-RQ-085` | claimed | 0 | OW-WAR-0067 (partial), OW-WAR-0071 (partial), OW-WAR-0072 (partial) |
 
-## Warrants (111) — invalid 0 · draft 65 · ready_to_resolve 17 · would_satisfy 0 · resolved **29**
+## Warrants (111) — invalid 0 · draft 66 · ready_to_resolve 16 · would_satisfy 0 · resolved **29**
 
 | Warrant | rung | §38.6 | blocking unknowns | milestones evidenced | first unmet |
 |---|---|---|---|---|---|
@@ -167,7 +168,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0010` Implement the autonomy envelope and amendment records | resolved | would satisfy | 0 | 3 of 3 | artifact digests verify |
 | `OW-WAR-0011` Implement prerequisites and Preflight | ready_to_resolve | NOT satisfied | 0 | 2 of 3 | — |
 | `OW-WAR-0012` Implement the context model, context manifest, and trust classes | resolved | would satisfy | 0 | 3 of 3 | artifact digests verify |
-| `OW-WAR-0013` Validate SAS and Roadmap traceability | ready_to_resolve | NOT satisfied | 0 | 2 of 3 | — |
+| `OW-WAR-0013` Validate SAS and Roadmap traceability | draft | NOT satisfied | 0 | 2 of 3 | artifact digests verify |
 | `OW-WAR-0014` Implement the rationale model, assumptions, and unknowns | resolved | would satisfy | 0 | 2 of 2 | artifact digests verify |
 | `OW-WAR-0015` Implement deliverables, artifacts, and artifact provenance | resolved | would satisfy | 0 | 2 of 2 | — |
 | `OW-WAR-0016` Implement acceptance obligations and bounded claims | resolved | would satisfy | 0 | 4 of 4 | — |
@@ -205,9 +206,9 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0048` Discharge the Phase 8 exit: measured adapter parity and the two-host canonical run | draft | NOT satisfied | 0 | 0 of 4 | required deliverables exist |
 | `OW-WAR-0049` Close the alpha residue: the gaps alpha carried forward and one false claim | draft | NOT satisfied | 0 | 1 of 4 | required deliverables exist |
 | `OW-WAR-0050` Governed Bonsai evidence for pull-request workflow | draft | would satisfy | 1 | 0 of 2 | every required gate has admissible result |
-| `OW-WAR-0055` Compute the goal hierarchy: war status and the corpus projection | resolved | would satisfy | 0 | 4 of 4 | — |
+| `OW-WAR-0055` Compute the goal hierarchy: war status and the corpus projection | resolved | would satisfy | 0 | 4 of 4 | artifact digests verify |
 | `OW-WAR-0056` Compile a real Stage Dispatch (§47) | resolved | would satisfy | 0 | 3 of 3 | — |
-| `OW-WAR-0057` The viewer: a static page over the corpus projection | resolved | would satisfy | 0 | 2 of 2 | — |
+| `OW-WAR-0057` The viewer: a static page over the corpus projection | resolved | would satisfy | 0 | 2 of 2 | artifact digests verify |
 | `OW-WAR-0058` Put the SAS under §101 governance: controlled revisions and the Release axis | resolved | would satisfy | 0 | 3 of 3 | artifact digests verify |
 | `OW-WAR-0059` Commit gate receipts as evidence and record the first resolutions | draft | NOT satisfied | 0 | 2 of 4 | artifact digests verify |
 | `OW-WAR-0060` Publish the corpus viewer: GitHub Pages from the committed projection | resolved | would satisfy | 0 | 2 of 2 | — |
@@ -262,7 +263,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0109` Durable agent availability queue and automatic bounded dispatch | draft | unknown | 0 | 0 of 2 | required deliverables exist |
 | `OW-WAR-0110` Generate OpenWarrant TypeScript record types and integrate KF consumption | draft | unknown | 0 | 0 of 2 | required deliverables exist |
 | `OW-WAR-0111` Implement content-bearing preservation archives and honest import round trips | draft | unknown | 0 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0112` war is the app: ownership, a guided start, and remedies | draft | unknown | 0 | 0 of 5 | every required obligation is dispositioned |
+| `OW-WAR-0112` war is the app: ownership, a guided start, and remedies | draft | unknown | 0 | 0 of 5 | artifact digests verify |
 | `OW-WAR-0113` Two projections from atoms by relation: the current master document, and the history | draft | unknown | 0 | 0 of 5 | exact authorized Contract Revision |
 | `OW-WAR-0114` The roadmap becomes a record: one per program, beside the SAS | draft | unknown | 0 | 0 of 5 | required deliverables exist |
 | `OW-WAR-0115` The hub: war opens from anywhere, with every project and its progress | draft | unknown | 0 | 0 of 2 | required deliverables exist |

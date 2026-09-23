@@ -186,7 +186,10 @@ pub struct RoadmapRef {
 }
 
 impl RoadmapRef {
-    /// The last phase §98 defines. A reference past it names nothing.
+    /// The last phase §98 defines — the range a ref is held to only when the
+    /// program has no roadmap record. With one, the record's phases are the
+    /// range (`roadmap.unknown-phase`, OW-ADR-0023), so the grammar below no
+    /// longer bounds the number: a program may have a twelfth phase.
     pub const MAX_PHASE: u8 = 10;
 
     /// Parse `roadmap://OW-PHASE-6/gate-runs`, `roadmap://OW-PHASE-6`, or the
@@ -214,9 +217,6 @@ impl RoadmapRef {
             return Err(malformed());
         }
         let phase: u8 = number.parse().map_err(|_| malformed())?;
-        if phase > Self::MAX_PHASE {
-            return Err(malformed());
-        }
 
         let slug = match slug {
             None => None,
@@ -629,14 +629,14 @@ mod tests {
         );
     }
 
-    /// §98 defines phases 0..=10. Each malformed form below is a distinct way
+    /// The grammar, not the range (OW-ADR-0023: the roadmap record bounds the
+    /// phase number; `check` holds a ref to it). Each malformed form below is a distinct way
     /// a reference could name nothing while looking like it names something,
     /// and each must be refused on its own — a test that only checked one
     /// would pass against a parser that accepted the rest.
     #[test]
     fn a_roadmap_ref_outside_the_grammar_is_refused() {
         for bad in [
-            "roadmap://OW-PHASE-11/x",   // past the last phase
             "roadmap://OW-PHASE-01/x",   // padded: a second spelling of phase 1
             "roadmap://OW-PHASE-/x",     // no number
             "roadmap://ow-PHASE-1/x",    // lowercase prefix

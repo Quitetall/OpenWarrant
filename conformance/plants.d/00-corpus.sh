@@ -766,7 +766,8 @@ p.write_text(p.read_text().replace('target_ref = \\\"docs/roadmap/PHASE1_EXIT.md
 MANIFEST_0014="docs/warrants/OW-WAR-0014/manifest.toml"
 
 # OBL-001. Phase 11 does not exist in §98; a reference to it names nothing.
-plant "a roadmap ref past the last phase" "roadmap.malformed" "0..=10" 2 \
+# OW-ADR-0023: the roadmap record bounds the phase number, not the grammar.
+plant "a roadmap ref past the last phase" "roadmap.unknown-phase" "OW-PHASE-11" 2 \
     "sed -i 's|roadmap://OW-PHASE-1/rationale|roadmap://OW-PHASE-11/rationale|' $MANIFEST_0014; \
      assert_present 'OW-PHASE-11' '$MANIFEST_0014'"
 
@@ -801,7 +802,22 @@ plant "Corpus Status JSON edited by hand" "corpus-status.drift" "edited by hand"
 # dropping it. `plant_cmd` with a no-op mutation and a wanted exit of 0 is the
 # battery's way of asserting a thing is SAID, not only that a thing is refused.
 plant_cmd "next actionable is never empty" "Next actionable" "STAGE-" 0 ":" status
-plant_cmd "a Warrant with no roadmap is listed as unassigned" "unassigned" "OW-WAR-0050" 0 ":" status
+# A Warrant with neither a ref nor a placement (OW-ADR-0023) lands in the
+# unassigned objective: invalid 0, draft 1 (its rung). OW-WAR-0050 is placed by the
+# roadmap record; removing its placement is the mutation.
+unplace_0050() {
+    python3 - <<'PY'
+import pathlib, re
+p = pathlib.Path("docs/roadmap/roadmap.toml")
+t = p.read_text()
+t2 = re.sub(r'\[\[placement\]\]\nwarrant = "OW-WAR-0050"\n(?:[a-z]+ = .*\n)*', '', t)
+assert t2 != t
+p.write_text(t2)
+PY
+}
+plant_cmd "a Warrant with no roadmap is listed as unassigned" "unassigned" "belongs to no Objective | 0 | 1 |" 0 \
+    "unplace_0050; ! grep -q 'OW-WAR-0050' docs/roadmap/roadmap.toml" \
+    status
 
 # OBL-004. Two runs, byte-identical. A projection that differed between runs
 # would drift-fail on every commit, so this is also what makes OBL-005 usable.
