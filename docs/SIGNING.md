@@ -56,6 +56,15 @@ acts you signed as a list you did not sign: the list with a hole in it. So:
 - one record that moves between drafting and your dialog means nothing is
   recorded. The signed batch is kept as `.refused.json`, as evidence of
   what was attempted.
+- one act that fails while recording means nothing is recorded: every
+  directory the batch wrote (the responses and each act's Warrant or
+  roadmap) is copied before the first write and put back byte for byte,
+  and the batch is refused as `batch.incomplete`.
+
+What this does not cover: a process killed in the middle of recording
+(power loss, `kill -9`). That is crash recovery, OW-WAR-0130's work; until
+it lands, `git status` shows what an interrupted batch left, and `git
+checkout` of those paths undoes it.
 
 **How the check believes it.** `war check` believes a batched record the way
 it believes a singly signed one, by a signature over its exact bytes:

@@ -30,7 +30,7 @@
 //! only when a batch whose signature verifies as that record's actor lists
 //! the response's exact bytes.
 
-use camino::Utf8PathBuf;
+use camino::{Utf8Path, Utf8PathBuf};
 use openwarrant_core::batch::{BATCH_SCHEMA, Batch, BatchAct};
 
 use crate::diagnostic::{Diagnostic, Report};
@@ -336,37 +336,106 @@ pub fn run(
         return Ok(report);
     }
 
-    // 6. Record each act through its own ingest.
-    let mut records: Vec<Utf8PathBuf> = Vec::new();
-    let mut recorded = 0usize;
+    // 6. Record every act through its own ingest — all of them or none.
+    // Every directory an act writes is copied first; if any act fails to
+    // record, each is put back byte for byte and the batch is refused. A
+    // list applied with a hole in it would record acts the signer signed as
+    // a list they did not sign. (A process killed mid-way is not covered
+    // here: that is crash recovery, OW-WAR-0130.)
+    let mut dirs: Vec<Utf8PathBuf> = vec![repo.root.join("docs/authority/responses")];
     for d in &drafted {
+        let own = match d.pending {
+            Pending::AcceptRoadmap { .. } => crate::roadmap_cmd::dir(repo),
+            Pending::Authorize { alias, .. }
+            | Pending::Resolve { alias, .. }
+            | Pending::Correct { alias, .. } => repo.warrant_dir(alias)?,
+            Pending::Accept { .. } => continue,
+        };
+        if !dirs.contains(&own) {
+            dirs.push(own);
+        }
+    }
+    let snapshot = Snapshot::take(&dirs)?;
+    let mut records: Vec<Utf8PathBuf> = Vec::new();
+    let mut failed: Option<String> = None;
+    for (i, d) in drafted.iter().enumerate() {
+        // The fault the battery plants: fail after `n` acts recorded. Debug
+        // builds only — a release binary has no way to be told to fail.
+        #[cfg(debug_assertions)]
+        if std::env::var("OPENWARRANT_TEST_BATCH_FAIL_AFTER")
+            .ok()
+            .and_then(|v| v.parse::<usize>().ok())
+            == Some(i)
+        {
+            failed = Some(format!(
+                "{}: planted failure after {i} act(s)",
+                sign::line(d.pending)
+            ));
+            break;
+        }
+        let _ = i;
         if let Err(why) =
             sign::retire_prior(&d.final_path, &format!("sha256:{}", d.entry.bound_digest))
         {
-            report.push(Diagnostic::error(
-                "sign.response-exists",
-                sign::line(d.pending),
-                why,
-            ));
-            continue;
+            failed = Some(format!("{}: {why}", sign::line(d.pending)));
+            break;
         }
-        std::fs::rename(&d.draft_path, &d.final_path).map_err(|source| RepoError::Io {
-            context: format!("could not move {} to {}", d.draft_path, d.final_path),
-            source,
-        })?;
-        let r = ingest(repo, d.pending, &d.final_path, IngestMode::Record)?;
+        if let Err(e) = std::fs::rename(&d.draft_path, &d.final_path) {
+            failed = Some(format!(
+                "could not move {} to {}: {e}",
+                d.draft_path, d.final_path
+            ));
+            break;
+        }
+        let r = match ingest(repo, d.pending, &d.final_path, IngestMode::Record) {
+            Ok(r) => r,
+            Err(e) => {
+                failed = Some(format!("{}: {e}", sign::line(d.pending)));
+                break;
+            }
+        };
         let ok = r.is_ready();
         for x in r.diagnostics {
             report.push(x);
         }
-        if ok {
-            recorded += 1;
-            records.push(d.final_path.clone());
-            if let Ok(rec) = sign::record_of(repo, d.pending) {
-                records.push(rec);
-            }
+        if !ok {
+            failed = Some(format!(
+                "{}: its ingest refused it (above)",
+                sign::line(d.pending)
+            ));
+            break;
+        }
+        records.push(d.final_path.clone());
+        if let Ok(rec) = sign::record_of(repo, d.pending) {
+            records.push(rec);
         }
     }
+    if let Some(why) = failed {
+        let restored = snapshot.restore();
+        // The snapshot was taken with the drafts in place; like every other
+        // refusal, a refused batch leaves no draft behind.
+        discard(&drafted);
+        let refused = dir.join(format!("{}.refused.json", batch.batch_id));
+        let _ = std::fs::rename(&batch_path, &refused);
+        let _ = std::fs::rename(format!("{batch_path}.sig"), format!("{refused}.sig"));
+        report.push(Diagnostic::error(
+            "batch.incomplete",
+            repo.relative(&refused),
+            match restored {
+                Ok(()) => format!(
+                    "{why}. Nothing is recorded: every directory the batch wrote is restored \
+                     byte for byte, and the signed batch is kept as .refused.json"
+                ),
+                Err(e) => format!(
+                    "{why}. The restore ALSO failed ({e}); `git status` shows what the batch \
+                     left behind, and `git checkout` of those paths undoes it"
+                ),
+            },
+        ));
+        return Ok(report);
+    }
+    drop(snapshot);
+    let recorded = drafted.len();
     report.push(Diagnostic::pass(
         "batch.recorded",
         format!(
@@ -471,4 +540,68 @@ pub fn load_all(repo: &Repository) -> Vec<(Utf8PathBuf, Batch)> {
     }
     out.sort_by(|a, b| a.0.cmp(&b.0));
     out
+}
+
+/// Copies of directories, put back exactly on `restore`: every file the
+/// batch added is removed and every file it changed or removed returns.
+struct Snapshot {
+    taken: Vec<(Utf8PathBuf, Option<Utf8PathBuf>)>,
+    scratch: Utf8PathBuf,
+}
+
+impl Snapshot {
+    fn take(dirs: &[Utf8PathBuf]) -> Result<Self, RepoError> {
+        let io = |context: String| move |source| RepoError::Io { context, source };
+        let scratch = Utf8PathBuf::from_path_buf(std::env::temp_dir())
+            .map_err(|_| RepoError::Message("the temp directory is not UTF-8".to_owned()))?
+            .join(format!(
+                "war-batch-{}-{}",
+                std::process::id(),
+                crate::gate_cmd::receipt::now_rfc3339_public().replace(':', "")
+            ));
+        std::fs::create_dir_all(&scratch).map_err(io(format!("could not create {scratch}")))?;
+        let mut taken = Vec::new();
+        for (n, d) in dirs.iter().enumerate() {
+            if d.is_dir() {
+                let copy = scratch.join(n.to_string());
+                copy_tree(d, &copy).map_err(io(format!("could not copy {d}")))?;
+                taken.push((d.clone(), Some(copy)));
+            } else {
+                taken.push((d.clone(), None));
+            }
+        }
+        Ok(Self { taken, scratch })
+    }
+
+    fn restore(&self) -> std::io::Result<()> {
+        for (d, copy) in &self.taken {
+            if d.exists() {
+                std::fs::remove_dir_all(d)?;
+            }
+            if let Some(c) = copy {
+                copy_tree(c, d)?;
+            }
+        }
+        Ok(())
+    }
+}
+
+impl Drop for Snapshot {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.scratch);
+    }
+}
+
+fn copy_tree(from: &Utf8Path, to: &Utf8Path) -> std::io::Result<()> {
+    std::fs::create_dir_all(to)?;
+    for entry in from.read_dir_utf8()? {
+        let entry = entry?;
+        let dest = to.join(entry.file_name());
+        if entry.file_type()?.is_dir() {
+            copy_tree(entry.path(), &dest)?;
+        } else {
+            std::fs::copy(entry.path(), &dest)?;
+        }
+    }
+    Ok(())
 }

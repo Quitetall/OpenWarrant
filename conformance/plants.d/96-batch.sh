@@ -58,6 +58,24 @@ else
     printf 'FAIL  %-34s files left: %s\n' "a batch dry run writes nothing" "$(ls "$PLANT_ROOT"/docs/authority/batches "$PLANT_ROOT"/docs/authority/responses 2>/dev/null | tr '\n' ' ')"; FAILED=$((FAILED + 1))
 fi
 
+# All or nothing at record time: a failure after one act is recorded puts
+# every directory back byte for byte (the fault is a debug-build hook). The
+# whole docs/ tree is compared, so a write the restore did not know about
+# shows up here — only the batch's own .refused.json may remain.
+bt_files() { (cd "$PLANT_ROOT" && find docs -path docs/authority/batches -prune -o -type f -print0 | sort -z | xargs -0 sha256sum); }
+bt_tree() { bt_files | sha256sum; }
+BT_BEFORE=$(bt_tree)
+BT_FILES=$(bt_files)
+BT_OUT=$(OPENWARRANT_TEST_BATCH_FAIL_AFTER=1 "$WAR" --root "$PLANT_ROOT" sign --batch --ssh-sign --as "Plant Signer" </dev/null 2>&1); BT_STATUS=$?
+BT_AFTER=$(bt_tree)
+if [[ $BT_STATUS -ne 0 ]] && grep -q 'batch.incomplete' <<<"$BT_OUT" && [[ "$BT_BEFORE" == "$BT_AFTER" ]] \
+    && [[ -z "$(ls "$PLANT_ROOT"/docs/warrants/*/authorization.toml 2>/dev/null)" ]]; then
+    printf 'ok    %-34s batch.incomplete, docs/ byte-identical\n' "a failure mid-record records nothing"; PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s exit %s, moved: %s: %s\n' "a failure mid-record records nothing" "$BT_STATUS" "$(diff <(echo "$BT_FILES") <(bt_files) | grep '^[<>]' | awk '{print $1, $3}' | tr '\n' ' ')" "$(grep -E '^(ERROR|WARN)' <<<"$BT_OUT" | head -2 | tr '\n' '|')"; FAILED=$((FAILED + 1))
+fi
+command rm -f "$PLANT_ROOT"/docs/authority/batches/*.refused.json*
+
 # The positive: every pending authorization, one signature, all recorded.
 BT_OUT=$("$WAR" --root "$PLANT_ROOT" sign --batch --ssh-sign --as "Plant Signer" </dev/null 2>&1)
 BT_STATUS=$?
