@@ -333,6 +333,18 @@ pub fn request(repo: &Repository, alias: &str) -> Result<ResolutionRequest, Repo
 
 /// `war resolve <alias> --response <file>`: ingest a human's resolution.
 pub fn ingest(repo: &Repository, alias: &str, path: &Utf8Path) -> Result<Report, RepoError> {
+    ingest_with(repo, alias, path, crate::sign::IngestMode::Record)
+}
+
+/// [`ingest`], or the same judgment with the write withheld (see
+/// `sign::IngestMode`). Every §56.1 refusal runs either way; `DryRun` stops
+/// at the record write with `resolution.would-record`.
+pub fn ingest_with(
+    repo: &Repository,
+    alias: &str,
+    path: &Utf8Path,
+    mode: crate::sign::IngestMode,
+) -> Result<Report, RepoError> {
     let mut report = Report::default();
     let refuse = |report: &mut Report, rule: &'static str, why: String| {
         report.push(Diagnostic::error(rule, path.to_string(), why));
@@ -595,6 +607,16 @@ pub fn ingest(repo: &Repository, alias: &str, path: &Utf8Path) -> Result<Report,
         resolution,
         locator: locate(&repo.root, &declared),
     };
+    if mode == crate::sign::IngestMode::DryRun {
+        report.push(Diagnostic::pass(
+            "resolution.would-record",
+            format!(
+                "{alias}: {} would be recorded against contract {}; the thirteen hold. Not written",
+                record.resolution.common_outcome, record.resolution.contract_digest
+            ),
+        ));
+        return Ok(report);
+    }
     let out = dir.join("resolution.toml");
     let body = toml::to_string_pretty(&record)
         .map_err(|e| RepoError::Message(format!("could not render the resolution: {e}")))?;

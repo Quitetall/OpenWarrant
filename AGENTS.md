@@ -84,6 +84,14 @@ links to generated progress, implementation notes, document trail and next steps
 Use actual tracker output; report missing generation support instead of fabricating
 state. Completion does not imply qualification, merge, deployment or Stable release.
 
+Before a handoff that asks a human to sign, run `war sign <target> --dry-run`
+(or `war sign --all --dry-run` for the queue). It drafts the response and runs
+the act's ingest with the write withheld: every refusal the real signature
+would meet, by its rule name, or `<act>.would-record`. Nothing is written and
+no key is touched. Report which acts would record and which would be refused,
+and fix the refusals first — a human's dialog is not the place to discover
+`authorize.no-amendment`.
+
 For work or architecture changes, follow the user's stop-now or next-work-stop
 decision and retain required old rules until the affected writer stops. Harness
 updates apply before the next affected tool action; hard permission revocations

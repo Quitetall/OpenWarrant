@@ -153,6 +153,21 @@ pub struct AmendmentSummary {
     pub changes: Vec<(String, String, String)>,
 }
 
+/// Whether an ingest records or only judges.
+///
+/// `DryRun` runs every refusal an ingest would run — schema, digest, register,
+/// role, amendment count, deliverable set, judgment admissibility — against a
+/// drafted, UNSIGNED response, and stops at the point the real path would
+/// write. It writes no record, appends no journal line, and reaches no key.
+/// The report names the exact rule the real ingest would refuse with, or
+/// `<act>.would-record`, so an agent can learn "this will be refused because
+/// X" without spending a human's dialog to find out.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum IngestMode {
+    Record,
+    DryRun,
+}
+
 /// What the signer chose, beyond `y`.
 #[derive(Debug, Clone)]
 pub struct Options {
@@ -173,6 +188,12 @@ pub struct Options {
     /// Render the screen and stop: no prompt, no terminal needed, nothing
     /// written. For reading what a signature would say from anywhere.
     pub show: bool,
+    /// Draft the response and run the act's ingest in [`IngestMode::DryRun`]:
+    /// every refusal, no write, no key. The draft lives in a temp directory
+    /// for the duration of the check and is removed; nothing lands under
+    /// `docs/authority/responses/`. For an agent to troubleshoot an act before
+    /// asking a human to sign it.
+    pub dry_run: bool,
     /// Sign the response file with the actor's ssh key via `ssh-keygen -Y
     /// sign`, verified at once against `docs/authority/allowed_signers`. No
     /// terminal needed: the human act is the agent's confirmation dialog
@@ -190,6 +211,7 @@ impl Default for Options {
     /// independence, and `None` would claim the signer did the work.
     fn default() -> Self {
         Self {
+            dry_run: false,
             actor: None,
             meaning: None,
             outcome: None,
@@ -1188,6 +1210,153 @@ fn confirm(prompt: &str) -> Result<bool, RepoError> {
     Ok(a == "y" || a == "yes")
 }
 
+/// `war sign … --dry-run`: judge every chosen act as its ingest would, write
+/// nothing, sign nothing.
+///
+/// The drafted response goes to a temp directory — never to
+/// `docs/authority/responses/`, where a `.draft.toml` reads as a pending act —
+/// and is removed on every path out. The ingest runs in `DryRun` mode, so the
+/// diagnostics are the real ones with the real rule names; only the write is
+/// withheld. A SAS acceptance is the exception: its ingest lives in a file
+/// this Warrant does not govern, so it reports what `pending` already
+/// established (eligibility, the `--adr` requirement) and says the rest is
+/// unchecked rather than pretending.
+fn dry_run(
+    repo: &Repository,
+    chosen: &[&Pending],
+    opts: &Options,
+    mut report: Report,
+) -> Result<Report, RepoError> {
+    let tmp = camino::Utf8PathBuf::from_path_buf(std::env::temp_dir())
+        .map_err(|p| RepoError::Message(format!("non-UTF-8 temp dir {p:?}")))?
+        .join(format!("war-dry-run-{}", std::process::id()));
+    std::fs::create_dir_all(&tmp).map_err(|source| RepoError::Io {
+        context: format!("could not create {tmp}"),
+        source,
+    })?;
+    for p in chosen {
+        let actor = match choose_actor(eligible(p), opts) {
+            Ok(a) => a,
+            Err(why) => {
+                report.push(Diagnostic::error("sign.who", line(p), why));
+                continue;
+            }
+        };
+        let now = crate::gate_cmd::receipt::now_rfc3339_public();
+        let mut per_act = opts.clone();
+        if matches!(p, Pending::Correct { .. }) {
+            per_act.meaning = reason_for(repo, p, opts);
+        }
+        let drafted = match draft(p, &actor, &per_act, &now) {
+            Ok(d) => d,
+            Err(why) => {
+                // Same shape as the real sweep: under `--all` an act that needs
+                // a decision the batch cannot make is one act waiting on its
+                // own answer, not a failure of the dry run.
+                if opts.all {
+                    report.push(Diagnostic::warn(
+                        "sign.needs-decision",
+                        line(p),
+                        format!("{why} — not judged by this dry run; run it alone with that flag"),
+                    ));
+                } else {
+                    report.push(Diagnostic::error("sign.not-draftable", line(p), why));
+                }
+                continue;
+            }
+        };
+        let path = tmp.join(format!("{}.draft.toml", drafted.file_stem()));
+        std::fs::write(&path, drafted.render()?).map_err(|source| RepoError::Io {
+            context: format!("could not write {path}"),
+            source,
+        })?;
+        let judged = match p {
+            Pending::Authorize { alias, .. } => {
+                authorize::ingest_with(repo, alias, &path, IngestMode::DryRun)
+            }
+            Pending::Resolve { alias, .. } => {
+                resolution_cmd::ingest_with(repo, alias, &path, IngestMode::DryRun)
+            }
+            Pending::Correct {
+                alias,
+                deliverable_id,
+                ..
+            } => {
+                crate::correct::ingest_with(repo, alias, deliverable_id, &path, IngestMode::DryRun)
+            }
+            Pending::Accept { version, request } => {
+                let mut r = Report::default();
+                if request.adr_required && opts.adr_ref.is_none() {
+                    r.push(Diagnostic::error(
+                        "sas.adr-required",
+                        line(p),
+                        format!(
+                            "SAS {version} is architecture-changing; §101.3 needs `--adr <ADR>` \
+                             and the real ingest refuses without it"
+                        ),
+                    ));
+                } else {
+                    r.push(Diagnostic::pass(
+                        "sas.would-accept",
+                        format!(
+                            "SAS {version}: eligible signer, {}; the acceptance ingest itself is \
+                             not exercised by a dry run (its file is outside OW-WAR-0112)",
+                            if request.adr_required {
+                                "ADR named"
+                            } else {
+                                "no ADR required"
+                            }
+                        ),
+                    ));
+                }
+                Ok(r)
+            }
+        };
+        let _ = std::fs::remove_file(&path);
+        match judged {
+            Ok(r) => {
+                let ready = r.is_ready();
+                for d in r.diagnostics {
+                    report.push(d);
+                }
+                for n in r.notes {
+                    report.note(n);
+                }
+                report.push(if ready {
+                    Diagnostic::pass(
+                        "sign.would-record",
+                        format!(
+                            "{} — every refusal passed; the signature is the only thing missing. \
+                             Nothing written",
+                            line(p)
+                        ),
+                    )
+                } else {
+                    Diagnostic::error(
+                        "sign.would-refuse",
+                        line(p),
+                        "the ingest would refuse this act for the reason(s) above; fix them before \
+                         asking a human to sign. Nothing written"
+                            .to_owned(),
+                    )
+                });
+            }
+            Err(e) => report.push(Diagnostic::error(
+                "sign.dry-run-failed",
+                line(p),
+                format!("could not judge this act: {e}"),
+            )),
+        }
+    }
+    let _ = std::fs::remove_dir(&tmp);
+    report.note(
+        "Dry run: every act was drafted and judged as its ingest would judge it, and none was \
+         recorded, journalled or signed. A pass here says the paperwork is right, not that \
+         anyone agreed.",
+    );
+    Ok(report)
+}
+
 fn write_response(repo: &Repository, drafted: &Drafted) -> Result<Utf8PathBuf, RepoError> {
     let dir = repo.root.join("docs/authority/responses");
     std::fs::create_dir_all(&dir).map_err(|source| RepoError::Io {
@@ -1652,7 +1821,7 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
     if opts.verify {
         return verify_existing(repo, target, opts);
     }
-    if !opts.show && !opts.ssh_sign && !at_a_terminal() {
+    if !opts.show && !opts.dry_run && !opts.ssh_sign && !at_a_terminal() {
         report.push(Diagnostic::error(
             "sign.no-tty",
             "war sign".to_owned(),
@@ -1712,6 +1881,9 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
             ));
         }
         return Ok(report);
+    }
+    if opts.dry_run {
+        return dry_run(repo, &chosen, opts, report);
     }
 
     for p in chosen {

@@ -493,6 +493,22 @@ pub fn ingest(
     alias: &str,
     response_path: &Utf8PathBuf,
 ) -> Result<Report, RepoError> {
+    ingest_with(repo, alias, response_path, crate::sign::IngestMode::Record)
+}
+
+/// [`ingest`], or the same judgment with the write withheld.
+///
+/// Every refusal above the record write runs in both modes, so a
+/// `DryRun` report names exactly what the real ingest would refuse. The one
+/// difference is at the write: `DryRun` reports `authorize.would-record` and
+/// returns; nothing under the Warrant directory is touched and no journal
+/// line is appended.
+pub fn ingest_with(
+    repo: &Repository,
+    alias: &str,
+    response_path: &Utf8PathBuf,
+    mode: crate::sign::IngestMode,
+) -> Result<Report, RepoError> {
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
     let mut report = Report::default();
@@ -770,6 +786,18 @@ pub fn ingest(
         deliverable_set_digest: Some(current_set_digest.clone()),
         owned,
     };
+    if mode == crate::sign::IngestMode::DryRun {
+        report.push(Diagnostic::pass(
+            "authorize.would-record",
+            format!(
+                "{alias}: revision {} at contract {current_digest} would be recorded, granting \
+                 {} path(s) under set {current_set_digest}. Not written",
+                record.revision.revision,
+                record.owned.len()
+            ),
+        ));
+        return Ok(report);
+    }
     write_toml(&dir.join("authorization.toml"), &record)?;
     if let Some(v) = &one.validated {
         crate::journal_cmd::record(

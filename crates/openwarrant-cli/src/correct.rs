@@ -204,6 +204,19 @@ pub fn ingest(
     id: &str,
     path: &Utf8Path,
 ) -> Result<Report, RepoError> {
+    ingest_with(repo, alias, id, path, crate::sign::IngestMode::Record)
+}
+
+/// [`ingest`], or the same judgment with the write withheld (see
+/// `sign::IngestMode`): every refusal runs, `DryRun` stops before the
+/// correction file is created with `correction.would-record`.
+pub fn ingest_with(
+    repo: &Repository,
+    alias: &str,
+    id: &str,
+    path: &Utf8Path,
+    mode: crate::sign::IngestMode,
+) -> Result<Report, RepoError> {
     let mut report = Report::default();
     let refuse = |report: &mut Report, rule: &'static str, why: String| {
         report.push(Diagnostic::error(rule, path.to_string(), why));
@@ -430,6 +443,28 @@ pub fn ingest(
     let out = cdir.join(format!("{id}-{sequence}.toml"));
     let body = toml::to_string_pretty(&record)
         .map_err(|e| RepoError::Message(format!("could not render the correction: {e}")))?;
+    if mode == crate::sign::IngestMode::DryRun {
+        if out.exists() {
+            refuse(
+                &mut report,
+                "correction.exists",
+                format!(
+                    "{}: already exists; a correction is never overwritten",
+                    repo.relative(&out)
+                ),
+            );
+        } else {
+            report.push(Diagnostic::pass(
+                "correction.would-record",
+                format!(
+                    "{alias}/{id}: correction {sequence} ({} → {}) would be recorded. Not written",
+                    &record.correction.superseded_digest[..19],
+                    &record.correction.new_digest[..19]
+                ),
+            ));
+        }
+        return Ok(report);
+    }
     // `create_new`: a second correction is a second file, never an overwrite.
     let mut f = match std::fs::OpenOptions::new()
         .write(true)

@@ -449,6 +449,7 @@ fn sign_checked(
         let preset = reason.and_then(|r| r.preset.clone());
         let extra = reason.and_then(|r| r.extra.clone());
         let mut opts = sign::Options {
+            dry_run: false,
             actor: None,
             meaning: compose_meaning(preset.as_ref(), extra.as_deref()),
             outcome: None,

@@ -675,6 +675,12 @@ enum Command {
         /// nothing. Read this from anywhere; sign it from a terminal.
         #[arg(long)]
         show: bool,
+        /// Draft the response and run the act's ingest with the write
+        /// withheld: every refusal the real signature would meet, by its rule
+        /// name, and `<act>.would-record` when none. Writes nothing, touches
+        /// no key. For an agent to troubleshoot before asking a human.
+        #[arg(long)]
+        dry_run: bool,
         /// Sign with your ssh key instead of a terminal prompt. Needs
         /// `ssh_principal` on your roles.toml entry and a matching line in
         /// docs/authority/allowed_signers. Load the key with `ssh-add -c` so
@@ -2260,6 +2266,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             independence,
             edit,
             show,
+            dry_run,
             ssh_sign,
             verify,
             kind,
@@ -2316,6 +2323,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 edit,
                 all,
                 show,
+                dry_run,
                 ssh_sign,
                 verify,
                 kind,
