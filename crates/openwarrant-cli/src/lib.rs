@@ -142,7 +142,12 @@ enum RoadmapCommand {
     },
     /// Record the roadmap atoms as they stand as the next revision; a human
     /// then accepts it with `war sign roadmap --ssh-sign`.
-    Propose,
+    Propose {
+        /// What you changed, in a line; shown on the signing screen as your
+        /// statement beside the computed diff.
+        #[arg(long)]
+        note: Option<String>,
+    },
     /// Edit the phases by keystroke, at a terminal, and sign once. No file is
     /// opened; the atom is written, the revision proposed, and one
     /// `war sign roadmap --ssh-sign` raises the dialog.
@@ -1775,10 +1780,10 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     None,
                 )),
                 Some(RoadmapCommand::Edit) => Ok(roadmap_edit::run(&repository)?),
-                Some(RoadmapCommand::Propose) => Ok(output::finish(
+                Some(RoadmapCommand::Propose { note }) => Ok(output::finish(
                     mode,
                     "roadmap",
-                    &roadmap_cmd::propose(&repository)?,
+                    &roadmap_cmd::propose(&repository, note.as_deref())?,
                     None,
                 )),
             }

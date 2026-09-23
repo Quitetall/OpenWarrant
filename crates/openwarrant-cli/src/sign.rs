@@ -722,6 +722,9 @@ fn screen(p: &Pending, actor: &str, role: &str, reason: Option<&str>) -> String 
                 request.phase_count,
                 request.diff.summary()
             ));
+            if let Some(n) = &request.note {
+                s.push_str(&format!("│ the proposer says: {n}\n"));
+            }
         }
         Pending::Accept { version, request } => {
             s.push_str(&format!(

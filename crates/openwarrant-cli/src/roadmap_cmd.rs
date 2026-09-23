@@ -598,7 +598,7 @@ pub fn assign(repo: &Repository, alias: &str, target: &str) -> Result<Report, Re
 }
 
 /// `war roadmap propose`: the atoms as they stand, as the next revision.
-pub fn propose(repo: &Repository) -> Result<Report, RepoError> {
+pub fn propose(repo: &Repository, note: Option<&str>) -> Result<Report, RepoError> {
     let mut report = Report::default();
     let loaded = load(repo)
         .map_err(|e| RepoError::Message(e.to_string()))?
@@ -627,12 +627,16 @@ pub fn propose(repo: &Repository) -> Result<Report, RepoError> {
         state: SasRevisionState::Proposed,
         predecessor: predecessor.map(|p| p.revision),
         phases: loaded.phase_titles(),
+        detail: loaded
+            .phases
+            .phases
+            .iter()
+            .map(|p| (p.id.clone(), openwarrant_core::roadmap::PhaseDetail::of(p)))
+            .collect(),
+        note: note.map(str::to_owned),
         acceptance: None,
     };
-    let diff = openwarrant_core::roadmap::PhaseDiff::between(
-        &predecessor.map(|p| p.phases.clone()).unwrap_or_default(),
-        &rec.phases,
-    );
+    let diff = diff_against(predecessor, &rec);
     let path = revision_path(&loaded, n);
     fs::create_dir_all(loaded.dir.join("revisions")).map_err(|source| RepoError::Io {
         context: "could not create revisions/".to_owned(),
@@ -682,6 +686,9 @@ pub struct AcceptRequest {
     pub sha256: String,
     pub predecessor: Option<u32>,
     pub diff: openwarrant_core::roadmap::PhaseDiff,
+    /// The proposer's statement of the change, when one was given.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub note: Option<String>,
     pub phase_count: usize,
     pub eligible_acceptors: Vec<String>,
 }
@@ -714,16 +721,15 @@ pub fn accept_request(repo: &Repository, n: u32) -> Result<AcceptRequest, RepoEr
     let rec = find_revision(&loaded, n)?;
     let before = rec
         .predecessor
-        .and_then(|p| loaded.revisions.iter().find(|r| r.revision == p))
-        .map(|r| r.phases.clone())
-        .unwrap_or_default();
+        .and_then(|p| loaded.revisions.iter().find(|r| r.revision == p));
     let register = repo.load_authority_register()?;
     Ok(AcceptRequest {
         schema: ACCEPT_REQUEST_SCHEMA.to_owned(),
         revision: n,
         sha256: rec.sha256.clone(),
         predecessor: rec.predecessor,
-        diff: openwarrant_core::roadmap::PhaseDiff::between(&before, &rec.phases),
+        diff: diff_against(before, rec),
+        note: rec.note.clone(),
         phase_count: rec.phases.len(),
         eligible_acceptors: register
             .holders(openwarrant_core::authority::ActorRole::Authorizer)
@@ -902,5 +908,23 @@ pub fn check_signatures(repo: &Repository, loaded: &Loaded, report: &mut Report)
                 format!("{s}: {}", v.why()),
             ));
         }
+    }
+}
+
+/// The computed diff of a revision against its predecessor: titles always,
+/// and exit, tier, order and open work when the predecessor recorded them.
+/// A first revision has nothing to compare and says so by listing its
+/// phases as added.
+fn diff_against(
+    before: Option<&RoadmapRevision>,
+    after: &RoadmapRevision,
+) -> openwarrant_core::roadmap::PhaseDiff {
+    let titles = openwarrant_core::roadmap::PhaseDiff::between(
+        &before.map(|b| b.phases.clone()).unwrap_or_default(),
+        &after.phases,
+    );
+    match before {
+        Some(b) => titles.with_detail(&b.detail, &after.detail),
+        None => titles,
     }
 }

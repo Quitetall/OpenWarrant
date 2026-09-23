@@ -269,8 +269,43 @@ pub struct RoadmapRevision {
     /// compared from records alone.
     #[serde(default)]
     pub phases: BTreeMap<String, String>,
+    /// Everything else a phase states — exit, tier, dependencies, open work —
+    /// so the signing screen can say what changed, not only which titles.
+    /// Absent on revisions recorded before it existed (revision 1 here).
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub detail: BTreeMap<String, PhaseDetail>,
+    /// The proposer's own statement of what changed. Shown on the signing
+    /// screen, labelled as the proposer's claim; the computed diff is the
+    /// fact.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub note: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub acceptance: Option<SasAcceptance>,
+}
+
+/// One phase's statements, as a revision records them.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PhaseDetail {
+    #[serde(default)]
+    pub exit: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub priority: Option<String>,
+    #[serde(default)]
+    pub depends_on: Vec<String>,
+    #[serde(default)]
+    pub open: Vec<String>,
+}
+
+impl PhaseDetail {
+    #[must_use]
+    pub fn of(p: &Phase) -> Self {
+        Self {
+            exit: p.exit.clone(),
+            priority: p.priority.clone(),
+            depends_on: p.depends_on.clone(),
+            open: p.open.clone(),
+        }
+    }
 }
 
 /// A phase-level diff between two revisions' phase maps.
@@ -279,6 +314,14 @@ pub struct PhaseDiff {
     pub added: Vec<String>,
     pub removed: Vec<String>,
     pub retitled: Vec<(String, String, String)>,
+    /// Per-phase changes to exit, tier, dependencies or open work, when both
+    /// revisions recorded them.
+    #[serde(default)]
+    pub changed: Vec<String>,
+    /// True when the predecessor recorded titles only, so changes beyond a
+    /// title cannot be computed against it.
+    #[serde(default)]
+    pub detail_unknown: bool,
 }
 
 impl PhaseDiff {
@@ -300,10 +343,66 @@ impl PhaseDiff {
         d
     }
 
+    /// Add the per-phase changes between two revisions' details.
+    #[must_use]
+    pub fn with_detail(
+        mut self,
+        before: &BTreeMap<String, PhaseDetail>,
+        after: &BTreeMap<String, PhaseDetail>,
+    ) -> Self {
+        if before.is_empty() && !after.is_empty() {
+            self.detail_unknown = true;
+            return self;
+        }
+        for (id, a) in after {
+            let Some(b) = before.get(id) else { continue };
+            if a.exit != b.exit {
+                self.changed
+                    .push(format!("{id} exit: {:?} → {:?}", b.exit, a.exit));
+            }
+            if a.priority != b.priority {
+                self.changed.push(format!(
+                    "{id} tier: {} → {}",
+                    b.priority.as_deref().unwrap_or("none"),
+                    a.priority.as_deref().unwrap_or("none")
+                ));
+            }
+            if a.depends_on != b.depends_on {
+                self.changed.push(format!(
+                    "{id} after: [{}] → [{}]",
+                    b.depends_on.join(", "),
+                    a.depends_on.join(", ")
+                ));
+            }
+            let opened: Vec<&String> = a.open.iter().filter(|s| !b.open.contains(s)).collect();
+            let closed: Vec<&String> = b.open.iter().filter(|s| !a.open.contains(s)).collect();
+            for s in opened {
+                self.changed.push(format!("{id} +open {s}"));
+            }
+            for s in closed {
+                self.changed.push(format!("{id} −open {s}"));
+            }
+        }
+        self
+    }
+
     #[must_use]
     pub fn summary(&self) -> String {
-        if self.added.is_empty() && self.removed.is_empty() && self.retitled.is_empty() {
-            return "no phase added, removed or retitled (exits, order, priority or open work may differ)".to_owned();
+        let unknown = if self.detail_unknown {
+            " (the predecessor recorded titles only: exits, tiers, order and open work cannot be compared against it)"
+        } else {
+            ""
+        };
+        if self.added.is_empty()
+            && self.removed.is_empty()
+            && self.retitled.is_empty()
+            && self.changed.is_empty()
+        {
+            return if self.detail_unknown {
+                format!("no phase added, removed or retitled{unknown}")
+            } else {
+                "no phase added, removed, retitled or changed".to_owned()
+            };
         }
         let mut parts = Vec::new();
         if !self.added.is_empty() {
@@ -319,7 +418,8 @@ impl PhaseDiff {
         for (id, b, a) in &self.retitled {
             parts.push(format!("~{id}: {b:?} → {a:?}"));
         }
-        parts.join(", ")
+        parts.extend(self.changed.iter().cloned());
+        format!("{}{unknown}", parts.join(", "))
     }
 }
 
@@ -397,6 +497,36 @@ phases:
             parse_phases(&padded, "OW"),
             Err(RoadmapError::BadId { .. })
         ));
+    }
+
+    #[test]
+    fn the_detail_diff_names_exit_tier_order_and_open_work() {
+        let d = |exit: &str, tier: Option<&str>, deps: &[&str], open: &[&str]| PhaseDetail {
+            exit: exit.into(),
+            priority: tier.map(Into::into),
+            depends_on: deps.iter().map(|s| (*s).into()).collect(),
+            open: open.iter().map(|s| (*s).into()).collect(),
+        };
+        let before: BTreeMap<String, PhaseDetail> =
+            [("P-9".into(), d("x", Some("4"), &[], &["exit"]))].into();
+        let after: BTreeMap<String, PhaseDetail> = [(
+            "P-9".into(),
+            d("y", Some("3"), &["P-6"], &["exit", "web-lan"]),
+        )]
+        .into();
+        let diff = PhaseDiff::default().with_detail(&before, &after);
+        let s = diff.summary();
+        for want in [
+            "P-9 exit",
+            "P-9 tier: 4 → 3",
+            "P-9 after",
+            "P-9 +open web-lan",
+        ] {
+            assert!(s.contains(want), "{want} missing from {s}");
+        }
+        let unknown = PhaseDiff::default().with_detail(&BTreeMap::new(), &after);
+        assert!(unknown.detail_unknown);
+        assert!(unknown.summary().contains("titles only"));
     }
 
     #[test]

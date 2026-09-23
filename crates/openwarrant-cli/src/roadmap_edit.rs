@@ -433,7 +433,7 @@ fn save_and_sign(repo: &Repository, atom: &Utf8Path, ed: &Editor) -> Result<(), 
         context: format!("could not write {atom}"),
         source,
     })?;
-    let report = crate::roadmap_cmd::propose(repo)?;
+    let report = crate::roadmap_cmd::propose(repo, None)?;
     for d in &report.diagnostics {
         println!("  {}", d.message);
     }

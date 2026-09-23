@@ -3,6 +3,7 @@ revision = 2
 sha256 = "c696f33422c2d4cae4238b010831314ccbd94cc27d67f2fd4aed4068236e06db"
 state = "proposed"
 predecessor = 1
+note = "OW-PHASE-9 gains the open slug web-lan: the web UI on the LAN and other devices, which needs TLS and real authentication first (owner, 2026-09-23)"
 
 [phases]
 OW-PHASE-0 = "Telemetry shim"
@@ -16,3 +17,106 @@ OW-PHASE-6 = "Gate Registry and assurance case"
 OW-PHASE-7 = "BLUT adapter"
 OW-PHASE-8 = "Liminal production compiler"
 OW-PHASE-9 = "High-assurance controls"
+
+[detail.OW-PHASE-0]
+exit = "real distributions for authoring cost, amendment types, and failure causes."
+priority = "3"
+depends_on = []
+open = ["friction-baseline"]
+
+[detail.OW-PHASE-1]
+exit = "OpenWarrant development uses WARs."
+priority = "1"
+depends_on = []
+open = [
+    "identity",
+    "retention",
+    "storage",
+    "document-grammar",
+]
+
+[detail.OW-PHASE-10]
+exit = "a contractor Work Order compiles through the unchanged technical WAR core, and acceptance, invoicing and legal terms live entirely in the profile."
+priority = "4"
+depends_on = [
+    "OW-PHASE-6",
+    "OW-PHASE-9",
+]
+open = [
+    "contractor-profile",
+    "exit",
+]
+
+[detail.OW-PHASE-2]
+exit = "a vague engineering request produces a reviewable valid draft without direct model file mutation."
+priority = "3"
+depends_on = ["OW-PHASE-1"]
+open = []
+
+[detail.OW-PHASE-3]
+exit = "no managed normative decision exists only inline."
+priority = "1"
+depends_on = ["OW-PHASE-1"]
+open = [
+    "parent-revision",
+    "adoption",
+    "sas-atoms",
+]
+
+[detail.OW-PHASE-4]
+exit = "registered WARs use KF as institutional authority while Git may remain Source Holder."
+priority = "2"
+depends_on = [
+    "OW-PHASE-1",
+    "OW-PHASE-3",
+]
+open = [
+    "kf-authority",
+    "native-authority",
+    "kf-compiler",
+]
+
+[detail.OW-PHASE-5]
+exit = "one WAR stage can be compiled, executed by a stateless Katana agent, and returned without authority confusion."
+priority = "2"
+depends_on = ["OW-PHASE-1"]
+open = [
+    "budget-refusal",
+    "idempotency",
+    "adapters",
+    "hotline-defaults",
+]
+
+[detail.OW-PHASE-6]
+exit = "a delivery can close only through bounded, provenance-preserving proof."
+priority = "1"
+depends_on = ["OW-PHASE-1"]
+open = [
+    "verification-pipeline",
+    "evidence-reuse",
+    "acceptance-validity",
+    "assurance-mark",
+]
+
+[detail.OW-PHASE-7]
+exit = "compatible computational WARs execute without duplicating BLUT."
+priority = "3"
+depends_on = ["OW-PHASE-5"]
+open = []
+
+[detail.OW-PHASE-8]
+exit = "Liminal is the single production document semantic compiler."
+priority = "2"
+depends_on = ["OW-PHASE-1"]
+open = []
+
+[detail.OW-PHASE-9]
+exit = "a resolution is signed, its evidence custody is audited, and one gate invalidation propagates to every dependent resolution, with no step performed by the actor who produced the work."
+priority = "4"
+depends_on = ["OW-PHASE-6"]
+open = [
+    "exit",
+    "teams",
+    "authentication",
+    "web-lan",
+]
