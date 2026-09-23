@@ -71,8 +71,6 @@ pub(super) struct Snapshot {
     links: BTreeMap<String, String>,
     #[serde(skip)]
     sources: BTreeMap<String, PathBuf>,
-    #[serde(skip)]
-    root: PathBuf,
 }
 fn err(message: impl Into<String>) -> RepoError {
     RepoError::Message(message.into())
@@ -190,7 +188,6 @@ fn capture(repo: &Repository, live: bool) -> Result<Snapshot, RepoError> {
         stage_frontier_error: None,
         links: BTreeMap::new(),
         sources: BTreeMap::new(),
-        root: root.clone(),
     };
     let mut known_aliases = std::collections::BTreeSet::new();
     // The configured Warrant directories, not a hard-coded docs path, define scope.
@@ -354,6 +351,26 @@ pub fn serve(
     mode: crate::output::Mode,
 ) -> Result<(), RepoError> {
     server::serve(repo, port, interval, mode)
+}
+
+/// One linked source, by the key its live link names (`/source/<key>`), for
+/// the web UI's `/api/source/<key>`. Only a name the snapshot itself links
+/// resolves; the bytes come through the descriptor-relative reader, which
+/// refuses traversal, symlinks, FIFOs and anything over the size bound.
+/// `Ok(None)` is an unknown key; `Err` a source that is no longer a safe
+/// regular file.
+pub fn live_source(repo: &Repository, key: &str) -> Result<Option<Vec<u8>>, String> {
+    let snapshot = capture(repo, true).map_err(|e| e.to_string())?;
+    let Some(path) = snapshot.sources.get(key) else {
+        return Ok(None);
+    };
+    let root = repo.root.canonicalize().map_err(|e| e.to_string())?;
+    // A cached canonical name must not be followed through a replacement.
+    if path.canonicalize().ok().as_ref() != Some(path) {
+        return Err("source replaced".into());
+    }
+    let relative = path.strip_prefix(&root).map_err(|e| e.to_string())?;
+    source::read(&root, relative, SOURCE_LIMIT).map(Some)
 }
 
 /// The same validated snapshot used by both HTML consumers. No files are written.

@@ -78,6 +78,7 @@ pub mod timeline;
 pub mod tui;
 pub mod verify;
 pub mod watch;
+pub mod webui;
 
 #[derive(clap::Subcommand, Debug)]
 enum KfCommand {
@@ -324,6 +325,22 @@ enum Command {
         /// it is restored. Hidden; the battery's.
         #[arg(long, hide = true)]
         panic_after_setup: bool,
+    },
+    /// The web UI: Progress on the canonical roadmap, the queue with each
+    /// act's dry-run verdict, questions, frontier, corpus and help, served on
+    /// 127.0.0.1 with a per-session token (OW-WAR-0116). A button starts
+    /// only `war sign <target> --ssh-sign` or an automatic remedy; your key's
+    /// dialog is the signature.
+    Ui {
+        /// Local port; 0 picks a free one.
+        #[arg(long, default_value_t = 8765)]
+        port: u16,
+        /// The page to open: progress, queue, questions, frontier, corpus, help.
+        #[arg(long, default_value = "progress")]
+        page: String,
+        /// Who signs, when roles.toml names more than one eligible signer.
+        #[arg(long = "as")]
+        actor: Option<String>,
     },
     /// The roadmap: one per program, beside the SAS (OW-ADR-0023). Without a
     /// subcommand, its phases in dependency order with members, exits and
@@ -1754,6 +1771,10 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             let EvidenceCommand::Record { alias, gate } = command;
             let report = evidence::record(&repository, &alias, gate.as_deref())?;
             Ok(output::finish(mode, "evidence", &report, None))
+        }
+        Command::Ui { port, page, actor } => {
+            let repository = open_repo()?;
+            Ok(webui::run(repository.root, port, &page, actor, mode)?)
         }
         Command::Roadmap { command } => {
             let repository = open_repo()?;

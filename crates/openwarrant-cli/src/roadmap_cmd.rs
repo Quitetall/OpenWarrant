@@ -420,6 +420,16 @@ pub struct PhaseView {
 }
 
 pub fn view(repo: &Repository) -> Result<(Report, View), RepoError> {
+    let status = crate::status::build(repo)?;
+    view_with(repo, &status)
+}
+
+/// [`view`] over a status already built, so a caller that also needs the
+/// Warrants' rungs builds the corpus once.
+pub fn view_with(
+    repo: &Repository,
+    status: &openwarrant_core::status::CorpusStatus,
+) -> Result<(Report, View), RepoError> {
     let mut report = Report::default();
     let loaded = match load(repo) {
         Ok(Some(l)) => l,
@@ -431,7 +441,6 @@ pub fn view(repo: &Repository) -> Result<(Report, View), RepoError> {
         }
         Err(e) => return Err(RepoError::Message(e.to_string())),
     };
-    let status = crate::status::build(repo)?;
     let tier_title: BTreeMap<&str, &str> = loaded
         .phases
         .tiers

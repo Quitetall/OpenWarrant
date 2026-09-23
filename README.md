@@ -119,6 +119,11 @@ cargo build --release -p openwarrant-cli
 ./target/release/war --help
 ```
 
+Or run `war ui` for the same in a browser on this machine: Progress on the
+roadmap, updating live, the signing queue with each act's dry-run verdict,
+and buttons that start the signature your key's dialog confirms
+([docs/WEBUI.md](docs/WEBUI.md)).
+
 Then type `war` in the repository: at a terminal it opens the app — setup,
 help, the signing queue and every pane of the corpus, with the exact command
 behind each row ([docs/TUI.md](docs/TUI.md)). It signs nothing itself; every
