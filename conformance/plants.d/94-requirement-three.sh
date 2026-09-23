@@ -14,6 +14,20 @@
 R3_ALIAS=OW-WAR-0062
 R3_FILE=README.md
 
+# README.md has since moved under a later Warrant (OW-WAR-0116 governs it,
+# OW-ADR-0021), so the live file is no longer 0062's chain head. The fixture
+# is the chain head's own bytes, found in history by digest — the plants test
+# the correction chain, not whoever edits README.md next.
+R3_HEAD=$(sed -n 's/^new_digest = "sha256:\([0-9a-f]*\)"/\1/p' "$(ls docs/warrants/$R3_ALIAS/corrections/D-003-*.toml | sort -V | tail -1)")
+R3_BYTES=$(mktemp)
+for R3_C in $(git rev-list HEAD -- "$R3_FILE"); do
+    git show "$R3_C:$R3_FILE" > "$R3_BYTES" 2>/dev/null || continue
+    [[ "$(sha256sum "$R3_BYTES" | cut -d' ' -f1)" == "$R3_HEAD" ]] && break
+    : > "$R3_BYTES"
+done
+[[ -s "$R3_BYTES" ]] || { printf 'PLANT SETUP FAILED: no commit holds %s at the chain head %s\n' "$R3_FILE" "$R3_HEAD" >&2; exit 9; }
+command cp "$R3_BYTES" "$R3_FILE"
+
 # The positive: a corrected deliverable satisfies requirement 3, and the whole
 # Warrant still meets the thirteen.
 out=$("$WAR" resolve "$R3_ALIAS" --dry-run 2>&1)
@@ -32,7 +46,7 @@ fi
 printf '\n<!-- planted drift -->\n' >> "$R3_FILE"
 assert_present 'planted drift' "$R3_FILE"
 out=$("$WAR" resolve "$R3_ALIAS" --dry-run 2>&1)
-git checkout -- "$R3_FILE" 2>/dev/null || true
+command cp "$R3_BYTES" "$R3_FILE"
 if grep -q 'artifact digests verify — not established' <<< "$out"; then
     printf 'ok    %-34s drift past the chain head is unmet\n' "requirement 3 still fails closed"
     PASSED=$((PASSED + 1))
@@ -53,6 +67,9 @@ printf 'this is not toml = = =\n' > "$R3_CORR"
 assert_present 'not toml' "$R3_CORR"
 out=$("$WAR" resolve "$R3_ALIAS" --dry-run 2>&1)
 git checkout -- "$R3_CORR"
+# The chain-head fixture is done with: the live README.md comes back.
+git checkout -- "$R3_FILE" 2>/dev/null || true
+command rm -f "$R3_BYTES"
 if grep -q 'artifact digests verify — not established' <<< "$out"; then
     printf 'ok    %-34s an unreadable chain is unmet\n' "requirement 3 fails closed on TOML"
     PASSED=$((PASSED + 1))
