@@ -120,8 +120,8 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0111](docs/warrants/OW-WAR-0111/manifest.toml) | Implement content-bearing preservation archives and honest import round trips | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0112](docs/warrants/OW-WAR-0112/manifest.toml) | war is the app: ownership, a guided start, and remedies | `authorized` | `current` | `valid` | `controlled` | 5M / 10S |
 | [OW-WAR-0113](docs/warrants/OW-WAR-0113/manifest.toml) | Two projections from atoms by relation: the current master document, and the history | `draft` | `current` | `valid` | `basic` | 5M / 5S |
-| [OW-WAR-0114](docs/warrants/OW-WAR-0114/manifest.toml) | The roadmap becomes a record: one per program, beside the SAS | `draft` | `current` | `valid` | `basic` | 5M / 7S |
-| [OW-WAR-0115](docs/warrants/OW-WAR-0115/manifest.toml) | The hub: war opens from anywhere, with every project and its progress | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0114](docs/warrants/OW-WAR-0114/manifest.toml) | The roadmap becomes a record: one per program, beside the SAS | `authorized` | `current` | `valid` | `basic` | 5M / 7S |
+| [OW-WAR-0115](docs/warrants/OW-WAR-0115/manifest.toml) | The hub: war opens from anywhere, with every project and its progress | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
 
 ## Claimed SAS requirement coverage
 

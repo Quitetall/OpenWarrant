@@ -14,3 +14,8 @@ asked_at = "2026-09-23T07:26:25Z"
 question = "Which phase set becomes roadmap revision 1? A: the eleven SAS §98 phases (70 Warrants already cite one; every phase has an Exit). B: the four-phase plan from rc.3 (Library and Standard; SDK and Compiler Integration; Workflow Integration; Hardening and Adoption). Both mappings of every Warrant and every gap are in 20-basis.md. Answer A or B."
 blocking = true
 recommended = "A — the eleven §98 phases, with the four-phase plan kept as each phase's priority tier. It moves no signed ref, keeps the eleven accepted Exit criteria, and loses nothing the four-phase plan orders."
+
+[answer]
+answered_by = "person://Brian Lam"
+answered_at = "2026-09-23T07:44:03Z"
+answer = "A"
