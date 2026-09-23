@@ -243,11 +243,22 @@ fn capture(repo: &Repository, live: bool) -> Result<Snapshot, RepoError> {
         };
         snapshot.reports.insert(alias, entry);
     }
+    // OW-ADR-0023: the roadmap record when the program has one; the authored
+    // `view.json` only for a program that has not adopted the record.
+    let from_record = match crate::roadmap_cmd::view(repo) {
+        Ok((_, v)) => Some(roadmap::from_record(&v)),
+        Err(_) => None,
+    };
     let path = root.join("docs/roadmap/view.json");
-    if path.try_exists().map_err(|e| err(e.to_string()))? {
-        let bytes = bounded_read(&path, SOURCE_LIMIT).map_err(err)?;
-        let aliases = known_aliases.iter().map(String::as_str).collect();
-        let roadmap = roadmap::parse(&bytes, &aliases).map_err(err)?;
+    if from_record.is_some() || path.try_exists().map_err(|e| err(e.to_string()))? {
+        let roadmap = match from_record {
+            Some(r) => r,
+            None => {
+                let bytes = bounded_read(&path, SOURCE_LIMIT).map_err(err)?;
+                let aliases = known_aliases.iter().map(String::as_str).collect();
+                roadmap::parse(&bytes, &aliases).map_err(err)?
+            }
+        };
         for name in roadmap.nodes.iter().flat_map(|node| &node.documents) {
             link(&mut snapshot, &root, name, live).map_err(err)?;
         }

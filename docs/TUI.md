@@ -95,11 +95,22 @@ Every Warrant's journal events, newest first: time, Warrant, event kind,
 actor. `/` filters — by a day (`2026-09-22`), a kind (`authorize`), an actor.
 An unreadable journal is a red `UNREADABLE` row, not an empty pane.
 
+## Roadmap
+
+The program's phases in dependency order (`war roadmap`): each with its
+members, whether it is achieved, and the work placed in it that no Warrant
+carries yet. When the roadmap on disk is not an accepted revision, the first
+row says so; `Enter` on it signs a proposed revision. `Enter` on a phase hands
+the terminal to `war roadmap edit` — add, rename, re-exit, re-tier, reorder
+or remove phases by keystroke — which writes the phases atom, proposes the
+revision, and ends in one `war sign roadmap --ssh-sign` dialog. No file is
+opened (OW-ADR-0023).
+
 ## Keys
 
 | key | does |
 |---|---|
-| `1-9`, `Tab`, `Shift-Tab` | switch pane |
+| `0-9`, `Tab`, `Shift-Tab` | switch pane (`0` is Roadmap) |
 | `j` `k` | move (in a document: next/previous document) |
 | `/` | filter this pane; `Esc` clears |
 | `Enter` | act on the row: sign (queue, help), open the detail (others), run `war init` (setup) |

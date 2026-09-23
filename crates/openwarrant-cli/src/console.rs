@@ -89,7 +89,7 @@ pub fn act_of(p: &Pending) -> &'static str {
     match p {
         Pending::Authorize { .. } => "authorize",
         Pending::Resolve { .. } => "resolve",
-        Pending::Accept { .. } => "accept",
+        Pending::Accept { .. } | Pending::AcceptRoadmap { .. } => "accept",
         Pending::Correct { .. } => "correct",
     }
 }
@@ -99,6 +99,7 @@ pub fn target_of(p: &Pending) -> String {
     match p {
         Pending::Authorize { alias, .. } | Pending::Resolve { alias, .. } => alias.clone(),
         Pending::Accept { version, .. } => version.clone(),
+        Pending::AcceptRoadmap { .. } => "roadmap".to_owned(),
         Pending::Correct {
             alias,
             deliverable_id,

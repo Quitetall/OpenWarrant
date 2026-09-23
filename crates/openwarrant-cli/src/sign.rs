@@ -112,6 +112,11 @@ pub enum Pending {
         version: String,
         request: AcceptRequest,
     },
+    /// OW-ADR-0023 — a proposed roadmap revision awaits one signature.
+    AcceptRoadmap {
+        revision: u32,
+        request: crate::roadmap_cmd::AcceptRequest,
+    },
     /// OW-WAR-0064 — a resolved Warrant's delivered artifact has moved and a
     /// human must say why, or restore it.
     Correct {
@@ -475,6 +480,12 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
             });
         }
     }
+    if let Some(request) = crate::roadmap_cmd::pending_request(repo)? {
+        out.push(Pending::AcceptRoadmap {
+            revision: request.revision,
+            request,
+        });
+    }
     Ok(out)
 }
 
@@ -567,6 +578,11 @@ pub fn line(p: &Pending) -> String {
                 "not satisfied"
             },
             request.title
+        ),
+        Pending::AcceptRoadmap { revision, request } => format!(
+            "roadmap  rev {revision}  accept  {} phase(s): {}",
+            request.phase_count,
+            request.diff.summary()
         ),
         Pending::Accept { version, request } => format!(
             "SAS {version}  accept  {} requirement(s){}",
@@ -696,6 +712,15 @@ fn screen(p: &Pending, actor: &str, role: &str, reason: Option<&str>) -> String 
                 "│ permitted outcomes: {}\n│ contract sha256:{}\n",
                 request.permitted_outcomes.join(", "),
                 &request.contract_digest[..16]
+            ));
+        }
+        Pending::AcceptRoadmap { revision, request } => {
+            s.push_str(&format!(
+                "┌ roadmap revision {revision} · accept · sha256:{}\n│ predecessor {}  ·  {} phase(s)\n│ {}\n",
+                &request.sha256[..16],
+                request.predecessor.map_or("none".to_owned(), |p| p.to_string()),
+                request.phase_count,
+                request.diff.summary()
             ));
         }
         Pending::Accept { version, request } => {
@@ -972,6 +997,27 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
                 effective_time: now.to_owned(),
             }))
         }
+        Pending::AcceptRoadmap { revision, request } => {
+            Ok(Drafted::AcceptRoadmap(crate::roadmap_cmd::AcceptResponse {
+                schema: crate::roadmap_cmd::ACCEPT_RESPONSE_SCHEMA.to_owned(),
+                revision: *revision,
+                sha256: request.sha256.clone(),
+                accepted_by: actor.to_owned(),
+                acting_role: "authorizer".to_owned(),
+                meaning: format!(
+                    "Accepting roadmap revision {revision} at this digest means the signer adopts \
+                     it as the program's order of work: {} phase(s); against revision {}: {}. \
+                     Warrants are held to these phases until it is superseded.{extra} {}",
+                    request.phase_count,
+                    request
+                        .predecessor
+                        .map_or("none".to_owned(), |p| p.to_string()),
+                    request.diff.summary(),
+                    provenance()
+                ),
+                effective_time: now.to_owned(),
+            }))
+        }
         Pending::Accept { version, request } => {
             if request.adr_required && opts.adr_ref.is_none() {
                 return Err(format!(
@@ -1062,6 +1108,7 @@ pub enum Drafted {
     Resolve(ResolutionResponse),
     Accept(AcceptResponse),
     Correct(crate::correct::CorrectionResponse),
+    AcceptRoadmap(crate::roadmap_cmd::AcceptResponse),
 }
 
 impl Drafted {
@@ -1070,6 +1117,7 @@ impl Drafted {
             Self::Authorize(r) => toml::to_string_pretty(r),
             Self::Resolve(r) => toml::to_string_pretty(r),
             Self::Accept(r) => toml::to_string_pretty(r),
+            Self::AcceptRoadmap(r) => toml::to_string_pretty(r),
             Self::Correct(r) => toml::to_string_pretty(r),
         };
         r.map_err(|e| RepoError::Message(format!("could not render the response: {e}")))
@@ -1093,6 +1141,10 @@ impl Drafted {
                 crate::authority_check::Act::Correct,
                 &format!("{}.{}", r.warrant, r.deliverable_id),
             ),
+            Self::AcceptRoadmap(r) => crate::authority_check::response_stem(
+                crate::authority_check::Act::AcceptRoadmap,
+                &crate::roadmap_cmd::subject(r.revision),
+            ),
         }
     }
 
@@ -1103,6 +1155,7 @@ impl Drafted {
             Self::Authorize(r) => &r.contract_digest,
             Self::Resolve(r) => &r.contract_digest,
             Self::Accept(r) => &r.sha256,
+            Self::AcceptRoadmap(r) => &r.sha256,
             Self::Correct(r) => &r.new_digest,
         }
     }
@@ -1148,15 +1201,17 @@ fn eligible(p: &Pending) -> &[String] {
         Pending::Authorize { request, .. } => &request.eligible_authorizers,
         Pending::Resolve { request, .. } => &request.eligible_resolvers,
         Pending::Accept { request, .. } => &request.eligible_acceptors,
+        Pending::AcceptRoadmap { request, .. } => &request.eligible_acceptors,
         Pending::Correct { request, .. } => &request.eligible_correctors,
     }
 }
 
 fn role(p: &Pending) -> &'static str {
     match p {
-        Pending::Authorize { .. } | Pending::Accept { .. } | Pending::Correct { .. } => {
-            "authorizer"
-        }
+        Pending::Authorize { .. }
+        | Pending::Accept { .. }
+        | Pending::AcceptRoadmap { .. }
+        | Pending::Correct { .. } => "authorizer",
         Pending::Resolve { .. } => "resolver",
     }
 }
@@ -1168,6 +1223,9 @@ fn select<'a>(all: &'a [Pending], target: &str) -> Option<&'a Pending> {
     all.iter().find(|p| match p {
         Pending::Authorize { alias, .. } | Pending::Resolve { alias, .. } => alias == target,
         Pending::Accept { version, .. } => version == target || format!("SAS-{version}") == target,
+        Pending::AcceptRoadmap { revision, .. } => {
+            target == "roadmap" || target == crate::roadmap_cmd::subject(*revision)
+        }
         Pending::Correct {
             alias,
             deliverable_id,
@@ -1182,6 +1240,7 @@ fn target_of(p: &Pending) -> String {
     match p {
         Pending::Authorize { alias, .. } | Pending::Resolve { alias, .. } => alias.clone(),
         Pending::Accept { version, .. } => version.clone(),
+        Pending::AcceptRoadmap { .. } => "roadmap".to_owned(),
         Pending::Correct {
             alias,
             deliverable_id,
@@ -1283,6 +1342,9 @@ fn dry_run(
                 ..
             } => {
                 crate::correct::ingest_with(repo, alias, deliverable_id, &path, IngestMode::DryRun)
+            }
+            Pending::AcceptRoadmap { revision, .. } => {
+                crate::roadmap_cmd::accept_ingest_with(repo, *revision, &path, IngestMode::DryRun)
             }
             Pending::Accept { version, request } => {
                 let mut r = Report::default();
@@ -1661,6 +1723,16 @@ fn attest_after(
                 .ok_or_else(|| format!("no correction file under {cdir}"))?;
             ("correct", alias.clone(), newest)
         }
+        Pending::AcceptRoadmap { revision, .. } => {
+            let loaded = crate::roadmap_cmd::load(repo)
+                .map_err(|e| e.to_string())?
+                .ok_or("no roadmap record")?;
+            (
+                "roadmap-accept",
+                crate::roadmap_cmd::subject(*revision),
+                crate::roadmap_cmd::revision_path(&loaded, *revision),
+            )
+        }
         Pending::Accept { version, .. } => (
             "sas-accept",
             version.clone(),
@@ -1714,7 +1786,7 @@ fn attest_after(
     };
     let written = crate::attest::emit(repo, &a).map_err(|e| e.to_string())?;
     // A Warrant act is journalled; a SAS acceptance has no journal.
-    if act != "sas-accept" {
+    if act != "sas-accept" && act != "roadmap-accept" {
         let dir = repo.warrant_dir(&target).map_err(|e| e.to_string())?;
         if let Some(uuid) = repo
             .load_warrant(&dir)
@@ -2016,6 +2088,9 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
             (Pending::Authorize { alias, .. }, _) => authorize::ingest(repo, alias, &path),
             (Pending::Resolve { alias, .. }, _) => resolution_cmd::ingest(repo, alias, &path),
             (Pending::Accept { version, .. }, _) => sas::accept_ingest(repo, version, &path),
+            (Pending::AcceptRoadmap { revision, .. }, _) => {
+                crate::roadmap_cmd::accept_ingest_with(repo, *revision, &path, IngestMode::Record)
+            }
             (
                 Pending::Correct {
                     alias,

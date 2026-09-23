@@ -157,10 +157,11 @@ enum Pane {
     Obligations,
     Evidence,
     Journal,
+    Roadmap,
 }
 
 impl Pane {
-    const ALL: [Pane; 9] = [
+    const ALL: [Pane; 10] = [
         Pane::Setup,
         Pane::Help,
         Pane::Queue,
@@ -170,6 +171,7 @@ impl Pane {
         Pane::Obligations,
         Pane::Evidence,
         Pane::Journal,
+        Pane::Roadmap,
     ];
 
     const fn title(self) -> &'static str {
@@ -183,6 +185,7 @@ impl Pane {
             Self::Obligations => "7 Obligations",
             Self::Evidence => "8 Evidence",
             Self::Journal => "9 Journal",
+            Self::Roadmap => "0 Roadmap",
         }
     }
 }
@@ -530,6 +533,71 @@ impl Model {
         journal.sort_by(|a, b| b.text.cmp(&a.text));
         self.rows.insert(Pane::Journal as u8, journal);
 
+        // The roadmap: phases in dependency order, from `war roadmap`'s view.
+        let mut roadmap = Vec::new();
+        match crate::roadmap_cmd::view(&repo) {
+            Ok((_, v)) => {
+                for p in &v.phases {
+                    roadmap.push(Row {
+                        text: format!(
+                            "{:<12} {:<34} {:>3} Warrant(s)  {}{}",
+                            p.id,
+                            p.title,
+                            p.members.len(),
+                            p.achieved,
+                            if p.open.is_empty() {
+                                String::new()
+                            } else {
+                                format!("  · no Warrant yet: {}", p.open.join(", "))
+                            }
+                        ),
+                        command: "war roadmap edit".to_owned(),
+                        sign_target: None,
+                        auto: None,
+                        detail: Some(format!(
+                            "{} — {}\n\nexit: {}\nafter: {}\ntier: {}\nmembers: {}",
+                            p.id,
+                            p.title,
+                            p.exit,
+                            if p.depends_on.is_empty() {
+                                "nothing".to_owned()
+                            } else {
+                                p.depends_on.join(", ")
+                            },
+                            p.tier.as_deref().unwrap_or("-"),
+                            p.members.join(", ")
+                        )),
+                    });
+                }
+                if !v.accepted {
+                    roadmap.insert(
+                        0,
+                        Row {
+                            text: match v.pending_revision {
+                                Some(n) => {
+                                    format!("HUMAN  roadmap revision {n} awaits one signature")
+                                }
+                                None => "WARN   the roadmap atoms are not an accepted revision"
+                                    .to_owned(),
+                            },
+                            command: "war sign roadmap --ssh-sign".to_owned(),
+                            sign_target: v.pending_revision.map(|_| "roadmap".to_owned()),
+                            auto: None,
+                            detail: None,
+                        },
+                    );
+                }
+            }
+            Err(e) => roadmap.push(Row {
+                text: format!("no roadmap record: {e}"),
+                command: "war roadmap".to_owned(),
+                sign_target: None,
+                auto: None,
+                detail: None,
+            }),
+        }
+        self.rows.insert(Pane::Roadmap as u8, roadmap);
+
         // Setup and Help.
         self.rows.insert(
             Pane::Setup as u8,
@@ -869,6 +937,10 @@ fn handle_key(
             m.pane = Pane::ALL[(d as u8 - b'1') as usize];
             m.reading = false;
         }
+        (KeyCode::Char('0'), _) => {
+            m.pane = Pane::Roadmap;
+            m.reading = false;
+        }
         (KeyCode::Tab, _) => {
             let i = Pane::ALL.iter().position(|p| *p == m.pane).unwrap_or(0);
             m.pane = Pane::ALL[(i + 1) % Pane::ALL.len()];
@@ -993,6 +1065,12 @@ fn handle_key(
                     sign_in_child(terminal, m, &t)?;
                     m.refresh();
                 }
+            }
+            // One editor, two doors: the pane hands the terminal to
+            // `war roadmap edit`, which ends in one signature.
+            Pane::Roadmap => {
+                run_child_inherit(terminal, &m.root, &["roadmap", "edit"])?;
+                m.refresh();
             }
             _ => {
                 if let Some(t) = m.current().and_then(|r| r.sign_target.clone()) {
@@ -1209,6 +1287,9 @@ fn draw_list(f: &mut ratatui::Frame, m: &Model, body: Rect) {
         Pane::Obligations => " Obligations — disposition, verifier, admissibility ".to_owned(),
         Pane::Evidence => " Evidence — gate runs by class; x records again ".to_owned(),
         Pane::Journal => " Journal — newest first; / filters by day or kind ".to_owned(),
+        Pane::Roadmap => {
+            " Roadmap — phases in order; Enter edits by keystroke and signs once ".to_owned()
+        }
     };
     let mut state = ListState::default();
     if !rows.is_empty() {
@@ -1268,7 +1349,7 @@ fn centered(area: Rect, pct_w: u16, pct_h: u16) -> Rect {
 
 /// The one table of keys, rendered by `?` and tested against `docs/TUI.md`.
 pub const KEYS: &str = "\
-1-9 / Tab / Shift-Tab   panes
+0-9 / Tab / Shift-Tab   panes
 j k                     move (in a document: next/previous document)
 /                       filter this pane (Esc clears)
 Enter                   act on the row: sign (queue, help), open the detail (others), run `war init` (setup)

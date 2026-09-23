@@ -99,10 +99,12 @@ echo "== ownership (OW-ADR-0021) =="
 OWN_OUT=$("$WAR" check 2>&1)
 
 # A later owner makes the older pin historical: a PASS naming both Warrants,
-# and no drift or correction error for that path against the old one.
-if grep -q 'deliverable.superseded-by .*OW-WAR-0005: D-001 pinned crates/openwarrant-cli/src/check.rs .*OW-WAR-0112/D-' <<<"$OWN_OUT" \
+# and no drift or correction error for that path against the old one. Which
+# later Warrant owns check.rs moves as Warrants are authorized (0112, then
+# 0114); the plant holds the rule, not today's owner.
+if grep -qE 'deliverable.superseded-by .*OW-WAR-0005: D-001 pinned crates/openwarrant-cli/src/check.rs .*OW-WAR-0(1[0-9][0-9]|[2-9][0-9][0-9])/D-' <<<"$OWN_OUT" \
     && ! grep -qE '^ERROR .*OW-WAR-0005: D-001' <<<"$OWN_OUT"; then
-    printf 'ok    %-34s OW-WAR-0005/D-001 historical under OW-WAR-0112\n' "later owner makes the pin historical"
+    printf 'ok    %-34s OW-WAR-0005/D-001 historical under a later owner\n' "later owner makes the pin historical"
     PASSED=$((PASSED + 1))
 else
     printf 'FAIL  %-34s no superseded-by for OW-WAR-0005/D-001, or it still errors\n' "later owner makes the pin historical"

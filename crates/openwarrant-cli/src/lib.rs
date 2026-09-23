@@ -61,6 +61,7 @@ pub mod repo;
 pub mod resolution_cmd;
 pub mod resolve;
 pub mod roadmap_cmd;
+pub mod roadmap_edit;
 pub mod run_cmd;
 pub mod sas;
 pub mod sas_repin;
@@ -142,6 +143,10 @@ enum RoadmapCommand {
     /// Record the roadmap atoms as they stand as the next revision; a human
     /// then accepts it with `war sign roadmap --ssh-sign`.
     Propose,
+    /// Edit the phases by keystroke, at a terminal, and sign once. No file is
+    /// opened; the atom is written, the revision proposed, and one
+    /// `war sign roadmap --ssh-sign` raises the dialog.
+    Edit,
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -1769,6 +1774,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     &roadmap_cmd::assign(&repository, &alias, &phase)?,
                     None,
                 )),
+                Some(RoadmapCommand::Edit) => Ok(roadmap_edit::run(&repository)?),
                 Some(RoadmapCommand::Propose) => Ok(output::finish(
                     mode,
                     "roadmap",

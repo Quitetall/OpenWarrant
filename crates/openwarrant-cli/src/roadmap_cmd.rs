@@ -234,6 +234,7 @@ pub fn check(repo: &Repository, corpus: &[crate::repo::Loaded], report: &mut Rep
             return;
         }
     };
+    check_signatures(repo, &loaded, report);
     report.push(Diagnostic::pass(
         "roadmap.valid",
         format!(
@@ -658,4 +659,248 @@ pub fn propose(repo: &Repository) -> Result<Report, RepoError> {
         "Proposed, not accepted. One human act accepts it: `war sign roadmap --ssh-sign` (try `--dry-run` first).".to_owned(),
     );
     Ok(report)
+}
+
+// ---------------------------------------------------------------------------
+// Acceptance (M3): the SAS acceptance path, for a roadmap revision
+// ---------------------------------------------------------------------------
+
+pub const ACCEPT_REQUEST_SCHEMA: &str = "oh.war/roadmap-acceptance-request/v1";
+pub const ACCEPT_RESPONSE_SCHEMA: &str = "oh.war/roadmap-acceptance-response/v1";
+
+/// The subject a roadmap revision's signed response is named for.
+#[must_use]
+pub fn subject(revision: u32) -> String {
+    format!("ROADMAP-{revision}")
+}
+
+/// What is put to the acceptor: the revision, its digest, and what moved.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AcceptRequest {
+    pub schema: String,
+    pub revision: u32,
+    pub sha256: String,
+    pub predecessor: Option<u32>,
+    pub diff: openwarrant_core::roadmap::PhaseDiff,
+    pub phase_count: usize,
+    pub eligible_acceptors: Vec<String>,
+}
+
+/// What the acceptor returns.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AcceptResponse {
+    pub schema: String,
+    pub revision: u32,
+    /// Must equal the record's AND the tree's digest now.
+    pub sha256: String,
+    pub accepted_by: String,
+    pub acting_role: String,
+    pub meaning: String,
+    pub effective_time: String,
+}
+
+fn find_revision(loaded: &Loaded, n: u32) -> Result<&RoadmapRevision, RepoError> {
+    loaded
+        .revisions
+        .iter()
+        .find(|r| r.revision == n)
+        .ok_or_else(|| RepoError::Message(format!("no roadmap revision {n} on record")))
+}
+
+pub fn accept_request(repo: &Repository, n: u32) -> Result<AcceptRequest, RepoError> {
+    let loaded = load(repo)
+        .map_err(|e| RepoError::Message(e.to_string()))?
+        .ok_or_else(|| RepoError::Message("no roadmap record".to_owned()))?;
+    let rec = find_revision(&loaded, n)?;
+    let before = rec
+        .predecessor
+        .and_then(|p| loaded.revisions.iter().find(|r| r.revision == p))
+        .map(|r| r.phases.clone())
+        .unwrap_or_default();
+    let register = repo.load_authority_register()?;
+    Ok(AcceptRequest {
+        schema: ACCEPT_REQUEST_SCHEMA.to_owned(),
+        revision: n,
+        sha256: rec.sha256.clone(),
+        predecessor: rec.predecessor,
+        diff: openwarrant_core::roadmap::PhaseDiff::between(&before, &rec.phases),
+        phase_count: rec.phases.len(),
+        eligible_acceptors: register
+            .holders(openwarrant_core::authority::ActorRole::Authorizer)
+            .filter(|a| a.may_authorize(&repo.performer()).is_ok())
+            .map(|a| a.actor.clone())
+            .collect(),
+    })
+}
+
+/// The proposed revision the tree matches, as a pending act.
+pub fn pending_request(repo: &Repository) -> Result<Option<AcceptRequest>, RepoError> {
+    let Ok(Some(loaded)) = load(repo) else {
+        return Ok(None);
+    };
+    match loaded.pending() {
+        Some(p) => accept_request(repo, p.revision).map(Some),
+        None => Ok(None),
+    }
+}
+
+/// Ingest a signed acceptance. `DryRun` judges everything and writes nothing.
+pub fn accept_ingest_with(
+    repo: &Repository,
+    n: u32,
+    response_path: &Utf8Path,
+    mode: crate::sign::IngestMode,
+) -> Result<Report, RepoError> {
+    let mut report = Report::default();
+    let refuse = |report: &mut Report, rule: &str, why: String| {
+        report.push(Diagnostic::error(rule, response_path.to_string(), why));
+    };
+    let loaded = load(repo)
+        .map_err(|e| RepoError::Message(e.to_string()))?
+        .ok_or_else(|| RepoError::Message("no roadmap record".to_owned()))?;
+    let rec = find_revision(&loaded, n)?.clone();
+    let text = fs::read_to_string(response_path).map_err(|source| RepoError::Io {
+        context: format!("could not read {response_path}"),
+        source,
+    })?;
+    let response: AcceptResponse = match toml::from_str(&text) {
+        Ok(r) => r,
+        Err(e) => {
+            refuse(&mut report, "roadmap.response-malformed", e.to_string());
+            return Ok(report);
+        }
+    };
+    if response.schema != ACCEPT_RESPONSE_SCHEMA {
+        refuse(
+            &mut report,
+            "roadmap.response-schema",
+            format!("unknown schema {:?}", response.schema),
+        );
+        return Ok(report);
+    }
+    if response.revision != n {
+        refuse(
+            &mut report,
+            "roadmap.response-revision",
+            format!(
+                "response names revision {}, ingesting {n}",
+                response.revision
+            ),
+        );
+        return Ok(report);
+    }
+    if let Err(e) = openwarrant_core::timestamp::validate_rfc3339_utc(&response.effective_time) {
+        refuse(
+            &mut report,
+            "roadmap.effective-time",
+            format!("effective_time {:?}: {e}", response.effective_time),
+        );
+        return Ok(report);
+    }
+    if response.sha256 != rec.sha256 || loaded.digest != rec.sha256 {
+        refuse(
+            &mut report,
+            "roadmap.stale-digest",
+            format!(
+                "response signs {}, revision {n} records {}, the roadmap is now {}; the atoms moved after proposal — `war roadmap propose` again and sign that",
+                response.sha256, rec.sha256, loaded.digest
+            ),
+        );
+        return Ok(report);
+    }
+    if rec.state == SasRevisionState::Accepted {
+        refuse(
+            &mut report,
+            "roadmap.already-accepted",
+            format!("revision {n} is already accepted"),
+        );
+        return Ok(report);
+    }
+    let register = repo.load_authority_register()?;
+    let Some(assignment) = register.actor(&response.accepted_by) else {
+        refuse(
+            &mut report,
+            "roadmap.unknown-actor",
+            format!(
+                "{:?} holds no role assignment in docs/authority/roles.toml",
+                response.accepted_by
+            ),
+        );
+        return Ok(report);
+    };
+    if let Err(e) = assignment.may_authorize(&repo.performer()) {
+        refuse(&mut report, "roadmap.not-permitted", e.to_string());
+        return Ok(report);
+    }
+    let path = revision_path(&loaded, n);
+    if mode == crate::sign::IngestMode::DryRun {
+        report.push(Diagnostic::pass(
+            "roadmap.would-record",
+            format!(
+                "roadmap revision {n} would be accepted by {} → {}; nothing written",
+                response.accepted_by,
+                repo.relative(&path)
+            ),
+        ));
+        return Ok(report);
+    }
+    let accepted = RoadmapRevision {
+        state: SasRevisionState::Accepted,
+        acceptance: Some(openwarrant_core::sas::SasAcceptance {
+            accepted_by: response.accepted_by.clone(),
+            actor_kind: assignment.actor_kind,
+            acting_role: response.acting_role.clone(),
+            meaning: response.meaning.clone(),
+            effective_time: response.effective_time.clone(),
+            adr_ref: None,
+        }),
+        ..rec
+    };
+    fs::write(
+        &path,
+        toml::to_string_pretty(&accepted).map_err(|e| RepoError::Message(e.to_string()))?,
+    )
+    .map_err(|source| RepoError::Io {
+        context: format!("could not write {path}"),
+        source,
+    })?;
+    report.push(Diagnostic::pass(
+        "roadmap.accepted",
+        format!(
+            "roadmap revision {n} accepted by {} acting as {} → {}",
+            response.accepted_by,
+            response.acting_role,
+            repo.relative(&path)
+        ),
+    ));
+    Ok(report)
+}
+
+/// `authority.*` for every accepted revision: believed because a human
+/// signed it, not because the file says so.
+pub fn check_signatures(repo: &Repository, loaded: &Loaded, report: &mut Report) {
+    for rev in loaded
+        .revisions
+        .iter()
+        .filter(|r| r.state == SasRevisionState::Accepted)
+    {
+        let Some(a) = &rev.acceptance else { continue };
+        let s = subject(rev.revision);
+        let v = crate::authority_check::verify(
+            repo,
+            crate::authority_check::Act::AcceptRoadmap,
+            &s,
+            &a.accepted_by,
+            Some(&rev.sha256),
+        );
+        if v.is_signed() {
+            report.push(Diagnostic::pass(v.rule(), format!("{s}: {}", v.why())));
+        } else {
+            report.push(Diagnostic::error(
+                v.rule(),
+                repo.relative(&revision_path(loaded, rev.revision)),
+                format!("{s}: {}", v.why()),
+            ));
+        }
+    }
 }

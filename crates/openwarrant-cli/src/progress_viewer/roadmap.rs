@@ -68,6 +68,45 @@ pub(super) fn parse(bytes: &[u8], aliases: &BTreeSet<&str>) -> Result<Roadmap, S
     }
     Ok(map)
 }
+/// The same tree, built from the roadmap record (OW-ADR-0023) instead of an
+/// authored `view.json`: the program as the root, one node per phase in
+/// dependency order, members read from `war roadmap`'s view — the record's
+/// relation, not a second list.
+pub(super) fn from_record(view: &crate::roadmap_cmd::View) -> Roadmap {
+    let root = "program".to_owned();
+    let mut nodes = vec![Node {
+        id: root.clone(),
+        title: view.program.clone(),
+        outcome: format!(
+            "{} phases; {}",
+            view.phases.len(),
+            if view.accepted {
+                format!("revision {} accepted", view.accepted_revision.unwrap_or(0))
+            } else {
+                "not an accepted revision".to_owned()
+            }
+        ),
+        parent: None,
+        warrants: vec![],
+        documents: vec![],
+    }];
+    for p in &view.phases {
+        nodes.push(Node {
+            id: p.id.clone(),
+            title: p.title.clone(),
+            outcome: format!("exit: {} — {}", p.exit, p.achieved),
+            parent: Some(root.clone()),
+            warrants: p.members.clone(),
+            documents: vec![],
+        });
+    }
+    Roadmap {
+        schema: "oh.war/roadmap-view/v1".to_owned(),
+        title: format!("{} roadmap", view.program),
+        nodes,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

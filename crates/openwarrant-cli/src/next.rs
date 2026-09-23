@@ -91,6 +91,15 @@ pub fn derive(pending: &[Pending], status: &openwarrant_core::status::CorpusStat
                 version.clone(),
                 "a proposed SAS revision awaits acceptance".to_owned(),
             ),
+            Pending::AcceptRoadmap { revision, request } => (
+                "roadmap".to_owned(),
+                "accept",
+                "roadmap".to_owned(),
+                format!(
+                    "roadmap revision {revision} awaits acceptance: {}",
+                    request.diff.summary()
+                ),
+            ),
             Pending::Correct {
                 alias,
                 deliverable_id,

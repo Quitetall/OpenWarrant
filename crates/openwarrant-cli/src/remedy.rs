@@ -105,6 +105,8 @@ pub const TABLE: &[&str] = &[
     "sas.pin-unknown",
     "sas.proposed-unaccepted",
     "sas.pin-superseded",
+    "roadmap.unaccepted",
+    "roadmap.unassigned",
     "schemas.drift",
     "schemas.missing",
     "evidence.stale-binding",
@@ -189,6 +191,17 @@ pub fn remedy_for(d: &Diagnostic) -> Option<Remedy> {
             &["war", "diff", a],
             "see what moved the contract; §31 wants an amendment record under amendments/ \
              before revision N+1 is signed",
+        ),
+        "roadmap.unaccepted" => Remedy::new(
+            Kind::Human,
+            &["war", "sign", "roadmap", "--ssh-sign"],
+            "one human act accepts the proposed roadmap revision; run `war roadmap propose` first \
+             if none is proposed, and `--dry-run` to see what the ingest would say",
+        ),
+        "roadmap.unassigned" => Remedy::new(
+            Kind::Informational,
+            &["war", "roadmap"],
+            "see the phases; `war roadmap assign <alias> <phase>` writes the ref on an unsigned Warrant",
         ),
         "sas.pin-superseded" => Remedy::new(
             Kind::Human,

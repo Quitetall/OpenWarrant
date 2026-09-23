@@ -57,6 +57,9 @@ pub enum Act {
     Resolve,
     Accept,
     Correct,
+    /// A roadmap revision (OW-ADR-0023). Its own schema, so a SAS acceptance
+    /// can never verify as a roadmap's or the reverse.
+    AcceptRoadmap,
 }
 
 impl Act {
@@ -73,6 +76,7 @@ impl Act {
             Self::Resolve => "oh.war/resolution-response/v1",
             Self::Accept => "oh.war/sas-acceptance-response/v1",
             Self::Correct => "oh.war/correction-response/v1",
+            Self::AcceptRoadmap => "oh.war/roadmap-acceptance-response/v1",
         }
     }
 
@@ -82,6 +86,7 @@ impl Act {
             Self::Resolve => "resolution",
             Self::Accept => "SAS acceptance",
             Self::Correct => "correction",
+            Self::AcceptRoadmap => "roadmap acceptance",
         }
     }
 }
@@ -147,7 +152,7 @@ impl Verdict {
 #[must_use]
 pub fn response_stem(act: Act, subject: &str) -> String {
     match act {
-        Act::Authorize | Act::Accept => subject.to_owned(),
+        Act::Authorize | Act::Accept | Act::AcceptRoadmap => subject.to_owned(),
         Act::Resolve => format!("{subject}.resolution"),
         Act::Correct => format!("{subject}.correction"),
     }
