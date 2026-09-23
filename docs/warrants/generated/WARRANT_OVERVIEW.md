@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-111 Warrant(s) in this repository.
+112 Warrant(s) in this repository.
 
 ## Summary
 
@@ -122,6 +122,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0113](docs/warrants/OW-WAR-0113/manifest.toml) | Two projections from atoms by relation: the current master document, and the history | `draft` | `current` | `valid` | `basic` | 5M / 5S |
 | [OW-WAR-0114](docs/warrants/OW-WAR-0114/manifest.toml) | The roadmap becomes a record: one per program, beside the SAS | `authorized` | `current` | `valid` | `basic` | 5M / 7S |
 | [OW-WAR-0115](docs/warrants/OW-WAR-0115/manifest.toml) | The hub: war opens from anywhere, with every project and its progress | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0116](docs/warrants/OW-WAR-0116/manifest.toml) | war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap | `draft` | `current` | `valid` | `controlled` | 4M / 4S |
 
 ## Claimed SAS requirement coverage
 
@@ -171,12 +172,12 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-062` — OW-WAR-0026
 - `WAR-SAS-RQ-063` — OW-WAR-0027, OW-WAR-0047
 - `WAR-SAS-RQ-064` — OW-WAR-0001
-- `WAR-SAS-RQ-070` — OW-WAR-0001, OW-WAR-0069, OW-WAR-0072, OW-WAR-0073, OW-WAR-0112, OW-WAR-0115
+- `WAR-SAS-RQ-070` — OW-WAR-0001, OW-WAR-0069, OW-WAR-0072, OW-WAR-0073, OW-WAR-0112, OW-WAR-0115, OW-WAR-0116
 - `WAR-SAS-RQ-071` — OW-WAR-0035, OW-WAR-0042, OW-WAR-0068
 - `WAR-SAS-RQ-072` — OW-WAR-0034, OW-WAR-0042, OW-WAR-0068
 - `WAR-SAS-RQ-073` — OW-WAR-0036
 - `WAR-SAS-RQ-074` — OW-WAR-0005, OW-WAR-0055, OW-WAR-0112
-- `WAR-SAS-RQ-075` — OW-WAR-0004, OW-WAR-0055, OW-WAR-0057, OW-WAR-0060, OW-WAR-0073, OW-WAR-0112, OW-WAR-0115
+- `WAR-SAS-RQ-075` — OW-WAR-0004, OW-WAR-0055, OW-WAR-0057, OW-WAR-0060, OW-WAR-0073, OW-WAR-0112, OW-WAR-0115, OW-WAR-0116
 - `WAR-SAS-RQ-076` — OW-WAR-0028
 - `WAR-SAS-RQ-077` — OW-WAR-0068
 - `WAR-SAS-RQ-080` — OW-WAR-0003
@@ -259,6 +260,7 @@ Source: the Warrants under the configured warrants path.
 - **OW-WAR-0113** · roadmap: roadmap://OW-PHASE-1/projections
 - **OW-WAR-0114** · roadmap: roadmap://OW-PHASE-1/roadmap
 - **OW-WAR-0115** · roadmap: roadmap://OW-PHASE-1/console
+- **OW-WAR-0116** · roadmap: roadmap://OW-PHASE-1/console
 
 ## Not reported here
 

@@ -1,0 +1,114 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+
+[[deliverable]]
+id = "D-001"
+title = "war ui: the hardened loopback server"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/webui/mod.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-002"
+title = "the page"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/webui/assets/index.html"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-003"
+title = "the page's script"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/webui/assets/app.js"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-004"
+title = "the page's style"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/webui/assets/app.css"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-005"
+title = "the shared parser; no inline CSP"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/progress_viewer/server.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-006"
+title = "war progress --serve is war ui"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/progress_viewer.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-007"
+title = "the command"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-008"
+title = "docs/WEBUI.md"
+kind = "file"
+target_ref = "docs/WEBUI.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-009"
+title = "README.md: war ui"
+kind = "file"
+target_ref = "README.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-010"
+title = "THREAT_MODEL row"
+kind = "file"
+target_ref = "docs/THREAT_MODEL.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-011"
+title = "the plants"
+kind = "file"
+target_ref = "conformance/plants.d/63-webui.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]

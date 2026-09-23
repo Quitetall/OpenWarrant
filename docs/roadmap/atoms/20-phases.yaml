@@ -95,7 +95,7 @@ phases:
     exit: "a resolution is signed, its evidence custody is audited, and one gate invalidation propagates to every dependent resolution, with no step performed by the actor who produced the work."
     depends_on: ["OW-PHASE-6"]
     priority: "4"
-    open: ["exit", "teams", "authentication"]
+    open: ["exit", "teams", "authentication", "web-lan"]
 
   - id: "OW-PHASE-10"
     title: "Contractor Work Order profile"

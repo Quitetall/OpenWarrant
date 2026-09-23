@@ -1,0 +1,18 @@
+schema = "oh.war/roadmap-revision/v1"
+revision = 2
+sha256 = "c696f33422c2d4cae4238b010831314ccbd94cc27d67f2fd4aed4068236e06db"
+state = "proposed"
+predecessor = 1
+
+[phases]
+OW-PHASE-0 = "Telemetry shim"
+OW-PHASE-1 = "File-native WAR compiler"
+OW-PHASE-10 = "Contractor Work Order profile"
+OW-PHASE-2 = "Agent planner"
+OW-PHASE-3 = "ADR federation"
+OW-PHASE-4 = "Knowledge Fabric registration"
+OW-PHASE-5 = "Dispatch and Katana execution"
+OW-PHASE-6 = "Gate Registry and assurance case"
+OW-PHASE-7 = "BLUT adapter"
+OW-PHASE-8 = "Liminal production compiler"
+OW-PHASE-9 = "High-assurance controls"
