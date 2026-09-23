@@ -1831,6 +1831,21 @@ pub fn print(report: &Report) {
     for diagnostic in &report.diagnostics {
         println!("{diagnostic}");
     }
+    // §76.2, OW-WAR-0112: the same remedies, once each, with a count — the
+    // list a reader works down. A red corpus of forty findings is usually
+    // three commands.
+    let mut remedies: BTreeMap<(String, &'static str), usize> = BTreeMap::new();
+    for diagnostic in &report.diagnostics {
+        if let Some(r) = crate::remedy::remedy_for(diagnostic) {
+            *remedies.entry((r.command(), r.kind.label())).or_default() += 1;
+        }
+    }
+    if !remedies.is_empty() {
+        println!("\nREMEDIES:");
+        for ((command, kind), n) in &remedies {
+            println!("  {kind:<5} {command}   (×{n})");
+        }
+    }
     println!();
     println!(
         "{} pass · {} warn · {} unknown · {} error   (worst: {})",

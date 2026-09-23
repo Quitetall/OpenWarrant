@@ -128,6 +128,19 @@ impl fmt::Display for Diagnostic {
         if let Some(file) = &self.file {
             write!(f, "\n{:<7} {:<34}   → {file}", "", "")?;
         }
+        // §76.2: the remedy is part of the finding, not a footnote. Rendered
+        // from the same table the JSON envelope uses, so the two never
+        // disagree about what to run.
+        if let Some(r) = crate::remedy::remedy_for(self) {
+            write!(
+                f,
+                "\n{:<7} {:<34}   → {}: {}",
+                "",
+                "",
+                r.kind.label(),
+                r.command()
+            )?;
+        }
         Ok(())
     }
 }

@@ -56,6 +56,7 @@ pub mod progress;
 pub mod progress_viewer;
 pub mod questions;
 pub mod relations;
+pub mod remedy;
 pub mod repo;
 pub mod resolution_cmd;
 pub mod resolve;
