@@ -67,10 +67,22 @@ title = "OW-WAR-0071 re-targeted to 1.2.0"
 kind = "document"
 target_ref = "docs/warrants/OW-WAR-0071/amendments/AM-001.yaml"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-001"]
-# Not yet delivered: created under this Warrant. Digest recorded on delivery.
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:423e907bbb15ad4de60faf3ff2c604988f19ab059d59fe5382519ca0e0bf5ba9"
+media_type = "application/yaml"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-004"
@@ -78,10 +90,22 @@ title = "The ownership index"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/ownership.rs"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-001", "OBL-002"]
-# Not yet delivered: created under this Warrant. Digest recorded on delivery.
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:0a5deb709d99724102f6947df1a80a741ce1c823d1cab6a63f90cf8628c3418c"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-005"
@@ -273,10 +297,22 @@ title = "The ownership plants"
 kind = "file"
 target_ref = "conformance/plants.d/98-ownership.sh"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-001", "OBL-002"]
-# Not yet delivered: created under this Warrant. Digest recorded on delivery.
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:759c5d9b0bec2914dbefe5de50f1439bf6e1a681ac00dc4fabe12a805b2aef35"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-014"
@@ -330,10 +366,22 @@ title = "Remedies"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/remedy.rs"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-003"]
-# Not yet delivered: created under this Warrant. Digest recorded on delivery.
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:672de3428d639659cc44a7909e8cb26406eb7cff969162efa973e432d8fc6715"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-017"
@@ -433,10 +481,22 @@ title = "init, unchanged in behaviour, as a module directory"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/init/mod.rs"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-004"]
-# Not yet delivered: created under this Warrant. Digest recorded on delivery.
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:314219d41cf3301a7a118d11f38c51def747c90a8948f74c0613ea238623a404"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-022"
@@ -444,10 +504,22 @@ title = "The guided init"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/init/guided.rs"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-004"]
-# Not yet delivered: created under this Warrant. Digest recorded on delivery.
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:4a063c05af9cb9c6637cd33ddf94fa11dec7a71f4f83ec2b6747486f96926cfa"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-023"
@@ -547,10 +619,22 @@ title = "The init plants"
 kind = "file"
 target_ref = "conformance/plants.d/99-init.sh"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-004"]
-# Not yet delivered: created under this Warrant. Digest recorded on delivery.
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:125fa3e6a33a72f5df7f7df9e94cbaa2cf24cdb56bfd1c03bdfb56866fb0279e"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-028"
@@ -604,10 +688,22 @@ title = "The app"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/tui/mod.rs"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-005", "OBL-006"]
-# Not yet delivered: created under this Warrant. Digest recorded on delivery.
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:3d7d5e119b7f568e0bf0ead484d543d2a39f3aab9cd0f6efefc7ab1f41329b14"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-031"
@@ -684,10 +780,22 @@ title = "The app plants"
 kind = "file"
 target_ref = "conformance/plants.d/97-tui.sh"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-005", "OBL-006"]
-# Not yet delivered: created under this Warrant. Digest recorded on delivery.
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:799c94f5269dfd1c3b944ee05969a122f42fc28e97b3243a53e6f1592db297fd"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-035"
@@ -695,10 +803,22 @@ title = "docs/TUI.md: every pane, every key, the rendering rule"
 kind = "document"
 target_ref = "docs/TUI.md"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-005", "OBL-006"]
-# Not yet delivered: created under this Warrant. Digest recorded on delivery.
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:faf5e5a2e6b181fa09f0e4db22d077cfe1ed54357e08f5bcfb5afd141607d7cf"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-036"
@@ -775,10 +895,22 @@ title = "The re-pin act"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/sas_repin.rs"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-007"]
-# Not yet delivered: created under this Warrant. Digest recorded on delivery.
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0112/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:933a3bd8bc05b02a541c546c4dbf45b7a252689b59453e8d212be0ade9c3f00e"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-040"
