@@ -809,6 +809,57 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
     }
     let checks = assessment.checks;
     let outcome = assessment.would_resolve_satisfied;
+
+    // OW-ADR-0021: requirement 3 reads exactly as before — the bytes either
+    // are what this Warrant pinned or they are not. But when they are not
+    // BECAUSE a later authorized Warrant declares the path, "not established"
+    // sends the reader to restore a file that is now someone else's. Name the
+    // owner, and the act that fits: this Warrant was never resolved against
+    // this pin, so the pin is out of date, and a refresh records what it
+    // delivered as the tree stands under whose authority.
+    if !checks.artifact_digests_verify
+        && let Ok(set) = repo.load_deliverables(&dir)
+        && let Ok(ownership) = crate::ownership::Ownership::index(repo)
+    {
+        let corrections = repo.load_corrections(&dir).unwrap_or_default();
+        let authorized_at = repo
+            .load_authorization(&dir)
+            .ok()
+            .flatten()
+            .and_then(|a| a.revision.authorization.map(|x| x.effective_time));
+        for d in set.records.iter().filter(|d| d.content_addressed) {
+            let Some(p) = d.provenance.as_ref() else {
+                continue;
+            };
+            let (_, head) = crate::correct::head_for(&corrections, &d.id, &p.content_digest);
+            let Ok(head) = head else {
+                continue;
+            };
+            let want = head.trim_start_matches("sha256:");
+            let unchanged = std::fs::read(repo.root.join(&d.target_ref))
+                .is_ok_and(|b| openwarrant_compiler::sha256_hex(&b) == want);
+            if unchanged {
+                continue;
+            }
+            if let Some(newer) =
+                ownership.newer_than(&d.target_ref, alias, authorized_at.as_deref())
+            {
+                report.push(Diagnostic::warn(
+                    "resolution.deliverable-moved",
+                    repo.relative(&dir.join("deliverables.toml")),
+                    format!(
+                        "{alias}: {} → {} no longer carries the bytes this Warrant pinned; \
+                         {}/{} (authorized {}) governs that path now. Requirement 3 stays \
+                         unmet as written, and nothing here is drift: no resolution binds \
+                         this pin, so `war pins --refresh --alias {alias}` records the bytes \
+                         as they stand and the resolution then says what was delivered under \
+                         whose authority (OW-ADR-0021)",
+                        d.id, d.target_ref, newer.alias, newer.deliverable_id, newer.authorized_at
+                    ),
+                ));
+            }
+        }
+    }
     let unestablished: Vec<&str> = assessment
         .unestablished
         .iter()

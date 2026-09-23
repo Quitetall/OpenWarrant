@@ -10,7 +10,7 @@
 //! command that dials. `war check` reaching the network would make its verdict
 //! depend on someone else's uptime, which is the opposite of a control.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use openwarrant_compiler::{ChildRef, lower};
 use openwarrant_core::{ValidatedManifest, detect_parent_cycles, milestones, obligation, seam};
@@ -99,16 +99,19 @@ pub fn run(
         crate::relations::check(&related, &mut report);
     }
 
+    // OW-ADR-0021: which Warrant governs each path NOW. Built once — it
+    // verifies one attestation per owning Warrant, and the drift decision
+    // below asks it for every content-addressed deliverable in the corpus.
+    let ownership = crate::ownership::Ownership::index(repo)?;
+
+    let shared = Shared {
+        corpus: &corpus,
+        parent_digests: &parent_digests,
+        gates: &gates,
+        ownership: &ownership,
+    };
     for one in &loaded {
-        check_one(
-            repo,
-            one,
-            &corpus,
-            check_generated,
-            &parent_digests,
-            &gates,
-            &mut report,
-        );
+        check_one(repo, one, shared, check_generated, &mut report);
         if let Some(basis) = &one.basis {
             total_warrants += 1;
             let fully_undisposed = basis
@@ -621,8 +624,19 @@ pub fn resolution_binds(repo: &Repository, one: &Loaded) -> bool {
     repo.load_resolution(&one.dir).ok().flatten().is_some()
 }
 
-fn check_deliverable_digests(repo: &Repository, one: &Loaded, alias: &str, report: &mut Report) {
+fn check_deliverable_digests(
+    repo: &Repository,
+    one: &Loaded,
+    alias: &str,
+    ownership: &crate::ownership::Ownership,
+    report: &mut Report,
+) {
     let bound = resolution_binds(repo, one);
+    let authorization = repo.load_authorization(&one.dir).ok().flatten();
+    let authorized_at = authorization
+        .as_ref()
+        .and_then(|a| a.revision.authorization.as_ref())
+        .map(|a| a.effective_time.clone());
     let deliverables = match repo.load_deliverables(&one.dir) {
         Ok(set) => set,
         Err(err) => {
@@ -643,6 +657,65 @@ fn check_deliverable_digests(repo: &Repository, one: &Loaded, alias: &str, repor
         ));
     }
 
+    // OW-ADR-0021: the set the authorizer signed for is the set that owns.
+    // A record with no `owned` set predates ownership and owns nothing, so
+    // there is nothing to compare; one with a set is held to it both ways.
+    // `authorize` refuses a set that moved between drafting and signing
+    // (`authorize.stale-deliverables`); these two catch the edit AFTER.
+    if let Some(record) = &authorization
+        && !record.owned.is_empty()
+        && deliverables.failures.is_empty()
+    {
+        let declared: BTreeSet<(&str, &str)> = deliverables
+            .records
+            .iter()
+            .map(|d| (d.id.as_str(), d.target_ref.as_str()))
+            .collect();
+        let owned: BTreeSet<(&str, &str)> = record
+            .owned
+            .iter()
+            .map(|d| (d.id.as_str(), d.target_ref.as_str()))
+            .collect();
+        let mut agree = true;
+        for (id, target) in declared.difference(&owned) {
+            agree = false;
+            report.push(Diagnostic::warn(
+                "deliverable.undeclared-at-authorization",
+                file.clone(),
+                format!(
+                    "{alias}: {id} → {target} is declared now but was not in the set the \
+                     authorization signed for, so {alias} does not own it and no other \
+                     Warrant's pin on it becomes historical. Ownership widens only through \
+                     an amendment and a re-authorization (§31, OW-ADR-0021)"
+                ),
+            ));
+        }
+        for (id, target) in owned.difference(&declared) {
+            agree = false;
+            report.push(Diagnostic::error(
+                "deliverable.declared-then-removed",
+                file.clone(),
+                format!(
+                    "{alias}: the authorization signed for {id} → {target} and \
+                     deliverables.toml no longer declares it. A signed claim on a path \
+                     cannot be withdrawn by deleting the line — restore the declaration, \
+                     or amend and re-authorize (§31, OW-ADR-0021)"
+                ),
+            ));
+        }
+        if agree {
+            report.push(Diagnostic::pass(
+                "deliverable.owned",
+                format!(
+                    "{alias}: the {} deliverable(s) declared are the {} the authorization \
+                     signed for",
+                    declared.len(),
+                    owned.len()
+                ),
+            ));
+        }
+    }
+
     let addressed: Vec<_> = deliverables
         .records
         .iter()
@@ -661,6 +734,7 @@ fn check_deliverable_digests(repo: &Repository, one: &Loaded, alias: &str, repor
 
     let mut drifted = 0usize;
     let mut corrected = 0usize;
+    let mut historical = 0usize;
     for deliverable in &addressed {
         let Some(provenance) = deliverable.provenance.as_ref() else {
             report.push(Diagnostic::error(
@@ -737,6 +811,39 @@ fn check_deliverable_digests(repo: &Repository, one: &Loaded, alias: &str, repor
                             ),
                         ));
                     }
+                } else if let Some(newer) = bound
+                    .then(|| {
+                        ownership.newer_than(
+                            &deliverable.target_ref,
+                            alias,
+                            authorized_at.as_deref(),
+                        )
+                    })
+                    .flatten()
+                {
+                    // OW-ADR-0021: a later authorized Warrant declares this
+                    // path, so the bytes are its to answer for. This pin is a
+                    // claim about a moment — `war pins --history` finds the
+                    // commit — and neither drift nor a correction applies.
+                    // Decided before the correction branch on purpose: a
+                    // chain that stopped matching because a NEWER OWNER moved
+                    // the file is not a correction that corrects nothing.
+                    historical += 1;
+                    report.push(Diagnostic::pass(
+                        "deliverable.superseded-by",
+                        format!(
+                            "{alias}: {} pinned {} at {head}; {}/{} (authorized {}) now \
+                             governs that path, so this pin is historical and the bytes \
+                             are that Warrant's to answer for (OW-ADR-0021) — `war pins \
+                             --history {}`",
+                            deliverable.id,
+                            deliverable.target_ref,
+                            newer.alias,
+                            newer.deliverable_id,
+                            newer.authorized_at,
+                            deliverable.target_ref
+                        ),
+                    ));
                 } else if !chain.is_empty() {
                     report.push(Diagnostic::error(
                         "correction.new-digest-mismatch",
@@ -755,11 +862,15 @@ fn check_deliverable_digests(repo: &Repository, one: &Loaded, alias: &str, repor
                         file.clone(),
                         format!(
                             "{alias}: {} records sha256:{recorded} for {} but the file is now \
-                             sha256:{actual}. A resolution binds this manifest, so the artifact \
-                             moved after the work was accepted — restore it, or record why it \
-                             moved: \
-                             `war correct {alias} {}` (OW-WAR-0064)",
-                            deliverable.id, deliverable.target_ref, deliverable.id
+                             sha256:{actual}. A resolution binds this manifest and no later \
+                             authorized Warrant declares {}, so the artifact moved outside any \
+                             authorization — restore it; declare it as a deliverable of a \
+                             Warrant and have that Warrant authorized (OW-ADR-0021); or record \
+                             why it moved: `war correct {alias} {}` (OW-WAR-0064)",
+                            deliverable.id,
+                            deliverable.target_ref,
+                            deliverable.target_ref,
+                            deliverable.id
                         ),
                     ));
                     drifted += 1;
@@ -806,10 +917,15 @@ fn check_deliverable_digests(repo: &Repository, one: &Loaded, alias: &str, repor
         report.push(Diagnostic::pass(
             "deliverable.digests",
             format!(
-                "{alias}: {} content-addressed deliverable(s) match their bytes{}",
+                "{alias}: {} content-addressed deliverable(s) match their bytes{}{}",
                 addressed.len(),
                 if corrected > 0 {
                     format!(" ({corrected} through an authorized correction)")
+                } else {
+                    String::new()
+                },
+                if historical > 0 {
+                    format!(" ({historical} historical, governed by a later Warrant)")
                 } else {
                     String::new()
                 }
@@ -939,15 +1055,31 @@ fn check_traceability(repo: &Repository, one: &Loaded, alias: &str, report: &mut
     }
 }
 
+/// What every Warrant's check reads from the corpus as a whole: built once
+/// in `run`, never per Warrant.
+#[derive(Clone, Copy)]
+struct Shared<'a> {
+    corpus: &'a [Loaded],
+    /// Contract digests by alias, for a child's citation of its parent.
+    parent_digests: &'a BTreeMap<String, String>,
+    gates: &'a openwarrant_core::GateRegistry,
+    /// OW-ADR-0021: which Warrant governs each path now.
+    ownership: &'a crate::ownership::Ownership,
+}
+
 fn check_one(
     repo: &Repository,
     one: &Loaded,
-    corpus: &[Loaded],
+    shared: Shared<'_>,
     check_generated: bool,
-    parent_digests: &BTreeMap<String, String>,
-    gates: &openwarrant_core::GateRegistry,
     report: &mut Report,
 ) {
+    let Shared {
+        corpus,
+        parent_digests,
+        gates,
+        ownership,
+    } = shared;
     let alias = one.alias();
 
     // Carry forward whatever loading already found.
@@ -966,7 +1098,7 @@ fn check_one(
         format!("{alias}: manifest and composition are well-formed"),
     ));
 
-    check_deliverable_digests(repo, one, &alias, report);
+    check_deliverable_digests(repo, one, &alias, ownership, report);
     check_traceability(repo, one, &alias, report);
     {
         // §44.6 recorded runs and the §56.2 record, both held to the contract
@@ -1115,11 +1247,26 @@ fn check_one(
             } else if let Some(latest) = repo.latest_sas_revision().ok().flatten()
                 && &latest.version != v
             {
-                report.push(Diagnostic::warn(
-                    "sas.pin-superseded",
-                    repo.relative(&one.dir.join("authorization.toml")),
-                    format!("{alias}: authorized against SAS {v}; the latest recorded revision is {} — the contract keeps its Basis until an amendment carrying `sas_revision: \"{}\"` re-pins it and a human re-authorizes (OW-ADR-0016)", latest.version, latest.version),
-                ));
+                // A resolved Warrant executes nothing further under any
+                // Basis; the revision it was accepted under is its history,
+                // not a debt. Only a Warrant still open to execution is asked
+                // to re-pin (OW-WAR-0112, OW-ADR-0021).
+                if repo.load_resolution(&one.dir).ok().flatten().is_some() {
+                    report.push(Diagnostic::pass(
+                        "sas.pin-historical",
+                        format!(
+                            "{alias}: resolved under SAS {v}; {} is in force now and asks \
+                             nothing of a Warrant that executes no further",
+                            latest.version
+                        ),
+                    ));
+                } else {
+                    report.push(Diagnostic::warn(
+                        "sas.pin-superseded",
+                        repo.relative(&one.dir.join("authorization.toml")),
+                        format!("{alias}: authorized against SAS {v}; the latest recorded revision is {} — the contract keeps its Basis until an amendment carrying `sas_revision: \"{}\"` re-pins it and a human re-authorizes (OW-ADR-0016)", latest.version, latest.version),
+                    ));
+                }
             }
         }
     }

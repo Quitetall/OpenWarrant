@@ -35,6 +35,10 @@ plant_hook() {
 # A file pinned by a resolved Warrant is denied, naming the Warrant and the act.
 plant_hook "edit to a pinned file is denied" guard-pins.sh "$HKFX/edit-pinned.json" '"permissionDecision":"deny"' present
 plant_hook "the denial names the correction act" guard-pins.sh "$HKFX/edit-pinned.json" 'war correct' present
+# A pin a LATER authorized Warrant governs is historical (OW-ADR-0021): the
+# hook lets the edit through in silence, because the newer Warrant answers
+# for those bytes now. `check.rs` — OW-WAR-0005 resolved, OW-WAR-0112 owns.
+plant_hook "edit to a historical pin is permitted" guard-pins.sh "$HKFX/edit-historical.json" '' empty
 # A generated projection is denied without consulting the pins.
 plant_hook "edit under generated/ is denied" guard-pins.sh "$HKFX/edit-generated.json" 'war compile' present
 # An unpinned file passes in silence.

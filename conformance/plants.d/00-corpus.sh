@@ -732,10 +732,13 @@ plant_cmd "a tampered import artifact" "not reproducible" \
 # openwarrant.toml. A plant that edited `deny.toml` to move its bytes would not
 # be undone by the restore and would leave the developer's tree modified. Same
 # control either way: recorded digest versus bytes on disk.
-DELIVERABLE="docs/warrants/OW-WAR-0001/deliverables.toml"
+# OW-WAR-0061 is resolved and nothing later declares its path, so the drift
+# is the real thing (OW-ADR-0021). OW-WAR-0001, the previous target, is only
+# authorized: its pin is a note, not a promise, and reads `pin-stale`.
+DELIVERABLE="docs/warrants/OW-WAR-0061/deliverables.toml"
 
 plant "a deliverable digest that no longer matches" "deliverable.digest-drift" \
-    "regenerate the record" 2 \
+    "OW-WAR-0061: D-001 records sha256:dead" 2 \
     "python3 -c \"
 import pathlib, re
 p = pathlib.Path('$DELIVERABLE')
@@ -751,8 +754,8 @@ plant "a deliverable naming a missing artifact" "deliverable.target-unreadable" 
     "python3 -c \"
 import pathlib
 p = pathlib.Path('$DELIVERABLE')
-p.write_text(p.read_text().replace('target_ref = \\\"Cargo.toml\\\"', 'target_ref = \\\"Cargo.toml.nope\\\"', 1))
-\"; assert_present 'Cargo.toml.nope' '$DELIVERABLE'"
+p.write_text(p.read_text().replace('target_ref = \\\"docs/roadmap/PHASE1_EXIT.md\\\"', 'target_ref = \\\"docs/roadmap/PHASE1_EXIT.md.nope\\\"', 1))
+\"; assert_present 'docs/roadmap/PHASE1_EXIT.md.nope' '$DELIVERABLE'"
 
 # OW-WAR-0055 — the corpus projection. §34 and §105 references, and the two
 # generated files a person and an agent read.
