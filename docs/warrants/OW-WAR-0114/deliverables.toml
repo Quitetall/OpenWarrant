@@ -1,0 +1,329 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer. Under OW-ADR-0021 this SET of
+# (id, target_ref) pairs is what the authorizer signs and what this Warrant
+# then governs; paths that do not exist yet carry content_addressed = false
+# until delivered. `contract_digest` is "unrecorded": no authorized revision yet.
+
+[[deliverable]]
+id = "D-001"
+title = "OW-ADR-0023, the roadmap-is-a-record decision"
+kind = "document"
+target_ref = "docs/adr/atoms/OW-ADR-0023-roadmap-is-a-record.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0114/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:d8771508a5071f68001bbc598d670d6c369ebbd8fc79d0008b32132769907920"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "The roadmap manifest"
+kind = "file"
+target_ref = "docs/roadmap/roadmap.toml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-003"
+title = "The roadmap intent atom"
+kind = "document"
+target_ref = "docs/roadmap/atoms/10-intent.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-004"
+title = "The roadmap phases atom"
+kind = "file"
+target_ref = "docs/roadmap/atoms/20-phases.yaml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-005"
+title = "Roadmap revision 1"
+kind = "file"
+target_ref = "docs/roadmap/revisions/1.toml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-006"
+title = "core: the roadmap record"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/roadmap.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-007"
+title = "core: module list"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/lib.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-008"
+title = "core: the phase range from the record"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/traceability.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-009"
+title = "core: status types and the corrected fallback"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/status.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-010"
+title = "cli: the loader"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/repo.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-011"
+title = "cli: war roadmap"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/roadmap_cmd.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-012"
+title = "cli: the edit machine"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/roadmap_edit.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-013"
+title = "cli: the four checks"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/check.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-014"
+title = "cli: Objectives from the record"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/status.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-015"
+title = "cli: the acceptance act"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/sign.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-016"
+title = "cli: the command and module list"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-017"
+title = "cli: the remedies for the new rules"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/remedy.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-018"
+title = "cli: the app's Roadmap pane"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/tui/mod.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-019"
+title = "cli: war progress reads the record"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/progress_viewer.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-020"
+title = "cli: the progress roadmap reader"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/progress_viewer/roadmap.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-021"
+title = "compiler: the Roadmap section of CURRENT.md"
+kind = "file"
+target_ref = "crates/openwarrant-compiler/src/current.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-022"
+title = "schema: oh.war/roadmap/v1"
+kind = "file"
+target_ref = "schemas/oh.war/roadmap/v1.json"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-023"
+title = "schema pack"
+kind = "file"
+target_ref = "schemas/pack.json"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-024"
+title = "The SAS: §98 points at the record"
+kind = "document"
+target_ref = "docs/sas/WAR_Software_Architecture_Specification.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-025"
+title = "PRODUCTION_ROADMAP.md retired to lineage"
+kind = "document"
+target_ref = "docs/roadmap/PRODUCTION_ROADMAP.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-026"
+title = "view.json retired"
+kind = "file"
+target_ref = "docs/roadmap/view.json"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-027"
+title = "rc2 plan retired"
+kind = "file"
+target_ref = "docs/design/rc2-implementation-roadmap.json"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-028"
+title = "rc.3 plan retired"
+kind = "file"
+target_ref = "docs/sas/drafts/1.0.0-rc.3/roadmap.json"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-029"
+title = "CONTEXT.md: the term"
+kind = "document"
+target_ref = "CONTEXT.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-030"
+title = "docs/TUI.md: the Roadmap pane"
+kind = "document"
+target_ref = "docs/TUI.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-031"
+title = "the plants"
+kind = "file"
+target_ref = "conformance/plants.d/70-roadmap.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]

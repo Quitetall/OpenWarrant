@@ -1,0 +1,16 @@
+# oh.war/question/v1. Asked by an agent, answered by a human (§27.2). An answer
+# informs the work; it is never a disposition, a judgment, or an
+# authorization, and `answered_by` is an attribution, not a proof: a
+# signature binds an ACT, and an answer is not one. `war questions
+# --open` lists what awaits an answer. Regenerated when answered, so
+# a comment added below this header does not survive.
+
+schema = "oh.war/question/v1"
+id = "Q-001"
+warrant = "OW-WAR-0114"
+stage = "STAGE-001"
+asked_by = "agent://claude"
+asked_at = "2026-09-23T07:26:25Z"
+question = "Which phase set becomes roadmap revision 1? A: the eleven SAS §98 phases (70 Warrants already cite one; every phase has an Exit). B: the four-phase plan from rc.3 (Library and Standard; SDK and Compiler Integration; Workflow Integration; Hardening and Adoption). Both mappings of every Warrant and every gap are in 20-basis.md. Answer A or B."
+blocking = true
+recommended = "A — the eleven §98 phases, with the four-phase plan kept as each phase's priority tier. It moves no signed ref, keeps the eleven accepted Exit criteria, and loses nothing the four-phase plan orders."

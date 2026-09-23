@@ -1,0 +1,78 @@
+schema: "oh.war/milestones/v1"
+
+# M1 is the owner's choice and the reconciliation it fills. M2 is the record
+# every later milestone reads. M5's rendering waits on OW-WAR-0113's
+# current.rs.
+#
+#   M1 reconcile -- M2 record --+-- M3 acceptance --+
+#                               +-- M4 editing -----+-- M5 render + retire
+milestones:
+  - id: "M1"
+    title: "Reconcile every Warrant and gap under both phase sets; the owner picks one"
+    stage_refs: ["STAGE-001", "STAGE-002"]
+    obligation_refs: ["OBL-001"]
+  - id: "M2"
+    title: "The roadmap record, its command, its checks, status reading it"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-002"]
+  - id: "M3"
+    title: "Roadmap revisions accepted through the signing seam, dry-run first"
+    depends_on: ["M2"]
+    stage_refs: ["STAGE-004"]
+    obligation_refs: ["OBL-003"]
+  - id: "M4"
+    title: "A human edits the roadmap by keystroke and signs once"
+    depends_on: ["M2"]
+    stage_refs: ["STAGE-005"]
+    obligation_refs: ["OBL-003"]
+  - id: "M5"
+    title: "The roadmap renders into CURRENT.md; the four legacy roadmaps retire"
+    depends_on: ["M3", "M4"]
+    stage_refs: ["STAGE-006", "STAGE-007"]
+    obligation_refs: ["OBL-004"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Owner answers Q-001: phase set A (eleven §98 phases) or B (four-phase plan)"
+    executor_kind: "human"
+    responsibility_tier: "T2"
+  - id: "STAGE-002"
+    title: "Write docs/roadmap/roadmap.toml and its two atoms from the chosen set"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["20-basis.md#The two candidate phase sets", "20-basis.md#The gaps, placed"]
+    budget_tokens: 12000
+  - id: "STAGE-003"
+    title: "core/roadmap.rs, the loader, roadmap_cmd.rs, the four checks, status reading the record, schema regen"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Premade Instructions"]
+    budget_tokens: 24000
+  - id: "STAGE-004"
+    title: "Pending::AcceptRoadmap, ingest, attestation, dry run, the phase diff"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 14000
+  - id: "STAGE-005"
+    title: "roadmap_edit.rs, the line front end, the app's Roadmap pane"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Premade Instructions"]
+    budget_tokens: 16000
+  - id: "STAGE-006"
+    title: "CURRENT.md Roadmap section, HISTORY.md revisions, war progress on the record, retirements, CONTEXT.md, the plants"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 16000
+  - id: "STAGE-007"
+    title: "Owner accepts roadmap revision 1; later, the SAS revision pointing §98 at the record"
+    executor_kind: "human"
+    responsibility_tier: "T2"

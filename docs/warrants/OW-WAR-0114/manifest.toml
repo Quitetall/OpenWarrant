@@ -1,0 +1,62 @@
+# A Warrant is the contract for ONE bounded intervention inside a program,
+# and it traces to that program's SAS through [[implements]] and [[roadmap]].
+schema = "oh.war/manifest/v1"
+uuid = "01a0cd26-1b69-7123-a9fe-da2516447ada"
+local_alias = "OW-WAR-0114"
+
+# Allocated only by Knowledge Fabric (SAS §12.4). Leave empty.
+enterprise_id = ""
+
+title = "The roadmap becomes a record: one per program, beside the SAS"
+profile = "delivery"
+assurance_level = "basic"
+
+# §6.4's SHOULD and §8's "compile … Roadmap … context" are what this Warrant
+# makes true; no §106 row names the roadmap, so the rows below are the ones
+# the record touches: traceability, the state decomposition, and history.
+[[implements]]
+ref = "sas://WAR-SAS-RQ-032"
+contribution = "partial"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-084"
+contribution = "partial"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-1/roadmap"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 30
+role = "adr"
+path = "../../adr/atoms/OW-ADR-0023-roadmap-is-a-record.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true

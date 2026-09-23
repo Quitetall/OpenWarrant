@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-109 Warrant(s) in this repository.
+110 Warrant(s) in this repository.
 
 ## Summary
 
@@ -120,6 +120,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0111](docs/warrants/OW-WAR-0111/manifest.toml) | Implement content-bearing preservation archives and honest import round trips | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0112](docs/warrants/OW-WAR-0112/manifest.toml) | war is the app: ownership, a guided start, and remedies | `authorized` | `current` | `valid` | `controlled` | 5M / 10S |
 | [OW-WAR-0113](docs/warrants/OW-WAR-0113/manifest.toml) | Two projections from atoms by relation: the current master document, and the history | `draft` | `current` | `valid` | `basic` | 5M / 5S |
+| [OW-WAR-0114](docs/warrants/OW-WAR-0114/manifest.toml) | The roadmap becomes a record: one per program, beside the SAS | `draft` | `current` | `valid` | `basic` | 5M / 7S |
 
 ## Claimed SAS requirement coverage
 
@@ -143,7 +144,7 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-025` — OW-WAR-0006
 - `WAR-SAS-RQ-030` — OW-WAR-0009, OW-WAR-0067
 - `WAR-SAS-RQ-031` — OW-WAR-0009
-- `WAR-SAS-RQ-032` — OW-WAR-0008, OW-WAR-0113
+- `WAR-SAS-RQ-032` — OW-WAR-0008, OW-WAR-0113, OW-WAR-0114
 - `WAR-SAS-RQ-033` — OW-WAR-0009, OW-WAR-0112
 - `WAR-SAS-RQ-034` — OW-WAR-0009
 - `WAR-SAS-RQ-035` — OW-WAR-0011
@@ -181,7 +182,7 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-081` — OW-WAR-0003
 - `WAR-SAS-RQ-082` — OW-WAR-0030
 - `WAR-SAS-RQ-083` — OW-WAR-0030
-- `WAR-SAS-RQ-084` — OW-WAR-0030, OW-WAR-0064, OW-WAR-0113
+- `WAR-SAS-RQ-084` — OW-WAR-0030, OW-WAR-0064, OW-WAR-0113, OW-WAR-0114
 - `WAR-SAS-RQ-085` — OW-WAR-0067, OW-WAR-0071, OW-WAR-0072
 
 ## Relations
@@ -255,6 +256,7 @@ Source: the Warrants under the configured warrants path.
 - **OW-WAR-0073** · roadmap: roadmap://OW-PHASE-9/release
 - **OW-WAR-0112** · roadmap: roadmap://OW-PHASE-1/console
 - **OW-WAR-0113** · roadmap: roadmap://OW-PHASE-1/projections
+- **OW-WAR-0114** · roadmap: roadmap://OW-PHASE-1/roadmap
 
 ## Not reported here
 
