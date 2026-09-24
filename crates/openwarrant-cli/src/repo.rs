@@ -17,6 +17,12 @@ use openwarrant_core::verification::Verification;
 use crate::diagnostic::{Diagnostic, Report};
 use crate::init::CONFIG_FILE;
 
+// OW-WAR-0130: version negotiation between `war` and its records. A child of
+// this module, declared here because the module list in `lib.rs` is not this
+// Warrant's to change, and because discovery and loading are its callers.
+#[path = "compat.rs"]
+pub(crate) mod compat;
+
 #[derive(Debug)]
 pub enum RepoError {
     /// A command-level failure that is not about locating or parsing the
@@ -126,7 +132,14 @@ impl Repository {
             })?;
         config
             .validate()
-            .map_err(|source| RepoError::ConfigInvalid { path, source })?;
+            .map_err(|source| RepoError::ConfigInvalid {
+                path: path.clone(),
+                source,
+            })?;
+        // OW-WAR-0130: `[project] requires_war`, once, before any record is
+        // read. `discover` reaches every repository through here, so a `war`
+        // the repository does not admit reads nothing of it.
+        compat::check(&config, &path).map_err(RepoError::Message)?;
         Ok(Self { root, config })
     }
 
@@ -356,6 +369,11 @@ impl Repository {
 
         let mut report = Report::default();
         let relative_manifest = self.relative(&manifest_path);
+        // OW-WAR-0130: a record newer than this `war` reads is UNKNOWN by
+        // name, whatever else its own reader makes of it.
+        for newer in compat::newer_records(dir, &|p: &Utf8Path| self.relative(p)) {
+            report.push(newer);
+        }
 
         let validated = match manifest.validate(Some(self.config.project.namespace.as_str())) {
             Ok(v) => v,
