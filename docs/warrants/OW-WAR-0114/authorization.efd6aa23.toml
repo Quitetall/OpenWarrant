@@ -1,0 +1,154 @@
+schema = "oh.war/authorization/v1"
+warrant = "OW-WAR-0114"
+sas_revision = "1.1.0"
+deliverable_set_digest = "sha256:076385aa8eb53711ec80f64051bcd2dbf7d7c9bbf1ba70a4835fa6c07810bef8"
+
+[revision]
+revision = 1
+state = "authorized"
+contract_digest = "4aa9e6371f60067f43434cb679494de3b0858c78b75c5d01c2c28a9f18cc7544"
+proposer = "claude"
+
+[revision.coverage]
+covered = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+
+[revision.authorization]
+authorizer = "Brian Lam"
+actor_kind = "human"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0114 (The roadmap becomes a record: one per program, beside the SAS) at this contract digest means the signer accepts its intent, scope and 4 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.2` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-09-23T07:44:06Z"
+independence = "separate_role"
+
+[[owned]]
+id = "D-001"
+target_ref = "docs/adr/atoms/OW-ADR-0023-roadmap-is-a-record.md"
+
+[[owned]]
+id = "D-002"
+target_ref = "docs/roadmap/roadmap.toml"
+
+[[owned]]
+id = "D-003"
+target_ref = "docs/roadmap/atoms/10-intent.md"
+
+[[owned]]
+id = "D-004"
+target_ref = "docs/roadmap/atoms/20-phases.yaml"
+
+[[owned]]
+id = "D-005"
+target_ref = "docs/roadmap/revisions/1.toml"
+
+[[owned]]
+id = "D-006"
+target_ref = "crates/openwarrant-core/src/roadmap.rs"
+
+[[owned]]
+id = "D-007"
+target_ref = "crates/openwarrant-core/src/lib.rs"
+
+[[owned]]
+id = "D-008"
+target_ref = "crates/openwarrant-core/src/traceability.rs"
+
+[[owned]]
+id = "D-009"
+target_ref = "crates/openwarrant-core/src/status.rs"
+
+[[owned]]
+id = "D-010"
+target_ref = "crates/openwarrant-cli/src/repo.rs"
+
+[[owned]]
+id = "D-011"
+target_ref = "crates/openwarrant-cli/src/roadmap_cmd.rs"
+
+[[owned]]
+id = "D-012"
+target_ref = "crates/openwarrant-cli/src/roadmap_edit.rs"
+
+[[owned]]
+id = "D-013"
+target_ref = "crates/openwarrant-cli/src/check.rs"
+
+[[owned]]
+id = "D-014"
+target_ref = "crates/openwarrant-cli/src/status.rs"
+
+[[owned]]
+id = "D-015"
+target_ref = "crates/openwarrant-cli/src/sign.rs"
+
+[[owned]]
+id = "D-016"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+
+[[owned]]
+id = "D-017"
+target_ref = "crates/openwarrant-cli/src/remedy.rs"
+
+[[owned]]
+id = "D-018"
+target_ref = "crates/openwarrant-cli/src/tui/mod.rs"
+
+[[owned]]
+id = "D-019"
+target_ref = "crates/openwarrant-cli/src/progress_viewer.rs"
+
+[[owned]]
+id = "D-020"
+target_ref = "crates/openwarrant-cli/src/progress_viewer/roadmap.rs"
+
+[[owned]]
+id = "D-021"
+target_ref = "crates/openwarrant-compiler/src/current.rs"
+
+[[owned]]
+id = "D-022"
+target_ref = "schemas/oh.war/roadmap/v1.json"
+
+[[owned]]
+id = "D-023"
+target_ref = "schemas/pack.json"
+
+[[owned]]
+id = "D-024"
+target_ref = "docs/sas/WAR_Software_Architecture_Specification.md"
+
+[[owned]]
+id = "D-025"
+target_ref = "docs/roadmap/PRODUCTION_ROADMAP.md"
+
+[[owned]]
+id = "D-026"
+target_ref = "docs/roadmap/view.json"
+
+[[owned]]
+id = "D-027"
+target_ref = "docs/design/rc2-implementation-roadmap.json"
+
+[[owned]]
+id = "D-028"
+target_ref = "docs/sas/drafts/1.0.0-rc.3/roadmap.json"
+
+[[owned]]
+id = "D-029"
+target_ref = "CONTEXT.md"
+
+[[owned]]
+id = "D-030"
+target_ref = "docs/TUI.md"
+
+[[owned]]
+id = "D-031"
+target_ref = "conformance/plants.d/70-roadmap.sh"

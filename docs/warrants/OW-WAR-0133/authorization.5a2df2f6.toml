@@ -1,0 +1,54 @@
+schema = "oh.war/authorization/v1"
+warrant = "OW-WAR-0133"
+sas_revision = "1.1.0"
+deliverable_set_digest = "sha256:a3a5d5db9d9a19781580c9dc4ef70afee3610fe349e8d9c332cf3194c679c7c8"
+
+[revision]
+revision = 1
+state = "authorized"
+contract_digest = "85f47e5ccca7de8bb6d8f8b1bc02c8af89b69fd2c1c3ccc1037affea9c7727fe"
+proposer = "claude"
+
+[revision.coverage]
+covered = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+
+[revision.authorization]
+authorizer = "Brian Lam"
+actor_kind = "human"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0133 (Evidence reuse after a source change, and the compiler's source, conflict and omission rules) at this contract digest means the signer accepts its intent, scope and 5 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.2` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-09-23T23:23:42Z"
+independence = "separate_role"
+
+[[owned]]
+id = "D-001"
+target_ref = "crates/openwarrant-cli/src/gate_cmd.rs"
+
+[[owned]]
+id = "D-002"
+target_ref = "crates/openwarrant-cli/src/evidence.rs"
+
+[[owned]]
+id = "D-003"
+target_ref = "crates/openwarrant-cli/src/context_select.rs"
+
+[[owned]]
+id = "D-004"
+target_ref = "crates/openwarrant-compiler/src/dispatch.rs"
+
+[[owned]]
+id = "D-005"
+target_ref = "conformance/plants.d/55-evidence-reuse.sh"
+
+[[owned]]
+id = "D-006"
+target_ref = "docs/RESOLVING.md"
