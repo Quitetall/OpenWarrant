@@ -29582,6 +29582,22 @@ The Dispatch compiler has the matching gap on the context side:
    with the reuse rule, the three compiler rules, and the diagnostic each
    produces.
 
+- (AM-002) `crates/openwarrant-cli/src/dispatch.rs` and
+  `crates/openwarrant-core/src/context.rs`: the emitted context manifest
+  says `conflicts` were not checked (`unchecked`) instead of an empty list,
+  and carries the same-path-at-two-digests finding when it occurs — the
+  field the basis attributed to `context_select.rs` is built here (OBL-004).
+- (AM-002) `crates/openwarrant-cli/src/status.rs`: a reuse-unknown run is
+  labelled `reuse_unknown`, not `stale_binding`.
+- (AM-002) `crates/openwarrant-cli/src/eval.rs` and `evals/baseline.json`:
+  an eval scratch program commits before evidence is recorded, so its
+  receipts name a tree, not `worktree:dirty`; the baseline is re-recorded.
+- (AM-002) `conformance/plants.d/00-corpus.sh`: the two plants that delete
+  OW-WAR-0010's resolution to stand in for an unresolved Warrant now build
+  their fixture on a scratch program with a tree-bound receipt, so they test
+  `resolution.agent` and `resolution.outcome-unsupported` and not this
+  Warrant's reuse rule.
+
 ## Frozen Surfaces
 
 - `oh.war/resolution/v1` and every recorded resolution.
@@ -29741,6 +29757,12 @@ this level requires. The author does not record them.
 | D-004 | The context manifest's conflict field, compiled Dispatch | `crates/openwarrant-compiler/src/dispatch.rs` | not_content_addressed |
 | D-005 | The evidence-reuse and context plants | `conformance/plants.d/55-evidence-reuse.sh` | not_content_addressed |
 | D-006 | When recorded evidence still counts: the reuse rule and the compiler's three rules | `docs/RESOLVING.md` | not_content_addressed |
+| D-007 | The context manifest says conflicts were unchecked (AM-002) | `crates/openwarrant-cli/src/dispatch.rs` | not_content_addressed |
+| D-008 | The context manifest type carries the conflict state (AM-002) | `crates/openwarrant-core/src/context.rs` | not_content_addressed |
+| D-009 | Status labels a reuse-unknown run as such (AM-002) | `crates/openwarrant-cli/src/status.rs` | not_content_addressed |
+| D-010 | An eval scratch commits before recording evidence (AM-002) | `crates/openwarrant-cli/src/eval.rs` | not_content_addressed |
+| D-011 | The eval baseline, re-recorded (AM-002) | `evals/baseline.json` | not_content_addressed |
+| D-012 | Two resolution plants re-pointed at a scratch fixture (AM-002) | `conformance/plants.d/00-corpus.sh` | not_content_addressed |
 
 #### OW-WAR-0134 — Acceptance stays valid only for the candidate accepted: a change before merge is a finding
 
@@ -37306,6 +37328,7 @@ Every command here has been judged by the act's dry run (`war sign <target> --dr
 | authorize | OW-WAR-0125 | `war sign OW-WAR-0125` | would record | revision 3 awaits authorization under AM-002 |
 | authorize | OW-WAR-0130 | `war sign OW-WAR-0130` | would record | revision 3 awaits authorization under AM-002 |
 | authorize | OW-WAR-0132 | `war sign OW-WAR-0132` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0133 | `war sign OW-WAR-0133` | would record | revision 3 awaits authorization under AM-002 |
 | authorize | OW-WAR-0141 | `war sign OW-WAR-0141` | would record | revision 1 awaits authorization |
 | authorize | OW-WAR-0142 | `war sign OW-WAR-0142` | would record | revision 1 awaits authorization |
 | authorize | OW-WAR-0143 | `war sign OW-WAR-0143` | would record | revision 1 awaits authorization |

@@ -62,3 +62,63 @@ required = true
 content_addressed = false
 provenance_required = false
 obligation_refs = ["OBL-002", "OBL-004"]
+
+[[deliverable]]
+id = "D-007"
+title = "The context manifest says conflicts were unchecked (AM-002)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/dispatch.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-008"
+title = "The context manifest type carries the conflict state (AM-002)"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/context.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-009"
+title = "Status labels a reuse-unknown run as such (AM-002)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/status.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-010"
+title = "An eval scratch commits before recording evidence (AM-002)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/eval.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-011"
+title = "The eval baseline, re-recorded (AM-002)"
+kind = "file"
+target_ref = "evals/baseline.json"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-012"
+title = "Two resolution plants re-pointed at a scratch fixture (AM-002)"
+kind = "file"
+target_ref = "conformance/plants.d/00-corpus.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]

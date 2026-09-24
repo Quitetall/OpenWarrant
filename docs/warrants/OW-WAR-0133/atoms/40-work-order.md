@@ -36,6 +36,22 @@ classification: internal
    with the reuse rule, the three compiler rules, and the diagnostic each
    produces.
 
+- (AM-002) `crates/openwarrant-cli/src/dispatch.rs` and
+  `crates/openwarrant-core/src/context.rs`: the emitted context manifest
+  says `conflicts` were not checked (`unchecked`) instead of an empty list,
+  and carries the same-path-at-two-digests finding when it occurs — the
+  field the basis attributed to `context_select.rs` is built here (OBL-004).
+- (AM-002) `crates/openwarrant-cli/src/status.rs`: a reuse-unknown run is
+  labelled `reuse_unknown`, not `stale_binding`.
+- (AM-002) `crates/openwarrant-cli/src/eval.rs` and `evals/baseline.json`:
+  an eval scratch program commits before evidence is recorded, so its
+  receipts name a tree, not `worktree:dirty`; the baseline is re-recorded.
+- (AM-002) `conformance/plants.d/00-corpus.sh`: the two plants that delete
+  OW-WAR-0010's resolution to stand in for an unresolved Warrant now build
+  their fixture on a scratch program with a tree-bound receipt, so they test
+  `resolution.agent` and `resolution.outcome-unsupported` and not this
+  Warrant's reuse rule.
+
 ## Frozen Surfaces
 
 - `oh.war/resolution/v1` and every recorded resolution.
