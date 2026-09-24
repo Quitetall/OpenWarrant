@@ -24,6 +24,7 @@ use openwarrant_core::authority::ActorRole;
 use openwarrant_core::sas::{
     SasAcceptance, SasRevision, SasRevisionState, Section106Diff, section_106,
 };
+use openwarrant_core::sas_sections::{self, Section, SectionDiff};
 use serde::{Deserialize, Serialize};
 
 use crate::diagnostic::{Diagnostic, Report};
@@ -337,6 +338,7 @@ pub fn diff(repo: &Repository, candidate: &Utf8Path) -> Result<Report, RepoError
         context: format!("could not read {candidate}"),
         source,
     })?;
+    sections_diff(&bytes, next_text.as_bytes(), candidate, &mut report);
     let next = section_106(&next_text);
     if next.is_empty() {
         report.push(Diagnostic::error(
@@ -379,6 +381,200 @@ pub fn diff(repo: &Repository, candidate: &Utf8Path) -> Result<Report, RepoError
         d.is_architecture_changing()
     ));
     Ok(report)
+}
+
+/// The section half of `war sas diff` (OW-WAR-0125): the candidate's split is
+/// shown to be lossless, then every section added, removed or changed against
+/// the document in force is named by id. §106's comparison, beside it, is
+/// untouched: a section that changed says where the prose moved, not whether
+/// a requirement did.
+fn sections_diff(current: &[u8], candidate: &[u8], path: &Utf8Path, report: &mut Report) {
+    let next = sas_sections::split(candidate);
+    let (joined, digest) = (
+        sha256_hex(&sas_sections::join(&next)),
+        sha256_hex(candidate),
+    );
+    if joined == digest {
+        report.push(Diagnostic::pass(
+            "sas.sections",
+            format!(
+                "candidate split into {} section(s); joined sha256:{joined} is the candidate's \
+                 own sha256",
+                next.len()
+            ),
+        ));
+    } else {
+        report.push(Diagnostic::error(
+            "sas.section-split",
+            path.to_string(),
+            format!(
+                "the candidate's sections join to sha256:{joined}, not its own sha256:{digest}; \
+                 a lossy split names nothing reliably"
+            ),
+        ));
+        return;
+    }
+    let before = sas_sections::split(current);
+    let d = SectionDiff::between(&before, &next);
+    for id in &d.added {
+        report.push(Diagnostic::pass(
+            "sas.diff.section-added",
+            format!("section {id} added"),
+        ));
+    }
+    for id in &d.removed {
+        // A citation of it at a later revision will not resolve (R-001).
+        report.push(Diagnostic::warn(
+            "sas.diff.section-removed",
+            path.to_string(),
+            format!("section {id} removed; a reference to it no longer resolves at this revision"),
+        ));
+    }
+    for id in &d.changed {
+        let old = before.iter().find(|s| &s.id == id);
+        let new = next.iter().find(|s| &s.id == id);
+        let subs: Vec<&str> = match (old, new) {
+            (Some(old), Some(new)) => new
+                .subsections
+                .iter()
+                .filter(|s| {
+                    old.subsections
+                        .iter()
+                        .find(|o| o.id == s.id)
+                        .is_none_or(|o| o.sha256 != s.sha256)
+                })
+                .map(|s| s.id.as_str())
+                .collect(),
+            _ => Vec::new(),
+        };
+        report.push(Diagnostic::pass(
+            "sas.diff.section-changed",
+            if subs.is_empty() {
+                format!("section {id} changed")
+            } else {
+                format!("section {id} changed (in {})", subs.join(", "))
+            },
+        ));
+    }
+    if d.is_empty() {
+        report.push(Diagnostic::pass(
+            "sas.diff.sections",
+            "no section added, removed or changed".to_owned(),
+        ));
+    }
+}
+
+/// Run one read-only Git command in the repository root, returning stdout.
+fn git(repo: &Repository, args: &[&str]) -> Result<Vec<u8>, String> {
+    let out = std::process::Command::new("git")
+        .current_dir(&repo.root)
+        .args(["--no-pager", "--no-replace-objects"])
+        .args(args)
+        .env("GIT_NO_LAZY_FETCH", "1")
+        .stdin(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .output()
+        .map_err(|e| format!("Git is unavailable ({e})"))?;
+    if out.status.success() {
+        Ok(out.stdout)
+    } else {
+        Err(format!("`git {}` failed", args.join(" ")))
+    }
+}
+
+/// A recorded revision's bytes, found by the digest its record pins
+/// (OW-WAR-0125, A-002): the document on disk when it is that revision, else
+/// the first commit in this repository's history whose blob at the record's
+/// `source` has that sha256. Local and deterministic; nothing is fetched.
+///
+/// `Err` says why the bytes cannot be had — no Git, a shallow clone, or a
+/// history that holds no such blob — so a caller can report UNKNOWN with the
+/// reason (Law 15) rather than guess.
+pub fn revision_bytes(repo: &Repository, revision: &SasRevision) -> Result<Vec<u8>, String> {
+    if let Ok((_, bytes)) = repo.sas_document()
+        && sha256_hex(&bytes) == revision.sha256
+    {
+        return Ok(bytes);
+    }
+    let source = revision.source.as_str();
+    let log = git(
+        repo,
+        &["log", "--full-history", "--format=%H", "HEAD", "--", source],
+    )?;
+    let log = String::from_utf8_lossy(&log);
+    for commit in log.lines().map(str::trim).filter(|c| !c.is_empty()) {
+        let Ok(bytes) = git(repo, &["cat-file", "blob", &format!("{commit}:./{source}")]) else {
+            continue;
+        };
+        if sha256_hex(&bytes) == revision.sha256 {
+            return Ok(bytes);
+        }
+    }
+    let shallow = git(repo, &["rev-parse", "--is-shallow-repository"])
+        .map(|o| String::from_utf8_lossy(&o).trim() == "true")
+        .unwrap_or(false);
+    Err(if shallow {
+        format!(
+            "this clone is shallow, and no commit it retains holds {source} at sha256:{} \
+             (revision {}); fetch the history to answer",
+            revision.sha256, revision.version
+        )
+    } else {
+        format!(
+            "no commit in this repository's history holds {source} at sha256:{} (revision {})",
+            revision.sha256, revision.version
+        )
+    })
+}
+
+/// Each recorded revision split into sections, read at most once per run.
+/// `war check` asks it for the revision every citing Warrant is pinned to and
+/// for the latest accepted one.
+pub struct RevisionSections<'a> {
+    repo: &'a Repository,
+    revisions: Vec<SasRevision>,
+    read: std::cell::RefCell<std::collections::BTreeMap<String, Result<Split, String>>>,
+}
+
+/// One revision's sections, and the namespace its §106 carries.
+#[derive(Clone)]
+pub struct Split {
+    pub sections: std::rc::Rc<Vec<Section>>,
+    pub namespace: Option<String>,
+}
+
+impl<'a> RevisionSections<'a> {
+    #[must_use]
+    pub fn new(repo: &'a Repository) -> Self {
+        Self {
+            repo,
+            revisions: repo.load_sas_revisions().unwrap_or_default(),
+            read: std::cell::RefCell::default(),
+        }
+    }
+
+    #[must_use]
+    pub fn revisions(&self) -> &[SasRevision] {
+        &self.revisions
+    }
+
+    /// The sections of revision `version`, or why they cannot be read.
+    pub fn get(&self, version: &str) -> Result<Split, String> {
+        if let Some(hit) = self.read.borrow().get(version) {
+            return hit.clone();
+        }
+        let result = match self.revisions.iter().find(|r| r.version == version) {
+            None => Err(format!("no SAS revision {version} is recorded")),
+            Some(rev) => revision_bytes(self.repo, rev).map(|bytes| Split {
+                namespace: sas_sections::namespace(&String::from_utf8_lossy(&bytes)),
+                sections: std::rc::Rc::new(sas_sections::split(&bytes)),
+            }),
+        };
+        self.read
+            .borrow_mut()
+            .insert(version.to_owned(), result.clone());
+        result
+    }
 }
 
 /// Every revision on record, and which one the document currently matches.

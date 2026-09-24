@@ -65,13 +65,13 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | requirement | Warrants blocked |
 |---|---|
-| artifact digests verify | 87 |
+| artifact digests verify | 88 |
 | every required gate has admissible result | 86 |
 | no blocker remains | 85 |
 | no required unknown remains | 85 |
 | every required obligation is dispositioned | 83 |
 | independence requirements are met | 83 |
-| required deliverables exist | 74 |
+| required deliverables exist | 73 |
 | required judgments exist | 54 |
 | residual risks have sufficient authority | 54 |
 | exact authorized Contract Revision | 7 |
@@ -203,7 +203,7 @@ Every §106 requirement is named by at least one Warrant.
 | `OW-WAR-0055` Compute the goal hierarchy: war status and the corpus projection | resolved | would satisfy | 0 | 4 of 4 | artifact digests verify |
 | `OW-WAR-0056` Compile a real Stage Dispatch (§47) | resolved | would satisfy | 0 | 3 of 3 | artifact digests verify |
 | `OW-WAR-0057` The viewer: a static page over the corpus projection | resolved | would satisfy | 0 | 2 of 2 | artifact digests verify |
-| `OW-WAR-0058` Put the SAS under §101 governance: controlled revisions and the Release axis | resolved | would satisfy | 0 | 3 of 3 | — |
+| `OW-WAR-0058` Put the SAS under §101 governance: controlled revisions and the Release axis | resolved | would satisfy | 0 | 3 of 3 | artifact digests verify |
 | `OW-WAR-0059` Commit gate receipts as evidence and record the first resolutions | ready_to_resolve | NOT satisfied | 0 | 2 of 4 | — |
 | `OW-WAR-0060` Publish the corpus viewer: GitHub Pages from the committed projection | resolved | would satisfy | 0 | 2 of 2 | — |
 | `OW-WAR-0061` Discharge the Phase 1 exit: OpenWarrant development uses WARs | resolved | would satisfy | 0 | 1 of 1 | — |
@@ -270,7 +270,7 @@ Every §106 requirement is named by at least one Warrant.
 | `OW-WAR-0122` The document grammar: a schema for atoms, headers and Markdown, and what a conforming tool must accept | draft | unknown | 1 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0123` A child cites the exact revision of its parent, and a moved parent is a finding | draft | unknown | 1 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0124` Brownfield adoption: a guided path into OpenWarrant for a repository with history and no Warrants | draft | unknown | 0 | 0 of 3 | artifact digests verify |
-| `OW-WAR-0125` The SAS as atoms: sections as governed records with their own currency | draft | unknown | 0 | 0 of 4 | required deliverables exist |
+| `OW-WAR-0125` The SAS as atoms: sections as governed records with their own currency | draft | unknown | 0 | 0 of 4 | artifact digests verify |
 | `OW-WAR-0126` Knowledge Fabric owns authority and lifecycle: the registration seam and what stays local | draft | unknown | 3 | 0 of 1 | required deliverables exist |
 | `OW-WAR-0127` Native systems keep artifact authority: OpenWarrant references, never re-owns, what another system holds | draft | unknown | 1 | 0 of 3 | required deliverables exist |
 | `OW-WAR-0128` The Knowledge Fabric compiler interface: what OpenWarrant hands KF and what it gets back | draft | unknown | 3 | 0 of 1 | required deliverables exist |

@@ -951,7 +951,7 @@ SAS revision **1.1.0** (accepted), sha256:`321413359168c176faaddefc1a7057d66059d
 
 ## Decisions
 
-9 accepted decision(s), expanded; 14 proposed, one line each.
+9 accepted decision(s), expanded; 15 proposed, one line each.
 
 ### OW-ADR-0001 — ADR OW-0001: Adopt `serde_jcs` as the RFC 8785 canonical JSON implementation
 
@@ -1957,6 +1957,7 @@ are the evidence, recorded under OW-WAR-0073 OBL-001 rather than asserted here.
 - [OW-ADR-0021](../../docs/adr/atoms/OW-ADR-0021-pin-ownership.md) — ADR OW-0021: A delivered path is governed by the latest authorized Warrant that declares it
 - [OW-ADR-0022](../../docs/adr/atoms/OW-ADR-0022-current-by-relation.md) — ADR OW-0022: Two projections, current by relation; atoms are the only authored thing
 - [OW-ADR-0023](../../docs/adr/atoms/OW-ADR-0023-roadmap-is-a-record.md) — ADR OW-0023: The roadmap is a record — one per program, beside the SAS
+- [OW-ADR-0028](../../docs/adr/atoms/OW-ADR-0028-sas-sections-are-atoms.md) — ADR OW-0028: SAS sections are atoms — identity now, authored source later
 - [OW-ADR-0029](../../docs/adr/atoms/OW-ADR-0029-standing-authorization.md) — ADR OW-0029: Standing authorization — one signature authorizes a bounded class of routine work
 
 ## Warrants

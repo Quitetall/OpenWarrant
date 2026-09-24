@@ -120,6 +120,9 @@ pub fn run(
     // verifies one attestation per owning Warrant, and the drift decision
     // below asks it for every content-addressed deliverable in the corpus.
     let ownership = crate::ownership::Ownership::index_with(repo, &currencies)?;
+    // OW-WAR-0125: each recorded SAS revision split into sections, read from
+    // the document or from history at most once per run.
+    let sas_sections = crate::sas::RevisionSections::new(repo);
 
     let shared = Shared {
         corpus: &corpus,
@@ -127,6 +130,7 @@ pub fn run(
         gates: &gates,
         ownership: &ownership,
         roadmap: roadmap.as_ref(),
+        sas_sections: &sas_sections,
     };
     for one in &loaded {
         check_one(repo, one, shared, check_generated, &mut report);
@@ -359,6 +363,15 @@ pub fn run(
                     }
                 }
                 Err(e) => drift_check(repo, Err(e), "sas-normative", &mut report),
+            }
+            // The section index (OW-WAR-0125), by the same function.
+            match crate::compile::sas_sections(repo) {
+                Ok(files) => {
+                    for file in files {
+                        drift_check(repo, Ok(file), "sas-sections", &mut report);
+                    }
+                }
+                Err(e) => drift_check(repo, Err(e), "sas-sections", &mut report),
             }
         }
         // OW-ADR-0022: the master document, and the history when this
@@ -1153,6 +1166,8 @@ struct Shared<'a> {
     ownership: &'a crate::ownership::Ownership,
     /// OW-ADR-0023: the roadmap record, when the program has one.
     roadmap: Option<&'a crate::roadmap_cmd::Loaded>,
+    /// OW-WAR-0125: recorded SAS revisions by section, for citations.
+    sas_sections: &'a crate::sas::RevisionSections<'a>,
 }
 
 fn check_one(
@@ -1168,6 +1183,7 @@ fn check_one(
         gates,
         ownership,
         roadmap,
+        sas_sections,
     } = shared;
     let alias = one.alias();
 
@@ -1484,6 +1500,8 @@ fn check_one(
             }
         }
     }
+
+    check_section_refs(repo, one, &alias, sas_sections, report);
 
     // §39 / RQ-055: contract-adequacy review, STRUCTURALLY checked.
     //
@@ -1841,6 +1859,186 @@ fn check_one(
     if check_generated {
         let children = crate::compile::children_of(&validated.raw.uuid, corpus);
         check_drift(repo, &children, one, basis, validated, &alias, report);
+    }
+}
+
+/// `sas.section-ref` and `sas.section-current` (OW-WAR-0125): an amendment
+/// whose `governing_adr_or_policy` is `sas://<NS>-SAS-<n>[.<m>]` cites a
+/// section of the SAS, and the citation is held to the revision the Warrant
+/// is pinned to — the latest amendment's `sas_revision`, else the
+/// authorization's, else the latest recorded revision.
+///
+/// - `sas.section-ref`: the section or subsection exists at the pinned
+///   revision, under the namespace its §106 carries. An error otherwise, and
+///   for a `sas://…-SAS-…` value that is neither a requirement nor a section.
+/// - `sas.section-current`: its digest at the pinned revision against the
+///   latest accepted revision. Equal passes; different (or gone) warns,
+///   naming both revisions; bytes that cannot be read are UNKNOWN with the
+///   reason (Law 15), never a pass.
+///
+/// A pin naming no recorded revision is `sas.pin-unknown`'s to report; the
+/// section rules say nothing about a revision that does not exist.
+fn check_section_refs(
+    repo: &Repository,
+    one: &Loaded,
+    alias: &str,
+    sections: &crate::sas::RevisionSections<'_>,
+    report: &mut Report,
+) {
+    let Ok(entries) = one.dir.join("amendments").read_dir_utf8() else {
+        return;
+    };
+    let mut paths: Vec<_> = entries
+        .filter_map(Result::ok)
+        .map(|e| e.into_path())
+        .filter(|p| p.extension().is_some_and(|e| e == "yaml" || e == "yml"))
+        .collect();
+    paths.sort();
+    let mut cited = Vec::new();
+    for path in paths {
+        let Some(record) = std::fs::read_to_string(&path).ok().and_then(|text| {
+            openwarrant_core::structured::parse(&text)
+                .ok()
+                .and_then(|doc| openwarrant_core::autonomy::from_structured(&doc).ok())
+        }) else {
+            continue; // amendment.invalid / amendment.unreadable report it
+        };
+        let file = repo.relative(&path);
+        let value = record.governing_adr_or_policy.trim().to_owned();
+        match openwarrant_core::sas_sections::parse_ref(&value) {
+            Ok(None) => {}
+            Ok(Some(r)) => cited.push((file, record.id, value, r)),
+            Err(why) => report.push(Diagnostic::error(
+                "sas.section-ref",
+                file,
+                format!("{alias}: amendment {} — {why}", record.id),
+            )),
+        }
+    }
+    if cited.is_empty() {
+        return;
+    }
+    let revisions = sections.revisions();
+    let pinned = crate::repo::amendment_sas_revision(&one.dir)
+        .map(|(v, _)| v)
+        .or_else(|| {
+            repo.load_authorization(&one.dir)
+                .ok()
+                .flatten()
+                .and_then(|a| a.sas_revision)
+        })
+        .or_else(|| crate::sas::pin_of(revisions).map(|r| r.version.clone()));
+    let Some(pinned) = pinned.filter(|v| revisions.iter().any(|r| &r.version == v)) else {
+        return;
+    };
+    let latest = revisions
+        .iter()
+        .filter(|r| r.is_accepted())
+        .max_by(|a, b| a.version.cmp(&b.version))
+        .map(|r| r.version.clone());
+    for (file, id, value, r) in cited {
+        let at_pin = match sections.get(&pinned) {
+            Ok(split) => split,
+            Err(why) => {
+                for rule in ["sas.section-ref", "sas.section-current"] {
+                    report.push(Diagnostic::unknown(
+                        rule,
+                        file.clone(),
+                        format!(
+                            "{alias}: amendment {id} cites {value}; SAS {pinned}, which the \
+                             Warrant is pinned to, cannot be read: {why}"
+                        ),
+                    ));
+                }
+                continue;
+            }
+        };
+        if let Some(ns) = &at_pin.namespace
+            && ns != &r.namespace
+        {
+            report.push(Diagnostic::error(
+                "sas.section-ref",
+                file,
+                format!(
+                    "{alias}: amendment {id} cites {value}, but SAS {pinned} is namespace {ns}; \
+                     a section is cited as sas://{ns}-SAS-{}",
+                    r.section
+                ),
+            ));
+            continue;
+        }
+        let Some(digest) = openwarrant_core::sas_sections::resolve(&at_pin.sections, &r) else {
+            report.push(Diagnostic::error(
+                "sas.section-ref",
+                file,
+                format!(
+                    "{alias}: amendment {id} cites {value}, and SAS {pinned} has no {} {}. A \
+                     citation names a section of the revision the Warrant is pinned to \
+                     (docs/sas/generated/SECTIONS.md lists the revision in force)",
+                    if r.section.contains('.') {
+                        "subsection"
+                    } else {
+                        "section"
+                    },
+                    r.section
+                ),
+            ));
+            continue;
+        };
+        report.push(Diagnostic::pass(
+            "sas.section-ref",
+            format!("{alias}: {value} names a section of SAS {pinned}"),
+        ));
+        let Some(latest) = &latest else {
+            report.push(Diagnostic::unknown(
+                "sas.section-current",
+                file,
+                format!(
+                    "{alias}: {value} — no SAS revision is accepted, so there is nothing to \
+                     compare SAS {pinned} with"
+                ),
+            ));
+            continue;
+        };
+        if latest == &pinned {
+            report.push(Diagnostic::pass(
+                "sas.section-current",
+                format!("{alias}: {value} is cited at SAS {pinned}, the latest accepted revision"),
+            ));
+            continue;
+        }
+        match sections.get(latest) {
+            Err(why) => report.push(Diagnostic::unknown(
+                "sas.section-current",
+                file,
+                format!(
+                    "{alias}: {value} at SAS {pinned} cannot be compared with SAS {latest}: {why}"
+                ),
+            )),
+            Ok(now) => match openwarrant_core::sas_sections::resolve(&now.sections, &r) {
+                Some(d) if d == digest => report.push(Diagnostic::pass(
+                    "sas.section-current",
+                    format!("{alias}: {value} is unchanged between SAS {pinned} and SAS {latest}"),
+                )),
+                Some(_) => report.push(Diagnostic::warn(
+                    "sas.section-current",
+                    file,
+                    format!(
+                        "{alias}: {value} changed between SAS {pinned}, which the Warrant is \
+                         pinned to, and SAS {latest}, the latest accepted revision; what the \
+                         amendment relied on is not what the SAS now says"
+                    ),
+                )),
+                None => report.push(Diagnostic::warn(
+                    "sas.section-current",
+                    file,
+                    format!(
+                        "{alias}: {value} exists at SAS {pinned}, which the Warrant is pinned \
+                         to, and not at SAS {latest}, the latest accepted revision"
+                    ),
+                )),
+            },
+        }
     }
 }
 
