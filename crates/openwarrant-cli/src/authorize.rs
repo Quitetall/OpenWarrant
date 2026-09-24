@@ -34,7 +34,7 @@
 
 use std::fs;
 
-use camino::Utf8PathBuf;
+use camino::{Utf8Path, Utf8PathBuf};
 use openwarrant_compiler::lower;
 use openwarrant_core::authority::{ActorRole, AuthorityRegister, RoleAssignment};
 use openwarrant_core::contract::{
@@ -871,6 +871,14 @@ pub fn ingest_with(
         ));
         return Ok(report);
     }
+    // OW-WAR-0144: a revision after authorization replaces this file, and
+    // every attestation over the revision it replaces names these bytes.
+    // Keep them beside it, as a retired response is kept (§34.4: supersede,
+    // never erase), where `attest --verify` finds them by digest.
+    if let Some(refused) = retain_superseded(&authorization_path) {
+        report.push(refused);
+        return Ok(report);
+    }
     if let Err(refused) = write_toml(&authorization_path, &record, &authorization_before)? {
         report.push(refused.diagnostic());
         return Ok(report);
@@ -944,6 +952,32 @@ pub fn authorizes_current_contract(record: &AuthorizationRecord, current_digest:
     record.revision.state == RevisionState::Authorized
         && record.revision.contract_digest == current_digest
         && record.revision.authorization.is_some()
+}
+
+/// Copy an existing `authorization.toml` to `authorization.<digest8>.toml`
+/// beside it before it is replaced. An identical copy already there is left
+/// alone; a different file under that name refuses the act before anything
+/// is written (`authorize.retire-collision`), never overwritten.
+fn retain_superseded(path: &Utf8Path) -> Option<Diagnostic> {
+    let Ok(bytes) = fs::read(path) else {
+        return None; // nothing authorized yet: nothing to keep
+    };
+    let digest = openwarrant_compiler::sha256_hex(&bytes);
+    let kept = path.with_file_name(format!("authorization.{}.toml", &digest[..8]));
+    match fs::read(&kept) {
+        Ok(existing) if existing == bytes => None,
+        Ok(_) => Some(Diagnostic::error(
+            "authorize.retire-collision",
+            kept.to_string(),
+            format!(
+                "{kept} exists with other bytes than the authorization it would keep \
+                 (sha256:{digest}); nothing is overwritten and nothing is recorded"
+            ),
+        )),
+        Err(_) => crate::compile::atomic::write(&kept, &bytes)
+            .err()
+            .map(|refused| refused.diagnostic()),
+    }
 }
 
 #[cfg(test)]

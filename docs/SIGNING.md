@@ -74,6 +74,17 @@ it believes a singly signed one, by a signature over its exact bytes:
 
 Nothing in the record claims the batch; the batch claims the record.
 
+## When a Warrant is amended
+
+An amendment makes a new revision, and authorizing it replaces the
+Warrant's `authorization.toml`. Every attestation over the revision it
+replaces names the old bytes, so `war` keeps them beside the new record as
+`authorization.<digest8>.toml` (§34.4: supersede, never erase), and `war
+attest --verify` finds them there by digest. The kept file is history, not a
+second authorization: nothing reads it as one. If a file under that name
+already exists with other bytes, the act is refused
+(`authorize.retire-collision`) and nothing is written (OW-WAR-0144).
+
 ## From the web UI
 
 `war ui`'s Queue shows each act's dry-run verdict and runs the same commands
