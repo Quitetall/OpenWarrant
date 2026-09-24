@@ -79,7 +79,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0070](docs/warrants/OW-WAR-0070/manifest.toml) | Add `war inbox` to list Warrants awaiting a human act | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
 | [OW-WAR-0071](docs/warrants/OW-WAR-0071/manifest.toml) | SAS 1.1.0: the batch act, and the dashboard as a rendering of the record | `authorized` | `current` | `valid` | `basic` | — |
 | [OW-WAR-0072](docs/warrants/OW-WAR-0072/manifest.toml) | The batch act: one human signature over many pending acts | `authorized` | `current` | `valid` | `basic` | 3M / 5S |
-| [OW-WAR-0073](docs/warrants/OW-WAR-0073/manifest.toml) | war tui: the dashboard in the terminal | `authorized` | `current` | `valid` | `basic` | 4M / 6S |
+| [OW-WAR-0073](docs/warrants/OW-WAR-0073/manifest.toml) | war tui: the dashboard in the terminal | `authorized` | `superseded` | `valid` | `basic` | 4M / 6S |
 | [OW-WAR-0074](docs/warrants/OW-WAR-0074/manifest.toml) | Adopt the exact RC.2 build basis without rewriting history | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
 | [OW-WAR-0075](docs/warrants/OW-WAR-0075/manifest.toml) | Parse and validate human-first OpenWarrant documents | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
 | [OW-WAR-0076](docs/warrants/OW-WAR-0076/manifest.toml) | Author and edit human-first OpenWarrant documents | `authorized` | `current` | `valid` | `basic` | 3M / 3S |

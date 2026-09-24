@@ -45,12 +45,17 @@ Two things. **What next** (the default): first, which `war` this is — its
 version and path — with a warning when `war` on PATH is a different version,
 naming the install command (a command you copy runs PATH's `war`, not this
 one). Then the Setup step if incomplete, then
-`war next`'s actions with humans first, then `war doctor`'s non-passes, then
+`war next`'s actions with humans first — each signing row carrying the dry
+run's verdict, `[would record]` or `[would refuse: <rule>]`, and the refused
+ones after the recordable ones — then `war doctor`'s non-passes, then
 `war check`'s errors — one row per rule with a count — each carrying its
 remedy (§76.2). `Enter` on a signing row signs; `x` runs an *auto* remedy
 (never a signing act); `v` shows the request behind a signing row.
-**Documents** (`d` toggles, `[` and `]` step): this repository's own
-`AGENTS.md`, `CONTEXT.md` and `CONTRIBUTING.md` first when they exist, then
+**Documents** (`d` toggles, `[` and `]` step): first
+`docs/generated/CURRENT.md`, the master document `war compile` writes
+(OW-ADR-0022) — read it first: what is authoritative here now, current by
+construction. Then this repository's own
+`AGENTS.md`, `CONTEXT.md` and `CONTRIBUTING.md` when they exist, then
 the shipped ones embedded at build time so help never drifts from what `war
 init` ships — this file, `QUICKSTART.md`, `README.md`, `docs/DEFINITIONS.md`,
 `docs/SKILLS.md`, and `AGENTS.md` as `war init` renders it for your

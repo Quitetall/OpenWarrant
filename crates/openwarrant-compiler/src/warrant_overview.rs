@@ -47,6 +47,11 @@ pub struct WarrantSummary {
     pub milestone_count: Option<(usize, usize)>,
     /// The five §24 dimensions, with provenance. Derived until OW-WAR-0031.
     pub state: openwarrant_core::WarrantState,
+    /// The currency DERIVED from the relations around this Warrant
+    /// (OW-ADR-0022) — `superseded` when an authorized Warrant declares
+    /// `supersedes` → it. Rendered in place of `state.currency`, which a
+    /// journal cannot know: supersession is recorded on the successor.
+    pub currency: String,
 }
 
 /// Render the Warrant Overview.
@@ -78,7 +83,7 @@ pub fn render(summaries: &[WarrantSummary]) -> String {
             source = w.source,
             title = w.title,
             phase = w.state.phase,
-            currency = w.state.currency,
+            currency = w.currency,
             standing = w.state.standing,
             assurance = w.assurance_level,
             ms = match w.milestone_count {
@@ -201,7 +206,16 @@ mod tests {
             source: format!("docs/warrants/{alias}/manifest.toml"),
             milestone_count: Some((3, 3)),
             state: openwarrant_core::WarrantState::draft(openwarrant_core::Provenance::Derived),
+            currency: "current".to_owned(),
         }
+    }
+
+    #[test]
+    fn the_currency_column_is_the_derived_one() {
+        let mut old = w("OW-WAR-0001", &[]);
+        old.currency = "superseded".to_owned();
+        let out = render(&[old]);
+        assert!(out.contains("| `superseded` |"), "{out}");
     }
 
     #[test]

@@ -30,6 +30,86 @@ const MAX_ALLOCATION_ATTEMPTS: u32 = 64;
 /// numbers; a different pick would have collided. Scan-then-write without
 /// `O_EXCL` is the same race with a wider window.
 pub fn run(repo: &Repository, title: &str, profile: Profile) -> Result<Utf8PathBuf, RepoError> {
+    run_preset(repo, title, default_preset(profile))
+}
+
+/// The presets `war new --preset` offers (OW-ADR-0022), with the profile
+/// each composes. `feature` and `fix` are `delivery`; `decision` is the ADR
+/// profile.
+pub const PRESETS: &[(&str, Profile)] = &[
+    ("feature", Profile::Delivery),
+    ("fix", Profile::Delivery),
+    ("decision", Profile::Decision),
+];
+
+/// The preset a caller that names only a profile gets — `war plan --apply`,
+/// `war init`'s first Warrant and the MCP `war_new`, which overwrite or fill
+/// the atoms themselves. The `TODO` skeleton is retired: every draft starts
+/// from a preset's questions.
+#[must_use]
+pub const fn default_preset(profile: Profile) -> &'static str {
+    match profile {
+        Profile::Delivery => "feature",
+        Profile::Decision => "decision",
+    }
+}
+
+/// The preset names, for a refusal to list.
+#[must_use]
+pub fn preset_names() -> Vec<&'static str> {
+    PRESETS.iter().map(|(n, _)| *n).collect()
+}
+
+/// The profile a preset composes, or `None` for a name no preset has.
+#[must_use]
+pub fn preset_profile(name: &str) -> Option<Profile> {
+    PRESETS.iter().find(|(n, _)| *n == name).map(|(_, p)| *p)
+}
+
+/// One preset atom's body, embedded at build time so a preset never drifts
+/// from the binary that writes it.
+fn preset_body(preset: &str, file: &str) -> Option<&'static str> {
+    Some(match (preset, file) {
+        ("feature", "10-intent.md") => include_str!("../templates/presets/feature/10-intent.md"),
+        ("feature", "20-basis.md") => include_str!("../templates/presets/feature/20-basis.md"),
+        ("feature", "40-work-order.md") => {
+            include_str!("../templates/presets/feature/40-work-order.md")
+        }
+        ("feature", "45-milestones.yaml") => {
+            include_str!("../templates/presets/feature/45-milestones.yaml")
+        }
+        ("feature", "60-assurance.md") => {
+            include_str!("../templates/presets/feature/60-assurance.md")
+        }
+        ("fix", "10-intent.md") => include_str!("../templates/presets/fix/10-intent.md"),
+        ("fix", "20-basis.md") => include_str!("../templates/presets/fix/20-basis.md"),
+        ("fix", "40-work-order.md") => include_str!("../templates/presets/fix/40-work-order.md"),
+        ("fix", "45-milestones.yaml") => {
+            include_str!("../templates/presets/fix/45-milestones.yaml")
+        }
+        ("fix", "60-assurance.md") => include_str!("../templates/presets/fix/60-assurance.md"),
+        ("decision", "10-intent.md") => {
+            include_str!("../templates/presets/decision/10-intent.md")
+        }
+        ("decision", "20-basis.md") => include_str!("../templates/presets/decision/20-basis.md"),
+        ("decision", "30-decision.md") => {
+            include_str!("../templates/presets/decision/30-decision.md")
+        }
+        ("decision", "60-assurance.md") => {
+            include_str!("../templates/presets/decision/60-assurance.md")
+        }
+        _ => return None,
+    })
+}
+
+/// Create a new draft Warrant from a named preset and return its directory.
+pub fn run_preset(repo: &Repository, title: &str, preset: &str) -> Result<Utf8PathBuf, RepoError> {
+    let Some(profile) = preset_profile(preset) else {
+        return Err(RepoError::Message(format!(
+            "new.unknown-preset: no preset is named {preset:?}; the presets are {}",
+            preset_names().join(", ")
+        )));
+    };
     let title = title.trim();
     if title.is_empty() {
         return Err(RepoError::Io {
@@ -70,7 +150,7 @@ pub fn run(repo: &Repository, title: &str, profile: Profile) -> Result<Utf8PathB
                         context: format!("could not write {manifest_path}"),
                         source,
                     })?;
-                write_atom_stubs(&dir, &uuid, profile)?;
+                write_preset(&dir, &uuid, profile, preset)?;
                 // §66.4 `draft.created` — the first journal entry, written by
                 // the command that created the draft.
                 crate::journal_cmd::record(
@@ -78,7 +158,9 @@ pub fn run(repo: &Repository, title: &str, profile: Profile) -> Result<Utf8PathB
                     &uuid.to_string(),
                     crate::journal_cmd::DRAFT_CREATED,
                     &format!("agent://{}", repo.performer()),
-                    &format!("{{\"alias\":\"{alias}\",\"profile\":\"{profile}\"}}"),
+                    &format!(
+                        "{{\"alias\":\"{alias}\",\"profile\":\"{profile}\",\"preset\":\"{preset}\"}}"
+                    ),
                 )?;
                 return Ok(dir);
             }
@@ -117,11 +199,11 @@ pub fn run(repo: &Repository, title: &str, profile: Profile) -> Result<Utf8PathB
 pub fn run_with_parent(
     repo: &Repository,
     title: &str,
-    profile: Profile,
+    preset: &str,
     parent: &str,
 ) -> Result<Utf8PathBuf, RepoError> {
     let citation = parent_citation(repo, parent)?;
-    let dir = run(repo, title, profile)?;
+    let dir = run_preset(repo, title, preset)?;
     let manifest_path = dir.join("manifest.toml");
     let mut file = OpenOptions::new()
         .append(true)
@@ -237,24 +319,28 @@ fn template_atoms(profile: Profile) -> Vec<(u32, &'static str, &'static str)> {
     }
 }
 
-fn write_atom_stubs(
+/// Write each atom the profile requires from the preset: the frontmatter
+/// this Warrant needs, then the preset's headings and the question each one
+/// asks. The answers are the author's; `war check` names a required heading
+/// left unanswered (`atom.preset-unanswered`).
+fn write_preset(
     dir: &camino::Utf8Path,
     uuid: &WarUuid,
     profile: Profile,
+    preset: &str,
 ) -> Result<(), RepoError> {
     for (ordinal, role, file) in template_atoms(profile) {
         let path = dir.join("atoms").join(file);
         if path.exists() {
             continue;
         }
-        let body = if file.ends_with(".yaml") {
-            String::from(
-                "schema: \"oh.war/milestones/v1\"\n\n\
-                 milestones:\n  \
-                 - id: \"M1\"\n    title: \"\"\n    stage_refs: [\"STAGE-001\"]\n\n\
-                 stages:\n  \
-                 - id: \"STAGE-001\"\n    title: \"\"\n    executor_kind: \"human\"\n    responsibility_tier: \"T2\"\n",
-            )
+        let Some(body) = preset_body(preset, file) else {
+            return Err(RepoError::Message(format!(
+                "new.preset-incomplete: preset {preset:?} has no {file} for role `{role}`"
+            )));
+        };
+        let text = if file.ends_with(".yaml") {
+            body.to_owned()
         } else {
             format!(
                 "---\n\
@@ -264,29 +350,15 @@ fn write_atom_stubs(
                  jurisdiction: authored\n\
                  order: {ordinal}\n\
                  classification: internal\n\
-                 ---\n\n\
-                 # {}\n\n\
-                 TODO\n",
-                heading(role)
+                 ---\n\n{body}"
             )
         };
-        fs::write(&path, body).map_err(|source| RepoError::Io {
+        fs::write(&path, text).map_err(|source| RepoError::Io {
             context: format!("could not write {path}"),
             source,
         })?;
     }
     Ok(())
-}
-
-fn heading(role: &str) -> &'static str {
-    match role {
-        "intent" => "Intent",
-        "basis" => "Basis",
-        "work_order" => "Work Order",
-        "assurance" => "Assurance",
-        "adr" => "Decision",
-        _ => "Section",
-    }
 }
 
 #[cfg(test)]
@@ -395,17 +467,45 @@ mod tests {
         let draft = run(&repo, "A draft parent", Profile::Delivery).expect("creates");
         assert!(!draft.join("authorization.toml").exists());
         for parent in ["OW-WAR-9999", "OW-WAR-0001"] {
-            let err =
-                run_with_parent(&repo, "A child", Profile::Delivery, parent).expect_err("refused");
+            let err = run_with_parent(&repo, "A child", "feature", parent).expect_err("refused");
             assert!(
                 !repo.warrants_dir().join("OW-WAR-0002").exists(),
                 "{parent}: {err}"
             );
         }
-        let message = run_with_parent(&repo, "A child", Profile::Delivery, "OW-WAR-0001")
+        let message = run_with_parent(&repo, "A child", "feature", "OW-WAR-0001")
             .expect_err("refused")
             .to_string();
         assert!(message.contains("has no authorized revision"), "{message}");
+        let _ = fs::remove_dir_all(&repo.root);
+    }
+
+    #[test]
+    fn every_preset_has_every_atom_its_profile_requires_and_no_todo() {
+        for (name, profile) in PRESETS {
+            for (_, _, file) in template_atoms(*profile) {
+                let body =
+                    preset_body(name, file).unwrap_or_else(|| panic!("preset {name} lacks {file}"));
+                assert!(!body.contains("TODO"), "{name}/{file} carries TODO");
+                if file.ends_with(".md") {
+                    assert!(
+                        body.contains("<!-- required -->"),
+                        "{name}/{file} asks nothing"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn a_preset_draft_is_typed_and_an_unknown_preset_is_refused() {
+        let repo = scratch("preset");
+        let dir = run_preset(&repo, "A fix", "fix").expect("creates");
+        let intent = fs::read_to_string(dir.join("atoms/10-intent.md")).expect("intent");
+        assert!(intent.contains("role: intent"));
+        assert!(intent.contains("## Problem\n<!-- required -->"));
+        let err = run_preset(&repo, "x", "nonsense").unwrap_err().to_string();
+        assert!(err.contains("new.unknown-preset") && err.contains("feature, fix, decision"));
         let _ = fs::remove_dir_all(&repo.root);
     }
 

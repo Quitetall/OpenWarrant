@@ -14,7 +14,7 @@
 //! | 30 | parent source unchanged when child state changes | `relations.parent-source` |
 //! | 31 | parent generated view lists child | `relations.child-listed` |
 //! | 32 | child cannot silently replace parent rationale | `relations.parent-source` |
-//! | 33 | superseding WAR makes old currency `superseded` | `relations.currency` |
+//! | 33 | superseding WAR makes old currency `superseded` | `relations.currency`, derived (OW-ADR-0022) |
 //! | 34 | superseded WAR remains exportable | `relations.retired-available` |
 //! | 35 | adopted unresolved children are explicit | `relations.adoption` |
 //!
@@ -25,7 +25,6 @@
 use std::collections::BTreeMap;
 
 use openwarrant_core::ValidatedManifest;
-use openwarrant_core::lifecycle::Currency;
 
 use crate::diagnostic::{Diagnostic, Report};
 
@@ -190,50 +189,337 @@ fn parent_source(corpus: &[Related<'_>], report: &mut Report) {
     }
 }
 
-/// §21.2 — the replaced WAR's canonical currency becomes `superseded`.
-fn currency(corpus: &[Related<'_>], report: &mut Report) {
-    let by_uuid: BTreeMap<&str, &Related<'_>> = corpus
-        .iter()
-        .map(|r| (r.manifest.raw.uuid.as_str(), r))
-        .collect();
+/// A Warrant's currency, DERIVED from the relations around it (OW-ADR-0022).
+///
+/// §21.2 says the replaced Warrant's currency *becomes* superseded and that
+/// the replaced Warrant stays immutable. Both at once are only possible if
+/// currency is a fact about the SUCCESSOR's relation, computed here, and never
+/// a field edited into the predecessor: OW-WAR-0073 was marked
+/// `currency = "superseded"` and its signed contract digest moved, because
+/// the manifest's bytes are in the preimage.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(tag = "currency", rename_all = "snake_case")]
+pub enum Derived {
+    Current,
+    /// An authorized Warrant declares `supersedes` → this one.
+    Superseded {
+        by: String,
+    },
+    /// The resolution standing says annulled.
+    Annulled,
+    /// Only a legacy bare `currency = "deprecated"`, tolerated and reported.
+    /// A successor's `deprecates` relation would be the relation form; the
+    /// manifest schema has no such field and is frozen under OW-WAR-0113.
+    Deprecated,
+}
 
-    for replacement in corpus {
-        for superseded in &replacement.manifest.raw.supersedes {
-            let uuid = superseded.r#ref.trim_start_matches("war://");
-            let Some(old) = by_uuid.get(uuid) else {
-                report.push(Diagnostic::unknown(
-                    "relations.currency",
-                    replacement.manifest_file.clone(),
-                    format!(
-                        "{}: supersedes {} which is not in this repository, so §21.2's \
-                         currency cannot be checked",
-                        replacement.alias, superseded.r#ref
-                    ),
-                ));
-                continue;
-            };
-            match old.manifest.raw.currency.as_deref() {
-                Some("superseded") => report.push(Diagnostic::pass(
-                    "relations.currency",
-                    format!(
-                        "{}: currency is superseded, as {} requires",
-                        old.alias, replacement.alias
-                    ),
-                )),
-                other => report.push(Diagnostic::error(
-                    "relations.currency",
-                    old.manifest_file.clone(),
-                    format!(
-                        "{}: is superseded by {} but its currency is {}. §21.2: the replaced \
-                         WAR's canonical currency becomes `superseded`. Until it does, the \
-                         retired Warrant still reads as available for new execution.",
-                        old.alias,
-                        replacement.alias,
-                        other.map_or("absent".to_owned(), |c| format!("{c:?}"))
-                    ),
-                )),
+impl Derived {
+    #[must_use]
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            Self::Current => "current",
+            Self::Superseded { .. } => "superseded",
+            Self::Annulled => "annulled",
+            Self::Deprecated => "deprecated",
+        }
+    }
+
+    #[must_use]
+    pub const fn is_current(&self) -> bool {
+        matches!(self, Self::Current)
+    }
+
+    /// §21.4's retired states: still available, not for new execution.
+    #[must_use]
+    pub const fn retired(&self) -> bool {
+        !self.is_current()
+    }
+}
+
+impl std::fmt::Display for Derived {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+/// One Warrant as the derivation needs it: identity, its outgoing
+/// `supersedes`, whether its contract is authorized, whether its resolution
+/// is annulled, and the legacy field it may still carry.
+#[derive(Debug, Clone)]
+pub struct CurrencyInput {
+    pub alias: String,
+    pub uuid: String,
+    pub supersedes: Vec<String>,
+    pub authorized: bool,
+    pub annulled: bool,
+    pub written: Option<String>,
+}
+
+/// The derivation over a whole corpus, and what it found on the way.
+#[derive(Debug, Clone, Default)]
+pub struct Currencies {
+    by_alias: BTreeMap<String, Derived>,
+    /// `(successor, predecessor)` declared by a successor not yet authorized:
+    /// the relation is on record and not in force.
+    pub pending: Vec<(String, String)>,
+    /// `(successor, ref)` whose target is not in this corpus.
+    pub external: Vec<(String, String)>,
+    /// Each `supersedes` cycle once, as aliases starting from the least.
+    pub cycles: Vec<Vec<String>>,
+}
+
+impl Currencies {
+    /// The derived currency of `alias`; `Current` for an alias the corpus
+    /// did not contain, which is the answer the relations give it.
+    #[must_use]
+    pub fn of(&self, alias: &str) -> Derived {
+        self.by_alias
+            .get(alias)
+            .cloned()
+            .unwrap_or(Derived::Current)
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = (&str, &Derived)> {
+        self.by_alias.iter().map(|(a, d)| (a.as_str(), d))
+    }
+
+    /// The pure derivation. Separated from I/O so it is testable on
+    /// synthetic corpora and so every reader calls the one computation.
+    #[must_use]
+    pub fn derive(inputs: &[CurrencyInput]) -> Self {
+        let alias_of: BTreeMap<&str, &str> = inputs
+            .iter()
+            .map(|i| (i.uuid.as_str(), i.alias.as_str()))
+            .collect();
+        let mut out = Self::default();
+        let mut superseded_by: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
+        for i in inputs {
+            for r in &i.supersedes {
+                let uuid = r.trim_start_matches("war://");
+                let Some(old) = alias_of.get(uuid) else {
+                    out.external.push((i.alias.clone(), r.clone()));
+                    continue;
+                };
+                if i.authorized {
+                    superseded_by.entry(old).or_default().push(&i.alias);
+                } else {
+                    out.pending.push((i.alias.clone(), (*old).to_owned()));
+                }
             }
         }
+        for i in inputs {
+            let d = if i.annulled {
+                Derived::Annulled
+            } else if let Some(by) = superseded_by.get(i.alias.as_str()) {
+                let mut by = by.clone();
+                by.sort_unstable();
+                Derived::Superseded { by: by.join(", ") }
+            } else if i.written.as_deref() == Some("deprecated") {
+                Derived::Deprecated
+            } else {
+                Derived::Current
+            };
+            out.by_alias.insert(i.alias.clone(), d);
+        }
+        out.cycles = cycles(inputs, &alias_of);
+        out
+    }
+}
+
+/// Every `supersedes` cycle, each reported once from its least alias. A
+/// cycle has no current subject at either end, so no currency derived over
+/// it means anything (R-001).
+fn cycles(inputs: &[CurrencyInput], alias_of: &BTreeMap<&str, &str>) -> Vec<Vec<String>> {
+    let edges: BTreeMap<&str, Vec<&str>> = inputs
+        .iter()
+        .map(|i| {
+            let mut to: Vec<&str> = i
+                .supersedes
+                .iter()
+                .filter_map(|r| alias_of.get(r.trim_start_matches("war://")).copied())
+                .collect();
+            to.sort_unstable();
+            (i.alias.as_str(), to)
+        })
+        .collect();
+    let mut found: std::collections::BTreeSet<Vec<String>> = std::collections::BTreeSet::new();
+    // Small graphs, and supersession is sparse: a DFS from every node that
+    // records the path is enough and keeps the order deterministic.
+    fn walk<'a>(
+        node: &'a str,
+        edges: &BTreeMap<&'a str, Vec<&'a str>>,
+        path: &mut Vec<&'a str>,
+        found: &mut std::collections::BTreeSet<Vec<String>>,
+    ) {
+        if let Some(pos) = path.iter().position(|p| *p == node) {
+            let cycle = &path[pos..];
+            let least = cycle
+                .iter()
+                .enumerate()
+                .min_by_key(|(_, a)| **a)
+                .map_or(0, |(i, _)| i);
+            let mut rotated: Vec<String> = cycle[least..]
+                .iter()
+                .chain(cycle[..least].iter())
+                .map(|a| (*a).to_owned())
+                .collect();
+            rotated.push(rotated[0].clone());
+            found.insert(rotated);
+            return;
+        }
+        path.push(node);
+        for next in edges.get(node).map(Vec::as_slice).unwrap_or(&[]) {
+            walk(next, edges, path, found);
+        }
+        path.pop();
+    }
+    for start in edges.keys() {
+        if edges.get(start).is_some_and(|e| !e.is_empty()) {
+            walk(start, &edges, &mut Vec::new(), &mut found);
+        }
+    }
+    found.into_iter().collect()
+}
+
+/// The derivation over loaded Warrants: reads each one's `authorization.toml`
+/// and `resolution.toml` beside its manifest. The one place currency is
+/// computed; `check`, `ownership`, `compile` and both projections read it.
+#[must_use]
+pub fn currencies(corpus: &[crate::repo::Loaded]) -> Currencies {
+    let inputs: Vec<CurrencyInput> = corpus
+        .iter()
+        .filter_map(|one| {
+            let v = one.validated.as_ref()?;
+            let read = |name: &str| std::fs::read_to_string(one.dir.join(name)).ok();
+            let authorized = !v.raw.supersedes.is_empty()
+                && read("authorization.toml")
+                    .and_then(|t| toml::from_str::<crate::authorize::AuthorizationRecord>(&t).ok())
+                    .is_some_and(|r| {
+                        r.revision.state == openwarrant_core::RevisionState::Authorized
+                    });
+            let annulled = read("resolution.toml")
+                .and_then(|t| toml::from_str::<crate::resolution_cmd::ResolutionRecord>(&t).ok())
+                .is_some_and(|r| {
+                    r.resolution.standing == openwarrant_core::ResolutionStanding::Annulled
+                });
+            Some(CurrencyInput {
+                alias: v.alias.to_string(),
+                uuid: v.raw.uuid.clone(),
+                supersedes: v.raw.supersedes.iter().map(|s| s.r#ref.clone()).collect(),
+                authorized,
+                annulled,
+                written: v.raw.currency.clone(),
+            })
+        })
+        .collect();
+    Currencies::derive(&inputs)
+}
+
+/// §21.2 — the replaced WAR's canonical currency becomes `superseded`, by
+/// relation. Three rules, one derivation:
+///
+/// - `relations.currency` — PASS on each supersession in force, naming the
+///   successor; a declared one awaiting authorization is on record and not
+///   yet in force.
+/// - `relations.currency-authored` — a manifest that WRITES `superseded` or
+///   `annulled` is refused: those are facts about a successor or a
+///   resolution, and the predecessor's bytes are under a signature. A bare
+///   `deprecated` is a legacy form, tolerated and reported.
+/// - `relations.currency-cycle` — a `supersedes` cycle is refused.
+fn currency(corpus: &[Related<'_>], currencies: &Currencies, report: &mut Report) {
+    let file_of: BTreeMap<&str, &str> = corpus
+        .iter()
+        .map(|r| (r.alias.as_str(), r.manifest_file.as_str()))
+        .collect();
+    for (alias, d) in currencies.iter() {
+        if let Derived::Superseded { by } = d {
+            report.push(Diagnostic::pass(
+                "relations.currency",
+                format!(
+                    "{alias}: superseded, derived from {by}'s authorized `supersedes`; \
+                      nothing is written in {alias}'s manifest"
+                ),
+            ));
+        }
+    }
+    for (successor, old) in &currencies.pending {
+        report.push(Diagnostic::pass(
+            "relations.currency",
+            format!(
+                "{successor}: declares `supersedes` → {old}, not in force until {successor} \
+                  is authorized; {old} reads current"
+            ),
+        ));
+    }
+    for (successor, r) in &currencies.external {
+        report.push(Diagnostic::unknown(
+            "relations.currency",
+            file_of
+                .get(successor.as_str())
+                .copied()
+                .unwrap_or_default()
+                .to_owned(),
+            format!(
+                "{successor}: supersedes {r} which is not in this repository, so its §21.2 \
+                  currency cannot be derived here"
+            ),
+        ));
+    }
+    for w in corpus {
+        let Some(written) = w.manifest.raw.currency.as_deref() else {
+            continue;
+        };
+        match written {
+            "superseded" | "annulled" => report.push(Diagnostic::error(
+                "relations.currency-authored",
+                w.manifest_file.clone(),
+                format!(
+                    "{}: the manifest writes `currency = {written:?}`. Currency is derived \
+                      from relations (OW-ADR-0022): superseded when an authorized Warrant \
+                      declares `supersedes` → this one, annulled from the resolution \
+                      standing. Writing it into this manifest moves a signed contract \
+                      digest (OW-WAR-0073). Remove the field; the successor's relation \
+                      already says it",
+                    w.alias
+                ),
+            )),
+            "deprecated" | "current" => report.push(Diagnostic::warn(
+                "relations.currency-authored",
+                w.manifest_file.clone(),
+                format!(
+                    "{}: the manifest writes `currency = {written:?}` — a legacy field, \
+                      tolerated. Currency is derived from relations (OW-ADR-0022); this \
+                      reads {}",
+                    w.alias,
+                    currencies.of(&w.alias)
+                ),
+            )),
+            other => report.push(Diagnostic::error(
+                "relations.currency-authored",
+                w.manifest_file.clone(),
+                format!(
+                    "{}: `currency = {other:?}` is not a §21 currency, and currency is not \
+                      written at all: it is derived from relations (OW-ADR-0022)",
+                    w.alias
+                ),
+            )),
+        }
+    }
+    for cycle in &currencies.cycles {
+        report.push(Diagnostic::error(
+            "relations.currency-cycle",
+            file_of
+                .get(cycle[0].as_str())
+                .copied()
+                .unwrap_or_default()
+                .to_owned(),
+            format!(
+                "`supersedes` cycle: {}. Each Warrant in it is replaced by another in it, \
+                  so none is current and no currency derived over it means anything. Break \
+                  the cycle: supersession runs one way",
+                cycle.join(" → ")
+            ),
+        ));
     }
 }
 
@@ -241,21 +527,11 @@ fn currency(corpus: &[Related<'_>], report: &mut Report) {
 ///
 /// "Available" is checked as: the manifest still loads and its atoms are still
 /// on disk. A retired Warrant whose atoms were deleted is the deletion §21.4
-/// forbids, whatever the manifest still says.
-fn retired_available(corpus: &[Related<'_>], report: &mut Report) {
+/// forbids, whatever the manifest still says. Retired is the DERIVED currency.
+fn retired_available(corpus: &[Related<'_>], currencies: &Currencies, report: &mut Report) {
     for warrant in corpus {
-        let Some(raw) = warrant.manifest.raw.currency.as_deref() else {
-            continue;
-        };
-        let Ok(currency) = raw.parse::<Currency>() else {
-            report.push(Diagnostic::error(
-                "relations.retired-available",
-                warrant.manifest_file.clone(),
-                format!("{}: currency {raw:?} is not a §21 currency", warrant.alias),
-            ));
-            continue;
-        };
-        if !currency.retired_for_new_execution() {
+        let currency = currencies.of(&warrant.alias);
+        if !currency.retired() {
             continue;
         }
         if warrant.atom_source.trim().is_empty() {
@@ -334,10 +610,69 @@ fn adoption(corpus: &[Related<'_>], report: &mut Report) {
 }
 
 /// Run every §20/§21 relation rule.
-pub fn check(corpus: &[Related<'_>], report: &mut Report) {
+pub fn check(corpus: &[Related<'_>], currencies: &Currencies, report: &mut Report) {
     child_listed(corpus, report);
     parent_source(corpus, report);
-    currency(corpus, report);
-    retired_available(corpus, report);
+    currency(corpus, currencies, report);
+    retired_available(corpus, currencies, report);
     adoption(corpus, report);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn w(alias: &str, supersedes: &[&str], authorized: bool) -> CurrencyInput {
+        CurrencyInput {
+            alias: alias.into(),
+            uuid: format!("u-{alias}"),
+            supersedes: supersedes.iter().map(|a| format!("war://u-{a}")).collect(),
+            authorized,
+            annulled: false,
+            written: None,
+        }
+    }
+
+    #[test]
+    fn an_authorized_successor_supersedes_and_a_draft_does_not() {
+        let c = Currencies::derive(&[w("A", &[], false), w("B", &["A"], true)]);
+        assert_eq!(c.of("A"), Derived::Superseded { by: "B".into() });
+        assert_eq!(c.of("B"), Derived::Current);
+        let c = Currencies::derive(&[w("A", &[], false), w("B", &["A"], false)]);
+        assert_eq!(c.of("A"), Derived::Current);
+        assert_eq!(c.pending, vec![("B".to_owned(), "A".to_owned())]);
+    }
+
+    #[test]
+    fn a_written_field_does_not_make_a_warrant_superseded() {
+        let mut a = w("A", &[], false);
+        a.written = Some("superseded".into());
+        assert_eq!(Currencies::derive(&[a]).of("A"), Derived::Current);
+    }
+
+    #[test]
+    fn annulled_comes_from_the_resolution_and_deprecated_from_the_legacy_field() {
+        let mut a = w("A", &[], false);
+        a.annulled = true;
+        let mut b = w("B", &[], false);
+        b.written = Some("deprecated".into());
+        let c = Currencies::derive(&[a, b]);
+        assert_eq!(c.of("A"), Derived::Annulled);
+        assert_eq!(c.of("B"), Derived::Deprecated);
+    }
+
+    #[test]
+    fn a_cycle_is_found_once() {
+        let c = Currencies::derive(&[
+            w("A", &["C"], true),
+            w("B", &["A"], true),
+            w("C", &["B"], true),
+            w("D", &[], true),
+        ]);
+        assert_eq!(c.cycles.len(), 1);
+        assert_eq!(c.cycles[0].first(), Some(&"A".to_owned()));
+        assert_eq!(c.cycles[0].len(), 4);
+        let none = Currencies::derive(&[w("A", &[], true), w("B", &["A"], true)]);
+        assert!(none.cycles.is_empty());
+    }
 }

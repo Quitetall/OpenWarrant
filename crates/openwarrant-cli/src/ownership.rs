@@ -100,9 +100,24 @@ impl Ownership {
     /// Skipped, and therefore never owners: records with no `owned` set
     /// (legacy), records whose revision is not authorized, records whose
     /// authorize signature does not verify against the register, Warrants
-    /// whose currency is `superseded`, and Warrants whose resolution standing
-    /// is annulled.
+    /// whose DERIVED currency is `superseded` (OW-ADR-0022: an authorized
+    /// successor's `supersedes`, never a field), and Warrants whose resolution
+    /// standing is annulled.
     pub fn index(repo: &Repository) -> Result<Self, RepoError> {
+        let corpus: Vec<crate::repo::Loaded> = repo
+            .warrant_dirs()?
+            .iter()
+            .filter_map(|d| repo.load_warrant(d).ok())
+            .collect();
+        Self::index_with(repo, &crate::relations::currencies(&corpus))
+    }
+
+    /// [`Self::index`] over a currency derivation the caller already holds,
+    /// so `war check` derives it once for the corpus.
+    pub fn index_with(
+        repo: &Repository,
+        currencies: &crate::relations::Currencies,
+    ) -> Result<Self, RepoError> {
         let mut by_path: BTreeMap<String, Vec<Owner>> = BTreeMap::new();
         for dir in repo.warrant_dirs()? {
             let Some(alias) = dir.file_name().map(str::to_owned) else {
@@ -131,13 +146,10 @@ impl Ownership {
             {
                 continue;
             }
-            let one = repo.load_warrant(&dir)?;
-            if one
-                .validated
-                .as_ref()
-                .and_then(|v| v.raw.currency.as_deref())
-                == Some("superseded")
-            {
+            if matches!(
+                currencies.of(&alias),
+                crate::relations::Derived::Superseded { .. }
+            ) {
                 continue;
             }
             let resolution = repo.load_resolution(&dir)?;

@@ -79,6 +79,10 @@ pub fn run(
     let gates = load_gate_registry(repo, &mut report);
     report_independence(repo, &loaded, &mut report);
 
+    // OW-ADR-0022: currency is derived from relations, once, over the whole
+    // corpus, and read by everything below that asks it.
+    let currencies = crate::relations::currencies(&corpus);
+
     // §20 and §21 relation conformance (OW-WAR-0043 OBL-004, §91.5 tests 30-35).
     // Built over the WHOLE corpus for the same reason parent digests are: a
     // parent/child claim is not checkable from one side of the relation.
@@ -106,7 +110,7 @@ pub fn run(
                 })
             })
             .collect();
-        crate::relations::check(&related, &mut report);
+        crate::relations::check(&related, &currencies, &mut report);
     }
     // OW-ADR-0023: the roadmap record, and the Warrants it holds to a phase.
     crate::roadmap_cmd::check(repo, &corpus, &mut report);
@@ -115,7 +119,7 @@ pub fn run(
     // OW-ADR-0021: which Warrant governs each path NOW. Built once — it
     // verifies one attestation per owning Warrant, and the drift decision
     // below asks it for every content-addressed deliverable in the corpus.
-    let ownership = crate::ownership::Ownership::index(repo)?;
+    let ownership = crate::ownership::Ownership::index_with(repo, &currencies)?;
 
     let shared = Shared {
         corpus: &corpus,
@@ -356,6 +360,19 @@ pub fn run(
                 }
                 Err(e) => drift_check(repo, Err(e), "sas-normative", &mut report),
             }
+        }
+        // OW-ADR-0022: the master document, and the history when this
+        // repository keeps one. `generated.drift`, the rule every projection
+        // of a Warrant reports under: CURRENT.md is written by `compile` and by
+        // nothing else. With `history = false` nothing is compiled for
+        // HISTORY.md, so nothing is compared.
+        match crate::compile::master_documents(repo) {
+            Ok(files) => {
+                for file in files {
+                    drift_check(repo, Ok(file), "generated", &mut report);
+                }
+            }
+            Err(e) => drift_check(repo, Err(e), "generated", &mut report),
         }
     }
 
@@ -1612,6 +1629,61 @@ fn check_one(
         }
     }
 
+    // OW-ADR-0022 — an atom's relation to the projections is its role. A role
+    // no row of the composition table renders is text nobody reads, and is
+    // refused rather than silently dropped from both projections.
+    for atom in &basis.atoms {
+        if openwarrant_compiler::role_row(&atom.role).is_none() {
+            report.push(Diagnostic::error(
+                "atom.role-unprojected",
+                repo.relative(&one.dir.join(&atom.source)),
+                format!(
+                    "{alias}: atom {} has role `{}`, which no projection renders — the \
+                     master document and the history compose only the roles in \
+                     `current.rs`'s ROLE_SECTIONS ({}). Give it one of those roles, or \
+                     fold its text into the atom whose question it answers",
+                    atom.source,
+                    atom.role,
+                    openwarrant_compiler::ROLE_SECTIONS
+                        .iter()
+                        .map(|r| r.role)
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                ),
+            ));
+        }
+    }
+
+    // OW-ADR-0022 — presets ask; they do not answer. A heading a preset marked
+    // `<!-- required -->` whose body is still only the preset's comments is a
+    // question nobody answered: allowed in a draft (a warning), refused once
+    // an authorization is on record for the Warrant (an error), because a
+    // signed atom that still asks is a contract with a hole in it.
+    let authorized = one.dir.join("authorization.toml").is_file();
+    for atom in basis.atoms.iter().filter(|a| a.source.ends_with(".md")) {
+        let text = String::from_utf8_lossy(&atom.bytes);
+        for heading in unanswered_required_headings(&text) {
+            let file = repo.relative(&one.dir.join(&atom.source));
+            let message = format!(
+                "{alias}: atom {} — the preset's required heading `{heading}` is \
+                 unanswered: its body is only the preset's comment{}",
+                atom.source,
+                if authorized {
+                    ". An authorization is on record for this Warrant, and a signed \
+                     atom may not leave a required question open"
+                } else {
+                    ". Answer it before asking for authorization; a draft may be \
+                     unfinished"
+                }
+            );
+            report.push(if authorized {
+                Diagnostic::error("atom.preset-unanswered", file, message)
+            } else {
+                Diagnostic::warn("atom.preset-unanswered", file, message)
+            });
+        }
+    }
+
     // §49.3 — BLUT's execution lineage stays authoritative in BLUT. Run over
     // EVERY atom, not just the ones a BLUT-shaped Warrant would use: lineage is
     // copied by hand, into whatever file the author was editing, and a rule that
@@ -2238,5 +2310,65 @@ fn check_roadmap_status_claims(repo: &Repository, report: &mut Report) {
                 ),
             ));
         }
+    }
+}
+
+/// The headings of a preset atom marked `<!-- required -->` whose body —
+/// everything up to the next heading, HTML comments removed — is blank.
+/// Headings inside a code fence are not headings.
+pub(crate) fn unanswered_required_headings(text: &str) -> Vec<String> {
+    let body = crate::compile::atom_body(text);
+    let mut sections: Vec<(String, String)> = Vec::new();
+    let mut in_fence = false;
+    for line in body.lines() {
+        if line.trim_start().starts_with("```") {
+            in_fence = !in_fence;
+        }
+        if !in_fence && line.starts_with('#') {
+            sections.push((
+                line.trim_start_matches('#').trim().to_owned(),
+                String::new(),
+            ));
+        } else if let Some((_, b)) = sections.last_mut() {
+            b.push_str(line);
+            b.push('\n');
+        }
+    }
+    sections
+        .into_iter()
+        .filter(|(_, b)| b.lines().any(|l| l.trim() == "<!-- required -->"))
+        .filter(|(_, b)| strip_comments(b).trim().is_empty())
+        .map(|(h, _)| h)
+        .collect()
+}
+
+fn strip_comments(s: &str) -> String {
+    let mut out = String::new();
+    let mut rest = s;
+    while let Some(start) = rest.find("<!--") {
+        out.push_str(&rest[..start]);
+        match rest[start..].find("-->") {
+            Some(end) => rest = &rest[start + end + 3..],
+            None => return out,
+        }
+    }
+    out.push_str(rest);
+    out
+}
+
+#[cfg(test)]
+mod preset_tests {
+    use super::unanswered_required_headings;
+
+    #[test]
+    fn a_required_heading_left_as_its_comment_is_unanswered() {
+        let t = "# Intent\n\n## Problem\n<!-- required -->\n<!-- What is wrong? -->\n\n## Non-goals\n<!-- optional: delete if not applicable -->\n<!-- What is out? -->\n";
+        assert_eq!(unanswered_required_headings(t), vec!["Problem".to_owned()]);
+    }
+
+    #[test]
+    fn an_answer_or_a_deleted_optional_heading_passes() {
+        let t = "# Intent\n\n## Problem\n<!-- required -->\n<!-- What is wrong? -->\nThe parser drops a key.\n";
+        assert!(unanswered_required_headings(t).is_empty());
     }
 }

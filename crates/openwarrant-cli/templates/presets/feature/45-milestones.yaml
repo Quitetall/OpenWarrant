@@ -1,0 +1,18 @@
+schema: "oh.war/milestones/v1"
+
+# What must be true, in order, for this Warrant to be done? One milestone
+# per acceptance checkpoint; each names the stages that reach it and the
+# obligations it settles. Replace the empty titles; add milestones and
+# stages as the work needs.
+milestones:
+  - id: "M1"
+    title: ""
+    stage_refs: ["STAGE-001"]
+
+# Who or what does each piece of work? executor_kind is human, agent or
+# service; responsibility_tier is T1, T2 or T3.
+stages:
+  - id: "STAGE-001"
+    title: ""
+    executor_kind: "human"
+    responsibility_tier: "T2"

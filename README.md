@@ -7,6 +7,10 @@
 Describe the outcome. Keep the right context. Record what happened.
 Start small with a prompt, then add review and verification where your work needs it.
 
+**Read first: [the current state](docs/generated/CURRENT.md)** — the master
+document `war compile` writes from the records, current by construction
+(`docs/generated/CURRENT.md`; its history is `docs/generated/HISTORY.md`).
+
 [Design draft](docs/sas/drafts/1.0.0-rc.3/README.md) ·
 [Recorded progress](docs/warrants/generated/CORPUS_STATUS.md) ·
 [Build the CLI](#build-the-current-cli) ·

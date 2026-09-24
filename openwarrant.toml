@@ -13,6 +13,9 @@ warrants = "docs/warrants"
 [generated]
 commit = true
 verify_drift = true
+# OW-ADR-0022: this repository keeps docs/generated/HISTORY.md beside
+# docs/generated/CURRENT.md — every subject that ever existed, expanded.
+history = true
 
 # The verifier `war verify <alias> --run` hands each bundle to (OW-WAR-0117;
 # docs/VERIFICATION.md). A separate `claude -p` process with no tool, no MCP

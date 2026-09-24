@@ -71,10 +71,10 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | no required unknown remains | 85 |
 | every required obligation is dispositioned | 83 |
 | independence requirements are met | 83 |
-| required deliverables exist | 75 |
+| required deliverables exist | 74 |
 | required judgments exist | 54 |
 | residual risks have sufficient authority | 54 |
-| exact authorized Contract Revision | 8 |
+| exact authorized Contract Revision | 7 |
 | runtime receipts match the basis | 3 |
 
 ## Requirements (SAS §106, §34.3)
@@ -218,7 +218,7 @@ Every §106 requirement is named by at least one Warrant.
 | `OW-WAR-0070` Add `war inbox` to list Warrants awaiting a human act | draft | unknown | 0 | 0 of 2 | required deliverables exist |
 | `OW-WAR-0071` SAS 1.1.0: the batch act, and the dashboard as a rendering of the record | draft | unknown | 1 | — | required deliverables exist |
 | `OW-WAR-0072` The batch act: one human signature over many pending acts | draft | unknown | 1 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0073` war tui: the dashboard in the terminal | draft | unknown | 1 | 0 of 4 | exact authorized Contract Revision |
+| `OW-WAR-0073` war tui: the dashboard in the terminal | draft | unknown | 1 | 0 of 4 | required deliverables exist |
 | `OW-WAR-0074` Adopt the exact RC.2 build basis without rewriting history | draft | unknown | 0 | 0 of 2 | required deliverables exist |
 | `OW-WAR-0075` Parse and validate human-first OpenWarrant documents | draft | unknown | 1 | 0 of 3 | required deliverables exist |
 | `OW-WAR-0076` Author and edit human-first OpenWarrant documents | draft | unknown | 2 | 0 of 3 | required deliverables exist |

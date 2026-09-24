@@ -401,13 +401,18 @@ enum Command {
         #[arg(long)]
         force: bool,
     },
-    /// Create a draft Warrant (§71.2).
+    /// Create a draft Warrant (§71.2) from a preset: typed atoms, each
+    /// heading followed by the question it answers (OW-ADR-0022).
     New {
         /// The Warrant's title.
         title: String,
-        /// Composition profile (§16.3).
-        #[arg(long, default_value = "delivery")]
-        profile: String,
+        /// The preset: `feature`, `fix` (delivery) or `decision`.
+        #[arg(long)]
+        preset: Option<String>,
+        /// Composition profile (§16.3). Implied by the preset; naming one the
+        /// preset does not compose is refused.
+        #[arg(long)]
+        profile: Option<String>,
         /// Cite this Warrant as the parent, at its latest authorized revision
         /// and that revision's digest (§20.2, OW-WAR-0123). A parent with no
         /// authorized revision is refused and nothing is created.
@@ -1206,26 +1211,72 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         }
         Command::New {
             title,
+            preset,
             profile,
             parent,
         } => {
-            let profile: Profile = profile.parse()?;
+            let profile: Option<Profile> = profile.map(|p| p.parse()).transpose()?;
+            // Without --preset the profile's preset is written, and the
+            // presets are named: the `TODO` skeleton is retired. The refusal
+            // OW-WAR-0113 D-031 asks for here is withheld — see its report:
+            // plants and tests outside its declared set call `war new <title>`.
+            let (preset, defaulted) = match preset {
+                Some(p) => (p, false),
+                None => (
+                    new::default_preset(profile.unwrap_or(Profile::Delivery)).to_owned(),
+                    true,
+                ),
+            };
+            let Some(composes) = new::preset_profile(&preset) else {
+                let mut report = diagnostic::Report::default();
+                report.push(diagnostic::Diagnostic::error(
+                    "new.unknown-preset",
+                    preset.clone(),
+                    format!(
+                        "no preset is named {preset:?}; the presets are {}",
+                        new::preset_names().join(", ")
+                    ),
+                ));
+                output::finish(mode, "new", &report, None);
+                return Ok(EXIT_DIAGNOSTIC);
+            };
+            if let Some(p) = profile
+                && p != composes
+            {
+                let mut report = diagnostic::Report::default();
+                report.push(diagnostic::Diagnostic::error(
+                    "new.preset-profile",
+                    preset.clone(),
+                    format!("preset {preset:?} composes the `{composes}` profile, not `{p}`"),
+                ));
+                output::finish(mode, "new", &report, None);
+                return Ok(EXIT_DIAGNOSTIC);
+            }
             let repository = open_repo()?;
             let dir = match parent.as_deref() {
-                Some(parent) => new::run_with_parent(&repository, &title, profile, parent)?,
-                None => new::run(&repository, &title, profile)?,
+                Some(parent) => new::run_with_parent(&repository, &title, &preset, parent)?,
+                None => new::run_preset(&repository, &title, &preset)?,
             };
             let rel = repository.relative(&dir);
             let alias = dir.file_name().unwrap_or_default().to_owned();
-            let mut data =
-                serde_json::json!({"alias": alias, "dir": rel, "profile": profile.to_string()});
+            let mut data = serde_json::json!({"alias": alias, "dir": rel, "profile": composes.to_string(), "preset": preset, "presets": new::preset_names()});
             if let Some(parent) = &parent {
                 data["parent"] = serde_json::json!(parent);
             }
             output::emit(
                 mode,
                 "new",
-                &format!("created {rel}\nedit its atoms, then run `war check`"),
+                &format!(
+                    "created {rel} from the `{preset}` preset{}\nanswer each heading's question in its atoms, then run `war check`",
+                    if defaulted {
+                        format!(
+                            " (no --preset given; the presets are {})",
+                            new::preset_names().join(", ")
+                        )
+                    } else {
+                        String::new()
+                    }
+                ),
                 data,
             );
             Ok(EXIT_OK)
