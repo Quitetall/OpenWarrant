@@ -1,0 +1,34 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+
+[[deliverable]]
+id = "D-001"
+title = "Run the battery in a disposable clone of HEAD"
+kind = "file"
+target_ref = "conformance/plant-isolated.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-002"
+title = "ops.conformance.plants@1.1.0, askable"
+kind = "file"
+target_ref = "docs/gates/ops.conformance.plants@1.1.0.yaml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-003"
+title = "The isolated-battery plants"
+kind = "file"
+target_ref = "conformance/plants.d/48-isolated-battery.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]

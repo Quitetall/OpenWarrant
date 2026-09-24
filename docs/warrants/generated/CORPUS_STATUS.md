@@ -15,7 +15,7 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 
 - **SAS revision:** 1.1.0
 - **digest:** `sha256:321413359168c176faaddefc1a7057d66059d5de8d98d20feeca995c7f89a1bc`
-- Revision 1.1.0 is ACCEPTED (§101.2) and normative. A Warrant compiles against the revision its authorization recorded (§14), so a later revision does not move an authorized contract: 57 against 0.1.0-draft.1, 8 against 0.1.0-draft.3, 42 against 1.0.0, 33 against 1.1.0.
+- Revision 1.1.0 is ACCEPTED (§101.2) and normative. A Warrant compiles against the revision its authorization recorded (§14), so a later revision does not move an authorized contract: 57 against 0.1.0-draft.1, 8 against 0.1.0-draft.3, 42 against 1.0.0, 34 against 1.1.0.
 
 **Requirements (62 in §106)** — strictest rung first:
 
@@ -33,7 +33,7 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 | roadmap://OW-PHASE-3: ADR federation | OW-WAR-0043 | blocked by OW-WAR-0006, OW-WAR-0036, OW-WAR-0043, OW-WAR-0064, OW-WAR-0074, OW-WAR-0084, OW-WAR-0123, OW-WAR-0124, OW-WAR-0125 | 0 | 7 | 2 | 0 | 3 |
 | roadmap://OW-PHASE-4: Knowledge Fabric registration | OW-WAR-0044 | blocked by OW-WAR-0028, OW-WAR-0029, OW-WAR-0030, OW-WAR-0032, OW-WAR-0044, OW-WAR-0110, OW-WAR-0111, OW-WAR-0126, OW-WAR-0127, OW-WAR-0128 | 0 | 6 | 4 | 0 | 0 |
 | roadmap://OW-PHASE-5: Dispatch and Katana execution | OW-WAR-0045 | blocked by OW-WAR-0011, OW-WAR-0023, OW-WAR-0026, OW-WAR-0045, OW-WAR-0065, OW-WAR-0069, OW-WAR-0077, OW-WAR-0078, OW-WAR-0079, OW-WAR-0080, OW-WAR-0081, OW-WAR-0082, OW-WAR-0086, OW-WAR-0093, OW-WAR-0094, OW-WAR-0095, OW-WAR-0098, OW-WAR-0099, OW-WAR-0102, OW-WAR-0103, OW-WAR-0104, OW-WAR-0106, OW-WAR-0109, OW-WAR-0129, OW-WAR-0130, OW-WAR-0131, OW-WAR-0132 | 0 | 25 | 2 | 0 | 4 |
-| roadmap://OW-PHASE-6: Gate Registry and assurance case | OW-WAR-0046 | recorded | 0 | 10 | 0 | 0 | 8 |
+| roadmap://OW-PHASE-6: Gate Registry and assurance case | OW-WAR-0046 | recorded | 0 | 11 | 0 | 0 | 8 |
 | roadmap://OW-PHASE-7: BLUT adapter | OW-WAR-0047 | blocked by OW-WAR-0027, OW-WAR-0047, OW-WAR-0108 | 0 | 2 | 1 | 0 | 0 |
 | roadmap://OW-PHASE-8: Liminal production compiler | OW-WAR-0048 | blocked by OW-WAR-0040, OW-WAR-0048 | 0 | 2 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-9: High-assurance controls | OW-WAR-0136 | blocked by OW-WAR-0067, OW-WAR-0071, OW-WAR-0072, OW-WAR-0073, OW-WAR-0089, OW-WAR-0090, OW-WAR-0091, OW-WAR-0096, OW-WAR-0136, OW-WAR-0137, OW-WAR-0138, OW-WAR-0139, OW-WAR-0142, OW-WAR-0143, OW-WAR-0144 | 0 | 15 | 0 | 0 | 0 |
@@ -65,16 +65,16 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | requirement | Warrants blocked |
 |---|---|
-| artifact digests verify | 90 |
-| every required gate has admissible result | 84 |
-| no blocker remains | 83 |
-| no required unknown remains | 83 |
-| every required obligation is dispositioned | 81 |
-| independence requirements are met | 81 |
-| required deliverables exist | 77 |
-| required judgments exist | 52 |
-| residual risks have sufficient authority | 52 |
-| exact authorized Contract Revision | 5 |
+| artifact digests verify | 91 |
+| every required gate has admissible result | 85 |
+| no blocker remains | 84 |
+| no required unknown remains | 84 |
+| every required obligation is dispositioned | 82 |
+| independence requirements are met | 82 |
+| required deliverables exist | 78 |
+| required judgments exist | 53 |
+| residual risks have sufficient authority | 53 |
+| exact authorized Contract Revision | 6 |
 | runtime receipts match the basis | 3 |
 
 ## Requirements (SAS §106, §34.3)
@@ -119,9 +119,9 @@ Every §106 requirement is named by at least one Warrant.
 | `WAR-SAS-RQ-051` | satisfied | 1 | OW-WAR-0016 (complete) |
 | `WAR-SAS-RQ-052` | satisfied | 1 | OW-WAR-0017 (complete) |
 | `WAR-SAS-RQ-053` | satisfied | 2 | OW-WAR-0021 (complete), OW-WAR-0046 (complete), OW-WAR-0059 (partial), OW-WAR-0117 (partial), OW-WAR-0136 (partial), OW-WAR-0137 (partial) |
-| `WAR-SAS-RQ-054` | satisfied | 2 | OW-WAR-0020 (complete), OW-WAR-0046 (complete), OW-WAR-0059 (partial) |
+| `WAR-SAS-RQ-054` | satisfied | 2 | OW-WAR-0020 (complete), OW-WAR-0046 (complete), OW-WAR-0059 (partial), OW-WAR-0145 (partial) |
 | `WAR-SAS-RQ-055` | satisfied | 2 | OW-WAR-0018 (complete), OW-WAR-0046 (complete) |
-| `WAR-SAS-RQ-056` | satisfied | 1 | OW-WAR-0019 (complete) |
+| `WAR-SAS-RQ-056` | satisfied | 1 | OW-WAR-0019 (complete), OW-WAR-0145 (partial) |
 | `WAR-SAS-RQ-057` | satisfied | 2 | OW-WAR-0020 (complete), OW-WAR-0046 (complete), OW-WAR-0136 (partial) |
 | `WAR-SAS-RQ-058` | satisfied | 2 | OW-WAR-0022 (complete), OW-WAR-0046 (complete) |
 | `WAR-SAS-RQ-059` | satisfied | 1 | OW-WAR-0022 (complete), OW-WAR-0059 (complete), OW-WAR-0133 (partial), OW-WAR-0134 (partial), OW-WAR-0136 (partial) |
@@ -146,7 +146,7 @@ Every §106 requirement is named by at least one Warrant.
 | `WAR-SAS-RQ-084` | claimed | 0 | OW-WAR-0030 (complete), OW-WAR-0064 (partial), OW-WAR-0113 (complete), OW-WAR-0114 (partial) |
 | `WAR-SAS-RQ-085` | claimed | 0 | OW-WAR-0067 (partial), OW-WAR-0071 (partial), OW-WAR-0072 (partial) |
 
-## Warrants (140) — invalid 0 · draft 95 · ready_to_resolve 16 · would_satisfy 0 · resolved **29**
+## Warrants (141) — invalid 0 · draft 96 · ready_to_resolve 16 · would_satisfy 0 · resolved **29**
 
 | Warrant | rung | §38.6 | blocking unknowns | milestones evidenced | first unmet |
 |---|---|---|---|---|---|
@@ -290,6 +290,7 @@ Every §106 requirement is named by at least one Warrant.
 | `OW-WAR-0142` Standing authorization: one signature pre-authorizes a class of routine work, so each change costs only its acceptance | draft | unknown | 0 | 0 of 6 | exact authorized Contract Revision |
 | `OW-WAR-0143` war knows when it is old: build identity, a notice when a newer release exists, and an update that works from every version | draft | unknown | 0 | 0 of 4 | exact authorized Contract Revision |
 | `OW-WAR-0144` Amending an authorization keeps the superseded one beside it, as a retired response is kept | draft | unknown | 0 | 0 of 2 | exact authorized Contract Revision |
+| `OW-WAR-0145` The battery as an askable gate: it runs in a disposable clone of the committed tree and mutates nothing | draft | unknown | 0 | 0 of 1 | exact authorized Contract Revision |
 
 ## Not reported here
 

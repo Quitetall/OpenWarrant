@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-140 Warrant(s) in this repository.
+141 Warrant(s) in this repository.
 
 ## Summary
 
@@ -151,6 +151,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0142](docs/warrants/OW-WAR-0142/manifest.toml) | Standing authorization: one signature pre-authorizes a class of routine work, so each change costs only its acceptance | `draft` | `current` | `valid` | `basic` | 6M / 7S |
 | [OW-WAR-0143](docs/warrants/OW-WAR-0143/manifest.toml) | war knows when it is old: build identity, a notice when a newer release exists, and an update that works from every version | `draft` | `current` | `valid` | `basic` | 4M / 5S |
 | [OW-WAR-0144](docs/warrants/OW-WAR-0144/manifest.toml) | Amending an authorization keeps the superseded one beside it, as a retired response is kept | `draft` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0145](docs/warrants/OW-WAR-0145/manifest.toml) | The battery as an askable gate: it runs in a disposable clone of the committed tree and mutates nothing | `draft` | `current` | `valid` | `basic` | 1M / 1S |
 
 ## Claimed SAS requirement coverage
 
@@ -194,9 +195,9 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-051` — OW-WAR-0016
 - `WAR-SAS-RQ-052` — OW-WAR-0017
 - `WAR-SAS-RQ-053` — OW-WAR-0021, OW-WAR-0046, OW-WAR-0059, OW-WAR-0117, OW-WAR-0136, OW-WAR-0137
-- `WAR-SAS-RQ-054` — OW-WAR-0020, OW-WAR-0046, OW-WAR-0059
+- `WAR-SAS-RQ-054` — OW-WAR-0020, OW-WAR-0046, OW-WAR-0059, OW-WAR-0145
 - `WAR-SAS-RQ-055` — OW-WAR-0018, OW-WAR-0046
-- `WAR-SAS-RQ-056` — OW-WAR-0019
+- `WAR-SAS-RQ-056` — OW-WAR-0019, OW-WAR-0145
 - `WAR-SAS-RQ-057` — OW-WAR-0020, OW-WAR-0046, OW-WAR-0136
 - `WAR-SAS-RQ-058` — OW-WAR-0022, OW-WAR-0046
 - `WAR-SAS-RQ-059` — OW-WAR-0022, OW-WAR-0059, OW-WAR-0133, OW-WAR-0134, OW-WAR-0136
@@ -323,6 +324,7 @@ Source: the Warrants under the configured warrants path.
 - **OW-WAR-0142** · roadmap: roadmap://OW-PHASE-9/standing-authorization
 - **OW-WAR-0143** · roadmap: roadmap://OW-PHASE-9/self-update
 - **OW-WAR-0144** · roadmap: roadmap://OW-PHASE-9/authorization-retention
+- **OW-WAR-0145** · roadmap: roadmap://OW-PHASE-6/askable-battery
 
 ## Not reported here
 
