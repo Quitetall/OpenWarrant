@@ -65,13 +65,13 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | requirement | Warrants blocked |
 |---|---|
-| artifact digests verify | 93 |
+| artifact digests verify | 94 |
 | every required gate has admissible result | 80 |
 | no blocker remains | 79 |
 | no required unknown remains | 79 |
 | every required obligation is dispositioned | 77 |
 | independence requirements are met | 77 |
-| required deliverables exist | 77 |
+| required deliverables exist | 76 |
 | required judgments exist | 48 |
 | residual risks have sufficient authority | 48 |
 | exact authorized Contract Revision | 28 |

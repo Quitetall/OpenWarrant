@@ -901,6 +901,7 @@ dependencies = [
  "serde_jcs",
  "serde_json",
  "sha2",
+ "signal-hook",
  "tokio",
  "toml 1.1.4+spec-1.1.0",
  "ureq",

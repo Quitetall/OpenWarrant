@@ -55,3 +55,8 @@ schema = ["openwarrant-core/schema", "openwarrant-compiler/schema"]
 
 [target.'cfg(unix)'.dependencies]
 rustix = { version = "=1.1.4", features = ["fs", "process"] }
+# OW-WAR-0131 U-001 option A: SIGINT and SIGTERM reach `war perform`'s wait
+# loop, which kills and reaps the performer's group. Already locked through
+# crossterm, so this adds no new code to the build; unix-only because the
+# group kill it serves is.
+signal-hook = { version = "=0.3.18", default-features = false }
