@@ -1,5 +1,10 @@
 # Quickstart — choose your workflow
 
+Read `docs/generated/CURRENT.md` first: the master document `war compile`
+writes (OW-ADR-0022) — every current Warrant expanded, the SAS in force, who
+governs what, and the queue with each signing command already judged by the
+dry run. In this repository it is [here](docs/generated/CURRENT.md).
+
 ## Prompt-only work and records
 
 For ordinary implementation, ask your connected agent to draft and execute work
@@ -10,8 +15,8 @@ From an existing Git repository, initialize once:
 
 ```bash
 war init --namespace APP --name "My project"
-war new "Describe the outcome"
-war compile
+war new "Describe the outcome" --preset feature   # or fix, decision
+war compile                                        # also writes docs/generated/CURRENT.md
 war overview
 ```
 

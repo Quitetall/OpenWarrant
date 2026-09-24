@@ -198,6 +198,13 @@ pub struct GeneratedPolicy {
     pub commit: bool,
     #[serde(default = "GeneratedPolicy::yes")]
     pub verify_drift: bool,
+    /// OW-ADR-0022 — write `docs/generated/HISTORY.md`, the optional
+    /// projection of everything that ever existed, beside the master
+    /// document. Off unless a repository asks: a new program has no history
+    /// to keep, and `CURRENT.md` already names every replaced subject by one
+    /// line of lineage.
+    #[serde(default)]
+    pub history: bool,
 }
 
 impl GeneratedPolicy {
@@ -211,6 +218,7 @@ impl Default for GeneratedPolicy {
         Self {
             commit: true,
             verify_drift: true,
+            history: false,
         }
     }
 }
@@ -558,6 +566,10 @@ mod tests {
         let config = valid();
         assert!(config.generated.commit);
         assert!(config.generated.verify_drift, "drift check must default on");
+        assert!(
+            !config.generated.history,
+            "the history projection is opt-in"
+        );
     }
 
     /// A preset that offers itself for a correction and names no kind is a

@@ -10,6 +10,11 @@ Explicit execution requests permit scoped unverified work subject to named gates
 
 ## Read the context needed for this task
 
+- **First, always:** read [`docs/generated/CURRENT.md`](docs/generated/CURRENT.md),
+  the master document `war compile` writes (OW-ADR-0022): every current Warrant
+  expanded, the SAS in force, accepted decisions, who governs each path, who may
+  sign and the queue already judged by the dry run. A replaced Warrant is one
+  line of lineage there; its text is in `docs/generated/HISTORY.md`.
 - **Product or SDK design:** read the [current SAS draft](docs/sas/drafts/1.0.0-rc.3/README.md),
   then the linked companion for the feature. RC.3 is an unaccepted candidate;
   the draft does not establish implemented behavior or rewrite signed history.
