@@ -409,3 +409,23 @@ required = true
 content_addressed = false
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[[deliverable]]
+id = "D-039"
+title = "§91.5 test 33 under OW-ADR-0022: a supersession derives currency (AM-002)"
+kind = "file"
+target_ref = "conformance/plants/33-supersession-without-currency.py"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-040"
+title = "The corpus plant that runs test 33, re-aimed at the derived rule (AM-002)"
+kind = "file"
+target_ref = "conformance/plants.d/00-corpus.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]

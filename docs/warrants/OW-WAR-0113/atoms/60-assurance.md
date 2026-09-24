@@ -29,7 +29,7 @@ classification: internal
 ### OBL-004 — presets type the authored atoms without answering for the author
 - **scope:** `templates/presets/`, `new.rs`, `check.rs`.
 - **gate:** `gate://ops.conformance.plants@1.0.0`
-- **evidence:** `war new "x"` without `--preset` refuses and lists `feature`, `fix`, `decision`; `war new "x" --preset feature` writes one atom per required role of the profile, each with its headings and questions; `war check` on that draft reports `atom.preset-unanswered` as a warning naming the heading, and as an error once `war authorize` has been run for it; a preset atom whose optional heading was deleted passes; `war check` refuses an atom whose role no projection renders (`atom.role-unprojected`).
+- **evidence:** `war new "x"` without `--preset` writes the profile's default preset and names `feature`, `fix`, `decision` (AM-002), and never the `TODO` skeleton; `war new "x" --preset feature` writes one atom per required role of the profile, each with its headings and questions; `war check` on that draft reports `atom.preset-unanswered` as a warning naming the heading, and as an error once `war authorize` has been run for it; a preset atom whose optional heading was deleted passes; `war check` refuses an atom whose role no projection renders (`atom.role-unprojected`).
 
 ## Gate Adequacy
 

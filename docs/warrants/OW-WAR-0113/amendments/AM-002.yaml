@@ -1,0 +1,22 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-002"
+band: "manual_revision"
+reason: "Two findings from delivering revision 2. (1) OBL-004 required `war new` without `--preset` to refuse. That breaks every caller that scripts `war new` — conformance/lib.sh, five plants, two integration tests, CONTRIBUTING.md and the AGENTS.md template — and adds a step for no safety: the preset's own unanswered-heading rule (`atom.preset-unanswered`) is what keeps a skeleton from being signed. The owner has asked for less friction (2026-09-24); bare `war new` now writes the profile's default preset and names the others. (2) §91.5 test 33's plant (conformance/plants/33-supersession-without-currency.py, run by 00-corpus.sh) asserts that a supersession with no written currency is an error. OW-ADR-0022, which this Warrant carries, makes that the correct state: currency is derived from the relation, and a WRITTEN currency is the error. The plant is re-aimed at the derived rule; the tool is not bent to the old one. Wording drafted by the performer `claude`."
+governing_adr_or_policy: "OW-ADR-0022"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. Delivered code is unchanged by (1) — it already writes the default preset; the obligation now says so. (2) adds two deliverables, the test-33 plant and 00-corpus.sh, rewritten to OW-ADR-0022's rule. Revision 3 is authorized against the amended contract."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-24"
+
+semantic_diff:
+  - element: "obligations"
+    before: "OBL-004: war new without --preset refuses and lists the presets."
+    after: "OBL-004: war new without --preset writes the profile's default preset and names the others, never the TODO skeleton."
+  - element: "deliverables"
+    before: "D-001..D-038."
+    after: "Also D-039 (conformance/plants/33-supersession-without-currency.py) and D-040 (conformance/plants.d/00-corpus.sh), re-aimed at OW-ADR-0022's derived currency."
+
+affected_stages: []
+affected_milestones: []

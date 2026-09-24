@@ -74,7 +74,9 @@ M4 — presets:
    `<!-- required -->` or `<!-- optional: delete if not applicable -->`.
    `feature` and `fix` are `delivery`; `decision` is the ADR profile.
 10. `new.rs`: `war new <title> --preset <name>`; without `--preset`, `war
-    new` lists the presets and refuses — the `TODO` skeleton is retired.
+    new` writes the profile's default preset and names the others — the
+    `TODO` skeleton is retired (AM-002: refusing a bare `war new` breaks
+    every caller that scripts it and adds a step for no safety).
     `war init --program` and the guided init keep the adopt templates for
     the first Warrant.
 11. `check.rs`: `atom.preset-unanswered` — a required heading whose body is
@@ -93,8 +95,8 @@ M5 — where to read:
     `CURRENT.md` only as a lineage line and appears expanded in
     `HISTORY.md`; a manifest with `currency = "superseded"` is refused; a
     `supersedes` cycle is refused; a hand edit to `CURRENT.md` fails
-    `check --generated`; `war new` without a preset refuses and names the
-    presets; a preset atom with a required heading left as its comment is
+    `check --generated`; `war new` without a preset writes the default
+    and names the others; a preset atom with a required heading left as its comment is
     `atom.preset-unanswered`; `war next --json` carries `judged` on every
     signing action and the refused ones sort last.
 
