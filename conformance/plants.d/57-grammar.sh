@@ -186,10 +186,12 @@ assert_gone 'holder:' "$PLANT_ROOT/$GR_INTENT"
 GR_OUT=$("$WAR" --root "$PLANT_ROOT" check 2>&1)
 GR_STATUS=$?
 plant_restore
+# The only errors are the header's, for warrant_uuid: `atom.header` here
+# and OW-WAR-0119's `identity.atom-mismatch`, which names the same fact.
 gr_record "G-P1 §62 example minus holder" "$GR_OUT"
 if [[ $GR_STATUS -eq 2 ]] && ! grep -q 'atom.frontmatter' <<<"$GR_OUT" \
     && grep -q "atom.header .*header's \`warrant_uuid\` is \"019c8f2d-7b4d-7c41-9cb7-2636e5f582ea\"" <<<"$GR_OUT" \
-    && [[ $(grep -c '^ERROR' <<<"$GR_OUT") -eq 1 ]]; then
+    && [[ $(grep '^ERROR' <<<"$GR_OUT" | grep -vcE '^ERROR (atom\.header|identity\.atom-mismatch) ') -eq 0 ]]; then
     printf 'ok    %-34s read; only atom.header, for warrant_uuid\n' "G-P1 §62 example minus holder"
     PASSED=$((PASSED + 1))
 else
