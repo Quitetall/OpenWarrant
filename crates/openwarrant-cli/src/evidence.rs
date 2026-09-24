@@ -35,6 +35,25 @@
 //! would keep satisfying requirement 5 through every later edit to the
 //! contract, which is exactly the "green forever" failure the receipts
 //! `.gitignore` comment warns about.
+//!
+//! # And the source it ran over (OW-WAR-0133)
+//!
+//! The contract digest does not see the delivered code, the deliverable set
+//! or the fixtures, so a fifth check is made for a Warrant not yet resolved:
+//!
+//! 5. every source subject the reuse rule reads still holds — the files the
+//!    Gate Definition declares as `inputs` when it declares any, the tree
+//!    otherwise (outside the evidence records and the compiled projections),
+//!    and every declared fixture.
+//!
+//! A moved subject is `evidence.stale-binding`, naming it: the file is a true
+//! record of a run and not evidence about the source as it stands. A subject
+//! the rule needs and the receipt does not name — every receipt minted before
+//! OW-WAR-0133, a run over a dirty tree, a source that cannot be read — is
+//! `evidence.reuse-unknown` (Law 15): not admissible, and not a failure. Both
+//! are warnings, because the file is not wrong; requirement 5 is what they
+//! leave unmet. A RESOLVED Warrant is not re-evaluated: its receipts are
+//! history, and its resolution keeps binding them (RQ-059).
 
 use camino::{Utf8Path, Utf8PathBuf};
 use openwarrant_compiler::canonical::sha256_digest;
@@ -54,6 +73,41 @@ pub struct GateEvidence {
     pub run_path: Utf8PathBuf,
     pub receipt: Option<GateReceipt>,
     pub receipt_path: Utf8PathBuf,
+    /// Whether the source the receipt names still holds, judged when the
+    /// record was loaded (OW-WAR-0133).
+    pub reuse: Reuse,
+}
+
+/// Whether a receipt's source subjects still hold (OW-WAR-0133).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Reuse {
+    /// The Warrant is resolved. Its receipts are history, bound by the
+    /// resolution, and are not re-evaluated against today's source.
+    Historical,
+    /// Every subject the rule reads still holds. The string names the rule.
+    Holds(String),
+    /// A subject the rule reads has moved. `subject` is the recorded one.
+    Moved { subject: String, detail: String },
+    /// The rule needs a subject the receipt does not name, or the current
+    /// source cannot be named. Law 15: neither pass nor failure.
+    Unknown(String),
+}
+
+/// How a recorded run stands, for the `war check` rule it earns.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Standing {
+    /// `evidence.admissible`.
+    Admissible,
+    /// `evidence.stale-binding`: a true record bound to an earlier contract
+    /// or an earlier source.
+    Stale(String),
+    /// `evidence.reuse-unknown`: sealed and bound to this contract, and its
+    /// source cannot be shown to hold.
+    ReuseUnknown(String),
+    /// `evidence.receipt-invalid`: a required pass whose receipt is not one.
+    ReceiptInvalid(String),
+    /// `evidence.not-a-pass`.
+    NotAPass(String),
 }
 
 /// The subject-digest form a receipt uses to name a contract.
@@ -77,45 +131,49 @@ pub fn receipt_digest_recomputes(receipt: &GateReceipt) -> bool {
     }
 }
 
-/// Why a recorded run is not admissible for the contract as it stands.
+/// How a recorded run stands against the contract and source as they are.
 ///
-/// `Ok(())` means every check above passed. The reasons are sentences because
-/// they are printed by `war check` and read by the person who has to act.
-pub fn admissibility(evidence: &GateEvidence, contract_digest: Option<&str>) -> Result<(), String> {
+/// The checks run in the order the module comment lists; the first that
+/// fails decides. The reasons are sentences because they are printed by
+/// `war check` and read by the person who has to act.
+#[must_use]
+pub fn standing(evidence: &GateEvidence, contract_digest: Option<&str>) -> Standing {
     if !evidence.run.satisfies_required_pass() {
-        return Err(format!(
+        return Standing::NotAPass(format!(
             "the run is not a §44.5 required pass (askability {}, execution {}, verdict {})",
             evidence.run.askability, evidence.run.execution_status, evidence.run.verdict
         ));
     }
     let Some(receipt) = &evidence.receipt else {
-        return Err(format!(
+        return Standing::ReceiptInvalid(format!(
             "no §44.6 receipt beside the run (expected {})",
             evidence.receipt_path
         ));
     };
     if let Err(e) = receipt.validate() {
-        return Err(format!("the receipt is incomplete: {e}"));
+        return Standing::ReceiptInvalid(format!("the receipt is incomplete: {e}"));
     }
     if !receipt_digest_recomputes(receipt) {
-        return Err(
+        return Standing::ReceiptInvalid(
             "the receipt's `receipt_digest` does not recompute over its fields — it was edited \
              after it was sealed, and an edited receipt is not a receipt"
                 .to_owned(),
         );
     }
     if receipt.verdict != evidence.run.verdict {
-        return Err(format!(
+        return Standing::ReceiptInvalid(format!(
             "the run says verdict {} and its receipt says {}",
             evidence.run.verdict, receipt.verdict
         ));
     }
     let Some(digest) = contract_digest else {
-        return Err("the Warrant does not compile, so there is no contract to bind to".to_owned());
+        return Standing::ReceiptInvalid(
+            "the Warrant does not compile, so there is no contract to bind to".to_owned(),
+        );
     };
     let wanted = contract_subject(digest);
     if !receipt.subject_digests.iter().any(|s| s == &wanted) {
-        return Err(format!(
+        return Standing::Stale(format!(
             "the receipt is bound to {} and the contract now compiles to {wanted} — a run \
              against an earlier revision is a record, not evidence about this one",
             if receipt.subject_digests.is_empty() {
@@ -125,7 +183,130 @@ pub fn admissibility(evidence: &GateEvidence, contract_digest: Option<&str>) -> 
             }
         ));
     }
-    Ok(())
+    match &evidence.reuse {
+        Reuse::Historical | Reuse::Holds(_) => Standing::Admissible,
+        Reuse::Moved { subject, detail } => Standing::Stale(format!(
+            "the receipt names {subject} and {detail} — a run over an earlier source is a \
+             record, not evidence about this one"
+        )),
+        Reuse::Unknown(why) => Standing::ReuseUnknown(format!(
+            "reuse UNKNOWN: {why}. Not admissible and not a failure; `war evidence record` \
+             mints a receipt that names its source"
+        )),
+    }
+}
+
+/// Why a recorded run is not admissible for the contract and source as they
+/// stand. `Ok(())` means [`standing`] is admissible.
+pub fn admissibility(evidence: &GateEvidence, contract_digest: Option<&str>) -> Result<(), String> {
+    match standing(evidence, contract_digest) {
+        Standing::Admissible => Ok(()),
+        Standing::Stale(why)
+        | Standing::ReuseUnknown(why)
+        | Standing::ReceiptInvalid(why)
+        | Standing::NotAPass(why) => Err(why),
+    }
+}
+
+/// Judge whether the source `receipt` names still holds, for a Warrant not
+/// yet resolved (Q-001: declared inputs decide, the tree when there are none;
+/// declared fixtures always).
+#[must_use]
+pub fn reuse_of(repo: &Repository, gate: &str, receipt: &GateReceipt) -> Reuse {
+    use crate::gate_cmd::source;
+    let ex = source::Exclusions::of(repo);
+    let named = |prefix: &str| {
+        receipt
+            .subject_digests
+            .iter()
+            .find(|s| s.starts_with(prefix))
+            .cloned()
+    };
+    let Some(declared) = source::declared(repo, gate) else {
+        return Reuse::Unknown(format!(
+            "no Gate Definition for {gate} is registered, so what it reads cannot be named"
+        ));
+    };
+
+    // Fixtures first: whichever rule decides, a changed fixture is a changed
+    // question.
+    if !declared.fixtures.is_empty() && receipt.fixture_digests.is_empty() {
+        return Reuse::Unknown(format!(
+            "{gate} declares fixtures and the receipt names none"
+        ));
+    }
+    for recorded in &receipt.fixture_digests {
+        let Some((path, _)) = recorded.split_once("#sha256:") else {
+            return Reuse::Unknown(format!("fixture digest {recorded:?} names no path"));
+        };
+        match source::fixture_digests(&repo.root, &[path.to_owned()]) {
+            Ok(now) if now.first() == Some(recorded) => {}
+            Ok(now) => {
+                return Reuse::Moved {
+                    subject: recorded.clone(),
+                    detail: format!("the fixture now digests to {}", now.join(", ")),
+                };
+            }
+            Err(e) => {
+                return Reuse::Moved {
+                    subject: recorded.clone(),
+                    detail: e,
+                };
+            }
+        }
+    }
+
+    if !declared.inputs.is_empty() {
+        let Some(recorded) = named(source::INPUTS) else {
+            return Reuse::Unknown(format!(
+                "{gate} declares the files it reads ({}) and the receipt does not name their \
+                 digest",
+                declared.inputs.join(", ")
+            ));
+        };
+        return match source::inputs_digest(&repo.root, &declared.inputs, &ex) {
+            Ok(now) if now == recorded => {
+                Reuse::Holds(format!("inputs {}", declared.inputs.join(", ")))
+            }
+            Ok(now) => Reuse::Moved {
+                subject: recorded,
+                detail: format!(
+                    "the files {gate} declares it reads ({}) now digest to {now}",
+                    declared.inputs.join(", ")
+                ),
+            },
+            Err(e) => Reuse::Unknown(format!("the declared inputs cannot be digested: {e}")),
+        };
+    }
+
+    // The (a) fallback: a gate that declares no inputs is bound to the tree.
+    let Some(tree) = named(source::TREE) else {
+        return Reuse::Unknown(
+            "the receipt names no tree and its gate declares no inputs, so nothing says what \
+             source it ran over"
+                .to_owned(),
+        );
+    };
+    if receipt.subject_digests.iter().any(|s| s == source::DIRTY) {
+        return Reuse::Unknown(format!(
+            "the run started from {tree} with uncommitted changes, and a dirty tree has no name"
+        ));
+    }
+    let sha = tree.trim_start_matches(source::TREE);
+    match source::moved_since(&repo.root, sha, &ex) {
+        Ok(moved) if moved.is_empty() => Reuse::Holds(tree.clone()),
+        Ok(moved) => Reuse::Moved {
+            subject: tree,
+            detail: format!(
+                "{} path(s) outside the evidence records and projections have changed since \
+                 ({}{})",
+                moved.len(),
+                moved.iter().take(3).cloned().collect::<Vec<_>>().join(", "),
+                if moved.len() > 3 { ", …" } else { "" }
+            ),
+        },
+        Err(e) => Reuse::Unknown(format!("the tree {sha} cannot be compared: {e}")),
+    }
 }
 
 /// The runs that count towards requirement 5 for this contract.
@@ -155,6 +336,7 @@ pub fn load(repo: &Repository, warrant_dir: &Utf8Path) -> Result<Vec<GateEvidenc
         .filter(|p| p.as_str().ends_with(".run.toml"))
         .collect();
     paths.sort();
+    let resolved = warrant_dir.join("resolution.toml").is_file();
 
     let mut out = Vec::with_capacity(paths.len());
     for run_path in paths {
@@ -186,11 +368,17 @@ pub fn load(repo: &Repository, warrant_dir: &Utf8Path) -> Result<Vec<GateEvidenc
         } else {
             None
         };
+        let reuse = match &receipt {
+            _ if resolved => Reuse::Historical,
+            Some(r) => reuse_of(repo, &run.gate, r),
+            None => Reuse::Unknown("no receipt".to_owned()),
+        };
         out.push(GateEvidence {
             run,
             run_path,
             receipt,
             receipt_path,
+            reuse,
         });
     }
     Ok(out)
@@ -239,7 +427,19 @@ pub fn record(repo: &Repository, alias: &str, only: Option<&str>) -> Result<Repo
     };
 
     let out_dir = dir.join(GATE_RUNS_DIR);
-    let subject = vec![contract_subject(&contract_digest)];
+    // OW-WAR-0133: the deliverable set's bytes beside the contract. The tree,
+    // the declared inputs and the fixtures are added by the runner, which
+    // observes them before each gate is spawned.
+    let set: Vec<(String, String)> = repo
+        .load_deliverables(&dir)?
+        .records
+        .iter()
+        .map(|d| (d.id.clone(), d.target_ref.clone()))
+        .collect();
+    let subject = vec![
+        contract_subject(&contract_digest),
+        crate::gate_cmd::source::deliverables_digest(&repo.root, &set),
+    ];
     let mut report = Report::default();
     report.note(format!(
         "{alias}: recording {} gate run(s) bound to {}",
@@ -279,10 +479,10 @@ pub fn record(repo: &Repository, alias: &str, only: Option<&str>) -> Result<Repo
 /// `war check` rules for a Warrant's recorded runs.
 ///
 /// Every recorded run is reported: admissible ones as `evidence.admissible`,
-/// the rest by why they are not. A stale binding is a WARNING — the file is a
-/// true record — and every other defect is an ERROR, because a run file whose
-/// receipt does not reseal, or disagrees with it, is a claim rather than a
-/// record and must not sit in the tree looking like one.
+/// the rest by why they are not. A stale binding and an unknown reuse are
+/// WARNINGS — the file is a true record — and every other defect is an ERROR,
+/// because a run file whose receipt does not reseal, or disagrees with it, is
+/// a claim rather than a record and must not sit in the tree looking like one.
 pub fn check(
     repo: &Repository,
     warrant_dir: &Utf8Path,
@@ -302,42 +502,42 @@ pub fn check(
         }
     };
     for e in &evidence {
-        match admissibility(e, contract_digest) {
-            Ok(()) => report.push(Diagnostic::pass(
+        let path = repo.relative(&e.run_path);
+        let gate = &e.run.gate;
+        match standing(e, contract_digest) {
+            Standing::Admissible => report.push(Diagnostic::pass(
                 "evidence.admissible",
                 format!(
-                    "{alias}: {} · required pass, receipt reseals and is bound to the current contract",
-                    e.run.gate
+                    "{alias}: {gate} · required pass, receipt reseals and is bound to the current \
+                     contract{}",
+                    match &e.reuse {
+                        Reuse::Holds(rule) => format!(" and to its source ({rule})"),
+                        Reuse::Historical =>
+                            " (resolved: the source is not re-evaluated)".to_owned(),
+                        _ => String::new(),
+                    }
                 ),
             )),
-            Err(why) => {
-                let stale = e.receipt.as_ref().is_some_and(|r| {
-                    receipt_digest_recomputes(r)
-                        && r.verdict == e.run.verdict
-                        && r.validate().is_ok()
-                        && e.run.satisfies_required_pass()
-                });
-                let path = repo.relative(&e.run_path);
-                if stale {
-                    report.push(Diagnostic::warn(
-                        "evidence.stale-binding",
-                        path,
-                        format!("{alias}: {} · {why}", e.run.gate),
-                    ));
-                } else if e.run.satisfies_required_pass() {
-                    report.push(Diagnostic::error(
-                        "evidence.receipt-invalid",
-                        path,
-                        format!("{alias}: {} · {why}", e.run.gate),
-                    ));
-                } else {
-                    report.push(Diagnostic::warn(
-                        "evidence.not-a-pass",
-                        path,
-                        format!("{alias}: {} · {why}", e.run.gate),
-                    ));
-                }
-            }
+            Standing::Stale(why) => report.push(Diagnostic::warn(
+                "evidence.stale-binding",
+                path,
+                format!("{alias}: {gate} · {why}"),
+            )),
+            Standing::ReuseUnknown(why) => report.push(Diagnostic::warn(
+                "evidence.reuse-unknown",
+                path,
+                format!("{alias}: {gate} · {why}"),
+            )),
+            Standing::ReceiptInvalid(why) => report.push(Diagnostic::error(
+                "evidence.receipt-invalid",
+                path,
+                format!("{alias}: {gate} · {why}"),
+            )),
+            Standing::NotAPass(why) => report.push(Diagnostic::warn(
+                "evidence.not-a-pass",
+                path,
+                format!("{alias}: {gate} · {why}"),
+            )),
         }
     }
 }
@@ -391,6 +591,7 @@ mod tests {
             run_path: "x.run.toml".into(),
             receipt,
             receipt_path: "x.receipt.json".into(),
+            reuse: Reuse::Holds("tree:t".into()),
         }
     }
 
@@ -460,6 +661,57 @@ mod tests {
                 .unwrap_err()
                 .contains("not a §44.5")
         );
+    }
+
+    #[test]
+    fn a_moved_source_is_a_record_not_evidence() {
+        let mut e = evidence(
+            run("pass"),
+            Some(receipt(Verdict::Pass, &contract_subject(C))),
+        );
+        e.reuse = Reuse::Moved {
+            subject: "tree:aa".into(),
+            detail: "1 path(s) outside the evidence records have changed since (src/a)".into(),
+        };
+        match standing(&e, Some(C)) {
+            Standing::Stale(why) => assert!(why.contains("tree:aa"), "{why}"),
+            other => panic!("{other:?}"),
+        }
+        assert!(admissible_runs(&[e], Some(C)).is_empty());
+    }
+
+    #[test]
+    fn an_unknown_reuse_is_neither_admissible_nor_a_failure() {
+        let mut e = evidence(
+            run("pass"),
+            Some(receipt(Verdict::Pass, &contract_subject(C))),
+        );
+        e.reuse = Reuse::Unknown("the receipt names no tree".into());
+        assert!(matches!(standing(&e, Some(C)), Standing::ReuseUnknown(_)));
+        assert!(admissible_runs(&[e], Some(C)).is_empty());
+    }
+
+    #[test]
+    fn a_resolved_warrant_is_not_re_evaluated() {
+        let mut e = evidence(
+            run("pass"),
+            Some(receipt(Verdict::Pass, &contract_subject(C))),
+        );
+        e.reuse = Reuse::Historical;
+        assert_eq!(standing(&e, Some(C)), Standing::Admissible);
+    }
+
+    #[test]
+    fn the_contract_is_judged_before_the_source() {
+        let mut e = evidence(
+            run("pass"),
+            Some(receipt(Verdict::Pass, "contract:sha256:ffff")),
+        );
+        e.reuse = Reuse::Unknown("no tree".into());
+        match standing(&e, Some(C)) {
+            Standing::Stale(why) => assert!(why.contains("earlier revision"), "{why}"),
+            other => panic!("{other:?}"),
+        }
     }
 
     #[test]
