@@ -7,18 +7,21 @@
 # bytes. Eighteen Warrants were in that state. §34.4 supersedes, it does not
 # erase, so the digest a deliverable OUGHT to have is the head of its chain.
 #
-# OW-WAR-0062 is the fixture: resolved, and its D-003 (README.md) carries a
-# correction. README.md is outside `restore`'s paths, so each mutation here
-# checks it out by name.
+# The fixture is OW-WAR-0010: resolved, and its D-001
+# (crates/openwarrant-core/src/autonomy.rs) carries a correction — the
+# owner's relicense correction of 2026-09-23 — while no later Warrant
+# declares the file. (It was OW-WAR-0062 until then; both of 0062's moved
+# deliverables are now governed by later Warrants under OW-ADR-0021, so its
+# requirement 3 is unmet for a reason this plant does not test.) The file is
+# outside `restore`'s paths, so each mutation here checks it out by name.
 
-R3_ALIAS=OW-WAR-0062
-R3_FILE=README.md
+R3_ALIAS=OW-WAR-0010
+R3_FILE=crates/openwarrant-core/src/autonomy.rs
+R3_DID=D-001
 
-# README.md has since moved under a later Warrant (OW-WAR-0116 governs it,
-# OW-ADR-0021), so the live file is no longer 0062's chain head. The fixture
-# is the chain head's own bytes, found in history by digest — the plants test
-# the correction chain, not whoever edits README.md next.
-R3_HEAD=$(sed -n 's/^new_digest = "sha256:\([0-9a-f]*\)"/\1/p' "$(ls docs/warrants/$R3_ALIAS/corrections/D-003-*.toml | sort -V | tail -1)")
+# The chain head's bytes, found in history by digest: the plants test the
+# correction chain, not whoever edits the file next.
+R3_HEAD=$(sed -n 's/^new_digest = "sha256:\([0-9a-f]*\)"/\1/p' "$(ls docs/warrants/$R3_ALIAS/corrections/$R3_DID-*.toml | sort -V | tail -1)")
 R3_BYTES=$(mktemp)
 for R3_C in $(git rev-list HEAD -- "$R3_FILE"); do
     git show "$R3_C:$R3_FILE" > "$R3_BYTES" 2>/dev/null || continue
@@ -67,7 +70,7 @@ printf 'this is not toml = = =\n' > "$R3_CORR"
 assert_present 'not toml' "$R3_CORR"
 out=$("$WAR" resolve "$R3_ALIAS" --dry-run 2>&1)
 git checkout -- "$R3_CORR"
-# The chain-head fixture is done with: the live README.md comes back.
+# The chain-head fixture is done with: the live file comes back.
 git checkout -- "$R3_FILE" 2>/dev/null || true
 command rm -f "$R3_BYTES"
 if grep -q 'artifact digests verify — not established' <<< "$out"; then

@@ -1,15 +1,23 @@
 # shellcheck shell=bash
 # OW-WAR-0112 — every diagnostic carries its remedy (§76.2).
 #
-# Read-only on this corpus: one `war check` in each mode, then questions of
-# its output. The envelope goes to python on stdin — as one argument it is
-# past the kernel's 128 KiB limit and the plant would score an empty string.
-# The corpus is red today (relicense drifts awaiting signatures), which is
-# exactly what makes the drift remedy observable.
+# One `war check` in each mode over a planted drift, then questions of its
+# output. The envelope goes to python on stdin — as one argument it is past
+# the kernel's 128 KiB limit and the plant would score an empty string.
+#
+# The drift is planted, not found: the corpus was red with relicense drift
+# when this was written and the plant read that, so it failed the day the
+# owner signed the corrections (2026-09-23). A byte appended to a file a
+# resolved Warrant pins (OW-WAR-0061's D-001, under a path `restore` puts
+# back) is the drift, and it is taken out again before anything else runs.
 
 echo "== remedies (§76.2) =="
+RM_FILE=docs/roadmap/PHASE1_EXIT.md
+printf '\n<!-- planted drift -->\n' >> "$RM_FILE"
+assert_present 'planted drift' "$RM_FILE"
 RM_JSON=$("$WAR" check --json 2>/dev/null)
 RM_HUMAN=$("$WAR" check 2>&1)
+git checkout -- "$RM_FILE"
 
 # A drift diagnostic carries a HUMAN remedy naming the correction act with
 # the alias and deliverable filled in — never placeholders.
