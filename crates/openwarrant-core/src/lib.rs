@@ -50,6 +50,7 @@ pub mod resolution;
 pub mod roadmap;
 pub mod role;
 pub mod sas;
+pub mod sas_sections;
 pub mod seam;
 pub mod sections;
 pub mod state;
