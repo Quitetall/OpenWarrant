@@ -11,6 +11,12 @@ milestones:
     stage_refs: ["STAGE-002"]
     obligation_refs: ["OBL-004", "OBL-005"]
 
+  - id: "MB"
+    title: "The battery, run as the gate these obligations cite"
+    depends_on: ["M1", "M2"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
 stages:
   - id: "STAGE-001"
     title: "synth-corpus.sh, budget.toml, budget.sh, 52-retention.sh"
@@ -26,3 +32,10 @@ stages:
     responsibility_tier: "T2"
     context_sections: ["40-work-order.md#Deliverables", "10-intent.md#Problem"]
     budget_tokens: 8000
+
+  - id: "STAGE-003"
+    title: "Run the conformance battery"
+    executor_kind: "service"
+    responsibility_tier: "T1"
+    executor_ref: "gate://ops.conformance.plants@1.0.0"
+    wall_time_seconds: 1800

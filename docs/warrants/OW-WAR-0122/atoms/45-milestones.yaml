@@ -11,6 +11,12 @@ milestones:
     stage_refs: ["STAGE-002"]
     obligation_refs: ["OBL-003", "OBL-004"]
 
+  - id: "MB"
+    title: "The battery, run as the gate these obligations cite"
+    depends_on: ["M1", "M2"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-001", "OBL-003"]
+
 stages:
   - id: "STAGE-001"
     title: "atom.header in repo.rs and its plants in 57-grammar.sh"
@@ -26,3 +32,10 @@ stages:
     responsibility_tier: "T2"
     context_sections: ["40-work-order.md#Deliverables", "20-basis.md#What the code does today (read 2026-09-23)"]
     budget_tokens: 14000
+
+  - id: "STAGE-003"
+    title: "Run the conformance battery"
+    executor_kind: "service"
+    responsibility_tier: "T1"
+    executor_ref: "gate://ops.conformance.plants@1.0.0"
+    wall_time_seconds: 1800

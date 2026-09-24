@@ -16,6 +16,12 @@ milestones:
     stage_refs: ["STAGE-003"]
     obligation_refs: ["OBL-006"]
 
+  - id: "MB"
+    title: "The battery, run as the gate these obligations cite"
+    depends_on: ["M1", "M2", "M3"]
+    stage_refs: ["STAGE-004"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
 stages:
   - id: "STAGE-001"
     title: "sign.rs receipt subjects, attest.rs --custody, custody-audit record, plants"
@@ -35,3 +41,10 @@ stages:
     title: "The owner signs the demo resolution and the invalidation; the auditor records custody"
     executor_kind: "human"
     responsibility_tier: "T2"
+
+  - id: "STAGE-004"
+    title: "Run the conformance battery"
+    executor_kind: "service"
+    responsibility_tier: "T1"
+    executor_ref: "gate://ops.conformance.plants@1.0.0"
+    wall_time_seconds: 1800

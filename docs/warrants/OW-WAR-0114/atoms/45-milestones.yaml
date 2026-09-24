@@ -32,6 +32,12 @@ milestones:
     stage_refs: ["STAGE-006", "STAGE-007"]
     obligation_refs: ["OBL-004"]
 
+  - id: "MB"
+    title: "The battery, run as the gate these obligations cite"
+    depends_on: ["M1", "M2", "M3", "M4", "M5"]
+    stage_refs: ["STAGE-008"]
+    obligation_refs: ["OBL-002", "OBL-003"]
+
 stages:
   - id: "STAGE-001"
     title: "Owner answers Q-001: phase set A (eleven §98 phases) or B (four-phase plan)"
@@ -76,3 +82,10 @@ stages:
     title: "Owner accepts roadmap revision 1; later, the SAS revision pointing §98 at the record"
     executor_kind: "human"
     responsibility_tier: "T2"
+
+  - id: "STAGE-008"
+    title: "Run the conformance battery"
+    executor_kind: "service"
+    responsibility_tier: "T1"
+    executor_ref: "gate://ops.conformance.plants@1.0.0"
+    wall_time_seconds: 1800

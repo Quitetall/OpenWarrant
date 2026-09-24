@@ -1,0 +1,19 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-001"
+band: "manual_revision"
+reason: "The obligations of OW-WAR-0125 cite `gate://ops.conformance.plants@1.0.0`, and the contract gives that gate no way to run. The battery mutates the tree while it runs, so §44.8 lets it run only through a declared binding, not as a command string: `war evidence record` reports it `not_askable (mutating)` and §56.1 requirement 5 could never be met. This amendment adds the binding OW-WAR-0066 established — a service stage whose executor is the gate — in a milestone that runs after every other. Nothing else changes. Found 2026-09-23 when OW-WAR-0117's evidence run could not ask the gate; wording drafted by the performer `claude`, for the owner's authorization."
+governing_adr_or_policy: "sas://WAR-SAS-44.8"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. No artifact changes; the milestones atom gains milestone MB and stage STAGE-004, the contract digest moves, and revision 2 is authorized against the amended contract. The battery is then run with `war run OW-WAR-0125 STAGE-004`."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-23"
+
+semantic_diff:
+  - element: "milestones"
+    before: "No stage runs the gate the obligations cite."
+    after: "Milestone MB, after all others, holds service stage STAGE-004 executing `gate://ops.conformance.plants@1.0.0` (wall time 1800 s) for OBL-001, OBL-002, OBL-003, OBL-004, OBL-005."
+
+affected_stages: ["STAGE-004"]
+affected_milestones: ["MB"]

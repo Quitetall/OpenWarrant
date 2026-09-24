@@ -11,6 +11,12 @@ milestones:
     stage_refs: ["STAGE-003"]
     obligation_refs: ["OBL-002", "OBL-003", "OBL-004", "OBL-005"]
 
+  - id: "MB"
+    title: "The battery, run as the gate these obligations cite"
+    depends_on: ["M1", "M2"]
+    stage_refs: ["STAGE-004"]
+    obligation_refs: ["OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
 stages:
   - id: "STAGE-001"
     title: "Draft the ADR and baseline-v1.toml from Q43-Q49 and the owner's answers to Q-001 and Q-002"
@@ -30,3 +36,10 @@ stages:
     responsibility_tier: "T2"
     context_sections: ["40-work-order.md#Deliverables"]
     budget_tokens: 14000
+
+  - id: "STAGE-004"
+    title: "Run the conformance battery"
+    executor_kind: "service"
+    responsibility_tier: "T1"
+    executor_ref: "gate://ops.conformance.plants@1.0.0"
+    wall_time_seconds: 1800

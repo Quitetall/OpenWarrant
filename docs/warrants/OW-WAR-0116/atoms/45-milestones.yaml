@@ -21,6 +21,12 @@ milestones:
     stage_refs: ["STAGE-004"]
     obligation_refs: ["OBL-001", "OBL-002", "OBL-003"]
 
+  - id: "MB"
+    title: "The battery, run as the gate these obligations cite"
+    depends_on: ["M1", "M2", "M3", "M4"]
+    stage_refs: ["STAGE-005"]
+    obligation_refs: ["OBL-001", "OBL-003"]
+
 stages:
   - id: "STAGE-001"
     title: "webui/mod.rs server, the shared hardened parser, war progress --serve as war ui"
@@ -50,3 +56,10 @@ stages:
     responsibility_tier: "T2"
     context_sections: ["40-work-order.md#Deliverables"]
     budget_tokens: 10000
+
+  - id: "STAGE-005"
+    title: "Run the conformance battery"
+    executor_kind: "service"
+    responsibility_tier: "T1"
+    executor_ref: "gate://ops.conformance.plants@1.0.0"
+    wall_time_seconds: 1800

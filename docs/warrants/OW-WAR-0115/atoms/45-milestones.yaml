@@ -11,6 +11,12 @@ milestones:
     stage_refs: ["STAGE-002"]
     obligation_refs: ["OBL-002"]
 
+  - id: "MB"
+    title: "The battery, run as the gate these obligations cite"
+    depends_on: ["M1", "M2"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-001", "OBL-002"]
+
 stages:
   - id: "STAGE-001"
     title: "projects.rs, war projects, touch-on-use in lib.rs, the opt-out"
@@ -26,3 +32,10 @@ stages:
     responsibility_tier: "T2"
     context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Premade Instructions"]
     budget_tokens: 16000
+
+  - id: "STAGE-003"
+    title: "Run the conformance battery"
+    executor_kind: "service"
+    responsibility_tier: "T1"
+    executor_ref: "gate://ops.conformance.plants@1.0.0"
+    wall_time_seconds: 1800

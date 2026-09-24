@@ -6,6 +6,12 @@ milestones:
     stage_refs: ["STAGE-001"]
     obligation_refs: ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
 
+  - id: "MB"
+    title: "The battery, run as the gate these obligations cite"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
 stages:
   - id: "STAGE-001"
     title: "claude-verifier.sh, openwarrant.toml [verify] and [independence], 62-verifier.sh, docs/VERIFICATION.md"
@@ -14,3 +20,10 @@ stages:
     responsibility_tier: "T2"
     context_sections: ["40-work-order.md#Deliverables"]
     budget_tokens: 12000
+
+  - id: "STAGE-002"
+    title: "Run the conformance battery"
+    executor_kind: "service"
+    responsibility_tier: "T1"
+    executor_ref: "gate://ops.conformance.plants@1.0.0"
+    wall_time_seconds: 1800

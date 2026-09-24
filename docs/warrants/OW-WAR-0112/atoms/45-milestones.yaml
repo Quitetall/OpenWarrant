@@ -32,6 +32,12 @@ milestones:
     stage_refs: ["STAGE-010"]
     obligation_refs: ["OBL-007"]
 
+  - id: "MB"
+    title: "The battery, run as the gate these obligations cite"
+    depends_on: ["M1", "M3", "M4", "M2", "M5"]
+    stage_refs: ["STAGE-011"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-004", "OBL-005", "OBL-006", "OBL-007"]
+
 stages:
   - id: "STAGE-001"
     title: "Phase A: ADR, SAS text, 0071 AM-001, ownership in the free files, schema regen"
@@ -94,3 +100,10 @@ stages:
     responsibility_tier: "T2"
     context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Premade Instructions"]
     budget_tokens: 12000
+
+  - id: "STAGE-011"
+    title: "Run the conformance battery"
+    executor_kind: "service"
+    responsibility_tier: "T1"
+    executor_ref: "gate://ops.conformance.plants@1.0.0"
+    wall_time_seconds: 1800
