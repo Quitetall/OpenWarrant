@@ -1,0 +1,24 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+
+[[deliverable]]
+id = "D-001"
+title = "The bundle carries each gate run's stdout and stderr"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/bundle.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-002"
+title = "The bundle-output plants"
+kind = "file"
+target_ref = "conformance/plants.d/47-bundle-output.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]

@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-141 Warrant(s) in this repository.
+142 Warrant(s) in this repository.
 
 ## Summary
 
@@ -152,6 +152,7 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0143](docs/warrants/OW-WAR-0143/manifest.toml) | war knows when it is old: build identity, a notice when a newer release exists, and an update that works from every version | `draft` | `current` | `valid` | `basic` | 4M / 5S |
 | [OW-WAR-0144](docs/warrants/OW-WAR-0144/manifest.toml) | Amending an authorization keeps the superseded one beside it, as a retired response is kept | `draft` | `current` | `valid` | `basic` | 2M / 2S |
 | [OW-WAR-0145](docs/warrants/OW-WAR-0145/manifest.toml) | The battery as an askable gate: it runs in a disposable clone of the committed tree and mutates nothing | `draft` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0146](docs/warrants/OW-WAR-0146/manifest.toml) | A verification bundle carries what each gate printed, so a blind verifier can see the evidence | `draft` | `current` | `valid` | `basic` | 1M / 1S |
 
 ## Claimed SAS requirement coverage
 
@@ -193,8 +194,8 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-046` — OW-WAR-0129
 - `WAR-SAS-RQ-050` — OW-WAR-0016, OW-WAR-0074, OW-WAR-0075, OW-WAR-0076, OW-WAR-0077, OW-WAR-0078, OW-WAR-0079, OW-WAR-0080, OW-WAR-0081, OW-WAR-0082, OW-WAR-0083, OW-WAR-0084, OW-WAR-0085, OW-WAR-0086, OW-WAR-0087, OW-WAR-0088, OW-WAR-0089, OW-WAR-0090, OW-WAR-0091, OW-WAR-0092
 - `WAR-SAS-RQ-051` — OW-WAR-0016
-- `WAR-SAS-RQ-052` — OW-WAR-0017
-- `WAR-SAS-RQ-053` — OW-WAR-0021, OW-WAR-0046, OW-WAR-0059, OW-WAR-0117, OW-WAR-0136, OW-WAR-0137
+- `WAR-SAS-RQ-052` — OW-WAR-0017, OW-WAR-0146
+- `WAR-SAS-RQ-053` — OW-WAR-0021, OW-WAR-0046, OW-WAR-0059, OW-WAR-0117, OW-WAR-0136, OW-WAR-0137, OW-WAR-0146
 - `WAR-SAS-RQ-054` — OW-WAR-0020, OW-WAR-0046, OW-WAR-0059, OW-WAR-0145
 - `WAR-SAS-RQ-055` — OW-WAR-0018, OW-WAR-0046
 - `WAR-SAS-RQ-056` — OW-WAR-0019, OW-WAR-0145
@@ -325,6 +326,7 @@ Source: the Warrants under the configured warrants path.
 - **OW-WAR-0143** · roadmap: roadmap://OW-PHASE-9/self-update
 - **OW-WAR-0144** · roadmap: roadmap://OW-PHASE-9/authorization-retention
 - **OW-WAR-0145** · roadmap: roadmap://OW-PHASE-6/askable-battery
+- **OW-WAR-0146** · roadmap: roadmap://OW-PHASE-6/verification-pipeline
 
 ## Not reported here
 
