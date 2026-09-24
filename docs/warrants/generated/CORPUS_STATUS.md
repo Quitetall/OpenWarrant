@@ -28,7 +28,7 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 | Objective | Exit Warrant | Achieved | invalid | draft | ready | would_satisfy | resolved |
 |---|---|---|---|---|---|---|---|
 | roadmap://OW-PHASE-0: Telemetry shim | OW-WAR-0041 | blocked by OW-WAR-0039, OW-WAR-0041, OW-WAR-0100, OW-WAR-0118 | 0 | 2 | 2 | 0 | 0 |
-| roadmap://OW-PHASE-1: File-native WAR compiler | OW-WAR-0061 | recorded | 0 | 16 | 5 | 0 | 13 |
+| roadmap://OW-PHASE-1: File-native WAR compiler | OW-WAR-0061 | recorded | 0 | 17 | 4 | 0 | 13 |
 | roadmap://OW-PHASE-2: Agent planner | OW-WAR-0042 | blocked by OW-WAR-0035, OW-WAR-0037, OW-WAR-0042, OW-WAR-0068, OW-WAR-0070, OW-WAR-0088, OW-WAR-0101, OW-WAR-0105, OW-WAR-0141 | 0 | 8 | 1 | 0 | 1 |
 | roadmap://OW-PHASE-3: ADR federation | OW-WAR-0043 | blocked by OW-WAR-0006, OW-WAR-0036, OW-WAR-0043, OW-WAR-0064, OW-WAR-0074, OW-WAR-0084, OW-WAR-0123, OW-WAR-0124, OW-WAR-0125 | 0 | 6 | 3 | 0 | 3 |
 | roadmap://OW-PHASE-4: Knowledge Fabric registration | OW-WAR-0044 | blocked by OW-WAR-0028, OW-WAR-0029, OW-WAR-0030, OW-WAR-0032, OW-WAR-0044, OW-WAR-0110, OW-WAR-0111, OW-WAR-0126, OW-WAR-0127, OW-WAR-0128 | 0 | 6 | 4 | 0 | 0 |
@@ -65,13 +65,13 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | requirement | Warrants blocked |
 |---|---|
-| artifact digests verify | 88 |
+| artifact digests verify | 92 |
 | every required gate has admissible result | 86 |
 | no blocker remains | 85 |
 | no required unknown remains | 85 |
 | every required obligation is dispositioned | 83 |
 | independence requirements are met | 83 |
-| required deliverables exist | 72 |
+| required deliverables exist | 71 |
 | required judgments exist | 54 |
 | residual risks have sufficient authority | 54 |
 | exact authorized Contract Revision | 10 |
@@ -146,11 +146,11 @@ Every §106 requirement is named by at least one Warrant.
 | `WAR-SAS-RQ-084` | claimed | 0 | OW-WAR-0030 (complete), OW-WAR-0064 (partial), OW-WAR-0113 (complete), OW-WAR-0114 (partial) |
 | `WAR-SAS-RQ-085` | claimed | 0 | OW-WAR-0067 (partial), OW-WAR-0071 (partial), OW-WAR-0072 (partial) |
 
-## Warrants (142) — invalid 0 · draft 94 · ready_to_resolve 19 · would_satisfy 0 · resolved **29**
+## Warrants (142) — invalid 0 · draft 95 · ready_to_resolve 18 · would_satisfy 0 · resolved **29**
 
 | Warrant | rung | §38.6 | blocking unknowns | milestones evidenced | first unmet |
 |---|---|---|---|---|---|
-| `OW-WAR-0001` Establish the OpenWarrant repository and Rust workspace | ready_to_resolve | NOT satisfied | 0 | 2 of 3 | — |
+| `OW-WAR-0001` Establish the OpenWarrant repository and Rust workspace | draft | NOT satisfied | 0 | 2 of 3 | artifact digests verify |
 | `OW-WAR-0002` Implement the file-native manifest and atom parser | resolved | would satisfy | 0 | 4 of 4 | artifact digests verify |
 | `OW-WAR-0003` Implement the canonical WAR IR and RFC 8785 digesting | ready_to_resolve | NOT satisfied | 0 | 3 of 4 | — |
 | `OW-WAR-0004` Implement the generated parent document and drift checking | ready_to_resolve | NOT satisfied | 0 | 0 of 3 | — |
@@ -257,11 +257,11 @@ Every §106 requirement is named by at least one Warrant.
 | `OW-WAR-0109` Durable agent availability queue and automatic bounded dispatch | draft | unknown | 0 | 0 of 2 | required deliverables exist |
 | `OW-WAR-0110` Generate OpenWarrant TypeScript record types and integrate KF consumption | draft | unknown | 0 | 0 of 2 | required deliverables exist |
 | `OW-WAR-0111` Implement content-bearing preservation archives and honest import round trips | draft | unknown | 0 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0112` war is the app: ownership, a guided start, and remedies | draft | unknown | 0 | 0 of 6 | every required obligation is dispositioned |
+| `OW-WAR-0112` war is the app: ownership, a guided start, and remedies | draft | unknown | 0 | 0 of 6 | artifact digests verify |
 | `OW-WAR-0113` Two projections from atoms by relation: the current master document, and the history | draft | unknown | 0 | 0 of 6 | exact authorized Contract Revision |
 | `OW-WAR-0114` The roadmap becomes a record: one per program, beside the SAS | draft | unknown | 0 | 0 of 6 | required deliverables exist |
-| `OW-WAR-0115` The hub: war opens from anywhere, with every project and its progress | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
-| `OW-WAR-0116` war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap | draft | unknown | 0 | 0 of 5 | every required obligation is dispositioned |
+| `OW-WAR-0115` The hub: war opens from anywhere, with every project and its progress | draft | unknown | 0 | 0 of 3 | artifact digests verify |
+| `OW-WAR-0116` war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap | draft | unknown | 0 | 0 of 5 | artifact digests verify |
 | `OW-WAR-0117` An independent verifier: a blind, tool-less process that war verify --run hands each bundle to | draft | unknown | 0 | 0 of 2 | every required obligation is dispositioned |
 | `OW-WAR-0118` Measure the friction targets: setup in ten minutes, a routine act in sixty seconds | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0119` Identity is the UUIDv7: immutable across revisions, and no alias ever stands in for it | draft | unknown | 0 | 0 of 2 | artifact digests verify |
@@ -279,7 +279,7 @@ Every §106 requirement is named by at least one Warrant.
 | `OW-WAR-0131` Agent and harness adapters per OS: writer handoff and cancellation | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0132` Hotline defaults: time and spend limits, repair accounting, and delivery when nobody answers | draft | unknown | 0 | 0 of 4 | exact authorized Contract Revision |
 | `OW-WAR-0133` Evidence reuse after a source change, and the compiler's source, conflict and omission rules | draft | unknown | 0 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0134` Acceptance stays valid only for the candidate accepted: a change before merge is a finding | draft | unknown | 0 | 0 of 3 | required deliverables exist |
+| `OW-WAR-0134` Acceptance stays valid only for the candidate accepted: a change before merge is a finding | draft | unknown | 0 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0135` The assurance mark: a baseline, its issuance, and what it binds | draft | unknown | 0 | 0 of 3 | required deliverables exist |
 | `OW-WAR-0136` Discharge the Phase 9 exit: signed resolutions, audited evidence custody, and invalidation that propagates | draft | unknown | 0 | 0 of 4 | required deliverables exist |
 | `OW-WAR-0137` Teams: review assignment and a queue shared by more than one person | draft | unknown | 0 | 0 of 5 | required deliverables exist |

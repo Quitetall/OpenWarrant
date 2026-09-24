@@ -2483,7 +2483,7 @@ fixed by this ADR. A later change to any of them is a new ADR.
 
 ### OW-WAR-0001 — Establish the OpenWarrant repository and Rust workspace
 
-[manifest](../../docs/warrants/OW-WAR-0001/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0001/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0001/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0001/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 2 (`f29c7d95baeb90a7bbad57a26b07846c724482c66a1e9ed7a2670af8d00b776d`), Basis SAS 0.1.0-draft.1.
 
@@ -2757,7 +2757,7 @@ OW-WAR-0002 is where it stops being true.
 | D-001 | Cargo workspace and crate split (§78) | `Cargo.toml` | verified |
 | D-002 | Toolchain pinned exactly | `rust-toolchain.toml` | verified |
 | D-003 | Permissive-only licence gate | `deny.toml` | verified |
-| D-004 | Single aggregate CI gate | `.github/workflows/ci.yml` | verified |
+| D-004 | Single aggregate CI gate | `.github/workflows/ci.yml` | drift |
 
 ### OW-WAR-0002 — Implement the file-native manifest and atom parser
 
@@ -24776,7 +24776,7 @@ the app shows a `human` remedy and stops.
 | D-004 | The ownership index | `crates/openwarrant-cli/src/ownership.rs` | verified |
 | D-005 | Authorization records the declared set | `crates/openwarrant-cli/src/authorize.rs` | verified |
 | D-006 | The signing screen shows what it grants | `crates/openwarrant-cli/src/sign.rs` | verified |
-| D-007 | Historical pins and the lineage | `crates/openwarrant-cli/src/pins.rs` | verified |
+| D-007 | Historical pins and the lineage | `crates/openwarrant-cli/src/pins.rs` | drift |
 | D-008 | A correction against a historical pin is refused | `crates/openwarrant-cli/src/correct.rs` | verified |
 | D-009 | The resolution locator | `crates/openwarrant-cli/src/resolution_cmd.rs` | verified |
 | D-010 | The pin guard reads ownership | `.claude/hooks/guard-pins.sh` | verified |
@@ -24800,7 +24800,7 @@ the app shows a `human` remedy and stops.
 | D-028 | ratatui and crossterm, exact versions | `Cargo.toml` | verified |
 | D-029 | The lockfile | `Cargo.lock` | verified |
 | D-030 | The app | `crates/openwarrant-cli/src/tui/mod.rs` | verified |
-| D-031 | The way in: no-args, tui.json, tui.no-tty | `crates/openwarrant-cli/src/lib.rs` | verified |
+| D-031 | The way in: no-args, tui.json, tui.no-tty | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-032 | The confinement test and NOT_YET | `crates/openwarrant-cli/src/main.rs` | verified |
 | D-033 | The poller opened to the app | `crates/openwarrant-cli/src/watch.rs` | verified |
 | D-034 | The app plants | `conformance/plants.d/97-tui.sh` | verified |
@@ -26299,7 +26299,7 @@ failure, rebuilt.
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | The per-user project list | `crates/openwarrant-cli/src/projects.rs` | verified |
-| D-002 | war projects; touch on use; war from anywhere | `crates/openwarrant-cli/src/lib.rs` | verified |
+| D-002 | war projects; touch on use; war from anywhere | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-003 | The Projects pane, switching, the binary line | `crates/openwarrant-cli/src/tui/mod.rs` | verified |
 | D-004 | docs/TUI.md: the hub | `docs/TUI.md` | verified |
 | D-005 | README.md: war from anywhere | `README.md` | verified |
@@ -26662,7 +26662,7 @@ then the act is the one the server chose, and the key's dialog asks.
 | D-004 | the page's style | `crates/openwarrant-cli/src/webui/assets/app.css` | verified |
 | D-005 | the shared parser; no inline CSP | `crates/openwarrant-cli/src/progress_viewer/server.rs` | verified |
 | D-006 | war progress --serve is war ui | `crates/openwarrant-cli/src/progress_viewer.rs` | verified |
-| D-007 | the command | `crates/openwarrant-cli/src/lib.rs` | verified |
+| D-007 | the command | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-008 | docs/WEBUI.md | `docs/WEBUI.md` | verified |
 | D-009 | README.md: war ui | `README.md` | verified |
 | D-010 | THREAT_MODEL row | `docs/THREAT_MODEL.md` | verified |
