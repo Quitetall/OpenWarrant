@@ -1,12 +1,11 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "Test 'render::tests::the_generated_header_is_present_and_complete' verifies the §17.1 header for the Markdown parent, and 'war check --generated' exits 0 confirming both projections are correctly generated from the basis."
+disposition = "not_established"
+evidence = "D-001 (render.rs) shows `generated_header` emitting the §17.1 fields (WAR, compilation basis, contract revision, source manifest) into `full_warrant`, and lists `the_generated_header_is_present_and_complete`, but the bundle carries no result for that test. `canonical_json` emits only the canonical IR plus a newline, with no header. Whether WAR.json carries those four fields depends on IR contents that are not shown. GR-software.repo.war-check@1.0.0 passed `war check --generated`, but it has selected_test_count 0 and its stdout is not included. The generated files themselves are absent, so the bundle does not show that the five Warrants each have both views with headers. The prior verification is not independent evidence."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

@@ -1,12 +1,11 @@
 obligation = "OBL-002"
-disposition = "established"
-evidence = "The test 'rendering_is_byte_identical_across_runs' in render::tests passes, confirming that rendering output is identical across multiple runs, which directly supports the obligation that recompilation on an unchanged tree changes nothing."
+disposition = "not_established"
+evidence = "D-001 lists `rendering_is_byte_identical_across_runs`, and D-002 (compile.rs) writes only when the bytes differ. Both are consistent with the claim, but no test result is in the bundle. Nothing shows two consecutive `war compile` runs over an unmodified tree followed by `git diff --exit-code` exiting 0. The only gate run, GR-software.repo.war-check@1.0.0, is `war check --generated`, which compares committed views to a fresh compilation once. It is a different procedure from the obligation's evidence, and its stdout is not included either. The claim is plausible from the code but not demonstrated."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true
