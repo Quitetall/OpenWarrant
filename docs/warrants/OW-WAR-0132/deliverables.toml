@@ -65,3 +65,43 @@ required = true
 content_addressed = false
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[[deliverable]]
+id = "D-007"
+title = "The cancel plants state allow_unmetered for their scratch config (AM-002)"
+kind = "file"
+target_ref = "conformance/plants.d/60-perform-cancel.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-008"
+title = "The token plants state allow_unmetered for their scratch config (AM-002)"
+kind = "file"
+target_ref = "conformance/plants.d/83-tokens.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-009"
+title = "war next names no-responder and skips question-blocked stages (AM-002)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/next.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-010"
+title = "A new program states allow_unmetered = true (AM-002)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/init/mod.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]

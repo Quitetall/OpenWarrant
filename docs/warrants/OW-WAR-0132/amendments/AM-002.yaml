@@ -1,0 +1,19 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-002"
+band: "manual_revision"
+reason: "Delivering revision 2 under the settled default (a missing `allow_unmetered` refuses) met three things outside the declared set: (1) 60-perform-cancel.sh and 83-tokens.sh append a [perform] table to their scratch configs without the key, so 11 cancellation plants now fail on `perform.unmetered-not-allowed` instead of testing cancellation; (2) OBL-002 expects `war next` to carry `question.no-responder`, and `war next` still offers a question-blocked stage as an agent action — both in next.rs; (3) a new program made by `war init` would refuse its first `war perform`. The plants gain the key; next.rs reads the frontier's blocking; init states `allow_unmetered = true` with the cost named, while a repository without the key is still refused by name. Wording drafted by the performer `claude`."
+governing_adr_or_policy: "sas://WAR-SAS-33.7"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. The deliverable set gains D-007..D-010; the work order names them. Revision 3 is authorized against the amended contract."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-24"
+
+semantic_diff:
+  - element: "deliverables"
+    before: "D-001..D-006."
+    after: "Also D-007/D-008 (the cancel and token plants state allow_unmetered), D-009 (next.rs: no-responder, blocked stages not offered), D-010 (init/mod.rs: a new program states allow_unmetered = true)."
+
+affected_stages: []
+affected_milestones: []

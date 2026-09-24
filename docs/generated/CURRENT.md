@@ -25832,6 +25832,18 @@ behavior when no authorized responder is available." In `war` today:
 6. `conformance/plants.d/52-hotline-defaults.sh`, the plants each
    obligation names.
 
+- (AM-002) `conformance/plants.d/60-perform-cancel.sh` and
+  `conformance/plants.d/83-tokens.sh`: their scratch configs append a
+  `[perform]` table; each gains `allow_unmetered = true`, so they test what
+  they test and not the new default.
+- (AM-002) `crates/openwarrant-cli/src/next.rs`: `war next` reports
+  `question.no-responder` beside a question-blocked stage, and does not
+  offer a stage blocked on an open question as an agent action.
+- (AM-002) `crates/openwarrant-cli/src/init/mod.rs`: a new program's
+  `openwarrant.toml` states `allow_unmetered = true` under `[perform]`, with
+  a comment that spend is then recorded as unknown; a repository without
+  the key is still refused, by name.
+
 ## Frozen Surfaces
 
 - `oh.war/question/v1`, `oh.war/stage-dispatch/v1` and
@@ -25987,6 +25999,10 @@ responder must not read as "waiting normally".
 | D-004 | This repository's allow_unmetered = true | `openwarrant.toml` | not_content_addressed |
 | D-005 | How the hotline blocks, who can answer, and the time, spend and attempt defaults | `docs/HOTLINE.md` | not_content_addressed |
 | D-006 | The hotline-defaults plants | `conformance/plants.d/52-hotline-defaults.sh` | not_content_addressed |
+| D-007 | The cancel plants state allow_unmetered for their scratch config (AM-002) | `conformance/plants.d/60-perform-cancel.sh` | not_content_addressed |
+| D-008 | The token plants state allow_unmetered for their scratch config (AM-002) | `conformance/plants.d/83-tokens.sh` | not_content_addressed |
+| D-009 | war next names no-responder and skips question-blocked stages (AM-002) | `crates/openwarrant-cli/src/next.rs` | not_content_addressed |
+| D-010 | A new program states allow_unmetered = true (AM-002) | `crates/openwarrant-cli/src/init/mod.rs` | not_content_addressed |
 
 ### OW-PHASE-6 — Gate Registry and assurance case
 
@@ -37287,6 +37303,7 @@ Every command here has been judged by the act's dry run (`war sign <target> --dr
 | authorize | OW-WAR-0113 | `war sign OW-WAR-0113` | would record | revision 3 awaits authorization under AM-002 |
 | authorize | OW-WAR-0125 | `war sign OW-WAR-0125` | would record | revision 3 awaits authorization under AM-002 |
 | authorize | OW-WAR-0130 | `war sign OW-WAR-0130` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0132 | `war sign OW-WAR-0132` | would record | revision 3 awaits authorization under AM-002 |
 | authorize | OW-WAR-0141 | `war sign OW-WAR-0141` | would record | revision 1 awaits authorization |
 | authorize | OW-WAR-0142 | `war sign OW-WAR-0142` | would record | revision 1 awaits authorization |
 | authorize | OW-WAR-0143 | `war sign OW-WAR-0143` | would record | revision 1 awaits authorization |

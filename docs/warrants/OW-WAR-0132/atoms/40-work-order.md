@@ -46,6 +46,18 @@ classification: internal
 6. `conformance/plants.d/52-hotline-defaults.sh`, the plants each
    obligation names.
 
+- (AM-002) `conformance/plants.d/60-perform-cancel.sh` and
+  `conformance/plants.d/83-tokens.sh`: their scratch configs append a
+  `[perform]` table; each gains `allow_unmetered = true`, so they test what
+  they test and not the new default.
+- (AM-002) `crates/openwarrant-cli/src/next.rs`: `war next` reports
+  `question.no-responder` beside a question-blocked stage, and does not
+  offer a stage blocked on an open question as an agent action.
+- (AM-002) `crates/openwarrant-cli/src/init/mod.rs`: a new program's
+  `openwarrant.toml` states `allow_unmetered = true` under `[perform]`, with
+  a comment that spend is then recorded as unknown; a repository without
+  the key is still refused, by name.
+
 ## Frozen Surfaces
 
 - `oh.war/question/v1`, `oh.war/stage-dispatch/v1` and
