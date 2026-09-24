@@ -25115,8 +25115,10 @@ M2 — the two projections:
 6. `compile.rs`: writes both; `check --generated` diffs both; a plant edits
    `CURRENT.md` by hand and `check --generated` refuses.
 7. The profile's role→section map lives in `current.rs` as one table and is
-   the only place a role is tied to a rendering; `check` refuses an atom
-   whose role appears in no row (`atom.role-unprojected`).
+   the only place a role is tied to a rendering; a namespaced optional
+   extension role (SAS §16.4) renders verbatim in an *Extensions* section
+   under its role name (AM-002), and `check` refuses an atom whose role is
+   neither in a row nor such an extension (`atom.role-unprojected`).
 
 M3 — the dry run in front of every handed-over command:
 
@@ -25300,7 +25302,7 @@ stages:
 ### OBL-004 — presets type the authored atoms without answering for the author
 - **scope:** `templates/presets/`, `new.rs`, `check.rs`.
 - **gate:** `gate://ops.conformance.plants@1.0.0`
-- **evidence:** `war new "x"` without `--preset` writes the profile's default preset and names `feature`, `fix`, `decision` (AM-002), and never the `TODO` skeleton; `war new "x" --preset feature` writes one atom per required role of the profile, each with its headings and questions; `war check` on that draft reports `atom.preset-unanswered` as a warning naming the heading, and as an error once `war authorize` has been run for it; a preset atom whose optional heading was deleted passes; `war check` refuses an atom whose role no projection renders (`atom.role-unprojected`).
+- **evidence:** `war new "x"` without `--preset` writes the profile's default preset and names `feature`, `fix`, `decision` (AM-002), and never the `TODO` skeleton; `war new "x" --preset feature` writes one atom per required role of the profile, each with its headings and questions; `war check` on that draft reports `atom.preset-unanswered` as a warning naming the heading, and as an error once `war authorize` has been run for it; a preset atom whose optional heading was deleted passes; a namespaced optional extension atom (`x.review`) renders verbatim in `CURRENT.md`'s *Extensions* section under its role, and `war check` refuses an atom whose role is neither in a row nor a namespaced extension (`atom.role-unprojected`) (AM-002).
 
 ## Gate Adequacy
 

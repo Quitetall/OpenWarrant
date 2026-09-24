@@ -54,8 +54,10 @@ M2 — the two projections:
 6. `compile.rs`: writes both; `check --generated` diffs both; a plant edits
    `CURRENT.md` by hand and `check --generated` refuses.
 7. The profile's role→section map lives in `current.rs` as one table and is
-   the only place a role is tied to a rendering; `check` refuses an atom
-   whose role appears in no row (`atom.role-unprojected`).
+   the only place a role is tied to a rendering; a namespaced optional
+   extension role (SAS §16.4) renders verbatim in an *Extensions* section
+   under its role name (AM-002), and `check` refuses an atom whose role is
+   neither in a row nor such an extension (`atom.role-unprojected`).
 
 M3 — the dry run in front of every handed-over command:
 
