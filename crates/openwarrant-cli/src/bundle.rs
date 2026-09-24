@@ -72,6 +72,37 @@ pub struct Bundle {
     pub token_method: String,
 }
 
+/// One captured stream of a gate run: the tail within `cap` bytes, the whole
+/// file's digest, and `truncated` when cut. An absent file is
+/// `captured: false` with no `text` — never an empty string, which would
+/// read as "printed nothing". `mismatch` only when the receipt records a
+/// digest for the stream and the file's differs.
+fn captured(path: Utf8PathBuf, cap: usize, recorded: Option<&str>) -> serde_json::Value {
+    let Ok(bytes) = std::fs::read(&path) else {
+        return serde_json::json!({ "captured": false });
+    };
+    let sha = openwarrant_compiler::sha256_hex(&bytes);
+    let truncated = bytes.len() > cap;
+    let tail = if truncated {
+        &bytes[bytes.len() - cap..]
+    } else {
+        &bytes[..]
+    };
+    let mut v = serde_json::json!({
+        "captured": true,
+        "sha256": sha,
+        "bytes": bytes.len(),
+        "truncated": truncated,
+        "text": String::from_utf8_lossy(tail),
+    });
+    if let Some(want) = recorded
+        && want.trim_start_matches("sha256:") != sha
+    {
+        v["mismatch"] = serde_json::Value::Bool(true);
+    }
+    v
+}
+
 /// `#[test]` function names, by a line scan that needs no parser.
 fn test_names(source: &str) -> Vec<String> {
     let mut out = Vec::new();
@@ -188,15 +219,41 @@ pub fn build(repo: &Repository, alias: &str, performer: &str) -> Result<Bundle, 
             });
         }
     }
+    // OW-WAR-0146: what each gate printed travels with the run, bounded like
+    // a deliverable. A verifier deciding from the bundle alone cannot settle
+    // an obligation whose evidence is a gate's output if the output is not
+    // there — the first blind run (OW-WAR-0004) said so for every obligation.
     let gate_runs: Vec<serde_json::Value> = crate::evidence::load(repo, &dir)
         .map(|ev| {
             ev.iter()
                 .map(|e| {
+                    let receipt = e
+                        .receipt
+                        .as_ref()
+                        .map(|r| serde_json::to_value(r).unwrap_or_default());
+                    let stream = |name: &str| {
+                        let from_receipt = receipt
+                            .as_ref()
+                            .and_then(|r| r[format!("{name}_ref")].as_str())
+                            .map(|rel| repo.root.join(rel));
+                        let beside = Utf8PathBuf::from(
+                            e.run_path
+                                .as_str()
+                                .replace(".run.toml", &format!(".{name}.txt")),
+                        );
+                        let recorded = receipt
+                            .as_ref()
+                            .and_then(|r| r[format!("{name}_digest")].as_str())
+                            .map(str::to_owned);
+                        captured(from_receipt.unwrap_or(beside), cap, recorded.as_deref())
+                    };
                     serde_json::json!({
                         "gate": e.run.gate,
                         "run_id": e.run.id,
                         "run": serde_json::to_value(&e.run).unwrap_or_default(),
-                        "receipt": e.receipt.as_ref().map(|r| serde_json::to_value(r).unwrap_or_default()),
+                        "receipt": receipt,
+                        "stdout": stream("stdout"),
+                        "stderr": stream("stderr"),
                     })
                 })
                 .collect()
