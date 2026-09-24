@@ -1,10 +1,10 @@
 schema = "oh.war/authorization-response/v1"
 warrant = "OW-WAR-0129"
-contract_digest = "f83af005feb7396228806cdf84cc70dd00bb90ce2cdbab3ca98e14bc11edebd0"
+contract_digest = "d17aca0d0a840009691d7ac17d72ef999ccca1c556f0d9730ea94820a28aa261"
 authorizer = "Brian Lam"
 acting_role = "authorizer"
 meaning = "Authorizing OW-WAR-0129 (A Dispatch over its budget is refused, by name, before any agent starts) at this contract digest means the signer accepts its intent, scope and 3 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.2` and confirmed by the signer; the decision is the signer's and the template is the tool's."
-effective_time = "2026-09-23T23:23:42Z"
+effective_time = "2026-09-24T08:14:30Z"
 independence = "separate_role"
 judgment = []
 signed_via = "ssh"

@@ -1,10 +1,10 @@
 schema = "oh.war/authorization-response/v1"
 warrant = "OW-WAR-0113"
-contract_digest = "e5b5c9fb9fdab57f44d38f8d5a4ea8d11d8d6f315a9e32b55b53d3c2c4b1bc4f"
+contract_digest = "cdb9a3c40cd908c300fa23642df8cf71631b11da52251abe8286c690c2792a53"
 authorizer = "Brian Lam"
 acting_role = "authorizer"
 meaning = "Authorizing OW-WAR-0113 (Two projections from atoms by relation: the current master document, and the history) at this contract digest means the signer accepts its intent, scope and 4 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.2` and confirmed by the signer; the decision is the signer's and the template is the tool's."
-effective_time = "2026-09-23T23:23:42Z"
+effective_time = "2026-09-24T08:14:30Z"
 independence = "separate_role"
 judgment = []
 signed_via = "ssh"

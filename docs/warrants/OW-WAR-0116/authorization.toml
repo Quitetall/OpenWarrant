@@ -4,9 +4,10 @@ sas_revision = "1.1.0"
 deliverable_set_digest = "sha256:afb34c9ce6f39894e7127707884093a9eb60c01f8c36bf6a205b331e27dc6389"
 
 [revision]
-revision = 1
+revision = 2
 state = "authorized"
-contract_digest = "68555c1200d043d6176950a311da70b5ee1fc04c616400013ce0ccad1792c149"
+contract_digest = "55c4aca4ee9618754b85a2c5aa7cb0a12c0ac7ed0240ff896b7f860fe34c4896"
+predecessor_digest = "68555c1200d043d6176950a311da70b5ee1fc04c616400013ce0ccad1792c149"
 proposer = "claude"
 
 [revision.coverage]
@@ -26,7 +27,7 @@ authorizer = "Brian Lam"
 actor_kind = "human"
 acting_role = "authorizer"
 meaning = "Authorizing OW-WAR-0116 (war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap) at this contract digest means the signer accepts its intent, scope and 3 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.2` and confirmed by the signer; the decision is the signer's and the template is the tool's."
-effective_time = "2026-09-23T20:52:21Z"
+effective_time = "2026-09-24T08:14:30Z"
 independence = "separate_role"
 
 [[owned]]

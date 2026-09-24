@@ -4,9 +4,10 @@ sas_revision = "1.1.0"
 deliverable_set_digest = "sha256:ed90189a50c5cce57fd3d8eaa90075f274535970b1298e19fd9d741aaec8b213"
 
 [revision]
-revision = 1
+revision = 2
 state = "authorized"
-contract_digest = "da38139d6abd8143fa39b51b97a8cb4d53609b77907f372bcfd42b8d2d9ece1f"
+contract_digest = "8230017fb5e4355c9b7bd29232aa58d63f97938054386446bae6eb3376ebca1c"
+predecessor_digest = "da38139d6abd8143fa39b51b97a8cb4d53609b77907f372bcfd42b8d2d9ece1f"
 proposer = "claude"
 
 [revision.coverage]
@@ -26,7 +27,7 @@ authorizer = "Brian Lam"
 actor_kind = "human"
 acting_role = "authorizer"
 meaning = "Authorizing OW-WAR-0138 (Human and session authentication, and policy state protected from the performer) at this contract digest means the signer accepts its intent, scope and 4 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.2` and confirmed by the signer; the decision is the signer's and the template is the tool's."
-effective_time = "2026-09-23T23:23:42Z"
+effective_time = "2026-09-24T08:14:30Z"
 independence = "separate_role"
 
 [[owned]]
