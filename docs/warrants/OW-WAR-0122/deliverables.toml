@@ -34,3 +34,13 @@ required = true
 content_addressed = false
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-003"]
+
+[[deliverable]]
+id = "D-004"
+title = "The dispatch-bundle test fixture writes a well-formed atom header (AM-001)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/tests/dispatch_bundle_cli.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]

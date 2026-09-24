@@ -2,10 +2,10 @@ schema: "oh.war/amendment/v1"
 
 id: "AM-001"
 band: "manual_revision"
-reason: "The obligations of OW-WAR-0122 cite `gate://ops.conformance.plants@1.0.0`, and the contract gives that gate no way to run. The battery mutates the tree while it runs, so §44.8 lets it run only through a declared binding, not as a command string: `war evidence record` reports it `not_askable (mutating)` and §56.1 requirement 5 could never be met. This amendment adds the binding OW-WAR-0066 established — a service stage whose executor is the gate — in a milestone that runs after every other. Nothing else changes. Found 2026-09-23 when OW-WAR-0117's evidence run could not ask the gate; wording drafted by the performer `claude`, for the owner's authorization."
+reason: "The obligations of OW-WAR-0122 cite `gate://ops.conformance.plants@1.0.0`, and the contract gives that gate no way to run. The battery mutates the tree while it runs, so §44.8 lets it run only through a declared binding, not as a command string: `war evidence record` reports it `not_askable (mutating)` and §56.1 requirement 5 could never be met. This amendment adds the binding OW-WAR-0066 established — a service stage whose executor is the gate — in a milestone that runs after every other. It also declares one test file (D-004): `tests/dispatch_bundle_cli.rs`'s `optional_atom()` fixture writes `atoms/70-note.md` with no `warrant_uuid` and no `order`, which the new `atom.header` rule correctly refuses, failing two tests. The fixture gains the two keys; the rule is unchanged. Found by the performer while delivering, before any commit. Found 2026-09-23 when OW-WAR-0117's evidence run could not ask the gate; wording drafted by the performer `claude`, for the owner's authorization."
 governing_adr_or_policy: "sas://WAR-SAS-44.8"
 artifact_admissibility: "remain_admissible"
-restart_or_repair_instruction: "Continue. No artifact changes; the milestones atom gains milestone MB and stage STAGE-003, the contract digest moves, and revision 2 is authorized against the amended contract. The battery is then run with `war run OW-WAR-0122 STAGE-003`."
+restart_or_repair_instruction: "Continue. The deliverable set gains D-004 (a test fixture); the milestones atom gains milestone MB and stage STAGE-003, the contract digest moves, and revision 2 is authorized against the amended contract. The battery is then run with `war run OW-WAR-0122 STAGE-003`."
 re_preflight_required: "false"
 authorizer: "Brian Lam"
 effective_time: "2026-09-23"
@@ -14,6 +14,10 @@ semantic_diff:
   - element: "milestones"
     before: "No stage runs the gate the obligations cite."
     after: "Milestone MB, after all others, holds service stage STAGE-003 executing `gate://ops.conformance.plants@1.0.0` (wall time 1800 s) for OBL-001, OBL-003."
+
+  - element: "deliverables"
+    before: "D-001..D-003: GRAMMAR.md, repo.rs, 57-grammar.sh."
+    after: "Also D-004: crates/openwarrant-cli/tests/dispatch_bundle_cli.rs, whose fixture atom gains `warrant_uuid` and `order` so it meets the header grammar the Warrant introduces."
 
 affected_stages: ["STAGE-003"]
 affected_milestones: ["MB"]
