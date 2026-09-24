@@ -9,9 +9,22 @@ title = "The synthetic corpus generator"
 kind = "file"
 target_ref = "tools/scale/synth-corpus.sh"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-001", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0120/attempt-1"
+contract_digest = "3e59331d6d0a87e4d895a659d2fabe8a8d72aac2788806d4e3939b9e2c5660c6"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:1ef629330d0c94a533de0b9cbafd18f6722ec991db7bd2a55776ef294da7e3db"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
@@ -19,9 +32,22 @@ title = "The declared budget"
 kind = "file"
 target_ref = "tools/scale/budget.toml"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-002", "OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0120/attempt-1"
+contract_digest = "3e59331d6d0a87e4d895a659d2fabe8a8d72aac2788806d4e3939b9e2c5660c6"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:06ee18e66e3f688688c2ee683a1779147fcb5e446d0f027c701a9c6569829150"
+media_type = "application/toml"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-003"
@@ -29,9 +55,22 @@ title = "The budget gate"
 kind = "file"
 target_ref = "tools/scale/budget.sh"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-002", "OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0120/attempt-1"
+contract_digest = "3e59331d6d0a87e4d895a659d2fabe8a8d72aac2788806d4e3939b9e2c5660c6"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:bcd2f132bc851bf8ca4189165a8189675e8947edee70ea5d5c5df6191b5e12f6"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-004"
@@ -39,9 +78,22 @@ title = "The 1,000-Warrant measurement"
 kind = "file"
 target_ref = "docs/scale/baseline-1000.json"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-004", "OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0120/attempt-1"
+contract_digest = "3e59331d6d0a87e4d895a659d2fabe8a8d72aac2788806d4e3939b9e2c5660c6"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:3eac3454e12036f2ac8081583c3f1274a514239a09b0bbdd01404d510b6b2673"
+media_type = "application/json"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-005"
@@ -49,9 +101,22 @@ title = "Journals, archiving and the budget, answered from the numbers"
 kind = "file"
 target_ref = "docs/RETENTION.md"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0120/attempt-1"
+contract_digest = "3e59331d6d0a87e4d895a659d2fabe8a8d72aac2788806d4e3939b9e2c5660c6"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:406f5e212fb786f2f2431adaf6ec64a84b199006f03098a3fbd61fa6458f15c5"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-006"
@@ -59,6 +124,19 @@ title = "The retention plants"
 kind = "file"
 target_ref = "conformance/plants.d/52-retention.sh"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0120/attempt-1"
+contract_digest = "3e59331d6d0a87e4d895a659d2fabe8a8d72aac2788806d4e3939b9e2c5660c6"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:c0f3368748af2fd29fe357b87577e96284f42e26f0165469e198d1b2811cbaf9"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository"
+source_holder = "git"

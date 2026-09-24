@@ -11,9 +11,22 @@ title = "war perform: OS admission, writer record, handoff, cancellation"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/perform.rs"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0131/attempt-1"
+contract_digest = "8ddd10f52376dbe6d35a114396523c561df371cb549aef7c7c29792088c7ff56"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:01fbd06f8fa2a71e8b79cef418bff24a264f3b74379b61746aa42cb41469df77"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
@@ -21,9 +34,22 @@ title = "The signal-handler dependency"
 kind = "file"
 target_ref = "crates/openwarrant-cli/Cargo.toml"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0131/attempt-1"
+contract_digest = "8ddd10f52376dbe6d35a114396523c561df371cb549aef7c7c29792088c7ff56"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:680a8bcbaa51d2c42b471b41337ab60f4f329dd6923267f76107a706c4107704"
+media_type = "application/toml"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-003"
@@ -31,9 +57,22 @@ title = "The lockfile entry for the signal-handler dependency"
 kind = "file"
 target_ref = "Cargo.lock"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0131/attempt-1"
+contract_digest = "8ddd10f52376dbe6d35a114396523c561df371cb549aef7c7c29792088c7ff56"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:ac685b21c66823887ba4259ed86abe1b7573652494a93bce73227bd931c0876a"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-004"
@@ -41,9 +80,22 @@ title = "The claude performer adapter"
 kind = "file"
 target_ref = "tools/performer/claude-performer.sh"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0131/attempt-1"
+contract_digest = "8ddd10f52376dbe6d35a114396523c561df371cb549aef7c7c29792088c7ff56"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:027c46012b250dc3a5308bc5bfaab1e5a23c9e035daa04fe34c7353816cb16dc"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-005"
@@ -51,9 +103,22 @@ title = "A performer that writes until killed, with a child"
 kind = "file"
 target_ref = "conformance/fixtures/performer/writes-until-killed.sh"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0131/attempt-1"
+contract_digest = "8ddd10f52376dbe6d35a114396523c561df371cb549aef7c7c29792088c7ff56"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:143aeac11432126cd0538daf304393340f7234c4ffd3dae3c2351f5fd9955065"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-006"
@@ -61,9 +126,22 @@ title = "The cancellation, handoff and adapter plants"
 kind = "file"
 target_ref = "conformance/plants.d/60-perform-cancel.sh"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0131/attempt-1"
+contract_digest = "8ddd10f52376dbe6d35a114396523c561df371cb549aef7c7c29792088c7ff56"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:250b3063b24d07ba409da78bb5a21084ebab59bbb123c59f2a6cabcc4d145a92"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-007"
@@ -71,6 +149,19 @@ title = "What war perform guarantees on each OS, and what it does not"
 kind = "file"
 target_ref = "docs/PERFORM.md"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0131/attempt-1"
+contract_digest = "8ddd10f52376dbe6d35a114396523c561df371cb549aef7c7c29792088c7ff56"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:fcc4483576ccc7614250dc4afee5570d4bfc6c6b4fc8169f9a76390f1be33702"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"

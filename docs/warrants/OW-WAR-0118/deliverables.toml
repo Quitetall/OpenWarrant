@@ -9,9 +9,22 @@ title = "The friction measurement script"
 kind = "file"
 target_ref = "tools/friction/measure.sh"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0118/attempt-1"
+contract_digest = "ba67092295f07ff496b50d4c01ef1926547464962e204841449a8eb00ca0a1d2"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:d00d7fafbea2bab014d7318bb64f9ff604f60db320804d5f2edd9a8db3c97d9e"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
@@ -19,9 +32,22 @@ title = "The first recorded baseline"
 kind = "file"
 target_ref = "docs/friction/baseline-1.json"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0118/attempt-1"
+contract_digest = "ba67092295f07ff496b50d4c01ef1926547464962e204841449a8eb00ca0a1d2"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:319ccd902ae0c4ec76150d30e2f12e2df33edcda94425e710ff2d7ae65fbce6f"
+media_type = "application/json"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-003"
@@ -29,9 +55,22 @@ title = "What the friction numbers mean and what they do not"
 kind = "file"
 target_ref = "docs/FRICTION.md"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0118/attempt-1"
+contract_digest = "ba67092295f07ff496b50d4c01ef1926547464962e204841449a8eb00ca0a1d2"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:a20ead9011a84dc571986caac543dbc1bb68a13efa75b4f7528c04ba985f073f"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-004"
@@ -39,6 +78,19 @@ title = "The friction plants"
 kind = "file"
 target_ref = "conformance/plants.d/50-friction.sh"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0118/attempt-1"
+contract_digest = "ba67092295f07ff496b50d4c01ef1926547464962e204841449a8eb00ca0a1d2"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:a1853e34a04b149da73eee048c5b733a9c7e0200f22aa89969c18cb5dfff6d23"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository"
+source_holder = "git"

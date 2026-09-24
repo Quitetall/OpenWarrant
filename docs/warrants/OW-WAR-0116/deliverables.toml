@@ -9,9 +9,22 @@ title = "war ui: the hardened loopback server"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/webui/mod.rs"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0116/attempt-1"
+contract_digest = "55c4aca4ee9618754b85a2c5aa7cb0a12c0ac7ed0240ff896b7f860fe34c4896"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:569555e3ee049e1d11e9df040d0a0c123bb1879b4c3b6a232aac6911f0a4bfb0"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
@@ -19,9 +32,22 @@ title = "the page"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/webui/assets/index.html"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0116/attempt-1"
+contract_digest = "55c4aca4ee9618754b85a2c5aa7cb0a12c0ac7ed0240ff896b7f860fe34c4896"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:f7a5bf719fb9e9b37c3135dd71889344f607b99c6f582dfaa84dc6e05c9283fd"
+media_type = "text/html"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-003"
@@ -29,9 +55,22 @@ title = "the page's script"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/webui/assets/app.js"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0116/attempt-1"
+contract_digest = "55c4aca4ee9618754b85a2c5aa7cb0a12c0ac7ed0240ff896b7f860fe34c4896"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:c4c5a212a593b182d372d8b9265df1aca11bf7d8758f9a3fb04a86e119e6b707"
+media_type = "text/javascript"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-004"
@@ -39,9 +78,22 @@ title = "the page's style"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/webui/assets/app.css"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0116/attempt-1"
+contract_digest = "55c4aca4ee9618754b85a2c5aa7cb0a12c0ac7ed0240ff896b7f860fe34c4896"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:71641e8b9c03706a9682e9a799b549249ef788aa74a398fa736c5d597e46ab64"
+media_type = "text/css"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-005"
@@ -49,9 +101,22 @@ title = "the shared parser; no inline CSP"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/progress_viewer/server.rs"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0116/attempt-1"
+contract_digest = "55c4aca4ee9618754b85a2c5aa7cb0a12c0ac7ed0240ff896b7f860fe34c4896"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:de20d46178652005905e6a0198208847be9b49729449e8308ee2d3835fdefeeb"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-006"
@@ -59,9 +124,22 @@ title = "war progress --serve is war ui"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/progress_viewer.rs"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0116/attempt-1"
+contract_digest = "55c4aca4ee9618754b85a2c5aa7cb0a12c0ac7ed0240ff896b7f860fe34c4896"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:319e3a4a99b297c54c4f1bfcb2120c3189bf83002c1b6b6b02b46ac401ab0902"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-007"
@@ -69,9 +147,22 @@ title = "the command"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/lib.rs"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0116/attempt-1"
+contract_digest = "55c4aca4ee9618754b85a2c5aa7cb0a12c0ac7ed0240ff896b7f860fe34c4896"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:46d38e40c95e2eb9263167979c4574e68fc691a53800cecf305e6dd4151a60a4"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-008"
@@ -79,9 +170,22 @@ title = "docs/WEBUI.md"
 kind = "file"
 target_ref = "docs/WEBUI.md"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0116/attempt-1"
+contract_digest = "55c4aca4ee9618754b85a2c5aa7cb0a12c0ac7ed0240ff896b7f860fe34c4896"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:96343476e8c2c22ef0d28a9c689af2b43159e9864161b8c6623c59c37e5490a0"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-009"
@@ -89,9 +193,22 @@ title = "README.md: war ui"
 kind = "file"
 target_ref = "README.md"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0116/attempt-1"
+contract_digest = "55c4aca4ee9618754b85a2c5aa7cb0a12c0ac7ed0240ff896b7f860fe34c4896"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:7dc4f11afdacce4a008b181daeb2a77a95c84f57261ffb7ddb08358565447c5d"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-010"
@@ -99,9 +216,22 @@ title = "THREAT_MODEL row"
 kind = "file"
 target_ref = "docs/THREAT_MODEL.md"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0116/attempt-1"
+contract_digest = "55c4aca4ee9618754b85a2c5aa7cb0a12c0ac7ed0240ff896b7f860fe34c4896"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:37e4db138e51f306c493cad1d4d2de1567b43cb2cd6a2c0483403d8bc0e23745"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-011"
@@ -109,6 +239,19 @@ title = "the plants"
 kind = "file"
 target_ref = "conformance/plants.d/63-webui.sh"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0116/attempt-1"
+contract_digest = "55c4aca4ee9618754b85a2c5aa7cb0a12c0ac7ed0240ff896b7f860fe34c4896"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:0397209b30e60b7aab726f1742ba7556c844e671f2df1a81692cd0d9ac376a79"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository"
+source_holder = "git"

@@ -11,9 +11,22 @@ title = "The grammar of the SAS 1.1.0 atom format: standard and tool conformance
 kind = "file"
 target_ref = "docs/GRAMMAR.md"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0122/attempt-1"
+contract_digest = "5809bf642299368909d0b36611f64b2958e036bca7759055320fa0e6741693b4"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:2143f5a1a9c6a2c6cf6fe64e5550de058499d31a5941db3ade09600866484ea8"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
@@ -21,9 +34,22 @@ title = "atom.header: the atom header checked against its manifest entry"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/repo.rs"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0122/attempt-1"
+contract_digest = "5809bf642299368909d0b36611f64b2958e036bca7759055320fa0e6741693b4"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:f45c3592a885c802a73a854a3d82fdac52dfd3f2acc8b66a16d9b34fae6c101e"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-003"
@@ -31,9 +57,22 @@ title = "The grammar plants: header, reader, positive controls, drift control"
 kind = "file"
 target_ref = "conformance/plants.d/57-grammar.sh"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-001", "OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0122/attempt-1"
+contract_digest = "5809bf642299368909d0b36611f64b2958e036bca7759055320fa0e6741693b4"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:c95cfe36a2df72b3f5ed6c456f76757474f2dc6516545e44f3b417cfff40af6c"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-004"
@@ -41,6 +80,19 @@ title = "The dispatch-bundle test fixture writes a well-formed atom header (AM-0
 kind = "file"
 target_ref = "crates/openwarrant-cli/tests/dispatch_bundle_cli.rs"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0122/attempt-1"
+contract_digest = "5809bf642299368909d0b36611f64b2958e036bca7759055320fa0e6741693b4"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:1c5bcfe68cf52e9632c7618d135ef5318c9bf0582e297ae7433a3bccd3042d65"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository"
+source_holder = "git"

@@ -9,9 +9,22 @@ title = "The per-user project list"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/projects.rs"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0115/attempt-1"
+contract_digest = "1465c539944c8e85fccb42749a272587551130782f5b88d5ad1f5586eadb3b96"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:8f523a02015a15983577605532341bf6f047fac428a2d378f7b2c7490f3476d0"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
@@ -19,9 +32,22 @@ title = "war projects; touch on use; war from anywhere"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/lib.rs"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0115/attempt-1"
+contract_digest = "1465c539944c8e85fccb42749a272587551130782f5b88d5ad1f5586eadb3b96"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:46d38e40c95e2eb9263167979c4574e68fc691a53800cecf305e6dd4151a60a4"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-003"
@@ -29,9 +55,22 @@ title = "The Projects pane, switching, the binary line"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/tui/mod.rs"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0115/attempt-1"
+contract_digest = "1465c539944c8e85fccb42749a272587551130782f5b88d5ad1f5586eadb3b96"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:267ed159e4f1d810a1ce007f203ca2cdc0b5f924545d99c58098c43635fea2d0"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-004"
@@ -39,9 +78,22 @@ title = "docs/TUI.md: the hub"
 kind = "file"
 target_ref = "docs/TUI.md"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0115/attempt-1"
+contract_digest = "1465c539944c8e85fccb42749a272587551130782f5b88d5ad1f5586eadb3b96"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:ad622c1f4882710dbba7fae936ad81c0c2814aa6308d23d9b0a1436401afa3c0"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-005"
@@ -49,9 +101,22 @@ title = "README.md: war from anywhere"
 kind = "file"
 target_ref = "README.md"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0115/attempt-1"
+contract_digest = "1465c539944c8e85fccb42749a272587551130782f5b88d5ad1f5586eadb3b96"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:7dc4f11afdacce4a008b181daeb2a77a95c84f57261ffb7ddb08358565447c5d"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-006"
@@ -59,6 +124,19 @@ title = "The hub plants"
 kind = "file"
 target_ref = "conformance/plants.d/71-hub.sh"
 required = true
-content_addressed = false
-provenance_required = false
+content_addressed = true
+provenance_required = true
 obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0115/attempt-1"
+contract_digest = "1465c539944c8e85fccb42749a272587551130782f5b88d5ad1f5586eadb3b96"
+input_digests = []
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:98defb4b78fe1c2f956b8df80cfedf4526db0c9101a99fab39b3e3c333dd079b"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository"
+source_holder = "git"
