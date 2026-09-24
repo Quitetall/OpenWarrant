@@ -104,6 +104,75 @@ pub fn run(repo: &Repository, title: &str, profile: Profile) -> Result<Utf8PathB
     })
 }
 
+/// `war new <title> --parent <alias>` (SAS §71.2, OW-WAR-0123): a new draft
+/// whose manifest cites its parent exactly — the parent's `war://` identity,
+/// its latest authorized revision and that revision's digest, read from the
+/// parent's `authorization.toml` (§20.2, RQ-023).
+///
+/// A citation typed by hand is how OW-WAR-0002 to 0005 came to say "revision
+/// 1" at revision 2's digest; the tool writes both from the one record. The
+/// parent is read BEFORE anything is created, so an unknown alias or a parent
+/// with no authorized revision leaves no directory behind (U-002: a draft has
+/// no revision the child could rest on).
+pub fn run_with_parent(
+    repo: &Repository,
+    title: &str,
+    profile: Profile,
+    parent: &str,
+) -> Result<Utf8PathBuf, RepoError> {
+    let citation = parent_citation(repo, parent)?;
+    let dir = run(repo, title, profile)?;
+    let manifest_path = dir.join("manifest.toml");
+    let mut file = OpenOptions::new()
+        .append(true)
+        .open(&manifest_path)
+        .map_err(|source| RepoError::Io {
+            context: format!("could not open {manifest_path}"),
+            source,
+        })?;
+    file.write_all(citation.as_bytes())
+        .map_err(|source| RepoError::Io {
+            context: format!("could not write {manifest_path}"),
+            source,
+        })?;
+    Ok(dir)
+}
+
+/// The `[[parents]]` table citing `alias` at its latest authorized revision.
+fn parent_citation(repo: &Repository, alias: &str) -> Result<String, RepoError> {
+    let dir = repo.warrant_dir(alias)?;
+    let loaded = repo.load_warrant(&dir)?;
+    let Some(validated) = loaded.validated.as_ref() else {
+        return Err(RepoError::Message(format!(
+            "--parent {alias}: its manifest does not validate, so it has no identity to cite; \
+             nothing was created"
+        )));
+    };
+    let Some(authorization) = repo.load_authorization(&dir)? else {
+        return Err(RepoError::Message(format!(
+            "--parent {alias}: {alias} has no authorized revision, so there is no exact \
+             revision to cite (§20.2); authorize it first. Nothing was created"
+        )));
+    };
+    if authorization.revision.state != openwarrant_core::contract::RevisionState::Authorized {
+        return Err(RepoError::Message(format!(
+            "--parent {alias}: its authorization record is not in the authorized state; \
+             nothing was created"
+        )));
+    }
+    Ok(format!(
+        "# The exact parent revision this child rests on (SAS §20.2, RQ-023), written\n\
+         # by `war new --parent {alias}` from its authorization.toml.\n\
+         [[parents]]\n\
+         ref = \"war://{uuid}\"\n\
+         contract_revision = {revision}\n\
+         contract_digest = \"sha256:{digest}\"\n",
+        uuid = validated.uuid,
+        revision = authorization.revision.revision,
+        digest = authorization.revision.contract_digest,
+    ))
+}
+
 /// One past the highest ordinal currently present.
 fn next_ordinal(repo: &Repository) -> Result<u32, RepoError> {
     let mut highest = 0u32;
@@ -315,6 +384,28 @@ mod tests {
         }
         assert_eq!(aliases.len(), 8, "eight distinct aliases");
 
+        let _ = fs::remove_dir_all(&repo.root);
+    }
+
+    /// OW-WAR-0123 OBL-005's refusals: a parent that does not exist, and a
+    /// parent with no authorized revision, create nothing.
+    #[test]
+    fn a_parent_without_an_authorized_revision_is_refused_and_nothing_is_created() {
+        let repo = scratch("parent-refused");
+        let draft = run(&repo, "A draft parent", Profile::Delivery).expect("creates");
+        assert!(!draft.join("authorization.toml").exists());
+        for parent in ["OW-WAR-9999", "OW-WAR-0001"] {
+            let err =
+                run_with_parent(&repo, "A child", Profile::Delivery, parent).expect_err("refused");
+            assert!(
+                !repo.warrants_dir().join("OW-WAR-0002").exists(),
+                "{parent}: {err}"
+            );
+        }
+        let message = run_with_parent(&repo, "A child", Profile::Delivery, "OW-WAR-0001")
+            .expect_err("refused")
+            .to_string();
+        assert!(message.contains("has no authorized revision"), "{message}");
         let _ = fs::remove_dir_all(&repo.root);
     }
 

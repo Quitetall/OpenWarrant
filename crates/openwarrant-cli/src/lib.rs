@@ -408,6 +408,11 @@ enum Command {
         /// Composition profile (§16.3).
         #[arg(long, default_value = "delivery")]
         profile: String,
+        /// Cite this Warrant as the parent, at its latest authorized revision
+        /// and that revision's digest (§20.2, OW-WAR-0123). A parent with no
+        /// authorized revision is refused and nothing is created.
+        #[arg(long, value_name = "ALIAS")]
+        parent: Option<String>,
     },
     /// Validate deterministically, without any agent (§71.7).
     Check {
@@ -1199,17 +1204,29 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 }
             }
         }
-        Command::New { title, profile } => {
+        Command::New {
+            title,
+            profile,
+            parent,
+        } => {
             let profile: Profile = profile.parse()?;
             let repository = open_repo()?;
-            let dir = new::run(&repository, &title, profile)?;
+            let dir = match parent.as_deref() {
+                Some(parent) => new::run_with_parent(&repository, &title, profile, parent)?,
+                None => new::run(&repository, &title, profile)?,
+            };
             let rel = repository.relative(&dir);
             let alias = dir.file_name().unwrap_or_default().to_owned();
+            let mut data =
+                serde_json::json!({"alias": alias, "dir": rel, "profile": profile.to_string()});
+            if let Some(parent) = &parent {
+                data["parent"] = serde_json::json!(parent);
+            }
             output::emit(
                 mode,
                 "new",
                 &format!("created {rel}\nedit its atoms, then run `war check`"),
-                serde_json::json!({"alias": alias, "dir": rel, "profile": profile.to_string()}),
+                data,
             );
             Ok(EXIT_OK)
         }

@@ -1764,69 +1764,338 @@ fn check_one(
         }
     }
 
-    // §20.2 / §91.5 test 29: a child cites an EXACT parent contract revision.
-    // The digest is what makes "exact" verifiable, so it is compared against the
-    // parent's actual contract digest rather than merely noted as present.
-    let manifest_file = repo.relative(&one.dir.join("manifest.toml"));
-    for parent in &basis.manifest.parents {
-        let uuid = parent.r#ref.strip_prefix("war://").unwrap_or(&parent.r#ref);
-        let actual = parent_digests.get(uuid);
-
-        match (&parent.contract_digest, actual) {
-            (Some(cited), Some(actual)) => {
-                let cited = cited.strip_prefix("sha256:").unwrap_or(cited);
-                if cited == actual {
-                    report.push(Diagnostic::pass(
-                        "relations.parent-digest",
-                        format!("{alias}: parent {} contract digest matches", parent.r#ref),
-                    ));
-                } else {
-                    report.push(Diagnostic::error(
-                        "relations.parent-digest",
-                        manifest_file.clone(),
-                        format!(
-                            "{alias}: parent {} is cited at contract digest sha256:{cited} \
-                             but the parent's actual contract digest is sha256:{actual}. \
-                             The parent changed after this child was written — the child's \
-                             basis is no longer the one it was authorized against.",
-                            parent.r#ref
-                        ),
-                    ));
-                }
-            }
-            (None, Some(actual)) => {
-                // Not an error: the citation is incomplete, not wrong. The
-                // computed value is printed so the fix is a copy-paste rather
-                // than a research task.
-                report.push(Diagnostic::unknown(
-                    "relations.parent-digest",
-                    manifest_file.clone(),
-                    format!(
-                        "{alias}: parent {} cites a revision but no contract_digest (§20.2). \
-                         Its current digest is sha256:{actual} — add \
-                         `contract_digest = \"sha256:{actual}\"` to pin it.",
-                        parent.r#ref
-                    ),
-                ));
-            }
-            (_, None) => {
-                report.push(Diagnostic::unknown(
-                    "relations.parent-digest",
-                    manifest_file.clone(),
-                    format!(
-                        "{alias}: parent {} is not in this repository, so its contract \
-                         digest cannot be computed; cross-repository resolution needs \
-                         federation",
-                        parent.r#ref
-                    ),
-                ));
-            }
-        }
-    }
+    check_parent_citations(repo, one, &alias, basis, corpus, parent_digests, report);
 
     if check_generated {
         let children = crate::compile::children_of(&validated.raw.uuid, corpus);
         check_drift(repo, &children, one, basis, validated, &alias, report);
+    }
+}
+
+/// One parent's authorized revisions, read as far as they can be: the latest
+/// from its `authorization.toml`, earlier ones from retained history through
+/// `contract_history::resolve` (OW-WAR-0123, A-001). A revision history cannot
+/// supply is carried as the reason, never guessed.
+struct ParentRevisions<'a> {
+    repo: &'a Repository,
+    alias: String,
+    latest: u32,
+    latest_digest: String,
+    read: BTreeMap<u32, Result<String, String>>,
+}
+
+impl ParentRevisions<'_> {
+    fn digest(&mut self, revision: u32) -> Result<String, String> {
+        if revision == self.latest {
+            return Ok(self.latest_digest.clone());
+        }
+        let (repo, alias) = (self.repo, self.alias.as_str());
+        self.read
+            .entry(revision)
+            .or_insert_with(|| {
+                let (value, _) = crate::contract_history::resolve(repo, alias, revision)
+                    .map_err(|e| e.to_string())?;
+                crate::contract_history::parse_ir(&value)
+                    .map_err(|e| e.to_string())?
+                    .contract_digest()
+                    .map_err(|e| e.to_string())
+            })
+            .clone()
+    }
+}
+
+/// §20.2 / §91.5 test 29 / RQ-023: a child cites an EXACT parent contract
+/// revision, and the number and the digest must name the same one.
+///
+/// Until OW-WAR-0123 the digest was compared with the parent as it compiles
+/// now and the number was never read, so a child could not rest on an older
+/// exact revision, and "revision 1" at revision 2's digest passed. Now the
+/// cited revision is looked up in the parent's authorization records:
+///
+/// - a revision the parent never had is an error (`relations.parent-revision`);
+/// - the cited revision's own digest passes; an older one also warns that the
+///   parent has moved (`relations.parent-moved`);
+/// - another revision's digest is named as that revision — an error for an
+///   unauthorized child, where the fix is an edit; a warning for an authorized
+///   one, whose correction is an amendment (U-001, answered (b));
+/// - a digest of no revision is an error (`relations.parent-digest`), as is a
+///   parent whose working contract no longer compiles to its latest
+///   authorized digest;
+/// - what retained history cannot answer is UNKNOWN (Law 15).
+#[allow(clippy::too_many_arguments, clippy::too_many_lines)]
+fn check_parent_citations(
+    repo: &Repository,
+    one: &Loaded,
+    alias: &str,
+    basis: &openwarrant_compiler::CompilationBasis,
+    corpus: &[Loaded],
+    parent_digests: &BTreeMap<String, String>,
+    report: &mut Report,
+) {
+    let manifest_file = repo.relative(&one.dir.join("manifest.toml"));
+    let child_authorized = matches!(repo.load_authorization(&one.dir), Ok(Some(_)));
+    for parent in &basis.manifest.parents {
+        let r#ref = parent.r#ref.as_str();
+        let uuid = r#ref.strip_prefix("war://").unwrap_or(r#ref);
+        let in_corpus = corpus.iter().find(|l| {
+            l.validated
+                .as_ref()
+                .is_some_and(|v| v.uuid.to_string() == uuid)
+        });
+        let Some(parent_one) = in_corpus else {
+            report.push(Diagnostic::unknown(
+                "relations.parent-digest",
+                manifest_file.clone(),
+                format!(
+                    "{alias}: parent {ref} is not in this repository, so its contract \
+                     digest cannot be computed; cross-repository resolution needs \
+                     federation"
+                ),
+            ));
+            continue;
+        };
+        let parent_alias = parent_one.alias();
+        let current = parent_digests.get(uuid);
+        let Some(cited) = parent.contract_digest.as_deref() else {
+            // Not an error: the citation is incomplete, not wrong. The value is
+            // printed so the fix is a copy-paste rather than a research task.
+            let hint = current.map_or_else(
+                || "its contract does not compile, so no digest can be offered".to_owned(),
+                |d| format!("its current digest is sha256:{d} — add `contract_digest = \"sha256:{d}\"` to pin it"),
+            );
+            report.push(Diagnostic::unknown(
+                "relations.parent-digest",
+                manifest_file.clone(),
+                format!(
+                    "{alias}: parent {ref} cites a revision but no contract_digest (§20.2). {hint}."
+                ),
+            ));
+            continue;
+        };
+        let cited = cited.strip_prefix("sha256:").unwrap_or(cited);
+        // The manifest refuses a parent without a revision; 1 is never reached
+        // for a valid one.
+        let r = parent.contract_revision.unwrap_or(1);
+
+        let authorization = match repo.load_authorization(&parent_one.dir) {
+            Ok(a) => a,
+            Err(err) => {
+                report.push(Diagnostic::unknown(
+                    "relations.parent-revision",
+                    manifest_file.clone(),
+                    format!(
+                        "{alias}: parent {parent_alias}'s authorization record cannot be read, \
+                         so revision {r} cannot be looked up: {err}"
+                    ),
+                ));
+                continue;
+            }
+        };
+        let Some(authorization) = authorization else {
+            // A draft parent (U-002): it has one revision, the one it compiles
+            // to now. The comparison is today's.
+            if r != 1 {
+                report.push(Diagnostic::error(
+                    "relations.parent-revision",
+                    manifest_file.clone(),
+                    format!(
+                        "{alias}: parent {parent_alias} is cited at revision {r}, which does not \
+                         exist: {parent_alias} has no authorized revision, so a citation of it \
+                         can only be revision 1"
+                    ),
+                ));
+                continue;
+            }
+            push_current_comparison(report, &manifest_file, alias, r#ref, cited, current);
+            continue;
+        };
+        if authorization.revision.state != openwarrant_core::contract::RevisionState::Authorized {
+            report.push(Diagnostic::unknown(
+                "relations.parent-revision",
+                manifest_file.clone(),
+                format!(
+                    "{alias}: parent {parent_alias}'s authorization record is not in the \
+                     authorized state, so its revisions cannot be read from it"
+                ),
+            ));
+            continue;
+        }
+        let latest = authorization.revision.revision;
+        if r == 0 || r > latest {
+            report.push(Diagnostic::error(
+                "relations.parent-revision",
+                manifest_file.clone(),
+                format!(
+                    "{alias}: parent {parent_alias} is cited at revision {r}, which does not \
+                     exist: its latest authorized revision is {latest}"
+                ),
+            ));
+            continue;
+        }
+        let mut revisions = ParentRevisions {
+            repo,
+            alias: parent_alias.clone(),
+            latest,
+            latest_digest: authorization.revision.contract_digest.clone(),
+            read: BTreeMap::new(),
+        };
+        let wrong_revision = |report: &mut Report, belongs: u32| {
+            let (severity, tail) = if child_authorized {
+                (
+                    Severity::Warn,
+                    format!(
+                        "{alias}'s contract is authorized, so the signed record stands as it \
+                         is; making the number and the digest agree is an amendment of {alias}"
+                    ),
+                )
+            } else {
+                (
+                    Severity::Error,
+                    format!(
+                        "cite revision {belongs}, or revision {r} at its own digest — `war new \
+                         --parent {parent_alias}` writes the latest exactly"
+                    ),
+                )
+            };
+            report.push(Diagnostic {
+                severity,
+                rule: "relations.parent-revision".to_owned(),
+                file: Some(manifest_file.clone()),
+                message: format!(
+                    "{alias}: parent {parent_alias} is cited as revision {r} at \
+                     sha256:{cited}, which is the digest of revision {belongs}; {tail}"
+                ),
+            });
+        };
+
+        // The latest digest is on disk; no history is needed to see that an
+        // older number was paired with it. The citation still rests on the
+        // latest revision's content, so an unauthorized edit of the parent is
+        // caught for it exactly as for a correct citation of the latest.
+        if r < latest && cited == revisions.latest_digest {
+            wrong_revision(report, latest);
+            push_current_comparison(report, &manifest_file, alias, r#ref, cited, current);
+            continue;
+        }
+        let own = match revisions.digest(r) {
+            Ok(own) => own,
+            Err(why) => {
+                report.push(Diagnostic::unknown(
+                    "relations.parent-revision",
+                    manifest_file.clone(),
+                    format!(
+                        "{alias}: parent {parent_alias} is cited at revision {r}, whose digest \
+                         only retained history holds, and it cannot be read: {why}. Neither \
+                         pass nor error — run `war check` in a full clone"
+                    ),
+                ));
+                continue;
+            }
+        };
+        if own == cited {
+            report.push(Diagnostic::pass(
+                "relations.parent-revision",
+                format!("{alias}: parent {parent_alias} is cited at revision {r}, at that revision's digest"),
+            ));
+            if r < latest {
+                report.push(Diagnostic::warn(
+                    "relations.parent-moved",
+                    manifest_file.clone(),
+                    format!(
+                        "{alias}: parent {parent_alias} has moved from revision {r} to revision \
+                         {latest}; the citation of revision {r} is exact and stays sound. \
+                         Re-citing revision {latest} is an amendment of {alias}"
+                    ),
+                ));
+            } else {
+                // The latest authorized revision: the parent's working contract
+                // must still compile to it, or the parent was edited without an
+                // authorization — today's `relations.parent-digest` finding.
+                push_current_comparison(report, &manifest_file, alias, r#ref, cited, current);
+            }
+            continue;
+        }
+        let mut unreadable = None;
+        let mut belongs = None;
+        for other in (1..=latest).rev().filter(|&o| o != r) {
+            match revisions.digest(other) {
+                Ok(d) if d == cited => {
+                    belongs = Some(other);
+                    break;
+                }
+                Ok(_) => {}
+                Err(why) => {
+                    unreadable.get_or_insert(why);
+                }
+            }
+        }
+        match (belongs, unreadable) {
+            (Some(other), _) => wrong_revision(report, other),
+            (None, None) => report.push(Diagnostic::error(
+                "relations.parent-digest",
+                manifest_file.clone(),
+                format!(
+                    "{alias}: parent {parent_alias} is cited as revision {r} at \
+                     sha256:{cited}, which is the digest of no authorized revision of it; \
+                     revision {r} is sha256:{own}"
+                ),
+            )),
+            // Unauthorized: an error whichever revision the digest might name.
+            (None, Some(why)) if !child_authorized => report.push(Diagnostic::error(
+                "relations.parent-digest",
+                manifest_file.clone(),
+                format!(
+                    "{alias}: parent {parent_alias} is cited as revision {r} at \
+                     sha256:{cited}, which is not revision {r}'s digest sha256:{own}; whether \
+                     it is an earlier revision's could not be read ({why})"
+                ),
+            )),
+            (None, Some(why)) => report.push(Diagnostic::unknown(
+                "relations.parent-revision",
+                manifest_file.clone(),
+                format!(
+                    "{alias}: parent {parent_alias} is cited as revision {r} at \
+                     sha256:{cited}, which is not revision {r}'s digest; which revision it \
+                     names needs retained history that cannot be read: {why}"
+                ),
+            )),
+        }
+    }
+}
+
+/// The comparison with the parent as it compiles now: for a draft parent, and
+/// for a citation of the latest authorized revision.
+fn push_current_comparison(
+    report: &mut Report,
+    manifest_file: &str,
+    alias: &str,
+    r#ref: &str,
+    cited: &str,
+    current: Option<&String>,
+) {
+    match current {
+        Some(actual) if actual == cited => report.push(Diagnostic::pass(
+            "relations.parent-digest",
+            format!("{alias}: parent {ref} contract digest matches"),
+        )),
+        Some(actual) => report.push(Diagnostic::error(
+            "relations.parent-digest",
+            manifest_file.to_owned(),
+            format!(
+                "{alias}: parent {ref} is cited at contract digest sha256:{cited} \
+                 but the parent's actual contract digest is sha256:{actual}. \
+                 The parent changed after this child was written — the child's \
+                 basis is no longer the one it was authorized against."
+            ),
+        )),
+        None => report.push(Diagnostic::unknown(
+            "relations.parent-digest",
+            manifest_file.to_owned(),
+            format!(
+                "{alias}: parent {ref}'s contract does not compile, so the citation \
+                 cannot be compared with it"
+            ),
+        )),
     }
 }
 
