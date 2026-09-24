@@ -16,6 +16,11 @@ use openwarrant_compiler::{ChildRef, lower};
 use openwarrant_core::{ValidatedManifest, detect_parent_cycles, milestones, obligation, seam};
 
 use crate::compile::{adr_overview, projections, warrant_overview};
+
+// OW-WAR-0119: the corpus identity rules. A child of this module, not a
+// sibling in `lib.rs`, because `war check` is their only caller.
+#[path = "identity_check.rs"]
+mod identity_check;
 use crate::diagnostic::{Diagnostic, Report, Severity};
 use crate::repo::{Loaded, RepoError, Repository};
 
@@ -176,6 +181,10 @@ pub fn run(
             format!("{} ADR(s) parsed", adrs.records.len()),
         ));
     }
+    // §12 identity (OW-WAR-0119), once per run: duplicates and alias
+    // resolution need every Warrant and every ADR in hand, so this sits after
+    // both are loaded rather than inside the per-Warrant loop.
+    identity_check::check(repo, &corpus, &loaded, &adrs.records, &mut report);
     // §101 — the SAS is a controlled document. The bytes on disk are held to
     // the latest recorded revision's digest. Until OW-WAR-0058 nothing in code
     // compared them: the digest appeared in six places, all prose.

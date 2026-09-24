@@ -71,7 +71,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | no required unknown remains | 85 |
 | every required obligation is dispositioned | 83 |
 | independence requirements are met | 83 |
-| required deliverables exist | 77 |
+| required deliverables exist | 76 |
 | required judgments exist | 54 |
 | residual risks have sufficient authority | 54 |
 | exact authorized Contract Revision | 7 |
@@ -264,7 +264,7 @@ Every §106 requirement is named by at least one Warrant.
 | `OW-WAR-0116` war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap | draft | unknown | 0 | 0 of 5 | every required obligation is dispositioned |
 | `OW-WAR-0117` An independent verifier: a blind, tool-less process that war verify --run hands each bundle to | draft | unknown | 0 | 0 of 2 | every required obligation is dispositioned |
 | `OW-WAR-0118` Measure the friction targets: setup in ten minutes, a routine act in sixty seconds | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
-| `OW-WAR-0119` Identity is the UUIDv7: immutable across revisions, and no alias ever stands in for it | draft | unknown | 0 | 0 of 2 | required deliverables exist |
+| `OW-WAR-0119` Identity is the UUIDv7: immutable across revisions, and no alias ever stands in for it | draft | unknown | 0 | 0 of 2 | artifact digests verify |
 | `OW-WAR-0120` Retention: compact journals, archive resolved Warrants, and hold a budget at 1,000 Warrants | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0121` Storage: atomic writes, crash recovery, and migration of retained artifacts | draft | unknown | 0 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0122` The document grammar: a schema for atoms, headers and Markdown, and what a conforming tool must accept | draft | unknown | 1 | 0 of 3 | every required obligation is dispositioned |
