@@ -101,7 +101,8 @@ pub fn normative_sentences(text: &str) -> Vec<NormativeSentence> {
             return;
         }
         for raw in split_sentences(text) {
-            let s = raw.trim().trim_matches(|c| c == '*').trim();
+            let s = strip_emphasis(raw.trim());
+            let s = s.as_str();
             if s.is_empty() {
                 continue;
             }
@@ -157,6 +158,7 @@ pub fn normative_sentences(text: &str) -> Vec<NormativeSentence> {
             if let Some((num, title)) = rest.split_once(' ')
                 && section_number(num.trim_end_matches('.'))
                 && num.contains('.')
+                && num.starts_with(|c: char| c.is_ascii_digit())
             {
                 section = num.trim_end_matches('.').to_owned();
                 heading = title.trim().to_owned();
@@ -218,6 +220,78 @@ pub fn normative_sentences(text: &str) -> Vec<NormativeSentence> {
     out
 }
 
+/// Numbered headings whose sentences the projection would drop.
+///
+/// Drift-checking proves a projection is REPRODUCIBLE, not that it is COMPLETE:
+/// an extractor that drops the same sentences every time compiles identically
+/// every time, and the check passes. This is the complement. It reads the
+/// document, finds every `## <number>. Title` heading the section parser could
+/// not label, and reports the ones whose body carries a normative keyword —
+/// text that belongs in the projection and is not there.
+///
+/// Knowledge Fabric lost 28 of 162 requirements to exactly this, in five
+/// lettered sections, for weeks. The projection's own header said 139 sentences
+/// and 139 sentences were present; the absence was invisible from inside it.
+#[must_use]
+pub fn dropped_sections(text: &str) -> Vec<String> {
+    let mut dropped = Vec::new();
+    let mut current: Option<(String, bool)> = None;
+    let mut in_fence = false;
+    let finish = |current: Option<(String, bool)>, dropped: &mut Vec<String>| {
+        if let Some((heading, has_keyword)) = current
+            && has_keyword
+        {
+            dropped.push(heading);
+        }
+    };
+    for line in text.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with("```") {
+            in_fence = !in_fence;
+            continue;
+        }
+        if in_fence {
+            continue;
+        }
+        if let Some(rest) = trimmed.strip_prefix("## ") {
+            finish(current.take(), &mut dropped);
+            // Only a heading that LOOKS numbered is a candidate: `## Appendix`
+            // is prose and projects nothing by design.
+            let looks_numbered = rest.starts_with(|c: char| c.is_ascii_digit());
+            let parses = rest
+                .split_once(". ")
+                .is_some_and(|(num, _)| section_number(num));
+            if looks_numbered && !parses {
+                current = Some((rest.trim().to_owned(), false));
+            }
+            continue;
+        }
+        if let Some((_, has_keyword)) = current.as_mut()
+            && NormativeKeyword::of(trimmed).is_some()
+        {
+            *has_keyword = true;
+        }
+    }
+    finish(current.take(), &mut dropped);
+    dropped
+}
+
+/// Drop Markdown emphasis markers from a projected sentence.
+///
+/// The projection re-emits each sentence under its own `**KEYWORD**`, so the
+/// source's emphasis is presentation this view does not need. Trimming only the
+/// ends — which is what this did — left the interior close behind whenever a
+/// label was written `**RQ-001. The Fabric SHALL …**`, so the sentence read
+/// `RQ-001. The Fabric SHALL ….** Background follows.` A reader cannot tell
+/// whether those two asterisks are the source's or the tool's.
+fn strip_emphasis(text: &str) -> String {
+    text.replace("**", "")
+        .trim()
+        .trim_matches('*')
+        .trim()
+        .to_owned()
+}
+
 /// A decimal section component may have one uppercase suffix, as in 8A.1.
 fn section_number(number: &str) -> bool {
     number.split('.').all(|part| {
@@ -240,6 +314,7 @@ fn split_sentences(text: &str) -> Vec<String> {
         let c = chars[i];
         current.push(c);
         if c == '.'
+            && current.matches("**").count().is_multiple_of(2)
             && chars.get(i + 1) == Some(&' ')
             && chars.get(i + 2).is_some_and(|n| {
                 n.is_ascii_uppercase() || matches!(n, '(' | '`' | '*') || n.is_ascii_digit()
@@ -387,5 +462,73 @@ mod normative_tests {
         assert_eq!(got[1].heading, "Dispatch compilation");
         // §3 (the definitions) and the fence and the table row project nothing.
         assert!(got.iter().all(|s| s.section != "3"));
+    }
+
+    /// §8A is a section. A document that has shipped §8 appends §8A rather than
+    /// renumbering, and the old rule — every byte a digit — did not merely drop
+    /// the label: it cleared the section, and every sentence underneath was
+    /// dropped with it. Knowledge Fabric lost 28 of 162 requirements this way.
+    #[test]
+    fn a_lettered_section_is_a_section_and_keeps_its_sentences() {
+        let text = "## 8. Ingestion\n\nThe reader SHALL admit one item.\n\n                    ## 8A. Ingestion, continued\n\n                    The reader SHALL NOT provide recursive synchronisation.\n\n                    ### 8A.1 Containers\n\nAn external container MAY be named.\n";
+        let got = normative_sentences(text);
+        let sections: Vec<&str> = got.iter().map(|s| s.section.as_str()).collect();
+        assert!(
+            sections.contains(&"8A"),
+            "§8A must survive, got sections {sections:?}"
+        );
+        assert!(
+            sections.contains(&"8A.1"),
+            "a subsection of a lettered section too, got {sections:?}"
+        );
+        assert_eq!(got.len(), 3, "nothing is dropped: {got:?}");
+        assert!(
+            got.iter()
+                .any(|s| s.sentence.contains("recursive synchronisation")),
+            "the sentence itself, not just its label"
+        );
+    }
+
+    /// A heading with no number still clears the section — that behaviour is
+    /// deliberate and unchanged, so an appendix does not inherit §8A.
+    #[test]
+    fn an_unnumbered_heading_still_clears_the_section() {
+        let text = "## 8A. Ingestion\n\nThe reader SHALL admit one item.\n\n                    ## Appendix\n\nThe appendix SHALL be ignored here.\n";
+        let got = normative_sentences(text);
+        assert_eq!(got.len(), 1, "only the numbered section projects: {got:?}");
+        assert_eq!(got[0].section, "8A");
+    }
+
+    /// A requirement written as `**KF-SAS-RQ-001.** The Fabric SHALL …` is one
+    /// sentence. Splitting at the period inside the bold left the closing `**`
+    /// leading the next sentence.
+    /// The completeness check the drift check cannot be: a heading shape the
+    /// parser does not know, carrying normative text, is reported by name
+    /// instead of vanishing.
+    #[test]
+    fn a_heading_shape_the_parser_cannot_label_is_reported() {
+        let text = "## 8. Ingestion\n\nThe reader SHALL admit one item.\n\n\
+                    ## 8-bis. Later thoughts\n\nThe reader SHALL NOT recurse.\n\n\
+                    ## Appendix\n\nNothing normative lives here.\n";
+        assert_eq!(dropped_sections(text), vec!["8-bis. Later thoughts"]);
+        // §8A parses now, so it is not reported; an appendix never was.
+        let fine = "## 8A. Ingestion\n\nThe reader SHALL admit one item.\n";
+        assert!(dropped_sections(fine).is_empty());
+    }
+
+    /// A period inside a bold span does not end a sentence. Splitting there
+    /// leaves the closing `**` leading the next sentence, which is how a
+    /// requirement label written `**RQ-001. The Fabric SHALL ...**` came apart.
+    #[test]
+    fn a_period_inside_bold_does_not_split_the_sentence() {
+        let text = "## 9. Requirements\n\n**RQ-001. The Fabric SHALL record its sources.** Background follows.\n";
+        let got = normative_sentences(text);
+        assert_eq!(got.len(), 1, "the bold span is one sentence: {got:?}");
+        assert!(
+            !got[0].sentence.contains('*'),
+            "an emphasis marker survived into the sentence: {:?}",
+            got[0].sentence
+        );
+        assert!(got[0].sentence.starts_with("RQ-001."), "{got:?}");
     }
 }
