@@ -13288,7 +13288,7 @@ the second is what the recorded run exposes.
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | The glossary every Dispatch carries | `CONTEXT.md` | verified |
-| D-002 | war frontier: the stages that can start now | `crates/openwarrant-cli/src/frontier.rs` | verified |
+| D-002 | war frontier: the stages that can start now | `crates/openwarrant-cli/src/frontier.rs` | drift |
 | D-003 | The selector carries the glossary | `crates/openwarrant-cli/src/context_select.rs` | verified |
 | D-004 | /war-grill | `.claude/skills/war-grill/SKILL.md` | verified |
 | D-005 | /war-spec | `.claude/skills/war-spec/SKILL.md` | verified |
@@ -25597,7 +25597,7 @@ at all.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | war perform: OS admission, writer record, handoff, cancellation | `crates/openwarrant-cli/src/perform.rs` | verified |
+| D-001 | war perform: OS admission, writer record, handoff, cancellation | `crates/openwarrant-cli/src/perform.rs` | drift |
 | D-002 | The signal-handler dependency | `crates/openwarrant-cli/Cargo.toml` | verified |
 | D-003 | The lockfile entry for the signal-handler dependency | `Cargo.lock` | verified |
 | D-004 | The claude performer adapter | `tools/performer/claude-performer.sh` | verified |
@@ -29348,7 +29348,7 @@ performer's report under another name.
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | The blind, tool-less verifier wrapper | `tools/verifier/claude-verifier.sh` | verified |
-| D-002 | [verify] verifier_argv and the declared [independence] | `openwarrant.toml` | verified |
+| D-002 | [verify] verifier_argv and the declared [independence] | `openwarrant.toml` | drift |
 | D-003 | The verifier plants | `conformance/plants.d/62-verifier.sh` | verified |
 | D-004 | How to run the verifier and read what it says | `docs/VERIFICATION.md` | verified |
 

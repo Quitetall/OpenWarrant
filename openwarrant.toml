@@ -95,3 +95,11 @@ acts = ["resolve"]
 performer_argv = ["conformance/fixtures/performer/echo-submission.sh"]
 performer_timeout_secs = 600
 max_concurrent = 1
+# OW-WAR-0132: no performer adapter meters spend, so the cost of every
+# performance here is UNKNOWN — journalled as `spend: "unknown"`, never 0.
+# `true` says run it anyway, knowing that; it does not make the cost known.
+# Absent, `war perform` refuses `perform.unmetered-not-allowed`. No
+# `hard_spend_cap` is set: nothing could enforce one, and a cap that cannot be
+# enforced refuses the run. `max_repairs` and `max_recoveries` are unset, so
+# the defaults hold: 3 repairs, 2 recoveries in a row (docs/HOTLINE.md).
+allow_unmetered = true
