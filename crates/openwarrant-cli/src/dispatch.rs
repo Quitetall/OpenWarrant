@@ -22,7 +22,8 @@ use std::fs;
 use std::process::Command;
 
 use camino::Utf8Path;
-use openwarrant_compiler::{DispatchInputs, compile_dispatch, dispatch_json, lower};
+use openwarrant_compiler::dispatch::TokenInputs;
+use openwarrant_compiler::{DispatchError, DispatchInputs, compile_dispatch, dispatch_json, lower};
 use openwarrant_core::context::ContextManifest;
 use openwarrant_core::execution::{
     Attempt, AttemptKind, CapabilityAuthorization, ResourceEnvelope,
@@ -195,42 +196,14 @@ pub fn run(
             return Ok(report);
         }
     };
-    // §33.7 (slice C2): estimate what the packet's context costs to read,
-    // against the stage's budget or the repository's default. Over budget is
-    // a refusal that names the three largest items, so the fix is a cut, not
-    // a bigger number.
-    let total_bytes: u64 = selection.bytes.iter().map(|(_, b)| *b).sum();
-    let estimated_tokens = openwarrant_core::tokens::estimate(total_bytes);
+    // §33.7 (slice C2), RQ-046: the selector's per-item bytes and the stage's
+    // budget, or the repository's default. The estimate and the refusal are the
+    // compiler's (§47.2); this command keeps no comparison of its own, so no
+    // caller can reach an actor with a packet the rule never judged.
     let budget_tokens = stage
         .budget_tokens
         .unwrap_or_else(|| repo.config.context.budget());
-    if estimated_tokens > budget_tokens {
-        let mut largest = selection.bytes.clone();
-        largest.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));
-        let top: Vec<String> = largest
-            .iter()
-            .take(3)
-            .map(|(id, b)| format!("{id} (~{} tokens)", openwarrant_core::tokens::estimate(*b)))
-            .collect();
-        report.push(Diagnostic::error(
-            "dispatch.over-budget",
-            repo.relative(&dir.join("atoms/45-milestones.yaml")),
-            format!(
-                "{alias}/{stage_id}: the selected context is ~{estimated_tokens} tokens against a \
-                 budget of {budget_tokens} ({}); largest: {}. Narrow the stage's context_sections, \
-                 or raise budget_tokens on the stage with a reason",
-                openwarrant_core::tokens::METHOD,
-                top.join(", ")
-            ),
-        ));
-        return Ok(report);
-    }
-    let tokens = openwarrant_core::tokens::TokenAccount {
-        estimated_tokens,
-        budget_tokens,
-        method: openwarrant_core::tokens::METHOD.to_owned(),
-    };
-    let (included, omitted) = (selection.included, selection.omitted);
+    let (included, omitted, item_bytes) = (selection.included, selection.omitted, selection.bytes);
     let context = ContextManifest {
         workspace_basis_ref: format!("basis://{}", basis.manifest_source),
         workspace_basis_digest: ir.integrity.workspace_basis_digest.clone(),
@@ -273,7 +246,7 @@ pub fn run(
         authorized_by: authority_ref,
     };
 
-    let dispatch = compile_dispatch(DispatchInputs {
+    let compiled = compile_dispatch(DispatchInputs {
         ir: &ir,
         basis,
         milestone,
@@ -290,10 +263,35 @@ pub fn run(
             policy_ref: "policy://none-declared".to_owned(),
             digest: String::new(),
         },
-        tokens: Some(tokens.clone()),
+        tokens: Some(TokenInputs {
+            item_bytes: &item_bytes,
+            budget_tokens,
+        }),
         dispatch_id: openwarrant_core::WarUuid::mint().to_string(),
-    })
-    .map_err(|e| RepoError::Message(format!("{alias}/{stage_id}: {e}")))?;
+    });
+    let dispatch = match compiled {
+        Ok(d) => d,
+        // Over budget is a refusal, not a failure of the tool: it names what
+        // to cut, so the fix is a cut the author makes (§33.6), not a bigger
+        // number. Nothing was written and nothing journalled.
+        Err(e @ DispatchError::OverBudget { .. }) => {
+            report.push(Diagnostic::error(
+                "dispatch.over-budget",
+                repo.relative(&dir.join("atoms/45-milestones.yaml")),
+                format!(
+                    "{alias}/{stage_id}: {e}. Narrow the stage's context_sections, or raise \
+                     budget_tokens on the stage with a reason"
+                ),
+            ));
+            return Ok(report);
+        }
+        Err(e) => return Err(RepoError::Message(format!("{alias}/{stage_id}: {e}"))),
+    };
+    let Some(tokens) = dispatch.tokens.clone() else {
+        return Err(RepoError::Message(format!(
+            "{alias}/{stage_id}: the compiler emitted a Dispatch with no token account"
+        )));
+    };
 
     if let Some(path) = emit_context_to {
         let text = serde_json::to_string_pretty(&context)
