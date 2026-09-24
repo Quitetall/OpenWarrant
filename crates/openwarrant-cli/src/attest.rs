@@ -531,10 +531,22 @@ pub fn run(repo: &Repository, target: &str, verify: bool) -> Result<Report, Repo
     } else {
         (dir_for(repo, "sas-accept", target)?, "SAS")
     };
-    let files: Vec<Utf8PathBuf> = list(repo, &dir)
+    let mut files: Vec<Utf8PathBuf> = list(repo, &dir)
         .into_iter()
         .filter(|p| what == "Warrant" || p.as_str().contains(&format!("sas-accept-{target}-")))
         .collect();
+    // A Warrant's acts may be attested by a batch (OW-WAR-0072), whose
+    // envelope lives under docs/authority/batches/attestations/ and not in
+    // the Warrant's own folder. Verifying only the folder would pass a
+    // Warrant whose current record — attested by the batch — was edited,
+    // on the strength of an older envelope whose bytes are kept beside it.
+    if what == "Warrant" {
+        files.extend(
+            list(repo, &dir_for(repo, "batch", "")?)
+                .into_iter()
+                .filter(|p| batch_attests(p, target)),
+        );
+    }
     if files.is_empty() {
         report.push(Diagnostic::warn(
             "attest.none",
@@ -557,6 +569,31 @@ pub fn run(repo: &Repository, target: &str, verify: bool) -> Result<Report, Repo
         }
     }
     Ok(report)
+}
+
+/// Whether a batch envelope's statement names a file of Warrant `alias`: its
+/// directory, or its response under docs/authority/responses/. An envelope
+/// that cannot be opened is included, so `verify_file` reports it.
+fn batch_attests(path: &Utf8Path, alias: &str) -> bool {
+    let Ok(text) = std::fs::read_to_string(path) else {
+        return true;
+    };
+    let Ok(envelope) = serde_json::from_str::<openwarrant_core::attestation::Envelope>(&text)
+    else {
+        return true;
+    };
+    let Ok(payload) = envelope.open() else {
+        return true;
+    };
+    let Ok(statement) = serde_json::from_slice::<Statement<serde_json::Value>>(&payload) else {
+        return true;
+    };
+    let dir = format!("docs/warrants/{alias}/");
+    let response = format!("docs/authority/responses/{alias}.");
+    statement
+        .subject
+        .iter()
+        .any(|s| s.name.starts_with(&dir) || s.name.starts_with(&response))
 }
 
 /// Verify every attestation in the repository (the xtask step).
