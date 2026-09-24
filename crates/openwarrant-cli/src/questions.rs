@@ -250,6 +250,11 @@ fn write_question(path: &Utf8Path, q: &Question, create_new: bool) -> Result<(),
     Ok(())
 }
 
+/// The `question.asked` payload: what its journal key is made of.
+fn asked_payload(stage: &str, id: &str, blocking: bool) -> String {
+    serde_json::json!({ "stage": stage, "question": id, "blocking": blocking }).to_string()
+}
+
 /// `war ask <alias> <stage> "<question>"`: the agent's half.
 pub fn ask(
     repo: &Repository,
@@ -273,12 +278,53 @@ pub fn ask(
     }
     let dir = repo.warrant_dir(alias)?;
     let existing = load(repo, alias)?;
+    // OW-WAR-0130 (§67.4), before the first write: the same question, asked
+    // by the same agent against the same stage, is a retry. Its journal key
+    // names the question already on file; held by the same actor it replays
+    // and writes nothing, held by another it is a conflict and writes nothing.
+    let asked_by = format!("agent://{}", repo.performer());
+    if let Some(prior) = existing.iter().find(|q| {
+        q.stage == stage
+            && q.question == question.trim()
+            && q.blocking == blocking
+            && q.recommended == recommended.trim()
+            && q.asked_by == asked_by
+    }) {
+        let payload = asked_payload(stage, &prior.id, blocking);
+        match crate::journal_cmd::already_recorded(&dir, EVENT_ASKED, &payload, &asked_by)? {
+            crate::journal_cmd::Prior::Conflict { recorded_by } => {
+                report.push(crate::journal_cmd::conflict(
+                    repo.relative(&dir.join(crate::journal_cmd::FILE)),
+                    EVENT_ASKED,
+                    &recorded_by,
+                    &asked_by,
+                ));
+                return Ok(report);
+            }
+            crate::journal_cmd::Prior::Equivalent { .. } | crate::journal_cmd::Prior::Fresh => {
+                report.push(Diagnostic::pass(
+                    "question.replayed",
+                    format!(
+                        "{alias}/{} already asks this against {stage}{} → {}; an equivalent \
+                         retry replays and writes nothing",
+                        prior.id,
+                        match &prior.answer {
+                            Some(a) => format!(", answered by {}", a.answered_by),
+                            None => " and awaits an answer".to_owned(),
+                        },
+                        repo.relative(&path_of(&dir.join(DIR), &prior.id))
+                    ),
+                ));
+                return Ok(report);
+            }
+        }
+    }
     let q = Question {
         schema: SCHEMA.to_owned(),
         id: next_id(&existing),
         warrant: alias.to_owned(),
         stage: stage.to_owned(),
-        asked_by: format!("agent://{}", repo.performer()),
+        asked_by,
         asked_at: crate::gate_cmd::receipt::now_rfc3339_public(),
         question: question.trim().to_owned(),
         blocking,
@@ -298,8 +344,7 @@ pub fn ask(
             &uuid,
             EVENT_ASKED,
             &q.asked_by,
-            &serde_json::json!({ "stage": stage, "question": q.id, "blocking": blocking })
-                .to_string(),
+            &asked_payload(stage, &q.id, blocking),
         )?;
     }
     report.push(Diagnostic::pass(

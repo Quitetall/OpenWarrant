@@ -197,20 +197,118 @@ pub fn event(
     }
 }
 
-/// Append one event, now, and write ONLY the new line. Refuses a duplicate
-/// idempotency key. Errors are returned, never swallowed: a command whose
-/// effect was recorded but whose journal line was not is a command that
-/// partially happened, and the caller decides what that means.
+/// What [`record`] did (OW-WAR-0130).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Recorded {
+    /// A new line was appended.
+    Recorded,
+    /// The journal already held this key, by this actor: nothing was written.
+    Replayed,
+}
+
+/// What the journal already holds for one event, before a command writes
+/// anything (§67.4). The key is the idempotency key's own preimage — the
+/// event type and payload of this Warrant's journal — so "the same fact" is
+/// decided exactly as [`event`] decides it, never by a second rule.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Prior {
+    /// Not recorded: the act is new.
+    Fresh,
+    /// Recorded by this same actor: an equivalent retry, which replays.
+    Equivalent { occurred_at: String },
+    /// Recorded by someone else: a conflicting reuse of the key, refused.
+    Conflict { recorded_by: String },
+}
+
+/// Whether `event_type` with `payload` is already in the Warrant's journal,
+/// and by whom. A command asks this before its FIRST write, so a retry that
+/// replays writes nothing at all and a conflicting one is refused with
+/// nothing written. A journal that cannot be read is an error, not `Fresh`.
+pub fn already_recorded(
+    warrant_dir: &Utf8Path,
+    event_type: &str,
+    payload: &str,
+    actor_ref: &str,
+) -> Result<Prior, RepoError> {
+    let journal = load(warrant_dir)?;
+    let Some(prior) = journal
+        .events
+        .iter()
+        .find(|e| e.event_type == event_type && e.payload == payload)
+    else {
+        return Ok(Prior::Fresh);
+    };
+    if prior.actor_ref == actor_ref {
+        Ok(Prior::Equivalent {
+            occurred_at: prior.occurred_at.clone(),
+        })
+    } else {
+        Ok(Prior::Conflict {
+            recorded_by: prior.actor_ref.clone(),
+        })
+    }
+}
+
+/// The refusal for a conflicting reuse: the rule, then who holds the key.
+#[must_use]
+pub fn conflict_message(
+    event_type: &str,
+    recorded_by: &str,
+    actor_ref: &str,
+    file: &Utf8Path,
+) -> String {
+    format!(
+        "journal.idempotency-conflict: {file} already records `{event_type}` with this exact \
+         payload by {recorded_by}, and this act is {actor_ref}. The same fact recorded by a \
+         second actor is a conflicting reuse of its idempotency key (§67.4), not a retry; \
+         nothing was written"
+    )
+}
+
+/// `journal.idempotency-conflict` as a diagnostic, for a command that
+/// reports rather than returns its refusals.
+#[must_use]
+pub fn conflict(file: String, event_type: &str, recorded_by: &str, actor_ref: &str) -> Diagnostic {
+    let message = conflict_message(event_type, recorded_by, actor_ref, Utf8Path::new(&file));
+    Diagnostic::error(
+        "journal.idempotency-conflict",
+        file,
+        message.trim_start_matches("journal.idempotency-conflict: "),
+    )
+}
+
+/// Append one event, now, and write ONLY the new line.
+///
+/// OW-WAR-0130 (§67.4): the same key by the same actor is an equivalent
+/// retry and returns [`Recorded::Replayed`] having written nothing; the same
+/// key by a different actor is refused `journal.idempotency-conflict`.
+/// Errors are returned, never swallowed: a command whose effect was recorded
+/// but whose journal line was not is a command that partially happened, and
+/// the caller decides what that means. A command should ask
+/// [`already_recorded`] before its first write, so that it never reaches
+/// here with a conflict after writing its record.
 pub fn record(
     warrant_dir: &Utf8Path,
     warrant_uuid: &str,
     event_type: &str,
     actor_ref: &str,
     payload: &str,
-) -> Result<(), RepoError> {
+) -> Result<Recorded, RepoError> {
+    match already_recorded(warrant_dir, event_type, payload, actor_ref)? {
+        Prior::Equivalent { .. } => return Ok(Recorded::Replayed),
+        Prior::Conflict { recorded_by } => {
+            return Err(RepoError::Message(conflict_message(
+                event_type,
+                &recorded_by,
+                actor_ref,
+                &warrant_dir.join(FILE),
+            )));
+        }
+        Prior::Fresh => {}
+    }
     let occurred_at = crate::gate_cmd::receipt::rfc3339_from_secs(now_secs());
     let ev = event(warrant_uuid, event_type, actor_ref, &occurred_at, payload);
-    append(warrant_dir, ev)
+    append(warrant_dir, ev).map(|()| Recorded::Recorded)
 }
 
 fn append(warrant_dir: &Utf8Path, ev: JournalEvent) -> Result<(), RepoError> {
@@ -305,6 +403,17 @@ pub fn check(
     warrant_uuid: Option<&str>,
     report: &mut Report,
 ) {
+    // OW-WAR-0130: a batch killed between its first record and its last left
+    // a marker. Reported under each Warrant whose directory it lists, as an
+    // ERROR: this Warrant's records may hold part of a list nobody signed as
+    // a part. Here because `war check` runs this for every Warrant it checks.
+    for m in crate::batch_cmd::interrupted(repo) {
+        if m.1.roots.is_empty() || crate::batch_cmd::touches(repo, &m.1, warrant_dir) {
+            let mut d = crate::batch_cmd::interrupted_diagnostic(repo, &m);
+            d.message = format!("{alias}: {}", d.message);
+            report.push(d);
+        }
+    }
     let path = warrant_dir.join(FILE);
     if !path.is_file() {
         return;

@@ -34,6 +34,12 @@ pub enum ConfigError {
          and no tool may decide that for the signer"
     )]
     PresetKindMissing { key: String },
+    #[error(
+        "project.requires_war {found:?} is not a version requirement: {why}. Write one or \
+         more comma-separated comparators such as \">=1.0.0\", \">=1.2, <2\" or \"^1.1\" \
+         (OW-WAR-0130)"
+    )]
+    RequiresWarMalformed { found: String, why: String },
 }
 
 /// A validated project namespace, e.g. `OW`.
@@ -90,6 +96,17 @@ pub struct Project {
     /// it. Optional; a tracked input, unlike a git remote.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub repository_url: Option<String>,
+    /// The `war` versions this repository needs (OW-WAR-0130, option B of
+    /// its U-001): a requirement such as `">=1.2.0"`, checked once when a
+    /// repository is discovered, before any record is read. A `war` it does
+    /// not admit refuses with `compat.war-too-old` rather than misreading
+    /// records a newer one wrote. Absent: any `war` reads the repository.
+    ///
+    /// A `war` older than this key does not know it and ignores it; the key
+    /// protects from the first release that reads it onwards
+    /// (docs/COMPATIBILITY.md, "Reading backward").
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub requires_war: Option<String>,
 }
 
 /// Where the controlled document trees live (§59, §60).
@@ -514,6 +531,7 @@ impl RepositoryConfig {
                 knowledge_fabric_project_ref: None,
                 performer: None,
                 repository_url: None,
+                requires_war: None,
             },
             paths: Paths::default(),
             generated: GeneratedPolicy::default(),
@@ -543,14 +561,244 @@ impl RepositoryConfig {
         if self.project.name.trim().is_empty() {
             return Err(ConfigError::ProjectNameEmpty);
         }
+        if let Some(req) = &self.project.requires_war {
+            VersionReq::parse(req).map_err(|why| ConfigError::RequiresWarMalformed {
+                found: req.clone(),
+                why,
+            })?;
+        }
         self.sign.validate()?;
         self.paths.validate()
+    }
+}
+
+/// A `war` version requirement, `[project] requires_war` (OW-WAR-0130).
+///
+/// Cargo's comparator syntax, without the dependency: one or more
+/// comma-separated comparators, each `>=`, `>`, `<=`, `<`, `=`, `^`, `~` or
+/// bare (which is `^`), over a version of one to three numeric parts, or of
+/// three with a pre-release (`=1.0.0-alpha.2`). Versions order as semver
+/// orders them — a pre-release below its release, so `>=1.0.0` does not
+/// admit `1.0.0-alpha.2` — and wildcards are refused rather than guessed at.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct VersionReq {
+    bounds: Vec<Bounds>,
+}
+
+/// One comparator: a lower and an upper bound, each `(key, inclusive)`.
+type Bounds = (Option<(VersionKey, bool)>, Option<(VersionKey, bool)>);
+
+/// A version as semver orders it.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct VersionKey(u64, u64, u64, Pre);
+
+/// The pre-release part. `Pre(vec![])` is the least version of its triple;
+/// a release is greater than every pre-release of it.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+enum Pre {
+    Pre(Vec<PreId>),
+    Release,
+}
+
+/// Numeric identifiers order below alphanumeric ones, as semver says.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+enum PreId {
+    Num(u64),
+    Alnum(String),
+}
+
+impl VersionKey {
+    /// `1.2.3`, `1.2.3-alpha.2`, `1.2.3+build`; `None` for anything else.
+    fn parse(v: &str) -> Option<Self> {
+        let v = v.trim();
+        let v = v.split_once('+').map_or(v, |(c, _)| c);
+        let (core, pre) = match v.split_once('-') {
+            Some((c, p)) => (c, Some(p)),
+            None => (v, None),
+        };
+        let n: Vec<u64> = core
+            .split('.')
+            .map(str::parse)
+            .collect::<Result<_, _>>()
+            .ok()?;
+        let [a, b, c] = n.as_slice() else {
+            return None;
+        };
+        let pre = match pre {
+            None => Pre::Release,
+            Some(p) => Pre::Pre(Self::pre(p)?),
+        };
+        Some(Self(*a, *b, *c, pre))
+    }
+
+    fn pre(p: &str) -> Option<Vec<PreId>> {
+        p.split('.')
+            .map(|id| {
+                if id.is_empty() || !id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
+                    None
+                } else if let Ok(n) = id.parse() {
+                    Some(PreId::Num(n))
+                } else {
+                    Some(PreId::Alnum(id.to_owned()))
+                }
+            })
+            .collect()
+    }
+}
+
+impl VersionReq {
+    /// Parse a requirement; the error says which comparator and why.
+    pub fn parse(raw: &str) -> Result<Self, String> {
+        let raw = raw.trim();
+        if raw.is_empty() {
+            return Err("it is empty".to_owned());
+        }
+        let mut bounds = Vec::new();
+        for part in raw.split(',') {
+            bounds.push(Self::comparator(part.trim())?);
+        }
+        Ok(Self { bounds })
+    }
+
+    fn comparator(c: &str) -> Result<Bounds, String> {
+        let (op, rest) = ["<=", ">=", "<", ">", "=", "^", "~"]
+            .iter()
+            .find_map(|op| c.strip_prefix(op).map(|r| (*op, r.trim())))
+            .unwrap_or(("^", c));
+        if rest.is_empty() {
+            return Err(format!("{c:?} names no version"));
+        }
+        let (core, pre) = match rest.split_once('-') {
+            Some((core, pre)) => (core, Some(pre)),
+            None => (rest, None),
+        };
+        let parts: Vec<&str> = core.split('.').collect();
+        if parts.len() > 3 {
+            return Err(format!("{rest:?} has more than three parts"));
+        }
+        let mut n = [0u64; 3];
+        for (i, p) in parts.iter().enumerate() {
+            n[i] = p
+                .parse()
+                .map_err(|_| format!("{rest:?}: {p:?} is not a number (wildcards are not read)"))?;
+        }
+        let given = parts.len();
+        let [ma, mi, pa] = n;
+        let pre = match pre {
+            None => Pre::Release,
+            Some(_) if given != 3 => {
+                return Err(format!("{rest:?}: a pre-release needs all three parts"));
+            }
+            Some(p) => Pre::Pre(
+                VersionKey::pre(p)
+                    .ok_or_else(|| format!("{rest:?}: {p:?} is not a pre-release"))?,
+            ),
+        };
+        let exact = VersionKey(ma, mi, pa, pre);
+        // The least version of a triple: its lowest pre-release.
+        let least = |a, b, c| VersionKey(a, b, c, Pre::Pre(vec![]));
+        let at = |k: VersionKey| Some((k, true));
+        let below = |k: VersionKey| Some((k, false));
+        // The first version past the given precision: 1.2 → 1.3.0, 1 → 2.0.0.
+        let next = match given {
+            1 => least(ma + 1, 0, 0),
+            2 => least(ma, mi + 1, 0),
+            _ => least(ma, mi, pa + 1),
+        };
+        let full = given == 3;
+        Ok(match op {
+            ">=" => (at(exact), None),
+            ">" if full => (Some((exact, false)), None),
+            ">" => (at(next), None),
+            "<" => (None, below(exact)),
+            "<=" if full => (None, at(exact)),
+            "<=" => (None, below(next)),
+            "=" if full => (at(exact.clone()), at(exact)),
+            "=" => (at(exact), below(next)),
+            "~" => {
+                let upper = if given == 1 {
+                    least(ma + 1, 0, 0)
+                } else {
+                    least(ma, mi + 1, 0)
+                };
+                (at(exact), below(upper))
+            }
+            _ => {
+                // Caret: the leftmost non-zero part given may not move.
+                let upper = if ma > 0 || given == 1 {
+                    least(ma + 1, 0, 0)
+                } else if mi > 0 || given == 2 {
+                    least(0, mi + 1, 0)
+                } else {
+                    least(0, 0, pa + 1)
+                };
+                (at(exact), below(upper))
+            }
+        })
+    }
+
+    /// Whether `version` satisfies every comparator. A version that does not
+    /// parse satisfies nothing.
+    #[must_use]
+    pub fn matches(&self, version: &str) -> bool {
+        let Some(key) = VersionKey::parse(version) else {
+            return false;
+        };
+        self.bounds.iter().all(|(lo, hi)| {
+            lo.as_ref()
+                .is_none_or(|(k, incl)| if *incl { key >= *k } else { key > *k })
+                && hi
+                    .as_ref()
+                    .is_none_or(|(k, incl)| if *incl { key <= *k } else { key < *k })
+        })
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_version_requirement_admits_and_refuses_as_cargo_would() {
+        let admits = |req: &str, v: &str| VersionReq::parse(req).expect(req).matches(v);
+        assert!(admits(">=1.0.0", "1.0.0"));
+        assert!(!admits(">=99", "1.0.0"));
+        assert!(
+            !admits(">=1.0.0", "1.0.0-alpha.2"),
+            "a pre-release is below its release"
+        );
+        assert!(admits("^1.1", "1.9.0") && !admits("^1.1", "2.0.0") && !admits("^1.1", "1.0.9"));
+        assert!(admits("^0.2.3", "0.2.9") && !admits("^0.2.3", "0.3.0"));
+        assert!(admits("~1.2", "1.2.7") && !admits("~1.2", "1.3.0"));
+        assert!(admits("=1.2", "1.2.5") && !admits("=1.2.3", "1.2.4"));
+        assert!(admits(">1.2", "1.3.0") && !admits(">1.2", "1.2.9"));
+        assert!(admits("<=1.2", "1.2.9") && !admits("<=1.2", "1.3.0"));
+        assert!(admits(">=1.2, <2", "1.5.0") && !admits(">=1.2, <2", "2.0.0"));
+        assert!(!admits(">=1.0.0", "not a version"));
+        assert!(admits("=1.0.0-alpha.2", "1.0.0-alpha.2"));
+        assert!(!admits("=1.0.0-alpha.2", "1.0.0-alpha.3") && !admits("=1.0.0-alpha.2", "1.0.0"));
+        assert!(
+            admits(">=1.0.0-alpha.2", "1.0.0-alpha.10"),
+            "numeric identifiers order as numbers"
+        );
+        assert!(admits(">=1.0.0-alpha.2", "1.0.0") && !admits(">=1.0.0-alpha.2", "1.0.0-alpha.1"));
+        assert!(admits("<1.0.0", "0.9.9") && !admits("<1.0.0", "1.0.0"));
+        for bad in ["", ">=", "1.x", ">=1.0-alpha", "1.2.3.4", "*", "=1.0.0-"] {
+            assert!(VersionReq::parse(bad).is_err(), "{bad:?} must be refused");
+        }
+    }
+
+    #[test]
+    fn a_malformed_requires_war_is_refused_by_validation() {
+        let mut c = valid();
+        c.project.requires_war = Some(">=one".to_owned());
+        assert!(matches!(
+            c.validate(),
+            Err(ConfigError::RequiresWarMalformed { .. })
+        ));
+        c.project.requires_war = Some(">=1.0".to_owned());
+        assert_eq!(c.validate(), Ok(()));
+    }
 
     fn valid() -> RepositoryConfig {
         RepositoryConfig::new("OpenWarrant", Namespace::parse("OW").expect("valid"))

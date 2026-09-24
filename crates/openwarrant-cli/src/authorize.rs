@@ -656,6 +656,63 @@ pub fn ingest_with(
         return Ok(report);
     }
 
+    // OW-WAR-0130 (§67.4), before the first write: the same signed act,
+    // already recorded for the contract as it stands by the same person, is
+    // an equivalent retry. It replays — nothing is written, the act exits 0 —
+    // where it used to meet `authorize.already-authorized` or, for a record
+    // that was file-only, rewrite it. The same key journalled by another
+    // actor is a conflicting reuse and is refused with nothing written.
+    let actor = format!("person://{}", response.authorizer);
+    let payload = format!(
+        "{{\"contract_digest\":\"{}\",\"acting_role\":\"{}\",\"channel\":\"{}\",\"deliverable_set_digest\":\"{}\",\"set_signed\":{}}}",
+        response.contract_digest,
+        response.acting_role,
+        response.signed_via.as_deref().unwrap_or("file"),
+        current_set_digest,
+        set_signed
+    );
+    let on_file = repo.load_authorization(&dir)?.is_some_and(|prev| {
+        prev.revision.contract_digest == current_digest
+            && prev
+                .revision
+                .authorization
+                .as_ref()
+                .is_some_and(|a| a.authorizer == response.authorizer)
+    });
+    if on_file {
+        for event_type in [
+            crate::journal_cmd::AUTHORIZATION_RECORDED,
+            crate::journal_cmd::AUTHORIZATION_SIGNATURE_RECORDED,
+        ] {
+            match crate::journal_cmd::already_recorded(&dir, event_type, &payload, &actor)? {
+                crate::journal_cmd::Prior::Fresh => {}
+                crate::journal_cmd::Prior::Conflict { recorded_by } => {
+                    report.push(crate::journal_cmd::conflict(
+                        repo.relative(&dir.join(crate::journal_cmd::FILE)),
+                        event_type,
+                        &recorded_by,
+                        &actor,
+                    ));
+                    return Ok(report);
+                }
+                crate::journal_cmd::Prior::Equivalent { occurred_at } => {
+                    report.push(Diagnostic::pass(
+                        "authorize.replayed",
+                        format!(
+                            "{alias}: contract {current_digest} is already authorized by {} \
+                             acting as {}, journalled at {occurred_at} → {}; an equivalent \
+                             retry replays and writes nothing",
+                            response.authorizer,
+                            response.acting_role,
+                            repo.relative(&authorization_path)
+                        ),
+                    ));
+                    return Ok(report);
+                }
+            }
+        }
+    }
+
     let authorization = Authorization {
         authorizer: response.authorizer.clone(),
         // Unreachable after `validate_response`, which refuses `UnknownActor`
@@ -827,15 +884,8 @@ pub fn ingest_with(
             } else {
                 crate::journal_cmd::AUTHORIZATION_RECORDED
             },
-            &format!("person://{}", response.authorizer),
-            &format!(
-                "{{\"contract_digest\":\"{}\",\"acting_role\":\"{}\",\"channel\":\"{}\",\"deliverable_set_digest\":\"{}\",\"set_signed\":{}}}",
-                response.contract_digest,
-                response.acting_role,
-                response.signed_via.as_deref().unwrap_or("file"),
-                current_set_digest,
-                set_signed
-            ),
+            &actor,
+            &payload,
         )?;
     }
     report.push(Diagnostic::pass(

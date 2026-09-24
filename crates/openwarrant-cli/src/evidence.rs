@@ -196,6 +196,13 @@ pub fn load(repo: &Repository, warrant_dir: &Utf8Path) -> Result<Vec<GateEvidenc
     Ok(out)
 }
 
+/// The `sync.receipt_attached` payload: what its journal key is made of.
+fn attached_payload(key: &str, verdict: &str, receipt_digest: &str) -> String {
+    format!(
+        "{{\"gate\":\"{key}\",\"verdict\":\"{verdict}\",\"receipt_digest\":\"{receipt_digest}\"}}"
+    )
+}
+
 /// `war evidence record <alias> [--gate <key>]`.
 ///
 /// Runs each gate the Warrant cites (or the one named), for real, and mints
@@ -246,7 +253,59 @@ pub fn record(repo: &Repository, alias: &str, only: Option<&str>) -> Result<Repo
         targets.len(),
         subject[0]
     ));
+    // OW-WAR-0130 (§67.4), before the first write. A gate whose run is
+    // already on file, admissible for THIS contract, and journalled by this
+    // performer is an equivalent retry: the run is not repeated, nothing is
+    // written, and the act says it replayed. A run that failed, went stale,
+    // or never reached the journal is not replayed; it is asked again. The
+    // same receipt journalled by another actor is a conflict, and no gate
+    // runs.
+    let actor = format!("agent://{}", repo.performer());
+    let on_file = load(repo, &dir)?;
+    let mut fresh: Vec<&String> = Vec::new();
     for key in &targets {
+        let prior = on_file.iter().find_map(|e| {
+            let receipt = e.receipt.as_ref()?;
+            (&e.run.gate == key && admissibility(e, Some(&contract_digest)).is_ok())
+                .then_some((e, receipt))
+        });
+        let Some((e, receipt)) = prior else {
+            fresh.push(key);
+            continue;
+        };
+        let payload = attached_payload(key, &receipt.verdict.to_string(), &receipt.receipt_digest);
+        match crate::journal_cmd::already_recorded(
+            &dir,
+            crate::journal_cmd::RECEIPT_ATTACHED,
+            &payload,
+            &actor,
+        )? {
+            crate::journal_cmd::Prior::Fresh => fresh.push(key),
+            crate::journal_cmd::Prior::Conflict { recorded_by } => {
+                report.push(crate::journal_cmd::conflict(
+                    repo.relative(&dir.join(crate::journal_cmd::FILE)),
+                    crate::journal_cmd::RECEIPT_ATTACHED,
+                    &recorded_by,
+                    &actor,
+                ));
+                return Ok(report);
+            }
+            crate::journal_cmd::Prior::Equivalent { occurred_at } => {
+                report.push(Diagnostic::pass(
+                    "evidence.replayed",
+                    format!(
+                        "{alias}: {key} already has an admissible {} run bound to {}, journalled \
+                         at {occurred_at} → {}; an equivalent retry replays, runs nothing and \
+                         writes nothing",
+                        receipt.verdict,
+                        subject[0],
+                        repo.relative(&e.run_path)
+                    ),
+                ));
+            }
+        }
+    }
+    for key in fresh {
         let sub = crate::gate_cmd::run(repo, true, Some(key), true, &subject, &[], Some(&out_dir))?;
         let minted = sub.diagnostics.iter().any(|d| d.rule == "gate-run.receipt");
         for d in sub.diagnostics {
@@ -265,11 +324,8 @@ pub fn record(repo: &Repository, alias: &str, only: Option<&str>) -> Result<Repo
                 &dir,
                 &validated.uuid.to_string(),
                 crate::journal_cmd::RECEIPT_ATTACHED,
-                &format!("agent://{}", repo.performer()),
-                &format!(
-                    "{{\"gate\":\"{key}\",\"verdict\":\"{}\",\"receipt_digest\":\"{}\"}}",
-                    receipt.verdict, receipt.receipt_digest
-                ),
+                &actor,
+                &attached_payload(key, &receipt.verdict.to_string(), &receipt.receipt_digest),
             )?;
         }
     }

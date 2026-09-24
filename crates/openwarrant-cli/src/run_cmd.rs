@@ -35,6 +35,12 @@ fn now_rfc3339() -> String {
     crate::gate_cmd::receipt::rfc3339_from_secs(secs)
 }
 
+/// The bytes [`write_json`] writes for `v`.
+fn render_json<T: serde::Serialize>(v: &T) -> Result<String, RepoError> {
+    let text = serde_json::to_string_pretty(v).map_err(|e| RepoError::Message(e.to_string()))?;
+    Ok(format!("{text}\n"))
+}
+
 fn write_json<T: serde::Serialize>(path: &Utf8Path, v: &T) -> Result<(), RepoError> {
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent).map_err(|source| RepoError::Io {
@@ -42,8 +48,8 @@ fn write_json<T: serde::Serialize>(path: &Utf8Path, v: &T) -> Result<(), RepoErr
             source,
         })?;
     }
-    let text = serde_json::to_string_pretty(v).map_err(|e| RepoError::Message(e.to_string()))?;
-    std::fs::write(path, format!("{text}\n")).map_err(|source| RepoError::Io {
+    let text = render_json(v)?;
+    std::fs::write(path, text).map_err(|source| RepoError::Io {
         context: format!("could not write {path}"),
         source,
     })
@@ -71,6 +77,25 @@ fn compiled_dispatch_ids(dir: &Utf8Path) -> Result<Vec<String>, RepoError> {
     })
 }
 
+const SUBMISSION_RECORDED: &str = "submission.recorded";
+
+fn submission_path(dir: &Utf8Path, submission: &StageSubmission) -> Utf8PathBuf {
+    dir.join(SUBMISSIONS_DIR)
+        .join(format!("{}.json", submission.dispatch_id))
+}
+
+/// The `submission.recorded` payload: what the journal key is made of.
+fn submission_payload(repo: &Repository, path: &Utf8Path, submission: &StageSubmission) -> String {
+    serde_json::json!({
+        "dispatch_id": submission.dispatch_id,
+        "stage": submission.stage_id,
+        "requested_next_action": submission.requested_next_action.map(|a| a.to_string()),
+        "blockers": submission.blockers.len(),
+        "path": repo.relative(path),
+    })
+    .to_string()
+}
+
 /// Write a submission and journal it. The caller has validated it.
 fn record_submission(
     repo: &Repository,
@@ -80,23 +105,14 @@ fn record_submission(
     actor: &str,
     report: &mut Report,
 ) -> Result<Utf8PathBuf, RepoError> {
-    let path = dir
-        .join(SUBMISSIONS_DIR)
-        .join(format!("{}.json", submission.dispatch_id));
+    let path = submission_path(dir, submission);
     write_json(&path, submission)?;
     crate::journal_cmd::record(
         dir,
         uuid,
-        "submission.recorded",
+        SUBMISSION_RECORDED,
         actor,
-        &serde_json::json!({
-            "dispatch_id": submission.dispatch_id,
-            "stage": submission.stage_id,
-            "requested_next_action": submission.requested_next_action.map(|a| a.to_string()),
-            "blockers": submission.blockers.len(),
-            "path": repo.relative(&path),
-        })
-        .to_string(),
+        &submission_payload(repo, &path, submission),
     )?;
     report.push(Diagnostic::pass(
         "submission.recorded",
@@ -461,6 +477,53 @@ pub fn submit(repo: &Repository, alias: &str, file: &Utf8Path) -> Result<Report,
         return Ok(report);
     }
     let actor = format!("agent://{}", repo.performer());
+    // OW-WAR-0130 (§67.4), before the first write: the same submission,
+    // already recorded by the same actor with the same bytes on disk, replays
+    // and writes nothing. The same key held by another actor, or by a record
+    // whose bytes differ, is a conflicting reuse and writes nothing either.
+    let path = submission_path(&dir, &submission);
+    let payload = submission_payload(repo, &path, &submission);
+    let journal = repo.relative(&dir.join(crate::journal_cmd::FILE));
+    match crate::journal_cmd::already_recorded(&dir, SUBMISSION_RECORDED, &payload, &actor)? {
+        crate::journal_cmd::Prior::Fresh => {}
+        crate::journal_cmd::Prior::Conflict { recorded_by } => {
+            report.push(crate::journal_cmd::conflict(
+                journal,
+                SUBMISSION_RECORDED,
+                &recorded_by,
+                &actor,
+            ));
+            return Ok(report);
+        }
+        crate::journal_cmd::Prior::Equivalent { occurred_at } => {
+            let rendered = render_json(&submission)?;
+            if std::fs::read(&path).is_ok_and(|b| b == rendered.as_bytes()) {
+                report.push(Diagnostic::pass(
+                    "submission.replayed",
+                    format!(
+                        "{}: this submission for dispatch {} was recorded at {occurred_at} with \
+                         these exact bytes; an equivalent retry replays and writes nothing",
+                        repo.relative(&path),
+                        submission.dispatch_id
+                    ),
+                ));
+                return Ok(report);
+            }
+            report.push(Diagnostic::error(
+                "journal.idempotency-conflict",
+                journal,
+                format!(
+                    "{alias}: `{SUBMISSION_RECORDED}` for dispatch {} is already journalled with \
+                     this key, and {} no longer holds the bytes this submission would write. A \
+                     different record under the same key is a conflicting reuse (§67.4), not a \
+                     retry; nothing was written",
+                    submission.dispatch_id,
+                    repo.relative(&path)
+                ),
+            ));
+            return Ok(report);
+        }
+    }
     record_submission(repo, &dir, &uuid, &submission, &actor, &mut report)?;
     Ok(report)
 }

@@ -35,6 +35,61 @@ form changed — each is a new `oh.war/<record>/v2` beside the old one, read by
 and with the pack every contract digest, so a `v2` is a release the owner
 re-authorizes into, not a patch.
 
+## Reading backward
+
+The rules above say what a later `war` reads from an earlier one. This is the
+other direction: an older `war` meeting a repository, or a record, that a
+newer one wrote (OW-WAR-0130).
+
+### A repository says which `war` it needs
+
+`openwarrant.toml` may carry, under `[project]`:
+
+```toml
+requires_war = ">=1.2.0"
+```
+
+A version requirement in Cargo's comparator syntax: `>=`, `>`, `<=`, `<`,
+`=`, `^`, `~` or bare (which is `^`), comma-separated, over a version of one
+to three parts, or three with a pre-release (`=1.0.0-alpha.2`). A pre-release
+orders below its release, so `>=1.0.0` does not admit `1.0.0-alpha.2`. A
+requirement that does not parse is refused when the configuration is read.
+
+It is checked once, when the repository is discovered and before any record
+is read. A `war` it does not admit stops there with `compat.war-too-old`,
+naming the requirement and its own version, and reads nothing: no Warrant
+finding is printed from records it may not understand. No key: every `war`
+reads the repository, as before.
+
+The key protects from the first release that reads it. A `war` older than
+that does not know the key and ignores it, as it ignores any key it does not
+know in `[project]`; for those, the record check below is what remains.
+
+### A record says which major it is
+
+Every frozen record names its schema, `oh.war/<record>/v<major>`, and each
+`war` knows the major it reads for each (`crates/openwarrant-cli/src/compat.rs`
+lists them, and it moves only with a `v2`). A record naming a newer major is
+reported by `war check` as UNKNOWN `compat.newer-record` — never PASS, because
+this `war` did not read what it says, and never ERROR, because nothing is known
+to be wrong with it. The journal carries its major in each line's `v`.
+
+That is a report, not a translation: whatever else reads the record reads it
+as it always did. A repository that relies on a newer record says so with
+`requires_war`, which stops an older `war` before it reads anything.
+
+### Unknown optional fields (§69.4)
+
+§69.4 asks that unknown optional namespaced extensions be preserved and that
+unknown required ones fail closed. Today they are not preserved: many record
+types refuse any field they do not know (`deny_unknown_fields` — the batch,
+attestation, drafting-v2 and roadmap records among them), so an optional
+extension written by a newer `war` is a parse error to an older one, and the
+rest keep only the fields they know when they rewrite a record. Relaxing
+that touches every such record type and is its own Warrant (option C of
+OW-WAR-0130's U-001); until then, `requires_war` is how a repository keeps an
+older `war` away from records it would refuse or trim.
+
 ## The crates
 
 `openwarrant-core`, `openwarrant-agent`, `openwarrant-compiler`,
