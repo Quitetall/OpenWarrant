@@ -202,13 +202,17 @@ plant_gate "a receipt for a run that never happened" "gate-run.unaskable" "malfo
 # plant asserts the check can also PASS when independence is actually declared
 # sufficient. That is the same negative-control logic §43.4 qualification
 # requires of a gate, applied to a diagnostic.
+# Plain `check`, not `--generated`: since the corpus declares a verifier
+# (OW-WAR-0117) the committed CORPUS_STATUS depends on [independence], so a
+# plant that edits it also moves the projection and `--generated` would
+# report that drift instead of the rule under test.
 plant_cmd "independence not declared at all" "independence.undeclared" "not the same as none" 0 \
     "python3 - <<'EOF'
 import pathlib
 p = pathlib.Path('openwarrant.toml')
 s = p.read_text()
 p.write_text(s[:s.index('[independence]')])
-EOF" check --generated
+EOF" check
 
 plant_cmd "independence declared sufficient" "independence.sufficient" "meets §46.3" 0 \
     "python3 - <<'EOF'
@@ -216,7 +220,7 @@ import pathlib
 p = pathlib.Path('openwarrant.toml')
 s = p.read_text()
 p.write_text(s.replace('= false', '= true'))
-EOF" check --generated
+EOF" check
 
 # §56.1 — resolution refuses while its thirteen requirements are unmet.
 #
