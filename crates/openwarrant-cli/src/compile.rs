@@ -11,6 +11,12 @@ use openwarrant_core::ValidatedManifest;
 
 use crate::repo::{RepoError, Repository};
 
+// OW-WAR-0121: the one write path for records, declared here because the
+// module list in `lib.rs` is not this Warrant's to change. Every other writer
+// reaches it as `crate::compile::atomic`.
+#[path = "atomic.rs"]
+pub(crate) mod atomic;
+
 /// §20.4's child list for one Warrant, computed from the whole corpus.
 ///
 /// Lives here rather than in the compiler because it needs every manifest, and
@@ -295,15 +301,13 @@ pub fn run(repo: &Repository, only: Option<&str>) -> Result<(), RepoError> {
                 })?;
             }
             // Write only when the bytes actually change, so recompiling a clean
-            // tree does not churn mtimes and make every build look dirty.
-            let unchanged = fs::read_to_string(&path)
-                .map(|existing| existing == contents)
-                .unwrap_or(false);
-            if !unchanged {
-                fs::write(&path, &contents).map_err(|source| RepoError::Io {
-                    context: format!("could not write {path}"),
-                    source,
-                })?;
+            // tree does not churn mtimes and make every build look dirty. The
+            // bytes read to decide that are the prestate the write checks, so
+            // a view changed meanwhile is refused rather than overwritten, and
+            // a crash mid-write leaves the old view whole (§86).
+            let before = atomic::prestate(&path)?;
+            if before != atomic::Prestate::of(contents.as_bytes()) {
+                atomic::write_if(&path, &contents, &before)?;
                 written += 1;
             }
         }
@@ -340,14 +344,9 @@ pub fn run(repo: &Repository, only: Option<&str>) -> Result<(), RepoError> {
                     source,
                 })?;
             }
-            let unchanged = fs::read_to_string(&path)
-                .map(|existing| existing == contents)
-                .unwrap_or(false);
-            if !unchanged {
-                fs::write(&path, &contents).map_err(|source| RepoError::Io {
-                    context: format!("could not write {path}"),
-                    source,
-                })?;
+            let before = atomic::prestate(&path)?;
+            if before != atomic::Prestate::of(contents.as_bytes()) {
+                atomic::write_if(&path, &contents, &before)?;
                 written += 1;
             }
             println!("compiled {}", path.file_name().unwrap_or("overview"));

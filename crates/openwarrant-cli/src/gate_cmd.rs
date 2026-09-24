@@ -153,7 +153,8 @@ pub fn persist_run(run: &GateRun, dir: &camino::Utf8Path) -> Result<(), String> 
         std::fs::create_dir_all(parent).map_err(|e| format!("could not create {parent}: {e}"))?;
     }
     let rendered = toml::to_string_pretty(run).map_err(|e| e.to_string())?;
-    std::fs::write(&path, rendered).map_err(|e| format!("could not write {path}: {e}"))
+    // OW-WAR-0121: temp, fsync, rename; a symlink in the run's place refused.
+    crate::compile::atomic::write(&path, rendered).map_err(|r| r.to_string())
 }
 
 /// Run one gate and produce its §44 result.
@@ -762,8 +763,9 @@ pub mod receipt {
         let path = dir.join(format!("{slug}.receipt.json"));
         let body = serde_json::to_string_pretty(&receipt)
             .map_err(|e| RepoError::Message(format!("{e}")))?;
-        std::fs::write(&path, body + "\n")
-            .map_err(|e| RepoError::Message(format!("cannot write {path}: {e}")))?;
+        // OW-WAR-0121: a receipt is evidence a resolution cites; a crash while
+        // writing it leaves the previous receipt whole, never half of one.
+        crate::compile::atomic::write(&path, body + "\n")?;
         Ok(path)
     }
 }

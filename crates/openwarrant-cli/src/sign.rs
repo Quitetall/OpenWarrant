@@ -1328,10 +1328,7 @@ fn dry_run(
             }
         };
         let path = tmp.join(format!("{}.draft.toml", drafted.file_stem()));
-        std::fs::write(&path, drafted.render()?).map_err(|source| RepoError::Io {
-            context: format!("could not write {path}"),
-            source,
-        })?;
+        crate::compile::atomic::write(&path, drafted.render()?)?;
         let judged = match p {
             Pending::Authorize { alias, .. } => {
                 authorize::ingest_with(repo, alias, &path, IngestMode::DryRun)
@@ -1434,11 +1431,10 @@ pub(crate) fn write_response(
     // Written under a DRAFT name. Only a `y` renames it to `.response.toml`,
     // so a crash, a Ctrl-C, or an `$EDITOR` that never returned leaves a file
     // that says "draft" in its name rather than one that reads as signed.
+    // OW-WAR-0121: temp, fsync, rename, so the draft a signature is made over
+    // is whole, and a symlink in its place is refused rather than followed.
     let path = dir.join(format!("{}.draft.toml", drafted.file_stem()));
-    std::fs::write(&path, drafted.render()?).map_err(|source| RepoError::Io {
-        context: format!("could not write {path}"),
-        source,
-    })?;
+    crate::compile::atomic::write(&path, drafted.render()?)?;
     Ok(path)
 }
 
@@ -1613,7 +1609,7 @@ pub(crate) fn ssh_sign_file(
     // key mid-sign, and named so a stray one (crash between write and cleanup)
     // reads as a temp file, not an authority artifact.
     let pub_path = Utf8PathBuf::from(format!("{file}.{}.tmp.pub", std::process::id()));
-    std::fs::write(&pub_path, format!("{pubkey} {principal}\n"))
+    crate::compile::atomic::write(&pub_path, format!("{pubkey} {principal}\n"))
         .map_err(|e| format!("could not write {pub_path}: {e}"))?;
     let sign = std::process::Command::new("ssh-keygen")
         .args(["-Y", "sign", "-f"])

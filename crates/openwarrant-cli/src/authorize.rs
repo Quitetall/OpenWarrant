@@ -510,6 +510,22 @@ pub fn ingest_with(
     mode: crate::sign::IngestMode,
 ) -> Result<Report, RepoError> {
     let dir = repo.warrant_dir(alias)?;
+    // OW-WAR-0121: what the two records this act may write ARE, read before
+    // anything else is. The writes at the end refuse if either moved in the
+    // meantime — the span includes an ssh-agent dialog — and a symlink in a
+    // record's place is refused here, before its target is read as a record.
+    let authorization_path = dir.join("authorization.toml");
+    let judgments_path = dir.join("judgments.toml");
+    let prestates = crate::compile::atomic::prestate(&authorization_path)
+        .and_then(|a| crate::compile::atomic::prestate(&judgments_path).map(|j| (a, j)));
+    let (authorization_before, judgments_before) = match prestates {
+        Ok(p) => p,
+        Err(refused) => {
+            let mut report = Report::default();
+            report.push(refused.diagnostic());
+            return Ok(report);
+        }
+    };
     let one = repo.load_warrant(&dir)?;
     let mut report = Report::default();
 
@@ -798,7 +814,10 @@ pub fn ingest_with(
         ));
         return Ok(report);
     }
-    write_toml(&dir.join("authorization.toml"), &record)?;
+    if let Err(refused) = write_toml(&authorization_path, &record, &authorization_before)? {
+        report.push(refused.diagnostic());
+        return Ok(report);
+    }
     if let Some(v) = &one.validated {
         crate::journal_cmd::record(
             &dir,
@@ -835,7 +854,10 @@ pub fn ingest_with(
             warrant: alias.to_owned(),
             judgment: response.judgment.clone(),
         };
-        write_toml(&dir.join("judgments.toml"), &judgments)?;
+        if let Err(refused) = write_toml(&judgments_path, &judgments, &judgments_before)? {
+            report.push(refused.diagnostic());
+            return Ok(report);
+        }
         report.push(Diagnostic::pass(
             "authorize.judgments-recorded",
             format!(
@@ -849,12 +871,17 @@ pub fn ingest_with(
     Ok(report)
 }
 
-fn write_toml<T: Serialize>(path: &camino::Utf8Path, value: &T) -> Result<(), RepoError> {
+/// Render and write one record through the §86 path, against the prestate
+/// read when the act began. The outer error is a record that would not
+/// render; the inner one is a write the storage layer refused by name, which
+/// the caller reports as a diagnostic rather than an I/O failure.
+fn write_toml<T: Serialize>(
+    path: &camino::Utf8Path,
+    value: &T,
+    before: &crate::compile::atomic::Prestate,
+) -> Result<Result<(), crate::compile::atomic::Refused>, RepoError> {
     let rendered = toml::to_string_pretty(value).map_err(|e| RepoError::Message(e.to_string()))?;
-    fs::write(path, rendered).map_err(|source| RepoError::Io {
-        context: format!("could not write {path}"),
-        source,
-    })
+    Ok(crate::compile::atomic::write_if(path, rendered, before))
 }
 
 /// Whether a persisted authorization covers the contract as it stands now.

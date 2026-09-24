@@ -374,6 +374,17 @@ pub fn ingest_with(
     }
 
     let dir = repo.warrant_dir(alias)?;
+    // OW-WAR-0121: the record this act writes, as it is before the act reads
+    // anything else. The write refuses if it moved since (`storage.prestate-
+    // moved`); a symlink in its place is refused now (`storage.symlink-target`).
+    let out = dir.join("resolution.toml");
+    let before = match crate::compile::atomic::prestate(&out) {
+        Ok(b) => b,
+        Err(refused) => {
+            report.push(refused.diagnostic());
+            return Ok(report);
+        }
+    };
     if let Err(e) = openwarrant_core::timestamp::validate_rfc3339_utc(&response.effective_time) {
         refuse(
             &mut report,
@@ -617,13 +628,12 @@ pub fn ingest_with(
         ));
         return Ok(report);
     }
-    let out = dir.join("resolution.toml");
     let body = toml::to_string_pretty(&record)
         .map_err(|e| RepoError::Message(format!("could not render the resolution: {e}")))?;
-    std::fs::write(&out, body).map_err(|source| RepoError::Io {
-        context: format!("could not write {out}"),
-        source,
-    })?;
+    if let Err(refused) = crate::compile::atomic::write_if(&out, body, &before) {
+        report.push(refused.diagnostic());
+        return Ok(report);
+    }
     if let Some(v) = &one.validated {
         crate::journal_cmd::record(
             &dir,

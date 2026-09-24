@@ -253,10 +253,14 @@ pub fn ingest(
                     source: std::io::Error::other(e.to_string()),
                 })?;
                 let record_digest = openwarrant_compiler::digest::sha256_hex(rendered.as_bytes());
-                fs::write(&path, rendered).map_err(|source| RepoError::Io {
-                    context: format!("could not write {path}"),
-                    source,
-                })?;
+                // OW-WAR-0121: temp, fsync, rename. A crash leaves the prior
+                // verdict whole, never half of either; a symlink in the
+                // record's place is refused by name.
+                if let Err(storage) = crate::compile::atomic::write(&path, rendered) {
+                    report.push(storage.diagnostic());
+                    refused += 1;
+                    continue;
+                }
                 written += 1;
                 if let Some(vm) = &one.validated {
                     crate::journal_cmd::record(

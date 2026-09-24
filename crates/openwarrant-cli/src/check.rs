@@ -49,6 +49,11 @@ pub fn run(
         loaded.push(one);
     }
 
+    // OW-WAR-0121: a temp file of the atomic write path is a write that
+    // stopped before its rename. The record it was meant to replace is whole
+    // (old or absent); the temp file is named so a person can remove it.
+    check_stray_temps(repo, only.map(|_| dirs.as_slice()), &mut report);
+
     // A parent's contract digest is computed from the parent, so verifying a
     // child's citation needs the whole corpus in hand. When only one Warrant was
     // requested, load the rest read-only so the citation can still be checked
@@ -397,6 +402,31 @@ pub fn run(
     }
 
     Ok(report)
+}
+
+/// `storage.stray-temp` (warning) for each file `atomic::stray` finds under
+/// `docs/`; with one Warrant asked for, only those inside its directory.
+fn check_stray_temps(
+    repo: &Repository,
+    within: Option<&[camino::Utf8PathBuf]>,
+    report: &mut Report,
+) {
+    for s in crate::compile::atomic::stray(&repo.root) {
+        if within.is_some_and(|dirs| !dirs.iter().any(|d| s.temp.starts_with(d))) {
+            continue;
+        }
+        report.push(Diagnostic::warn(
+            "storage.stray-temp",
+            repo.relative(&s.temp),
+            format!(
+                "{} is a temp file left by a write that stopped before its rename; it was meant \
+                 to replace {}, which is whole as it stands (the previous bytes, or absent). \
+                 Nothing reads the temp file. Remove it once you know which act stopped",
+                repo.relative(&s.temp),
+                repo.relative(&s.record)
+            ),
+        ));
+    }
 }
 
 /// Compare one generated corpus-wide projection against a fresh compilation.
