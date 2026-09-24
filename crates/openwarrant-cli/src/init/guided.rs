@@ -35,6 +35,9 @@ use camino::Utf8Path;
 pub enum Step {
     /// Name and namespace: `war init --program`.
     Program,
+    /// Where governed work begins, in a repository with history
+    /// (OW-WAR-0124): the `[adoption]` baseline.
+    Baseline,
     /// Who signs, and with which key.
     Signer,
     /// The `-c` question: unverifiable, asked, recorded.
@@ -56,6 +59,7 @@ impl Step {
     pub const fn title(self) -> &'static str {
         match self {
             Self::Program => "name the program",
+            Self::Baseline => "say where governed work begins",
             Self::Signer => "say who signs",
             Self::KeyLoaded => "confirm the key asks you",
             Self::Sas => "record the SAS",
@@ -80,6 +84,14 @@ pub struct Facts {
     pub sas: Vec<(String, bool)>,
     /// The first Warrant, when one exists: (alias, authorized).
     pub adopt: Option<(String, bool)>,
+    /// Commits in HEAD's history; 0 with none, or outside git (OW-WAR-0124).
+    pub commits: u64,
+    /// HEAD's full id: the baseline proposed when there is history.
+    pub head: Option<String>,
+    /// `[adoption] baseline`, when `openwarrant.toml` records one.
+    pub baseline: Option<String>,
+    /// An existing ADR directory `war migrate` could import, if one is found.
+    pub adr_dir: Option<String>,
 }
 
 impl Facts {
@@ -101,6 +113,16 @@ impl Facts {
                 ))
             })
             .map_or((None, None), |(p, n)| (Some(p), Some(n)));
+        let baseline = config
+            .as_deref()
+            .and_then(|t| toml::from_str::<toml::Value>(t).ok())
+            .and_then(|v| Some(v.get("adoption")?.get("baseline")?.as_str()?.to_owned()));
+        let (head, commits) = match super::history(root) {
+            super::History::Inside {
+                head: Some((id, count)),
+            } => (Some(id), count),
+            _ => (None, 0),
+        };
         let auth = root.join("docs/authority");
         let mut sas: Vec<(String, bool)> = std::fs::read_dir(root.join("docs/sas/revisions"))
             .map(|rd| {
@@ -144,6 +166,10 @@ impl Facts {
             signers_exist: auth.join("allowed_signers").is_file(),
             sas,
             adopt,
+            commits,
+            head,
+            baseline,
+            adr_dir: super::adr_dirs(root).first().map(|d| (*d).to_owned()),
         }
     }
 }
@@ -153,6 +179,13 @@ impl Facts {
 pub fn step_for(f: &Facts) -> Step {
     if !f.initialized {
         return Step::Program;
+    }
+    // A repository with history says where governed work begins before
+    // anything else is set up. Asked while the setup is at its start — no
+    // SAS revision recorded yet; a repository further along adopted before
+    // this step existed, and is not asked again.
+    if f.commits > 0 && f.baseline.is_none() && f.sas.is_empty() {
+        return Step::Baseline;
     }
     if !(f.roles_exist && f.signers_exist) {
         return Step::Signer;
@@ -179,6 +212,8 @@ pub enum Answer {
         name: String,
         namespace: String,
     },
+    /// The commit governed work starts from; empty confirms the proposed one.
+    Baseline(String),
     Signer {
         /// The name in `roles.toml`; spaces allowed.
         name: String,
@@ -204,6 +239,9 @@ pub enum Effect {
     Scaffold { program: String, namespace: String },
     /// Write once; never over an existing file.
     Write { path: String, text: String },
+    /// Record `[adoption] baseline` in `openwarrant.toml` — once. The front
+    /// end resolves the commit and refuses one outside the history.
+    Adopt { baseline: String },
     /// `war sas propose <version>`.
     ProposeSas { version: String },
     /// Print the command and, on consent, run `war sign <target> --ssh-sign`
@@ -257,6 +295,24 @@ impl Machine {
             Step::Program => "What is this program called, and what namespace prefixes its \
                               Warrants (uppercase letters, e.g. OW → OW-WAR-0001)?"
                 .to_owned(),
+            Step::Baseline => {
+                let head = self.facts.head.as_deref().unwrap_or("?");
+                let mut q = format!(
+                    "This repository has {} commit(s). Where does governed work begin? The \
+                     adoption baseline is HEAD, {}, unless you name another commit in its \
+                     history. Nothing up to it is claimed, owned or verified by any Warrant; \
+                     `war telemetry` counts untracked work after it.",
+                    self.facts.commits,
+                    head.get(..12).unwrap_or(head)
+                );
+                if let Some(dir) = &self.facts.adr_dir {
+                    q.push_str(&format!(
+                        " Existing ADRs in {dir}/ can be imported afterwards with `war migrate`; \
+                         nothing is imported now."
+                    ));
+                }
+                q
+            }
             Step::Signer => "Who signs for this repository — your name as it will appear in \
                              roles.toml, the principal you sign as (no spaces), and which \
                              loaded key (`ssh-add -L`) is yours?"
@@ -316,6 +372,21 @@ impl Machine {
                     program: name,
                     namespace,
                 }])
+            }
+            (Step::Baseline, Answer::Baseline(named)) => {
+                let named = named.trim();
+                let commit = if named.is_empty() {
+                    self.facts
+                        .head
+                        .clone()
+                        .ok_or_else(|| "there is no HEAD to propose; name a commit".to_owned())?
+                } else {
+                    named.to_owned()
+                };
+                if commit.starts_with('-') || commit.contains(char::is_whitespace) {
+                    return Err(format!("{commit:?} is not a commit name"));
+                }
+                Ok(vec![Effect::Adopt { baseline: commit }])
             }
             (
                 Step::Signer,
@@ -629,6 +700,86 @@ mod tests {
         f.adopt = Some(("DM-WAR-0001".into(), true));
         m.observe(f);
         assert_eq!(m.step, Step::Done);
+    }
+
+    /// OW-WAR-0124 OBL-006: with history, the step after Program is
+    /// Baseline, and confirming it yields exactly one effect — the one that
+    /// writes `[adoption]`. Nothing about who signs moves.
+    #[test]
+    fn with_history_the_step_after_program_is_baseline() {
+        let head = "0123456789abcdef0123456789abcdef01234567".to_owned();
+        let before = Facts {
+            commits: 3,
+            head: Some(head.clone()),
+            ..facts(false)
+        };
+        let mut m = Machine::new(before, "2026-09-24T00:00:00Z");
+        assert_eq!(m.step, Step::Program);
+        let e = m
+            .answer(Answer::Program {
+                name: "Demo".into(),
+                namespace: "DM".into(),
+            })
+            .unwrap();
+        assert!(matches!(e.as_slice(), [Effect::Scaffold { .. }]), "{e:?}");
+        let mut after = Facts {
+            commits: 3,
+            head: Some(head.clone()),
+            ..facts(true)
+        };
+        m.observe(after.clone());
+        assert_eq!(m.step, Step::Baseline, "Baseline follows Program");
+        assert!(m.question().contains("3 commit(s)"), "{}", m.question());
+        assert!(m.question().contains(&head[..12]), "{}", m.question());
+        // Refusals: not a commit name, and the step does not move.
+        assert!(m.answer(Answer::Baseline("--all".into())).is_err());
+        assert!(m.answer(Answer::Baseline("a b".into())).is_err());
+        assert!(m.answer(Answer::KeyLoaded(true)).is_err());
+        assert_eq!(m.step, Step::Baseline);
+        // Confirming the proposed commit: exactly one effect, the adoption.
+        let e = m.answer(Answer::Baseline(String::new())).unwrap();
+        assert_eq!(
+            e,
+            vec![Effect::Adopt {
+                baseline: head.clone()
+            }]
+        );
+        // Naming another commit carries that name to the front end, which
+        // resolves it against the history and refuses one outside it.
+        assert_eq!(
+            m.answer(Answer::Baseline("v1.0".into())).unwrap(),
+            vec![Effect::Adopt {
+                baseline: "v1.0".into()
+            }]
+        );
+        // Once recorded, the tree says so and the setup goes on to Signer.
+        after.baseline = Some(head);
+        m.observe(after);
+        assert_eq!(m.step, Step::Signer);
+    }
+
+    /// With no history there is nothing to adopt: Baseline is skipped.
+    #[test]
+    fn without_history_baseline_is_skipped() {
+        assert_eq!(step_for(&facts(true)), Step::Signer);
+        let mut m = Machine::new(facts(false), "2026-09-24T00:00:00Z");
+        m.answer(Answer::Program {
+            name: "Demo".into(),
+            namespace: "DM".into(),
+        })
+        .unwrap();
+        m.observe(facts(true));
+        assert_eq!(m.step, Step::Signer);
+        // And a repository past its first SAS revision is not asked again.
+        let mut f = Facts {
+            commits: 40,
+            head: Some("abc".into()),
+            roles_exist: true,
+            signers_exist: true,
+            ..facts(true)
+        };
+        f.sas = vec![("0.1.0".into(), true)];
+        assert_eq!(step_for(&f), Step::Done);
     }
 
     #[test]

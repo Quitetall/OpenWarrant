@@ -439,6 +439,19 @@ impl ContextPolicy {
     }
 }
 
+/// `[adoption]` — where governed work begins in a repository adopted with
+/// history (OW-WAR-0124).
+///
+/// Configuration, not an authority record: it says which commit `war init`
+/// started from, so `war telemetry` counts untracked work from there rather
+/// than from the first commit ever made. It claims nothing about the commits
+/// before it — no Warrant authorized, owns or verified them.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AdoptionPolicy {
+    /// The full commit id `war init` recorded: HEAD, or `--baseline`.
+    pub baseline: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryConfig {
     pub schema: String,
@@ -474,6 +487,11 @@ pub struct RepositoryConfig {
     /// reports it as such rather than assuming the flattering answer.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub independence: Option<crate::independence::Independence>,
+    /// `[adoption]` — absent for a repository initialized with no history,
+    /// and never written when absent, so every existing `openwarrant.toml`
+    /// loads and writes unchanged.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub adoption: Option<AdoptionPolicy>,
 }
 
 impl RepositoryConfig {
@@ -502,6 +520,7 @@ impl RepositoryConfig {
             perform: PerformPolicy::default(),
             sign: SignPolicy::default(),
             independence: None,
+            adoption: None,
         }
     }
 
@@ -602,6 +621,25 @@ mod tests {
                 value: "/absolute/elsewhere/docs/warrants".to_owned(),
             })
         );
+    }
+
+    /// OW-WAR-0124: a config with no `[adoption]` writes no such table, and
+    /// one that records a baseline reads it back.
+    #[test]
+    fn adoption_is_absent_unless_recorded() {
+        let config = valid();
+        let text = toml::to_string_pretty(&config).expect("serializes");
+        assert!(!text.contains("adoption"), "{text}");
+        let back: RepositoryConfig = toml::from_str(&text).expect("parses");
+        assert_eq!(back.adoption, None);
+        let mut adopted = valid();
+        adopted.adoption = Some(AdoptionPolicy {
+            baseline: "0123456789abcdef0123456789abcdef01234567".to_owned(),
+        });
+        let text = toml::to_string_pretty(&adopted).expect("serializes");
+        assert!(text.contains("[adoption]"), "{text}");
+        let back: RepositoryConfig = toml::from_str(&text).expect("parses");
+        assert_eq!(back, adopted);
     }
 
     #[test]

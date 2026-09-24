@@ -6,6 +6,19 @@
   records; §6.10 (levels), §98 Phase 1 (this phase), §106 rows RQ-001–003.
 - OpenWarrant's own SAS, as installed with the `war` binary (`war --version`).
 
+{{#baseline}}
+## Adoption baseline
+
+- This repository adopted OpenWarrant at commit `{{baseline}}`, recorded
+  by `war init` as `[adoption] baseline` in `openwarrant.toml`.
+- Nothing before it is claimed, owned or verified by any Warrant. The
+  commits up to and including the baseline are history, imported in their
+  actual state: no Warrant authorized them, no delivered file of theirs is
+  pinned, and no obligation here is established by them.
+- `war telemetry` counts untracked work from this commit onward and names
+  the baseline it used.
+
+{{/baseline}}
 ## Prerequisites
 
 - `docs/authority/roles.toml` written by a human from `roles.toml.example`,

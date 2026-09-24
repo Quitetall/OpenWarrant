@@ -384,6 +384,12 @@ enum Command {
         /// only the examples are written, exactly as a script gets them.
         #[arg(long)]
         non_interactive: bool,
+        /// Where governed work begins in a repository with history: the
+        /// commit recorded as `[adoption] baseline` (OW-WAR-0124). Defaults
+        /// to HEAD when there are commits; refused, with nothing written,
+        /// unless it names a commit in HEAD's history.
+        #[arg(long, value_name = "COMMIT", requires = "namespace")]
+        baseline: Option<String>,
     },
     /// Write the AGENTS.md this repository ships, for the repository's
     /// namespace. `war init` writes it once; this rewrites (--force) or prints it.
@@ -1133,12 +1139,18 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             name,
             program,
             non_interactive,
+            baseline,
         } => {
+            let chosen = baseline
+                .as_deref()
+                .map_or(init::Baseline::Head, init::Baseline::Named);
             match (namespace, program) {
                 (Some(namespace), Some(program)) => {
-                    init::run_program(&program, &namespace, root)?;
+                    init::run_program_with(&program, &namespace, root, chosen)?;
                 }
-                (Some(namespace), None) => init::run(&namespace, name.as_deref(), root)?,
+                (Some(namespace), None) => {
+                    init::run_with(&namespace, name.as_deref(), root, chosen)?;
+                }
                 // No namespace: a conversation, and only at a real terminal.
                 // A script, a pipe, `--json` or `--non-interactive` gets the
                 // refusal below, byte-for-byte what it always got from a
@@ -1425,7 +1437,10 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 // Compared EXACTLY. Trimming would let whitespace drift through
                 // while the doc claims byte-for-byte agreement.
                 if existing == rendered {
-                    println!("telemetry baseline at {commit} is unchanged");
+                    println!(
+                        "telemetry baseline at {commit} is unchanged (untracked work read from {})",
+                        telemetry::history_read(&baseline)
+                    );
                     return Ok(EXIT_OK);
                 }
                 return Err(Box::new(repo::RepoError::Message(format!(
@@ -1449,11 +1464,12 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             println!(
                 "telemetry baseline written to {out}\n  {} of {} §94 measures taken; {untaken} \
                  recorded `not_measurable_yet` with a reason\n  {} §95 untracked-work \
-                 candidate(s)\n  {} §100 metrics, every one `no baseline` — one measurement \
+                 candidate(s), read from {}\n  {} §100 metrics, every one `no baseline` — one measurement \
                  supports no delta",
                 baseline.measures.len() - untaken,
                 baseline.measures.len(),
                 baseline.untracked_work_candidates.len(),
+                telemetry::history_read(&baseline),
                 baseline.success_metrics.len()
             );
             Ok(EXIT_OK)

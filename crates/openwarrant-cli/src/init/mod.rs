@@ -27,6 +27,12 @@ pub enum InitError {
         source: std::io::Error,
     },
     Serialize(toml::ser::Error),
+    /// `--baseline` (or the guided answer) names nothing that is a commit in
+    /// this history. Refused before anything is written (OW-WAR-0124).
+    Baseline {
+        named: String,
+        why: String,
+    },
 }
 
 impl fmt::Display for InitError {
@@ -42,6 +48,11 @@ impl fmt::Display for InitError {
             Self::NonUtf8Path => write!(f, "the current directory is not valid UTF-8"),
             Self::Io { context, source } => write!(f, "{context}: {source}"),
             Self::Serialize(source) => write!(f, "could not serialize configuration: {source}"),
+            Self::Baseline { named, why } => write!(
+                f,
+                "--baseline {named:?} is refused: {why}. The adoption baseline is a commit \
+                 in this repository's history; nothing was written"
+            ),
         }
     }
 }
@@ -53,6 +64,239 @@ pub fn run(
     name: Option<&str>,
     root: Option<Utf8PathBuf>,
 ) -> Result<(), InitError> {
+    run_with(namespace, name, root, Baseline::Head).map(|_| ())
+}
+
+/// Which commit `war init` records as the adoption baseline (OW-WAR-0124).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Baseline<'a> {
+    /// HEAD, when the repository has commits; nothing when it has none.
+    Head,
+    /// `--baseline <commit>`: resolved to a full id, and refused unless it is
+    /// a commit in HEAD's history.
+    Named(&'a str),
+    /// Record none now. The guided setup asks in its own step, after the
+    /// scaffold, and writes `[adoption]` from the answer.
+    Deferred,
+}
+
+/// What `git` says about the directory `war init` runs in.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum History {
+    /// `git` could not be run at all: not installed, or not on PATH.
+    NoGit(String),
+    /// Not inside any git work tree.
+    Outside,
+    /// Inside a work tree — this directory's own, or an enclosing one. With
+    /// commits, HEAD's full id and how many commits it has.
+    Inside { head: Option<(String, u64)> },
+}
+
+fn git(root: &Utf8Path, args: &[&str]) -> std::io::Result<std::process::Output> {
+    std::process::Command::new("git")
+        .arg("-C")
+        .arg(root.as_str())
+        .args(args)
+        .output()
+}
+
+fn git_line(root: &Utf8Path, args: &[&str]) -> Option<String> {
+    git(root, args)
+        .ok()
+        .filter(|o| o.status.success())
+        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_owned())
+        .filter(|s| !s.is_empty())
+}
+
+/// Read the history `war init` is about to adopt. Reads only.
+#[must_use]
+pub fn history(root: &Utf8Path) -> History {
+    let inside = match git(root, &["rev-parse", "--is-inside-work-tree"]) {
+        Ok(out) => out.status.success() && String::from_utf8_lossy(&out.stdout).trim() == "true",
+        Err(e) => return History::NoGit(e.to_string()),
+    };
+    if !inside {
+        return History::Outside;
+    }
+    let head = git_line(root, &["rev-parse", "--verify", "--quiet", "HEAD^{commit}"]).map(|id| {
+        // R-002: read once, at init. A count git cannot give is not zero
+        // commits; HEAD resolved, so there is at least one.
+        let count = git_line(root, &["rev-list", "--count", "HEAD"])
+            .and_then(|n| n.parse::<u64>().ok())
+            .unwrap_or(1);
+        (id, count)
+    });
+    History::Inside { head }
+}
+
+/// Resolve a named commit to its full id, refusing anything that is not a
+/// commit in HEAD's history: a baseline outside the history `war telemetry`
+/// walks would silently hide or invent untracked work.
+pub fn resolve_baseline(root: &Utf8Path, named: &str) -> Result<String, InitError> {
+    let refuse = |why: &str| InitError::Baseline {
+        named: named.to_owned(),
+        why: why.to_owned(),
+    };
+    let trimmed = named.trim();
+    if trimmed.is_empty() || trimmed.starts_with('-') || trimmed.contains(char::is_whitespace) {
+        return Err(refuse("it is not a commit name"));
+    }
+    let head = match history(root) {
+        History::NoGit(e) => return Err(refuse(&format!("git could not be run ({e})"))),
+        History::Outside => return Err(refuse("this directory is not a git repository")),
+        History::Inside { head: None } => {
+            return Err(refuse(
+                "this repository has no commits yet, so there is no history to name",
+            ));
+        }
+        History::Inside {
+            head: Some((head, _)),
+        } => head,
+    };
+    let id = git_line(
+        root,
+        &[
+            "rev-parse",
+            "--verify",
+            "--quiet",
+            &format!("{trimmed}^{{commit}}"),
+        ],
+    )
+    .ok_or_else(|| refuse("it does not name a commit in this repository"))?;
+    let ancestor = git(root, &["merge-base", "--is-ancestor", &id, &head])
+        .map(|o| o.status.success())
+        .unwrap_or(false);
+    if !ancestor {
+        return Err(refuse(&format!("{id} is not in HEAD's history")));
+    }
+    Ok(id)
+}
+
+/// The conventional places an existing ADR corpus lives, holding at least
+/// one file `war migrate` would read (`NNNN-*.md`). Found, never imported.
+#[must_use]
+pub fn adr_dirs(root: &Utf8Path) -> Vec<&'static str> {
+    ["docs/adr", "doc/adr", "adr"]
+        .into_iter()
+        .filter(|dir| {
+            root.join(dir).read_dir_utf8().is_ok_and(|rd| {
+                rd.filter_map(Result::ok).any(|e| {
+                    let name = e.file_name();
+                    let b = name.as_bytes();
+                    e.path().is_file()
+                        && name.ends_with(".md")
+                        && b.len() > 5
+                        && b[..4].iter().all(u8::is_ascii_digit)
+                        && b[4] == b'-'
+                })
+            })
+        })
+        .collect()
+}
+
+/// The one line that points at an existing ADR corpus. §96's import is a
+/// separate, deliberate act; `war init` names the command and runs nothing.
+#[must_use]
+pub fn migrate_line(dir: &str, baseline: Option<&str>) -> String {
+    match baseline {
+        Some(id) => format!(
+            "existing ADRs in {dir}/: `war migrate --corpus {dir} --commit {id}` would import \
+             them (§96); nothing was imported"
+        ),
+        None => format!(
+            "existing ADRs in {dir}/: once they are committed, `war migrate --corpus {dir} \
+             --commit <commit>` would import them (§96); nothing was imported"
+        ),
+    }
+}
+
+/// Record `[adoption] baseline` in an initialized repository that has none —
+/// the guided setup's Baseline answer. Written once: a recorded baseline is
+/// left as it is. Returns the full id recorded, or `None` when one already
+/// was.
+pub fn adopt(root: &Utf8Path, named: &str) -> Result<Option<String>, InitError> {
+    let id = resolve_baseline(root, named)?;
+    let config_path = root.join(CONFIG_FILE);
+    let text = fs::read_to_string(&config_path).map_err(|source| InitError::Io {
+        context: format!("could not read {config_path}"),
+        source,
+    })?;
+    let recorded = toml::from_str::<toml::Value>(&text)
+        .ok()
+        .is_some_and(|v| v.get("adoption").is_some());
+    if recorded {
+        return Ok(None);
+    }
+    let sep = if text.ends_with('\n') { "\n" } else { "\n\n" };
+    fs::write(
+        &config_path,
+        format!("{text}{sep}[adoption]\nbaseline = \"{id}\"\n"),
+    )
+    .map_err(|source| InitError::Io {
+        context: format!("could not write {config_path}"),
+        source,
+    })?;
+    // The first Warrant's Basis says what the baseline means, when it is
+    // still the draft the scaffold wrote.
+    let namespace = toml::from_str::<toml::Value>(&text).ok().and_then(|v| {
+        v.get("project")?
+            .get("namespace")?
+            .as_str()
+            .map(str::to_owned)
+    });
+    if let Some(ns) = namespace {
+        let dir = root.join("docs/warrants").join(format!("{ns}-WAR-0001"));
+        let basis = dir.join("atoms/20-basis.md");
+        if !dir.join("authorization.toml").exists()
+            && let Ok(body) = fs::read_to_string(&basis)
+            && !body.contains("## Adoption baseline")
+            && body.contains("\n## Prerequisites\n")
+        {
+            let section = baseline_block(ADOPT_BASIS, Some(&id));
+            let start = section.find("## Adoption baseline").unwrap_or(0);
+            let end = section.find("## Prerequisites\n").unwrap_or(section.len());
+            let updated = body.replacen(
+                "\n## Prerequisites\n",
+                &format!("\n{}## Prerequisites\n", &section[start..end]),
+                1,
+            );
+            fs::write(&basis, updated).map_err(|source| InitError::Io {
+                context: format!("could not write {basis}"),
+                source,
+            })?;
+        }
+    }
+    Ok(Some(id))
+}
+
+/// Render the template's `{{#baseline}}…{{/baseline}}` block: kept, with the
+/// id filled in, when there is a baseline; removed whole, markers and all,
+/// when there is none — so a repository with no commits gets the bytes it
+/// always got.
+fn baseline_block(template: &str, baseline: Option<&str>) -> String {
+    const OPEN: &str = "{{#baseline}}\n";
+    const CLOSE: &str = "{{/baseline}}\n";
+    let (Some(start), Some(end)) = (template.find(OPEN), template.find(CLOSE)) else {
+        return template.to_owned();
+    };
+    match baseline {
+        Some(id) => format!(
+            "{}{}{}",
+            &template[..start],
+            template[start + OPEN.len()..end].replace("{{baseline}}", id),
+            &template[end + CLOSE.len()..]
+        ),
+        None => format!("{}{}", &template[..start], &template[end + CLOSE.len()..]),
+    }
+}
+
+/// `war init` with a chosen baseline. Returns the baseline recorded, if any.
+pub fn run_with(
+    namespace: &str,
+    name: Option<&str>,
+    root: Option<Utf8PathBuf>,
+    baseline: Baseline<'_>,
+) -> Result<Option<String>, InitError> {
     let root = match root {
         Some(path) => path,
         None => {
@@ -88,6 +332,56 @@ pub fn run(
     // to distrust the tool.
     config.validate().map_err(InitError::Namespace)?;
 
+    // OW-WAR-0124: where governed work begins. Resolved — and a bad
+    // `--baseline` refused — before anything is written.
+    let found = history(&root);
+    let mut config = config;
+    let recorded = match (baseline, &found) {
+        (Baseline::Named(named), _) => Some(resolve_baseline(&root, named)?),
+        (
+            Baseline::Head,
+            History::Inside {
+                head: Some((id, _)),
+            },
+        ) => Some(id.clone()),
+        _ => None,
+    };
+    config.adoption = recorded
+        .clone()
+        .map(|baseline| openwarrant_core::config::AdoptionPolicy { baseline });
+    let adrs = adr_dirs(&root);
+
+    // AM-001 (the owner's decision of 2026-09-24): a program is a git
+    // repository from its first command, so Warrant identity and journal
+    // history can be asked. Inside an existing work tree nothing is
+    // initialized — never a nested repository. Without git, init goes on and
+    // says what cannot be checked; it does not pretend otherwise.
+    match &found {
+        History::Outside => {
+            let out = git(&root, &["init", "-q"]).map_err(|source| InitError::Io {
+                context: format!("could not run git init in {root}"),
+                source,
+            })?;
+            if !out.status.success() {
+                return Err(InitError::Io {
+                    context: format!("git init in {root} failed"),
+                    source: std::io::Error::other(
+                        String::from_utf8_lossy(&out.stderr).trim().to_owned(),
+                    ),
+                });
+            }
+            println!(
+                "git init: {root} was not a git repository and now is ({root}/.git), so \
+                 Warrant identity and journal history can be checked"
+            );
+        }
+        History::NoGit(why) => println!(
+            "git is not available ({why}); continuing without it. Warrant identity and journal \
+             history cannot be checked until {root} is a git repository"
+        ),
+        History::Inside { .. } => {}
+    }
+
     let rendered = toml::to_string_pretty(&config).map_err(InitError::Serialize)?;
     fs::write(&config_path, rendered).map_err(|source| InitError::Io {
         context: format!("could not write {config_path}"),
@@ -114,7 +408,20 @@ pub fn run(
     // §76.3: silence on sound state is the ideal, but `init` is a mutation and
     // the operator needs to know what was created and where.
     println!("initialized {} ({})", config.project.name, config_path);
-    Ok(())
+    if let Some(id) = &recorded {
+        let before = git_line(&root, &["rev-list", "--count", id]).unwrap_or_else(|| "?".into());
+        println!(
+            "adoption baseline {id} ({before} commit(s) of history): nothing up to it is \
+             claimed, owned or verified by any Warrant; `war telemetry` counts untracked work \
+             after it"
+        );
+    }
+    if baseline != Baseline::Deferred {
+        for dir in adrs {
+            println!("{}", migrate_line(dir, recorded.as_deref()));
+        }
+    }
+    Ok(recorded)
 }
 
 /// `war init --program`: everything `run` writes, plus a SAS the tool can read,
@@ -126,6 +433,16 @@ pub fn run_program(
     program: &str,
     namespace: &str,
     root: Option<Utf8PathBuf>,
+) -> Result<Utf8PathBuf, InitError> {
+    run_program_with(program, namespace, root, Baseline::Head)
+}
+
+/// `war init --program` with a chosen baseline (OW-WAR-0124).
+pub fn run_program_with(
+    program: &str,
+    namespace: &str,
+    root: Option<Utf8PathBuf>,
+    baseline: Baseline<'_>,
 ) -> Result<Utf8PathBuf, InitError> {
     // §106 rows are `<PREFIX>-SAS-RQ-NNN` and the prefix must be letters;
     // a namespace with a digit or dash would make every ref unparseable.
@@ -146,7 +463,7 @@ pub fn run_program(
             "--program needs a non-empty name without a newline or `|`; got {program:?}"
         )));
     }
-    run(namespace, Some(program), root.clone())?;
+    let recorded = run_with(namespace, Some(program), root.clone(), baseline)?;
     let root = match root {
         Some(r) => r,
         None => {
@@ -249,7 +566,12 @@ pub fn run_program(
     };
     for (file, role, ordinal, body) in [
         ("10-intent.md", "intent", 10, ADOPT_INTENT),
-        ("20-basis.md", "basis", 20, ADOPT_BASIS),
+        (
+            "20-basis.md",
+            "basis",
+            20,
+            &baseline_block(ADOPT_BASIS, recorded.as_deref()),
+        ),
         ("40-work-order.md", "work_order", 40, ADOPT_WORK_ORDER),
         ("60-assurance.md", "assurance", 60, ADOPT_ASSURANCE),
     ] {
@@ -440,6 +762,46 @@ mod program_tests {
 }
 
 #[cfg(test)]
+mod adoption_tests {
+    use super::*;
+
+    /// With no baseline the block goes, markers and all; with one, only the
+    /// markers go and the id is filled in.
+    #[test]
+    fn the_baseline_block_renders_only_with_a_baseline() {
+        let none = baseline_block(ADOPT_BASIS, None);
+        // `{{program_file}}` is filled later; only the baseline markers go here.
+        assert!(!none.contains("baseline}}"), "{none}");
+        assert!(!none.contains("Adoption baseline"));
+        assert!(none.contains("\n\n## Prerequisites\n"));
+        let some = baseline_block(ADOPT_BASIS, Some("abc123"));
+        assert!(!some.contains("baseline}}"), "{some}");
+        assert!(some.contains("## Adoption baseline"));
+        assert!(some.contains("`abc123`"));
+        assert!(some.contains("Nothing before it is claimed, owned or verified by any Warrant"));
+    }
+
+    /// The ADR matcher is `war migrate`'s: `NNNN-*.md`, nothing else.
+    #[test]
+    fn only_an_nnnn_corpus_is_pointed_at() {
+        let root = Utf8PathBuf::from_path_buf(std::env::temp_dir())
+            .unwrap()
+            .join(format!("war-init-adr-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(root.join("docs/adr")).unwrap();
+        fs::write(root.join("docs/adr/README.md"), "x").unwrap();
+        assert!(adr_dirs(&root).is_empty());
+        fs::write(root.join("docs/adr/0001-x.md"), "x").unwrap();
+        assert_eq!(adr_dirs(&root), ["docs/adr"]);
+        assert!(
+            migrate_line("docs/adr", Some("abc"))
+                .contains("war migrate --corpus docs/adr --commit abc")
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+}
+
+#[cfg(test)]
 mod agents_md_tests {
     use super::*;
 
@@ -558,6 +920,13 @@ pub fn guided(root: Option<Utf8PathBuf>, program_hint: Option<&str>) -> Result<(
                     namespace: namespace.to_ascii_uppercase(),
                 }
             }
+            Step::Baseline => {
+                let proposed = m.facts.head.clone().unwrap_or_default();
+                let Some(named) = ask(&format!("  baseline commit [{proposed}]: "))? else {
+                    return Ok(());
+                };
+                Answer::Baseline(named)
+            }
             Step::Signer => {
                 let git_name = git_user_name();
                 let Some(name) = ask(&format!(
@@ -644,8 +1013,24 @@ pub fn guided(root: Option<Utf8PathBuf>, program_hint: Option<&str>) -> Result<(
         for effect in effects {
             match effect {
                 Effect::Scaffold { program, namespace } => {
-                    run_program(&program, &namespace, Some(root.clone()))?;
+                    // The baseline is the next question, not a default.
+                    run_program_with(&program, &namespace, Some(root.clone()), Baseline::Deferred)?;
                 }
+                Effect::Adopt { baseline } => match adopt(&root, &baseline) {
+                    Ok(Some(id)) => {
+                        println!(
+                            "  recorded [adoption] baseline = {id}: nothing up to it is claimed, \
+                             owned or verified by any Warrant"
+                        );
+                        for dir in adr_dirs(&root) {
+                            println!("  {}", migrate_line(dir, Some(&id)));
+                        }
+                    }
+                    Ok(None) => println!("  [adoption] is already recorded — left untouched"),
+                    // Refused: the tree is unchanged, so the step asks again.
+                    Err(why @ InitError::Baseline { .. }) => println!("  refused: {why}"),
+                    Err(other) => return Err(other),
+                },
                 Effect::Write { path, text } => {
                     // The two gates the machine cannot hold: a terminal, and
                     // write-once. Both are checked at the write, not before
