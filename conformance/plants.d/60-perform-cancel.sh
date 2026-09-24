@@ -368,7 +368,7 @@ if [[ "$(PATH="$PC_PATH" command -v claude)" != "$PC_TMP/bin/claude" ]]; then
     exit 9
 fi
 # The tool list the adapter grants, pinned: a change fails here.
-PC_WANT_ARGV=$(printf '%s\n' -p --output-format text --allowedTools 'Read,Glob,Grep,Edit,Write')
+PC_WANT_ARGV=$(printf '%s\n' -p --output-format text --allowedTools 'Read,Glob,Grep,Edit,Write,Bash')
 
 printf '{"dispatch_id": "PLANT-D-1", "attempt_id": "A-1", "contract_digest": "x", "stage_id": "STAGE-002"}\n' > "$PC_TMP/d.json"
 pc_adapter() {

@@ -25,6 +25,13 @@ classification: internal
    - the adopt Warrant's Basis names the baseline and says what it means;
    - an ADR directory found under `docs/adr`, `doc/adr` or `adr` produces
      one line naming the `war migrate` command. Nothing is run.
+   - (AM-001, the owner's decision of 2026-09-24) `war init` and `war init
+     --program`, run where the directory is not inside a git work tree,
+     run `git init` there first and say so in one line. Inside an existing
+     work tree nothing is initialized: no nested repository. With git not
+     installed, init continues and says that identity and journal history
+     cannot be checked until the directory is a git repository
+     (OW-WAR-0119's `identity.changed` reads UNKNOWN there, by design).
 3. `crates/openwarrant-cli/templates/adopt/20-basis.md`: a
    `## Adoption baseline` section with `{{baseline}}`, and the sentence
    that nothing before it is claimed, owned or verified. Rendered only

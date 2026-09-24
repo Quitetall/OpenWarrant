@@ -133,7 +133,7 @@ that file, whether or not the answer was accepted.
 
 What it does:
 
-- It runs `claude -p --output-format text --allowedTools Read,Glob,Grep,Edit,Write`,
+- It runs `claude -p --output-format text --allowedTools Read,Glob,Grep,Edit,Write,Bash`,
   with a fixed instruction and then the Dispatch as the prompt on stdin.
 - It prints claude's answer byte for byte, but only if the answer is one
   `oh.war/stage-submission/v1` JSON object whose `dispatch_id` is the
@@ -146,11 +146,12 @@ What it does:
   nothing.
 - It never writes a submission that `claude` did not produce.
 
-What it grants: the five tools above, and nothing else. In `-p` mode a tool
-outside the list has no approval path and is refused. **Bash is not on the
-list**, because a shell can start a process outside the performer's group,
-which is the one case cancellation does not cover. Widening the list is the
-owner's decision. The plant pins the argv, so a change fails the battery until
+What it grants: the six tools above, and nothing else. In `-p` mode a tool
+outside the list has no approval path and is refused. **Bash is on the list**
+by the owner's decision of 2026-09-24: a performer that cannot run the build
+and the plants cannot check its own work. The price is the one case
+cancellation does not cover — a shell can start a process outside the
+performer's group (`setsid`, a daemon); see "Not covered" below. The plant pins the argv, so a change fails the battery until
 the plant changes with it. The adapter adds no timeout, no concurrency, no
 directories outside the repository, and no permission mode. The bound is
 `war perform`'s: the adapter and `claude` are one process group, and a deadline

@@ -22,9 +22,12 @@
 #   byte for byte, or nothing at all.
 # - grant `claude` more than ALLOWED_TOOLS below. It runs headless (`-p`), so a
 #   tool outside the list has no approval path and is refused (§55.2). The list
-#   has no Bash: a shell could start a process outside the performer's process
-#   group (`setsid`), which `war perform` cannot then cancel. Widening it is the
-#   owner's call, and the conformance plant pins it so a change is visible.
+#   includes Bash by the owner's decision of 2026-09-24: a performer that
+#   cannot run the build and the plants cannot check its own work. The cost is
+#   named, not hidden: a shell can start a process outside the performer's
+#   process group (`setsid`, a daemon), which `war perform` cannot then cancel
+#   (docs/PERFORM.md, "Not covered"). The conformance plant pins the list, so
+#   any further change is visible.
 # - bound itself. `war perform` bounds it: the performer's wall time and a
 #   cancellation kill this script and `claude` together, as one process group.
 #
@@ -38,7 +41,7 @@
 
 set -uo pipefail
 
-ALLOWED_TOOLS="Read,Glob,Grep,Edit,Write"
+ALLOWED_TOOLS="Read,Glob,Grep,Edit,Write,Bash"
 
 say() { printf 'claude-performer: %s\n' "$*" >&2; }
 refuse() {

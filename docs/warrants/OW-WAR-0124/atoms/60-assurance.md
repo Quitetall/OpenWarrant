@@ -73,6 +73,22 @@ classification: internal
   - no line of the diff touches `render_roles`, `render_allowed_signers`
     or the Signer and KeyLoaded arms.
 
+### OBL-007 — init makes the directory a git repository, and never nests one
+- **scope:** `war init` and `war init --program` on scratch directories:
+  one outside any work tree, one inside an existing repository, and one
+  with `git` removed from PATH.
+- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **evidence:**
+  - outside a work tree: a `.git` exists afterwards, init's output names
+    it, and `war check` on the scaffold is ready (no UNKNOWN
+    `identity.changed`);
+  - inside an existing repository (a subdirectory of one): no `.git` is
+    created in the subdirectory and the enclosing repository's HEAD is
+    unchanged — the refusal to nest;
+  - with no `git` on PATH: init exits 0, writes the scaffold, and its
+    output says history cannot be checked; `war check` reports UNKNOWN
+    `identity.changed`, never a pass.
+
 ## Gate Adequacy
 
 Required at `controlled`, because the work edits the module that writes

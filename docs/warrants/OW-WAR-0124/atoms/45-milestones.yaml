@@ -4,7 +4,7 @@ milestones:
   - id: "M1"
     title: "A baseline recorded at init, and untracked work counted from it in the repository's namespace"
     stage_refs: ["STAGE-001"]
-    obligation_refs: ["OBL-001", "OBL-002", "OBL-003", "OBL-005"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003", "OBL-005", "OBL-007"]
   - id: "M2"
     title: "The guided Baseline step, the ADR pointer, and ADOPTING.md"
     depends_on: ["M1"]
@@ -15,7 +15,7 @@ milestones:
     title: "The battery, run as the gate these obligations cite"
     depends_on: ["M1", "M2"]
     stage_refs: ["STAGE-003"]
-    obligation_refs: ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-007"]
 
 stages:
   - id: "STAGE-001"
