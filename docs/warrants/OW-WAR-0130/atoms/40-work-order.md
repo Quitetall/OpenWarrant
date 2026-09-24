@@ -54,6 +54,10 @@ classification: internal
 5. `conformance/plants.d/69-idempotency.sh`, the plants each obligation
    names.
 
+- (AM-002) `crates/openwarrant-cli/src/lib.rs`: `war sign --batch --recover
+  <id>` as a flag (the `recover:<id>` target stays as an alias), and
+  `compat.war-too-old` exits 2 as OBL-003 says.
+
 ## Frozen Surfaces
 
 - `oh.war/batch/v1`, `oh.war/journal-event/v1` and every record schema.

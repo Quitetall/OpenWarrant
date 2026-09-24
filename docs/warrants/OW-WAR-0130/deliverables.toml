@@ -127,3 +127,13 @@ required = true
 content_addressed = false
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-013"
+title = "`war sign --batch --recover <id>` as a flag, and exit 2 for compat.war-too-old (AM-002)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-003"]

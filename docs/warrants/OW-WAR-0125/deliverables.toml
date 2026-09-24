@@ -95,3 +95,13 @@ required = true
 content_addressed = false
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[[deliverable]]
+id = "D-010"
+title = "The CI gate job fetches full history, so section currency is answered there (AM-002)"
+kind = "file"
+target_ref = ".github/workflows/ci.yml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]

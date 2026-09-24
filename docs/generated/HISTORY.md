@@ -29517,6 +29517,10 @@ does not move where the SAS is written.
    - in a `git clone --depth 1` copy, `sas.section-current` for a Warrant
      pinned to `0.1.0-draft.1` is UNKNOWN.
 
+- (AM-002) `.github/workflows/ci.yml`: the `gate` job's checkout fetches full
+  history (`fetch-depth: 0`), so `sas.section-current` is answered in CI
+  rather than read UNKNOWN from a shallow clone.
+
 ## Frozen Surfaces
 
 - The SAS document's bytes and every revision record.
@@ -29682,6 +29686,7 @@ anything.
 | D-007 | sas.section-ref and sas.section-current | `crates/openwarrant-cli/src/check.rs` | not_content_addressed |
 | D-008 | war sas diff names changed sections | `crates/openwarrant-cli/src/sas.rs` | not_content_addressed |
 | D-009 | The SAS section plants | `conformance/plants.d/56-sas-sections.sh` | not_content_addressed |
+| D-010 | The CI gate job fetches full history, so section currency is answered there (AM-002) | `.github/workflows/ci.yml` | not_content_addressed |
 
 ### OW-WAR-0126 — Knowledge Fabric owns authority and lifecycle: the registration seam and what stays local
 
@@ -31158,6 +31163,10 @@ from 1.0. It says nothing about the reverse:
 5. `conformance/plants.d/69-idempotency.sh`, the plants each obligation
    names.
 
+- (AM-002) `crates/openwarrant-cli/src/lib.rs`: `war sign --batch --recover
+  <id>` as a flag (the `recover:<id>` target stays as an alias), and
+  `compat.war-too-old` exits 2 as OBL-003 says.
+
 ## Frozen Surfaces
 
 - `oh.war/batch/v1`, `oh.war/journal-event/v1` and every record schema.
@@ -31347,6 +31356,7 @@ nothing about concurrent writers on a shared filesystem.
 | D-006 | Repository::discover runs the compat check once | `crates/openwarrant-cli/src/repo.rs` | not_content_addressed |
 | D-007 | Reading backward: what an older war does with newer records | `docs/COMPATIBILITY.md` | not_content_addressed |
 | D-008 | The idempotency, batch-atomicity and version plants | `conformance/plants.d/69-idempotency.sh` | not_content_addressed |
+| D-013 | `war sign --batch --recover <id>` as a flag, and exit 2 for compat.war-too-old (AM-002) | `crates/openwarrant-cli/src/lib.rs` | not_content_addressed |
 
 ### OW-WAR-0131 — Agent and harness adapters per OS: writer handoff and cancellation
 

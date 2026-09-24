@@ -74,7 +74,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | required deliverables exist | 72 |
 | required judgments exist | 54 |
 | residual risks have sufficient authority | 54 |
-| exact authorized Contract Revision | 7 |
+| exact authorized Contract Revision | 9 |
 | runtime receipts match the basis | 3 |
 
 ## Requirements (SAS §106, §34.3)
@@ -270,12 +270,12 @@ Every §106 requirement is named by at least one Warrant.
 | `OW-WAR-0122` The document grammar: a schema for atoms, headers and Markdown, and what a conforming tool must accept | draft | unknown | 1 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0123` A child cites the exact revision of its parent, and a moved parent is a finding | draft | unknown | 1 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0124` Brownfield adoption: a guided path into OpenWarrant for a repository with history and no Warrants | draft | unknown | 0 | 0 of 3 | artifact digests verify |
-| `OW-WAR-0125` The SAS as atoms: sections as governed records with their own currency | draft | unknown | 0 | 0 of 4 | artifact digests verify |
+| `OW-WAR-0125` The SAS as atoms: sections as governed records with their own currency | draft | unknown | 0 | 0 of 4 | exact authorized Contract Revision |
 | `OW-WAR-0126` Knowledge Fabric owns authority and lifecycle: the registration seam and what stays local | draft | unknown | 3 | 0 of 1 | required deliverables exist |
 | `OW-WAR-0127` Native systems keep artifact authority: OpenWarrant references, never re-owns, what another system holds | draft | unknown | 1 | 0 of 3 | required deliverables exist |
 | `OW-WAR-0128` The Knowledge Fabric compiler interface: what OpenWarrant hands KF and what it gets back | draft | unknown | 3 | 0 of 1 | required deliverables exist |
 | `OW-WAR-0129` A Dispatch over its budget is refused, by name, before any agent starts | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
-| `OW-WAR-0130` Idempotent acts, all-or-nothing batches, and version negotiation between war and its records | draft | unknown | 0 | 0 of 4 | artifact digests verify |
+| `OW-WAR-0130` Idempotent acts, all-or-nothing batches, and version negotiation between war and its records | draft | unknown | 0 | 0 of 4 | exact authorized Contract Revision |
 | `OW-WAR-0131` Agent and harness adapters per OS: writer handoff and cancellation | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0132` Hotline defaults: time and spend limits, repair accounting, and delivery when nobody answers | draft | unknown | 0 | 0 of 4 | required deliverables exist |
 | `OW-WAR-0133` Evidence reuse after a source change, and the compiler's source, conflict and omission rules | draft | unknown | 0 | 0 of 3 | required deliverables exist |

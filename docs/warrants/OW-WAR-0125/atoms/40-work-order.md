@@ -54,6 +54,10 @@ classification: internal
    - in a `git clone --depth 1` copy, `sas.section-current` for a Warrant
      pinned to `0.1.0-draft.1` is UNKNOWN.
 
+- (AM-002) `.github/workflows/ci.yml`: the `gate` job's checkout fetches full
+  history (`fetch-depth: 0`), so `sas.section-current` is answered in CI
+  rather than read UNKNOWN from a shallow clone.
+
 ## Frozen Surfaces
 
 - The SAS document's bytes and every revision record.
