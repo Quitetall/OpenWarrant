@@ -1,0 +1,265 @@
+{
+  "schema": "openwarrant.scale/budget-run/v1",
+  "recorded_at": "2026-09-24T03:16:41Z",
+  "procedure": "tools/scale/budget.sh (OW-WAR-0120); docs/RETENTION.md",
+  "budget": {
+    "file": "tools/scale/budget.toml",
+    "sha256": "06ee18e66e3f688688c2ee683a1779147fcb5e446d0f027c701a9c6569829150",
+    "applies_to": {
+      "build_profile": "release",
+      "warrants": 1000,
+      "resolved_at_least": 500,
+      "statistic": "median"
+    },
+    "applies": true,
+    "does_not_apply_because": []
+  },
+  "runs": 5,
+  "cap_factor": 10,
+  "war": {
+    "path": "/mnt/4tb/tmp/ow-w-0118/target/release/war",
+    "version": "war 1.0.0-alpha.2",
+    "build_profile": "release",
+    "build_profile_determined_by": "binary path (target/release)",
+    "sha256": "bdaa3db0fe4993e667404324316808d109948e4b0ed2e8c978710dca477881bb"
+  },
+  "repository": {
+    "commit": "0afa1ba135579d93c2df31e8ca5c1b4c3762cec9"
+  },
+  "machine": {
+    "os": "Linux",
+    "kernel": "7.2.6-1-cachyos",
+    "arch": "x86_64",
+    "cpu_model": "13th Gen Intel(R) Core(TM) i5-13600K",
+    "nproc": 20,
+    "load_average_start": [
+      "1.82",
+      "7.56",
+      "12.93"
+    ],
+    "load_average_end": [
+      "1.54",
+      "1.94",
+      "5.99"
+    ]
+  },
+  "timing": "wall clock per run, milliseconds, `date +%s%N` around the command; no ssh-agent reachable",
+  "corpus": {
+    "root": "/tmp/claude-1000/-mnt-4tb-OpenWarrant/75a5c04e-16f9-4563-a9d4-b6c4821b9f4a/scratchpad/sc1000",
+    "counted_by": "war status --json",
+    "warrants": 1000,
+    "by_phase": {
+      "authorized": 249,
+      "draft": 251,
+      "resolved": 500
+    },
+    "resolved": 500,
+    "generator": {
+      "asked": {
+        "n": 1000,
+        "resolved": 500
+      },
+      "authorized_by_batch": 749,
+      "by_phase": {
+        "authorized": 249,
+        "draft": 251,
+        "resolved": 500
+      },
+      "counted_by": "war status --json",
+      "fixture": "every record is synthetic; the signer, performer and verifier are throwaway names",
+      "gate": "gate://synth.fixture-bytes@1.0.0 (fixture: sha256sum --check synth/SHA256SUMS)",
+      "generator": "tools/scale/synth-corpus.sh",
+      "implementation_log_bytes": 1461,
+      "resolve_with": "response",
+      "resolved": 500,
+      "schema": "openwarrant.scale/synth-counts/v1",
+      "seconds": 5151,
+      "war": "/mnt/4tb/tmp/ow-w-0118/target/release/war",
+      "war_check_exit": 0,
+      "warrants": 1000
+    },
+    "tree_changed_by_the_run": false
+  },
+  "rows": [
+    {
+      "id": "check",
+      "argv": [
+        "war",
+        "check"
+      ],
+      "limit_ms": 10000,
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "times_ms": [
+        8445,
+        8344,
+        8351,
+        8408,
+        8371
+      ],
+      "median_ms": 8371,
+      "max_ms": 8445,
+      "verdict": "within"
+    },
+    {
+      "id": "check-generated",
+      "argv": [
+        "war",
+        "check",
+        "--generated"
+      ],
+      "limit_ms": 10000,
+      "exit_codes": [],
+      "verdict": "over",
+      "median_ms": "unknown",
+      "max_ms": "unknown",
+      "times_ms": [],
+      "at_least_ms": 100000,
+      "why": "run 1 was still going at the cap of 100000 ms (10x the limit) and was stopped; later runs skipped"
+    },
+    {
+      "id": "next",
+      "argv": [
+        "war",
+        "next"
+      ],
+      "limit_ms": 10000,
+      "exit_codes": [],
+      "verdict": "over",
+      "median_ms": "unknown",
+      "max_ms": "unknown",
+      "times_ms": [],
+      "at_least_ms": 100000,
+      "why": "run 1 was still going at the cap of 100000 ms (10x the limit) and was stopped; later runs skipped"
+    },
+    {
+      "id": "status",
+      "argv": [
+        "war",
+        "status"
+      ],
+      "limit_ms": 10000,
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "times_ms": [
+        2937,
+        2929,
+        2919,
+        2961,
+        2921
+      ],
+      "median_ms": 2929,
+      "max_ms": 2961,
+      "verdict": "within"
+    },
+    {
+      "id": "pins-resolved-only",
+      "argv": [
+        "war",
+        "pins",
+        "--resolved-only"
+      ],
+      "limit_ms": 10000,
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "times_ms": [
+        2710,
+        2724,
+        2739,
+        2763,
+        2724
+      ],
+      "median_ms": 2724,
+      "max_ms": 2763,
+      "verdict": "within"
+    },
+    {
+      "id": "sign-list",
+      "argv": [
+        "war",
+        "sign",
+        "--list"
+      ],
+      "limit_ms": 10000,
+      "exit_codes": [],
+      "verdict": "over",
+      "median_ms": "unknown",
+      "max_ms": "unknown",
+      "times_ms": [],
+      "at_least_ms": 100000,
+      "why": "run 1 was still going at the cap of 100000 ms (10x the limit) and was stopped; later runs skipped"
+    },
+    {
+      "id": "compile",
+      "argv": [
+        "war",
+        "compile"
+      ],
+      "limit_ms": 30000,
+      "exit_codes": [],
+      "verdict": "over",
+      "median_ms": "unknown",
+      "max_ms": "unknown",
+      "times_ms": [],
+      "at_least_ms": 300000,
+      "why": "run 1 was still going at the cap of 300000 ms (10x the limit) and was stopped; later runs skipped"
+    },
+    {
+      "id": "console-json",
+      "argv": [
+        "war",
+        "console",
+        "--json"
+      ],
+      "limit_ms": 10000,
+      "exit_codes": [],
+      "verdict": "over",
+      "median_ms": "unknown",
+      "max_ms": "unknown",
+      "times_ms": [],
+      "at_least_ms": 100000,
+      "why": "run 1 was still going at the cap of 100000 ms (10x the limit) and was stopped; later runs skipped"
+    },
+    {
+      "id": "console-select",
+      "argv": [
+        "war",
+        "console"
+      ],
+      "limit_ms": 10000,
+      "stdin": "1\n",
+      "exit_codes": [],
+      "verdict": "over",
+      "median_ms": "unknown",
+      "max_ms": "unknown",
+      "times_ms": [],
+      "at_least_ms": 100000,
+      "why": "run 1 was still going at the cap of 100000 ms (10x the limit) and was stopped; later runs skipped"
+    }
+  ],
+  "over": [
+    "check-generated",
+    "next",
+    "sign-list",
+    "compile",
+    "console-json",
+    "console-select"
+  ],
+  "unknown": [],
+  "held": false
+}

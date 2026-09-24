@@ -1,0 +1,74 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# The time budget at 1,000 Warrants (OW-WAR-0120; docs/RETENTION.md).
+#
+# The numbers are OW-WAR-0120 20-basis U-002, which authorizing the Warrant
+# accepted: each read command at most 10 s median, `compile` at most 30 s,
+# for a release build on a program of 1,000 Warrants with at least 500
+# resolved. The two console rows are 20-basis O-001's interactive paths,
+# held to the same 10 s as the read commands beside them.
+#
+# tools/scale/budget.sh times each row and exits 1 naming every row that is
+# over its limit or unknown. Changing a number here is an owner's decision
+# (40-work-order, Autonomy and Escalation), not a fix for a red gate.
+
+schema = "openwarrant.scale/budget/v1"
+warrant = "OW-WAR-0120"
+
+[applies_to]
+build_profile = "release"
+warrants = 1000
+resolved_at_least = 500
+statistic = "median"
+
+[[command]]
+id = "check"
+argv = ["check"]
+limit_ms = 10000
+
+[[command]]
+id = "check-generated"
+argv = ["check", "--generated"]
+limit_ms = 10000
+
+[[command]]
+id = "next"
+argv = ["next"]
+limit_ms = 10000
+
+[[command]]
+id = "status"
+argv = ["status"]
+limit_ms = 10000
+
+[[command]]
+id = "pins-resolved-only"
+argv = ["pins", "--resolved-only"]
+limit_ms = 10000
+
+[[command]]
+id = "sign-list"
+argv = ["sign", "--list"]
+limit_ms = 10000
+
+[[command]]
+id = "compile"
+argv = ["compile"]
+limit_ms = 30000
+
+# O-001: the projection the console screen draws.
+[[command]]
+id = "console-json"
+argv = ["console", "--json"]
+limit_ms = 10000
+
+# O-001: the screen itself, answering `1` (check the first row) and then
+# end of input. O-001 timed `1`, `s`. The `s` cannot be budgeted: with no
+# ssh-agent it ends in `sign.ssh-refused` (exit 2), which this gate must
+# read as unknown; with an agent it would sign. budget.sh runs every row
+# with no ssh-agent reachable, so nothing here can sign.
+[[command]]
+id = "console-select"
+argv = ["console"]
+stdin = "1\n"
+limit_ms = 10000
