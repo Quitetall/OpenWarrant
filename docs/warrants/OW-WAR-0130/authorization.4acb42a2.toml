@@ -1,13 +1,13 @@
 schema = "oh.war/authorization/v1"
 warrant = "OW-WAR-0130"
 sas_revision = "1.1.0"
-deliverable_set_digest = "sha256:06c578cb6222f407aabaf34b92f5d6462a20a8196f3c107fca6acf7ee22d1636"
+deliverable_set_digest = "sha256:1ff54f4f844fda69f81766aae028d88ef0ffdab286b5b07b9c326abdcc71c54e"
 
 [revision]
-revision = 3
+revision = 2
 state = "authorized"
-contract_digest = "d582d694c9bf92db24c93543829dce7cf41c6fb27ac206e01bf7b5966255e1f9"
-predecessor_digest = "2f047f1bb6845d51145d190637add718404db3fb6dc71200c46cac95e2239361"
+contract_digest = "2f047f1bb6845d51145d190637add718404db3fb6dc71200c46cac95e2239361"
+predecessor_digest = "b27de4f7fa96e7320d29025a79d1c0d98ae04e87690989e7d9c43c51f9a183dd"
 proposer = "claude"
 
 [revision.coverage]
@@ -27,7 +27,7 @@ authorizer = "Brian Lam"
 actor_kind = "human"
 acting_role = "authorizer"
 meaning = "Authorizing OW-WAR-0130 (Idempotent acts, all-or-nothing batches, and version negotiation between war and its records) at this contract digest means the signer accepts its intent, scope and 3 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.2` and confirmed by the signer; the decision is the signer's and the template is the tool's."
-effective_time = "2026-09-24T18:34:49Z"
+effective_time = "2026-09-24T08:14:30Z"
 independence = "separate_role"
 
 [[owned]]
@@ -77,7 +77,3 @@ target_ref = "docs/COMPATIBILITY.md"
 [[owned]]
 id = "D-008"
 target_ref = "conformance/plants.d/69-idempotency.sh"
-
-[[owned]]
-id = "D-013"
-target_ref = "crates/openwarrant-cli/src/lib.rs"

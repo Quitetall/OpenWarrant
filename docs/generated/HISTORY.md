@@ -31,7 +31,7 @@ Everything this repository has recorded, current or not: 142 subject(s), their l
 | 2026-09-19 | 152 | attestation.recorded 75, authorization.recorded 38, correction.recorded 6, correction.signature_recorded 2, dispatch.compiled 2, resolution.signature_recorded 29 |
 | 2026-09-22 | 3 | attestation.recorded 1, authorization.recorded 1, draft.created 1 |
 | 2026-09-23 | 61 | attestation.recorded 3, authorization.recorded 28, draft.created 28, question.answered 1, question.asked 1 |
-| 2026-09-24 | 52 | authorization.recorded 27, correction.recorded 13, draft.created 6, question.asked 3, verification.recorded 3 |
+| 2026-09-24 | 63 | authorization.recorded 38, correction.recorded 13, draft.created 6, question.asked 3, verification.recorded 3 |
 
 ## Decisions
 
@@ -24819,7 +24819,7 @@ the app shows a `human` remedy and stops.
 
 [manifest](../../docs/warrants/OW-WAR-0113/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0113/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Contract revision 2 (`cdb9a3c40cd908c300fa23642df8cf71631b11da52251abe8286c690c2792a53`), Basis SAS 1.1.0.
+Contract revision 3 (`a0cf4c7820c5fdc2520e8f6a0fa2f618885b6853b0bbedf0caf401b1caabc738`), Basis SAS 1.1.0.
 
 #### Intent — [docs/warrants/OW-WAR-0113/atoms/10-intent.md](../../docs/warrants/OW-WAR-0113/atoms/10-intent.md)
 
@@ -29325,7 +29325,7 @@ negative controls.
 
 [manifest](../../docs/warrants/OW-WAR-0125/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0125/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Contract revision 2 (`e4433b5b5b0750dfb99d18e7a6fab971d88375ee1cbcb60e3166340a584dd8ce`), Basis SAS 1.1.0.
+Contract revision 3 (`9f663565fd236f1cf7582e52d464712b43f5da79ac5c828664e6df6936b0ef56`), Basis SAS 1.1.0.
 
 #### Intent — [docs/warrants/OW-WAR-0125/atoms/10-intent.md](../../docs/warrants/OW-WAR-0125/atoms/10-intent.md)
 
@@ -30952,7 +30952,7 @@ gate receipt of their own (U-002). Its gated evidence is the plant through
 
 [manifest](../../docs/warrants/OW-WAR-0130/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0130/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Contract revision 2 (`2f047f1bb6845d51145d190637add718404db3fb6dc71200c46cac95e2239361`), Basis SAS 1.1.0.
+Contract revision 3 (`d582d694c9bf92db24c93543829dce7cf41c6fb27ac206e01bf7b5966255e1f9`), Basis SAS 1.1.0.
 
 #### Intent — [docs/warrants/OW-WAR-0130/atoms/10-intent.md](../../docs/warrants/OW-WAR-0130/atoms/10-intent.md)
 
@@ -31726,7 +31726,7 @@ at all.
 
 [manifest](../../docs/warrants/OW-WAR-0132/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0132/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Contract revision 2 (`ce70b4fcab9054df9114ed95053d60d2cedb2e7c2e309b336bd7f2fbbfe492bd`), Basis SAS 1.1.0.
+Contract revision 3 (`447539d42bf963fcc4c9fedc6aa5318a2109445af3317ac85ad9fcca41b70925`), Basis SAS 1.1.0.
 
 #### Intent — [docs/warrants/OW-WAR-0132/atoms/10-intent.md](../../docs/warrants/OW-WAR-0132/atoms/10-intent.md)
 
@@ -32114,7 +32114,7 @@ responder must not read as "waiting normally".
 
 [manifest](../../docs/warrants/OW-WAR-0133/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0133/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Contract revision 2 (`4cf6e21710fa0bb8a6a4fe34180b14e54ca5b4fb45c2ace7c31b1c961c7837f1`), Basis SAS 1.1.0.
+Contract revision 3 (`d1c5387daac7b609c8a84c73d84b1b88fcab1c0009fac85ccee52c0ecbec4287`), Basis SAS 1.1.0.
 
 #### Intent — [docs/warrants/OW-WAR-0133/atoms/10-intent.md](../../docs/warrants/OW-WAR-0133/atoms/10-intent.md)
 
@@ -35172,9 +35172,9 @@ through `resolve`, which refuses an agent by kind whatever
 
 ### OW-WAR-0141 — Work starts from a sentence or a ticket: a prompt or an issue becomes a drafted Warrant with no ceremony
 
-[manifest](../../docs/warrants/OW-WAR-0141/manifest.toml) · profile `delivery` · rung `draft` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0141/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0141/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Not authorized; no Basis is fixed.
+Contract revision 1 (`548ea85fcd0f6127dfc5cec04d58bde30a581293c75f467bae415e80f8d23a62`), Basis SAS 1.1.0.
 
 #### Intent — [docs/warrants/OW-WAR-0141/atoms/10-intent.md](../../docs/warrants/OW-WAR-0141/atoms/10-intent.md)
 
@@ -35703,9 +35703,9 @@ Required at `basic`. The load-bearing obligations are OBL-002 and OBL-003:
 
 ### OW-WAR-0142 — Standing authorization: one signature pre-authorizes a class of routine work, so each change costs only its acceptance
 
-[manifest](../../docs/warrants/OW-WAR-0142/manifest.toml) · profile `delivery` · rung `draft` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0142/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0142/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Not authorized; no Basis is fixed.
+Contract revision 1 (`769e6bc65551e05ef573387f6cec4a8e1f8152466c88c2a35c81bb58224f5a46`), Basis SAS 1.1.0.
 
 #### Intent — [docs/warrants/OW-WAR-0142/atoms/10-intent.md](../../docs/warrants/OW-WAR-0142/atoms/10-intent.md)
 
@@ -36528,9 +36528,9 @@ once, at acceptance, after the blind verifier.
 
 ### OW-WAR-0143 — war knows when it is old: build identity, a notice when a newer release exists, and an update that works from every version
 
-[manifest](../../docs/warrants/OW-WAR-0143/manifest.toml) · profile `delivery` · rung `draft` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0143/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0143/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Not authorized; no Basis is fixed.
+Contract revision 1 (`18a2131b25cef6af0ae188ac359b18042951b6f54bb3f98e40a900a7a920d070`), Basis SAS 1.1.0.
 
 #### Intent — [docs/warrants/OW-WAR-0143/atoms/10-intent.md](../../docs/warrants/OW-WAR-0143/atoms/10-intent.md)
 
@@ -37234,9 +37234,9 @@ OBL-004's.
 
 ### OW-WAR-0144 — Amending an authorization keeps the superseded one beside it, as a retired response is kept
 
-[manifest](../../docs/warrants/OW-WAR-0144/manifest.toml) · profile `delivery` · rung `draft` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0144/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0144/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Not authorized; no Basis is fixed.
+Contract revision 1 (`e46db821fe3a384e4a3cecf88bbf25be3693314cc2584987fe92af41d4f6875f`), Basis SAS 1.1.0.
 
 #### Intent — [docs/warrants/OW-WAR-0144/atoms/10-intent.md](../../docs/warrants/OW-WAR-0144/atoms/10-intent.md)
 
@@ -37436,9 +37436,9 @@ a verify that passes for another reason would pass the obligation.
 
 ### OW-WAR-0145 — The battery as an askable gate: it runs in a disposable clone of the committed tree and mutates nothing
 
-[manifest](../../docs/warrants/OW-WAR-0145/manifest.toml) · profile `delivery` · rung `draft` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0145/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0145/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Not authorized; no Basis is fixed.
+Contract revision 1 (`3e6680715edd0ac5580678bad85c00da7f06f2e6c96f1a4c506f3c1de6d49933`), Basis SAS 1.1.0.
 
 #### Intent — [docs/warrants/OW-WAR-0145/atoms/10-intent.md](../../docs/warrants/OW-WAR-0145/atoms/10-intent.md)
 
@@ -37645,9 +37645,9 @@ would be exactly the misdeclaration §44.8 exists to prevent.
 
 ### OW-WAR-0146 — A verification bundle carries what each gate printed, so a blind verifier can see the evidence
 
-[manifest](../../docs/warrants/OW-WAR-0146/manifest.toml) · profile `delivery` · rung `draft` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0146/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0146/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Not authorized; no Basis is fixed.
+Contract revision 1 (`e24a9cfd2337d14917d08832ad3e1143ab699ced6e2fd4f8223f9d26292fff09`), Basis SAS 1.1.0.
 
 #### Intent — [docs/warrants/OW-WAR-0146/atoms/10-intent.md](../../docs/warrants/OW-WAR-0146/atoms/10-intent.md)
 

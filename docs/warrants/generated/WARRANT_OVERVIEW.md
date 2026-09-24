@@ -147,12 +147,12 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0138](docs/warrants/OW-WAR-0138/manifest.toml) | Human and session authentication, and policy state protected from the performer | `authorized` | `current` | `valid` | `controlled` | 5M / 5S |
 | [OW-WAR-0139](docs/warrants/OW-WAR-0139/manifest.toml) | The web UI beyond this machine: LAN and other devices, authenticated | `authorized` | `current` | `valid` | `controlled` | 5M / 5S |
 | [OW-WAR-0140](docs/warrants/OW-WAR-0140/manifest.toml) | The Contractor Work Order profile: acceptance, invoicing and legal terms outside the technical core | `authorized` | `current` | `valid` | `controlled` | 5M / 5S |
-| [OW-WAR-0141](docs/warrants/OW-WAR-0141/manifest.toml) | Work starts from a sentence or a ticket: a prompt or an issue becomes a drafted Warrant with no ceremony | `draft` | `current` | `valid` | `basic` | 3M / 3S |
-| [OW-WAR-0142](docs/warrants/OW-WAR-0142/manifest.toml) | Standing authorization: one signature pre-authorizes a class of routine work, so each change costs only its acceptance | `draft` | `current` | `valid` | `basic` | 6M / 7S |
-| [OW-WAR-0143](docs/warrants/OW-WAR-0143/manifest.toml) | war knows when it is old: build identity, a notice when a newer release exists, and an update that works from every version | `draft` | `current` | `valid` | `basic` | 4M / 5S |
-| [OW-WAR-0144](docs/warrants/OW-WAR-0144/manifest.toml) | Amending an authorization keeps the superseded one beside it, as a retired response is kept | `draft` | `current` | `valid` | `basic` | 2M / 2S |
-| [OW-WAR-0145](docs/warrants/OW-WAR-0145/manifest.toml) | The battery as an askable gate: it runs in a disposable clone of the committed tree and mutates nothing | `draft` | `current` | `valid` | `basic` | 1M / 1S |
-| [OW-WAR-0146](docs/warrants/OW-WAR-0146/manifest.toml) | A verification bundle carries what each gate printed, so a blind verifier can see the evidence | `draft` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0141](docs/warrants/OW-WAR-0141/manifest.toml) | Work starts from a sentence or a ticket: a prompt or an issue becomes a drafted Warrant with no ceremony | `authorized` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0142](docs/warrants/OW-WAR-0142/manifest.toml) | Standing authorization: one signature pre-authorizes a class of routine work, so each change costs only its acceptance | `authorized` | `current` | `valid` | `basic` | 6M / 7S |
+| [OW-WAR-0143](docs/warrants/OW-WAR-0143/manifest.toml) | war knows when it is old: build identity, a notice when a newer release exists, and an update that works from every version | `authorized` | `current` | `valid` | `basic` | 4M / 5S |
+| [OW-WAR-0144](docs/warrants/OW-WAR-0144/manifest.toml) | Amending an authorization keeps the superseded one beside it, as a retired response is kept | `authorized` | `current` | `valid` | `basic` | 2M / 2S |
+| [OW-WAR-0145](docs/warrants/OW-WAR-0145/manifest.toml) | The battery as an askable gate: it runs in a disposable clone of the committed tree and mutates nothing | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
+| [OW-WAR-0146](docs/warrants/OW-WAR-0146/manifest.toml) | A verification bundle carries what each gate printed, so a blind verifier can see the evidence | `authorized` | `current` | `valid` | `basic` | 1M / 1S |
 
 ## Claimed SAS requirement coverage
 

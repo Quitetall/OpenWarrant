@@ -9120,7 +9120,7 @@ the app shows a `human` remedy and stops.
 
 [manifest](../../docs/warrants/OW-WAR-0113/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0113/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Contract revision 2 (`cdb9a3c40cd908c300fa23642df8cf71631b11da52251abe8286c690c2792a53`), Basis SAS 1.1.0.
+Contract revision 3 (`a0cf4c7820c5fdc2520e8f6a0fa2f618885b6853b0bbedf0caf401b1caabc738`), Basis SAS 1.1.0.
 
 ##### Intent — [docs/warrants/OW-WAR-0113/atoms/10-intent.md](../../docs/warrants/OW-WAR-0113/atoms/10-intent.md)
 
@@ -13893,9 +13893,9 @@ stages:
 
 #### OW-WAR-0141 — Work starts from a sentence or a ticket: a prompt or an issue becomes a drafted Warrant with no ceremony
 
-[manifest](../../docs/warrants/OW-WAR-0141/manifest.toml) · profile `delivery` · rung `draft` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0141/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0141/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Not authorized; no Basis is fixed.
+Contract revision 1 (`548ea85fcd0f6127dfc5cec04d58bde30a581293c75f467bae415e80f8d23a62`), Basis SAS 1.1.0.
 
 ##### Intent — [docs/warrants/OW-WAR-0141/atoms/10-intent.md](../../docs/warrants/OW-WAR-0141/atoms/10-intent.md)
 
@@ -17448,7 +17448,7 @@ negative controls.
 
 [manifest](../../docs/warrants/OW-WAR-0125/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0125/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Contract revision 2 (`e4433b5b5b0750dfb99d18e7a6fab971d88375ee1cbcb60e3166340a584dd8ce`), Basis SAS 1.1.0.
+Contract revision 3 (`9f663565fd236f1cf7582e52d464712b43f5da79ac5c828664e6df6936b0ef56`), Basis SAS 1.1.0.
 
 ##### Intent — [docs/warrants/OW-WAR-0125/atoms/10-intent.md](../../docs/warrants/OW-WAR-0125/atoms/10-intent.md)
 
@@ -24848,7 +24848,7 @@ gate receipt of their own (U-002). Its gated evidence is the plant through
 
 [manifest](../../docs/warrants/OW-WAR-0130/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0130/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Contract revision 2 (`2f047f1bb6845d51145d190637add718404db3fb6dc71200c46cac95e2239361`), Basis SAS 1.1.0.
+Contract revision 3 (`d582d694c9bf92db24c93543829dce7cf41c6fb27ac206e01bf7b5966255e1f9`), Basis SAS 1.1.0.
 
 ##### Intent — [docs/warrants/OW-WAR-0130/atoms/10-intent.md](../../docs/warrants/OW-WAR-0130/atoms/10-intent.md)
 
@@ -25622,7 +25622,7 @@ at all.
 
 [manifest](../../docs/warrants/OW-WAR-0132/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0132/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Contract revision 2 (`ce70b4fcab9054df9114ed95053d60d2cedb2e7c2e309b336bd7f2fbbfe492bd`), Basis SAS 1.1.0.
+Contract revision 3 (`447539d42bf963fcc4c9fedc6aa5318a2109445af3317ac85ad9fcca41b70925`), Basis SAS 1.1.0.
 
 ##### Intent — [docs/warrants/OW-WAR-0132/atoms/10-intent.md](../../docs/warrants/OW-WAR-0132/atoms/10-intent.md)
 
@@ -29385,7 +29385,7 @@ performer's report under another name.
 
 [manifest](../../docs/warrants/OW-WAR-0133/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0133/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Contract revision 2 (`4cf6e21710fa0bb8a6a4fe34180b14e54ca5b4fb45c2ace7c31b1c961c7837f1`), Basis SAS 1.1.0.
+Contract revision 3 (`d1c5387daac7b609c8a84c73d84b1b88fcab1c0009fac85ccee52c0ecbec4287`), Basis SAS 1.1.0.
 
 ##### Intent — [docs/warrants/OW-WAR-0133/atoms/10-intent.md](../../docs/warrants/OW-WAR-0133/atoms/10-intent.md)
 
@@ -30455,9 +30455,9 @@ this level requires. The author does not record them.
 
 #### OW-WAR-0145 — The battery as an askable gate: it runs in a disposable clone of the committed tree and mutates nothing
 
-[manifest](../../docs/warrants/OW-WAR-0145/manifest.toml) · profile `delivery` · rung `draft` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0145/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0145/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Not authorized; no Basis is fixed.
+Contract revision 1 (`3e6680715edd0ac5580678bad85c00da7f06f2e6c96f1a4c506f3c1de6d49933`), Basis SAS 1.1.0.
 
 ##### Intent — [docs/warrants/OW-WAR-0145/atoms/10-intent.md](../../docs/warrants/OW-WAR-0145/atoms/10-intent.md)
 
@@ -30664,9 +30664,9 @@ would be exactly the misdeclaration §44.8 exists to prevent.
 
 #### OW-WAR-0146 — A verification bundle carries what each gate printed, so a blind verifier can see the evidence
 
-[manifest](../../docs/warrants/OW-WAR-0146/manifest.toml) · profile `delivery` · rung `draft` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0146/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0146/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Not authorized; no Basis is fixed.
+Contract revision 1 (`e24a9cfd2337d14917d08832ad3e1143ab699ced6e2fd4f8223f9d26292fff09`), Basis SAS 1.1.0.
 
 ##### Intent — [docs/warrants/OW-WAR-0146/atoms/10-intent.md](../../docs/warrants/OW-WAR-0146/atoms/10-intent.md)
 
@@ -34957,9 +34957,9 @@ device?
 
 #### OW-WAR-0142 — Standing authorization: one signature pre-authorizes a class of routine work, so each change costs only its acceptance
 
-[manifest](../../docs/warrants/OW-WAR-0142/manifest.toml) · profile `delivery` · rung `draft` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0142/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0142/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Not authorized; no Basis is fixed.
+Contract revision 1 (`769e6bc65551e05ef573387f6cec4a8e1f8152466c88c2a35c81bb58224f5a46`), Basis SAS 1.1.0.
 
 ##### Intent — [docs/warrants/OW-WAR-0142/atoms/10-intent.md](../../docs/warrants/OW-WAR-0142/atoms/10-intent.md)
 
@@ -35782,9 +35782,9 @@ once, at acceptance, after the blind verifier.
 
 #### OW-WAR-0143 — war knows when it is old: build identity, a notice when a newer release exists, and an update that works from every version
 
-[manifest](../../docs/warrants/OW-WAR-0143/manifest.toml) · profile `delivery` · rung `draft` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0143/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0143/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Not authorized; no Basis is fixed.
+Contract revision 1 (`18a2131b25cef6af0ae188ac359b18042951b6f54bb3f98e40a900a7a920d070`), Basis SAS 1.1.0.
 
 ##### Intent — [docs/warrants/OW-WAR-0143/atoms/10-intent.md](../../docs/warrants/OW-WAR-0143/atoms/10-intent.md)
 
@@ -36488,9 +36488,9 @@ OBL-004's.
 
 #### OW-WAR-0144 — Amending an authorization keeps the superseded one beside it, as a retired response is kept
 
-[manifest](../../docs/warrants/OW-WAR-0144/manifest.toml) · profile `delivery` · rung `draft` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0144/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0144/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Not authorized; no Basis is fixed.
+Contract revision 1 (`e46db821fe3a384e4a3cecf88bbf25be3693314cc2584987fe92af41d4f6875f`), Basis SAS 1.1.0.
 
 ##### Intent — [docs/warrants/OW-WAR-0144/atoms/10-intent.md](../../docs/warrants/OW-WAR-0144/atoms/10-intent.md)
 
@@ -37105,23 +37105,31 @@ Each path is governed by the most recently authorized Warrant whose signed decla
 | path | governed by | deliverable | authorized | resolved |
 |---|---|---|---|---|
 | `.claude/hooks/guard-pins.sh` | [OW-WAR-0112](../../docs/warrants/OW-WAR-0112/manifest.toml) | D-010 | 2026-09-24T08:14:30Z | no |
-| `.github/workflows/ci.yml` | [OW-WAR-0134](../../docs/warrants/OW-WAR-0134/manifest.toml) | D-004 | 2026-09-24T08:14:30Z | no |
-| `AGENTS.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-036 | 2026-09-24T08:14:30Z | no |
-| `CONTEXT.md` | [OW-WAR-0114](../../docs/warrants/OW-WAR-0114/manifest.toml) | D-029 | 2026-09-24T08:14:30Z | no |
+| `.github/workflows/ci.yml` | [OW-WAR-0125](../../docs/warrants/OW-WAR-0125/manifest.toml) | D-010 | 2026-09-24T18:34:49Z | no |
+| `.github/workflows/release.yml` | [OW-WAR-0143](../../docs/warrants/OW-WAR-0143/manifest.toml) | D-008 | 2026-09-24T18:34:49Z | no |
+| `AGENTS.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-036 | 2026-09-24T18:34:49Z | no |
+| `CONTEXT.md` | [OW-WAR-0142](../../docs/warrants/OW-WAR-0142/manifest.toml) | D-016 | 2026-09-24T18:34:49Z | no |
 | `Cargo.lock` | [OW-WAR-0131](../../docs/warrants/OW-WAR-0131/manifest.toml) | D-003 | 2026-09-24T08:14:30Z | no |
 | `Cargo.toml` | [OW-WAR-0112](../../docs/warrants/OW-WAR-0112/manifest.toml) | D-028 | 2026-09-24T08:14:30Z | no |
-| `QUICKSTART.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-035 | 2026-09-24T08:14:30Z | no |
-| `README.md` | [OW-WAR-0116](../../docs/warrants/OW-WAR-0116/manifest.toml) | D-009 | 2026-09-24T08:14:30Z | no |
+| `QUICKSTART.md` | [OW-WAR-0143](../../docs/warrants/OW-WAR-0143/manifest.toml) | D-011 | 2026-09-24T18:34:49Z | no |
+| `README.md` | [OW-WAR-0143](../../docs/warrants/OW-WAR-0143/manifest.toml) | D-010 | 2026-09-24T18:34:49Z | no |
+| `conformance/fixtures/drafter/claude-drafter.sh` | [OW-WAR-0141](../../docs/warrants/OW-WAR-0141/manifest.toml) | D-006 | 2026-09-24T18:34:49Z | no |
 | `conformance/fixtures/performer/writes-until-killed.sh` | [OW-WAR-0131](../../docs/warrants/OW-WAR-0131/manifest.toml) | D-005 | 2026-09-24T08:14:30Z | no |
+| `conformance/plant-isolated.sh` | [OW-WAR-0145](../../docs/warrants/OW-WAR-0145/manifest.toml) | D-001 | 2026-09-24T18:34:49Z | no |
+| `conformance/plants.d/00-corpus.sh` | [OW-WAR-0133](../../docs/warrants/OW-WAR-0133/manifest.toml) | D-012 | 2026-09-24T18:34:49Z | no |
+| `conformance/plants.d/47-bundle-output.sh` | [OW-WAR-0146](../../docs/warrants/OW-WAR-0146/manifest.toml) | D-002 | 2026-09-24T18:34:49Z | no |
+| `conformance/plants.d/48-isolated-battery.sh` | [OW-WAR-0145](../../docs/warrants/OW-WAR-0145/manifest.toml) | D-003 | 2026-09-24T18:34:49Z | no |
+| `conformance/plants.d/49-authorization-retained.sh` | [OW-WAR-0144](../../docs/warrants/OW-WAR-0144/manifest.toml) | D-002 | 2026-09-24T18:34:49Z | no |
 | `conformance/plants.d/50-friction.sh` | [OW-WAR-0118](../../docs/warrants/OW-WAR-0118/manifest.toml) | D-004 | 2026-09-24T08:14:30Z | no |
 | `conformance/plants.d/51-identity.sh` | [OW-WAR-0119](../../docs/warrants/OW-WAR-0119/manifest.toml) | D-004 | 2026-09-24T08:14:30Z | no |
-| `conformance/plants.d/52-hotline-defaults.sh` | [OW-WAR-0132](../../docs/warrants/OW-WAR-0132/manifest.toml) | D-006 | 2026-09-24T08:14:30Z | no |
+| `conformance/plants.d/52-hotline-defaults.sh` | [OW-WAR-0132](../../docs/warrants/OW-WAR-0132/manifest.toml) | D-006 | 2026-09-24T18:34:49Z | no |
 | `conformance/plants.d/52-retention.sh` | [OW-WAR-0120](../../docs/warrants/OW-WAR-0120/manifest.toml) | D-006 | 2026-09-24T08:14:30Z | no |
 | `conformance/plants.d/53-storage.sh` | [OW-WAR-0121](../../docs/warrants/OW-WAR-0121/manifest.toml) | D-011 | 2026-09-24T08:14:30Z | no |
-| `conformance/plants.d/55-evidence-reuse.sh` | [OW-WAR-0133](../../docs/warrants/OW-WAR-0133/manifest.toml) | D-005 | 2026-09-24T08:14:30Z | no |
+| `conformance/plants.d/54-intake.sh` | [OW-WAR-0141](../../docs/warrants/OW-WAR-0141/manifest.toml) | D-011 | 2026-09-24T18:34:49Z | no |
+| `conformance/plants.d/55-evidence-reuse.sh` | [OW-WAR-0133](../../docs/warrants/OW-WAR-0133/manifest.toml) | D-005 | 2026-09-24T18:34:49Z | no |
 | `conformance/plants.d/56-acceptance-validity.sh` | [OW-WAR-0134](../../docs/warrants/OW-WAR-0134/manifest.toml) | D-005 | 2026-09-24T08:14:30Z | no |
 | `conformance/plants.d/56-contractor.sh` | [OW-WAR-0140](../../docs/warrants/OW-WAR-0140/manifest.toml) | D-009 | 2026-09-24T08:14:30Z | no |
-| `conformance/plants.d/56-sas-sections.sh` | [OW-WAR-0125](../../docs/warrants/OW-WAR-0125/manifest.toml) | D-009 | 2026-09-24T08:14:30Z | no |
+| `conformance/plants.d/56-sas-sections.sh` | [OW-WAR-0125](../../docs/warrants/OW-WAR-0125/manifest.toml) | D-009 | 2026-09-24T18:34:49Z | no |
 | `conformance/plants.d/57-assurance-mark.sh` | [OW-WAR-0135](../../docs/warrants/OW-WAR-0135/manifest.toml) | D-005 | 2026-09-24T08:14:30Z | no |
 | `conformance/plants.d/57-grammar.sh` | [OW-WAR-0122](../../docs/warrants/OW-WAR-0122/manifest.toml) | D-003 | 2026-09-24T08:14:30Z | no |
 | `conformance/plants.d/57-teams.sh` | [OW-WAR-0137](../../docs/warrants/OW-WAR-0137/manifest.toml) | D-008 | 2026-09-24T08:14:30Z | no |
@@ -37130,74 +37138,86 @@ Each path is governed by the most recently authorized Warrant whose signed decla
 | `conformance/plants.d/58-parent-revision.sh` | [OW-WAR-0123](../../docs/warrants/OW-WAR-0123/manifest.toml) | D-004 | 2026-09-24T08:14:30Z | no |
 | `conformance/plants.d/59-adoption.sh` | [OW-WAR-0124](../../docs/warrants/OW-WAR-0124/manifest.toml) | D-008 | 2026-09-24T08:14:30Z | no |
 | `conformance/plants.d/59-webui-lan.sh` | [OW-WAR-0139](../../docs/warrants/OW-WAR-0139/manifest.toml) | D-007 | 2026-09-24T08:14:30Z | no |
-| `conformance/plants.d/60-perform-cancel.sh` | [OW-WAR-0131](../../docs/warrants/OW-WAR-0131/manifest.toml) | D-006 | 2026-09-24T08:14:30Z | no |
+| `conformance/plants.d/60-perform-cancel.sh` | [OW-WAR-0132](../../docs/warrants/OW-WAR-0132/manifest.toml) | D-007 | 2026-09-24T18:34:49Z | no |
 | `conformance/plants.d/61-native-authority.sh` | [OW-WAR-0127](../../docs/warrants/OW-WAR-0127/manifest.toml) | D-009 | 2026-09-24T08:14:30Z | no |
+| `conformance/plants.d/61-update.sh` | [OW-WAR-0143](../../docs/warrants/OW-WAR-0143/manifest.toml) | D-012 | 2026-09-24T18:34:49Z | no |
 | `conformance/plants.d/62-verifier.sh` | [OW-WAR-0117](../../docs/warrants/OW-WAR-0117/manifest.toml) | D-003 | 2026-09-24T08:14:30Z | no |
 | `conformance/plants.d/63-webui.sh` | [OW-WAR-0116](../../docs/warrants/OW-WAR-0116/manifest.toml) | D-011 | 2026-09-24T08:14:30Z | no |
-| `conformance/plants.d/69-current.sh` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-038 | 2026-09-24T08:14:30Z | no |
-| `conformance/plants.d/69-idempotency.sh` | [OW-WAR-0130](../../docs/warrants/OW-WAR-0130/manifest.toml) | D-008 | 2026-09-24T08:14:30Z | no |
+| `conformance/plants.d/69-current.sh` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-038 | 2026-09-24T18:34:49Z | no |
+| `conformance/plants.d/69-idempotency.sh` | [OW-WAR-0130](../../docs/warrants/OW-WAR-0130/manifest.toml) | D-008 | 2026-09-24T18:34:49Z | no |
+| `conformance/plants.d/69-standing.sh` | [OW-WAR-0142](../../docs/warrants/OW-WAR-0142/manifest.toml) | D-014 | 2026-09-24T18:34:49Z | no |
 | `conformance/plants.d/70-roadmap.sh` | [OW-WAR-0114](../../docs/warrants/OW-WAR-0114/manifest.toml) | D-031 | 2026-09-24T08:14:30Z | no |
 | `conformance/plants.d/71-hub.sh` | [OW-WAR-0115](../../docs/warrants/OW-WAR-0115/manifest.toml) | D-006 | 2026-09-24T08:14:30Z | no |
-| `conformance/plants.d/83-tokens.sh` | [OW-WAR-0129](../../docs/warrants/OW-WAR-0129/manifest.toml) | D-004 | 2026-09-24T08:14:30Z | no |
+| `conformance/plants.d/83-tokens.sh` | [OW-WAR-0132](../../docs/warrants/OW-WAR-0132/manifest.toml) | D-008 | 2026-09-24T18:34:49Z | no |
 | `conformance/plants.d/88-sas-repin.sh` | [OW-WAR-0112](../../docs/warrants/OW-WAR-0112/manifest.toml) | D-040 | 2026-09-24T08:14:30Z | no |
 | `conformance/plants.d/97-tui.sh` | [OW-WAR-0112](../../docs/warrants/OW-WAR-0112/manifest.toml) | D-034 | 2026-09-24T08:14:30Z | no |
 | `conformance/plants.d/98-ownership.sh` | [OW-WAR-0112](../../docs/warrants/OW-WAR-0112/manifest.toml) | D-013 | 2026-09-24T08:14:30Z | no |
 | `conformance/plants.d/99-init.sh` | [OW-WAR-0112](../../docs/warrants/OW-WAR-0112/manifest.toml) | D-027 | 2026-09-24T08:14:30Z | no |
+| `conformance/plants/33-supersession-without-currency.py` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-039 | 2026-09-24T18:34:49Z | no |
 | `crates/openwarrant-cli/Cargo.toml` | [OW-WAR-0131](../../docs/warrants/OW-WAR-0131/manifest.toml) | D-002 | 2026-09-24T08:14:30Z | no |
+| `crates/openwarrant-cli/build.rs` | [OW-WAR-0143](../../docs/warrants/OW-WAR-0143/manifest.toml) | D-002 | 2026-09-24T18:34:49Z | no |
 | `crates/openwarrant-cli/src/acceptance.rs` | [OW-WAR-0134](../../docs/warrants/OW-WAR-0134/manifest.toml) | D-001 | 2026-09-24T08:14:30Z | no |
 | `crates/openwarrant-cli/src/atomic.rs` | [OW-WAR-0121](../../docs/warrants/OW-WAR-0121/manifest.toml) | D-001 | 2026-09-24T08:14:30Z | no |
 | `crates/openwarrant-cli/src/attest.rs` | [OW-WAR-0136](../../docs/warrants/OW-WAR-0136/manifest.toml) | D-003 | 2026-09-24T08:14:30Z | no |
 | `crates/openwarrant-cli/src/authority_check.rs` | [OW-WAR-0138](../../docs/warrants/OW-WAR-0138/manifest.toml) | D-002 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/authorize.rs` | [OW-WAR-0137](../../docs/warrants/OW-WAR-0137/manifest.toml) | D-002 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/batch_cmd.rs` | [OW-WAR-0130](../../docs/warrants/OW-WAR-0130/manifest.toml) | D-001 | 2026-09-24T08:14:30Z | no |
+| `crates/openwarrant-cli/src/authorize.rs` | [OW-WAR-0144](../../docs/warrants/OW-WAR-0144/manifest.toml) | D-001 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/src/batch_cmd.rs` | [OW-WAR-0142](../../docs/warrants/OW-WAR-0142/manifest.toml) | D-011 | 2026-09-24T18:34:49Z | no |
 | `crates/openwarrant-cli/src/blut.rs` | [OW-WAR-0119](../../docs/warrants/OW-WAR-0119/manifest.toml) | D-003 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/bundle.rs` | [OW-WAR-0127](../../docs/warrants/OW-WAR-0127/manifest.toml) | D-007 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/check.rs` | [OW-WAR-0127](../../docs/warrants/OW-WAR-0127/manifest.toml) | D-004 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/compat.rs` | [OW-WAR-0130](../../docs/warrants/OW-WAR-0130/manifest.toml) | D-004 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/compile.rs` | [OW-WAR-0125](../../docs/warrants/OW-WAR-0125/manifest.toml) | D-004 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/context_select.rs` | [OW-WAR-0133](../../docs/warrants/OW-WAR-0133/manifest.toml) | D-003 | 2026-09-24T08:14:30Z | no |
+| `crates/openwarrant-cli/src/build_identity.rs` | [OW-WAR-0143](../../docs/warrants/OW-WAR-0143/manifest.toml) | D-001 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/src/bundle.rs` | [OW-WAR-0146](../../docs/warrants/OW-WAR-0146/manifest.toml) | D-001 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/src/check.rs` | [OW-WAR-0142](../../docs/warrants/OW-WAR-0142/manifest.toml) | D-009 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/src/commit.rs` | [OW-WAR-0141](../../docs/warrants/OW-WAR-0141/manifest.toml) | D-005 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/src/compat.rs` | [OW-WAR-0130](../../docs/warrants/OW-WAR-0130/manifest.toml) | D-004 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/src/compile.rs` | [OW-WAR-0125](../../docs/warrants/OW-WAR-0125/manifest.toml) | D-004 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/src/context_select.rs` | [OW-WAR-0133](../../docs/warrants/OW-WAR-0133/manifest.toml) | D-003 | 2026-09-24T18:34:49Z | no |
 | `crates/openwarrant-cli/src/correct.rs` | [OW-WAR-0127](../../docs/warrants/OW-WAR-0127/manifest.toml) | D-006 | 2026-09-24T08:14:30Z | no |
 | `crates/openwarrant-cli/src/diagnostic.rs` | [OW-WAR-0112](../../docs/warrants/OW-WAR-0112/manifest.toml) | D-017 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/dispatch.rs` | [OW-WAR-0129](../../docs/warrants/OW-WAR-0129/manifest.toml) | D-002 | 2026-09-24T08:14:30Z | no |
+| `crates/openwarrant-cli/src/dispatch.rs` | [OW-WAR-0133](../../docs/warrants/OW-WAR-0133/manifest.toml) | D-007 | 2026-09-24T18:34:49Z | no |
 | `crates/openwarrant-cli/src/dispatch_bundle_cmd.rs` | [OW-WAR-0129](../../docs/warrants/OW-WAR-0129/manifest.toml) | D-003 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/evidence.rs` | [OW-WAR-0136](../../docs/warrants/OW-WAR-0136/manifest.toml) | D-005 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/frontier.rs` | [OW-WAR-0132](../../docs/warrants/OW-WAR-0132/manifest.toml) | D-001 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/gate_cmd.rs` | [OW-WAR-0133](../../docs/warrants/OW-WAR-0133/manifest.toml) | D-001 | 2026-09-24T08:14:30Z | no |
+| `crates/openwarrant-cli/src/eval.rs` | [OW-WAR-0133](../../docs/warrants/OW-WAR-0133/manifest.toml) | D-010 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/src/evidence.rs` | [OW-WAR-0133](../../docs/warrants/OW-WAR-0133/manifest.toml) | D-002 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/src/frontier.rs` | [OW-WAR-0132](../../docs/warrants/OW-WAR-0132/manifest.toml) | D-001 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/src/gate_cmd.rs` | [OW-WAR-0133](../../docs/warrants/OW-WAR-0133/manifest.toml) | D-001 | 2026-09-24T18:34:49Z | no |
 | `crates/openwarrant-cli/src/identity_check.rs` | [OW-WAR-0119](../../docs/warrants/OW-WAR-0119/manifest.toml) | D-001 | 2026-09-24T08:14:30Z | no |
 | `crates/openwarrant-cli/src/inbox/mod.rs` | [OW-WAR-0137](../../docs/warrants/OW-WAR-0137/manifest.toml) | D-004 | 2026-09-24T08:14:30Z | no |
 | `crates/openwarrant-cli/src/init/guided.rs` | [OW-WAR-0124](../../docs/warrants/OW-WAR-0124/manifest.toml) | D-005 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/init/mod.rs` | [OW-WAR-0124](../../docs/warrants/OW-WAR-0124/manifest.toml) | D-002 | 2026-09-24T08:14:30Z | no |
+| `crates/openwarrant-cli/src/init/mod.rs` | [OW-WAR-0132](../../docs/warrants/OW-WAR-0132/manifest.toml) | D-010 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/src/install.rs` | [OW-WAR-0143](../../docs/warrants/OW-WAR-0143/manifest.toml) | D-003 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/src/intake.rs` | [OW-WAR-0141](../../docs/warrants/OW-WAR-0141/manifest.toml) | D-001 | 2026-09-24T18:34:49Z | no |
 | `crates/openwarrant-cli/src/invalidation.rs` | [OW-WAR-0136](../../docs/warrants/OW-WAR-0136/manifest.toml) | D-001 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/journal_cmd.rs` | [OW-WAR-0130](../../docs/warrants/OW-WAR-0130/manifest.toml) | D-002 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/lib.rs` | [OW-WAR-0136](../../docs/warrants/OW-WAR-0136/manifest.toml) | D-006 | 2026-09-24T08:14:30Z | no |
+| `crates/openwarrant-cli/src/journal_cmd.rs` | [OW-WAR-0130](../../docs/warrants/OW-WAR-0130/manifest.toml) | D-002 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/src/lib.rs` | [OW-WAR-0143](../../docs/warrants/OW-WAR-0143/manifest.toml) | D-005 | 2026-09-24T18:34:49Z | no |
 | `crates/openwarrant-cli/src/main.rs` | [OW-WAR-0112](../../docs/warrants/OW-WAR-0112/manifest.toml) | D-032 | 2026-09-24T08:14:30Z | no |
 | `crates/openwarrant-cli/src/mark.rs` | [OW-WAR-0135](../../docs/warrants/OW-WAR-0135/manifest.toml) | D-002 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/new.rs` | [OW-WAR-0140](../../docs/warrants/OW-WAR-0140/manifest.toml) | D-006 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/next.rs` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-015 | 2026-09-24T08:14:30Z | no |
+| `crates/openwarrant-cli/src/new.rs` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-031 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/src/next.rs` | [OW-WAR-0132](../../docs/warrants/OW-WAR-0132/manifest.toml) | D-009 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/src/notice.rs` | [OW-WAR-0143](../../docs/warrants/OW-WAR-0143/manifest.toml) | D-004 | 2026-09-24T18:34:49Z | no |
 | `crates/openwarrant-cli/src/output.rs` | [OW-WAR-0112](../../docs/warrants/OW-WAR-0112/manifest.toml) | D-018 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/ownership.rs` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-003 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/perform.rs` | [OW-WAR-0132](../../docs/warrants/OW-WAR-0132/manifest.toml) | D-002 | 2026-09-24T08:14:30Z | no |
+| `crates/openwarrant-cli/src/ownership.rs` | [OW-WAR-0142](../../docs/warrants/OW-WAR-0142/manifest.toml) | D-012 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/src/perform.rs` | [OW-WAR-0132](../../docs/warrants/OW-WAR-0132/manifest.toml) | D-002 | 2026-09-24T18:34:49Z | no |
 | `crates/openwarrant-cli/src/pins.rs` | [OW-WAR-0134](../../docs/warrants/OW-WAR-0134/manifest.toml) | D-002 | 2026-09-24T08:14:30Z | no |
+| `crates/openwarrant-cli/src/plan.rs` | [OW-WAR-0141](../../docs/warrants/OW-WAR-0141/manifest.toml) | D-002 | 2026-09-24T18:34:49Z | no |
 | `crates/openwarrant-cli/src/progress_viewer.rs` | [OW-WAR-0116](../../docs/warrants/OW-WAR-0116/manifest.toml) | D-006 | 2026-09-24T08:14:30Z | no |
 | `crates/openwarrant-cli/src/progress_viewer/roadmap.rs` | [OW-WAR-0114](../../docs/warrants/OW-WAR-0114/manifest.toml) | D-020 | 2026-09-24T08:14:30Z | no |
 | `crates/openwarrant-cli/src/progress_viewer/server.rs` | [OW-WAR-0116](../../docs/warrants/OW-WAR-0116/manifest.toml) | D-005 | 2026-09-24T08:14:30Z | no |
 | `crates/openwarrant-cli/src/projects.rs` | [OW-WAR-0115](../../docs/warrants/OW-WAR-0115/manifest.toml) | D-001 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/questions.rs` | [OW-WAR-0130](../../docs/warrants/OW-WAR-0130/manifest.toml) | D-003a | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/relations.rs` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-002 | 2026-09-24T08:14:30Z | no |
+| `crates/openwarrant-cli/src/questions.rs` | [OW-WAR-0141](../../docs/warrants/OW-WAR-0141/manifest.toml) | D-003 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/src/relations.rs` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-002 | 2026-09-24T18:34:49Z | no |
 | `crates/openwarrant-cli/src/remedy.rs` | [OW-WAR-0114](../../docs/warrants/OW-WAR-0114/manifest.toml) | D-017 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/repo.rs` | [OW-WAR-0130](../../docs/warrants/OW-WAR-0130/manifest.toml) | D-006 | 2026-09-24T08:14:30Z | no |
+| `crates/openwarrant-cli/src/repo.rs` | [OW-WAR-0141](../../docs/warrants/OW-WAR-0141/manifest.toml) | D-004 | 2026-09-24T18:34:49Z | no |
 | `crates/openwarrant-cli/src/resolution_cmd.rs` | [OW-WAR-0136](../../docs/warrants/OW-WAR-0136/manifest.toml) | D-004 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/resolve.rs` | [OW-WAR-0127](../../docs/warrants/OW-WAR-0127/manifest.toml) | D-003 | 2026-09-24T08:14:30Z | no |
+| `crates/openwarrant-cli/src/resolve.rs` | [OW-WAR-0142](../../docs/warrants/OW-WAR-0142/manifest.toml) | D-013 | 2026-09-24T18:34:49Z | no |
 | `crates/openwarrant-cli/src/roadmap_cmd.rs` | [OW-WAR-0114](../../docs/warrants/OW-WAR-0114/manifest.toml) | D-011 | 2026-09-24T08:14:30Z | no |
 | `crates/openwarrant-cli/src/roadmap_edit.rs` | [OW-WAR-0114](../../docs/warrants/OW-WAR-0114/manifest.toml) | D-012 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/run_cmd.rs` | [OW-WAR-0130](../../docs/warrants/OW-WAR-0130/manifest.toml) | D-003b | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/sas.rs` | [OW-WAR-0125](../../docs/warrants/OW-WAR-0125/manifest.toml) | D-008 | 2026-09-24T08:14:30Z | no |
+| `crates/openwarrant-cli/src/run_cmd.rs` | [OW-WAR-0130](../../docs/warrants/OW-WAR-0130/manifest.toml) | D-003b | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/src/sas.rs` | [OW-WAR-0125](../../docs/warrants/OW-WAR-0125/manifest.toml) | D-008 | 2026-09-24T18:34:49Z | no |
 | `crates/openwarrant-cli/src/sas_repin.rs` | [OW-WAR-0112](../../docs/warrants/OW-WAR-0112/manifest.toml) | D-039 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/sign.rs` | [OW-WAR-0138](../../docs/warrants/OW-WAR-0138/manifest.toml) | D-004 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/status.rs` | [OW-WAR-0127](../../docs/warrants/OW-WAR-0127/manifest.toml) | D-008 | 2026-09-24T08:14:30Z | no |
+| `crates/openwarrant-cli/src/sign.rs` | [OW-WAR-0142](../../docs/warrants/OW-WAR-0142/manifest.toml) | D-010 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/src/standing_cmd.rs` | [OW-WAR-0142](../../docs/warrants/OW-WAR-0142/manifest.toml) | D-007 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/src/status.rs` | [OW-WAR-0133](../../docs/warrants/OW-WAR-0133/manifest.toml) | D-009 | 2026-09-24T18:34:49Z | no |
 | `crates/openwarrant-cli/src/telemetry.rs` | [OW-WAR-0124](../../docs/warrants/OW-WAR-0124/manifest.toml) | D-006 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/tui/mod.rs` | [OW-WAR-0115](../../docs/warrants/OW-WAR-0115/manifest.toml) | D-003 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/src/verify.rs` | [OW-WAR-0137](../../docs/warrants/OW-WAR-0137/manifest.toml) | D-005 | 2026-09-24T08:14:30Z | no |
+| `crates/openwarrant-cli/src/tui/mod.rs` | [OW-WAR-0143](../../docs/warrants/OW-WAR-0143/manifest.toml) | D-006 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/src/verify.rs` | [OW-WAR-0130](../../docs/warrants/OW-WAR-0130/manifest.toml) | D-003c | 2026-09-24T18:34:49Z | no |
 | `crates/openwarrant-cli/src/watch.rs` | [OW-WAR-0112](../../docs/warrants/OW-WAR-0112/manifest.toml) | D-033 | 2026-09-24T08:14:30Z | no |
 | `crates/openwarrant-cli/src/webui/assets/app.css` | [OW-WAR-0116](../../docs/warrants/OW-WAR-0116/manifest.toml) | D-004 | 2026-09-24T08:14:30Z | no |
 | `crates/openwarrant-cli/src/webui/assets/app.js` | [OW-WAR-0139](../../docs/warrants/OW-WAR-0139/manifest.toml) | D-004 | 2026-09-24T08:14:30Z | no |
@@ -37206,76 +37226,83 @@ Each path is governed by the most recently authorized Warrant whose signed decla
 | `crates/openwarrant-cli/src/webui/pairing.rs` | [OW-WAR-0139](../../docs/warrants/OW-WAR-0139/manifest.toml) | D-003 | 2026-09-24T08:14:30Z | no |
 | `crates/openwarrant-cli/src/webui/tls.rs` | [OW-WAR-0139](../../docs/warrants/OW-WAR-0139/manifest.toml) | D-002 | 2026-09-24T08:14:30Z | no |
 | `crates/openwarrant-cli/templates/adopt/20-basis.md` | [OW-WAR-0124](../../docs/warrants/OW-WAR-0124/manifest.toml) | D-004 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/templates/presets/decision/10-intent.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-027 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/templates/presets/decision/20-basis.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-028 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/templates/presets/decision/30-decision.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-029 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/templates/presets/decision/60-assurance.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-030 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/templates/presets/feature/10-intent.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-017 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/templates/presets/feature/20-basis.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-018 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/templates/presets/feature/40-work-order.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-019 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/templates/presets/feature/45-milestones.yaml` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-020 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/templates/presets/feature/60-assurance.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-021 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/templates/presets/fix/10-intent.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-022 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/templates/presets/fix/20-basis.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-023 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/templates/presets/fix/40-work-order.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-024 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/templates/presets/fix/45-milestones.yaml` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-025 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-cli/templates/presets/fix/60-assurance.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-026 | 2026-09-24T08:14:30Z | no |
+| `crates/openwarrant-cli/templates/presets/decision/10-intent.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-027 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/templates/presets/decision/20-basis.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-028 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/templates/presets/decision/30-decision.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-029 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/templates/presets/decision/60-assurance.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-030 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/templates/presets/feature/10-intent.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-017 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/templates/presets/feature/20-basis.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-018 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/templates/presets/feature/40-work-order.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-019 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/templates/presets/feature/45-milestones.yaml` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-020 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/templates/presets/feature/60-assurance.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-021 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/templates/presets/fix/10-intent.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-022 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/templates/presets/fix/20-basis.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-023 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/templates/presets/fix/40-work-order.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-024 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/templates/presets/fix/45-milestones.yaml` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-025 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-cli/templates/presets/fix/60-assurance.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-026 | 2026-09-24T18:34:49Z | no |
 | `crates/openwarrant-cli/tests/dispatch_bundle_cli.rs` | [OW-WAR-0122](../../docs/warrants/OW-WAR-0122/manifest.toml) | D-004 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-compiler/src/current.rs` | [OW-WAR-0114](../../docs/warrants/OW-WAR-0114/manifest.toml) | D-021 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-compiler/src/dispatch.rs` | [OW-WAR-0133](../../docs/warrants/OW-WAR-0133/manifest.toml) | D-004 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-compiler/src/history.rs` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-007 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-compiler/src/lib.rs` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-009 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-compiler/src/warrant_overview.rs` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-004 | 2026-09-24T08:14:30Z | no |
+| `crates/openwarrant-compiler/src/current.rs` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-006 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-compiler/src/dispatch.rs` | [OW-WAR-0133](../../docs/warrants/OW-WAR-0133/manifest.toml) | D-004 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-compiler/src/history.rs` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-007 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-compiler/src/lib.rs` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-009 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-compiler/src/warrant_overview.rs` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-004 | 2026-09-24T18:34:49Z | no |
 | `crates/openwarrant-core/src/assignment.rs` | [OW-WAR-0137](../../docs/warrants/OW-WAR-0137/manifest.toml) | D-001 | 2026-09-24T08:14:30Z | no |
 | `crates/openwarrant-core/src/authority_transition.rs` | [OW-WAR-0138](../../docs/warrants/OW-WAR-0138/manifest.toml) | D-005 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-core/src/config.rs` | [OW-WAR-0138](../../docs/warrants/OW-WAR-0138/manifest.toml) | D-006 | 2026-09-24T08:14:30Z | no |
+| `crates/openwarrant-core/src/config.rs` | [OW-WAR-0132](../../docs/warrants/OW-WAR-0132/manifest.toml) | D-003 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-core/src/context.rs` | [OW-WAR-0133](../../docs/warrants/OW-WAR-0133/manifest.toml) | D-008 | 2026-09-24T18:34:49Z | no |
 | `crates/openwarrant-core/src/deliverable.rs` | [OW-WAR-0127](../../docs/warrants/OW-WAR-0127/manifest.toml) | D-002 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-core/src/lib.rs` | [OW-WAR-0125](../../docs/warrants/OW-WAR-0125/manifest.toml) | D-003 | 2026-09-24T08:14:30Z | no |
+| `crates/openwarrant-core/src/lib.rs` | [OW-WAR-0142](../../docs/warrants/OW-WAR-0142/manifest.toml) | D-004 | 2026-09-24T18:34:49Z | no |
 | `crates/openwarrant-core/src/manifest.rs` | [OW-WAR-0140](../../docs/warrants/OW-WAR-0140/manifest.toml) | D-002 | 2026-09-24T08:14:30Z | no |
 | `crates/openwarrant-core/src/presence.rs` | [OW-WAR-0138](../../docs/warrants/OW-WAR-0138/manifest.toml) | D-003 | 2026-09-24T08:14:30Z | no |
 | `crates/openwarrant-core/src/roadmap.rs` | [OW-WAR-0114](../../docs/warrants/OW-WAR-0114/manifest.toml) | D-006 | 2026-09-24T08:14:30Z | no |
 | `crates/openwarrant-core/src/role.rs` | [OW-WAR-0140](../../docs/warrants/OW-WAR-0140/manifest.toml) | D-001 | 2026-09-24T08:14:30Z | no |
-| `crates/openwarrant-core/src/sas_sections.rs` | [OW-WAR-0125](../../docs/warrants/OW-WAR-0125/manifest.toml) | D-002 | 2026-09-24T08:14:30Z | no |
+| `crates/openwarrant-core/src/sas_sections.rs` | [OW-WAR-0125](../../docs/warrants/OW-WAR-0125/manifest.toml) | D-002 | 2026-09-24T18:34:49Z | no |
+| `crates/openwarrant-core/src/standing.rs` | [OW-WAR-0142](../../docs/warrants/OW-WAR-0142/manifest.toml) | D-003 | 2026-09-24T18:34:49Z | no |
 | `crates/openwarrant-core/src/status.rs` | [OW-WAR-0114](../../docs/warrants/OW-WAR-0114/manifest.toml) | D-009 | 2026-09-24T08:14:30Z | no |
 | `crates/openwarrant-core/src/traceability.rs` | [OW-WAR-0114](../../docs/warrants/OW-WAR-0114/manifest.toml) | D-008 | 2026-09-24T08:14:30Z | no |
 | `docs/ADOPTING.md` | [OW-WAR-0124](../../docs/warrants/OW-WAR-0124/manifest.toml) | D-007 | 2026-09-24T08:14:30Z | no |
 | `docs/ASSURANCE_MARK.md` | [OW-WAR-0135](../../docs/warrants/OW-WAR-0135/manifest.toml) | D-006 | 2026-09-24T08:14:30Z | no |
 | `docs/AUTHENTICATION.md` | [OW-WAR-0138](../../docs/warrants/OW-WAR-0138/manifest.toml) | D-001 | 2026-09-24T08:14:30Z | no |
-| `docs/COMPATIBILITY.md` | [OW-WAR-0130](../../docs/warrants/OW-WAR-0130/manifest.toml) | D-007 | 2026-09-24T08:14:30Z | no |
+| `docs/COMPATIBILITY.md` | [OW-WAR-0130](../../docs/warrants/OW-WAR-0130/manifest.toml) | D-007 | 2026-09-24T18:34:49Z | no |
 | `docs/EXAMPLES/04-contractor.md` | [OW-WAR-0140](../../docs/warrants/OW-WAR-0140/manifest.toml) | D-007 | 2026-09-24T08:14:30Z | no |
-| `docs/FRICTION.md` | [OW-WAR-0118](../../docs/warrants/OW-WAR-0118/manifest.toml) | D-003 | 2026-09-24T08:14:30Z | no |
+| `docs/FRICTION.md` | [OW-WAR-0141](../../docs/warrants/OW-WAR-0141/manifest.toml) | D-009 | 2026-09-24T18:34:49Z | no |
 | `docs/GRAMMAR.md` | [OW-WAR-0122](../../docs/warrants/OW-WAR-0122/manifest.toml) | D-001 | 2026-09-24T08:14:30Z | no |
-| `docs/HOTLINE.md` | [OW-WAR-0132](../../docs/warrants/OW-WAR-0132/manifest.toml) | D-005 | 2026-09-24T08:14:30Z | no |
+| `docs/HOTLINE.md` | [OW-WAR-0132](../../docs/warrants/OW-WAR-0132/manifest.toml) | D-005 | 2026-09-24T18:34:49Z | no |
+| `docs/INSTALL.md` | [OW-WAR-0143](../../docs/warrants/OW-WAR-0143/manifest.toml) | D-009 | 2026-09-24T18:34:49Z | no |
 | `docs/INVALIDATION.md` | [OW-WAR-0136](../../docs/warrants/OW-WAR-0136/manifest.toml) | D-008 | 2026-09-24T08:14:30Z | no |
 | `docs/PERFORM.md` | [OW-WAR-0131](../../docs/warrants/OW-WAR-0131/manifest.toml) | D-007 | 2026-09-24T08:14:30Z | no |
 | `docs/PROFILES.md` | [OW-WAR-0140](../../docs/warrants/OW-WAR-0140/manifest.toml) | D-008 | 2026-09-24T08:14:30Z | no |
-| `docs/RESOLVING.md` | [OW-WAR-0133](../../docs/warrants/OW-WAR-0133/manifest.toml) | D-006 | 2026-09-24T08:14:30Z | no |
+| `docs/RESOLVING.md` | [OW-WAR-0133](../../docs/warrants/OW-WAR-0133/manifest.toml) | D-006 | 2026-09-24T18:34:49Z | no |
 | `docs/RETENTION.md` | [OW-WAR-0120](../../docs/warrants/OW-WAR-0120/manifest.toml) | D-005 | 2026-09-24T08:14:30Z | no |
-| `docs/SIGNING.md` | [OW-WAR-0134](../../docs/warrants/OW-WAR-0134/manifest.toml) | D-006 | 2026-09-24T08:14:30Z | no |
+| `docs/SIGNING.md` | [OW-WAR-0144](../../docs/warrants/OW-WAR-0144/manifest.toml) | D-003 | 2026-09-24T18:34:49Z | no |
 | `docs/STORAGE.md` | [OW-WAR-0121](../../docs/warrants/OW-WAR-0121/manifest.toml) | D-010 | 2026-09-24T08:14:30Z | no |
 | `docs/TEAMS.md` | [OW-WAR-0137](../../docs/warrants/OW-WAR-0137/manifest.toml) | D-006 | 2026-09-24T08:14:30Z | no |
 | `docs/THREAT_MODEL.md` | [OW-WAR-0139](../../docs/warrants/OW-WAR-0139/manifest.toml) | D-006 | 2026-09-24T08:14:30Z | no |
-| `docs/TUI.md` | [OW-WAR-0115](../../docs/warrants/OW-WAR-0115/manifest.toml) | D-004 | 2026-09-24T08:14:30Z | no |
+| `docs/TUI.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-037 | 2026-09-24T18:34:49Z | no |
 | `docs/VERIFICATION.md` | [OW-WAR-0117](../../docs/warrants/OW-WAR-0117/manifest.toml) | D-004 | 2026-09-24T08:14:30Z | no |
 | `docs/WEBUI.md` | [OW-WAR-0139](../../docs/warrants/OW-WAR-0139/manifest.toml) | D-005 | 2026-09-24T08:14:30Z | no |
 | `docs/adr/atoms/OW-ADR-0020-ratatui-for-the-terminal-dashboard.md` | [OW-WAR-0112](../../docs/warrants/OW-WAR-0112/manifest.toml) | D-038 | 2026-09-24T08:14:30Z | no |
 | `docs/adr/atoms/OW-ADR-0021-pin-ownership.md` | [OW-WAR-0112](../../docs/warrants/OW-WAR-0112/manifest.toml) | D-001 | 2026-09-24T08:14:30Z | no |
-| `docs/adr/atoms/OW-ADR-0022-current-by-relation.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-001 | 2026-09-24T08:14:30Z | no |
+| `docs/adr/atoms/OW-ADR-0022-current-by-relation.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-001 | 2026-09-24T18:34:49Z | no |
 | `docs/adr/atoms/OW-ADR-0023-roadmap-is-a-record.md` | [OW-WAR-0114](../../docs/warrants/OW-WAR-0114/manifest.toml) | D-001 | 2026-09-24T08:14:30Z | no |
 | `docs/adr/atoms/OW-ADR-0024-kf-owns-registered-lifecycle.md` | [OW-WAR-0126](../../docs/warrants/OW-WAR-0126/manifest.toml) | D-001 | 2026-09-23T23:23:42Z | no |
 | `docs/adr/atoms/OW-ADR-0025-assurance-mark.md` | [OW-WAR-0135](../../docs/warrants/OW-WAR-0135/manifest.toml) | D-001 | 2026-09-24T08:14:30Z | no |
 | `docs/adr/atoms/OW-ADR-0026-native-held-deliverables.md` | [OW-WAR-0127](../../docs/warrants/OW-WAR-0127/manifest.toml) | D-001 | 2026-09-24T08:14:30Z | no |
 | `docs/adr/atoms/OW-ADR-0027-kf-compiler-interface.md` | [OW-WAR-0128](../../docs/warrants/OW-WAR-0128/manifest.toml) | D-002 | 2026-09-23T23:23:42Z | no |
-| `docs/adr/atoms/OW-ADR-0028-sas-sections-are-atoms.md` | [OW-WAR-0125](../../docs/warrants/OW-WAR-0125/manifest.toml) | D-001 | 2026-09-24T08:14:30Z | no |
+| `docs/adr/atoms/OW-ADR-0028-sas-sections-are-atoms.md` | [OW-WAR-0125](../../docs/warrants/OW-WAR-0125/manifest.toml) | D-001 | 2026-09-24T18:34:49Z | no |
+| `docs/adr/atoms/OW-ADR-0029-standing-authorization.md` | [OW-WAR-0142](../../docs/warrants/OW-WAR-0142/manifest.toml) | D-001 | 2026-09-24T18:34:49Z | no |
+| `docs/agents/issue-tracker.md` | [OW-WAR-0141](../../docs/warrants/OW-WAR-0141/manifest.toml) | D-010 | 2026-09-24T18:34:49Z | no |
 | `docs/assurance/baseline-v1.toml` | [OW-WAR-0135](../../docs/warrants/OW-WAR-0135/manifest.toml) | D-004 | 2026-09-24T08:14:30Z | no |
 | `docs/authority/allowed_signers.example` | [OW-WAR-0112](../../docs/warrants/OW-WAR-0112/manifest.toml) | D-024 | 2026-09-24T08:14:30Z | no |
 | `docs/authority/roles.toml.example` | [OW-WAR-0112](../../docs/warrants/OW-WAR-0112/manifest.toml) | D-023 | 2026-09-24T08:14:30Z | no |
 | `docs/cli/authority.md` | [OW-WAR-0138](../../docs/warrants/OW-WAR-0138/manifest.toml) | D-008 | 2026-09-24T08:14:30Z | no |
 | `docs/design/rc2-implementation-roadmap.json` | [OW-WAR-0114](../../docs/warrants/OW-WAR-0114/manifest.toml) | D-027 | 2026-09-24T08:14:30Z | no |
 | `docs/friction/baseline-1.json` | [OW-WAR-0118](../../docs/warrants/OW-WAR-0118/manifest.toml) | D-002 | 2026-09-24T08:14:30Z | no |
+| `docs/friction/baseline-2.json` | [OW-WAR-0141](../../docs/warrants/OW-WAR-0141/manifest.toml) | D-008 | 2026-09-24T18:34:49Z | no |
+| `docs/gates/ops.conformance.plants@1.1.0.yaml` | [OW-WAR-0145](../../docs/warrants/OW-WAR-0145/manifest.toml) | D-002 | 2026-09-24T18:34:49Z | no |
 | `docs/gates/ops.exit-demo@1.0.0.yaml` | [OW-WAR-0136](../../docs/warrants/OW-WAR-0136/manifest.toml) | D-009 | 2026-09-24T08:14:30Z | no |
-| `docs/generated/CURRENT.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-010 | 2026-09-24T08:14:30Z | no |
-| `docs/generated/HISTORY.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-011 | 2026-09-24T08:14:30Z | no |
+| `docs/generated/CURRENT.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-010 | 2026-09-24T18:34:49Z | no |
+| `docs/generated/HISTORY.md` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-011 | 2026-09-24T18:34:49Z | no |
 | `docs/integrations/kf-compiler.md` | [OW-WAR-0128](../../docs/warrants/OW-WAR-0128/manifest.toml) | D-001 | 2026-09-23T23:23:42Z | no |
 | `docs/roadmap/PRODUCTION_ROADMAP.md` | [OW-WAR-0114](../../docs/warrants/OW-WAR-0114/manifest.toml) | D-025 | 2026-09-24T08:14:30Z | no |
 | `docs/roadmap/atoms/10-intent.md` | [OW-WAR-0114](../../docs/warrants/OW-WAR-0114/manifest.toml) | D-003 | 2026-09-24T08:14:30Z | no |
@@ -37283,14 +37310,16 @@ Each path is governed by the most recently authorized Warrant whose signed decla
 | `docs/roadmap/revisions/1.toml` | [OW-WAR-0114](../../docs/warrants/OW-WAR-0114/manifest.toml) | D-005 | 2026-09-24T08:14:30Z | no |
 | `docs/roadmap/roadmap.toml` | [OW-WAR-0114](../../docs/warrants/OW-WAR-0114/manifest.toml) | D-002 | 2026-09-24T08:14:30Z | no |
 | `docs/roadmap/view.json` | [OW-WAR-0114](../../docs/warrants/OW-WAR-0114/manifest.toml) | D-026 | 2026-09-24T08:14:30Z | no |
-| `docs/sas/WAR_Software_Architecture_Specification.md` | [OW-WAR-0114](../../docs/warrants/OW-WAR-0114/manifest.toml) | D-024 | 2026-09-24T08:14:30Z | no |
+| `docs/sas/WAR_Software_Architecture_Specification.md` | [OW-WAR-0142](../../docs/warrants/OW-WAR-0142/manifest.toml) | D-002 | 2026-09-24T18:34:49Z | no |
 | `docs/sas/drafts/1.0.0-rc.3/roadmap.json` | [OW-WAR-0114](../../docs/warrants/OW-WAR-0114/manifest.toml) | D-028 | 2026-09-24T08:14:30Z | no |
-| `docs/sas/generated/SECTIONS.json` | [OW-WAR-0125](../../docs/warrants/OW-WAR-0125/manifest.toml) | D-005 | 2026-09-24T08:14:30Z | no |
-| `docs/sas/generated/SECTIONS.md` | [OW-WAR-0125](../../docs/warrants/OW-WAR-0125/manifest.toml) | D-006 | 2026-09-24T08:14:30Z | no |
+| `docs/sas/generated/SECTIONS.json` | [OW-WAR-0125](../../docs/warrants/OW-WAR-0125/manifest.toml) | D-005 | 2026-09-24T18:34:49Z | no |
+| `docs/sas/generated/SECTIONS.md` | [OW-WAR-0125](../../docs/warrants/OW-WAR-0125/manifest.toml) | D-006 | 2026-09-24T18:34:49Z | no |
 | `docs/scale/baseline-1000.json` | [OW-WAR-0120](../../docs/warrants/OW-WAR-0120/manifest.toml) | D-004 | 2026-09-24T08:14:30Z | no |
 | `docs/warrants/OW-WAR-0071/amendments/AM-001.yaml` | [OW-WAR-0112](../../docs/warrants/OW-WAR-0112/manifest.toml) | D-003 | 2026-09-24T08:14:30Z | no |
-| `docs/warrants/OW-WAR-0073/manifest.toml` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-005 | 2026-09-24T08:14:30Z | no |
-| `openwarrant.toml` | [OW-WAR-0132](../../docs/warrants/OW-WAR-0132/manifest.toml) | D-004 | 2026-09-24T08:14:30Z | no |
+| `docs/warrants/OW-WAR-0073/manifest.toml` | [OW-WAR-0113](../../docs/warrants/OW-WAR-0113/manifest.toml) | D-005 | 2026-09-24T18:34:49Z | no |
+| `evals/baseline.json` | [OW-WAR-0133](../../docs/warrants/OW-WAR-0133/manifest.toml) | D-011 | 2026-09-24T18:34:49Z | no |
+| `install.sh` | [OW-WAR-0143](../../docs/warrants/OW-WAR-0143/manifest.toml) | D-007 | 2026-09-24T18:34:49Z | no |
+| `openwarrant.toml` | [OW-WAR-0132](../../docs/warrants/OW-WAR-0132/manifest.toml) | D-004 | 2026-09-24T18:34:49Z | no |
 | `profiles/contractor.toml` | [OW-WAR-0140](../../docs/warrants/OW-WAR-0140/manifest.toml) | D-005 | 2026-09-24T08:14:30Z | no |
 | `profiles/decision.toml` | [OW-WAR-0140](../../docs/warrants/OW-WAR-0140/manifest.toml) | D-004 | 2026-09-24T08:14:30Z | no |
 | `profiles/delivery.toml` | [OW-WAR-0140](../../docs/warrants/OW-WAR-0140/manifest.toml) | D-003 | 2026-09-24T08:14:30Z | no |
@@ -37298,11 +37327,12 @@ Each path is governed by the most recently authorized Warrant whose signed decla
 | `schemas/oh.war/report/v1.json` | [OW-WAR-0112](../../docs/warrants/OW-WAR-0112/manifest.toml) | D-019 | 2026-09-24T08:14:30Z | no |
 | `schemas/oh.war/resolution/v1.json` | [OW-WAR-0112](../../docs/warrants/OW-WAR-0112/manifest.toml) | D-041 | 2026-09-24T08:14:30Z | no |
 | `schemas/oh.war/roadmap/v1.json` | [OW-WAR-0114](../../docs/warrants/OW-WAR-0114/manifest.toml) | D-022 | 2026-09-24T08:14:30Z | no |
-| `schemas/pack.json` | [OW-WAR-0114](../../docs/warrants/OW-WAR-0114/manifest.toml) | D-023 | 2026-09-24T08:14:30Z | no |
+| `schemas/oh.war/standing-authorization/v1.json` | [OW-WAR-0142](../../docs/warrants/OW-WAR-0142/manifest.toml) | D-005 | 2026-09-24T18:34:49Z | no |
+| `schemas/pack.json` | [OW-WAR-0142](../../docs/warrants/OW-WAR-0142/manifest.toml) | D-006 | 2026-09-24T18:34:49Z | no |
 | `schemas/typescript/authorization.ts` | [OW-WAR-0112](../../docs/warrants/OW-WAR-0112/manifest.toml) | D-042 | 2026-09-24T08:14:30Z | no |
 | `schemas/typescript/manifest.json` | [OW-WAR-0112](../../docs/warrants/OW-WAR-0112/manifest.toml) | D-044 | 2026-09-24T08:14:30Z | no |
 | `schemas/typescript/resolution.ts` | [OW-WAR-0112](../../docs/warrants/OW-WAR-0112/manifest.toml) | D-043 | 2026-09-24T08:14:30Z | no |
-| `tools/friction/measure.sh` | [OW-WAR-0118](../../docs/warrants/OW-WAR-0118/manifest.toml) | D-001 | 2026-09-24T08:14:30Z | no |
+| `tools/friction/measure.sh` | [OW-WAR-0141](../../docs/warrants/OW-WAR-0141/manifest.toml) | D-007 | 2026-09-24T18:34:49Z | no |
 | `tools/performer/claude-performer.sh` | [OW-WAR-0131](../../docs/warrants/OW-WAR-0131/manifest.toml) | D-004 | 2026-09-24T08:14:30Z | no |
 | `tools/scale/budget.sh` | [OW-WAR-0120](../../docs/warrants/OW-WAR-0120/manifest.toml) | D-003 | 2026-09-24T08:14:30Z | no |
 | `tools/scale/budget.toml` | [OW-WAR-0120](../../docs/warrants/OW-WAR-0120/manifest.toml) | D-002 | 2026-09-24T08:14:30Z | no |
@@ -37324,17 +37354,6 @@ Every command here has been judged by the act's dry run (`war sign <target> --dr
 
 | act | Warrant | command | judged | why |
 |---|---|---|---|---|
-| authorize | OW-WAR-0113 | `war sign OW-WAR-0113` | would record | revision 3 awaits authorization under AM-002 |
-| authorize | OW-WAR-0125 | `war sign OW-WAR-0125` | would record | revision 3 awaits authorization under AM-002 |
-| authorize | OW-WAR-0130 | `war sign OW-WAR-0130` | would record | revision 3 awaits authorization under AM-002 |
-| authorize | OW-WAR-0132 | `war sign OW-WAR-0132` | would record | revision 3 awaits authorization under AM-002 |
-| authorize | OW-WAR-0133 | `war sign OW-WAR-0133` | would record | revision 3 awaits authorization under AM-002 |
-| authorize | OW-WAR-0141 | `war sign OW-WAR-0141` | would record | revision 1 awaits authorization |
-| authorize | OW-WAR-0142 | `war sign OW-WAR-0142` | would record | revision 1 awaits authorization |
-| authorize | OW-WAR-0143 | `war sign OW-WAR-0143` | would record | revision 1 awaits authorization |
-| authorize | OW-WAR-0144 | `war sign OW-WAR-0144` | would record | revision 1 awaits authorization |
-| authorize | OW-WAR-0145 | `war sign OW-WAR-0145` | would record | revision 1 awaits authorization |
-| authorize | OW-WAR-0146 | `war sign OW-WAR-0146` | would record | revision 1 awaits authorization |
 | resolve | OW-WAR-0001 | `war sign OW-WAR-0001` | would refuse: sign.needs-decision | the thirteen are met; 1 obligation(s) unestablished, so the outcome must be named |
 | resolve | OW-WAR-0003 | `war sign OW-WAR-0003` | would refuse: sign.needs-decision | the thirteen are met; 1 obligation(s) unestablished, so the outcome must be named |
 | resolve | OW-WAR-0004 | `war sign OW-WAR-0004` | would refuse: sign.needs-decision | the thirteen are met; 3 obligation(s) unestablished, so the outcome must be named |
