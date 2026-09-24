@@ -1,0 +1,129 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+# Shared paths, edited only in the sections 40-work-order.md names:
+# lib.rs and tui/mod.rs (many Warrants; tui binary_row is OW-WAR-0115's),
+# README.md (latest owner OW-WAR-0116 D-009), QUICKSTART.md, release.yml.
+# compat.rs (OW-WAR-0130) and .claude/hooks/stop-check.sh are deliberately
+# absent: Q-003 and Q-002 in 20-basis.md.
+
+[[deliverable]]
+id = "D-001"
+title = "Build identity: gather and classify, shared by build.rs and the crate"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/build_identity.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-002"
+title = "build.rs: the identity embedded at build time; a release build that is not what it says does not build"
+kind = "file"
+target_ref = "crates/openwarrant-cli/build.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-003"
+title = "install.rs: identity, precedence, default channel, verification before switching, update.unmanaged, remedy"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/install.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[[deliverable]]
+id = "D-004"
+title = "notice.rs: the cached, detached, opt-out release notice"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/notice.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-005"]
+
+[[deliverable]]
+id = "D-005"
+title = "lib.rs: the version string, version --probe, __release-check, the notice hook, update's default channel"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-003", "OBL-005"]
+
+[[deliverable]]
+id = "D-006"
+title = "tui/mod.rs binary_row: compares identity, names the remedy"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/tui/mod.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-004"]
+
+[[deliverable]]
+id = "D-007"
+title = "install.sh against the current release contract, into the managed layout"
+kind = "file"
+target_ref = "install.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-006"]
+
+[[deliverable]]
+id = "D-008"
+title = "release.yml: OPENWARRANT_RELEASE_TAG at build, install.sh attached"
+kind = "file"
+target_ref = ".github/workflows/release.yml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-006"]
+
+[[deliverable]]
+id = "D-009"
+title = "The install document"
+kind = "file"
+target_ref = "docs/INSTALL.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-007"]
+
+[[deliverable]]
+id = "D-010"
+title = "README.md: a pointer to docs/INSTALL.md"
+kind = "file"
+target_ref = "README.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-007"]
+
+[[deliverable]]
+id = "D-011"
+title = "QUICKSTART.md step 0: a pointer to docs/INSTALL.md"
+kind = "file"
+target_ref = "QUICKSTART.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-007"]
+
+[[deliverable]]
+id = "D-012"
+title = "The update, notice, bootstrap and identity plants"
+kind = "file"
+target_ref = "conformance/plants.d/61-update.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005", "OBL-006", "OBL-007"]

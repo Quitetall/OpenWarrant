@@ -15,7 +15,7 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 
 - **SAS revision:** 1.1.0
 - **digest:** `sha256:321413359168c176faaddefc1a7057d66059d5de8d98d20feeca995c7f89a1bc`
-- Revision 1.1.0 is ACCEPTED (§101.2) and normative. A Warrant compiles against the revision its authorization recorded (§14), so a later revision does not move an authorized contract: 57 against 0.1.0-draft.1, 8 against 0.1.0-draft.3, 42 against 1.0.0, 29 against 1.1.0.
+- Revision 1.1.0 is ACCEPTED (§101.2) and normative. A Warrant compiles against the revision its authorization recorded (§14), so a later revision does not move an authorized contract: 57 against 0.1.0-draft.1, 8 against 0.1.0-draft.3, 42 against 1.0.0, 33 against 1.1.0.
 
 **Requirements (62 in §106)** — strictest rung first:
 
@@ -29,14 +29,14 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 |---|---|---|---|---|---|---|---|
 | roadmap://OW-PHASE-0: Telemetry shim | OW-WAR-0041 | blocked by OW-WAR-0039, OW-WAR-0041, OW-WAR-0100, OW-WAR-0118 | 0 | 2 | 2 | 0 | 0 |
 | roadmap://OW-PHASE-1: File-native WAR compiler | OW-WAR-0061 | recorded | 0 | 17 | 4 | 0 | 13 |
-| roadmap://OW-PHASE-2: Agent planner | OW-WAR-0042 | blocked by OW-WAR-0035, OW-WAR-0037, OW-WAR-0042, OW-WAR-0068, OW-WAR-0070, OW-WAR-0088, OW-WAR-0101, OW-WAR-0105 | 0 | 7 | 1 | 0 | 1 |
+| roadmap://OW-PHASE-2: Agent planner | OW-WAR-0042 | blocked by OW-WAR-0035, OW-WAR-0037, OW-WAR-0042, OW-WAR-0068, OW-WAR-0070, OW-WAR-0088, OW-WAR-0101, OW-WAR-0105, OW-WAR-0141 | 0 | 8 | 1 | 0 | 1 |
 | roadmap://OW-PHASE-3: ADR federation | OW-WAR-0043 | blocked by OW-WAR-0006, OW-WAR-0036, OW-WAR-0043, OW-WAR-0064, OW-WAR-0074, OW-WAR-0084, OW-WAR-0123, OW-WAR-0124, OW-WAR-0125 | 0 | 7 | 2 | 0 | 3 |
 | roadmap://OW-PHASE-4: Knowledge Fabric registration | OW-WAR-0044 | blocked by OW-WAR-0028, OW-WAR-0029, OW-WAR-0030, OW-WAR-0032, OW-WAR-0044, OW-WAR-0110, OW-WAR-0111, OW-WAR-0126, OW-WAR-0127, OW-WAR-0128 | 0 | 6 | 4 | 0 | 0 |
 | roadmap://OW-PHASE-5: Dispatch and Katana execution | OW-WAR-0045 | blocked by OW-WAR-0011, OW-WAR-0023, OW-WAR-0026, OW-WAR-0045, OW-WAR-0065, OW-WAR-0069, OW-WAR-0077, OW-WAR-0078, OW-WAR-0079, OW-WAR-0080, OW-WAR-0081, OW-WAR-0082, OW-WAR-0086, OW-WAR-0093, OW-WAR-0094, OW-WAR-0095, OW-WAR-0098, OW-WAR-0099, OW-WAR-0102, OW-WAR-0103, OW-WAR-0104, OW-WAR-0106, OW-WAR-0109, OW-WAR-0129, OW-WAR-0130, OW-WAR-0131, OW-WAR-0132 | 0 | 25 | 2 | 0 | 4 |
 | roadmap://OW-PHASE-6: Gate Registry and assurance case | OW-WAR-0046 | recorded | 0 | 10 | 0 | 0 | 8 |
 | roadmap://OW-PHASE-7: BLUT adapter | OW-WAR-0047 | blocked by OW-WAR-0027, OW-WAR-0047, OW-WAR-0108 | 0 | 2 | 1 | 0 | 0 |
 | roadmap://OW-PHASE-8: Liminal production compiler | OW-WAR-0048 | blocked by OW-WAR-0040, OW-WAR-0048 | 0 | 2 | 0 | 0 | 0 |
-| roadmap://OW-PHASE-9: High-assurance controls | OW-WAR-0136 | blocked by OW-WAR-0067, OW-WAR-0071, OW-WAR-0072, OW-WAR-0073, OW-WAR-0089, OW-WAR-0090, OW-WAR-0091, OW-WAR-0096, OW-WAR-0136, OW-WAR-0137, OW-WAR-0138, OW-WAR-0139 | 0 | 12 | 0 | 0 | 0 |
+| roadmap://OW-PHASE-9: High-assurance controls | OW-WAR-0136 | blocked by OW-WAR-0067, OW-WAR-0071, OW-WAR-0072, OW-WAR-0073, OW-WAR-0089, OW-WAR-0090, OW-WAR-0091, OW-WAR-0096, OW-WAR-0136, OW-WAR-0137, OW-WAR-0138, OW-WAR-0139, OW-WAR-0142, OW-WAR-0143, OW-WAR-0144 | 0 | 15 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-10: Contractor Work Order profile | — | not derivable — no member carries the `exit` slug | 0 | 1 | 0 | 0 | 0 |
 | *unassigned — declares no [[roadmap]]* | — | not derivable — a Warrant naming no phase belongs to no Objective | 0 | 0 | 0 | 0 | 0 |
 
@@ -65,17 +65,17 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | requirement | Warrants blocked |
 |---|---|
-| artifact digests verify | 94 |
-| every required gate has admissible result | 80 |
-| no blocker remains | 79 |
-| no required unknown remains | 79 |
-| every required obligation is dispositioned | 77 |
-| independence requirements are met | 77 |
-| required deliverables exist | 74 |
-| required judgments exist | 48 |
-| residual risks have sufficient authority | 48 |
+| artifact digests verify | 98 |
+| every required gate has admissible result | 84 |
+| no blocker remains | 83 |
+| no required unknown remains | 83 |
+| every required obligation is dispositioned | 81 |
+| independence requirements are met | 81 |
+| required deliverables exist | 77 |
+| required judgments exist | 52 |
+| residual risks have sufficient authority | 52 |
+| exact authorized Contract Revision | 5 |
 | runtime receipts match the basis | 3 |
-| exact authorized Contract Revision | 1 |
 
 ## Requirements (SAS §106, §34.3)
 
@@ -100,19 +100,19 @@ Every §106 requirement is named by at least one Warrant.
 | `WAR-SAS-RQ-023` | claimed | 0 | OW-WAR-0123 (partial) |
 | `WAR-SAS-RQ-024` | claimed | 0 | OW-WAR-0006 (complete) |
 | `WAR-SAS-RQ-025` | claimed | 0 | OW-WAR-0006 (complete) |
-| `WAR-SAS-RQ-030` | satisfied | 1 | OW-WAR-0009 (complete), OW-WAR-0067 (partial) |
+| `WAR-SAS-RQ-030` | satisfied | 1 | OW-WAR-0009 (complete), OW-WAR-0067 (partial), OW-WAR-0142 (partial), OW-WAR-0144 (partial) |
 | `WAR-SAS-RQ-031` | satisfied | 1 | OW-WAR-0009 (complete) |
 | `WAR-SAS-RQ-032` | satisfied | 1 | OW-WAR-0008 (complete), OW-WAR-0113 (partial), OW-WAR-0114 (partial) |
 | `WAR-SAS-RQ-033` | satisfied | 1 | OW-WAR-0009 (complete), OW-WAR-0112 (partial) |
-| `WAR-SAS-RQ-034` | satisfied | 1 | OW-WAR-0009 (complete) |
+| `WAR-SAS-RQ-034` | satisfied | 1 | OW-WAR-0009 (complete), OW-WAR-0144 (partial) |
 | `WAR-SAS-RQ-035` | claimed | 0 | OW-WAR-0011 (complete) |
 | `WAR-SAS-RQ-036` | claimed | 0 | OW-WAR-0067 (partial), OW-WAR-0112 (complete), OW-WAR-0134 (partial) |
-| `WAR-SAS-RQ-037` | claimed | 0 | OW-WAR-0112 (complete) |
+| `WAR-SAS-RQ-037` | claimed | 0 | OW-WAR-0112 (complete), OW-WAR-0142 (partial) |
 | `WAR-SAS-RQ-040` | claimed | 0 | OW-WAR-0007 (complete) |
 | `WAR-SAS-RQ-041` | claimed | 0 | OW-WAR-0007 (complete) |
 | `WAR-SAS-RQ-042` | superseded | 1 | OW-WAR-0023 (complete), OW-WAR-0045 (complete), OW-WAR-0056 (supersession), OW-WAR-0069 (partial) |
 | `WAR-SAS-RQ-043` | superseded | 1 | OW-WAR-0023 (complete), OW-WAR-0045 (complete), OW-WAR-0056 (supersession), OW-WAR-0065 (partial), OW-WAR-0133 (partial) |
-| `WAR-SAS-RQ-044` | claimed | 0 | OW-WAR-0026 (complete), OW-WAR-0045 (complete), OW-WAR-0069 (partial), OW-WAR-0131 (partial), OW-WAR-0132 (partial), OW-WAR-0138 (partial) |
+| `WAR-SAS-RQ-044` | claimed | 0 | OW-WAR-0026 (complete), OW-WAR-0045 (complete), OW-WAR-0069 (partial), OW-WAR-0131 (partial), OW-WAR-0132 (partial), OW-WAR-0138 (partial), OW-WAR-0142 (partial) |
 | `WAR-SAS-RQ-045` | satisfied | 1 | OW-WAR-0024 (complete), OW-WAR-0045 (complete), OW-WAR-0056 (partial) |
 | `WAR-SAS-RQ-046` | claimed | 0 | OW-WAR-0129 (complete) |
 | `WAR-SAS-RQ-050` | satisfied | 1 | OW-WAR-0016 (complete), OW-WAR-0074 (partial), OW-WAR-0075 (partial), OW-WAR-0076 (partial), OW-WAR-0077 (partial), OW-WAR-0078 (partial), OW-WAR-0079 (partial), OW-WAR-0080 (partial), OW-WAR-0081 (partial), OW-WAR-0082 (partial), OW-WAR-0083 (partial), OW-WAR-0084 (partial), OW-WAR-0085 (partial), OW-WAR-0086 (partial), OW-WAR-0087 (partial), OW-WAR-0088 (partial), OW-WAR-0089 (partial), OW-WAR-0090 (partial), OW-WAR-0091 (partial), OW-WAR-0092 (partial) |
@@ -131,9 +131,9 @@ Every §106 requirement is named by at least one Warrant.
 | `WAR-SAS-RQ-063` | claimed | 0 | OW-WAR-0027 (complete), OW-WAR-0047 (complete) |
 | `WAR-SAS-RQ-064` | claimed | 0 | OW-WAR-0001 (partial) |
 | `WAR-SAS-RQ-065` | claimed | 0 | OW-WAR-0127 (partial) |
-| `WAR-SAS-RQ-070` | claimed | 0 | OW-WAR-0001 (partial), OW-WAR-0069 (partial), OW-WAR-0072 (partial), OW-WAR-0073 (partial), OW-WAR-0112 (partial), OW-WAR-0115 (partial), OW-WAR-0116 (partial) |
-| `WAR-SAS-RQ-071` | claimed | 0 | OW-WAR-0035 (complete), OW-WAR-0042 (complete), OW-WAR-0068 (partial) |
-| `WAR-SAS-RQ-072` | satisfied | 1 | OW-WAR-0034 (complete), OW-WAR-0042 (complete), OW-WAR-0068 (partial) |
+| `WAR-SAS-RQ-070` | claimed | 0 | OW-WAR-0001 (partial), OW-WAR-0069 (partial), OW-WAR-0072 (partial), OW-WAR-0073 (partial), OW-WAR-0112 (partial), OW-WAR-0115 (partial), OW-WAR-0116 (partial), OW-WAR-0141 (partial) |
+| `WAR-SAS-RQ-071` | claimed | 0 | OW-WAR-0035 (complete), OW-WAR-0042 (complete), OW-WAR-0068 (partial), OW-WAR-0141 (partial) |
+| `WAR-SAS-RQ-072` | satisfied | 1 | OW-WAR-0034 (complete), OW-WAR-0042 (complete), OW-WAR-0068 (partial), OW-WAR-0141 (partial) |
 | `WAR-SAS-RQ-073` | claimed | 0 | OW-WAR-0036 (complete) |
 | `WAR-SAS-RQ-074` | satisfied | 1 | OW-WAR-0005 (complete), OW-WAR-0055 (partial), OW-WAR-0112 (partial) |
 | `WAR-SAS-RQ-075` | in_progress | 0 | OW-WAR-0004 (complete), OW-WAR-0055 (partial), OW-WAR-0057 (partial), OW-WAR-0060 (partial), OW-WAR-0073 (partial), OW-WAR-0112 (partial), OW-WAR-0115 (partial), OW-WAR-0116 (partial) |
@@ -146,7 +146,7 @@ Every §106 requirement is named by at least one Warrant.
 | `WAR-SAS-RQ-084` | claimed | 0 | OW-WAR-0030 (complete), OW-WAR-0064 (partial), OW-WAR-0113 (complete), OW-WAR-0114 (partial) |
 | `WAR-SAS-RQ-085` | claimed | 0 | OW-WAR-0067 (partial), OW-WAR-0071 (partial), OW-WAR-0072 (partial) |
 
-## Warrants (136) — invalid 0 · draft 91 · ready_to_resolve 16 · would_satisfy 0 · resolved **29**
+## Warrants (140) — invalid 0 · draft 95 · ready_to_resolve 16 · would_satisfy 0 · resolved **29**
 
 | Warrant | rung | §38.6 | blocking unknowns | milestones evidenced | first unmet |
 |---|---|---|---|---|---|
@@ -267,7 +267,7 @@ Every §106 requirement is named by at least one Warrant.
 | `OW-WAR-0119` Identity is the UUIDv7: immutable across revisions, and no alias ever stands in for it | draft | unknown | 0 | 0 of 2 | required deliverables exist |
 | `OW-WAR-0120` Retention: compact journals, archive resolved Warrants, and hold a budget at 1,000 Warrants | draft | unknown | 0 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0121` Storage: atomic writes, crash recovery, and migration of retained artifacts | draft | unknown | 0 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0122` The document grammar: a schema for atoms, headers and Markdown, and what a conforming tool must accept | draft | unknown | 1 | 0 of 3 | required deliverables exist |
+| `OW-WAR-0122` The document grammar: a schema for atoms, headers and Markdown, and what a conforming tool must accept | draft | unknown | 1 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0123` A child cites the exact revision of its parent, and a moved parent is a finding | draft | unknown | 1 | 0 of 3 | required deliverables exist |
 | `OW-WAR-0124` Brownfield adoption: a guided path into OpenWarrant for a repository with history and no Warrants | draft | unknown | 0 | 0 of 3 | required deliverables exist |
 | `OW-WAR-0125` The SAS as atoms: sections as governed records with their own currency | draft | unknown | 0 | 0 of 4 | required deliverables exist |
@@ -286,6 +286,10 @@ Every §106 requirement is named by at least one Warrant.
 | `OW-WAR-0138` Human and session authentication, and policy state protected from the performer | draft | unknown | 0 | 0 of 5 | required deliverables exist |
 | `OW-WAR-0139` The web UI beyond this machine: LAN and other devices, authenticated | draft | unknown | 0 | 0 of 5 | required deliverables exist |
 | `OW-WAR-0140` The Contractor Work Order profile: acceptance, invoicing and legal terms outside the technical core | draft | unknown | 0 | 0 of 5 | required deliverables exist |
+| `OW-WAR-0141` Work starts from a sentence or a ticket: a prompt or an issue becomes a drafted Warrant with no ceremony | draft | unknown | 0 | 0 of 3 | exact authorized Contract Revision |
+| `OW-WAR-0142` Standing authorization: one signature pre-authorizes a class of routine work, so each change costs only its acceptance | draft | unknown | 0 | 0 of 6 | exact authorized Contract Revision |
+| `OW-WAR-0143` war knows when it is old: build identity, a notice when a newer release exists, and an update that works from every version | draft | unknown | 0 | 0 of 4 | exact authorized Contract Revision |
+| `OW-WAR-0144` Amending an authorization keeps the superseded one beside it, as a retired response is kept | draft | unknown | 0 | 0 of 2 | exact authorized Contract Revision |
 
 ## Not reported here
 

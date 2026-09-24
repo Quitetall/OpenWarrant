@@ -1,0 +1,93 @@
+schema: "oh.war/milestones/v1"
+
+# M1 is the owner's decision (Q-001). M2-M4 are built only under answer A;
+# under B or C they are cancelled by amendment (40-work-order.md#Scope).
+# M5 is the owner's: accept SAS 1.2.0 and sign the first class.
+#
+#   M1 decide -- M2 class + check -- M3 human acts + ownership -- M4 plants + docs
+#                                                                  \-- M5 owner
+milestones:
+  - id: "M1"
+    title: "The owner chooses A, B or C; OW-ADR-0029 records the choice and, under A, the SAS 1.2.0 text is proposed"
+    stage_refs: ["STAGE-001", "STAGE-002"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "The class record and the deterministic coverage check, refusing by term"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-002", "OBL-003", "OBL-004"]
+
+  - id: "M3"
+    title: "Accepting and revoking a class are human acts; resolution stays one; ownership never taken from work in flight"
+    depends_on: ["M2"]
+    stage_refs: ["STAGE-004"]
+    obligation_refs: ["OBL-004", "OBL-005", "OBL-006"]
+
+  - id: "M4"
+    title: "The plants, the dialog count, SIGNING.md and CONTEXT.md"
+    depends_on: ["M3"]
+    stage_refs: ["STAGE-005"]
+    obligation_refs: ["OBL-007"]
+
+  - id: "M5"
+    title: "The owner accepts SAS 1.2.0 and signs the first class"
+    depends_on: ["M4"]
+    stage_refs: ["STAGE-006"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "MB"
+    title: "The battery, run as the gate these obligations cite"
+    depends_on: ["M4"]
+    stage_refs: ["STAGE-007"]
+    obligation_refs: ["OBL-002", "OBL-003", "OBL-004", "OBL-005", "OBL-006", "OBL-007"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Owner answers Q-001: A (standing authorization), B (batching only) or C (SAS revision of §27.2)"
+    executor_kind: "human"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-002"
+    title: "Rewrite OW-ADR-0029's Decision to the answer; under A, draft SAS 1.2.0 (§28.8, §37.5 clause, one §106 row) and war sas propose"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "20-basis.md#Where the tension is"]
+    budget_tokens: 12000
+
+  - id: "STAGE-003"
+    title: "core/standing.rs, NEVER_COVERABLE, the schema, standing_cmd.rs (propose, show, apply), the check.rs rules"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Premade Instructions"]
+    budget_tokens: 24000
+
+  - id: "STAGE-004"
+    title: "AcceptStanding and RevokeStanding in sign.rs and batch_cmd.rs, the in-flight-owner refusal, resolve.rs refusing policy-service resolution"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Premade Instructions"]
+    budget_tokens: 16000
+
+  - id: "STAGE-005"
+    title: "69-standing.sh, the dialog count on a scratch corpus, docs/SIGNING.md, CONTEXT.md"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "60-assurance.md#Acceptance Obligations"]
+    budget_tokens: 14000
+
+  - id: "STAGE-006"
+    title: "Owner accepts SAS 1.2.0 and signs the first class (war sign standing:<id> --ssh-sign)"
+    executor_kind: "human"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-007"
+    title: "Run the conformance battery"
+    executor_kind: "service"
+    responsibility_tier: "T1"
+    executor_ref: "gate://ops.conformance.plants@1.0.0"
+    wall_time_seconds: 1800

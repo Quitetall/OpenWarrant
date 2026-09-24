@@ -5,7 +5,7 @@ Source: the Warrants under the configured warrants path.
 
 # Warrant Overview
 
-136 Warrant(s) in this repository.
+140 Warrant(s) in this repository.
 
 ## Summary
 
@@ -147,6 +147,10 @@ Source: the Warrants under the configured warrants path.
 | [OW-WAR-0138](docs/warrants/OW-WAR-0138/manifest.toml) | Human and session authentication, and policy state protected from the performer | `authorized` | `current` | `valid` | `controlled` | 5M / 5S |
 | [OW-WAR-0139](docs/warrants/OW-WAR-0139/manifest.toml) | The web UI beyond this machine: LAN and other devices, authenticated | `authorized` | `current` | `valid` | `controlled` | 5M / 5S |
 | [OW-WAR-0140](docs/warrants/OW-WAR-0140/manifest.toml) | The Contractor Work Order profile: acceptance, invoicing and legal terms outside the technical core | `authorized` | `current` | `valid` | `controlled` | 5M / 5S |
+| [OW-WAR-0141](docs/warrants/OW-WAR-0141/manifest.toml) | Work starts from a sentence or a ticket: a prompt or an issue becomes a drafted Warrant with no ceremony | `draft` | `current` | `valid` | `basic` | 3M / 3S |
+| [OW-WAR-0142](docs/warrants/OW-WAR-0142/manifest.toml) | Standing authorization: one signature pre-authorizes a class of routine work, so each change costs only its acceptance | `draft` | `current` | `valid` | `basic` | 6M / 7S |
+| [OW-WAR-0143](docs/warrants/OW-WAR-0143/manifest.toml) | war knows when it is old: build identity, a notice when a newer release exists, and an update that works from every version | `draft` | `current` | `valid` | `basic` | 4M / 5S |
+| [OW-WAR-0144](docs/warrants/OW-WAR-0144/manifest.toml) | Amending an authorization keeps the superseded one beside it, as a retired response is kept | `draft` | `current` | `valid` | `basic` | 2M / 2S |
 
 ## Claimed SAS requirement coverage
 
@@ -171,19 +175,19 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-023` — OW-WAR-0123
 - `WAR-SAS-RQ-024` — OW-WAR-0006
 - `WAR-SAS-RQ-025` — OW-WAR-0006
-- `WAR-SAS-RQ-030` — OW-WAR-0009, OW-WAR-0067
+- `WAR-SAS-RQ-030` — OW-WAR-0009, OW-WAR-0067, OW-WAR-0142, OW-WAR-0144
 - `WAR-SAS-RQ-031` — OW-WAR-0009
 - `WAR-SAS-RQ-032` — OW-WAR-0008, OW-WAR-0113, OW-WAR-0114
 - `WAR-SAS-RQ-033` — OW-WAR-0009, OW-WAR-0112
-- `WAR-SAS-RQ-034` — OW-WAR-0009
+- `WAR-SAS-RQ-034` — OW-WAR-0009, OW-WAR-0144
 - `WAR-SAS-RQ-035` — OW-WAR-0011
 - `WAR-SAS-RQ-036` — OW-WAR-0067, OW-WAR-0112, OW-WAR-0134
-- `WAR-SAS-RQ-037` — OW-WAR-0112
+- `WAR-SAS-RQ-037` — OW-WAR-0112, OW-WAR-0142
 - `WAR-SAS-RQ-040` — OW-WAR-0007
 - `WAR-SAS-RQ-041` — OW-WAR-0007
 - `WAR-SAS-RQ-042` — OW-WAR-0023, OW-WAR-0045, OW-WAR-0056, OW-WAR-0069
 - `WAR-SAS-RQ-043` — OW-WAR-0023, OW-WAR-0045, OW-WAR-0056, OW-WAR-0065, OW-WAR-0133
-- `WAR-SAS-RQ-044` — OW-WAR-0026, OW-WAR-0045, OW-WAR-0069, OW-WAR-0131, OW-WAR-0132, OW-WAR-0138
+- `WAR-SAS-RQ-044` — OW-WAR-0026, OW-WAR-0045, OW-WAR-0069, OW-WAR-0131, OW-WAR-0132, OW-WAR-0138, OW-WAR-0142
 - `WAR-SAS-RQ-045` — OW-WAR-0024, OW-WAR-0045, OW-WAR-0056
 - `WAR-SAS-RQ-046` — OW-WAR-0129
 - `WAR-SAS-RQ-050` — OW-WAR-0016, OW-WAR-0074, OW-WAR-0075, OW-WAR-0076, OW-WAR-0077, OW-WAR-0078, OW-WAR-0079, OW-WAR-0080, OW-WAR-0081, OW-WAR-0082, OW-WAR-0083, OW-WAR-0084, OW-WAR-0085, OW-WAR-0086, OW-WAR-0087, OW-WAR-0088, OW-WAR-0089, OW-WAR-0090, OW-WAR-0091, OW-WAR-0092
@@ -202,9 +206,9 @@ Source: the Warrants under the configured warrants path.
 - `WAR-SAS-RQ-063` — OW-WAR-0027, OW-WAR-0047
 - `WAR-SAS-RQ-064` — OW-WAR-0001
 - `WAR-SAS-RQ-065` — OW-WAR-0127
-- `WAR-SAS-RQ-070` — OW-WAR-0001, OW-WAR-0069, OW-WAR-0072, OW-WAR-0073, OW-WAR-0112, OW-WAR-0115, OW-WAR-0116
-- `WAR-SAS-RQ-071` — OW-WAR-0035, OW-WAR-0042, OW-WAR-0068
-- `WAR-SAS-RQ-072` — OW-WAR-0034, OW-WAR-0042, OW-WAR-0068
+- `WAR-SAS-RQ-070` — OW-WAR-0001, OW-WAR-0069, OW-WAR-0072, OW-WAR-0073, OW-WAR-0112, OW-WAR-0115, OW-WAR-0116, OW-WAR-0141
+- `WAR-SAS-RQ-071` — OW-WAR-0035, OW-WAR-0042, OW-WAR-0068, OW-WAR-0141
+- `WAR-SAS-RQ-072` — OW-WAR-0034, OW-WAR-0042, OW-WAR-0068, OW-WAR-0141
 - `WAR-SAS-RQ-073` — OW-WAR-0036
 - `WAR-SAS-RQ-074` — OW-WAR-0005, OW-WAR-0055, OW-WAR-0112
 - `WAR-SAS-RQ-075` — OW-WAR-0004, OW-WAR-0055, OW-WAR-0057, OW-WAR-0060, OW-WAR-0073, OW-WAR-0112, OW-WAR-0115, OW-WAR-0116
@@ -315,6 +319,10 @@ Source: the Warrants under the configured warrants path.
 - **OW-WAR-0138** · roadmap: roadmap://OW-PHASE-9/authentication
 - **OW-WAR-0139** · roadmap: roadmap://OW-PHASE-9/web-lan
 - **OW-WAR-0140** · roadmap: roadmap://OW-PHASE-10/contractor-profile, roadmap://OW-PHASE-10/exit
+- **OW-WAR-0141** · roadmap: roadmap://OW-PHASE-2/intake
+- **OW-WAR-0142** · roadmap: roadmap://OW-PHASE-9/standing-authorization
+- **OW-WAR-0143** · roadmap: roadmap://OW-PHASE-9/self-update
+- **OW-WAR-0144** · roadmap: roadmap://OW-PHASE-9/authorization-retention
 
 ## Not reported here
 

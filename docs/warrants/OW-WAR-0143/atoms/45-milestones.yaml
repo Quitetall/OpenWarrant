@@ -1,0 +1,65 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "A build says what it is: build.rs, build_identity.rs, war --version, war version, the Help pane's binary row"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "war update works from every version that has it: channel, precedence, verification before any link moves, unmanaged installs refused"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002", "OBL-003", "OBL-004"]
+
+  - id: "M3"
+    title: "The notice, the bootstrap and the install document"
+    depends_on: ["M2"]
+    stage_refs: ["STAGE-003", "STAGE-004"]
+    obligation_refs: ["OBL-005", "OBL-006", "OBL-007"]
+
+  - id: "MB"
+    title: "The battery, run as the gate these obligations cite"
+    depends_on: ["M1", "M2", "M3"]
+    stage_refs: ["STAGE-005"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005", "OBL-006", "OBL-007"]
+
+stages:
+  - id: "STAGE-001"
+    title: "build_identity.rs, build.rs, the version string and --probe in lib.rs, binary_row in tui/mod.rs, and 61-update.sh's identity plants"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Frozen Surfaces"]
+    budget_tokens: 12000
+
+  - id: "STAGE-002"
+    title: "install.rs: precedence, default channel, MANIFEST and identity checks, atomic switch, update.unmanaged, remedy, OPENWARRANT_RELEASES_URL; 61-update.sh's fixture server and update plants"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Frozen Surfaces"]
+    budget_tokens: 16000
+
+  - id: "STAGE-003"
+    title: "notice.rs, the __release-check command and the notice hook in lib.rs; 61-update.sh's notice plants"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Autonomy and Escalation"]
+    budget_tokens: 12000
+
+  - id: "STAGE-004"
+    title: "install.sh rewritten, release.yml's OPENWARRANT_RELEASE_TAG and install.sh asset, docs/INSTALL.md, the README and QUICKSTART pointers; 61-update.sh's bootstrap plants"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "20-basis.md#Residual risks"]
+    budget_tokens: 12000
+
+  - id: "STAGE-005"
+    title: "Run the conformance battery"
+    executor_kind: "service"
+    responsibility_tier: "T1"
+    executor_ref: "gate://ops.conformance.plants@1.0.0"
+    wall_time_seconds: 1800

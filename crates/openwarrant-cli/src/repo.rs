@@ -409,7 +409,18 @@ impl Repository {
             // a defect.
             let text = String::from_utf8_lossy(&bytes);
             let jurisdiction = match frontmatter::parse(&text) {
-                Ok(fm) => fm.scalar("jurisdiction").unwrap_or("authored").to_owned(),
+                Ok(fm) => {
+                    if rel.ends_with(".md") && entry.role != "adr" {
+                        for detail in header_mismatches(&fm, &manifest, entry) {
+                            report.push(Diagnostic::error(
+                                "atom.header",
+                                self.relative(&path),
+                                detail,
+                            ));
+                        }
+                    }
+                    fm.scalar("jurisdiction").unwrap_or("authored").to_owned()
+                }
                 Err(err) => {
                     if rel.ends_with(".md") {
                         report.push(Diagnostic::error(
@@ -939,4 +950,126 @@ pub fn amendment_sas_revision(dir: &Utf8Path) -> Option<(String, Utf8PathBuf)> {
         })?;
         Some((version, path))
     })
+}
+
+/// The schema a Markdown atom's header names (SAS §62).
+const ATOM_SCHEMA: &str = "oh.war/atom/v1";
+
+/// `atom.header` (OW-WAR-0122): where a Markdown atom's header disagrees with
+/// the manifest entry that declares it, one sentence per key.
+///
+/// The manifest decides composition (§61.1); the header only restates it.
+/// Before this rule the restatement was read for `jurisdiction` and nothing
+/// else, so an atom copied in from another Warrant, or one whose header named
+/// another role, compiled as whatever the manifest said it was. A restatement
+/// nobody compares is a second source of truth that can silently disagree.
+///
+/// `order` is compared as a number, so `order: 05` restates ordinal 5; a
+/// value that is not a number is a different value, not a missing one.
+/// Unknown keys are not this rule's business: the reader keeps them (§62.3).
+fn header_mismatches(
+    fm: &frontmatter::Frontmatter,
+    manifest: &Manifest,
+    entry: &openwarrant_core::AtomEntry,
+) -> Vec<String> {
+    let ordinal = entry.ordinal.to_string();
+    let expected: [(&str, &str, &str); 4] = [
+        ("schema", ATOM_SCHEMA, "the atom schema"),
+        (
+            "warrant_uuid",
+            manifest.uuid.as_str(),
+            "the manifest's `uuid`",
+        ),
+        ("role", entry.role.as_str(), "the manifest's role"),
+        ("order", ordinal.as_str(), "the manifest's ordinal"),
+    ];
+    let mut out = Vec::new();
+    for (key, want, whose) in expected {
+        let found = match fm.get(key) {
+            None => {
+                out.push(format!(
+                    "the header has no `{key}`; {whose} is {want:?} (declared at ordinal {})",
+                    entry.ordinal
+                ));
+                continue;
+            }
+            Some(frontmatter::Value::List(items)) => format!("a list {items:?}"),
+            Some(frontmatter::Value::Scalar(s)) => {
+                let same = if key == "order" {
+                    s.parse::<u32>().is_ok_and(|n| n == entry.ordinal)
+                } else {
+                    s == want
+                };
+                if same {
+                    continue;
+                }
+                format!("{s:?}")
+            }
+        };
+        out.push(format!(
+            "the header's `{key}` is {found}, but {whose} is {want:?} (declared at ordinal {})",
+            entry.ordinal
+        ));
+    }
+    out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const UUID: &str = "01a0d04c-5ee5-7ba2-9dc3-b9c50dcc6ba1";
+
+    fn manifest() -> Manifest {
+        toml::from_str(&format!(
+            "schema = \"oh.war/manifest/v1\"\nuuid = \"{UUID}\"\nlocal_alias = \"T-WAR-0001\"\n\
+             title = \"t\"\nprofile = \"delivery\"\nassurance_level = \"basic\"\n\n\
+             [[atoms]]\nordinal = 10\nrole = \"intent\"\npath = \"atoms/10-intent.md\"\nrequired = true\n"
+        ))
+        .unwrap()
+    }
+
+    fn mismatches(header: &str) -> Vec<String> {
+        let m = manifest();
+        let fm = frontmatter::parse(&format!("---\n{header}---\n\n# Intent\n")).unwrap();
+        header_mismatches(&fm, &m, &m.atoms[0])
+    }
+
+    #[test]
+    fn a_header_that_restates_its_manifest_entry_passes() {
+        let ok = format!(
+            "schema: oh.war/atom/v1\nwarrant_uuid: {UUID}\nrole: intent\norder: 10\nx.note: kept\n"
+        );
+        assert_eq!(mismatches(&ok), Vec::<String>::new());
+        // `order` is a number, not a string.
+        let padded =
+            format!("schema: oh.war/atom/v1\nwarrant_uuid: {UUID}\nrole: intent\norder: 010\n");
+        assert_eq!(mismatches(&padded), Vec::<String>::new());
+    }
+
+    #[test]
+    fn each_key_is_named_with_both_values_or_as_missing() {
+        let bad = format!("schema: oh.war/atom/v1\nwarrant_uuid: {UUID}\nrole: basis\norder: 20\n");
+        let got = mismatches(&bad);
+        assert_eq!(got.len(), 2, "{got:?}");
+        assert!(got[0].contains("`role` is \"basis\"") && got[0].contains("\"intent\""));
+        assert!(got[1].contains("`order` is \"20\"") && got[1].contains("\"10\""));
+
+        let missing = "role: intent\norder: 10\n";
+        let got = mismatches(missing);
+        assert_eq!(got.len(), 2, "{got:?}");
+        assert!(got[0].contains("no `schema`"));
+        assert!(got[1].contains("no `warrant_uuid`"));
+    }
+
+    #[test]
+    fn a_list_where_a_scalar_belongs_is_a_different_value() {
+        let bad = format!(
+            "schema: oh.war/atom/v1\nwarrant_uuid: {UUID}\nrole:\n  - intent\norder: nine\n"
+        );
+        let got = mismatches(&bad);
+        assert_eq!(got.len(), 2, "{got:?}");
+        assert!(got[0].contains("`role` is a list"));
+        assert!(got[1].contains("`order` is \"nine\""));
+    }
 }

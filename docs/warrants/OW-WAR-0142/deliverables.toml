@@ -1,0 +1,167 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer. Under OW-ADR-0021 this SET of
+# (id, target_ref) pairs is what the authorizer signs and what this Warrant
+# then governs. Paths not yet delivered carry content_addressed = false.
+# D-002 to D-016 are built only if the owner answers Q-001 with A; under B
+# or C an amendment removes them from the set (40-work-order.md#Scope).
+
+[[deliverable]]
+id = "D-001"
+title = "OW-ADR-0029, the standing-authorization decision"
+kind = "document"
+target_ref = "docs/adr/atoms/OW-ADR-0029-standing-authorization.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-002"
+title = "SAS 1.2.0: §28.8, the §37.5 clause, one §106 row (A only)"
+kind = "document"
+target_ref = "docs/sas/WAR_Software_Architecture_Specification.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-003"
+title = "core: the class and the coverage check"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/standing.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002", "OBL-003", "OBL-004"]
+
+[[deliverable]]
+id = "D-004"
+title = "core: module list"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/lib.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-005"
+title = "schema: oh.war/standing-authorization/v1"
+kind = "file"
+target_ref = "schemas/oh.war/standing-authorization/v1.json"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-006"
+title = "schema pack"
+kind = "file"
+target_ref = "schemas/pack.json"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-007"
+title = "cli: war standing propose, show, apply"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/standing_cmd.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-008"
+title = "cli: the command and module list"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-009"
+title = "cli: the standing.* check rules, re-derived"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/check.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002", "OBL-004"]
+
+[[deliverable]]
+id = "D-010"
+title = "cli: AcceptStanding and RevokeStanding, human-only"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/sign.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004", "OBL-005"]
+
+[[deliverable]]
+id = "D-011"
+title = "cli: the batch act carries class acts"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/batch_cmd.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-005"]
+
+[[deliverable]]
+id = "D-012"
+title = "cli: no covered path taken from work in flight"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/ownership.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-006"]
+
+[[deliverable]]
+id = "D-013"
+title = "cli: a covered Warrant is never resolved by a policy service"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/resolve.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-005"]
+
+[[deliverable]]
+id = "D-014"
+title = "the plants"
+kind = "file"
+target_ref = "conformance/plants.d/69-standing.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002", "OBL-003", "OBL-004", "OBL-005", "OBL-006", "OBL-007"]
+
+[[deliverable]]
+id = "D-015"
+title = "docs/SIGNING.md: routine work under a standing authorization"
+kind = "document"
+target_ref = "docs/SIGNING.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-007"]
+
+[[deliverable]]
+id = "D-016"
+title = "CONTEXT.md: the term"
+kind = "document"
+target_ref = "CONTEXT.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]

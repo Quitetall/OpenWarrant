@@ -1,0 +1,114 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Paths not yet delivered carry content_addressed = false.
+
+[[deliverable]]
+id = "D-001"
+title = "The intake record, its file reader and the optional fetch adapter"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/intake.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-004"]
+
+[[deliverable]]
+id = "D-002"
+title = "war plan --issue / --issue-file, policy review, pre-Warrant questions"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/plan.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-003"
+title = "Intake questions listed and answered beside Warrant questions"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/questions.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-004"
+title = "The [intake] table, absent by default"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/repo.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003", "OBL-004"]
+
+[[deliverable]]
+id = "D-005"
+title = "Closes/Refs trailers for issue-linked Warrants"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/commit.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-005"]
+
+[[deliverable]]
+id = "D-006"
+title = "The drafter asks through unresolved_questions"
+kind = "file"
+target_ref = "conformance/fixtures/drafter/claude-drafter.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-007"
+title = "Intake rows in the friction script"
+kind = "file"
+target_ref = "tools/friction/measure.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-006"]
+
+[[deliverable]]
+id = "D-008"
+title = "The second friction baseline, with intake"
+kind = "file"
+target_ref = "docs/friction/baseline-2.json"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-006"]
+
+[[deliverable]]
+id = "D-009"
+title = "Intake against a prompt and a Jira ticket"
+kind = "file"
+target_ref = "docs/FRICTION.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-006"]
+
+[[deliverable]]
+id = "D-010"
+title = "How an issue becomes a Warrant, and what closes it"
+kind = "file"
+target_ref = "docs/agents/issue-tracker.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004", "OBL-005"]
+
+[[deliverable]]
+id = "D-011"
+title = "The intake plants"
+kind = "file"
+target_ref = "conformance/plants.d/54-intake.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005", "OBL-006"]

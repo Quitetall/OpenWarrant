@@ -1,0 +1,43 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "An issue or a sentence becomes a draft or a question, and authorizes nothing"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+  - id: "M2"
+    title: "Closing references the ticket, and intake is measured against the Jira comparison"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-005", "OBL-006"]
+
+  - id: "MB"
+    title: "The battery, run as the gate these obligations cite"
+    depends_on: ["M1", "M2"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005", "OBL-006"]
+
+stages:
+  - id: "STAGE-001"
+    title: "intake.rs, plan.rs --issue/--issue-file, questions.rs, repo.rs [intake], claude-drafter.sh, 54-intake.sh"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables", "40-work-order.md#Premade Instructions"]
+    budget_tokens: 20000
+
+  - id: "STAGE-002"
+    title: "commit.rs trailers, measure.sh intake rows, baseline-2.json, FRICTION.md, issue-tracker.md"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 12000
+
+  - id: "STAGE-003"
+    title: "Run the conformance battery"
+    executor_kind: "service"
+    responsibility_tier: "T1"
+    executor_ref: "gate://ops.conformance.plants@1.0.0"
+    wall_time_seconds: 1800
