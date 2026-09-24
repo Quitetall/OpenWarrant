@@ -71,7 +71,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | no required unknown remains | 79 |
 | every required obligation is dispositioned | 77 |
 | independence requirements are met | 77 |
-| required deliverables exist | 76 |
+| required deliverables exist | 74 |
 | required judgments exist | 48 |
 | residual risks have sufficient authority | 48 |
 | exact authorized Contract Revision | 28 |
