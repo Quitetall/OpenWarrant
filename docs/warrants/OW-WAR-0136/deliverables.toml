@@ -92,3 +92,83 @@ required = false
 content_addressed = false
 provenance_required = false
 obligation_refs = ["OBL-006"]
+
+[[deliverable]]
+id = "D-010"
+title = "The invalidate act's response schema and name, verified on the read path (AM-003; Q-001 a or b only)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/authority_check.rs"
+required = false
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003", "OBL-005"]
+
+[[deliverable]]
+id = "D-011"
+title = "war next names the invalidate act (AM-003; Q-001 a or b only)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/next.rs"
+required = false
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-005"]
+
+[[deliverable]]
+id = "D-012"
+title = "The console names the invalidate act (AM-003; Q-001 a or b only)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/console.rs"
+required = false
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-005"]
+
+[[deliverable]]
+id = "D-013"
+title = "The batch refuses an invalidation: it is signed alone (AM-003; Q-001 a or b only)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/batch_cmd.rs"
+required = false
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-005"]
+
+[[deliverable]]
+id = "D-014"
+title = "The human acts, gate invalidation among them (AM-003; Q-001 a or b only)"
+kind = "file"
+target_ref = "AGENTS.md"
+required = false
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-005"]
+
+[[deliverable]]
+id = "D-015"
+title = "Signing an invalidation (AM-003; Q-001 a or b only)"
+kind = "file"
+target_ref = "docs/SIGNING.md"
+required = false
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-005"]
+
+[[deliverable]]
+id = "D-016"
+title = "The human acts in the AGENTS.md war init writes (AM-003; Q-001 a or b only)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/AGENTS.md.tmpl"
+required = false
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-005"]
+
+[[deliverable]]
+id = "D-017"
+title = "The human acts an adopter meets (AM-003; Q-001 a or b only)"
+kind = "file"
+target_ref = "docs/ADOPTING.md"
+required = false
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-005"]

@@ -1,0 +1,19 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-003"
+band: "manual_revision"
+reason: "Contingent: this amendment applies only if the owner answers Q-001 with (a) or (b), and is not an answer to it. Under (a) or (b), invalidating a gate is a new human act signed with `war sign`, and a new act kind cannot be added through the declared set alone: `authority_check.rs` names each act's response schema and file name, so without it an invalidation's signature can never be verified on the read path and an unsigned one could not be told from a signed one; `next.rs`, `console.rs` and `batch_cmd.rs` match every pending act exhaustively, so the new kind does not compile until each names it (the batch refuses it: an invalidation is signed alone); and `AGENTS.md`, its template for `war init`, `docs/SIGNING.md` and `docs/ADOPTING.md` list the human acts and would otherwise be false. The SAS's own act list (§27.2) is not changed here: that is a SAS revision, the owner's to propose and accept. Nothing else changes. Wording drafted by the performer `claude`."
+governing_adr_or_policy: "sas://WAR-SAS-27.2"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue under Q-001 (a) or (b). The deliverable set gains D-010 to D-017, each required only under Q-001 (a) or (b); the work order names them, the contract digest moves, and the next revision is authorized against the amended contract. Under Q-001 (c) this amendment is withdrawn and none of those paths is touched."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-25"
+
+semantic_diff:
+  - element: "deliverables"
+    before: "D-001..D-009."
+    after: "Also, under Q-001 (a) or (b) only: D-010 crates/openwarrant-cli/src/authority_check.rs (the invalidate act's response schema and name), D-011 crates/openwarrant-cli/src/next.rs, D-012 crates/openwarrant-cli/src/console.rs and D-013 crates/openwarrant-cli/src/batch_cmd.rs (the act named where every act is; the batch refuses it), D-014 AGENTS.md, D-015 docs/SIGNING.md, D-016 crates/openwarrant-cli/templates/AGENTS.md.tmpl and D-017 docs/ADOPTING.md (the list of human acts)."
+
+affected_stages: ["STAGE-002"]
+affected_milestones: ["M2"]

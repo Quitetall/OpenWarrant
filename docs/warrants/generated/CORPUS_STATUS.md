@@ -74,8 +74,8 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | required deliverables exist | 61 |
 | required judgments exist | 54 |
 | residual risks have sufficient authority | 54 |
+| exact authorized Contract Revision | 3 |
 | runtime receipts match the basis | 3 |
-| exact authorized Contract Revision | 2 |
 
 ## Requirements (SAS §106, §34.3)
 
@@ -281,7 +281,7 @@ Every §106 requirement is named by at least one Warrant.
 | `OW-WAR-0133` Evidence reuse after a source change, and the compiler's source, conflict and omission rules | draft | unknown | 0 | 0 of 3 | exact authorized Contract Revision |
 | `OW-WAR-0134` Acceptance stays valid only for the candidate accepted: a change before merge is a finding | draft | unknown | 0 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0135` The assurance mark: a baseline, its issuance, and what it binds | draft | unknown | 0 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0136` Discharge the Phase 9 exit: signed resolutions, audited evidence custody, and invalidation that propagates | draft | unknown | 0 | 0 of 4 | artifact digests verify |
+| `OW-WAR-0136` Discharge the Phase 9 exit: signed resolutions, audited evidence custody, and invalidation that propagates | draft | unknown | 0 | 0 of 4 | exact authorized Contract Revision |
 | `OW-WAR-0137` Teams: review assignment and a queue shared by more than one person | draft | unknown | 0 | 0 of 5 | artifact digests verify |
 | `OW-WAR-0138` Human and session authentication, and policy state protected from the performer | draft | unknown | 0 | 0 of 5 | exact authorized Contract Revision |
 | `OW-WAR-0139` The web UI beyond this machine: LAN and other devices, authenticated | draft | unknown | 0 | 0 of 5 | required deliverables exist |
