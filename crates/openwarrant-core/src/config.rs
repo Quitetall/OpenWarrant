@@ -40,6 +40,11 @@ pub enum ConfigError {
          (OW-WAR-0130)"
     )]
     RequiresWarMalformed { found: String, why: String },
+    #[error(
+        "authority.store is {found:?}; a protected store is named by an absolute path with no \
+         `..` (OW-WAR-0138)"
+    )]
+    AuthorityStoreNotAbsolute { found: String },
 }
 
 /// A validated project namespace, e.g. `OW`.
@@ -262,9 +267,10 @@ pub struct AuthorityPolicy {
     /// place. `false` unless a human wrote otherwise, and omitted from a
     /// written config while false, so every existing file keeps its bytes.
     ///
-    /// Until a protected store governs this key (OW-WAR-0138 U-001), it lives
-    /// here, in a file the performer can edit: turning it off is a commit a
-    /// reviewer sees, not a thing `war` can stop.
+    /// Without a protected store it lives here, in a file the performer can
+    /// edit: turning it off is a commit a reviewer sees, not a thing `war` can
+    /// stop. With `[authority] store` set, the store's value governs
+    /// ([`RepositoryConfig::govern_from_store`]).
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub require_user_presence: bool,
 }
@@ -552,6 +558,67 @@ pub struct AdoptionPolicy {
     pub baseline: String,
 }
 
+/// `[authority]` — the protected store this repository adopts (OW-WAR-0138).
+///
+/// CONTINGENT on the owner answering OW-WAR-0138 U-001 option A: opt-in per
+/// repository. Absent, every key below is read from this file and `war check`
+/// warns `authority.unprotected`. Present, the store governs the actor
+/// binding and the protected policy keys, with no fallback: a store that
+/// cannot be read fails closed, never back to `roles.toml`.
+///
+/// This table is itself in a file the performer can write. Deleting it is a
+/// commit a reviewer sees and turns the warning back on; it cannot make the
+/// store say something else. An older `war` that does not know the table
+/// ignores it, which `[project] requires_war` exists to refuse.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AuthorityStoreConfig {
+    /// Absolute path of the store directory `war authority bootstrap` made.
+    pub store: String,
+    /// The store is a same-account test store (`--unprotected-test-store`).
+    /// Must match the store's own record; every diagnostic says so.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub unprotected_test_store: bool,
+}
+
+/// Where the protected keys came from for this process (OW-WAR-0138).
+///
+/// Not part of the file: set once when the repository is opened, from the
+/// store, and read by `war check`.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub enum Governance {
+    /// No `[authority]` table: `openwarrant.toml` is the only source.
+    #[default]
+    Unprotected,
+    /// A v2 store governs, at `head`.
+    Store {
+        store: String,
+        head: String,
+        test_mode: bool,
+        /// Keys whose `openwarrant.toml` value differs from the store's.
+        divergences: Vec<Divergence>,
+    },
+    /// A store is configured and gave no policy (unreadable, refused, or a v1
+    /// head). The protected keys take their most restrictive values.
+    FailedClosed {
+        store: String,
+        rule: &'static str,
+        why: String,
+    },
+}
+
+/// One protected key whose `openwarrant.toml` value is not the store's.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Divergence {
+    pub key: &'static str,
+    pub file: String,
+    pub store: String,
+}
+
+fn shown<T: Serialize>(v: &T) -> String {
+    serde_json::to_string(v).unwrap_or_else(|_| "<unprintable>".to_owned())
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RepositoryConfig {
     pub schema: String,
@@ -592,6 +659,14 @@ pub struct RepositoryConfig {
     /// loads and writes unchanged.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub adoption: Option<AdoptionPolicy>,
+    /// `[authority]` — the protected store, if this repository adopted one
+    /// (OW-WAR-0138). Absent in every existing file, and never written absent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub authority: Option<AuthorityStoreConfig>,
+    /// Where the protected keys came from; set when the repository is
+    /// opened, never read from or written to the file.
+    #[serde(skip)]
+    pub governance: Governance,
 }
 
 impl RepositoryConfig {
@@ -622,7 +697,74 @@ impl RepositoryConfig {
             sign: SignPolicy::default(),
             independence: None,
             adoption: None,
+            authority: None,
+            governance: Governance::Unprotected,
         }
+    }
+
+    /// The protected keys as the store holds them, with each file value that
+    /// differs recorded as a [`Divergence`] (OW-WAR-0138 D-006). The store's
+    /// value governs: after this call every consumer reading
+    /// `self.policy`, `self.verify.verifier_argv` or `self.independence`
+    /// reads the store's.
+    pub fn govern_from_store(
+        &mut self,
+        store: &str,
+        head: &str,
+        test_mode: bool,
+        policy: &crate::authority_transition::Policy,
+    ) {
+        let mut divergences = Vec::new();
+        let mut differ = |key: &'static str, file: String, store: String| {
+            if file != store {
+                divergences.push(Divergence { key, file, store });
+            }
+        };
+        differ(
+            "[policy] allow_automated_resolution",
+            shown(&self.policy.allow_automated_resolution),
+            shown(&policy.allow_automated_resolution),
+        );
+        differ(
+            "[policy] require_user_presence",
+            shown(&self.policy.require_user_presence),
+            shown(&policy.require_user_presence),
+        );
+        differ(
+            "[verify] verifier_argv",
+            shown(&self.verify.verifier_argv),
+            shown(&policy.verifier_argv),
+        );
+        differ(
+            "[independence]",
+            shown(&self.independence),
+            shown(&policy.independence),
+        );
+        self.policy.allow_automated_resolution = policy.allow_automated_resolution;
+        self.policy.require_user_presence = policy.require_user_presence;
+        self.verify.verifier_argv.clone_from(&policy.verifier_argv);
+        self.independence = policy.independence;
+        self.governance = Governance::Store {
+            store: store.to_owned(),
+            head: head.to_owned(),
+            test_mode,
+            divergences,
+        };
+    }
+
+    /// A store is configured and gave no policy: every protected key takes
+    /// its most restrictive value — no automated resolution, presence
+    /// required, no verifier, independence undeclared. Never the file's.
+    pub fn govern_fail_closed(&mut self, store: &str, rule: &'static str, why: String) {
+        self.policy.allow_automated_resolution = false;
+        self.policy.require_user_presence = true;
+        self.verify.verifier_argv.clear();
+        self.independence = None;
+        self.governance = Governance::FailedClosed {
+            store: store.to_owned(),
+            rule,
+            why,
+        };
     }
 
     /// Fail-closed validation (§91.1 test 4).
@@ -641,6 +783,13 @@ impl RepositoryConfig {
                 found: req.clone(),
                 why,
             })?;
+        }
+        if let Some(a) = &self.authority
+            && (!a.store.starts_with('/') || a.store.split('/').any(|c| c == ".."))
+        {
+            return Err(ConfigError::AuthorityStoreNotAbsolute {
+                found: a.store.clone(),
+            });
         }
         self.sign.validate()?;
         self.paths.validate()
@@ -877,6 +1026,118 @@ mod tests {
 
     fn valid() -> RepositoryConfig {
         RepositoryConfig::new("OpenWarrant", Namespace::parse("OW").expect("valid"))
+    }
+
+    /// OW-WAR-0138 OBL-003: with the store saying no, a file saying yes is a
+    /// divergence, and a policy-service resolution is still refused — the
+    /// value consumers read is the store's.
+    #[test]
+    fn the_store_governs_and_a_differing_file_value_is_a_divergence() {
+        use crate::authority::{ActorRole, PolicyResolutionContext, RoleAssignment};
+        let mut c = valid();
+        c.policy.allow_automated_resolution = true;
+        c.independence = Some(crate::independence::Independence::default());
+        c.verify.verifier_argv = vec!["mine.sh".to_owned()];
+        let store = crate::authority_transition::Policy {
+            allow_automated_resolution: false,
+            require_user_presence: true,
+            verifier_argv: vec!["theirs.sh".to_owned()],
+            independence: None,
+        };
+        c.govern_from_store("/s", "sha256:h", true, &store);
+        assert!(!c.policy.allow_automated_resolution);
+        assert!(c.policy.require_user_presence);
+        assert_eq!(c.verify.verifier_argv, vec!["theirs.sh".to_owned()]);
+        assert_eq!(c.independence, None);
+        let Governance::Store { divergences, .. } = &c.governance else {
+            panic!("{:?}", c.governance);
+        };
+        let keys: Vec<&str> = divergences.iter().map(|d| d.key).collect();
+        assert_eq!(
+            keys,
+            [
+                "[policy] allow_automated_resolution",
+                "[policy] require_user_presence",
+                "[verify] verifier_argv",
+                "[independence]"
+            ]
+        );
+        assert_eq!(divergences[0].file, "true");
+        assert_eq!(divergences[0].store, "false");
+        let service = RoleAssignment {
+            actor: "closer".to_owned(),
+            actor_kind: crate::authority::ActorKind::PolicyService,
+            roles: [ActorRole::Resolver].into_iter().collect(),
+            assigned_by: "test".to_owned(),
+            effective_time: "2026-01-01T00:00:00Z".to_owned(),
+            note: None,
+            ssh_principal: None,
+        };
+        let ctx = |allows| PolicyResolutionContext {
+            policy_allows: allows,
+            assurance_level: "basic",
+            all_obligations_mechanical: true,
+            residual_risk_judgment_required: false,
+        };
+        assert!(
+            service
+                .may_resolve("claude", ctx(c.policy.allow_automated_resolution))
+                .is_err(),
+            "the store's false governs"
+        );
+        assert!(
+            service.may_resolve("claude", ctx(true)).is_ok(),
+            "the refusal is the policy's, not something else's"
+        );
+    }
+
+    #[test]
+    fn equal_values_are_no_divergence_and_a_failed_store_closes_every_key() {
+        let mut c = valid();
+        c.govern_from_store(
+            "/s",
+            "sha256:h",
+            false,
+            &crate::authority_transition::Policy::default(),
+        );
+        assert!(
+            matches!(&c.governance, Governance::Store { divergences, .. } if divergences.is_empty())
+        );
+        let mut c = valid();
+        c.policy.allow_automated_resolution = true;
+        c.verify.verifier_argv = vec!["v".to_owned()];
+        c.independence = Some(crate::independence::Independence::default());
+        c.govern_fail_closed("/s", "authority.verify-unavailable", "gone".to_owned());
+        assert!(!c.policy.allow_automated_resolution);
+        assert!(c.policy.require_user_presence);
+        assert!(c.verify.verifier_argv.is_empty());
+        assert!(c.independence.is_none());
+    }
+
+    #[test]
+    fn an_authority_store_is_absolute_and_absent_by_default() {
+        let mut c = valid();
+        assert!(c.authority.is_none());
+        let text = toml::to_string(&c).expect("serializes");
+        assert!(!text.contains("[authority]"), "{text}");
+        c.authority = Some(AuthorityStoreConfig {
+            store: "relative/store".to_owned(),
+            unprotected_test_store: false,
+        });
+        assert!(matches!(
+            c.validate(),
+            Err(ConfigError::AuthorityStoreNotAbsolute { .. })
+        ));
+        c.authority = Some(AuthorityStoreConfig {
+            store: "/var/lib/ow/../x".to_owned(),
+            unprotected_test_store: false,
+        });
+        assert!(c.validate().is_err());
+        c.authority = Some(AuthorityStoreConfig {
+            store: "/var/lib/openwarrant/example".to_owned(),
+            unprotected_test_store: false,
+        });
+        assert_eq!(c.validate(), Ok(()));
     }
 
     #[test]

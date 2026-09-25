@@ -34484,6 +34484,23 @@ M4 — records and plants:
 - (AM-003) `crates/openwarrant-cli/src/batch_cmd.rs`: `war sign --batch`
   signs through the same presence policy and key-binding check as a single
   act, so the policy cannot be stepped around by signing in a batch.
+- (AM-004) `crates/openwarrant-cli/src/authority_cmd.rs`: the store module
+  is readable by `authority_check.rs`, and `war authority draft` drafts v2
+  revisions (actor, kind, policy).
+- (AM-004) `crates/openwarrant-cli/src/authority_cmd/store.rs`: a read-only
+  store reader for the execution account, whose guard refuses a store that
+  account can write.
+- (AM-004) `crates/openwarrant-cli/src/check.rs`: `war check` emits
+  `authority.unprotected`, `authority.test-store` and
+  `policy.unprotected-divergence`.
+- (AM-004) `crates/openwarrant-cli/src/repo.rs`: the store's protected policy
+  keys are applied when a repository is opened, so every consumer reads them.
+- (AM-004) `crates/openwarrant-core/tests/authority_transition.rs`: 0096's
+  tests name the v2 fields in their struct literals.
+- (AM-004) `docs/authority/roles.toml`: comments only — the register's
+  explanation of `actor_kind` spells the policy-service kind
+  `policyservice`, as the loader and the frozen authorization schema read
+  it (it said `policy_service`, which is refused). No assignment changes.
 
 ## Frozen Surfaces
 
@@ -34676,6 +34693,12 @@ test mode is labeled in every record it produces.
 | D-009 | the plants | `conformance/plants.d/58-authn.sh` | not_content_addressed |
 | D-010 | core lib.rs declares the presence module (AM-003) | `crates/openwarrant-core/src/lib.rs` | not_content_addressed |
 | D-011 | war sign --batch signs under the presence policy and the key-binding check (AM-003) | `crates/openwarrant-cli/src/batch_cmd.rs` | not_content_addressed |
+| D-012 | authority_cmd.rs: store readable by the read path; v2 drafting (AM-004) | `crates/openwarrant-cli/src/authority_cmd.rs` | not_content_addressed |
+| D-013 | store.rs: a read-only reader whose guard refuses a store the execution account can write (AM-004) | `crates/openwarrant-cli/src/authority_cmd/store.rs` | not_content_addressed |
+| D-014 | check.rs emits authority.unprotected and policy.unprotected-divergence (AM-004) | `crates/openwarrant-cli/src/check.rs` | not_content_addressed |
+| D-015 | repo.rs applies the store's protected policy keys on open (AM-004) | `crates/openwarrant-cli/src/repo.rs` | not_content_addressed |
+| D-016 | 0096's transition tests name the v2 fields (AM-004) | `crates/openwarrant-core/tests/authority_transition.rs` | not_content_addressed |
+| D-017 | roles.toml: the actor_kind comment spells policyservice (AM-004; comments only) | `docs/authority/roles.toml` | not_content_addressed |
 
 ### OW-WAR-0139 — The web UI beyond this machine: LAN and other devices, authenticated
 

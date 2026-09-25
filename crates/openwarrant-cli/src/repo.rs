@@ -176,6 +176,11 @@ impl Repository {
         // read. `discover` reaches every repository through here, so a `war`
         // the repository does not admit reads nothing of it.
         compat::check(&config, &path).map_err(RepoError::Message)?;
+        // OW-WAR-0138: with `[authority] store`, the protected policy keys are
+        // the store's from here on, for every consumer. Without it, nothing
+        // changes.
+        let mut config = config;
+        crate::authority_check::govern(&mut config);
         let profiles = load_profiles(&root)?;
         Ok(Self {
             root,

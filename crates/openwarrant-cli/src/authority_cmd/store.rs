@@ -247,6 +247,119 @@ pub(super) fn status(root: &Path, test: bool) -> Result<serde_json::Value> {
     load(root, test)?.view()
 }
 
+/// The store as the performer's account may read it (OW-WAR-0138): its
+/// current revision and head.
+pub(crate) struct Current {
+    pub revision: Revision,
+    pub head: String,
+    pub test_mode: bool,
+}
+
+/// Read a store without writing to it, from any account, for `war check` and
+/// `war sign` (OW-WAR-0138 D-002).
+///
+/// [`load`]'s guard asks "does the operator running this own the store
+/// privately", which the execution account never does. This asks the
+/// opposite question: can the execution account write any of it. Outside test
+/// mode the store must name that account (`agent_uid`), and the store, every
+/// ancestor and `state.json` must be owned by someone else and writable by no
+/// group or other. In test mode the account that reads it also owns it, so
+/// what is checked is only that this process cannot write the store or
+/// `state.json` now; that is a simulation of the boundary, labeled as such
+/// everywhere it is reported. Every transition is verified as on any load,
+/// and no lock is taken: a snapshot is replaced by rename, never in place.
+pub(crate) fn read_current(root: &Path, test: bool) -> Result<Current> {
+    if !root.is_absolute()
+        || root
+            .components()
+            .any(|c| matches!(c, std::path::Component::ParentDir))
+    {
+        return Err(err("authority-store-absolute-path-required"));
+    }
+    let state_path = root.join("state.json");
+    let bytes = read(&state_path)?;
+    let state: State = serde_json::from_slice(&bytes).map_err(err)?;
+    if serde_jcs::to_vec(&state).map_err(err)? != bytes {
+        return Err(err("authority-store-noncanonical"));
+    }
+    if state.unprotected_test_store != test {
+        return Err(err("authority-store-mode-mismatch"));
+    }
+    reader_guard(root, &state_path, state.agent_uid, test)?;
+    // Verifying every transition asks ssh-keygen once per signature; one
+    // process asks once per distinct snapshot.
+    let key = format!(
+        "{}\0{test}\0{}",
+        root.display(),
+        openwarrant_compiler::sha256_hex(&bytes)
+    );
+    let cache = VALIDATED.get_or_init(Default::default);
+    let known = cache.lock().ok().is_some_and(|c| c.contains(&key));
+    if !known {
+        state.validate()?;
+        if let Ok(mut c) = cache.lock() {
+            c.insert(key);
+        }
+    }
+    let revision = state.current().clone();
+    Ok(Current {
+        head: revision.digest().map_err(err)?,
+        revision,
+        test_mode: test,
+    })
+}
+
+/// Snapshots [`read_current`] has validated in this process, by path, mode
+/// and the digest of every byte.
+static VALIDATED: std::sync::OnceLock<std::sync::Mutex<std::collections::BTreeSet<String>>> =
+    std::sync::OnceLock::new();
+
+/// Neither owned by the execution account nor writable by any group or other.
+#[cfg_attr(not(unix), allow(dead_code))]
+const fn reader_safe(owner: u32, mode: u32, agent: u32) -> bool {
+    owner != agent && (mode & 0o022) == 0
+}
+
+#[cfg(unix)]
+fn reader_guard(root: &Path, state: &Path, agent: Option<u32>, test: bool) -> Result<()> {
+    use std::os::unix::fs::MetadataExt;
+    if test {
+        for path in [root, state] {
+            if rustix::fs::access(path, rustix::fs::Access::WRITE_OK).is_ok() {
+                return Err(err(
+                    "authority-store-writable-by-reader: this process can write the test store",
+                ));
+            }
+        }
+        return Ok(());
+    }
+    let Some(agent) = agent else {
+        return Err(err("authority-store-separate-account-required"));
+    };
+    for path in root.ancestors().chain(std::iter::once(state)) {
+        let m = fs::symlink_metadata(path).map_err(err)?;
+        if m.file_type().is_symlink() {
+            return Err(err("authority-store-directory-required"));
+        }
+        if !reader_safe(m.uid(), m.mode(), agent) {
+            return Err(err(
+                "authority-store-writable-by-agent: the execution account owns, or a group or \
+                 other can write, the store or an ancestor",
+            ));
+        }
+    }
+    if rustix::process::geteuid().as_raw() == agent
+        && rustix::fs::access(root, rustix::fs::Access::WRITE_OK).is_ok()
+    {
+        return Err(err("authority-store-writable-by-agent"));
+    }
+    Ok(())
+}
+#[cfg(not(unix))]
+fn reader_guard(_: &Path, _: &Path, _: Option<u32>, _: bool) -> Result<()> {
+    Err(err("authority-store-platform-unsupported"))
+}
+
 pub(super) fn history(root: &Path, emit: &Path, test: bool) -> Result<serde_json::Value> {
     let state = load(root, test)?;
     let bytes = serde_jcs::to_vec(&state).map_err(err)?;
@@ -254,4 +367,22 @@ pub(super) fn history(root: &Path, emit: &Path, test: bool) -> Result<serde_json
     Ok(
         serde_json::json!({"path":emit,"head":state.current().digest().map_err(err)?,"effective":false,"trust_transferred":false}),
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::reader_safe;
+
+    /// The separate-account boundary cannot be built in a test (no second
+    /// account); the rule it applies to what it sees can.
+    #[test]
+    fn a_store_the_agent_owns_or_a_group_can_write_is_refused() {
+        let (operator, agent) = (1001, 1000);
+        assert!(reader_safe(operator, 0o40700, agent));
+        assert!(reader_safe(0, 0o40755, agent));
+        assert!(!reader_safe(agent, 0o40700, agent), "owned by the agent");
+        assert!(!reader_safe(operator, 0o40770, agent), "group-writable");
+        assert!(!reader_safe(operator, 0o40702, agent), "other-writable");
+        assert!(!reader_safe(0, 0o41777, agent), "/tmp-like");
+    }
 }

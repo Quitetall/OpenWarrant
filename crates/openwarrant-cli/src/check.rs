@@ -157,6 +157,12 @@ pub fn run(
     // citing a gate can be resolved rather than taken on trust.
     let gates = load_gate_registry(repo, &mut report);
     report_independence(repo, &loaded, &mut report);
+    // OW-WAR-0138: where the actor binding and the policy keys come from —
+    // `authority.unprotected` once without a store, a divergence per key
+    // with one.
+    for d in crate::authority_check::protection_report(repo) {
+        report.push(d);
+    }
 
     // OW-ADR-0022: currency is derived from relations, once, over the whole
     // corpus, and read by everything below that asks it.

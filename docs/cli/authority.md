@@ -2,7 +2,9 @@
 
 Candidate SDK and reference workflow, OW-WAR-0096. Agent edits are proposals.
 Only a signed transition checked against previous trusted authority changes the
-new store. This does not migrate the legacy `war sign`/roles.toml path automatically.
+new store. Nothing migrates the legacy `war sign`/roles.toml path automatically:
+a repository adopts a store by the cutover below (OW-WAR-0138), and until then
+`war check` warns `authority.unprotected`.
 
 ## Prepare, review, approve
 
@@ -76,8 +78,9 @@ signing fallback is added. A stale proposal must be redrafted and approved again
 sha256:HEAD` refuses missing grants and stale heads. Caller identity is a separate
 trusted fact: passing a principal name does not authenticate it. The workflow must
 bind the authenticated actor and current decision to the protected action; it must
-not fall back to repository roles when this check fails. This reference CLI does
-not reroute existing legacy privileged commands or award verification marks.
+not fall back to repository roles when this check fails. `war sign` and the read
+path do this for a repository that configures `[authority] store` (Cutover,
+below). The CLI awards no verification marks.
 
 A recovery proposal uses `propose --operation recover`; a key already holding
 `authority-recovery` must sign. Recovery is a forward transition, not an unsigned
@@ -92,6 +95,107 @@ The store uses a nonblocking exclusive lock and atomically replaces one synced
 snapshot holding both history and head. On an interrupted/uncertain activation,
 read `status` before retrying. Orphan `pending-*` files are never loaded as state;
 an operator may inspect and remove them while no activation is running.
+
+## Cutover: a repository adopts the store (OW-WAR-0138)
+
+CONTINGENT on the owner answering OW-WAR-0138 U-001 option A (opt-in per
+repository). Nothing here has been done to this repository.
+
+With `[authority] store` set, `war sign` and every authority check read the
+actor's principal, key, kind and role for the act from the store's current v2
+head, and the protected policy keys from its `policy` table. `roles.toml` and
+`allowed_signers` grant nothing: a record that verifies only against them is
+`authority.legacy-fallback`. A store that cannot be read is
+`authority.verify-unavailable`, never a fall back. The roles a v2 principal needs
+are `authorizer` (authorize, correct, accept) and `resolver` (resolve).
+
+One command at a time. The operator runs each in the protected environment
+unless it says otherwise.
+
+1. Draft the v2 revision. For a store bootstrapped at v1, the upgrade is a
+   transition; a new store may start at v2 with `--repository` in place of
+   `--current`. Each human who signs acts gets `--actor` (the exact name records
+   carry, e.g. `"Brian Lam"`) and `--kind human`; their key must be the key
+   their past responses were signed with, or those records read
+   `authority.signature-invalid` once the store governs.
+
+   ```sh
+   war authority status --store /var/lib/openwarrant/example --emit current.json
+   war authority draft --current current.json --v2 --policy policy.json \
+     --principal owner --actor "Brian Lam" --kind human \
+     --role authority-admin --role authority-recovery --role authorizer --role resolver \
+     --emit next.json
+   ```
+
+   `policy.json` holds the four protected keys, copied from `openwarrant.toml`
+   so nothing diverges at cutover:
+
+   ```json
+   {"allow_automated_resolution": false,
+    "require_user_presence": false,
+    "verifier_argv": ["tools/verifier/claude-verifier.sh"],
+    "independence": {
+      "performer_transcript_blind": true, "performer_rationale_blind": true,
+      "separate_writable_workspace": true, "cannot_modify_subject_artifacts": true,
+      "cannot_modify_gate_definition": true, "cannot_modify_gate_fixtures": true,
+      "separate_context_compilation": true, "distinct_model_required": false,
+      "distinct_human_required": false}}
+   ```
+
+   Omit `independence` to leave it undeclared.
+
+2. Propose, review the printed before/after, and activate with the admin key:
+
+   ```sh
+   war authority propose --current current.json --next next.json --emit change.json
+   war authority approve --store /var/lib/openwarrant/example --proposal change.json \
+     --principal owner --key /protected/owner.pub --activate
+   ```
+
+3. Grant the execution account read access to the store and nothing more:
+   the store, its ancestors and `state.json` owned by the operator (or root),
+   writable by no group or other, readable by the execution account (for
+   example `chmod 0750` with a group the agent is in, `state.json` `0640`).
+   `war` refuses a store the configured `agent_uid` owns or any group or other
+   can write (`authority-store-writable-by-agent`).
+
+4. In the repository, pin a `war` that knows the table, so an older binary does
+   not silently ignore it, and name the store:
+
+   ```toml
+   [project]
+   requires_war = ">=<the release carrying OW-WAR-0138>"
+
+   [authority]
+   store = "/var/lib/openwarrant/example"
+   ```
+
+   This is a commit to `openwarrant.toml`, reviewed like any change to it.
+
+5. Check, as the execution account:
+
+   ```sh
+   war check
+   ```
+
+   Expect `PASS authority.store` naming the head, no `authority.unprotected`,
+   no `policy.unprotected-divergence`, and every existing authority record
+   `authority.signed … bound by the store`. A `legacy-fallback` here names a
+   record whose signer or key the store does not carry: fix the store by a
+   transition, not the record.
+
+6. `roles.toml` stays: the drafting and eligibility commands still read it, so a
+   store human must appear there too. It is necessary and never sufficient.
+
+Rollback: remove the `[authority]` table. `war` returns to the legacy path and
+warns `authority.unprotected`. A v2 store cannot return to v1; recovery is a
+forward transition.
+
+Test mode: `unprotected_test_store = true` under `[authority]`, for a store
+bootstrapped with `--unprotected-test-store`. The account running `war` owns
+it, so `war` reads it only while that process cannot write it, labels every
+verdict "UNPROTECTED TEST STORE", and `war check` warns `authority.test-store`.
+A test store named without the flag is refused (`authority-store-mode-mismatch`).
 
 ## Isolation and testing
 
