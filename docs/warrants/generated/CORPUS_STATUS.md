@@ -65,13 +65,13 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | requirement | Warrants blocked |
 |---|---|
-| artifact digests verify | 88 |
+| artifact digests verify | 90 |
 | every required gate has admissible result | 86 |
 | no blocker remains | 85 |
 | no required unknown remains | 85 |
 | every required obligation is dispositioned | 83 |
 | independence requirements are met | 83 |
-| required deliverables exist | 72 |
+| required deliverables exist | 71 |
 | required judgments exist | 54 |
 | residual risks have sufficient authority | 54 |
 | exact authorized Contract Revision | 10 |
@@ -257,11 +257,11 @@ Every §106 requirement is named by at least one Warrant.
 | `OW-WAR-0109` Durable agent availability queue and automatic bounded dispatch | draft | unknown | 0 | 0 of 2 | required deliverables exist |
 | `OW-WAR-0110` Generate OpenWarrant TypeScript record types and integrate KF consumption | draft | unknown | 0 | 0 of 2 | required deliverables exist |
 | `OW-WAR-0111` Implement content-bearing preservation archives and honest import round trips | draft | unknown | 0 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0112` war is the app: ownership, a guided start, and remedies | draft | unknown | 0 | 0 of 6 | every required obligation is dispositioned |
+| `OW-WAR-0112` war is the app: ownership, a guided start, and remedies | draft | unknown | 0 | 0 of 6 | artifact digests verify |
 | `OW-WAR-0113` Two projections from atoms by relation: the current master document, and the history | draft | unknown | 0 | 0 of 6 | exact authorized Contract Revision |
 | `OW-WAR-0114` The roadmap becomes a record: one per program, beside the SAS | draft | unknown | 0 | 0 of 6 | required deliverables exist |
 | `OW-WAR-0115` The hub: war opens from anywhere, with every project and its progress | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
-| `OW-WAR-0116` war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap | draft | unknown | 0 | 0 of 5 | every required obligation is dispositioned |
+| `OW-WAR-0116` war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap | draft | unknown | 0 | 0 of 5 | artifact digests verify |
 | `OW-WAR-0117` An independent verifier: a blind, tool-less process that war verify --run hands each bundle to | draft | unknown | 0 | 0 of 2 | every required obligation is dispositioned |
 | `OW-WAR-0118` Measure the friction targets: setup in ten minutes, a routine act in sixty seconds | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0119` Identity is the UUIDv7: immutable across revisions, and no alias ever stands in for it | draft | unknown | 0 | 0 of 2 | artifact digests verify |
@@ -282,7 +282,7 @@ Every §106 requirement is named by at least one Warrant.
 | `OW-WAR-0134` Acceptance stays valid only for the candidate accepted: a change before merge is a finding | draft | unknown | 0 | 0 of 3 | required deliverables exist |
 | `OW-WAR-0135` The assurance mark: a baseline, its issuance, and what it binds | draft | unknown | 0 | 0 of 3 | required deliverables exist |
 | `OW-WAR-0136` Discharge the Phase 9 exit: signed resolutions, audited evidence custody, and invalidation that propagates | draft | unknown | 0 | 0 of 4 | required deliverables exist |
-| `OW-WAR-0137` Teams: review assignment and a queue shared by more than one person | draft | unknown | 0 | 0 of 5 | required deliverables exist |
+| `OW-WAR-0137` Teams: review assignment and a queue shared by more than one person | draft | unknown | 0 | 0 of 5 | artifact digests verify |
 | `OW-WAR-0138` Human and session authentication, and policy state protected from the performer | draft | unknown | 0 | 0 of 5 | required deliverables exist |
 | `OW-WAR-0139` The web UI beyond this machine: LAN and other devices, authenticated | draft | unknown | 0 | 0 of 5 | required deliverables exist |
 | `OW-WAR-0140` The Contractor Work Order profile: acceptance, invoicing and legal terms outside the technical core | draft | unknown | 0 | 0 of 5 | required deliverables exist |

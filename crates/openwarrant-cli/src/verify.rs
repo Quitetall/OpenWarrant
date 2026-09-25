@@ -236,6 +236,85 @@ pub fn ingest(
         return Ok(report);
     }
 
+    // OW-WAR-0137: on a Warrant whose authorization signed an assignment,
+    // only the assigned verifier's verdict is recorded, and only while the
+    // register still grants that actor `verifier`. An assignment that is not
+    // the one signed refuses the whole response with nothing written.
+    // Unassigned Warrants take none of this path.
+    let assigned: Option<Vec<String>> = match crate::authorize::assignment_standing(repo, &dir)?
+        .for_act(crate::authorize::assignment::Act::Verify)
+    {
+        Ok(list) => list.map(<[String]>::to_vec),
+        Err(finding) => {
+            report.push(Diagnostic::error(
+                finding.rule,
+                response_path.to_string(),
+                format!("{alias}: {}", finding.message),
+            ));
+            report.note("the assignment refused the response whole; nothing was written");
+            return Ok(report);
+        }
+    };
+    let register = match &assigned {
+        Some(_) => Some(repo.load_authority_register()?),
+        None => None,
+    };
+    let not_assigned = |v: &Verification| -> Option<(&'static str, String)> {
+        let (list, register) = (assigned.as_ref()?, register.as_ref()?);
+        let actor = &v.verifier.actor;
+        if !list.contains(actor) {
+            return Some((
+                "verify.not-assigned",
+                format!(
+                    "{}: {actor:?} is not the assigned verifier of {alias}; the assignment the \
+                     authorizer signed names {}. Not recorded",
+                    v.obligation,
+                    list.join(", ")
+                ),
+            ));
+        }
+        let entry = register.actor(actor);
+        if !entry.is_some_and(|e| e.holds(openwarrant_core::ActorRole::Verifier)) {
+            return Some((
+                "verify.role-missing",
+                format!(
+                    "{}: {actor:?} is assigned and does not hold `verifier` in \
+                     docs/authority/roles.toml. An assignment narrows who may verify; it never \
+                     grants the role. Not recorded",
+                    v.obligation
+                ),
+            ));
+        }
+        // Two vocabularies: the register's `policy_service` is a verdict's
+        // `service`. Anything else must match by name.
+        let same_kind = |e: &openwarrant_core::authority::RoleAssignment| {
+            matches!(
+                (e.actor_kind, v.verifier.kind),
+                (
+                    openwarrant_core::ActorKind::Human,
+                    openwarrant_core::verification::ActorKind::Human
+                ) | (
+                    openwarrant_core::ActorKind::Agent,
+                    openwarrant_core::verification::ActorKind::Agent
+                ) | (
+                    openwarrant_core::ActorKind::PolicyService,
+                    openwarrant_core::verification::ActorKind::Service
+                )
+            )
+        };
+        if entry.is_some_and(|e| !same_kind(e)) {
+            return Some((
+                "verify.kind-mismatch",
+                format!(
+                    "{}: the verdict says {actor:?} is {:?} and the register says otherwise. \
+                     Not recorded",
+                    v.obligation, v.verifier.kind
+                ),
+            ));
+        }
+        None
+    };
+
     let vdir = dir.join("verifications");
     let mut written = 0usize;
     let mut refused = 0usize;
@@ -258,7 +337,7 @@ pub fn ingest(
     let mut planned: Vec<Planned<'_>> = Vec::new();
     let mut conflicts = 0usize;
     for v in &response.verifications {
-        if v.admissible_for(&assurance).is_err() {
+        if v.admissible_for(&assurance).is_err() || not_assigned(v).is_some() {
             continue;
         }
         let path = vdir.join(format!("{}.toml", v.obligation));
@@ -314,8 +393,15 @@ pub fn ingest(
     }
 
     for v in &response.verifications {
-        let Err(why) = v.admissible_for(&assurance) else {
-            continue;
+        let why = match v.admissible_for(&assurance) {
+            Err(why) => why.to_string(),
+            Ok(()) => {
+                if let Some((rule, why)) = not_assigned(v) {
+                    refused += 1;
+                    report.push(Diagnostic::error(rule, response_path.to_string(), why));
+                }
+                continue;
+            }
         };
         // NOT written. A refused verdict must not become a file that later
         // reads as a verification.
@@ -323,7 +409,7 @@ pub fn ingest(
         report.push(Diagnostic::error(
             "verify.inadmissible",
             response_path.to_string(),
-            why.to_string(),
+            why,
         ));
     }
 

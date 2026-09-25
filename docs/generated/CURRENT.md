@@ -9075,8 +9075,8 @@ the app shows a `human` remedy and stops.
 | D-002 | The SAS text: RQ-036 retitled, RQ-037, §37.5, §28.4, §56.2 | `docs/sas/WAR_Software_Architecture_Specification.md` | verified |
 | D-003 | OW-WAR-0071 re-targeted to 1.2.0 | `docs/warrants/OW-WAR-0071/amendments/AM-001.yaml` | verified |
 | D-004 | The ownership index | `crates/openwarrant-cli/src/ownership.rs` | verified |
-| D-005 | Authorization records the declared set | `crates/openwarrant-cli/src/authorize.rs` | verified |
-| D-006 | The signing screen shows what it grants | `crates/openwarrant-cli/src/sign.rs` | verified |
+| D-005 | Authorization records the declared set | `crates/openwarrant-cli/src/authorize.rs` | drift |
+| D-006 | The signing screen shows what it grants | `crates/openwarrant-cli/src/sign.rs` | drift |
 | D-007 | Historical pins and the lineage | `crates/openwarrant-cli/src/pins.rs` | verified |
 | D-008 | A correction against a historical pin is refused | `crates/openwarrant-cli/src/correct.rs` | verified |
 | D-009 | The resolution locator | `crates/openwarrant-cli/src/resolution_cmd.rs` | verified |
@@ -9085,7 +9085,7 @@ the app shows a `human` remedy and stops.
 | D-012 | Requirement 3's reason names a newer owner | `crates/openwarrant-cli/src/resolve.rs` | verified |
 | D-013 | The ownership plants | `conformance/plants.d/98-ownership.sh` | verified |
 | D-014 | The authorization schema | `schemas/oh.war/authorization/v1.json` | verified |
-| D-015 | The threat-model row | `docs/THREAT_MODEL.md` | verified |
+| D-015 | The threat-model row | `docs/THREAT_MODEL.md` | drift |
 | D-016 | Remedies | `crates/openwarrant-cli/src/remedy.rs` | verified |
 | D-017 | A diagnostic carries its remedy | `crates/openwarrant-cli/src/diagnostic.rs` | verified |
 | D-018 | The remedy on the wire and in the REMEDIES block | `crates/openwarrant-cli/src/output.rs` | verified |
@@ -10966,7 +10966,7 @@ then the act is the one the server chose, and the key's dialog asks.
 | D-007 | the command | `crates/openwarrant-cli/src/lib.rs` | verified |
 | D-008 | docs/WEBUI.md | `docs/WEBUI.md` | verified |
 | D-009 | README.md: war ui | `README.md` | verified |
-| D-010 | THREAT_MODEL row | `docs/THREAT_MODEL.md` | verified |
+| D-010 | THREAT_MODEL row | `docs/THREAT_MODEL.md` | drift |
 | D-011 | the plants | `conformance/plants.d/63-webui.sh` | verified |
 
 #### OW-WAR-0119 — Identity is the UUIDv7: immutable across revisions, and no alias ever stands in for it
