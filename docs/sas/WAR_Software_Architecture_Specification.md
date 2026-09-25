@@ -306,8 +306,8 @@ rule that has been misread in practice.
 | Level | Object | What it is | Written by | Governed by | Read by |
 |---|---|---|---|---|---|
 | Vision | product or system vision | why the system should exist; not a record this system compiles | a person | nothing here | everyone |
-| **Release** | an **accepted SAS revision** (`docs/sas/revisions/<version>.toml`) | the contract for a WHOLE PROGRAM: what the software is and shall become, with stable requirement ids (§106) and phased Objectives (§98) | a person or agent proposes; a human accepts (§101.2) | §101 | `war sas`, the corpus projection's Release axis |
-| **Objective** | a §98 phase, `roadmap://<PREFIX>-PHASE-<N>` | a stage of the Roadmap with an Exit sentence; achieved when its `exit`-slugged Warrant resolves satisfied | the SAS | §98 | the corpus projection's Objective axis |
+| **Release** | an **accepted SAS revision** (`docs/sas/revisions/<version>.toml`) | the contract for a WHOLE PROGRAM: what the software is and shall become, with stable requirement ids (§106); its phased Objectives are the roadmap record's (§98) | a person or agent proposes; a human accepts (§101.2) | §101 | `war sas`, the corpus projection's Release axis |
+| **Objective** | a roadmap phase, `roadmap://<PREFIX>-PHASE-<N>` | a stage of the Roadmap with an Exit sentence; achieved when its `exit`-slugged Warrant resolves satisfied | the roadmap record, a human accepting each revision (OW-ADR-0023) | §98 | the corpus projection's Objective axis |
 | **Requirement** | a §106 row, `sas://<PREFIX>-SAS-RQ-<NNN>` | one stable, append-only architectural requirement; a Warrant implements it partially or completely | the SAS | §34, §101 | `war check`, the requirement ladder |
 | **Warrant** | a WAR (`docs/warrants/<alias>/`) | the contract for ONE BOUNDED INTERVENTION inside a program: intent, basis, work order, milestones, obligations; authorized, executed, verified, resolved | a person or agent drafts; a human authorizes (§28.4) and resolves (§56) | §16–§56 | `war` |
 | Milestone | `M<n>` in a Warrant's milestones atom | an acceptance checkpoint inside one Warrant, reached when its obligations are established | the Warrant's author | §23 | `war status <alias>` |
@@ -5043,180 +5043,17 @@ The old compiler remains a compatibility oracle during measured parity. After ac
 
 ## 98. Implementation phases
 
-### Phase 0 — Telemetry shim
+The phases are the roadmap record's (OW-ADR-0023).
 
-Deliver:
-
-- WAR UUID and local alias;
-- commit/PR linkage;
-- lightweight event logging;
-- amendment, escalation, and gate-result classification;
-- untracked-work detection.
-
-Exit:
-
-- real distributions for authoring cost, amendment types, and failure causes.
-
-### Phase 1 — File-native WAR compiler
-
-Deliver:
-
-- `war init`;
-- `war new`;
-- manifest;
-- authored atom profile;
-- canonical IR;
-- `war check`;
-- `war compile`;
-- full Markdown parent;
-- canonical JSON;
-- generated drift gate.
-
-Exit:
-
-- OpenWarrant development uses WARs.
-
-### Phase 2 — Agent planner
-
-Deliver:
-
-- `war plan`;
-- interview;
-- Draft Proposal protocol;
-- Katana drafter adapter;
-- semantic diff;
-- proposed ADR generation.
-
-Exit:
-
-- a vague engineering request produces a reviewable valid draft without direct model file mutation.
-
-### Phase 3 — ADR federation
-
-Deliver:
-
-- first-class ADR atoms;
-- local and global identity;
-- ADR Overview;
-- WAR/ADR relations;
-- existing ADR importer.
-
-Exit:
-
-- no managed normative decision exists only inline.
-
-### Phase 4 — Knowledge Fabric registration
-
-Deliver:
-
-- typed KF actions;
-- global allocation;
-- lifecycle;
-- contract revisions;
-- synchronization;
-- audit;
-- preservation.
-
-Exit:
-
-- registered WARs use KF as institutional authority while Git may remain Source Holder.
-
-### Phase 5 — Dispatch and Katana execution
-
-Deliver:
-
-- Preflight;
-- Stage Dispatch;
-- Katana runtime receipt;
-- Stage Submission;
-- attempts;
-- blockers and deviations.
-
-Exit:
-
-- one WAR stage can be compiled, executed by a stateless Katana agent, and returned without authority confusion.
-
-### Phase 6 — Gate Registry and assurance case
-
-Deliver:
-
-- Gate Definitions;
-- qualifications;
-- bindings;
-- runs;
-- evidence;
-- observations;
-- inferences;
-- judgments;
-- adequacy review;
-- resolution.
-
-Exit:
-
-- a delivery can close only through bounded, provenance-preserving proof.
-
-### Phase 7 — BLUT adapter
-
-Deliver:
-
-- named-port stage graph;
-- PlanSpec lowering;
-- resources;
-- artifacts;
-- BLUT lineage receipt.
-
-Exit:
-
-- compatible computational WARs execute without duplicating BLUT.
-
-### Phase 8 — Liminal production compiler
-
-Deliver:
-
-- WAR Liminal profile;
-- exact-source CST/HIR/CIR path as available;
-- Workspace Basis;
-- Jurisdiction;
-- source maps;
-- human and AI targets;
-- adapter parity;
-- cutover.
-
-Exit:
-
-- Liminal is the single production document semantic compiler.
-
-### Phase 9 — High-assurance controls
-
-Deliver as required:
-
-- signatures;
-- audit checkpoints;
-- controlled evidence custody;
-- physical test profile;
-- independent human workflow;
-- invalidation propagation;
-- regulatory mapping.
-
-Exit:
-
-- a resolution is signed, its evidence custody is audited, and one gate invalidation propagates to every dependent resolution, with no step performed by the actor who produced the work.
-
-### Phase 10 — Contractor Work Order profile
-
-Deliver only after separate legal, finance, and QMS decisions:
-
-- contractor profile;
-- Work Order mapping;
-- acceptance;
-- invoices and payments;
-- signatures and legal terms.
-
-The technical WAR core remains unchanged.
-
-Exit:
-
-- a contractor Work Order compiles through the unchanged technical WAR core, and acceptance, invoicing and legal terms live entirely in the profile.
+A program's phases — each with its id, title, outcome, Exit, dependencies and
+priority — are the roadmap record beside this document:
+`docs/roadmap/roadmap.toml` and its phases atom, accepted revision by revision
+under `docs/roadmap/revisions/`. This section does not list them, so
+re-planning is a roadmap revision and never a revision of this document
+(§6.3). A phase's members are the Warrants whose `roadmap://` ref names it,
+and a phase is achieved when its `exit` Warrant resolves satisfied; the record
+states neither fact. The eleven phases this section listed through revision
+1.1.0 are roadmap revision 1, their Exit criteria verbatim.
 
 ## 99. System acceptance criteria
 

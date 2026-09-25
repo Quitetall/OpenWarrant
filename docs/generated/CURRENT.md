@@ -37551,3 +37551,4 @@ Every command here has been judged by the act's dry run (`war sign <target> --dr
 | act | Warrant | command | judged | why |
 |---|---|---|---|---|
 | authorize | OW-WAR-0138 | `war sign OW-WAR-0138` | would record | revision 4 awaits authorization under AM-003 |
+| accept | SAS 1.1.1 | `war sign 1.1.1` | would record | a proposed SAS revision awaits acceptance |
