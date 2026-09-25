@@ -257,7 +257,13 @@ cat >/dev/null
 printf '%s' '{"api_version":"oh.war/draft-proposal/v2","proposed_identity":{"title":"x"},"operations":[{"op":"create_atom","role":"work_order","ordinal":40,"path":"40-work-order.md","body":"# Work Order\n\n## Deliverables\n\n1. `src/a.rs` parses\n2. `src/b.rs` prints\n\n## Rollback\n\n1. not an item\n"}],"risk_assessment":"low"}'
 SH
 chmod +x "$PLANT_ROOT/drafter.sh"
-printf '\n[plan]\ndrafter_argv = ["./drafter.sh"]\n' >> "$PLANT_ROOT/openwarrant.toml"
+# Replace the scaffold's own [plan] table (a second one is a TOML error).
+python3 - "$PLANT_ROOT/openwarrant.toml" <<'PY'
+import re, sys
+p = sys.argv[1]; s = open(p).read()
+s = re.sub(r'\n\[plan\]\n(?:(?!\[).*\n?)*', '\n', s)
+open(p, "w").write(s.rstrip("\n") + '\n\n[plan]\ndrafter_argv = ["./drafter.sh"]\n')
+PY
 git -C "$PLANT_ROOT" add drafter.sh openwarrant.toml >/dev/null 2>&1
 TK_D=$(tkj create "Drafted work" --draft)
 git -C "$PLANT_ROOT" rm -q --cached drafter.sh >/dev/null 2>&1; command rm -f "$PLANT_ROOT/drafter.sh"
