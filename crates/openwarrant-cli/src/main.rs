@@ -140,7 +140,17 @@ mod tests {
         // `tui` is a terminal application: no envelope on purpose, and
         // `war tui --json` says so (OW-WAR-0073 deliverable 6).
         const NOT_YET: &[&str] = &["init", "kf", "telemetry", "migrate", "export", "mcp", "tui"];
-        let cmd = openwarrant_cli::Cli::command();
+        // Built on a thread with the main thread's 8 MiB stack, which is where
+        // the binary builds it. libtest's 2 MiB worker is smaller than any
+        // `war` process has, and the unoptimized clap tree for every
+        // subcommand outgrew it when `war amend` was added (t-dc28): a stack
+        // overflow here measured the test harness, not the command.
+        let cmd = std::thread::Builder::new()
+            .stack_size(8 << 20)
+            .spawn(openwarrant_cli::Cli::command)
+            .expect("spawn")
+            .join()
+            .expect("the command tree builds");
         let all: Vec<String> = cmd
             .get_subcommands()
             .map(|c| c.get_name().to_owned())

@@ -10,6 +10,7 @@ use clap::{Parser, Subcommand};
 use openwarrant_core::Profile;
 
 pub mod acceptance;
+pub mod amendment_id;
 pub mod attest;
 pub mod authority_check;
 pub mod authority_cmd;
@@ -1084,6 +1085,18 @@ enum Command {
     Standing {
         #[command(subcommand)]
         command: StandingCommand,
+    },
+
+    /// Start a §31 amendment record for a Warrant: writes
+    /// `amendments/AM-<n>-<hash>.yaml` with its id minted so two branches
+    /// amending the same Warrant never write the same file (t-dc28), and the
+    /// fields left for you to fill. `war check` refuses it until they are.
+    Amend {
+        /// The Warrant to amend. A resolved one is refused by name.
+        alias: String,
+        /// Print the file name it would write, and write nothing.
+        #[arg(long)]
+        dry_run: bool,
     },
 
     /// The SAS as a controlled document (§101): propose, accept, diff, status.
@@ -2590,6 +2603,15 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     None,
                 )),
             }
+        }
+        Command::Amend { alias, dry_run } => {
+            let repository = open_repo()?;
+            Ok(output::finish(
+                mode,
+                "amend",
+                &amendment_id::amend(&repository, &alias, dry_run)?,
+                None,
+            ))
         }
         Command::Sas { command } => {
             let repository = open_repo()?;

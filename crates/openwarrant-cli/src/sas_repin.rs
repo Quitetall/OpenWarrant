@@ -4,7 +4,8 @@
 //! accepted (OW-ADR-0016): the contract is what was signed. `war check`
 //! says so, once per Warrant, as `sas.pin-superseded`, and until now the
 //! only way to clear one was to write an amendment by hand. This command
-//! writes it — `amendments/AM-<next>.yaml` carrying `sas_revision` and
+//! writes it — `amendments/AM-<next>-<hash>.yaml` (`crate::amendment_id`:
+//! two branches re-pinning the same Warrant write two files, not one) carrying `sas_revision` and
 //! `predecessor_sas_revision`, in the exact shape `88-sas-repin.sh` already
 //! exercises — for one Warrant or for every authorized, unresolved one whose
 //! pin is behind the latest revision. The re-pin moves the contract digest,
@@ -150,7 +151,7 @@ pub fn run(repo: &Repository, opts: &Options) -> Result<Report, RepoError> {
             .map(|a| a.authorizer.clone())
             .unwrap_or_default();
         plans.push(Plan {
-            id: next_amendment_id(&dir),
+            id: crate::amendment_id::mint(&dir),
             alias,
             dir,
             from: pin,
@@ -228,23 +229,6 @@ pub fn run(repo: &Repository, opts: &Options) -> Result<Report, RepoError> {
         }
     ));
     Ok(report)
-}
-
-/// `AM-<n+1>` over the numbers already under `amendments/`.
-fn next_amendment_id(dir: &camino::Utf8Path) -> String {
-    let max = std::fs::read_dir(dir.join("amendments"))
-        .map(|rd| {
-            rd.filter_map(Result::ok)
-                .filter_map(|e| {
-                    let name = e.file_name().to_string_lossy().into_owned();
-                    let stem = name.strip_suffix(".yaml")?;
-                    stem.strip_prefix("AM-")?.parse::<u64>().ok()
-                })
-                .max()
-                .unwrap_or(0)
-        })
-        .unwrap_or(0);
-    format!("AM-{:03}", max + 1)
 }
 
 /// The amendment, in the shape `88-sas-repin.sh` plants and `check` reads
@@ -326,11 +310,13 @@ mod tests {
             .unwrap()
             .join(format!("war-repin-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
-        assert_eq!(next_amendment_id(&dir), "AM-001");
+        assert!(crate::amendment_id::mint(&dir).starts_with("AM-001-"));
         std::fs::create_dir_all(dir.join("amendments")).unwrap();
         std::fs::write(dir.join("amendments/AM-003.yaml"), "x").unwrap();
         std::fs::write(dir.join("amendments/AM-001.yaml"), "x").unwrap();
-        assert_eq!(next_amendment_id(&dir), "AM-004");
+        let id = crate::amendment_id::mint(&dir);
+        assert!(id.starts_with("AM-004-"), "{id}");
+        assert!(crate::amendment_id::AmendmentId::parse(&id).is_ok(), "{id}");
         let _ = std::fs::remove_dir_all(&dir);
     }
 }

@@ -1291,25 +1291,19 @@ impl Loaded {
 /// The `sas_revision` the latest amendment under `amendments/` names, with the
 /// file that names it (OW-ADR-0016). Read from the file, not the record
 /// struct: the struct is pinned by a resolved Warrant, and the pin is one
-/// top-level scalar on the side. "Latest" is by amendment number (`AM-<n>`),
-/// then name, so `AM-1000` follows `AM-901`. Only an unindented
+/// top-level scalar on the side. "Latest" is `crate::amendment_id`'s order —
+/// ordinal (`AM-<n>` or `AM-<n>-<hash>`), then `effective_time`, then name —
+/// so `AM-1000` follows `AM-901`, and of two `AM-004-<hash>` re-pins merged
+/// from two branches the later-dated one decides. Only an unindented
 /// `sas_revision:` line counts — a key nested under `semantic_diff:` is not
 /// the pin.
 #[must_use]
 pub fn amendment_sas_revision(dir: &Utf8Path) -> Option<(String, Utf8PathBuf)> {
-    let mut files: Vec<Utf8PathBuf> = std::fs::read_dir(dir.join("amendments"))
-        .ok()?
-        .filter_map(Result::ok)
-        .filter_map(|e| Utf8PathBuf::from_path_buf(e.path()).ok())
+    let files: Vec<Utf8PathBuf> = crate::amendment_id::files(dir)
+        .into_iter()
+        .map(|f| f.path)
         .filter(|p| p.extension() == Some("yaml"))
         .collect();
-    let number = |p: &Utf8Path| -> u64 {
-        p.file_stem()
-            .and_then(|s| s.rsplit_once('-'))
-            .and_then(|(_, n)| n.parse().ok())
-            .unwrap_or(0)
-    };
-    files.sort_by(|a, b| number(a).cmp(&number(b)).then_with(|| a.cmp(b)));
     files.into_iter().rev().find_map(|path| {
         let text = std::fs::read_to_string(&path).ok()?;
         let version = text.lines().find_map(|line| {

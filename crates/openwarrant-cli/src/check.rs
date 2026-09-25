@@ -1558,16 +1558,24 @@ fn check_one(
     // an amendment is not compelled. One that exists anyway is still validated:
     // a record of why a claim was narrowed is worthless if it is malformed, and
     // worse than worthless if it is malformed and nobody checks.
-    let amendments = one.dir.join("amendments");
-    if let Ok(entries) = amendments.read_dir_utf8() {
-        let mut paths: Vec<_> = entries
-            .filter_map(Result::ok)
-            .map(|e| e.into_path())
-            .filter(|p| p.extension().is_some_and(|e| e == "yaml" || e == "yml"))
-            .collect();
-        paths.sort();
-        for path in paths {
+    //
+    // The file name is the amendment's id (t-dc28): `AM-<n>` as written
+    // before, or `AM-<n>-<hash>` as `war amend` and `war sas repin` mint it,
+    // so two branches never write the same file. A name that is neither, or
+    // a record whose `id:` is not its name, is refused by name
+    // (`amendment.id`): an id read as some other number would put the record
+    // out of order silently. See `crate::amendment_id`.
+    {
+        for file in crate::amendment_id::files(&one.dir) {
+            let path = file.path;
             let rel = repo.relative(&path);
+            if let Err(why) = &file.id {
+                report.push(Diagnostic::error(
+                    "amendment.id",
+                    rel.clone(),
+                    format!("{alias}: {why}"),
+                ));
+            }
             let Ok(text) = std::fs::read_to_string(&path) else {
                 report.push(Diagnostic::error(
                     "amendment.unreadable",
@@ -1581,6 +1589,17 @@ fn check_one(
                 .and_then(|doc| {
                     openwarrant_core::autonomy::from_structured(&doc).map_err(|e| e.to_string())
                 }) {
+                Ok(record) if file.id.is_ok() && record.id != file.stem => {
+                    report.push(Diagnostic::error(
+                        "amendment.id",
+                        rel,
+                        format!(
+                            "{alias}: the record's id is {:?} and its file is {}.yaml; an \
+                             amendment's id is its file name, so one of them is wrong",
+                            record.id, file.stem
+                        ),
+                    ));
+                }
                 Ok(record) => report.push(Diagnostic::pass(
                     "amendment.valid",
                     format!(
@@ -1970,17 +1989,11 @@ fn check_section_refs(
     sections: &crate::sas::RevisionSections<'_>,
     report: &mut Report,
 ) {
-    let Ok(entries) = one.dir.join("amendments").read_dir_utf8() else {
-        return;
-    };
-    let mut paths: Vec<_> = entries
-        .filter_map(Result::ok)
-        .map(|e| e.into_path())
-        .filter(|p| p.extension().is_some_and(|e| e == "yaml" || e == "yml"))
-        .collect();
-    paths.sort();
     let mut cited = Vec::new();
-    for path in paths {
+    for path in crate::amendment_id::files(&one.dir)
+        .into_iter()
+        .map(|f| f.path)
+    {
         let Some(record) = std::fs::read_to_string(&path).ok().and_then(|text| {
             openwarrant_core::structured::parse(&text)
                 .ok()

@@ -250,6 +250,71 @@ plant_war() {
 
 trap 'restore; scratch_corpora_gone' EXIT
 
+# ---- running the plant files (t-dc28) --------------------------------------
+#
+# `plants.d/NN-<name>.sh`: the NN is a GROUPING, not an id. Branches add plant
+# files without coordinating, so two files sharing a prefix (57-grammar.sh and
+# 57-tickets-ui.sh) is normal and harmless. What makes that true:
+#
+# - The order is byte order of the file names (LC_ALL=C), the same on every
+#   machine and locale: files sharing a prefix run in name order, and the
+#   battery is reproducible.
+# - No file's correctness depends on that order. Each file starts from the
+#   restored tree, and the tree is restored after it; a file that leaves a
+#   change `restore` cannot undo — a new file under a plant path — is FAILED
+#   by name and what it created is removed, so it can neither pass nor break
+#   the files after it. Shell variables a file sets are its own business: a
+#   file reads none it did not set itself, except what lib.sh defines.
+#
+# A new plant file needs no free number: pick the group it belongs to.
+
+# plant_files_in <dir>: the plant files, one per line, in byte order.
+plant_files_in() {
+    local LC_ALL=C
+    local -a files
+    shopt -s nullglob
+    files=("$1"/*.sh)
+    shopt -u nullglob
+    [[ ${#files[@]} -eq 0 ]] || printf '%s\n' "${files[@]}"
+}
+
+# What the plant paths hold, tracked and untracked, for the leak check.
+plant_tree_state() {
+    git -C "$REPO_ROOT" status --porcelain --untracked-files=all -- "${PLANT_PATHS[@]}"
+}
+
+# run_plant_files <file...>: source each in turn under the rules above.
+run_plant_files() {
+    local _rpf_file _rpf_base _rpf_now _rpf_leak _rpf_line
+    local -a _rpf_files=("$@")
+    # A sourced file would see these positional parameters; it gets none.
+    set --
+    _rpf_base=$(plant_tree_state)
+    for _rpf_file in ${_rpf_files[@]+"${_rpf_files[@]}"}; do
+        # Per FILE, never inherited: a plant file that forgets to unset
+        # PLANT_ROOT would otherwise silently redirect the next file's plants at
+        # its own scratch, and they would pass against a tree they never meant
+        # to test.
+        unset PLANT_ROOT
+        cd "$REPO_ROOT" || exit 1
+        restore
+        # shellcheck source=/dev/null
+        source "$_rpf_file"
+        unset PLANT_ROOT
+        cd "$REPO_ROOT" || exit 1
+        restore
+        _rpf_now=$(plant_tree_state)
+        [[ "$_rpf_now" == "$_rpf_base" ]] && continue
+        _rpf_leak=$(comm -13 <(sort <<<"$_rpf_base") <(sort <<<"$_rpf_now"))
+        printf 'FAIL  %-34s left the tree changed after restore: %s\n' \
+            "$(basename "$_rpf_file")" "$(tr '\n' ' ' <<<"$_rpf_leak")"
+        FAILED=$((FAILED + 1))
+        while IFS= read -r _rpf_line; do
+            [[ "$_rpf_line" == '?? '* ]] && rm -f -- "$REPO_ROOT/${_rpf_line#?? }"
+        done <<<"$_rpf_leak"
+    done
+}
+
 # scratch_warrant <what-for>  ->  echoes a fresh alias awaiting authorization
 #
 # A plant that needs "a Warrant nobody has signed yet" used to name one from the
