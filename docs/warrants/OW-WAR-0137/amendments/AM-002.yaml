@@ -1,0 +1,19 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-002"
+band: "manual_revision"
+reason: "Four clauses of revision 2 need files that were not declared, so the performer delivered what the set reached and escalated rather than widen it: (1) OBL-002 names `war sign --list --as` and `war inbox --as`, identically in `--json`; the queue functions exist in sign.rs and inbox/mod.rs, and the flags and the list's JSON form are clap's and the dispatcher's, in lib.rs. (2) OBL-001 says an assignment edited after authorization is reported by `war check` by name; that call belongs in check.rs. (3) OBL-004 asks `war status --json` and `war show` to report the distinct humans on record; the corpus status is built in the CLI's status.rs over the type in core's status.rs, and `war show`'s text is emitted from lib.rs, because show.rs is pinned by OW-WAR-0033's resolution. (4) A hand-written `war resolve --response` was not narrowed by the assignment (a residual in THREAT_MODEL row 14); resolution_cmd.rs is where the resolver is checked. U-001 was implemented as option A: `docs/warrants/<alias>/assignment.toml`, listed in the authorization request with its digest and bound by the authorizer's signature. U-002 is left alone: no `oh.war/assignment/v1` schema enters the pack, so the pack version and workspace digests do not move. Wording drafted by the performer `claude`."
+governing_adr_or_policy: "sas://WAR-SAS-69.4"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. The deliverable set gains D-009 crates/openwarrant-cli/src/lib.rs, D-010 crates/openwarrant-cli/src/check.rs, D-011 crates/openwarrant-cli/src/status.rs, D-012 crates/openwarrant-core/src/status.rs and D-013 crates/openwarrant-cli/src/resolution_cmd.rs, each named in the work order. Revision 3 is authorized against the amended contract."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-24"
+
+semantic_diff:
+  - element: "deliverables"
+    before: "D-001..D-008."
+    after: "Also D-009 lib.rs (the --as flags, sign --list --json, the review record after war show), D-010 check.rs (a moved assignment named by war check), D-011 and D-012 the CLI and core status.rs (the review record in war status --json), D-013 resolution_cmd.rs (resolution.not-assigned)."
+
+affected_stages: []
+affected_milestones: []

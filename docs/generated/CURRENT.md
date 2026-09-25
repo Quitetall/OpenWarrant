@@ -33934,6 +33934,22 @@ M4 — documents and plants:
 8. `conformance/plants.d/57-teams.sh` (new), the refusals in the assurance
    atom.
 
+- (AM-002) `crates/openwarrant-cli/src/lib.rs`: `war sign --list --as
+  <actor>` and `war inbox --as <actor>`, and `war sign --list` under
+  `--json`; the review record (who authorized, verified and resolved, and
+  how many distinct humans) after `war show` and `war status <alias>`.
+  `show.rs` stays untouched because a resolution pins it (OW-WAR-0033).
+- (AM-002) `crates/openwarrant-cli/src/check.rs`: `war check` names a
+  moved or malformed assignment (`assignment.moved`,
+  `assignment.malformed`) and an assignee who has since lost the role.
+- (AM-002) `crates/openwarrant-cli/src/status.rs` and
+  `crates/openwarrant-core/src/status.rs`: each Warrant's review record in
+  `war status --json`, for OBL-004.
+- (AM-002) `crates/openwarrant-cli/src/resolution_cmd.rs`: a resolution
+  response from anyone but the assigned resolver is refused
+  (`resolution.not-assigned`), so a hand-written `war resolve --response`
+  is narrowed like `war sign`.
+
 ## Frozen Surfaces
 
 - `oh.war/report/v1`.
@@ -34121,6 +34137,11 @@ resolver is refused by kind whatever the file says.
 | D-006 | docs/TEAMS.md | `docs/TEAMS.md` | not_content_addressed |
 | D-007 | THREAT_MODEL row: assignment and verdict attribution | `docs/THREAT_MODEL.md` | not_content_addressed |
 | D-008 | the plants | `conformance/plants.d/57-teams.sh` | not_content_addressed |
+| D-009 | `war sign --list --as`, `war inbox --as`, `sign --list --json`, the review record after `war show` (AM-002) | `crates/openwarrant-cli/src/lib.rs` | not_content_addressed |
+| D-010 | `war check` names a moved or malformed assignment (AM-002) | `crates/openwarrant-cli/src/check.rs` | not_content_addressed |
+| D-011 | each Warrant's review record in `war status --json` (AM-002) | `crates/openwarrant-cli/src/status.rs` | not_content_addressed |
+| D-012 | the review record's type in the corpus status (AM-002) | `crates/openwarrant-core/src/status.rs` | not_content_addressed |
+| D-013 | a resolution from an unassigned resolver is refused (AM-002) | `crates/openwarrant-cli/src/resolution_cmd.rs` | not_content_addressed |
 
 #### OW-WAR-0138 — Human and session authentication, and policy state protected from the performer
 
@@ -37304,6 +37325,7 @@ Every command here has been judged by the act's dry run (`war sign <target> --dr
 | authorize | OW-WAR-0125 | `war sign OW-WAR-0125` | would record | revision 3 awaits authorization under AM-002 |
 | authorize | OW-WAR-0130 | `war sign OW-WAR-0130` | would record | revision 3 awaits authorization under AM-002 |
 | authorize | OW-WAR-0132 | `war sign OW-WAR-0132` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0137 | `war sign OW-WAR-0137` | would record | revision 3 awaits authorization under AM-002 |
 | authorize | OW-WAR-0141 | `war sign OW-WAR-0141` | would record | revision 1 awaits authorization |
 | authorize | OW-WAR-0142 | `war sign OW-WAR-0142` | would record | revision 1 awaits authorization |
 | authorize | OW-WAR-0143 | `war sign OW-WAR-0143` | would record | revision 1 awaits authorization |
