@@ -324,30 +324,29 @@ pub fn run(
         "└ One dialog signs all {}. Confirm in your agent's dialog.",
         batch.acts.len()
     );
-    let principal = match sign::principal_of(repo, &actor) {
-        Ok(p) => p,
-        Err(why) => {
+    // OW-WAR-0138: the same key-binding check and presence policy as a
+    // single act, so a batch is not the way around either.
+    match sign::ssh_sign_act(repo, &actor, &batch_path) {
+        Ok(s) => report.push(Diagnostic::pass(
+            "sign.presence",
+            format!("batch {}: {}", batch.batch_id, s.parsed.describe()),
+        )),
+        Err(r) => {
             let _ = std::fs::remove_file(&batch_path);
             discard(&drafted);
+            // A missing principal or a refused signature keeps the rule it
+            // always had; the two new refusals say what they are.
+            let rule = match r.rule {
+                "sign.ssh-refused" | "sign.ssh-principal" => "batch.signature",
+                other => other,
+            };
             report.push(Diagnostic::error(
-                "batch.signature",
+                rule,
                 repo.relative(&batch_path),
-                why,
+                format!("not signed; nothing written: {}", r.why),
             ));
             return Ok(report);
         }
-    };
-    if let Err(why) =
-        sign::ssh_sign_file(&sign::allowed_signers_path(repo), &principal, &batch_path)
-    {
-        let _ = std::fs::remove_file(&batch_path);
-        discard(&drafted);
-        report.push(Diagnostic::error(
-            "batch.signature",
-            repo.relative(&batch_path),
-            format!("not signed; nothing written: {why}"),
-        ));
-        return Ok(report);
     }
 
     // 5. Judge again: the dialog may have waited while records moved.

@@ -254,6 +254,19 @@ pub struct AuthorityPolicy {
     /// one is the standing permission without which none of them are reached.
     #[serde(default)]
     pub allow_automated_resolution: bool,
+    /// OW-WAR-0138 — every signature `war sign` makes (one act or a batch)
+    /// must show a person at the key: a security key's signature with its
+    /// user-presence flag set. An ordinary key, a security key signing
+    /// without a touch, and the terminal path (no signature at all) are
+    /// refused `sign.presence-required` before anything is renamed into
+    /// place. `false` unless a human wrote otherwise, and omitted from a
+    /// written config while false, so every existing file keeps its bytes.
+    ///
+    /// Until a protected store governs this key (OW-WAR-0138 U-001), it lives
+    /// here, in a file the performer can edit: turning it off is a commit a
+    /// reviewer sees, not a thing `war` can stop.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub require_user_presence: bool,
 }
 
 /// §75.2's configured drafter: the process `war plan --draft` hands the
@@ -962,6 +975,21 @@ mod tests {
         assert!(text.contains("[adoption]"), "{text}");
         let back: RepositoryConfig = toml::from_str(&text).expect("parses");
         assert_eq!(back, adopted);
+    }
+
+    /// OW-WAR-0138: absent means no, a written config omits it while false,
+    /// and a human's `true` reads back.
+    #[test]
+    fn user_presence_is_off_unless_written() {
+        let config = valid();
+        assert!(!config.policy.require_user_presence);
+        let text = toml::to_string_pretty(&config).expect("serializes");
+        assert!(!text.contains("require_user_presence"), "{text}");
+        let on: AuthorityPolicy = toml::from_str("require_user_presence = true\n").expect("parses");
+        assert!(on.require_user_presence);
+        assert!(!on.allow_automated_resolution);
+        let text = toml::to_string_pretty(&on).expect("serializes");
+        assert!(text.contains("require_user_presence = true"), "{text}");
     }
 
     #[test]

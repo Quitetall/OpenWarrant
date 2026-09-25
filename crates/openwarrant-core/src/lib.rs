@@ -19,6 +19,7 @@ pub mod context;
 pub mod deliverable;
 pub mod document;
 pub mod preflight;
+pub mod presence;
 pub mod rationale;
 pub mod traceability;
 pub mod verification;
