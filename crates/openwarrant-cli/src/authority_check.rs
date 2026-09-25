@@ -77,6 +77,11 @@ pub enum Act {
     /// A Gate Definition version invalidated (OW-WAR-0136, §45). Subject
     /// `<gate_id>@<version>`, bound to the definition file's digest.
     Invalidate,
+    /// OW-ADR-0029 — a human signs a standing authorization's class, over
+    /// the class file's exact sha256.
+    AcceptStanding,
+    /// OW-ADR-0029 — a human revokes a signed class.
+    RevokeStanding,
 }
 
 impl Act {
@@ -95,6 +100,8 @@ impl Act {
             Self::Correct => "oh.war/correction-response/v1",
             Self::AcceptRoadmap => "oh.war/roadmap-acceptance-response/v1",
             Self::Invalidate => "oh.war/invalidation-response/v1",
+            Self::AcceptStanding => "oh.war/standing-acceptance-response/v1",
+            Self::RevokeStanding => "oh.war/standing-revocation-response/v1",
         }
     }
 
@@ -106,6 +113,8 @@ impl Act {
             Self::Correct => "correction",
             Self::AcceptRoadmap => "roadmap acceptance",
             Self::Invalidate => "gate invalidation",
+            Self::AcceptStanding => "standing authorization",
+            Self::RevokeStanding => "standing revocation",
         }
     }
 }
@@ -183,10 +192,13 @@ impl Verdict {
 #[must_use]
 pub fn response_stem(act: Act, subject: &str) -> String {
     match act {
-        Act::Authorize | Act::Accept | Act::AcceptRoadmap => subject.to_owned(),
+        Act::Authorize | Act::Accept | Act::AcceptRoadmap | Act::AcceptStanding => {
+            subject.to_owned()
+        }
         Act::Resolve => format!("{subject}.resolution"),
         Act::Correct => format!("{subject}.correction"),
         Act::Invalidate => format!("{subject}.invalidation"),
+        Act::RevokeStanding => format!("{subject}.revocation"),
     }
 }
 
@@ -224,6 +236,35 @@ pub fn verify(
 /// refusals in one run of `war sign --all --ssh-sign`, and the parameter is
 /// here so no caller has to thread the answer through by hand.
 pub fn verify_excluding(
+    repo: &Repository,
+    act: Act,
+    subject: &str,
+    actor: &str,
+    bound_digest: Option<&str>,
+    exclude: Option<&Utf8Path>,
+) -> Verdict {
+    let verdict = verify_responses(repo, act, subject, actor, bound_digest, exclude);
+    // OW-ADR-0029: an authorization no response signs may still be one a
+    // human signed — through a class. Asked only when the ordinary answer is
+    // not `Signed`, and only of a record whose `policy_basis` names a class;
+    // every other record gets the ordinary verdict unchanged. The covered
+    // verdict is re-derived on every call and never cached: it depends on
+    // the class file, its signed responses, the Warrant's atoms and records
+    // and every other covered record (the count), and a key that left one of
+    // those out would answer from a class that has since moved. The ssh
+    // verdicts underneath it go through `ssh_verify`'s memo as before.
+    if act == Act::Authorize
+        && !verdict.is_signed()
+        && let Some(covered) =
+            crate::standing_cmd::covered_verdict(repo, subject, actor, bound_digest)
+    {
+        return covered;
+    }
+    verdict
+}
+
+/// [`verify_excluding`] over signed responses and batches only.
+fn verify_responses(
     repo: &Repository,
     act: Act,
     subject: &str,
@@ -699,7 +740,13 @@ const fn role_for(act: Act) -> &'static str {
         // OW-WAR-0136 Q-001 (a): a gate is invalidated by a holder of
         // `resolver` — it disputes resolutions, and the resolver owns standing.
         Act::Resolve | Act::Invalidate => "resolver",
-        Act::Authorize | Act::Accept | Act::Correct | Act::AcceptRoadmap => "authorizer",
+        // OW-ADR-0029: a class pre-authorizes work, so it is an authorizer's.
+        Act::Authorize
+        | Act::Accept
+        | Act::Correct
+        | Act::AcceptRoadmap
+        | Act::AcceptStanding
+        | Act::RevokeStanding => "authorizer",
     }
 }
 

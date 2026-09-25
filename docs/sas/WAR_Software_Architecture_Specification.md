@@ -1739,6 +1739,16 @@ Every revision SHALL identify its predecessor and structured difference.
 
 An authorized contract is never patched.
 
+### 28.8 Standing authorization
+
+A human authorizer MAY sign a standing authorization: one record naming a closed class of contracts, bounded by the paths a covered WAR may declare, its profile and assurance level, the gates its obligations may cite, a budget per stage, an expiry and a count. The class SHALL state every term; a term it does not state is refused, not defaulted. The class SHALL NOT cover an authority file, a gate or its fixtures, a guard, a dependency manifest, an authorization record, a generated projection, or the code that decides authority, and it SHALL NOT carry a term under which a residual risk is accepted, an ADR is decided, or a WAR is resolved.
+
+A WAR inside the class is authorized from that signature by a deterministic check of its compiled contract against the class, term by term. Each such authorization is an immutable authorized Contract Revision (§28.4, §28.7) carrying the WAR's own contract digest and declared set; its authorizer is the human who signed the class, and its policy basis names the class revision. A WAR outside the class is refused by the term it breaks, and nothing is recorded.
+
+A covered authorization SHALL be re-derived wherever it is relied on — from the class, the class's signature, the time the authorization was recorded, and the WAR as it stands — and SHALL NOT be believed because the record says so.
+
+A wider class is a new revision, signed again, and it covers only WARs checked after it (§31). Revoking a class is a human act; the authorizations recorded before it stand. A standing authorization does not change §27.2: the authorizer of every covered WAR is a human, and resolution remains a human act.
+
 ## 29. Contract content
 
 Every delivery Contract Revision SHALL define:
@@ -2277,6 +2287,8 @@ Authorization of a WAR SHALL record the set of deliverable paths the WAR declare
 A resolved WAR's pin on a path that a later authorized WAR governs is historical: it remains recorded, its resolution keeps binding it, and it SHALL NOT be reported as drift. A change to a path that no authorized WAR currently governs is drift, and moves only through a recorded correction (§34.4, OW-ADR-0012).
 
 Widening a WAR's declared set after authorization is a material amendment (§31). A path declared in the manifest but absent from the recorded set is not governed and SHALL be reported as such.
+
+Under a standing authorization (§28.8) the authorizer saw the class, not the instance: the recorded set is the WAR's declared set as the class's signed paths bounded it.
 
 ## 38. Acceptance argument
 
@@ -5421,6 +5433,7 @@ The following requirement IDs provide stable traceability for implementation WAR
 | WAR-SAS-RQ-035 | Readiness requires Preflight |
 | WAR-SAS-RQ-036 | A delivered artifact changes only under a later authorized WAR that declares it, or through a recorded correction |
 | WAR-SAS-RQ-037 | Ownership of a delivered path is recorded at authorization and belongs to the latest such authorization |
+| WAR-SAS-RQ-038 | A standing authorization covers only contracts inside its signed class, and never an authority path |
 
 ### Execution
 

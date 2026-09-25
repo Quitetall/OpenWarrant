@@ -135,10 +135,14 @@ fn fingerprint(repo: &Repository) -> Option<String> {
     let root = repo.root.as_std_path();
     let mut out = Vec::new();
     add(&mut out, &root.join("openwarrant.toml"))?;
+    // `docs/authority/standing` (OW-ADR-0029): a covered authorization is
+    // believed only while its class file and the class's signed responses
+    // are what they were, so the index is keyed by them too.
     for d in [
         "docs/authority",
         "docs/authority/responses",
         "docs/authority/batches",
+        "docs/authority/standing",
     ] {
         let p = root.join(d);
         if p.is_dir() {
@@ -299,6 +303,19 @@ impl Ownership {
         }
     }
 
+    /// OW-ADR-0029 with Q-003 (refuse, as recommended): the owner a Warrant
+    /// covered by a standing authorization may NOT take `path` from — an
+    /// authorized Warrant other than `alias` that has not resolved. Routine
+    /// work never silently takes a file from work in flight; the in-flight
+    /// Warrant resolves first, or the routine change is signed on its own.
+    /// A resolved owner is not in flight: its pin becomes historical under
+    /// OW-ADR-0021 exactly as for a signed Warrant.
+    #[must_use]
+    pub fn in_flight_owner(&self, path: &str, alias: &str) -> Option<&Owner> {
+        self.current(path)
+            .filter(|owner| owner.alias != alias && !owner.resolved)
+    }
+
     /// Every owner of `path`, oldest first — the lineage `war pins --history`
     /// renders.
     #[must_use]
@@ -393,6 +410,23 @@ mod tests {
                 .collect::<Vec<_>>(),
             ["OW-WAR-0005", "OW-WAR-0112"]
         );
+    }
+
+    #[test]
+    fn a_covered_warrant_may_not_take_a_path_from_work_in_flight() {
+        let mut o = Ownership::default();
+        o.by_path.insert(
+            "x.rs".into(),
+            vec![owner("OW-WAR-0200", "2026-09-22T10:00:00Z")],
+        );
+        assert_eq!(
+            o.in_flight_owner("x.rs", "OW-WAR-0201")
+                .map(|w| w.alias.as_str()),
+            Some("OW-WAR-0200")
+        );
+        assert!(o.in_flight_owner("x.rs", "OW-WAR-0200").is_none());
+        o.by_path.get_mut("x.rs").expect("path")[0].resolved = true;
+        assert!(o.in_flight_owner("x.rs", "OW-WAR-0201").is_none());
     }
 
     #[test]

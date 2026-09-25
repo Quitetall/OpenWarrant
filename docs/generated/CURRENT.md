@@ -18,7 +18,7 @@ This is the master document (OW-ADR-0022): what is authoritative in this reposit
 
 SAS revision **1.1.1** (accepted), sha256:`230e2829d80d11e4ccaf8f893205994ce16314ffe4cd30b2d4d398614133f12e` — [document](../../docs/sas/WAR_Software_Architecture_Specification.md), [revision record](../../docs/sas/revisions/1.1.1.toml).
 
-527 normative statement(s), each with its section. The statement is what binds; the section is where the reasoning lives.
+531 normative statement(s), each with its section. The statement is what binds; the section is where the reasoning lives.
 
 ### §2.2 Eventual scope
 
@@ -380,6 +380,13 @@ SAS revision **1.1.1** (accepted), sha256:`230e2829d80d11e4ccaf8f893205994ce1631
 ### §28.6 Revision ancestry
 
 - **SHALL** §28.6: Every revision SHALL identify its predecessor and structured difference.
+
+### §28.8 Standing authorization
+
+- **MAY** §28.8: A human authorizer MAY sign a standing authorization: one record naming a closed class of contracts, bounded by the paths a covered WAR may declare, its profile and assurance level, the gates its obligations may cite, a budget per stage, an expiry and a count.
+- **SHALL** §28.8: The class SHALL state every term; a term it does not state is refused, not defaulted.
+- **SHALL NOT** §28.8: The class SHALL NOT cover an authority file, a gate or its fixtures, a guard, a dependency manifest, an authorization record, a generated projection, or the code that decides authority, and it SHALL NOT carry a term under which a residual risk is accepted, an ADR is decided, or a WAR is resolved.
+- **SHALL NOT** §28.8: A covered authorization SHALL be re-derived wherever it is relied on — from the class, the class's signature, the time the authorization was recorded, and the WAR as it stands — and SHALL NOT be believed because the record says so.
 
 ### §30.4 Ambiguity behavior
 
@@ -35732,6 +35739,29 @@ M3, the human acts and ownership (A only):
 13. `docs/SIGNING.md`: *Routine work under a standing authorization*.
 14. `CONTEXT.md`: the term *standing authorization*.
 
+Added by AM-002, each the smallest change an item above needs:
+
+15. `crates/openwarrant-cli/src/authority_check.rs`: the class acts
+    `Act::AcceptStanding` and `Act::RevokeStanding`, and, for an
+    authorization no response signs, the covered verdict, re-derived on every
+    call and never cached.
+16. `crates/openwarrant-cli/src/attest.rs`: where a class act's attestation
+    lives, and `war attest --all --verify` reading it.
+17. `crates/openwarrant-cli/src/resolution_cmd.rs`: the ingest refuses
+    `resolve.standing-needs-human` before it judges anything else.
+18. `crates/openwarrant-cli/src/next.rs` and
+    `crates/openwarrant-cli/src/console.rs`: item 9's two acts in their
+    matches on `Pending`.
+19. `crates/openwarrant-cli/src/mcp/tools.rs` and
+    `crates/openwarrant-cli/src/mcp/mod.rs`: `war_standing_apply`,
+    `war_standing_show`, and the refused names.
+20. `crates/openwarrant-cli/src/schemas.rs`,
+    `schemas/typescript/standing-authorization.ts` and
+    `schemas/typescript/manifest.json`: item 5's record in the generated
+    pack and its projection.
+21. `docs/sas/revisions/1.2.0.toml`: what item 2's `war sas propose 1.2.0`
+    writes.
+
 ## Frozen Surfaces
 
 - `oh.war/authorization/v1`: a covered record uses its existing fields.
@@ -36050,6 +36080,17 @@ once, at acceptance, after the blind verifier.
 | D-014 | the plants | `conformance/plants.d/69-standing.sh` | not_content_addressed |
 | D-015 | docs/SIGNING.md: routine work under a standing authorization | `docs/SIGNING.md` | not_content_addressed |
 | D-016 | CONTEXT.md: the term | `CONTEXT.md` | not_content_addressed |
+| D-017 | cli: the class acts and the covered verdict | `crates/openwarrant-cli/src/authority_check.rs` | not_content_addressed |
+| D-018 | cli: class-act attestations | `crates/openwarrant-cli/src/attest.rs` | not_content_addressed |
+| D-019 | cli: a covered Warrant's policy-service resolution refused at ingest | `crates/openwarrant-cli/src/resolution_cmd.rs` | not_content_addressed |
+| D-020 | cli: the class acts in war next | `crates/openwarrant-cli/src/next.rs` | not_content_addressed |
+| D-021 | cli: the class acts in the console | `crates/openwarrant-cli/src/console.rs` | not_content_addressed |
+| D-022 | cli: war_standing_apply and war_standing_show | `crates/openwarrant-cli/src/mcp/tools.rs` | not_content_addressed |
+| D-023 | cli: the refused MCP names | `crates/openwarrant-cli/src/mcp/mod.rs` | not_content_addressed |
+| D-024 | cli: the pack's new member | `crates/openwarrant-cli/src/schemas.rs` | not_content_addressed |
+| D-025 | schema: the TypeScript projection of the class | `schemas/typescript/standing-authorization.ts` | not_content_addressed |
+| D-026 | schema: the TypeScript projection manifest | `schemas/typescript/manifest.json` | not_content_addressed |
+| D-027 | SAS 1.2.0: the proposed revision record (A only) | `docs/sas/revisions/1.2.0.toml` | not_content_addressed |
 
 #### OW-WAR-0143 — war knows when it is old: build identity, a notice when a newer release exists, and an update that works from every version
 
@@ -37659,3 +37700,5 @@ Every command here has been judged by the act's dry run (`war sign <target> --dr
 | authorize | OW-WAR-0138 | `war sign OW-WAR-0138` | would record | revision 5 awaits authorization under AM-004 |
 | authorize | OW-WAR-0139 | `war sign OW-WAR-0139` | would record | revision 4 awaits authorization under AM-003 |
 | authorize | OW-WAR-0140 | `war sign OW-WAR-0140` | would record | revision 4 awaits authorization under AM-003 |
+| authorize | OW-WAR-0142 | `war sign OW-WAR-0142` | would record | revision 3 awaits authorization under AM-002 |
+| accept | SAS 1.2.0 | `war sign 1.2.0` | would refuse: sign.needs-decision | a proposed SAS revision awaits acceptance |

@@ -64,6 +64,8 @@ fn entries() -> Vec<Entry> {
         entry::<crate::output::Envelope<'static>>("report"),
         entry::<crate::bonsai::BonsaiEvidence>("bonsai-evidence"),
         entry::<openwarrant_compiler::WarIr>("war"),
+        // OW-ADR-0029: the class a human signs once for routine work.
+        entry::<openwarrant_core::standing::StandingAuthorization>("standing-authorization"),
     ]
 }
 

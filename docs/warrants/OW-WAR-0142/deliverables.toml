@@ -165,3 +165,113 @@ required = true
 content_addressed = false
 provenance_required = false
 obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-017"
+title = "cli: the class acts and the covered verdict"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/authority_check.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002", "OBL-004"]
+
+[[deliverable]]
+id = "D-018"
+title = "cli: class-act attestations"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/attest.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-019"
+title = "cli: a covered Warrant's policy-service resolution refused at ingest"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/resolution_cmd.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-005"]
+
+[[deliverable]]
+id = "D-020"
+title = "cli: the class acts in war next"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/next.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-021"
+title = "cli: the class acts in the console"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/console.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-022"
+title = "cli: war_standing_apply and war_standing_show"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/mcp/tools.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-023"
+title = "cli: the refused MCP names"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/mcp/mod.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-024"
+title = "cli: the pack's new member"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/schemas.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-025"
+title = "schema: the TypeScript projection of the class"
+kind = "file"
+target_ref = "schemas/typescript/standing-authorization.ts"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-026"
+title = "schema: the TypeScript projection manifest"
+kind = "file"
+target_ref = "schemas/typescript/manifest.json"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-027"
+title = "SAS 1.2.0: the proposed revision record (A only)"
+kind = "document"
+target_ref = "docs/sas/revisions/1.2.0.toml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]

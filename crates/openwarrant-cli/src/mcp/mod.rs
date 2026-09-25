@@ -66,6 +66,12 @@ pub const REFUSED_TOOLS: &[&str] = &[
     "war_init",
     "war_gate_record",
     "war_plan_draft",
+    // OW-ADR-0029: a class is proposed at the CLI and signed, accepted,
+    // revoked or ingested only by a human.
+    "war_standing_propose_ingest",
+    "war_standing_accept",
+    "war_standing_revoke",
+    "war_standing_ingest",
 ];
 
 /// The server: one repository, one tool table.
@@ -217,6 +223,9 @@ mod tests {
             "sign::run(",
             "sign::draft(",
             "sas::propose",
+            "standing_cmd::propose",
+            "accept_ingest_with",
+            "revoke_ingest_with",
             "kf::",
             "telemetry::",
             "migrate::",

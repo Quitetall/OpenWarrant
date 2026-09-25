@@ -28,6 +28,12 @@ The candidate is not signed adoption or proof of shipped behavior.
   status: a Warrant joins a phase by its own `roadmap://` ref, and a phase is
   achieved when its exit Warrant resolves. The master document renders it;
   the plans it replaced are one line of lineage each.
+- **Standing authorization:** one human signature over a closed class of routine
+  work — paths, `delivery` at `basic`, named gates, a budget, an expiry and a
+  count (OW-ADR-0029). A Warrant inside it is authorized in the signer's name by
+  a deterministic check (`war standing apply`); one outside is refused by term.
+  It never covers an authority path and never resolves anything. Contingent on
+  OW-WAR-0142 Q-001; SAS §28.8 is proposed in 1.2.0, not accepted.
 - **Preset:** the typed skeleton `war new --preset` writes: each heading and the
   question it answers. Presets ask; the author answers.
 - **Work stop:** declared scope complete, with generated progress and evidence links.

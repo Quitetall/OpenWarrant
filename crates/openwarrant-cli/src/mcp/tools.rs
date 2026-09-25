@@ -287,6 +287,25 @@ pub struct SignShowParams {
 
 // ---- result shaping -------------------------------------------------------
 
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct StandingShowParams {
+    /// A class id, `standing://<id>@<rev>` or `standing:<id>@<rev>`; omit for every class.
+    #[serde(default)]
+    pub id: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct StandingApplyParams {
+    /// Local alias of the Warrant to check against its class.
+    pub alias: String,
+    /// The class, `standing://<id>@<rev>`; defaults to the manifest's `[standing] ref`.
+    #[serde(default)]
+    pub class: Option<String>,
+    /// Run every refusal and write nothing.
+    #[serde(default)]
+    pub dry_run: bool,
+}
+
 type ToolResult = Result<CallToolResult, McpError>;
 
 fn envelope(command: &str, report: &Report, result: Option<serde_json::Value>) -> ToolResult {
@@ -549,6 +568,20 @@ impl WarServer {
             crate::pins::list(&self.repo, p.resolved_only),
             "pins listed",
         )
+    }
+
+    #[tool(
+        name = "war_standing_show",
+        description = "Standing authorizations (OW-ADR-0029): each class's state, signer, expiry, count used, and what each glob matches today (`war standing show`). Read-only.",
+        annotations(read_only_hint = true)
+    )]
+    fn war_standing_show(&self, Parameters(p): Parameters<StandingShowParams>) -> ToolResult {
+        match crate::standing_cmd::show(&self.repo, p.id.as_deref()) {
+            Ok((report, views)) => {
+                envelope("standing", &report, Some(crate::output::value(&views)))
+            }
+            Err(e) => refused("standing", &e),
+        }
     }
 
     #[tool(
@@ -858,6 +891,18 @@ impl WarServer {
         report_of(
             "evidence",
             crate::evidence::record(&self.repo, &p.alias, p.gate.as_deref()),
+        )
+    }
+
+    #[tool(
+        name = "war_standing_apply",
+        description = "The coverage check of a standing authorization (`war standing apply`): a Warrant inside a class a human signed is authorized in that human's name; one outside is refused by the term it breaks and nothing is written. Accepting, revoking or signing a class is not a tool.",
+        annotations(read_only_hint = false)
+    )]
+    fn war_standing_apply(&self, Parameters(p): Parameters<StandingApplyParams>) -> ToolResult {
+        report_of(
+            "standing",
+            crate::standing_cmd::apply(&self.repo, &p.alias, p.class.as_deref(), p.dry_run),
         )
     }
 

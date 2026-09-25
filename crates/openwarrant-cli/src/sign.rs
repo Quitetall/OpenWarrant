@@ -125,6 +125,16 @@ pub enum Pending {
         revision: u32,
         request: crate::roadmap_cmd::AcceptRequest,
     },
+    /// OW-ADR-0029 — a proposed class of routine work awaits the one
+    /// signature that makes it a standing authorization.
+    AcceptStanding {
+        request: crate::standing_cmd::AcceptRequest,
+    },
+    /// OW-ADR-0029 — a signed class, offered for revocation only under
+    /// `--revoke`; never part of a sweep.
+    RevokeStanding {
+        request: crate::standing_cmd::RevokeRequest,
+    },
     /// OW-WAR-0064 — a resolved Warrant's delivered artifact has moved and a
     /// human must say why, or restore it.
     Correct {
@@ -224,6 +234,9 @@ pub struct Options {
     pub verify: bool,
     /// For a correction: what kind of change it admits (OW-WAR-0064).
     pub kind: Option<openwarrant_core::correction::CorrectionKind>,
+    /// OW-ADR-0029: the acts offered are revocations of signed classes, not
+    /// the pending queue. A sweep never revokes.
+    pub revoke: bool,
 }
 
 impl Default for Options {
@@ -244,6 +257,7 @@ impl Default for Options {
             ssh_sign: false,
             verify: false,
             kind: None,
+            revoke: false,
         }
     }
 }
@@ -525,7 +539,23 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
             request,
         });
     }
+    for request in crate::standing_cmd::pending_acceptances(repo)? {
+        out.push(Pending::AcceptStanding { request });
+    }
     Ok(out)
+}
+
+/// The acts `war sign` offers under these options: the pending queue, or —
+/// under `--revoke` — a revocation for every signed, unrevoked class and
+/// nothing else, so a revocation is always named and never swept.
+pub fn pending_for(repo: &Repository, opts: &Options) -> Result<Vec<Pending>, RepoError> {
+    if opts.revoke {
+        return Ok(crate::standing_cmd::revocable(repo)?
+            .into_iter()
+            .map(|request| Pending::RevokeStanding { request })
+            .collect());
+    }
+    pending(repo)
 }
 
 /// OW-WAR-0137 — narrow a resolve act's eligible list by the Warrant's
@@ -566,6 +596,19 @@ pub(crate) fn who(p: &Pending, opts: &Options) -> Result<String, (&'static str, 
         Pending::Resolve { assignment, .. } => assignment.as_ref(),
         _ => None,
     };
+    // OW-ADR-0029: a class act names WHY a register holder may not sign it —
+    // an agent by kind, the performer as SelfAct — rather than only that
+    // the name is not on the eligible list.
+    let refused_signers = match p {
+        Pending::AcceptStanding { request } => Some(&request.refused_signers),
+        Pending::RevokeStanding { request } => Some(&request.refused_signers),
+        _ => None,
+    };
+    if let (Some(list), Some(a)) = (refused_signers, &opts.actor)
+        && let Some((_, why)) = list.iter().find(|(who, _)| who == a)
+    {
+        return Err(("standing.not-permitted", format!("{a}: {why}")));
+    }
     match assignment {
         None => choose_actor(eligible(p), opts).map_err(|why| ("sign.who", why)),
         Some(Err(finding)) => Err((finding.rule, finding.message.clone())),
@@ -646,6 +689,9 @@ pub fn list_json(list: &[Pending], actor: Option<&str>) -> serde_json::Value {
                 Pending::Accept { version, .. } => (format!("SAS-{version}"), "accept"),
                 Pending::AcceptRoadmap { revision, .. } => {
                     (crate::roadmap_cmd::subject(*revision), "accept_roadmap")
+                }
+                Pending::AcceptStanding { .. } | Pending::RevokeStanding { .. } => {
+                    (target_of(p), act_name(p))
                 }
                 Pending::Correct {
                     alias,
@@ -809,6 +855,21 @@ fn line_of(p: &Pending) -> String {
             } else {
                 ""
             }
+        ),
+        Pending::AcceptStanding { request } => format!(
+            "{}  accept  standing authorization, {} glob(s){}",
+            target_of(p),
+            request.class.as_ref().map_or(0, |c| c.paths.len()),
+            if request.refusals.is_empty() {
+                String::new()
+            } else {
+                format!("  [REFUSED: {}]", request.refusals.len())
+            }
+        ),
+        Pending::RevokeStanding { request } => format!(
+            "{}  revoke  standing authorization, {} Warrant(s) covered so far",
+            target_of(p),
+            request.covered.len()
         ),
         Pending::Correct {
             alias,
@@ -979,6 +1040,61 @@ fn screen(p: &Pending, actor: &str, role: &str, reason: Option<&str>) -> String 
                 request.diff.removed.len(),
                 request.diff.retitled.len()
             ));
+        }
+        Pending::AcceptStanding { request } => {
+            s.push_str(&format!(
+                "┌ {} · accept a STANDING AUTHORIZATION · sha256:{}\n│ {}\n",
+                request.reference,
+                &request.sha256[..16],
+                request.file
+            ));
+            if let Some(c) = &request.class {
+                for (i, line) in wrap(&c.meaning, 70).into_iter().enumerate() {
+                    s.push_str(&format!(
+                        "│ {}{line}\n",
+                        if i == 0 { "meaning: " } else { "         " }
+                    ));
+                }
+                s.push_str(&format!(
+                    "│ {} at {} · gates: {}\n│ per stage ≤ {} tokens, ≤ {} s · ≤ {} stage(s), ≤ {} deliverable(s)\n│ expires {} · covers at most {} Warrant(s)\n",
+                    c.profile,
+                    c.assurance,
+                    c.gates.join(", "),
+                    c.budget.budget_tokens,
+                    c.budget.wall_time_seconds,
+                    c.budget.max_stages,
+                    c.budget.max_deliverables,
+                    c.expires_at,
+                    c.max_warrants
+                ));
+            }
+            // What the signature grants, glob by glob, with what each
+            // matches today: a signer who cannot see a class's reach is
+            // signing a digest.
+            s.push_str("│ Covers:\n");
+            for (glob, matched) in &request.covers {
+                s.push_str(&format!("│   {glob}  ({} file(s) today)\n", matched.len()));
+                for m in matched {
+                    s.push_str(&format!("│     {m}\n"));
+                }
+            }
+            for r in &request.refusals {
+                s.push_str(&format!("│   REFUSED {r}\n"));
+            }
+            s.push_str(
+                "│ each Warrant inside it is authorized in your name with no further act; each is still resolved by you\n",
+            );
+        }
+        Pending::RevokeStanding { request } => {
+            s.push_str(&format!(
+                "┌ {} · REVOKE a standing authorization · sha256:{}\n│ it covers nothing new after this; {} record(s) made under it stand (§31)\n",
+                request.reference,
+                &request.sha256[..16],
+                request.covered.len()
+            ));
+            for a in &request.covered {
+                s.push_str(&format!("│   {a}\n"));
+            }
         }
         Pending::Correct {
             alias,
@@ -1321,6 +1437,60 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
                 adr_ref: opts.adr_ref.clone(),
             }))
         }
+        Pending::AcceptStanding { request } => {
+            if !request.refusals.is_empty() {
+                return Err(format!(
+                    "{}: the class is refused ({}); a refused class is not drafted for a \
+                     signature",
+                    request.reference,
+                    request.refusals.join("; ")
+                ));
+            }
+            let (expires, max) = request.class.as_ref().map_or((String::new(), 0), |c| {
+                (c.expires_at.clone(), c.max_warrants)
+            });
+            Ok(Drafted::AcceptStanding(
+                crate::standing_cmd::AcceptResponse {
+                    schema: crate::standing_cmd::ACCEPT_RESPONSE_SCHEMA.to_owned(),
+                    id: request.id.clone(),
+                    revision: request.revision,
+                    sha256: request.sha256.clone(),
+                    accepted_by: actor.to_owned(),
+                    acting_role: "authorizer".to_owned(),
+                    meaning: format!(
+                        "Signing standing authorization {} at this digest means the signer \
+                     authorizes, in their own name, every Warrant `war standing apply` finds \
+                     inside every term of this class, until {expires} or {max} Warrant(s), \
+                     whichever comes first, or until revoked. It resolves nothing: each covered \
+                     Warrant is still resolved by a human.{extra} {}",
+                        request.reference,
+                        provenance()
+                    ),
+                    effective_time: now.to_owned(),
+                    signed_via: Some(opts.channel().to_owned()),
+                },
+            ))
+        }
+        Pending::RevokeStanding { request } => Ok(Drafted::RevokeStanding(
+            crate::standing_cmd::RevokeResponse {
+                schema: crate::standing_cmd::REVOKE_RESPONSE_SCHEMA.to_owned(),
+                id: request.id.clone(),
+                revision: request.revision,
+                sha256: request.sha256.clone(),
+                revoked_by: actor.to_owned(),
+                acting_role: "authorizer".to_owned(),
+                meaning: format!(
+                    "Revoking standing authorization {} means it covers no Warrant applied \
+                     after this moment. The {} record(s) already made under it stand (§31).\
+                     {extra} {}",
+                    request.reference,
+                    request.covered.len(),
+                    provenance()
+                ),
+                effective_time: now.to_owned(),
+                signed_via: Some(opts.channel().to_owned()),
+            },
+        )),
         Pending::Correct {
             alias,
             deliverable_id,
@@ -1414,6 +1584,8 @@ pub enum Drafted {
     Correct(crate::correct::CorrectionResponse),
     AcceptRoadmap(crate::roadmap_cmd::AcceptResponse),
     Invalidate(crate::invalidation::InvalidationResponse),
+    AcceptStanding(crate::standing_cmd::AcceptResponse),
+    RevokeStanding(crate::standing_cmd::RevokeResponse),
 }
 
 impl Drafted {
@@ -1425,6 +1597,8 @@ impl Drafted {
             Self::AcceptRoadmap(r) => toml::to_string_pretty(r),
             Self::Correct(r) => toml::to_string_pretty(r),
             Self::Invalidate(r) => toml::to_string_pretty(r),
+            Self::AcceptStanding(r) => toml::to_string_pretty(r),
+            Self::RevokeStanding(r) => toml::to_string_pretty(r),
         };
         r.map_err(|e| RepoError::Message(format!("could not render the response: {e}")))
     }
@@ -1455,6 +1629,14 @@ impl Drafted {
                 crate::authority_check::Act::Invalidate,
                 &r.gate,
             ),
+            Self::AcceptStanding(r) => crate::authority_check::response_stem(
+                crate::authority_check::Act::AcceptStanding,
+                &crate::standing_cmd::subject(&r.id, r.revision),
+            ),
+            Self::RevokeStanding(r) => crate::authority_check::response_stem(
+                crate::authority_check::Act::RevokeStanding,
+                &crate::standing_cmd::subject(&r.id, r.revision),
+            ),
         }
     }
 
@@ -1468,6 +1650,8 @@ impl Drafted {
             Self::AcceptRoadmap(r) => &r.sha256,
             Self::Correct(r) => &r.new_digest,
             Self::Invalidate(r) => &r.definition_digest,
+            Self::AcceptStanding(r) => &r.sha256,
+            Self::RevokeStanding(r) => &r.sha256,
         }
     }
 }
@@ -1515,6 +1699,8 @@ pub(crate) fn eligible(p: &Pending) -> &[String] {
         Pending::AcceptRoadmap { request, .. } => &request.eligible_acceptors,
         Pending::Correct { request, .. } => &request.eligible_correctors,
         Pending::Invalidate { request, .. } => &request.eligible_invalidators,
+        Pending::AcceptStanding { request } => &request.eligible_acceptors,
+        Pending::RevokeStanding { request } => &request.eligible_acceptors,
     }
 }
 
@@ -1523,6 +1709,8 @@ pub(crate) fn role(p: &Pending) -> &'static str {
         Pending::Authorize { .. }
         | Pending::Accept { .. }
         | Pending::AcceptRoadmap { .. }
+        | Pending::AcceptStanding { .. }
+        | Pending::RevokeStanding { .. }
         | Pending::Correct { .. } => "authorizer",
         Pending::Resolve { .. } | Pending::Invalidate { .. } => "resolver",
     }
@@ -1544,7 +1732,35 @@ pub(crate) fn select<'a>(all: &'a [Pending], target: &str) -> Option<&'a Pending
             ..
         } => format!("{alias}/{deliverable_id}") == target,
         Pending::Invalidate { gate, .. } => gate == target,
+        // `standing:<id>@<rev>`, or `standing:<id>` for its only pending
+        // revision.
+        Pending::AcceptStanding { request } => {
+            standing_target(target, &request.id, request.revision)
+        }
+        Pending::RevokeStanding { request } => {
+            standing_target(target, &request.id, request.revision)
+        }
     })
+}
+
+fn standing_target(target: &str, id: &str, revision: u32) -> bool {
+    target == crate::standing_cmd::target(id, revision)
+        || target == format!("standing:{id}")
+        || target == openwarrant_core::standing::reference(id, revision)
+}
+
+/// The act's word in `--list --json` and in a batch.
+pub(crate) const fn act_name(p: &Pending) -> &'static str {
+    match p {
+        Pending::Authorize { .. } => "authorize",
+        Pending::Resolve { .. } => "resolve",
+        Pending::Accept { .. } => "accept",
+        Pending::AcceptRoadmap { .. } => "accept-roadmap",
+        Pending::AcceptStanding { .. } => "accept-standing",
+        Pending::RevokeStanding { .. } => "revoke-standing",
+        Pending::Correct { .. } => "correct",
+        Pending::Invalidate { .. } => "invalidate",
+    }
 }
 
 /// The token `war sign <target>` takes for one pending act — the inverse of
@@ -1560,6 +1776,12 @@ pub(crate) fn target_of(p: &Pending) -> String {
             ..
         } => format!("{alias}/{deliverable_id}"),
         Pending::Invalidate { gate, .. } => gate.clone(),
+        Pending::AcceptStanding { request } => {
+            crate::standing_cmd::target(&request.id, request.revision)
+        }
+        Pending::RevokeStanding { request } => {
+            crate::standing_cmd::target(&request.id, request.revision)
+        }
     }
 }
 
@@ -1685,6 +1907,20 @@ fn dry_run(
             Pending::Invalidate { gate, .. } => {
                 crate::invalidation::ingest_with(repo, gate, &path, IngestMode::DryRun)
             }
+            Pending::AcceptStanding { request } => crate::standing_cmd::accept_ingest_with(
+                repo,
+                &request.id,
+                request.revision,
+                &path,
+                IngestMode::DryRun,
+            ),
+            Pending::RevokeStanding { request } => crate::standing_cmd::revoke_ingest_with(
+                repo,
+                &request.id,
+                request.revision,
+                &path,
+                IngestMode::DryRun,
+            ),
             Pending::Accept { version, request } => {
                 let mut r = Report::default();
                 if request.adr_required && opts.adr_ref.is_none() {
@@ -2192,6 +2428,8 @@ pub(crate) const fn act_of(p: &Pending) -> crate::authority_check::Act {
         Pending::Correct { .. } => Act::Correct,
         Pending::AcceptRoadmap { .. } => Act::AcceptRoadmap,
         Pending::Invalidate { .. } => Act::Invalidate,
+        Pending::AcceptStanding { .. } => Act::AcceptStanding,
+        Pending::RevokeStanding { .. } => Act::RevokeStanding,
     }
 }
 
@@ -2290,6 +2528,13 @@ pub(crate) fn record_of(repo: &Repository, p: &Pending) -> Result<Utf8PathBuf, S
             crate::roadmap_cmd::revision_path(&loaded, *revision)
         }
         Pending::Invalidate { gate, .. } => crate::invalidation::record_path(repo, gate),
+        // The class file is the record: the signed response binds its bytes.
+        Pending::AcceptStanding { request } => {
+            crate::standing_cmd::record_path(repo, &request.id, request.revision)
+        }
+        Pending::RevokeStanding { request } => {
+            crate::standing_cmd::record_path(repo, &request.id, request.revision)
+        }
     })
 }
 
@@ -2374,6 +2619,16 @@ fn attest_after(
             gate.clone(),
             crate::invalidation::record_path(repo, gate),
         ),
+        Pending::AcceptStanding { request } => (
+            "standing-accept",
+            crate::standing_cmd::subject(&request.id, request.revision),
+            crate::standing_cmd::record_path(repo, &request.id, request.revision),
+        ),
+        Pending::RevokeStanding { request } => (
+            "standing-revoke",
+            crate::standing_cmd::subject(&request.id, request.revision),
+            crate::standing_cmd::record_path(repo, &request.id, request.revision),
+        ),
     };
     let response_text =
         std::fs::read_to_string(response).map_err(|e| format!("{response}: {e}"))?;
@@ -2448,10 +2703,13 @@ fn attest_after(
         actor,
     };
     let written = crate::attest::emit(repo, &a).map_err(|e| e.to_string())?;
-    // A Warrant act is journalled; a SAS acceptance has no journal.
+    // A Warrant act is journalled; a SAS, roadmap or class act has no journal.
     // An invalidation journals each dispute in its Warrant at ingest; the
     // gate itself has no journal.
-    if act != "sas-accept" && act != "roadmap-accept" && act != "invalidate" {
+    if !matches!(
+        act,
+        "sas-accept" | "roadmap-accept" | "invalidate" | "standing-accept" | "standing-revoke"
+    ) {
         let dir = repo.warrant_dir(&target).map_err(|e| e.to_string())?;
         if let Some(uuid) = repo
             .load_warrant(&dir)
@@ -2584,7 +2842,17 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
         report.push(Diagnostic::error(r.rule, "war sign".to_owned(), r.why));
         return Ok(report);
     }
-    let mut all = pending(repo)?;
+    if opts.revoke && (opts.all || target.is_none()) {
+        report.push(Diagnostic::error(
+            "standing.revoke-needs-target",
+            "war sign --revoke".to_owned(),
+            "a revocation names its class: `war sign standing:<id>@<revision> --revoke`. \
+             Nothing is revoked by a sweep"
+                .to_owned(),
+        ));
+        return Ok(report);
+    }
+    let mut all = pending_for(repo, opts)?;
     // OW-WAR-0136: an invalidation is pending only when a human names the
     // gate — nothing in the records asks for one — so it is built here, from
     // the gate and the grounds, and never offered to `--all`.
@@ -2792,6 +3060,20 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
             (Pending::AcceptRoadmap { revision, .. }, _) => {
                 crate::roadmap_cmd::accept_ingest_with(repo, *revision, &path, IngestMode::Record)
             }
+            (Pending::AcceptStanding { request }, _) => crate::standing_cmd::accept_ingest_with(
+                repo,
+                &request.id,
+                request.revision,
+                &path,
+                IngestMode::Record,
+            ),
+            (Pending::RevokeStanding { request }, _) => crate::standing_cmd::revoke_ingest_with(
+                repo,
+                &request.id,
+                request.revision,
+                &path,
+                IngestMode::Record,
+            ),
             (
                 Pending::Correct {
                     alias,
@@ -2910,7 +3192,22 @@ fn verify_existing(
             .load_sas_revisions()
             .map(|revs| revs.iter().any(|r| r.version == bare))
             .unwrap_or(false);
-    let stem = if is_sas {
+    // OW-ADR-0029: `standing:<id>@<rev>` names a class's acceptance, or its
+    // revocation under `--revoke`.
+    let class = t
+        .strip_prefix("standing:")
+        .and_then(|r| r.split_once('@'))
+        .and_then(|(id, rev)| rev.parse::<u32>().ok().map(|n| (id, n)));
+    let stem = if let Some((id, rev)) = class {
+        crate::authority_check::response_stem(
+            if opts.revoke {
+                crate::authority_check::Act::RevokeStanding
+            } else {
+                crate::authority_check::Act::AcceptStanding
+            },
+            &crate::standing_cmd::subject(id, rev),
+        )
+    } else if is_sas {
         format!("SAS-{bare}")
     } else if crate::invalidation::is_gate_ref(t) {
         crate::authority_check::response_stem(crate::authority_check::Act::Invalidate, t)
@@ -2952,6 +3249,7 @@ fn verify_existing(
         "accepted_by",
         "corrected_by",
         "invalidated_by",
+        "revoked_by",
     ]
     .iter()
     .find_map(|k| value.get(k).and_then(toml::Value::as_str))

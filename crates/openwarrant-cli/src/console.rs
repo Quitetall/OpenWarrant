@@ -89,7 +89,10 @@ pub fn act_of(p: &Pending) -> &'static str {
     match p {
         Pending::Authorize { .. } => "authorize",
         Pending::Resolve { .. } => "resolve",
-        Pending::Accept { .. } | Pending::AcceptRoadmap { .. } => "accept",
+        Pending::Accept { .. } | Pending::AcceptRoadmap { .. } | Pending::AcceptStanding { .. } => {
+            "accept"
+        }
+        Pending::RevokeStanding { .. } => "revoke",
         Pending::Correct { .. } => "correct",
         Pending::Invalidate { .. } => "invalidate",
     }
@@ -107,6 +110,7 @@ pub fn target_of(p: &Pending) -> String {
             ..
         } => format!("{alias}/{deliverable_id}"),
         Pending::Invalidate { gate, .. } => gate.clone(),
+        Pending::AcceptStanding { .. } | Pending::RevokeStanding { .. } => sign::target_of(p),
     }
 }
 
@@ -464,6 +468,7 @@ fn sign_checked(
             ssh_sign: true,
             verify: false,
             kind: None,
+            revoke: false,
         };
         if a.act == "correct" {
             let Some(word) = reason.and_then(|r| r.kind.clone()) else {

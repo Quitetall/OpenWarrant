@@ -356,6 +356,10 @@ pub fn run(
         },
     }
 
+    // OW-ADR-0029: every class file — one that reaches an authority path, or
+    // whose acceptance no longer verifies over its bytes, is an error.
+    crate::standing_cmd::check_classes(repo, &mut report);
+
     // Accepting a SAS revision is the act that makes a specification normative
     // for every Warrant that pins it, so it is held to the same rule as an
     // authorization: a human signature over the acceptance response's exact
@@ -1374,6 +1378,12 @@ fn check_one(
                     ));
                 }
             }
+            // OW-ADR-0029: an authorization made through a standing class is
+            // re-derived, never trusted — the class, its signature, the stamp
+            // against the class's expiry, count and revocation, and the
+            // Warrant as it stands against every term. Removing this call
+            // fails `conformance/plants.d/69-standing.sh`.
+            crate::standing_cmd::check(repo, one, &a, report);
         }
         // A resolution is the act that says the work is done. It was trusted on
         // content alone for exactly as long as the authorization was.

@@ -112,6 +112,74 @@ N in one dialog**: `war sign --batch=<the listed targets> --ssh-sign`. It is
 dry-run as a batch first. Your key's dialog is still the signature
 (docs/WEBUI.md).
 
+## Routine work under a standing authorization
+
+> Contingent: built on OW-WAR-0142's branch against the recommended answers
+> to its Q-001 (A), Q-002 (as drafted) and Q-003 (refuse). The owner has not
+> answered them, and SAS 1.2.0 (§28.8) is proposed, not accepted.
+
+A standing authorization is one signature over a *class* of routine work
+(OW-ADR-0029). Each Warrant inside the class is then authorized in your name
+with no further act, and you read each change once, at resolution.
+
+```bash
+war standing propose class.toml              # validate and place it; covers nothing yet
+war standing show [routine]                  # terms, every glob and what it matches today
+war sign standing:routine@1 --dry-run        # every refusal, nothing written
+war sign standing:routine@1 --ssh-sign       # 2 dialogs, once per class
+war standing apply <alias> [--dry-run]       # the agent's act: inside → authorized; outside → refused
+war sign --batch A,B,C --ssh-sign            # the round's resolutions: 2 dialogs
+war sign standing:routine@1 --revoke --ssh-sign
+```
+
+What the class states, every term required and no other accepted:
+
+- `paths`: globs a covered Warrant may declare. A glob that could reach an
+  authority path is refused when proposed, when signed and when applied —
+  `docs/authority/**`, `openwarrant.toml`, the SAS, the roadmap, the ADRs,
+  the gates and `conformance/**`, the guards, any `Cargo.toml` or
+  `Cargo.lock`, every authorization record and generated projection, and the
+  code that decides authority (`standing.rs`, `authorize.rs`, `sign.rs`,
+  `batch_cmd.rs`, `authority_check.rs`, `attest.rs`, `verify.rs`,
+  `resolve.rs`, `resolution_cmd.rs`, `ownership.rs`, `standing_cmd.rs`). The
+  set is a constant in the tool; no file extends it.
+- `profile = "delivery"`, `assurance = "basic"`.
+- `gates`: what obligations may cite; always includes
+  `gate://ops.conformance.plants@1.1.0` and
+  `gate://software.repo.war-check@1.0.0`.
+- `budget`: per-stage `budget_tokens` (≤ 24000) and `wall_time_seconds`
+  (≤ 1800), `max_stages`, `max_deliverables`. An agent stage that states no
+  `budget_tokens` is refused: its budget is unbounded.
+- `expires_at` (≤ 90 days after you sign) and `max_warrants` (≤ 50).
+- `meaning`: your words for what the signature grants.
+
+There is no term for a residual risk, an ADR or a resolution, so a covered
+Warrant carries none of them and is always resolved by a human; a policy
+service is refused by name (`resolve.standing-needs-human`).
+
+A Warrant names its class in its manifest (`[standing] ref =
+"standing://routine@1"`) or with `--class`. `apply` refuses, by the term
+broken and writing nothing: a path outside the globs, `controlled`, a
+`decision`, an ADR atom, an accepted residual risk, a gate the class does not
+name, a stage over budget, after `expires_at`, past `max_warrants`, after a
+revocation, under a class nobody signed, and a path whose current owner is an
+authorized Warrant that has not resolved (`standing.in-flight-owner`: that
+Warrant resolves first, or you sign the change on its own).
+
+Nothing about a covered authorization is trusted. `war check` re-derives it
+every run: the class's signature over its exact bytes (`standing.unsigned`
+when a byte moved), the record's time against the expiry, count and
+revocation, and the Warrant as it stands against every term
+(`standing.outside-class`). A wider class is a new revision you sign again;
+Warrants covered under the old one keep it. Records made before a revocation
+stand (`standing.revoked`, a warning).
+
+What it costs, counted by `conformance/plants.d/69-standing.sh` over three
+routine Warrants: the class, 2 signatures once; before work, 0; the round's
+resolutions, 2. The same three as ordinary Warrants, batched: 4 (an
+authorize batch and a resolve batch), and none can start before the
+authorize batch.
+
 ## Load the key with confirmation
 
 ```bash

@@ -384,6 +384,48 @@ impl Authority<'_> {
     }
 }
 
+/// OW-ADR-0029 — a Warrant authorized through a standing authorization is
+/// never resolved by §27.3's policy service, whatever the repository's policy
+/// says: a class carries no resolution term, and the owner's rule is that no
+/// resolution is automatic. `Some(why)` when `resolver` is a registered actor
+/// that is not a human and the Warrant's authorization names a class; `None`
+/// otherwise (an unknown resolver is refused by name elsewhere).
+///
+/// # Errors
+/// When the authorization or the register will not read.
+pub fn standing_needs_human(
+    repo: &Repository,
+    dir: &camino::Utf8Path,
+    resolver: &str,
+) -> Result<Option<String>, RepoError> {
+    let Some(basis) = covered_basis(repo, dir)? else {
+        return Ok(None);
+    };
+    let register = repo.load_authority_register()?;
+    Ok(register
+        .actor(resolver)
+        .filter(|a| a.actor_kind != openwarrant_core::authority::ActorKind::Human)
+        .map(|a| {
+            format!(
+                "{resolver:?} is {} and this Warrant was authorized under the standing \
+                 authorization {basis}. A covered Warrant is resolved by a human, always: a \
+                 class carries no resolution term, and §27.3's policy-service path does not \
+                 apply to it whatever `policy.allow_automated_resolution` says",
+                a.actor_kind
+            )
+        }))
+}
+
+/// The `standing://` reference a Warrant's authorization records, if any.
+fn covered_basis(repo: &Repository, dir: &camino::Utf8Path) -> Result<Option<String>, RepoError> {
+    Ok(repo.load_authorization(dir)?.and_then(|a| {
+        a.revision
+            .authorization
+            .and_then(|x| x.policy_basis)
+            .filter(|b| b.starts_with(openwarrant_core::standing::SCHEME))
+    }))
+}
+
 /// Whether a judgment addresses a given residual risk.
 ///
 /// Matched through the assumption's own `judgment_ref` when it declares one, and
@@ -696,7 +738,14 @@ pub fn assess_with(
     let deliverables = repo.load_deliverables(dir)?;
 
     let performer = repo.performer();
-    let register = repo.load_authority_register()?;
+    let mut register = repo.load_authority_register()?;
+    // OW-ADR-0029: requirement 13 for a covered Warrant asks whether a HUMAN
+    // may resolve it; a policy service never may.
+    if covered_basis(repo, dir)?.is_some() {
+        register
+            .assignments
+            .retain(|a| a.actor_kind == openwarrant_core::authority::ActorKind::Human);
+    }
     let authorization = repo.load_authorization(dir)?;
     let judgments = repo.load_judgments(dir)?;
     let assumptions = repo.load_rationale(dir)?;
