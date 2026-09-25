@@ -15,7 +15,7 @@ classification: internal
 - **scope:** `war sign --batch` step 6, on a scratch corpus with a test
   signing key, the process killed with SIGKILL after its second of three
   records. No claim about a power loss during `--recover` itself (R-001).
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - After the kill, `war check` reports ERROR `batch.interrupted` naming
     the batch, and a new `war sign --batch --dry-run` refuses the same.
@@ -30,7 +30,7 @@ classification: internal
   `war evidence record`, and the single-act `war sign` ingest, each run
   twice with identical input on a scratch corpus. Only acts the inventory
   lists; an act it does not cover is named in the inventory, not claimed.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - For each act, the second run exits 0 with a replay diagnostic, and a
     sha256 of the Warrant directory is unchanged between the two runs.
@@ -45,7 +45,7 @@ classification: internal
 - **scope:** `compat.rs` under option B of U-001, over `openwarrant.toml`
   and the frozen record types in docs/COMPATIBILITY.md. No claim about
   unknown optional fields (option C).
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - `requires_war = ">=99"` makes `war status` exit 2 with
     `compat.war-too-old`, naming both versions, before any Warrant finding

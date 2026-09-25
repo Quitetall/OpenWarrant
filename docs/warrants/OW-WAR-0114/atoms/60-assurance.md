@@ -18,12 +18,12 @@ classification: internal
 
 ### OBL-002 — the roadmap is a record the checker holds Warrants to, and it refuses what it should
 - **scope:** `core/roadmap.rs`, `roadmap_cmd.rs`, `check.rs`, `traceability.rs`, `status.rs`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** on a scratch program, a ref to a phase the roadmap lacks is `roadmap.unknown-phase`; a `depends_on` cycle is `roadmap.cycle`; a Warrant with no ref warns `roadmap.unassigned`, and its auto remedy assigns it; `war roadmap assign` on a signed Warrant refuses and names the amendment; removing a phase that has members fires `unknown-phase` on each member by name; on this corpus, Objectives come from the record and match `war roadmap`'s phases one-for-one.
 
 ### OBL-003 — changing the roadmap takes one human act, and only a human's
 - **scope:** `sign.rs`, `roadmap_edit.rs`, the app's Roadmap pane.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** An edit to the phases atom with no acceptance reads `roadmap.unaccepted`, with remedy `war sign roadmap --ssh-sign`; `war sign roadmap --dry-run` reports `would-record` with the phase diff, and writes nothing; the edit machine, driven with canned answers, writes only `20-phases.yaml` and ends in exactly one signing child; `war roadmap` without a terminal refuses to edit; an agent actor's acceptance is refused by kind; no step in the human flow opens a file.
 
 ### OBL-004 — the master document carries the roadmap, and the legacy roadmaps are lineage only

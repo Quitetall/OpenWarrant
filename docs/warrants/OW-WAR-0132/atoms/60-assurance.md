@@ -14,7 +14,7 @@ classification: internal
 ### OBL-001 — an open blocking question stops its stage, and only its stage
 - **scope:** `war frontier` and `war perform` on a scratch corpus, over
   OW-WAR-0068's open agent stages and a fixture performer.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - After `war ask OW-WAR-0068 STAGE-001 "…" --blocking`,
     `war frontier --json` shows STAGE-001 `blocked` with `waiting_on`
@@ -30,7 +30,7 @@ classification: internal
 ### OBL-002 — no responder is UNKNOWN, never silent and never answered
 - **scope:** `war frontier` and `war next`, with `roles.toml` rewritten to
   hold only agent-kind actors, in a scratch copy.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - With a blocking question open and no non-agent actor, both commands
     report UNKNOWN `question.no-responder` naming `roles.toml`, and the
@@ -42,7 +42,7 @@ classification: internal
 ### OBL-003 — spend is unknown, never zero, and an unenforceable cap refuses
 - **scope:** `war perform` with the `[perform]` spend keys, on a scratch
   corpus. No claim about real metered spend: nothing meters it.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Every `perform.ended` line carries `"spend":"unknown"`, and a grep of
     the journal finds no `"spend":0` or `"spend":"0"`.
@@ -55,7 +55,7 @@ classification: internal
 - **scope:** `war perform` on one stage, repeated with the fixture
   performers `echo-submission.sh` (answered) and `says-nothing.sh`
   (failed), with the limits set low in a scratch config.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - With `max_recoveries = 1`: two failed performances in a row, and the
     third is refused `perform.recovery-limit`.

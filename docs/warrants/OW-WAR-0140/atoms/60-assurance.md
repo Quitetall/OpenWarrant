@@ -25,7 +25,7 @@ classification: internal
 ### OBL-002 — a contractor Warrant missing a contractor role fails closed; elsewhere nothing loosens
 - **scope:** manifest validation over fixtures in
   `conformance/fixtures/contractor/`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - a contractor manifest without `contractor.acceptance` is refused, and
     the error names the profile and the role;
@@ -39,7 +39,7 @@ classification: internal
 - **scope:** the fixture compiled twice, as `contractor` and as
   `delivery` with the contractor atoms removed; the frozen-module list in
   the work order.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the two IRs are equal after removing `identity.profile`,
     `format_basis.profile_schema_id`, the `contractor.*` composition
@@ -52,7 +52,7 @@ classification: internal
 
 ### OBL-004 — contractor acceptance is the existing human resolution act
 - **scope:** the acceptance-authority check, on the fixture program.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - acceptance authority naming an agent is refused by kind;
   - naming an actor without `resolver` is refused by name;

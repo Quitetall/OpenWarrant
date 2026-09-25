@@ -16,7 +16,7 @@ classification: internal
   `writes-until-killed.sh` as the performer, sent SIGINT and SIGTERM. macOS
   is claimed only if the plant also runs on a macOS runner; otherwise it is
   reported not established. No claim about a process that leaves its group.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - After SIGINT to `war`, the report is `perform.cancelled` and exit is
     non-zero. The marker file's line count is unchanged 1 s later, for
@@ -31,7 +31,7 @@ classification: internal
 ### OBL-002 — a second writer is refused while the first may still write
 - **scope:** `war perform <alias> <stage>` twice on the same stage, the
   first still running; and a planted `.writer` record.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - With the first performer running, the second call is refused
     `perform.writer-alive`, spawns nothing (a second marker file is
@@ -45,7 +45,7 @@ classification: internal
 - **scope:** the `cfg` gate in `perform.rs`, as compiled for the release
   targets. The refusal branch is exercised by a unit test that forces the
   unsupported path.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - The unit test forcing the non-unix branch gets `perform.unsupported-os`,
     and no spawn is attempted (the fake spawner records zero calls).
@@ -55,7 +55,7 @@ classification: internal
 ### OBL-004 — the claude adapter passes the model's answer or nothing
 - **scope:** `tools/performer/claude-performer.sh` with a fake `claude` on
   PATH that answers from fixtures. No claim about a real model's work.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - A fixture submission naming the right dispatch is printed byte for byte
     and ingested by `war perform`.

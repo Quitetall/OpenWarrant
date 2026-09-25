@@ -13,7 +13,7 @@ classification: internal
 
 ### OBL-001 — currency is derived, a written currency is refused, and 0073's signature stands
 - **scope:** `relations.rs`, `ownership.rs`, `warrant_overview.rs`, `docs/warrants/OW-WAR-0073/manifest.toml`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** on a scratch program, a Warrant that another authorized Warrant `supersedes` reads `relations.currency` PASS with no field in its manifest; a manifest carrying `currency = "superseded"` is refused `relations.currency-authored`; a `supersedes` cycle is refused `relations.currency-cycle`; on this corpus, `war sign --all --dry-run` reports no `authorize.no-amendment` for OW-WAR-0073 and `war authorize OW-WAR-0073` prints contract digest `691f51ce…`.
 
 ### OBL-002 — the master document is current by construction and the history holds the rest
@@ -23,12 +23,12 @@ classification: internal
 
 ### OBL-003 — no signing command is handed to a human unjudged
 - **scope:** `next.rs`, the app's Help pane.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** `war next --json` carries `judged` on every action whose command begins `war sign`, valued `would_record` or `would_refuse` with the refusing rule; on a scratch program with one refusable act, that action sorts after the recordable ones and the human rendering shows the rule beside the command; `war next` writes nothing and touches no key (a `git status` diff and a transcript grep, as `98-ownership.sh` does).
 
 ### OBL-004 — presets type the authored atoms without answering for the author
 - **scope:** `templates/presets/`, `new.rs`, `check.rs`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** `war new "x"` without `--preset` writes the profile's default preset and names `feature`, `fix`, `decision` (AM-002), and never the `TODO` skeleton; `war new "x" --preset feature` writes one atom per required role of the profile, each with its headings and questions; `war check` on that draft reports `atom.preset-unanswered` as a warning naming the heading, and as an error once `war authorize` has been run for it; a preset atom whose optional heading was deleted passes; a namespaced optional extension atom (`x.review`) renders verbatim in `CURRENT.md`'s *Extensions* section under its role, and `war check` refuses an atom whose role is neither in a row nor a namespaced extension (`atom.role-unprojected`) (AM-002).
 
 ## Gate Adequacy

@@ -24,7 +24,7 @@ classification: internal
 ### OBL-002 — a Warrant that meets the baseline gets a mark that names what it binds
 - **scope:** `war mark` on a scratch corpus with one resolved Warrant
   built to meet baseline v1.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** an `oh.war/mark/v1` statement naming the baseline version,
   the resolution digest, the attestation digest, the locator commit, the
   contract digest and the obligation ids; each equals the value
@@ -32,7 +32,7 @@ classification: internal
 
 ### OBL-003 — no mark without a human-signed resolution
 - **scope:** the same scratch corpus, with the plants below.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** each of these gets no mark, and names the requirement it
   fails:
   - a Warrant with no resolution ("implementation finished, unreviewed",
@@ -44,7 +44,7 @@ classification: internal
 ### OBL-004 — UNKNOWN is not met, and a weaker baseline is not the same mark
 - **scope:** `war mark` against baseline v1 and a planted repository
   baseline.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - a requirement no record can answer (a resolution with no locator) is
     reported `UNKNOWN` and the mark is refused;
@@ -55,7 +55,7 @@ classification: internal
 
 ### OBL-005 — a mark goes stale when what it binds moves
 - **scope:** `war mark --verify` on the mark from OBL-002.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - after the resolution file is edited, `--verify` names the resolution
     binding;

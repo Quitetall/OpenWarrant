@@ -15,7 +15,7 @@ classification: internal
 - **scope:** `deliverable.rs` validation, exercised by
   `61-native-authority.sh` on a scratch corpus, for the reference form in
   OW-ADR-0026. No claim about other forms.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - a native deliverable with provenance and a non-`git` holder passes
     `war check`;
@@ -29,7 +29,7 @@ classification: internal
 - **scope:** `war pins --refresh`, `war pins`, `war correct` and
   `war check`'s drift pass, on a scratch Warrant with one native and one
   repository deliverable.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - after `war pins --refresh`, the native deliverable's recorded digest is
     byte-identical; the repository deliverable's moves as today;
@@ -43,7 +43,7 @@ classification: internal
 ### OBL-003 — a native deliverable neither passes nor reads as missing
 - **scope:** `war resolve --dry-run` and `war status` on the scratch
   Warrant. §56.1 requirements 2 and 3 only.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - with a required native deliverable, requirements 2 and 3 are unmet,
     and an UNKNOWN diagnostic names the holder;
@@ -55,7 +55,7 @@ classification: internal
 
 ### OBL-004 — the verifier is told what it cannot see
 - **scope:** `war verify --bundle` on the scratch Warrant.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** the bundle holds the native deliverable's reference, holder
   and recorded digest, marked not read, and no bytes for it. The repository
   deliverable's bytes are present as today.

@@ -14,7 +14,7 @@ classification: internal
 ### OBL-001 — an amendment keeps the signed revision, and its attestation still verifies
 - **scope:** `war sign <alias> --ssh-sign` for revision 1 and revision 2 of
   one scratch Warrant, with a throwaway key.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - after revision 2, `authorization.<digest8>.toml` exists and its sha256
     equals the revision-1 file's, byte for byte;
@@ -26,7 +26,7 @@ classification: internal
 
 ### OBL-002 — nothing is overwritten and a dry run keeps nothing
 - **scope:** the same scratch corpus.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - a planted `authorization.<digest8>.toml` with other bytes makes the
     revision-2 authorization refuse `authorize.retire-collision`, and no
@@ -37,7 +37,7 @@ classification: internal
 ### OBL-003 — the kept file is not a second authorization
 - **scope:** `war check` and `war sign --list` on the scratch corpus after
   revision 2.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** `war check` reports one authorization at revision 2 and no
   error; `war sign --list` shows no act for the Warrant's authorization.
 

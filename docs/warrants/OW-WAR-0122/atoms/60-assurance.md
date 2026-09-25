@@ -16,7 +16,7 @@ classification: internal
 - **scope:** non-ADR `.md` atoms loaded by `repo.rs`, exercised by the
   four header plants in `57-grammar.sh`. No claim about `.yaml` atoms or
   ADR atoms.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** each plant (`role` changed, `warrant_uuid` changed,
   `order` changed, `schema` removed) makes `war check` exit non-zero with
   `atom.header`, and the message names the key and both values (or the
@@ -31,7 +31,7 @@ classification: internal
 ### OBL-003 — every construct the grammar document lists is observed doing what the document says
 - **scope:** the constructs in `docs/GRAMMAR.md`'s tables whose plant
   column is filled. A construct marked "unspecified" makes no claim.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the refused constructs (anchor, tag, flow collection, block scalar,
     duplicate key) each fail with `atom.frontmatter` naming the construct;

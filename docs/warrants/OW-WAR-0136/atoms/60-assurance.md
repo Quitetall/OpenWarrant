@@ -15,7 +15,7 @@ classification: internal
 - **scope:** resolutions signed with `war sign --ssh-sign` after this
   change, on a scratch corpus with a test key. Not the 29 existing
   resolutions (Basis A-004).
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the resolve attestation's subjects include every `gate_run_refs`
     receipt, its run, stdout and stderr, each with the digest on disk;
@@ -27,7 +27,7 @@ classification: internal
 ### OBL-002 — the custody audit reports each §41.5 field, and UNKNOWN is not present
 - **scope:** `war attest --custody` on the scratch resolution from
   OBL-001, and on one of this repository's existing resolutions.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - all nine §41.5 fields are listed for each receipt, each present with
     its value or `UNKNOWN` with a reason (access history is `UNKNOWN`:
@@ -40,7 +40,7 @@ classification: internal
 ### OBL-003 — one invalidation disputes every dependent resolution and nothing else
 - **scope:** a scratch corpus of four resolved Warrants: A and B rest on
   gate G's runs; C is A's child (§20.2); D rests only on gate H.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - invalidating G writes exactly three disputes, for A, B and C (C
     transitively), each with §56.4's six fields;
@@ -50,7 +50,7 @@ classification: internal
 
 ### OBL-004 — nothing historical is rewritten, and an invalidated gate stops counting
 - **scope:** the same scratch corpus, before and after the invalidation.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - every `resolution.toml`, receipt, run, attestation and G's definition
     file is byte-identical before and after;
@@ -59,7 +59,7 @@ classification: internal
 
 ### OBL-005 — no step is performed by the actor who produced the work
 - **scope:** every act this Warrant adds, on the scratch corpus.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** each is refused, and writes nothing:
   - an invalidation whose actor is the performer of A;
   - under Q-001 (a) or (b): an invalidation signed by an agent-kind actor;

@@ -16,7 +16,7 @@ classification: internal
 - **scope:** `war init --program` on scratch Git repositories built by
   `59-adoption.sh`. No claim about repositories with submodules or
   multiple roots.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - after three commits, `openwarrant.toml` has `[adoption] baseline`
     equal to `git rev-parse HEAD`, and `war check` exits 0;
@@ -27,7 +27,7 @@ classification: internal
 
 ### OBL-002 — untracked work counts from the baseline, in the repository's namespace
 - **scope:** `war telemetry` on the same scratch repository.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - 0 candidates right after init;
   - 1 after one uncited commit;
@@ -38,7 +38,7 @@ classification: internal
 ### OBL-003 — nothing before the baseline is claimed or owned
 - **scope:** the scaffolded adopt Warrant and `war pins` on the scratch
   repository.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the adopt Warrant's `20-basis.md` contains the baseline id and the
     sentence that nothing before it is claimed, owned or verified;
@@ -48,7 +48,7 @@ classification: internal
 
 ### OBL-004 — existing ADRs are pointed at and never imported
 - **scope:** a scratch repository with `docs/adr/0001-x.md`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** `war init` prints one line containing
   `war migrate --corpus docs/adr --commit <baseline>`; no file under
   `artifacts/` exists afterwards; without the directory the line is
@@ -77,7 +77,7 @@ classification: internal
 - **scope:** `war init` and `war init --program` on scratch directories:
   one outside any work tree, one inside an existing repository, and one
   with `git` removed from PATH.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - outside a work tree: a `.git` exists afterwards, init's output names
     it, and `war check` on the scaffold is ready (no UNKNOWN

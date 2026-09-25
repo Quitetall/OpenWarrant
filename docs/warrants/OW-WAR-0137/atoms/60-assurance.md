@@ -15,7 +15,7 @@ classification: internal
 - **scope:** `assignment.rs` and `authorize.rs` on a scratch program with
   two humans and one agent in `roles.toml`. No claim about repositories
   sharing assignments any other way.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the authorization request lists the assignment and its digest;
   - a response echoing a different digest is refused
@@ -30,7 +30,7 @@ classification: internal
 ### OBL-002 — assignment narrows who may sign and never widens it; each person sees their queue
 - **scope:** `sign.rs` `eligible` and `choose_actor`, `war sign --list
   --as` and `war inbox --as`, on the same scratch program.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - with Ada and Ben both resolvers and Ben assigned, `war sign OW-X --as
     Ada --dry-run` is refused `sign.not-assigned`;
@@ -44,7 +44,7 @@ classification: internal
 ### OBL-003 — on an assigned Warrant, only the assigned verifier's verdict is recorded
 - **scope:** `verify.rs` ingest on the scratch program. No claim about
   who a verifier really is; that is OW-WAR-0138.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - a response from the assigned verifier is recorded;
   - one naming another actor is refused `verify.not-assigned`, and no file

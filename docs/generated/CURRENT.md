@@ -2775,8 +2775,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0118/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0118/atoms/60-assurance.md)
@@ -2789,7 +2789,7 @@ stages:
 ### OBL-001 — every tool step is timed, and every human step is counted, never timed
 - **scope:** `tools/friction/measure.sh` run by `50-friction.sh` on a
   scratch directory, Linux x86_64. No claim about any other OS.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the record lists every setup step and every routine act in
     40-work-order, each tool step with an exit code of 0 and a time in
@@ -2801,7 +2801,7 @@ stages:
 ### OBL-002 — a failed step is unknown, and the run fails
 - **scope:** the script, with a wrapper `war` on PATH that exits 1 for
   `authorize` and passes every other command through.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the `authorize` step's time is `unknown`;
   - the setup total is `unknown`, not the sum of the other steps;
@@ -2809,7 +2809,7 @@ stages:
 
 ### OBL-003 — the measurement leaves nothing behind
 - **scope:** one run of the script from the repository root.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - `git status --porcelain` is identical before and after;
   - `SSH_AUTH_SOCK` after the run equals its value before;
@@ -2820,7 +2820,7 @@ stages:
 ### OBL-004 — the baseline is the script's own output, from a release build
 - **scope:** `docs/friction/baseline-1.json` and `docs/FRICTION.md` at
   delivery.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the baseline parses as the script's record, names build profile
     `release`, a `war --version` and a commit;
@@ -8983,8 +8983,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0112/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0112/atoms/60-assurance.md)
@@ -8996,12 +8996,12 @@ stages:
 
 ### OBL-001 — ownership is granted only by a signature over the declared set
 - **scope:** `authorize.rs`, `sign.rs`, `authorization.toml`, the attestation.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** on a scratch program, a response whose `deliverable_set_digest` differs from the manifest is refused as `authorize.stale-deliverables` before any signature is verified and writes nothing; a path added to `deliverables.toml` after signing is reported `deliverable.undeclared-at-authorization` and is not owned; a path edited into `owned` in `authorization.toml` is `attest.subject-drift`; an authorization whose effective time precedes an existing owner of the same path is refused `authorize.time-before-owner`. `war sign --show` on a pending authorization prints "Grants ownership of:" followed by every declared path.
 
 ### OBL-002 — a historical pin passes, an undeclared edit still drifts, and history stays readable
 - **scope:** `check.rs`'s drift decision, `pins.rs`, `correct.rs`, `resolution_cmd.rs`, `guard-pins.sh`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** on this corpus after STAGE-002, `war check OW-WAR-0005` reports `deliverable.superseded-by` naming OW-WAR-0112 for `check.rs`, exit 0 on that row; on a scratch program, an edit to a resolved deliverable no authorized Warrant declares is `deliverable.digest-drift` whose message names both remedies; `war correct` against a historical pin refuses `correction.historical`; the hook permits an edit to a historical pin and denies an edit to a current one; `war pins --history` on a path with two owners renders both, oldest first, and a resolution recorded after this Warrant carries a `[locator]` whose `commit_sha` is forty lowercase hex.
 
 ### OBL-003 — every non-pass diagnostic carries a remedy, and no automatic remedy signs
@@ -9011,22 +9011,22 @@ stages:
 
 ### OBL-004 — the guided init writes the authority files only from a terminal, once, and never for an agent
 - **scope:** `init/guided.rs`, `docs/authority/`, the four documents.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** `war init --program X --namespace Y </dev/null` leaves no `roles.toml` and no `allowed_signers` and its output is byte-identical to the release before this Warrant; a second run against existing authority files refuses to touch them; the machine driven with canned answers grants an `actor_kind = "agent"` entry `performer` and nothing else; the header the tool writes names the date, the typed name and the `-c` answer; the four documents state the rule in the same commit.
 
 ### OBL-005 — the app holds no key and is a rendering
 - **scope:** `crates/openwarrant-cli/src/tui/`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** a source grep of `tui/` finds no `ssh-keygen`, no `SSH_AUTH_SOCK`, no `sign::run`; every act goes through `shell.rs` as `current_exe --root <root> --json …`; the queue pane's rows equal `war sign --list`; `war tui --panic-after-setup` leaves the terminal restored (the alternate-screen leave sequence is in the captured output); the confinement test finds `ratatui` and `crossterm` nowhere outside `tui/`; `cargo tree` shows no executor entered the graph.
 
 ### OBL-006 — `war` with no arguments opens the app at a terminal and refuses everywhere else by name
 - **scope:** `lib.rs`'s entry, `main.rs`'s `NOT_YET` list.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** `war </dev/null` exits 2 with clap's usage and no escape code; `war --json` exits 2 naming `war console --json` and `war status --json`; `war tui` from a pipe is `tui.no-tty`, exit 2; the `sdk` argv scan is untouched and `war --json sdk --request -` still answers with an envelope; every embedded document renders in the Help pane without panic.
 
 ### OBL-007 — the re-pin writes the amendment and the next signature is the human's
 - **scope:** `sas_repin.rs`, `amendments/`, `88-sas-repin.sh`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** `war sas repin <alias>` on an authorized, unresolved Warrant writes `AM-<next>.yaml` carrying `sas_revision` and `predecessor_sas_revision`, and `war sign --list` then shows that Warrant's next authorization revision; `repin` on a resolved Warrant refuses `sas.repin-resolved`; `--all --dry-run` writes nothing; a manifest implementing a row the latest revision lacks refuses the whole batch by name and writes nothing.
 
 ## Gate Adequacy
@@ -9574,8 +9574,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0113/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0113/atoms/60-assurance.md)
@@ -9587,7 +9587,7 @@ stages:
 
 ### OBL-001 — currency is derived, a written currency is refused, and 0073's signature stands
 - **scope:** `relations.rs`, `ownership.rs`, `warrant_overview.rs`, `docs/warrants/OW-WAR-0073/manifest.toml`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** on a scratch program, a Warrant that another authorized Warrant `supersedes` reads `relations.currency` PASS with no field in its manifest; a manifest carrying `currency = "superseded"` is refused `relations.currency-authored`; a `supersedes` cycle is refused `relations.currency-cycle`; on this corpus, `war sign --all --dry-run` reports no `authorize.no-amendment` for OW-WAR-0073 and `war authorize OW-WAR-0073` prints contract digest `691f51ce…`.
 
 ### OBL-002 — the master document is current by construction and the history holds the rest
@@ -9597,12 +9597,12 @@ stages:
 
 ### OBL-003 — no signing command is handed to a human unjudged
 - **scope:** `next.rs`, the app's Help pane.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** `war next --json` carries `judged` on every action whose command begins `war sign`, valued `would_record` or `would_refuse` with the refusing rule; on a scratch program with one refusable act, that action sorts after the recordable ones and the human rendering shows the rule beside the command; `war next` writes nothing and touches no key (a `git status` diff and a transcript grep, as `98-ownership.sh` does).
 
 ### OBL-004 — presets type the authored atoms without answering for the author
 - **scope:** `templates/presets/`, `new.rs`, `check.rs`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** `war new "x"` without `--preset` writes the profile's default preset and names `feature`, `fix`, `decision` (AM-002), and never the `TODO` skeleton; `war new "x" --preset feature` writes one atom per required role of the profile, each with its headings and questions; `war check` on that draft reports `atom.preset-unanswered` as a warning naming the heading, and as an error once `war authorize` has been run for it; a preset atom whose optional heading was deleted passes; a namespaced optional extension atom (`x.review`) renders verbatim in `CURRENT.md`'s *Extensions* section under its role, and `war check` refuses an atom whose role is neither in a row nor a namespaced extension (`atom.role-unprojected`) (AM-002).
 
 ## Gate Adequacy
@@ -10286,8 +10286,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0114/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0114/atoms/60-assurance.md)
@@ -10304,12 +10304,12 @@ stages:
 
 ### OBL-002 — the roadmap is a record the checker holds Warrants to, and it refuses what it should
 - **scope:** `core/roadmap.rs`, `roadmap_cmd.rs`, `check.rs`, `traceability.rs`, `status.rs`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** on a scratch program, a ref to a phase the roadmap lacks is `roadmap.unknown-phase`; a `depends_on` cycle is `roadmap.cycle`; a Warrant with no ref warns `roadmap.unassigned`, and its auto remedy assigns it; `war roadmap assign` on a signed Warrant refuses and names the amendment; removing a phase that has members fires `unknown-phase` on each member by name; on this corpus, Objectives come from the record and match `war roadmap`'s phases one-for-one.
 
 ### OBL-003 — changing the roadmap takes one human act, and only a human's
 - **scope:** `sign.rs`, `roadmap_edit.rs`, the app's Roadmap pane.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** An edit to the phases atom with no acceptance reads `roadmap.unaccepted`, with remedy `war sign roadmap --ssh-sign`; `war sign roadmap --dry-run` reports `would-record` with the phase diff, and writes nothing; the edit machine, driven with canned answers, writes only `20-phases.yaml` and ends in exactly one signing child; `war roadmap` without a terminal refuses to edit; an agent actor's acceptance is refused by kind; no step in the human flow opens a file.
 
 ### OBL-004 — the master document carries the roadmap, and the legacy roadmaps are lineage only
@@ -10569,8 +10569,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0115/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0115/atoms/60-assurance.md)
@@ -10582,12 +10582,12 @@ stages:
 
 ### OBL-001 — projects are remembered on use, never lost silently, and never recorded when opted out
 - **scope:** `projects.rs`, `lib.rs`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** with `XDG_CONFIG_HOME` in a temporary directory, `war status` in two scratch repositories makes `war projects --json` list both; a deleted repository is listed as missing, not removed; `war projects --forget` removes exactly one; `OPENWARRANT_NO_PROJECTS=1 war status` leaves the list file absent; an unwritable config directory does not change any command's exit code.
 
 ### OBL-002 — the hub opens from anywhere, reads each project through the CLI's own functions, and every command it hands over names its project
 - **scope:** `tui/mod.rs`, `docs/TUI.md`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** `war` outside any repository at a pty opens the Projects pane (the pane title in the captured screen); `war` with no terminal still exits 2 with `tui.no-tty`; a grep of `tui/` finds every `current_exe` child built with `--root`; the Projects row's pending count for a scratch repository equals `war --root <it> sign --list`'s count; the Help pane's first row names the running binary's version and path.
 
 ## Gate Adequacy
@@ -10917,8 +10917,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0116/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0116/atoms/60-assurance.md)
@@ -10930,7 +10930,7 @@ stages:
 
 ### OBL-001 — the server refuses everything it should, by name
 - **scope:** `webui/mod.rs`, `progress_viewer/server.rs`, loopback only.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** on a scratch program with `war ui --port 0 --no-open`, an API request without the token is 401, with a wrong token 401, with a foreign Host 400, a POST with a foreign or missing Origin 403, a GET on `/api/act` 405, a request over the header bound 431; every response's CSP contains no `unsafe-inline` and includes `frame-ancestors 'none'`; the listening socket is bound to 127.0.0.1 only (from `/proc/net/tcp` or `ss`); a source grep finds no `ssh-keygen`, `SSH_AUTH_SOCK` or signing call under `webui/`.
 
 ### OBL-002 — the Progress page is the canonical roadmap, and it stays current
@@ -10940,7 +10940,7 @@ stages:
 
 ### OBL-003 — a button starts only an act the CLI would run, after its dry run, and a human's dialog signs
 - **scope:** POST `/api/act`, the allowlist, the Queue page.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** on a scratch program with one pending authorization, the Queue row carries the dry-run verdict and an allowlist id; a POST naming an id not on the allowlist is 403 and starts no process; a POST with a body carrying an `argv` field is refused 400; the act run for a valid id is exactly `war --root <root> sign <target> --ssh-sign` (asserted from the server's act log line, without a key: the plant expects the child to fail at signing, not to sign); a second POST while one runs is 409; a resolution needing an outcome shows its terminal command and no id.
 
 ## Gate Adequacy
@@ -11191,8 +11191,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0119/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0119/atoms/60-assurance.md)
@@ -11205,7 +11205,7 @@ stages:
 ### OBL-001 — one UUID names one Warrant, and one ADR
 - **scope:** `identity.duplicate-uuid` over the Warrant manifests and ADR
   atoms of a scratch program, and of this repository's corpus.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - a Warrant directory copied under a new alias with its UUID unchanged
     makes `war check` exit non-zero with `identity.duplicate-uuid`
@@ -11215,7 +11215,7 @@ stages:
 
 ### OBL-002 — an atom belongs to its manifest's Warrant
 - **scope:** `identity.atom-mismatch` over Markdown atoms.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** one atom's `warrant_uuid` edited to another Warrant's
   UUID gives `identity.atom-mismatch` naming the atom path. Restored, the
   finding is gone.
@@ -11223,7 +11223,7 @@ stages:
 ### OBL-003 — a committed UUID does not change
 - **scope:** `identity.changed` against `HEAD`, in a scratch program
   with a committed Warrant.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the manifest UUID replaced by a fresh UUIDv7, journal and atoms left
     alone, gives `identity.changed` naming both UUIDs;
@@ -11233,7 +11233,7 @@ stages:
 ### OBL-004 — an alias is refused where an identity is required
 - **scope:** `war://` references in `[[parents]]`, `[[supersedes]]`
   and ADR `governs`; `war blut`'s lowering.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - `[[supersedes]] ref = "war://<alias>"` and the same in
     `[[parents]]` each give an error `identity.alias-ref` whose message
@@ -11245,7 +11245,7 @@ stages:
 
 ### OBL-005 — ADR identities are reported, never rewritten
 - **scope:** `identity.adr-not-v7` on this repository's 23 ADR atoms.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - `war check --json` on this corpus lists `identity.adr-not-v7` once
     for each of the 13 ADRs with a v4 `adr_uuid`, and for no v7 one;
@@ -11516,8 +11516,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0120/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0120/atoms/60-assurance.md)
@@ -11530,7 +11530,7 @@ stages:
 ### OBL-001 — the generator builds real resolved Warrants, and only in its scratch directory
 - **scope:** `tools/scale/synth-corpus.sh --n 12 --resolved 6` in a
   temporary directory, run by `52-retention.sh`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - `war check` on the result exits 0;
   - `war status --json` counts 6 Warrants resolved and 6 not;
@@ -11540,7 +11540,7 @@ stages:
 
 ### OBL-002 — the budget gate refuses what is over budget
 - **scope:** `tools/scale/budget.sh` on the 12-Warrant corpus.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - with `tools/scale/budget.toml` it exits 0;
   - with every limit set to 1 ms it exits 1 and names every command in the
@@ -11548,14 +11548,14 @@ stages:
 
 ### OBL-003 — a command that fails is unknown, never within budget
 - **scope:** the same, with one manifest in the corpus made unparseable.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** each command that exits non-zero has an `unknown` row, no
   time counted as within budget, and the script exits 1.
 
 ### OBL-004 — the 1,000-Warrant measurement is recorded as measured
 - **scope:** `docs/scale/baseline-1000.json` and the corpus that
   produced it.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the record names a release build, its `war --version`, the commit, the
     CPU and OS;
@@ -11567,7 +11567,7 @@ stages:
 - **scope:** the commands in `tools/scale/budget.toml`, release build,
   on the machine named in `baseline-1000.json`. No claim for another
   machine.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** `baseline-1000.json` shows every row within its limit and
   none `unknown`. If any row is over, this obligation is refuted and the
   record says which.
@@ -11866,8 +11866,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0121/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0121/atoms/60-assurance.md)
@@ -11881,7 +11881,7 @@ stages:
 - **scope:** the six routed writers, with the debug binary and
   `OPENWARRANT_FAULT=after-temp`, on scratch programs, Linux. No claim for
   a crash inside the kernel's rename, or for another OS.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - during `war sign <alias> --ssh-sign`, `authorization.toml` is absent
     or byte-identical to before;
@@ -11895,7 +11895,7 @@ stages:
   <alias> --ssh-sign` records an authorization (throwaway key, scratch
   program), with `pause-before-rename`. The same helper serves
   `resolution_cmd.rs`; no separate claim is made for it.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** the plant writes its own bytes to `authorization.toml`
   during the pause; the command exits non-zero with
   `storage.prestate-moved`, and the plant's bytes are still there.
@@ -11903,14 +11903,14 @@ stages:
 ### OBL-003 — a symlinked target is refused
 - **scope:** `atomic::write`, exercised through `war sign` on a scratch
   program.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** with `authorization.toml` a symlink to a file outside the
   program, `war sign` reports `storage.symlink-target` and the linked
   file's bytes are unchanged.
 
 ### OBL-004 — a torn journal tail is named, and only it
 - **scope:** `journal_cmd.rs`'s check on a scratch program.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - a partial event appended with no newline gives `journal.torn-tail`
     with the byte offset where it starts;
@@ -11922,7 +11922,7 @@ stages:
 ### OBL-005 — every authority-bearing writer goes through the helper
 - **scope:** `authorize.rs`, `resolution_cmd.rs`, `verify.rs`,
   `gate_cmd.rs`, `compile.rs`, `sign.rs` at delivery.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** the plant's grep finds no `fs::write(` for a record path
   outside `#[cfg(test)]` in those files, and fails when one is planted
   back.
@@ -12230,8 +12230,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0122/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0122/atoms/60-assurance.md)
@@ -12245,7 +12245,7 @@ stages:
 - **scope:** non-ADR `.md` atoms loaded by `repo.rs`, exercised by the
   four header plants in `57-grammar.sh`. No claim about `.yaml` atoms or
   ADR atoms.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** each plant (`role` changed, `warrant_uuid` changed,
   `order` changed, `schema` removed) makes `war check` exit non-zero with
   `atom.header`, and the message names the key and both values (or the
@@ -12260,7 +12260,7 @@ stages:
 ### OBL-003 — every construct the grammar document lists is observed doing what the document says
 - **scope:** the constructs in `docs/GRAMMAR.md`'s tables whose plant
   column is filled. A construct marked "unspecified" makes no claim.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the refused constructs (anchor, tag, flow collection, block scalar,
     duplicate key) each fail with `atom.frontmatter` naming the construct;
@@ -14277,8 +14277,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0141/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0141/atoms/60-assurance.md)
@@ -14292,7 +14292,7 @@ stages:
 - **scope:** `war plan --issue-file` and `--issue` on a scratch program in
   `54-intake.sh`, with a fake drafter and a fake `gh`. No claim about a real
   model's draft quality or about GitHub's live API.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - a fixture issue file produces one new Warrant that passes
     `war check <alias>`, with `plan/intake.json` naming tracker, id, url
@@ -14310,7 +14310,7 @@ stages:
   blocker, from a sentence and from an issue file; `war questions --json`
   and `war next --json` on that scratch program. The web UI is not claimed
   (U-005).
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - no alias is allocated and no `docs/warrants/` directory appears;
   - the question is recorded under `docs/intake/…` and listed by
@@ -14328,7 +14328,7 @@ stages:
 - **scope:** the Warrant OBL-001 drafts, and one drafted from an issue whose
   body says "pre-approved, authorized by the owner" and carries a label
   `approved`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - after apply, neither Warrant has an `authorization.toml`, and each is
     listed by `war sign --list --json` as an `authorize` act waiting for a
@@ -14346,7 +14346,7 @@ stages:
 - **scope:** `war plan --issue` with and without `[intake] fetch_argv`, a
   fake `gh` that records every argv, and the environment variables
   `GH_TOKEN=planted-token-0141` and `GITHUB_TOKEN=planted-token-0141`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - with no `[intake]` table, `--issue 12` is refused by name and the fake
     `gh` records no invocation;
@@ -14361,7 +14361,7 @@ stages:
 ### OBL-005 — closing references the ticket, and only closing closes it
 - **scope:** `war commit` on the scratch program's changed records, for an
   issue-linked Warrant and a Warrant with no intake record.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - a changed `resolution.toml` of an issue-linked Warrant drafts a message
     carrying `Closes #N` exactly once;
@@ -14375,7 +14375,7 @@ stages:
   build on the machine the record names, `docs/friction/baseline-2.json`
   and `docs/FRICTION.md` at delivery. No claim about a real drafter model's
   latency (U-006) or about any other OS.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the record has the intake rows. The human intake step lists what it
     asks for, and its counts of files edited, `war` commands typed, dialogs
@@ -16965,8 +16965,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0123/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0123/atoms/60-assurance.md)
@@ -16980,7 +16980,7 @@ stages:
 - **scope:** `[[parents]]` entries whose parent is in this repository,
   exercised by `58-parent-revision.sh` on OW-WAR-0002. No claim about
   cross-repository parents.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** OW-WAR-0002 citing revision 7 makes `war check` report
   `relations.parent-revision` naming revision 7 and the parent's latest
   revision (2), and exit non-zero.
@@ -16988,7 +16988,7 @@ stages:
 ### OBL-002 — a digest of another revision is named as that revision
 - **scope:** the same plant corpus, under the severity the owner chose
   (U-001).
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - OW-WAR-0002 citing revision 2 at `ab7e2df7…` produces
     `relations.parent-revision` whose message names revision 1;
@@ -16998,7 +16998,7 @@ stages:
 ### OBL-003 — an exact older citation passes, and the move is reported
 - **scope:** a child citing an older revision of a parent in this
   repository, with full Git history.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** OW-WAR-0002 citing revision 1 at `ab7e2df7…` yields no
   error from either parent rule, and one `relations.parent-moved` warning
   naming revision 2. Citing revision 2 at `f29c7d95…` yields neither.
@@ -17006,7 +17006,7 @@ stages:
 ### OBL-004 — what history cannot answer is UNKNOWN, and an unauthorized parent edit is still caught
 - **scope:** a `git clone --depth 1` copy of the repository; the existing
   `00-corpus.sh` plant.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - in the shallow copy, the revision 1 citation is reported UNKNOWN
     under `relations.parent-revision`, and not PASS or ERROR;
@@ -17015,7 +17015,7 @@ stages:
 
 ### OBL-005 — war new --parent writes the exact citation, and refuses what it cannot cite
 - **scope:** `war new --parent` on this repository, in a scratch copy.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - `war new "x" --parent OW-WAR-0001` writes `[[parents]]` with the
     parent's `war://` uuid, `contract_revision = 2` and
@@ -17321,8 +17321,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0124/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0124/atoms/60-assurance.md)
@@ -17336,7 +17336,7 @@ stages:
 - **scope:** `war init --program` on scratch Git repositories built by
   `59-adoption.sh`. No claim about repositories with submodules or
   multiple roots.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - after three commits, `openwarrant.toml` has `[adoption] baseline`
     equal to `git rev-parse HEAD`, and `war check` exits 0;
@@ -17347,7 +17347,7 @@ stages:
 
 ### OBL-002 — untracked work counts from the baseline, in the repository's namespace
 - **scope:** `war telemetry` on the same scratch repository.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - 0 candidates right after init;
   - 1 after one uncited commit;
@@ -17358,7 +17358,7 @@ stages:
 ### OBL-003 — nothing before the baseline is claimed or owned
 - **scope:** the scaffolded adopt Warrant and `war pins` on the scratch
   repository.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the adopt Warrant's `20-basis.md` contains the baseline id and the
     sentence that nothing before it is claimed, owned or verified;
@@ -17368,7 +17368,7 @@ stages:
 
 ### OBL-004 — existing ADRs are pointed at and never imported
 - **scope:** a scratch repository with `docs/adr/0001-x.md`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** `war init` prints one line containing
   `war migrate --corpus docs/adr --commit <baseline>`; no file under
   `artifacts/` exists afterwards; without the directory the line is
@@ -17397,7 +17397,7 @@ stages:
 - **scope:** `war init` and `war init --program` on scratch directories:
   one outside any work tree, one inside an existing repository, and one
   with `git` removed from PATH.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - outside a work tree: a `.git` exists afterwards, init's output names
     it, and `war check` on the scaffold is ready (no UNKNOWN
@@ -17720,8 +17720,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0125/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0125/atoms/60-assurance.md)
@@ -17735,7 +17735,7 @@ stages:
 - **scope:** the five recorded SAS revisions' bytes in this repository's
   history, and one planted fence. No claim about Markdown this SAS does
   not use (setext headings, indented code blocks).
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - for each of the five revisions, `join(split(bytes))` has the sha256
     the revision record pins;
@@ -17744,7 +17744,7 @@ stages:
 
 ### OBL-002 — the section index is generated and a hand edit is refused
 - **scope:** `docs/sas/generated/SECTIONS.json` and `SECTIONS.md`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - after `war compile`, both files exist and name the document's sha256
     and revision `1.1.0`;
@@ -17753,7 +17753,7 @@ stages:
 
 ### OBL-003 — a section reference that names nothing is refused
 - **scope:** `governing_adr_or_policy` in amendments, in this repository.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - `sas://WAR-SAS-999` and `sas://WAR-SAS-43.9`, each planted in a copy of
     an amendment, fail `war check` with `sas.section-ref`;
@@ -17762,7 +17762,7 @@ stages:
 ### OBL-004 — currency is per section, and unknown when history cannot say
 - **scope:** Warrants whose amendments cite a section, pinned to
   `0.1.0-draft.1`, compared with `1.1.0`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the sixteen existing references each report `sas.section-current`
     as a pass (the throwaway split found none of them changed);
@@ -17773,7 +17773,7 @@ stages:
 
 ### OBL-005 — war sas diff names exactly the sections that changed
 - **scope:** `war sas diff` against candidates built by the plant.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the document against itself: no section named;
   - one word changed in §62.3: section 62 named and no other;
@@ -19694,8 +19694,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0127/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0127/atoms/60-assurance.md)
@@ -19709,7 +19709,7 @@ stages:
 - **scope:** `deliverable.rs` validation, exercised by
   `61-native-authority.sh` on a scratch corpus, for the reference form in
   OW-ADR-0026. No claim about other forms.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - a native deliverable with provenance and a non-`git` holder passes
     `war check`;
@@ -19723,7 +19723,7 @@ stages:
 - **scope:** `war pins --refresh`, `war pins`, `war correct` and
   `war check`'s drift pass, on a scratch Warrant with one native and one
   repository deliverable.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - after `war pins --refresh`, the native deliverable's recorded digest is
     byte-identical; the repository deliverable's moves as today;
@@ -19737,7 +19737,7 @@ stages:
 ### OBL-003 — a native deliverable neither passes nor reads as missing
 - **scope:** `war resolve --dry-run` and `war status` on the scratch
   Warrant. §56.1 requirements 2 and 3 only.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - with a required native deliverable, requirements 2 and 3 are unmet,
     and an UNKNOWN diagnostic names the holder;
@@ -19749,7 +19749,7 @@ stages:
 
 ### OBL-004 — the verifier is told what it cannot see
 - **scope:** `war verify --bundle` on the scratch Warrant.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** the bundle holds the native deliverable's reference, holder
   and recorded digest, marked not read, and no bytes for it. The repository
   deliverable's bytes are present as today.
@@ -24774,8 +24774,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0129/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0129/atoms/60-assurance.md)
@@ -24789,7 +24789,7 @@ stages:
 - **scope:** `compile_dispatch` as reached through `war dispatch` on this
   corpus, and its unit tests. No claim about the estimate's accuracy
   against any real tokenizer (R-001).
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - `83-tokens.sh`'s existing plant (`budget_tokens: 10`) is still refused
     `dispatch.over-budget` with "largest:", and now the CLI has no
@@ -24804,7 +24804,7 @@ stages:
 - **scope:** `war perform <alias> <stage>`, `war perform --all` and
   `war run`, on a scratch copy of the corpus with a fixture performer.
   No claim about a Katana or BLUT runtime.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Over budget, `war perform` exits non-zero with `dispatch.over-budget`.
     The fixture performer's marker file does not exist, no
@@ -24818,7 +24818,7 @@ stages:
 
 ### OBL-003 — a Dispatch that did not come from this compile is judged before it is bundled
 - **scope:** `war dispatch-bundle create` over Dispatch files on disk.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - A Dispatch whose `estimated_tokens` was edited above its
     `budget_tokens` is refused `bundle-over-budget`.
@@ -25148,8 +25148,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0130/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0130/atoms/60-assurance.md)
@@ -25163,7 +25163,7 @@ stages:
 - **scope:** `war sign --batch` step 6, on a scratch corpus with a test
   signing key, the process killed with SIGKILL after its second of three
   records. No claim about a power loss during `--recover` itself (R-001).
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - After the kill, `war check` reports ERROR `batch.interrupted` naming
     the batch, and a new `war sign --batch --dry-run` refuses the same.
@@ -25178,7 +25178,7 @@ stages:
   `war evidence record`, and the single-act `war sign` ingest, each run
   twice with identical input on a scratch corpus. Only acts the inventory
   lists; an act it does not cover is named in the inventory, not claimed.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - For each act, the second run exits 0 with a replay diagnostic, and a
     sha256 of the Warrant directory is unchanged between the two runs.
@@ -25193,7 +25193,7 @@ stages:
 - **scope:** `compat.rs` under option B of U-001, over `openwarrant.toml`
   and the frozen record types in docs/COMPATIBILITY.md. No claim about
   unknown optional fields (option C).
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - `requires_war = ">=99"` makes `war status` exit 2 with
     `compat.war-too-old`, naming both versions, before any Warrant finding
@@ -25532,8 +25532,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0131/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0131/atoms/60-assurance.md)
@@ -25548,7 +25548,7 @@ stages:
   `writes-until-killed.sh` as the performer, sent SIGINT and SIGTERM. macOS
   is claimed only if the plant also runs on a macOS runner; otherwise it is
   reported not established. No claim about a process that leaves its group.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - After SIGINT to `war`, the report is `perform.cancelled` and exit is
     non-zero. The marker file's line count is unchanged 1 s later, for
@@ -25563,7 +25563,7 @@ stages:
 ### OBL-002 — a second writer is refused while the first may still write
 - **scope:** `war perform <alias> <stage>` twice on the same stage, the
   first still running; and a planted `.writer` record.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - With the first performer running, the second call is refused
     `perform.writer-alive`, spawns nothing (a second marker file is
@@ -25577,7 +25577,7 @@ stages:
 - **scope:** the `cfg` gate in `perform.rs`, as compiled for the release
   targets. The refusal branch is exercised by a unit test that forces the
   unsupported path.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - The unit test forcing the non-unix branch gets `perform.unsupported-os`,
     and no spawn is attempted (the fake spawner records zero calls).
@@ -25587,7 +25587,7 @@ stages:
 ### OBL-004 — the claude adapter passes the model's answer or nothing
 - **scope:** `tools/performer/claude-performer.sh` with a fake `claude` on
   PATH that answers from fixtures. No claim about a real model's work.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - A fixture submission naming the right dispatch is printed byte for byte
     and ingested by `war perform`.
@@ -25918,8 +25918,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0132/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0132/atoms/60-assurance.md)
@@ -25932,7 +25932,7 @@ stages:
 ### OBL-001 — an open blocking question stops its stage, and only its stage
 - **scope:** `war frontier` and `war perform` on a scratch corpus, over
   OW-WAR-0068's open agent stages and a fixture performer.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - After `war ask OW-WAR-0068 STAGE-001 "…" --blocking`,
     `war frontier --json` shows STAGE-001 `blocked` with `waiting_on`
@@ -25948,7 +25948,7 @@ stages:
 ### OBL-002 — no responder is UNKNOWN, never silent and never answered
 - **scope:** `war frontier` and `war next`, with `roles.toml` rewritten to
   hold only agent-kind actors, in a scratch copy.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - With a blocking question open and no non-agent actor, both commands
     report UNKNOWN `question.no-responder` naming `roles.toml`, and the
@@ -25960,7 +25960,7 @@ stages:
 ### OBL-003 — spend is unknown, never zero, and an unenforceable cap refuses
 - **scope:** `war perform` with the `[perform]` spend keys, on a scratch
   corpus. No claim about real metered spend: nothing meters it.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Every `perform.ended` line carries `"spend":"unknown"`, and a grep of
     the journal finds no `"spend":0` or `"spend":"0"`.
@@ -25973,7 +25973,7 @@ stages:
 - **scope:** `war perform` on one stage, repeated with the fixture
   performers `echo-submission.sh` (answered) and `says-nothing.sh`
   (failed), with the limits set low in a scratch config.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - With `max_recoveries = 1`: two failed performances in a row, and the
     third is refused `perform.recovery-limit`.
@@ -28730,8 +28730,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0066/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0066/atoms/60-assurance.md)
@@ -28748,7 +28748,7 @@ stages:
 
 ### OBL-002 — the battery passes as a stage
 - **scope:** STAGE-002 under `war run`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** the battery's receipt with verdict pass, bound to the stage's dispatch digest.
 
 ## Gate Adequacy
@@ -29309,8 +29309,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0117/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0117/atoms/60-assurance.md)
@@ -29324,7 +29324,7 @@ stages:
 - **scope:** `tools/verifier/claude-verifier.sh`, exercised by
   `62-verifier.sh`'s fake `claude`. No claim about any real model's
   judgment.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - a fixture answer's dispositions and evidence appear in the response;
   - a fixture answer that also names a verifier, an actor and independence
@@ -29333,7 +29333,7 @@ stages:
 
 ### OBL-002 — anything unclear is not_established, and a failure writes nothing
 - **scope:** the wrapper and `war verify --run` on a scratch corpus.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** each of these yields `not_established` for every
   obligation it touches:
   - an answer that is not JSON;
@@ -29345,7 +29345,7 @@ stages:
 
 ### OBL-003 — the verifier holds no tool and keeps no session
 - **scope:** the argv the wrapper passes to `claude`, as recorded by the fake.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the recorded argv contains `--disallowedTools` whose list names Bash,
     Read, Write and Edit;
@@ -29355,7 +29355,7 @@ stages:
 ### OBL-004 — independence is claimed only where it is true
 - **scope:** the wrapper's `distinct_model_required`, and `war check`'s
   independence findings on this repository.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - without `CLAUDE_PERFORMER_MODEL`, and with it equal to the verifier's
     model, the response says `distinct_model_required = false`;
@@ -29664,8 +29664,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0133/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0133/atoms/60-assurance.md)
@@ -29678,7 +29678,7 @@ stages:
 ### OBL-001 — a receipt names the source it ran over
 - **scope:** receipts minted by `war evidence record` on a scratch corpus in
   a git repository. No claim about receipts minted by other tools.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - a receipt from a clean tree names the contract, `tree:<sha>` equal to
     `git rev-parse HEAD^{tree}`, and `deliverables:sha256:<digest>`;
@@ -29688,7 +29688,7 @@ stages:
 ### OBL-002 — a moved source makes the run a record, not evidence
 - **scope:** `war check` and `war resolve --dry-run` requirement 5 on a
   scratch corpus, under the rule Q-001 selects.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - record a passing run; `war resolve --dry-run` counts it;
   - change one byte of a declared deliverable and commit; the same run is
@@ -29711,7 +29711,7 @@ stages:
 ### OBL-004 — the context manifest does not claim an unchecked conflict list
 - **scope:** Dispatches compiled by `war dispatch` for a scratch Warrant's
   stages.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** the emitted manifest's conflict field reads as Q-002
   selects: `unchecked`, or a list a check produced. The plant fails on
   `conflicts: []` with no statement that a check ran.
@@ -29719,7 +29719,7 @@ stages:
 ### OBL-005 — a required item is never omitted, and a detected conflict refuses the Dispatch
 - **scope:** the omission rule in `context.rs` as reached through
   `war dispatch`; the conflict kind Q-002 selects, if any.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - a stage whose budget cannot hold a required atom is refused by name
     (`RequiredItemOmitted`), not dispatched without it;
@@ -30012,8 +30012,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0134/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0134/atoms/60-assurance.md)
@@ -30027,7 +30027,7 @@ stages:
 - **scope:** `war pins --candidate` on a scratch git corpus with one
   resolved Warrant whose locator is clean. No claim about forges other than
   a local git repository.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - after one commit changing an in-scope file that no deliverable pins,
     the output carries `acceptance.candidate-moved` naming that path, and
@@ -30036,7 +30036,7 @@ stages:
 
 ### OBL-002 — an unrelated change leaves acceptance standing
 - **scope:** the same scratch corpus.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** a commit that changes only an out-of-scope file reports
   `unchanged` for the Warrant, and exits zero. This is the control: without
   it, a check that reports every Warrant as moved satisfies OBL-001.
@@ -30044,7 +30044,7 @@ stages:
 ### OBL-003 — a locator history cannot read is UNKNOWN
 - **scope:** a scratch resolution with no locator, and one whose
   `commit_sha` names a commit not in the repository.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** both report `UNKNOWN` with the reason (no locator;
   commit not readable). Neither reports `unchanged`, and neither is an
   error about the resolution.
@@ -30061,7 +30061,7 @@ stages:
 
 ### OBL-005 — the consequence Q-001 selects is enforced
 - **scope:** the scratch corpus from OBL-001, after the in-scope move.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - under (b): the finding clears only after a verification of the new
     candidate is ingested, and clears for that candidate only; a second
@@ -30358,8 +30358,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0135/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0135/atoms/60-assurance.md)
@@ -30382,7 +30382,7 @@ stages:
 ### OBL-002 — a Warrant that meets the baseline gets a mark that names what it binds
 - **scope:** `war mark` on a scratch corpus with one resolved Warrant
   built to meet baseline v1.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** an `oh.war/mark/v1` statement naming the baseline version,
   the resolution digest, the attestation digest, the locator commit, the
   contract digest and the obligation ids; each equals the value
@@ -30390,7 +30390,7 @@ stages:
 
 ### OBL-003 — no mark without a human-signed resolution
 - **scope:** the same scratch corpus, with the plants below.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** each of these gets no mark, and names the requirement it
   fails:
   - a Warrant with no resolution ("implementation finished, unreviewed",
@@ -30402,7 +30402,7 @@ stages:
 ### OBL-004 — UNKNOWN is not met, and a weaker baseline is not the same mark
 - **scope:** `war mark` against baseline v1 and a planted repository
   baseline.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - a requirement no record can answer (a resolution with no locator) is
     reported `UNKNOWN` and the mark is refused;
@@ -30413,7 +30413,7 @@ stages:
 
 ### OBL-005 — a mark goes stale when what it binds moves
 - **scope:** `war mark --verify` on the mark from OBL-002.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - after the resolution file is edited, `--verify` names the resolution
     binding;
@@ -33659,8 +33659,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0136/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0136/atoms/60-assurance.md)
@@ -33674,7 +33674,7 @@ stages:
 - **scope:** resolutions signed with `war sign --ssh-sign` after this
   change, on a scratch corpus with a test key. Not the 29 existing
   resolutions (Basis A-004).
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the resolve attestation's subjects include every `gate_run_refs`
     receipt, its run, stdout and stderr, each with the digest on disk;
@@ -33686,7 +33686,7 @@ stages:
 ### OBL-002 — the custody audit reports each §41.5 field, and UNKNOWN is not present
 - **scope:** `war attest --custody` on the scratch resolution from
   OBL-001, and on one of this repository's existing resolutions.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - all nine §41.5 fields are listed for each receipt, each present with
     its value or `UNKNOWN` with a reason (access history is `UNKNOWN`:
@@ -33699,7 +33699,7 @@ stages:
 ### OBL-003 — one invalidation disputes every dependent resolution and nothing else
 - **scope:** a scratch corpus of four resolved Warrants: A and B rest on
   gate G's runs; C is A's child (§20.2); D rests only on gate H.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - invalidating G writes exactly three disputes, for A, B and C (C
     transitively), each with §56.4's six fields;
@@ -33709,7 +33709,7 @@ stages:
 
 ### OBL-004 — nothing historical is rewritten, and an invalidated gate stops counting
 - **scope:** the same scratch corpus, before and after the invalidation.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - every `resolution.toml`, receipt, run, attestation and G's definition
     file is byte-identical before and after;
@@ -33718,7 +33718,7 @@ stages:
 
 ### OBL-005 — no step is performed by the actor who produced the work
 - **scope:** every act this Warrant adds, on the scratch corpus.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** each is refused, and writes nothing:
   - an invalidation whose actor is the performer of A;
   - under Q-001 (a) or (b): an invalidation signed by an agent-kind actor;
@@ -34056,8 +34056,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0137/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0137/atoms/60-assurance.md)
@@ -34071,7 +34071,7 @@ stages:
 - **scope:** `assignment.rs` and `authorize.rs` on a scratch program with
   two humans and one agent in `roles.toml`. No claim about repositories
   sharing assignments any other way.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the authorization request lists the assignment and its digest;
   - a response echoing a different digest is refused
@@ -34086,7 +34086,7 @@ stages:
 ### OBL-002 — assignment narrows who may sign and never widens it; each person sees their queue
 - **scope:** `sign.rs` `eligible` and `choose_actor`, `war sign --list
   --as` and `war inbox --as`, on the same scratch program.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - with Ada and Ben both resolvers and Ben assigned, `war sign OW-X --as
     Ada --dry-run` is refused `sign.not-assigned`;
@@ -34100,7 +34100,7 @@ stages:
 ### OBL-003 — on an assigned Warrant, only the assigned verifier's verdict is recorded
 - **scope:** `verify.rs` ingest on the scratch program. No claim about
   who a verifier really is; that is OW-WAR-0138.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - a response from the assigned verifier is recorded;
   - one naming another actor is refused `verify.not-assigned`, and no file
@@ -34450,8 +34450,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0138/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0138/atoms/60-assurance.md)
@@ -34465,7 +34465,7 @@ stages:
 - **scope:** `authority_check.rs` and `sign.rs` on a scratch program with
   a test-mode store and disposable keys. No claim about a deployed store's
   OS protection (R-003).
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - an agent key added to `allowed_signers` and a human-kind entry added
     to `roles.toml`, neither in the store: a signature by that key is
@@ -34483,7 +34483,7 @@ stages:
 ### OBL-002 — presence is read from the signature, never assumed
 - **scope:** `presence.rs` over fixture signatures, and `sign.rs` under
   `require_user_presence`. No claim about any physical authenticator.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - an `sk` fixture signature with the presence flag records
     `verified`;
@@ -34495,7 +34495,7 @@ stages:
 
 ### OBL-003 — policy that governs closure cannot be changed by editing openwarrant.toml
 - **scope:** `config.rs` and the v2 revision on the scratch program.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - with the store saying `allow_automated_resolution = false`, an
     `openwarrant.toml` edited to `true` gives
@@ -34855,8 +34855,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0139/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0139/atoms/60-assurance.md)
@@ -34871,7 +34871,7 @@ stages:
   non-127.0.0.1 address available to the plant: 127.0.0.2, or a network
   namespace's interface where one exists. No claim about any particular
   Wi-Fi network, or about a browser's certificate UI.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - `--lan` without a certificate exits non-zero before binding (no
     listening socket in `ss`);
@@ -34883,7 +34883,7 @@ stages:
 
 ### OBL-002 — an unauthenticated or replaying LAN client gets nothing
 - **scope:** the LAN listener and `pairing.rs`, same program.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - an `/api/` request with no device credential is 401. That includes
     requests from the host's own loopback address to the LAN listener;
@@ -34899,7 +34899,7 @@ stages:
 ### OBL-003 — no LAN request starts a signing act
 - **scope:** the allowlist and POST `/api/act` for LAN sessions. U-001
   option A.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - on a program with one pending authorization, the LAN queue row carries
     the verdict and the host command, and no act id;
@@ -34911,7 +34911,7 @@ stages:
 
 ### OBL-004 — pairing is a human decision at the host
 - **scope:** `pairing.rs` host confirmation.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - a pairing attempt with no answer at the host times out, and no
     credential is issued;
@@ -34921,7 +34921,7 @@ stages:
 
 ### OBL-005 — loopback is unchanged
 - **scope:** `war ui` without `--lan`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - `63-webui.sh` passes unmodified;
   - loopback responses are byte-identical in headers to the pre-change
@@ -35596,8 +35596,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0142/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0142/atoms/60-assurance.md)
@@ -35630,7 +35630,7 @@ stages:
   `69-standing.sh`, with one signed class (fixture signer key) and
   planted Warrants. No claim about classes or contract fields the
   fixtures do not use.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - A Warrant inside the class gets an `authorization.toml` with:
     - its own exact contract digest;
@@ -35659,7 +35659,7 @@ stages:
 ### OBL-003 — a class that names or matches an authority path is refused
 - **scope:** `standing.rs`'s parser, `war standing propose` and the
   class's dry-run signing, over the fixture classes in `69-standing.sh`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Refusals: each of these fixture classes is refused at propose
     and at `war sign --dry-run` with `standing.never-coverable`, naming
@@ -35679,7 +35679,7 @@ stages:
 ### OBL-004 — a class cannot be widened except by a new human signature, and a wider class does not re-cover the past
 - **scope:** the class record, its signature, `war check`'s
   re-derivation and the signing path, on the scratch corpus.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Refusals:
     - Edit one glob in a signed class file. `war check` reports
@@ -35699,7 +35699,7 @@ stages:
   every obligation established by a blind verification, on the scratch
   corpus with `policy.allow_automated_resolution = true` and a
   `policy_service` actor in `roles.toml`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Refusals:
     - The policy service's resolution of the covered Warrant is refused
@@ -35713,7 +35713,7 @@ stages:
 ### OBL-006 — routine work never takes a file from work in flight
 - **scope:** `ownership.rs`'s rule for covered Warrants, on the scratch
   corpus. The rule is as Q-003 decides.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Refusal: a covered Warrant declaring a path currently owned by an
     authorized, unresolved Warrant is refused with
@@ -35727,7 +35727,7 @@ stages:
   from class signature to resolution, with the fixture signer counting
   `ssh-keygen -Y sign` calls. No claim about human time-on-task or any
   real user.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Signing the class takes 2 signatures, once.
   - Before work, the three Warrants take 0 signatures.
@@ -36291,8 +36291,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0143/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0143/atoms/60-assurance.md)
@@ -36322,7 +36322,7 @@ battery runs on.
 
   No claim about cargo's rerun behaviour (A-003) beyond what a probe
   observes.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Accepted:
     - a clean scratch repository probes as `unreleased` with its HEAD
@@ -36347,7 +36347,7 @@ battery runs on.
 ### OBL-002 — nothing switches until the download is verified
 - **scope:** `install.rs` `update`, against fixture releases built from the
   battery's `war`, with a managed symlink on the temporary PATH.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Accepted: a well-formed fixture release installs under
     `<root>/<version>/`, repoints the managed link and keeps the previous
@@ -36365,7 +36365,7 @@ battery runs on.
 ### OBL-003 — `war update` finds the right release and never downgrades unasked
 - **scope:** `install.rs` `check` and `update` over fixture release lists,
   and `precedes` over SemVer 2.0.0 §11's example ordering.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Accepted:
     - with the running build a prerelease and a list containing only
@@ -36388,7 +36388,7 @@ battery runs on.
   - a binary at a temporary `.cargo/bin/war`.
 
   In each case no managed link exists.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Refused: each case exits non-zero with `update.unmanaged`, before any
     download (request log: no archive GET). The file's bytes, mode and
@@ -36404,7 +36404,7 @@ battery runs on.
 - **scope:** `notice.rs` and its hook in `lib.rs`. `war status` on a scratch
   repository runs under `script` (a pty) or with stderr to a file, with a
   seeded cache and the fixture server.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Accepted:
     - with a cache naming a newer release, the pty run's stderr carries
@@ -36427,7 +36427,7 @@ battery runs on.
 ### OBL-006 — the bootstrap installs a managed `war`, and refuses what `update` refuses
 - **scope:** `install.sh` against the fixture server (`OW_RELEASES_URL`),
   with the temporary `HOME` and `OW_BIN_DIR`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Accepted: on an empty `HOME`, the script installs
     `~/.local/lib/openwarrant/<version>/bin/war` and links
@@ -36444,7 +36444,7 @@ battery runs on.
 ### OBL-007 — the install document says what is sent, what is checked, and how a stranded install gets out
 - **scope:** `docs/INSTALL.md`, checked mechanically by the plant. No claim
   about the prose's quality.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Accepted: the document contains:
     - the releases URL, equal to the `RELEASES` constant in `install.rs`;
@@ -36633,8 +36633,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0144/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0144/atoms/60-assurance.md)
@@ -36647,7 +36647,7 @@ stages:
 ### OBL-001 — an amendment keeps the signed revision, and its attestation still verifies
 - **scope:** `war sign <alias> --ssh-sign` for revision 1 and revision 2 of
   one scratch Warrant, with a throwaway key.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - after revision 2, `authorization.<digest8>.toml` exists and its sha256
     equals the revision-1 file's, byte for byte;
@@ -36659,7 +36659,7 @@ stages:
 
 ### OBL-002 — nothing is overwritten and a dry run keeps nothing
 - **scope:** the same scratch corpus.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - a planted `authorization.<digest8>.toml` with other bytes makes the
     revision-2 authorization refuse `authorize.retire-collision`, and no
@@ -36670,7 +36670,7 @@ stages:
 ### OBL-003 — the kept file is not a second authorization
 - **scope:** `war check` and `war sign --list` on the scratch corpus after
   revision 2.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** `war check` reports one authorization at revision 2 and no
   error; `war sign --list` shows no act for the Warrant's authorization.
 
@@ -36995,8 +36995,8 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600
 ```
 
 ##### Assurance — [docs/warrants/OW-WAR-0140/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0140/atoms/60-assurance.md)
@@ -37020,7 +37020,7 @@ stages:
 ### OBL-002 — a contractor Warrant missing a contractor role fails closed; elsewhere nothing loosens
 - **scope:** manifest validation over fixtures in
   `conformance/fixtures/contractor/`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - a contractor manifest without `contractor.acceptance` is refused, and
     the error names the profile and the role;
@@ -37034,7 +37034,7 @@ stages:
 - **scope:** the fixture compiled twice, as `contractor` and as
   `delivery` with the contractor atoms removed; the frozen-module list in
   the work order.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the two IRs are equal after removing `identity.profile`,
     `format_basis.profile_schema_id`, the `contractor.*` composition
@@ -37047,7 +37047,7 @@ stages:
 
 ### OBL-004 — contractor acceptance is the existing human resolution act
 - **scope:** the acceptance-authority check, on the fixture program.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - acceptance authority naming an agent is refused by kind;
   - naming an actor without `resolver` is refused by name;
@@ -37354,6 +37354,38 @@ Every command here has been judged by the act's dry run (`war sign <target> --dr
 
 | act | Warrant | command | judged | why |
 |---|---|---|---|---|
+| authorize | OW-WAR-0066 | `war sign OW-WAR-0066` | would record | revision 2 awaits authorization under AM-001 |
+| authorize | OW-WAR-0112 | `war sign OW-WAR-0112` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0113 | `war sign OW-WAR-0113` | would record | revision 4 awaits authorization under AM-003 |
+| authorize | OW-WAR-0114 | `war sign OW-WAR-0114` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0115 | `war sign OW-WAR-0115` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0116 | `war sign OW-WAR-0116` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0117 | `war sign OW-WAR-0117` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0118 | `war sign OW-WAR-0118` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0119 | `war sign OW-WAR-0119` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0120 | `war sign OW-WAR-0120` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0121 | `war sign OW-WAR-0121` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0122 | `war sign OW-WAR-0122` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0123 | `war sign OW-WAR-0123` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0124 | `war sign OW-WAR-0124` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0125 | `war sign OW-WAR-0125` | would record | revision 4 awaits authorization under AM-003 |
+| authorize | OW-WAR-0127 | `war sign OW-WAR-0127` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0129 | `war sign OW-WAR-0129` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0130 | `war sign OW-WAR-0130` | would record | revision 4 awaits authorization under AM-003 |
+| authorize | OW-WAR-0131 | `war sign OW-WAR-0131` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0132 | `war sign OW-WAR-0132` | would record | revision 4 awaits authorization under AM-003 |
+| authorize | OW-WAR-0133 | `war sign OW-WAR-0133` | would record | revision 4 awaits authorization under AM-003 |
+| authorize | OW-WAR-0134 | `war sign OW-WAR-0134` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0135 | `war sign OW-WAR-0135` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0136 | `war sign OW-WAR-0136` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0137 | `war sign OW-WAR-0137` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0138 | `war sign OW-WAR-0138` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0139 | `war sign OW-WAR-0139` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0140 | `war sign OW-WAR-0140` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0141 | `war sign OW-WAR-0141` | would record | revision 2 awaits authorization under AM-001 |
+| authorize | OW-WAR-0142 | `war sign OW-WAR-0142` | would record | revision 2 awaits authorization under AM-001 |
+| authorize | OW-WAR-0143 | `war sign OW-WAR-0143` | would record | revision 2 awaits authorization under AM-001 |
+| authorize | OW-WAR-0144 | `war sign OW-WAR-0144` | would record | revision 2 awaits authorization under AM-001 |
 | resolve | OW-WAR-0001 | `war sign OW-WAR-0001` | would refuse: sign.needs-decision | the thirteen are met; 1 obligation(s) unestablished, so the outcome must be named |
 | resolve | OW-WAR-0003 | `war sign OW-WAR-0003` | would refuse: sign.needs-decision | the thirteen are met; 1 obligation(s) unestablished, so the outcome must be named |
 | resolve | OW-WAR-0004 | `war sign OW-WAR-0004` | would refuse: sign.needs-decision | the thirteen are met; 3 obligation(s) unestablished, so the outcome must be named |

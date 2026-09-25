@@ -15,7 +15,7 @@ classification: internal
 - **scope:** `tools/verifier/claude-verifier.sh`, exercised by
   `62-verifier.sh`'s fake `claude`. No claim about any real model's
   judgment.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - a fixture answer's dispositions and evidence appear in the response;
   - a fixture answer that also names a verifier, an actor and independence
@@ -24,7 +24,7 @@ classification: internal
 
 ### OBL-002 — anything unclear is not_established, and a failure writes nothing
 - **scope:** the wrapper and `war verify --run` on a scratch corpus.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** each of these yields `not_established` for every
   obligation it touches:
   - an answer that is not JSON;
@@ -36,7 +36,7 @@ classification: internal
 
 ### OBL-003 — the verifier holds no tool and keeps no session
 - **scope:** the argv the wrapper passes to `claude`, as recorded by the fake.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the recorded argv contains `--disallowedTools` whose list names Bash,
     Read, Write and Edit;
@@ -46,7 +46,7 @@ classification: internal
 ### OBL-004 — independence is claimed only where it is true
 - **scope:** the wrapper's `distinct_model_required`, and `war check`'s
   independence findings on this repository.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - without `CLAUDE_PERFORMER_MODEL`, and with it equal to the verifier's
     model, the response says `distinct_model_required = false`;

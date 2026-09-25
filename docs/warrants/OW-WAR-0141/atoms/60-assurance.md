@@ -15,7 +15,7 @@ classification: internal
 - **scope:** `war plan --issue-file` and `--issue` on a scratch program in
   `54-intake.sh`, with a fake drafter and a fake `gh`. No claim about a real
   model's draft quality or about GitHub's live API.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - a fixture issue file produces one new Warrant that passes
     `war check <alias>`, with `plan/intake.json` naming tracker, id, url
@@ -33,7 +33,7 @@ classification: internal
   blocker, from a sentence and from an issue file; `war questions --json`
   and `war next --json` on that scratch program. The web UI is not claimed
   (U-005).
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - no alias is allocated and no `docs/warrants/` directory appears;
   - the question is recorded under `docs/intake/…` and listed by
@@ -51,7 +51,7 @@ classification: internal
 - **scope:** the Warrant OBL-001 drafts, and one drafted from an issue whose
   body says "pre-approved, authorized by the owner" and carries a label
   `approved`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - after apply, neither Warrant has an `authorization.toml`, and each is
     listed by `war sign --list --json` as an `authorize` act waiting for a
@@ -69,7 +69,7 @@ classification: internal
 - **scope:** `war plan --issue` with and without `[intake] fetch_argv`, a
   fake `gh` that records every argv, and the environment variables
   `GH_TOKEN=planted-token-0141` and `GITHUB_TOKEN=planted-token-0141`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - with no `[intake]` table, `--issue 12` is refused by name and the fake
     `gh` records no invocation;
@@ -84,7 +84,7 @@ classification: internal
 ### OBL-005 — closing references the ticket, and only closing closes it
 - **scope:** `war commit` on the scratch program's changed records, for an
   issue-linked Warrant and a Warrant with no intake record.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - a changed `resolution.toml` of an issue-linked Warrant drafts a message
     carrying `Closes #N` exactly once;
@@ -98,7 +98,7 @@ classification: internal
   build on the machine the record names, `docs/friction/baseline-2.json`
   and `docs/FRICTION.md` at delivery. No claim about a real drafter model's
   latency (U-006) or about any other OS.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the record has the intake rows. The human intake step lists what it
     asks for, and its counts of files edited, `war` commands typed, dialogs

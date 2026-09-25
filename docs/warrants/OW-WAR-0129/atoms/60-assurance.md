@@ -15,7 +15,7 @@ classification: internal
 - **scope:** `compile_dispatch` as reached through `war dispatch` on this
   corpus, and its unit tests. No claim about the estimate's accuracy
   against any real tokenizer (R-001).
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - `83-tokens.sh`'s existing plant (`budget_tokens: 10`) is still refused
     `dispatch.over-budget` with "largest:", and now the CLI has no
@@ -30,7 +30,7 @@ classification: internal
 - **scope:** `war perform <alias> <stage>`, `war perform --all` and
   `war run`, on a scratch copy of the corpus with a fixture performer.
   No claim about a Katana or BLUT runtime.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Over budget, `war perform` exits non-zero with `dispatch.over-budget`.
     The fixture performer's marker file does not exist, no
@@ -44,7 +44,7 @@ classification: internal
 
 ### OBL-003 — a Dispatch that did not come from this compile is judged before it is bundled
 - **scope:** `war dispatch-bundle create` over Dispatch files on disk.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - A Dispatch whose `estimated_tokens` was edited above its
     `budget_tokens` is refused `bundle-over-budget`.

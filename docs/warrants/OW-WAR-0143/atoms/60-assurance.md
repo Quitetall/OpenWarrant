@@ -31,7 +31,7 @@ battery runs on.
 
   No claim about cargo's rerun behaviour (A-003) beyond what a probe
   observes.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Accepted:
     - a clean scratch repository probes as `unreleased` with its HEAD
@@ -56,7 +56,7 @@ battery runs on.
 ### OBL-002 — nothing switches until the download is verified
 - **scope:** `install.rs` `update`, against fixture releases built from the
   battery's `war`, with a managed symlink on the temporary PATH.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Accepted: a well-formed fixture release installs under
     `<root>/<version>/`, repoints the managed link and keeps the previous
@@ -74,7 +74,7 @@ battery runs on.
 ### OBL-003 — `war update` finds the right release and never downgrades unasked
 - **scope:** `install.rs` `check` and `update` over fixture release lists,
   and `precedes` over SemVer 2.0.0 §11's example ordering.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Accepted:
     - with the running build a prerelease and a list containing only
@@ -97,7 +97,7 @@ battery runs on.
   - a binary at a temporary `.cargo/bin/war`.
 
   In each case no managed link exists.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Refused: each case exits non-zero with `update.unmanaged`, before any
     download (request log: no archive GET). The file's bytes, mode and
@@ -113,7 +113,7 @@ battery runs on.
 - **scope:** `notice.rs` and its hook in `lib.rs`. `war status` on a scratch
   repository runs under `script` (a pty) or with stderr to a file, with a
   seeded cache and the fixture server.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Accepted:
     - with a cache naming a newer release, the pty run's stderr carries
@@ -136,7 +136,7 @@ battery runs on.
 ### OBL-006 — the bootstrap installs a managed `war`, and refuses what `update` refuses
 - **scope:** `install.sh` against the fixture server (`OW_RELEASES_URL`),
   with the temporary `HOME` and `OW_BIN_DIR`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Accepted: on an empty `HOME`, the script installs
     `~/.local/lib/openwarrant/<version>/bin/war` and links
@@ -153,7 +153,7 @@ battery runs on.
 ### OBL-007 — the install document says what is sent, what is checked, and how a stranded install gets out
 - **scope:** `docs/INSTALL.md`, checked mechanically by the plant. No claim
   about the prose's quality.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Accepted: the document contains:
     - the releases URL, equal to the `RELEASES` constant in `install.rs`;

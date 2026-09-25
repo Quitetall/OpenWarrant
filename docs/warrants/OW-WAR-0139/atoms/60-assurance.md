@@ -16,7 +16,7 @@ classification: internal
   non-127.0.0.1 address available to the plant: 127.0.0.2, or a network
   namespace's interface where one exists. No claim about any particular
   Wi-Fi network, or about a browser's certificate UI.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - `--lan` without a certificate exits non-zero before binding (no
     listening socket in `ss`);
@@ -28,7 +28,7 @@ classification: internal
 
 ### OBL-002 — an unauthenticated or replaying LAN client gets nothing
 - **scope:** the LAN listener and `pairing.rs`, same program.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - an `/api/` request with no device credential is 401. That includes
     requests from the host's own loopback address to the LAN listener;
@@ -44,7 +44,7 @@ classification: internal
 ### OBL-003 — no LAN request starts a signing act
 - **scope:** the allowlist and POST `/api/act` for LAN sessions. U-001
   option A.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - on a program with one pending authorization, the LAN queue row carries
     the verdict and the host command, and no act id;
@@ -56,7 +56,7 @@ classification: internal
 
 ### OBL-004 — pairing is a human decision at the host
 - **scope:** `pairing.rs` host confirmation.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - a pairing attempt with no answer at the host times out, and no
     credential is issued;
@@ -66,7 +66,7 @@ classification: internal
 
 ### OBL-005 — loopback is unchanged
 - **scope:** `war ui` without `--lan`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - `63-webui.sh` passes unmodified;
   - loopback responses are byte-identical in headers to the pre-change

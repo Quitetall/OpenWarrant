@@ -15,7 +15,7 @@ classification: internal
 - **scope:** the six routed writers, with the debug binary and
   `OPENWARRANT_FAULT=after-temp`, on scratch programs, Linux. No claim for
   a crash inside the kernel's rename, or for another OS.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - during `war sign <alias> --ssh-sign`, `authorization.toml` is absent
     or byte-identical to before;
@@ -29,7 +29,7 @@ classification: internal
   <alias> --ssh-sign` records an authorization (throwaway key, scratch
   program), with `pause-before-rename`. The same helper serves
   `resolution_cmd.rs`; no separate claim is made for it.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** the plant writes its own bytes to `authorization.toml`
   during the pause; the command exits non-zero with
   `storage.prestate-moved`, and the plant's bytes are still there.
@@ -37,14 +37,14 @@ classification: internal
 ### OBL-003 — a symlinked target is refused
 - **scope:** `atomic::write`, exercised through `war sign` on a scratch
   program.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** with `authorization.toml` a symlink to a file outside the
   program, `war sign` reports `storage.symlink-target` and the linked
   file's bytes are unchanged.
 
 ### OBL-004 — a torn journal tail is named, and only it
 - **scope:** `journal_cmd.rs`'s check on a scratch program.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - a partial event appended with no newline gives `journal.torn-tail`
     with the byte offset where it starts;
@@ -56,7 +56,7 @@ classification: internal
 ### OBL-005 — every authority-bearing writer goes through the helper
 - **scope:** `authorize.rs`, `resolution_cmd.rs`, `verify.rs`,
   `gate_cmd.rs`, `compile.rs`, `sign.rs` at delivery.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** the plant's grep finds no `fs::write(` for a record path
   outside `#[cfg(test)]` in those files, and fails when one is planted
   back.

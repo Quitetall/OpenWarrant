@@ -14,7 +14,7 @@ classification: internal
 ### OBL-001 — every tool step is timed, and every human step is counted, never timed
 - **scope:** `tools/friction/measure.sh` run by `50-friction.sh` on a
   scratch directory, Linux x86_64. No claim about any other OS.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the record lists every setup step and every routine act in
     40-work-order, each tool step with an exit code of 0 and a time in
@@ -26,7 +26,7 @@ classification: internal
 ### OBL-002 — a failed step is unknown, and the run fails
 - **scope:** the script, with a wrapper `war` on PATH that exits 1 for
   `authorize` and passes every other command through.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the `authorize` step's time is `unknown`;
   - the setup total is `unknown`, not the sum of the other steps;
@@ -34,7 +34,7 @@ classification: internal
 
 ### OBL-003 — the measurement leaves nothing behind
 - **scope:** one run of the script from the repository root.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - `git status --porcelain` is identical before and after;
   - `SSH_AUTH_SOCK` after the run equals its value before;
@@ -45,7 +45,7 @@ classification: internal
 ### OBL-004 — the baseline is the script's own output, from a release build
 - **scope:** `docs/friction/baseline-1.json` and `docs/FRICTION.md` at
   delivery.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the baseline parses as the script's record, names build profile
     `release`, a `war --version` and a commit;

@@ -15,7 +15,7 @@ classification: internal
 - **scope:** `authority_check.rs` and `sign.rs` on a scratch program with
   a test-mode store and disposable keys. No claim about a deployed store's
   OS protection (R-003).
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - an agent key added to `allowed_signers` and a human-kind entry added
     to `roles.toml`, neither in the store: a signature by that key is
@@ -33,7 +33,7 @@ classification: internal
 ### OBL-002 — presence is read from the signature, never assumed
 - **scope:** `presence.rs` over fixture signatures, and `sign.rs` under
   `require_user_presence`. No claim about any physical authenticator.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - an `sk` fixture signature with the presence flag records
     `verified`;
@@ -45,7 +45,7 @@ classification: internal
 
 ### OBL-003 — policy that governs closure cannot be changed by editing openwarrant.toml
 - **scope:** `config.rs` and the v2 revision on the scratch program.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - with the store saying `allow_automated_resolution = false`, an
     `openwarrant.toml` edited to `true` gives

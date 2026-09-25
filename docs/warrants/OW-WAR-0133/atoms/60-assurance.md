@@ -14,7 +14,7 @@ classification: internal
 ### OBL-001 — a receipt names the source it ran over
 - **scope:** receipts minted by `war evidence record` on a scratch corpus in
   a git repository. No claim about receipts minted by other tools.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - a receipt from a clean tree names the contract, `tree:<sha>` equal to
     `git rev-parse HEAD^{tree}`, and `deliverables:sha256:<digest>`;
@@ -24,7 +24,7 @@ classification: internal
 ### OBL-002 — a moved source makes the run a record, not evidence
 - **scope:** `war check` and `war resolve --dry-run` requirement 5 on a
   scratch corpus, under the rule Q-001 selects.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - record a passing run; `war resolve --dry-run` counts it;
   - change one byte of a declared deliverable and commit; the same run is
@@ -47,7 +47,7 @@ classification: internal
 ### OBL-004 — the context manifest does not claim an unchecked conflict list
 - **scope:** Dispatches compiled by `war dispatch` for a scratch Warrant's
   stages.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** the emitted manifest's conflict field reads as Q-002
   selects: `unchecked`, or a list a check produced. The plant fails on
   `conflicts: []` with no statement that a check ran.
@@ -55,7 +55,7 @@ classification: internal
 ### OBL-005 — a required item is never omitted, and a detected conflict refuses the Dispatch
 - **scope:** the omission rule in `context.rs` as reached through
   `war dispatch`; the conflict kind Q-002 selects, if any.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - a stage whose budget cannot hold a required atom is refused by name
     (`RequiredItemOmitted`), not dispatched without it;

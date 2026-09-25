@@ -41,5 +41,5 @@ stages:
     title: "Run the conformance battery"
     executor_kind: "service"
     responsibility_tier: "T1"
-    executor_ref: "gate://ops.conformance.plants@1.0.0"
-    wall_time_seconds: 1800
+    executor_ref: "gate://ops.conformance.plants@1.1.0"
+    wall_time_seconds: 3600

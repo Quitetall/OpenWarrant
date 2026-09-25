@@ -34,7 +34,7 @@ classification: internal
   `69-standing.sh`, with one signed class (fixture signer key) and
   planted Warrants. No claim about classes or contract fields the
   fixtures do not use.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - A Warrant inside the class gets an `authorization.toml` with:
     - its own exact contract digest;
@@ -63,7 +63,7 @@ classification: internal
 ### OBL-003 — a class that names or matches an authority path is refused
 - **scope:** `standing.rs`'s parser, `war standing propose` and the
   class's dry-run signing, over the fixture classes in `69-standing.sh`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Refusals: each of these fixture classes is refused at propose
     and at `war sign --dry-run` with `standing.never-coverable`, naming
@@ -83,7 +83,7 @@ classification: internal
 ### OBL-004 — a class cannot be widened except by a new human signature, and a wider class does not re-cover the past
 - **scope:** the class record, its signature, `war check`'s
   re-derivation and the signing path, on the scratch corpus.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Refusals:
     - Edit one glob in a signed class file. `war check` reports
@@ -103,7 +103,7 @@ classification: internal
   every obligation established by a blind verification, on the scratch
   corpus with `policy.allow_automated_resolution = true` and a
   `policy_service` actor in `roles.toml`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Refusals:
     - The policy service's resolution of the covered Warrant is refused
@@ -117,7 +117,7 @@ classification: internal
 ### OBL-006 — routine work never takes a file from work in flight
 - **scope:** `ownership.rs`'s rule for covered Warrants, on the scratch
   corpus. The rule is as Q-003 decides.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Refusal: a covered Warrant declaring a path currently owned by an
     authorized, unresolved Warrant is refused with
@@ -131,7 +131,7 @@ classification: internal
   from class signature to resolution, with the fixture signer counting
   `ssh-keygen -Y sign` calls. No claim about human time-on-task or any
   real user.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - Signing the class takes 2 signatures, once.
   - Before work, the three Warrants take 0 signatures.

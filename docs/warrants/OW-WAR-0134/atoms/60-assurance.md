@@ -15,7 +15,7 @@ classification: internal
 - **scope:** `war pins --candidate` on a scratch git corpus with one
   resolved Warrant whose locator is clean. No claim about forges other than
   a local git repository.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - after one commit changing an in-scope file that no deliverable pins,
     the output carries `acceptance.candidate-moved` naming that path, and
@@ -24,7 +24,7 @@ classification: internal
 
 ### OBL-002 — an unrelated change leaves acceptance standing
 - **scope:** the same scratch corpus.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** a commit that changes only an out-of-scope file reports
   `unchanged` for the Warrant, and exits zero. This is the control: without
   it, a check that reports every Warrant as moved satisfies OBL-001.
@@ -32,7 +32,7 @@ classification: internal
 ### OBL-003 — a locator history cannot read is UNKNOWN
 - **scope:** a scratch resolution with no locator, and one whose
   `commit_sha` names a commit not in the repository.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** both report `UNKNOWN` with the reason (no locator;
   commit not readable). Neither reports `unchanged`, and neither is an
   error about the resolution.
@@ -49,7 +49,7 @@ classification: internal
 
 ### OBL-005 — the consequence Q-001 selects is enforced
 - **scope:** the scratch corpus from OBL-001, after the in-scope move.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - under (b): the finding clears only after a verification of the new
     candidate is ingested, and clears for that candidate only; a second

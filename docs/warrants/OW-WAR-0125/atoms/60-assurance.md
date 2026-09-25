@@ -16,7 +16,7 @@ classification: internal
 - **scope:** the five recorded SAS revisions' bytes in this repository's
   history, and one planted fence. No claim about Markdown this SAS does
   not use (setext headings, indented code blocks).
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - for each of the five revisions, `join(split(bytes))` has the sha256
     the revision record pins;
@@ -25,7 +25,7 @@ classification: internal
 
 ### OBL-002 — the section index is generated and a hand edit is refused
 - **scope:** `docs/sas/generated/SECTIONS.json` and `SECTIONS.md`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - after `war compile`, both files exist and name the document's sha256
     and revision `1.1.0`;
@@ -34,7 +34,7 @@ classification: internal
 
 ### OBL-003 — a section reference that names nothing is refused
 - **scope:** `governing_adr_or_policy` in amendments, in this repository.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - `sas://WAR-SAS-999` and `sas://WAR-SAS-43.9`, each planted in a copy of
     an amendment, fail `war check` with `sas.section-ref`;
@@ -43,7 +43,7 @@ classification: internal
 ### OBL-004 — currency is per section, and unknown when history cannot say
 - **scope:** Warrants whose amendments cite a section, pinned to
   `0.1.0-draft.1`, compared with `1.1.0`.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the sixteen existing references each report `sas.section-current`
     as a pass (the throwaway split found none of them changed);
@@ -54,7 +54,7 @@ classification: internal
 
 ### OBL-005 — war sas diff names exactly the sections that changed
 - **scope:** `war sas diff` against candidates built by the plant.
-- **gate:** `gate://ops.conformance.plants@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the document against itself: no section named;
   - one word changed in §62.3: section 62 named and no other;
