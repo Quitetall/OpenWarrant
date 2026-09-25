@@ -9,6 +9,11 @@ restart_or_repair_instruction: "Continue, only if U-001 is answered B and U-002 
 re_preflight_required: "false"
 authorizer: "Brian Lam"
 effective_time: "2026-09-25"
+# OW-ADR-0016: this amendment cites §98, which SAS 1.1.1 changed (the phases
+# became the roadmap record's); it re-pins the Warrant to the revision whose
+# §98 it relies on.
+sas_revision: "1.1.1"
+predecessor_sas_revision: "1.1.0"
 
 semantic_diff:
   - element: "scope"

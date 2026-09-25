@@ -188,18 +188,21 @@ else
     rm_fail "the legacy roadmaps are lineage" "a lineage line is missing or doubled, a file is not retired, or the rc.3 draft check fails"
 fi
 
-# The SAS proposal that points §98 at the record: recorded, matching the
-# document, and NOT in force — 1.1.0 stays normative until a human accepts.
+# The SAS revision that points §98 at the record (1.1.1, OW-WAR-0114 M5) is
+# recorded, the document's §98 is that pointer with no phase listed, and the
+# document matches a recorded revision — which one, and in which state, is
+# derived: it moved from "1.1.1 proposed" to "1.1.1 accepted" to a later
+# proposal as the owner acted, and a check written against one moment went
+# stale at the next.
 RM_SAS=$("$WAR" sas status 2>&1)
-RM_CHECK=$("$WAR" check 2>&1)
-if grep -qE 'PASS sas.revision +1\.1\.1 · proposed · .* matches the document' <<<"$RM_SAS" \
-    && grep -qE 'WARN sas.revision +1\.1\.0 · accepted · .* does not match the document' <<<"$RM_SAS" \
+RM_POINTER_STATE=$(sed -n 's/^state = "\(.*\)"/\1/p' docs/sas/revisions/1.1.1.toml 2>/dev/null)
+if [[ "$RM_POINTER_STATE" == accepted || "$RM_POINTER_STATE" == proposed ]] \
+    && grep -qE 'PASS sas.revision +[0-9][^ ]* · (accepted|proposed) · .* matches the document' <<<"$RM_SAS" \
     && awk '/^## 98\. /{f=1; next} /^## /{f=0} f' docs/sas/WAR_Software_Architecture_Specification.md | grep -qxF "The phases are the roadmap record's (OW-ADR-0023)." \
-    && ! grep -q '^### Phase 0 ' docs/sas/WAR_Software_Architecture_Specification.md \
-    && grep -qE 'WARN sas.proposed-unaccepted .*revision 1\.1\.1 \(proposed\).*accepted revision 1\.1\.0 remains normative' <<<"$RM_CHECK"; then
-    rm_ok "§98 points at the record, proposed" "1.1.1 proposed and matching; 1.1.0 stays normative"
+    && ! grep -q '^### Phase 0 ' docs/sas/WAR_Software_Architecture_Specification.md; then
+    rm_ok "§98 points at the record" "1.1.1 $RM_POINTER_STATE; the document matches a recorded revision"
 else
-    rm_fail "§98 points at the record, proposed" "$(grep -E '1\.1\.[01]|proposed-unaccepted' <<<"$RM_SAS$RM_CHECK" | head -3 | tr '\n' '|')"
+    rm_fail "§98 points at the record" "1.1.1 ${RM_POINTER_STATE:-unrecorded}: $(grep -E 'sas.revision' <<<"$RM_SAS" | tail -2 | tr '\n' '|')"
 fi
 
 corpus_gone "$PLANT_ROOT"
@@ -208,5 +211,6 @@ unset PLANT_ROOT
 # On this repository, after the scratch program is gone (PLANT_ROOT unset):
 # the refusal: a document edited after the proposal matches no revision, and
 # the check says so instead of reading the proposal as still in hand.
-plant "the SAS edited after its proposal" "sas.digest-drift" "revision 1.1.0 (accepted) records" 2 \
+RM_LATEST=$(grep -l '^state = "accepted"' docs/sas/revisions/*.toml | xargs -n1 basename | sed 's/\.toml$//' | sort -V | tail -1)
+plant "the SAS edited after its proposal" "sas.digest-drift" "revision $RM_LATEST (accepted) records" 2 \
     "printf '\nThe phases are listed here after all.\n' >> docs/sas/WAR_Software_Architecture_Specification.md; assert_present 'listed here after all' docs/sas/WAR_Software_Architecture_Specification.md"

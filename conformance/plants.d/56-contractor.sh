@@ -84,10 +84,13 @@ else
     ct_fail "a loosened core profile is refused" "exit $CT_STATUS: $(head -2 <<<"$CT_OUT")"
 fi
 # The corpus half: the seam commit rewrote no Warrant's compiled IR.
-CT_SEAM=$(git log --format=%H --grep='^OW-WAR-0140 M1:' -1 2>/dev/null)
+# The seam is the commit that added profiles/delivery.toml — found by what
+# it did, not by its subject, which a squash merge renames. Its own
+# Warrant's IR moves with its amendment; no OTHER Warrant's may.
+CT_SEAM=$(git log --diff-filter=A --format=%H -- profiles/delivery.toml 2>/dev/null | tail -1)
 if [[ -z "$CT_SEAM" ]]; then
-    ct_fail "the seam rewrote no committed IR" "no commit subject starts 'OW-WAR-0140 M1:'"
-elif CT_IRS=$(git diff --name-only "$CT_SEAM^" "$CT_SEAM" -- 'docs/warrants/*/generated/WAR.json') && [[ -z "$CT_IRS" ]]; then
+    ct_fail "the seam rewrote no committed IR" "no commit added profiles/delivery.toml"
+elif CT_IRS=$(git diff --name-only "$CT_SEAM^" "$CT_SEAM" -- 'docs/warrants/*/generated/WAR.json' | grep -v '^docs/warrants/OW-WAR-0140/') ; [[ -z "$CT_IRS" ]]; then
     ct_ok "the seam rewrote no committed IR" "no generated/WAR.json changed in ${CT_SEAM:0:12}"
 else
     ct_fail "the seam rewrote no committed IR" "changed: $(head -3 <<<"$CT_IRS" | tr '\n' ' ')"
@@ -232,8 +235,10 @@ fi
 git -C "$PLANT_ROOT" checkout -q -- .
 command rm -f "$CT_IR_C" "$CT_IR_D" "$CT_IR_D.t"
 
-# The frozen modules: unchanged since the seam, and the seam touched only
-# role.rs and manifest.rs in the core and compiler.
+# The frozen modules: the seam changed none of them, and touched only
+# role.rs and manifest.rs in the core and compiler. (Not "unchanged since":
+# a later Warrant may amend the core under its own authority; the claim is
+# about what the profile seam did.)
 CT_FROZEN=(
     crates/openwarrant-core/src/lifecycle.rs crates/openwarrant-core/src/state.rs
     crates/openwarrant-core/src/contract.rs crates/openwarrant-core/src/obligation.rs
@@ -244,15 +249,15 @@ CT_FROZEN=(
     crates/openwarrant-compiler/src/ir.rs crates/openwarrant-compiler/src/canonical.rs
     crates/openwarrant-compiler/src/digest.rs
 )
-ct_frozen_clean() { # <repo> -> 0 when every frozen module equals the seam's
-    git -C "$1" diff --quiet "$CT_SEAM" -- "${CT_FROZEN[@]}"
+ct_frozen_clean() { # <repo> <rev> -> 0 when every frozen module equals <rev>'s
+    git -C "$1" diff --quiet "$2" -- "${CT_FROZEN[@]}"
 }
 CT_SEAM_CORE=$( [[ -n "$CT_SEAM" ]] && git show --name-only --format= "$CT_SEAM" -- crates/openwarrant-core crates/openwarrant-compiler | sort | tr '\n' ' ')
-if [[ -n "$CT_SEAM" ]] && ct_frozen_clean . \
+if [[ -n "$CT_SEAM" ]] && git diff --quiet "$CT_SEAM^" "$CT_SEAM" -- "${CT_FROZEN[@]}" \
     && [[ "$CT_SEAM_CORE" == "crates/openwarrant-core/src/manifest.rs crates/openwarrant-core/src/role.rs " ]]; then
-    ct_ok "the frozen core is unchanged since the seam" "${#CT_FROZEN[@]} modules; the seam touched role.rs, manifest.rs"
+    ct_ok "the seam left the frozen core alone" "${#CT_FROZEN[@]} modules unchanged by it; it touched role.rs, manifest.rs"
 else
-    ct_fail "the frozen core is unchanged since the seam" "seam ${CT_SEAM:-missing}; core files it touched: $CT_SEAM_CORE; $(git diff --stat "${CT_SEAM:-HEAD}" -- "${CT_FROZEN[@]}" | tail -1)"
+    ct_fail "the seam left the frozen core alone" "seam ${CT_SEAM:-missing}; core files it touched: $CT_SEAM_CORE; $(git diff --stat "${CT_SEAM:-HEAD}^" "${CT_SEAM:-HEAD}" -- "${CT_FROZEN[@]}" | tail -1)"
 fi
 # Refusal: an `invoice` field on a core struct, in a copy of this tree.
 CT_COPY=$(mktemp -d)
@@ -261,8 +266,8 @@ git clone -q --local --no-checkout "$REPO_ROOT" "$CT_COPY/r" 2>/dev/null \
     || { printf 'PLANT SETUP FAILED: could not copy the frozen modules\n' >&2; exit 9; }
 sed -i '/^pub struct Identity {/a\    pub invoice: String,' "$CT_COPY/r/crates/openwarrant-compiler/src/ir.rs"
 grep -q 'pub invoice: String' "$CT_COPY/r/crates/openwarrant-compiler/src/ir.rs" || { printf 'PLANT SETUP FAILED: the invoice field was not planted\n' >&2; exit 9; }
-if [[ -n "$CT_SEAM" ]] && ! ct_frozen_clean "$CT_COPY/r"; then
-    ct_ok "an invoice field on a core struct: caught" "ir.rs Identity differs from the seam"
+if ! ct_frozen_clean "$CT_COPY/r" HEAD; then
+    ct_ok "an invoice field on a core struct: caught" "ir.rs Identity differs from the committed module"
 else
     ct_fail "an invoice field on a core struct: caught" "the frozen-module diff stayed empty"
 fi

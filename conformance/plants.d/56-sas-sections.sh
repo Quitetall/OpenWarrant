@@ -176,10 +176,12 @@ plant "a malformed section citation" "ERROR sas.section-ref" "is not a section r
     "sed -i 's|$SEC_CITED|sas://WAR-SAS-43.5.1|' $SEC_AM; assert_present 'sas://WAR-SAS-43.5.1' $SEC_AM" \
     "$SEC_ALIAS"
 
-# OBL-004 — §98 changed between 0.1.0-draft.1 and 1.1.0: a citation of it
-# warns, naming both revisions. Exit 0: a warning is not a refusal.
+# OBL-004 — §98 changed after 0.1.0-draft.1: a citation of it warns, naming
+# the pinned revision and the latest ACCEPTED one (derived: it moves as the
+# owner accepts revisions). Exit 0: a warning is not a refusal.
+SEC_LATEST=$(grep -l '^state = "accepted"' docs/sas/revisions/*.toml | xargs -n1 basename | sed 's/\.toml$//' | sort -V | tail -1)
 plant "a cited section that changed" "WARN sas.section-current" \
-    "sas://WAR-SAS-98 changed between SAS 0.1.0-draft.1.*SAS 1.1.0" 0 \
+    "sas://WAR-SAS-98 changed between SAS 0.1.0-draft.1.*SAS $SEC_LATEST" 0 \
     "sed -i 's|$SEC_CITED|sas://WAR-SAS-98|' $SEC_AM; assert_present 'sas://WAR-SAS-98' $SEC_AM" \
     "$SEC_ALIAS"
 
