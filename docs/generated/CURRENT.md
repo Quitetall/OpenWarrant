@@ -18,7 +18,7 @@ This is the master document (OW-ADR-0022): what is authoritative in this reposit
 
 SAS revision **1.1.0** (accepted), sha256:`321413359168c176faaddefc1a7057d66059d5de8d98d20feeca995c7f89a1bc` — [document](../../docs/sas/WAR_Software_Architecture_Specification.md), [revision record](../../docs/sas/revisions/1.1.0.toml); accepted under OW-ADR-0021.
 
-527 normative statement(s), each with its section. The statement is what binds; the section is where the reasoning lives.
+531 normative statement(s), each with its section. The statement is what binds; the section is where the reasoning lives.
 
 ### §2.2 Eventual scope
 
@@ -380,6 +380,13 @@ SAS revision **1.1.0** (accepted), sha256:`321413359168c176faaddefc1a7057d66059d
 ### §28.6 Revision ancestry
 
 - **SHALL** §28.6: Every revision SHALL identify its predecessor and structured difference.
+
+### §28.8 Standing authorization
+
+- **MAY** §28.8: A human authorizer MAY sign a standing authorization: one record naming a closed class of contracts, bounded by the paths a covered WAR may declare, its profile and assurance level, the gates its obligations may cite, a budget per stage, an expiry and a count.
+- **SHALL** §28.8: The class SHALL state every term; a term it does not state is refused, not defaulted.
+- **SHALL NOT** §28.8: The class SHALL NOT cover an authority file, a gate or its fixtures, a guard, a dependency manifest, an authorization record, a generated projection, or the code that decides authority, and it SHALL NOT carry a term under which a residual risk is accepted, an ADR is decided, or a WAR is resolved.
+- **SHALL NOT** §28.8: A covered authorization SHALL be re-derived wherever it is relied on — from the class, the class's signature, the time the authorization was recorded, and the WAR as it stands — and SHALL NOT be believed because the record says so.
 
 ### §30.4 Ambiguity behavior
 
@@ -37612,3 +37619,4 @@ Every command here has been judged by the act's dry run (`war sign <target> --dr
 | authorize | OW-WAR-0138 | `war sign OW-WAR-0138` | would record | revision 4 awaits authorization under AM-003 |
 | authorize | OW-WAR-0142 | `war sign OW-WAR-0142` | would record | revision 3 awaits authorization under AM-002 |
 | accept | SAS 1.1.1 | `war sign 1.1.1` | would record | a proposed SAS revision awaits acceptance |
+| accept | SAS 1.2.0 | `war sign 1.2.0` | would refuse: sign.needs-decision | a proposed SAS revision awaits acceptance |

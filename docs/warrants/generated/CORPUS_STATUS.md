@@ -17,11 +17,11 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 - **digest:** `sha256:321413359168c176faaddefc1a7057d66059d5de8d98d20feeca995c7f89a1bc`
 - Revision 1.1.0 is ACCEPTED (§101.2) and normative. A Warrant compiles against the revision its authorization recorded (§14), so a later revision does not move an authorized contract: 57 against 0.1.0-draft.1, 8 against 0.1.0-draft.3, 42 against 1.0.0, 35 against 1.1.0.
 
-**Requirements (62 in §106)** — strictest rung first:
+**Requirements (63 in §106)** — strictest rung first:
 
 | satisfied | in_progress | claimed | unaddressed | superseded |
 |---|---|---|---|---|
-| **22** | 5 | 33 | 0 | 2 |
+| **22** | 5 | 33 | 1 | 2 |
 
 ## Objectives (SAS §98 phases)
 
@@ -71,7 +71,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | no required unknown remains | 85 |
 | every required obligation is dispositioned | 83 |
 | independence requirements are met | 83 |
-| required deliverables exist | 61 |
+| required deliverables exist | 60 |
 | required judgments exist | 54 |
 | residual risks have sufficient authority | 54 |
 | exact authorized Contract Revision | 3 |
@@ -79,7 +79,9 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 ## Requirements (SAS §106, §34.3)
 
-Every §106 requirement is named by at least one Warrant.
+**Unaddressed (1)** — no Warrant names these. Several may be built; the gap is bookkeeping, and it is listed rather than hidden:
+
+- `WAR-SAS-RQ-038` — A standing authorization covers only contracts inside its signed class, and never an authority path
 
 | requirement | status | would_satisfy | implementers |
 |---|---|---|---|
@@ -108,6 +110,7 @@ Every §106 requirement is named by at least one Warrant.
 | `WAR-SAS-RQ-035` | claimed | 0 | OW-WAR-0011 (complete) |
 | `WAR-SAS-RQ-036` | claimed | 0 | OW-WAR-0067 (partial), OW-WAR-0112 (complete), OW-WAR-0134 (partial) |
 | `WAR-SAS-RQ-037` | claimed | 0 | OW-WAR-0112 (complete), OW-WAR-0142 (partial) |
+| `WAR-SAS-RQ-038` | unaddressed | 0 | — |
 | `WAR-SAS-RQ-040` | claimed | 0 | OW-WAR-0007 (complete) |
 | `WAR-SAS-RQ-041` | claimed | 0 | OW-WAR-0007 (complete) |
 | `WAR-SAS-RQ-042` | superseded | 1 | OW-WAR-0023 (complete), OW-WAR-0045 (complete), OW-WAR-0056 (supersession), OW-WAR-0069 (partial) |
