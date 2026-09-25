@@ -57,6 +57,22 @@ M4 — documents and plants:
 8. `conformance/plants.d/57-teams.sh` (new), the refusals in the assurance
    atom.
 
+- (AM-003) `crates/openwarrant-cli/src/lib.rs`: `war sign --list --as
+  <actor>` and `war inbox --as <actor>`, and `war sign --list` under
+  `--json`; the review record (who authorized, verified and resolved, and
+  how many distinct humans) after `war show` and `war status <alias>`.
+  `show.rs` stays untouched because a resolution pins it (OW-WAR-0033).
+- (AM-003) `crates/openwarrant-cli/src/check.rs`: `war check` names a
+  moved or malformed assignment (`assignment.moved`,
+  `assignment.malformed`) and an assignee who has since lost the role.
+- (AM-003) `crates/openwarrant-cli/src/status.rs` and
+  `crates/openwarrant-core/src/status.rs`: each Warrant's review record in
+  `war status --json`, for OBL-004.
+- (AM-003) `crates/openwarrant-cli/src/resolution_cmd.rs`: a resolution
+  response from anyone but the assigned resolver is refused
+  (`resolution.not-assigned`), so a hand-written `war resolve --response`
+  is narrowed like `war sign`.
+
 ## Frozen Surfaces
 
 - `oh.war/report/v1`.

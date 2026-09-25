@@ -107,6 +107,10 @@ pub enum Pending {
         /// was recorded without, so the outcome comes from the record rather
         /// than from §38.6 or a flag.
         recorded: Option<RecordedOutcome>,
+        /// OW-WAR-0137 — `None` when no assignment narrows this act. `Ok`
+        /// carries the narrowing already applied to `request.eligible_resolvers`;
+        /// `Err` names why nobody may resolve (the list is then empty).
+        assignment: Option<Result<authorize::assignment::Narrowed, authorize::assignment::Finding>>,
     },
     Accept {
         version: String,
@@ -337,9 +341,10 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
             )
             .is_signed();
             if !signed
-                && let Ok(request) = resolution_cmd::request(repo, &alias)
+                && let Ok(mut request) = resolution_cmd::request(repo, &alias)
                 && request.contract_digest == existing.resolution.contract_digest
             {
+                let assignment = narrow_resolvers(repo, &dir, &mut request.eligible_resolvers)?;
                 let profile = one
                     .validated
                     .as_ref()
@@ -353,6 +358,7 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
                         common: existing.resolution.common_outcome,
                         profile: existing.resolution.profile_outcome.clone(),
                     }),
+                    assignment,
                 });
             }
             // The only other act a resolved Warrant admits is a correction, and
@@ -437,10 +443,11 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
             }
             continue;
         }
-        let Ok(request) = resolution_cmd::request(repo, &alias) else {
+        let Ok(mut request) = resolution_cmd::request(repo, &alias) else {
             continue;
         };
         if request.requirements_met {
+            let assignment = narrow_resolvers(repo, &dir, &mut request.eligible_resolvers)?;
             let profile = one
                 .validated
                 .as_ref()
@@ -451,6 +458,7 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
                 request,
                 profile,
                 recorded: None,
+                assignment,
             });
         }
     }
@@ -487,6 +495,168 @@ pub fn pending(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
         });
     }
     Ok(out)
+}
+
+/// OW-WAR-0137 — narrow a resolve act's eligible list by the Warrant's
+/// assignment, in place. The list only ever shrinks: it is filtered by
+/// [`authorize::assignment::narrow`], or emptied when the assignment is not
+/// the one the authorizer signed. Nobody is ever pushed onto it.
+fn narrow_resolvers(
+    repo: &Repository,
+    dir: &Utf8Path,
+    eligible: &mut Vec<String>,
+) -> Result<
+    Option<Result<authorize::assignment::Narrowed, authorize::assignment::Finding>>,
+    RepoError,
+> {
+    use authorize::assignment::{Act, narrow};
+    let standing = authorize::assignment_standing(repo, dir)?;
+    Ok(match standing.for_act(Act::Resolve) {
+        Ok(None) => None,
+        Ok(Some(assigned)) => {
+            let n = narrow(eligible, assigned);
+            eligible.clone_from(&n.eligible);
+            Some(Ok(n))
+        }
+        Err(finding) => {
+            eligible.clear();
+            Some(Err(finding))
+        }
+    })
+}
+
+/// Who signs `p`: [`choose_actor`] over the narrowed list, with the reason a
+/// signer was refused named by rule — `sign.not-assigned` for an eligible
+/// actor the assignment leaves out, `assignment.role-revoked` when every
+/// assigned actor has since lost the role, the standing's own rule when the
+/// assignment is not what the authorizer signed, `sign.who` otherwise.
+pub(crate) fn who(p: &Pending, opts: &Options) -> Result<String, (&'static str, String)> {
+    let assignment = match p {
+        Pending::Resolve { assignment, .. } => assignment.as_ref(),
+        _ => None,
+    };
+    match assignment {
+        None => choose_actor(eligible(p), opts).map_err(|why| ("sign.who", why)),
+        Some(Err(finding)) => Err((finding.rule, finding.message.clone())),
+        Some(Ok(n)) => {
+            if let Some(a) = &opts.actor
+                && !n.eligible.contains(a)
+                && n.before.contains(a)
+            {
+                return Err((
+                    "sign.not-assigned",
+                    format!(
+                        "{a} holds the role and is not assigned to {}; the assignment the \
+                         authorizer signed names {}. An assignment narrows who may sign",
+                        role(p),
+                        assigned_names(n)
+                    ),
+                ));
+            }
+            if n.eligible.is_empty() && !n.revoked.is_empty() {
+                return Err((
+                    "assignment.role-revoked",
+                    format!(
+                        "the assigned {} ({}) no longer hold(s) the role in \
+                         docs/authority/roles.toml, so nobody may sign. Nobody else is \
+                         substituted: restore the role, or amend the assignment and \
+                         re-authorize",
+                        role(p),
+                        n.revoked.join(", ")
+                    ),
+                ));
+            }
+            choose_actor(&n.eligible, opts).map_err(|why| ("sign.who", why))
+        }
+    }
+}
+
+fn assigned_names(n: &authorize::assignment::Narrowed) -> String {
+    let mut all: Vec<&str> = n
+        .eligible
+        .iter()
+        .chain(n.revoked.iter())
+        .map(String::as_str)
+        .collect();
+    all.sort_unstable();
+    all.join(", ")
+}
+
+/// Whether `p` is assigned to `actor` by name (not merely open to them).
+fn assigned_to(p: &Pending, actor: &str) -> bool {
+    matches!(p, Pending::Resolve { assignment: Some(Ok(n)), .. } if n.eligible.iter().any(|e| e == actor))
+}
+
+/// OW-WAR-0137 — one person's queue: the acts `actor` may sign now, acts
+/// assigned to them by name first. Built from [`pending`], so it can only
+/// ever be a subset of what the register and the assignments allow.
+pub fn queue(repo: &Repository, actor: &str) -> Result<Vec<Pending>, RepoError> {
+    let mut mine: Vec<Pending> = pending(repo)?
+        .into_iter()
+        .filter(|p| eligible(p).iter().any(|e| e == actor))
+        .collect();
+    // Stable: within each group, the order `pending` gives.
+    mine.sort_by_key(|p| !assigned_to(p, actor));
+    Ok(mine)
+}
+
+/// `war sign --list --json`: one entry per pending act, the same list the
+/// text shows. `assigned` names who an assignment chose (empty when none);
+/// `blocked_by` is the rule that lets nobody sign; under `--as`,
+/// `assigned_to_actor` says whether the act is theirs by name.
+#[must_use]
+pub fn list_json(list: &[Pending], actor: Option<&str>) -> serde_json::Value {
+    let acts: Vec<serde_json::Value> = list
+        .iter()
+        .map(|p| {
+            let (target, act) = match p {
+                Pending::Authorize { alias, .. } => (alias.clone(), "authorize"),
+                Pending::Resolve { alias, .. } => (alias.clone(), "resolve"),
+                Pending::Accept { version, .. } => (format!("SAS-{version}"), "accept"),
+                Pending::AcceptRoadmap { revision, .. } => {
+                    (crate::roadmap_cmd::subject(*revision), "accept_roadmap")
+                }
+                Pending::Correct {
+                    alias,
+                    deliverable_id,
+                    ..
+                } => (format!("{alias}/{deliverable_id}"), "correct"),
+            };
+            let (assigned, blocked_by) = match p {
+                Pending::Resolve {
+                    assignment: Some(Ok(n)),
+                    ..
+                } => (n.eligible.iter().chain(&n.revoked).cloned().collect(), None),
+                Pending::Resolve {
+                    assignment: Some(Err(f)),
+                    ..
+                } => (Vec::new(), Some(f.rule)),
+                _ => (Vec::<String>::new(), None),
+            };
+            let mut v = serde_json::json!({
+                "target": target,
+                "act": act,
+                "role": role(p),
+                "eligible": eligible(p),
+                "assigned": assigned,
+                "blocked_by": blocked_by,
+                "line": line(p),
+            });
+            if let Some(a) = actor {
+                v["assigned_to_actor"] = serde_json::Value::Bool(assigned_to(p, a));
+            }
+            v
+        })
+        .collect();
+    serde_json::json!({ "actor": actor, "acts": acts })
+}
+
+/// `war sign --list`, for everyone or for one actor.
+pub fn list_for(repo: &Repository, actor: Option<&str>) -> Result<Vec<Pending>, RepoError> {
+    match actor {
+        Some(a) => queue(repo, a),
+        None => pending(repo),
+    }
 }
 
 /// The most recent `amendments/AM-*.yaml`, read line-wise for its `reason`
@@ -547,6 +717,21 @@ pub fn list(repo: &Repository) -> Result<Vec<Pending>, RepoError> {
 /// Render one pending act as a line for the list.
 #[must_use]
 pub fn line(p: &Pending) -> String {
+    let base = line_of(p);
+    match p {
+        Pending::Resolve {
+            assignment: Some(Ok(n)),
+            ..
+        } => format!("{base}  [assigned: {}]", assigned_names(n)),
+        Pending::Resolve {
+            assignment: Some(Err(f)),
+            ..
+        } => format!("{base}  [{}]", f.rule),
+        _ => base,
+    }
+}
+
+fn line_of(p: &Pending) -> String {
     match p {
         Pending::Authorize {
             alias,
@@ -682,6 +867,24 @@ fn screen(p: &Pending, actor: &str, role: &str, reason: Option<&str>) -> String 
                 for d in &request.deliverables {
                     s.push_str(&format!("│   {}  {}\n", d.id, d.target_ref));
                 }
+            }
+            // OW-WAR-0137: who reviews is part of what is signed.
+            if let Some(a) = &request.assignment {
+                s.push_str(&format!(
+                    "│ assigns review  ·  {}\n",
+                    request
+                        .assignment_digest
+                        .strip_prefix("sha256:")
+                        .map_or("", |d| &d[..12])
+                ));
+                for (act, who) in [("verify", &a.verify), ("resolve", &a.resolve)] {
+                    if !who.is_empty() {
+                        s.push_str(&format!("│   {act}: {}\n", who.join(", ")));
+                    }
+                }
+            }
+            for f in &request.assignment_findings {
+                s.push_str(&format!("│   REFUSED {f}\n"));
             }
         }
         Pending::Resolve { alias, request, .. } => {
@@ -934,6 +1137,10 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
                 judgment,
                 signed_via: Some(opts.channel().to_owned()),
                 deliverable_set_digest: Some(request.deliverable_set_digest.clone()),
+                // OW-WAR-0137: echoed only when the Warrant assigns anyone, so
+                // the signature covers who reviews exactly as it was listed.
+                assignment_digest: (!request.assignment_digest.is_empty())
+                    .then(|| request.assignment_digest.clone()),
             };
             Ok(Drafted::Authorize(response))
         }
@@ -942,6 +1149,7 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
             request,
             profile,
             recorded,
+            ..
         } => {
             // A signature supplied for a recorded resolution repeats that
             // record's outcome. Re-deciding it here would let a signature say
@@ -1297,13 +1505,25 @@ fn dry_run(
         source,
     })?;
     for p in chosen {
-        let actor = match choose_actor(eligible(p), opts) {
+        let actor = match who(p, opts) {
             Ok(a) => a,
-            Err(why) => {
-                report.push(Diagnostic::error("sign.who", line(p), why));
+            Err((rule, why)) => {
+                report.push(Diagnostic::error(rule, line(p), why));
                 continue;
             }
         };
+        if matches!(
+            p,
+            Pending::Resolve {
+                assignment: Some(_),
+                ..
+            }
+        ) {
+            report.push(Diagnostic::pass(
+                "sign.signer",
+                format!("{}: signs as {actor}, as assigned", line(p)),
+            ));
+        }
         let now = crate::gate_cmd::receipt::now_rfc3339_public();
         let mut per_act = opts.clone();
         if matches!(p, Pending::Correct { .. }) {
@@ -1999,7 +2219,7 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
     }
     if opts.show {
         for p in chosen {
-            let actor = choose_actor(eligible(p), opts).unwrap_or_else(|_| "<signer>".to_owned());
+            let actor = who(p, opts).unwrap_or_else(|_| "<signer>".to_owned());
             let reason = reason_for(repo, p, opts);
             println!(
                 "{}",
@@ -2017,10 +2237,10 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
     }
 
     for p in chosen {
-        let actor = match choose_actor(eligible(p), opts) {
+        let actor = match who(p, opts) {
             Ok(a) => a,
-            Err(why) => {
-                report.push(Diagnostic::error("sign.who", line(p), why));
+            Err((rule, why)) => {
+                report.push(Diagnostic::error(rule, line(p), why));
                 continue;
             }
         };
@@ -2490,6 +2710,9 @@ mod tests {
                     })
                     .collect(),
                 eligible_authorizers: vec!["Brian Lam".to_owned()],
+                assignment: None,
+                assignment_digest: String::new(),
+                assignment_findings: vec![],
             },
         }
     }
@@ -2568,6 +2791,7 @@ mod tests {
             alias: "OW-WAR-0002".to_owned(),
             profile: "delivery".to_owned(),
             recorded: None,
+            assignment: None,
             request: ResolutionRequest {
                 schema: resolution_cmd::REQUEST_SCHEMA.to_owned(),
                 warrant: "OW-WAR-0002".to_owned(),
@@ -2608,6 +2832,80 @@ mod tests {
         assert_eq!(r.profile_outcome, "not_satisfied");
     }
 
+    /// OW-WAR-0137 — `who` over a resolve act that an assignment narrowed.
+    /// The narrowed list is a subset of the register's by construction; these
+    /// pin the refusal each wrong signer meets, by rule.
+    #[test]
+    fn an_assignment_narrows_the_signer_and_names_why() {
+        use authorize::assignment::{Finding, narrow};
+        let resolve = |assignment: Option<Result<&[&str], &'static str>>| {
+            let names = |v: &[&str]| v.iter().map(|s| (*s).to_owned()).collect::<Vec<_>>();
+            let before = names(&["Ada", "Ben"]);
+            let n = match &assignment {
+                Some(Ok(list)) => Some(Ok(narrow(&before, &names(list)))),
+                Some(Err(rule)) => Some(Err(Finding {
+                    rule,
+                    message: String::new(),
+                })),
+                None => None,
+            };
+            let eligible = match &n {
+                Some(Ok(n)) => n.eligible.clone(),
+                Some(Err(_)) => vec![],
+                None => before.clone(),
+            };
+            Pending::Resolve {
+                alias: "OW-X".to_owned(),
+                profile: "delivery".to_owned(),
+                recorded: None,
+                assignment: n,
+                request: ResolutionRequest {
+                    schema: resolution_cmd::REQUEST_SCHEMA.to_owned(),
+                    warrant: "OW-X".to_owned(),
+                    title: "t".to_owned(),
+                    contract_digest: "cd".repeat(32),
+                    contract_revision: 1,
+                    requirements_met: true,
+                    unmet: vec![],
+                    would_resolve_satisfied: Some(true),
+                    established: vec![],
+                    unestablished: vec![],
+                    permitted_outcomes: vec!["satisfied".to_owned()],
+                    gate_run_refs: vec![],
+                    judgment_refs: vec![],
+                    residual_risk_refs: vec![],
+                    eligible_resolvers: eligible,
+                },
+            }
+        };
+        let as_ = |a: &str| Options {
+            actor: Some(a.to_owned()),
+            ..Options::default()
+        };
+        let ben: &[&str] = &["Ben"];
+        let p = resolve(Some(Ok(ben)));
+        assert_eq!(who(&p, &Options::default()), Ok("Ben".to_owned()));
+        assert_eq!(who(&p, &as_("Ada")).unwrap_err().0, "sign.not-assigned");
+        assert_eq!(who(&p, &as_("Mallory")).unwrap_err().0, "sign.who");
+        // Cy holds no role: nobody may sign, and nobody is substituted.
+        let cy: &[&str] = &["Cy"];
+        let p = resolve(Some(Ok(cy)));
+        assert!(eligible(&p).is_empty());
+        assert_eq!(
+            who(&p, &Options::default()).unwrap_err().0,
+            "assignment.role-revoked"
+        );
+        assert_eq!(who(&p, &as_("Ada")).unwrap_err().0, "sign.not-assigned");
+        let p = resolve(Some(Err("assignment.moved")));
+        assert_eq!(who(&p, &as_("Ben")).unwrap_err().0, "assignment.moved");
+        // Unassigned: exactly as before.
+        let p = resolve(None);
+        let (rule, why) = who(&p, &Options::default()).unwrap_err();
+        assert_eq!(rule, "sign.who");
+        assert!(why.contains("Ada, Ben"), "{why}");
+        assert_eq!(who(&p, &as_("Ada")), Ok("Ada".to_owned()));
+    }
+
     #[test]
     fn a_draft_and_its_signed_name_share_a_stem_and_never_a_suffix() {
         let d = camino::Utf8PathBuf::from("/r/docs/authority/responses/OW-WAR-0064.draft.toml");
@@ -2637,6 +2935,7 @@ mod tests {
         // things around still parses.
         let real = AuthorizationResponse {
             deliverable_set_digest: None,
+            assignment_digest: None,
             schema: authorize::RESPONSE_SCHEMA.to_owned(),
             warrant: "OW-WAR-0040".to_owned(),
             contract_digest: "aabb".to_owned(),

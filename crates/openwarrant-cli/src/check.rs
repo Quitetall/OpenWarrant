@@ -24,6 +24,85 @@ mod identity_check;
 use crate::diagnostic::{Diagnostic, Report, Severity};
 use crate::repo::{Loaded, RepoError, Repository};
 
+/// OW-WAR-0137 — a Warrant's review assignment against what its authorizer
+/// signed, named by rule. An assignment edited, added or removed after
+/// signing (`assignment.moved`) or one that does not parse
+/// (`assignment.malformed`) is an ERROR: nobody may take the act it governs
+/// until a human restores or re-authorizes it. An assignee who has since lost
+/// the role is a WARN (`assignment.role-revoked`): the act waits, and nobody
+/// else is substituted. A Warrant with no assignment reports nothing.
+fn check_assignment(
+    repo: &Repository,
+    one: &Loaded,
+    register: Option<&openwarrant_core::authority::AuthorityRegister>,
+    report: &mut Report,
+) {
+    use crate::authorize::assignment::{self, Standing};
+    let alias = one.alias();
+    let file = repo.relative(&one.dir.join(assignment::FILE));
+    let standing = match crate::authorize::assignment_standing(repo, &one.dir) {
+        Ok(s) => s,
+        Err(e) => {
+            report.push(Diagnostic::unknown(
+                "assignment.unreadable",
+                file,
+                format!("{alias}: the assignment's standing could not be read: {e}"),
+            ));
+            return;
+        }
+    };
+    match standing {
+        Standing::None => {}
+        Standing::Moved { .. } | Standing::Malformed(_) => {
+            if let Err(f) = standing.for_act(assignment::Act::Resolve) {
+                report.push(Diagnostic::error(
+                    f.rule,
+                    file,
+                    format!("{alias}: {}", f.message),
+                ));
+            }
+        }
+        Standing::Unsigned(ref a) | Standing::Signed(ref a) => {
+            let signed = matches!(standing, Standing::Signed(_));
+            let findings = register
+                .map(|r| assignment::validate(a, r, &repo.performer()))
+                .unwrap_or_default();
+            for f in &findings {
+                // Before signing, `war authorize` will refuse it; after, the
+                // register moved under a signed assignment.
+                let rule = if signed && f.rule == "assignment.role-missing" {
+                    "assignment.role-revoked"
+                } else {
+                    f.rule
+                };
+                report.push(Diagnostic::warn(
+                    rule,
+                    file.clone(),
+                    format!("{alias}: {}", f.message),
+                ));
+            }
+            if findings.is_empty() {
+                report.push(Diagnostic::pass(
+                    if signed {
+                        "assignment.signed"
+                    } else {
+                        "assignment.proposed"
+                    },
+                    format!(
+                        "{alias}: {} {}",
+                        a.digest(),
+                        if signed {
+                            "is the assignment the authorizer signed"
+                        } else {
+                            "awaits the authorizer's signature"
+                        }
+                    ),
+                ));
+            }
+        }
+    }
+}
+
 /// Run every Phase 1 check over the whole corpus, or one Warrant.
 pub fn run(
     repo: &Repository,
@@ -132,8 +211,11 @@ pub fn run(
         roadmap: roadmap.as_ref(),
         sas_sections: &sas_sections,
     };
+    // OW-WAR-0137: the register, once, for every Warrant's assignment.
+    let register = repo.load_authority_register();
     for one in &loaded {
         check_one(repo, one, shared, check_generated, &mut report);
+        check_assignment(repo, one, register.as_ref().ok(), &mut report);
         if let Some(basis) = &one.basis {
             total_warrants += 1;
             let fully_undisposed = basis

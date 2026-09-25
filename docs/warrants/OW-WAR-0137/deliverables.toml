@@ -82,3 +82,53 @@ required = true
 content_addressed = false
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-009"
+title = "`war sign --list --as`, `war inbox --as`, `sign --list --json`, the review record after `war show` (AM-003)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002", "OBL-004"]
+
+[[deliverable]]
+id = "D-010"
+title = "`war check` names a moved or malformed assignment (AM-003)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/check.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-011"
+title = "each Warrant's review record in `war status --json` (AM-003)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/status.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-012"
+title = "the review record's type in the corpus status (AM-003)"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/status.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-013"
+title = "a resolution from an unassigned resolver is refused (AM-003)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/resolution_cmd.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
