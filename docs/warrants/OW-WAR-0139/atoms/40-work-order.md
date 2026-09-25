@@ -54,6 +54,14 @@ M4 — documents and plants:
 8. `conformance/plants.d/59-webui-lan.sh` (new), the refusals in the
    assurance atom.
 
+- (AM-003) `crates/openwarrant-cli/Cargo.toml` and `Cargo.lock`: the TLS
+  dependency U-002 A or B needs (`rustls`, `rustls-pki-types`, `ring`,
+  exact pins, already locked through `ureq`) and `qrcodegen` for the
+  pairing QR code.
+- (AM-003) `crates/openwarrant-cli/src/lib.rs`: the `war ui` flags
+  (`--lan`, `--name`, `--cert`, `--key`, `--self-signed`) and the
+  `war ui devices [--revoke <id>]` subcommand, nothing else.
+
 ## Frozen Surfaces
 
 - Loopback `war ui`: its routes, headers, token handling and

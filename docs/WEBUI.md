@@ -6,6 +6,7 @@ war ui --port 0        # any free port
 war ui --page queue    # open at another page
 war ui --as "Ada"      # who signs, when roles.toml names more than one signer
 war progress --serve   # the same server, opened at Progress
+war ui --lan <addr:port> --cert <pem> --key <pem>   # also paired devices on the LAN (Reach)
 ```
 
 `war ui` serves one page from the `war` binary on this machine. It is a
@@ -64,7 +65,7 @@ a reload.
    [--as …] --ssh-sign`.
 4. Your ssh agent's confirm dialog is the signature. Load the key with
    `ssh-add -c`; **without `-c` a click signs without asking**
-   (THREAT_MODEL entry 13).
+   (THREAT_MODEL entry 13a).
 
 **Run.** A Run button starts an automatic remedy (`war compile`, `war pins
 --refresh …`, `war evidence record …`) the same way.
@@ -105,16 +106,102 @@ text is never parsed as markup.
 
 ## Reach
 
-This machine only: the server binds 127.0.0.1. For another device, forward
-the port over SSH (`ssh -L 8765:127.0.0.1:8765 host`) and open the link
-there.
+**This machine** is the default, and it does not change: `war ui` binds
+127.0.0.1 only. For another device without `--lan`, forward the port over
+SSH (`ssh -L 8765:127.0.0.1:8765 host`) and open the link there.
 
-The LAN and other devices are on the roadmap as OW-PHASE-9 `web-lan`. That
-needs TLS and real authentication before anything that starts an act.
+**The LAN** is opt-in, TLS only, and for paired devices only
+(OW-WAR-0139).
+
+```bash
+war ui --lan 192.168.1.20:8443 --name host.lan --cert host.crt --key host.key
+war ui --lan 192.168.1.20:8443 --name host.lan --self-signed   # the fallback
+war ui devices                    # the paired devices, and whether each is active
+war ui devices --revoke 3fa9c2d1  # its next request is refused
+```
+
+- `--lan <addr:port>` binds exactly that address, and nothing binds beyond
+  loopback unless you type it — `0.0.0.0` included. The loopback page runs
+  beside it, unchanged, and **stays the only page that can sign**.
+- It refuses to start without TLS: `ui.lan-needs-tls`, before anything
+  binds.
+  - `--cert` / `--key`: your certificate, for example from `tailscale cert`
+    or a local CA. A device that trusts it shows no warning.
+  - `--self-signed`: the fallback. `war` makes a P-256 certificate for
+    `--name` and keeps it in `$XDG_STATE_HOME/openwarrant/ui-tls/`
+    (mode 0600). Every device shows the browser's warning on its first
+    visit. Compare the SHA-256 fingerprint the host prints with the one the
+    pairing page shows.
+- A plain-HTTP request to the LAN port gets no HTTP answer: the TLS
+  handshake fails and nothing is served.
+- The Host must be exactly `<name>:<port>` (421 otherwise), and an Origin
+  exactly `https://<name>:<port>`. Every response carries HSTS beside the
+  loopback page's headers.
+
+**Pairing** is a decision made at the host.
+1. The host terminal prints a pairing link, and the same link as a QR
+   code. The link carries a single-use code, good for five minutes, and
+   the certificate's fingerprint. The code travels in the fragment; the
+   page sends it in a POST body.
+2. Opening it on the device asks the host's terminal: *pair a device from
+   `<address>` (`<user agent>`)? [y/N]*.
+3. Only a `y` typed there issues a credential. No answer within 60 s, `n`,
+   or no terminal at all issues none: `pair.timed-out`, `pair.declined`,
+   `pair.no-tty`.
+4. After every attempt, the old code is spent and the host prints a new
+   link.
+
+**The credential** is 256 bits from the OS.
+- It reaches the device once, as a `__Host-` cookie: `Secure`, `HttpOnly`,
+  `SameSite=Strict`. The page's script never sees it.
+- The host keeps only its SHA-256, with the device's address, user agent
+  and expiry (30 days), in `$XDG_STATE_HOME/openwarrant/ui-devices.json`
+  (mode 0600). Nothing about a device is under the repository or in a
+  record.
+- The file is read on every request, so `war ui devices --revoke <id>`
+  takes effect at once. Deleting the file revokes every device.
+
+**On the LAN, nothing is trusted for its address.** Every `/api/` request
+needs a paired device's credential, including one from the host's own
+loopback address. The loopback page's token means nothing there.
+
+| Attempt on the LAN | Response |
+|---|---|
+| `--lan` with no certificate and key | refused before binding, `ui.lan-needs-tls` |
+| plain HTTP to the LAN port | no HTTP response |
+| a Host other than `<name>:<port>` | 421 |
+| an Origin other than `https://<name>:<port>` | 403 |
+| `/api/` with no credential, a forged one, or the loopback token | 401 |
+| a revoked or expired credential | 401, `ui.device-revoked` / `ui.device-expired` |
+| a pairing code used twice, or after five minutes | 403, `pair.code-used` / `pair.code-expired` |
+| an act without a nonce | 400 |
+| an act whose nonce was already spent | 409 `act.nonce-used`, nothing runs |
+| a signing act's id | 403 `act.host-only`, nothing runs |
+
+**What a device cannot do.** It can never sign, never start `war sign`,
+and never raise the key's dialog on the host. The dialog could be answered
+by whoever sits at the host, who may not be the person who clicked.
+- Its queue shows each act's dry-run verdict and the exact command to run
+  at the host. It carries no act id.
+- **Ask at the host** marks the act "requested from `<device>`" in the
+  host's queue, and the host terminal prints the command. Nothing starts.
+  The signature is still `war sign … --ssh-sign` at the host, and its
+  dialog.
+- A **Run** button starts an automatic remedy (never a signing verb). Each
+  act carries a nonce the server issued to that device, spent on first use.
+- A paired device acts for the `--as` signer the server was started with,
+  for reading and remedies only.
+
+A stolen device, unlocked, can read the program and run automatic remedies
+until you revoke it. It cannot sign. THREAT_MODEL entry 13b has the rest.
+Internet reach, port forwarding and relays are not supported: beyond the
+LAN, SSH forwarding to loopback stays the answer.
 
 ## What it is not
 
 It signs nothing itself. It stores nothing: no drafts, no sessions, no
-files. It serves no file from disk other than its own three assets. It is
+files — except, with `--lan`, the paired devices' hashes and the fallback
+certificate, in the per-user state directory and never under the
+repository. It serves no file from disk other than its own three assets. It is
 not a projection contract: the `/api/` shapes are local and may change.
 `--json` output of the CLI is the contract.

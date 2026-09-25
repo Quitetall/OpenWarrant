@@ -34972,6 +34972,14 @@ M4 — documents and plants:
 8. `conformance/plants.d/59-webui-lan.sh` (new), the refusals in the
    assurance atom.
 
+- (AM-003) `crates/openwarrant-cli/Cargo.toml` and `Cargo.lock`: the TLS
+  dependency U-002 A or B needs (`rustls`, `rustls-pki-types`, `ring`,
+  exact pins, already locked through `ureq`) and `qrcodegen` for the
+  pairing QR code.
+- (AM-003) `crates/openwarrant-cli/src/lib.rs`: the `war ui` flags
+  (`--lan`, `--name`, `--cert`, `--key`, `--self-signed`) and the
+  `war ui devices [--revoke <id>]` subcommand, nothing else.
+
 ## Frozen Surfaces
 
 - Loopback `war ui`: its routes, headers, token handling and
@@ -35170,6 +35178,9 @@ device?
 | D-005 | WEBUI.md: Reach on the LAN | `docs/WEBUI.md` | not_content_addressed |
 | D-006 | THREAT_MODEL row 13: loopback and LAN | `docs/THREAT_MODEL.md` | not_content_addressed |
 | D-007 | the plants | `conformance/plants.d/59-webui-lan.sh` | not_content_addressed |
+| D-008 | the TLS dependency and the QR code crate, exact pins (AM-003) | `crates/openwarrant-cli/Cargo.toml` | not_content_addressed |
+| D-009 | the lockfile for D-008 (AM-003) | `Cargo.lock` | not_content_addressed |
+| D-010 | `war ui --lan` flags and `war ui devices` (AM-003) | `crates/openwarrant-cli/src/lib.rs` | not_content_addressed |
 
 #### OW-WAR-0142 — Standing authorization: one signature pre-authorizes a class of routine work, so each change costs only its acceptance
 
@@ -37600,4 +37611,5 @@ Every command here has been judged by the act's dry run (`war sign <target> --dr
 
 | act | Warrant | command | judged | why |
 |---|---|---|---|---|
+| authorize | OW-WAR-0139 | `war sign OW-WAR-0139` | would record | revision 4 awaits authorization under AM-003 |
 | authorize | OW-WAR-0140 | `war sign OW-WAR-0140` | would record | revision 4 awaits authorization under AM-003 |

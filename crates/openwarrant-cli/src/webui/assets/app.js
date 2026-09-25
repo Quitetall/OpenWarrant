@@ -3,10 +3,18 @@
 // session token arrives in the URL fragment, moves into this closure, and
 // the fragment is cleared: it is never in a cookie, storage or a request
 // URL. Acts send a row id; the server decides what runs.
+//
+// On the LAN (`war ui --lan`, https) there is no token: a paired device
+// carries an HttpOnly cookie this script never sees, every act also sends a
+// single-use nonce from the server, and a signing row shows only its verdict
+// and the command to run at the host — this device can ask, never sign.
 "use strict";
 (() => {
   const params = new URLSearchParams(location.hash.slice(1));
   const token = params.get("t") || "";
+  const lan = location.protocol === "https:";
+  const pairCode = params.get("pair") || "";
+  const pairFp = params.get("fp") || "";
   let page = params.get("p") || "progress";
   history.replaceState(null, "", location.pathname + "#p=" + page);
   let version = null;
@@ -26,11 +34,13 @@
   const api = async (path, init) => {
     const r = await fetch("/api/" + path, {
       ...init,
-      headers: { Authorization: "Bearer " + token, ...(init && init.headers) },
+      headers: lan ? { ...(init && init.headers) } : { Authorization: "Bearer " + token, ...(init && init.headers) },
       cache: "no-store",
-      credentials: "omit",
+      credentials: lan ? "same-origin" : "omit",
     });
-    if (r.status === 401) throw new Error("session token missing or wrong — open the link `war ui` printed");
+    if (r.status === 401) throw new Error(lan
+      ? ((await r.text()) || "this device is not paired") + " — open a pairing link printed by `war ui --lan` at the host"
+      : "session token missing or wrong — open the link `war ui` printed");
     if (!r.ok && r.status !== 202) throw new Error((await r.text()) || r.statusText);
     return r.json();
   };
@@ -83,18 +93,23 @@
     async queue(main) {
       const d = await api("queue");
       main.append(el("h2", { text: "Awaiting a signature" }),
-        el("p", { class: "note", text: "A button runs the same `war sign <target> --ssh-sign` a terminal would. Your key's confirm dialog is the signature — load the key with `ssh-add -c`, or a click signs without asking." }));
+        el("p", { class: "note", text: lan
+          ? "This device cannot sign. Each act shows its dry-run verdict and the command to run at the host; \"Ask at the host\" marks it requested there. The signature is the host's key dialog, answered at the host."
+          : "A button runs the same `war sign <target> --ssh-sign` a terminal would. Your key's confirm dialog is the signature — load the key with `ssh-add -c`, or a click signs without asking." }));
       if (d.who) main.append(el("p", { class: "note" }, d.who.why, " — restart with ", code(d.who.command)));
       if (d.signer) main.append(el("p", { class: "muted" }, "signing as ", code(d.signer)));
-      if (d.batch) main.append(el("p", {}, actButton(d.batch.act_id, "Sign these " + d.batch.targets.length + " in one dialog"),
+      if (d.batch && d.batch.host_only) main.append(el("p", {}, el("span", { class: "badge", text: "at the host" }), " ", code(d.batch.command)));
+      else if (d.batch) main.append(el("p", {}, actButton(d.batch.act_id, "Sign these " + d.batch.targets.length + " in one dialog"),
         " ", el("span", { class: "muted" }, "one signature over the list — ", code(d.batch.command), ". An act for another signer or role is left out and named.")));
       if (!(d.acts || []).length) main.append(el("p", { class: "muted", text: "Nothing awaits a signature." }));
       else main.append(table(["#", "act", "dry run", "", "command"], d.acts.map((a) => [
         String(a.n), el("span", {}, a.act, " ", code(a.target)),
         el("span", { class: "badge " + (a.verdict === "would record" ? "ok" : a.verdict === "needs a decision" ? "warn" : "bad"), text: a.verdict, title: (a.reasons || []).join("\n") }),
-        a.act_id ? actButton(a.act_id, "Sign")
+        el("span", {}, a.requested_from ? el("span", { class: "badge warn", text: "requested from " + a.requested_from }) : null,
+          a.host_only ? (a.requested_from ? null : requestButton(a.request_id))
+          : a.act_id ? actButton(a.act_id, "Sign")
           : (a.choices || []).length ? el("span", {}, ...a.choices.map((c) => actButton(c.act_id, c.label)))
-          : el("span", { class: "muted", text: (a.reasons || [])[0] || "" }),
+          : el("span", { class: "muted", text: (a.reasons || [])[0] || "" })),
         code(a.command)])));
     },
     async questions(main) {
@@ -139,14 +154,51 @@
     },
   };
 
+  // A device's act carries a nonce the server issued to it, spent once.
+  const actBody = async (id) => lan ? { id, nonce: (await api("nonce")).nonce } : { id };
   function actButton(id, label) {
     const b = el("button", { type: "button", text: label });
     b.addEventListener("click", async () => {
       b.disabled = true;
-      try { await api("act", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) }); watchAct(); }
+      try { await api("act", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(await actBody(id)) }); watchAct(); }
       catch (e) { showAct("refused: " + e.message); b.disabled = false; }
     });
     return b;
+  }
+  // LAN only: mark a signing act requested at the host. Nothing starts.
+  function requestButton(id) {
+    const b = el("button", { type: "button", text: "Ask at the host" });
+    b.addEventListener("click", async () => {
+      b.disabled = true;
+      try { const r = await api("request", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(await actBody(id)) }); showAct("asked at the host: " + r.command); version = null; }
+      catch (e) { showAct("refused: " + e.message); b.disabled = false; }
+    });
+    return b;
+  }
+  // LAN only: the pairing page. The code goes to the server in a POST body;
+  // the human at the host confirms at its terminal.
+  function pairPage() {
+    const main = $("main");
+    const go = el("button", { type: "button", text: "Ask the host to pair this device" });
+    const out = el("p", { class: "muted" });
+    go.addEventListener("click", async () => {
+      go.disabled = true;
+      out.textContent = "Waiting for the human at the host to answer at its terminal…";
+      try {
+        const r = await fetch("/pair", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: pairCode }), cache: "no-store", credentials: "same-origin" });
+        if (!r.ok) throw new Error((await r.text()) || r.statusText);
+        const d = await r.json();
+        out.textContent = "Paired as device " + d.device + " until " + d.expires_at + ".";
+        history.replaceState(null, "", location.pathname + "#p=progress");
+        page = "progress"; poll();
+      } catch (e) { out.textContent = "Not paired: " + (e.message || e); }
+    });
+    main.replaceChildren(el("div", {},
+      el("h2", { text: "Pair this device" }),
+      el("p", {}, "Before you continue, compare this certificate fingerprint with the one the host printed:"),
+      el("p", {}, code(pairFp.replace(/(..)(?!$)/g, "$1:"))),
+      el("p", { class: "note", text: "A paired device reads this program, runs automatic remedies and can ask for a signature at the host. It can never sign." }),
+      el("p", {}, go), out));
   }
   function showAct(text, pre) {
     const f = $("act"); f.hidden = false; f.replaceChildren(el("div", { text }), pre ? el("pre", { text: pre }) : null);
@@ -178,5 +230,5 @@
     const p = new URLSearchParams(location.hash.slice(1)).get("p");
     if (p && p !== page) { page = p; render(); }
   });
-  poll();
+  if (lan && pairCode) pairPage(); else poll();
 })();
