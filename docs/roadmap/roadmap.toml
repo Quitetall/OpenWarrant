@@ -227,3 +227,22 @@ slug = "schema-pack"
 warrant = "OW-WAR-0111"
 phase = "OW-PHASE-4"
 slug = "preservation"
+
+# The plans this record replaces, one line of lineage each (OW-ADR-0023
+# decision 6; OW-WAR-0114 M5). The relation lives here, on the successor.
+
+[[retires]]
+path = "docs/roadmap/PRODUCTION_ROADMAP.md"
+lineage = "prose release gates and status, retired by OW-WAR-0114 on 2026-09-25: the phases, their exits and their order are this record's; its text is byte-for-byte at archive/legacy-20260914/original/docs/roadmap/PRODUCTION_ROADMAP.md (git blob 14660efa)."
+
+[[retires]]
+path = "docs/roadmap/view.json"
+lineage = "the authored `war progress` tree (oh.war/roadmap-view/v1), retired by OW-WAR-0114 on 2026-09-25: `war progress` builds its tree from this record; its last text is git blob d649714f."
+
+[[retires]]
+path = "docs/design/rc2-implementation-roadmap.json"
+lineage = "the RC.2 implementation plan (draft-not-authorized), retired by OW-WAR-0114 on 2026-09-25: its Warrants are placed in this record's phases; its text is byte-for-byte at archive/legacy-20260914/original/docs/design/rc2-implementation-roadmap.json (git blob cd027c71)."
+
+[[retires]]
+path = "docs/sas/drafts/1.0.0-rc.3/roadmap.json"
+lineage = "the four-phase plan (proposal-not-authorized), retired as a plan by OW-WAR-0114 Q-001 (answer A) on 2026-09-25: its four phases are this record's priority tiers. The file stays unchanged as the rc.3 draft's case and Warrant inventory, whose bytes that draft's source-set.json pins."

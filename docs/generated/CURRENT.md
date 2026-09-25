@@ -1961,6 +1961,138 @@ are the evidence, recorded under OW-WAR-0073 OBL-001 rather than asserted here.
 - [OW-ADR-0028](../../docs/adr/atoms/OW-ADR-0028-sas-sections-are-atoms.md) — ADR OW-0028: SAS sections are atoms — identity now, authored source later
 - [OW-ADR-0029](../../docs/adr/atoms/OW-ADR-0029-standing-authorization.md) — ADR OW-0029: Standing authorization — one signature authorizes a bounded class of routine work
 
+## Roadmap
+
+The order of work: one record per program, beside the SAS (OW-ADR-0023) — [manifest](../../docs/roadmap/roadmap.toml), [phases](../../docs/roadmap/atoms/20-phases.yaml). The atoms are revision **3**, proposed and awaiting one signature (`war sign roadmap --ssh-sign`); revision 2 stays the accepted order of work until then. A phase's members are the current Warrants whose own ref names it, and it is achieved when its exit Warrant resolves satisfied; the record holds neither fact. 11 phase(s), in dependency order. 1 earlier revision(s) are in the history.
+
+### Intent — [docs/roadmap/atoms/10-intent.md](../../docs/roadmap/atoms/10-intent.md)
+
+<!-- atom docs/roadmap/atoms/10-intent.md begins -->
+# Intent
+
+OpenWarrant turns a unit of software work into a contract a human
+authorizes, an agent performs, an independent verifier checks, and a human
+resolves, with every step a record the tool can recompute. Completed, the
+program is: the file-native compiler and its records (phases 1, 3, 6), the
+agent planner and dispatch that let an agent do governed work (2, 5, 7),
+federation into Knowledge Fabric and the production compiler (4, 8), the
+controls a regulated delivery needs (9), and a contractor profile that
+changes nothing in the core (10) — measured throughout (0).
+
+The four release tiers order the work across phases: **1** Library and
+Standard, **2** SDK and Compiler Integration, **3** Workflow Integration,
+**4** Hardening and Adoption. A phase's tier is when it matters most, not a
+gate on starting it. The owner chose this set on 2026-09-23 (OW-WAR-0114
+Q-001, answer A); the four-phase plan it replaced survives as these tiers.
+<!-- atom docs/roadmap/atoms/10-intent.md ends -->
+
+### Phases
+
+#### OW-PHASE-0 — Telemetry shim
+
+- **Exit:** real distributions for authoring cost, amendment types, and failure causes.
+- **Outcome:** WAR UUID and local alias; commit/PR linkage; lightweight event logging; amendment, escalation, and gate-result classification; untracked-work detection.
+- **Tier:** 3 Workflow Integration · **after:** nothing
+- **Achieved:** blocked by 4 (exit Warrant OW-WAR-0041)
+- **Members (4):** OW-WAR-0039 `draft`, OW-WAR-0041 `draft`, OW-WAR-0100 `draft`, OW-WAR-0118 `draft`
+- **No Warrant yet:** friction-baseline
+
+#### OW-PHASE-1 — File-native WAR compiler
+
+- **Exit:** OpenWarrant development uses WARs.
+- **Outcome:** war init; war new; manifest; authored atom profile; canonical IR; war check; war compile; full Markdown parent; canonical JSON; generated drift gate.
+- **Tier:** 1 Library and Standard · **after:** nothing
+- **Achieved:** achieved (exit Warrant OW-WAR-0061)
+- **Members (34):** OW-WAR-0001 `draft`, OW-WAR-0002 `resolved`, OW-WAR-0003 `draft`, OW-WAR-0004 `draft`, OW-WAR-0005 `resolved`, OW-WAR-0007 `draft`, OW-WAR-0008 `resolved`, OW-WAR-0009 `resolved`, OW-WAR-0010 `resolved`, OW-WAR-0012 `resolved`, OW-WAR-0013 `draft`, OW-WAR-0014 `resolved`, OW-WAR-0031 `resolved`, OW-WAR-0033 `resolved`, OW-WAR-0049 `draft`, OW-WAR-0055 `resolved`, OW-WAR-0057 `resolved`, OW-WAR-0060 `resolved`, OW-WAR-0061 `resolved`, OW-WAR-0075 `draft`, OW-WAR-0076 `draft`, OW-WAR-0085 `draft`, OW-WAR-0087 `draft`, OW-WAR-0092 `draft`, OW-WAR-0097 `draft`, OW-WAR-0112 `draft`, OW-WAR-0113 `draft`, OW-WAR-0114 `draft`, OW-WAR-0115 `draft`, OW-WAR-0116 `draft`, OW-WAR-0119 `draft`, OW-WAR-0120 `draft`, OW-WAR-0121 `draft`, OW-WAR-0122 `draft`
+- **No Warrant yet:** identity, retention, storage, document-grammar
+
+#### OW-PHASE-2 — Agent planner
+
+- **Exit:** a vague engineering request produces a reviewable valid draft without direct model file mutation.
+- **Outcome:** war plan; interview; Draft Proposal protocol; Katana drafter adapter; semantic diff; proposed ADR generation.
+- **Tier:** 3 Workflow Integration · **after:** OW-PHASE-1
+- **Achieved:** blocked by 9 (exit Warrant OW-WAR-0042)
+- **Members (10):** OW-WAR-0034 `resolved`, OW-WAR-0035 `draft`, OW-WAR-0037 `draft`, OW-WAR-0042 `draft`, OW-WAR-0068 `draft`, OW-WAR-0070 `draft`, OW-WAR-0088 `draft`, OW-WAR-0101 `draft`, OW-WAR-0105 `draft`, OW-WAR-0141 `draft`
+
+#### OW-PHASE-3 — ADR federation
+
+- **Exit:** no managed normative decision exists only inline.
+- **Outcome:** first-class ADR atoms; local and global identity; ADR Overview; WAR/ADR relations; existing ADR importer.
+- **Tier:** 1 Library and Standard · **after:** OW-PHASE-1
+- **Achieved:** blocked by 9 (exit Warrant OW-WAR-0043)
+- **Members (12):** OW-WAR-0006 `draft`, OW-WAR-0036 `draft`, OW-WAR-0038 `resolved`, OW-WAR-0043 `draft`, OW-WAR-0058 `resolved`, OW-WAR-0062 `resolved`, OW-WAR-0064 `draft`, OW-WAR-0074 `draft`, OW-WAR-0084 `draft`, OW-WAR-0123 `draft`, OW-WAR-0124 `draft`, OW-WAR-0125 `draft`
+- **No Warrant yet:** parent-revision, adoption, sas-atoms
+
+#### OW-PHASE-4 — Knowledge Fabric registration
+
+- **Exit:** registered WARs use KF as institutional authority while Git may remain Source Holder.
+- **Outcome:** typed KF actions; global allocation; lifecycle; contract revisions; synchronization; audit; preservation.
+- **Tier:** 2 SDK and Compiler Integration · **after:** OW-PHASE-1, OW-PHASE-3
+- **Achieved:** blocked by 10 (exit Warrant OW-WAR-0044)
+- **Members (10):** OW-WAR-0028 `draft`, OW-WAR-0029 `draft`, OW-WAR-0030 `draft`, OW-WAR-0032 `draft`, OW-WAR-0044 `draft`, OW-WAR-0110 `draft`, OW-WAR-0111 `draft`, OW-WAR-0126 `draft`, OW-WAR-0127 `draft`, OW-WAR-0128 `draft`
+- **No Warrant yet:** kf-authority, native-authority, kf-compiler
+
+#### OW-PHASE-5 — Dispatch and Katana execution
+
+- **Exit:** one WAR stage can be compiled, executed by a stateless Katana agent, and returned without authority confusion.
+- **Outcome:** Preflight; Stage Dispatch; Katana runtime receipt; Stage Submission; attempts; blockers and deviations.
+- **Tier:** 2 SDK and Compiler Integration · **after:** OW-PHASE-1
+- **Achieved:** blocked by 27 (exit Warrant OW-WAR-0045)
+- **Members (31):** OW-WAR-0011 `draft`, OW-WAR-0015 `resolved`, OW-WAR-0023 `draft`, OW-WAR-0024 `resolved`, OW-WAR-0025 `resolved`, OW-WAR-0026 `draft`, OW-WAR-0045 `draft`, OW-WAR-0056 `resolved`, OW-WAR-0065 `draft`, OW-WAR-0069 `draft`, OW-WAR-0077 `draft`, OW-WAR-0078 `draft`, OW-WAR-0079 `draft`, OW-WAR-0080 `draft`, OW-WAR-0081 `draft`, OW-WAR-0082 `draft`, OW-WAR-0086 `draft`, OW-WAR-0093 `draft`, OW-WAR-0094 `draft`, OW-WAR-0095 `draft`, OW-WAR-0098 `draft`, OW-WAR-0099 `draft`, OW-WAR-0102 `draft`, OW-WAR-0103 `draft`, OW-WAR-0104 `draft`, OW-WAR-0106 `draft`, OW-WAR-0109 `draft`, OW-WAR-0129 `draft`, OW-WAR-0130 `draft`, OW-WAR-0131 `draft`, OW-WAR-0132 `draft`
+- **No Warrant yet:** budget-refusal, idempotency, adapters, hotline-defaults
+
+#### OW-PHASE-6 — Gate Registry and assurance case
+
+- **Exit:** a delivery can close only through bounded, provenance-preserving proof.
+- **Outcome:** Gate Definitions; qualifications; bindings; runs; evidence; observations; inferences; judgments; adequacy review; resolution.
+- **Tier:** 1 Library and Standard · **after:** OW-PHASE-1
+- **Achieved:** achieved (exit Warrant OW-WAR-0046)
+- **Members (20):** OW-WAR-0016 `resolved`, OW-WAR-0017 `resolved`, OW-WAR-0018 `resolved`, OW-WAR-0019 `resolved`, OW-WAR-0020 `resolved`, OW-WAR-0021 `resolved`, OW-WAR-0022 `resolved`, OW-WAR-0046 `resolved`, OW-WAR-0050 `draft`, OW-WAR-0059 `draft`, OW-WAR-0063 `draft`, OW-WAR-0066 `draft`, OW-WAR-0083 `draft`, OW-WAR-0107 `draft`, OW-WAR-0117 `draft`, OW-WAR-0133 `draft`, OW-WAR-0134 `draft`, OW-WAR-0135 `draft`, OW-WAR-0145 `draft`, OW-WAR-0146 `draft`
+- **No Warrant yet:** verification-pipeline, evidence-reuse, acceptance-validity, assurance-mark
+
+#### OW-PHASE-7 — BLUT adapter
+
+- **Exit:** compatible computational WARs execute without duplicating BLUT.
+- **Outcome:** named-port stage graph; PlanSpec lowering; resources; artifacts; BLUT lineage receipt.
+- **Tier:** 3 Workflow Integration · **after:** OW-PHASE-5
+- **Achieved:** blocked by 3 (exit Warrant OW-WAR-0047)
+- **Members (3):** OW-WAR-0027 `draft`, OW-WAR-0047 `draft`, OW-WAR-0108 `draft`
+
+#### OW-PHASE-8 — Liminal production compiler
+
+- **Exit:** Liminal is the single production document semantic compiler.
+- **Outcome:** WAR Liminal profile; exact-source CST/HIR/CIR path as available; Workspace Basis; Jurisdiction; source maps; human and AI targets; adapter parity; cutover.
+- **Tier:** 2 SDK and Compiler Integration · **after:** OW-PHASE-1
+- **Achieved:** blocked by 2 (exit Warrant OW-WAR-0048)
+- **Members (2):** OW-WAR-0040 `draft`, OW-WAR-0048 `draft`
+
+#### OW-PHASE-9 — High-assurance controls
+
+- **Exit:** a resolution is signed, its evidence custody is audited, and one gate invalidation propagates to every dependent resolution, with no step performed by the actor who produced the work.
+- **Outcome:** as required: signatures; audit checkpoints; controlled evidence custody; physical test profile; independent human workflow; invalidation propagation; regulatory mapping.
+- **Tier:** 4 Hardening and Adoption · **after:** OW-PHASE-6
+- **Achieved:** blocked by 15 (exit Warrant OW-WAR-0136)
+- **Members (14):** OW-WAR-0067 `draft`, OW-WAR-0071 `draft`, OW-WAR-0072 `draft`, OW-WAR-0089 `draft`, OW-WAR-0090 `draft`, OW-WAR-0091 `draft`, OW-WAR-0096 `draft`, OW-WAR-0136 `draft`, OW-WAR-0137 `draft`, OW-WAR-0138 `draft`, OW-WAR-0139 `draft`, OW-WAR-0142 `draft`, OW-WAR-0143 `draft`, OW-WAR-0144 `draft`
+- **No Warrant yet:** exit, teams, authentication, web-lan
+
+#### OW-PHASE-10 — Contractor Work Order profile
+
+- **Exit:** a contractor Work Order compiles through the unchanged technical WAR core, and acceptance, invoicing and legal terms live entirely in the profile.
+- **Outcome:** only after separate legal, finance, and QMS decisions: contractor profile; Work Order mapping; acceptance; invoices and payments; signatures and legal terms. The technical WAR core remains unchanged.
+- **Tier:** 4 Hardening and Adoption · **after:** OW-PHASE-6, OW-PHASE-9
+- **Achieved:** not derivable: no member carries the `exit` slug
+- **Members (1):** OW-WAR-0140 `draft`
+- **No Warrant yet:** contractor-profile, exit
+
+### Retired plans
+
+Each earlier plan is one line of lineage; the record above replaces it.
+
+- `docs/roadmap/PRODUCTION_ROADMAP.md` → prose release gates and status, retired by OW-WAR-0114 on 2026-09-25: the phases, their exits and their order are this record's; its text is byte-for-byte at archive/legacy-20260914/original/docs/roadmap/PRODUCTION_ROADMAP.md (git blob 14660efa).
+- `docs/roadmap/view.json` → the authored `war progress` tree (oh.war/roadmap-view/v1), retired by OW-WAR-0114 on 2026-09-25: `war progress` builds its tree from this record; its last text is git blob d649714f.
+- `docs/design/rc2-implementation-roadmap.json` → the RC.2 implementation plan (draft-not-authorized), retired by OW-WAR-0114 on 2026-09-25: its Warrants are placed in this record's phases; its text is byte-for-byte at archive/legacy-20260914/original/docs/design/rc2-implementation-roadmap.json (git blob cd027c71).
+- `docs/sas/drafts/1.0.0-rc.3/roadmap.json` → the four-phase plan (proposal-not-authorized), retired as a plan by OW-WAR-0114 Q-001 (answer A) on 2026-09-25: its four phases are this record's priority tiers. The file stays unchanged as the rc.3 draft's case and Warrant inventory, whose bytes that draft's source-set.json pins.
+
 ## Warrants
 
 141 current Warrant(s), grouped by roadmap phase, each expanded atom by atom.
@@ -10171,6 +10303,18 @@ M5 — rendering and retirement (after OW-WAR-0113 M2):
 15. `conformance/plants.d/70-roadmap.sh`: the plants listed in OBL-001 to
     OBL-004.
 
+- (AM-003) `crates/openwarrant-cli/src/compile.rs` gathers the roadmap for
+  both projections and `crates/openwarrant-compiler/src/history.rs` renders
+  the earlier revisions. `war sas propose 1.1.1` writes
+  `docs/sas/revisions/1.1.1.toml`. The retirements are `[[retires]]` lines
+  in `roadmap.toml`, proposed as `docs/roadmap/revisions/3.toml`. The rc.3
+  `roadmap.json` is retired by its lineage line only; its bytes stay, since
+  the rc.3 draft's `source-set.json` pins them. `war sas propose 1.1.1`
+  waits for this revision's authorization, because the real-document §98
+  test in `crates/openwarrant-core/src/sas.rs` (pinned by resolved
+  OW-WAR-0058 and OW-WAR-0062) holds the live SAS to eleven phases; it is
+  re-pointed at the roadmap record's phases in the same change.
+
 ## Frozen Surfaces
 
 `oh.war/report/v1`, every existing record schema, the signing seam's
@@ -10368,6 +10512,11 @@ assert it with.
 | D-029 | CONTEXT.md: the term | `CONTEXT.md` | not_content_addressed |
 | D-030 | docs/TUI.md: the Roadmap pane | `docs/TUI.md` | not_content_addressed |
 | D-031 | the plants | `conformance/plants.d/70-roadmap.sh` | not_content_addressed |
+| D-032 | compile: the roadmap gathered for CURRENT.md and HISTORY.md (AM-003) | `crates/openwarrant-cli/src/compile.rs` | not_content_addressed |
+| D-033 | compiler: earlier roadmap revisions in HISTORY.md (AM-003) | `crates/openwarrant-compiler/src/history.rs` | not_content_addressed |
+| D-034 | SAS 1.1.1, proposed: §98 points at the record (AM-003) | `docs/sas/revisions/1.1.1.toml` | not_content_addressed |
+| D-035 | Roadmap revision 3, proposed: the retirements (AM-003) | `docs/roadmap/revisions/3.toml` | not_content_addressed |
+| D-036 | core: the real-document §98 test reads the roadmap record (AM-003) | `crates/openwarrant-core/src/sas.rs` | not_content_addressed |
 
 #### OW-WAR-0115 — The hub: war opens from anywhere, with every project and its progress
 
@@ -37392,7 +37541,7 @@ Every command here has been judged by the act's dry run (`war sign <target> --dr
 | authorize | OW-WAR-0066 | `war sign OW-WAR-0066` | would record | revision 2 awaits authorization under AM-001 |
 | authorize | OW-WAR-0112 | `war sign OW-WAR-0112` | would record | revision 3 awaits authorization under AM-002 |
 | authorize | OW-WAR-0113 | `war sign OW-WAR-0113` | would record | revision 4 awaits authorization under AM-003 |
-| authorize | OW-WAR-0114 | `war sign OW-WAR-0114` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0114 | `war sign OW-WAR-0114` | would record | revision 3 awaits authorization under AM-003 |
 | authorize | OW-WAR-0115 | `war sign OW-WAR-0115` | would record | revision 3 awaits authorization under AM-002 |
 | authorize | OW-WAR-0116 | `war sign OW-WAR-0116` | would record | revision 3 awaits authorization under AM-002 |
 | authorize | OW-WAR-0117 | `war sign OW-WAR-0117` | would record | revision 3 awaits authorization under AM-002 |
@@ -37421,3 +37570,4 @@ Every command here has been judged by the act's dry run (`war sign <target> --dr
 | authorize | OW-WAR-0142 | `war sign OW-WAR-0142` | would record | revision 2 awaits authorization under AM-001 |
 | authorize | OW-WAR-0143 | `war sign OW-WAR-0143` | would record | revision 2 awaits authorization under AM-001 |
 | authorize | OW-WAR-0144 | `war sign OW-WAR-0144` | would record | revision 2 awaits authorization under AM-001 |
+| accept | roadmap | `war sign roadmap` | would record | roadmap revision 3 awaits acceptance: retires docs/roadmap/PRODUCTION_ROADMAP.md, retires docs/roadmap/view.json, retires docs/design/rc2-implementation-roadmap.json, retires docs/sas/drafts/1.0.0-rc.3/roadmap.json |

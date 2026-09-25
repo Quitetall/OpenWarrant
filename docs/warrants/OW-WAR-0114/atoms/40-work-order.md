@@ -90,6 +90,18 @@ M5 — rendering and retirement (after OW-WAR-0113 M2):
 15. `conformance/plants.d/70-roadmap.sh`: the plants listed in OBL-001 to
     OBL-004.
 
+- (AM-003) `crates/openwarrant-cli/src/compile.rs` gathers the roadmap for
+  both projections and `crates/openwarrant-compiler/src/history.rs` renders
+  the earlier revisions. `war sas propose 1.1.1` writes
+  `docs/sas/revisions/1.1.1.toml`. The retirements are `[[retires]]` lines
+  in `roadmap.toml`, proposed as `docs/roadmap/revisions/3.toml`. The rc.3
+  `roadmap.json` is retired by its lineage line only; its bytes stay, since
+  the rc.3 draft's `source-set.json` pins them. `war sas propose 1.1.1`
+  waits for this revision's authorization, because the real-document §98
+  test in `crates/openwarrant-core/src/sas.rs` (pinned by resolved
+  OW-WAR-0058 and OW-WAR-0062) holds the live SAS to eleven phases; it is
+  re-pointed at the roadmap record's phases in the same change.
+
 ## Frozen Surfaces
 
 `oh.war/report/v1`, every existing record schema, the signing seam's

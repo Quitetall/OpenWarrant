@@ -1,0 +1,19 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-003"
+band: "manual_revision"
+reason: "M5 cannot be delivered inside the declared set. (1) CURRENT.md's Roadmap section renders from the corpus `war compile` gathers, and the gathering is `master_corpus` in crates/openwarrant-cli/src/compile.rs, which the set does not name; `current.rs` alone can only render what it is handed. (2) Item 10 says HISTORY.md carries the earlier roadmap revisions, and HISTORY.md is rendered by crates/openwarrant-compiler/src/history.rs, also undeclared. (3) Item 13 proposes the SAS revision with `war sas propose`, which writes docs/sas/revisions/<version>.toml; the proposed version is 1.1.1 (a correction: no §106 row moves, and 1.2.0 is already claimed by OW-WAR-0071 AM-001 and OW-WAR-0142). The proposal also needs crates/openwarrant-core/src/sas.rs: its test `section_98_of_the_real_document_has_eleven_phases_and_exits_for_all_of_them` holds the live document to eleven phases in §98, which is exactly what the proposal removes, and the file is pinned by resolved OW-WAR-0058 (D-001) and OW-WAR-0062 (D-005). Declared here, it changes only after this revision is authorized (RQ-036); until then the SAS document and the test are untouched and the proposal waits. (4) Item 12's lineage lines are a relation the roadmap record states (`[[retires]]` in roadmap.toml), so the record's digest moves and `war roadmap propose` writes docs/roadmap/revisions/3.toml for the owner's one-dialog acceptance. (5) Item 12 cannot mark docs/sas/drafts/1.0.0-rc.3/roadmap.json inside the file: that draft's source-set.json pins its bytes and check_draft.py parses its case, feature and Warrant inventory, so a stub would break the rc.3 draft's own check (PASS today). Its retirement is the lineage line in the record; D-028's bytes stay. Authorizing the next revision also makes this Warrant the latest authorization declaring compile.rs (now OW-WAR-0125's), history.rs (now OW-WAR-0113's) and core sas.rs (resolved OW-WAR-0058's and 0062's pins become historical), so their governance moves here (OW-ADR-0021). Wording drafted by the performer `claude`."
+governing_adr_or_policy: "sas://WAR-SAS-37.5"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. The deliverable set gains D-032 crates/openwarrant-cli/src/compile.rs (the roadmap gathered for both projections), D-033 crates/openwarrant-compiler/src/history.rs (earlier roadmap revisions), D-034 docs/sas/revisions/1.1.1.toml (the proposed SAS revision; its acceptance stays the owner's) and D-035 docs/roadmap/revisions/3.toml (the proposed roadmap revision naming the retirements) and D-036 crates/openwarrant-core/src/sas.rs (the real-document §98 test re-pointed at the roadmap record's phases atom, eleven phases each with an exit; changed only after authorization). D-028 is retired by lineage in the record, its bytes unchanged. The next revision is authorized against the amended contract."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-25"
+
+semantic_diff:
+  - element: "deliverables"
+    before: "D-001..D-031; item 12 marks all four legacy roadmaps inside the files."
+    after: "Also D-032 compile.rs, D-033 history.rs, D-034 docs/sas/revisions/1.1.1.toml, D-035 docs/roadmap/revisions/3.toml, D-036 crates/openwarrant-core/src/sas.rs (after authorization). The rc.3 roadmap.json (D-028) is retired by a lineage line in the roadmap record; its bytes stay, because the rc.3 draft's source-set.json pins them."
+
+affected_stages: ["STAGE-006"]
+affected_milestones: ["M5"]

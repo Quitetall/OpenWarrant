@@ -327,3 +327,53 @@ required = true
 content_addressed = false
 provenance_required = false
 obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-032"
+title = "compile: the roadmap gathered for CURRENT.md and HISTORY.md (AM-003)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/compile.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-033"
+title = "compiler: earlier roadmap revisions in HISTORY.md (AM-003)"
+kind = "file"
+target_ref = "crates/openwarrant-compiler/src/history.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-034"
+title = "SAS 1.1.1, proposed: §98 points at the record (AM-003)"
+kind = "file"
+target_ref = "docs/sas/revisions/1.1.1.toml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-035"
+title = "Roadmap revision 3, proposed: the retirements (AM-003)"
+kind = "file"
+target_ref = "docs/roadmap/revisions/3.toml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-036"
+title = "core: the real-document §98 test reads the roadmap record (AM-003)"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/sas.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]

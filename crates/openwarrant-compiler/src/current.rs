@@ -26,8 +26,9 @@
 //! # Adding a section
 //!
 //! [`SECTIONS`] is the order; [`Section`] names each; `render` calls one
-//! function per variant. A new section (a Roadmap, OW-WAR-0114 M5) is a
-//! variant, a function, and a place in the list — nothing else moves.
+//! function per variant. A new section is a variant, a function, and a place
+//! in the list — nothing else moves; the Roadmap (OW-WAR-0114 M5) was added
+//! that way.
 
 use std::fmt::Write as _;
 
@@ -182,6 +183,88 @@ pub struct Phase {
     pub title: String,
 }
 
+/// A current Warrant that names a roadmap phase, with its rung.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Member {
+    pub alias: String,
+    pub rung: String,
+}
+
+/// One phase of the roadmap record, with what the records derive about it.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct RoadmapPhase {
+    pub id: String,
+    pub title: String,
+    pub outcome: String,
+    pub exit: String,
+    /// The tier, rendered: `1 Library and Standard`.
+    pub tier: Option<String>,
+    pub depends_on: Vec<String>,
+    /// The Warrant whose ref carries the `exit` slug, when one does.
+    pub exit_warrant: Option<String>,
+    /// DERIVED from the exit Warrant's recorded resolution, as `war status`
+    /// derives it; the record has no field to assert it with.
+    pub achieved: String,
+    /// DERIVED: the current Warrants whose own ref (or placement) names this
+    /// phase. The record holds no member list.
+    pub members: Vec<Member>,
+    /// Slugs of work the phase needs that no Warrant carries yet.
+    pub open: Vec<String>,
+}
+
+/// One revision record of the roadmap.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct RoadmapRevisionEntry {
+    pub revision: u32,
+    /// `accepted` or `proposed`.
+    pub state: String,
+    pub sha256: String,
+    pub predecessor: Option<u32>,
+    /// Repository-relative path of the revision record.
+    pub record: String,
+    pub accepted_by: Option<String>,
+    pub effective_time: Option<String>,
+    /// The proposer's note, labelled as theirs.
+    pub note: Option<String>,
+    /// The phase-level diff against the predecessor, as the signing screen
+    /// showed it.
+    pub diff: String,
+    /// The phases as that revision recorded them: id, title.
+    pub phases: Vec<(String, String)>,
+}
+
+/// An earlier plan the roadmap record retires: one line of lineage.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RetiredPlan {
+    pub path: String,
+    pub lineage: String,
+}
+
+/// The roadmap record (OW-ADR-0023), gathered for both projections.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Roadmap {
+    /// Repository-relative path of `roadmap.toml`.
+    pub manifest: String,
+    /// Repository-relative path of the phases atom.
+    pub phases_source: String,
+    /// sha256 over the manifest and atoms as they stand.
+    pub digest: String,
+    /// The newest accepted revision.
+    pub accepted_revision: Option<u32>,
+    /// Whether the atoms as they stand ARE that accepted revision.
+    pub accepted: bool,
+    /// A proposed revision recording the atoms as they stand, awaiting a
+    /// signature.
+    pub pending_revision: Option<u32>,
+    /// The intent atom, verbatim.
+    pub intent: Option<Atom>,
+    /// In dependency order.
+    pub phases: Vec<RoadmapPhase>,
+    /// Every revision record, oldest first.
+    pub revisions: Vec<RoadmapRevisionEntry>,
+    pub retires: Vec<RetiredPlan>,
+}
+
 /// The SAS revision in force.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SasInForce {
@@ -259,6 +342,8 @@ pub struct Corpus {
     pub tree_date: Option<String>,
     pub sas: Option<SasInForce>,
     pub decisions: Vec<Decision>,
+    /// The roadmap record, when the program has one.
+    pub roadmap: Option<Roadmap>,
     pub phases: Vec<Phase>,
     pub subjects: Vec<Subject>,
     pub governed: Vec<Governed>,
@@ -275,6 +360,7 @@ pub enum Section {
     ReadThisFirst,
     InForce,
     Decisions,
+    Roadmap,
     Warrants,
     Replaced,
     WhoGoverns,
@@ -287,6 +373,7 @@ pub const SECTIONS: &[Section] = &[
     Section::ReadThisFirst,
     Section::InForce,
     Section::Decisions,
+    Section::Roadmap,
     Section::Warrants,
     Section::Replaced,
     Section::WhoGoverns,
@@ -310,6 +397,7 @@ pub fn render(c: &Corpus) -> String {
             Section::ReadThisFirst => read_this_first(c, &mut out),
             Section::InForce => in_force(c, &mut out),
             Section::Decisions => decisions(c, &mut out),
+            Section::Roadmap => roadmap(c, &mut out),
             Section::Warrants => warrants(c, &mut out),
             Section::Replaced => replaced(c, &mut out),
             Section::WhoGoverns => who_governs(c, &mut out),
@@ -415,6 +503,123 @@ fn decisions(c: &Corpus, out: &mut String) {
         out.push_str("### Proposed\n\n");
         for d in proposed {
             let _ = writeln!(out, "- [{}]({}) — {}", d.alias, link(&d.source), d.title);
+        }
+        out.push('\n');
+    }
+}
+
+/// The Roadmap section (OW-ADR-0023 decision 6): the record's intent
+/// verbatim, then every phase in dependency order with its exit, its members
+/// and their rungs, and whether it is achieved — the last two derived, as
+/// `war status` derives them. Earlier revisions are the history's.
+fn roadmap(c: &Corpus, out: &mut String) {
+    out.push_str("## Roadmap\n\n");
+    let Some(r) = &c.roadmap else {
+        out.push_str(
+            "No roadmap record: this program's phases are read from its SAS (§98) until it \
+             adopts one (OW-ADR-0023).\n\n",
+        );
+        return;
+    };
+    let standing = match (r.accepted, r.accepted_revision, r.pending_revision) {
+        (true, Some(n), _) => {
+            format!("Revision **{n}** is accepted, and the atoms are that revision.")
+        }
+        (_, accepted, Some(p)) => format!(
+            "The atoms are revision **{p}**, proposed and awaiting one signature \
+             (`war sign roadmap --ssh-sign`); {}.",
+            accepted.map_or_else(
+                || "no revision is accepted yet".to_owned(),
+                |n| format!("revision {n} stays the accepted order of work until then")
+            )
+        ),
+        (_, accepted, None) => format!(
+            "The atoms (sha256:`{}`) are not a recorded revision (`war roadmap propose`); {}.",
+            r.digest.get(..12).unwrap_or(&r.digest),
+            accepted.map_or_else(
+                || "no revision is accepted yet".to_owned(),
+                |n| format!("revision {n} is the accepted order of work")
+            )
+        ),
+    };
+    let earlier = r
+        .revisions
+        .iter()
+        .filter(|v| {
+            Some(v.revision) != r.accepted_revision && Some(v.revision) != r.pending_revision
+        })
+        .count();
+    let _ = write!(
+        out,
+        "The order of work: one record per program, beside the SAS (OW-ADR-0023) — \
+         [manifest]({}), [phases]({}). {standing} A phase's members are the current \
+         Warrants whose own ref names it, and it is achieved when its exit Warrant \
+         resolves satisfied; the record holds neither fact. {} phase(s), in dependency \
+         order.{}\n\n",
+        link(&r.manifest),
+        link(&r.phases_source),
+        r.phases.len(),
+        if earlier == 0 {
+            String::new()
+        } else {
+            format!(" {earlier} earlier revision(s) are in the history.")
+        },
+    );
+    if let Some(intent) = &r.intent {
+        atom_block("###", "Intent", intent, out);
+    }
+    out.push_str("### Phases\n\n");
+    for p in &r.phases {
+        let _ = writeln!(out, "#### {} — {}\n", p.id, p.title);
+        let _ = writeln!(out, "- **Exit:** {}", p.exit);
+        if !p.outcome.is_empty() {
+            let _ = writeln!(out, "- **Outcome:** {}", p.outcome);
+        }
+        let _ = writeln!(
+            out,
+            "- **Tier:** {} · **after:** {}",
+            p.tier.as_deref().unwrap_or("none"),
+            if p.depends_on.is_empty() {
+                "nothing".to_owned()
+            } else {
+                p.depends_on.join(", ")
+            }
+        );
+        let _ = writeln!(
+            out,
+            "- **Achieved:** {}{}",
+            p.achieved,
+            p.exit_warrant
+                .as_ref()
+                .map(|w| format!(" (exit Warrant {w})"))
+                .unwrap_or_default()
+        );
+        if p.members.is_empty() {
+            out.push_str("- **Members:** none\n");
+        } else {
+            let _ = writeln!(
+                out,
+                "- **Members ({}):** {}",
+                p.members.len(),
+                p.members
+                    .iter()
+                    .map(|m| format!("{} `{}`", m.alias, m.rung))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            );
+        }
+        if !p.open.is_empty() {
+            let _ = writeln!(out, "- **No Warrant yet:** {}", p.open.join(", "));
+        }
+        out.push('\n');
+    }
+    if !r.retires.is_empty() {
+        out.push_str(
+            "### Retired plans\n\nEach earlier plan is one line of lineage; the record above \
+             replaces it.\n\n",
+        );
+        for t in &r.retires {
+            let _ = writeln!(out, "- `{}` → {}", t.path, t.lineage);
         }
         out.push('\n');
     }
@@ -778,6 +983,79 @@ mod tests {
         assert!(!render(&c).contains("Extensions"));
     }
 
+    fn roadmap_corpus() -> Corpus {
+        let phase = |id: &str, after: &[&str], members: &[(&str, &str)]| RoadmapPhase {
+            id: id.into(),
+            title: format!("{id} title"),
+            exit: format!("{id} exits"),
+            depends_on: after.iter().map(|s| (*s).to_owned()).collect(),
+            achieved: "blocked by 1".into(),
+            members: members
+                .iter()
+                .map(|(a, r)| Member {
+                    alias: (*a).into(),
+                    rung: (*r).into(),
+                })
+                .collect(),
+            ..RoadmapPhase::default()
+        };
+        Corpus {
+            roadmap: Some(Roadmap {
+                manifest: "docs/roadmap/roadmap.toml".into(),
+                phases_source: "docs/roadmap/atoms/20-phases.yaml".into(),
+                digest: "ab".repeat(32),
+                accepted_revision: Some(2),
+                accepted: true,
+                phases: vec![
+                    phase("P-PHASE-0", &[], &[]),
+                    phase("P-PHASE-1", &["P-PHASE-0"], &[("P-WAR-0001", "authorized")]),
+                ],
+                revisions: vec![
+                    RoadmapRevisionEntry {
+                        revision: 1,
+                        ..RoadmapRevisionEntry::default()
+                    },
+                    RoadmapRevisionEntry {
+                        revision: 2,
+                        ..RoadmapRevisionEntry::default()
+                    },
+                ],
+                retires: vec![RetiredPlan {
+                    path: "docs/old-plan.md".into(),
+                    lineage: "retired by the record".into(),
+                }],
+                ..Roadmap::default()
+            }),
+            ..Corpus::default()
+        }
+    }
+
+    #[test]
+    fn the_roadmap_renders_phases_in_order_with_exit_members_and_rungs() {
+        let out = render(&roadmap_corpus());
+        let section = out
+            .split("## Roadmap\n")
+            .nth(1)
+            .and_then(|s| s.split("\n## ").next())
+            .expect("a Roadmap section");
+        let p0 = section.find("#### P-PHASE-0 — P-PHASE-0 title").unwrap();
+        let p1 = section.find("#### P-PHASE-1 — P-PHASE-1 title").unwrap();
+        assert!(p0 < p1, "{section}");
+        assert!(section.contains("- **Exit:** P-PHASE-1 exits\n"));
+        assert!(section.contains("- **Members (1):** P-WAR-0001 `authorized`\n"));
+        assert!(section.contains("**after:** P-PHASE-0"));
+        assert!(section.contains("Revision **2** is accepted"));
+        assert!(section.contains("1 earlier revision(s) are in the history."));
+        assert_eq!(section.matches("docs/old-plan.md").count(), 1);
+        assert!(section.contains("- `docs/old-plan.md` → retired by the record\n"));
+    }
+
+    #[test]
+    fn a_program_without_a_record_says_so() {
+        let out = render(&Corpus::default());
+        assert!(out.contains("## Roadmap\n\nNo roadmap record"));
+    }
+
     #[test]
     fn sections_come_in_the_declared_order() {
         let out = render(&Corpus::default());
@@ -785,6 +1063,7 @@ mod tests {
             "## Read this first",
             "## In force",
             "## Decisions",
+            "## Roadmap",
             "## Warrants",
             "## Replaced",
             "## Who governs what",

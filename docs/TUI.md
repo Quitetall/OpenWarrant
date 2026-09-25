@@ -118,6 +118,8 @@ the terminal to `war roadmap edit` — add, rename, re-exit, re-tier, reorder
 or remove phases by keystroke — which writes the phases atom, proposes the
 revision, and ends in one `war sign roadmap --ssh-sign` dialog. No file is
 opened (OW-ADR-0023).
+The same phases, with each member's rung, are the Roadmap section of
+`docs/generated/CURRENT.md`; earlier revisions are in `HISTORY.md`.
 
 ## Projects
 

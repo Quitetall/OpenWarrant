@@ -34,6 +34,7 @@ pub fn render(c: &Corpus) -> String {
     );
     lineage(c, &mut out);
     timeline(c, &mut out);
+    roadmap_revisions(c, &mut out);
     decisions(c, &mut out);
     subjects(c, &mut out);
     out
@@ -115,6 +116,59 @@ fn timeline(c: &Corpus, out: &mut String) {
     out.push('\n');
 }
 
+/// Every revision of the roadmap record, oldest first, each with the phases
+/// it recorded and its diff against its predecessor; and the plans the record
+/// retired. The master document shows only the revision in force
+/// (OW-ADR-0023 decision 6).
+fn roadmap_revisions(c: &Corpus, out: &mut String) {
+    out.push_str("## Roadmap revisions\n\n");
+    let Some(r) = &c.roadmap else {
+        out.push_str("No roadmap record.\n\n");
+        return;
+    };
+    if r.revisions.is_empty() {
+        out.push_str("The roadmap record has no revision on record.\n\n");
+    }
+    for v in &r.revisions {
+        let _ = writeln!(
+            out,
+            "### Revision {} — {}\n\n[record]({}) · sha256:`{}` · predecessor {}{}\n",
+            v.revision,
+            v.state,
+            link(&v.record),
+            v.sha256,
+            v.predecessor
+                .map_or_else(|| "none".to_owned(), |n| format!("revision {n}")),
+            match (&v.accepted_by, &v.effective_time) {
+                (Some(by), Some(at)) => format!(" · accepted by {by} at {at}"),
+                (Some(by), None) => format!(" · accepted by {by}"),
+                _ => String::new(),
+            }
+        );
+        let _ = writeln!(out, "- **Diff against its predecessor:** {}", v.diff);
+        if let Some(note) = &v.note {
+            let _ = writeln!(out, "- **Proposer's note:** {note}");
+        }
+        let _ = writeln!(
+            out,
+            "- **Phases ({}):** {}\n",
+            v.phases.len(),
+            v.phases
+                .iter()
+                .map(|(id, t)| format!("{id} {t}"))
+                .collect::<Vec<_>>()
+                .join("; ")
+        );
+    }
+    if !r.retires.is_empty() {
+        out.push_str("### Plans the record retired\n\n");
+        for t in &r.retires {
+            let _ = writeln!(out, "- `{}` → {}", t.path, t.lineage);
+        }
+        out.push('\n');
+    }
+}
+
 fn decisions(c: &Corpus, out: &mut String) {
     out.push_str("## Decisions\n\n");
     if c.decisions.is_empty() {
@@ -175,6 +229,37 @@ mod tests {
             }],
             deliverables: vec![],
         }
+    }
+
+    #[test]
+    fn the_history_carries_every_roadmap_revision() {
+        use crate::current::{Roadmap, RoadmapRevisionEntry};
+        let rev = |n: u32, state: &str, diff: &str| RoadmapRevisionEntry {
+            revision: n,
+            state: state.into(),
+            record: format!("docs/roadmap/revisions/{n}.toml"),
+            predecessor: n.checked_sub(1).filter(|p| *p > 0),
+            diff: diff.into(),
+            phases: vec![("P-PHASE-0".into(), "Start".into())],
+            ..RoadmapRevisionEntry::default()
+        };
+        let c = Corpus {
+            roadmap: Some(Roadmap {
+                revisions: vec![
+                    rev(1, "accepted", "+1"),
+                    rev(2, "accepted", "P-PHASE-0 +open x"),
+                ],
+                ..Roadmap::default()
+            }),
+            ..Corpus::default()
+        };
+        let out = render(&c);
+        let one = out.find("### Revision 1 — accepted").unwrap();
+        let two = out.find("### Revision 2 — accepted").unwrap();
+        assert!(one < two);
+        assert!(out.contains("predecessor revision 1"));
+        assert!(out.contains("- **Diff against its predecessor:** P-PHASE-0 +open x\n"));
+        assert!(out.contains("- **Phases (1):** P-PHASE-0 Start\n"));
     }
 
     #[test]

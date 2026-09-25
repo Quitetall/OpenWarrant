@@ -22,6 +22,12 @@ The candidate is not signed adoption or proof of shipped behavior.
   every subject that ever existed, expanded, with lineage and timeline.
 - **Currency (by relation):** derived, never written — superseded when an
   authorized Warrant declares `supersedes` → it, annulled by its resolution.
+- **Roadmap:** the order of work, one record per program beside the SAS
+  (`docs/roadmap/`, OW-ADR-0023): phases with exits, dependencies and tiers,
+  each revision accepted by one human signature. It lists no members and no
+  status: a Warrant joins a phase by its own `roadmap://` ref, and a phase is
+  achieved when its exit Warrant resolves. The master document renders it;
+  the plans it replaced are one line of lineage each.
 - **Preset:** the typed skeleton `war new --preset` writes: each heading and the
   question it answers. Presets ask; the author answers.
 - **Work stop:** declared scope complete, with generated progress and evidence links.

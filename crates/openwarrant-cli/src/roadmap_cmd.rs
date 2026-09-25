@@ -51,6 +51,22 @@ pub struct Manifest {
     pub atoms: Vec<openwarrant_core::roadmap::RoadmapAtomRef>,
     #[serde(default, rename = "placement", skip_serializing_if = "Vec::is_empty")]
     pub placements: Vec<Placement>,
+    /// Earlier plans this record replaces, each one line of lineage
+    /// (OW-ADR-0023 decision 6). The relation lives on the successor, as
+    /// `supersedes` does on a Warrant (OW-ADR-0022).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub retires: Vec<Retired>,
+}
+
+/// One retired plan: where it was, and the one line that says what became
+/// of it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Retired {
+    /// Repository-relative path of the retired plan.
+    pub path: String,
+    /// One line: what replaced it and where its content survives.
+    pub lineage: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -155,6 +171,24 @@ pub fn load(repo: &Repository) -> Result<Option<Loaded>, LoadError> {
             "{manifest_path}: schema {:?}, expected {ROADMAP_SCHEMA:?}",
             manifest.schema
         )));
+    }
+    let mut retired_seen = BTreeSet::new();
+    for r in &manifest.retires {
+        let why = if r.path.trim().is_empty() {
+            Some("names no path".to_owned())
+        } else if !retired_seen.insert(r.path.as_str()) {
+            Some("is named twice; a retired plan is one line of lineage".to_owned())
+        } else if r.lineage.trim().is_empty() || r.lineage.contains('\n') {
+            Some("needs its lineage as exactly one non-empty line".to_owned())
+        } else {
+            None
+        };
+        if let Some(why) = why {
+            return Err(LoadError::Io(format!(
+                "{manifest_path}: [[retires]] {:?} {why}",
+                r.path
+            )));
+        }
     }
     let mut atoms = manifest.atoms.clone();
     atoms.sort_by_key(|a| a.ordinal);
@@ -643,6 +677,12 @@ pub fn propose(repo: &Repository, note: Option<&str>) -> Result<Report, RepoErro
             .map(|p| (p.id.clone(), openwarrant_core::roadmap::PhaseDetail::of(p)))
             .collect(),
         note: note.map(str::to_owned),
+        retires: loaded
+            .manifest
+            .retires
+            .iter()
+            .map(|r| r.path.clone())
+            .collect(),
         acceptance: None,
     };
     let diff = diff_against(predecessor, &rec);
@@ -924,7 +964,7 @@ pub fn check_signatures(repo: &Repository, loaded: &Loaded, report: &mut Report)
 /// and exit, tier, order and open work when the predecessor recorded them.
 /// A first revision has nothing to compare and says so by listing its
 /// phases as added.
-fn diff_against(
+pub(crate) fn diff_against(
     before: Option<&RoadmapRevision>,
     after: &RoadmapRevision,
 ) -> openwarrant_core::roadmap::PhaseDiff {
@@ -932,8 +972,16 @@ fn diff_against(
         &before.map(|b| b.phases.clone()).unwrap_or_default(),
         &after.phases,
     );
-    match before {
+    let mut d = match before {
         Some(b) => titles.with_detail(&b.detail, &after.detail),
         None => titles,
+    };
+    let was: &[String] = before.map_or(&[], |b| b.retires.as_slice());
+    for r in after.retires.iter().filter(|r| !was.contains(r)) {
+        d.changed.push(format!("retires {r}"));
     }
+    for r in was.iter().filter(|r| !after.retires.contains(r)) {
+        d.changed.push(format!("no longer retires {r}"));
+    }
+    d
 }

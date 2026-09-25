@@ -33,6 +33,38 @@ Everything this repository has recorded, current or not: 142 subject(s), their l
 | 2026-09-23 | 61 | attestation.recorded 3, authorization.recorded 28, draft.created 28, question.answered 1, question.asked 1 |
 | 2026-09-24 | 63 | authorization.recorded 38, correction.recorded 13, draft.created 6, question.asked 3, verification.recorded 3 |
 
+## Roadmap revisions
+
+### Revision 1 — accepted
+
+[record](../../docs/roadmap/revisions/1.toml) · sha256:`b8723a851643fb0b8d99bf4c92522e608cbe545c276ce4573e52a54d84575487` · predecessor none · accepted by Brian Lam at 2026-09-23T19:15:11Z
+
+- **Diff against its predecessor:** +11 (OW-PHASE-0 Telemetry shim; OW-PHASE-1 File-native WAR compiler; OW-PHASE-10 Contractor Work Order profile; OW-PHASE-2 Agent planner; OW-PHASE-3 ADR federation; OW-PHASE-4 Knowledge Fabric registration; OW-PHASE-5 Dispatch and Katana execution; OW-PHASE-6 Gate Registry and assurance case; OW-PHASE-7 BLUT adapter; OW-PHASE-8 Liminal production compiler; OW-PHASE-9 High-assurance controls)
+- **Phases (11):** OW-PHASE-0 Telemetry shim; OW-PHASE-1 File-native WAR compiler; OW-PHASE-2 Agent planner; OW-PHASE-3 ADR federation; OW-PHASE-4 Knowledge Fabric registration; OW-PHASE-5 Dispatch and Katana execution; OW-PHASE-6 Gate Registry and assurance case; OW-PHASE-7 BLUT adapter; OW-PHASE-8 Liminal production compiler; OW-PHASE-9 High-assurance controls; OW-PHASE-10 Contractor Work Order profile
+
+### Revision 2 — accepted
+
+[record](../../docs/roadmap/revisions/2.toml) · sha256:`c696f33422c2d4cae4238b010831314ccbd94cc27d67f2fd4aed4068236e06db` · predecessor revision 1 · accepted by Brian Lam at 2026-09-23T20:52:17Z
+
+- **Diff against its predecessor:** no phase added, removed or retitled (the predecessor recorded titles only: exits, tiers, order and open work cannot be compared against it)
+- **Proposer's note:** OW-PHASE-9 gains the open slug web-lan: the web UI on the LAN and other devices, which needs TLS and real authentication first (owner, 2026-09-23)
+- **Phases (11):** OW-PHASE-0 Telemetry shim; OW-PHASE-1 File-native WAR compiler; OW-PHASE-2 Agent planner; OW-PHASE-3 ADR federation; OW-PHASE-4 Knowledge Fabric registration; OW-PHASE-5 Dispatch and Katana execution; OW-PHASE-6 Gate Registry and assurance case; OW-PHASE-7 BLUT adapter; OW-PHASE-8 Liminal production compiler; OW-PHASE-9 High-assurance controls; OW-PHASE-10 Contractor Work Order profile
+
+### Revision 3 — proposed
+
+[record](../../docs/roadmap/revisions/3.toml) · sha256:`12296f2c214f1d6fef365293e7ecf88e5b73190fb7a2bf5d663c61219f3b6082` · predecessor revision 2
+
+- **Diff against its predecessor:** retires docs/roadmap/PRODUCTION_ROADMAP.md, retires docs/roadmap/view.json, retires docs/design/rc2-implementation-roadmap.json, retires docs/sas/drafts/1.0.0-rc.3/roadmap.json
+- **Proposer's note:** No phase changes. The record names the four plans it retires, one line of lineage each (OW-WAR-0114 M5): PRODUCTION_ROADMAP.md, view.json, rc2-implementation-roadmap.json, and the rc.3 four-phase roadmap.json
+- **Phases (11):** OW-PHASE-0 Telemetry shim; OW-PHASE-1 File-native WAR compiler; OW-PHASE-2 Agent planner; OW-PHASE-3 ADR federation; OW-PHASE-4 Knowledge Fabric registration; OW-PHASE-5 Dispatch and Katana execution; OW-PHASE-6 Gate Registry and assurance case; OW-PHASE-7 BLUT adapter; OW-PHASE-8 Liminal production compiler; OW-PHASE-9 High-assurance controls; OW-PHASE-10 Contractor Work Order profile
+
+### Plans the record retired
+
+- `docs/roadmap/PRODUCTION_ROADMAP.md` → prose release gates and status, retired by OW-WAR-0114 on 2026-09-25: the phases, their exits and their order are this record's; its text is byte-for-byte at archive/legacy-20260914/original/docs/roadmap/PRODUCTION_ROADMAP.md (git blob 14660efa).
+- `docs/roadmap/view.json` → the authored `war progress` tree (oh.war/roadmap-view/v1), retired by OW-WAR-0114 on 2026-09-25: `war progress` builds its tree from this record; its last text is git blob d649714f.
+- `docs/design/rc2-implementation-roadmap.json` → the RC.2 implementation plan (draft-not-authorized), retired by OW-WAR-0114 on 2026-09-25: its Warrants are placed in this record's phases; its text is byte-for-byte at archive/legacy-20260914/original/docs/design/rc2-implementation-roadmap.json (git blob cd027c71).
+- `docs/sas/drafts/1.0.0-rc.3/roadmap.json` → the four-phase plan (proposal-not-authorized), retired as a plan by OW-WAR-0114 Q-001 (answer A) on 2026-09-25: its four phases are this record's priority tiers. The file stays unchanged as the rc.3 draft's case and Warrant inventory, whose bytes that draft's source-set.json pins.
+
 ## Decisions
 
 ### OW-ADR-0001 — ADR OW-0001: Adopt `serde_jcs` as the RFC 8785 canonical JSON implementation (`accepted`)
@@ -26089,6 +26121,18 @@ M5 — rendering and retirement (after OW-WAR-0113 M2):
 15. `conformance/plants.d/70-roadmap.sh`: the plants listed in OBL-001 to
     OBL-004.
 
+- (AM-003) `crates/openwarrant-cli/src/compile.rs` gathers the roadmap for
+  both projections and `crates/openwarrant-compiler/src/history.rs` renders
+  the earlier revisions. `war sas propose 1.1.1` writes
+  `docs/sas/revisions/1.1.1.toml`. The retirements are `[[retires]]` lines
+  in `roadmap.toml`, proposed as `docs/roadmap/revisions/3.toml`. The rc.3
+  `roadmap.json` is retired by its lineage line only; its bytes stay, since
+  the rc.3 draft's `source-set.json` pins them. `war sas propose 1.1.1`
+  waits for this revision's authorization, because the real-document §98
+  test in `crates/openwarrant-core/src/sas.rs` (pinned by resolved
+  OW-WAR-0058 and OW-WAR-0062) holds the live SAS to eleven phases; it is
+  re-pointed at the roadmap record's phases in the same change.
+
 ## Frozen Surfaces
 
 `oh.war/report/v1`, every existing record schema, the signing seam's
@@ -26286,6 +26330,11 @@ assert it with.
 | D-029 | CONTEXT.md: the term | `CONTEXT.md` | not_content_addressed |
 | D-030 | docs/TUI.md: the Roadmap pane | `docs/TUI.md` | not_content_addressed |
 | D-031 | the plants | `conformance/plants.d/70-roadmap.sh` | not_content_addressed |
+| D-032 | compile: the roadmap gathered for CURRENT.md and HISTORY.md (AM-003) | `crates/openwarrant-cli/src/compile.rs` | not_content_addressed |
+| D-033 | compiler: earlier roadmap revisions in HISTORY.md (AM-003) | `crates/openwarrant-compiler/src/history.rs` | not_content_addressed |
+| D-034 | SAS 1.1.1, proposed: §98 points at the record (AM-003) | `docs/sas/revisions/1.1.1.toml` | not_content_addressed |
+| D-035 | Roadmap revision 3, proposed: the retirements (AM-003) | `docs/roadmap/revisions/3.toml` | not_content_addressed |
+| D-036 | core: the real-document §98 test reads the roadmap record (AM-003) | `crates/openwarrant-core/src/sas.rs` | not_content_addressed |
 
 ### OW-WAR-0115 — The hub: war opens from anywhere, with every project and its progress
 

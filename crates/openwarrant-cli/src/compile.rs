@@ -402,6 +402,7 @@ pub fn master_corpus(repo: &Repository) -> Result<openwarrant_compiler::CurrentC
         });
     }
     subjects.sort_by(|a, b| a.alias.cmp(&b.alias));
+    let roadmap = gather_roadmap(repo, &status, &subjects);
 
     let sas = repo.load_sas_revisions().ok().and_then(|revs| {
         let pin = crate::sas::pin_of(&revs)?.clone();
@@ -499,6 +500,7 @@ pub fn master_corpus(repo: &Repository) -> Result<openwarrant_compiler::CurrentC
         tree_date,
         sas,
         decisions,
+        roadmap,
         phases,
         subjects,
         governed,
@@ -508,6 +510,130 @@ pub fn master_corpus(repo: &Repository) -> Result<openwarrant_compiler::CurrentC
         register: register_path
             .is_file()
             .then(|| repo.relative(&register_path)),
+    })
+}
+
+/// The roadmap record for both projections (OW-ADR-0023 decision 6): the
+/// phases in dependency order as `war roadmap` shows them — members and
+/// achievement derived by `status::build`, never read from the record —
+/// each member with its rung; every revision record with its diff; and the
+/// plans the record retires. `None` for a program without a record, or one
+/// whose record does not load (`war check` reports why).
+fn gather_roadmap(
+    repo: &Repository,
+    status: &openwarrant_core::status::CorpusStatus,
+    subjects: &[openwarrant_compiler::current::Subject],
+) -> Option<openwarrant_compiler::current::Roadmap> {
+    use openwarrant_compiler::current as c;
+
+    let loaded = crate::roadmap_cmd::load(repo).ok().flatten()?;
+    let (_, view) = crate::roadmap_cmd::view_with(repo, status).ok()?;
+    let atom_path = |role: &str| {
+        loaded
+            .manifest
+            .atoms
+            .iter()
+            .filter(|a| a.role == role)
+            .min_by_key(|a| a.ordinal)
+            .map(|a| (a, loaded.dir.join(&a.path)))
+    };
+    let intent = atom_path("intent").and_then(|(a, path)| {
+        let text = std::fs::read_to_string(&path).ok()?;
+        Some(c::Atom {
+            ordinal: a.ordinal,
+            role: a.role.clone(),
+            source: repo.relative(&path),
+            body: atom_body(&text).to_owned(),
+            structured: !a.path.ends_with(".md"),
+        })
+    });
+    let phases = view
+        .phases
+        .iter()
+        .map(|p| c::RoadmapPhase {
+            id: p.id.clone(),
+            title: p.title.clone(),
+            outcome: loaded
+                .phases
+                .get(&p.id)
+                .map(|x| x.outcome.clone())
+                .unwrap_or_default(),
+            exit: p.exit.clone(),
+            tier: p.tier.as_ref().map(|t| t.trim_end().to_owned()),
+            depends_on: p.depends_on.clone(),
+            exit_warrant: p.exit_warrant.clone(),
+            achieved: p.achieved.clone(),
+            // A replaced Warrant is lineage, not a member (OW-ADR-0022).
+            members: p
+                .members
+                .iter()
+                .filter_map(|alias| {
+                    subjects
+                        .iter()
+                        .find(|s| &s.alias == alias && s.is_current())
+                        .map(|s| c::Member {
+                            alias: alias.clone(),
+                            rung: s.rung.clone(),
+                        })
+                })
+                .collect(),
+            open: p.open.clone(),
+        })
+        .collect();
+    let number = |id: &str| {
+        id.rsplit('-')
+            .next()
+            .and_then(|n| n.parse::<u32>().ok())
+            .unwrap_or(u32::MAX)
+    };
+    let revisions = loaded
+        .revisions
+        .iter()
+        .map(|v| {
+            let before = v
+                .predecessor
+                .and_then(|n| loaded.revisions.iter().find(|r| r.revision == n));
+            let mut phases: Vec<(String, String)> = v
+                .phases
+                .iter()
+                .map(|(id, t)| (id.clone(), t.clone()))
+                .collect();
+            phases.sort_by_key(|(id, _)| number(id));
+            c::RoadmapRevisionEntry {
+                revision: v.revision,
+                state: word(&v.state),
+                sha256: v.sha256.clone(),
+                predecessor: v.predecessor,
+                record: repo.relative(&crate::roadmap_cmd::revision_path(&loaded, v.revision)),
+                accepted_by: v.acceptance.as_ref().map(|a| a.accepted_by.clone()),
+                effective_time: v.acceptance.as_ref().map(|a| a.effective_time.clone()),
+                note: v.note.clone(),
+                diff: crate::roadmap_cmd::diff_against(before, v).summary(),
+                phases,
+            }
+        })
+        .collect();
+    Some(c::Roadmap {
+        manifest: repo.relative(&loaded.dir.join("roadmap.toml")),
+        phases_source: atom_path("phases")
+            .map(|(_, p)| repo.relative(&p))
+            .unwrap_or_default(),
+        digest: loaded.digest.clone(),
+        accepted_revision: view.accepted_revision,
+        accepted: view.accepted,
+        pending_revision: view.pending_revision,
+        intent,
+        phases,
+        revisions,
+        retires: loaded
+            .manifest
+            .retires
+            .iter()
+            .map(|r| c::RetiredPlan {
+                path: r.path.clone(),
+                lineage: r.lineage.clone(),
+            })
+            .collect(),
     })
 }
 

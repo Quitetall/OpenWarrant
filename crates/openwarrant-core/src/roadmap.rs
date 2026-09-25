@@ -56,7 +56,16 @@ pub enum RoadmapError {
     Cycle { through: String },
     #[error("phase {id} names priority {priority:?}, which is not one of the declared tiers")]
     UnknownTier { id: String, priority: String },
+    #[error(
+        "phase {id} writes `{key}`; the roadmap holds no member list and no status. A Warrant joins a phase by its own `[[roadmap]]` ref and a phase is achieved when its exit Warrant resolves — both are derived, never written here"
+    )]
+    HeldFact { id: String, key: String },
 }
+
+/// Keys a phase may not carry: each is a fact the records already state and
+/// the roadmap would only repeat — membership (a Warrant's ref) and
+/// achievement (the exit Warrant's resolution). OW-ADR-0023 decision 4.
+pub const DERIVED_KEYS: &[&str] = &["members", "warrants", "status", "achieved", "resolved"];
 
 /// `roadmap.toml`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -201,6 +210,12 @@ pub fn parse_phases(source: &str, prefix: &str) -> Result<Phases, RoadmapError> 
             id: id.clone(),
             prefix: prefix.to_owned(),
         })?;
+        if let Some(key) = DERIVED_KEYS.iter().find(|k| r.contains_key(**k)) {
+            return Err(RoadmapError::HeldFact {
+                id,
+                key: (*key).to_owned(),
+            });
+        }
         if !seen.insert(id.clone()) {
             return Err(RoadmapError::Duplicate { id });
         }
@@ -279,6 +294,11 @@ pub struct RoadmapRevision {
     /// fact.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
+    /// The earlier plans this revision names as retired (`[[retires]]` in the
+    /// manifest), by path, so a revision that retires one says so in its
+    /// diff. Absent on revisions recorded before it existed.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub retires: Vec<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub acceptance: Option<SasAcceptance>,
 }
@@ -461,6 +481,24 @@ phases:
             .map(|p| p.id.as_str())
             .collect();
         assert_eq!(order, ["OW-PHASE-0", "OW-PHASE-1"]);
+    }
+
+    #[test]
+    fn a_member_list_or_a_status_is_refused_by_name() {
+        for key in DERIVED_KEYS {
+            let held = GOOD.replace(
+                "    depends_on: []\n",
+                &format!("    depends_on: []\n    {key}: [\"OW-WAR-0001\"]\n"),
+            );
+            assert_ne!(held, GOOD);
+            assert_eq!(
+                parse_phases(&held, "OW"),
+                Err(RoadmapError::HeldFact {
+                    id: "OW-PHASE-0".into(),
+                    key: (*key).to_owned()
+                })
+            );
+        }
     }
 
     #[test]
