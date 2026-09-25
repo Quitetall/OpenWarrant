@@ -81,14 +81,20 @@ plant_cmd "a sound re-pin asks for authorization rev $REPIN_NEXT" "rev $REPIN_NE
 # `war sas repin` (OW-WAR-0112 M5): the tool writes the amendment the plants
 # above fabricate by hand. Each plant removes what the command wrote — the
 # battery's restore knows AM-901, not the ids the tool numbers.
+#
+# The tool mints `AM-<n>-<hash>` (t-dc28): the ordinal is one past the highest
+# on disk, legacy `AM-<n>` and minted `AM-<n>-<hash>` alike, and the hash is
+# fresh each run — so the plants match the ordinal prefix, not a whole name.
 echo "== sas repin (OW-WAR-0112) =="
-REPIN_TOOL_ID=$(printf 'AM-%03d' $(( $(ls "$REPIN_DIR/amendments" 2>/dev/null | grep -c '^AM-[0-9]*\.yaml$') + 1 )))
+REPIN_TOOL_MAX=$(ls "$REPIN_DIR/amendments" 2>/dev/null | sed -nE 's/^AM-0*([0-9]+)(-[0-9a-f]+)?\.yaml$/\1/p' | sort -n | tail -1)
+REPIN_TOOL_PREFIX=$(printf 'AM-%03d-' $(( ${REPIN_TOOL_MAX:-0} + 1 )))
+repin_tool_file() { ls "$REPIN_DIR/amendments/$REPIN_TOOL_PREFIX"*.yaml 2>/dev/null | head -1; }
 
 # One Warrant: the amendment lands and the queue asks for revision N+1.
 plant_cmd "repin writes the amendment; rev $REPIN_NEXT pending" "rev $REPIN_NEXT" "authorize" 0 \
-    "\"$WAR\" sas repin $REPIN_ALIAS >/dev/null 2>&1; assert_present 'predecessor_sas_revision' '$REPIN_DIR/amendments/$REPIN_TOOL_ID.yaml'" \
+    "\"$WAR\" sas repin $REPIN_ALIAS >/dev/null 2>&1; assert_present 'predecessor_sas_revision' \"\$(repin_tool_file)\"" \
     sign --list
-rm -f "$REPIN_DIR/amendments/$REPIN_TOOL_ID.yaml"
+rm -f "$REPIN_DIR/amendments/$REPIN_TOOL_PREFIX"*.yaml
 
 # The amendment the tool writes is the one `check` reads: it names the
 # latest revision and the pin it moved from, and no `sas.repin-*` fires.
@@ -97,7 +103,7 @@ rm -f "$REPIN_DIR/amendments/$REPIN_TOOL_ID.yaml"
 REPIN_LATEST=$(grep -l '^state = "accepted"' docs/sas/revisions/*.toml | xargs -n1 basename | sed 's/\.toml$//' | sort -V | tail -1)
 "$WAR" sas repin "$REPIN_ALIAS" >/dev/null 2>&1
 REPIN_CHK=$("$WAR" check "$REPIN_ALIAS" 2>&1)
-if grep -q "sas_revision: \"$REPIN_LATEST\"" "$REPIN_DIR/amendments/$REPIN_TOOL_ID.yaml" \
+if grep -q "sas_revision: \"$REPIN_LATEST\"" "$(repin_tool_file)" \
     && ! grep -q 'sas.repin-unknown-requirement\|sas.pin-unknown' <<<"$REPIN_CHK" \
     && ! grep -q "sas.pin-superseded .*$REPIN_ALIAS" <<<"$REPIN_CHK"; then
     printf 'ok    %-34s pinned to %s, the warning gone\n' "the written re-pin checks clean" "$REPIN_LATEST"
@@ -106,7 +112,7 @@ else
     printf 'FAIL  %-34s %s\n' "the written re-pin checks clean" "$(grep -E 'sas\.' <<<"$REPIN_CHK" | grep -v '^PASS' | head -2 | tr '\n' '|')"
     FAILED=$((FAILED + 1))
 fi
-rm -f "$REPIN_DIR/amendments/$REPIN_TOOL_ID.yaml"
+rm -f "$REPIN_DIR/amendments/$REPIN_TOOL_PREFIX"*.yaml
 plant_restore
 
 # A resolved Warrant named outright: refused by name, nothing written.

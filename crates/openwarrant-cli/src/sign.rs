@@ -743,22 +743,15 @@ fn read_latest_amendment(dir: &Utf8Path) -> Option<AmendmentSummary> {
     read_amendments(dir).pop()
 }
 
-/// Every amendment under `amendments/`, oldest first (slice D1 reads all).
+/// Every amendment under `amendments/`, oldest first (slice D1 reads all),
+/// in `crate::amendment_id`'s order: ordinal, then `effective_time`, then
+/// name — so `AM-004-1f3a` and `AM-004-c07e` from two branches both show,
+/// and `AM-1000` follows `AM-999`. `.yaml` only, as before.
 pub(crate) fn read_amendments(dir: &Utf8Path) -> Vec<AmendmentSummary> {
-    let amendments = dir.join("amendments");
-    let mut files: Vec<Utf8PathBuf> = std::fs::read_dir(&amendments)
-        .ok()
-        .map(|rd| {
-            rd.filter_map(Result::ok)
-                .filter_map(|e| Utf8PathBuf::from_path_buf(e.path()).ok())
-                .filter(|p| p.extension() == Some("yaml"))
-                .collect()
-        })
-        .unwrap_or_default();
-    files.sort();
-    files
+    crate::amendment_id::files(dir)
         .into_iter()
-        .filter_map(|path| read_amendment(&path))
+        .filter(|f| f.path.extension() == Some("yaml"))
+        .filter_map(|f| read_amendment(&f.path))
         .collect()
 }
 

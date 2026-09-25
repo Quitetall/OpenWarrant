@@ -190,7 +190,7 @@ pub fn remedy_for(d: &Diagnostic) -> Option<Remedy> {
             Kind::Informational,
             &["war", "diff", a],
             "see what moved the contract; §31 wants an amendment record under amendments/ \
-             before revision N+1 is signed",
+             (`war amend <alias>` mints its file) before revision N+1 is signed",
         ),
         "roadmap.unaccepted" => Remedy::new(
             Kind::Human,

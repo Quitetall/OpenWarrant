@@ -995,7 +995,7 @@ pub fn ingest_with(
                         "{alias}: the contract moved from {} to {} after revision {} was authorized. \
                          §31: every revision after authorization carries an amendment record — \
                          revision {} needs {needed} under amendments/ and {amendments} exist. \
-                         Write AM-{:03} before re-signing",
+                         Write AM-{:03} (`war amend {alias}` mints its file, AM-<n>-<hash>) before re-signing",
                         prev.revision.contract_digest,
                         current_digest,
                         prev.revision.revision,
