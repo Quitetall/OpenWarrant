@@ -1,0 +1,19 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-004"
+band: "manual_revision"
+reason: "AM-002 made war eval's scratch programs commit before recording evidence, and its performer escalated what that could not reach: the four run-kind eval tasks still score `partial`, so 87-eval's \"run-01-echo reaches would_satisfy\" fails. A run task's deliverable IS the ops.echo receipt, pinned by content in deliverables.toml; the gate declares no inputs, so its receipt is bound to the tree, which the pin itself moves — no order of record and pin is admissible under the unchanged reuse rule. Q-001 (c) is the remedy the basis chose: a Gate Definition that declares `inputs` is judged by them. `true` reads no file of the program, so the task fixtures' gate declares its own definition as its input. Definitions are immutable (SAS §43.3; this Warrant's basis: each gate that declares inputs gets a new version), so the fixtures carry ops.echo@1.1.0 in place of their copy of 1.0.0, and each run task's task.toml, proposal.json and deliverables template cite 1.1.0. ops.echo is a gate this repository ships, so the bump is within the autonomy limit. The registered docs/gates/ops.echo@1.0.0.yaml and the reuse rule are unchanged. Wording drafted by the performer `claude`."
+governing_adr_or_policy: "sas://WAR-SAS-43.3"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. The deliverable set gains D-013..D-028, the four files of each run-kind eval task under evals/tasks/run-*/; the copies of ops.echo@1.0.0.yaml under their fixture/docs/gates/ are removed. eval.rs's comment on run tasks and evals/baseline.json (D-010, D-011) follow. Revision 5 is authorized against the amended contract."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-25"
+
+semantic_diff:
+  - element: "deliverables"
+    before: "D-001..D-012."
+    after: "Also D-013..D-028: for each of evals/tasks/run-01-echo, run-02-timeout, run-03-submit and run-04-battery, fixture/docs/gates/ops.echo@1.1.0.yaml (inputs declared), task.toml, proposal.json and deliver/docs/warrants/WARRANT_ALIAS/deliverables.toml.tmpl."
+
+affected_stages: []
+affected_milestones: []

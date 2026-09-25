@@ -51,6 +51,14 @@ classification: internal
   their fixture on a scratch program with a tree-bound receipt, so they test
   `resolution.agent` and `resolution.outcome-unsupported` and not this
   Warrant's reuse rule.
+- (AM-004) `evals/tasks/run-01-echo/`, `run-02-timeout/`, `run-03-submit/`
+  and `run-04-battery/`, four files each: `fixture/docs/gates/ops.echo@1.1.0.yaml`
+  (ops.echo 1.0.0 with `inputs` declaring its own definition, replacing the
+  fixture's copy of `ops.echo@1.0.0.yaml`), `task.toml`, `proposal.json` and
+  `deliver/docs/warrants/WARRANT_ALIAS/deliverables.toml.tmpl`, which cite
+  1.1.0 and its receipt. A run task's receipt is then judged by the declared
+  input, not by the tree its own pin moves, and the four tasks can reach
+  `would_satisfy`; `evals/baseline.json` is re-recorded.
 
 ## Frozen Surfaces
 

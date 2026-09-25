@@ -122,3 +122,163 @@ required = true
 content_addressed = false
 provenance_required = false
 obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-013"
+title = "run-01-echo: ops.echo@1.1.0, inputs declared (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-01-echo/fixture/docs/gates/ops.echo@1.1.0.yaml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-014"
+title = "run-01-echo: cites ops.echo@1.1.0 (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-01-echo/task.toml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-015"
+title = "run-01-echo: stage and obligation cite ops.echo@1.1.0 (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-01-echo/proposal.json"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-016"
+title = "run-01-echo: pins the 1.1.0 receipt (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-01-echo/deliver/docs/warrants/WARRANT_ALIAS/deliverables.toml.tmpl"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-017"
+title = "run-02-timeout: ops.echo@1.1.0, inputs declared (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-02-timeout/fixture/docs/gates/ops.echo@1.1.0.yaml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-018"
+title = "run-02-timeout: cites ops.echo@1.1.0 (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-02-timeout/task.toml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-019"
+title = "run-02-timeout: stage and obligation cite ops.echo@1.1.0 (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-02-timeout/proposal.json"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-020"
+title = "run-02-timeout: pins the 1.1.0 receipt (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-02-timeout/deliver/docs/warrants/WARRANT_ALIAS/deliverables.toml.tmpl"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-021"
+title = "run-03-submit: ops.echo@1.1.0, inputs declared (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-03-submit/fixture/docs/gates/ops.echo@1.1.0.yaml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-022"
+title = "run-03-submit: cites ops.echo@1.1.0 (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-03-submit/task.toml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-023"
+title = "run-03-submit: stage and obligation cite ops.echo@1.1.0 (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-03-submit/proposal.json"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-024"
+title = "run-03-submit: pins the 1.1.0 receipt (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-03-submit/deliver/docs/warrants/WARRANT_ALIAS/deliverables.toml.tmpl"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-025"
+title = "run-04-battery: ops.echo@1.1.0, inputs declared (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-04-battery/fixture/docs/gates/ops.echo@1.1.0.yaml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-026"
+title = "run-04-battery: cites ops.echo@1.1.0 (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-04-battery/task.toml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-027"
+title = "run-04-battery: stage and obligation cite ops.echo@1.1.0 (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-04-battery/proposal.json"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-028"
+title = "run-04-battery: pins the 1.1.0 receipt (AM-004)"
+kind = "file"
+target_ref = "evals/tasks/run-04-battery/deliver/docs/warrants/WARRANT_ALIAS/deliverables.toml.tmpl"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]

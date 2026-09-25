@@ -9,8 +9,17 @@
 # A pending SAS acceptance renders as `  SAS <version>`, which the first
 # version of this pattern missed — invisible until a revision was actually
 # proposed while the battery ran (OW-WAR-0112 proposing 1.1.0).
-C_LIST=$("$WAR" sign --list 2>/dev/null | grep -cE '^  (OW-WAR-[0-9]{4}|SAS [0-9]+\.[0-9]+\.[0-9]+|[0-9]+\.[0-9]+\.[0-9]+)')
-C_BOARD=$("$WAR" console --json 2>/dev/null | python3 -c 'import json,sys; print(len(json.load(sys.stdin)["result"]["acts"]))')
+#
+# Over a scratch program whose queue holds two authorizations and a SAS
+# acceptance (lib.sh, `scratch_queue`), because this corpus's queue is empty
+# whenever the owner has signed everything, and "0 == 0" compares nothing.
+# This corpus is still held to the same rule below, empty or not.
+C_ROOT=$(scratch_queue CN)
+[[ -d "${C_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
+c_list() { "$WAR" "$@" sign --list 2>/dev/null | grep -cE '^  ([A-Z]+-WAR-[0-9]{4}|SAS [0-9]+\.[0-9]+\.[0-9]+|[0-9]+\.[0-9]+\.[0-9]+)'; }
+c_board() { "$WAR" "$@" console --json 2>/dev/null | python3 -c 'import json,sys; print(len(json.load(sys.stdin)["result"]["acts"]))'; }
+C_LIST=$(c_list --root "$C_ROOT")
+C_BOARD=$(c_board --root "$C_ROOT")
 if [[ "$C_LIST" -gt 0 && "$C_LIST" == "$C_BOARD" ]]; then
     printf 'ok    %-34s %s acts, the same ones war sign lists\n' "the board is the signing queue" "$C_BOARD"
     PASSED=$((PASSED + 1))
@@ -19,9 +28,23 @@ else
     FAILED=$((FAILED + 1))
 fi
 
+# This corpus: the board is its queue too, and an empty queue says so in both
+# places rather than showing an empty board.
+C_RLIST=$(c_list)
+C_RBOARD=$(c_board)
+if [[ "$C_RLIST" == "$C_RBOARD" ]] && { [[ "$C_RLIST" -gt 0 ]] \
+    || { "$WAR" sign --list 2>&1 | grep -q 'nothing awaits a signature' \
+        && printf 'x\n' | "$WAR" console 2>&1 | grep -q 'nothing awaits a signature'; }; }; then
+    printf 'ok    %-34s %s acts; none is said, not shown blank\n' "this corpus's board is its queue" "$C_RBOARD"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s sign --list %s, console %s, or an empty queue went unsaid\n' "this corpus's board is its queue" "$C_RLIST" "$C_RBOARD"
+    FAILED=$((FAILED + 1))
+fi
+
 # Every row is a human act through the agent's dialog. A row whose command
 # could sign without `--ssh-sign` would be a row the tool could run itself.
-C_JSON=$("$WAR" console --json 2>/dev/null)
+C_JSON=$("$WAR" --root "$C_ROOT" console --json 2>/dev/null)
 C_VIA_SSH=$(CJSON="$C_JSON" python3 -c 'import json, os
 b = json.loads(os.environ["CJSON"])["result"]
 ok = bool(b["acts"]) and all(a["command"].endswith("--ssh-sign") for a in b["acts"])
@@ -67,9 +90,13 @@ else
     FAILED=$((FAILED + 1))
 fi
 
-# The screen itself: a checklist, and an exit that writes nothing.
-C_SCREEN=$(printf 'x\n' | "$WAR" console 2>&1)
+# The screen itself: a checklist, and an exit that writes nothing — on the
+# scratch, whose board has rows to check, and in this repository, whose
+# tracked records the same exit must leave alone.
+C_SCREEN=$(printf 'x\n' | "$WAR" --root "$C_ROOT" console 2>&1)
+printf 'x\n' | "$WAR" console >/dev/null 2>&1
 if grep -q '\[ \]' <<< "$C_SCREEN" && grep -qi 'ssh' <<< "$C_SCREEN" \
+    && [[ -z "$(git -C "$C_ROOT" status --porcelain)" ]] \
     && git diff --quiet -- docs/ openwarrant.toml; then
     printf 'ok    %-34s a checklist, and exit wrote nothing\n' "the console screen"
     PASSED=$((PASSED + 1))
@@ -81,6 +108,9 @@ fi
 # End of input closes the screen. Every prompt loop must take a closed stdin as
 # "stop", or the battery itself hangs: `s` with nothing behind it asked for a
 # reason and a correction kind, and an empty line read as "ask again" spins.
+# On the scratch, so `1` checks a row and `s` reaches the signing prompt;
+# with no ssh-agent reachable, so that prompt's child can sign nothing (the
+# scratch's register names nobody's key, and it refuses at `sign.who`).
 C_HUNG=""
 for C_IN in '' '1' '1
 s'; do
@@ -88,16 +118,17 @@ s'; do
     # and took 22 s on this 140-Warrant corpus (2026-09-23, debug build, load
     # 20), the same before and after that day's changes. Speed is
     # OW-WAR-0120's budget; this only has to tell slow from never.
-    printf '%s\n' "$C_IN" | timeout 60 "$WAR" console >/dev/null 2>&1
+    printf '%s\n' "$C_IN" | timeout 60 env -u SSH_AUTH_SOCK -u SSH_AGENT_PID "$WAR" --root "$C_ROOT" console >/dev/null 2>&1
     [[ $? -eq 124 ]] && C_HUNG="$C_HUNG $(tr '\n' ',' <<< "$C_IN")"
 done
-if [[ -z "$C_HUNG" ]]; then
+if [[ -z "$C_HUNG" ]] && [[ -z "$(git -C "$C_ROOT" status --porcelain)" ]]; then
     printf 'ok    %-34s three depths, none hung\n' "end of input closes the screen"
     PASSED=$((PASSED + 1))
 else
-    printf 'FAIL  %-34s hung on:%s\n' "end of input closes the screen" "$C_HUNG"
+    printf 'FAIL  %-34s hung on:%s, or the scratch moved\n' "end of input closes the screen" "$C_HUNG"
     FAILED=$((FAILED + 1))
 fi
+corpus_gone "$C_ROOT"
 
 # `war commit` names the record kinds it found and stages nothing. The mutation
 # is a real edit to a tracked record, so the message has something to classify.
