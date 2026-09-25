@@ -13,18 +13,23 @@ Built:
 - presence read from a security key's signature and recorded;
 - `[policy] require_user_presence` enforced when `war sign` signs, one act or a batch.
 
-Not built. These wait on the owner's answer to OW-WAR-0138 U-001 (how a
-repository adopts protected state):
+Built CONTINGENTLY, on a branch not for merge until the owner answers
+OW-WAR-0138 U-001 (how a repository adopts protected state), against the
+basis's recommended option A — opt-in per repository:
 
-- the actor binding read from a protected store;
-- `authority.legacy-fallback` and `authority.unprotected`;
-- the protected policy keys read from the store and
-  `policy.unprotected-divergence`;
-- the v2 store revision.
+- the actor binding, kind and role read from a protected store's current
+  head, with `authority.legacy-fallback` for a record the store does not back;
+- `authority.unprotected`, warned once by `war check` in a repository with no
+  store;
+- the protected policy keys read from the store, and
+  `policy.unprotected-divergence` for a file value that differs;
+- the v2 store revision (actor kind per principal, a policy table).
 
-Until U-001 is answered, `roles.toml`, `allowed_signers` and
-`openwarrant.toml` are files in the working tree, and the performer can
-write all three. THREAT_MODEL row 6 is unchanged.
+A repository with no `[authority]` table reads exactly as before, plus the
+warning: `roles.toml`, `allowed_signers` and `openwarrant.toml` are files in
+the working tree, and the performer can write all three. This repository has
+no store. Adopting one is the owner's act (`docs/cli/authority.md`,
+"Cutover").
 
 ## What authenticates a human act
 
@@ -66,12 +71,52 @@ The chain runs `--as` actor → `roles.toml` `ssh_principal` → exactly one
   agent's key is substituted into `ssh-keygen -Y sign`, and the act is
   refused naming `["bot"]` with nothing recorded. Also the `sign.rs` unit
   test above.
-- **Residual:** the chain is only as good as the register. Today the
-  register is two files the performer can edit. An agent that adds its own
-  key under a human's principal passes this check. The control that remains
-  is review of `docs/authority/**`, an operator duty (THREAT_MODEL row 6).
-  Reading the binding from a protected store is what closes it, and that
-  waits on U-001.
+- **With a store** (`[authority] store`, contingent on U-001 option A): the
+  chain runs `--as` actor → the store principal whose `actor` is that name →
+  its key, at the store's current head, and the principal must be `human`
+  there and hold the act's role (`authorizer` for authorize, correct and
+  accept; `resolver` for resolve). `roles.toml` and `allowed_signers` grant
+  nothing:
+  - a record that verifies only against them is `authority.legacy-fallback`,
+    on the read path and at signing, with nothing recorded;
+  - a grant the store withdrew is `authority.not-granted`;
+  - a store that cannot be read, that the reading process can write, or that
+    is a test store named as protected is `authority.verify-unavailable` —
+    never a fall back;
+  - a grant read at one head and a store at another by the time the key has
+    signed is `authority.stale-head`, and the signature is removed. This one
+    is in the code (`sign.rs` `ssh_sign_act`) and not exercised: no plant
+    moves the store while the key is being asked.
+  - **Carried by:** `authority_check.rs` (`verify_store`, `signer_for`) and
+    `authority_cmd/store.rs` (`read_current`, whose guard refuses a store the
+    execution account owns or any group or other can write).
+  - **Exercised by:** `58-authn.sh`, the store half: the performer's own key
+    registered as a human in the two working-tree files verifies without a
+    store and is `authority.legacy-fallback` with one, for an authorization
+    and a forged resolution, and a new act by it is refused; the store's
+    human signs and verifies; a revoked grant; a writable, an unreadable and
+    a mis-moded store. The `store.rs` unit test covers the owner and mode
+    rule for a separate account, which no plant can create.
+- **Residual:** without a store the chain is only as good as the register,
+  two files the performer can edit. An agent that adds its own key under a
+  human's principal passes this check; review of `docs/authority/**` is the
+  operator's control (THREAT_MODEL row 6), and `war check` says so
+  (`authority.unprotected`). With a store:
+  - the store is as protected as the account holding it; `war` checks the
+    owner and mode it can see and cannot prove the deployment (R-003);
+  - the `[authority]` table is in `openwarrant.toml`; removing it is a
+    reviewed commit that brings the warning back, and an older `war` that
+    does not know the table ignores it unless `[project] requires_war`
+    refuses that `war`;
+  - `roles.toml` still says who is eligible to be asked; with a store it is
+    necessary and never sufficient;
+  - attestations are verified against the working-tree `allowed_signers`
+    (`attest.rs`), not the store;
+  - the read path judges every record at the store's current head, so
+    withdrawing a grant or rotating a key also re-judges acts signed before
+    it (`58-authn.sh` "revocation reaches the read path"). Whether history
+    should be judged at the head it was signed under is the owner's to
+    decide; no timestamp here is authenticated, so it is not guessed.
 
 ### 3. Presence: a person at the key
 
@@ -137,9 +182,11 @@ The chain runs `--as` actor → `roles.toml` `ssh_principal` → exactly one
     (`authority_check`) does not apply it. A response signed outside
     `war sign`, with a key the agent can reach, still verifies there. Past
     acts are not re-judged by a policy set later.
-  - `require_user_presence` lives in `openwarrant.toml`, which the performer
-    can edit. Turning it off is a commit a reviewer sees, not something `war`
-    can stop, until a store governs it (U-001).
+  - Without a store, `require_user_presence` lives in `openwarrant.toml`,
+    which the performer can edit: turning it off is a commit a reviewer
+    sees. With a store the store's value governs; `58-authn.sh` "the store
+    requires presence" observes an ordinary key refused while the file says
+    `false`.
 
 ## What a session is
 
@@ -177,13 +224,37 @@ protect (OW-WAR-0138 U-003):
 | `[policy] require_user_presence` | whether a signature without presence can record an act |
 | `[verify] verifier_argv` | which process gives the independent verdict |
 
-**Today** all four are in `openwarrant.toml`, a working-tree file the
-performer can edit. The control is review of that file, an operator duty.
-The plan is that a protected store holds them, a differing
-`openwarrant.toml` value is `policy.unprotected-divergence`, and the store's
-value governs. None of that is built, and its shape waits on U-001. Under
-U-001 option C there is no separate store and these keys stay unprotected.
-Adding a key to this list later is a store revision.
+**Without a store** all four are in `openwarrant.toml`, a working-tree file
+the performer can edit, and `war check` warns `authority.unprotected`. The
+control is review of that file, an operator duty.
+
+**With a store** (contingent on U-001 option A), the v2 revision's `policy`
+table holds them. When the repository is opened the store's values replace
+the file's for every consumer (`repo.rs`, `config.rs`
+`govern_from_store`), and each file value that differs is
+`policy.unprotected-divergence`, an error naming both values. A configured
+store that gives no policy — unreadable, or still at a v1 head — closes every
+key to its most restrictive value (no automated resolution, presence
+required, no verifier, independence undeclared), never the file's.
+
+- **Carried by:** `config.rs` (`govern_from_store`, `govern_fail_closed`),
+  `authority_check.rs` (`govern`, `protection_report`), and
+  `authority_transition.rs` (the v2 revision; a policy change moves the
+  proposal's signing bytes, so it needs the admin's signature like any
+  other).
+- **Exercised by:** `58-authn.sh`: `allow_automated_resolution` and
+  `[independence]` edited against the store are divergences, and `war check`
+  reports the store's undeclared independence, not the file's flags; a v1
+  store loads and authorizes nobody (`authority.store-v1`); a v1-to-v2
+  change with no signature, and with a signature moved onto a policy the
+  admin did not sign, are refused and the head does not move. The `config.rs`
+  unit test shows a policy-service resolution refused under the store's
+  `false` while the file says `true`; no plant reaches a policy-service
+  resolution end to end, because that needs a Warrant meeting all thirteen
+  §56.1 requirements.
+
+Under U-001 option C there is no separate store and these keys stay
+unprotected. Adding a key to this list later is a store revision.
 
 ## Claims and what carries them
 
@@ -195,5 +266,6 @@ Adding a key to this list later is a store revision.
 | Presence is read from the signature, never assumed | `presence.rs` unit tests; `58-authn.sh` |
 | Under the policy, a signature without presence records nothing | `sign.rs` `ssh_sign_act`, `batch_cmd.rs`; `58-authn.sh` |
 | An ordinary key's dialog was shown | operator duty (`ssh-add -c`), THREAT_MODEL row 1 |
-| The register and policy are outside the performer's reach | not established. Operator review today; a store after U-001 |
+| The register and policy are outside the performer's reach | without a store: not established, operator review (`authority.unprotected`). With a store (contingent, U-001 A): `authority_check.rs`, `config.rs`, `58-authn.sh` store half; the store's own protection is the operator's (R-003) |
+| A record the store does not back is refused, never fallen back from | `authority.legacy-fallback`, `authority.verify-unavailable`; `58-authn.sh` |
 | A session is the human's unlocked OS session with a loaded key | definition. `war` issues no credential (THREAT_MODEL row 13) |
