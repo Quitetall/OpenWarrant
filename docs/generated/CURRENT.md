@@ -29760,6 +29760,14 @@ The Dispatch compiler has the matching gap on the context side:
   their fixture on a scratch program with a tree-bound receipt, so they test
   `resolution.agent` and `resolution.outcome-unsupported` and not this
   Warrant's reuse rule.
+- (AM-004) `evals/tasks/run-01-echo/`, `run-02-timeout/`, `run-03-submit/`
+  and `run-04-battery/`, four files each: `fixture/docs/gates/ops.echo@1.1.0.yaml`
+  (ops.echo 1.0.0 with `inputs` declaring its own definition, replacing the
+  fixture's copy of `ops.echo@1.0.0.yaml`), `task.toml`, `proposal.json` and
+  `deliver/docs/warrants/WARRANT_ALIAS/deliverables.toml.tmpl`, which cite
+  1.1.0 and its receipt. A run task's receipt is then judged by the declared
+  input, not by the tree its own pin moves, and the four tasks can reach
+  `would_satisfy`; `evals/baseline.json` is re-recorded.
 
 ## Frozen Surfaces
 
@@ -29926,6 +29934,22 @@ this level requires. The author does not record them.
 | D-010 | An eval scratch commits before recording evidence (AM-002) | `crates/openwarrant-cli/src/eval.rs` | not_content_addressed |
 | D-011 | The eval baseline, re-recorded (AM-002) | `evals/baseline.json` | not_content_addressed |
 | D-012 | Two resolution plants re-pointed at a scratch fixture (AM-002) | `conformance/plants.d/00-corpus.sh` | not_content_addressed |
+| D-013 | run-01-echo: ops.echo@1.1.0, inputs declared (AM-004) | `evals/tasks/run-01-echo/fixture/docs/gates/ops.echo@1.1.0.yaml` | not_content_addressed |
+| D-014 | run-01-echo: cites ops.echo@1.1.0 (AM-004) | `evals/tasks/run-01-echo/task.toml` | not_content_addressed |
+| D-015 | run-01-echo: stage and obligation cite ops.echo@1.1.0 (AM-004) | `evals/tasks/run-01-echo/proposal.json` | not_content_addressed |
+| D-016 | run-01-echo: pins the 1.1.0 receipt (AM-004) | `evals/tasks/run-01-echo/deliver/docs/warrants/WARRANT_ALIAS/deliverables.toml.tmpl` | not_content_addressed |
+| D-017 | run-02-timeout: ops.echo@1.1.0, inputs declared (AM-004) | `evals/tasks/run-02-timeout/fixture/docs/gates/ops.echo@1.1.0.yaml` | not_content_addressed |
+| D-018 | run-02-timeout: cites ops.echo@1.1.0 (AM-004) | `evals/tasks/run-02-timeout/task.toml` | not_content_addressed |
+| D-019 | run-02-timeout: stage and obligation cite ops.echo@1.1.0 (AM-004) | `evals/tasks/run-02-timeout/proposal.json` | not_content_addressed |
+| D-020 | run-02-timeout: pins the 1.1.0 receipt (AM-004) | `evals/tasks/run-02-timeout/deliver/docs/warrants/WARRANT_ALIAS/deliverables.toml.tmpl` | not_content_addressed |
+| D-021 | run-03-submit: ops.echo@1.1.0, inputs declared (AM-004) | `evals/tasks/run-03-submit/fixture/docs/gates/ops.echo@1.1.0.yaml` | not_content_addressed |
+| D-022 | run-03-submit: cites ops.echo@1.1.0 (AM-004) | `evals/tasks/run-03-submit/task.toml` | not_content_addressed |
+| D-023 | run-03-submit: stage and obligation cite ops.echo@1.1.0 (AM-004) | `evals/tasks/run-03-submit/proposal.json` | not_content_addressed |
+| D-024 | run-03-submit: pins the 1.1.0 receipt (AM-004) | `evals/tasks/run-03-submit/deliver/docs/warrants/WARRANT_ALIAS/deliverables.toml.tmpl` | not_content_addressed |
+| D-025 | run-04-battery: ops.echo@1.1.0, inputs declared (AM-004) | `evals/tasks/run-04-battery/fixture/docs/gates/ops.echo@1.1.0.yaml` | not_content_addressed |
+| D-026 | run-04-battery: cites ops.echo@1.1.0 (AM-004) | `evals/tasks/run-04-battery/task.toml` | not_content_addressed |
+| D-027 | run-04-battery: stage and obligation cite ops.echo@1.1.0 (AM-004) | `evals/tasks/run-04-battery/proposal.json` | not_content_addressed |
+| D-028 | run-04-battery: pins the 1.1.0 receipt (AM-004) | `evals/tasks/run-04-battery/deliver/docs/warrants/WARRANT_ALIAS/deliverables.toml.tmpl` | not_content_addressed |
 
 #### OW-WAR-0134 — Acceptance stays valid only for the candidate accepted: a change before merge is a finding
 
@@ -37550,5 +37574,6 @@ Every command here has been judged by the act's dry run (`war sign <target> --dr
 
 | act | Warrant | command | judged | why |
 |---|---|---|---|---|
+| authorize | OW-WAR-0133 | `war sign OW-WAR-0133` | would record | revision 5 awaits authorization under AM-004 |
 | authorize | OW-WAR-0138 | `war sign OW-WAR-0138` | would record | revision 4 awaits authorization under AM-003 |
 | accept | SAS 1.1.1 | `war sign 1.1.1` | would record | a proposed SAS revision awaits acceptance |

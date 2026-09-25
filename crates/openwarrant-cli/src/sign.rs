@@ -1514,6 +1514,15 @@ fn confirm(prompt: &str) -> Result<bool, RepoError> {
 /// this Warrant does not govern, so it reports what `pending` already
 /// established (eligibility, the `--adr` requirement) and says the rest is
 /// unchecked rather than pretending.
+/// Removes a scratch directory, and everything in it, when dropped.
+struct RemoveOnDrop(camino::Utf8PathBuf);
+
+impl Drop for RemoveOnDrop {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.0);
+    }
+}
+
 fn dry_run(
     repo: &Repository,
     chosen: &[&Pending],
@@ -1527,6 +1536,10 @@ fn dry_run(
         context: format!("could not create {tmp}"),
         source,
     })?;
+    // Removed on every way out, an early `?` included: a render, write or
+    // ingest error used to return past the cleanup below and leave a
+    // `.draft.toml` in the temp directory (three were found, 2026-09-25).
+    let _cleanup = RemoveOnDrop(tmp.clone());
     for p in chosen {
         let actor = match who(p, opts) {
             Ok(a) => a,
