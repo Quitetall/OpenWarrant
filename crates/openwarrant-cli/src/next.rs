@@ -335,6 +335,12 @@ pub fn run_with(
     let mut next = derive(&pending, status);
     let (report, frontier) = crate::frontier::run(repo, None)?;
     apply_questions(&mut next, &frontier, &report);
+    // OW-WAR-0141: a question waiting before its Warrant exists is a human's
+    // act too (`answer`), read from `docs/intake/` by questions.rs.
+    next.actions.extend(crate::questions::intake_actions(repo));
+    if !next.actions.is_empty() {
+        next.nothing = None;
+    }
     judge(repo, &pending, &mut next);
     Ok(next)
 }

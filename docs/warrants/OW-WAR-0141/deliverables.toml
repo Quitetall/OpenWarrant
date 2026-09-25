@@ -112,3 +112,33 @@ required = true
 content_addressed = false
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005", "OBL-006"]
+
+[[deliverable]]
+id = "D-012"
+title = "war plan --issue / --issue-file flags and their wiring into the plan handler (AM-002)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[[deliverable]]
+id = "D-013"
+title = "Open intake questions as human answer acts in war next (AM-002)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/next.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-014"
+title = "An issue input on the war_plan_* MCP tools (AM-002)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/mcp/tools.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-003"]

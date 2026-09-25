@@ -23,6 +23,38 @@ use crate::init::CONFIG_FILE;
 #[path = "compat.rs"]
 pub(crate) mod compat;
 
+/// `[intake]` in `openwarrant.toml` (OW-WAR-0141). Every key is absent by
+/// default; the table itself is absent by default.
+#[derive(Debug, Clone, Default, PartialEq, Eq, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct IntakePolicy {
+    /// argv, not a shell string, with `{id}` where the issue number goes,
+    /// e.g. `["gh", "issue", "view", "{id}", "--json", "number,title,body,url"]`.
+    /// A read: an argv naming a write subcommand is refused before it runs.
+    #[serde(default)]
+    pub fetch_argv: Vec<String>,
+    /// §74.4 "review or policy approval": intake drafts are applied under
+    /// this policy, and `plan/pipeline.json` records `review: policy` — never
+    /// `reviewed`, because nobody reviewed the proposal. The human's review
+    /// is the authorization of the contract, which this does not touch.
+    #[serde(default)]
+    pub policy_approval: bool,
+    /// Wall-clock bound on one fetch. 0 or absent means 30.
+    #[serde(default)]
+    pub fetch_timeout_secs: u64,
+}
+
+impl IntakePolicy {
+    #[must_use]
+    pub fn fetch_timeout(&self) -> std::time::Duration {
+        std::time::Duration::from_secs(if self.fetch_timeout_secs == 0 {
+            30
+        } else {
+            self.fetch_timeout_secs
+        })
+    }
+}
+
 #[derive(Debug)]
 pub enum RepoError {
     /// A command-level failure that is not about locating or parsing the
@@ -165,6 +197,31 @@ impl Repository {
             .performer
             .clone()
             .unwrap_or_else(|| "claude".to_owned())
+    }
+
+    /// `[intake]` (OW-WAR-0141): how a ticket reaches `war plan`. `None`
+    /// when the table is absent, which is the default and means `--issue`
+    /// starts no process.
+    ///
+    /// Read here rather than on `RepositoryConfig`, whose struct is not this
+    /// Warrant's to change: the core parser ignores a table it does not know,
+    /// so the table is parsed from the same file on its own, fail-closed on
+    /// an unknown key or a wrong type.
+    pub fn intake_policy(&self) -> Result<Option<IntakePolicy>, RepoError> {
+        let path = self.root.join(CONFIG_FILE);
+        let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
+            context: format!("could not read {path}"),
+            source,
+        })?;
+        #[derive(serde::Deserialize)]
+        struct File {
+            #[serde(default)]
+            intake: Option<IntakePolicy>,
+        }
+        let file: File = toml::from_str(&text).map_err(|e| {
+            RepoError::Message(format!("intake.config: {path}: the [intake] table: {e}"))
+        })?;
+        Ok(file.intake)
     }
 
     /// Role assignments in force for this repository (§27.4).

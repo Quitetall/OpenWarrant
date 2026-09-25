@@ -2,7 +2,8 @@
 
 OW-WAR-0118. This document explains the friction numbers and says what they
 cannot show. The numbers come from `tools/friction/measure.sh`. The first
-recorded baseline is `docs/friction/baseline-1.json`.
+recorded baseline is `docs/friction/baseline-1.json`. The second,
+`docs/friction/baseline-2.json`, adds the intake rows (OW-WAR-0141).
 
 ## The targets
 
@@ -158,6 +159,71 @@ OW-WAR-0140):
 `war next` is the one routine act whose tool time on a real corpus is a
 visible part of the 60-second budget. OW-WAR-0120 carries the budget at scale.
 This Warrant does not tune any number.
+
+## Baseline 2: intake (OW-WAR-0141)
+
+OW-WAR-0141 asks how work *starts*. Elsewhere it starts from a prompt (about
+10 s to write) or a Jira ticket (about 1 min to write), and after that the
+person does nothing more. Those two figures come from OW-WAR-0141's intent;
+nobody timed them here. The comparison is: the person files the ticket, and
+nothing else is needed before the work is waiting for them.
+
+The script's `intake` section measures `war`'s side of that. On the program
+the first setup built, with a fixture drafter and `[intake] policy_approval =
+true`, each run writes a fixture issue file (`gh issue view --json` output),
+runs `war plan --issue-file <file> --draft --apply`, then reads the queue with
+`war sign --list` and counts the rows for the Warrant it drafted.
+
+`docs/friction/baseline-2.json`, recorded 2026-09-25 (UTC), is the script's
+unedited output from one run with `--runs 5 --corpus .`. Machine facts:
+
+- **Binary:** `war 1.0.0-alpha.2`, built with the release profile
+  (`target/release/war`). The binary's sha256 is `4562c664…f5c3`.
+- **Repository commit:** `d2de140550cf5efd8433a29fdddfe6feb4702977`, **with
+  tracked changes**: the record was taken from the OW-WAR-0141 working tree
+  before its commit, so the binary is that commit plus this Warrant's change.
+- **Machine:** the same Linux 7.2.6 x86_64 machine as baseline 1.
+- **Load average:** 20.22 / 21.32 / 20.10 at the start and 16.71 / 20.24 /
+  19.91 at the end.
+
+The file also carries setup, routine and corpus rows for this build. This
+document's earlier tables stay those of baseline 1, and are not compared with
+them here.
+
+| section | step | command | median ms | max ms |
+| --- | --- | --- | --- | --- |
+| intake | `human-file-issue` | HUMAN: write the issue's title and body in the tracker; nothing asked of `war` | not measured | not measured |
+| intake | `plan-issue` | war plan --issue-file <issue> --draft --apply (fixture drafter) | 67 | 68 |
+| intake | `queue` | war sign --list | 45 | 47 |
+| intake | `human-next-contact` | HUMAN: read one queue row, the drafted Warrant's authorization | not measured | not measured |
+
+One intake sequence (`plan-issue` then `queue`) takes the tool 112 ms at the
+median over the 5 runs, with a maximum of 113 ms. The fixture drafter's time
+is inside `plan-issue`; it is a python script, not a model. In every run the
+queue held exactly one row for the drafted Warrant, `authorize`.
+
+The targets from OW-WAR-0141's intent, against this record:
+
+| target | what it asks | recorded | verdict |
+| --- | --- | --- | --- |
+| `intake-target-human` | human, input to queue row: no more than filing the ticket | `human-file-issue` asks 0 files edited, 0 `war` commands, 0 dialogs, 0 requests read; filing the issue is the only step. Its time is not measured, so the ~10 s / ~1 min comparison is a count, not a time | met |
+| `intake-target-next-contact` | next contact: exactly one queue row per input | one `authorize` row per run, 5 of 5 | met |
+| `intake-target-tool` | tool, excluding the model: median ≤ 1,000 ms | 112 ms median, 113 ms max | met |
+| `intake-target-drafter` | a real drafter model's latency, reported apart as waiting | the drafter is a fixture; `model_latency: not_measured` | not measured |
+
+What this does not show:
+
+- **A real model.** `conformance/fixtures/drafter/claude-drafter.sh` is the
+  shipped drafter, and no run here used it. A model's latency is waiting, and
+  it would sit between the ticket and the queue row.
+- **The thin-ticket path.** A ticket too thin to draft becomes one question
+  instead of a Warrant. That path is exercised by
+  `conformance/plants.d/54-intake.sh`, not timed here.
+- **The time to write the ticket.** Only a hand timing (below) can put seconds
+  beside the ~10 s and ~1 min references.
+- **The corpus row for `war next`.** It is 23,462 ms here, against 8,064 ms in
+  baseline 1, on a corpus that has grown and a machine under load. It is not
+  part of the intake sequence, and OW-WAR-0120 carries it.
 
 ## Timing the human steps by hand
 

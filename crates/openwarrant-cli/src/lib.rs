@@ -529,6 +529,16 @@ enum Command {
         /// the seven §74.3 operations. Never a raw file write from the model.
         #[arg(long)]
         apply: bool,
+        /// Draft from a GitHub issue, fetched by `[intake] fetch_argv` with
+        /// `{id}` substituted (OW-WAR-0141). Refused, starting nothing, when
+        /// no `[intake]` table is configured. Never writes to the tracker.
+        #[arg(long, value_name = "ID", conflicts_with = "issue_file")]
+        issue: Option<String>,
+        /// Draft from an issue file: `gh issue view <n> --json
+        /// number,title,body,url` output. The Warrant records where it came
+        /// from in `plan/intake.json`.
+        #[arg(long, value_name = "PATH")]
+        issue_file: Option<Utf8PathBuf>,
     },
     /// Lower a computational Warrant's stage graph into a BLUT PlanSpec (§49).
     Blut {
@@ -1598,15 +1608,31 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             out,
             answers,
             apply,
+            issue,
+            issue_file,
         } => {
             let repository = open_repo()?;
-            let answer_map: std::collections::BTreeMap<String, String> = answers
+            let mut answer_map: std::collections::BTreeMap<String, String> = answers
                 .iter()
                 .filter_map(|a| {
                     a.split_once('=')
                         .map(|(k, v)| (k.trim().to_owned(), v.to_owned()))
                 })
                 .collect();
+            // OW-WAR-0141: an issue in place of the sentence, and the answers a
+            // human already gave to this input's intake questions.
+            let intake = plan::resolve_intake(
+                &repository,
+                &request,
+                issue.as_deref(),
+                issue_file.as_deref(),
+            )?;
+            let request = intake.as_ref().map_or(request, |i| i.sentence.clone());
+            if let Some(i) = &intake {
+                for (id, text) in &i.answers {
+                    answer_map.entry(id.clone()).or_insert_with(|| text.clone());
+                }
+            }
             let answered: std::collections::BTreeSet<String> = answer_map.keys().cloned().collect();
             let req = plan::request(&repository, &request, &profile, &assurance, &answer_map)?;
 
@@ -1696,7 +1722,42 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 });
             }
             let known = plan::known_refs(&repository)?;
-            let (parsed, mut pipeline) = plan::validate_v2(&json, reviewed, &answered, &known)?;
+            let review = plan::review_of(
+                &repository,
+                intake.as_ref(),
+                drafter_run.is_some(),
+                reviewed,
+            )?;
+            let (parsed, mut pipeline) =
+                match plan::validate_v2(&json, review.completes_the_step(), &answered, &known) {
+                    Ok(v) => v,
+                    Err(e) => match plan::record_questions(
+                        &repository,
+                        intake.as_ref(),
+                        drafter_run.as_ref(),
+                        &req,
+                        &json,
+                        &e,
+                    )? {
+                        Some((report, asked)) => {
+                            if scratch && drafter_run.is_some() {
+                                let _ = std::fs::remove_file(&path);
+                            }
+                            let code = output::finish(
+                                mode,
+                                "plan.interview",
+                                &report,
+                                Some(output::value(&asked)),
+                            );
+                            return Ok(if code == EXIT_OK {
+                                EXIT_NOT_READY
+                            } else {
+                                code
+                            });
+                        }
+                        None => return Err(Box::new(e)),
+                    },
+                };
             if !apply {
                 let mut report = diagnostic::Report::default();
                 match pipeline.may_apply() {
@@ -1722,14 +1783,22 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 );
                 return Ok(if ready { code } else { EXIT_NOT_READY });
             }
-            let (applied, report) = plan::apply(
+            let intake_record = intake.as_ref().and_then(plan::Intake::record);
+            let applied = plan::apply_with(
                 &repository,
                 &parsed,
                 &mut pipeline,
                 &req,
                 drafter_run.as_ref(),
                 &json,
-            )?;
+                review,
+                intake_record.as_ref(),
+            );
+            if applied.is_err() && scratch && drafter_run.is_some() {
+                // A refused apply writes nothing, the scratch proposal included.
+                let _ = std::fs::remove_file(&path);
+            }
+            let (applied, report) = applied?;
             if scratch && drafter_run.is_some() {
                 // Recorded verbatim under plan/proposal.json; the scratch copy
                 // under generated/ would otherwise accumulate.

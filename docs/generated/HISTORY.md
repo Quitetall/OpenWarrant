@@ -35477,6 +35477,16 @@ chosen, this revision is amended before the work is dispatched.
     It uses a fake `gh` on PATH that records its argv and answers from a
     fixture, and a fake drafter.
 
+- (AM-002) `crates/openwarrant-cli/src/lib.rs`: the `--issue` and
+  `--issue-file` flags of `war plan`, and their wiring into the plan
+  handler.
+- (AM-002) `crates/openwarrant-cli/src/next.rs`: each open intake question
+  appended to `war next` as a human `answer` act.
+- (AM-002) `crates/openwarrant-cli/src/mcp/tools.rs`: `war_plan_request`,
+  `war_plan_validate` and `war_plan_apply` take `issue_file` or `issue` in
+  place of the sentence, through the same intake reader, review rule and
+  `plan/intake.json` as the CLI.
+
 ## Frozen Surfaces
 
 - `oh.war/draft-request/v1` and `oh.war/draft-proposal/v2` (except the
@@ -35700,6 +35710,9 @@ Required at `basic`. The load-bearing obligations are OBL-002 and OBL-003:
 | D-009 | Intake against a prompt and a Jira ticket | `docs/FRICTION.md` | not_content_addressed |
 | D-010 | How an issue becomes a Warrant, and what closes it | `docs/agents/issue-tracker.md` | not_content_addressed |
 | D-011 | The intake plants | `conformance/plants.d/54-intake.sh` | not_content_addressed |
+| D-012 | war plan --issue / --issue-file flags and their wiring into the plan handler (AM-002) | `crates/openwarrant-cli/src/lib.rs` | not_content_addressed |
+| D-013 | Open intake questions as human answer acts in war next (AM-002) | `crates/openwarrant-cli/src/next.rs` | not_content_addressed |
+| D-014 | An issue input on the war_plan_* MCP tools (AM-002) | `crates/openwarrant-cli/src/mcp/tools.rs` | not_content_addressed |
 
 ### OW-WAR-0142 — Standing authorization: one signature pre-authorizes a class of routine work, so each change costs only its acceptance
 
