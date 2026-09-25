@@ -65,5 +65,41 @@ else
     FAILED=$((FAILED + 1))
 fi
 unset NX_S NX_CORPUS NX_RC NX_MS NX_BOUND_MS
+# t-67ed: a ready ticket item is listed before any human act, as a claim.
+# The human acts stay listed after it, still judged, and still a human's.
+# Refusal: once the item is claimed it is no longer offered.
+"$WAR" --root "$PLANT_ROOT" create "Plant ticket" --item "Ready plant item" >/dev/null 2>&1
+NX_HUMAN=$("$WAR" --root "$PLANT_ROOT" next 2>/dev/null)
+NX_CLAIM_AT=$(grep -n -m1 '^ready .*war claim t-' <<<"$NX_HUMAN" | cut -d: -f1)
+NX_SIGN_AT=$(grep -n -m1 '^HUMAN ' <<<"$NX_HUMAN" | cut -d: -f1)
+nx_ready_first() { python3 -c '
+import sys, json
+v = json.load(sys.stdin)["result"]
+r = v.get("ready", [])
+ok = any(x["text"] == "Ready plant item" for x in r)
+ok = ok and all(x["actor"] == "agent" and x["command"].startswith("war claim ") and "war sign" not in x["command"] for x in r)
+humans = [a for a in v["actions"] if a["actor"] == "human"]
+ok = ok and humans and all(a["command"].startswith("war sign") and a.get("judged") for a in humans)
+sys.exit(0 if ok else 1)'; }
+if [[ -n $NX_CLAIM_AT && -n $NX_SIGN_AT ]] && (( NX_CLAIM_AT < NX_SIGN_AT )) \
+    && "$WAR" --root "$PLANT_ROOT" --json next 2>/dev/null | nx_ready_first; then
+    printf 'ok    %-34s the claim before the first HUMAN act\n' "next lists ready tickets first"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s claim@%s human@%s\n' "next lists ready tickets first" "${NX_CLAIM_AT:-none}" "${NX_SIGN_AT:-none}"
+    FAILED=$((FAILED + 1))
+fi
+NX_ITEM=$("$WAR" --root "$PLANT_ROOT" --json ready 2>/dev/null | python3 -c '
+import sys, json
+r = json.load(sys.stdin)["result"]["ready"]
+print(next(x["ticket"] + "/" + x["item"] for x in r if x["text"] == "Ready plant item"))' 2>/dev/null)
+"$WAR" --root "$PLANT_ROOT" claim "$NX_ITEM" --as plant-agent >/dev/null 2>&1
+if [[ -n $NX_ITEM ]] && ! "$WAR" --root "$PLANT_ROOT" next 2>/dev/null | grep -qF "war claim $NX_ITEM"; then
+    printf 'ok    %-34s a claimed item is no longer offered\n' "next refuses a claimed ticket item"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s %s is still offered after its claim\n' "next refuses a claimed ticket item" "${NX_ITEM:-?}"
+    FAILED=$((FAILED + 1))
+fi
 corpus_gone "$PLANT_ROOT"
 unset PLANT_ROOT

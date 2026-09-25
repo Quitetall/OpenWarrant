@@ -10,6 +10,10 @@
 //! whose actor is `agent` is a signing act. An agent that reads this cannot be
 //! told to authorize, resolve, accept or correct; it can only be told that a
 //! human must, and how.
+//!
+//! t-67ed: ready ticket items come first. They are read from the ticket
+//! store with the same computation `war ready` uses, carry `war claim`, and
+//! are never a signature; the Warrant acts follow them, still judged.
 
 use serde::Serialize;
 
@@ -63,11 +67,43 @@ pub struct Action {
     pub judged: Option<Judged>,
 }
 
+/// A ticket item that can start now (`war ready`'s row), offered before any
+/// Warrant act. Its command is always `war claim`: never a signature.
+#[derive(Debug, Clone, Serialize)]
+pub struct ReadyItem {
+    pub actor: Actor,
+    pub ticket: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub item: Option<String>,
+    pub title: String,
+    pub text: String,
+    pub priority: u8,
+    pub command: String,
+}
+
+impl ReadyItem {
+    fn of(r: &crate::ticket::ReadyRow) -> Self {
+        Self {
+            actor: Actor::Agent,
+            ticket: r.ticket.clone(),
+            item: r.item.clone(),
+            title: r.title.clone(),
+            text: r.text.clone(),
+            priority: r.priority,
+            command: format!("war claim {}", r.target()),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize)]
 pub struct Next {
     pub schema: &'static str,
+    /// Ticket items that can start now, most urgent first (t-67ed). Listed
+    /// before `actions`; nothing here needs anyone's signature.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub ready: Vec<ReadyItem>,
     pub actions: Vec<Action>,
-    /// Why the list is empty, when it is. Never silently empty.
+    /// Why `actions` is empty, when it is. Never silently empty.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub nothing: Option<String>,
     /// What stands in the way that no action here can clear (OW-WAR-0132):
@@ -281,6 +317,7 @@ pub fn derive(pending: &[Pending], status: &openwarrant_core::status::CorpusStat
     };
     Next {
         schema: SCHEMA,
+        ready: Vec::new(),
         actions,
         nothing,
         findings: Vec::new(),
@@ -366,7 +403,28 @@ pub fn run_with(
         next.nothing = None;
     }
     judge(repo, &pending, &mut next);
+    ready_tickets(repo, &mut next);
     Ok(next)
+}
+
+/// t-67ed: the ticket store's ready set, ahead of every Warrant act. The
+/// same `ticket::ready_rows` `war ready` answers from, so the two never
+/// disagree. A store that cannot be read is an UNKNOWN finding, never an
+/// empty list presented as "nothing ready".
+pub fn ready_tickets(repo: &Repository, next: &mut Next) {
+    let rows = crate::ticket::Store::open(repo, None).and_then(|store| {
+        let (tickets, _faults) = store.load_all()?;
+        crate::ticket::ready_rows(&store, &tickets)
+    });
+    match rows {
+        Ok(rows) => next.ready = rows.iter().map(ReadyItem::of).collect(),
+        Err(e) => next.findings.push(Finding {
+            rule: "next.tickets-unreadable".to_owned(),
+            severity: "unknown".to_owned(),
+            file: None,
+            message: format!("the ticket store could not be read, so ready items are UNKNOWN: {e}"),
+        }),
+    }
 }
 
 /// The dry run in front of every handed-over command (OW-ADR-0022). The
@@ -505,6 +563,23 @@ fn order(next: &mut Next) {
 #[must_use]
 pub fn render(n: &Next) -> String {
     let mut s = String::new();
+    for r in &n.ready {
+        s.push_str(&format!(
+            "{:<6} {:<12} {:<10} {}\n{:>6} p{} {}{}\n",
+            "ready",
+            r.ticket,
+            "claim",
+            r.command,
+            "",
+            r.priority,
+            r.text,
+            if r.item.is_some() {
+                format!(" — {}", r.title)
+            } else {
+                String::new()
+            },
+        ));
+    }
     for a in &n.actions {
         s.push_str(&format!(
             "{:<6} {:<12} {:<10} {}{}\n{:>6} {}\n",
@@ -524,7 +599,11 @@ pub fn render(n: &Next) -> String {
         ));
     }
     if let Some(why) = &n.nothing {
-        s.push_str(&format!("nothing to do: {why}\n"));
+        if n.ready.is_empty() {
+            s.push_str(&format!("nothing to do: {why}\n"));
+        } else {
+            s.push_str(&format!("no Warrant act waits: {why}\n"));
+        }
     }
     for f in &n.findings {
         s.push_str(&format!(
@@ -595,6 +674,7 @@ mod tests {
         ));
         let mut next = Next {
             schema: SCHEMA,
+            ready: Vec::new(),
             actions: vec![
                 execute("STAGE-001"),
                 execute("STAGE-002"),
@@ -625,6 +705,7 @@ mod tests {
         // empty instead of going silent, and nothing is offered.
         let mut next = Next {
             schema: SCHEMA,
+            ready: Vec::new(),
             actions: vec![execute("STAGE-001")],
             nothing: None,
             findings: Vec::new(),
@@ -668,6 +749,13 @@ mod tests {
                 );
             }
         }
+        // t-67ed: a ready ticket item is an agent's, and is a claim — never
+        // a signature, never an authority verb.
+        for r in &n.ready {
+            assert_eq!(r.actor, Actor::Agent);
+            assert!(r.command.starts_with("war claim "), "{r:?}");
+            assert!(!r.command.contains("war sign"), "{r:?}");
+        }
         let first_agent = n.actions.iter().position(|a| a.actor == Actor::Agent);
         let last_human = n.actions.iter().rposition(|a| a.actor == Actor::Human);
         if let (Some(fa), Some(lh)) = (first_agent, last_human) {
@@ -704,5 +792,78 @@ mod tests {
         let mut ok = Report::default();
         ok.push(Diagnostic::pass("sign.would-record", "fine"));
         assert_eq!(verdict(Ok(ok)), Judged::WouldRecord);
+    }
+
+    fn ready_item() -> ReadyItem {
+        ReadyItem {
+            actor: Actor::Agent,
+            ticket: "t-0001".to_owned(),
+            item: Some("i-0001".to_owned()),
+            title: "A ticket".to_owned(),
+            text: "The first item".to_owned(),
+            priority: 1,
+            command: "war claim t-0001/i-0001".to_owned(),
+        }
+    }
+
+    fn human_act() -> Action {
+        Action {
+            actor: Actor::Human,
+            warrant: "X-WAR-0001".to_owned(),
+            action: "authorize".to_owned(),
+            command: "war sign X-WAR-0001".to_owned(),
+            why: "revision 1 awaits authorization".to_owned(),
+            judged: Some(Judged::WouldRecord),
+        }
+    }
+
+    #[test]
+    fn a_ready_ticket_item_is_listed_before_a_human_act() {
+        let next = Next {
+            schema: SCHEMA,
+            ready: vec![ready_item()],
+            actions: vec![human_act()],
+            nothing: None,
+            findings: Vec::new(),
+        };
+        let out = render(&next);
+        let claim = out
+            .find("war claim t-0001/i-0001")
+            .expect("the ready item is listed");
+        let sign = out
+            .find("war sign X-WAR-0001")
+            .expect("the human act stays listed");
+        assert!(claim < sign, "ready items come first:\n{out}");
+        assert!(
+            out.contains("[would record]"),
+            "the human act is still judged"
+        );
+        // JSON: `ready` sits beside `actions`, and names an agent's claim.
+        let v = serde_json::to_value(&next).unwrap();
+        assert_eq!(v["ready"][0]["command"], "war claim t-0001/i-0001");
+        assert_eq!(v["ready"][0]["actor"], "agent");
+        assert_eq!(v["actions"][0]["actor"], "human");
+    }
+
+    #[test]
+    fn with_no_ready_item_nothing_is_said_plainly_and_ready_is_omitted() {
+        let next = Next {
+            schema: SCHEMA,
+            ready: Vec::new(),
+            actions: Vec::new(),
+            nothing: Some("nothing awaits".to_owned()),
+            findings: Vec::new(),
+        };
+        assert!(render(&next).starts_with("nothing to do: nothing awaits"));
+        let v = serde_json::to_value(&next).unwrap();
+        assert!(v.get("ready").is_none());
+        // Refusal side: with a ready item, "nothing to do" is not said.
+        let next = Next {
+            ready: vec![ready_item()],
+            ..next
+        };
+        let out = render(&next);
+        assert!(!out.contains("nothing to do"), "{out}");
+        assert!(out.contains("no Warrant act waits: nothing awaits"));
     }
 }
