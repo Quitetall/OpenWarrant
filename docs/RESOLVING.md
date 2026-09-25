@@ -299,6 +299,62 @@ a receipt recorded, an authorization signed, the receipt still admissible
 and the Warrant resolved in the same sitting; and a source byte, or
 `roles.toml`, changed after the receipt, which stales it by name.
 
+#### Working a ticket does not move the tree (t-5d82)
+
+The ticket loop (`docs/TICKETS.md`) writes files as it is worked: `war claim`
+a lock and a journal line, `war done` a ticked checklist line, `war note` a
+dated line in the intent, `war add` an item, `war create` a new ticket. An
+agent works its ticket after recording evidence and commits the ticket files
+with the work, so each of those used to stale every receipt of a gate with no
+`inputs`. The tree rule now skips them, file by file:
+
+| written by | skipped |
+|---|---|
+| every ticket command | `<tickets>/<t-id>/journal.jsonl` |
+| `war claim`, `release`, `steal` | the lock files directly inside the claims directory (it also ignores itself in git) |
+| `war done`, `war add`, a claim naming a new line | `<tickets>/<t-id>/atoms/15-checklist.md` (the ticket profile's checklist file) |
+| `war note`, `war create` | `<tickets>/<t-id>/atoms/10-intent.md` |
+| `war create`, `war promote` | `<tickets>/<t-id>/manifest.toml` |
+
+`<tickets>` is `[tickets] dir` and `<t-id>` a ticket id (`t-` and 3 to 16 of
+`[0-9a-z]`). Nothing under the Warrants root is skipped, whatever
+`[tickets] dir` says.
+
+**Why the checklist and the intent too, and not only the journal and the
+claims.** The journal and the claims are plainly bookkeeping. The checklist
+and the intent are a person's durable document: plain Markdown, edited by
+hand, and the file is the state. But they are a document *about* the work:
+a ticked box is the state of the work written down, and a note is context
+for the next person. Neither is the source a gate runs over. A ticket is the
+working form — never compiled, authorized, verified or resolved — and no
+Warrant, deliverable or Gate Definition in the corpus reads one as its
+source; `war promote` copies a ticket's text into a new Warrant's intent,
+and that Warrant's atoms are bound like any other. Excluding the journal
+alone would not fix anything: `war done` and `war note` write the checklist
+and the intent on every use. Telling a tick apart from a reword by comparing
+the file's contents was rejected: the tool honours hand edits as written, so
+a tick and a rewrite of the same line can arrive in one edit, and a content
+rule would have to guess which it was.
+
+**What a verdict could depend on, said once.** `war check` validates a
+ticket's structure (`ticket.checklist-malformed`, `ticket.item-duplicate`,
+`ticket.blocker-unknown`, `ticket.blocker-cycle`). So a `war check` receipt,
+like a battery receipt, **says nothing about ticket files written after it**
+— the same stated limit as for authority records above. `war check` run now
+still reads every ticket, and the Claude Code plugin's Stop check blocks on
+its errors. A gate whose verdict is about tickets declares them in `inputs` and
+is held to them; declared `inputs` are not narrowed.
+
+**What stays bound.** Anything else in a ticket's directory (an attachment,
+another atom a person adds), `docs/TICKETS.md`, the ticket profile
+`profiles/ticket.toml`, `openwarrant.toml` (where `[tickets]` is), and every
+path outside the tickets and claims directories.
+`conformance/plants.d/55-evidence-tickets.sh` shows both halves: a receipt
+recorded, then `war claim`, `done`, `note` and `create` (uncommitted, then
+committed), and the receipt still admissible naming its tree; and a source
+byte, or a file in a ticket's directory the loop does not write, changed
+after the receipt, which stales it by name.
+
 The deliverables digest is recorded and advisory. A gate is judged on what it
 declares it reads. If a gate reads files outside its declared `inputs`, it can
 keep a stale pass. The tree subject in the receipt shows that happened; it

@@ -62,6 +62,25 @@ const DEFAULT_COMPACT_DAYS: u64 = 7;
 /// tickets existed). A repository's own definition wins.
 const BUILTIN_PROFILE: &str = include_str!("../../../../profiles/ticket.toml");
 
+/// Where `war create` writes a ticket's intent atom, relative to its directory.
+const INTENT_FILE: &str = "atoms/10-intent.md";
+
+/// The files the ticket loop writes while a ticket is worked (t-5d82), for
+/// the evidence tree rule to skip: a ticket is a record about the work, not
+/// the source a gate ran over. docs/RESOLVING.md, "Working a ticket does not
+/// move the tree".
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Bookkeeping {
+    /// `[tickets] dir`, relative to the root; `None` outside it.
+    pub dir: Option<String>,
+    /// `[tickets] claims_dir`, relative to the root; `None` outside it.
+    pub claims_dir: Option<String>,
+    /// The files inside one ticket's directory the loop writes, named one by
+    /// one: its manifest, journal, intent and checklist. Anything else a
+    /// person keeps in a ticket's directory is not named.
+    pub files: Vec<String>,
+}
+
 /// The journal event types a ticket records.
 pub mod event {
     pub const CREATED: &str = "ticket.created";
@@ -274,6 +293,28 @@ impl Store {
     pub fn rel(&self, path: &Utf8Path) -> String {
         path.strip_prefix(&self.root)
             .map_or_else(|_| path.to_string(), ToString::to_string)
+    }
+
+    /// What the loop writes as tickets are worked, relative to the root: the
+    /// evidence tree rule skips it (t-5d82, `gate_cmd::source::is_ticket_record`).
+    #[must_use]
+    pub fn bookkeeping(&self) -> Bookkeeping {
+        let rel = |p: &Utf8Path| {
+            p.strip_prefix(&self.root)
+                .ok()
+                .map(|r| r.as_str().trim_end_matches('/').to_owned())
+                .filter(|r| !r.is_empty() && r != ".")
+        };
+        Bookkeeping {
+            dir: rel(&self.dir),
+            claims_dir: rel(&self.claims_dir),
+            files: vec![
+                "manifest.toml".to_owned(),
+                crate::journal_cmd::FILE.to_owned(),
+                INTENT_FILE.to_owned(),
+                format!("atoms/{}", self.checklist_file()),
+            ],
+        }
     }
 
     fn checklist_file(&self) -> &str {
@@ -762,7 +803,7 @@ pub fn create(store: &Store, args: &CreateArgs) -> Result<Outcome, RepoError> {
             TicketAtom {
                 ordinal: 10,
                 role: "intent".to_owned(),
-                path: "atoms/10-intent.md".to_owned(),
+                path: INTENT_FILE.to_owned(),
             },
             TicketAtom {
                 ordinal: store.checklist_ordinal(),
@@ -797,7 +838,7 @@ pub fn create(store: &Store, args: &CreateArgs) -> Result<Outcome, RepoError> {
     }
     std::fs::create_dir_all(dir.join("atoms"))
         .map_err(io(format!("could not create {dir}/atoms")))?;
-    atomic::write(&dir.join("atoms/10-intent.md"), intent)?;
+    atomic::write(&dir.join(INTENT_FILE), intent)?;
     atomic::write(&dir.join(&checklist_file), checklist)?;
     atomic::write(&dir.join("manifest.toml"), toml_of(&manifest)?)?;
     let t = store

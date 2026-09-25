@@ -341,8 +341,8 @@ pub fn run_gate(def: &GateDefinition, repo: &Repository, dir: &camino::Utf8Path)
 ///
 /// - `tree:<sha>` — `git rev-parse HEAD^{tree}` when the gate started;
 /// - `worktree:dirty` — present when the working tree differed from that
-///   tree, outside the evidence records, projections and authority records
-///   ([`source::Exclusions`]);
+///   tree, outside the evidence records, projections, authority records and
+///   ticket bookkeeping ([`source::Exclusions`]);
 /// - `inputs:sha256:<hex>` — the bytes of every file the Gate Definition's
 ///   `inputs` globs match, when it declares any;
 /// - `deliverables:sha256:<hex>` — the bytes of the Warrant's declared
@@ -357,7 +357,8 @@ pub fn run_gate(def: &GateDefinition, repo: &Repository, dir: &camino::Utf8Path)
 /// A gate that declares `inputs` is judged by them: the run holds while those
 /// files digest the same. A gate that declares none falls back to the tree:
 /// the run holds while nothing outside the evidence records, compiled
-/// projections and authority records has changed since the tree it ran over.
+/// projections, authority records and ticket bookkeeping has changed since the
+/// tree it ran over.
 /// The deliverables digest is recorded and advisory —
 /// a gate reads what its inputs say it reads, and a gate that reads more than
 /// it declares keeps a stale pass that the tree subject makes visible (R-001).
@@ -377,6 +378,17 @@ pub fn run_gate(def: &GateDefinition, repo: &Repository, dir: &camino::Utf8Path)
 /// nothing about authority records written after them, and that is the
 /// stated limit. Declared `inputs` are not narrowed by this: a gate that
 /// declares it reads an authority record is held to it.
+///
+/// # Why working a ticket does not move the tree (t-5d82)
+///
+/// Nor do the files the ticket loop writes — each ticket's manifest, journal,
+/// intent (where `war note` appends) and checklist (where `war done` ticks),
+/// and the claim locks ([`source::is_ticket_record`]). A ticket is the
+/// working form: never compiled, authorized, verified or resolved, and no
+/// Warrant reads it as source. `war check` does validate a ticket's
+/// structure; a receipt says nothing about ticket files written after it,
+/// the same stated limit as above. Anything else in a ticket's directory,
+/// and a Warrant `war promote` drafts, stays bound.
 ///
 /// `inputs` and `fixtures` are read from the definition file here rather than
 /// from `GateDefinition`, whose fields are the core crate's; the definition
@@ -545,6 +557,37 @@ pub mod source {
         }
     }
 
+    /// Whether a repository-relative path is a file the ticket loop writes
+    /// while a ticket is worked (t-5d82): `<tickets>/<t-id>/<file>` for the
+    /// files [`crate::ticket::Bookkeeping`] names (manifest, journal, intent,
+    /// checklist), and a claim lock directly inside the claims directory.
+    ///
+    /// Named file by file: anything else a person keeps in a ticket's
+    /// directory stays bound. Nothing under the Warrants root is a ticket
+    /// record, whatever `[tickets] dir` says.
+    #[must_use]
+    pub fn is_ticket_record(
+        path: &str,
+        tickets: &crate::ticket::Bookkeeping,
+        warrants: &str,
+    ) -> bool {
+        if under(path, warrants).is_some() {
+            return false;
+        }
+        if let Some(claims) = &tickets.claims_dir
+            && under(path, claims).is_some_and(|name| !name.contains('/'))
+        {
+            return true;
+        }
+        let Some(rest) = tickets.dir.as_deref().and_then(|d| under(path, d)) else {
+            return false;
+        };
+        let Some((id, file)) = rest.split_once('/') else {
+            return false;
+        };
+        openwarrant_core::ticket::is_ticket_id(id) && tickets.files.iter().any(|f| f == file)
+    }
+
     fn under<'a>(path: &'a str, dir: &str) -> Option<&'a str> {
         let dir = dir.trim_end_matches('/');
         if dir.is_empty() {
@@ -564,8 +607,9 @@ pub mod source {
     /// is what holds a projection to its sources; the tree rule does not
     /// need to.
     ///
-    /// The tree rule skips one class more: the records a human act writes
-    /// ([`is_authority_record`], [`Exclusions::excludes_from_tree`]). Declared
+    /// The tree rule skips two classes more: the records a human act writes
+    /// ([`is_authority_record`]) and the files the ticket loop writes
+    /// ([`is_ticket_record`]); [`Exclusions::excludes_from_tree`]. Declared
     /// inputs do not — a gate that says it reads one is held to it.
     #[derive(Debug, Clone)]
     pub struct Exclusions {
@@ -574,6 +618,9 @@ pub mod source {
         roadmap: String,
         gates: String,
         projection_dirs: Vec<String>,
+        /// `None` when the `[tickets]` table cannot be read: then no ticket
+        /// file is skipped, and the tree stays bound to all of them.
+        tickets: Option<crate::ticket::Bookkeeping>,
     }
 
     impl Exclusions {
@@ -596,6 +643,9 @@ pub mod source {
                     format!("{}/generated", p.sas),
                     generated_parent,
                 ],
+                tickets: crate::ticket::Store::open(repo, None)
+                    .ok()
+                    .map(|s| s.bookkeeping()),
             }
         }
 
@@ -622,13 +672,18 @@ pub mod source {
             })
         }
 
-        /// What the tree rule skips: [`Exclusions::excludes`], and the
-        /// records a human act writes. A signature recorded after a run does
-        /// not move the tree that run names (t-22fd).
+        /// What the tree rule skips: [`Exclusions::excludes`], the records a
+        /// human act writes, and the files the ticket loop writes. A signature
+        /// (t-22fd) or a `war claim` / `done` / `note` (t-5d82) after a run
+        /// does not move the tree that run names.
         #[must_use]
         pub fn excludes_from_tree(&self, path: &str) -> bool {
             self.excludes(path)
                 || is_authority_record(path, &self.warrants, &self.sas, &self.roadmap, &self.gates)
+                || self
+                    .tickets
+                    .as_ref()
+                    .is_some_and(|t| is_ticket_record(path, t, &self.warrants))
         }
     }
 
@@ -1300,7 +1355,7 @@ pub mod receipt {
 
 #[cfg(test)]
 mod source_tests {
-    use super::source::{glob_matches, is_authority_record, is_evidence_record};
+    use super::source::{glob_matches, is_authority_record, is_evidence_record, is_ticket_record};
 
     #[test]
     fn globs_keep_star_within_a_segment_and_let_double_star_span() {
@@ -1386,5 +1441,70 @@ mod source_tests {
         ] {
             assert!(!a(p), "{p} is not an authority record");
         }
+    }
+
+    /// t-5d82: what the ticket loop writes is skipped by the tree rule, file
+    /// by file; anything else in a ticket's directory, and every path under
+    /// the Warrants root, is not.
+    #[test]
+    fn ticket_records_are_named_file_by_file_and_nothing_else_is_one() {
+        let b = crate::ticket::Bookkeeping {
+            dir: Some("docs/tickets".to_owned()),
+            claims_dir: Some("var/claims".to_owned()),
+            files: vec![
+                "manifest.toml".to_owned(),
+                "journal.jsonl".to_owned(),
+                "atoms/10-intent.md".to_owned(),
+                "atoms/15-checklist.md".to_owned(),
+            ],
+        };
+        let t = |p: &str| is_ticket_record(p, &b, "docs/warrants");
+        for p in [
+            "docs/tickets/t-5d82/manifest.toml",
+            "docs/tickets/t-5d82/journal.jsonl",
+            "docs/tickets/t-5d82/atoms/10-intent.md",
+            "docs/tickets/t-5d82/atoms/15-checklist.md",
+            "var/claims/t-5d82.lock",
+            "var/claims/t-5d82--i-69e3.lock",
+            "var/claims/.t-5d82.1.2.claim-tmp",
+        ] {
+            assert!(t(p), "{p} is written by the ticket loop");
+        }
+        for p in [
+            "docs/tickets/t-5d82/notes.txt",
+            "docs/tickets/t-5d82/atoms/20-extra.md",
+            "docs/tickets/t-5d82/atoms/generated/x.md",
+            "docs/tickets/README.md",
+            "docs/tickets/manifest.toml",
+            "docs/tickets/not-a-ticket/manifest.toml",
+            "docs/tickets/t-5d82/sub/journal.jsonl",
+            "var/claims/sub/t-5d82.lock",
+            "docs/TICKETS.md",
+            "crates/x/src/lib.rs",
+            "docs/warrants/X-WAR-0001/journal.jsonl",
+        ] {
+            assert!(!t(p), "{p} is not a ticket record");
+        }
+        // A tickets directory configured over the Warrants root names nothing
+        // there; one outside the repository names nothing at all.
+        let over = crate::ticket::Bookkeeping {
+            dir: Some("docs".to_owned()),
+            ..b.clone()
+        };
+        assert!(!is_ticket_record(
+            "docs/warrants/t-abc/manifest.toml",
+            &over,
+            "docs/warrants"
+        ));
+        let outside = crate::ticket::Bookkeeping {
+            dir: None,
+            claims_dir: None,
+            ..b
+        };
+        assert!(!is_ticket_record(
+            "docs/tickets/t-5d82/journal.jsonl",
+            &outside,
+            "docs/warrants"
+        ));
     }
 }

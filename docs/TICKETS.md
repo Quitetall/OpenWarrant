@@ -132,3 +132,11 @@ delivery Warrant, carries the ticket's description and checklist into the new
 intent, and records `promoted_to` on the ticket. From there the Warrant needs
 every atom a delivery Warrant needs, and authorizing and resolving it are a
 human's acts, exactly as before. The ticket stays workable meanwhile.
+
+Working a ticket does not make recorded evidence stale. A gate with no
+declared `inputs` is bound to the tree it ran over, and the files the loop
+writes — each ticket's manifest, journal, intent and checklist, and the claim
+locks — are outside that binding, so `war claim`, `done` and `note` after
+`war evidence record` leave the receipts admissible. Anything else in a
+ticket's directory stays bound. The reasoning, and the limit it states:
+docs/RESOLVING.md, "Working a ticket does not move the tree".
