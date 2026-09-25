@@ -16100,9 +16100,9 @@ no-op.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | traceability.unknown-requirement — implements refs held to §106 | `crates/openwarrant-cli/src/check.rs` | verified |
+| D-001 | traceability.unknown-requirement — implements refs held to §106 | `crates/openwarrant-cli/src/check.rs` | drift |
 | D-002 | ADR supersession relations read in both directions | `crates/openwarrant-core/src/adr.rs` | verified |
-| D-003 | The plants: unknown requirement, duplicate milestone id, contribution unstated, Markdown drift | `conformance/plants.d/00-corpus.sh` | verified |
+| D-003 | The plants: unknown requirement, duplicate milestone id, contribution unstated, Markdown drift | `conformance/plants.d/00-corpus.sh` | drift |
 | D-004 | Tests: banner before title, no division, every WAR.json carries the SAS pin | `crates/openwarrant-compiler/src/corpus_status.rs` | verified |
 
 ### OW-WAR-0064 — Repair a delivered artifact: the correction act for a resolved Warrant
@@ -24780,7 +24780,7 @@ the app shows a `human` remedy and stops.
 | D-008 | A correction against a historical pin is refused | `crates/openwarrant-cli/src/correct.rs` | verified |
 | D-009 | The resolution locator | `crates/openwarrant-cli/src/resolution_cmd.rs` | verified |
 | D-010 | The pin guard reads ownership | `.claude/hooks/guard-pins.sh` | verified |
-| D-011 | The drift rule | `crates/openwarrant-cli/src/check.rs` | verified |
+| D-011 | The drift rule | `crates/openwarrant-cli/src/check.rs` | drift |
 | D-012 | Requirement 3's reason names a newer owner | `crates/openwarrant-cli/src/resolve.rs` | verified |
 | D-013 | The ownership plants | `conformance/plants.d/98-ownership.sh` | verified |
 | D-014 | The authorization schema | `schemas/oh.war/authorization/v1.json` | verified |

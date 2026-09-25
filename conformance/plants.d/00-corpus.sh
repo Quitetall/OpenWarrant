@@ -644,8 +644,34 @@ plant_cmd "child missing from parent view" "relations.child-listed" \
 plant_cmd "child state in parent source" "relations.parent-source" \
     "OW-WAR-0002" 2 "$PLANTS/30-child-state-in-parent-source.py" check
 
-plant_cmd "supersession without currency" "relations.currency" \
-    "21.2" 2 "$PLANTS/33-supersession-without-currency.py $P1" check
+# §91.5 test 33, read under OW-ADR-0022 (OW-WAR-0113 AM-002). §21.2's
+# "currency becomes superseded" is DERIVED from the successor's relation; the
+# predecessor's manifest, under a signature, is never edited to say it. So:
+#
+#   - a supersession with no written currency is the correct state: the
+#     predecessor reads superseded by derivation, and nothing is refused for
+#     the absent field. (Appending to OW-WAR-0002's signed manifest also stales
+#     its resolution, so the exit is 2 for that reason — this entry asserts
+#     what the currency rules say, not the exit.)
+#   - a WRITTEN currency is the refusal the plant must see.
+plant_restore
+T33_OUT="mutation failed"
+plant_mutate "$PLANTS/33-supersession-without-currency.py $P1" && T33_OUT="$(plant_war check 2>&1)"
+plant_restore
+if grep -q "PASS relations.currency  *OW-WAR-0001: superseded, derived from OW-WAR-0002" <<<"$T33_OUT" \
+    && ! grep -q "relations.currency-authored" <<<"$T33_OUT" \
+    && ! grep -q "ERROR relations.currency " <<<"$T33_OUT"; then
+    printf 'ok    %-34s superseded by derivation, nothing written\n' "supersession, currency derived"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s %s\n' "supersession, currency derived" \
+        "$(grep -E 'relations\.currency' <<<"$T33_OUT" | head -3 | tr '\n' '|')"
+    FAILED=$((FAILED + 1))
+fi
+
+plant_cmd "supersession, currency written" "ERROR relations.currency-authored" \
+    "OW-WAR-0001: the manifest writes \`currency = \"superseded\"\`" 2 \
+    "$PLANTS/33-supersession-without-currency.py $P1 --written" check
 
 plant_cmd "retired Warrant emptied" "relations.retired-available" \
     "21.4" 2 "$PLANTS/34-retired-warrant-emptied.py" check

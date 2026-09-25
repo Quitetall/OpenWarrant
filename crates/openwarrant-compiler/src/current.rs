@@ -16,9 +16,12 @@
 //! # Where a role is tied to a rendering
 //!
 //! [`ROLE_SECTIONS`] is the only place. An atom carries its relation to the
-//! projections by naming a role; a role no row names is refused by `war
-//! check` (`atom.role-unprojected`), because an atom nothing renders is text
-//! nobody reads.
+//! projections by naming a role. A namespaced optional extension role (§16.4,
+//! `x.review`) has no row: its atoms render verbatim under their role name in
+//! the subject's *Extensions* section, after every row (OW-WAR-0113 AM-002).
+//! Any other role no row names is refused by `war check`
+//! (`atom.role-unprojected`), because an atom nothing renders is text nobody
+//! reads. [`is_rendered_role`] is that test, shared by both.
 //!
 //! # Adding a section
 //!
@@ -89,6 +92,19 @@ pub fn role_row(role: &str) -> Option<(usize, &'static RoleRow)> {
         .enumerate()
         .find(|(_, r)| r.role == role)
 }
+
+/// Whether a projection renders an atom of `role`: a row of
+/// [`ROLE_SECTIONS`] names it, or it is a namespaced extension role (§16.4),
+/// which renders under *Extensions*. The namespace test is the manifest's
+/// own ([`openwarrant_core::is_namespaced_extension_role`]), so what the
+/// grammar accepts (G-M8) and what the projections render cannot drift apart.
+#[must_use]
+pub fn is_rendered_role(role: &str) -> bool {
+    role_row(role).is_some() || openwarrant_core::is_namespaced_extension_role(role)
+}
+
+/// The heading a subject's extension atoms render under.
+pub const EXTENSIONS_HEADING: &str = "Extensions";
 
 /// Where the master document is written, relative to the repository root.
 pub const CURRENT_PATH: &str = "docs/generated/CURRENT.md";
@@ -440,24 +456,20 @@ pub(crate) fn subject(s: &Subject, level: usize, out: &mut String) {
             _ => "\nNot authorized; no Basis is fixed.".to_owned(),
         }
     );
-    for atom in s.atoms_in_role_order() {
+    let atoms = s.atoms_in_role_order();
+    let (rows, extensions): (Vec<&Atom>, Vec<&Atom>) =
+        atoms.into_iter().partition(|a| role_row(&a.role).is_some());
+    for atom in rows {
         let heading = role_row(&atom.role).map_or("Unprojected", |(_, r)| r.heading);
-        let _ = writeln!(
-            out,
-            "{h}# {heading} — [{}]({})\n",
-            atom.source,
-            link(&atom.source)
-        );
-        if atom.structured {
-            let _ = writeln!(out, "```yaml\n{}```\n", ensure_newline(&atom.body));
-        } else {
-            let _ = writeln!(
-                out,
-                "<!-- atom {} begins -->\n{}<!-- atom {} ends -->\n",
-                atom.source,
-                ensure_newline(&atom.body),
-                atom.source
-            );
+        atom_block(&format!("{h}#"), heading, atom, out);
+    }
+    // §16.4 — a namespaced optional extension is preserved: verbatim, under
+    // its own role name. A role that is neither a row nor namespaced never
+    // reaches here; `war check` refuses it (`atom.role-unprojected`).
+    if !extensions.is_empty() {
+        let _ = writeln!(out, "{h}# {EXTENSIONS_HEADING}\n");
+        for atom in extensions {
+            atom_block(&format!("{h}##"), &format!("`{}`", atom.role), atom, out);
         }
     }
     if !s.deliverables.is_empty() {
@@ -474,6 +486,27 @@ pub(crate) fn subject(s: &Subject, level: usize, out: &mut String) {
             );
         }
         out.push('\n');
+    }
+}
+
+/// One atom, verbatim, under `heading` at heading marker `hashes`.
+fn atom_block(hashes: &str, heading: &str, atom: &Atom, out: &mut String) {
+    let _ = writeln!(
+        out,
+        "{hashes} {heading} — [{}]({})\n",
+        atom.source,
+        link(&atom.source)
+    );
+    if atom.structured {
+        let _ = writeln!(out, "```yaml\n{}```\n", ensure_newline(&atom.body));
+    } else {
+        let _ = writeln!(
+            out,
+            "<!-- atom {} begins -->\n{}<!-- atom {} ends -->\n",
+            atom.source,
+            ensure_newline(&atom.body),
+            atom.source
+        );
     }
 }
 
@@ -695,6 +728,54 @@ mod tests {
         }
         assert!(role_row("ext.notes").is_none());
         assert!(role_row("intent").is_some());
+    }
+
+    #[test]
+    fn a_namespaced_extension_is_rendered_and_a_bare_unknown_is_not() {
+        assert!(is_rendered_role("intent"));
+        assert!(is_rendered_role("x.review"));
+        assert!(!is_rendered_role("hypothesis"));
+        assert!(!is_rendered_role("relations_and_integrity"));
+        assert!(!is_rendered_role(".leading"));
+        assert!(!is_rendered_role("trailing."));
+    }
+
+    #[test]
+    fn an_extension_atom_renders_verbatim_under_extensions_after_every_row() {
+        let mut subject = s("X-WAR-0003", "current", None, "INTENT\n");
+        subject.atoms.push(Atom {
+            ordinal: 15,
+            role: "x.review".into(),
+            source: "docs/warrants/X-WAR-0003/atoms/15-review.md".into(),
+            body: "# Review\n\nREVIEW TEXT, verbatim.\n".into(),
+            structured: false,
+        });
+        let c = Corpus {
+            program: "P".into(),
+            subjects: vec![subject],
+            ..Corpus::default()
+        };
+        let out = render(&c);
+        let ext = out
+            .find("##### Extensions\n")
+            .expect("an Extensions section");
+        let assurance = out.find("##### Assurance — ").unwrap();
+        let review = out
+            .find("###### `x.review` — [docs/warrants/X-WAR-0003/atoms/15-review.md]")
+            .expect("the extension atom under its role name");
+        assert!(assurance < ext && ext < review);
+        assert!(out.contains("# Review\n\nREVIEW TEXT, verbatim.\n<!-- atom "));
+        assert!(!out.contains("Unprojected"));
+    }
+
+    #[test]
+    fn a_subject_without_extensions_has_no_extensions_section() {
+        let c = Corpus {
+            program: "P".into(),
+            subjects: vec![s("X-WAR-0002", "current", None, "INTENT\n")],
+            ..Corpus::default()
+        };
+        assert!(!render(&c).contains("Extensions"));
     }
 
     #[test]

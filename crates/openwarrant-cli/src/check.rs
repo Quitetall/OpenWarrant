@@ -1647,28 +1647,15 @@ fn check_one(
         }
     }
 
-    // OW-ADR-0022 — an atom's relation to the projections is its role. A role
-    // no row of the composition table renders is text nobody reads, and is
-    // refused rather than silently dropped from both projections.
+    // OW-ADR-0022 — an atom's relation to the projections is its role.
     for atom in &basis.atoms {
-        if openwarrant_compiler::role_row(&atom.role).is_none() {
-            report.push(Diagnostic::error(
-                "atom.role-unprojected",
-                repo.relative(&one.dir.join(&atom.source)),
-                format!(
-                    "{alias}: atom {} has role `{}`, which no projection renders — the \
-                     master document and the history compose only the roles in \
-                     `current.rs`'s ROLE_SECTIONS ({}). Give it one of those roles, or \
-                     fold its text into the atom whose question it answers",
-                    atom.source,
-                    atom.role,
-                    openwarrant_compiler::ROLE_SECTIONS
-                        .iter()
-                        .map(|r| r.role)
-                        .collect::<Vec<_>>()
-                        .join(", ")
-                ),
-            ));
+        if let Some(d) = role_unprojected(
+            &alias,
+            &atom.role,
+            &atom.source,
+            repo.relative(&one.dir.join(&atom.source)),
+        ) {
+            report.push(d);
         }
     }
 
@@ -2552,6 +2539,71 @@ fn strip_comments(s: &str) -> String {
     }
     out.push_str(rest);
     out
+}
+
+/// `atom.role-unprojected` (OW-ADR-0022, OW-WAR-0113 AM-002). A role no row
+/// of the composition table renders is text nobody reads, and is refused
+/// rather than silently dropped from both projections — unless it is a
+/// namespaced extension role (§16.4, G-M8), which renders verbatim under the
+/// subject's Extensions section. The test is
+/// [`openwarrant_compiler::is_rendered_role`], the one the renderer uses.
+///
+/// Today the manifest refuses every role this could catch first (a bare
+/// unknown role, a compiler-produced one, a required namespaced one), so on a
+/// parsed Warrant it is defence in depth: the day a row is removed from
+/// `ROLE_SECTIONS`, its atoms are refused here instead of vanishing.
+fn role_unprojected(alias: &str, role: &str, source: &str, file: String) -> Option<Diagnostic> {
+    if openwarrant_compiler::is_rendered_role(role) {
+        return None;
+    }
+    Some(Diagnostic::error(
+        "atom.role-unprojected",
+        file,
+        format!(
+            "{alias}: atom {source} has role `{role}`, which no projection renders — the \
+             master document and the history compose only the roles in `current.rs`'s \
+             ROLE_SECTIONS ({}) and namespaced extension roles (`<namespace>.<name>`, \
+             §16.4). Give it one of those roles, or fold its text into the atom whose \
+             question it answers",
+            openwarrant_compiler::ROLE_SECTIONS
+                .iter()
+                .map(|r| r.role)
+                .collect::<Vec<_>>()
+                .join(", ")
+        ),
+    ))
+}
+
+#[cfg(test)]
+mod role_tests {
+    use super::role_unprojected;
+
+    fn run(role: &str) -> Option<crate::diagnostic::Diagnostic> {
+        role_unprojected("X-WAR-0001", role, "atoms/70-x.md", "a/70-x.md".into())
+    }
+
+    #[test]
+    fn a_namespaced_extension_role_is_not_refused() {
+        assert!(run("x.review").is_none());
+        assert!(run("lab.protocol").is_none());
+        assert!(run("intent").is_none());
+    }
+
+    #[test]
+    fn a_role_neither_a_row_nor_namespaced_is_refused_by_name() {
+        for role in [
+            "hypothesis",
+            "review",
+            "relations_and_integrity",
+            ".review",
+            "x.",
+        ] {
+            let d = run(role).unwrap_or_else(|| panic!("`{role}` must be refused"));
+            assert_eq!(d.rule, "atom.role-unprojected");
+            assert_eq!(d.severity, crate::diagnostic::Severity::Error);
+            assert!(d.message.contains(&format!("role `{role}`")));
+        }
+    }
 }
 
 #[cfg(test)]

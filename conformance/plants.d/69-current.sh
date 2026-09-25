@@ -353,9 +353,43 @@ else
     cu_fail "an unanswered heading, once signed" "setup: $W3 could not be authorized"
 fi
 
-# A role no projection renders is refused by name.
-plant "an unprojected role is refused" "atom.role-unprojected" "ext.notes" 2 \
-    "printf '\n[[atoms]]\nordinal = 70\nrole = \"ext.notes\"\npath = \"atoms/70-notes.md\"\nrequired = false\n' >> docs/warrants/$W3/manifest.toml; printf -- '---\nschema: oh.war/atom/v1\nwarrant_uuid: %s\nrole: ext.notes\njurisdiction: authored\norder: 70\nclassification: internal\n---\n\n# Notes\n' \"$(uuid_of $W3)\" > docs/warrants/$W3/atoms/70-notes.md; assert_present 'ext.notes' docs/warrants/$W3/manifest.toml"
+# OW-WAR-0113 AM-002 — a namespaced optional extension role (§16.4, G-M8)
+# is not refused: CURRENT.md renders its atom verbatim, under its role name, in
+# the subject's Extensions section. The refusal half: the same name without a
+# namespace is still refused. The manifest refuses it first (`manifest.invalid`,
+# G-M5), as it refuses every role `atom.role-unprojected` could catch — a bare
+# unknown role, a compiler-produced one, a required namespaced one — so that
+# rule is defence in depth on a parsed Warrant and is exercised by the unit
+# tests beside it in check.rs (`role_tests`), not here.
+cu_role_atom() { # <ordinal> <role> <file-stem> <body line>
+    printf '\n[[atoms]]\nordinal = %s\nrole = "%s"\npath = "atoms/%s-%s.md"\nrequired = false\n' \
+        "$1" "$2" "$1" "$3" >> "docs/warrants/$W3/manifest.toml"
+    printf -- '---\nschema: oh.war/atom/v1\nwarrant_uuid: %s\nrole: %s\njurisdiction: authored\norder: %s\nclassification: internal\n---\n\n# Planted\n\n%s\n' \
+        "$(uuid_of "$W3")" "$2" "$1" "$4" > "docs/warrants/$W3/atoms/$1-$3.md"
+    assert_present "role = \"$2\"" "docs/warrants/$W3/manifest.toml"
+}
+
+plant_restore
+plant_mutate "cu_role_atom 70 x.review review 'EXTENSION TEXT, verbatim.'"
+EXT_CHECK=$("$WAR" --root "$CU_R" check "$W3" 2>&1)
+"$WAR" --root "$CU_R" compile >/dev/null 2>&1
+EXT_CUR=$(cat "$CU_R/docs/generated/CURRENT.md" 2>/dev/null)
+plant_restore
+EXT_SECTION=$(awk -v w="$W3" '
+    $0 ~ "^#### " w " — " { inside = 1; next }
+    inside && /^#### / { inside = 0 }
+    inside' <<<"$EXT_CUR")
+if ! grep -q 'atom.role-unprojected' <<<"$EXT_CHECK" \
+    && grep -qx '##### Extensions' <<<"$EXT_SECTION" \
+    && grep -qF "###### \`x.review\` — [docs/warrants/$W3/atoms/70-review.md]" <<<"$EXT_SECTION" \
+    && grep -qxF 'EXTENSION TEXT, verbatim.' <<<"$EXT_SECTION"; then
+    cu_ok "an extension role renders" "x.review accepted; verbatim under $W3's Extensions"
+else
+    cu_fail "an extension role renders" "$(grep 'role-unprojected' <<<"$EXT_CHECK" | head -1) $(grep -c 'Extensions' <<<"$EXT_SECTION") Extensions heading(s)"
+fi
+
+plant "a bare unknown role is refused" "ERROR manifest.invalid" "declares role \"review\"" 2 \
+    "cu_role_atom 70 review review 'Nothing renders this.'"
 
 ssh-agent -k >/dev/null 2>&1
 if [[ -n "$CU_OLD_SOCK" ]]; then export SSH_AUTH_SOCK="$CU_OLD_SOCK"; else unset SSH_AUTH_SOCK; fi

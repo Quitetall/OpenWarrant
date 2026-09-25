@@ -37,7 +37,9 @@ pub use corpus_status::{
     canonical_json as corpus_status_json, render_html as render_corpus_status_html,
     render_markdown as render_corpus_status, render_platform as render_corpus_status_platform,
 };
-pub use current::{Corpus as CurrentCorpus, ROLE_SECTIONS, render as render_current, role_row};
+pub use current::{
+    Corpus as CurrentCorpus, ROLE_SECTIONS, is_rendered_role, render as render_current, role_row,
+};
 pub use digest::{DigestDomain, sha256_hex};
 pub use dispatch::{
     DispatchError, DispatchInputs, canonical_json as dispatch_json, compile_dispatch,
