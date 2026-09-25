@@ -915,8 +915,11 @@ fn run_task(
     //
     // Not a run task: its deliverable IS the receipt, pinned by content in
     // `deliverables.toml`. Recording again would overwrite the pinned bytes,
-    // and the pin itself moves the tree the receipt names; neither order
-    // holds under the tree rule, and the score says so.
+    // and the pin itself moves the tree the receipt names, so no order holds
+    // under the tree rule. The run tasks' gate (`ops.echo@1.1.0` in their
+    // fixtures) therefore declares `inputs`, and its receipt is judged by
+    // those, not by the tree (OW-WAR-0133 AM-004); a run gate that declares
+    // none scores `partial` here, and the score says why.
     if task.kind != "run" {
         let compile = scratch.war(&["compile"])?;
         r.steps.push(compile.step("compile.after-review"));
