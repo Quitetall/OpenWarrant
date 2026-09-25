@@ -32,7 +32,7 @@ Everything this repository has recorded, current or not: 142 subject(s), their l
 | 2026-09-22 | 3 | attestation.recorded 1, authorization.recorded 1, draft.created 1 |
 | 2026-09-23 | 61 | attestation.recorded 3, authorization.recorded 28, draft.created 28, question.answered 1, question.asked 1 |
 | 2026-09-24 | 63 | authorization.recorded 38, correction.recorded 13, draft.created 6, question.asked 3, verification.recorded 3 |
-| 2026-09-25 | 32 | authorization.recorded 32 |
+| 2026-09-25 | 34 | authorization.recorded 34 |
 
 ## Roadmap revisions
 
@@ -32384,7 +32384,7 @@ responder must not read as "waiting normally".
 
 [manifest](../../docs/warrants/OW-WAR-0133/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0133/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Contract revision 4 (`d01bcd8452d7897115df2e6da9ad433df882d06de717214c63c299142e9d3be2`), Basis SAS 1.1.0.
+Contract revision 5 (`b5c583da2dc4acda14b0e2758d80e264094333734bd0aa0a3810207650903349`), Basis SAS 1.1.0.
 
 #### Intent — [docs/warrants/OW-WAR-0133/atoms/10-intent.md](../../docs/warrants/OW-WAR-0133/atoms/10-intent.md)
 
@@ -34276,7 +34276,7 @@ resolver is refused by kind whatever the file says.
 
 [manifest](../../docs/warrants/OW-WAR-0138/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0138/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Contract revision 3 (`8eea74651b4271a6a5a07383ac4da2d69a1d3f65241677db6b1268b5dfa591da`), Basis SAS 1.1.0.
+Contract revision 4 (`4d4dfe170a3606f408646e62a03e6e5c44d6ae27df1e3efeabdab467afc6e835`), Basis SAS 1.1.0.
 
 #### Intent — [docs/warrants/OW-WAR-0138/atoms/10-intent.md](../../docs/warrants/OW-WAR-0138/atoms/10-intent.md)
 
