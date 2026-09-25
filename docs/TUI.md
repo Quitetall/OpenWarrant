@@ -16,9 +16,13 @@ Not at a terminal — a script, a pipe, `war </dev/null` — `war` exits 2 with
 by name; `war console` stays as the line-based fallback (over ssh, inside the
 battery).
 
+A repository with tickets opens on **Tickets** (`t`): most work is a ticket,
+and nothing in that loop needs a signature. Setup, the Queue and the rest of
+the authority layer stay one key away.
+
 Every pane reads the functions the CLI already answers with — `console::board`,
 `next::run`, `status::build`, `frontier::run`, `check::run`, `doctor::run`,
-`journal_cmd::load` — and renders. A pane that computed a fact itself would be
+`journal_cmd::load`, `ticket::board` — and renders. A pane that computed a fact itself would be
 a second answer to a question the records already answer. A pane that cannot
 answer says so ("not established", "UNREADABLE …"), never a blank.
 
@@ -30,7 +34,8 @@ another terminal shows up without a keypress.
 
 ## Setup
 
-Shown first whenever setup is incomplete. Started outside any repository,
+Shown first whenever setup is incomplete and the repository has no tickets
+(with tickets, the app opens on Tickets). Started outside any repository,
 the app opens Projects instead, and Setup for the current directory is one
 keypress away (`1`); with `--root` naming a directory that is not yet a
 repository, it opens here and the other panes render "not initialized". The row names the step; `Enter` runs `war
@@ -45,7 +50,8 @@ Two things. **What next** (the default): first, which `war` this is — its
 version and path — with a warning when `war` on PATH is a different version,
 naming the install command (a command you copy runs PATH's `war`, not this
 one). Then the Setup step if incomplete, then
-`war next`'s actions with humans first — each signing row carrying the dry
+`war next`'s ready ticket items (shown, never run from here), then its
+actions with humans first — each signing row carrying the dry
 run's verdict, `[would record]` or `[would refuse: <rule>]`, and the refused
 ones after the recordable ones — then `war doctor`'s non-passes, then
 `war check`'s errors — one row per rule with a count — each carrying its
@@ -141,12 +147,30 @@ on without running a command in it. `OPENWARRANT_NO_PROJECTS=1` stops the
 remembering (the conformance battery sets it). The pane is read when you open
 it, not every second: `r` re-reads it.
 
+## Tickets
+
+The ticket loop (docs/TICKETS.md), read-only. One row per ticket — its state
+(open, in progress, done), progress (`2/5`), priority, title, and who holds a
+claim — ordered as `war tickets` orders them, and beneath each ticket one row
+per item still to do, marked `ready` when `war ready` would offer it. The
+bottom line is the command: `war claim <ticket>/<item>` on a ready item,
+`war show <ticket>` otherwise. `Enter` shows the ticket as `war show` prints
+it: the whole checklist, done items with who did them, and the notes. `t`
+opens this pane from anywhere.
+
+The pane reads `ticket::board`, the same answer `war tickets`, `war show` and
+`war ready` give, and computes nothing of its own. It claims and finishes
+nothing: run the command on the bottom line in a terminal. The ticket store
+and its claims are part of the fingerprint, so a `war done` elsewhere shows
+up without a keypress.
+
 ## Keys
 
 | key | does |
 |---|---|
 | `0-9`, `Tab`, `Shift-Tab` | switch pane (`0` is Roadmap) |
 | `p` | Projects: every repository you use; `Enter` opens one, `n` starts one |
+| `t` | Tickets: state, progress, remaining items; `Enter` shows checklist and notes |
 | `j` `k` | move (in a document: next/previous document) |
 | `/` | filter this pane; `Esc` clears |
 | `Enter` | act on the row: sign (queue, help), open the detail (others), run `war init` (setup) |

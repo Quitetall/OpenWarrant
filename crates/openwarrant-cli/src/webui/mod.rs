@@ -56,6 +56,16 @@
 //!   from <device>" in the host's queue — which starts nothing.
 //! - Connections are served on their own threads, at most
 //!   [`LAN_CONNECTIONS`] at once, with the loopback's size and time bounds.
+//!
+//! # Tickets (t-67ed)
+//!
+//! `/api/tickets` is `ticket::board`, read-only, on both listeners. The
+//! loopback page may also claim or finish a ticket item: `POST /api/ticket`
+//! with `{"act": "claim"|"done", "target": "t-…/i-…", "note"?}`, run in
+//! process through the same `ticket::claim_cmd` / `ticket::done` the CLI
+//! runs. A ticket act is not a signing act and runs no argv. From a LAN
+//! device the same route is 403 `act.host-only` and nothing is written: a
+//! device reads tickets, it never changes them.
 
 use std::collections::BTreeMap;
 use std::io::{Read, Write};
@@ -611,6 +621,40 @@ struct ActBody {
     id: String,
 }
 
+/// A ticket act from the loopback page (t-67ed): which act, on which ticket
+/// or item, and for `done` an optional note. Nothing else; never an argv.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct TicketBody {
+    act: TicketAct,
+    target: String,
+    #[serde(default)]
+    note: Option<String>,
+}
+
+#[derive(Deserialize, Clone, Copy)]
+#[serde(rename_all = "snake_case")]
+enum TicketAct {
+    Claim,
+    Done,
+}
+
+/// A ticket or item reference as the ticket commands take it: `t-…`,
+/// `i-…` or `t-…/i-…`, lowercase hex, and short. Anything else is refused
+/// before the store is opened.
+fn ticket_target_ok(t: &str) -> bool {
+    !t.is_empty()
+        && t.len() <= 64
+        && t.split('/').count() <= 2
+        && t.split('/').all(|part| {
+            (part.starts_with("t-") || part.starts_with("i-"))
+                && part.len() > 2
+                && part[2..]
+                    .bytes()
+                    .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+        })
+}
+
 /// A LAN device's act: the row id and a nonce the server issued to it.
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -876,6 +920,20 @@ impl Server {
     ) -> std::io::Result<()> {
         if let Session::Device(lan, device) = session {
             match (req.method.as_str(), path) {
+                // t-67ed: a ticket act is the loopback page's only. A
+                // device reads `/api/tickets`; it never claims or finishes.
+                ("POST", "/api/ticket") => {
+                    eprintln!(
+                        "war ui: refused act.host-only from {}: a ticket act; nothing ran",
+                        device.label()
+                    );
+                    return respond(
+                        stream,
+                        "403 Forbidden",
+                        "text/plain",
+                        b"act.host-only: a ticket act starts only on the host's loopback page; this device can read tickets, never change them. Nothing ran.",
+                    );
+                }
                 ("GET", "/api/nonce") => {
                     return match lan.nonces.issue(&device.id) {
                         Ok(n) => json_response(stream, "200 OK", &json!({"nonce": n})),
@@ -974,6 +1032,42 @@ impl Server {
                 };
                 self.start_act(stream, &body.id, None)
             }
+            ("POST", "/api/ticket") => {
+                if !matches!(session, Session::Loopback) {
+                    return respond(
+                        stream,
+                        "403 Forbidden",
+                        "text/plain",
+                        b"act.host-only: a ticket act starts only on the host's loopback page. Nothing ran.",
+                    );
+                }
+                if req.header("origin").is_empty() {
+                    return respond(
+                        stream,
+                        "403 Forbidden",
+                        "text/plain",
+                        b"an act needs the page's origin",
+                    );
+                }
+                let body = match serde_json::from_slice::<TicketBody>(&req.body) {
+                    Ok(b) if ticket_target_ok(&b.target) => b,
+                    _ => {
+                        return respond(
+                            stream,
+                            "400 Bad Request",
+                            "text/plain",
+                            b"a ticket act names act (claim|done), target (t-.../i-...) and, for done, a note; nothing else",
+                        );
+                    }
+                };
+                self.ticket_act(stream, &body)
+            }
+            (_, "/api/ticket") => respond(
+                stream,
+                "405 Method Not Allowed",
+                "text/plain",
+                b"method not allowed",
+            ),
             (_, "/api/act") if req.method != "GET" => respond(
                 stream,
                 "405 Method Not Allowed",
@@ -1146,9 +1240,62 @@ impl Server {
     }
 
     /// The records' fingerprint: `war watch`'s trees plus the roadmap.
+    /// A loopback ticket act, in process: the same `ticket::claim_cmd` or
+    /// `ticket::done` the CLI runs, acting as `--as` when given. 200 with the
+    /// command's words, or 409 naming the rule it refused by.
+    fn ticket_act(&self, stream: &mut Conn, body: &TicketBody) -> std::io::Result<()> {
+        let outcome = Repository::discover(Some(self.repo.root.clone()))
+            .and_then(|repo| crate::ticket::Store::open(&repo, self.actor.as_deref()))
+            .and_then(|store| match body.act {
+                TicketAct::Claim => crate::ticket::claim_cmd(&store, &body.target, false),
+                TicketAct::Done => crate::ticket::done(
+                    &store,
+                    &body.target,
+                    body.note
+                        .as_deref()
+                        .map(str::trim)
+                        .filter(|n| !n.is_empty()),
+                ),
+            });
+        let word = match body.act {
+            TicketAct::Claim => "claim",
+            TicketAct::Done => "done",
+        };
+        match outcome {
+            Ok(o) if !o.is_refused() => {
+                eprintln!("war ui: ticket {word} {}", body.target);
+                json_response(
+                    stream,
+                    "200 OK",
+                    &json!({"ok": true, "act": word, "target": body.target, "message": o.human}),
+                )
+            }
+            Ok(o) => {
+                let rule = o
+                    .report
+                    .diagnostics
+                    .iter()
+                    .find(|d| d.severity == crate::diagnostic::Severity::Error)
+                    .map(|d| d.rule.clone())
+                    .unwrap_or_default();
+                json_response(
+                    stream,
+                    "409 Conflict",
+                    &json!({"ok": false, "act": word, "target": body.target, "rule": rule, "message": o.human}),
+                )
+            }
+            Err(e) => json_response(
+                stream,
+                "500 Internal Server Error",
+                &json!({"ok": false, "error": e.to_string()}),
+            ),
+        }
+    }
+
     fn fingerprint(&self) -> u64 {
         let mut dirs = crate::watch::watched_dirs(&self.repo);
         dirs.push(crate::roadmap_cmd::dir(&self.repo));
+        dirs.extend(crate::ticket::watched(&self.repo));
         // The configuration too: a broken `openwarrant.toml` must be seen.
         let config = std::fs::metadata(self.repo.root.join(crate::init::CONFIG_FILE))
             .ok()
@@ -1474,6 +1621,7 @@ fn asset(stream: &mut Conn, path: &str) -> std::io::Result<()> {
 }
 
 const VIEWS: &[&str] = &[
+    "tickets",
     "snapshot",
     "progress",
     "queue",
@@ -1519,6 +1667,7 @@ fn build_view(repo: &Repository, name: &str, actor: Option<&str>) -> Result<Valu
             json!({"warrants": rows})
         }
         "help" => help(repo)?,
+        "tickets" => crate::ticket::board(&crate::ticket::Store::open(repo, None)?)?,
         // `war progress --snapshot`: attributed work reports, their links,
         // the frontier — the viewer's own validated snapshot.
         "snapshot" => json!({"snapshot": crate::progress_viewer::json_snapshot(repo)?}),
@@ -1827,6 +1976,35 @@ mod tests {
         );
         assert_eq!(decision_flag("run `--root x; rm -rf /`"), None);
         assert_eq!(decision_flag("nothing here"), None);
+    }
+
+    #[test]
+    fn a_ticket_act_names_act_and_target_and_nothing_else() {
+        assert!(
+            serde_json::from_str::<TicketBody>(r#"{"act":"claim","target":"t-3f2a/i-9c01"}"#)
+                .is_ok()
+        );
+        assert!(
+            serde_json::from_str::<TicketBody>(
+                r#"{"act":"done","target":"i-9c01","note":"shipped"}"#
+            )
+            .is_ok()
+        );
+        // Refusals: another act, an argv, a field it does not know.
+        assert!(serde_json::from_str::<TicketBody>(r#"{"act":"sign","target":"t-3f2a"}"#).is_err());
+        assert!(
+            serde_json::from_str::<TicketBody>(
+                r#"{"act":"claim","target":"t-3f2a","argv":["rm"]}"#
+            )
+            .is_err()
+        );
+        assert!(ticket_target_ok("t-3f2a"));
+        assert!(ticket_target_ok("t-3f2a/i-9c01"));
+        assert!(!ticket_target_ok("OW-WAR-0001"));
+        assert!(!ticket_target_ok("t-3f2a/i-9c01/x"));
+        assert!(!ticket_target_ok("t-../../etc"));
+        assert!(!ticket_target_ok("t-"));
+        assert!(!ticket_target_ok(""));
     }
 
     #[test]

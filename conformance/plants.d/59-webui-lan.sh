@@ -363,6 +363,36 @@ for a in acts:
         wl_fail "OBL-002 an act replayed with its nonce" "$WL_R2; act log lines $WL_LINES"
     fi
 
+    # ---- t-67ed: tickets on the LAN are read-only --------------------------
+    # A device reads /api/tickets; its ticket act is 403 act.host-only and
+    # writes nothing. The same act from the host's loopback page records.
+    "$WAR" --root "$PLANT_ROOT" create "LAN ticket" --item "LAN item" >/dev/null 2>&1
+    WL_TT=$("$WAR" --root "$PLANT_ROOT" --json ready 2>/dev/null | python3 -c '
+import sys, json
+r = json.load(sys.stdin)["result"]["ready"]
+print(next(x["ticket"] + "/" + x["item"] for x in r if x["text"] == "LAN item"))' 2>/dev/null)
+    WL_TV=$(wl_curl "$WL_AP" -b "$WL_T/jar1" -w ' %{http_code}' "$WL_AB/api/tickets")
+    WL_TR=$(wl_curl "$WL_AP" -b "$WL_T/jar1" -H "Origin: $WL_AB" -H 'Content-Type: application/json' \
+        -d "{\"act\":\"claim\",\"target\":\"$WL_TT\"}" -w ' %{http_code}' "$WL_AB/api/ticket")
+    WL_TC=$("$WAR" --root "$PLANT_ROOT" --json show "${WL_TT%%/*}" 2>/dev/null | python3 -c '
+import sys, json
+print(len(json.load(sys.stdin)["result"]["ticket"]["claims"]))' 2>/dev/null)
+    if [[ -n "$WL_TT" && "$WL_TV" == *'LAN item'*200 && "$WL_TR" == *act.host-only*403 && "$WL_TC" == 0 ]]; then
+        wl_ok "t-67ed a device's ticket act" "reads 200; claim 403 act.host-only; no claim written"
+    else
+        wl_fail "t-67ed a device's ticket act" "target '$WL_TT'; view ${WL_TV: -3}; act $WL_TR; claims $WL_TC"
+    fi
+    WL_TL=$(curl -s -H "Authorization: Bearer $WL_TOK" -H "Origin: http://$WL_LHOST" -H 'Content-Type: application/json' \
+        -d "{\"act\":\"claim\",\"target\":\"$WL_TT\"}" -w ' %{http_code}' "http://$WL_LHOST/api/ticket")
+    WL_TC=$("$WAR" --root "$PLANT_ROOT" --json show "${WL_TT%%/*}" 2>/dev/null | python3 -c '
+import sys, json
+print(len(json.load(sys.stdin)["result"]["ticket"]["claims"]))' 2>/dev/null)
+    if [[ "$WL_TL" == *'"ok":true'*200 && "$WL_TC" == 1 ]]; then
+        wl_ok "t-67ed the same act on loopback" "200; the claim is recorded"
+    else
+        wl_fail "t-67ed the same act on loopback" "$WL_TL; claims $WL_TC"
+    fi
+
     # ---- OBL-005: the loopback page of a --lan server is unchanged --------
     WL_GOT=$(wl_loopback_headers "$WL_LHOST" "$WL_TOK")
     if [[ "$WL_GOT" == "$WL_LOOPBACK_DIGEST" ]]; then

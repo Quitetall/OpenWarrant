@@ -1,7 +1,7 @@
 # `war ui` — the web UI
 
 ```bash
-war ui                 # prints http://127.0.0.1:8765/#t=<token>&p=progress — open it
+war ui                 # prints http://127.0.0.1:8765/#t=<token>&p=tickets — open it
 war ui --port 0        # any free port
 war ui --page queue    # open at another page
 war ui --as "Ada"      # who signs, when roles.toml names more than one signer
@@ -15,6 +15,21 @@ functions the CLI answers with. Every act it starts is one the CLI would run.
 It holds no key.
 
 ## Pages
+
+**Tickets** — the ticket loop (docs/TICKETS.md), and the page `war ui` opens
+on.
+- Every ticket with its state (open, in progress, done), progress (`2/5`),
+  priority and who holds a claim, in `war tickets` order.
+- Each ticket's checklist as `war show` prints it: done items with who did
+  them and their note, open items with the `war claim` that takes them and a
+  **ready** badge where `war ready` would offer them, then the notes.
+- On this machine's page only: **Claim** on a ready item and **Done** on an
+  open one (it asks for an optional note). The server runs the same
+  `war claim` / `war done` the CLI does, in process, acting as `--as` when
+  given; a refusal (someone else holds the claim, nobody claimed it) comes
+  back by its rule. A ticket act is not a signing act and needs no key.
+- A paired LAN device sees the same page read-only, with no buttons; the
+  server refuses a device's ticket act `act.host-only` (Reach).
 
 **Progress** — the canonical roadmap (OW-ADR-0023).
 - The phases in dependency order. Each shows its exit criterion, its tier and
@@ -44,13 +59,14 @@ it waits on.
 **Corpus** — every Warrant with its rung and unmet count.
 
 **Help** — what next and `war check`'s errors.
-- `war next`'s actions, the human ones first.
+- `war next`'s actions, the human ones first. (The ready ticket items
+  `war next` lists before them are on Tickets.)
 - `war check`'s errors, one row per rule with a count and its remedy (§76.2).
 - An *automatic* remedy (never a signing verb, OW-WAR-0112) has a **Run**
   button.
 
 Every page re-reads on its own. The server watches the records' fingerprint
-(`war watch`'s, plus the roadmap). The page asks every two seconds and
+(`war watch`'s, plus the roadmap, the ticket store and its claims). The page asks every two seconds and
 refetches when it moves, so a signature given in a terminal appears without
 a reload.
 
@@ -85,6 +101,9 @@ and output.
 | an act whose id is not on the allowlist | 403, nothing runs |
 | an act body with any field but `id` (an argv, say) | 400 |
 | a second act while one runs | 409 |
+| a ticket act (`POST /api/ticket`) with no Origin | 403 |
+| a ticket act naming anything but `claim`/`done` and a `t-…`/`i-…` target, or with another field | 400 |
+| a ticket act the ticket commands refuse (claimed by someone else, not claimed) | 409, by its rule |
 | headers over 8 KiB, a body over 4 KiB | 431 / 413 |
 
 **The token.** Each start makes a new 256-bit token from the OS random
@@ -177,8 +196,10 @@ loopback address. The loopback page's token means nothing there.
 | an act without a nonce | 400 |
 | an act whose nonce was already spent | 409 `act.nonce-used`, nothing runs |
 | a signing act's id | 403 `act.host-only`, nothing runs |
+| a ticket act (`POST /api/ticket`), claim or done | 403 `act.host-only`, nothing is written |
 
-**What a device cannot do.** It can never sign, never start `war sign`,
+**What a device cannot do.** It can never claim or finish a ticket (it
+reads them). It can never sign, never start `war sign`,
 and never raise the key's dialog on the host. The dialog could be answered
 by whoever sits at the host, who may not be the person who clicked.
 - Its queue shows each act's dry-run verdict and the exact command to run

@@ -8,6 +8,11 @@
 // carries an HttpOnly cookie this script never sees, every act also sends a
 // single-use nonce from the server, and a signing row shows only its verdict
 // and the command to run at the host — this device can ask, never sign.
+//
+// Tickets (t-67ed): the first page. On loopback an open item carries Claim
+// and Done, which POST {act, target[, note]} to /api/ticket; the server runs
+// the same ticket commands the CLI does. On the LAN the page shows no ticket
+// buttons, and the server refuses the route act.host-only regardless.
 "use strict";
 (() => {
   const params = new URLSearchParams(location.hash.slice(1));
@@ -15,7 +20,7 @@
   const lan = location.protocol === "https:";
   const pairCode = params.get("pair") || "";
   const pairFp = params.get("fp") || "";
-  let page = params.get("p") || "progress";
+  let page = params.get("p") || "tickets";
   history.replaceState(null, "", location.pathname + "#p=" + page);
   let version = null;
 
@@ -55,6 +60,38 @@
         el("tbody", {}, ...rows.map((cells) => el("tr", {}, ...cells.map((c) => el("td", {}, c)))))));
 
   const pages = {
+    async tickets(main) {
+      const d = await api("tickets");
+      const list = d.tickets || [];
+      main.append(el("h2", { text: "Tickets" }),
+        el("p", { class: "muted", text: lan
+          ? "Read-only on this device. Claim and finish tickets at the host (`war claim`, `war done`), or on its own `war ui` page."
+          : "The ticket loop: claim an item, do it, mark it done. Nothing here needs a signature." }));
+      if (!list.length) { main.append(el("p", { class: "muted" }, "No tickets yet — ", code("war create \"what this work accomplishes\" --item \"...\""))); return; }
+      main.append(table(["ticket", "state", "done", "p", "title", "claimed by"], list.map((t) => {
+        const r = t.ticket || {};
+        return [code(r.id), el("span", { class: "badge " + (r.state === "done" ? "ok" : r.state === "in_progress" ? "warn" : ""), text: String(r.state || "").replace("_", " ") }),
+          `${r.done}/${r.total}`, "p" + r.priority, r.title || "", (r.claims || []).map((c) => c.actor).join(", ")];
+      })));
+      for (const t of list) {
+        const r = t.ticket || {};
+        const box = el("section", { class: "phase" });
+        box.append(el("div", { class: "head" }, el("strong", { text: r.id }), el("span", { text: r.title || "" }),
+          el("span", { class: "badge", text: `${r.done}/${r.total} done` })));
+        const items = t.items || [];
+        if (!items.length) box.append(el("p", { class: "muted" }, "No items: the ticket is the work. ",
+          lan || r.state === "done" ? null : ticketButton("claim", r.id, "Claim"), " ", lan || r.state === "done" ? null : ticketButton("done", r.id, "Done")));
+        else box.append(table(["", "item", "", "command"], items.map((i) => [
+          i.done ? "☑" : "☐",
+          el("span", {}, i.text, i.id ? el("span", { class: "muted", text: " (" + i.id + ")" }) : null,
+            i.done && i.done_by ? el("span", { class: "muted", text: " — done by " + i.done_by + (i.note ? ": " + i.note : "") }) : null),
+          i.done || lan ? (i.ready ? el("span", { class: "badge", text: "ready" }) : "")
+            : el("span", {}, i.ready ? ticketButton("claim", i.target, "Claim") : null, " ", ticketButton("done", i.target, "Done")),
+          i.done ? "" : code("war claim " + i.target)])));
+        if ((t.notes || []).length) box.append(el("h3", { text: "Notes" }), el("ul", {}, ...t.notes.map((n) => el("li", { text: n }))));
+        main.append(box);
+      }
+    },
     async progress(main) {
       const d = await api("progress");
       const rm = d.roadmap || {};
@@ -154,6 +191,28 @@
     },
   };
 
+  // Loopback only: claim or finish a ticket item. The server runs the same
+  // ticket command the CLI would and answers with its words or its refusal.
+  function ticketButton(act, target, label) {
+    const b = el("button", { type: "button", text: label });
+    b.addEventListener("click", async () => {
+      const body = { act, target };
+      if (act === "done") {
+        const note = window.prompt("What you did (optional):", "");
+        if (note === null) return;
+        if (note) body.note = note;
+      }
+      b.disabled = true;
+      try {
+        const r = await fetch("/api/ticket", { method: "POST", headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" }, body: JSON.stringify(body), cache: "no-store", credentials: "omit" });
+        const text = await r.text();
+        let d = {}; try { d = JSON.parse(text); } catch (_) { d = { message: text }; }
+        showAct((r.ok ? "" : "refused" + (d.rule ? " (" + d.rule + ")" : "") + ": ") + (d.message || d.error || r.statusText));
+        version = null;
+      } catch (e) { showAct("refused: " + e.message); b.disabled = false; }
+    });
+    return b;
+  }
   // A device's act carries a nonce the server issued to it, spent once.
   const actBody = async (id) => lan ? { id, nonce: (await api("nonce")).nonce } : { id };
   function actButton(id, label) {
@@ -189,8 +248,8 @@
         if (!r.ok) throw new Error((await r.text()) || r.statusText);
         const d = await r.json();
         out.textContent = "Paired as device " + d.device + " until " + d.expires_at + ".";
-        history.replaceState(null, "", location.pathname + "#p=progress");
-        page = "progress"; poll();
+        history.replaceState(null, "", location.pathname + "#p=tickets");
+        page = "tickets"; poll();
       } catch (e) { out.textContent = "Not paired: " + (e.message || e); }
     });
     main.replaceChildren(el("div", {},

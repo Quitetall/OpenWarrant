@@ -1863,6 +1863,58 @@ fn pathdiff(from: &Utf8Path, to: &Utf8Path) -> String {
     out.join("/")
 }
 
+// ---- board (the app's and the web page's Tickets pane, t-67ed) -------------
+
+/// The directories whose change changes what the Tickets panes show: the
+/// ticket store and the claims. Empty when the store cannot be opened.
+#[must_use]
+pub fn watched(repo: &Repository) -> Vec<Utf8PathBuf> {
+    Store::open(repo, None).map_or_else(|_| Vec::new(), |s| vec![s.dir, s.claims_dir])
+}
+
+/// Every ticket as `war tickets` lists it, each with `war show`'s items,
+/// notes and Markdown, and which of its items `war ready` offers now. The
+/// TUI and the web page render this and compute nothing of their own.
+pub fn board(store: &Store) -> Result<serde_json::Value, RepoError> {
+    let list = tickets(store)?;
+    let (all, _) = store.load_all()?;
+    let ready: BTreeSet<String> = ready_rows(store, &all)?
+        .iter()
+        .map(ReadyRow::target)
+        .collect();
+    let mut out = Vec::new();
+    for row in list.result["tickets"]
+        .as_array()
+        .cloned()
+        .unwrap_or_default()
+    {
+        let id = row["id"].as_str().unwrap_or_default().to_owned();
+        let shown = show(store, &id)?;
+        let items: Vec<serde_json::Value> = shown.result["items"]
+            .as_array()
+            .cloned()
+            .unwrap_or_default()
+            .into_iter()
+            .map(|mut item| {
+                let target = item["id"]
+                    .as_str()
+                    .map_or_else(|| id.clone(), |i| format!("{id}/{i}"));
+                item["target"] = serde_json::json!(target);
+                item["ready"] = serde_json::json!(ready.contains(&target));
+                item
+            })
+            .collect();
+        out.push(serde_json::json!({
+            "ticket": row,
+            "whole_ready": ready.contains(&id),
+            "items": items,
+            "notes": shown.result["notes"],
+            "markdown": shown.result["markdown"],
+        }));
+    }
+    Ok(serde_json::json!({"schema": "oh.war/ticket-board/v1", "tickets": out}))
+}
+
 // ---- check -----------------------------------------------------------------
 
 /// `war check`'s ticket rules, into `report`: each ticket's manifest and
