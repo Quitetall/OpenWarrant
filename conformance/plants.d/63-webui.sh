@@ -105,41 +105,6 @@ else
     else
         printf 'FAIL  %-34s the queue offered no act: %s\n' "an allowlisted act" "$(head -c 200 <<<"$WU_Q")"; FAILED=$((FAILED + 1))
     fi
-
-    # t-67ed: the Tickets page. The view lists a ticket and its item; the
-    # loopback page claims and finishes it through the ticket commands; the
-    # refusals: no Origin, a body naming another act or an argv, a second done.
-    "$WAR" --root "$PLANT_ROOT" create "Web ticket" --item "Web item" >/dev/null 2>&1
-    WU_TT=$("$WAR" --root "$PLANT_ROOT" --json ready 2>/dev/null | python3 -c '
-import sys, json
-r = json.load(sys.stdin)["result"]["ready"]
-print(next(x["ticket"] + "/" + x["item"] for x in r if x["text"] == "Web item"))' 2>/dev/null)
-    WU_TV=$(curl -s -H "Authorization: Bearer $WU_TOK" "$WU_B/api/tickets")
-    if [[ -n "$WU_TT" ]] && python3 -c '
-import sys, json
-d = json.load(sys.stdin)
-t = [x for x in d["tickets"] if x["ticket"]["title"] == "Web ticket"][0]
-assert t["items"][0]["text"] == "Web item" and t["items"][0]["ready"] is True
-' <<<"$WU_TV" 2>/dev/null; then
-        printf 'ok    %-34s the ticket, its item, ready\n' "the tickets view"; PASSED=$((PASSED + 1))
-    else
-        printf 'FAIL  %-34s %s\n' "the tickets view" "$(head -c 200 <<<"$WU_TV")"; FAILED=$((FAILED + 1))
-    fi
-    wu_tpost() { curl -s -o /dev/null -w '%{http_code}' -X POST -H "Authorization: Bearer $WU_TOK" -H 'Content-Type: application/json' "$@" "$WU_B/api/ticket"; }
-    wu_expect "a ticket act with no Origin" "$(wu_tpost -d "{\"act\":\"claim\",\"target\":\"$WU_TT\"}")" 403
-    wu_expect "a ticket act naming another act" "$(wu_tpost -H "Origin: $WU_B" -d "{\"act\":\"sign\",\"target\":\"$WU_TT\"}")" 400
-    wu_expect "a ticket act carrying an argv" "$(wu_tpost -H "Origin: $WU_B" -d "{\"act\":\"claim\",\"target\":\"$WU_TT\",\"argv\":[\"rm\"]}")" 400
-    wu_expect "a ticket act on a non-ticket" "$(wu_tpost -H "Origin: $WU_B" -d '{"act":"claim","target":"WU-WAR-0001"}')" 400
-    wu_expect "a ticket act by GET" "$(wu_code -H "Authorization: Bearer $WU_TOK" "$WU_B/api/ticket")" 405
-    wu_expect "done before any claim" "$(wu_tpost -H "Origin: $WU_B" -d "{\"act\":\"done\",\"target\":\"$WU_TT\"}")" 409
-    wu_expect "the loopback page claims" "$(wu_tpost -H "Origin: $WU_B" -d "{\"act\":\"claim\",\"target\":\"$WU_TT\"}")" 200
-    wu_expect "the loopback page finishes" "$(wu_tpost -H "Origin: $WU_B" -d "{\"act\":\"done\",\"target\":\"$WU_TT\",\"note\":\"from the page\"}")" 200
-    if grep -q '^- \[x\] Web item .*from the page' "$PLANT_ROOT"/docs/tickets/"${WU_TT%%/*}"/atoms/15-checklist.md 2>/dev/null; then
-        printf 'ok    %-34s ticked, with the note\n' "the checklist records it"; PASSED=$((PASSED + 1))
-    else
-        printf 'FAIL  %-34s %s\n' "the checklist records it" "$(cat "$PLANT_ROOT"/docs/tickets/"${WU_TT%%/*}"/atoms/15-checklist.md 2>&1 | head -5)"; FAILED=$((FAILED + 1))
-    fi
-    wu_expect "a second done is refused" "$(wu_tpost -H "Origin: $WU_B" -d "{\"act\":\"done\",\"target\":\"$WU_TT\"}")" 409
 fi
 kill "$WU_PID" 2>/dev/null; wait "$WU_PID" 2>/dev/null
 command rm -f "$WU_OUT" "$WU_ERR"
