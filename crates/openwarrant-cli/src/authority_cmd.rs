@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Explicit authority proposals and signed activation. Never trusts working-tree roles.
 mod signing;
-mod store;
+// OW-WAR-0138: the read path (`authority_check`) reads a store through
+// `store::read_current`, never by opening its files itself.
+pub(crate) mod store;
 use crate::{
     diagnostic::{Diagnostic, Report},
     repo::RepoError,
@@ -25,6 +27,21 @@ pub enum Command {
     Draft {
         #[arg(long)]
         current: Option<PathBuf>,
+        /// Write a v2 revision (OW-WAR-0138): actor kind per principal and a
+        /// policy table. A v1 current revision is upgraded; v2 stays v2.
+        #[arg(long)]
+        v2: bool,
+        /// v2: the actor name records carry for this principal.
+        #[arg(long, requires = "kind")]
+        actor: Option<String>,
+        /// v2: human, agent or policyservice.
+        #[arg(long, requires = "actor")]
+        kind: Option<String>,
+        /// v2: a JSON file holding the policy table
+        /// (allow_automated_resolution, require_user_presence, verifier_argv,
+        /// independence).
+        #[arg(long)]
+        policy: Option<PathBuf>,
         #[arg(long)]
         repository: Option<String>,
         #[arg(long)]
@@ -215,6 +232,10 @@ pub fn run(command: Command) -> Result<(Report, serde_json::Value)> {
     let value = match command {
         Command::Draft {
             current,
+            v2,
+            actor,
+            kind,
+            policy,
             repository,
             principal,
             public_key,
@@ -238,10 +259,27 @@ pub fn run(command: Command) -> Result<(Report, serde_json::Value)> {
                     repository: repository.ok_or_else(|| err("authority-repository-required"))?,
                     sequence: 0,
                     principals: BTreeMap::new(),
+                    policy: None,
                 }
             };
+            if v2 {
+                revision.schema = sdk::REVISION_SCHEMA_V2.into();
+            }
+            if let Some(path) = &policy {
+                let table: sdk::Policy = serde_json::from_slice(&read(path)?)
+                    .map_err(|e| err(format!("authority-policy: {e}")))?;
+                revision.policy = Some(table);
+            }
+            let kind = kind
+                .map(|k| {
+                    serde_json::from_value::<openwarrant_core::authority::ActorKind>(
+                        serde_json::Value::String(k.clone()),
+                    )
+                    .map_err(|_| err(format!("authority-kind: {k:?} is not an actor kind")))
+                })
+                .transpose()?;
             if remove {
-                if public_key.is_some() || !role.is_empty() {
+                if public_key.is_some() || !role.is_empty() || actor.is_some() {
                     return Err(err("authority-remove-conflicting-input"));
                 }
                 if revision.principals.remove(&principal).is_none() {
@@ -263,11 +301,21 @@ pub fn run(command: Command) -> Result<(Report, serde_json::Value)> {
                         .public_key
                         .clone()
                 };
+                let prior = revision.principals.get(&principal);
+                let (actor, kind) = match (actor, kind) {
+                    (Some(a), Some(k)) => (Some(a), Some(k)),
+                    _ => (
+                        prior.and_then(|p| p.actor.clone()),
+                        prior.and_then(|p| p.kind),
+                    ),
+                };
                 revision.principals.insert(
                     principal,
                     sdk::Principal {
                         public_key: key,
                         roles: role.into_iter().collect(),
+                        actor,
+                        kind,
                     },
                 );
             }

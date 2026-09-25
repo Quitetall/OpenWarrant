@@ -12,11 +12,14 @@ fn prior() -> Revision {
         schema: REVISION_SCHEMA.into(),
         repository: "example-project".into(),
         sequence: 0,
+        policy: None,
         principals: BTreeMap::from([(
             "alice".into(),
             Principal {
                 public_key: KEY.into(),
                 roles: BTreeSet::from(["authority-admin".into()]),
+                actor: None,
+                kind: None,
             },
         )]),
     }
@@ -58,6 +61,8 @@ fn recovery_uses_previous_recovery_role_not_proposed_policy() {
         Principal {
             public_key: KEY.into(),
             roles: BTreeSet::from(["authority-recovery".into()]),
+            actor: None,
+            kind: None,
         },
     );
     let mut change = proposal(&previous);
@@ -196,6 +201,8 @@ fn transition_checks_wire_bound_even_for_direct_sdk_structs() {
             Principal {
                 public_key: KEY.into(),
                 roles: roles.clone(),
+                actor: None,
+                kind: None,
             },
         );
     }

@@ -326,7 +326,9 @@ pub fn run(
     );
     // OW-WAR-0138: the same key-binding check and presence policy as a
     // single act, so a batch is not the way around either.
-    match sign::ssh_sign_act(repo, &actor, &batch_path) {
+    let acts: Vec<crate::authority_check::Act> =
+        drafted.iter().map(|d| sign::act_of(d.pending)).collect();
+    match sign::ssh_sign_act(repo, &actor, &acts, &batch_path) {
         Ok(s) => report.push(Diagnostic::pass(
             "sign.presence",
             format!("batch {}: {}", batch.batch_id, s.parsed.describe()),

@@ -2031,21 +2031,47 @@ pub(crate) fn ssh_sign_file(
 
 /// Sign an act's file as `actor`, under this repository's policy.
 ///
-/// The actor is resolved to a principal through the register, the signature
-/// is made and verified ([`ssh_sign_file`]), and then, with `[policy]
-/// require_user_presence` set, a signature that does not show a person at the
-/// key is refused `sign.presence-required` and its `.sig` removed — before
-/// the caller renames anything into place. Presence is read, never inferred:
-/// an ordinary key and a security key without its presence flag are both
-/// unverified (OW-WAR-0138).
+/// The actor is resolved to a principal ([`crate::authority_check::signer_for`]:
+/// the register, or with `[authority] store` the store's binding, kind and
+/// the role each of `acts` needs), the signature is made and verified
+/// ([`ssh_sign_file`]), and then, with `[policy] require_user_presence` set, a
+/// signature that does not show a person at the key is refused
+/// `sign.presence-required` and its `.sig` removed — before the caller renames
+/// anything into place. Presence is read, never inferred: an ordinary key and
+/// a security key without its presence flag are both unverified
+/// (OW-WAR-0138). With a store, the head the grant was read at must still be
+/// the head once the key has signed, or the act is refused
+/// `authority.stale-head`.
 pub(crate) fn ssh_sign_act(
     repo: &Repository,
     actor: &str,
+    acts: &[crate::authority_check::Act],
     file: &Utf8Path,
 ) -> Result<Signed, SignRefusal> {
-    let principal =
-        principal_of(repo, actor).map_err(|why| SignRefusal::new("sign.ssh-principal", why))?;
-    let signed = ssh_sign_file(&allowed_signers_path(repo), &principal, file)?;
+    let signer = crate::authority_check::signer_for(repo, actor, acts)
+        .map_err(|(rule, why)| SignRefusal::new(rule, why))?;
+    let signed = ssh_sign_file(&signer.allowed, &signer.principal, file)?;
+    if let Some(head) = &signer.head {
+        let now = crate::authority_check::store_head(repo);
+        if now.as_ref().ok().and_then(Option::as_ref) != Some(head) {
+            let _ = std::fs::remove_file(&signed.sig);
+            return Err(match now {
+                Err(why) => SignRefusal::new(
+                    "authority.verify-unavailable",
+                    format!("{why}; the signature is removed and nothing was recorded"),
+                ),
+                Ok(moved) => SignRefusal::new(
+                    "authority.stale-head",
+                    format!(
+                        "the grant was read at {head} and the store is now at {}; a grant at \
+                         one head is not a grant at another. The signature is removed and \
+                         nothing was recorded",
+                        moved.unwrap_or_else(|| "no store".to_owned())
+                    ),
+                ),
+            });
+        }
+    }
     if repo.config.policy.require_user_presence
         && signed.presence() != openwarrant_core::presence::Presence::Verified
     {
@@ -2053,14 +2079,31 @@ pub(crate) fn ssh_sign_act(
         return Err(SignRefusal::new(
             "sign.presence-required",
             format!(
-                "[policy] require_user_presence is set and this signature does not show a person \
-                 at the key ({}). Sign with a security key (`sk-` key type) and touch it; nothing \
-                 was recorded",
+                "[policy] require_user_presence is set{} and this signature does not show a \
+                 person at the key ({}). Sign with a security key (`sk-` key type) and touch \
+                 it; nothing was recorded",
+                if signer.via.is_empty() {
+                    String::new()
+                } else {
+                    format!(" by {}", signer.via)
+                },
                 signed.parsed.describe()
             ),
         ));
     }
     Ok(signed)
+}
+
+/// The authority act a pending item is, for the grant a store must hold.
+pub(crate) const fn act_of(p: &Pending) -> crate::authority_check::Act {
+    use crate::authority_check::Act;
+    match p {
+        Pending::Authorize { .. } => Act::Authorize,
+        Pending::Resolve { .. } => Act::Resolve,
+        Pending::Accept { .. } => Act::Accept,
+        Pending::Correct { .. } => Act::Correct,
+        Pending::AcceptRoadmap { .. } => Act::AcceptRoadmap,
+    }
 }
 
 /// Under `[policy] require_user_presence`, the terminal path is refused: it
@@ -2547,7 +2590,7 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
                 "└ Signing as {actor} ({}) with ssh — confirm in the agent's dialog",
                 role(p)
             );
-            match ssh_sign_act(repo, &actor, &draft_path) {
+            match ssh_sign_act(repo, &actor, &[act_of(p)], &draft_path) {
                 Ok(s) => {
                     // OW-WAR-0138: what the signature shows, read from its
                     // bytes. The response cannot carry it — the signature is
@@ -2805,18 +2848,17 @@ fn verify_existing(
         ));
         return Ok(report);
     }
-    let principal = match principal_of(repo, &actor) {
-        Ok(pr) => pr,
-        Err(why) => {
-            report.push(Diagnostic::error(
-                "sign.ssh-principal",
-                path.to_string(),
-                why,
-            ));
+    // OW-WAR-0138: the binding this repository uses — the store's when one
+    // is configured, with no fallback to the register.
+    let signer = match crate::authority_check::signer_for(repo, &actor, &[]) {
+        Ok(s) => s,
+        Err((rule, why)) => {
+            report.push(Diagnostic::error(rule, path.to_string(), why));
             return Ok(report);
         }
     };
-    match ssh_verify_file(&allowed_signers_path(repo), &principal, &path) {
+    let principal = signer.principal.clone();
+    match ssh_verify_file(&signer.allowed, &principal, &path) {
         Ok(()) => {
             report.push(Diagnostic::pass(
                 "sign.verified",
