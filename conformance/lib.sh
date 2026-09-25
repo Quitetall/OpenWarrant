@@ -31,6 +31,15 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 1
 REPO_ROOT="$PWD"
 WAR="./target/debug/war"
 
+# Every `war` a plant starts is inside this battery. `plant-isolated.sh` (the
+# askable battery gate, OW-WAR-0145) refuses to start a battery inside one, so
+# a `war gate --run` that reaches it from here refuses at once instead of
+# cloning the repository and running this whole battery again under an hour's
+# timeout. And no plant asks the network whether a newer war exists
+# (OW-WAR-0143's notice): a battery's result does not depend on a release.
+export OPENWARRANT_IN_BATTERY=1
+export OPENWARRANT_NO_UPDATE_CHECK=1
+
 if [[ ! -x "$WAR" ]]; then
     echo "build first: cargo build --workspace" >&2
     exit 1
@@ -285,7 +294,9 @@ plant_gate() {
     plant_mutate "$mutate" || { FAILED=$((FAILED + 1)); return; }
 
     local out status
-    out="$(plant_war gate --run 2>&1)"
+    # The gate every plant_gate mutates, by name: `gate --run` with none runs
+    # every askable gate, the battery gate among them.
+    out="$(plant_war gate --run --gate software.repo.war-check@1.0.0 2>&1)"
     status=$?
     plant_restore
 

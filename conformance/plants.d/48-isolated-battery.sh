@@ -31,7 +31,10 @@ printf 'marker\n' > "$PLANT_ROOT/uncommitted-marker.txt"
 # recording, not the gate mutating.
 ib_tree() { (cd "$PLANT_ROOT" && { git rev-parse HEAD; git diff; git diff --cached; find . \( -path ./.git -o -path ./docs/receipts \) -prune -o -type f -print0 | sort -z | xargs -0 sha256sum; sha256sum .git/index; } | sha256sum); }
 ib_run() { # IB_EXIT → output of `war gate --run` in the scratch corpus
-    (cd "$PLANT_ROOT" && env TMPDIR="$IB_TMP" IB_EXIT="$1" OPENWARRANT_ISOLATED_PLANT_SH=conformance/fake-battery.sh \
+    # -u OPENWARRANT_IN_BATTERY: this plant runs inside a battery (lib.sh
+    # exports it, and so does the gate itself); the run under test is the
+    # outermost one, and must not be refused as nested.
+    (cd "$PLANT_ROOT" && env -u OPENWARRANT_IN_BATTERY TMPDIR="$IB_TMP" IB_EXIT="$1" OPENWARRANT_ISOLATED_PLANT_SH=conformance/fake-battery.sh \
         "$WAR_ABS" --root "$PLANT_ROOT" gate --run --gate "$IB_GATE" 2>&1)
 }
 WAR_ABS=$(realpath "$WAR")
