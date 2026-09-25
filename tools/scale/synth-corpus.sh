@@ -34,9 +34,16 @@
 #   - "synth-performer" and "synth-verifier" are names, not actors. The
 #     verifier's verdicts are written by this script and examine nothing
 #     real;
-#   - the gate every obligation cites, `synth.fixture-bytes@1.0.0`, runs
+#   - the gate every obligation cites, `synth.fixture-bytes@1.1.0`, runs
 #     `sha256sum --check --quiet synth/SHA256SUMS`, which checks every fixture
-#     deliverable's bytes. It is a fixture gate. The program's own `war check`
+#     deliverable's bytes. It is a fixture gate. It declares `inputs:
+#     ["synth/**"]`, the only files it reads, so under OW-WAR-0133's reuse
+#     rule its receipt is judged by those bytes and not by the whole tree:
+#     the verification and the resolution response this script writes after
+#     the run are not source the gate read, and do not make it stale. (1.0.0
+#     declared no inputs, so each receipt was bound to the tree, which the
+#     next record moved; a definition is immutable (SAS §43.3), so the
+#     declaration is a new version.) The program's own `war check`
 #     gate is not used: each run of it writes the whole corpus's check output
 #     (about 107 KB per receipt at 100 Warrants) and needs a fresh whole-corpus
 #     compile, so 500 receipts would be neither bounded nor shaped like a real
@@ -179,21 +186,22 @@ if [[ "$(printf '%s\n' "$KEYS" | grep -c .)" != 1 ]] || ! grep -qF -- "$KEY_FP" 
 fi
 
 # The fixture gate: every fixture deliverable's bytes against synth/SHA256SUMS.
-cat > docs/gates/synth.fixture-bytes@1.0.0.yaml <<'GATEDEF'
+cat > docs/gates/synth.fixture-bytes@1.1.0.yaml <<'GATEDEF'
 # A FIXTURE gate of tools/scale/synth-corpus.sh. It lives only in this
 # synthetic program and checks only the synthetic deliverables.
 gate_id: "synth.fixture-bytes"
-version: "1.0.0"
+version: "1.1.0"
 lifecycle: "qualified"
 implementation_ref: "artifact://coreutils/sha256sum"
 output_schema_ref: "schema://sha256sum-check/v1"
 provenance: "local_candidate"
 input_kinds: ["fixture-files"]
+inputs: ["synth/**"]
 argv: ["sha256sum", "--check", "--quiet", "synth/SHA256SUMS"]
 mutating: "false"
 timeout_secs: "120"
 fault_model: ["fixture-missing", "fixture-bytes-changed"]
-known_blind_spots: ["Checks the bytes of the files synth/SHA256SUMS lists, and nothing about any other file.", "A fixture: nothing real is examined."]
+known_blind_spots: ["Checks the bytes of the files synth/SHA256SUMS lists, and nothing about any other file.", "A fixture: nothing real is examined.", "Its receipt is reusable while synth/ is unchanged, whatever else in the program moves: it reads nothing else."]
 qualification_qualifier: "tools/scale/synth-corpus.sh, for a synthetic program only"
 qualification_digest: ""
 qualification_positive_controls: ["A changed or deleted fixture file makes sha256sum --check exit 1."]
@@ -211,7 +219,7 @@ detection_results:
 GATEDEF
 mkdir -p synth
 : > synth/SHA256SUMS
-GATE="gate://synth.fixture-bytes@1.0.0"
+GATE="gate://synth.fixture-bytes@1.1.0"
 
 quiet war sas propose 0.1.0
 quiet war sign 0.1.0 --ssh-sign
@@ -444,7 +452,7 @@ out = {
     "generator": "tools/scale/synth-corpus.sh",
     "resolve_with": resolve_with,
     "authorized_by_batch": int(authorized),
-    "gate": "gate://synth.fixture-bytes@1.0.0 (fixture: sha256sum --check synth/SHA256SUMS)",
+    "gate": "gate://synth.fixture-bytes@1.1.0 (fixture: sha256sum --check synth/SHA256SUMS; inputs synth/**)",
     "fixture": "every record is synthetic; the signer, performer and verifier are throwaway names",
 }
 print(json.dumps(out, sort_keys=True))
