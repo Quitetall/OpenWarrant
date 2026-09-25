@@ -137,6 +137,19 @@ fn standing(repo: &Repository, one: &Loaded, alias: &str, id: &str) -> Result<St
 
 /// `war correct <alias> <deliverable-id>`: the request. Writes nothing.
 pub fn request(repo: &Repository, alias: &str, id: &str) -> Result<CorrectionRequest, RepoError> {
+    request_with(repo, alias, id, &crate::ownership::Ownership::index(repo)?)
+}
+
+/// [`request`] over an ownership index already built. A caller asking for
+/// many requests in one pass (`war sign --list` asks for every
+/// content-addressed deliverable of every resolved Warrant) builds the index
+/// once; built per request, it re-loaded the whole corpus each time.
+pub fn request_with(
+    repo: &Repository,
+    alias: &str,
+    id: &str,
+    ownership: &crate::ownership::Ownership,
+) -> Result<CorrectionRequest, RepoError> {
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
     let s = standing(repo, &one, alias, id)?;
@@ -146,11 +159,7 @@ pub fn request(repo: &Repository, alias: &str, id: &str) -> Result<CorrectionReq
     let authorized_at = repo
         .load_authorization(&dir)?
         .and_then(|a| a.revision.authorization.map(|x| x.effective_time));
-    if let Some(owner) = crate::ownership::Ownership::index(repo)?.newer_than(
-        &s.target_ref,
-        alias,
-        authorized_at.as_deref(),
-    ) {
+    if let Some(owner) = ownership.newer_than(&s.target_ref, alias, authorized_at.as_deref()) {
         return Err(RepoError::Message(format!(
             "correction.historical: nothing to correct — {} is governed by {}/{} (authorized {}), \
              so {alias}/{id}'s pin is historical. It verifies at {alias}'s resolution, not against \

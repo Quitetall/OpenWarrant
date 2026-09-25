@@ -444,12 +444,66 @@ fn ssh_verify(
             repo.relative(&allowed)
         )));
     }
+    // The verdict is a function of exactly these bytes, so one process asks
+    // `ssh-keygen` once per distinct input. `war compile` asked 234,556
+    // times for a few hundred distinct signatures: every ownership, sign and
+    // dispatch query re-verified the same responses (432 s → seconds). A
+    // changed byte in any input is a different key, never a stale verdict;
+    // `Unavailable` is not cached, so a missing tool is asked again.
+    let read = |p: &Utf8Path| {
+        std::fs::read(p).map_err(|e| {
+            SshFailure::Unavailable(format!("could not open {}: {e}", repo.relative(p)))
+        })
+    };
+    let key = {
+        let mut material = Vec::new();
+        for part in [
+            read(&allowed)?,
+            principal.as_bytes().to_vec(),
+            RESPONSE_NAMESPACE.as_bytes().to_vec(),
+            read(response)?,
+            read(sig)?,
+        ] {
+            material.extend_from_slice(&(part.len() as u64).to_le_bytes());
+            material.extend_from_slice(&part);
+        }
+        openwarrant_compiler::sha256_hex(&material)
+    };
+    let cache = VERDICTS.get_or_init(Default::default);
+    if let Some(known) = cache.lock().ok().and_then(|c| c.get(&key).cloned()) {
+        return known.map_err(SshFailure::Rejected);
+    }
+    let verdict = ssh_verify_uncached(repo, principal, response, sig, &allowed);
+    let cached = match &verdict {
+        Ok(()) => Some(Ok(())),
+        Err(SshFailure::Rejected(why)) => Some(Err(why.clone())),
+        Err(SshFailure::Unavailable(_)) => None,
+    };
+    if let (Some(v), Ok(mut c)) = (cached, cache.lock()) {
+        c.insert(key, v);
+    }
+    verdict
+}
+
+/// Verdicts of [`ssh_verify`] this process has already asked for, keyed by
+/// the digest of every byte the verdict depends on.
+static VERDICTS: std::sync::OnceLock<
+    std::sync::Mutex<std::collections::HashMap<String, Result<(), String>>>,
+> = std::sync::OnceLock::new();
+
+fn ssh_verify_uncached(
+    repo: &Repository,
+    principal: &str,
+    response: &Utf8Path,
+    sig: &Utf8Path,
+    allowed: &Utf8Path,
+) -> Result<(), SshFailure> {
     let input = std::fs::File::open(response).map_err(|e| {
         SshFailure::Unavailable(format!("could not open {}: {e}", repo.relative(response)))
     })?;
     let out = std::process::Command::new("ssh-keygen")
         .args(["-Y", "verify", "-f"])
-        .arg(&allowed)
+        .arg(allowed)
         .args(["-I", principal, "-n", RESPONSE_NAMESPACE, "-s"])
         .arg(sig)
         .stdin(input)

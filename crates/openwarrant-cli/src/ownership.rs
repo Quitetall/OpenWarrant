@@ -89,9 +89,79 @@ pub struct Owner {
 }
 
 /// Every governed path in the corpus, newest owner first.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct Ownership {
     by_path: BTreeMap<String, Vec<Owner>>,
+}
+
+/// Indexes this process has built, by the [`fingerprint`] of their inputs.
+static INDEXES: std::sync::OnceLock<
+    std::sync::Mutex<std::collections::HashMap<String, Ownership>>,
+> = std::sync::OnceLock::new();
+
+/// Every file the index reads, as (path, length, modification time in
+/// nanoseconds): each Warrant's top-level records, `atoms/` and
+/// `amendments/`; the authority register, allowed signers, responses and
+/// batches; the SAS revisions; `openwarrant.toml`. `None` when any of it
+/// cannot be read — then nothing is cached and the index is built fresh.
+fn fingerprint(repo: &Repository) -> Option<String> {
+    fn add(out: &mut Vec<u8>, path: &std::path::Path) -> Option<()> {
+        let meta = std::fs::metadata(path).ok()?;
+        if meta.is_dir() {
+            let mut entries: Vec<_> = std::fs::read_dir(path)
+                .ok()?
+                .filter_map(Result::ok)
+                .map(|e| e.path())
+                .filter(|p| p.is_file())
+                .collect();
+            entries.sort();
+            for e in entries {
+                add(out, &e)?;
+            }
+            return Some(());
+        }
+        let mtime = meta
+            .modified()
+            .ok()?
+            .duration_since(std::time::UNIX_EPOCH)
+            .ok()?
+            .as_nanos();
+        out.extend_from_slice(path.as_os_str().as_encoded_bytes());
+        out.extend_from_slice(&meta.len().to_le_bytes());
+        out.extend_from_slice(&mtime.to_le_bytes());
+        out.push(0);
+        Some(())
+    }
+    let root = repo.root.as_std_path();
+    let mut out = Vec::new();
+    add(&mut out, &root.join("openwarrant.toml"))?;
+    for d in [
+        "docs/authority",
+        "docs/authority/responses",
+        "docs/authority/batches",
+    ] {
+        let p = root.join(d);
+        if p.is_dir() {
+            add(&mut out, &p)?;
+        }
+    }
+    let sas = repo.sas_revisions_dir();
+    if sas.is_dir() {
+        add(&mut out, sas.as_std_path())?;
+    }
+    let mut dirs = repo.warrant_dirs().ok()?;
+    dirs.sort();
+    for dir in dirs {
+        let dir = dir.as_std_path();
+        add(&mut out, dir)?;
+        for sub in ["atoms", "amendments"] {
+            let p = dir.join(sub);
+            if p.is_dir() {
+                add(&mut out, &p)?;
+            }
+        }
+    }
+    Some(openwarrant_compiler::sha256_hex(&out))
 }
 
 impl Ownership {
@@ -103,13 +173,34 @@ impl Ownership {
     /// whose DERIVED currency is `superseded` (OW-ADR-0022: an authorized
     /// successor's `supersedes`, never a field), and Warrants whose resolution
     /// standing is annulled.
+    ///
+    /// Memoized for the process by [`fingerprint`]: `war compile` built this
+    /// index once per pending act it judged — the whole corpus loaded dozens
+    /// of times over. Any write to what the index reads moves the
+    /// fingerprint, and the next call rebuilds.
     pub fn index(repo: &Repository) -> Result<Self, RepoError> {
+        let key = fingerprint(repo);
+        if let Some(key) = &key
+            && let Some(hit) = INDEXES
+                .get_or_init(Default::default)
+                .lock()
+                .ok()
+                .and_then(|m| m.get(key).cloned())
+        {
+            return Ok(hit);
+        }
         let corpus: Vec<crate::repo::Loaded> = repo
             .warrant_dirs()?
             .iter()
             .filter_map(|d| repo.load_warrant(d).ok())
             .collect();
-        Self::index_with(repo, &crate::relations::currencies(&corpus))
+        let built = Self::index_with(repo, &crate::relations::currencies(&corpus))?;
+        if let Some(key) = key
+            && let Ok(mut m) = INDEXES.get_or_init(Default::default).lock()
+        {
+            m.insert(key, built.clone());
+        }
+        Ok(built)
     }
 
     /// [`Self::index`] over a currency derivation the caller already holds,
