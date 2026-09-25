@@ -1,5 +1,5 @@
 # Checklist
 
-- [ ] Profile war next (i-c79f)
-- [ ] Remove the repeated work (i-f09a)
-- [ ] Assert a time bound in a plant (i-a260)
+- [x] Profile war next (i-c79f) — done by claude, 2026-09-25: Sampled under gdb (14 SIGINTs at 0.5-7 s) plus temporary per-function counters: one war next loaded a Warrant 1,325 times and parsed the SAS revisions 1,332 times (2.96 s of ~7 s); next::judge's dry run re-read the whole signing queue sign::pending had just read (3.2 s + 2.4 s); the authority register was parsed ~1,400 times.
+- [x] Remove the repeated work (i-f09a) — done by claude, 2026-09-25: sign::dry_run_all judges the queue next already holds (no second sign::pending); Repository::load_sas_revisions and load_authority_register memoize their parse per process keyed by the exact paths+bytes read (files still read every call; failures not cached). war next --json byte-identical to the old binary on this tree; 6.9 s -> 3.0 s (debug, 3 runs each).
+- [x] Assert a time bound in a plant (i-a260) — done by claude, 2026-09-25: 67-pins-next times the corpus 'war next --json' (read once) and asserts < 6000 ms together with exit 0, an oh.war/next/v1 report and no agent action being a signature. Clone run: 3307 ms, ok. The same plant with the pre-change binary: 7269 ms, FAIL — the bound refuses the old behaviour.

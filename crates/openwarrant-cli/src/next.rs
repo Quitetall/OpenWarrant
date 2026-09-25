@@ -379,14 +379,11 @@ pub fn run_with(
 ///
 /// One sweep rather than one dry run per target: each `sign::run` re-reads
 /// the whole queue, and a queue of a dozen acts judged one by one cost a
-/// dozen reads of it.
+/// dozen reads of it. The sweep is over `pending` itself — the queue the
+/// actions were derived from, read by the caller in this process — not a
+/// second read of it (`sign::dry_run_all`, t-280c).
 pub fn judge(repo: &Repository, pending: &[Pending], next: &mut Next) {
-    let opts = sign::Options {
-        dry_run: true,
-        all: true,
-        ..sign::Options::default()
-    };
-    let verdicts = match sign::run(repo, None, &opts) {
+    let verdicts = match sign::dry_run_all(repo, pending) {
         Ok(report) => verdicts(pending, &report),
         Err(_) => std::collections::BTreeMap::new(),
     };

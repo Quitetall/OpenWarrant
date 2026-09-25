@@ -33,13 +33,37 @@ v = json.load(sys.stdin)["result"]
 signs = [a for a in v["actions"] if a["command"].startswith("war sign")]
 bad = [a for a in signs if a["actor"] == "agent"]
 sys.exit(1 if bad or (sys.argv[1] == "need" and not signs) else 0)' "$1"; }
+# The corpus answer is read once, timed (t-280c, below) and checked here.
+NX_S=$(date +%s%N)
+NX_CORPUS=$("$WAR" --json next 2>/dev/null)
+NX_RC=$?
+NX_MS=$(( ($(date +%s%N) - NX_S) / 1000000 ))
 if "$WAR" --root "$PLANT_ROOT" --json next 2>/dev/null | nx_no_agent_signs need \
-    && "$WAR" --json next 2>/dev/null | nx_no_agent_signs any; then
+    && printf '%s' "$NX_CORPUS" | nx_no_agent_signs any; then
     printf 'ok    %-34s no agent action is a signature\n' "next never hands an agent a signature"
     PASSED=$((PASSED + 1))
 else
     printf 'FAIL  %-34s an agent action is a signature, or the scratch handed out none\n' "next never hands an agent a signature"
     FAILED=$((FAILED + 1))
 fi
+
+# t-280c: `war next` on this corpus answers in bounded time. It took ~7 s
+# (debug build) when the dry run read the whole signing queue a second time
+# and every Warrant load re-parsed the SAS revisions; ~3 s after. The bound
+# is about 2x that, generous for a loaded machine, and below the old time so
+# the regression is caught. A fast answer is only a pass if it is also a
+# whole one: it exited 0, is an oh.war/next/v1 report, and hands no agent a
+# signature (the refusal above, over the same bytes).
+NX_BOUND_MS=6000
+if [[ $NX_RC -eq 0 && $NX_MS -lt $NX_BOUND_MS ]] \
+    && grep -q '"oh.war/next/v1"' <<<"$NX_CORPUS" \
+    && printf '%s' "$NX_CORPUS" | nx_no_agent_signs any; then
+    printf 'ok    %-34s %s ms (< %s ms), no agent action is a signature\n' "next answers this corpus in time" "$NX_MS" "$NX_BOUND_MS"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s %s ms (bound %s ms), exit %s, or an agent action is a signature\n' "next answers this corpus in time" "$NX_MS" "$NX_BOUND_MS" "$NX_RC"
+    FAILED=$((FAILED + 1))
+fi
+unset NX_S NX_CORPUS NX_RC NX_MS NX_BOUND_MS
 corpus_gone "$PLANT_ROOT"
 unset PLANT_ROOT
