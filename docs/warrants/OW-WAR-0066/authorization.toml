@@ -1,11 +1,13 @@
 schema = "oh.war/authorization/v1"
 warrant = "OW-WAR-0066"
 sas_revision = "0.1.0-draft.3"
+deliverable_set_digest = "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
 
 [revision]
-revision = 1
+revision = 2
 state = "authorized"
-contract_digest = "69c2d3d8ccec7b93a7bf9f3cc5e25d5b9957db12ae5ac08febfca4e5fbbb6d74"
+contract_digest = "498240f8d8d3b51f99f644c21a70ea4f5e4679472b59300c2af2d3a5abcdfbc0"
+predecessor_digest = "69c2d3d8ccec7b93a7bf9f3cc5e25d5b9957db12ae5ac08febfca4e5fbbb6d74"
 proposer = "claude"
 
 [revision.coverage]
@@ -24,6 +26,6 @@ covered = [
 authorizer = "Brian Lam"
 actor_kind = "human"
 acting_role = "authorizer"
-meaning = "Authorizing OW-WAR-0066 (Run: the conformance battery as a service stage) at this contract digest means the signer accepts its intent, scope and 2 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 0.1.0` and confirmed by the signer; the decision is the signer's and the template is the tool's."
-effective_time = "2026-09-12T20:42:17Z"
+meaning = "Authorizing OW-WAR-0066 (Run: the conformance battery as a service stage) at this contract digest means the signer accepts its intent, scope and 2 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.2` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-09-25T05:41:24Z"
 independence = "separate_role"
