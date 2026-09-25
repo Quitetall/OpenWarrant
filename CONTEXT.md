@@ -34,6 +34,14 @@ The candidate is not signed adoption or proof of shipped behavior.
   a deterministic check (`war standing apply`); one outside is refused by term.
   It never covers an authority path and never resolves anything. Contingent on
   OW-WAR-0142 Q-001; SAS §28.8 is proposed in 1.2.0, not accepted.
+- **Ticket:** the working form of a delivery Warrant (OW-WAR-0147,
+  `docs/TICKETS.md`): an intent and a Markdown checklist under
+  `docs/tickets/<t-id>/`, worked with `war create`, `ready`, `claim`, `done`.
+  It needs no signature, evidence or verification; the file is its state.
+  `war promote` turns one into a Warrant when someone wants sign-off.
+- **Claim:** who is working an item now — a lock under
+  `.openwarrant/state/claims/` plus a journal event. Coordination between
+  agents, not authority; a stale claim (past the TTL) may be stolen, journalled.
 - **Preset:** the typed skeleton `war new --preset` writes: each heading and the
   question it answers. Presets ask; the author answers.
 - **Work stop:** declared scope complete, with generated progress and evidence links.

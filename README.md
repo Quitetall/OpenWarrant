@@ -7,6 +7,21 @@
 Describe the outcome. Keep the right context. Record what happened.
 Start small with a prompt, then add review and verification where your work needs it.
 
+## Start in three steps
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh | bash
+war init --namespace APP
+war create "Add password reset" --item "Reset endpoint" --item "Email template"
+```
+
+Then `war ready` shows what can start, `war claim <id>` takes an item,
+`war done <id> --note "..."` ticks it off, and `war prime` is what the next
+agent (or person) reads first: open tickets, remaining items, who holds what,
+recent notes. A ticket is two Markdown files you can read on GitHub; no step
+needs a signature or anyone's approval. [The loop in five commands](docs/TICKETS.md).
+Sign-off is opt-in: `war promote <ticket>` drafts a Warrant when someone wants it.
+
 **Read first: [the current state](docs/generated/CURRENT.md)** — the master
 document `war compile` writes from the records, current by construction
 (`docs/generated/CURRENT.md`; its history is `docs/generated/HISTORY.md`).

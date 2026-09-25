@@ -8,6 +8,15 @@ For a user prompt using `war` as an OpenWarrant intent cue, read the
 [war router](.claude/skills/war/SKILL.md). Bare `war` means read-only overview.
 Explicit execution requests permit scoped unverified work subject to named gates.
 
+## Tickets: the default work loop
+
+For ordinary work, use tickets ([docs/TICKETS.md](docs/TICKETS.md)): run
+`war prime` first, then `war ready`, `war claim <item>`, do it,
+`war done <item> --note "..."`, and `war note <ticket> "..."` for context the
+next agent needs. Nothing in that loop needs a signature; never ask the human
+to sign during it. Warrants are the opt-in authority layer a ticket enters only
+through `war promote`, and the records this repository governs itself with.
+
 ## Read the context needed for this task
 
 - **First, always:** read [`docs/generated/CURRENT.md`](docs/generated/CURRENT.md),

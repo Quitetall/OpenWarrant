@@ -422,6 +422,12 @@ pub fn run_with(
     // §76.3: silence on sound state is the ideal, but `init` is a mutation and
     // the operator needs to know what was created and where.
     println!("initialized {} ({})", config.project.name, config_path);
+    // OW-WAR-0147: the first thing most people do here is make a ticket.
+    println!(
+        "start: `war create \"what this work accomplishes\" --item \"...\"`, then `war ready`, \
+         `war claim <id>`, `war done <id>` — no signature needed. Agents run `war prime` first \
+         (AGENTS.md)."
+    );
     if let Some(id) = &recorded {
         let before = git_line(&root, &["rev-list", "--count", id]).unwrap_or_else(|| "?".into());
         println!(

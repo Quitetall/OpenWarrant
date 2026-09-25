@@ -8,6 +8,30 @@ point here rather than restate them, so there is one place to correct.
 
 ---
 
+## Start here: tickets
+
+Most work in this repository is a **ticket**: a sentence, a checklist, and a
+record of who did what. Work it without stopping anyone:
+
+```bash
+war prime                                  # FIRST, every session: open tickets, remaining items, claims, notes
+war ready                                  # what can start now
+war claim <item>                           # take one; refused by name if another agent holds it
+# do the work
+war done <item> --note "what you did"      # ticks the box in the ticket, releases the claim
+war note <ticket> "a decision, a dead end, a link"   # context the next agent reads
+war create "What this work accomplishes" --item "..."   # new work; `war add <ticket> "..."` extends one
+```
+
+**Never ask the human to sign, approve or confirm anything during this loop.**
+Nothing in it needs a signature; a ticket is finished when its boxes are
+ticked. Give yourself a distinct name with `--as <name>` (or
+`OPENWARRANT_ACTOR`) when several agents share the repository. Over MCP the
+same loop is `war_prime`, `war_ready`, `war_claim`, `war_done`, `war_create`,
+`war_add`, `war_note`. Sign-off is opt-in: a human who wants it runs
+`war promote <ticket>`, and the Warrant rules below apply from there.
+`docs/TICKETS.md` has the rest.
+
 ## Choose the work path first
 
 For prompt-authorized implementation and record keeping, work may start and finish

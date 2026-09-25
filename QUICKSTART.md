@@ -1,5 +1,26 @@
 # Quickstart — choose your workflow
 
+## Start in three steps: tickets
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh | bash   # or cargo install --path crates/openwarrant-cli
+war init --namespace APP
+war create "Describe the outcome" --item "First step" --item "Second step"
+```
+
+Then work it — no signature, no human step, each command well under a second:
+
+```bash
+war ready                      # what can start now
+war claim t-3f2a/i-9c01        # take an item (refused, by name, if someone holds it)
+war done t-3f2a/i-9c01 --note "what you did"
+war prime                      # what the next agent reads first
+```
+
+`docs/TICKETS.md` has the whole loop. The rest of this page is the governed
+path, which a ticket joins only when someone asks for sign-off
+(`war promote <ticket>`).
+
 Read `docs/generated/CURRENT.md` first: the master document `war compile`
 writes (OW-ADR-0022) — every current Warrant expanded, the SAS in force, who
 governs what, and the queue with each signing command already judged by the
