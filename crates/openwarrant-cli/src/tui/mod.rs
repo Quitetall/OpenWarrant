@@ -967,11 +967,16 @@ impl Model {
     }
 }
 
-/// This binary's version and path, and a warning when `war` on PATH is a
-/// different version — the 2026-09-23 failure, where a command handed over
+/// This binary's identity and path, and a warning when `war` on PATH is a
+/// different build — the 2026-09-23 failure, where a command handed over
 /// ran an older `war` than the one that drafted it.
+///
+/// OW-WAR-0143: the comparison is the whole `--version` line, not its last
+/// word. Two builds of one version (a release and a checkout 62 commits past
+/// it) share the version and differ in the line; only the line tells them
+/// apart. The remedy is `install::remedy`, the command for this install.
 fn binary_row() -> Row {
-    let here = env!("CARGO_PKG_VERSION");
+    let here = crate::build_identity::version_line();
     let exe = std::env::current_exe()
         .ok()
         .and_then(|p| p.canonicalize().ok())
@@ -981,13 +986,11 @@ fn binary_row() -> Row {
             .map(|d| d.join("war"))
             .find(|p| p.is_file())
     });
-    let install = "cargo install --path crates/openwarrant-cli";
+    let install = crate::install::remedy(env!("CARGO_PKG_VERSION"));
     let (text, detail) = match on_path {
         None => (
-            format!("INFO    this is war {here} at {exe}; no `war` on PATH"),
-            format!(
-                "Commands this app hands over say `war`. To put this one on PATH: `{install}`."
-            ),
+            format!("INFO    this is {here} at {exe}; no `war` on PATH"),
+            format!("Commands this app hands over say `war`. To put one on PATH: `{install}`."),
         ),
         Some(p) => {
             let canonical = p
@@ -999,15 +1002,15 @@ fn binary_row() -> Row {
                 .ok()
                 .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_owned())
                 .unwrap_or_default();
-            if canonical == exe || version.split_whitespace().last() == Some(here) {
+            if canonical == exe || version == here {
                 (
-                    format!("INFO    war {here} at {exe} — the `war` on PATH"),
-                    format!("`war` on PATH is {canonical}, the same version."),
+                    format!("INFO    {here} at {exe} — the `war` on PATH"),
+                    format!("`war` on PATH is {canonical}, the same build."),
                 )
             } else {
                 (
                     format!(
-                        "WARN    this is war {here} at {exe}; `war` on PATH is {} at {canonical}",
+                        "WARN    this is {here} at {exe}; `war` on PATH is {} at {canonical}",
                         if version.is_empty() {
                             "unknown".to_owned()
                         } else {
@@ -1016,7 +1019,7 @@ fn binary_row() -> Row {
                     ),
                     format!(
                         "A command you copy from here and run as `war` runs {canonical} ({version}), not this {here}. \
-                         Install this one: `{install}` from its checkout, or run it by path: {exe}."
+                         Update it: `{install}`, or run this one by path: {exe}."
                     ),
                 )
             }
@@ -1024,7 +1027,7 @@ fn binary_row() -> Row {
     };
     Row {
         text,
-        command: install.to_owned(),
+        command: install,
         sign_target: None,
         auto: None,
         detail: Some(detail),

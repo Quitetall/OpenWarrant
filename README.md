@@ -114,6 +114,10 @@ and [generated status](docs/warrants/generated/CORPUS_STATUS.md).
 
 ## Build the current CLI
 
+To install a release instead, and keep it current with `war update`:
+`curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh | bash`
+([docs/INSTALL.md](docs/INSTALL.md)).
+
 Use the Rust toolchain pinned in `rust-toolchain.toml`.
 
 ```bash

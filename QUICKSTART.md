@@ -45,6 +45,10 @@ reading takes.
 cargo install --path crates/openwarrant-cli     # or a release tarball; `war --version`
 ```
 
+Or install a release that `war update` keeps current:
+`curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh | bash`
+([docs/INSTALL.md](docs/INSTALL.md)).
+
 ## 1. Scaffold the program (agent or human, seconds)
 
 ```bash

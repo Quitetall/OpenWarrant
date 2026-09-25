@@ -18,6 +18,7 @@ pub mod batch_cmd;
 pub mod blut;
 pub mod board;
 pub mod bonsai;
+pub mod build_identity;
 pub mod bundle;
 pub mod check;
 pub mod commit;
@@ -46,6 +47,7 @@ pub mod mcp;
 pub mod migrate;
 pub mod new;
 pub mod next;
+pub mod notice;
 pub mod output;
 pub mod overview;
 pub mod ownership;
@@ -233,7 +235,9 @@ pub const EXIT_NOT_READY: u8 = 2;
 #[command(
     name = "war",
     about = "Work Authorization Records — author, check, and compile Warrants.",
-    version,
+    // OW-WAR-0143: the bare `war <version>` is a release build's alone; every
+    // other build names its class, commit and dirty flag.
+    version = build_identity::version_text(),
     long_about = None,
 )]
 pub struct Cli {
@@ -430,7 +434,16 @@ enum Command {
     },
     /// Which `war` this is, where it came from, and what else answers to that
     /// name on PATH. Needs no repository.
-    Version,
+    Version {
+        /// Classify the build a directory would produce, as JSON: the facts
+        /// `build.rs` reads, then its verdict. For the conformance plants.
+        #[arg(long, hide = true, value_name = "DIR")]
+        probe: Option<Utf8PathBuf>,
+    },
+    /// Read the releases list once and record the newest in the notice's
+    /// cache. Started detached by the notice; prints nothing.
+    #[command(name = "__release-check", hide = true)]
+    ReleaseCheck,
     /// Install a published release into ~/.local/lib/openwarrant and repoint
     /// the links this tool put on PATH. Reads the network; never touches a
     /// `war` it did not install.
@@ -438,8 +451,8 @@ enum Command {
         /// Report what is published and stop.
         #[arg(long)]
         check: bool,
-        /// Offer prereleases (1.0.0-alpha.2 and the like). Without it, only
-        /// releases marked stable.
+        /// Offer prereleases (1.0.0-alpha.2 and the like). The default follows
+        /// this build: a prerelease build is already on the preview channel.
         #[arg(long)]
         preview: bool,
         /// A specific version, e.g. `1.0.0-alpha.2`.
@@ -1083,8 +1096,12 @@ enum Command {
 }
 
 pub fn entrypoint() -> ExitCode {
-    let cli = match Cli::try_parse() {
-        Ok(cli) => cli,
+    use clap::{CommandFactory, FromArgMatches};
+    let parsed = Cli::command()
+        .try_get_matches()
+        .and_then(|matches| Ok((Cli::from_arg_matches(&matches)?, matches)));
+    let (cli, matches) = match parsed {
+        Ok(parsed) => parsed,
         Err(error) => {
             // Preserve legacy argument handling. SDK callers always receive a
             // report for invocation errors; --help and --version remain help.
@@ -1116,7 +1133,8 @@ pub fn entrypoint() -> ExitCode {
         }
     };
     let mode = output::Mode::from_flag(cli.json);
-    match run(cli) {
+    let json = cli.json;
+    let code = match run(cli) {
         Ok(code) => ExitCode::from(code),
         Err(report) => {
             // §76.2: an explicit diagnostic naming what was wrong and where,
@@ -1130,7 +1148,11 @@ pub fn entrypoint() -> ExitCode {
             }
             ExitCode::from(EXIT_DIAGNOSTIC)
         }
-    }
+    };
+    // OW-WAR-0143: after everything the command printed, at most one stderr
+    // line when a newer release is published. It never waits on the network.
+    notice::after(matches.subcommand_name(), json);
+    code
 }
 
 pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
@@ -2493,7 +2515,39 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             let _ = output::finish(mode, "diff", &report, None);
             Ok(EXIT_OK)
         }
-        Command::Version => {
+        Command::Version { probe: Some(dir) } => {
+            // The facts `build.rs` would read from `dir`, then the verdict:
+            // one JSON object, non-zero when a release build would be refused.
+            let facts = build_identity::gather(dir.as_std_path(), env!("CARGO_PKG_VERSION"));
+            let verdict = build_identity::classify(&facts);
+            let facts_json = serde_json::json!({
+                "version": facts.version,
+                "tag": facts.tag,
+                "git": facts.git.as_ref().map(|g| serde_json::json!({"commit": g.commit, "dirty": g.dirty})),
+                "cargo_vcs_info": facts.vcs_info.as_ref().map(|v| serde_json::json!({"sha1": v.sha1, "dirty": v.dirty})),
+            });
+            let out = match &verdict {
+                Ok(id) => serde_json::json!({
+                    "facts": facts_json,
+                    "class": id.class.as_str(),
+                    "commit": id.commit,
+                    "dirty": id.dirty,
+                    "line": format!("war {}", id.version_text(&facts.version, build_identity::embedded_profile() == "debug")),
+                }),
+                Err(why) => serde_json::json!({"facts": facts_json, "refused": why}),
+            };
+            println!("{}", serde_json::to_string_pretty(&out)?);
+            Ok(if verdict.is_ok() {
+                EXIT_OK
+            } else {
+                EXIT_DIAGNOSTIC
+            })
+        }
+        Command::ReleaseCheck => {
+            notice::refresh();
+            Ok(EXIT_OK)
+        }
+        Command::Version { probe: None } => {
             let install = install::observe();
             let report = install.report();
             Ok(output::finish(
@@ -2509,10 +2563,12 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             to,
             force,
         } => {
+            // The running build's channel by default (OW-WAR-0143): every
+            // release so far is a prerelease, and a stable default found none.
             let channel = if preview || to.is_some() {
                 install::Channel::Preview
             } else {
-                install::Channel::Stable
+                install::default_channel()
             };
             let report = if check {
                 install::check(channel)
