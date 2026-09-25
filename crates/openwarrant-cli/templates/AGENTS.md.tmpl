@@ -1,7 +1,8 @@
 # Working in an OpenWarrant repository
 
 Instructions for an AI agent operating in a repository that uses OpenWarrant.
-Read this before creating, editing, checking, or closing a Warrant.
+Read this before starting work: the ticket loop comes first, and the Warrant
+rules follow it, for when a ticket needs sign-off.
 
 This file is the single source for these rules. Editor-specific skills should
 point here rather than restate them, so there is one place to correct.
@@ -32,7 +33,15 @@ same loop is `war_prime`, `war_ready`, `war_claim`, `war_done`, `war_create`,
 `war promote <ticket>`, and the Warrant rules below apply from there.
 `docs/TICKETS.md` has the rest.
 
-## Choose the work path first
+## When a ticket needs sign-off
+
+Everything in this section is **opt-in**. It applies when a human promotes a
+ticket into a Warrant (`war promote <ticket>`), when the user asks for a
+governed act, or when an explicit gate requires one. None of it is a step in
+the ticket loop above. Whenever the authority layer is used, these rules bind
+in full; ticket work never loosens them.
+
+### Choose the work path first
 
 For prompt-authorized implementation and record keeping, work may start and finish
 **unverified** without an SSH key, SAS acceptance or a Warrant signature. Read the
@@ -48,7 +57,7 @@ agent. Do not fabricate signatures, bypass a required gate or claim that a refus
 was cleared. Secure human signing belongs to qualification and effective authority
 changes, not every use of OpenWarrant as a task and record system.
 
-## Legacy governed acts: permissions
+### Permissions: you are a performer
 
 You are a **performer**. You may draft, execute, report, and review.
 
@@ -58,7 +67,7 @@ the false completion the system exists to prevent.
 
 Five rules. Breaking any of them is worse than doing nothing.
 
-### 1. Never verify your own work
+#### 1. Never verify your own work
 
 §51.2 forbids self-completion; RQ-053 forbids a performer's report from
 satisfying an independent gate. If you wrote it, you cannot clear it.
@@ -67,14 +76,14 @@ satisfying an independent gate. If you wrote it, you cannot clear it.
 will **not write the file**. Do not try to satisfy it by changing the `performer`
 field — that is falsifying a record, not passing a check.
 
-### 2. Never write a disposition you did not receive
+#### 2. Never write a disposition you did not receive
 
 An obligation's disposition comes back from an independent verifier through
 `war verify --response`. Hand-writing `disposition: established` into an
 assurance atom is the substitution §40.7 forbids: a judgment standing in for the
 observation it should rest on.
 
-### 3. Unknown is not failure, and it is not pass
+#### 3. Unknown is not failure, and it is not pass
 
 Law 15. A check that could not run reports `UNKNOWN`. Degrading it to `ERROR`
 makes a sound Warrant look broken; degrading it to `PASS` makes an unasked
@@ -83,7 +92,7 @@ question look answered. Both are lies with different shapes.
 If you cannot establish something, say so and stop. "Probably fine" is not a
 result.
 
-### 4. Never edit a generated file
+#### 4. Never edit a generated file
 
 Files under `generated/` are projections. Edit the **atoms** and recompile.
 `war check --generated` will catch a hand-edit, and the correct response is to
@@ -98,7 +107,7 @@ bytes, and `war check` refuses drift. You may **request** a correction
 one, and you may never regenerate a resolved Warrant's `deliverables.toml` —
 that stales the resolution. OW-WAR-0064 / OW-ADR-0012.
 
-### 5. Never change a document to make a tool happy
+#### 5. Never change a document to make a tool happy
 
 If a checker and a document disagree, establish which is wrong **before**
 changing either. Editing a correct record so a linter goes green falsifies the
@@ -108,7 +117,7 @@ If the tool is wrong, fix the tool and say so.
 
 ---
 
-## The loop
+### The Warrant loop
 
 ```bash
 war next                                   # whose act is next, and the command — read this first
@@ -138,7 +147,7 @@ revision, correct a resolved Warrant's delivered file, invalidate a Gate
 Definition version. You emit the request; the tool refuses your signature by
 kind (§27.2), whatever the response file says.
 
-### Drafting — both paths reach the same gauntlet
+#### Drafting — both paths reach the same gauntlet
 
 A vague sentence becomes a reviewable draft (§74) without you writing files
 under `docs/warrants/` by hand:
@@ -156,7 +165,7 @@ war plan "add a changelog" --draft --reviewed --apply   # or: the configured [pl
 unanswered blocker question, an invented `war://`, and a drafter that touched
 the working tree. Answer questions with `--answer Q-001="..."`.
 
-### Over MCP
+#### Over MCP
 
 `war mcp` serves the same surface to any harness over stdio: every read, every
 request half, and the writes an agent may make (`war_new`, `war_evidence_record`,
@@ -175,7 +184,7 @@ denies an edit to a file `war pins --resolved-only` lists or to anything under
 reports errors. `claude plugin marketplace add <path-to-repo>` then
 `/plugin install openwarrant@openwarrant`.
 
-### Writing the atoms
+#### Writing the atoms
 
 A `delivery` Warrant has five authored atoms. What each is for:
 

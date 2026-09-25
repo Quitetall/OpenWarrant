@@ -17,6 +17,13 @@ next agent needs. Nothing in that loop needs a signature; never ask the human
 to sign during it. Warrants are the opt-in authority layer a ticket enters only
 through `war promote`, and the records this repository governs itself with.
 
+**When a ticket needs sign-off**, the performer rules of the
+[legacy Warrant workflow](docs/agents/legacy-warrant-workflow.md) bind in full:
+never verify your own work, never write a disposition you did not receive,
+never edit a file under `generated/`, never change a document to make a tool
+happy. They apply whenever the authority layer is used, and never make a
+signature a step of the ticket loop.
+
 ## Read the context needed for this task
 
 - **First, always:** read [`docs/generated/CURRENT.md`](docs/generated/CURRENT.md),

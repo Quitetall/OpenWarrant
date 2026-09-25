@@ -1640,15 +1640,11 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                     init::run_program_with(&program, &namespace, root, chosen)?;
                 }
                 (Some(namespace), None) => {
-                    init::run_with(&namespace, name.as_deref(), root, chosen)?;
-                    // OW-WAR-0147: most work here starts as a ticket. Plain
-                    // `init` only: the `--program` scaffold's three lines are
-                    // pinned (99-init, 59-adoption).
-                    println!(
-                        "start: `war create \"what this work accomplishes\" --item \"...\"`, then \
-                         `war ready`, `war claim <id>`, `war done <id>` — no signature needed. \
-                         Agents run `war prime` first (AGENTS.md)."
-                    );
+                    // OW-WAR-0147 / t-67ed: most work here starts as a
+                    // ticket; the start hint is the first line after
+                    // `initialized`. Plain `init` only: the `--program`
+                    // scaffold's three lines are pinned (99-init, 59-adoption).
+                    init::run_with(&namespace, name.as_deref(), root, chosen, true)?;
                 }
                 // No namespace: a conversation, and only at a real terminal.
                 // A script, a pipe, `--json` or `--non-interactive` gets the

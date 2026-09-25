@@ -341,7 +341,10 @@ impl Machine {
                 self.adopt_alias().unwrap_or("?"),
                 self.adopt_alias().unwrap_or("?")
             ),
-            Step::Done => "Setup is complete. `war next` says what comes next.".to_owned(),
+            Step::Done => "Setup is complete. Work starts as a ticket: `war create \"...\"`, \
+                 then `war ready`, `war claim <id>`, `war done <id>` — no signature needed. \
+                 `war next` lists ready items first, then any act awaiting a human."
+                .to_owned(),
         }
     }
 
