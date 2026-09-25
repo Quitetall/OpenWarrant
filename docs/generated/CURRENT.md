@@ -12,7 +12,7 @@ This is the master document (OW-ADR-0022): what is authoritative in this reposit
 - **Current by construction.** A Warrant is current unless an authorized Warrant declares `supersedes` → it, or its resolution is annulled. Currency is derived from those relations, never written.
 - **Fully expanded.** Every current Warrant's atoms appear below verbatim, in role order. Nothing is paraphrased.
 - **Replaced subjects are one line.** 1 replaced subject(s) appear under *Replaced* as lineage and nothing else; their text is in the history, when this repository keeps one.
-- **Records as of 2026-09-25** — the latest recorded event. 141 current Warrant(s).
+- **Records as of 2026-09-25** — the latest recorded event. 142 current Warrant(s).
 
 ## In force
 
@@ -2018,8 +2018,8 @@ Q-001, answer A); the four-phase plan it replaced survives as these tiers.
 - **Exit:** a vague engineering request produces a reviewable valid draft without direct model file mutation.
 - **Outcome:** war plan; interview; Draft Proposal protocol; Katana drafter adapter; semantic diff; proposed ADR generation.
 - **Tier:** 3 Workflow Integration · **after:** OW-PHASE-1
-- **Achieved:** blocked by 9 (exit Warrant OW-WAR-0042)
-- **Members (10):** OW-WAR-0034 `resolved`, OW-WAR-0035 `draft`, OW-WAR-0037 `draft`, OW-WAR-0042 `draft`, OW-WAR-0068 `draft`, OW-WAR-0070 `draft`, OW-WAR-0088 `draft`, OW-WAR-0101 `draft`, OW-WAR-0105 `draft`, OW-WAR-0141 `draft`
+- **Achieved:** blocked by 10 (exit Warrant OW-WAR-0042)
+- **Members (11):** OW-WAR-0034 `resolved`, OW-WAR-0035 `draft`, OW-WAR-0037 `draft`, OW-WAR-0042 `draft`, OW-WAR-0068 `draft`, OW-WAR-0070 `draft`, OW-WAR-0088 `draft`, OW-WAR-0101 `draft`, OW-WAR-0105 `draft`, OW-WAR-0141 `draft`, OW-WAR-0147 `draft`
 
 #### OW-PHASE-3 — ADR federation
 
@@ -2102,7 +2102,7 @@ Each earlier plan is one line of lineage; the record above replaces it.
 
 ## Warrants
 
-141 current Warrant(s), grouped by roadmap phase, each expanded atom by atom.
+142 current Warrant(s), grouped by roadmap phase, each expanded atom by atom.
 
 ### OW-PHASE-0 — Telemetry shim
 
@@ -14591,6 +14591,380 @@ Required at `basic`. The load-bearing obligations are OBL-002 and OBL-003:
 | D-012 | war plan --issue / --issue-file flags and their wiring into the plan handler (AM-002) | `crates/openwarrant-cli/src/lib.rs` | not_content_addressed |
 | D-013 | Open intake questions as human answer acts in war next (AM-002) | `crates/openwarrant-cli/src/next.rs` | not_content_addressed |
 | D-014 | An issue input on the war_plan_* MCP tools (AM-002) | `crates/openwarrant-cli/src/mcp/tools.rs` | not_content_addressed |
+
+#### OW-WAR-0147 — Tickets: a task-first loop to create, claim and finish work with no signature, the authority layer opt-in
+
+[manifest](../../docs/warrants/OW-WAR-0147/manifest.toml) · profile `delivery` · rung `draft` · currency `current`
+
+Not authorized; no Basis is fixed.
+
+##### Intent — [docs/warrants/OW-WAR-0147/atoms/10-intent.md](../../docs/warrants/OW-WAR-0147/atoms/10-intent.md)
+
+<!-- atom docs/warrants/OW-WAR-0147/atoms/10-intent.md begins -->
+# Intent
+
+## Problem
+
+The owner, 2026-09-25: "I wanted openwarrant to be more like beads or jira
+than an authority layer … prompting something and having it return a
+durable doc and working on that, checking off things so when another agent
+came, it only did the items not done." "You just tell an agent to take a
+jira ticket and it finishes it. The agent doesn't stop the human every 15
+minutes to get it to sign."
+
+Before this Warrant every unit of work in `war` was a Warrant: five atoms,
+a compile, an authorization a human signs, evidence, an independent
+verification and a resolution a human signs. There was no fast path to
+write work down, split it into steps, hand it between agents and finish it
+— and `war next` itself takes seconds on this corpus, because every command
+reads the whole of it.
+
+## Desired Outcome
+
+- `war create "<sentence>" [--item ...]` makes a ticket that is workable at
+  once: two Markdown atoms (an intent; a checklist, one task line per item
+  with a short hash id) under `docs/tickets/<t-id>/`, plus a journal.
+- `war ready`, `war claim`, `war done`, `war add`, `war note`, `war prime`,
+  `war show`, `war tickets`, `war release` work it: no signature, no human
+  act, no terminal dialog, each answering in milliseconds, each with `--json`.
+- Claims are exclusive (of simultaneous claims exactly one wins; a second
+  agent is refused by name), stale ones can be stolen, and all of it is
+  journalled.
+- The checklist file IS the state: a person's hand edit is honoured, and a
+  write moves only the line it touches.
+- `war prime` is what an arriving agent or person reads first: remaining
+  items, claims, recent notes, done work compacted.
+- The authority layer is opt-in: `war check` validates a ticket's structure
+  and never reports it for lacking a signature; `war promote` drafts a
+  delivery Warrant from a ticket when someone wants sign-off.
+- The same loop over `war mcp`; README, QUICKSTART, AGENTS.md and the
+  `war init` output start with it.
+
+## Non-goals
+
+- Changing any authority act, signature path, verification or resolution
+  rule. A ticket is not a Warrant of the contract corpus and nothing reads
+  it as one.
+- Sharing claims across machines. Claims are local runtime state; the
+  journal carries their history.
+- A ticket-level assurance mark. A done ticket is Completion (CONTEXT.md),
+  never Verified.
+<!-- atom docs/warrants/OW-WAR-0147/atoms/10-intent.md ends -->
+
+##### Basis — [docs/warrants/OW-WAR-0147/atoms/20-basis.md](../../docs/warrants/OW-WAR-0147/atoms/20-basis.md)
+
+<!-- atom docs/warrants/OW-WAR-0147/atoms/20-basis.md begins -->
+# Basis
+
+## Governing sources
+
+- SAS §2.2 and §16.3: a profile is added as data without redesign; the
+  core profiles are fixed. OW-WAR-0140's registry (`role.rs`,
+  `profiles/*.toml`) is the seam this Warrant extends with a working form.
+- §16.4 and RQ-015: an unknown or missing required role fails closed. A
+  working-form record still fails closed on a missing role; a Warrant
+  manifest naming a working-form profile is refused outright.
+- RQ-070: the CLI works file-native and offline for drafts. Every ticket
+  command reads only files under the repository root.
+- RQ-074: `war check` is deterministic and agent-free; its ticket rules are
+  structural.
+- §66: the append-only journal. Tickets reuse `journal_cmd::record` and the
+  §66.3 envelope unchanged.
+- §86 (`atomic.rs`): checklist and intent writes go through `write_if` with
+  the prestate read, retrying when another writer moved the file.
+- CONTEXT.md: Completion ("the declared work is done; it may remain
+  unverified") is what a done ticket is; Verified is not awarded here.
+
+## Prerequisites
+
+- OW-WAR-0140 (profile registry), authorized.
+- OW-WAR-0141 (intake): `war create --draft` asks the same `[plan]
+  drafter_argv` through `plan::request` and `plan::run_drafter`.
+
+## Unknowns
+
+- U-001 (escalated, non-blocking for the ticket path): whether a working
+  form needs a SAS clause of its own. §16.3 names two profiles and their
+  roles; a working form adds no core profile and no Warrant is ever
+  composed against one, but the SAS does not yet say a record of fewer
+  roles may exist beside the corpus. Options: (A) a §16.5 clause in the
+  next SAS revision proposed by the owner; (B) keep tickets outside the
+  SAS as tool behaviour. Recommendation: A.
+- U-002: `profiles/ticket.toml` says `approved = false` until the owner
+  signs this Warrant; nothing on the ticket path reads the flag.
+
+## Assumptions
+
+- A-001: hard links are available where claims live (Linux, macOS). Where
+  they are not, the claim falls back to `O_EXCL` create-then-write; a
+  reader in that instant sees a held lock naming nobody, never a free one.
+- A-002: a claim's actor name (`--as`, `OPENWARRANT_ACTOR`, else
+  `[project] performer`) is coordination, not identity; nothing in a
+  ticket authorizes anything, so no self-check rests on it.
+
+## Residual risks
+
+- R-001: two stealers of one stale claim and a third plain claimant inside
+  microseconds of each other can leave the third holding it while the first
+  believes it does (documented in `claim.rs`). The journal records all three.
+- R-002: claims live in one working tree's `.openwarrant/state/claims/`;
+  agents in separate worktrees see each other's claims only when
+  `[tickets] claims_dir` points at a shared path.
+<!-- atom docs/warrants/OW-WAR-0147/atoms/20-basis.md ends -->
+
+##### Work order — [docs/warrants/OW-WAR-0147/atoms/40-work-order.md](../../docs/warrants/OW-WAR-0147/atoms/40-work-order.md)
+
+<!-- atom docs/warrants/OW-WAR-0147/atoms/40-work-order.md begins -->
+# Work Order
+
+## Deliverables
+
+1. `profiles/ticket.toml`: the ticket profile — `extends = "delivery"`,
+   `form = "working"`, `core_roles = ["intent"]`, requires
+   `ticket.checklist` at ordinal 15; `approved = false`.
+2. `crates/openwarrant-core/src/role.rs`: `form`/`core_roles` in
+   `oh.war/profile/v1`; `ProfileDefinition::working_core_roles`,
+   `working_roles`, `is_working_form`; `ProfileError::BadForm` for every
+   malformed working form; a core profile has none.
+3. `crates/openwarrant-core/src/manifest.rs`: `validate_in` refuses a
+   Warrant naming a working-form profile (`WorkingFormProfile`).
+4. `crates/openwarrant-core/src/ticket.rs`: the ticket manifest
+   (`oh.war/ticket/v1`), hash ids, the checklist parser and writer, faults
+   by rule (`ticket.checklist-malformed`, `ticket.item-duplicate`,
+   `ticket.blocker-unknown`, `ticket.blocker-cycle`); module in
+   `crates/openwarrant-core/src/lib.rs`.
+5. `crates/openwarrant-cli/src/ticket/mod.rs`, `claim.rs`, `render.rs`: the
+   commands, claims (hard-link lock, steal, release), prime/show/list.
+6. `crates/openwarrant-cli/src/lib.rs`: the flattened `TicketCommand`
+   subcommands, the plain-`init` start line, `war show`/`war check`
+   routing of ticket ids.
+7. `crates/openwarrant-cli/src/mcp/tools.rs`, `mcp/mod.rs`: `war_create`,
+   `war_ready`, `war_claim`, `war_done`, `war_add`, `war_note`,
+   `war_prime`, `war_tickets`; `war_show` renders a ticket; instructions.
+8. `crates/openwarrant-cli/tests/tickets_cli.rs`.
+9. `conformance/plants.d/45-tickets.sh`.
+10. `crates/openwarrant-cli/templates/AGENTS.md.tmpl` and its rendered
+    reference `docs/agents/legacy-warrant-workflow.md`; root `AGENTS.md`.
+11. `docs/TICKETS.md`, `README.md`, `QUICKSTART.md`, `CONTEXT.md`,
+    `docs/PROFILES.md`.
+
+## Frozen Surfaces
+
+The core types OW-WAR-0140 froze (`lifecycle`, `state`, `contract`,
+`obligation`, `verification`, `independence`, `resolution`, `authority`,
+`deliverable`, `gate`, `gate_run`; compiler `ir`, `canonical`, `digest`);
+`show.rs` (pinned by OW-WAR-0033's resolution); every signing, verifying
+and resolving path; the `war init --program` output (pinned at three lines
+by 99-init and 59-adoption).
+
+## Autonomy and Escalation
+
+Tier T2. Escalate any change that would let a ticket satisfy, skip or stand
+in for an authority act, and U-001.
+
+## Rollback
+
+Revert the commits; `docs/tickets/` directories already written stay as
+plain Markdown a person can read. A repository with no `profiles/ticket.toml`
+keeps working: the tool's built-in copy is the default.
+<!-- atom docs/warrants/OW-WAR-0147/atoms/40-work-order.md ends -->
+
+##### Milestones — [docs/warrants/OW-WAR-0147/atoms/45-milestones.yaml](../../docs/warrants/OW-WAR-0147/atoms/45-milestones.yaml)
+
+```yaml
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "A ticket is created, claimed and finished with no signature"
+    stage_refs: ["STAGE-001", "STAGE-002"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+  - id: "M2"
+    title: "The authority layer is opt-in, and agents are told so"
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-006", "OBL-007", "OBL-008", "OBL-009"]
+
+stages:
+  - id: "STAGE-001"
+    title: "working-form profile, ticket.rs parser and ids"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 12000
+  - id: "STAGE-002"
+    title: "ticket commands, claims, check routing, MCP tools, tests"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 20000
+  - id: "STAGE-003"
+    title: "docs, AGENTS template, init line, 45-tickets.sh"
+    executor_kind: "agent"
+    executor_ref: "agent://claude-code"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]
+    budget_tokens: 8000
+```
+
+##### Assurance — [docs/warrants/OW-WAR-0147/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0147/atoms/60-assurance.md)
+
+<!-- atom docs/warrants/OW-WAR-0147/atoms/60-assurance.md begins -->
+# Assurance
+
+## Acceptance Obligations
+
+### OBL-001 — create → ready → claim → done needs no signature and no human
+- **scope:** a scratch program from `war init --program` (45-tickets.sh),
+  every command run with stdin closed and no terminal; and the scratch repos
+  of `tests/tickets_cli.rs`. No claim about a repository whose own policy
+  adds a gate to tickets (none can today).
+- **gate:** `gate://ops.conformance.plants@1.1.0`
+- **evidence:**
+  - accepting: a two-item ticket is created, both items claimed and done,
+    the ticket reads `done`, the ticked line reads
+    `— done by claude, <date>: <note>`, the journal holds `ticket.item_done`;
+  - accepting: no `authorization*`, `resolution*` or `*.sig` exists under
+    `docs/tickets/`, and `war sign --list` shows the same pending acts
+    before and after;
+  - refusing: `war create --draft` with no `[plan] drafter_argv` is refused
+    `ticket.no-drafter` and creates no ticket; with a fixture drafter the
+    items are exactly its two deliverables.
+
+### OBL-002 — a claim is exclusive, named, and stealable only when stale
+- **scope:** one item claimed by several actors in one scratch program;
+  the default TTL and `claim_ttl_minutes = 0`.
+- **gate:** `gate://ops.conformance.plants@1.1.0`
+- **evidence:**
+  - accepting: eight `war claim` processes started together: exactly one
+    exits 0 and one `ticket.claimed` event is journalled (also 12 processes
+    in `tickets_cli.rs`, 32 threads × 20 rounds in `claim.rs`);
+  - refusing: a second agent's claim of a held item exits 2
+    `ticket.claimed-by-other` naming the holder and since when;
+  - accepting: past the TTL, `--steal` takes the claim and journals
+    `ticket.claim_stolen` with whom it was taken from;
+  - refusing: without `--steal` a stale claim is refused with the steal
+    hint; with `--steal` a fresh claim is refused `not stale`.
+
+### OBL-003 — done needs your own claim
+- **scope:** the same scratch program.
+- **gate:** `gate://ops.conformance.plants@1.1.0`
+- **evidence:**
+  - accepting: done by the holder ticks the one line and releases the claim;
+  - refusing: done of an item someone else holds (`ticket.claimed-by-other`),
+    of an unclaimed item (`ticket.not-claimed`) and of an unknown id
+    (`ticket.unknown`), each exit 2, with no box ticked.
+
+### OBL-004 — the checklist file is the state
+- **scope:** checklists written by `war create` and then edited by hand
+  (reordered, reworded, a prose line and an id-less item added); the unit
+  fixtures in `ticket.rs` (LF, CRLF, no final newline, nested and starred
+  items, code fences, links). No claim about Markdown constructs none of
+  them use.
+- **gate:** `gate://ops.conformance.plants@1.1.0`
+- **evidence:**
+  - accepting: `war ready` lists the hand-edited items in the file's order
+    with the person's wording, the id-less one included;
+  - accepting: a `done` changes exactly two lines — its own, and the id-less
+    line given an id — and every other byte is unchanged (the plant diffs
+    the file; `ticket.rs` tests assert byte-for-byte);
+  - refusing: `war check` names a bad box (`ticket.checklist-malformed`),
+    a duplicate id (`ticket.item-duplicate`), an `after` naming no item or
+    no ticket (`ticket.blocker-unknown`, twice), and a cycle
+    (`ticket.blocker-cycle`, unit test), each exit 2.
+
+### OBL-005 — blockers keep items out of ready
+- **scope:** `after` on an item of the same ticket, on another ticket's
+  item (`t-x/i-y`) and on a whole ticket.
+- **gate:** `gate://ops.conformance.plants@1.1.0`
+- **evidence:**
+  - refusing: while their blockers are open the items are absent from
+    `war ready`, and `war claim` of one exits 2 `ticket.blocked` naming what
+    it waits on;
+  - accepting: once the blocker is done the item appears in `war ready`,
+    and the item behind it still does not.
+
+### OBL-006 — the authority layer is opt-in
+- **scope:** `war check` on a scratch program holding unsigned tickets;
+  the profile registry and manifest validation as unit-tested.
+- **gate:** `gate://software.repo.war-check@1.0.0`
+- **evidence:**
+  - accepting: `war check` exits 0 with `ticket.well-formed` and no ticket
+    finding about authorization, evidence or verification;
+  - accepting: `war promote <ticket>` writes a draft delivery Warrant through
+    `war new` carrying the ticket's description, records `promoted_to`, and
+    the Warrant has no authorization;
+  - refusing: a Warrant manifest that names profile `ticket` is refused
+    (`profile ticket is a working form`); a second promote is refused
+    `ticket.already-promoted`; the registry refuses every malformed working
+    form (`role.rs` tests: no core role, a compiler-produced or foreign
+    role, a duplicate, an unknown form, `core_roles` without the form, an
+    acceptance role, a core profile with a form).
+
+### OBL-007 — prime shows what is left, and compacts what is done
+- **scope:** a scratch program with open, recently done and 2020-done
+  tickets and a note; `compact_after_days` at its default of 7.
+- **gate:** `gate://ops.conformance.plants@1.1.0`
+- **evidence:**
+  - accepting: `war prime` lists the remaining items with their claims and
+    blockers and the recent note, and `war prime <ticket>` counts the done
+    items without listing them;
+  - refusing: no done item appears as a task line, and the 2020 ticket is
+    exactly one line under **Done earlier**.
+
+### OBL-008 — the same loop over MCP, and still no authority tool
+- **scope:** `war mcp` in a scratch program; the live tool router.
+- **gate:** `gate://ops.conformance.plants@1.1.0`
+- **evidence:**
+  - accepting: `war_claim`, `war_done` and `war_prime` work a ticket and the
+    checklist names the MCP actor (plant; `tickets_cli.rs` adds create,
+    add, note and show);
+  - refusing: a second actor's `war_claim` is refused naming the holder,
+    and `mcp::tests` still find no signing or ingesting tool registered.
+
+### OBL-009 — each ticket command answers fast on this corpus
+- **scope:** this repository's working tree (146 Warrants) on the machine
+  running the battery; the commands `create`, `ready`, `claim`, `done`,
+  `add`, `note`, `prime`, `prime <t>`, `show`, `tickets`, `check <t>`.
+- **gate:** `gate://ops.conformance.plants@1.1.0`
+- **evidence:** each exits 0 in under 2000 ms (asserted; measured 5–13 ms
+  on 2026-09-25), and the ticket the plant made is removed afterwards.
+
+## Gate Adequacy
+
+Required at `basic`. The load-bearing refusals are OBL-002's second-claim
+and OBL-003's unclaimed done: a claim that did not exclude, or a done that
+did not require one, would let two agents finish one item, which is the
+failure the loop exists to prevent. OBL-006's refusal of a Warrant naming
+the working form is what keeps the contract corpus unchanged.
+<!-- atom docs/warrants/OW-WAR-0147/atoms/60-assurance.md ends -->
+
+##### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | The ticket profile: a working form of delivery | `profiles/ticket.toml` | not_content_addressed |
+| D-002 | The registry's working form (form, core_roles, BadForm) | `crates/openwarrant-core/src/role.rs` | not_content_addressed |
+| D-003 | A Warrant naming a working-form profile is refused | `crates/openwarrant-core/src/manifest.rs` | not_content_addressed |
+| D-004 | Ticket manifest, hash ids, checklist parser and writer | `crates/openwarrant-core/src/ticket.rs` | not_content_addressed |
+| D-005 | The ticket module | `crates/openwarrant-core/src/lib.rs` | not_content_addressed |
+| D-006 | The ticket commands | `crates/openwarrant-cli/src/ticket/mod.rs` | not_content_addressed |
+| D-007 | Claims: hard-link locks, steal, release | `crates/openwarrant-cli/src/ticket/claim.rs` | not_content_addressed |
+| D-008 | prime, show, tickets | `crates/openwarrant-cli/src/ticket/render.rs` | not_content_addressed |
+| D-009 | The ticket subcommands, show and check routing, the init start line | `crates/openwarrant-cli/src/lib.rs` | not_content_addressed |
+| D-010 | The ticket tools over MCP | `crates/openwarrant-cli/src/mcp/tools.rs` | not_content_addressed |
+| D-011 | The MCP instructions name the ticket loop | `crates/openwarrant-cli/src/mcp/mod.rs` | not_content_addressed |
+| D-012 | The loop, the process race, check and MCP, through the binary | `crates/openwarrant-cli/tests/tickets_cli.rs` | not_content_addressed |
+| D-013 | The ticket plants | `conformance/plants.d/45-tickets.sh` | not_content_addressed |
+| D-014 | The AGENTS.md template starts with the ticket loop | `crates/openwarrant-cli/templates/AGENTS.md.tmpl` | not_content_addressed |
+| D-015 | The template's rendered reference | `docs/agents/legacy-warrant-workflow.md` | not_content_addressed |
+| D-016 | The repository's own pointer to the ticket loop | `AGENTS.md` | not_content_addressed |
+| D-017 | The loop in five commands | `docs/TICKETS.md` | not_content_addressed |
+| D-018 | Three steps to start | `README.md` | not_content_addressed |
+| D-019 | Three steps to start | `QUICKSTART.md` | not_content_addressed |
+| D-020 | Ticket and Claim | `CONTEXT.md` | not_content_addressed |
+| D-021 | The working form | `docs/PROFILES.md` | not_content_addressed |
 
 ### OW-PHASE-3 — ADR federation
 
@@ -37701,4 +38075,5 @@ Every command here has been judged by the act's dry run (`war sign <target> --dr
 | authorize | OW-WAR-0139 | `war sign OW-WAR-0139` | would record | revision 4 awaits authorization under AM-003 |
 | authorize | OW-WAR-0140 | `war sign OW-WAR-0140` | would record | revision 4 awaits authorization under AM-003 |
 | authorize | OW-WAR-0142 | `war sign OW-WAR-0142` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0147 | `war sign OW-WAR-0147` | would record | revision 1 awaits authorization |
 | accept | SAS 1.2.0 | `war sign 1.2.0` | would refuse: sign.needs-decision | a proposed SAS revision awaits acceptance |

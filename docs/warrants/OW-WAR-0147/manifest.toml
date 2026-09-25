@@ -1,0 +1,64 @@
+# A Warrant is the contract for ONE bounded intervention inside a program,
+# and it traces to that program's SAS through [[implements]] and [[roadmap]].
+# Starting a program? Write its SAS instead (SAS §6.10; docs/DEFINITIONS.md).
+schema = "oh.war/manifest/v1"
+uuid = "01a0da65-9e85-7531-a20e-8e695ecfa9ee"
+local_alias = "OW-WAR-0147"
+
+# Allocated only by Knowledge Fabric (SAS §12.4). Leave empty.
+enterprise_id = ""
+
+title = "Tickets: a task-first loop to create, claim and finish work with no signature, the authority layer opt-in"
+profile = "delivery"
+assurance_level = "basic"
+
+# RQ-070 is the file-native, offline draft path a ticket lives on; RQ-015 is
+# kept, not loosened — a working form still fails closed on a missing role,
+# and a Warrant naming it is refused; RQ-074 is the structure `war check`
+# validates, deterministic and agent-free. Whether a working form needs a
+# SAS clause of its own is U-001 in the basis, escalated.
+[[implements]]
+ref = "sas://WAR-SAS-RQ-070"
+contribution = "partial"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-015"
+contribution = "partial"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-074"
+contribution = "partial"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-2/tickets"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true
+

@@ -1,0 +1,214 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1, declared by the performer; the SET is what the authorizer signs
+# (OW-ADR-0021). Every path below is delivered on claude/tickets.
+
+[[deliverable]]
+id = "D-001"
+title = "The ticket profile: a working form of delivery"
+kind = "file"
+target_ref = "profiles/ticket.toml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-006"]
+
+[[deliverable]]
+id = "D-002"
+title = "The registry's working form (form, core_roles, BadForm)"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/role.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-006"]
+
+[[deliverable]]
+id = "D-003"
+title = "A Warrant naming a working-form profile is refused"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/manifest.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-006"]
+
+[[deliverable]]
+id = "D-004"
+title = "Ticket manifest, hash ids, checklist parser and writer"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/ticket.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004", "OBL-005"]
+
+[[deliverable]]
+id = "D-005"
+title = "The ticket module"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/lib.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-004"]
+
+[[deliverable]]
+id = "D-006"
+title = "The ticket commands"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/ticket/mod.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-005", "OBL-006", "OBL-009"]
+
+[[deliverable]]
+id = "D-007"
+title = "Claims: hard-link locks, steal, release"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/ticket/claim.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-008"
+title = "prime, show, tickets"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/ticket/render.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-007"]
+
+[[deliverable]]
+id = "D-009"
+title = "The ticket subcommands, show and check routing, the init start line"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-006"]
+
+[[deliverable]]
+id = "D-010"
+title = "The ticket tools over MCP"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/mcp/tools.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-008"]
+
+[[deliverable]]
+id = "D-011"
+title = "The MCP instructions name the ticket loop"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/mcp/mod.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-008"]
+
+[[deliverable]]
+id = "D-012"
+title = "The loop, the process race, check and MCP, through the binary"
+kind = "file"
+target_ref = "crates/openwarrant-cli/tests/tickets_cli.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-006", "OBL-008"]
+
+[[deliverable]]
+id = "D-013"
+title = "The ticket plants"
+kind = "file"
+target_ref = "conformance/plants.d/45-tickets.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005", "OBL-006", "OBL-007", "OBL-008", "OBL-009"]
+
+[[deliverable]]
+id = "D-014"
+title = "The AGENTS.md template starts with the ticket loop"
+kind = "file"
+target_ref = "crates/openwarrant-cli/templates/AGENTS.md.tmpl"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-015"
+title = "The template's rendered reference"
+kind = "file"
+target_ref = "docs/agents/legacy-warrant-workflow.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-016"
+title = "The repository's own pointer to the ticket loop"
+kind = "file"
+target_ref = "AGENTS.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-017"
+title = "The loop in five commands"
+kind = "file"
+target_ref = "docs/TICKETS.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-018"
+title = "Three steps to start"
+kind = "file"
+target_ref = "README.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-019"
+title = "Three steps to start"
+kind = "file"
+target_ref = "QUICKSTART.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-020"
+title = "Ticket and Claim"
+kind = "file"
+target_ref = "CONTEXT.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-006"]
+
+[[deliverable]]
+id = "D-021"
+title = "The working form"
+kind = "file"
+target_ref = "docs/PROFILES.md"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-006"]

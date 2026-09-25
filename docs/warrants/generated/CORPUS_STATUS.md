@@ -15,7 +15,7 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 
 - **SAS revision:** 1.1.1
 - **digest:** `sha256:230e2829d80d11e4ccaf8f893205994ce16314ffe4cd30b2d4d398614133f12e`
-- Revision 1.1.1 is ACCEPTED (§101.2) and normative. A Warrant compiles against the revision its authorization recorded (§14), so a later revision does not move an authorized contract: 57 against 0.1.0-draft.1, 8 against 0.1.0-draft.3, 42 against 1.0.0, 34 against 1.1.0, 1 against 1.1.1.
+- Revision 1.1.1 is ACCEPTED (§101.2) and normative. A Warrant compiles against the revision its authorization recorded (§14), so a later revision does not move an authorized contract: 57 against 0.1.0-draft.1, 8 against 0.1.0-draft.3, 42 against 1.0.0, 34 against 1.1.0, 2 against 1.1.1.
 
 **Requirements (63 in §106)** — strictest rung first:
 
@@ -29,7 +29,7 @@ Source: every Warrant under the configured warrants path, its sidecar records, a
 |---|---|---|---|---|---|---|---|
 | roadmap://OW-PHASE-0: Telemetry shim | OW-WAR-0041 | blocked by OW-WAR-0039, OW-WAR-0041, OW-WAR-0100, OW-WAR-0118 | 0 | 4 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-1: File-native WAR compiler | OW-WAR-0061 | recorded | 0 | 21 | 0 | 0 | 13 |
-| roadmap://OW-PHASE-2: Agent planner | OW-WAR-0042 | blocked by OW-WAR-0035, OW-WAR-0037, OW-WAR-0042, OW-WAR-0068, OW-WAR-0070, OW-WAR-0088, OW-WAR-0101, OW-WAR-0105, OW-WAR-0141 | 0 | 9 | 0 | 0 | 1 |
+| roadmap://OW-PHASE-2: Agent planner | OW-WAR-0042 | blocked by OW-WAR-0035, OW-WAR-0037, OW-WAR-0042, OW-WAR-0068, OW-WAR-0070, OW-WAR-0088, OW-WAR-0101, OW-WAR-0105, OW-WAR-0141, OW-WAR-0147 | 0 | 10 | 0 | 0 | 1 |
 | roadmap://OW-PHASE-3: ADR federation | OW-WAR-0043 | blocked by OW-WAR-0006, OW-WAR-0036, OW-WAR-0043, OW-WAR-0064, OW-WAR-0074, OW-WAR-0084, OW-WAR-0123, OW-WAR-0124, OW-WAR-0125 | 0 | 9 | 0 | 0 | 3 |
 | roadmap://OW-PHASE-4: Knowledge Fabric registration | OW-WAR-0044 | blocked by OW-WAR-0028, OW-WAR-0029, OW-WAR-0030, OW-WAR-0032, OW-WAR-0044, OW-WAR-0110, OW-WAR-0111, OW-WAR-0126, OW-WAR-0127, OW-WAR-0128 | 0 | 10 | 0 | 0 | 0 |
 | roadmap://OW-PHASE-5: Dispatch and Katana execution | OW-WAR-0045 | blocked by OW-WAR-0011, OW-WAR-0023, OW-WAR-0026, OW-WAR-0045, OW-WAR-0065, OW-WAR-0069, OW-WAR-0077, OW-WAR-0078, OW-WAR-0079, OW-WAR-0080, OW-WAR-0081, OW-WAR-0082, OW-WAR-0086, OW-WAR-0093, OW-WAR-0094, OW-WAR-0095, OW-WAR-0098, OW-WAR-0099, OW-WAR-0102, OW-WAR-0103, OW-WAR-0104, OW-WAR-0106, OW-WAR-0109, OW-WAR-0129, OW-WAR-0130, OW-WAR-0131, OW-WAR-0132 | 0 | 27 | 0 | 0 | 4 |
@@ -65,16 +65,16 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | requirement | Warrants blocked |
 |---|---|
-| every required gate has admissible result | 113 |
-| artifact digests verify | 89 |
-| no blocker remains | 85 |
-| no required unknown remains | 85 |
-| every required obligation is dispositioned | 83 |
-| independence requirements are met | 83 |
+| every required gate has admissible result | 114 |
+| artifact digests verify | 90 |
+| no blocker remains | 86 |
+| no required unknown remains | 86 |
+| every required obligation is dispositioned | 84 |
+| independence requirements are met | 84 |
 | required deliverables exist | 57 |
-| required judgments exist | 54 |
-| residual risks have sufficient authority | 54 |
-| exact authorized Contract Revision | 5 |
+| required judgments exist | 55 |
+| residual risks have sufficient authority | 55 |
+| exact authorized Contract Revision | 6 |
 | runtime receipts match the basis | 3 |
 
 ## Requirements (SAS §106, §34.3)
@@ -95,7 +95,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-012` | in_progress | 0 | OW-WAR-0002 (partial), OW-WAR-0004 (complete), OW-WAR-0057 (partial), OW-WAR-0113 (partial) |
 | `WAR-SAS-RQ-013` | satisfied | 1 | OW-WAR-0002 (complete), OW-WAR-0113 (partial), OW-WAR-0122 (partial), OW-WAR-0140 (partial) |
 | `WAR-SAS-RQ-014` | in_progress | 0 | OW-WAR-0003 (partial), OW-WAR-0004 (complete), OW-WAR-0058 (partial) |
-| `WAR-SAS-RQ-015` | satisfied | 2 | OW-WAR-0002 (complete), OW-WAR-0005 (complete), OW-WAR-0140 (partial) |
+| `WAR-SAS-RQ-015` | satisfied | 2 | OW-WAR-0002 (complete), OW-WAR-0005 (complete), OW-WAR-0140 (partial), OW-WAR-0147 (partial) |
 | `WAR-SAS-RQ-020` | in_progress | 0 | OW-WAR-0036 (complete), OW-WAR-0058 (partial), OW-WAR-0063 (partial), OW-WAR-0064 (partial), OW-WAR-0071 (partial), OW-WAR-0126 (partial), OW-WAR-0128 (partial) |
 | `WAR-SAS-RQ-021` | claimed | 0 | OW-WAR-0113 (partial) |
 | `WAR-SAS-RQ-022` | satisfied | 1 | OW-WAR-0013 (complete), OW-WAR-0055 (complete), OW-WAR-0061 (partial), OW-WAR-0062 (partial), OW-WAR-0063 (partial), OW-WAR-0125 (partial) |
@@ -134,11 +134,11 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-063` | claimed | 0 | OW-WAR-0027 (complete), OW-WAR-0047 (complete) |
 | `WAR-SAS-RQ-064` | claimed | 0 | OW-WAR-0001 (partial) |
 | `WAR-SAS-RQ-065` | claimed | 0 | OW-WAR-0127 (partial) |
-| `WAR-SAS-RQ-070` | claimed | 0 | OW-WAR-0001 (partial), OW-WAR-0069 (partial), OW-WAR-0072 (partial), OW-WAR-0073 (partial), OW-WAR-0112 (partial), OW-WAR-0115 (partial), OW-WAR-0116 (partial), OW-WAR-0141 (partial) |
+| `WAR-SAS-RQ-070` | claimed | 0 | OW-WAR-0001 (partial), OW-WAR-0069 (partial), OW-WAR-0072 (partial), OW-WAR-0073 (partial), OW-WAR-0112 (partial), OW-WAR-0115 (partial), OW-WAR-0116 (partial), OW-WAR-0141 (partial), OW-WAR-0147 (partial) |
 | `WAR-SAS-RQ-071` | claimed | 0 | OW-WAR-0035 (complete), OW-WAR-0042 (complete), OW-WAR-0068 (partial), OW-WAR-0141 (partial) |
 | `WAR-SAS-RQ-072` | satisfied | 1 | OW-WAR-0034 (complete), OW-WAR-0042 (complete), OW-WAR-0068 (partial), OW-WAR-0141 (partial) |
 | `WAR-SAS-RQ-073` | claimed | 0 | OW-WAR-0036 (complete) |
-| `WAR-SAS-RQ-074` | satisfied | 1 | OW-WAR-0005 (complete), OW-WAR-0055 (partial), OW-WAR-0112 (partial) |
+| `WAR-SAS-RQ-074` | satisfied | 1 | OW-WAR-0005 (complete), OW-WAR-0055 (partial), OW-WAR-0112 (partial), OW-WAR-0147 (partial) |
 | `WAR-SAS-RQ-075` | in_progress | 0 | OW-WAR-0004 (complete), OW-WAR-0055 (partial), OW-WAR-0057 (partial), OW-WAR-0060 (partial), OW-WAR-0073 (partial), OW-WAR-0112 (partial), OW-WAR-0115 (partial), OW-WAR-0116 (partial) |
 | `WAR-SAS-RQ-076` | claimed | 0 | OW-WAR-0028 (complete) |
 | `WAR-SAS-RQ-077` | claimed | 0 | OW-WAR-0068 (partial) |
@@ -149,7 +149,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `WAR-SAS-RQ-084` | claimed | 0 | OW-WAR-0030 (complete), OW-WAR-0064 (partial), OW-WAR-0113 (complete), OW-WAR-0114 (partial) |
 | `WAR-SAS-RQ-085` | claimed | 0 | OW-WAR-0067 (partial), OW-WAR-0071 (partial), OW-WAR-0072 (partial) |
 
-## Warrants (142) — invalid 0 · draft 113 · ready_to_resolve 0 · would_satisfy 0 · resolved **29**
+## Warrants (143) — invalid 0 · draft 114 · ready_to_resolve 0 · would_satisfy 0 · resolved **29**
 
 | Warrant | rung | §38.6 | blocking unknowns | milestones evidenced | first unmet |
 |---|---|---|---|---|---|
@@ -295,6 +295,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0144` Amending an authorization keeps the superseded one beside it, as a retired response is kept | draft | unknown | 0 | 0 of 2 | artifact digests verify |
 | `OW-WAR-0145` The battery as an askable gate: it runs in a disposable clone of the committed tree and mutates nothing | draft | unknown | 0 | 0 of 1 | artifact digests verify |
 | `OW-WAR-0146` A verification bundle carries what each gate printed, so a blind verifier can see the evidence | draft | unknown | 0 | 0 of 1 | artifact digests verify |
+| `OW-WAR-0147` Tickets: a task-first loop to create, claim and finish work with no signature, the authority layer opt-in | draft | unknown | 0 | 0 of 2 | exact authorized Contract Revision |
 
 ## Not reported here
 
