@@ -438,7 +438,19 @@ pub fn run(repo: &Repository, alias: &str, performer: &str) -> Result<Report, Re
         ));
         return Ok(report);
     }
-    let response_path = repo.warrant_dir(alias)?.join("verifications").join(format!(
+    // Under `verifications/responses/`, not beside the records: every
+    // `verifications/*.toml` is read as one obligation's verification, and a
+    // whole response is not one — kept beside them, it made every reader of
+    // the records (`war inbox`, `war resolve`) refuse the Warrant.
+    let responses = repo
+        .warrant_dir(alias)?
+        .join("verifications")
+        .join(RESPONSES_DIR);
+    std::fs::create_dir_all(&responses).map_err(|source| RepoError::Io {
+        context: format!("could not create {responses}"),
+        source,
+    })?;
+    let response_path = responses.join(format!(
         "response-{}.toml",
         digest
             .trim_start_matches("sha256:")
@@ -464,6 +476,11 @@ pub fn run(repo: &Repository, alias: &str, performer: &str) -> Result<Report, Re
     }
     Ok(report)
 }
+
+/// Where `war verify --run` keeps each verifier's whole response, under the
+/// Warrant's `verifications/`: a subdirectory, so no reader of the
+/// per-obligation records parses it as one.
+pub const RESPONSES_DIR: &str = "responses";
 
 #[cfg(test)]
 mod tests {

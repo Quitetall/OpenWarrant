@@ -99,5 +99,27 @@ else
     bo_fail "one digest, and the verifier ingests" "$BO_N bundle file(s); $(grep -E '^(ERROR|WARN)' <<<"$BO_RUN" | head -1)"
 fi
 
+# The verifier's whole response is kept under verifications/responses/, never
+# beside the per-obligation records: every verifications/*.toml is read as one
+# verification, and a response is not one (`war inbox` refused the Warrant).
+BO_TOP=$(ls "$BO_W"/verifications/response-*.toml 2>/dev/null | wc -l)
+BO_KEPT=$(ls "$BO_W"/verifications/responses/response-*.toml 2>/dev/null | wc -l)
+BO_INBOX=$("$WAR" --root "$PLANT_ROOT" inbox 2>&1); BO_INBOX_STATUS=$?
+if [[ "$BO_TOP" -eq 0 && "$BO_KEPT" -eq 1 && $BO_INBOX_STATUS -eq 0 ]]; then
+    bo_ok "the response is kept apart" "verifications/responses/, and war inbox reads the Warrant"
+else
+    bo_fail "the response is kept apart" "$BO_TOP beside the records, $BO_KEPT kept; inbox exit $BO_INBOX_STATUS: $(tail -1 <<<"$BO_INBOX")"
+fi
+# Control: the same response placed beside the records is read as one, and
+# refused — the place is what keeps it from being a malformed verification.
+command cp "$BO_W"/verifications/responses/response-*.toml "$BO_W"/verifications/ 2>/dev/null
+BO_INBOX=$("$WAR" --root "$PLANT_ROOT" inbox 2>&1); BO_INBOX_STATUS=$?
+command rm -f "$BO_W"/verifications/response-*.toml
+if [[ $BO_INBOX_STATUS -ne 0 ]] && grep -q 'missing field `obligation`' <<<"$BO_INBOX"; then
+    bo_ok "beside the records, it is refused" "missing field obligation (exit $BO_INBOX_STATUS)"
+else
+    bo_fail "beside the records, it is refused" "inbox exit $BO_INBOX_STATUS"
+fi
+
 corpus_gone "$PLANT_ROOT"
 unset PLANT_ROOT BO_B

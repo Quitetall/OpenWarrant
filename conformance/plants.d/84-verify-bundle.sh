@@ -46,12 +46,12 @@ plant_cmd "no verifier configured is said" "verify.no-verifier" "verifier_argv" 
 plant_cmd "a configured verifier is ingested" "verify.recorded" "fixture-verifier" 0 \
     "vb_verifier '\"bash\", \"conformance/fixtures/verifier/establishes-all.sh\"'; assert_present 'establishes-all.sh' openwarrant.toml" \
     verify OW-WAR-0063 --performer claude --run
-rm -f "$VB"/bundle-*.json "$VB"/response-*.toml
+rm -rf "$VB"/bundle-*.json "$VB"/response-*.toml "$VB"/responses
 git checkout -- "$VB" 2>/dev/null || true
 
 # A verifier that answers as the performer is refused by the seam.
 plant_cmd "a self-verifying verifier is refused" "verify.inadmissible" "claude" 2 \
     "vb_verifier '\"bash\", \"conformance/fixtures/verifier/self-verifying.sh\"'; assert_present 'self-verifying.sh' openwarrant.toml" \
     verify OW-WAR-0063 --performer claude --run
-rm -f "$VB"/bundle-*.json "$VB"/response-*.toml
+rm -rf "$VB"/bundle-*.json "$VB"/response-*.toml "$VB"/responses
 git checkout -- "$VB" 2>/dev/null || true
