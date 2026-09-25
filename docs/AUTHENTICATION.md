@@ -197,20 +197,90 @@ is loaded:
 - or a security key present on the machine, which asks for a touch per
   signature.
 
-`war` issues nothing that authenticates a person. It has no login, no
-session token that stands for a human, no cookie and no credential of its
-own. Every human act is a signature made by that key through that agent.
+`war` issues nothing that authenticates a person. It has no login and no
+session token that stands for a human. Every human act is a signature made by
+that key through that agent.
 
-- `war ui`'s per-start token is not a session credential. It guards the
-  local server against other processes and forged requests (THREAT_MODEL
-  row 13). A button there still ends in `war sign --ssh-sign` and the key's
-  own confirmation.
+`war ui` issues two things that authenticate a request, and neither
+authenticates a person or can sign.
+
+- **The loopback token.** A 256-bit token per `war ui` start, printed once in
+  the link's fragment and carried by the page in memory as
+  `Authorization: Bearer`. Never a cookie, storage or a URL. It guards the
+  127.0.0.1 server against other local processes and forged requests. A
+  button there still ends in `war sign --ssh-sign` and the key's own
+  confirmation.
+  - **Carried by:** `webui/mod.rs`, the loopback route (every `/api/`
+    request compared with `same`).
+  - **Exercised by:** `63-webui.sh` (401 without or with a wrong token) and
+    the `webui` unit test `tokens_are_long_random_and_compared_in_constant_time`.
+  - THREAT_MODEL row 13a.
+- **The device credential** (`war ui --lan`, OW-WAR-0139). It authenticates
+  a paired device, not a person, to **read** the program and **request**:
+  run an `auto` remedy, or mark a signing act "requested from `<device>`" in
+  the host's queue. It never signs and never causes a signature. A device's
+  POST naming a signing act is refused `act.host-only` before anything runs.
+  "Ask at the host" starts nothing; the signature is still
+  `war sign … --ssh-sign` typed at the host, under that key's dialog or
+  touch.
+  - **Issued:** only after a `y` typed at the host's terminal answers a
+    pairing prompt naming the device's address and user agent. The prompt
+    is reached with a single-use code that expires in five minutes.
+  - **Form:** 256 bits from the OS, sent once as the `__Host-war_device`
+    cookie (`Secure; HttpOnly; SameSite=Strict; Path=/`), over TLS only.
+  - **Storage:** the host keeps only its SHA-256, with the device's address,
+    user agent and a 30-day expiry, in
+    `$XDG_STATE_HOME/openwarrant/ui-devices.json` (mode 0600). The file is
+    per user and never under the repository. It is not a record and grants
+    nothing under `docs/authority/`.
+  - **Checked:** the file is read on every request, so
+    `war ui devices --revoke <id>` takes effect at once. Deleting the file
+    revokes every device. On the LAN no address is trusted, loopback
+    included, and the loopback token means nothing there.
+  - **Carried by:**
+    - `webui/pairing.rs`: `COOKIE`, `Store::issue`, `Store::authenticate`
+      (revoked, expired, unknown), `Store::open` (refuses a file under the
+      repository, `ui.devices-in-repository`), the read's mode check
+      (`ui.devices-mode`), `Codes::take` and `Nonces::spend`;
+    - `webui/mod.rs`: `serve_lan` (no `/api/` without a device credential),
+      `start_act` (a verb of `sign` from a device is `act.host-only`),
+      `device_queue` (a device's rows carry no act id) and
+      `request_at_host` (marks, starts nothing);
+    - `webui/tls.rs`: `Tls::operator` / `Tls::self_signed`, and `accept`,
+      where a failed handshake gets no HTTP.
+  - **Exercised by:** `59-webui-lan.sh`:
+    - OBL-002: a missing, forged, revoked or expired credential, and the
+      loopback token, each 401; the device file 0600, outside the
+      repository, hashes only; a reused or expired pairing code; a replayed
+      nonce 409;
+    - OBL-003: the device's queue without act ids; a signing id 403
+      `act.host-only` with no `war sign` child and nothing signed; a request
+      marked at the host with nothing run;
+    - OBL-004: `n`, no answer and no terminal each issue nothing.
+    - Unit tests: `pairing.rs`
+      (`a_credential_is_stored_only_as_its_hash_in_a_private_file`,
+      `a_device_file_under_the_repository_is_refused`,
+      `a_pairing_code_works_once_and_not_after_expiry`,
+      `a_nonce_is_spent_once_and_only_by_its_device`) and `tls.rs`
+      (`a_self_signed_certificate_serves_its_name_and_no_other`).
+  - **Residuals** (THREAT_MODEL row 13b):
+    - a device stolen while unlocked reads and runs `auto` remedies until
+      it is revoked;
+    - the pairing prompt is a TTY guard that a pty can answer (row 2), so
+      what it buys is a credential that cannot sign;
+    - the cookie is scoped to the host name, not the port.
+    - That a device cannot sign rests on `start_act` refusing the `sign`
+      verb and on `auto` remedies never being a signing verb (OW-WAR-0112).
+      Nothing in `webui/` names `ssh-keygen` or the agent socket.
+
+Ending a session:
+
 - Ending a session is the operator's: lock the OS session, or remove the key
   from the agent (`ssh-add -D`). An agent socket reachable from the
   performer's shell is inside the session, which is why the dialog or touch
   is the control (THREAT_MODEL row 1).
-- Web and remote sessions are not defined here. OW-WAR-0139 consumes this
-  contract for the LAN web UI.
+- Ending a device's reach is `war ui devices --revoke <id>`, or deleting the
+  device file. Restarting `war ui` rotates the loopback token.
 
 ## Policy that decides whether work may close
 
@@ -268,4 +338,7 @@ unprotected. Adding a key to this list later is a store revision.
 | An ordinary key's dialog was shown | operator duty (`ssh-add -c`), THREAT_MODEL row 1 |
 | The register and policy are outside the performer's reach | without a store: not established, operator review (`authority.unprotected`). With a store (contingent, U-001 A): `authority_check.rs`, `config.rs`, `58-authn.sh` store half; the store's own protection is the operator's (R-003) |
 | A record the store does not back is refused, never fallen back from | `authority.legacy-fallback`, `authority.verify-unavailable`; `58-authn.sh` |
-| A session is the human's unlocked OS session with a loaded key | definition. `war` issues no credential (THREAT_MODEL row 13) |
+| A session is the human's unlocked OS session with a loaded key | definition. `war` issues no credential that authenticates a person or can sign |
+| The loopback page's token guards the local server and is never a cookie | `webui/mod.rs` loopback route; `63-webui.sh`; THREAT_MODEL row 13a |
+| A paired device's credential reads and requests, and never signs or causes a signature | `pairing.rs` `Store::authenticate`, `mod.rs` `serve_lan`, `start_act` (`act.host-only`), `request_at_host`; `59-webui-lan.sh` OBL-002, OBL-003; THREAT_MODEL row 13b |
+| The device credential is issued only by a `y` typed at the host, and stored only as a hash outside the repository | `mod.rs` `pair`, `pairing.rs` `Store::issue`, `Store::open`; `59-webui-lan.sh` OBL-002, OBL-004; `pairing.rs` unit tests |
