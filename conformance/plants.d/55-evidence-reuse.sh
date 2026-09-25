@@ -38,6 +38,22 @@ er_commit()  {
     git -C "$ER_ROOT" -c user.email=plant@invalid -c user.name=plant commit -qm "$1" >/dev/null 2>&1
 }
 er_tree()    { git -C "$ER_ROOT" rev-parse 'HEAD^{tree}'; }
+# er_status_class <gate key>: the class the corpus projection (`war --json
+# status`) gives that gate's run on ER-WAR-0001, compiled first so it is the
+# projection of the tree as it stands (projections are outside the tree rule).
+er_status_class() {
+    er_war compile >/dev/null 2>&1
+    er_war --json status 2>/dev/null | python3 -c '
+import json, sys
+try:
+    d = json.load(sys.stdin)
+except ValueError:
+    sys.exit(0)
+for w in d.get("result", {}).get("warrants", []):
+    if w.get("alias") == sys.argv[1]:
+        print(" ".join(sorted({r.get("class", "") for r in w.get("gate_runs", []) if r.get("gate") == sys.argv[2]})))
+' "$ER_W" "$1"
+}
 
 [[ -f "$ER_DIR/atoms/60-assurance.md" ]] \
     || { printf 'PLANT SETUP FAILED: %s has no assurance atom\n' "$ER_W" >&2; exit 9; }
@@ -233,6 +249,13 @@ if grep -q "evidence.admissible .*plant.tree@1.0.0 .*tree:$ER_T" <<<"$ER_OUT"; t
     else
         er_fail "the tree fallback" "$(grep -m1 'evidence\.' <<<"$ER_OUT")"
     fi
+    # AM-002: status labels the moved run as `war check` does.
+    ER_CLASS=$(er_status_class plant.tree@1.0.0)
+    if [[ "$ER_CLASS" == "stale_binding" ]]; then
+        er_ok "status: a moved source" "labelled stale_binding"
+    else
+        er_fail "status: a moved source" "labelled ${ER_CLASS:-nothing}"
+    fi
 else
     er_fail "the tree fallback" "not admissible after its own record commit: $(grep -m1 'evidence\.' <<<"$ER_OUT")"
 fi
@@ -252,6 +275,14 @@ if [[ $ER_STATUS -eq 0 ]] && grep -q 'WARN evidence.reuse-unknown .*names no tre
     er_ok "a contract-only receipt" "evidence.reuse-unknown, a warning (check exits 0); requirement 5 unmet"
 else
     er_fail "a contract-only receipt" "exit $ER_STATUS; $(grep -m1 'evidence\.' <<<"$ER_OUT")"
+fi
+# AM-002: status labels it reuse_unknown, not stale_binding — the refusal half
+# of the label pair; "status: a moved source" above is the other.
+ER_CLASS=$(er_status_class plant.tree@1.0.0)
+if [[ "$ER_CLASS" == "reuse_unknown" ]]; then
+    er_ok "status: a contract-only receipt" "labelled reuse_unknown, not stale_binding"
+else
+    er_fail "status: a contract-only receipt" "labelled ${ER_CLASS:-nothing}"
 fi
 # ... and the same rewrite NOT resealed is refused by the seal, so the case
 # above was judged on its subjects and not waved through.
@@ -294,7 +325,7 @@ if [[ $ER_RC -eq 0 && -n "$ER_HASHES_BEFORE" && "$ER_HASHES_BEFORE" == "$ER_HASH
     && grep -q 'evidence.admissible .*resolved: the source is not re-evaluated' "$ER_TMP/r10"; then
     er_ok "resolved history is untouched" "no error or reuse-unknown on a resolved Warrant; resolution.toml bytes unchanged"
 else
-    er_fail "resolved history is untouched" "${ER_WHY:-resolution.toml bytes moved, or OW-WAR-0010's receipt was re-evaluated}"
+    er_fail "resolved history is untouched" "${ER_WHY:-resolution.toml bytes moved, or the receipt of OW-WAR-0010 was re-evaluated}"
 fi
 
 # ---------------------------------------------------------- OBL-004, -005 ---
@@ -354,16 +385,50 @@ else
 fi
 git -C "$ER_ROOT" reset --hard -q "$ER_CTX_BASE"
 
-# OBL-004 and OBL-005's conflict half are not exercised here. The context
-# manifest `war dispatch --emit-context` writes is built in
-# crates/openwarrant-cli/src/dispatch.rs, and its `conflicts` field is typed
-# in crates/openwarrant-core/src/context.rs; OW-WAR-0133 declares neither, so
-# `conflicts: []` cannot be made to say `unchecked` inside it. The
-# one-path-at-two-digests refusal is the compiler's (`source_conflicts`, unit
-# tests in crates/openwarrant-compiler/src/dispatch.rs), and the stage
-# selector never includes one path whole at two digests, so no stage a plant
-# can write reaches it through the binary.
-er_unknown "OBL-004 conflicts field" "not exercisable: the emitter is outside the declared set"
-er_unknown "OBL-005 conflict via war dispatch" "not reachable through the stage selector; unit-tested in the compiler"
+# OBL-004: the manifest's conflict fields say what they are a record OF. The
+# judge passes a manifest whose `conflict_check` names the check that ran
+# (with its findings) and the kind nobody checked, and fails a bare
+# `conflicts: []` with no such statement.
+cat > "$ER_TMP/judge.py" <<'PY'
+import json, sys
+c = json.load(open(sys.argv[1]))
+cc = c.get("conflict_check")
+ok = (isinstance(c.get("conflicts"), list)
+      and isinstance(cc, dict)
+      and "same-source-two-versions" in cc.get("checked", [])
+      and isinstance(cc.get("found"), list)
+      and any(u.startswith("semantic") for u in cc.get("unchecked", [])))
+sys.exit(0 if ok else 1)
+PY
+er_war dispatch ER-WAR-0002 STAGE-001 --prototype --emit "$ER_TMP/d.json" --emit-context "$ER_TMP/c.json" >/dev/null 2>&1
+if python3 "$ER_TMP/judge.py" "$ER_TMP/c.json" \
+    && python3 -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1]))["conflict_check"]["found"] == [] else 1)' "$ER_TMP/c.json"; then
+    er_ok "the conflict field says what ran" "same-source-two-versions checked, found []; semantic named unchecked"
+else
+    er_fail "the conflict field says what ran" "$(python3 -c 'import json,sys; c=json.load(open(sys.argv[1])); print(c.get("conflicts"), c.get("conflict_check"))' "$ER_TMP/c.json" 2>&1)"
+fi
+# ... refusal: the same manifest with the statement removed — `conflicts: []`
+# and nothing saying a check ran — is failed by the same judge.
+python3 - "$ER_TMP/c.json" "$ER_TMP/bare.json" <<'PY'
+import json, sys
+c = json.load(open(sys.argv[1]))
+c.pop("conflict_check", None)
+json.dump(c, open(sys.argv[2], "w"))
+PY
+assert_present '"conflicts": []' "$ER_TMP/c.json"
+if ! python3 "$ER_TMP/judge.py" "$ER_TMP/bare.json"; then
+    er_ok "a bare conflicts: []" "rejected: no statement that a check ran"
+else
+    er_fail "a bare conflicts: []" "the judge passed an empty list nobody checked"
+fi
+git -C "$ER_ROOT" reset --hard -q "$ER_CTX_BASE"
+
+# OBL-005's conflict half is not exercised through the binary. The
+# one-path-at-two-digests refusal is the compiler's (`source_conflicts` over
+# `ContextManifest::source_versions`; unit tests in
+# crates/openwarrant-compiler/src/dispatch.rs and core/src/context.rs), and
+# the stage selector never includes one path whole at two digests, so no stage
+# a plant can write reaches it.
+er_unknown "OBL-005 conflict via war dispatch" "not reachable through the stage selector; unit-tested in the compiler and core"
 
 rm -rf "$ER_TMP"

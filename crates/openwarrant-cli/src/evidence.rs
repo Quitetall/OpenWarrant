@@ -747,6 +747,43 @@ mod tests {
         assert!(admissible_runs(&[e], Some(C)).is_empty());
     }
 
+    /// OW-WAR-0133 AM-002: status labels a reuse-unknown run `reuse_unknown`
+    /// and a moved source `stale_binding` — two standings, two labels, the
+    /// same split `war check` makes.
+    #[test]
+    fn status_labels_reuse_unknown_and_stale_binding_apart() {
+        let sealed = || {
+            evidence(
+                run("pass"),
+                Some(receipt(Verdict::Pass, &contract_subject(C))),
+            )
+        };
+        let mut unknown = sealed();
+        unknown.reuse = Reuse::Unknown("the receipt names no tree".into());
+        let (class, why) = crate::status::run_class(&unknown, Some(C));
+        assert_eq!(class, "reuse_unknown");
+        assert!(why.is_some_and(|w| w.contains("reuse UNKNOWN")));
+
+        let mut moved = sealed();
+        moved.reuse = Reuse::Moved {
+            subject: "tree:aa".into(),
+            detail: "1 path(s) changed".into(),
+        };
+        assert_eq!(crate::status::run_class(&moved, Some(C)).0, "stale_binding");
+        let earlier = evidence(
+            run("pass"),
+            Some(receipt(Verdict::Pass, "contract:sha256:ffff")),
+        );
+        assert_eq!(
+            crate::status::run_class(&earlier, Some(C)).0,
+            "stale_binding"
+        );
+        assert_eq!(
+            crate::status::run_class(&sealed(), Some(C)),
+            ("admissible".to_owned(), None)
+        );
+    }
+
     #[test]
     fn a_resolved_warrant_is_not_re_evaluated() {
         let mut e = evidence(
