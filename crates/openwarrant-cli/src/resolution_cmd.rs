@@ -505,6 +505,15 @@ pub fn ingest_with(
         return Ok(report);
     }
 
+    // OW-ADR-0029: a Warrant authorized through a standing class is resolved
+    // by a human, always. §27.3's policy-service path is refused by name,
+    // before anything else about the resolution is judged, so the refusal
+    // does not depend on whether the thirteen happen to be met.
+    if let Some(why) = crate::resolve::standing_needs_human(repo, &dir, &response.resolved_by)? {
+        refuse(&mut report, "resolve.standing-needs-human", why);
+        return Ok(report);
+    }
+
     let a = assess(repo, &one)?;
     let unmet = a.checks.unmet();
     if !unmet.is_empty() {

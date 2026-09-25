@@ -78,6 +78,7 @@ pub mod schemas;
 pub mod sdk;
 pub mod show;
 pub mod sign;
+pub mod standing_cmd;
 pub mod status;
 pub mod telemetry;
 pub mod timeline;
@@ -159,6 +160,40 @@ enum RoadmapCommand {
     /// opened; the atom is written, the revision proposed, and one
     /// `war sign roadmap --ssh-sign` raises the dialog.
     Edit,
+}
+
+/// `war standing` (OW-ADR-0029): a class of routine work one human
+/// signature pre-authorizes.
+#[derive(clap::Subcommand, Debug)]
+enum StandingCommand {
+    /// Validate a class file and place it where `war sign` offers it for one
+    /// signature. It covers nothing until a human signs it:
+    /// `war sign standing:<id>@<revision> --ssh-sign`.
+    Propose {
+        /// A `oh.war/standing-authorization/v1` TOML file.
+        file: Utf8PathBuf,
+        /// Validate and say what would be written; write nothing.
+        #[arg(long)]
+        dry_run: bool,
+    },
+    /// Every class (or one): its terms' state, who signed it and when, each
+    /// glob with what it matches today, the count used and the expiry.
+    Show {
+        /// A class id, `standing://<id>@<rev>` or `standing:<id>@<rev>`.
+        id: Option<String>,
+    },
+    /// The coverage check: inside the class, write this Warrant's
+    /// authorization with the class's signer as authorizer; outside it,
+    /// refuse by the term broken and write nothing.
+    Apply {
+        alias: String,
+        /// The class; defaults to the manifest's `[standing] ref`.
+        #[arg(long = "class")]
+        class: Option<String>,
+        /// Run every refusal and write nothing.
+        #[arg(long)]
+        dry_run: bool,
+    },
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -865,6 +900,19 @@ enum Command {
         /// same act as the target `recover:<id>`, which stays as an alias.
         #[arg(long, value_name = "BATCH_ID")]
         recover: Option<String>,
+        /// Revoke a signed standing authorization (`standing:<id>@<rev>`).
+        /// A human act like its acceptance; records already made under the
+        /// class stand (§31). Never part of `--all`.
+        #[arg(long)]
+        revoke: bool,
+    },
+
+    /// A standing authorization (OW-ADR-0029): propose a class, show
+    /// classes, apply one to a Warrant. Signing and revoking a class are
+    /// `war sign standing:<id>@<rev>` and `… --revoke`.
+    Standing {
+        #[command(subcommand)]
+        command: StandingCommand,
     },
 
     /// The SAS as a controlled document (§101): propose, accept, diff, status.
@@ -2110,6 +2158,36 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 )),
             }
         }
+        Command::Standing { command } => {
+            let repository = open_repo()?;
+            match command {
+                StandingCommand::Propose { file, dry_run } => Ok(output::finish(
+                    mode,
+                    "standing",
+                    &standing_cmd::propose(&repository, &file, dry_run)?,
+                    None,
+                )),
+                StandingCommand::Show { id } => {
+                    let (report, views) = standing_cmd::show(&repository, id.as_deref())?;
+                    Ok(output::finish(
+                        mode,
+                        "standing",
+                        &report,
+                        Some(output::value(&views)),
+                    ))
+                }
+                StandingCommand::Apply {
+                    alias,
+                    class,
+                    dry_run,
+                } => Ok(output::finish(
+                    mode,
+                    "standing",
+                    &standing_cmd::apply(&repository, &alias, class.as_deref(), dry_run)?,
+                    None,
+                )),
+            }
+        }
         Command::Sas { command } => {
             let repository = open_repo()?;
             let ready = |report: diagnostic::Report| Ok(output::finish(mode, "sas", &report, None));
@@ -2814,6 +2892,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             kind,
             batch,
             recover,
+            revoke,
         } => {
             let repository = open_repo()?;
             if list {
@@ -2885,6 +2964,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 ssh_sign,
                 verify,
                 kind,
+                revoke,
             };
             if batch.is_some() || recover.is_some() {
                 let mut targets: Vec<String> = batch

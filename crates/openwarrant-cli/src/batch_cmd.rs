@@ -48,13 +48,7 @@ use crate::sign::{self, IngestMode, Pending};
 pub const BATCHES: &str = "docs/authority/batches";
 
 fn act_word(p: &Pending) -> &'static str {
-    match p {
-        Pending::Authorize { .. } => "authorize",
-        Pending::Resolve { .. } => "resolve",
-        Pending::Correct { .. } => "correct",
-        Pending::Accept { .. } => "accept",
-        Pending::AcceptRoadmap { .. } => "accept-roadmap",
-    }
+    sign::act_name(p)
 }
 
 /// The act's own ingest, in either mode.
@@ -76,6 +70,14 @@ fn ingest(
         } => crate::correct::ingest_with(repo, alias, deliverable_id, path, mode),
         Pending::AcceptRoadmap { revision, .. } => {
             crate::roadmap_cmd::accept_ingest_with(repo, *revision, path, mode)
+        }
+        // OW-ADR-0029: accepting and revoking a class batch like any other
+        // act — both have a dry run, so all-or-nothing holds.
+        Pending::AcceptStanding { request } => {
+            crate::standing_cmd::accept_ingest_with(repo, &request.id, request.revision, path, mode)
+        }
+        Pending::RevokeStanding { request } => {
+            crate::standing_cmd::revoke_ingest_with(repo, &request.id, request.revision, path, mode)
         }
         Pending::Accept { .. } => Err(RepoError::Message(
             "a SAS acceptance is not batched; sign it alone".to_owned(),
@@ -128,7 +130,16 @@ pub fn run(
         ));
         return Ok(report);
     }
-    let all = sign::pending(repo)?;
+    if opts.revoke && targets.is_empty() {
+        report.push(Diagnostic::error(
+            "standing.revoke-needs-target",
+            "war sign --batch --revoke".to_owned(),
+            "a revocation names its class: `war sign --batch standing:<id>@<rev>,… --revoke`. \
+             Nothing is revoked by a sweep",
+        ));
+        return Ok(report);
+    }
+    let all = sign::pending_for(repo, opts)?;
 
     // 1. Choose.
     let mut chosen: Vec<&Pending> = Vec::new();
@@ -173,10 +184,19 @@ pub fn run(
             ));
             continue;
         }
-        let actor = match sign::choose_actor(sign::eligible(p), opts) {
+        // A class act names why a signer is refused (agent by kind, SelfAct).
+        let chosen_actor = if matches!(
+            p,
+            Pending::AcceptStanding { .. } | Pending::RevokeStanding { .. }
+        ) {
+            sign::who(p, opts)
+        } else {
+            sign::choose_actor(sign::eligible(p), opts).map_err(|why| ("sign.who", why))
+        };
+        let actor = match chosen_actor {
             Ok(a) => a,
-            Err(why) => {
-                report.push(Diagnostic::error("sign.who", sign::line(p), why));
+            Err((rule, why)) => {
+                report.push(Diagnostic::error(rule, sign::line(p), why));
                 discard(&drafted);
                 return Ok(report);
             }
@@ -380,6 +400,9 @@ pub fn run(
     for d in &drafted {
         let own = match d.pending {
             Pending::AcceptRoadmap { .. } => crate::roadmap_cmd::dir(repo),
+            Pending::AcceptStanding { .. } | Pending::RevokeStanding { .. } => {
+                repo.root.join(crate::standing_cmd::DIR)
+            }
             Pending::Authorize { alias, .. }
             | Pending::Resolve { alias, .. }
             | Pending::Correct { alias, .. } => repo.warrant_dir(alias)?,

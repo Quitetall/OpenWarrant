@@ -142,6 +142,21 @@ pub fn derive(pending: &[Pending], status: &openwarrant_core::status::CorpusStat
                     request.diff.summary()
                 ),
             ),
+            Pending::AcceptStanding { request } => (
+                request.reference.clone(),
+                "accept",
+                crate::standing_cmd::target(&request.id, request.revision),
+                format!(
+                    "standing authorization {} awaits its one signature",
+                    request.reference
+                ),
+            ),
+            Pending::RevokeStanding { request } => (
+                request.reference.clone(),
+                "revoke",
+                crate::standing_cmd::target(&request.id, request.revision),
+                "a signed class, offered for revocation".to_owned(),
+            ),
             Pending::Correct {
                 alias,
                 deliverable_id,
@@ -395,6 +410,9 @@ fn target_of(p: &Pending) -> String {
             deliverable_id,
             ..
         } => format!("{alias}/{deliverable_id}"),
+        Pending::AcceptStanding { .. } | Pending::RevokeStanding { .. } => {
+            crate::sign::target_of(p)
+        }
     }
 }
 

@@ -123,6 +123,13 @@ pub fn dir_for(repo: &Repository, act: &str, target: &str) -> Result<Utf8PathBuf
             .root
             .join(crate::batch_cmd::BATCHES)
             .join("attestations"))
+    } else if act == "standing-accept" || act == "standing-revoke" {
+        // OW-ADR-0029: a class belongs to no Warrant; its acts are attested
+        // beside the class files.
+        Ok(repo
+            .root
+            .join(crate::standing_cmd::DIR)
+            .join("attestations"))
     } else {
         Ok(repo.warrant_dir(target)?.join("attestations"))
     }
@@ -276,7 +283,10 @@ pub fn emit_with_key(
         context: format!("could not create {dir}"),
         source,
     })?;
-    let stem = if matches!(a.act, "sas-accept" | "roadmap-accept" | "batch") {
+    let stem = if matches!(
+        a.act,
+        "sas-accept" | "roadmap-accept" | "batch" | "standing-accept" | "standing-revoke"
+    ) {
         format!("{}-{}", a.act, a.target)
     } else {
         a.act.to_owned()
@@ -621,7 +631,8 @@ pub fn verify_all(repo: &Repository) -> Result<Report, RepoError> {
             count += 1;
         }
     }
-    for act in ["sas-accept", "roadmap-accept", "batch"] {
+    // `standing-revoke` shares `standing-accept`'s folder, so it is listed once.
+    for act in ["sas-accept", "roadmap-accept", "batch", "standing-accept"] {
         for path in list(repo, &dir_for(repo, act, "")?) {
             verify_file(repo, &path, &mut report);
             count += 1;
