@@ -166,10 +166,11 @@ enum Pane {
     Journal,
     Roadmap,
     Projects,
+    Tickets,
 }
 
 impl Pane {
-    const ALL: [Pane; 11] = [
+    const ALL: [Pane; 12] = [
         Pane::Setup,
         Pane::Help,
         Pane::Queue,
@@ -181,6 +182,7 @@ impl Pane {
         Pane::Journal,
         Pane::Roadmap,
         Pane::Projects,
+        Pane::Tickets,
     ];
 
     const fn title(self) -> &'static str {
@@ -196,6 +198,7 @@ impl Pane {
             Self::Journal => "9 Journal",
             Self::Roadmap => "0 Roadmap",
             Self::Projects => "p Projects",
+            Self::Tickets => "t Tickets",
         }
     }
 }
@@ -302,6 +305,14 @@ impl Model {
         };
         m.docs = m.load_docs();
         m.refresh();
+        // t-67ed: the ticket loop is the default work path. A repository
+        // with tickets opens on them; Setup and the Queue stay one key away.
+        if m.rows
+            .get(&(Pane::Tickets as u8))
+            .is_some_and(|r| !r.is_empty())
+        {
+            m.pane = Pane::Tickets;
+        }
         m
     }
 
@@ -337,7 +348,7 @@ impl Model {
             .ok()
             .flatten()
             .map_or_else(|| "none".to_owned(), |r| r.version);
-        self.fingerprint = crate::watch::fingerprint(&crate::watch::watched_dirs(&repo));
+        self.fingerprint = crate::watch::fingerprint(&watched(&repo));
 
         // The queue: `war sign --list`, through the console's board.
         let board = crate::console::board(&repo).ok();
@@ -624,6 +635,24 @@ impl Model {
         }
         self.rows.insert(Pane::Roadmap as u8, roadmap);
 
+        // Tickets (t-67ed): `ticket::board`, the same answer `war tickets`,
+        // `war show` and `war ready` give. Read-only: no row signs or runs.
+        let tickets = crate::ticket::Store::open(&repo, None)
+            .and_then(|store| crate::ticket::board(&store))
+            .map_or_else(
+                |e| {
+                    vec![Row {
+                        text: format!("UNKNOWN: the tickets could not be read: {e}"),
+                        command: "war tickets".to_owned(),
+                        sign_target: None,
+                        auto: None,
+                        detail: None,
+                    }]
+                },
+                |b| ticket_rows(&b),
+            );
+        self.rows.insert(Pane::Tickets as u8, tickets);
+
         // Setup and Help.
         self.rows.insert(
             Pane::Setup as u8,
@@ -679,6 +708,17 @@ impl Model {
             });
         }
         if let Some(n) = next {
+            // t-67ed: ready ticket items first, as `war next` lists them.
+            // Shown, never run from here: no auto, no signature.
+            for r in &n.ready {
+                rows.push(Row {
+                    text: format!("ready claim      {} — {}", r.ticket, r.text),
+                    command: r.command.clone(),
+                    sign_target: None,
+                    auto: None,
+                    detail: None,
+                });
+            }
             for a in &n.actions {
                 rows.push(Row {
                     // A signing command arrives judged by its dry run
@@ -711,7 +751,11 @@ impl Model {
             }
             if let Some(why) = &n.nothing {
                 rows.push(Row {
-                    text: format!("nothing to do: {why}"),
+                    text: if n.ready.is_empty() {
+                        format!("nothing to do: {why}")
+                    } else {
+                        format!("no Warrant act waits: {why}")
+                    },
                     command: "war next".to_owned(),
                     sign_target: None,
                     auto: None,
@@ -1100,7 +1144,7 @@ fn event_loop(
         if m.idle_ticks.is_multiple_of(4)
             && let Some(repo) = m.repo.as_ref()
         {
-            let fp = crate::watch::fingerprint(&crate::watch::watched_dirs(repo));
+            let fp = crate::watch::fingerprint(&watched(repo));
             match m.fingerprint_pending {
                 Some(p) if p == fp && fp != m.fingerprint => {
                     m.fingerprint_pending = None;
@@ -1193,6 +1237,10 @@ fn handle_key(
         }
         (KeyCode::Char('0'), _) => {
             m.pane = Pane::Roadmap;
+            m.reading = false;
+        }
+        (KeyCode::Char('t'), _) => {
+            m.pane = Pane::Tickets;
             m.reading = false;
         }
         (KeyCode::Char('p'), _) => {
@@ -1590,6 +1638,10 @@ fn draw_list(f: &mut ratatui::Frame, m: &Model, body: Rect) {
         Pane::Projects => {
             " Projects — every repository you use; Enter opens, n starts a new one ".to_owned()
         }
+        Pane::Tickets => {
+            " Tickets — state and progress, remaining items; Enter shows checklist and notes "
+                .to_owned()
+        }
     };
     let mut state = ListState::default();
     if !rows.is_empty() {
@@ -1648,9 +1700,96 @@ fn centered(area: Rect, pct_w: u16, pct_h: u16) -> Rect {
 }
 
 /// The one table of keys, rendered by `?` and tested against `docs/TUI.md`.
+/// The trees the app polls: the records `war watch` fingerprints, and the
+/// ticket store and its claims (t-67ed), so a `war done` in another terminal
+/// shows up without a keypress.
+fn watched(repo: &Repository) -> Vec<Utf8PathBuf> {
+    let mut dirs = crate::watch::watched_dirs(repo);
+    dirs.extend(crate::ticket::watched(repo));
+    dirs
+}
+
+/// The Tickets pane from `ticket::board`: one row per ticket (state,
+/// progress, priority, title; Enter shows `war show`'s checklist and notes),
+/// then one row per REMAINING item beneath it. Done items are in the detail,
+/// not the list. No row carries a signature or an auto remedy.
+fn ticket_rows(board: &serde_json::Value) -> Vec<Row> {
+    let mut rows = Vec::new();
+    let list = board["tickets"].as_array().cloned().unwrap_or_default();
+    if list.is_empty() {
+        rows.push(Row {
+            text: "no tickets yet — `war create \"what this work accomplishes\"`".to_owned(),
+            command: "war create \"...\" --item \"...\"".to_owned(),
+            sign_target: None,
+            auto: None,
+            detail: None,
+        });
+    }
+    for t in &list {
+        let row = &t["ticket"];
+        let id = row["id"].as_str().unwrap_or("?");
+        let holders: Vec<&str> = row["claims"]
+            .as_array()
+            .map(|cs| cs.iter().filter_map(|c| c["actor"].as_str()).collect())
+            .unwrap_or_default();
+        let detail = t["markdown"].as_str().map(str::to_owned);
+        rows.push(Row {
+            text: format!(
+                "{:<11} {} {:>5}  p{}  {}{}",
+                row["state"].as_str().unwrap_or("?").replace('_', " "),
+                id,
+                format!(
+                    "{}/{}",
+                    row["done"].as_u64().unwrap_or(0),
+                    row["total"].as_u64().unwrap_or(0)
+                ),
+                row["priority"].as_u64().unwrap_or(0),
+                row["title"].as_str().unwrap_or(""),
+                if holders.is_empty() {
+                    String::new()
+                } else {
+                    format!("  [claimed: {}]", holders.join(", "))
+                }
+            ),
+            command: format!("war show {id}"),
+            sign_target: None,
+            auto: None,
+            detail: detail.clone(),
+        });
+        for item in t["items"].as_array().cloned().unwrap_or_default() {
+            if item["done"].as_bool().unwrap_or(false) {
+                continue;
+            }
+            let target = item["target"].as_str().unwrap_or(id).to_owned();
+            let ready = item["ready"].as_bool().unwrap_or(false);
+            rows.push(Row {
+                text: format!(
+                    "    [ ] {}{}{}",
+                    item["text"].as_str().unwrap_or(""),
+                    item["id"]
+                        .as_str()
+                        .map(|i| format!(" ({i})"))
+                        .unwrap_or_default(),
+                    if ready { "  ready" } else { "" }
+                ),
+                command: if ready {
+                    format!("war claim {target}")
+                } else {
+                    format!("war show {id}")
+                },
+                sign_target: None,
+                auto: None,
+                detail: detail.clone(),
+            });
+        }
+    }
+    rows
+}
+
 pub const KEYS: &str = "\
 0-9 / Tab / Shift-Tab   panes
 p                       projects: every repository you use (Enter opens one, n starts one)
+t                       tickets: state, progress, remaining items (Enter: checklist and notes)
 j k                     move (in a document: next/previous document)
 /                       filter this pane (Esc clears)
 Enter                   act on the row: sign (queue, help), open the detail (others), run `war init` (setup)
@@ -1802,6 +1941,50 @@ mod tests {
             assert!(at > last, "{name} is out of order");
             last = at;
         }
+    }
+
+    /// t-67ed: the Tickets pane shows a ticket's state and progress and its
+    /// REMAINING items; a done item is left to the detail. Refusal side: no
+    /// row is a signature or an auto remedy — the pane is read-only.
+    #[test]
+    fn the_tickets_pane_renders_remaining_items_and_signs_nothing() {
+        let board = serde_json::json!({"tickets": [{
+            "ticket": {"id": "t-0001", "title": "Password reset", "state": "in_progress",
+                       "done": 1, "total": 3, "priority": 1,
+                       "claims": [{"actor": "claude"}]},
+            "whole_ready": false,
+            "items": [
+                {"id": "i-0001", "text": "Reset endpoint", "done": true, "target": "t-0001/i-0001", "ready": false},
+                {"id": "i-0002", "text": "Email template", "done": false, "target": "t-0001/i-0002", "ready": true},
+                {"id": "i-0003", "text": "Docs", "done": false, "target": "t-0001/i-0003", "ready": false}
+            ],
+            "notes": ["2026-09-25 claude: a decision"],
+            "markdown": "# t-0001 — Password reset\n\n## Checklist\n\n## Notes\n\n- 2026-09-25 claude: a decision\n"
+        }]});
+        let rows = ticket_rows(&board);
+        let text: Vec<&str> = rows.iter().map(|r| r.text.as_str()).collect();
+        assert!(text[0].starts_with("in progress t-0001"), "{text:?}");
+        assert!(text[0].contains("1/3") && text[0].contains("[claimed: claude]"));
+        assert!(
+            text.iter()
+                .any(|t| t.contains("Email template (i-0002)  ready"))
+        );
+        assert!(text.iter().any(|t| t.contains("Docs (i-0003)")));
+        assert!(
+            !text.iter().any(|t| t.contains("Reset endpoint")),
+            "a done item is listed"
+        );
+        assert_eq!(rows[1].command, "war claim t-0001/i-0002");
+        assert_eq!(rows[2].command, "war show t-0001");
+        assert!(rows[0].detail.as_deref().unwrap().contains("## Notes"));
+        for r in &rows {
+            assert!(r.sign_target.is_none() && r.auto.is_none(), "{r:?}");
+            assert!(!r.command.starts_with("war sign"), "{r:?}");
+        }
+        // No tickets: the pane says how to make one, and still signs nothing.
+        let empty = ticket_rows(&serde_json::json!({"tickets": []}));
+        assert_eq!(empty.len(), 1);
+        assert!(empty[0].text.starts_with("no tickets yet"));
     }
 
     /// The row a remedy makes: an `auto` remedy is runnable from `x`, a

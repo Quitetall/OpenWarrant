@@ -530,8 +530,9 @@ enum Command {
         /// Local port; 0 picks a free one.
         #[arg(long, default_value_t = 8765)]
         port: u16,
-        /// The page to open: progress, queue, questions, frontier, corpus, help.
-        #[arg(long, default_value = "progress")]
+        /// The page to open: tickets, progress, queue, questions, frontier,
+        /// corpus, help.
+        #[arg(long, default_value = "tickets")]
         page: String,
         /// Who signs, when roles.toml names more than one eligible signer.
         #[arg(long = "as")]
