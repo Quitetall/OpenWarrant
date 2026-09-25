@@ -10,8 +10,9 @@ use openwarrant_core::{
     AdrError, AdrRecord, Manifest, RepositoryConfig, ValidatedManifest, frontmatter,
 };
 
-use openwarrant_core::authority::{AuthorityRegister, RoleAssignment};
+use openwarrant_core::authority::{ActorKind, ActorRole, AuthorityRegister, RoleAssignment};
 use openwarrant_core::deliverable::Deliverable;
+use openwarrant_core::role::{ProfileDefinition, ProfileRegistry};
 use openwarrant_core::verification::Verification;
 
 use crate::diagnostic::{Diagnostic, Report};
@@ -121,6 +122,9 @@ impl std::error::Error for RepoError {}
 pub struct Repository {
     pub root: Utf8PathBuf,
     pub config: RepositoryConfig,
+    /// The profiles this program admits (OW-WAR-0140): the two core ones and
+    /// every `profiles/<name>.toml`, read once when the repository opens.
+    pub profiles: ProfileRegistry,
 }
 
 impl Repository {
@@ -172,7 +176,12 @@ impl Repository {
         // read. `discover` reaches every repository through here, so a `war`
         // the repository does not admit reads nothing of it.
         compat::check(&config, &path).map_err(RepoError::Message)?;
-        Ok(Self { root, config })
+        let profiles = load_profiles(&root)?;
+        Ok(Self {
+            root,
+            config,
+            profiles,
+        })
     }
 
     /// The configured warrants directory.
@@ -432,7 +441,9 @@ impl Repository {
             report.push(newer);
         }
 
-        let validated = match manifest.validate(Some(self.config.project.namespace.as_str())) {
+        let validated = match manifest
+            .validate_in(Some(self.config.project.namespace.as_str()), &self.profiles)
+        {
             Ok(v) => v,
             Err(source) => {
                 report.push(Diagnostic::error(
@@ -516,6 +527,14 @@ impl Repository {
                 bytes,
                 required: entry.required,
             });
+        }
+
+        if let Some(definition) = self
+            .profiles
+            .definition(&validated.profile)
+            .filter(|d| d.extends.is_some())
+        {
+            self.profile_checks(dir, &validated, definition, &atoms, &mut report);
         }
 
         let scope_path = dir.join("scope.toml");
@@ -896,6 +915,238 @@ impl Repository {
         }
     }
 
+    /// What an extending profile asks of its Warrants beyond the manifest
+    /// (OW-WAR-0140 M3): which definition it composed against, that its
+    /// acceptance authority may perform the existing resolution act, and
+    /// that its reference roles link rather than copy (§22.3).
+    fn profile_checks(
+        &self,
+        dir: &Utf8Path,
+        validated: &ValidatedManifest,
+        definition: &ProfileDefinition,
+        atoms: &[AtomSource],
+        report: &mut Report,
+    ) {
+        let alias = validated.alias.to_string();
+        let profile = &validated.profile;
+        // Unanswered is a warning on a draft and an error once a human has
+        // authorized the contract, as `atom.preset-unanswered` is.
+        let authorized = self
+            .load_authorization(dir)
+            .ok()
+            .flatten()
+            .is_some_and(|a| {
+                a.revision.state == openwarrant_core::contract::RevisionState::Authorized
+            });
+        let unanswered = |rule: &str, file: String, message: String| {
+            if authorized {
+                Diagnostic::error(rule, file, message)
+            } else {
+                Diagnostic::warn(rule, file, message)
+            }
+        };
+        report.push(Diagnostic::pass(
+            "profile.registered",
+            format!(
+                "{alias}: profile {profile} extends {} and is defined at {}",
+                profile.core(),
+                definition.digest.as_deref().unwrap_or("(built in)")
+            ),
+        ));
+        let file_of = |role: &str| {
+            atoms
+                .iter()
+                .find(|a| a.role == role)
+                .map(|a| self.relative(&dir.join(&a.source)))
+                .unwrap_or_default()
+        };
+        if !definition.approved {
+            report.push(Diagnostic::warn(
+                "profile.unapproved",
+                format!("profiles/{profile}.toml"),
+                format!(
+                    "{alias}: profile {profile} is not approved (`approved = false`). Until it \
+                     is, a Warrant of it links to, not replaces, the contractual and finance \
+                     records (§22.3), and nothing in it is a legal, financial or quality \
+                     instrument"
+                ),
+            ));
+        }
+        if let Some(role) = definition.acceptance_role.as_deref() {
+            report.push(
+                self.acceptance_authority(&alias, role, &file_of(role), atoms)
+                    .unwrap_or_else(|message| {
+                        unanswered("profile.acceptance-authority", file_of(role), message)
+                    }),
+            );
+        }
+        for role in &definition.reference_roles {
+            let file = file_of(role);
+            let Some(atom) = atoms.iter().find(|a| &a.role == role) else {
+                continue;
+            };
+            let text = String::from_utf8_lossy(&atom.bytes);
+            let refs = references(&text);
+            if refs.is_empty() {
+                report.push(unanswered(
+                    "profile.reference-missing",
+                    file,
+                    format!(
+                        "{alias}: {role} cites no reference. Its terms are linked, never \
+                         copied (§22.3): name the contractual or finance record by URI \
+                         (`kf://…`, `war://…`)"
+                    ),
+                ));
+                continue;
+            }
+            for reference in refs {
+                report.push(self.resolve_reference(&alias, role, &file, &reference));
+            }
+        }
+    }
+
+    /// The acceptance authority a profile's acceptance atom names, checked
+    /// against the register with no new role: acceptance is the existing
+    /// resolution act, so the actor must be a human holding `resolver` who
+    /// did not perform the work (§27.1, §27.2). `Err` carries the message
+    /// when the atom names nobody: unanswered, which the caller grades.
+    fn acceptance_authority(
+        &self,
+        alias: &str,
+        role: &str,
+        file: &str,
+        atoms: &[AtomSource],
+    ) -> Result<Diagnostic, String> {
+        const RULE: &str = "profile.acceptance-authority";
+        let named = atoms
+            .iter()
+            .find(|a| a.role == role)
+            .and_then(|a| {
+                frontmatter::parse(&String::from_utf8_lossy(&a.bytes))
+                    .ok()
+                    .and_then(|fm| fm.scalar("acceptance_authority").map(str::to_owned))
+            })
+            .map(|s| s.trim().to_owned())
+            .filter(|s| !s.is_empty());
+        let Some(actor) = named else {
+            return Err(format!(
+                "{alias}: {role} names no `acceptance_authority` in its header; \
+                 acceptance is a resolution, and somebody must be entitled to make it"
+            ));
+        };
+        let register = match self.load_authority_register() {
+            Ok(register) => register,
+            Err(e) => {
+                return Ok(Diagnostic::error(
+                    RULE,
+                    file,
+                    format!("{alias}: the register could not be read: {e}"),
+                ));
+            }
+        };
+        let Some(assignment) = register.actor(&actor) else {
+            return Ok(Diagnostic::error(
+                RULE,
+                file,
+                format!(
+                    "{alias}: acceptance authority {actor:?} has no assignment in \
+                     docs/authority/roles.toml; only a human the register names may accept"
+                ),
+            ));
+        };
+        if assignment.actor_kind != ActorKind::Human {
+            return Ok(Diagnostic::error(
+                RULE,
+                file,
+                format!(
+                    "{alias}: acceptance authority {actor:?} is {kind}-kind; acceptance is \
+                     the resolution act, which only a human records here (§27.1, §27.2)",
+                    kind = format!("{:?}", assignment.actor_kind).to_lowercase()
+                ),
+            ));
+        }
+        if actor == self.performer() {
+            return Ok(Diagnostic::error(
+                RULE,
+                file,
+                format!(
+                    "{alias}: acceptance authority {actor:?} is the performer; nobody accepts \
+                     their own delivery (§27.2)"
+                ),
+            ));
+        }
+        if !assignment.holds(ActorRole::Resolver) {
+            return Ok(Diagnostic::error(
+                RULE,
+                file,
+                format!(
+                    "{alias}: acceptance authority {actor:?} does not hold `resolver` in \
+                     docs/authority/roles.toml; acceptance is `war resolve`, and no other \
+                     role grants it"
+                ),
+            ));
+        }
+        Ok(Diagnostic::pass(
+            RULE,
+            format!(
+                "{alias}: acceptance authority {actor:?} is a human holding resolver; \
+                 acceptance is `war resolve` by that actor"
+            ),
+        ))
+    }
+
+    /// One reference from a reference role: resolved, or UNKNOWN when this
+    /// repository cannot answer (Law 15, U-004). Never a pass it did not see.
+    fn resolve_reference(
+        &self,
+        alias: &str,
+        role: &str,
+        file: &str,
+        reference: &str,
+    ) -> Diagnostic {
+        const RULE: &str = "profile.reference";
+        let (scheme, rest) = reference.split_once("://").unwrap_or(("", reference));
+        match scheme {
+            "kf" => Diagnostic::unknown(
+                RULE,
+                file,
+                format!(
+                    "{alias}: {role} cites {reference}; no Knowledge Fabric is reachable from \
+                     this repository, so whether it resolves is not known"
+                ),
+            ),
+            "war" => {
+                let found = self.warrant_dirs().ok().is_some_and(|dirs| {
+                    dirs.iter().any(|d| {
+                        d.file_name() == Some(rest)
+                            || fs::read_to_string(d.join("manifest.toml"))
+                                .is_ok_and(|t| t.contains(&format!("uuid = \"{rest}\"")))
+                    })
+                });
+                if found {
+                    Diagnostic::pass(
+                        RULE,
+                        format!("{alias}: {role} cites {reference}, a Warrant in this repository"),
+                    )
+                } else {
+                    Diagnostic::unknown(
+                        RULE,
+                        file,
+                        format!(
+                            "{alias}: {role} cites {reference}, which is not in this repository; \
+                             another may hold it"
+                        ),
+                    )
+                }
+            }
+            _ => Diagnostic::unknown(
+                RULE,
+                file,
+                format!("{alias}: {role} cites {reference}, which cannot be resolved offline"),
+            ),
+        }
+    }
+
     /// A repository-relative path, for diagnostics and for the IR.
     ///
     /// Absolute paths must never reach the IR: they would make a digest depend
@@ -1085,6 +1336,68 @@ fn header_mismatches(
             "the header's `{key}` is {found}, but {whose} is {want:?} (declared at ordinal {})",
             entry.ordinal
         ));
+    }
+    out
+}
+
+/// `profiles/*.toml` under `root`, read into a registry (OW-WAR-0140). No
+/// directory means the two core profiles and nothing else. A definition the
+/// registry refuses refuses the repository: a Warrant of that profile would
+/// otherwise read as having an unknown profile, which is not what is wrong.
+fn load_profiles(root: &Utf8Path) -> Result<ProfileRegistry, RepoError> {
+    let dir = root.join("profiles");
+    if !dir.is_dir() {
+        return Ok(ProfileRegistry::builtin());
+    }
+    let entries = fs::read_dir(&dir).map_err(|source| RepoError::Io {
+        context: format!("could not read {dir}"),
+        source,
+    })?;
+    let mut files = Vec::new();
+    for entry in entries.flatten() {
+        let Ok(path) = Utf8PathBuf::from_path_buf(entry.path()) else {
+            continue;
+        };
+        if path.extension() == Some("toml") && path.is_file() {
+            let bytes = fs::read(&path).map_err(|source| RepoError::Io {
+                context: format!("could not read {path}"),
+                source,
+            })?;
+            files.push((
+                format!("profiles/{}", path.file_name().unwrap_or_default()),
+                bytes,
+            ));
+        }
+    }
+    files.sort();
+    ProfileRegistry::with_definitions(files.iter().map(|(f, b)| (f.as_str(), b.as_slice())))
+        .map_err(|e| RepoError::Message(format!("profile.invalid: {e}")))
+}
+
+/// Every `scheme://…` token in an atom's text, in order, once each.
+fn references(text: &str) -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    for token in text.split(|c: char| {
+        c.is_whitespace()
+            || matches!(
+                c,
+                '`' | '<' | '>' | '(' | ')' | '[' | ']' | '"' | '\'' | ','
+            )
+    }) {
+        let token = token.trim_end_matches(['.', ';', ':']);
+        let Some((scheme, rest)) = token.split_once("://") else {
+            continue;
+        };
+        let scheme_ok = scheme
+            .chars()
+            .next()
+            .is_some_and(|c| c.is_ascii_lowercase())
+            && scheme.chars().all(|c| {
+                c.is_ascii_lowercase() || c.is_ascii_digit() || matches!(c, '+' | '.' | '-')
+            });
+        if scheme_ok && !rest.is_empty() && !out.iter().any(|r| r == token) {
+            out.push(token.to_owned());
+        }
     }
     out
 }

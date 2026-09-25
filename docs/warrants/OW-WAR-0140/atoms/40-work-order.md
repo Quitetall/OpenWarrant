@@ -54,6 +54,16 @@ M4 — the Exit, shown, and documents:
 10. `docs/PROFILES.md` (new): what a profile is, how one is added, and
     what a profile may not change.
 
+- (AM-003) `crates/openwarrant-cli/src/repo.rs`: the repository reads
+  `profiles/*.toml` into the registry when it opens, and validates each
+  manifest against it. The core stays free of I/O (§79.1).
+- (AM-003) `crates/openwarrant-cli/src/lib.rs`: `war new --profile <name>`
+  resolves the name through the repository's registry, and a preset
+  composes a profile that extends its core profile.
+- (AM-003) `conformance/fixtures/contractor/work-order.sh` (new): the one
+  file item 6 names, a script that writes the non-binding contractor Work
+  Order into a scratch corpus.
+
 ## Frozen Surfaces
 
 The technical core, as files. The plant diffs them:

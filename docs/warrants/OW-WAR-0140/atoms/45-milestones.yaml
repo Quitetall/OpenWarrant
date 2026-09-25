@@ -16,10 +16,10 @@ milestones:
     stage_refs: ["STAGE-003"]
     obligation_refs: ["OBL-004"]
   - id: "M4"
-    title: "The Exit shown: IR comparison, frozen-core diff, PROFILES.md, 56-contractor.sh"
+    title: "The technical half of the Exit shown: IR comparison, frozen-core diff, PROFILES.md, 56-contractor.sh"
     depends_on: ["M1", "M2", "M3"]
     stage_refs: ["STAGE-004"]
-    obligation_refs: ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
 
   - id: "MB"
     title: "The battery, run as the gate these obligations cite"

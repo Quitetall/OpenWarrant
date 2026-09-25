@@ -71,10 +71,11 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | no required unknown remains | 85 |
 | every required obligation is dispositioned | 83 |
 | independence requirements are met | 83 |
-| required deliverables exist | 60 |
+| required deliverables exist | 59 |
 | required judgments exist | 54 |
 | residual risks have sufficient authority | 54 |
 | runtime receipts match the basis | 3 |
+| exact authorized Contract Revision | 1 |
 
 ## Requirements (SAS §106, §34.3)
 
@@ -284,7 +285,7 @@ Every §106 requirement is named by at least one Warrant.
 | `OW-WAR-0137` Teams: review assignment and a queue shared by more than one person | draft | unknown | 0 | 0 of 5 | artifact digests verify |
 | `OW-WAR-0138` Human and session authentication, and policy state protected from the performer | draft | unknown | 0 | 0 of 5 | artifact digests verify |
 | `OW-WAR-0139` The web UI beyond this machine: LAN and other devices, authenticated | draft | unknown | 0 | 0 of 5 | required deliverables exist |
-| `OW-WAR-0140` The Contractor Work Order profile: acceptance, invoicing and legal terms outside the technical core | draft | unknown | 0 | 0 of 5 | required deliverables exist |
+| `OW-WAR-0140` The Contractor Work Order profile: acceptance, invoicing and legal terms outside the technical core | draft | unknown | 0 | 0 of 5 | exact authorized Contract Revision |
 | `OW-WAR-0141` Work starts from a sentence or a ticket: a prompt or an issue becomes a drafted Warrant with no ceremony | draft | unknown | 0 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0142` Standing authorization: one signature pre-authorizes a class of routine work, so each change costs only its acceptance | draft | unknown | 0 | 0 of 6 | required deliverables exist |
 | `OW-WAR-0143` war knows when it is old: build identity, a notice when a newer release exists, and an update that works from every version | draft | unknown | 0 | 0 of 4 | artifact digests verify |

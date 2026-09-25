@@ -1,0 +1,28 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-003"
+band: "manual_revision"
+reason: "CONTINGENT: this amendment applies only if the owner answers OW-WAR-0140 U-001 with option B (split: the technical mechanism now, the Phase 10 Exit later) and U-002 with option A (a data-driven profile registry). Neither is answered; if the owner chooses otherwise, this amendment is withdrawn, not signed. Under B, the basis says this Warrant drops its `roadmap://OW-PHASE-10/exit` ref before authorization, and OBL-005 (the Exit, which needs the legal, finance and QMS decisions §98 requires) moves to a later Warrant. Under A, the registry needs a reader: the core does no I/O (§79.1), so the repository must read `profiles/*.toml` when it opens (repo.rs), and `war new --profile contractor` must resolve the name through that registry before the preset check (lib.rs). The fixture the work order names under `conformance/fixtures/contractor/` was never declared as a file; it is one script. Wording drafted by the performer `claude`."
+governing_adr_or_policy: "sas://WAR-SAS-98"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue, only if U-001 is answered B and U-002 is answered A. The manifest loses its `exit` roadmap ref; the intent gains a non-goal naming the Exit as a later Warrant's; OBL-005 leaves the assurance atom and milestone M4; D-007 cites OBL-002 and OBL-004; the deliverable set gains D-010 (repo.rs), D-011 (lib.rs) and D-012 (the fixture script). The contract digest and the deliverable set digest move, and revision 4 is authorized against the amended contract."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-25"
+
+semantic_diff:
+  - element: "scope"
+    before: "The manifest traces to roadmap://OW-PHASE-10/contractor-profile and roadmap://OW-PHASE-10/exit."
+    after: "It traces to roadmap://OW-PHASE-10/contractor-profile only. The intent's non-goals name the Exit as a later Warrant's."
+  - element: "obligations"
+    before: "OBL-005, the Phase 10 Exit bounded by U-001: scope roadmap://OW-PHASE-10/exit over the fixture; gate software.repo.war-check@1.0.0; evidence OBL-003's result, the fixture resolving through the existing act, and the legal, finance and QMS decisions §98 requires cited by reference."
+    after: "No OBL-005. It moves to the later Warrant that cites the three decisions."
+  - element: "milestones"
+    before: "M4, the Exit shown, cites OBL-001 to OBL-005."
+    after: "M4, the technical half of the Exit shown, cites OBL-001 to OBL-004."
+  - element: "deliverables"
+    before: "D-001..D-009; D-007 cites OBL-005."
+    after: "D-007 cites OBL-002 and OBL-004. Also D-010 crates/openwarrant-cli/src/repo.rs (profiles/ read into the registry), D-011 crates/openwarrant-cli/src/lib.rs (war new --profile through the registry), D-012 conformance/fixtures/contractor/work-order.sh (the non-binding fixture)."
+
+affected_stages: ["STAGE-001", "STAGE-002", "STAGE-004"]
+affected_milestones: ["M4"]

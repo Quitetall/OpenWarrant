@@ -68,3 +68,7 @@ None exists in this repository.
 - Knowledge Fabric registration of contractual records (Phase 4).
 - Other eventual profiles (experiment, investigation, physical test). The
   registry admits them, and this Warrant defines none.
+- (AM-003) Claiming `roadmap://OW-PHASE-10/exit`. The fixture shows the
+  technical half: it compiles, its IR matches `delivery`, and the frozen
+  core is unchanged. The Exit itself, with the legal, finance and QMS
+  decisions §98 requires, is a later Warrant's.

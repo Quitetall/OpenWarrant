@@ -5,6 +5,7 @@ use std::fs::{self, OpenOptions};
 use std::io::Write as _;
 
 use camino::Utf8PathBuf;
+use openwarrant_core::role::{CoreProfile, ProfileDefinition};
 use openwarrant_core::{Profile, WarUuid};
 
 use crate::repo::{RepoError, Repository};
@@ -30,7 +31,7 @@ const MAX_ALLOCATION_ATTEMPTS: u32 = 64;
 /// numbers; a different pick would have collided. Scan-then-write without
 /// `O_EXCL` is the same race with a wider window.
 pub fn run(repo: &Repository, title: &str, profile: Profile) -> Result<Utf8PathBuf, RepoError> {
-    run_preset(repo, title, default_preset(profile))
+    run_profile(repo, title, default_preset(&profile), &profile, None)
 }
 
 /// The presets `war new --preset` offers (OW-ADR-0022), with the profile
@@ -47,10 +48,10 @@ pub const PRESETS: &[(&str, Profile)] = &[
 /// the atoms themselves. The `TODO` skeleton is retired: every draft starts
 /// from a preset's questions.
 #[must_use]
-pub const fn default_preset(profile: Profile) -> &'static str {
-    match profile {
-        Profile::Delivery => "feature",
-        Profile::Decision => "decision",
+pub const fn default_preset(profile: &Profile) -> &'static str {
+    match profile.core() {
+        CoreProfile::Delivery => "feature",
+        CoreProfile::Decision => "decision",
     }
 }
 
@@ -63,7 +64,10 @@ pub fn preset_names() -> Vec<&'static str> {
 /// The profile a preset composes, or `None` for a name no preset has.
 #[must_use]
 pub fn preset_profile(name: &str) -> Option<Profile> {
-    PRESETS.iter().find(|(n, _)| *n == name).map(|(_, p)| *p)
+    PRESETS
+        .iter()
+        .find(|(n, _)| *n == name)
+        .map(|(_, p)| p.clone())
 }
 
 /// One preset atom's body, embedded at build time so a preset never drifts
@@ -110,6 +114,43 @@ pub fn run_preset(repo: &Repository, title: &str, preset: &str) -> Result<Utf8Pa
             preset_names().join(", ")
         )));
     };
+    run_profile(repo, title, preset, &profile, None)
+}
+
+/// Create a new draft of `profile` from a preset of its core profile
+/// (OW-WAR-0140): the preset's atoms, then a stub for each namespaced role
+/// the profile's definition requires, written from that definition. With
+/// `parent`, the manifest cites it as [`run_with_parent`] does.
+pub fn run_profile(
+    repo: &Repository,
+    title: &str,
+    preset: &str,
+    profile: &Profile,
+    parent: Option<&str>,
+) -> Result<Utf8PathBuf, RepoError> {
+    let Some(composes) = preset_profile(preset) else {
+        return Err(RepoError::Message(format!(
+            "new.unknown-preset: no preset is named {preset:?}; the presets are {}",
+            preset_names().join(", ")
+        )));
+    };
+    if composes.core() != profile.core() {
+        return Err(RepoError::Message(format!(
+            "new.preset-profile: preset {preset:?} composes the `{composes}` profile, not `{profile}`"
+        )));
+    }
+    let Some(definition) = repo.profiles.definition(profile) else {
+        return Err(RepoError::Message(format!(
+            "new.unknown-profile: this repository's registry does not define `{profile}`; \
+             the profiles are {}",
+            repo.profiles.names().join(", ")
+        )));
+    };
+    // Read BEFORE anything is created, so a bad parent leaves no directory.
+    let citation = match parent {
+        Some(parent) => Some(parent_citation(repo, parent)?),
+        None => None,
+    };
     let title = title.trim();
     if title.is_empty() {
         return Err(RepoError::Io {
@@ -145,12 +186,17 @@ pub fn run_preset(repo: &Repository, title: &str, preset: &str) -> Result<Utf8Pa
         {
             Ok(mut file) => {
                 let uuid = WarUuid::mint();
-                file.write_all(manifest_template(&uuid, &alias, title, profile).as_bytes())
+                let mut manifest = manifest_template(&uuid, &alias, title, profile, definition);
+                if let Some(citation) = &citation {
+                    manifest.push_str(citation);
+                }
+                file.write_all(manifest.as_bytes())
                     .map_err(|source| RepoError::Io {
                         context: format!("could not write {manifest_path}"),
                         source,
                     })?;
                 write_preset(&dir, &uuid, profile, preset)?;
+                write_profile_stubs(&dir, &uuid, definition)?;
                 // §66.4 `draft.created` — the first journal entry, written by
                 // the command that created the draft.
                 crate::journal_cmd::record(
@@ -202,22 +248,13 @@ pub fn run_with_parent(
     preset: &str,
     parent: &str,
 ) -> Result<Utf8PathBuf, RepoError> {
-    let citation = parent_citation(repo, parent)?;
-    let dir = run_preset(repo, title, preset)?;
-    let manifest_path = dir.join("manifest.toml");
-    let mut file = OpenOptions::new()
-        .append(true)
-        .open(&manifest_path)
-        .map_err(|source| RepoError::Io {
-            context: format!("could not open {manifest_path}"),
-            source,
-        })?;
-    file.write_all(citation.as_bytes())
-        .map_err(|source| RepoError::Io {
-            context: format!("could not write {manifest_path}"),
-            source,
-        })?;
-    Ok(dir)
+    let Some(profile) = preset_profile(preset) else {
+        return Err(RepoError::Message(format!(
+            "new.unknown-preset: no preset is named {preset:?}; the presets are {}",
+            preset_names().join(", ")
+        )));
+    };
+    run_profile(repo, title, preset, &profile, Some(parent))
 }
 
 /// The `[[parents]]` table citing `alias` at its latest authorized revision.
@@ -271,7 +308,13 @@ fn next_ordinal(repo: &Repository) -> Result<u32, RepoError> {
     Ok(highest + 1)
 }
 
-fn manifest_template(uuid: &WarUuid, alias: &str, title: &str, profile: Profile) -> String {
+fn manifest_template(
+    uuid: &WarUuid,
+    alias: &str,
+    title: &str,
+    profile: &Profile,
+    definition: &ProfileDefinition,
+) -> String {
     let mut out = format!(
         "# A Warrant is the contract for ONE bounded intervention inside a program,\n\
          # and it traces to that program's SAS through [[implements]] and [[roadmap]].\n\
@@ -297,20 +340,31 @@ fn manifest_template(uuid: &WarUuid, alias: &str, title: &str, profile: Profile)
             "[[atoms]]\nordinal = {ordinal}\nrole = \"{role}\"\npath = \"atoms/{file}\"\nrequired = true\n\n"
         ));
     }
+    // The namespaced roles the profile requires, in ordinal order after the
+    // core atoms (§16.4): composition entries like any other, and nothing
+    // in the core learns their names.
+    let mut extensions: Vec<_> = definition.required_extension_roles.iter().collect();
+    extensions.sort_by_key(|r| r.ordinal);
+    for required in extensions {
+        out.push_str(&format!(
+            "[[atoms]]\nordinal = {}\nrole = \"{}\"\npath = \"atoms/{}\"\nrequired = true\n\n",
+            required.ordinal, required.role, required.file
+        ));
+    }
     out
 }
 
 /// The atoms a new Warrant starts with, by profile (§16.3).
-fn template_atoms(profile: Profile) -> Vec<(u32, &'static str, &'static str)> {
-    match profile {
-        Profile::Delivery => vec![
+fn template_atoms(profile: &Profile) -> Vec<(u32, &'static str, &'static str)> {
+    match profile.core() {
+        CoreProfile::Delivery => vec![
             (10, "intent", "10-intent.md"),
             (20, "basis", "20-basis.md"),
             (40, "work_order", "40-work-order.md"),
             (45, "milestones", "45-milestones.yaml"),
             (60, "assurance", "60-assurance.md"),
         ],
-        Profile::Decision => vec![
+        CoreProfile::Decision => vec![
             (10, "intent", "10-intent.md"),
             (20, "basis", "20-basis.md"),
             (30, "adr", "30-decision.md"),
@@ -326,7 +380,7 @@ fn template_atoms(profile: Profile) -> Vec<(u32, &'static str, &'static str)> {
 fn write_preset(
     dir: &camino::Utf8Path,
     uuid: &WarUuid,
-    profile: Profile,
+    profile: &Profile,
     preset: &str,
 ) -> Result<(), RepoError> {
     for (ordinal, role, file) in template_atoms(profile) {
@@ -361,6 +415,39 @@ fn write_preset(
     Ok(())
 }
 
+/// A stub for each namespaced role the profile requires, from its
+/// definition's own text: the stub is data, so a new profile brings its own.
+fn write_profile_stubs(
+    dir: &camino::Utf8Path,
+    uuid: &WarUuid,
+    definition: &ProfileDefinition,
+) -> Result<(), RepoError> {
+    for required in &definition.required_extension_roles {
+        let path = dir.join("atoms").join(&required.file);
+        if path.exists() {
+            continue;
+        }
+        let text = format!(
+            "---\n\
+             schema: oh.war/atom/v1\n\
+             warrant_uuid: {uuid}\n\
+             role: {role}\n\
+             jurisdiction: authored\n\
+             order: {ordinal}\n\
+             classification: internal\n\
+             ---\n\n{body}",
+            role = required.role,
+            ordinal = required.ordinal,
+            body = required.stub,
+        );
+        fs::write(&path, text).map_err(|source| RepoError::Io {
+            context: format!("could not write {path}"),
+            source,
+        })?;
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     /// §12 / OW-WAR-0029 OBL-001 — allocating an alias never changes the
@@ -368,7 +455,9 @@ mod tests {
     #[test]
     fn allocation_preserves_the_uuid() {
         let uuid = WarUuid::mint();
-        let m = manifest_template(&uuid, "OW-WAR-0001", "x", Profile::Delivery);
+        let registry = openwarrant_core::role::ProfileRegistry::builtin();
+        let definition = registry.definition(&Profile::Delivery).expect("core");
+        let m = manifest_template(&uuid, "OW-WAR-0001", "x", &Profile::Delivery, definition);
         assert!(m.contains(&format!("uuid = \"{uuid}\"")));
         assert!(m.starts_with("# A Warrant is the contract for ONE bounded intervention"));
     }
@@ -423,6 +512,42 @@ mod tests {
         let validated = manifest.validate(Some("OW")).expect("validates");
         assert_eq!(validated.profile, Profile::Decision);
         assert!(manifest.atoms.iter().any(|a| a.role == "adr"));
+        let _ = fs::remove_dir_all(&repo.root);
+    }
+
+    /// OW-WAR-0140: a profile defined only as data in `profiles/` gets its
+    /// core preset's atoms plus a stub for each role it requires, and the
+    /// draft validates against the repository's registry — no code names it.
+    #[test]
+    fn new_writes_a_program_profiles_stubs() {
+        let repo = scratch("program-profile");
+        fs::create_dir_all(repo.root.join("profiles")).expect("profiles/");
+        fs::write(
+            repo.root.join("profiles/lab.toml"),
+            "schema = \"oh.war/profile/v1\"\nname = \"lab\"\nextends = \"delivery\"\n\
+             approved = false\n\n[[requires]]\nrole = \"lab.protocol\"\nordinal = 71\n\
+             file = \"71-lab-protocol.md\"\nstub = \"# Protocol\\n\\nNot written yet.\\n\"\n",
+        )
+        .expect("write lab");
+        let repo = Repository::open(repo.root.clone()).expect("reopens with the profile");
+        let lab = repo.profiles.resolve("lab").expect("admitted");
+        let dir = run(&repo, "A lab warrant", lab.clone()).expect("creates");
+        let text = fs::read_to_string(dir.join("manifest.toml")).expect("read");
+        let manifest: Manifest = toml::from_str(&text).expect("parses");
+        let validated = manifest
+            .validate_in(Some("OW"), &repo.profiles)
+            .expect("validates in the registry");
+        assert_eq!(validated.profile, lab);
+        assert!(
+            manifest.validate(Some("OW")).is_err(),
+            "unknown to the built-in registry"
+        );
+        let stub = fs::read_to_string(dir.join("atoms/71-lab-protocol.md")).expect("stub");
+        assert!(stub.contains("role: lab.protocol") && stub.contains("Not written yet."));
+        assert!(
+            dir.join("atoms/40-work-order.md").is_file(),
+            "the feature preset's atoms"
+        );
         let _ = fs::remove_dir_all(&repo.root);
     }
 
@@ -483,7 +608,7 @@ mod tests {
     #[test]
     fn every_preset_has_every_atom_its_profile_requires_and_no_todo() {
         for (name, profile) in PRESETS {
-            for (_, _, file) in template_atoms(*profile) {
+            for (_, _, file) in template_atoms(profile) {
                 let body =
                     preset_body(name, file).unwrap_or_else(|| panic!("preset {name} lacks {file}"));
                 assert!(!body.contains("TODO"), "{name}/{file} carries TODO");

@@ -35159,6 +35159,10 @@ None exists in this repository.
 - Knowledge Fabric registration of contractual records (Phase 4).
 - Other eventual profiles (experiment, investigation, physical test). The
   registry admits them, and this Warrant defines none.
+- (AM-003) Claiming `roadmap://OW-PHASE-10/exit`. The fixture shows the
+  technical half: it compiles, its IR matches `delivery`, and the frozen
+  core is unchanged. The Exit itself, with the legal, finance and QMS
+  decisions §98 requires, is a later Warrant's.
 <!-- atom docs/warrants/OW-WAR-0140/atoms/10-intent.md ends -->
 
 #### Basis — [docs/warrants/OW-WAR-0140/atoms/20-basis.md](../../docs/warrants/OW-WAR-0140/atoms/20-basis.md)
@@ -35289,6 +35293,16 @@ M4 — the Exit, shown, and documents:
 10. `docs/PROFILES.md` (new): what a profile is, how one is added, and
     what a profile may not change.
 
+- (AM-003) `crates/openwarrant-cli/src/repo.rs`: the repository reads
+  `profiles/*.toml` into the registry when it opens, and validates each
+  manifest against it. The core stays free of I/O (§79.1).
+- (AM-003) `crates/openwarrant-cli/src/lib.rs`: `war new --profile <name>`
+  resolves the name through the repository's registry, and a preset
+  composes a profile that extends its core profile.
+- (AM-003) `conformance/fixtures/contractor/work-order.sh` (new): the one
+  file item 6 names, a script that writes the non-binding contractor Work
+  Order into a scratch corpus.
+
 ## Frozen Surfaces
 
 The technical core, as files. The plant diffs them:
@@ -35349,10 +35363,10 @@ milestones:
     stage_refs: ["STAGE-003"]
     obligation_refs: ["OBL-004"]
   - id: "M4"
-    title: "The Exit shown: IR comparison, frozen-core diff, PROFILES.md, 56-contractor.sh"
+    title: "The technical half of the Exit shown: IR comparison, frozen-core diff, PROFILES.md, 56-contractor.sh"
     depends_on: ["M1", "M2", "M3"]
     stage_refs: ["STAGE-004"]
-    obligation_refs: ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
 
   - id: "MB"
     title: "The battery, run as the gate these obligations cite"
@@ -35454,16 +35468,9 @@ stages:
   - no new `ActorRole` variant exists (source check);
   - a `kf://` invoice reference reports UNKNOWN, not PASS and not ERROR.
 
-### OBL-005 — the Phase 10 Exit, bounded by U-001
-- **scope:** `roadmap://OW-PHASE-10/exit`, over the fixture only.
-- **gate:** `gate://software.repo.war-check@1.0.0`
-- **evidence:**
-  - OBL-003's result, and the fixture resolves through the existing act;
-  - the legal, finance and QMS decisions §98 requires are cited by
-    reference.
-
-  Without those citations this obligation is not established, whatever
-  the fixture shows. Under U-001 option B it moves to a later Warrant.
+(AM-003) OBL-005, the Phase 10 Exit, left this Warrant under U-001 option
+B. It moves to the later Warrant that cites the legal, finance and QMS
+decisions §98 requires; its text is kept in AM-003's semantic diff.
 
 ## Gate Adequacy
 
@@ -35492,6 +35499,9 @@ through `resolve`, which refuses an agent by kind whatever
 | D-007 | the walked contractor example | `docs/EXAMPLES/04-contractor.md` | not_content_addressed |
 | D-008 | docs/PROFILES.md | `docs/PROFILES.md` | not_content_addressed |
 | D-009 | the plants | `conformance/plants.d/56-contractor.sh` | not_content_addressed |
+| D-010 | the repository loads profiles/ into the registry (AM-003) | `crates/openwarrant-cli/src/repo.rs` | not_content_addressed |
+| D-011 | war new --profile resolves through the registry (AM-003) | `crates/openwarrant-cli/src/lib.rs` | not_content_addressed |
+| D-012 | the non-binding contractor fixture (AM-003) | `conformance/fixtures/contractor/work-order.sh` | not_content_addressed |
 
 ### OW-WAR-0141 — Work starts from a sentence or a ticket: a prompt or an issue becomes a drafted Warrant with no ceremony
 
