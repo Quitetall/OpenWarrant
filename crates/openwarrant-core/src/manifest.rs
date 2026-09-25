@@ -46,6 +46,12 @@ pub enum ManifestError {
     )]
     MissingProfileRole { profile: Profile, role: String },
     #[error(
+        "profile {profile} is a working form: a record of it is not a Warrant of the \
+         contract corpus. It lives under the tickets directory and becomes a Warrant by \
+         promotion into `{core}` (`war promote`), which then requires every core role"
+    )]
+    WorkingFormProfile { profile: Profile, core: String },
+    #[error(
         "atom at ordinal {ordinal} declares role {role:?}, which is neither a core role \
          nor a namespaced optional extension (SAS §16.4 — unknown required roles fail closed)"
     )]
@@ -287,6 +293,12 @@ impl Manifest {
         }
 
         let profile = registry.resolve(&self.profile)?;
+        if registry.is_working_form(&profile) {
+            return Err(ManifestError::WorkingFormProfile {
+                core: profile.core().as_str().to_owned(),
+                profile,
+            });
+        }
         let profile_roles = registry.required_extension_roles(&profile);
         let assurance_level = match &self.assurance_level {
             Some(level) => AssuranceLevel::from_str(level)?,
@@ -592,6 +604,26 @@ stub = "Protocol"
         optional.required = false;
         m.atoms.push(optional);
         assert!(m.validate_in(Some("OW"), &lab_registry()).is_ok());
+    }
+
+    /// A working form (a ticket) is never a Warrant of the contract corpus:
+    /// a manifest naming it is refused whatever atoms it carries, so nothing
+    /// that compiles, authorizes or resolves ever reads a two-atom record.
+    #[test]
+    fn a_working_form_profile_is_refused_as_a_warrant() {
+        let registry = ProfileRegistry::with_definitions([(
+            "profiles/task.toml",
+            b"schema = \"oh.war/profile/v1\"\nname = \"task\"\nextends = \"delivery\"\napproved = false\nform = \"working\"\ncore_roles = [\"intent\"]\n[[requires]]\nrole = \"task.checklist\"\nordinal = 15\nfile = \"15-checklist.md\"\nstub = \"x\"\n"
+                .as_slice(),
+        )])
+        .expect("task definition");
+        let mut m = delivery();
+        m.profile = "task".to_owned();
+        m.atoms.push(atom(15, "task.checklist"));
+        assert!(matches!(
+            m.validate_in(Some("OW"), &registry),
+            Err(ManifestError::WorkingFormProfile { .. })
+        ));
     }
 
     /// Without the program's registry the profile is unknown: `validate`

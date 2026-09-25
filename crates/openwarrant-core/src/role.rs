@@ -425,6 +425,42 @@ pub struct ProfileDefinition {
     /// `sha256:<hex>` of the definition's bytes, when read from a file. The
     /// pin a Warrant composed against it can be checked by (A-003).
     pub digest: Option<String>,
+    /// `form = "working"`: the core roles a record of this profile carries
+    /// BEFORE it is promoted into its core profile. `None` is the contract
+    /// form every profile had before the ticket loop: a Warrant of it
+    /// requires every core role §16.3 names.
+    ///
+    /// A working-form record is not a Warrant of the contract corpus. It
+    /// lives outside `docs/warrants/`, is never compiled, authorized,
+    /// verified or resolved under this profile, and
+    /// [`crate::Manifest::validate_in`] refuses a Warrant manifest that names
+    /// it (`WorkingFormProfile`). The only way from a working record into the
+    /// contract layer is promotion into the core profile, which then requires
+    /// every core role as before. So a working form loosens nothing a
+    /// signature, a verification or a resolution reads.
+    pub working_core_roles: Option<Vec<AtomRole>>,
+}
+
+impl ProfileDefinition {
+    /// Whether this is a working-form profile (`form = "working"`).
+    #[must_use]
+    pub const fn is_working_form(&self) -> bool {
+        self.working_core_roles.is_some()
+    }
+
+    /// The roles a working-form record must carry: its core roles, then its
+    /// own namespaced roles. Empty for a contract-form profile, whose roles
+    /// a manifest supplies and [`crate::Manifest::validate_in`] checks.
+    #[must_use]
+    pub fn working_roles(&self) -> Vec<String> {
+        let Some(core) = &self.working_core_roles else {
+            return Vec::new();
+        };
+        core.iter()
+            .map(|r| r.as_str().to_owned())
+            .chain(self.required_extension_roles.iter().map(|r| r.role.clone()))
+            .collect()
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -450,6 +486,12 @@ struct ProfileFile {
     acceptance_role: Option<String>,
     #[serde(default)]
     reference_roles: Vec<String>,
+    /// `"contract"` (the default) or `"working"`.
+    #[serde(default)]
+    form: Option<String>,
+    /// For `form = "working"` only: the core roles a working record carries.
+    #[serde(default)]
+    core_roles: Option<Vec<String>>,
 }
 
 /// Why a profile definition was refused. Every refusal names the file.
@@ -505,6 +547,16 @@ pub enum ProfileError {
         what: &'static str,
     },
     #[error(
+        "{file}: profile {name}: {detail}. A working form (`form = \"working\"`) names the \
+         authored core roles of the profile it extends that a record carries before \
+         promotion (`core_roles`); a contract form names none"
+    )]
+    BadForm {
+        file: String,
+        name: String,
+        detail: String,
+    },
+    #[error(
         "{file}: profile {name} lists {role:?} or ordinal {ordinal} twice, or gives it a \
          core role's ordinal (§16.1)"
     )]
@@ -551,6 +603,7 @@ impl ProfileRegistry {
                         acceptance_role: None,
                         reference_roles: Vec::new(),
                         digest: None,
+                        working_core_roles: None,
                     },
                 )
             })
@@ -616,6 +669,14 @@ impl ProfileRegistry {
     /// Every definition, by name.
     pub fn definitions(&self) -> impl Iterator<Item = &ProfileDefinition> {
         self.definitions.values()
+    }
+
+    /// Whether `profile` is a working form (a ticket, OW-WAR-0147): a record
+    /// of it lives outside the contract corpus until it is promoted.
+    #[must_use]
+    pub fn is_working_form(&self, profile: &Profile) -> bool {
+        self.definition(profile)
+            .is_some_and(ProfileDefinition::is_working_form)
     }
 
     /// The namespaced roles `profile` requires, empty for a core profile.
@@ -699,6 +760,9 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
         {
             return Err(redefined("a core profile requires no namespaced role"));
         }
+        if raw.form.is_some() || raw.core_roles.is_some() {
+            return Err(redefined("a core profile has no working form"));
+        }
         let want: Vec<&str> = core.required_roles().iter().map(|r| r.as_str()).collect();
         let found: Vec<&str> = raw
             .required_roles
@@ -721,6 +785,7 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
             acceptance_role: None,
             reference_roles: Vec::new(),
             digest,
+            working_core_roles: None,
         });
     }
 
@@ -786,6 +851,7 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
             });
         }
     }
+    let working_core_roles = parse_form(&owned, &raw.name, core, &raw)?;
     Ok(ProfileDefinition {
         name: raw.name,
         core,
@@ -795,7 +861,71 @@ fn parse_definition(file: &str, bytes: &[u8]) -> Result<ProfileDefinition, Profi
         acceptance_role: raw.acceptance_role,
         reference_roles: raw.reference_roles,
         digest,
+        working_core_roles,
     })
+}
+
+/// `form` and `core_roles`: `None` for the contract form, the working
+/// form's core roles otherwise. A working form names at least one core role,
+/// each an AUTHORED role of the profile it extends, once; it has no
+/// acceptance or reference role, because nothing accepts a working record.
+fn parse_form(
+    file: &str,
+    name: &str,
+    core: CoreProfile,
+    raw: &ProfileFile,
+) -> Result<Option<Vec<AtomRole>>, ProfileError> {
+    let bad = |detail: String| ProfileError::BadForm {
+        file: file.to_owned(),
+        name: name.to_owned(),
+        detail,
+    };
+    match raw.form.as_deref() {
+        None | Some("contract") => {
+            if raw.core_roles.is_some() {
+                return Err(bad("`core_roles` without `form = \"working\"`".to_owned()));
+            }
+            Ok(None)
+        }
+        Some("working") => {
+            let listed = raw.core_roles.as_deref().unwrap_or_default();
+            if listed.is_empty() {
+                return Err(bad("a working form names at least one core role".to_owned()));
+            }
+            if raw.acceptance_role.is_some() || !raw.reference_roles.is_empty() {
+                return Err(bad(
+                    "a working form has no acceptance or reference role; those are the \
+                     contract's"
+                        .to_owned(),
+                ));
+            }
+            let authored = Profile::from_core(core).required_authored_roles();
+            let mut roles = Vec::new();
+            for role in listed {
+                let parsed = AtomRole::from_str(role)
+                    .ok()
+                    .filter(|r| authored.contains(r))
+                    .ok_or_else(|| {
+                        bad(format!(
+                            "core role {role:?} is not an authored role of `{core}` ({})",
+                            authored
+                                .iter()
+                                .map(|r| r.as_str())
+                                .collect::<Vec<_>>()
+                                .join(", ")
+                        ))
+                    })?;
+                if roles.contains(&parsed) {
+                    return Err(bad(format!("core role {role:?} is listed twice")));
+                }
+                roles.push(parsed);
+            }
+            Ok(Some(roles))
+        }
+        Some(other) => Err(bad(format!(
+            "form {other:?}; the forms are \"contract\" and \"working\""
+        ))),
+    }
 }
 
 /// Whether an unrecognised role name is a namespaced optional extension (§16.4).
@@ -1104,6 +1234,91 @@ stub = "y"
         assert!(matches!(
             refuse("profiles/lab.toml", format!("{EXT}\nsurprise = 1\n")),
             ProfileError::Parse { .. }
+        ));
+    }
+
+    const WORKING: &str = r##"
+schema = "oh.war/profile/v1"
+name = "task"
+extends = "delivery"
+approved = false
+form = "working"
+core_roles = ["intent"]
+
+[[requires]]
+role = "task.checklist"
+ordinal = 15
+file = "15-checklist.md"
+stub = "# Checklist"
+"##;
+
+    #[test]
+    fn a_working_form_names_its_roles_and_is_known_as_one() {
+        let registry =
+            ProfileRegistry::with_definitions([("profiles/task.toml", WORKING.as_bytes())])
+                .expect("parses");
+        let task = registry.resolve("task").expect("admitted");
+        assert!(registry.is_working_form(&task));
+        assert_eq!(
+            registry.definition(&task).expect("defined").working_roles(),
+            vec!["intent".to_owned(), "task.checklist".to_owned()]
+        );
+        // A contract-form extension and the core profiles are not working forms.
+        let lab = ProfileRegistry::with_definitions([("profiles/lab.toml", EXT.as_bytes())])
+            .expect("parses");
+        assert!(!lab.is_working_form(&lab.resolve("lab").expect("lab")));
+        assert!(!registry.is_working_form(&Profile::Delivery));
+        assert!(
+            registry
+                .definition(&Profile::Delivery)
+                .expect("core")
+                .working_roles()
+                .is_empty()
+        );
+    }
+
+    #[test]
+    fn a_working_form_is_refused_on_every_malformation() {
+        let refuse = |text: String| {
+            ProfileRegistry::with_definitions([("profiles/task.toml", text.as_bytes())])
+                .expect_err(&text)
+        };
+        for (from, to) in [
+            // No core roles at all.
+            ("core_roles = [\"intent\"]", "core_roles = []"),
+            // A compiler-produced role is not authored.
+            ("core_roles = [\"intent\"]", "core_roles = [\"control\"]"),
+            // `adr` is decision's, not delivery's.
+            ("core_roles = [\"intent\"]", "core_roles = [\"adr\"]"),
+            (
+                "core_roles = [\"intent\"]",
+                "core_roles = [\"intent\", \"intent\"]",
+            ),
+            ("form = \"working\"", "form = \"sketch\""),
+            // core_roles belongs to the working form only.
+            ("form = \"working\"\n", ""),
+        ] {
+            assert!(
+                matches!(
+                    refuse(WORKING.replace(from, to)),
+                    ProfileError::BadForm { .. }
+                ),
+                "{from} -> {to}"
+            );
+        }
+        // Nothing accepts a working record, so it has no acceptance role.
+        assert!(matches!(
+            refuse(WORKING.replace(
+                "form = \"working\"",
+                "form = \"working\"\nacceptance_role = \"task.checklist\""
+            )),
+            ProfileError::BadForm { .. }
+        ));
+        // A core profile has no working form.
+        let core = b"schema = \"oh.war/profile/v1\"\nname = \"delivery\"\ncore = true\nform = \"working\"\nrequired_roles = [\"control\", \"intent\", \"basis\", \"work_order\", \"milestones\", \"assurance\", \"relations_and_integrity\"]\n";
+        assert!(matches!(
+            ProfileRegistry::with_definitions([("profiles/delivery.toml", core.as_slice())]),
+            Err(ProfileError::CoreRedefined { .. })
         ));
     }
 }

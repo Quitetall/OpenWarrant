@@ -111,6 +111,47 @@ A profile may NOT change:
   record proves the reference was made. It cannot prove what the referenced
   contract says (R-001).
 
+## A working form: tickets (OW-WAR-0147)
+
+A profile may declare `form = "working"`. A record of a working-form profile is
+the working state of a Warrant before anyone asked for a contract: it carries
+only the core roles the definition names in `core_roles`, plus its own
+namespaced roles, and it is not a Warrant of the contract corpus.
+
+```toml
+schema = "oh.war/profile/v1"
+name = "ticket"
+extends = "delivery"
+approved = false
+form = "working"
+core_roles = ["intent"]
+
+[[requires]]
+role = "ticket.checklist"
+ordinal = 15
+file = "15-checklist.md"
+stub = "# Checklist\n\n"
+```
+
+`profiles/ticket.toml` is the one this repository ships; `war create` uses a
+built-in copy of it in a repository that has none. What the form may and may
+not do:
+
+- A working record lives outside `docs/warrants/` (tickets live in
+  `docs/tickets/`). It is never compiled, authorized, verified or resolved.
+  `Manifest::validate_in` refuses a Warrant manifest naming a working-form
+  profile (`WorkingFormProfile`), so nothing that reads the contract corpus
+  ever reads a two-atom record.
+- The way into the contract is promotion into the core profile it extends
+  (`war promote`), which then requires every core role, exactly as `war new`.
+  The working form loosens nothing a signature, verification or resolution
+  reads.
+- The registry refuses a working form that names no core role, a core role the
+  extended profile does not author (a compiler-produced one, or `adr` on
+  `delivery`), a role twice, an unknown `form`, `core_roles` without
+  `form = "working"`, or an acceptance or reference role (nothing accepts a
+  working record). A core profile has no working form.
+
 ## What `war check` reports for an extended profile
 
 | rule | when |
