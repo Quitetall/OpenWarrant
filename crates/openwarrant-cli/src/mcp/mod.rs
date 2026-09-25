@@ -37,7 +37,10 @@ signed response: those are human acts done at a terminal with `war sign`. Tools 
 action comes next and whether it is the agent's or a human's. `war_pins` lists the files an \
 agent may not edit (pinned by resolved Warrants). Every tool returns an `oh.war/report/v1` \
 envelope as structured content: `diagnostics[]` name a rule per finding, `verdict` is \
-ready|not_ready, `exit_code` is what the CLI would have exited with.";
+ready|not_ready, `exit_code` is what the CLI would have exited with. Tickets need none of the \
+authority acts: start with `war_prime`, pick from `war_ready`, `war_claim` an item, do it, \
+`war_done` it; `war_create`, `war_add` and `war_note` keep the ticket's document current. Never \
+ask a human to sign during that work.";
 
 /// Tool names the server must never register. Asserted by a test below
 /// against the live router, and by a source grep against `tools.rs`.

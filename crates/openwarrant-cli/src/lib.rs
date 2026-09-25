@@ -82,6 +82,7 @@ pub mod sign;
 pub mod standing_cmd;
 pub mod status;
 pub mod telemetry;
+pub mod ticket;
 pub mod timeline;
 pub mod tui;
 pub mod verify;
@@ -384,8 +385,118 @@ enum DocumentCommand {
     },
 }
 
+/// The ticket loop (OW-WAR-0147; docs/TICKETS.md), flattened into the top
+/// level: `war create`, not `war ticket create`. Its own enum so clap builds
+/// these subcommands in their own frame; one enum holding every subcommand
+/// overflowed a test thread's stack while clap assembled it.
+///
+/// None of these commands asks a human for anything or signs anything, and
+/// each reads only the ticket files and the claims directory.
+#[derive(Subcommand)]
+enum TicketCommand {
+    /// Create a ticket and print its id. Workable at once: no signature.
+    Create {
+        /// What this work accomplishes, in one sentence.
+        title: String,
+        /// A checklist item; repeat for more. Items can be added later with `war add`.
+        #[arg(long = "item", short = 'i', value_name = "TEXT")]
+        items: Vec<String>,
+        /// Context, decisions, links: Markdown for the ticket's description.
+        #[arg(long, value_name = "MARKDOWN")]
+        body: Option<String>,
+        /// 0 (most urgent) to 4; default 2. `war ready` lists urgent work first.
+        #[arg(long, short = 'p', value_parser = clap::value_parser!(u8).range(0..=4))]
+        priority: Option<u8>,
+        /// Ask the configured `[plan] drafter_argv` to propose the items. Without a
+        /// drafter this is refused and nothing is invented.
+        #[arg(long)]
+        draft: bool,
+        /// Who is acting (default: $OPENWARRANT_ACTOR, else `[project] performer`).
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
+    /// What can start now: open, unclaimed, unblocked items across tickets,
+    /// most urgent and oldest first.
+    Ready {
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
+    /// Take an item (`i-...`, `t-.../i-...`) or a whole ticket (`t-...`), so no
+    /// other agent works it. Refused, by name, when someone else holds it.
+    Claim {
+        /// An item or ticket id, or a unique prefix of one.
+        target: String,
+        /// Take a claim older than `[tickets] claim_ttl_minutes` (default 120). Journalled.
+        #[arg(long)]
+        steal: bool,
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
+    /// Tick a claimed item in the ticket's checklist and release the claim.
+    /// A ticket reads done when every item is.
+    Done {
+        /// An item id (or a ticket with no items left open).
+        target: String,
+        /// What was done, for the next reader; written on the item's line.
+        #[arg(long)]
+        note: Option<String>,
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
+    /// Append an item to a ticket's checklist.
+    Add {
+        /// The ticket.
+        ticket: String,
+        /// The item, one line.
+        text: String,
+        /// What the item waits on: an item of this ticket, a ticket, or `t-x/i-y`. Repeatable.
+        #[arg(long, value_name = "ITEM|TICKET")]
+        after: Vec<String>,
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
+    /// Append a dated note to a ticket: context for the next agent or person.
+    Note {
+        /// The ticket (or one of its items).
+        target: String,
+        /// The note; Markdown, may span lines.
+        text: String,
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
+    /// What an arriving agent or person reads first: open tickets with their
+    /// remaining items, who holds what, recent notes, done work compacted.
+    Prime {
+        /// One ticket in full instead.
+        ticket: Option<String>,
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
+    /// Every ticket, its state (open, in progress, done) and progress.
+    #[command(visible_alias = "ls")]
+    Tickets,
+    /// Give a claim back without finishing the item.
+    Release {
+        target: String,
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
+    /// Draft a delivery Warrant from a ticket, for when someone wants
+    /// sign-off. Opt-in: the authority layer starts here, not before.
+    Promote {
+        ticket: String,
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
+}
+
 #[derive(Subcommand)]
 enum Command {
+    // ---- the ticket loop (OW-WAR-0147; docs/TICKETS.md) ----------------
+    //
+    // First in `war --help` on purpose: this is the path most work takes.
+    #[command(flatten)]
+    Ticket(TicketCommand),
     /// Run an offline SDK operation from an explicit JSON request. Always emits JSON.
     Sdk {
         /// Request JSON file, or - for stdin.
@@ -1329,6 +1440,30 @@ pub fn entrypoint() -> ExitCode {
     code
 }
 
+/// Print a ticket command's answer and return its exit code: the rendering
+/// (or the refusal, on stderr) for a person, the envelope under `--json`.
+fn ticket_answer(mode: output::Mode, command: &str, outcome: &ticket::Outcome) -> u8 {
+    match mode {
+        output::Mode::Human => {
+            for d in &outcome.report.diagnostics {
+                match d.severity {
+                    diagnostic::Severity::Error => eprintln!("refused ({}): {}", d.rule, d.message),
+                    diagnostic::Severity::Warn => eprintln!("warning ({}): {}", d.rule, d.message),
+                    _ => {}
+                }
+            }
+            if !outcome.is_refused() {
+                println!("{}", outcome.human);
+            }
+        }
+        output::Mode::Json => println!(
+            "{}",
+            output::envelope(command, &outcome.report, Some(outcome.result.clone()))
+        ),
+    }
+    output::exit_code(&outcome.report)
+}
+
 pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
     let mode = output::Mode::from_flag(cli.json);
     let root = cli.root;
@@ -1360,7 +1495,134 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         }
         return Ok(tui::run(root, false)?);
     };
+    // The ticket loop: a store over the ticket files, and one printer.
+    let tickets = |actor: Option<&str>| -> Result<(repo::Repository, ticket::Store), Box<dyn std::error::Error>> {
+        let repository = open_repo()?;
+        let store = ticket::Store::open(&repository, actor)?;
+        Ok((repository, store))
+    };
     match command {
+        Command::Ticket(command) => match command {
+            TicketCommand::Create {
+                title,
+                items,
+                body,
+                priority,
+                draft,
+                actor,
+            } => {
+                let (repository, store) = tickets(actor.as_deref())?;
+                let mut items = items;
+                if draft {
+                    match ticket::drafted_items(&repository, &title)? {
+                        Ok(drafted) => items.extend(drafted),
+                        Err(refusal) => return Ok(ticket_answer(mode, "create", &refusal)),
+                    }
+                }
+                let args = ticket::CreateArgs {
+                    title,
+                    items,
+                    body,
+                    priority,
+                };
+                Ok(ticket_answer(
+                    mode,
+                    "create",
+                    &ticket::create(&store, &args)?,
+                ))
+            }
+            TicketCommand::Ready { actor } => {
+                let (_, store) = tickets(actor.as_deref())?;
+                Ok(ticket_answer(mode, "ready", &ticket::ready(&store)?))
+            }
+            TicketCommand::Claim {
+                target,
+                steal,
+                actor,
+            } => {
+                let (_, store) = tickets(actor.as_deref())?;
+                Ok(ticket_answer(
+                    mode,
+                    "claim",
+                    &ticket::claim_cmd(&store, &target, steal)?,
+                ))
+            }
+            TicketCommand::Done {
+                target,
+                note,
+                actor,
+            } => {
+                let (_, store) = tickets(actor.as_deref())?;
+                Ok(ticket_answer(
+                    mode,
+                    "done",
+                    &ticket::done(&store, &target, note.as_deref())?,
+                ))
+            }
+            TicketCommand::Add {
+                ticket: target,
+                text,
+                after,
+                actor,
+            } => {
+                let (_, store) = tickets(actor.as_deref())?;
+                Ok(ticket_answer(
+                    mode,
+                    "add",
+                    &ticket::add(&store, &target, &text, &after)?,
+                ))
+            }
+            TicketCommand::Note {
+                target,
+                text,
+                actor,
+            } => {
+                let (_, store) = tickets(actor.as_deref())?;
+                Ok(ticket_answer(
+                    mode,
+                    "note",
+                    &ticket::note(&store, &target, &text)?,
+                ))
+            }
+            TicketCommand::Prime {
+                ticket: target,
+                actor,
+            } => {
+                let (_, store) = tickets(actor.as_deref())?;
+                Ok(ticket_answer(
+                    mode,
+                    "prime",
+                    &ticket::prime(&store, target.as_deref())?,
+                ))
+            }
+            TicketCommand::Tickets => {
+                let (_, store) = tickets(None)?;
+                Ok(ticket_answer(mode, "tickets", &ticket::tickets(&store)?))
+            }
+            TicketCommand::Release { target, actor } => {
+                let (_, store) = tickets(actor.as_deref())?;
+                Ok(ticket_answer(
+                    mode,
+                    "release",
+                    &ticket::release(&store, &target)?,
+                ))
+            }
+            TicketCommand::Promote {
+                ticket: target,
+                actor,
+            } => {
+                let (repository, store) = tickets(actor.as_deref())?;
+                Ok(ticket_answer(
+                    mode,
+                    "promote",
+                    &ticket::promote(&repository, &store, &target)?,
+                ))
+            }
+        },
+        Command::Show { alias, .. } if ticket::is_ticket_ref(&alias) => {
+            let (_, store) = tickets(None)?;
+            Ok(ticket_answer(mode, "show", &ticket::show(&store, &alias)?))
+        }
         Command::Tui { panic_after_setup } => Ok(tui::run(root, panic_after_setup)?),
         Command::Sdk { request, output } => Ok(sdk::run(&request, output.as_deref())),
         Command::Init {
@@ -2985,7 +3247,31 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         }
         Command::Check { alias, generated } => {
             let repository = open_repo()?;
-            let report = check::run(&repository, alias.as_deref(), generated)?;
+            // A ticket is checked for its structure only (OW-WAR-0147): never
+            // for a signature, evidence or verification it does not need.
+            if let Some(a) = alias.as_deref().filter(|a| ticket::is_ticket_ref(a)) {
+                let mut report = diagnostic::Report::default();
+                match ticket::Store::open(&repository, None) {
+                    Ok(store) => ticket::check(&store, Some(a), &mut report)?,
+                    Err(e) => report.push(diagnostic::Diagnostic::error(
+                        "tickets.config",
+                        init::CONFIG_FILE.to_owned(),
+                        e.to_string(),
+                    )),
+                }
+                return Ok(output::finish(mode, "check", &report, None));
+            }
+            let mut report = check::run(&repository, alias.as_deref(), generated)?;
+            if alias.is_none() {
+                match ticket::Store::open(&repository, None) {
+                    Ok(store) => ticket::check(&store, None, &mut report)?,
+                    Err(e) => report.push(diagnostic::Diagnostic::error(
+                        "tickets.config",
+                        init::CONFIG_FILE.to_owned(),
+                        e.to_string(),
+                    )),
+                }
+            }
             // A non-zero exit for an unsound Warrant is what lets CI gate on it.
             Ok(output::finish(mode, "check", &report, None))
         }

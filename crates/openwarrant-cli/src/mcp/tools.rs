@@ -22,6 +22,89 @@ use crate::repo::RepoError;
 
 // ---- parameter shapes -----------------------------------------------------
 
+/// Who a ticket tool acts as. A name for coordination between agents; it
+/// authorizes nothing (OW-WAR-0147).
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct CreateParams {
+    /// What this work accomplishes, in one sentence.
+    pub title: String,
+    /// Checklist items, one line each. May be empty: `war_add` adds later.
+    #[serde(default)]
+    pub items: Vec<String>,
+    /// Context, decisions, links: Markdown for the ticket's description.
+    #[serde(default)]
+    pub body: Option<String>,
+    /// 0 (most urgent) to 4; default 2.
+    #[serde(default)]
+    pub priority: Option<u8>,
+    /// Who is acting; defaults to the repository's configured performer.
+    #[serde(default)]
+    pub actor: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct ActorParams {
+    /// Who is acting; defaults to the repository's configured performer.
+    #[serde(default)]
+    pub actor: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct ClaimParams {
+    /// An item (`i-...`, `t-.../i-...`) or a whole ticket (`t-...`); a unique prefix works.
+    pub target: String,
+    /// Take a claim older than the TTL (`[tickets] claim_ttl_minutes`). Journalled.
+    #[serde(default)]
+    pub steal: bool,
+    /// Who is acting; defaults to the repository's configured performer.
+    #[serde(default)]
+    pub actor: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct DoneParams {
+    /// The claimed item (or a ticket with nothing left open).
+    pub target: String,
+    /// What was done, written on the item's line for the next reader.
+    #[serde(default)]
+    pub note: Option<String>,
+    /// Who is acting; defaults to the repository's configured performer.
+    #[serde(default)]
+    pub actor: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct AddParams {
+    /// The ticket.
+    pub ticket: String,
+    /// The item, one line.
+    pub text: String,
+    /// What the item waits on: items of this ticket, tickets, or `t-x/i-y`.
+    #[serde(default)]
+    pub after: Vec<String>,
+    /// Who is acting; defaults to the repository's configured performer.
+    #[serde(default)]
+    pub actor: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct NoteParams {
+    /// The ticket (or one of its items).
+    pub target: String,
+    /// The note, Markdown.
+    pub text: String,
+    /// Who is acting; defaults to the repository's configured performer.
+    #[serde(default)]
+    pub actor: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct PrimeParams {
+    /// One ticket in full; omit for every open ticket.
+    #[serde(default)]
+    pub ticket: Option<String>,
+}
+
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 pub struct NoParams {}
 
@@ -50,7 +133,7 @@ pub struct StatusParams {
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 pub struct ShowParams {
-    /// Local alias.
+    /// Local alias, or a ticket id (`t-...`): a ticket renders as its document.
     pub alias: String,
     /// View name: `full_warrant` (default), `status`, or another `war show --view`.
     #[serde(default = "default_view")]
@@ -459,10 +542,13 @@ impl WarServer {
 
     #[tool(
         name = "war_show",
-        description = "Render a Warrant view (`war show <alias> --view <view>`). Read-only.",
+        description = "Render a Warrant view (`war show <alias> --view <view>`), or a ticket (`war show t-...`) as the document a person reads. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_show(&self, Parameters(p): Parameters<ShowParams>) -> ToolResult {
+        if crate::ticket::is_ticket_ref(&p.alias) {
+            return self.ticket("show", None, |s| crate::ticket::show(s, &p.alias));
+        }
         value_of(
             "show",
             crate::show::run(&self.repo, &p.alias, &p.view)
@@ -882,6 +968,98 @@ impl WarServer {
         )
     }
 
+    // -- the ticket loop (OW-WAR-0147): no signature, no human act --
+
+    #[tool(
+        name = "war_prime",
+        description = "Read this first (`war prime`): open tickets with their remaining items, who holds which claim, recent notes, done work compacted. Markdown in result.markdown. Read-only.",
+        annotations(read_only_hint = true)
+    )]
+    fn war_prime(&self, Parameters(p): Parameters<PrimeParams>) -> ToolResult {
+        self.ticket("prime", None, |s| {
+            crate::ticket::prime(s, p.ticket.as_deref())
+        })
+    }
+
+    #[tool(
+        name = "war_ready",
+        description = "What can start now (`war ready`): open, unclaimed, unblocked ticket items, most urgent and oldest first. Read-only.",
+        annotations(read_only_hint = true)
+    )]
+    fn war_ready(&self, Parameters(p): Parameters<ActorParams>) -> ToolResult {
+        self.ticket("ready", p.actor.as_deref(), crate::ticket::ready)
+    }
+
+    #[tool(
+        name = "war_tickets",
+        description = "Every ticket with its state (open, in progress, done) and progress (`war tickets`). Read-only.",
+        annotations(read_only_hint = true)
+    )]
+    fn war_tickets(&self, Parameters(_p): Parameters<NoParams>) -> ToolResult {
+        self.ticket("tickets", None, crate::ticket::tickets)
+    }
+
+    #[tool(
+        name = "war_create",
+        description = "Create a ticket (`war create`): a title, optional checklist items and description. Workable at once; nothing is signed. Returns the ticket id (t-...).",
+        annotations(read_only_hint = false)
+    )]
+    fn war_create(&self, Parameters(p): Parameters<CreateParams>) -> ToolResult {
+        let args = crate::ticket::CreateArgs {
+            title: p.title,
+            items: p.items,
+            body: p.body,
+            priority: p.priority,
+        };
+        self.ticket("create", p.actor.as_deref(), |s| {
+            crate::ticket::create(s, &args)
+        })
+    }
+
+    #[tool(
+        name = "war_claim",
+        description = "Claim an item or a whole ticket (`war claim`) so no other agent works it: atomic, journalled, refused by name when someone else holds it. `steal` takes a claim past its TTL.",
+        annotations(read_only_hint = false)
+    )]
+    fn war_claim(&self, Parameters(p): Parameters<ClaimParams>) -> ToolResult {
+        self.ticket("claim", p.actor.as_deref(), |s| {
+            crate::ticket::claim_cmd(s, &p.target, p.steal)
+        })
+    }
+
+    #[tool(
+        name = "war_done",
+        description = "Finish a claimed item (`war done`): ticks its checkbox in the ticket's checklist with who, when and an optional note, journals it, releases the claim.",
+        annotations(read_only_hint = false)
+    )]
+    fn war_done(&self, Parameters(p): Parameters<DoneParams>) -> ToolResult {
+        self.ticket("done", p.actor.as_deref(), |s| {
+            crate::ticket::done(s, &p.target, p.note.as_deref())
+        })
+    }
+
+    #[tool(
+        name = "war_add",
+        description = "Append an item to a ticket's checklist (`war add`), optionally waiting on other items or tickets (`after`).",
+        annotations(read_only_hint = false)
+    )]
+    fn war_add(&self, Parameters(p): Parameters<AddParams>) -> ToolResult {
+        self.ticket("add", p.actor.as_deref(), |s| {
+            crate::ticket::add(s, &p.ticket, &p.text, &p.after)
+        })
+    }
+
+    #[tool(
+        name = "war_note",
+        description = "Append a dated note to a ticket (`war note`): the durable context the next agent or person reads in `war prime`.",
+        annotations(read_only_hint = false)
+    )]
+    fn war_note(&self, Parameters(p): Parameters<NoteParams>) -> ToolResult {
+        self.ticket("note", p.actor.as_deref(), |s| {
+            crate::ticket::note(s, &p.target, &p.text)
+        })
+    }
+
     #[tool(
         name = "war_evidence_record",
         description = "Run the gates the Warrant's assurance atom cites and mint §44.6 receipts into gate-runs/ (`war evidence record`).",
@@ -1024,6 +1202,33 @@ impl WarServer {
                 envelope("plan.apply", &report, Some(crate::output::value(&applied)))
             }
             Err(e) => refused("plan.apply", &e),
+        }
+    }
+}
+
+impl WarServer {
+    /// Run one ticket command against this repository's ticket store and
+    /// answer with its envelope; a refusal is a tool outcome, as elsewhere.
+    fn ticket(
+        &self,
+        command: &str,
+        actor: Option<&str>,
+        run: impl FnOnce(&crate::ticket::Store) -> Result<crate::ticket::Outcome, RepoError>,
+    ) -> ToolResult {
+        let outcome = crate::ticket::Store::open(&self.repo, actor).and_then(|s| run(&s));
+        match outcome {
+            Ok(o) => {
+                let text = crate::output::envelope(command, &o.report, Some(o.result));
+                let value: serde_json::Value = serde_json::from_str(&text).map_err(|e| {
+                    McpError::internal_error(format!("envelope is not JSON: {e}"), None)
+                })?;
+                Ok(if o.report.is_ready() {
+                    CallToolResult::structured(value)
+                } else {
+                    CallToolResult::structured_error(value)
+                })
+            }
+            Err(e) => refused(command, &e),
         }
     }
 }
