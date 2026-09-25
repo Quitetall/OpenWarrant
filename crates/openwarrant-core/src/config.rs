@@ -368,7 +368,39 @@ pub struct PerformPolicy {
     /// tree. Raising it is a deliberate act, and `war perform` says so.
     #[serde(default)]
     pub max_concurrent: u32,
+    /// Whether `war perform` may run a performer that reports no spend
+    /// (OW-WAR-0132). No adapter meters spend today, so every performance is
+    /// unmetered and journals `spend: "unknown"`, never 0.
+    ///
+    /// Absent is not consent: `war perform` refuses
+    /// `perform.unmetered-not-allowed` until this is `true` (U-001, settled at
+    /// authorization). Setting it says "run it, and I know the cost is
+    /// unknown"; it does not make the cost known.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub allow_unmetered: Option<bool>,
+    /// A mandatory spend ceiling, such as `"1.00 USD"`. Nothing meters spend,
+    /// so no cap can be enforced, and a cap that cannot be enforced refuses the
+    /// run (`perform.spend-unenforceable`) rather than be claimed. The value is
+    /// not parsed: any cap, of any amount, is one this tool cannot keep.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hard_spend_cap: Option<String>,
+    /// How many repairs a stage gets: performances after its first accepted
+    /// submission, counted by the ones that were themselves accepted. 0 means
+    /// the default, [`DEFAULT_MAX_REPAIRS`] (3, the product spec's fallback).
+    #[serde(default)]
+    pub max_repairs: u32,
+    /// How many recoveries a stage gets in a row: performances after an
+    /// ending that was not an accepted submission (refused, timeout,
+    /// cancelled, failed), counted since its last accepted one. 0 means the
+    /// default, [`DEFAULT_MAX_RECOVERIES`] (2).
+    #[serde(default)]
+    pub max_recoveries: u32,
 }
+
+/// `[perform] max_repairs` when unset (OW-WAR-0132 U-001).
+pub const DEFAULT_MAX_REPAIRS: u32 = 3;
+/// `[perform] max_recoveries` when unset (OW-WAR-0132 U-001).
+pub const DEFAULT_MAX_RECOVERIES: u32 = 2;
 
 impl PerformPolicy {
     #[must_use]
@@ -380,11 +412,41 @@ impl PerformPolicy {
         }
     }
 
+    /// The repair limit in force: [`Self::max_repairs`], or the default.
+    #[must_use]
+    pub fn repairs(&self) -> u32 {
+        if self.max_repairs == 0 {
+            DEFAULT_MAX_REPAIRS
+        } else {
+            self.max_repairs
+        }
+    }
+
+    /// The recovery limit in force: [`Self::max_recoveries`], or the default.
+    #[must_use]
+    pub fn recoveries(&self) -> u32 {
+        if self.max_recoveries == 0 {
+            DEFAULT_MAX_RECOVERIES
+        } else {
+            self.max_recoveries
+        }
+    }
+
+    /// Only an explicit `true` admits an unmetered performer.
+    #[must_use]
+    pub fn unmetered_allowed(&self) -> bool {
+        self.allow_unmetered == Some(true)
+    }
+
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.performer_argv.is_empty()
             && self.performer_timeout_secs == 0
             && self.max_concurrent == 0
+            && self.allow_unmetered.is_none()
+            && self.hard_spend_cap.is_none()
+            && self.max_repairs == 0
+            && self.max_recoveries == 0
     }
 }
 
@@ -909,6 +971,31 @@ mod tests {
         assert_eq!(
             config.validate(),
             Err(ConfigError::PathEmpty { field: "adrs" })
+        );
+    }
+
+    /// OW-WAR-0132 U-001: absent is refusal, not consent; 0 is the default.
+    #[test]
+    fn perform_spend_and_attempt_defaults() {
+        let p = PerformPolicy::default();
+        assert!(
+            !p.unmetered_allowed(),
+            "absent allow_unmetered is not consent"
+        );
+        assert_eq!((p.repairs(), p.recoveries()), (3, 2));
+        let set: PerformPolicy = toml::from_str(
+            "allow_unmetered = true\nhard_spend_cap = \"1.00 USD\"\nmax_repairs = 1\nmax_recoveries = 5\n",
+        )
+        .expect("parses");
+        assert!(set.unmetered_allowed());
+        assert_eq!(set.hard_spend_cap.as_deref(), Some("1.00 USD"));
+        assert_eq!((set.repairs(), set.recoveries()), (1, 5));
+        assert!(!set.is_empty());
+        let no: PerformPolicy = toml::from_str("allow_unmetered = false\n").expect("parses");
+        assert!(!no.unmetered_allowed());
+        assert!(
+            !no.is_empty(),
+            "an explicit false is written back, not dropped"
         );
     }
 }

@@ -49,6 +49,28 @@
 //! What none of this covers is in `docs/PERFORM.md`: a process that leaves the
 //! group (`setsid`, a daemon), SIGKILL to `war` itself, and a writer on
 //! another machine.
+//!
+//! # Questions, spend and attempts (OW-WAR-0132)
+//!
+//! Before anything is compiled, four more admissions, each refused by name:
+//!
+//! - **`perform.question-open`.** A blocking question on the stage that no
+//!   human has answered stops that stage, and only that stage. Answered, it
+//!   stops nothing.
+//! - **`perform.spend-unenforceable`.** No adapter meters spend, so a
+//!   `[perform] hard_spend_cap` is a limit this tool cannot keep, and a
+//!   mandatory limit that cannot be kept refuses the run.
+//! - **`perform.unmetered-not-allowed`.** Every performer is unmetered today;
+//!   running one needs `[perform] allow_unmetered = true`. Absent is not
+//!   consent.
+//! - **`perform.repair-limit`, `perform.recovery-limit`.** Counted from this
+//!   stage's `perform.ended` journal events: a repair is a performance after an
+//!   accepted submission, a recovery one after an ending that was not.
+//!
+//! After every performance that started a performer, `perform.ended` is
+//! journalled with its outcome, kind, seconds and `spend: "unknown"` — never 0,
+//! because nothing measured it. `docs/HOTLINE.md` has the rules and the
+//! defaults.
 
 use std::io::{Read as _, Write as _};
 use std::process::{Child, Command, Stdio};
@@ -254,6 +276,11 @@ fn perform_one(
         ));
         return Ok(report);
     }
+    // OW-WAR-0132: questions, spend and attempts, before anything is compiled.
+    // Every refusal that applies is reported, so a run blocked twice says so.
+    let Some(kind) = hotline_admitted(repo, &dir, alias, stage_id, &mut report)? else {
+        return Ok(report);
+    };
     // Handoff, before anything is compiled: a stage whose previous writer may
     // still be writing gets no second one, and no Dispatch either.
     if !handoff(repo, &dir, alias, stage_id, &mut report) {
@@ -294,6 +321,19 @@ fn perform_one(
         (None, None) => repo.config.run.wall_time_seconds(),
     };
     let outcome = hand_over(host, repo, &dir, &dispatch, bound)?;
+    let uuid = loaded.validated.as_ref().map(|v| v.uuid.to_string());
+    let ended = |report: &mut Report, how: Ending| {
+        journal_ended(
+            repo,
+            &dir,
+            uuid.as_deref(),
+            stage_id,
+            &outcome,
+            kind,
+            how,
+            report,
+        );
+    };
 
     if let Some(path) = &outcome.lingering {
         report.push(Diagnostic::warn(
@@ -324,6 +364,7 @@ fn perform_one(
                 tail(&outcome.stderr_tail)
             ),
         ));
+        ended(&mut report, Ending::Cancelled);
         return Ok(report);
     }
 
@@ -357,6 +398,14 @@ fn perform_one(
                     outcome.dispatch_id
                 ));
             }
+            ended(
+                &mut report,
+                if accepted {
+                    Ending::Answered
+                } else {
+                    Ending::Refused
+                },
+            );
         }
         // Killed for flooding is a failure with its own sentence, not a
         // deadline: the bound was never reached.
@@ -372,6 +421,7 @@ fn perform_one(
                     tail(&outcome.stderr_tail)
                 ),
             ));
+            ended(&mut report, Ending::Failed);
         }
         (None, _) => {
             discard(&outcome);
@@ -384,6 +434,7 @@ fn perform_one(
                 tail(&outcome.stderr_tail)
             ),
             ));
+            ended(&mut report, Ending::Timeout);
         }
         (Some(status), _) => {
             discard(&outcome);
@@ -401,6 +452,7 @@ fn perform_one(
                     tail(&outcome.stderr_tail)
                 ),
             ));
+            ended(&mut report, Ending::Failed);
         }
     }
     Ok(report)
@@ -714,6 +766,284 @@ fn kill_group(child: &mut Child) {
 fn tail(stderr: &str) -> String {
     let last = stderr.lines().rfind(|l| !l.trim().is_empty());
     last.map_or_else(String::new, |l| format!(". Its last stderr line: {l}"))
+}
+
+// ---------------------------------------------------------------------------
+// Questions, spend and attempts (OW-WAR-0132).
+// ---------------------------------------------------------------------------
+
+/// The journal event every performance that started a performer ends with.
+pub const EVENT_ENDED: &str = "perform.ended";
+
+/// How a performance ended, as `perform.ended` records it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Ending {
+    /// The performer answered and the seam accepted the submission.
+    Answered,
+    /// The performer answered and the seam refused the answer.
+    Refused,
+    /// Killed at the wall-time bound.
+    Timeout,
+    /// SIGINT or SIGTERM; the group was killed and the answer discarded.
+    Cancelled,
+    /// Exited without a usable submission, or flooded stdout.
+    Failed,
+}
+
+impl Ending {
+    const fn word(self) -> &'static str {
+        match self {
+            Self::Answered => "answered",
+            Self::Refused => "refused",
+            Self::Timeout => "timeout",
+            Self::Cancelled => "cancelled",
+            Self::Failed => "failed",
+        }
+    }
+}
+
+/// What this performance is, counted from the stage's earlier endings.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Attempt {
+    /// No earlier performance of the stage ended.
+    Initial,
+    /// After an accepted submission: the `n`th repair, where the first
+    /// accepted submission is not one and each accepted after it is.
+    Repair(u32),
+    /// After an ending that was not an accepted submission: the `n`th in a
+    /// row since the last accepted one (or since the start).
+    Recovery(u32),
+}
+
+impl Attempt {
+    const fn word(self) -> &'static str {
+        match self {
+            Self::Initial => "initial",
+            Self::Repair(_) => "repair",
+            Self::Recovery(_) => "recovery",
+        }
+    }
+}
+
+/// The pure count. `outcomes` are the stage's `perform.ended` outcomes, in
+/// journal order.
+///
+/// A repair is numbered by the accepted submissions already on record, so a
+/// failed run never consumes one: answered, failed, answered is one repair.
+/// A recovery is numbered by the endings since the last accepted submission
+/// that were not accepted, so an accepted submission resets the run of them.
+fn attempt_of(outcomes: &[&str]) -> Attempt {
+    let Some(last) = outcomes.last() else {
+        return Attempt::Initial;
+    };
+    let answered = |o: &&str| *o == Ending::Answered.word();
+    if answered(last) {
+        let n = outcomes.iter().filter(|o| answered(o)).count();
+        Attempt::Repair(u32::try_from(n).unwrap_or(u32::MAX))
+    } else {
+        let n = outcomes.iter().rev().take_while(|o| !answered(o)).count();
+        Attempt::Recovery(u32::try_from(n).unwrap_or(u32::MAX))
+    }
+}
+
+/// The `perform.ended` outcomes recorded for `stage_id`, in journal order.
+fn endings(dir: &camino::Utf8Path, stage_id: &str) -> Result<Vec<String>, RepoError> {
+    let journal = crate::journal_cmd::load(dir)?;
+    let mut out = Vec::new();
+    for e in journal
+        .events
+        .iter()
+        .filter(|e| e.event_type == EVENT_ENDED)
+    {
+        let payload: serde_json::Value = serde_json::from_str(&e.payload).map_err(|_| {
+            RepoError::Message(format!(
+                "{}: {EVENT_ENDED} event {} has an invalid JSON payload, so this stage's \
+                 attempts cannot be counted",
+                dir.join(crate::journal_cmd::FILE),
+                e.id
+            ))
+        })?;
+        if payload.get("stage").and_then(serde_json::Value::as_str) != Some(stage_id) {
+            continue;
+        }
+        let outcome = payload
+            .get("outcome")
+            .and_then(serde_json::Value::as_str)
+            .ok_or_else(|| {
+                RepoError::Message(format!(
+                    "{}: {EVENT_ENDED} event {} names no outcome, so this stage's attempts \
+                     cannot be counted",
+                    dir.join(crate::journal_cmd::FILE),
+                    e.id
+                ))
+            })?;
+        out.push(outcome.to_owned());
+    }
+    Ok(out)
+}
+
+/// The OW-WAR-0132 admissions. `Some(kind)` when the stage may be performed,
+/// and what kind of attempt it will be; `None` when the report says why not.
+fn hotline_admitted(
+    repo: &Repository,
+    dir: &camino::Utf8Path,
+    alias: &str,
+    stage_id: &str,
+    report: &mut Report,
+) -> Result<Option<Attempt>, RepoError> {
+    let policy = &repo.config.perform;
+    let mut clear = true;
+
+    // A blocking question nobody has answered stops this stage (§53.1).
+    let (questions, unreadable) = crate::questions::load_tolerant(repo, alias);
+    for path in unreadable {
+        report.push(Diagnostic::unknown(
+            "perform.question-unknown",
+            path,
+            format!(
+                "{alias}/{stage_id}: a question record cannot be read, so whether a blocking \
+                 question waits on this stage cannot be established. Refused rather than guessed"
+            ),
+        ));
+        clear = false;
+    }
+    for q in questions
+        .iter()
+        .filter(|q| q.stage == stage_id && q.blocking && q.is_open())
+    {
+        report.push(Diagnostic::error(
+            "perform.question-open",
+            repo.relative(
+                &dir.join(crate::questions::DIR)
+                    .join(format!("{}.toml", q.id)),
+            ),
+            format!(
+                "{alias}/{stage_id} waits on blocking question {} ({:?}), which no human has \
+                 answered. Only this stage waits; a human answers with `war answer {alias} {} \
+                 \"<answer>\" --as <actor>`",
+                q.id, q.question, q.id
+            ),
+        ));
+        clear = false;
+    }
+
+    // Spend: nothing meters it, so a cap cannot be kept and unmetered needs consent.
+    if let Some(cap) = &policy.hard_spend_cap {
+        report.push(Diagnostic::error(
+            "perform.spend-unenforceable",
+            "openwarrant.toml".to_owned(),
+            format!(
+                "[perform] hard_spend_cap = {cap:?}, and no performer adapter meters spend, so \
+                 the cap cannot be enforced. A mandatory limit that cannot be enforced refuses the \
+                 run rather than be claimed. Nothing was compiled or started"
+            ),
+        ));
+        clear = false;
+    }
+    if !policy.unmetered_allowed() {
+        report.push(Diagnostic::error(
+            "perform.unmetered-not-allowed",
+            "openwarrant.toml".to_owned(),
+            format!(
+                "the performer reports no spend, and [perform] allow_unmetered is {}. Set \
+                 `allow_unmetered = true` under [perform] to run it knowing its cost is unknown; \
+                 each performance then journals spend \"unknown\", never 0",
+                match policy.allow_unmetered {
+                    None => "not set",
+                    Some(_) => "false",
+                }
+            ),
+        ));
+        clear = false;
+    }
+
+    // Attempts, counted from the journal.
+    let recorded = endings(dir, stage_id)?;
+    let refs: Vec<&str> = recorded.iter().map(String::as_str).collect();
+    let kind = attempt_of(&refs);
+    match kind {
+        Attempt::Repair(n) if n > policy.repairs() => {
+            report.push(Diagnostic::error(
+                "perform.repair-limit",
+                repo.relative(&dir.join(crate::journal_cmd::FILE)),
+                format!(
+                    "{alias}/{stage_id}: this would be repair {n}, and [perform] max_repairs is {}. \
+                     {} accepted submission(s) are on record; a repair is a performance after one",
+                    policy.repairs(),
+                    refs.iter().filter(|o| **o == Ending::Answered.word()).count()
+                ),
+            ));
+            clear = false;
+        }
+        Attempt::Recovery(n) if n > policy.recoveries() => {
+            report.push(Diagnostic::error(
+                "perform.recovery-limit",
+                repo.relative(&dir.join(crate::journal_cmd::FILE)),
+                format!(
+                    "{alias}/{stage_id}: {n} performance(s) in a row ended without an accepted \
+                     submission ({}), and [perform] max_recoveries is {}. Find out why before \
+                     running it again",
+                    refs[refs.len() - usize::try_from(n).unwrap_or(0).min(refs.len())..].join(", "),
+                    policy.recoveries()
+                ),
+            ));
+            clear = false;
+        }
+        _ => {}
+    }
+    Ok(clear.then_some(kind))
+}
+
+/// Journal `perform.ended`. A failure to write it is reported, not raised:
+/// the performance happened, and its report must still reach the caller.
+#[allow(clippy::too_many_arguments)]
+fn journal_ended(
+    repo: &Repository,
+    dir: &camino::Utf8Path,
+    uuid: Option<&str>,
+    stage_id: &str,
+    outcome: &Performance,
+    kind: Attempt,
+    how: Ending,
+    report: &mut Report,
+) {
+    let Some(uuid) = uuid else {
+        report.push(Diagnostic::unknown(
+            "perform.ended-unrecorded",
+            repo.relative(&dir.join(crate::journal_cmd::FILE)),
+            format!(
+                "{stage_id}: the Warrant's identity could not be read, so this performance's \
+                 {EVENT_ENDED} was not journalled and it will not be counted"
+            ),
+        ));
+        return;
+    };
+    let payload = serde_json::json!({
+        "stage": stage_id,
+        "dispatch_id": outcome.dispatch_id,
+        "outcome": how.word(),
+        "attempt": kind.word(),
+        "seconds": outcome.seconds,
+        // Nothing metered it. Unknown is not zero (Law 15).
+        "spend": "unknown",
+    });
+    if let Err(e) = crate::journal_cmd::record(
+        dir,
+        uuid,
+        EVENT_ENDED,
+        &format!("agent://{}", repo.performer()),
+        &payload.to_string(),
+    ) {
+        report.push(Diagnostic::unknown(
+            "perform.ended-unrecorded",
+            repo.relative(&dir.join(crate::journal_cmd::FILE)),
+            format!(
+                "{stage_id}: {EVENT_ENDED} ({}) could not be journalled, so this performance \
+                 will not be counted: {e}",
+                how.word()
+            ),
+        ));
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -1133,6 +1463,30 @@ mod tests {
         }
         assert_eq!(host.spawns.get(), 0);
         let _ = std::fs::remove_dir_all(&repo.root);
+    }
+
+    /// OW-WAR-0132: repairs and recoveries are counted apart, and a failed run
+    /// never consumes a repair.
+    #[test]
+    fn repairs_and_recoveries_are_counted_apart() {
+        assert_eq!(attempt_of(&[]), Attempt::Initial);
+        assert_eq!(attempt_of(&["answered"]), Attempt::Repair(1));
+        assert_eq!(attempt_of(&["answered", "answered"]), Attempt::Repair(2));
+        assert_eq!(attempt_of(&["failed"]), Attempt::Recovery(1));
+        assert_eq!(attempt_of(&["failed", "timeout"]), Attempt::Recovery(2));
+        // Answered, failed: the next is a recovery, not a repair.
+        assert_eq!(attempt_of(&["answered", "failed"]), Attempt::Recovery(1));
+        // ...and answered, failed, answered has consumed one repair, not two.
+        assert_eq!(
+            attempt_of(&["answered", "failed", "answered"]),
+            Attempt::Repair(2)
+        );
+        // An accepted submission resets the run of recoveries.
+        assert_eq!(
+            attempt_of(&["failed", "failed", "answered", "cancelled"]),
+            Attempt::Recovery(1)
+        );
+        assert_eq!(attempt_of(&["refused"]), Attempt::Recovery(1));
     }
 
     /// The compiled binary is on the branch the conformance plants exercise.
