@@ -71,10 +71,11 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | no required unknown remains | 85 |
 | every required obligation is dispositioned | 83 |
 | independence requirements are met | 83 |
-| required deliverables exist | 62 |
+| required deliverables exist | 63 |
 | required judgments exist | 54 |
 | residual risks have sufficient authority | 54 |
 | runtime receipts match the basis | 3 |
+| exact authorized Contract Revision | 1 |
 
 ## Requirements (SAS §106, §34.3)
 
@@ -277,7 +278,7 @@ Every §106 requirement is named by at least one Warrant.
 | `OW-WAR-0130` Idempotent acts, all-or-nothing batches, and version negotiation between war and its records | draft | unknown | 0 | 0 of 4 | artifact digests verify |
 | `OW-WAR-0131` Agent and harness adapters per OS: writer handoff and cancellation | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0132` Hotline defaults: time and spend limits, repair accounting, and delivery when nobody answers | draft | unknown | 0 | 0 of 4 | artifact digests verify |
-| `OW-WAR-0133` Evidence reuse after a source change, and the compiler's source, conflict and omission rules | draft | unknown | 0 | 0 of 3 | artifact digests verify |
+| `OW-WAR-0133` Evidence reuse after a source change, and the compiler's source, conflict and omission rules | draft | unknown | 0 | 0 of 3 | exact authorized Contract Revision |
 | `OW-WAR-0134` Acceptance stays valid only for the candidate accepted: a change before merge is a finding | draft | unknown | 0 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0135` The assurance mark: a baseline, its issuance, and what it binds | draft | unknown | 0 | 0 of 3 | required deliverables exist |
 | `OW-WAR-0136` Discharge the Phase 9 exit: signed resolutions, audited evidence custody, and invalidation that propagates | draft | unknown | 0 | 0 of 4 | artifact digests verify |
