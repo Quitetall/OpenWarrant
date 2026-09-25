@@ -44,6 +44,7 @@ pub mod install;
 pub mod invalidation;
 pub mod journal_cmd;
 pub mod kf;
+pub mod mark;
 pub mod mcp;
 pub mod migrate;
 pub mod new;
@@ -923,6 +924,29 @@ enum Command {
         /// this auditor. Refused to the performer.
         #[arg(long, value_name = "AUDITOR", requires = "custody")]
         record: Option<String>,
+    },
+    /// The assurance mark (OW-ADR-0025, proposed; OW-WAR-0135): evaluate a
+    /// resolved Warrant against a versioned baseline, and emit an
+    /// `oh.war/mark/v1` statement only when every requirement is met. Unmet
+    /// and UNKNOWN requirements are named; a baseline not `accepted` earns no
+    /// mark. Derived from records already signed: it grants no authority.
+    Mark {
+        /// The Warrant's local alias.
+        alias: String,
+        /// The baseline id (default: `openwarrant.toml [mark] baseline`, else `v1`).
+        #[arg(long, value_name = "ID")]
+        baseline: Option<String>,
+        /// Write the statement to `<warrant>/mark-<baseline>.json`, only when
+        /// earned. A cache: `--verify` recomputes it and never trusts it.
+        #[arg(long, conflicts_with = "verify")]
+        record: bool,
+        /// Recompute every binding of the recorded mark against the tree today
+        /// and name each one that moved.
+        #[arg(long)]
+        verify: bool,
+        /// With --verify: the mark to check (default: the recorded one).
+        #[arg(long, value_name = "FILE", requires = "verify")]
+        file: Option<Utf8PathBuf>,
     },
     /// One screen for everything you owe: the acts awaiting your signature as
     /// a checklist, the questions an agent asked, and the stages it can start
@@ -2282,6 +2306,34 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 }
             };
             Ok(output::finish(mode, "attest", &report, None))
+        }
+        Command::Mark {
+            alias,
+            baseline,
+            record,
+            verify,
+            file,
+        } => {
+            let repository = open_repo()?;
+            let (report, evaluation) = if verify {
+                mark::verify(&repository, &alias, baseline.as_deref(), file.as_deref())?
+            } else if record {
+                mark::record(&repository, &alias, baseline.as_deref())?
+            } else {
+                mark::evaluate(&repository, &alias, baseline.as_deref())?
+            };
+            if !matches!(mode, output::Mode::Json)
+                && !verify
+                && let Some(m) = &evaluation.mark
+            {
+                print!("{}", String::from_utf8_lossy(&m.to_bytes()));
+            }
+            Ok(output::finish(
+                mode,
+                "mark",
+                &report,
+                Some(output::value(&evaluation)),
+            ))
         }
         Command::Board { html } => {
             let repository = open_repo()?;
