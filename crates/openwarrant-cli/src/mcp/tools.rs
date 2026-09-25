@@ -120,8 +120,19 @@ pub struct VersionParams {
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 pub struct PlanRequestParams {
-    /// The vague request, verbatim — one sentence is enough.
+    /// The vague request, verbatim — one sentence is enough. Empty when an
+    /// issue is given instead.
+    #[serde(default)]
     pub sentence: String,
+    /// An issue file (`gh issue view <n> --json number,title,body,url`
+    /// output), relative to the repository root (OW-WAR-0141). Its title and
+    /// body are the request.
+    #[serde(default)]
+    pub issue_file: Option<String>,
+    /// An issue number, fetched through `[intake] fetch_argv`. Refused,
+    /// starting nothing, when no `[intake]` table is configured.
+    #[serde(default)]
+    pub issue: Option<String>,
     /// `delivery` or `decision`.
     #[serde(default = "default_profile")]
     pub profile: String,
@@ -144,9 +155,18 @@ fn default_assurance() -> String {
 pub struct PlanProposalParams {
     /// The `oh.war/draft-proposal/v2` document, as JSON text.
     pub proposal_json: String,
-    /// The sentence the proposal answers (recorded under plan/).
+    /// The sentence the proposal answers (recorded under plan/). Empty when
+    /// an issue is given instead.
     #[serde(default)]
     pub sentence: String,
+    /// The issue file the proposal answers, relative to the repository root
+    /// (OW-WAR-0141). An applied Warrant records it in `plan/intake.json`.
+    #[serde(default)]
+    pub issue_file: Option<String>,
+    /// The issue number the proposal answers, fetched through
+    /// `[intake] fetch_argv`.
+    #[serde(default)]
+    pub issue: Option<String>,
     /// `delivery` or `decision`.
     #[serde(default = "default_profile")]
     pub profile: String,
@@ -156,9 +176,47 @@ pub struct PlanProposalParams {
     /// Interview answers by question id.
     #[serde(default)]
     pub answers: BTreeMap<String, String>,
-    /// §74.4 step 6: a human has reviewed this proposal. Required true to apply.
+    /// §74.4 step 6: a human has reviewed this proposal. Required true to
+    /// apply, unless the proposal answers an issue and `[intake]
+    /// policy_approval` is set, when the review is recorded as `policy`.
     #[serde(default)]
     pub reviewed: bool,
+}
+
+/// OW-WAR-0141: the intake input of a war_plan_* call, read as `war plan`
+/// reads it. An issue file is resolved against the repository root.
+fn intake_of(
+    repo: &crate::repo::Repository,
+    sentence: &str,
+    issue: Option<&str>,
+    issue_file: Option<&str>,
+) -> Result<Option<crate::plan::Intake>, RepoError> {
+    let file = issue_file.map(|f| {
+        let f = camino::Utf8Path::new(f);
+        if f.is_absolute() {
+            f.to_owned()
+        } else {
+            repo.root.join(f)
+        }
+    });
+    crate::plan::resolve_intake(repo, sentence, issue, file.as_deref())
+}
+
+/// The sentence and answers a call drafts from: the issue's, when it names
+/// one, with the answers already given to that input's intake questions.
+fn drafted_from(
+    intake: Option<&crate::plan::Intake>,
+    sentence: &str,
+    answers: &BTreeMap<String, String>,
+) -> (String, BTreeMap<String, String>) {
+    let mut answers = answers.clone();
+    let Some(i) = intake else {
+        return (sentence.to_owned(), answers);
+    };
+    for (id, text) in &i.answers {
+        answers.entry(id.clone()).or_insert_with(|| text.clone());
+    }
+    (i.sentence.clone(), answers)
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
@@ -627,19 +685,31 @@ impl WarServer {
 
     #[tool(
         name = "war_plan_request",
-        description = "Emit the Draft Request (`oh.war/draft-request/v1`) for a vague sentence: the corpus, ADRs and answers a drafter needs (`war plan \"<sentence>\"`). Writes nothing.",
+        description = "Emit the Draft Request (`oh.war/draft-request/v1`) for a vague sentence, or for an issue (`issue_file`, or `issue` through `[intake] fetch_argv`): the corpus, ADRs and answers a drafter needs (`war plan \"<sentence>\"`, `war plan --issue-file <f>`). Writes nothing.",
         annotations(read_only_hint = true)
     )]
     fn war_plan_request(&self, Parameters(p): Parameters<PlanRequestParams>) -> ToolResult {
+        let intake = match intake_of(
+            &self.repo,
+            &p.sentence,
+            p.issue.as_deref(),
+            p.issue_file.as_deref(),
+        ) {
+            Ok(i) => i,
+            Err(e) => return refused("plan.request", &e),
+        };
+        let (sentence, answers) = drafted_from(intake.as_ref(), &p.sentence, &p.answers);
+        if sentence.trim().is_empty() {
+            return refused(
+                "plan.request",
+                &RepoError::Message(
+                    "war_plan_request needs a sentence, an issue_file or an issue".to_owned(),
+                ),
+            );
+        }
         value_of(
             "plan.request",
-            crate::plan::request(
-                &self.repo,
-                &p.sentence,
-                &p.profile,
-                &p.assurance,
-                &p.answers,
-            ),
+            crate::plan::request(&self.repo, &sentence, &p.profile, &p.assurance, &answers),
             "draft request emitted; answer it with an `oh.war/draft-proposal/v2` document",
         )
     }
@@ -650,12 +720,31 @@ impl WarServer {
         annotations(read_only_hint = true)
     )]
     fn war_plan_validate(&self, Parameters(p): Parameters<PlanProposalParams>) -> ToolResult {
-        let answered: BTreeSet<String> = p.answers.keys().cloned().collect();
+        let intake = match intake_of(
+            &self.repo,
+            &p.sentence,
+            p.issue.as_deref(),
+            p.issue_file.as_deref(),
+        ) {
+            Ok(i) => i,
+            Err(e) => return refused("plan.validate", &e),
+        };
+        let (_, answers) = drafted_from(intake.as_ref(), &p.sentence, &p.answers);
+        let answered: BTreeSet<String> = answers.keys().cloned().collect();
+        let review = match crate::plan::review_of(&self.repo, intake.as_ref(), false, p.reviewed) {
+            Ok(r) => r,
+            Err(e) => return refused("plan.validate", &e),
+        };
         let known = match crate::plan::known_refs(&self.repo) {
             Ok(k) => k,
             Err(e) => return refused("plan.validate", &e),
         };
-        match crate::plan::validate_v2(&p.proposal_json, p.reviewed, &answered, &known) {
+        match crate::plan::validate_v2(
+            &p.proposal_json,
+            review.completes_the_step(),
+            &answered,
+            &known,
+        ) {
             Ok((_, pipeline)) => {
                 let mut report = Report::default();
                 report.push(Diagnostic::pass(
@@ -811,11 +900,27 @@ impl WarServer {
 
     #[tool(
         name = "war_plan_apply",
-        description = "Apply a REVIEWED Draft Proposal v2: creates the Warrant through `war new` and the seven §74.3 operations, recording request, proposal and pipeline under plan/ (`war plan --proposal <file> --reviewed --apply`). Refused unless `reviewed` is true.",
+        description = "Apply a REVIEWED Draft Proposal v2: creates the Warrant through `war new` and the seven §74.3 operations, recording request, proposal and pipeline under plan/ (`war plan --proposal <file> --reviewed --apply`). Refused unless `reviewed` is true, or the proposal answers an issue (`issue_file`/`issue`) under `[intake] policy_approval`; an issue-linked Warrant records plan/intake.json. Authorizes nothing.",
         annotations(read_only_hint = false)
     )]
     fn war_plan_apply(&self, Parameters(p): Parameters<PlanProposalParams>) -> ToolResult {
-        if !p.reviewed {
+        // OW-WAR-0141: an issue in place of the sentence, read before anything
+        // is written; a refusal here leaves the tree as it was.
+        let intake = match intake_of(
+            &self.repo,
+            &p.sentence,
+            p.issue.as_deref(),
+            p.issue_file.as_deref(),
+        ) {
+            Ok(i) => i,
+            Err(e) => return refused("plan.apply", &e),
+        };
+        let (sentence, answers) = drafted_from(intake.as_ref(), &p.sentence, &p.answers);
+        let review = match crate::plan::review_of(&self.repo, intake.as_ref(), false, p.reviewed) {
+            Ok(r) => r,
+            Err(e) => return refused("plan.apply", &e),
+        };
+        if !review.completes_the_step() {
             return refused(
                 "plan.apply",
                 &RepoError::Message(
@@ -825,33 +930,50 @@ impl WarServer {
                 ),
             );
         }
-        let answered: BTreeSet<String> = p.answers.keys().cloned().collect();
+        let answered: BTreeSet<String> = answers.keys().cloned().collect();
         let known = match crate::plan::known_refs(&self.repo) {
             Ok(k) => k,
             Err(e) => return refused("plan.apply", &e),
         };
+        let request =
+            match crate::plan::request(&self.repo, &sentence, &p.profile, &p.assurance, &answers) {
+                Ok(r) => r,
+                Err(e) => return refused("plan.apply", &e),
+            };
         let (proposal, mut pipeline) =
             match crate::plan::validate_v2(&p.proposal_json, true, &answered, &known) {
                 Ok(v) => v,
-                Err(e) => return refused("plan.apply", &e),
+                // A thin issue: its question waits under docs/intake/, as on
+                // the CLI path, and no alias is allocated.
+                Err(e) => match crate::plan::record_questions(
+                    &self.repo,
+                    intake.as_ref(),
+                    None,
+                    &request,
+                    &p.proposal_json,
+                    &e,
+                ) {
+                    Ok(Some((report, asked))) => {
+                        return envelope(
+                            "plan.interview",
+                            &report,
+                            Some(crate::output::value(&asked)),
+                        );
+                    }
+                    Ok(None) => return refused("plan.apply", &e),
+                    Err(e) => return refused("plan.apply", &e),
+                },
             };
-        let request = match crate::plan::request(
-            &self.repo,
-            &p.sentence,
-            &p.profile,
-            &p.assurance,
-            &p.answers,
-        ) {
-            Ok(r) => r,
-            Err(e) => return refused("plan.apply", &e),
-        };
-        match crate::plan::apply(
+        let record = intake.as_ref().and_then(crate::plan::Intake::record);
+        match crate::plan::apply_with(
             &self.repo,
             &proposal,
             &mut pipeline,
             &request,
             None,
             &p.proposal_json,
+            review,
+            record.as_ref(),
         ) {
             Ok((applied, report)) => {
                 envelope("plan.apply", &report, Some(crate::output::value(&applied)))

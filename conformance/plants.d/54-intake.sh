@@ -435,6 +435,71 @@ else
     ik_fail "no planted token in the repository" "$IK_LEAK"
 fi
 
+# --- AM-002 (D-014): the war_plan_* MCP tools take an issue --------------------
+# The same intake reader and review rule over MCP, driven by the battery's
+# own transcript driver from the scratch root. Refusals: an issue file with no
+# title, and an unreviewed apply with no policy — each writes nothing.
+ik_mcp() { # <transcript.jsonl> → the server's reply lines
+    (cd "$PLANT_ROOT" && env PATH="$IK_BIN:$PATH" GH_TOKEN="$IK_TOKEN" GITHUB_TOKEN="$IK_TOKEN" \
+        python3 "$REPO_ROOT/conformance/fixtures/mcp/drive.py" "$IK_WAR_ABS" "$1" 2>/dev/null)
+}
+ik_transcript() { # <out> then pairs of <tool> <arguments-json>
+    python3 - "$@" <<'PY'
+import json, sys
+out, rest = sys.argv[1], sys.argv[2:]
+lines = [{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2025-06-18", "capabilities": {}, "clientInfo": {"name": "plant", "version": "0"}}},
+         {"jsonrpc": "2.0", "method": "notifications/initialized"}]
+for n, i in enumerate(range(0, len(rest), 2)):
+    lines.append({"jsonrpc": "2.0", "id": n + 2, "method": "tools/call", "params": {"name": rest[i], "arguments": json.loads(rest[i + 1])}})
+open(out, "w").write("".join(json.dumps(l) + "\n" for l in lines))
+PY
+}
+ik_mcp_result() { # <reply lines> <id> <python expression over r (structuredContent) and err>
+    python3 -c "
+import json, sys
+try:
+    msg = next(m for m in map(json.loads, sys.argv[1].splitlines()) if m.get('id') == int(sys.argv[2]))
+    r = msg['result'].get('structuredContent') or {}
+    err = bool(msg['result'].get('isError'))
+    print($3)
+except Exception as e:
+    print(f'unreadable: {e!r}')" "$1" "$2"
+}
+ik_issue "$PLANT_ROOT/issue-41.json" 41 "Keep a changelog over MCP" "Every release lists what changed."
+ik_issue "$PLANT_ROOT/issue-42.json" 42 - "no title here"
+ik_commit "intake plant: two issue files for MCP"
+IK_MCP_PROPOSAL=$(printf '{"user_request": "Keep a changelog over MCP\\n\\nEvery release lists what changed.", "answers": {}}' | python3 "$IK_TMP/drafter.py")
+ik_transcript "$IK_TMP/mcp-ok.jsonl" \
+    war_plan_request '{"issue_file": "issue-41.json"}' \
+    war_plan_apply "$(python3 -c 'import json,sys; print(json.dumps({"issue_file": "issue-41.json", "proposal_json": sys.argv[1], "reviewed": True}))' "$IK_MCP_PROPOSAL")"
+IK_BEFORE=$(ik_dirs)
+IK_R=$(ik_mcp "$IK_TMP/mcp-ok.jsonl")
+IK_REQ=$(ik_mcp_result "$IK_R" 2 "(not err) and r['result']['user_request'].startswith('Keep a changelog over MCP')")
+IK_MA=$(ik_mcp_result "$IK_R" 3 "'' if err else r['result']['alias']")
+IK_NEWDIR=$(comm -13 <(echo "$IK_BEFORE") <(ik_dirs))
+IK_REC_ID=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['id'])" "$IK_NEWDIR/plan/intake.json" 2>/dev/null)
+IK_REV=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['review'])" "$IK_NEWDIR/plan/pipeline.json" 2>/dev/null)
+if [[ "$IK_REQ" == True && -n "$IK_MA" && "$IK_NEWDIR" == */"$IK_MA" && "$IK_REC_ID" == 41 && "$IK_REV" == reviewed \
+      && ! -e "$IK_NEWDIR/authorization.toml" ]]; then
+    ik_ok "MCP war_plan_* take an issue" "request from issue-41.json; apply drafts $IK_MA with plan/intake.json #41, unauthorized"
+else
+    ik_fail "MCP war_plan_* take an issue" "request $IK_REQ, alias ${IK_MA:-none}, new [$IK_NEWDIR], intake id ${IK_REC_ID:-none}, review ${IK_REV:-none}"
+fi
+ik_commit "intake plant: the MCP draft"
+ik_transcript "$IK_TMP/mcp-refuse.jsonl" \
+    war_plan_apply "$(python3 -c 'import json,sys; print(json.dumps({"issue_file": "issue-42.json", "proposal_json": sys.argv[1], "reviewed": True}))' "$IK_MCP_PROPOSAL")" \
+    war_plan_apply "$(python3 -c 'import json,sys; print(json.dumps({"issue_file": "issue-41.json", "proposal_json": sys.argv[1]}))' "$IK_MCP_PROPOSAL")"
+IK_R=$(ik_mcp "$IK_TMP/mcp-refuse.jsonl")
+IK_E1=$(ik_mcp_result "$IK_R" 2 "err and 'intake.issue-missing-title' in json.dumps(r)")
+IK_E2=$(ik_mcp_result "$IK_R" 3 "err and 'step 6' in json.dumps(r)")
+IK_DIRTY=$(git -C "$PLANT_ROOT" status --porcelain --untracked-files=all)
+if [[ "$IK_E1" == True && "$IK_E2" == True && -z "$IK_DIRTY" ]]; then
+    ik_ok "MCP refuses a bad or unreviewed issue" "intake.issue-missing-title; §74.4 step 6 without policy; the tree is unchanged"
+else
+    ik_fail "MCP refuses a bad or unreviewed issue" "missing-title $IK_E1, unreviewed $IK_E2, dirty [$(tr '\n' '|' <<<"$IK_DIRTY")]"
+fi
+corpus_reset "$PLANT_ROOT"
+
 # --- OBL-005: closing references the ticket, and only closing closes it --------
 # The records are planted paths: war commit classifies what changed, and a
 # resolution's signature is not what is under test here.
@@ -608,4 +673,5 @@ unset PLANT_ROOT IK_TMP IK_BIN IK_GH_LOG IK_GH_ISSUE IK_TOKEN IK_WAR_ABS IK_OUT 
     IK_A12 IK_A31 IK_A32 IK_FA IK_NEW IK_BEFORE IK_AFTER IK_CHECK IK_OUTSIDE IK_CASE IK_F IK_RULE IK_DIRTY IK_BODY \
     IK_SENTENCE IK_SKEY IK_IKEY IK_ALIAS_TAKEN IK_Q IK_N IK_REDRAFTS IK_REDRAFT_FAIL IK_KEY IK_CMD IK_ST IK_NEWDIR \
     IK_OPEN IK_NEXT_LEFT IK_SCHEMA_TEXT IK_LIST IK_NEXT IK_ATOMS IK_CALLS IK_CALLS_BEFORE IK_S1 IK_S2 IK_D1 IK_D2 \
-    IK_WRITES IK_LEAK IK_W12 IK_PLAIN IK_M1 IK_M2 IK_M3 IK_M4 IK_REC IK_PLANT
+    IK_WRITES IK_LEAK IK_W12 IK_PLAIN IK_M1 IK_M2 IK_M3 IK_M4 IK_REC IK_PLANT \
+    IK_MCP_PROPOSAL IK_R IK_REQ IK_MA IK_REC_ID IK_REV IK_E1 IK_E2

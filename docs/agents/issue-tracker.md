@@ -42,6 +42,11 @@ takes. Nobody writes a file.
   it. A fetch that fails or runs past `fetch_timeout_secs` makes `war plan`
   exit non-zero and write nothing.
 
+An agent reaches the same path over MCP: `war_plan_request`,
+`war_plan_validate` and `war_plan_apply` take `issue_file` (relative to the
+repository root) or `issue` in place of `sentence`, under the same refusals
+and review rule.
+
 The issue's title and body become the draft request's sentence, and the
 configured `[plan] drafter_argv` drafts from it. The applied Warrant records
 where it came from in `plan/intake.json` (`oh.war/intake/v1`): the tracker,
