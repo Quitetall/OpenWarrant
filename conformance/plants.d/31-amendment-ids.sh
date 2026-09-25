@@ -119,7 +119,7 @@ plant_cmd "an amendment whose id is not its name" "amendment.id" "the record's i
     "cp '$AI_DIR/AM-001.yaml' '$AI_DIR/AM-003-beef.yaml' && sed -i 's|^id: .*|id: \"AM-003\"|' '$AI_DIR/AM-003-beef.yaml'" \
     check "$AI_ALIAS"
 plant_cmd "an unfilled war amend skeleton" "amendment.invalid" "omits reason" 2 \
-    "\"$WAR\" --root '$PLANT_ROOT' amend '$AI_ALIAS' >/dev/null 2>&1" \
+    "\"$REPO_ROOT/$WAR\" --root '$PLANT_ROOT' amend '$AI_ALIAS' >/dev/null 2>&1" \
     check "$AI_ALIAS"
 plant_restore
 unset PLANT_ROOT

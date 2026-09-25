@@ -7,8 +7,9 @@
 # plant files, run by the same function in a subshell with its own tally:
 # two share `57-`; one leaves a new file under docs/warrants/ that `restore`
 # cannot undo; the last passes only if that leak is gone before it starts.
-# Accepted: both `57-` files run, in name order. Refused: the leaking file is
-# FAILED by name and its leak removed. Run in reverse order, the totals are
+# Accepted: both `57-` files run, in name order, and each file's own pass
+# counts (four). Refused: the leaking file is FAILED by name (one) and its
+# leak removed. Run in reverse order, the totals are
 # the same — the order changed nothing.
 
 echo "== plant files: prefixes group, order decides nothing (t-dc28) =="
@@ -36,7 +37,7 @@ mapfile -t PO_FILES < <(plant_files_in "$PO_DIR")
 : > "$PO_DIR/log"
 PO_OUT=$(po_run "${PO_FILES[@]}")
 PO_LOG=$(tr '\n' ' ' < "$PO_DIR/log")
-if [[ "$PO_LOG" == "57-a 57-b 58-leak 59-after " ]] && grep -q '^TOTALS 3 1$' <<<"$PO_OUT"; then
+if [[ "$PO_LOG" == "57-a 57-b 58-leak 59-after " ]] && grep -q '^TOTALS 4 1$' <<<"$PO_OUT"; then
     po_ok "two files share a prefix" "57-a and 57-b both run, in byte order, then 58, 59"
 else
     po_fail "two files share a prefix" "ran: $PO_LOG; $(tail -1 <<<"$PO_OUT")"
