@@ -341,7 +341,7 @@ pub fn run_gate(def: &GateDefinition, repo: &Repository, dir: &camino::Utf8Path)
 ///
 /// - `tree:<sha>` — `git rev-parse HEAD^{tree}` when the gate started;
 /// - `worktree:dirty` — present when the working tree differed from that
-///   tree, outside the evidence records and projections
+///   tree, outside the evidence records, projections and authority records
 ///   ([`source::Exclusions`]);
 /// - `inputs:sha256:<hex>` — the bytes of every file the Gate Definition's
 ///   `inputs` globs match, when it declares any;
@@ -356,10 +356,27 @@ pub fn run_gate(def: &GateDefinition, repo: &Repository, dir: &camino::Utf8Path)
 ///
 /// A gate that declares `inputs` is judged by them: the run holds while those
 /// files digest the same. A gate that declares none falls back to the tree:
-/// the run holds while nothing outside the evidence records and compiled
-/// projections has changed since the tree it ran over. The deliverables digest is recorded and advisory —
+/// the run holds while nothing outside the evidence records, compiled
+/// projections and authority records has changed since the tree it ran over.
+/// The deliverables digest is recorded and advisory —
 /// a gate reads what its inputs say it reads, and a gate that reads more than
 /// it declares keeps a stale pass that the tree subject makes visible (R-001).
+///
+/// # Why a signature does not move the tree (t-22fd)
+///
+/// The tree rule also skips the records a human act writes — authorizations,
+/// judgments, resolutions, responses, batches, attestations, corrections,
+/// disputes, invalidations and answered questions
+/// ([`source::is_authority_record`]). Without that, every signature recorded
+/// after the evidence staled every tree-bound receipt, and a Warrant needed
+/// two sittings: authorize, then — after a re-run — resolve. The records are
+/// not the source a gate ran over; each is verified by its own ingest when it
+/// is written, and the ones a resolution relies on (its authorization,
+/// judgments and the resolver's role) are judged live by the resolution
+/// itself. `war check` and the battery do read them; their receipts say
+/// nothing about authority records written after them, and that is the
+/// stated limit. Declared `inputs` are not narrowed by this: a gate that
+/// declares it reads an authority record is held to it.
 ///
 /// `inputs` and `fixtures` are read from the definition file here rather than
 /// from `GateDefinition`, whose fields are the core crate's; the definition
@@ -453,6 +470,81 @@ pub mod source {
         }
     }
 
+    /// Whether a repository-relative path is a record a human act writes
+    /// (t-22fd), under the configured roots: `warrants`, `sas`, `roadmap`,
+    /// `gates`.
+    ///
+    /// Named file by file, not by directory, where the directory also holds
+    /// what a gate reads: `docs/authority/roles.toml` and `allowed_signers`
+    /// are trust roots a human edits by hand and stay bound, as does a SAS or
+    /// roadmap revision record — accepting one changes the specification the
+    /// corpus is judged against, so it is source, not a record about the
+    /// work. Their acceptance attestations are records.
+    #[must_use]
+    pub fn is_authority_record(
+        path: &str,
+        warrants: &str,
+        sas: &str,
+        roadmap: &str,
+        gates: &str,
+    ) -> bool {
+        const AUTHORITY_DIRS: [&str; 3] = [
+            "docs/authority/responses",
+            "docs/authority/batches",
+            "docs/authority/standing/attestations",
+        ];
+        if AUTHORITY_DIRS.iter().any(|d| under(path, d).is_some()) {
+            return true;
+        }
+        if under(
+            path,
+            &format!("{}/revisions/attestations", sas.trim_end_matches('/')),
+        )
+        .is_some()
+            || under(
+                path,
+                &format!("{}/revisions/attestations", roadmap.trim_end_matches('/')),
+            )
+            .is_some()
+            || under(
+                path,
+                &format!(
+                    "{}/{}",
+                    gates.trim_end_matches('/'),
+                    crate::invalidation::RECORDS_DIR
+                ),
+            )
+            .is_some()
+        {
+            return true;
+        }
+        // `<warrants>/<alias>/<file>` or `<warrants>/<alias>/<dir>/…`.
+        let Some(rest) = under(path, warrants) else {
+            return false;
+        };
+        let mut parts = rest.splitn(3, '/');
+        let (Some(_alias), Some(second)) = (parts.next(), parts.next()) else {
+            return false;
+        };
+        match parts.next() {
+            Some(_) => matches!(
+                second,
+                "attestations" | "corrections" | "disputes" | crate::questions::DIR
+            ),
+            None => {
+                matches!(second, "authorization.toml" | "judgments.toml" | "resolution.toml")
+                    // The superseded authorization kept beside the new one
+                    // (OW-WAR-0144): `authorization.<sha256[..8]>.toml`.
+                    || second
+                        .strip_prefix("authorization.")
+                        .and_then(|r| r.strip_suffix(".toml"))
+                        .is_some_and(|h| {
+                            h.len() == 8 && h.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'))
+                        })
+            }
+        }
+    }
+
     fn under<'a>(path: &'a str, dir: &str) -> Option<&'a str> {
         let dir = dir.trim_end_matches('/');
         if dir.is_empty() {
@@ -471,9 +563,16 @@ pub mod source {
     /// projection that could never agree with itself. `war check --generated`
     /// is what holds a projection to its sources; the tree rule does not
     /// need to.
+    ///
+    /// The tree rule skips one class more: the records a human act writes
+    /// ([`is_authority_record`], [`Exclusions::excludes_from_tree`]). Declared
+    /// inputs do not — a gate that says it reads one is held to it.
     #[derive(Debug, Clone)]
     pub struct Exclusions {
         warrants: String,
+        sas: String,
+        roadmap: String,
+        gates: String,
         projection_dirs: Vec<String>,
     }
 
@@ -488,6 +587,9 @@ pub mod source {
                     .unwrap_or_default();
             Self {
                 warrants: p.warrants.to_string(),
+                sas: p.sas.to_string(),
+                roadmap: p.roadmap.to_string(),
+                gates: p.gates.to_string(),
                 projection_dirs: vec![
                     format!("{}/generated", p.warrants),
                     format!("{}/generated", p.adrs),
@@ -518,6 +620,15 @@ pub mod source {
                     (Some(_), Some("generated"), Some(_))
                 )
             })
+        }
+
+        /// What the tree rule skips: [`Exclusions::excludes`], and the
+        /// records a human act writes. A signature recorded after a run does
+        /// not move the tree that run names (t-22fd).
+        #[must_use]
+        pub fn excludes_from_tree(&self, path: &str) -> bool {
+            self.excludes(path)
+                || is_authority_record(path, &self.warrants, &self.sas, &self.roadmap, &self.gates)
         }
     }
 
@@ -557,7 +668,8 @@ pub mod source {
     }
 
     /// Paths that differ between `tree` and the working tree, plus untracked
-    /// files that are not ignored — [`Exclusions`] left out.
+    /// files that are not ignored — what [`Exclusions::excludes_from_tree`]
+    /// names left out.
     pub fn moved_since(
         root: &Utf8Path,
         tree: &str,
@@ -568,7 +680,7 @@ pub mod source {
             root,
             &["ls-files", "--others", "--exclude-standard", "-z"],
         )?));
-        moved.retain(|p| !ex.excludes(p));
+        moved.retain(|p| !ex.excludes_from_tree(p));
         moved.sort();
         moved.dedup();
         Ok(moved)
@@ -1188,7 +1300,7 @@ pub mod receipt {
 
 #[cfg(test)]
 mod source_tests {
-    use super::source::{glob_matches, is_evidence_record};
+    use super::source::{glob_matches, is_authority_record, is_evidence_record};
 
     #[test]
     fn globs_keep_star_within_a_segment_and_let_double_star_span() {
@@ -1223,5 +1335,56 @@ mod source_tests {
         ));
         assert!(!is_evidence_record("src/gate-runs/a", w));
         assert!(!is_evidence_record("docs/warrants/journal.jsonl", w));
+    }
+
+    /// t-22fd: what a human act writes is skipped by the tree rule; what a
+    /// gate reads as source, and the trust roots, are not.
+    #[test]
+    fn authority_records_are_named_file_by_file_and_source_is_not_one() {
+        let a = |p: &str| {
+            is_authority_record(p, "docs/warrants", "docs/sas", "docs/roadmap", "docs/gates")
+        };
+        for p in [
+            "docs/warrants/X-WAR-0001/authorization.toml",
+            "docs/warrants/X-WAR-0001/authorization.0a1b2c3d.toml",
+            "docs/warrants/X-WAR-0001/judgments.toml",
+            "docs/warrants/X-WAR-0001/resolution.toml",
+            "docs/warrants/X-WAR-0001/attestations/authorize-1.dsse.json",
+            "docs/warrants/X-WAR-0001/corrections/D-001-1.toml",
+            "docs/warrants/X-WAR-0001/disputes/DSP-001.toml",
+            "docs/warrants/X-WAR-0001/questions/Q-001.toml",
+            "docs/authority/responses/X-WAR-0001.response.toml",
+            "docs/authority/responses/X-WAR-0001.response.toml.sig",
+            "docs/authority/batches/B-1-abcdef01.json",
+            "docs/authority/batches/attestations/batch-B-1-1.dsse.json",
+            "docs/authority/standing/attestations/standing-accept-c@1-1.dsse.json",
+            "docs/sas/revisions/attestations/sas-accept-1.0.0-1.dsse.json",
+            "docs/roadmap/revisions/attestations/roadmap-accept-r1-1.dsse.json",
+            "docs/gates/invalidations/g@1.0.0.toml",
+        ] {
+            assert!(a(p), "{p} is written by a human act");
+        }
+        for p in [
+            // Source, and what a Warrant is made of.
+            "src/authorization.toml",
+            "crates/x/src/lib.rs",
+            "docs/warrants/X-WAR-0001/manifest.toml",
+            "docs/warrants/X-WAR-0001/deliverables.toml",
+            "docs/warrants/X-WAR-0001/atoms/60-assurance.md",
+            "docs/warrants/X-WAR-0001/authorization.toml.bak",
+            "docs/warrants/X-WAR-0001/authorization.ZZZZZZZZ.toml",
+            "docs/warrants/X-WAR-0001/authorization.0a1b2c3.toml",
+            "docs/warrants/authorization.toml",
+            // Trust roots and governing records: bound.
+            "docs/authority/roles.toml",
+            "docs/authority/allowed_signers",
+            "docs/authority/standing/c@1.toml",
+            "docs/sas/revisions/1.0.0.toml",
+            "docs/sas/SAS.md",
+            "docs/roadmap/revisions/1.toml",
+            "docs/gates/g@1.0.0.yaml",
+        ] {
+            assert!(!a(p), "{p} is not an authority record");
+        }
     }
 }

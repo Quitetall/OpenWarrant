@@ -76,6 +76,48 @@ it believes a singly signed one, by a signature over its exact bytes:
 
 Nothing in the record claims the batch; the batch claims the record.
 
+## One sitting: authorize and resolve after the work is done
+
+The agent finishes the work without asking you for anything; you then do
+every act for it in one sitting. That works because a signature does not
+make recorded evidence stale: the tree rule skips the records a human act
+writes (see "The reuse rule" in `docs/RESOLVING.md`).
+
+**Before the sitting (the agent, no signature):**
+1. Deliver, and declare it in `deliverables.toml`.
+2. `war verify <alias> --run` (or `--response` from an independent
+   verifier), commit.
+3. `war evidence record <alias>`, `war compile`, commit — **last**. A
+   verification record is not an authority record: committing one after the
+   evidence moves the tree a no-`inputs` receipt names, and the agent
+   records again.
+
+**The sitting, in this order:**
+1. A SAS or roadmap acceptance, if one governs the work, alone
+   (`war sign <version> --ssh-sign`). Accepting one changes what the corpus
+   is judged against, so it is bound like source: it stales every
+   tree-bound receipt, and the agent must record evidence again before
+   step 3. Keep acceptances out of a sitting that resolves.
+2. Authorize: `war sign --batch --ssh-sign` (every pending authorization),
+   or `war sign <alias> --ssh-sign`. Commit nothing yet if you like; the
+   records are skipped either way.
+3. Resolve: `war sign --batch --ssh-sign` again (or `war sign <alias>
+   --ssh-sign`; `--outcome …` when §38.6 forbids `satisfied`).
+4. Commit what the sitting wrote.
+
+**Why authorize and resolve cannot be one batch.** Three rules, each on
+purpose, put them in two:
+- a resolution is offered only for an authorized revision (`war sign
+  --list` shows it once the authorization is recorded, not before);
+- its §56.1 requirements are judged when it is drafted, and requirement 1
+  is the authorization it would follow;
+- a batch is one signer in one role, and authorizer and resolver are two
+  roles.
+
+So a sitting is two batches with nothing between them, not one. Each is
+two dialogs. `conformance/plants.d/55-evidence-signing.sh` runs this
+sitting end to end with a throwaway key.
+
 ## When a Warrant is amended
 
 An amendment makes a new revision, and authorizing it replaces the

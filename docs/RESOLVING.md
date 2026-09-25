@@ -244,6 +244,61 @@ admissibility. Without these exclusions, committing a receipt would move the
 tree the receipt names. `war check --generated` checks the projections
 against their sources.
 
+#### A signature does not move the tree (t-22fd)
+
+The tree rule also skips the records a human act writes. Without that, a
+signature recorded after the evidence staled every receipt of a gate with no
+`inputs`, and every Warrant needed two sittings: authorize, then — after the
+agent recorded evidence again — resolve. What is skipped, file by file:
+
+| act | records skipped |
+|---|---|
+| every signed act | `docs/authority/responses/**` (responses, `.sig`, retired copies) |
+| authorize | `<alias>/authorization.toml`, `authorization.<digest8>.toml`, `judgments.toml`, `<alias>/attestations/**` |
+| resolve | `<alias>/resolution.toml`, `<alias>/attestations/**` |
+| correct | `<alias>/corrections/**` (the corrected file's bytes stay bound) |
+| batch | `docs/authority/batches/**` |
+| invalidate | `docs/gates/invalidations/**`, `<alias>/disputes/**` |
+| standing accept or revoke | `docs/authority/standing/attestations/**` |
+| SAS or roadmap accept | `revisions/attestations/**` under the SAS and roadmap roots |
+| answer a question | `<alias>/questions/**` |
+
+What stays bound, though a human writes it: `docs/authority/roles.toml` and
+`allowed_signers` (trust roots, edited by hand), a standing class file (the
+agent's proposal), and a SAS or roadmap revision record. Accepting a revision
+changes the specification the corpus is judged against, so it is source, not
+a record about the work; a SAS acceptance still stales tree-bound receipts,
+and belongs before the evidence (`docs/SIGNING.md`, "One sitting").
+
+**Why exclude, and not ask gates to declare inputs.** The gates this
+repository cites most — `software.repo.war-check` and the battery — read the
+whole corpus, authority records included: a signature can change what `war
+check` says. Declaring that as `inputs` would bind them to every signature
+and bring the two sittings back. What such a receipt would add about
+authority records is already established elsewhere, and more strictly:
+
+- each record is verified by its own act when it is written (the signature
+  over its exact bytes, the digest it binds, the signer's role);
+- a resolution judges the records it rests on live — the authorization of
+  the exact contract (requirement 1, its signature re-verified), the
+  judgments (9), the risk acceptances (11), the resolver's role (13);
+- an invalidation stops a gate's receipts by name
+  (`evidence.gate-invalidated`), not through the tree.
+
+So the stated limit is: **a receipt of a gate that reads authority records
+says nothing about authority records written after it.** `war check` run
+now still reads every one of them.
+
+Both mechanisms remain. The exclusion narrows only the tree fallback;
+declared `inputs` are not narrowed. A gate whose verdict is about authority
+records declares them in `inputs` and is held to them. Source code is not
+touched by either: any other path that moves — a source file, an atom, a
+deliverable, a Gate Definition, `roles.toml` — stales the receipt by name,
+as before. `conformance/plants.d/55-evidence-signing.sh` shows both halves:
+a receipt recorded, an authorization signed, the receipt still admissible
+and the Warrant resolved in the same sitting; and a source byte, or
+`roles.toml`, changed after the receipt, which stales it by name.
+
 The deliverables digest is recorded and advisory. A gate is judged on what it
 declares it reads. If a gate reads files outside its declared `inputs`, it can
 keep a stale pass. The tree subject in the receipt shows that happened; it
