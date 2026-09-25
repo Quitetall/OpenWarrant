@@ -1304,7 +1304,12 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             profile,
             parent,
         } => {
-            let profile: Option<Profile> = profile.map(|p| p.parse()).transpose()?;
+            // OW-WAR-0140: a profile is a name the repository's registry
+            // resolves — the two core ones and every `profiles/<name>.toml`.
+            let repository = open_repo()?;
+            let profile: Option<Profile> = profile
+                .map(|p| repository.profiles.resolve(&p))
+                .transpose()?;
             // Without --preset the profile's preset is written, and the
             // presets are named: the `TODO` skeleton is retired. The refusal
             // OW-WAR-0113 D-031 asks for here is withheld — see its report:
@@ -1312,7 +1317,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             let (preset, defaulted) = match preset {
                 Some(p) => (p, false),
                 None => (
-                    new::default_preset(profile.unwrap_or(Profile::Delivery)).to_owned(),
+                    new::default_preset(profile.as_ref().unwrap_or(&Profile::Delivery)).to_owned(),
                     true,
                 ),
             };
@@ -1329,8 +1334,10 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 output::finish(mode, "new", &report, None);
                 return Ok(EXIT_DIAGNOSTIC);
             };
-            if let Some(p) = profile
-                && p != composes
+            // A profile that extends the preset's core profile composes from
+            // it; the namespaced roles it adds are written from its definition.
+            if let Some(p) = &profile
+                && p.core() != composes.core()
             {
                 let mut report = diagnostic::Report::default();
                 report.push(diagnostic::Diagnostic::error(
@@ -1341,14 +1348,11 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 output::finish(mode, "new", &report, None);
                 return Ok(EXIT_DIAGNOSTIC);
             }
-            let repository = open_repo()?;
-            let dir = match parent.as_deref() {
-                Some(parent) => new::run_with_parent(&repository, &title, &preset, parent)?,
-                None => new::run_preset(&repository, &title, &preset)?,
-            };
+            let profile = profile.unwrap_or(composes);
+            let dir = new::run_profile(&repository, &title, &preset, &profile, parent.as_deref())?;
             let rel = repository.relative(&dir);
             let alias = dir.file_name().unwrap_or_default().to_owned();
-            let mut data = serde_json::json!({"alias": alias, "dir": rel, "profile": composes.to_string(), "preset": preset, "presets": new::preset_names()});
+            let mut data = serde_json::json!({"alias": alias, "dir": rel, "profile": profile.to_string(), "preset": preset, "presets": new::preset_names()});
             if let Some(parent) = &parent {
                 data["parent"] = serde_json::json!(parent);
             }
