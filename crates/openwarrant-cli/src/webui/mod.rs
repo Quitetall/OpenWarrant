@@ -9,7 +9,7 @@
 //! page holds no key; nothing under `webui/` names `ssh-keygen` or the agent
 //! socket, and the battery greps for both.
 //!
-//! # Controls (loopback; LAN is roadmap OW-PHASE-9/web-lan)
+//! # Controls (loopback)
 //!
 //! - Bound to 127.0.0.1 only. The Host must be exactly the bound address and
 //!   an Origin, when present, exactly `http://<host>`.
@@ -34,10 +34,33 @@
 //!
 //! No async (OW-ADR-0014): one accept loop, and an act runs on its own thread
 //! so the loop stays responsive while the key's dialog waits for the human.
+//!
+//! # LAN (`war ui --lan`, OW-WAR-0139)
+//!
+//! Opt-in, beside the loopback page, which is unchanged and stays the only
+//! page that can start a signing act.
+//!
+//! - TLS only ([`tls`]): `--lan` refuses to start without `--cert` and
+//!   `--key` (or the labelled `--self-signed` fallback), before anything
+//!   binds. A failed handshake — plain HTTP included — gets no HTTP at all.
+//! - The Host must be exactly `<name>:<port>` (else 421) and an Origin
+//!   exactly `https://<name>:<port>`. Every response adds HSTS to the
+//!   loopback headers.
+//! - No request is trusted for its address, loopback included: every
+//!   `/api/` request needs a paired device's credential ([`pairing`]); the
+//!   loopback token means nothing here.
+//! - U-001 option A: a device's queue rows carry the verdict and the host
+//!   command and no act id; a POST naming a signing id is 403
+//!   `act.host-only` and nothing runs. A device may start an `auto` remedy
+//!   with a fresh single-use nonce, and may mark a signing act "requested
+//!   from <device>" in the host's queue — which starts nothing.
+//! - Connections are served on their own threads, at most
+//!   [`LAN_CONNECTIONS`] at once, with the loopback's size and time bounds.
 
 use std::collections::BTreeMap;
 use std::io::{Read, Write};
-use std::net::{TcpListener, TcpStream};
+use std::net::{SocketAddr, TcpListener, TcpStream};
+use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
@@ -46,6 +69,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
 use crate::repo::{RepoError, Repository};
+
+pub mod pairing;
+pub mod tls;
 
 const INDEX: &str = include_str!("assets/index.html");
 const APP_JS: &str = include_str!("assets/app.js");
@@ -71,29 +97,245 @@ pub fn run(
     actor: Option<String>,
     mode: crate::output::Mode,
 ) -> Result<u8, RepoError> {
+    run_with(root, port, page, actor, None, mode)
+}
+
+/// `war ui --lan …`: what the LAN listener needs (OW-WAR-0139).
+#[derive(Debug, Clone)]
+pub struct LanOptions {
+    /// `--lan <addr:port>`, exactly as typed.
+    pub addr: String,
+    /// `--name`: the name devices use; the address when absent.
+    pub name: Option<String>,
+    pub cert: Option<Utf8PathBuf>,
+    pub key: Option<Utf8PathBuf>,
+    /// `--self-signed`: U-002 option B, the labelled fallback.
+    pub self_signed: bool,
+    pub answer_ttl: Duration,
+    pub code_ttl: Duration,
+    pub device_ttl: Duration,
+}
+
+/// At most this many LAN connections are served at once; more are dropped.
+pub const LAN_CONNECTIONS: usize = 16;
+
+/// The header the LAN adds to every response.
+const HSTS: &str = "Strict-Transport-Security: max-age=31536000\r\n";
+
+/// The LAN listener's state.
+struct Lan {
+    /// The Host every request must name: `<name>:<port>` (`<name>` on 443).
+    host: String,
+    /// `https://<host>`.
+    origin: String,
+    tls: tls::Tls,
+    store: pairing::Store,
+    codes: pairing::Codes,
+    tty: pairing::HostTty,
+    nonces: pairing::Nonces,
+    answer_ttl: Duration,
+    device_ttl: Duration,
+    live: AtomicUsize,
+}
+
+impl Lan {
+    /// Every refusal that can be made before binding, made before binding:
+    /// no TLS material, a bad address or name, a device file under the
+    /// repository.
+    fn prepare(repo: &Repository, o: &LanOptions) -> Result<(Self, SocketAddr), RepoError> {
+        let addr: SocketAddr = o.addr.parse().map_err(|_| {
+            err(format!(
+                "ui.lan-address: `--lan {}` is not an address:port (an IP literal; 0.0.0.0 only if you mean every interface)",
+                o.addr
+            ))
+        })?;
+        let name = match &o.name {
+            Some(n) => n.clone(),
+            None => match addr.ip() {
+                std::net::IpAddr::V6(ip) => format!("[{ip}]"),
+                ip => ip.to_string(),
+            },
+        };
+        let plain = name.trim_start_matches('[').trim_end_matches(']');
+        if name.is_empty()
+            || !plain
+                .chars()
+                .all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '-' | ':'))
+        {
+            return Err(err(format!(
+                "ui.lan-name: `--name {name}` is not a host name or IP address"
+            )));
+        }
+        let tls = match (&o.cert, &o.key, o.self_signed) {
+            (Some(c), Some(k), false) => tls::Tls::operator(c, k).map_err(err)?,
+            (None, None, true) => {
+                tls::Tls::self_signed(&name, &pairing::state_dir().map_err(err)?.join("ui-tls"))
+                    .map_err(err)?
+            }
+            _ => {
+                return Err(err(
+                    "ui.lan-needs-tls: `war ui --lan` serves only TLS and did not start. Pass \
+                     --cert <pem> and --key <pem> (an operator certificate, for example from \
+                     `tailscale cert` or a local CA), or --self-signed (the fallback: every device \
+                     shows a browser warning). Nothing was bound.",
+                ));
+            }
+        };
+        let store = pairing::Store::open(&repo.root).map_err(err)?;
+        Ok((
+            Self {
+                host: name,
+                origin: String::new(),
+                tls,
+                store,
+                codes: pairing::Codes::new(o.code_ttl),
+                tty: pairing::HostTty::default(),
+                nonces: pairing::Nonces::default(),
+                answer_ttl: o.answer_ttl,
+                device_ttl: o.device_ttl,
+                live: AtomicUsize::new(0),
+            },
+            addr,
+        ))
+    }
+
+    /// A new pairing link, as text with its QR code.
+    fn pairing_link(&self) -> Result<(String, String), RepoError> {
+        let code = self.codes.fresh().map_err(err)?;
+        let url = format!(
+            "{}/#pair={code}&fp={}",
+            self.origin,
+            self.tls.fingerprint.replace(':', "")
+        );
+        let text = format!(
+            "war ui: pair a device: open this on it (single use, {} min; you confirm it here):\n  {url}\n{}",
+            self.codes.ttl().as_secs().div_ceil(60),
+            qr(&url)
+        );
+        Ok((url, text))
+    }
+}
+
+/// `text` as a QR code in half-block characters, light modules drawn, for a
+/// terminal with a dark background; empty when it cannot be encoded.
+fn qr(text: &str) -> String {
+    let Ok(q) = qrcodegen::QrCode::encode_text(text, qrcodegen::QrCodeEcc::Low) else {
+        return String::new();
+    };
+    let n = q.size();
+    let border = 2;
+    let light = |x: i32, y: i32| !q.get_module(x, y);
+    let mut out = String::new();
+    let mut y = -border;
+    while y < n + border {
+        out.push_str("  ");
+        for x in -border..n + border {
+            out.push(match (light(x, y), light(x, y + 1)) {
+                (true, true) => '█',
+                (true, false) => '▀',
+                (false, true) => '▄',
+                (false, false) => ' ',
+            });
+        }
+        out.push('\n');
+        y += 2;
+    }
+    out
+}
+
+/// `war ui [--lan …]`. Blocks until interrupted.
+pub fn run_with(
+    root: Utf8PathBuf,
+    port: u16,
+    page: &str,
+    actor: Option<String>,
+    lan: Option<LanOptions>,
+    mode: crate::output::Mode,
+) -> Result<u8, RepoError> {
     let repo = Repository::discover(Some(root))?;
+    let lan = match &lan {
+        Some(o) => Some(Lan::prepare(&repo, o)?),
+        None => None,
+    };
     let token = token()?;
     let listener = TcpListener::bind((std::net::Ipv4Addr::LOCALHOST, port)).map_err(err)?;
     listener.set_nonblocking(true).map_err(err)?;
     let host = listener.local_addr().map_err(err)?.to_string();
     let url = format!("http://{host}/#t={token}&p={page}");
-    crate::output::emit(
-        mode,
-        "ui",
-        &format!(
-            "war ui: {url}\n  this machine only; the token in the link is this session's, and a restart rotates it. Ctrl-C stops."
-        ),
-        json!({"url": url, "host": host, "loopback_only": true}),
-    );
+    let (lan, lan_listener) = match lan {
+        None => {
+            crate::output::emit(
+                mode,
+                "ui",
+                &format!(
+                    "war ui: {url}\n  this machine only; the token in the link is this session's, and a restart rotates it. Ctrl-C stops."
+                ),
+                json!({"url": url, "host": host, "loopback_only": true}),
+            );
+            (None, None)
+        }
+        Some((mut lan, addr)) => {
+            let l = TcpListener::bind(addr)
+                .map_err(|e| err(format!("ui.lan-bind: could not bind {addr}: {e}")))?;
+            let bound = l.local_addr().map_err(err)?;
+            if bound.port() != 443 {
+                lan.host = format!("{}:{}", lan.host, bound.port());
+            }
+            lan.origin = format!("https://{}", lan.host);
+            let (pair_url, pair_text) = lan.pairing_link()?;
+            crate::output::emit(
+                mode,
+                "ui",
+                &format!(
+                    "war ui: {url}\n  this machine: the only page that can sign. The token in the link is this session's, and a restart rotates it. Ctrl-C stops.\n\
+war ui --lan: {origin}/ — TLS, paired devices only (bound to {bound})\n  certificate: {label}\n  SHA-256 fingerprint: {fp}\n  \
+a paired device reads, runs automatic remedies and can ask for a signature here; it can never sign.\n{pair_text}",
+                    origin = lan.origin,
+                    label = lan.tls.source.label(),
+                    fp = lan.tls.fingerprint,
+                ),
+                json!({"url": url, "host": host, "loopback_only": false, "lan": {
+                    "url": format!("{}/", lan.origin), "bound": bound.to_string(),
+                    "certificate": lan.tls.source.label(), "fingerprint": lan.tls.fingerprint,
+                    "pairing_url": pair_url, "devices": lan.store.path.as_str(),
+                }}),
+            );
+            (Some(lan), Some(l))
+        }
+    };
     std::io::stdout().flush().map_err(err)?;
-    let state = Server {
+    let state = Arc::new(Server {
         repo,
         host,
         token,
         actor,
         cache: Mutex::new(BTreeMap::new()),
         act: Arc::new(Mutex::new(ActState::Idle)),
-    };
+        lan,
+        requests: Mutex::new(BTreeMap::new()),
+        request_gen: AtomicU64::new(0),
+    });
+    if let Some(l) = lan_listener {
+        let s = Arc::clone(&state);
+        std::thread::spawn(move || {
+            for stream in l.incoming() {
+                let Ok(stream) = stream else { continue };
+                let Some(lan) = s.lan.as_ref() else { break };
+                if lan.live.fetch_add(1, Ordering::SeqCst) >= LAN_CONNECTIONS {
+                    lan.live.fetch_sub(1, Ordering::SeqCst);
+                    drop(stream);
+                    continue;
+                }
+                let s = Arc::clone(&s);
+                std::thread::spawn(move || {
+                    s.handle_lan(stream);
+                    if let Some(lan) = s.lan.as_ref() {
+                        lan.live.fetch_sub(1, Ordering::SeqCst);
+                    }
+                });
+            }
+        });
+    }
     loop {
         match listener.accept() {
             Ok((stream, _)) => {
@@ -107,8 +349,57 @@ pub fn run(
     }
 }
 
+/// `war ui devices [--revoke <id>]`: the devices paired for this repository.
+pub fn devices(
+    root: Utf8PathBuf,
+    revoke: Option<String>,
+    mode: crate::output::Mode,
+) -> Result<u8, RepoError> {
+    let repo = Repository::discover(Some(root))?;
+    let store = pairing::Store::open(&repo.root).map_err(err)?;
+    if let Some(id) = revoke {
+        let d = store.revoke(&id).map_err(err)?;
+        crate::output::emit(
+            mode,
+            "ui",
+            &format!(
+                "war ui devices: revoked {} ({}); its next request is refused.",
+                d.id, d.address
+            ),
+            json!({"revoked": d.row(), "devices_file": store.path.as_str()}),
+        );
+        return Ok(0);
+    }
+    let list = store.list().map_err(err)?;
+    let mut text = format!("war ui devices — {} ({} paired)\n", store.path, list.len());
+    for d in &list {
+        text.push_str(&format!(
+            "  {}  {:<8} {}  paired {}  expires {}  {}\n",
+            d.id,
+            d.state(),
+            d.address,
+            d.row()["paired_at"].as_str().unwrap_or(""),
+            d.row()["expires_at"].as_str().unwrap_or(""),
+            d.user_agent
+        ));
+    }
+    if list.is_empty() {
+        text.push_str(
+            "  none — `war ui --lan <addr:port> --cert … --key …` prints a pairing link\n",
+        );
+    }
+    crate::output::emit(
+        mode,
+        "ui",
+        text.trim_end(),
+        json!({"devices": list.iter().map(pairing::Device::row).collect::<Vec<_>>(),
+               "devices_file": store.path.as_str()}),
+    );
+    Ok(0)
+}
+
 /// 32 bytes from the OS, hex.
-fn token() -> Result<String, RepoError> {
+pub(crate) fn token() -> Result<String, RepoError> {
     let mut b = [0u8; 32];
     std::fs::File::open("/dev/urandom")
         .and_then(|mut f| f.read_exact(&mut b))
@@ -117,7 +408,7 @@ fn token() -> Result<String, RepoError> {
 }
 
 /// Constant-time comparison: the token is not leaked a byte at a time.
-fn same(a: &str, b: &str) -> bool {
+pub(crate) fn same(a: &str, b: &str) -> bool {
     a.len() == b.len()
         && a.bytes()
             .zip(b.bytes())
@@ -153,6 +444,21 @@ struct Server {
     /// view name → (fingerprint, json)
     cache: Mutex<BTreeMap<String, (u64, Value)>>,
     act: Arc<Mutex<ActState>>,
+    /// `--lan`: the LAN listener's state; `None` for loopback only.
+    lan: Option<Lan>,
+    /// Signing acts a device asked for (U-001 option A): target → who asked.
+    /// Always empty without `--lan`.
+    requests: Mutex<BTreeMap<String, String>>,
+    /// Moves when a request is added, so the pages refetch.
+    request_gen: AtomicU64,
+}
+
+/// Who a request is from: the loopback page (the session token), or a
+/// paired LAN device.
+#[derive(Clone, Copy)]
+enum Session<'a> {
+    Loopback,
+    Device(&'a Lan, &'a pairing::Device),
 }
 
 /// One parsed request.
@@ -171,20 +477,59 @@ impl Request {
             .map(|(_, v)| v.as_str())
             .collect()
     }
+
+    /// The device credential cookie; `None` when absent or given twice.
+    fn device_cookie(&self) -> Option<&str> {
+        let found: Vec<&str> = self
+            .header("cookie")
+            .into_iter()
+            .flat_map(|h| h.split(';'))
+            .filter_map(|kv| kv.trim().split_once('='))
+            .filter(|(k, _)| *k == pairing::COOKIE)
+            .map(|(_, v)| v)
+            .collect();
+        match found.as_slice() {
+            [one] => Some(one),
+            _ => None,
+        }
+    }
 }
 
-fn respond(stream: &mut TcpStream, status: &str, kind: &str, body: &[u8]) -> std::io::Result<()> {
+/// Anything a response can be written to and a request read from.
+trait Io: Read + Write {}
+impl<T: Read + Write> Io for T {}
+
+/// A connection: loopback TCP, or a LAN TLS stream. `extra` is added to
+/// every response's headers — HSTS on the LAN, nothing on loopback, whose
+/// responses stay byte-for-byte what OW-WAR-0116 sent.
+struct Conn<'a> {
+    io: &'a mut dyn Io,
+    extra: &'static str,
+}
+
+fn respond(stream: &mut Conn, status: &str, kind: &str, body: &[u8]) -> std::io::Result<()> {
+    respond_with(stream, status, kind, body, "")
+}
+
+fn respond_with(
+    stream: &mut Conn,
+    status: &str,
+    kind: &str,
+    body: &[u8],
+    more: &str,
+) -> std::io::Result<()> {
     write!(
-        stream,
+        stream.io,
         "HTTP/1.1 {status}\r\nContent-Type: {kind}\r\nContent-Length: {}\r\nConnection: close\r\n\
 Cache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nReferrer-Policy: no-referrer\r\n\
-X-Frame-Options: DENY\r\nCross-Origin-Resource-Policy: same-origin\r\nContent-Security-Policy: {CSP}\r\n\r\n",
-        body.len()
+X-Frame-Options: DENY\r\nCross-Origin-Resource-Policy: same-origin\r\nContent-Security-Policy: {CSP}\r\n{}{more}\r\n",
+        body.len(),
+        stream.extra
     )?;
-    stream.write_all(body)
+    stream.io.write_all(body)
 }
 
-fn json_response(stream: &mut TcpStream, status: &str, v: &Value) -> std::io::Result<()> {
+fn json_response(stream: &mut Conn, status: &str, v: &Value) -> std::io::Result<()> {
     respond(
         stream,
         status,
@@ -193,10 +538,9 @@ fn json_response(stream: &mut TcpStream, status: &str, v: &Value) -> std::io::Re
     )
 }
 
-/// Read one request within the bounds, or say which bound it broke.
-fn read_request(stream: &mut TcpStream) -> Result<Request, (&'static str, &'static str)> {
-    let _ = stream.set_read_timeout(Some(Duration::from_secs(1)));
-    let _ = stream.set_write_timeout(Some(Duration::from_secs(2)));
+/// Read one request within the bounds, or say which bound it broke. The
+/// caller has set the socket's read timeout.
+fn read_request(stream: &mut dyn Read) -> Result<Request, (&'static str, &'static str)> {
     let deadline = Instant::now() + Duration::from_secs(2);
     let mut bytes = Vec::new();
     let mut chunk = [0u8; 1024];
@@ -267,12 +611,42 @@ struct ActBody {
     id: String,
 }
 
+/// A LAN device's act: the row id and a nonce the server issued to it.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct DeviceActBody {
+    id: String,
+    nonce: String,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct PairBody {
+    code: String,
+}
+
+/// A user agent as the host terminal shows it: printable, bounded.
+fn printable(s: &str) -> String {
+    s.chars()
+        .filter(|c| !c.is_control())
+        .take(120)
+        .collect::<String>()
+}
+
 impl Server {
-    fn handle(&self, mut stream: TcpStream) -> std::io::Result<()> {
-        let req = match read_request(&mut stream) {
+    fn handle(&self, tcp: TcpStream) -> std::io::Result<()> {
+        let mut tcp = tcp;
+        let _ = tcp.set_read_timeout(Some(Duration::from_secs(1)));
+        let _ = tcp.set_write_timeout(Some(Duration::from_secs(2)));
+        let mut stream = Conn {
+            io: &mut tcp,
+            extra: "",
+        };
+        let stream = &mut stream;
+        let req = match read_request(stream.io) {
             Ok(r) => r,
             Err((status, why)) => {
-                return respond(&mut stream, status, "text/plain", why.as_bytes());
+                return respond(stream, status, "text/plain", why.as_bytes());
             }
         };
         // The Host is exactly the bound loopback address; an Origin, when
@@ -280,37 +654,15 @@ impl Server {
         // Host; a cross-site page sends another Origin.
         let origin = format!("http://{}", self.host);
         if req.header("host") != [self.host.as_str()] {
-            return respond(&mut stream, "400 Bad Request", "text/plain", b"wrong host");
+            return respond(stream, "400 Bad Request", "text/plain", b"wrong host");
         }
         let origins = req.header("origin");
         if origins.len() > 1 || origins.iter().any(|o| *o != origin) {
-            return respond(
-                &mut stream,
-                "403 Forbidden",
-                "text/plain",
-                b"foreign origin",
-            );
+            return respond(stream, "403 Forbidden", "text/plain", b"foreign origin");
         }
         let path = req.path.split('?').next().unwrap_or("").to_owned();
         match (req.method.as_str(), path.as_str()) {
-            ("GET", "/") => respond(
-                &mut stream,
-                "200 OK",
-                "text/html; charset=utf-8",
-                INDEX.as_bytes(),
-            ),
-            ("GET", "/assets/app.js") => respond(
-                &mut stream,
-                "200 OK",
-                "text/javascript; charset=utf-8",
-                APP_JS.as_bytes(),
-            ),
-            ("GET", "/assets/app.css") => respond(
-                &mut stream,
-                "200 OK",
-                "text/css; charset=utf-8",
-                APP_CSS.as_bytes(),
-            ),
+            ("GET", "/" | "/assets/app.js" | "/assets/app.css") => asset(stream, &path),
             (_, p) if p.starts_with("/api/") => {
                 let bearer = req
                     .header("authorization")
@@ -320,17 +672,17 @@ impl Server {
                     .unwrap_or_default();
                 if !same(&bearer, &self.token) {
                     return respond(
-                        &mut stream,
+                        stream,
                         "401 Unauthorized",
                         "text/plain",
                         b"session token required",
                     );
                 }
-                self.api(&mut stream, &req, p)
+                self.api(stream, &req, p, Session::Loopback)
             }
-            ("GET", _) => respond(&mut stream, "404 Not Found", "text/plain", b"unknown route"),
+            ("GET", _) => respond(stream, "404 Not Found", "text/plain", b"unknown route"),
             _ => respond(
-                &mut stream,
+                stream,
                 "405 Method Not Allowed",
                 "text/plain",
                 b"method not allowed",
@@ -338,7 +690,265 @@ impl Server {
         }
     }
 
-    fn api(&self, stream: &mut TcpStream, req: &Request, path: &str) -> std::io::Result<()> {
+    /// One LAN connection: the TLS handshake, then one request. A failed
+    /// handshake writes nothing.
+    fn handle_lan(&self, tcp: TcpStream) {
+        let Some(lan) = self.lan.as_ref() else { return };
+        let peer = tcp
+            .peer_addr()
+            .map_or_else(|_| "unknown".to_owned(), |a| a.ip().to_string());
+        let Ok(mut tls) = lan.tls.accept(tcp) else {
+            return;
+        };
+        {
+            let mut conn = Conn {
+                io: &mut tls,
+                extra: HSTS,
+            };
+            let _ = self.serve_lan(&mut conn, lan, &peer);
+            let _ = conn.io.flush();
+        }
+        tls.conn.send_close_notify();
+        let _ = tls.flush();
+    }
+
+    fn serve_lan(&self, stream: &mut Conn, lan: &Lan, peer: &str) -> std::io::Result<()> {
+        let req = match read_request(stream.io) {
+            Ok(r) => r,
+            Err((status, why)) => {
+                return respond(stream, status, "text/plain", why.as_bytes());
+            }
+        };
+        if req.header("host") != [lan.host.as_str()] {
+            return respond(
+                stream,
+                "421 Misdirected Request",
+                "text/plain",
+                format!("ui.wrong-host: this server answers only to {}", lan.host).as_bytes(),
+            );
+        }
+        let origins = req.header("origin");
+        if origins.len() > 1 || origins.iter().any(|o| *o != lan.origin) {
+            return respond(stream, "403 Forbidden", "text/plain", b"foreign origin");
+        }
+        let path = req.path.split('?').next().unwrap_or("").to_owned();
+        match (req.method.as_str(), path.as_str()) {
+            ("GET", "/" | "/assets/app.js" | "/assets/app.css") => asset(stream, &path),
+            ("POST", "/pair") => self.pair(stream, lan, &req, peer),
+            (_, p) if p.starts_with("/api/") => {
+                // No address is trusted, loopback included, and the loopback
+                // token means nothing here: only a paired device's credential.
+                match lan.store.authenticate(req.device_cookie()) {
+                    Ok(device) => self.api(stream, &req, p, Session::Device(lan, &device)),
+                    Err(why) => respond(
+                        stream,
+                        "401 Unauthorized",
+                        "text/plain",
+                        why.message().as_bytes(),
+                    ),
+                }
+            }
+            ("GET", _) => respond(stream, "404 Not Found", "text/plain", b"unknown route"),
+            _ => respond(
+                stream,
+                "405 Method Not Allowed",
+                "text/plain",
+                b"method not allowed",
+            ),
+        }
+    }
+
+    /// POST /pair: spend the code, ask the human at the host, and issue a
+    /// credential only on a `y` typed there.
+    fn pair(&self, stream: &mut Conn, lan: &Lan, req: &Request, peer: &str) -> std::io::Result<()> {
+        if req.header("origin") != [lan.origin.as_str()] {
+            return respond(
+                stream,
+                "403 Forbidden",
+                "text/plain",
+                b"pairing needs the page's origin",
+            );
+        }
+        let Ok(body) = serde_json::from_slice::<PairBody>(&req.body) else {
+            return respond(
+                stream,
+                "400 Bad Request",
+                "text/plain",
+                b"a pairing names its code and nothing else",
+            );
+        };
+        if let Err(why) = lan.codes.take(&body.code) {
+            if why == pairing::CodeRefusal::Expired
+                && let Ok((_, text)) = lan.pairing_link()
+            {
+                eprintln!("war ui: a pairing code expired unused.\n{text}");
+            }
+            return respond(
+                stream,
+                "403 Forbidden",
+                "text/plain",
+                why.message().as_bytes(),
+            );
+        }
+        let ua = printable(
+            req.header("user-agent")
+                .first()
+                .copied()
+                .unwrap_or("no user agent"),
+        );
+        let days = lan.device_ttl.as_secs() / 86_400;
+        let ttl = if days > 0 {
+            format!("{days} day(s)")
+        } else {
+            format!("{} s", lan.device_ttl.as_secs())
+        };
+        let question = format!(
+            "\nwar ui: pair a device from {peer} ({ua})?\n  For {ttl} it could read this program, run automatic remedies and ask for a signature here. It can never sign.\n  Pair it? [y/N] ({} s) ",
+            lan.answer_ttl.as_secs()
+        );
+        let answer = lan.tty.ask(&question, lan.answer_ttl);
+        let result = match answer {
+            pairing::Answer::Yes => match lan.store.issue(peer, &ua, lan.device_ttl) {
+                Ok((device, credential)) => {
+                    eprintln!(
+                        "war ui: paired device {} from {peer}; `war ui devices --revoke {}` revokes it.",
+                        device.id, device.id
+                    );
+                    let cookie = format!(
+                        "Set-Cookie: {}={credential}; Secure; HttpOnly; SameSite=Strict; Path=/; Max-Age={}\r\n",
+                        pairing::COOKIE,
+                        lan.device_ttl.as_secs()
+                    );
+                    let body = json!({
+                        "paired": true, "device": device.id,
+                        "expires_at": device.row()["expires_at"],
+                    });
+                    respond_with(
+                        stream,
+                        "200 OK",
+                        "application/json",
+                        &serde_json::to_vec(&body).unwrap_or_default(),
+                        &cookie,
+                    )
+                }
+                Err(e) => json_response(stream, "500 Internal Server Error", &json!({"error": e})),
+            },
+            pairing::Answer::No => respond(
+                stream,
+                "403 Forbidden",
+                "text/plain",
+                b"pair.declined: the host's human answered no; no credential was issued",
+            ),
+            pairing::Answer::TimedOut => respond(
+                stream,
+                "403 Forbidden",
+                "text/plain",
+                b"pair.timed-out: nobody answered at the host in time; no credential was issued",
+            ),
+            pairing::Answer::NoTty => respond(
+                stream,
+                "403 Forbidden",
+                "text/plain",
+                b"pair.no-tty: the server has no terminal to ask; a pairing is confirmed only by a human at the host's terminal, so none was issued",
+            ),
+        };
+        let refused = match answer {
+            pairing::Answer::Yes => None,
+            pairing::Answer::No => Some("pair.declined"),
+            pairing::Answer::TimedOut => Some("pair.timed-out"),
+            pairing::Answer::NoTty => Some("pair.no-tty"),
+        };
+        if let Some(rule) = refused {
+            eprintln!("war ui: not paired, {peer}: {rule}; no credential was issued.");
+        }
+        if let Ok((_, text)) = lan.pairing_link() {
+            eprintln!("{text}");
+        }
+        result
+    }
+
+    fn api(
+        &self,
+        stream: &mut Conn,
+        req: &Request,
+        path: &str,
+        session: Session,
+    ) -> std::io::Result<()> {
+        if let Session::Device(lan, device) = session {
+            match (req.method.as_str(), path) {
+                ("GET", "/api/nonce") => {
+                    return match lan.nonces.issue(&device.id) {
+                        Ok(n) => json_response(stream, "200 OK", &json!({"nonce": n})),
+                        Err(e) => {
+                            json_response(stream, "500 Internal Server Error", &json!({"error": e}))
+                        }
+                    };
+                }
+                ("POST", "/api/act" | "/api/request") => {
+                    if req.header("origin").is_empty() {
+                        return respond(
+                            stream,
+                            "403 Forbidden",
+                            "text/plain",
+                            b"an act needs the page's origin",
+                        );
+                    }
+                    let Ok(body) = serde_json::from_slice::<DeviceActBody>(&req.body) else {
+                        return respond(
+                            stream,
+                            "400 Bad Request",
+                            "text/plain",
+                            b"a device's act names one row id and its nonce, and nothing else",
+                        );
+                    };
+                    if let Err(why) = lan.nonces.spend(&device.id, &body.nonce) {
+                        eprintln!(
+                            "war ui: refused {} from {}: {}",
+                            body.id,
+                            device.label(),
+                            why.message()
+                        );
+                        return respond(
+                            stream,
+                            why.status(),
+                            "text/plain",
+                            why.message().as_bytes(),
+                        );
+                    }
+                    return if path == "/api/request" {
+                        self.request_at_host(stream, &body.id, device)
+                    } else {
+                        self.start_act(stream, &body.id, Some(device))
+                    };
+                }
+                ("GET", "/api/version") => {
+                    return json_response(
+                        stream,
+                        "200 OK",
+                        &json!({
+                            "version": format!("{:016x}", self.fingerprint() ^ self.request_gen.load(Ordering::SeqCst)),
+                            "program": self.repo.config.project.name,
+                            "root": self.repo.root.as_str(),
+                            "war": env!("CARGO_PKG_VERSION"),
+                            "lan": true,
+                            "device": device.id,
+                        }),
+                    );
+                }
+                ("GET", "/api/queue") => {
+                    return match self.view("queue") {
+                        Ok(Some(v)) => json_response(stream, "200 OK", &self.device_queue(v)),
+                        Ok(None) => respond(stream, "404 Not Found", "text/plain", b"unknown view"),
+                        Err(e) => json_response(
+                            stream,
+                            "500 Internal Server Error",
+                            &json!({"error": e.to_string()}),
+                        ),
+                    };
+                }
+                _ => {}
+            }
+        }
         match (req.method.as_str(), path) {
             ("POST", "/api/act") => {
                 // An act needs the page's Origin, not merely no foreign one:
@@ -362,7 +972,7 @@ impl Server {
                         );
                     }
                 };
-                self.start_act(stream, &body.id)
+                self.start_act(stream, &body.id, None)
             }
             (_, "/api/act") if req.method != "GET" => respond(
                 stream,
@@ -396,7 +1006,7 @@ impl Server {
                 stream,
                 "200 OK",
                 &json!({
-                    "version": format!("{:016x}", self.fingerprint()),
+                    "version": format!("{:016x}", self.fingerprint() ^ self.request_gen.load(Ordering::SeqCst)),
                     "program": self.repo.config.project.name,
                     "root": self.repo.root.as_str(),
                     "war": env!("CARGO_PKG_VERSION"),
@@ -423,6 +1033,9 @@ impl Server {
             ("GET", view) => {
                 let name = view.trim_start_matches("/api/");
                 match self.view(name) {
+                    Ok(Some(v)) if name == "queue" => {
+                        json_response(stream, "200 OK", &self.with_requests(v))
+                    }
                     Ok(Some(v)) => json_response(stream, "200 OK", &v),
                     Ok(None) => respond(stream, "404 Not Found", "text/plain", b"unknown view"),
                     Err(e) => json_response(
@@ -439,6 +1052,97 @@ impl Server {
                 b"method not allowed",
             ),
         }
+    }
+
+    /// The loopback queue, with "requested from <device>" beside any act a
+    /// device asked for. Unchanged when nothing was asked — always, without
+    /// `--lan`.
+    fn with_requests(&self, mut v: Value) -> Value {
+        let Ok(requests) = self.requests.lock() else {
+            return v;
+        };
+        if requests.is_empty() {
+            return v;
+        }
+        for a in v["acts"].as_array_mut().into_iter().flatten() {
+            if let Some(who) = a["target"].as_str().and_then(|t| requests.get(t)) {
+                a["requested_from"] = json!(who);
+            }
+        }
+        v
+    }
+
+    /// The queue as a LAN device sees it (U-001 option A): each act's
+    /// verdict and the command to run at the host, no act id anywhere, and
+    /// a request id that can only mark the act requested.
+    fn device_queue(&self, v: Value) -> Value {
+        let mut v = self.with_requests(v);
+        for a in v["acts"].as_array_mut().into_iter().flatten() {
+            if let Some(o) = a.as_object_mut() {
+                o.remove("act_id");
+                o.insert("host_only".to_owned(), json!(true));
+                if let Some(t) = o.get("target").and_then(Value::as_str) {
+                    let id = act_id("request", t);
+                    o.insert("request_id".to_owned(), json!(id));
+                }
+            }
+            for c in a
+                .get_mut("choices")
+                .and_then(Value::as_array_mut)
+                .into_iter()
+                .flatten()
+            {
+                if let Some(o) = c.as_object_mut() {
+                    o.remove("act_id");
+                }
+            }
+        }
+        if let Some(b) = v["batch"].as_object_mut() {
+            b.remove("act_id");
+            b.insert("host_only".to_owned(), json!(true));
+        }
+        v
+    }
+
+    /// POST /api/request from a device: mark one signing act "requested
+    /// from <device>" in the host's queue. Nothing starts.
+    fn request_at_host(
+        &self,
+        stream: &mut Conn,
+        id: &str,
+        device: &pairing::Device,
+    ) -> std::io::Result<()> {
+        let queue = match self.view("queue") {
+            Ok(Some(q)) => q,
+            _ => return respond(stream, "404 Not Found", "text/plain", b"no queue"),
+        };
+        let Some(act) = queue["acts"].as_array().into_iter().flatten().find(|a| {
+            a["target"]
+                .as_str()
+                .is_some_and(|t| act_id("request", t) == id)
+        }) else {
+            return respond(
+                stream,
+                "404 Not Found",
+                "text/plain",
+                b"no act in the queue has this request id",
+            );
+        };
+        let target = act["target"].as_str().unwrap_or_default().to_owned();
+        let command = act["command"].as_str().unwrap_or_default().to_owned();
+        if let Ok(mut r) = self.requests.lock() {
+            r.insert(target.clone(), device.label());
+        }
+        self.request_gen.fetch_add(1, Ordering::SeqCst);
+        eprintln!(
+            "war ui: {} asks for a signature: `{command}` — sign it at this machine; no device can.",
+            device.label()
+        );
+        json_response(
+            stream,
+            "200 OK",
+            &json!({"requested": target, "command": command, "from": device.label()}),
+        )
     }
 
     /// The records' fingerprint: `war watch`'s trees plus the roadmap.
@@ -498,7 +1202,15 @@ impl Server {
     }
 
     /// Start one allowlisted act on its own thread.
-    fn start_act(&self, stream: &mut TcpStream, id: &str) -> std::io::Result<()> {
+    ///
+    /// From a LAN device (`from`), a signing act is refused `act.host-only`
+    /// before anything runs (U-001 option A): only an `auto` remedy starts.
+    fn start_act(
+        &self,
+        stream: &mut Conn,
+        id: &str,
+        from: Option<&pairing::Device>,
+    ) -> std::io::Result<()> {
         let allow = match self.allowlist() {
             Ok(a) => a,
             Err(e) => {
@@ -517,6 +1229,20 @@ impl Server {
                 b"not an act this page may start",
             );
         };
+        if let Some(device) = from
+            && argv.first().is_some_and(|verb| verb == "sign")
+        {
+            eprintln!(
+                "war ui: refused act.host-only from {}: {id} is a signing act; nothing ran",
+                device.label()
+            );
+            return respond(
+                stream,
+                "403 Forbidden",
+                "text/plain",
+                b"act.host-only: a signing act starts only at the host; this device can ask for it, never start it. Nothing ran.",
+            );
+        }
         {
             let mut g = match self.act.lock() {
                 Ok(g) => g,
@@ -544,11 +1270,19 @@ impl Server {
                 started: Some(Instant::now()),
             };
         }
-        eprintln!(
-            "war ui: act {id}: war --root {} {}",
-            self.repo.root,
-            argv.join(" ")
-        );
+        match from {
+            None => eprintln!(
+                "war ui: act {id}: war --root {} {}",
+                self.repo.root,
+                argv.join(" ")
+            ),
+            Some(device) => eprintln!(
+                "war ui: act {id}: war --root {} {} — from {}",
+                self.repo.root,
+                argv.join(" "),
+                device.label()
+            ),
+        }
         let state = Arc::clone(&self.act);
         let root = self.repo.root.clone();
         let id = id.to_owned();
@@ -712,6 +1446,30 @@ impl Server {
             }
         }
         Ok(out)
+    }
+}
+
+/// The page's three assets; nothing else is served from the binary.
+fn asset(stream: &mut Conn, path: &str) -> std::io::Result<()> {
+    match path {
+        "/" => respond(
+            stream,
+            "200 OK",
+            "text/html; charset=utf-8",
+            INDEX.as_bytes(),
+        ),
+        "/assets/app.js" => respond(
+            stream,
+            "200 OK",
+            "text/javascript; charset=utf-8",
+            APP_JS.as_bytes(),
+        ),
+        _ => respond(
+            stream,
+            "200 OK",
+            "text/css; charset=utf-8",
+            APP_CSS.as_bytes(),
+        ),
     }
 }
 

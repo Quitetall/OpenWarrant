@@ -139,6 +139,17 @@ enum EvidenceCommand {
 }
 
 #[derive(clap::Subcommand, Debug)]
+enum UiCommand {
+    /// The devices paired with `war ui --lan` for this repository, from the
+    /// per-user device file (never a record).
+    Devices {
+        /// Revoke one device by id; its next request is refused.
+        #[arg(long)]
+        revoke: Option<String>,
+    },
+}
+
+#[derive(clap::Subcommand, Debug)]
 enum RoadmapCommand {
     /// Write the roadmap ref on an UNSIGNED Warrant. A signed one is refused
     /// by name: its ref is inside the contract digest.
@@ -356,7 +367,14 @@ enum Command {
     /// 127.0.0.1 with a per-session token (OW-WAR-0116). A button starts
     /// only `war sign <target> --ssh-sign` or an automatic remedy; your key's
     /// dialog is the signature.
+    ///
+    /// `--lan <addr:port>` also serves paired devices on the LAN, TLS only
+    /// (OW-WAR-0139): a device reads, runs automatic remedies and can ask for
+    /// a signature at this machine; it can never sign. `war ui devices`
+    /// lists and revokes them.
     Ui {
+        #[command(subcommand)]
+        command: Option<UiCommand>,
         /// Local port; 0 picks a free one.
         #[arg(long, default_value_t = 8765)]
         port: u16,
@@ -366,6 +384,34 @@ enum Command {
         /// Who signs, when roles.toml names more than one eligible signer.
         #[arg(long = "as")]
         actor: Option<String>,
+        /// Also serve paired devices at this address:port, TLS only. Nothing
+        /// is bound beyond loopback unless you type it (0.0.0.0 included).
+        #[arg(long, value_name = "ADDR:PORT")]
+        lan: Option<String>,
+        /// The name devices reach this host by; the Host must be exactly
+        /// <name>:<port>. Defaults to the --lan address.
+        #[arg(long, requires = "lan")]
+        name: Option<String>,
+        /// The TLS certificate chain (PEM), e.g. from `tailscale cert`.
+        #[arg(long, requires = "lan", value_name = "PEM")]
+        cert: Option<Utf8PathBuf>,
+        /// The certificate's private key (PEM).
+        #[arg(long, requires = "lan", value_name = "PEM")]
+        key: Option<Utf8PathBuf>,
+        /// Fallback: a self-signed certificate kept in the per-user state
+        /// directory. Every device shows a browser warning; compare the
+        /// fingerprint the host prints.
+        #[arg(long, requires = "lan", conflicts_with_all = ["cert", "key"])]
+        self_signed: bool,
+        /// Seconds the host's human has to answer a pairing. Hidden; the battery's.
+        #[arg(long, hide = true)]
+        pair_answer_secs: Option<u64>,
+        /// Seconds a pairing code lives. Hidden; the battery's.
+        #[arg(long, hide = true)]
+        pair_code_secs: Option<u64>,
+        /// Seconds a device credential lives. Hidden; the battery's.
+        #[arg(long, hide = true)]
+        device_secs: Option<u64>,
     },
     /// The repositories this user works in, remembered on use (OW-WAR-0115):
     /// the list `war` opens from anywhere. Each row is read from that
@@ -2073,9 +2119,45 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 Some(serde_json::json!({ "projects": rows })),
             ))
         }
-        Command::Ui { port, page, actor } => {
+        Command::Ui {
+            command,
+            port,
+            page,
+            actor,
+            lan,
+            name,
+            cert,
+            key,
+            self_signed,
+            pair_answer_secs,
+            pair_code_secs,
+            device_secs,
+        } => {
             let repository = open_repo()?;
-            Ok(webui::run(repository.root, port, &page, actor, mode)?)
+            if let Some(UiCommand::Devices { revoke }) = command {
+                return Ok(webui::devices(repository.root, revoke, mode)?);
+            }
+            let secs = |v: Option<u64>, d: std::time::Duration| {
+                v.map_or(d, std::time::Duration::from_secs)
+            };
+            let lan = lan.map(|addr| webui::LanOptions {
+                addr,
+                name,
+                cert,
+                key,
+                self_signed,
+                answer_ttl: secs(pair_answer_secs, webui::pairing::ANSWER_TTL),
+                code_ttl: secs(pair_code_secs, webui::pairing::CODE_TTL),
+                device_ttl: secs(device_secs, webui::pairing::DEVICE_TTL),
+            });
+            Ok(webui::run_with(
+                repository.root,
+                port,
+                &page,
+                actor,
+                lan,
+                mode,
+            )?)
         }
         Command::Roadmap { command } => {
             let repository = open_repo()?;
