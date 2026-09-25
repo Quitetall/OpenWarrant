@@ -259,7 +259,8 @@ does not prevent it.
 A stale or unknown run is a true record. It is not a failure, and it is not
 evidence about the source as it stands now (Law 15). The fix for either is
 `war evidence record <alias>`. The reuse rule never makes a `reuse-unknown`
-receipt count.
+receipt count. `war status` labels the two apart as well: a moved subject is
+`stale_binding`, a reuse-unknown run is `reuse_unknown`.
 
 A **resolved** Warrant is not re-evaluated. Its receipts are history, and its
 resolution still binds them (RQ-059). `war check` reports them as admissible
@@ -285,12 +286,14 @@ rewritten.
   that. The stage selector never includes one path whole twice, so today this
   refusal guards other callers of the compiler, not `war dispatch`.
 
-  Known gap: the manifest written by `war dispatch --emit-context` still reads
-  `conflicts: []`, with nothing to say whether a check ran. That manifest is
-  built in `crates/openwarrant-cli/src/dispatch.rs`, and its type lives in
-  `crates/openwarrant-core/src/context.rs`. OW-WAR-0133 declared neither file,
-  so it could not change that field to `unchecked`. Treat `conflicts: []` as
-  unchecked. It is not a finding that no conflict exists.
+  The manifest `war dispatch --emit-context` writes says what its conflict
+  fields are a record of (AM-002). Beside `conflicts` it carries
+  `conflict_check`: `checked` names `same-source-two-versions`, `found` lists
+  what that check found (a path and its versions), and `unchecked` names
+  semantic disagreement between different sources as not checked. An empty
+  `found` means that one check ran and found nothing. It says nothing about
+  the unchecked kind. A manifest with no `conflict_check` was compiled before
+  it existed, and its `conflicts: []` is unchecked, not clean.
 
 ## Step 5 — correcting a delivered artifact after resolution
 

@@ -1132,25 +1132,7 @@ fn gate_run_views(
     evidence
         .iter()
         .map(|e| {
-            let (class, why) = match crate::evidence::admissibility(e, contract_digest) {
-                Ok(()) => ("admissible".to_owned(), None),
-                Err(why) => {
-                    let stale = e.receipt.as_ref().is_some_and(|r| {
-                        crate::evidence::receipt_digest_recomputes(r)
-                            && r.verdict == e.run.verdict
-                            && r.validate().is_ok()
-                            && e.run.satisfies_required_pass()
-                    });
-                    let class = if stale {
-                        "stale_binding"
-                    } else if e.run.satisfies_required_pass() {
-                        "receipt_invalid"
-                    } else {
-                        "inadmissible"
-                    };
-                    (class.to_owned(), Some(why))
-                }
-            };
+            let (class, why) = run_class(e, contract_digest);
             openwarrant_core::status::GateRunView {
                 gate: e.run.gate.clone(),
                 run_id: e.run.id.clone(),
@@ -1161,6 +1143,47 @@ fn gate_run_views(
             }
         })
         .collect()
+}
+
+/// How one recorded run is labelled in status: `admissible`, `reuse_unknown`
+/// (OW-WAR-0133: sealed and bound to this contract, and its source cannot be
+/// shown to hold — Law 15, neither pass nor failure), `stale_binding` (bound
+/// to an earlier contract or source), `receipt_invalid`, or `inadmissible`.
+///
+/// A reuse-unknown run is not a stale one: `war check` gives it its own rule
+/// (`evidence.reuse-unknown`), and status says the same thing.
+pub(crate) fn run_class(
+    e: &crate::evidence::GateEvidence,
+    contract_digest: Option<&str>,
+) -> (String, Option<String>) {
+    let standing = crate::evidence::standing(e, contract_digest);
+    let class = match &standing {
+        crate::evidence::Standing::Admissible => return ("admissible".to_owned(), None),
+        crate::evidence::Standing::ReuseUnknown(_) => "reuse_unknown",
+        _ => {
+            let stale = e.receipt.as_ref().is_some_and(|r| {
+                crate::evidence::receipt_digest_recomputes(r)
+                    && r.verdict == e.run.verdict
+                    && r.validate().is_ok()
+                    && e.run.satisfies_required_pass()
+            });
+            if stale {
+                "stale_binding"
+            } else if e.run.satisfies_required_pass() {
+                "receipt_invalid"
+            } else {
+                "inadmissible"
+            }
+        }
+    };
+    let why = match standing {
+        crate::evidence::Standing::Admissible => None,
+        crate::evidence::Standing::Stale(w)
+        | crate::evidence::Standing::ReuseUnknown(w)
+        | crate::evidence::Standing::ReceiptInvalid(w)
+        | crate::evidence::Standing::NotAPass(w) => Some(w),
+    };
+    (class.to_owned(), why)
 }
 
 fn unknown_views(

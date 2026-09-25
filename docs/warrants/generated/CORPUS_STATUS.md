@@ -66,7 +66,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | requirement | Warrants blocked |
 |---|---|
 | every required gate has admissible result | 113 |
-| artifact digests verify | 88 |
+| artifact digests verify | 89 |
 | no blocker remains | 85 |
 | no required unknown remains | 85 |
 | every required obligation is dispositioned | 83 |
@@ -160,7 +160,7 @@ Every §106 requirement is named by at least one Warrant.
 | `OW-WAR-0009` Implement contract revisions and their immutability | resolved | would satisfy | 0 | 4 of 4 | — |
 | `OW-WAR-0010` Implement the autonomy envelope and amendment records | resolved | would satisfy | 0 | 3 of 3 | — |
 | `OW-WAR-0011` Implement prerequisites and Preflight | draft | NOT satisfied | 0 | 2 of 3 | every required gate has admissible result |
-| `OW-WAR-0012` Implement the context model, context manifest, and trust classes | resolved | would satisfy | 0 | 3 of 3 | — |
+| `OW-WAR-0012` Implement the context model, context manifest, and trust classes | resolved | would satisfy | 0 | 3 of 3 | artifact digests verify |
 | `OW-WAR-0013` Validate SAS and Roadmap traceability | draft | NOT satisfied | 0 | 2 of 3 | every required gate has admissible result |
 | `OW-WAR-0014` Implement the rationale model, assumptions, and unknowns | resolved | would satisfy | 0 | 2 of 2 | — |
 | `OW-WAR-0015` Implement deliverables, artifacts, and artifact provenance | resolved | would satisfy | 0 | 2 of 2 | — |

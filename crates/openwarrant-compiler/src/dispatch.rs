@@ -187,42 +187,19 @@ pub struct DispatchInputs<'a> {
 /// §33.4, the one mechanical conflict kind (Q-002 (c), OW-WAR-0133): a
 /// source path included WHOLE at two different digests or revisions.
 ///
-/// Keyed on the holder's kind and path. Items that carry section selectors
-/// are selections of a file, not versions of it, and never conflict; an
-/// external reference carries no digest to disagree with. Semantic conflict
-/// between two different sources ("these atoms disagree") is not detected:
-/// no mechanical rule exists for it, and none is invented here.
+/// The detection is [`ContextManifest::source_versions`], so the manifest's
+/// own `conflict_check.found` and this refusal are one rule. Recomputed from
+/// `included` here rather than read from `conflict_check`: a caller that left
+/// the record empty does not thereby get a packet past it.
 ///
 /// # Errors
 ///
 /// [`DispatchError::SourceConflict`] for the first conflicting path, sorted.
 pub fn source_conflicts(context: &ContextManifest) -> Result<(), DispatchError> {
-    use std::collections::{BTreeMap, BTreeSet};
-    let mut versions: BTreeMap<(&str, &str), BTreeSet<String>> = BTreeMap::new();
-    for item in &context.included {
-        if item.holder.kind == "external"
-            || item.holder.path.trim().is_empty()
-            || !item.selector_sections.is_empty()
-        {
-            continue;
-        }
-        versions
-            .entry((item.holder.kind.as_str(), item.holder.path.as_str()))
-            .or_default()
-            .insert(format!(
-                "{}:{}",
-                if item.holder.commit_sha.is_empty() {
-                    "(floating)"
-                } else {
-                    item.holder.commit_sha.as_str()
-                },
-                item.content_digest
-            ));
-    }
-    match versions.into_iter().find(|(_, v)| v.len() > 1) {
-        Some(((_, path), v)) => Err(DispatchError::SourceConflict {
-            path: path.to_owned(),
-            versions: v.into_iter().collect(),
+    match context.source_versions().into_iter().next() {
+        Some(found) => Err(DispatchError::SourceConflict {
+            path: found.path,
+            versions: found.versions,
         }),
         None => Ok(()),
     }
@@ -594,6 +571,7 @@ stages:
             }],
             unresolved: vec![],
             conflicts: vec![],
+            conflict_check: openwarrant_core::context::ConflictCheck::default(),
             effective_classification: "internal".to_owned(),
             policy_digest: String::new(),
             compiler_digest: "test".to_owned(),

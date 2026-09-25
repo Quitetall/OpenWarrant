@@ -24,7 +24,7 @@ use std::process::Command;
 use camino::Utf8Path;
 use openwarrant_compiler::dispatch::TokenInputs;
 use openwarrant_compiler::{DispatchError, DispatchInputs, compile_dispatch, dispatch_json, lower};
-use openwarrant_core::context::ContextManifest;
+use openwarrant_core::context::{ConflictCheck, ContextManifest};
 use openwarrant_core::execution::{
     Attempt, AttemptKind, CapabilityAuthorization, ResourceEnvelope,
 };
@@ -204,17 +204,23 @@ pub fn run(
         .budget_tokens
         .unwrap_or_else(|| repo.config.context.budget());
     let (included, omitted, item_bytes) = (selection.included, selection.omitted, selection.bytes);
-    let context = ContextManifest {
+    let mut context = ContextManifest {
         workspace_basis_ref: format!("basis://{}", basis.manifest_source),
         workspace_basis_digest: ir.integrity.workspace_basis_digest.clone(),
         included,
         omitted,
         unresolved: vec![],
         conflicts: vec![],
+        conflict_check: ConflictCheck::default(),
         effective_classification: "internal".to_owned(),
         policy_digest: String::new(),
         compiler_digest: format!("openwarrant-cli/{}", env!("CARGO_PKG_VERSION")),
     };
+    // §33.4, OW-WAR-0133 OBL-004: `conflicts: []` alone would claim a list
+    // nobody checked. The record says which kind was checked (one source at
+    // two versions), which was not (semantic disagreement), and what the
+    // check found; a finding is then refused by the compiler, by name.
+    context.conflict_check = ConflictCheck::of(&context);
     if commit.is_none() {
         report.push(Diagnostic::warn(
             "dispatch.floating-holder",
@@ -281,6 +287,19 @@ pub fn run(
                 format!(
                     "{alias}/{stage_id}: {e}. Narrow the stage's context_sections, or raise \
                      budget_tokens on the stage with a reason"
+                ),
+            ));
+            return Ok(report);
+        }
+        // One source at two versions: a refusal naming both, like the budget
+        // (§33.4). Nothing written, nothing journalled.
+        Err(e @ DispatchError::SourceConflict { .. }) => {
+            report.push(Diagnostic::error(
+                "dispatch.source-conflict",
+                repo.relative(&dir.join("atoms/45-milestones.yaml")),
+                format!(
+                    "{alias}/{stage_id}: {e}. Include the source once, at the revision the \
+                     stage binds to"
                 ),
             ));
             return Ok(report);
