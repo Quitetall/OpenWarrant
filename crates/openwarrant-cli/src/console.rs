@@ -91,6 +91,7 @@ pub fn act_of(p: &Pending) -> &'static str {
         Pending::Resolve { .. } => "resolve",
         Pending::Accept { .. } | Pending::AcceptRoadmap { .. } => "accept",
         Pending::Correct { .. } => "correct",
+        Pending::Invalidate { .. } => "invalidate",
     }
 }
 
@@ -105,6 +106,7 @@ pub fn target_of(p: &Pending) -> String {
             deliverable_id,
             ..
         } => format!("{alias}/{deliverable_id}"),
+        Pending::Invalidate { gate, .. } => gate.clone(),
     }
 }
 

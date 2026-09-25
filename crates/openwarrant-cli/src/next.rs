@@ -153,6 +153,15 @@ pub fn derive(pending: &[Pending], status: &openwarrant_core::status::CorpusStat
                 format!("{alias}/{deliverable_id}"),
                 format!("{} drifted after resolution", request.target_ref),
             ),
+            Pending::Invalidate { gate, request } => (
+                gate.clone(),
+                "invalidate",
+                gate.clone(),
+                format!(
+                    "invalidating {gate} would dispute {} resolution(s)",
+                    request.disputes.len()
+                ),
+            ),
         };
         actions.push(Action {
             actor: Actor::Human,
@@ -395,6 +404,7 @@ fn target_of(p: &Pending) -> String {
             deliverable_id,
             ..
         } => format!("{alias}/{deliverable_id}"),
+        Pending::Invalidate { gate, .. } => gate.clone(),
     }
 }
 

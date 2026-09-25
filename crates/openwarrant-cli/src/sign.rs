@@ -136,6 +136,14 @@ pub enum Pending {
         /// and the kind come from it and `--kind` is not asked for again.
         recorded: Option<RecordedCorrection>,
     },
+    /// OW-WAR-0136 Q-001 (a) — a Gate Definition version invalidated. Never
+    /// found by [`pending`]: nothing in the records asks for it. It exists when
+    /// a human names the gate and the grounds (`war sign <gate>@<version>
+    /// --grounds …`).
+    Invalidate {
+        gate: String,
+        request: crate::invalidation::InvalidationRequest,
+    },
 }
 
 /// The outcome an existing resolution recorded, so a signature supplied for it
@@ -644,6 +652,7 @@ pub fn list_json(list: &[Pending], actor: Option<&str>) -> serde_json::Value {
                     deliverable_id,
                     ..
                 } => (format!("{alias}/{deliverable_id}"), "correct"),
+                Pending::Invalidate { gate, .. } => (gate.clone(), "invalidate"),
             };
             let (assigned, blocked_by) = match p {
                 Pending::Resolve {
@@ -809,6 +818,10 @@ fn line_of(p: &Pending) -> String {
         } => format!(
             "{alias}/{deliverable_id}  correct  {} drifted (correction {})  {}",
             request.target_ref, request.next_sequence, request.title
+        ),
+        Pending::Invalidate { gate, request } => format!(
+            "{gate}  invalidate  would dispute {} resolution(s)",
+            request.disputes.len()
         ),
     }
 }
@@ -1004,6 +1017,34 @@ fn screen(p: &Pending, actor: &str, role: &str, reason: Option<&str>) -> String 
             }
             s.push_str(
                 "│ the pin in deliverables.toml is not edited; the superseded digest stays on record\n",
+            );
+        }
+        Pending::Invalidate { gate, request } => {
+            s.push_str(&format!(
+                "┌ {gate} · invalidate · {}\n│ definition {}  ·  {}\n",
+                request.lifecycle, request.definition_file, request.definition_digest
+            ));
+            for (i, line) in wrap(&request.grounds, 72).into_iter().enumerate() {
+                s.push_str(&format!(
+                    "│ {}{line}\n",
+                    if i == 0 { "grounds: " } else { "         " }
+                ));
+            }
+            s.push_str(&format!(
+                "│ disputes {} resolution(s), leaves {} standing\n",
+                request.disputes.len(),
+                request.unaffected.len()
+            ));
+            for d in &request.disputes {
+                s.push_str(&format!(
+                    "│   {}  resolved by {}  via {}\n",
+                    d.warrant,
+                    d.resolved_by,
+                    d.via.join("; ")
+                ));
+            }
+            s.push_str(
+                "│ no resolution.toml and not the definition file is edited; standing is read from the disputes\n",
             );
         }
     }
@@ -1332,6 +1373,35 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
                 signed_via: Some(opts.channel().to_owned()),
             }))
         }
+        Pending::Invalidate { gate, request } => {
+            // The grounds are the signer's words, never drafted: they are the
+            // whole of what an invalidation says, and every dispute repeats them.
+            if request.grounds.trim().is_empty() {
+                return Err(format!("{gate}: an invalidation needs --grounds <text>"));
+            }
+            Ok(Drafted::Invalidate(
+                crate::invalidation::InvalidationResponse {
+                    schema: crate::invalidation::RESPONSE_SCHEMA.to_owned(),
+                    gate: gate.clone(),
+                    definition_digest: request.definition_digest.clone(),
+                    grounds: request.grounds.clone(),
+                    disputes: request.disputes.iter().map(|d| d.warrant.clone()).collect(),
+                    invalidated_by: actor.to_owned(),
+                    acting_role: "resolver".to_owned(),
+                    meaning: format!(
+                        "Invalidating Gate Definition {gate} at this digest means the signer \
+                         judges it unsound for the grounds given, and disputes the {} \
+                         resolution(s) named here, which rest on it directly or through a \
+                         parent (§45). No resolution, receipt or definition is edited; each \
+                         dispute stays open until it is resolved or the resolution annulled. {}",
+                        request.disputes.len(),
+                        provenance()
+                    ),
+                    effective_time: now.to_owned(),
+                    signed_via: Some(opts.channel().to_owned()),
+                },
+            ))
+        }
     }
 }
 
@@ -1343,6 +1413,7 @@ pub enum Drafted {
     Accept(AcceptResponse),
     Correct(crate::correct::CorrectionResponse),
     AcceptRoadmap(crate::roadmap_cmd::AcceptResponse),
+    Invalidate(crate::invalidation::InvalidationResponse),
 }
 
 impl Drafted {
@@ -1353,6 +1424,7 @@ impl Drafted {
             Self::Accept(r) => toml::to_string_pretty(r),
             Self::AcceptRoadmap(r) => toml::to_string_pretty(r),
             Self::Correct(r) => toml::to_string_pretty(r),
+            Self::Invalidate(r) => toml::to_string_pretty(r),
         };
         r.map_err(|e| RepoError::Message(format!("could not render the response: {e}")))
     }
@@ -1379,6 +1451,10 @@ impl Drafted {
                 crate::authority_check::Act::AcceptRoadmap,
                 &crate::roadmap_cmd::subject(r.revision),
             ),
+            Self::Invalidate(r) => crate::authority_check::response_stem(
+                crate::authority_check::Act::Invalidate,
+                &r.gate,
+            ),
         }
     }
 
@@ -1391,6 +1467,7 @@ impl Drafted {
             Self::Accept(r) => &r.sha256,
             Self::AcceptRoadmap(r) => &r.sha256,
             Self::Correct(r) => &r.new_digest,
+            Self::Invalidate(r) => &r.definition_digest,
         }
     }
 }
@@ -1437,6 +1514,7 @@ pub(crate) fn eligible(p: &Pending) -> &[String] {
         Pending::Accept { request, .. } => &request.eligible_acceptors,
         Pending::AcceptRoadmap { request, .. } => &request.eligible_acceptors,
         Pending::Correct { request, .. } => &request.eligible_correctors,
+        Pending::Invalidate { request, .. } => &request.eligible_invalidators,
     }
 }
 
@@ -1446,7 +1524,7 @@ pub(crate) fn role(p: &Pending) -> &'static str {
         | Pending::Accept { .. }
         | Pending::AcceptRoadmap { .. }
         | Pending::Correct { .. } => "authorizer",
-        Pending::Resolve { .. } => "resolver",
+        Pending::Resolve { .. } | Pending::Invalidate { .. } => "resolver",
     }
 }
 
@@ -1465,6 +1543,7 @@ pub(crate) fn select<'a>(all: &'a [Pending], target: &str) -> Option<&'a Pending
             deliverable_id,
             ..
         } => format!("{alias}/{deliverable_id}") == target,
+        Pending::Invalidate { gate, .. } => gate == target,
     })
 }
 
@@ -1480,6 +1559,7 @@ pub(crate) fn target_of(p: &Pending) -> String {
             deliverable_id,
             ..
         } => format!("{alias}/{deliverable_id}"),
+        Pending::Invalidate { gate, .. } => gate.clone(),
     }
 }
 
@@ -1601,6 +1681,9 @@ fn dry_run(
             }
             Pending::AcceptRoadmap { revision, .. } => {
                 crate::roadmap_cmd::accept_ingest_with(repo, *revision, &path, IngestMode::DryRun)
+            }
+            Pending::Invalidate { gate, .. } => {
+                crate::invalidation::ingest_with(repo, gate, &path, IngestMode::DryRun)
             }
             Pending::Accept { version, request } => {
                 let mut r = Report::default();
@@ -1725,15 +1808,20 @@ pub(crate) fn retire_prior(final_path: &Utf8Path, current_digest: &str) -> Resul
     // was missing, so a SECOND correction of the same deliverable always hit the
     // "carries no digest" refusal below — the draft was discarded and the
     // signature the human had just given went with it. Three of them, 2026-09-12.
-    let prior = ["contract_digest", "sha256", "new_digest"]
-        .iter()
-        .find_map(|k| value.get(k).and_then(toml::Value::as_str))
-        .ok_or_else(|| {
-            format!(
-                "{final_path} exists but carries no contract_digest, sha256 or new_digest; \
+    let prior = [
+        "contract_digest",
+        "sha256",
+        "new_digest",
+        "definition_digest",
+    ]
+    .iter()
+    .find_map(|k| value.get(k).and_then(toml::Value::as_str))
+    .ok_or_else(|| {
+        format!(
+            "{final_path} exists but carries no contract_digest, sha256 or new_digest; \
                  not touched — move it aside by hand"
-            )
-        })?;
+        )
+    })?;
     if prior == current_digest {
         // Same digest, and the question is whether anything signed it. A
         // response carrying a verified signature is a decision: refuse, because
@@ -2103,6 +2191,7 @@ pub(crate) const fn act_of(p: &Pending) -> crate::authority_check::Act {
         Pending::Accept { .. } => Act::Accept,
         Pending::Correct { .. } => Act::Correct,
         Pending::AcceptRoadmap { .. } => Act::AcceptRoadmap,
+        Pending::Invalidate { .. } => Act::Invalidate,
     }
 }
 
@@ -2200,6 +2289,7 @@ pub(crate) fn record_of(repo: &Repository, p: &Pending) -> Result<Utf8PathBuf, S
                 .ok_or("no roadmap record")?;
             crate::roadmap_cmd::revision_path(&loaded, *revision)
         }
+        Pending::Invalidate { gate, .. } => crate::invalidation::record_path(repo, gate),
     })
 }
 
@@ -2279,6 +2369,11 @@ fn attest_after(
                 .join("revisions")
                 .join(format!("{version}.toml")),
         ),
+        Pending::Invalidate { gate, .. } => (
+            "invalidate",
+            gate.clone(),
+            crate::invalidation::record_path(repo, gate),
+        ),
     };
     let response_text =
         std::fs::read_to_string(response).map_err(|e| format!("{response}: {e}"))?;
@@ -2336,6 +2431,14 @@ fn attest_after(
     if act == "resolve" {
         files.extend(crate::attest::relied_on_files(repo, &target)?);
     }
+    // An invalidation's disputes are what it did: each is a subject, at the
+    // digest the record lists, so a dispute edited afterwards is caught.
+    if act == "invalidate" {
+        let text = std::fs::read_to_string(&record).map_err(|e| format!("{record}: {e}"))?;
+        let rec: crate::invalidation::InvalidationRecord =
+            toml::from_str(&text).map_err(|e| format!("{record}: {e}"))?;
+        files.extend(rec.disputes.iter().map(|d| Utf8PathBuf::from(&d.path)));
+    }
     let a = crate::attest::Attestable {
         act,
         target: &target,
@@ -2346,7 +2449,9 @@ fn attest_after(
     };
     let written = crate::attest::emit(repo, &a).map_err(|e| e.to_string())?;
     // A Warrant act is journalled; a SAS acceptance has no journal.
-    if act != "sas-accept" && act != "roadmap-accept" {
+    // An invalidation journals each dispute in its Warrant at ingest; the
+    // gate itself has no journal.
+    if act != "sas-accept" && act != "roadmap-accept" && act != "invalidate" {
         let dir = repo.warrant_dir(&target).map_err(|e| e.to_string())?;
         if let Some(uuid) = repo
             .load_warrant(&dir)
@@ -2479,7 +2584,24 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
         report.push(Diagnostic::error(r.rule, "war sign".to_owned(), r.why));
         return Ok(report);
     }
-    let all = pending(repo)?;
+    let mut all = pending(repo)?;
+    // OW-WAR-0136: an invalidation is pending only when a human names the
+    // gate — nothing in the records asks for one — so it is built here, from
+    // the gate and the grounds, and never offered to `--all`.
+    if let Some(t) = target
+        && select(&all, t).is_none()
+        && crate::invalidation::is_gate_ref(t)
+    {
+        match crate::invalidation::pending(repo, t, opts.meaning.as_deref())? {
+            Ok(p) => all.push(p),
+            Err(refused) => {
+                for d in refused.diagnostics {
+                    report.push(d);
+                }
+                return Ok(report);
+            }
+        }
+    }
     let chosen: Vec<&Pending> = match (target, opts.all) {
         (Some(t), _) => match select(&all, t) {
             Some(p) => vec![p],
@@ -2678,6 +2800,7 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
                 },
                 _,
             ) => crate::correct::ingest(repo, alias, deliverable_id, &path),
+            (Pending::Invalidate { gate, .. }, _) => crate::invalidation::ingest(repo, gate, &path),
         };
         let ingested = match ingested {
             Ok(r) => r,
@@ -2789,6 +2912,8 @@ fn verify_existing(
             .unwrap_or(false);
     let stem = if is_sas {
         format!("SAS-{bare}")
+    } else if crate::invalidation::is_gate_ref(t) {
+        crate::authority_check::response_stem(crate::authority_check::Act::Invalidate, t)
     } else {
         t.to_owned()
     };
@@ -2821,10 +2946,16 @@ fn verify_existing(
     // The signer is read from the SIGNED bytes — each response type names
     // exactly one of these — never from a flag. A `--as` here would let the
     // caller pick whichever principal makes the signature verify.
-    let actor = ["authorizer", "resolved_by", "accepted_by", "corrected_by"]
-        .iter()
-        .find_map(|k| value.get(k).and_then(toml::Value::as_str))
-        .map(str::to_owned);
+    let actor = [
+        "authorizer",
+        "resolved_by",
+        "accepted_by",
+        "corrected_by",
+        "invalidated_by",
+    ]
+    .iter()
+    .find_map(|k| value.get(k).and_then(toml::Value::as_str))
+    .map(str::to_owned);
     let Some(actor) = actor else {
         report.push(Diagnostic::error(
             "sign.who",

@@ -12,13 +12,14 @@
 #   D IV-WAR-0004  resolved, rests only on H — the control
 #   E IV-WAR-0005  authorized, evidenced, verified, NOT resolved; cites G
 #
-# What is delivered: receipts as resolve-attestation subjects, `war attest
-# --custody` and its record, and the invalidation REQUEST with §45's sweep.
-# What is not: the invalidation ingest, the dispute records, the standing
-# they would drive and the inadmissibility of an invalidated gate's receipt —
-# all wait on Q-001 (who may invalidate, and whether it is signed), which the
-# owner has not answered. Each of those cases prints UNKNOWN and is counted
-# as neither pass nor failure (Law 15).
+# Receipts as resolve-attestation subjects, `war attest --custody` and its
+# record, the invalidation request with §45's sweep, and — Q-001 (a) — the
+# invalidate act: signed with `war sign` by a human holding `resolver`, it
+# records the invalidation and one §56.4 dispute per reached resolution;
+# `war check` reads standing from the disputes; the gate's receipt stops
+# counting for requirement 5 on the unresolved Warrant. An agent, the
+# performer and an unsigned response are refused and write nothing, and an
+# invalidation whose signature is gone counts for nothing.
 #
 # Every claim is paired with the control seen refusing, matched by rule.
 
@@ -392,8 +393,6 @@ if [[ "$IV_SW" == "$IV_C,$IV_D|$IV_A,$IV_B|receipt docs/warrants/$IV_C/gate-runs
 else
     iv_fail "invalidating H reaches C, D only" "sweep $IV_SW"
 fi
-iv_unknown "three disputes written, §56.4 fields" "Q-001 unanswered: no ingest writes an invalidation or a dispute"
-iv_unknown "war check: resolution.disputed" "Q-001 unanswered: there is no dispute record for war check to read"
 
 # ---------------------------------------------------------------- OBL-004 ---
 # The request rewrites nothing; a refused request writes nothing either.
@@ -410,11 +409,8 @@ if [[ $IV_S1 -ne 0 && $IV_S2 -ne 0 ]] && grep -q 'invalidation.no-grounds' <<<"$
 else
     iv_fail "no grounds or no version: refused" "exit $IV_S1/$IV_S2: $(iv_lines "$IV_OUT") $(iv_lines "$IV_OUT2")"
 fi
-iv_unknown "G's receipt inadmissible on E" "Q-001 unanswered: no invalidation record exists for $IV_E's requirement 5 to read"
 
 # ---------------------------------------------------------------- OBL-005 ---
-iv_unknown "an invalidation by A's performer" "Q-001 unanswered: there is no invalidation ingest to refuse it"
-iv_unknown "an invalidation signed by an agent" "Q-001 unanswered: whether invalidation is a signed act is the question"
 # The custody audit by the performer is refused above. Unchanged from today:
 # a resolution by the performer, registered as a human resolver, is SelfAct.
 cat >> "$PLANT_ROOT/docs/authority/roles.toml" <<'ROLES'
@@ -457,6 +453,228 @@ else
     iv_fail "the same Warrant is resolvable" "exit $IV_S: $(iv_lines "$IV_OUT")"
 fi
 
+# ------------------------------------------ the invalidate act (Q-001 a) ---
+# From here the records change, so the tree is committed first: "writes
+# nothing" is read from git status. The register gains an agent holding
+# `resolver`, so the refusal seen for it is by kind, not by role.
+cat >> "$PLANT_ROOT/docs/authority/roles.toml" <<'ROLES'
+
+[[assignment]]
+actor = "plant-agent"
+actor_kind = "agent"
+roles = ["resolver"]
+assigned_by = "conformance/plants.d/58-invalidation.sh"
+effective_time = "2026-01-01T00:00:00Z"
+note = "An agent holding resolver, so an invalidation it claims is refused by kind."
+ROLES
+git -C "$PLANT_ROOT" -c user.email=plant@invalid -c user.name=plant commit -qam "the performer and an agent as resolvers"
+IV_G=plant.g@1.0.0
+IV_GROUNDS="plant.g passes whenever true exits 0; it cannot fail, so it evidences nothing."
+IV_INV="$PLANT_ROOT/docs/gates/invalidations/$IV_G.toml"
+iv_no_disputes() { ! compgen -G "$IV_W/*/disputes" >/dev/null && [[ ! -e "$IV_INV" ]]; }
+# A hand-written response, as a human or an agent would hand one in.
+iv_inv_response() { # actor → file
+    iv_war gate invalidate "$IV_G" --grounds "$IV_GROUNDS" --json 2>/dev/null | python3 -c '
+import json, sys
+r = json.loads(sys.stdin.read())["result"]
+actor, grounds = sys.argv[1], sys.argv[2]
+q = json.dumps
+print("schema = \"oh.war/invalidation-response/v1\"")
+print("gate = " + q(r["gate"]))
+print("definition_digest = " + q(r["definition_digest"]))
+print("grounds = " + q(grounds))
+print("disputes = [" + ", ".join(q(d["warrant"]) for d in r["disputes"]) + "]")
+print("invalidated_by = " + q(actor))
+print("acting_role = \"resolver\"")
+print("meaning = \"written by hand in the plant\"")
+print("effective_time = \"2026-09-25T00:00:00Z\"")' "$1" "$IV_GROUNDS" > "$IV_TMP/invalidate-$1.toml"
+    printf '%s' "$IV_TMP/invalidate-$1.toml"
+}
+
+# Control, before: E's receipt of G counts, and nothing is disputed.
+IV_OUT=$(iv_war check "$IV_E" 2>&1)
+if grep -E '^PASS +evidence\.admissible' <<<"$IV_OUT" | grep -qF "$IV_G" \
+    && ! grep -q 'resolution.disputed' <<<"$(iv_war check 2>&1)"; then
+    iv_ok "before: G's receipt counts on E" "evidence.admissible; no resolution disputed"
+else
+    iv_fail "before: G's receipt counts on E" "$(iv_lines "$IV_OUT")"
+fi
+
+# OBL-005: an agent's invalidation is refused by kind, the performer's with
+# SelfAct, and an unsigned one by the eligible resolver is refused too — each
+# before anything is written.
+IV_BEFORE=$(iv_records)
+IV_OUT=$(iv_war gate invalidate "$IV_G" --response "$(iv_inv_response plant-agent)" 2>&1); IV_S=$?
+if [[ $IV_S -ne 0 ]] && grep -E '^ERROR +invalidation\.agent' <<<"$IV_OUT" | grep -q '§27.2' \
+    && iv_clean && iv_no_disputes; then
+    iv_ok "an agent's invalidation: refused" "invalidation.agent (§27.2, by kind); nothing written"
+else
+    iv_fail "an agent's invalidation: refused" "exit $IV_S: $(iv_lines "$IV_OUT")"
+fi
+IV_OUT=$(iv_war gate invalidate "$IV_G" --response "$(iv_inv_response claude)" 2>&1); IV_S=$?
+if [[ $IV_S -ne 0 ]] && grep -E '^ERROR +invalidation\.self-act' <<<"$IV_OUT" | grep -q 'SelfAct' \
+    && iv_clean && iv_no_disputes; then
+    iv_ok "the performer's invalidation: refused" "invalidation.self-act (SelfAct); nothing written"
+else
+    iv_fail "the performer's invalidation: refused" "exit $IV_S: $(iv_lines "$IV_OUT")"
+fi
+IV_OUT=$(iv_war gate invalidate "$IV_G" --response "$(iv_inv_response "Plant Signer")" 2>&1); IV_S=$?
+if [[ $IV_S -ne 0 ]] && grep -E '^ERROR +invalidation\.unsigned' <<<"$IV_OUT" | grep -q 'never counts' \
+    && iv_clean && iv_no_disputes; then
+    iv_ok "an unsigned invalidation: refused" "invalidation.unsigned, though its signer is eligible; nothing written"
+else
+    iv_fail "an unsigned invalidation: refused" "exit $IV_S: $(iv_lines "$IV_OUT")"
+fi
+# The signing path offers the act to neither: who may sign is a human
+# holding resolver who is not the performer.
+IV_OUT=$(iv_war sign "$IV_G" --grounds "$IV_GROUNDS" --as claude --dry-run 2>&1); IV_S1=$?
+IV_OUT2=$(iv_war sign "$IV_G" --grounds "$IV_GROUNDS" --as plant-agent --dry-run 2>&1); IV_S2=$?
+if [[ $IV_S1 -ne 0 && $IV_S2 -ne 0 ]] && grep -E '^ERROR +sign\.who' <<<"$IV_OUT" | grep -q 'permits: Plant Signer' \
+    && grep -qE '^ERROR +sign\.who' <<<"$IV_OUT2" && iv_clean; then
+    iv_ok "war sign offers neither" "sign.who for the performer and the agent; only Plant Signer is eligible"
+else
+    iv_fail "war sign offers neither" "exit $IV_S1/$IV_S2: $(iv_lines "$IV_OUT") $(iv_lines "$IV_OUT2")"
+fi
+# The accepting dry run: every refusal passed, the signature the only thing
+# missing, nothing written.
+IV_OUT=$(iv_war sign "$IV_G" --grounds "$IV_GROUNDS" --as "Plant Signer" --dry-run 2>&1); IV_S=$?
+if [[ $IV_S -eq 0 ]] && grep -E '^PASS +invalidation\.would-record' <<<"$IV_OUT" | grep -qF "($IV_A, $IV_B, $IV_C)" \
+    && grep -qE '^PASS +sign\.would-record' <<<"$IV_OUT" && iv_clean && iv_no_disputes \
+    && [[ "$(iv_records)" == "$IV_BEFORE" ]]; then
+    iv_ok "the resolver's dry run would record" "invalidation.would-record ($IV_A, $IV_B, $IV_C); nothing written"
+else
+    iv_fail "the resolver's dry run would record" "exit $IV_S: $(iv_lines "$IV_OUT")"
+fi
+
+# The act, signed by the throwaway key in a throwaway agent asserted to hold
+# only it, under -euo pipefail: a failed setup step never reaches a signature.
+iv_history() { # every record the obligations say is never rewritten
+    (cd "$PLANT_ROOT" && find docs/warrants docs/gates -type f \
+        \( -name resolution.toml -o -path '*/gate-runs/*' -o -path 'docs/warrants/*/attestations/*' -o -path 'docs/gates/*.yaml' \) \
+        -print0 | sort -z | xargs -0 sha256sum | sha256sum)
+}
+IV_HIST=$(iv_history)
+IV_DEF=$(sha256sum < "$PLANT_ROOT/docs/gates/$IV_G.yaml")
+if WAR="$REPO_ROOT/$WAR" D="$PLANT_ROOT" T="$IV_TMP" G="$IV_G" GROUNDS="$IV_GROUNDS" \
+    env -u SSH_AUTH_SOCK -u SSH_AGENT_PID bash -euo pipefail > "$IV_TMP/sign.log" 2>&1 <<'SIGN'
+cd "$D"
+eval "$(ssh-agent -s)" >/dev/null
+trap 'ssh-agent -k >/dev/null 2>&1 || true' EXIT
+ssh-add -q "$T/id_plant"
+keys=$(ssh-add -l)
+fp=$(ssh-keygen -lf "$T/id_plant.pub" | awk '{print $2}')
+[[ $(grep -c . <<<"$keys") -eq 1 ]] && grep -qF -- "$fp" <<<"$keys" \
+    || { echo "the throwaway agent holds more than the plant key: $keys"; exit 1; }
+"$WAR" --root . sign "$G" --grounds "$GROUNDS" --ssh-sign --as "Plant Signer" </dev/null
+SIGN
+then IV_S=0; else IV_S=$?; fi
+IV_OUT=$(cat "$IV_TMP/sign.log")
+if [[ $IV_S -eq 0 ]] && grep -qE '^PASS +invalidation\.recorded' <<<"$IV_OUT" \
+    && grep -qE '^PASS +attest\.emitted' <<<"$IV_OUT" && [[ -f "$IV_INV" ]] \
+    && [[ -f "$PLANT_ROOT/docs/authority/responses/$IV_G.invalidation.response.toml.sig" ]]; then
+    iv_ok "a resolver signs the invalidation" "invalidation.recorded and attested; the response carries its .sig"
+else
+    iv_fail "a resolver signs the invalidation" "exit $IV_S: $(iv_lines "$IV_OUT") $(tail -2 <<<"$IV_OUT" | tr '\n' ' ')"
+fi
+
+# OBL-003: exactly three disputes — A and B through their receipts, C through
+# its parent A — each with §56.4's six fields; D, the control, gets none.
+if python3 - "$PLANT_ROOT" "$IV_A" "$IV_B" "$IV_C" <<'PY'
+import glob, sys, tomllib
+root, a, b, c = sys.argv[1:5]
+found = sorted(glob.glob(f"{root}/docs/warrants/*/disputes/*.toml"))
+want = {f"{root}/docs/warrants/{w}/disputes/DSP-001.toml" for w in (a, b, c)}
+if set(found) != want:
+    sys.exit(f"disputes {found}")
+for w in (a, b, c):
+    d = tomllib.load(open(f"{root}/docs/warrants/{w}/disputes/DSP-001.toml", "rb"))
+    res = tomllib.load(open(f"{root}/docs/warrants/{w}/resolution.toml", "rb"))["resolution"]
+    x = d["dispute"]
+    six = ["challenged_resolution", "grounds", "affected_evidence_or_judgment",
+           "reliance_policy", "owner", "required_re_verification"]
+    if any(not x.get(k) for k in six):
+        sys.exit(f"{w}: a §56.4 field is empty")
+    if x["challenged_resolution"] != res["id"]:
+        sys.exit(f"{w}: challenges {x['challenged_resolution']}")
+    if x["owner"] != "person://Plant Signer":
+        sys.exit(f"{w}: owner {x['owner']}")
+    if d["status"] != "open" or d["warrant"] != w:
+        sys.exit(f"{w}: {d['status']} {d['warrant']}")
+cd = tomllib.load(open(f"{root}/docs/warrants/{c}/disputes/DSP-001.toml", "rb"))["dispute"]
+if cd["affected_evidence_or_judgment"] != [f"the resolution of {a}"]:
+    sys.exit("C is not reached through A")
+PY
+then
+    iv_ok "three disputes, §56.4's six fields" "$IV_A, $IV_B direct; $IV_C through $IV_A; owner the signer; $IV_D none"
+else
+    iv_fail "three disputes, §56.4's six fields" "the disputes written are not A, B, C with six fields each"
+fi
+IV_OUT=$(iv_war check 2>&1)
+IV_DISPUTED=$(grep -E '^WARN +resolution\.disputed' <<<"$IV_OUT" | grep -oE 'IV-WAR-000[0-9]' | sort -u | tr '\n' ' ')
+if [[ "$IV_DISPUTED" == "$IV_A $IV_B $IV_C " ]] && ! grep -q '^ERROR' <<<"$IV_OUT"; then
+    iv_ok "war check: resolution.disputed" "for $IV_A, $IV_B, $IV_C and not $IV_D; 0 errors"
+else
+    iv_fail "war check: resolution.disputed" "disputed: '$IV_DISPUTED'; $(grep '^ERROR' <<<"$IV_OUT" | head -2 | tr '\n' '|')"
+fi
+
+# OBL-004: nothing historical rewritten; the definition file untouched;
+# every attestation, the invalidation's own included, verifies.
+IV_OUT=$(iv_war attest --all --verify 2>&1); IV_S=$?
+if [[ "$(iv_history)" == "$IV_HIST" && "$(sha256sum < "$PLANT_ROOT/docs/gates/$IV_G.yaml")" == "$IV_DEF" ]] \
+    && [[ $IV_S -eq 0 ]] && ! grep -q '^ERROR' <<<"$IV_OUT" \
+    && compgen -G "$PLANT_ROOT/docs/gates/invalidations/attestations/invalidate-$IV_G-*.dsse.json" >/dev/null; then
+    iv_ok "nothing historical is rewritten" "resolutions, receipts, runs, attestations, G's definition byte-identical; attest --all verifies"
+else
+    iv_fail "nothing historical is rewritten" "exit $IV_S: $(iv_lines "$IV_OUT")"
+fi
+IV_OUT=$(iv_war check "$IV_E" 2>&1)
+IV_OUT2=$(iv_war resolve "$IV_E" --dry-run 2>&1); IV_S=$?
+if grep -E '^WARN +evidence\.gate-invalidated' <<<"$IV_OUT" | grep -qF "docs/gates/invalidations/$IV_G.toml" \
+    && ! grep -E '^PASS +evidence\.admissible' <<<"$IV_OUT" | grep -qF "$IV_G" && [[ $IV_S -ne 0 ]]; then
+    iv_ok "G's receipt is inadmissible on E" "evidence.gate-invalidated names the invalidation; $IV_E no longer resolvable"
+else
+    iv_fail "G's receipt is inadmissible on E" "exit $IV_S: $(iv_lines "$IV_OUT") $(iv_lines "$IV_OUT2")"
+fi
+git -C "$PLANT_ROOT" add -A
+git -C "$PLANT_ROOT" -c user.email=plant@invalid -c user.name=plant commit -qm "invalidated $IV_G"
+
+# Once only: a second invalidation of the same version is refused.
+IV_OUT=$(iv_war sign "$IV_G" --grounds "again" --as "Plant Signer" --dry-run 2>&1); IV_S=$?
+if [[ $IV_S -ne 0 ]] && grep -qE '^ERROR +invalidation\.exists' <<<"$IV_OUT" && iv_clean; then
+    iv_ok "a second invalidation: refused" "invalidation.exists; nothing written"
+else
+    iv_fail "a second invalidation: refused" "exit $IV_S: $(iv_lines "$IV_OUT")"
+fi
+# An edited dispute stops counting, and says so.
+printf '# edited after it was written\n' >> "$IV_W/$IV_B/disputes/DSP-001.toml"
+IV_OUT=$(iv_war check "$IV_B" 2>&1)
+if grep -qE '^ERROR +resolution\.dispute-edited' <<<"$IV_OUT" && ! grep -q 'resolution.disputed' <<<"$IV_OUT"; then
+    iv_ok "an edited dispute: refused" "resolution.dispute-edited; not read as standing"
+else
+    iv_fail "an edited dispute: refused" "$(iv_lines "$IV_OUT")"
+fi
+git -C "$PLANT_ROOT" checkout -q -- "docs/warrants/$IV_B/disputes/DSP-001.toml"
+# The signature is what makes it count: without its .sig the same records
+# dispute nothing, and E's receipt counts again.
+IV_SIG="$PLANT_ROOT/docs/authority/responses/$IV_G.invalidation.response.toml.sig"
+mv "$IV_SIG" "$IV_TMP/held.sig"
+IV_OUT=$(iv_war check 2>&1)
+IV_OUT2=$(iv_war check "$IV_E" 2>&1)
+if [[ $(grep -cE '^ERROR +resolution\.dispute-unsigned' <<<"$IV_OUT") -eq 3 ]] \
+    && ! grep -q 'resolution.disputed' <<<"$IV_OUT" \
+    && grep -qE '^WARN +evidence\.invalidation-not-counted' <<<"$IV_OUT2" \
+    && grep -E '^PASS +evidence\.admissible' <<<"$IV_OUT2" | grep -qF "$IV_G"; then
+    iv_ok "unsigned, it never counts" "3x resolution.dispute-unsigned, none disputed; E's receipt admissible"
+else
+    iv_fail "unsigned, it never counts" "$(iv_lines "$IV_OUT") $(iv_lines "$IV_OUT2")"
+fi
+mv "$IV_TMP/held.sig" "$IV_SIG"
+if [[ $(iv_war check 2>&1 | grep -cE '^WARN +resolution\.disputed') -eq 3 ]] && iv_clean; then
+    iv_ok "signed again, it counts again" "the .sig restored: three resolutions disputed"
+else
+    iv_fail "signed again, it counts again" "$(git -C "$PLANT_ROOT" status --porcelain | head -2 | tr '\n' ' ')"
+fi
+
 command rm -rf "$IV_TMP"
 corpus_gone "$PLANT_ROOT"
-unset PLANT_ROOT IV_TMP IV_BEFORE
+unset PLANT_ROOT IV_TMP IV_BEFORE IV_HIST IV_DEF IV_INV IV_SIG

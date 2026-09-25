@@ -64,8 +64,8 @@ limits. Agent completion cannot award the common assurance mark: that requires
 independent evidence and secure human acceptance of the exact result.
 
 This repository still contains legacy records and CLI enforcement. Human-only
-legacy authorization, resolution, SAS acceptance and correction acts remain human
-acts. Use the linked legacy workflow for them. These instructions do not migrate
+legacy authorization, resolution, SAS acceptance, correction and gate
+invalidation acts remain human acts. Use the linked legacy workflow for them. These instructions do not migrate
 records, unlock unsupported prototype commands or accept SAS RC.3.
 
 ## Preserve truthful records

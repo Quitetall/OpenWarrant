@@ -46,6 +46,18 @@ classification: internal
 6. Under Q-002 (b) only: `docs/gates/ops.exit-demo@1.0.0.yaml` and the
    live demonstration recorded as this Warrant's evidence.
 
+- (AM-003) Under Q-001 (a) or (b) only — the new act kind outside the
+  files above: `crates/openwarrant-cli/src/authority_check.rs` (the
+  invalidate act's response schema and file name, so its signature is
+  verified on the read path); `next.rs`, `console.rs` and `batch_cmd.rs`
+  under `crates/openwarrant-cli/src/` (the act named where every pending act
+  is matched; the batch refuses it); `AGENTS.md`,
+  `crates/openwarrant-cli/templates/AGENTS.md.tmpl` with
+  `docs/agents/legacy-warrant-workflow.md` (its rendering, held equal by a
+  unit test), `docs/SIGNING.md` and `docs/ADOPTING.md` (the list of human
+  acts). The SAS's act list is not among them: changing it is a SAS
+  revision.
+
 ## Frozen Surfaces
 
 - `oh.war/resolution/v1` and every `resolution.toml`. Standing is derived

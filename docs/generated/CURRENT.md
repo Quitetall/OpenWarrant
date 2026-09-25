@@ -33769,6 +33769,18 @@ dispute all 29 at once.
 6. Under Q-002 (b) only: `docs/gates/ops.exit-demo@1.0.0.yaml` and the
    live demonstration recorded as this Warrant's evidence.
 
+- (AM-003) Under Q-001 (a) or (b) only — the new act kind outside the
+  files above: `crates/openwarrant-cli/src/authority_check.rs` (the
+  invalidate act's response schema and file name, so its signature is
+  verified on the read path); `next.rs`, `console.rs` and `batch_cmd.rs`
+  under `crates/openwarrant-cli/src/` (the act named where every pending act
+  is matched; the batch refuses it); `AGENTS.md`,
+  `crates/openwarrant-cli/templates/AGENTS.md.tmpl` with
+  `docs/agents/legacy-warrant-workflow.md` (its rendering, held equal by a
+  unit test), `docs/SIGNING.md` and `docs/ADOPTING.md` (the list of human
+  acts). The SAS's act list is not among them: changing it is a SAS
+  revision.
+
 ## Frozen Surfaces
 
 - `oh.war/resolution/v1` and every `resolution.toml`. Standing is derived
@@ -33959,6 +33971,15 @@ this level requires. The author does not record them.
 | D-007 | The Phase 9 exit plants, §91.10 test 75 among them | `conformance/plants.d/58-invalidation.sh` | not_content_addressed |
 | D-008 | Custody, invalidation and dispute: what each act does and who may do it | `docs/INVALIDATION.md` | not_content_addressed |
 | D-009 | The live demonstration gate, only if Q-002 selects the live corpus | `docs/gates/ops.exit-demo@1.0.0.yaml` | not_content_addressed |
+| D-010 | The invalidate act's response schema and name, verified on the read path (AM-003; Q-001 a or b only) | `crates/openwarrant-cli/src/authority_check.rs` | not_content_addressed |
+| D-011 | war next names the invalidate act (AM-003; Q-001 a or b only) | `crates/openwarrant-cli/src/next.rs` | not_content_addressed |
+| D-012 | The console names the invalidate act (AM-003; Q-001 a or b only) | `crates/openwarrant-cli/src/console.rs` | not_content_addressed |
+| D-013 | The batch refuses an invalidation: it is signed alone (AM-003; Q-001 a or b only) | `crates/openwarrant-cli/src/batch_cmd.rs` | not_content_addressed |
+| D-014 | The human acts, gate invalidation among them (AM-003; Q-001 a or b only) | `AGENTS.md` | not_content_addressed |
+| D-015 | Signing an invalidation (AM-003; Q-001 a or b only) | `docs/SIGNING.md` | not_content_addressed |
+| D-016 | The human acts in the AGENTS.md war init writes (AM-003; Q-001 a or b only) | `crates/openwarrant-cli/templates/AGENTS.md.tmpl` | not_content_addressed |
+| D-017 | The human acts an adopter meets (AM-003; Q-001 a or b only) | `docs/ADOPTING.md` | not_content_addressed |
+| D-018 | The legacy workflow rendered from the AGENTS.md template (AM-003; Q-001 a or b only) | `docs/agents/legacy-warrant-workflow.md` | not_content_addressed |
 
 #### OW-WAR-0137 — Teams: review assignment and a queue shared by more than one person
 
@@ -37634,6 +37655,7 @@ Every command here has been judged by the act's dry run (`war sign <target> --dr
 
 | act | Warrant | command | judged | why |
 |---|---|---|---|---|
+| authorize | OW-WAR-0136 | `war sign OW-WAR-0136` | would record | revision 4 awaits authorization under AM-003 |
 | authorize | OW-WAR-0138 | `war sign OW-WAR-0138` | would record | revision 5 awaits authorization under AM-004 |
 | authorize | OW-WAR-0139 | `war sign OW-WAR-0139` | would record | revision 4 awaits authorization under AM-003 |
 | authorize | OW-WAR-0140 | `war sign OW-WAR-0140` | would record | revision 4 awaits authorization under AM-003 |

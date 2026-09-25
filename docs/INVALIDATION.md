@@ -3,11 +3,9 @@
 What each act does, who may do it, and what it never rewrites
 (OW-WAR-0136; SAS §41.5, §45, §56.4, RQ-057, §98 Phase 9).
 
-Status on this branch: the custody audit and the invalidation **request** exist.
-The invalidation **ingest**, the dispute records it would write, and the
-standing they would drive do not: who may invalidate a gate, and whether that
-is a signed act, is OW-WAR-0136 Q-001, and the owner has not answered it. This
-page says which is which, and does not describe the missing half as if it ran.
+Invalidating a gate is built as OW-WAR-0136 Q-001 (a) describes it: a human
+act, signed with `war sign` by a human holding `resolver`, attested like the
+other human acts.
 
 ## Custody audit
 
@@ -76,7 +74,7 @@ its audit reports the same `UNKNOWN`.
 **What it answers.** A Gate Definition version turns out to be unsound. Which
 resolutions rested on it, and so stop being relied on?
 
-**The request (exists).**
+**The request.**
 
 ```bash
 war gate invalidate <gate_id>@<version> --grounds "<why>"
@@ -84,37 +82,97 @@ war gate invalidate <gate_id>@<version> --grounds "<why>"
 
 It emits `oh.war/invalidation-request/v1`: the gate, the sha256 of its
 definition file, its lifecycle, the grounds, every resolution the sweep would
-dispute — each with who signed it and why it is reached — and every resolution
-left standing. The sweep is `propagate_invalidation` (§45) over the corpus: a
-resolution is reached when a receipt in its `gate_run_refs` is a run of that
-gate, or when a Warrant it names as a parent (§20.2) is reached and resolved;
-transitively. A version is required: a gate across all its versions is never
-invalidated. Grounds are required (§56.4). The request writes nothing.
+dispute — each with who signed it and why it is reached — every resolution
+left standing, and who may sign. The sweep is `propagate_invalidation` (§45)
+over the corpus: a resolution is reached when a receipt in its
+`gate_run_refs` is a run of that gate, or when a Warrant it names as a parent
+(§20.2) is reached and resolved; transitively. A version is required: a gate
+across all its versions is never invalidated. Grounds are required (§56.4).
+The request writes nothing.
 
-**The ingest (does not exist).** Q-001 decides whether invalidating is a fifth
-human act signed with `war sign` by a holder of `resolver` (a), the same act
-by a new `gate_steward` role (b), or an unsigned finding by any registered
-actor that is not the performer (c). Until it is answered:
+**The act.**
 
-- no `docs/gates/invalidations/<gate>@<version>.toml` is written;
-- no `docs/warrants/<alias>/disputes/DSP-NNN.toml` is written;
-- `war check` reports no resolution as disputed;
-- a receipt of a gate someone wants invalidated stays admissible for §56.1
-  requirement 5.
+```bash
+war sign <gate_id>@<version> --grounds "<why>" --dry-run    # every refusal, nothing written
+war sign <gate_id>@<version> --grounds "<why>" --ssh-sign   # the signature
+```
 
-Whatever Q-001 selects, the ingest will refuse the performer of any Warrant it
-reaches, the definition file will not be edited (§43.3), and no
-`resolution.toml` will be rewritten: standing is to be read from the disputes,
-never written into the record (§45 clause 4).
+The response (`oh.war/invalidation-response/v1`) names the gate, the
+definition digest, the grounds — the signer's words, never drafted — and the
+aliases it disputes, so the signature covers exactly that list. A hand-signed
+response is ingested with `war gate invalidate <gate>@<version> --response
+<file>`; it must be the response under `docs/authority/responses/` whose `.sig`
+verifies. The ingest refuses, and writes nothing, when:
+
+| refusal | rule |
+|---|---|
+| the signer is an agent — by kind, whatever the file says (§27.2) | `invalidation.agent` |
+| the signer does not hold, or does not act as, `resolver` | `invalidation.not-permitted` |
+| the signer is the performer (Basis A-001) | `invalidation.self-act` (`SelfAct`) |
+| the response is not signed, or its signature does not verify | `invalidation.unsigned` |
+| the definition file moved since the response was drafted | `invalidation.stale` |
+| the sweep no longer reaches exactly the aliases signed | `invalidation.sweep-moved` |
+| the version is already invalidated | `invalidation.exists` |
+| no grounds; a malformed time; an unknown gate or signer | `invalidation.no-grounds`, `…effective-time`, `…unknown-gate`, `…unknown-actor` |
+
+Then it writes, each file created new and never overwritten:
+
+- `docs/gates/invalidations/<gate>@<version>.toml` (`oh.war/invalidation/v1`):
+  the gate, the definition's file and digest, the grounds, the signer, the
+  response and its digest, the resolutions left standing, and each dispute
+  by path and sha256;
+- `docs/warrants/<alias>/disputes/DSP-NNN.toml` (`oh.war/dispute/v1`) for every
+  reached resolution, and a `dispute.recorded` event in that Warrant's
+  journal;
+- with `--ssh-sign`, an attestation under
+  `docs/gates/invalidations/attestations/` whose subjects are the record,
+  the response and every dispute.
+
+The definition file is not edited (§43.3). No `resolution.toml`, receipt, run
+or attestation is written: standing is read from the disputes, never written
+into the record (§45 clause 4). An invalidation is never batched; it is signed
+on its own screen.
+
+**What reads it.**
+
+- `war check` reports `resolution.disputed` for a resolution with an open
+  dispute, naming the grounds and the reliance policy.
+- A receipt of an invalidated gate is not admissible for §56.1 requirement 5 on
+  a Warrant not yet resolved: `war check` says `evidence.gate-invalidated`,
+  naming the invalidation, and `war resolve` counts the requirement unmet. A
+  resolved Warrant's receipts are history; the invalidation disputes its
+  resolution instead.
+
+**An unsigned invalidation never counts.** Every reader believes a record only
+when the response it names is on disk at the digest recorded, says the same
+gate, digest, grounds and signer, and its signature verifies as a human
+holding `resolver` who is not the performer. A record or dispute written by
+hand — or one whose `.sig` has gone — disputes nothing: `war check` reports
+each such dispute as `resolution.dispute-unsigned` and leaves the resolution
+standing as recorded, and the receipt stays admissible
+(`evidence.invalidation-not-counted`). A dispute edited after it was written is
+`resolution.dispute-edited`; one the record does not list is
+`resolution.dispute-unlisted`.
 
 ## Dispute
 
 A dispute (§56.4) identifies the challenged resolution, its grounds, the
 affected evidence or judgment, the reliance policy, its owner — the resolver
-who signed — and the re-verification it requires. Here the only source of a
-dispute is an invalidation's ingest, so there are none yet. Closing a dispute
-(§45 clause 6: re-verify on a new gate version, then resolve the dispute or
-annul) is out of OW-WAR-0136's scope and belongs to a later Warrant.
+who signed the invalidation — and the re-verification it requires. Reached
+directly, the affected evidence is the receipt and the re-verification is a
+re-run under a new, qualified version of the gate; reached through a parent,
+it is that parent's resolution, and its own dispute closes after the
+parent's. Every dispute is `open`. Closing one (§45 clause 6: re-verify on a
+new gate version, then resolve the dispute or annul) is out of OW-WAR-0136's
+scope and belongs to a later Warrant; until then, a dispute is not edited.
+
+## The demonstration gate
+
+`docs/gates/ops.exit-demo@1.0.0.yaml` (Q-002 (b)) exists to be invalidated: it
+passes when this file exists and is not empty, and nothing else relies on it.
+The exit is shown in this repository by one small Warrant resolved against it
+by the owner, and then the owner invalidating it, so that only that
+resolution is disputed. Both are the owner's acts; neither is recorded here.
 
 ## Who may do what
 
@@ -124,4 +182,5 @@ annul) is out of OW-WAR-0136's scope and belongs to a later Warrant.
 | custody audit, read | anyone | — |
 | custody audit, record | any actor but the performer | the performer (`SelfAct`) |
 | invalidation request | anyone; it writes nothing | — |
-| invalidation ingest | **Q-001, unanswered** | the performer of any Warrant it reaches, whatever Q-001 says |
+| invalidate a gate | a human holding `resolver`, signing with `war sign` | the performer (`SelfAct`), every agent (by kind), an unsigned response |
+| dispute | written only by a signed invalidation | anyone writing one by hand: it does not count |

@@ -54,6 +54,7 @@ fn act_word(p: &Pending) -> &'static str {
         Pending::Correct { .. } => "correct",
         Pending::Accept { .. } => "accept",
         Pending::AcceptRoadmap { .. } => "accept-roadmap",
+        Pending::Invalidate { .. } => "invalidate",
     }
 }
 
@@ -79,6 +80,9 @@ fn ingest(
         }
         Pending::Accept { .. } => Err(RepoError::Message(
             "a SAS acceptance is not batched; sign it alone".to_owned(),
+        )),
+        Pending::Invalidate { .. } => Err(RepoError::Message(
+            "a gate invalidation is not batched; sign it alone".to_owned(),
         )),
     }
 }
@@ -168,6 +172,16 @@ pub fn run(
         if matches!(p, Pending::Accept { .. }) {
             left_out.push(format!(
                 "{} — a SAS acceptance signs alone: `war sign {} --ssh-sign`",
+                sign::line(p),
+                sign::target_of(p)
+            ));
+            continue;
+        }
+        // OW-WAR-0136: an invalidation disputes resolutions other people
+        // signed; it is read on its own screen, never as one row of a list.
+        if matches!(p, Pending::Invalidate { .. }) {
+            left_out.push(format!(
+                "{} — a gate invalidation signs alone: `war sign {} --grounds <text> --ssh-sign`",
                 sign::line(p),
                 sign::target_of(p)
             ));
@@ -385,7 +399,7 @@ pub fn run(
             Pending::Authorize { alias, .. }
             | Pending::Resolve { alias, .. }
             | Pending::Correct { alias, .. } => repo.warrant_dir(alias)?,
-            Pending::Accept { .. } => continue,
+            Pending::Accept { .. } | Pending::Invalidate { .. } => continue,
         };
         if !dirs.contains(&own) {
             dirs.push(own);

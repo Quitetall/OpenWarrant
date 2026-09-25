@@ -123,6 +123,14 @@ pub fn dir_for(repo: &Repository, act: &str, target: &str) -> Result<Utf8PathBuf
             .root
             .join(crate::batch_cmd::BATCHES)
             .join("attestations"))
+    } else if act == "invalidate" {
+        // OW-WAR-0136: a gate's invalidation has no Warrant; it is attested
+        // beside its record.
+        Ok(repo
+            .root
+            .join(&repo.config.paths.gates)
+            .join(crate::invalidation::RECORDS_DIR)
+            .join("attestations"))
     } else {
         Ok(repo.warrant_dir(target)?.join("attestations"))
     }
@@ -276,7 +284,10 @@ pub fn emit_with_key(
         context: format!("could not create {dir}"),
         source,
     })?;
-    let stem = if matches!(a.act, "sas-accept" | "roadmap-accept" | "batch") {
+    let stem = if matches!(
+        a.act,
+        "sas-accept" | "roadmap-accept" | "batch" | "invalidate"
+    ) {
         format!("{}-{}", a.act, a.target)
     } else {
         a.act.to_owned()
@@ -621,7 +632,7 @@ pub fn verify_all(repo: &Repository) -> Result<Report, RepoError> {
             count += 1;
         }
     }
-    for act in ["sas-accept", "roadmap-accept", "batch"] {
+    for act in ["sas-accept", "roadmap-accept", "batch", "invalidate"] {
         for path in list(repo, &dir_for(repo, act, "")?) {
             verify_file(repo, &path, &mut report);
             count += 1;
