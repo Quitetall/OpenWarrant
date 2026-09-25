@@ -184,12 +184,17 @@ plant "a cited section that changed" "WARN sas.section-current" \
     "$SEC_ALIAS"
 
 # OBL-002 — the index is what `war compile` wrote, and a hand edit is drift.
-if grep -q -- "\"revision\":\"1.1.0\"" docs/sas/generated/SECTIONS.json \
+# The revision the document IS: the record whose sha256 is the document's,
+# accepted or proposed — not a version written into this plant, which went
+# stale the day 1.1.1 was proposed.
+SEC_REV=$(grep -l "^sha256 = \"$SEC_DOC_SHA\"" docs/sas/revisions/*.toml 2>/dev/null | head -1 | xargs -r basename | sed 's/\.toml$//')
+if [[ -n "$SEC_REV" ]] \
+    && grep -q -- "\"revision\":\"$SEC_REV\"" docs/sas/generated/SECTIONS.json \
     && grep -q -- "\"sha256\":\"$SEC_DOC_SHA\"" docs/sas/generated/SECTIONS.json \
-    && grep -q -- "sha256:$SEC_DOC_SHA (revision 1.1.0)" docs/sas/generated/SECTIONS.md; then
-    sec_ok "the section index names its source" "sha256:${SEC_DOC_SHA:0:12}, revision 1.1.0"
+    && grep -q -- "sha256:$SEC_DOC_SHA (revision $SEC_REV)" docs/sas/generated/SECTIONS.md; then
+    sec_ok "the section index names its source" "sha256:${SEC_DOC_SHA:0:12}, revision $SEC_REV"
 else
-    sec_fail "the section index names its source" "SECTIONS.* do not name the document and 1.1.0"
+    sec_fail "the section index names its source" "SECTIONS.* do not name the document and ${SEC_REV:-no recorded revision}"
 fi
 SEC_ONE=$(python3 -c 'import json; print(json.load(open("docs/sas/generated/SECTIONS.json"))["sections"][40]["sha256"])')
 plant "a hand-edited SECTIONS.json is drift" "ERROR sas-sections.drift" "SECTIONS.json" 2 \

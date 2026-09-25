@@ -92,7 +92,9 @@ rm -f "$REPIN_DIR/amendments/$REPIN_TOOL_ID.yaml"
 
 # The amendment the tool writes is the one `check` reads: it names the
 # latest revision and the pin it moved from, and no `sas.repin-*` fires.
-REPIN_LATEST=$(ls docs/sas/revisions/*.toml | xargs -n1 basename | sed 's/\.toml$//' | sort -V | tail -1)
+# The latest ACCEPTED revision: a proposed one is not normative, and
+# `war sas repin` never pins to it (1.1.1 proposed made the two disagree).
+REPIN_LATEST=$(grep -l '^state = "accepted"' docs/sas/revisions/*.toml | xargs -n1 basename | sed 's/\.toml$//' | sort -V | tail -1)
 "$WAR" sas repin "$REPIN_ALIAS" >/dev/null 2>&1
 REPIN_CHK=$("$WAR" check "$REPIN_ALIAS" 2>&1)
 if grep -q "sas_revision: \"$REPIN_LATEST\"" "$REPIN_DIR/amendments/$REPIN_TOOL_ID.yaml" \
