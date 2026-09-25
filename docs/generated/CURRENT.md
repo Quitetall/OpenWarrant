@@ -33775,9 +33775,11 @@ dispute all 29 at once.
   verified on the read path); `next.rs`, `console.rs` and `batch_cmd.rs`
   under `crates/openwarrant-cli/src/` (the act named where every pending act
   is matched; the batch refuses it); `AGENTS.md`,
-  `crates/openwarrant-cli/templates/AGENTS.md.tmpl`, `docs/SIGNING.md` and
-  `docs/ADOPTING.md` (the list of human acts). The SAS's act list is not
-  among them: changing it is a SAS revision.
+  `crates/openwarrant-cli/templates/AGENTS.md.tmpl` with
+  `docs/agents/legacy-warrant-workflow.md` (its rendering, held equal by a
+  unit test), `docs/SIGNING.md` and `docs/ADOPTING.md` (the list of human
+  acts). The SAS's act list is not among them: changing it is a SAS
+  revision.
 
 ## Frozen Surfaces
 
@@ -33977,6 +33979,7 @@ this level requires. The author does not record them.
 | D-015 | Signing an invalidation (AM-003; Q-001 a or b only) | `docs/SIGNING.md` | not_content_addressed |
 | D-016 | The human acts in the AGENTS.md war init writes (AM-003; Q-001 a or b only) | `crates/openwarrant-cli/templates/AGENTS.md.tmpl` | not_content_addressed |
 | D-017 | The human acts an adopter meets (AM-003; Q-001 a or b only) | `docs/ADOPTING.md` | not_content_addressed |
+| D-018 | The legacy workflow rendered from the AGENTS.md template (AM-003; Q-001 a or b only) | `docs/agents/legacy-warrant-workflow.md` | not_content_addressed |
 
 #### OW-WAR-0137 — Teams: review assignment and a queue shared by more than one person
 

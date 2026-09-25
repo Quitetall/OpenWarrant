@@ -52,9 +52,11 @@ classification: internal
   verified on the read path); `next.rs`, `console.rs` and `batch_cmd.rs`
   under `crates/openwarrant-cli/src/` (the act named where every pending act
   is matched; the batch refuses it); `AGENTS.md`,
-  `crates/openwarrant-cli/templates/AGENTS.md.tmpl`, `docs/SIGNING.md` and
-  `docs/ADOPTING.md` (the list of human acts). The SAS's act list is not
-  among them: changing it is a SAS revision.
+  `crates/openwarrant-cli/templates/AGENTS.md.tmpl` with
+  `docs/agents/legacy-warrant-workflow.md` (its rendering, held equal by a
+  unit test), `docs/SIGNING.md` and `docs/ADOPTING.md` (the list of human
+  acts). The SAS's act list is not among them: changing it is a SAS
+  revision.
 
 ## Frozen Surfaces
 

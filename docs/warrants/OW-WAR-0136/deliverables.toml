@@ -172,3 +172,13 @@ required = false
 content_addressed = false
 provenance_required = false
 obligation_refs = ["OBL-005"]
+
+[[deliverable]]
+id = "D-018"
+title = "The legacy workflow rendered from the AGENTS.md template (AM-003; Q-001 a or b only)"
+kind = "file"
+target_ref = "docs/agents/legacy-warrant-workflow.md"
+required = false
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-005"]
