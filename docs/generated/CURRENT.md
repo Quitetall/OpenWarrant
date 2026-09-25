@@ -9209,12 +9209,12 @@ the app shows a `human` remedy and stops.
 | D-003 | OW-WAR-0071 re-targeted to 1.2.0 | `docs/warrants/OW-WAR-0071/amendments/AM-001.yaml` | verified |
 | D-004 | The ownership index | `crates/openwarrant-cli/src/ownership.rs` | verified |
 | D-005 | Authorization records the declared set | `crates/openwarrant-cli/src/authorize.rs` | verified |
-| D-006 | The signing screen shows what it grants | `crates/openwarrant-cli/src/sign.rs` | verified |
+| D-006 | The signing screen shows what it grants | `crates/openwarrant-cli/src/sign.rs` | drift |
 | D-007 | Historical pins and the lineage | `crates/openwarrant-cli/src/pins.rs` | verified |
 | D-008 | A correction against a historical pin is refused | `crates/openwarrant-cli/src/correct.rs` | verified |
 | D-009 | The resolution locator | `crates/openwarrant-cli/src/resolution_cmd.rs` | verified |
 | D-010 | The pin guard reads ownership | `.claude/hooks/guard-pins.sh` | verified |
-| D-011 | The drift rule | `crates/openwarrant-cli/src/check.rs` | verified |
+| D-011 | The drift rule | `crates/openwarrant-cli/src/check.rs` | drift |
 | D-012 | Requirement 3's reason names a newer owner | `crates/openwarrant-cli/src/resolve.rs` | verified |
 | D-013 | The ownership plants | `conformance/plants.d/98-ownership.sh` | verified |
 | D-014 | The authorization schema | `schemas/oh.war/authorization/v1.json` | verified |
@@ -12443,7 +12443,7 @@ breaking the corpus.
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | The grammar of the SAS 1.1.0 atom format: standard and tool conformance, divergences, proposed SAS text | `docs/GRAMMAR.md` | verified |
-| D-002 | atom.header: the atom header checked against its manifest entry | `crates/openwarrant-cli/src/repo.rs` | verified |
+| D-002 | atom.header: the atom header checked against its manifest entry | `crates/openwarrant-cli/src/repo.rs` | drift |
 | D-003 | The grammar plants: header, reader, positive controls, drift control | `conformance/plants.d/57-grammar.sh` | verified |
 | D-004 | The dispatch-bundle test fixture writes a well-formed atom header (AM-001) | `crates/openwarrant-cli/tests/dispatch_bundle_cli.rs` | verified |
 
@@ -28786,7 +28786,7 @@ no-op.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | traceability.unknown-requirement — implements refs held to §106 | `crates/openwarrant-cli/src/check.rs` | verified |
+| D-001 | traceability.unknown-requirement — implements refs held to §106 | `crates/openwarrant-cli/src/check.rs` | drift |
 | D-002 | ADR supersession relations read in both directions | `crates/openwarrant-core/src/adr.rs` | verified |
 | D-003 | The plants: unknown requirement, duplicate milestone id, contribution unstated, Markdown drift | `conformance/plants.d/00-corpus.sh` | verified |
 | D-004 | Tests: banner before title, no division, every WAR.json carries the SAS pin | `crates/openwarrant-compiler/src/corpus_status.rs` | verified |
@@ -34566,6 +34566,19 @@ M4 — records and plants:
 - (AM-003) `crates/openwarrant-cli/src/batch_cmd.rs`: `war sign --batch`
   signs through the same presence policy and key-binding check as a single
   act, so the policy cannot be stepped around by signing in a batch.
+- (AM-004) `crates/openwarrant-cli/src/authority_cmd.rs`: the store module
+  is readable by `authority_check.rs`, and `war authority draft` drafts v2
+  revisions (actor, kind, policy).
+- (AM-004) `crates/openwarrant-cli/src/authority_cmd/store.rs`: a read-only
+  store reader for the execution account, whose guard refuses a store that
+  account can write.
+- (AM-004) `crates/openwarrant-cli/src/check.rs`: `war check` emits
+  `authority.unprotected`, `authority.test-store` and
+  `policy.unprotected-divergence`.
+- (AM-004) `crates/openwarrant-cli/src/repo.rs`: the store's protected policy
+  keys are applied when a repository is opened, so every consumer reads them.
+- (AM-004) `crates/openwarrant-core/tests/authority_transition.rs`: 0096's
+  tests name the v2 fields in their struct literals.
 
 ## Frozen Surfaces
 
@@ -34758,6 +34771,11 @@ test mode is labeled in every record it produces.
 | D-009 | the plants | `conformance/plants.d/58-authn.sh` | not_content_addressed |
 | D-010 | core lib.rs declares the presence module (AM-003) | `crates/openwarrant-core/src/lib.rs` | not_content_addressed |
 | D-011 | war sign --batch signs under the presence policy and the key-binding check (AM-003) | `crates/openwarrant-cli/src/batch_cmd.rs` | not_content_addressed |
+| D-012 | authority_cmd.rs: store readable by the read path; v2 drafting (AM-004) | `crates/openwarrant-cli/src/authority_cmd.rs` | not_content_addressed |
+| D-013 | store.rs: a read-only reader whose guard refuses a store the execution account can write (AM-004) | `crates/openwarrant-cli/src/authority_cmd/store.rs` | not_content_addressed |
+| D-014 | check.rs emits authority.unprotected and policy.unprotected-divergence (AM-004) | `crates/openwarrant-cli/src/check.rs` | not_content_addressed |
+| D-015 | repo.rs applies the store's protected policy keys on open (AM-004) | `crates/openwarrant-cli/src/repo.rs` | not_content_addressed |
+| D-016 | 0096's transition tests name the v2 fields (AM-004) | `crates/openwarrant-core/tests/authority_transition.rs` | not_content_addressed |
 
 #### OW-WAR-0139 — The web UI beyond this machine: LAN and other devices, authenticated
 
@@ -37575,5 +37593,5 @@ Every command here has been judged by the act's dry run (`war sign <target> --dr
 | act | Warrant | command | judged | why |
 |---|---|---|---|---|
 | authorize | OW-WAR-0133 | `war sign OW-WAR-0133` | would record | revision 5 awaits authorization under AM-004 |
-| authorize | OW-WAR-0138 | `war sign OW-WAR-0138` | would record | revision 4 awaits authorization under AM-003 |
+| authorize | OW-WAR-0138 | `war sign OW-WAR-0138` | would record | revision 4 awaits authorization under AM-004 |
 | accept | SAS 1.1.1 | `war sign 1.1.1` | would record | a proposed SAS revision awaits acceptance |

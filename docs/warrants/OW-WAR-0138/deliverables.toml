@@ -112,3 +112,53 @@ required = true
 content_addressed = false
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-012"
+title = "authority_cmd.rs: store readable by the read path; v2 drafting (AM-004)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/authority_cmd.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[deliverable]]
+id = "D-013"
+title = "store.rs: a read-only reader whose guard refuses a store the execution account can write (AM-004)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/authority_cmd/store.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-014"
+title = "check.rs emits authority.unprotected and policy.unprotected-divergence (AM-004)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/check.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-003"]
+
+[[deliverable]]
+id = "D-015"
+title = "repo.rs applies the store's protected policy keys on open (AM-004)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/repo.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]
+
+[[deliverable]]
+id = "D-016"
+title = "0096's transition tests name the v2 fields (AM-004)"
+kind = "file"
+target_ref = "crates/openwarrant-core/tests/authority_transition.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-003"]

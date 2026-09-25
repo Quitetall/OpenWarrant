@@ -68,6 +68,19 @@ M4 — records and plants:
 - (AM-003) `crates/openwarrant-cli/src/batch_cmd.rs`: `war sign --batch`
   signs through the same presence policy and key-binding check as a single
   act, so the policy cannot be stepped around by signing in a batch.
+- (AM-004) `crates/openwarrant-cli/src/authority_cmd.rs`: the store module
+  is readable by `authority_check.rs`, and `war authority draft` drafts v2
+  revisions (actor, kind, policy).
+- (AM-004) `crates/openwarrant-cli/src/authority_cmd/store.rs`: a read-only
+  store reader for the execution account, whose guard refuses a store that
+  account can write.
+- (AM-004) `crates/openwarrant-cli/src/check.rs`: `war check` emits
+  `authority.unprotected`, `authority.test-store` and
+  `policy.unprotected-divergence`.
+- (AM-004) `crates/openwarrant-cli/src/repo.rs`: the store's protected policy
+  keys are applied when a repository is opened, so every consumer reads them.
+- (AM-004) `crates/openwarrant-core/tests/authority_transition.rs`: 0096's
+  tests name the v2 fields in their struct literals.
 
 ## Frozen Surfaces
 
