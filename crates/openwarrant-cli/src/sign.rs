@@ -2070,13 +2070,22 @@ fn attest_after(
     {
         extra.push((format!("deliverables:{target}"), d.to_owned()));
     }
+    let mut files = vec![
+        Utf8PathBuf::from(repo.relative(&record)),
+        Utf8PathBuf::from(repo.relative(response)),
+    ];
+    // OW-WAR-0136: a resolution's custody. Every receipt it relied on, and
+    // that receipt's run, stdout and stderr, is a subject too, so a receipt
+    // replaced after signing by another that reseals is caught by digest —
+    // the seal alone cannot catch it. After the record and the response, so
+    // the documented first two subjects keep their places.
+    if act == "resolve" {
+        files.extend(crate::attest::relied_on_files(repo, &target)?);
+    }
     let a = crate::attest::Attestable {
         act,
         target: &target,
-        files: vec![
-            Utf8PathBuf::from(repo.relative(&record)),
-            Utf8PathBuf::from(repo.relative(response)),
-        ],
+        files,
         extra_subjects: extra,
         predicate,
         actor,

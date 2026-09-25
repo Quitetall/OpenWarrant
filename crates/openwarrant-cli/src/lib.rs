@@ -41,6 +41,7 @@ pub mod gate_cmd;
 pub mod inbox;
 pub mod init;
 pub mod install;
+pub mod invalidation;
 pub mod journal_cmd;
 pub mod kf;
 pub mod mcp;
@@ -194,6 +195,23 @@ enum SasCommand {
         /// Say what would be written and write nothing.
         #[arg(long)]
         dry_run: bool,
+    },
+}
+
+/// `war gate <action>` (OW-WAR-0136).
+#[derive(clap::Subcommand, Debug)]
+enum GateAction {
+    /// The request to invalidate one Gate Definition version (§45, RQ-057):
+    /// its definition digest, the grounds, and every resolution the sweep
+    /// would dispute, transitively, by alias. Writes nothing: the ingest
+    /// waits on OW-WAR-0136 Q-001 (who may invalidate, and whether it is a
+    /// signed act).
+    Invalidate {
+        /// `<gate_id>@<version>`.
+        gate: String,
+        /// Why the definition is invalid (§56.4 grounds).
+        #[arg(long)]
+        grounds: String,
     },
 }
 
@@ -472,6 +490,8 @@ enum Command {
     },
     /// Inspect or run local gate definitions (§44).
     Gate {
+        #[command(subcommand)]
+        action: Option<GateAction>,
         /// Execute the gates rather than listing them.
         #[arg(long)]
         run: bool,
@@ -894,6 +914,15 @@ enum Command {
         /// Every attestation in the repository (the xtask step).
         #[arg(long)]
         all: bool,
+        /// Audit a resolution's evidence custody (§41.5, OW-WAR-0136): each
+        /// field per relied-on receipt, present or UNKNOWN, and
+        /// `attest.custody-drift` for any subject that moved since signing.
+        #[arg(long, conflicts_with_all = ["verify", "all"])]
+        custody: bool,
+        /// With --custody: record the audit as `custody-audit.toml`, naming
+        /// this auditor. Refused to the performer.
+        #[arg(long, value_name = "AUDITOR", requires = "custody")]
+        record: Option<String>,
     },
     /// One screen for everything you owe: the acts awaiting your signature as
     /// a checklist, the questions an agent asked, and the stages it can start
@@ -1363,6 +1392,34 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         }
 
         Command::Gate {
+            action: Some(GateAction::Invalidate { gate, grounds }),
+            ..
+        } => {
+            let repository = open_repo()?;
+            let (report, request) = invalidation::request(&repository, &gate, &grounds)?;
+            match request {
+                Some(req) => {
+                    if matches!(mode, output::Mode::Human) {
+                        println!(
+                            "{}",
+                            toml::to_string_pretty(&req).map_err(|e| repo::RepoError::Io {
+                                context: "could not render the invalidation request".to_owned(),
+                                source: std::io::Error::other(e.to_string()),
+                            })?
+                        );
+                    }
+                    Ok(output::finish(
+                        mode,
+                        "gate.invalidate",
+                        &report,
+                        Some(output::value(&req)),
+                    ))
+                }
+                None => Ok(output::finish(mode, "gate.invalidate", &report, None)),
+            }
+        }
+        Command::Gate {
+            action: None,
             run,
             gate,
             record,
@@ -2197,8 +2254,24 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             target,
             verify,
             all,
+            custody,
+            record,
         } => {
             let repository = open_repo()?;
+            if custody {
+                let Some(t) = target else {
+                    return Err(Box::new(repo::RepoError::Message(
+                        "war attest --custody: name the resolved Warrant to audit".to_owned(),
+                    )));
+                };
+                let (report, audit) = attest::custody(&repository, &t, record.as_deref())?;
+                return Ok(output::finish(
+                    mode,
+                    "attest.custody",
+                    &report,
+                    audit.as_ref().map(output::value),
+                ));
+            }
             let report = match (target, all) {
                 (_, true) => attest::verify_all(&repository)?,
                 (Some(t), false) => attest::run(&repository, &t, verify)?,
