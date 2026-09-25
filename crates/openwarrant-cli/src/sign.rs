@@ -600,6 +600,57 @@ pub fn queue(repo: &Repository, actor: &str) -> Result<Vec<Pending>, RepoError> 
     Ok(mine)
 }
 
+/// `war sign --list --json`: one entry per pending act, the same list the
+/// text shows. `assigned` names who an assignment chose (empty when none);
+/// `blocked_by` is the rule that lets nobody sign; under `--as`,
+/// `assigned_to_actor` says whether the act is theirs by name.
+#[must_use]
+pub fn list_json(list: &[Pending], actor: Option<&str>) -> serde_json::Value {
+    let acts: Vec<serde_json::Value> = list
+        .iter()
+        .map(|p| {
+            let (target, act) = match p {
+                Pending::Authorize { alias, .. } => (alias.clone(), "authorize"),
+                Pending::Resolve { alias, .. } => (alias.clone(), "resolve"),
+                Pending::Accept { version, .. } => (format!("SAS-{version}"), "accept"),
+                Pending::AcceptRoadmap { revision, .. } => {
+                    (crate::roadmap_cmd::subject(*revision), "accept_roadmap")
+                }
+                Pending::Correct {
+                    alias,
+                    deliverable_id,
+                    ..
+                } => (format!("{alias}/{deliverable_id}"), "correct"),
+            };
+            let (assigned, blocked_by) = match p {
+                Pending::Resolve {
+                    assignment: Some(Ok(n)),
+                    ..
+                } => (n.eligible.iter().chain(&n.revoked).cloned().collect(), None),
+                Pending::Resolve {
+                    assignment: Some(Err(f)),
+                    ..
+                } => (Vec::new(), Some(f.rule)),
+                _ => (Vec::<String>::new(), None),
+            };
+            let mut v = serde_json::json!({
+                "target": target,
+                "act": act,
+                "role": role(p),
+                "eligible": eligible(p),
+                "assigned": assigned,
+                "blocked_by": blocked_by,
+                "line": line(p),
+            });
+            if let Some(a) = actor {
+                v["assigned_to_actor"] = serde_json::Value::Bool(assigned_to(p, a));
+            }
+            v
+        })
+        .collect();
+    serde_json::json!({ "actor": actor, "acts": acts })
+}
+
 /// `war sign --list`, for everyone or for one actor.
 pub fn list_for(repo: &Repository, actor: Option<&str>) -> Result<Vec<Pending>, RepoError> {
     match actor {

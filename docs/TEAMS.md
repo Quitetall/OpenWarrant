@@ -65,6 +65,10 @@ only when no response is on disk. From then on the file is compared with it:
 - **an assignee loses the role** in `roles.toml`: `assignment.role-revoked`.
   Nobody else is substituted; restore the role or re-assign and re-authorize.
 
+`war check` reports both by name: `assignment.moved` (and
+`assignment.malformed`) as errors, `assignment.role-revoked` as a warning, and
+`assignment.signed` when the file is the one signed.
+
 A Warrant with no `assignment.toml` behaves exactly as before.
 
 ## Who signs
@@ -72,7 +76,9 @@ A Warrant with no `assignment.toml` behaves exactly as before.
 On an assigned resolve act, `war sign <alias>` with no `--as` picks the
 assigned resolver; `--dry-run` reports `sign.signer` naming them. An eligible
 resolver who is not assigned is refused `sign.not-assigned`. `war sign --list`
-marks an assigned act `[assigned: …]`, or the rule that blocks it.
+marks an assigned act `[assigned: …]`, or the rule that blocks it. A
+hand-written `war resolve <alias> --response` naming anyone else is refused
+`resolution.not-assigned` before anything is written.
 
 On an assigned verify act, `war verify <alias> --response <file>` records a
 verdict only from the assigned verifier (`verify.not-assigned` otherwise), and
@@ -81,15 +87,17 @@ Refused verdicts are not written under `verifications/`.
 
 ## The personal queue
 
-`sign::queue` and `inbox::run_as` compute one person's queue: the acts that
-actor may sign now, acts assigned to them by name first. They are the same
-functions `war sign --list` and `war inbox` use, filtered, so a queue can only
-ever be a subset of what the register and the assignments allow.
+```
+war sign --list --as Ada          # the acts Ada may sign now, assigned first
+war inbox --as Ada                # the same inbox, filtered to Ada
+war --json sign --list --as Ada   # the same list: target, act, eligible, assigned
+```
 
-**Not yet on the command line.** The `--as <actor>` flags for `war sign --list`
-and `war inbox` are parsed in `crates/openwarrant-cli/src/lib.rs`, which is
-outside OW-WAR-0137's declared set. Until an amendment wires them, the queue
-is available to code but not as a flag.
+Both read the same functions as the shared `war sign --list` and `war inbox`
+and filter them, so a queue can only ever be a subset of what the register and
+the assignments allow. Questions stay in every inbox: answering one is no
+role's act. `--as` names whose queue to show; it signs nothing and proves
+nobody's identity.
 
 ## Sharing
 
@@ -105,9 +113,10 @@ not yet measured) is that git reports a conflict when the second one merges.
   signed, so on the verify path the assignment is enforced against the name
   in the response (OW-WAR-0138).
 - It does not change who may sign by kind (§27.2). Agents stay refused.
-- It does not narrow a resolution ingested from a hand-written response
-  (`war resolve <alias> --response`); `war sign` is the narrowed path.
 - It does not claim two-person review. Assigning Ada and Ben records who was
   chosen; only the records of who actually signed and verified say who did.
+  `war show <alias>`, `war status <alias>` and each Warrant's `review` in
+  `war status --json` list who authorized, verified and resolved, and count
+  the distinct humans among them (§27.4). None of them says "reviewed".
 
 See `docs/THREAT_MODEL.md` entry 14.

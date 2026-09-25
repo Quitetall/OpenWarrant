@@ -1013,7 +1013,12 @@ enum Command {
     /// a signing act; it is told that a human must sign, and how.
     Next,
     /// Warrants waiting on a human act (read-only; OW-WAR-0070).
-    Inbox,
+    Inbox {
+        /// Only the acts this actor may sign now, assigned ones first
+        /// (OW-WAR-0137). Questions stay: answering one is no role's act.
+        #[arg(long = "as")]
+        actor: Option<String>,
+    },
     /// Report six readiness dimensions; unavailable checks block readiness.
     Preflight { alias: String },
     /// List remaining Warrant records and status, read-only, from live sources.
@@ -2298,9 +2303,9 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             }
             Ok(output::exit_code(&report))
         }
-        Command::Inbox => {
+        Command::Inbox { actor } => {
             let repository = open_repo()?;
-            let inbox = inbox::run(&repository)?;
+            let inbox = inbox::run_as(&repository, actor.as_deref())?;
             output::emit(
                 mode,
                 "inbox",
@@ -2401,12 +2406,15 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             }
             match alias {
                 Some(alias) => {
-                    let rendered = show::run(&repository, &alias, "status")?;
+                    let mut rendered = show::run(&repository, &alias, "status")?;
+                    // OW-WAR-0137, OBL-004: who acted, from the records.
+                    let review = status::review_of(&repository, &repository.warrant_dir(&alias)?)?;
+                    rendered.push_str(&status::render_review(&review));
                     output::emit(
                         mode,
                         "status",
                         &rendered,
-                        serde_json::json!({"alias": alias, "view": "status", "rendered": rendered}),
+                        serde_json::json!({"alias": alias, "view": "status", "rendered": rendered, "review": review}),
                     );
                 }
                 None => match mode {
@@ -2430,12 +2438,22 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         }
         Command::Show { alias, view } => {
             let repository = open_repo()?;
-            let rendered = show::run(&repository, &alias, &view)?;
+            let mut rendered = show::run(&repository, &alias, &view)?;
+            // OW-WAR-0137, OBL-004: the two views a reader opens to ask "who
+            // reviewed this?" end with who acted, from the records. Here rather
+            // than in show.rs, which OW-WAR-0033's resolution pins.
+            let review = if matches!(view.as_str(), "full_warrant" | "status") {
+                let review = status::review_of(&repository, &repository.warrant_dir(&alias)?)?;
+                rendered.push_str(&status::render_review(&review));
+                Some(review)
+            } else {
+                None
+            };
             output::emit(
                 mode,
                 "show",
                 &rendered,
-                serde_json::json!({"alias": alias, "view": view, "rendered": rendered}),
+                serde_json::json!({"alias": alias, "view": view, "rendered": rendered, "review": review}),
             );
             Ok(EXIT_OK)
         }
@@ -2566,15 +2584,29 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         } => {
             let repository = open_repo()?;
             if list {
-                let waiting = sign::list(&repository)?;
-                if waiting.is_empty() {
-                    println!("nothing awaits a signature");
+                // OW-WAR-0137: `--as <actor>` is that actor's queue — the acts
+                // they may sign now, assigned ones first — and `--json` carries
+                // the same list.
+                let waiting = sign::list_for(&repository, actor.as_deref())?;
+                let by = actor
+                    .as_deref()
+                    .map(|a| format!(" by {a}"))
+                    .unwrap_or_default();
+                let text = if waiting.is_empty() {
+                    format!("nothing awaits a signature{by}")
                 } else {
-                    println!("{} awaiting a signature:", waiting.len());
+                    let mut t = format!("{} awaiting a signature{by}:", waiting.len());
                     for p in &waiting {
-                        println!("  {}", sign::line(p));
+                        t.push_str(&format!("\n  {}", sign::line(p)));
                     }
-                }
+                    t
+                };
+                output::emit(
+                    mode,
+                    "sign",
+                    &text,
+                    sign::list_json(&waiting, actor.as_deref()),
+                );
                 return Ok(EXIT_OK);
             }
             let parse_err = |what: &str, v: &str, known: &str| {

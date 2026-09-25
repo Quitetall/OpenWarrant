@@ -262,6 +262,7 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
                 .join("resolution.toml")
                 .is_file()
                 .then(|| repo.relative(&one.dir.join("resolution.toml"))),
+            review: review_of(repo, &one.dir).ok().filter(|r| !r.is_empty()),
         });
     }
 
@@ -794,6 +795,95 @@ fn hand_written_resolved_claims(repo: &Repository) -> usize {
         .filter_map(|e| fs::read_to_string(e.path()).ok())
         .map(|t| t.matches("**resolved**").count())
         .sum()
+}
+
+/// OW-WAR-0137, OBL-004 — the roles actually exercised on one Warrant, read
+/// from its records (§27.4). Kinds come from the records themselves: the
+/// authorization's `actor_kind`, each verdict's `verifier.kind`, and for a
+/// resolution the register's entry for the actor it names (`unknown` when
+/// the register has none). Nothing here says "reviewed": a reader sees who,
+/// and how many distinct humans, and draws no more than that.
+pub fn review_of(
+    repo: &Repository,
+    dir: &camino::Utf8Path,
+) -> Result<openwarrant_core::status::ReviewView, RepoError> {
+    use openwarrant_core::status::{ActorView, ReviewView};
+    let register = repo.load_authority_register().unwrap_or_default();
+    let authorized_by = repo
+        .load_authorization(dir)?
+        .and_then(|a| a.revision.authorization)
+        .map(|a| ActorView {
+            actor: a.authorizer,
+            kind: a.actor_kind.to_string(),
+        })
+        .into_iter()
+        .collect();
+    let verifications = repo.load_verifications(dir)?;
+    let mut verified_by: Vec<ActorView> = verifications
+        .records
+        .iter()
+        .map(|v| ActorView {
+            actor: v.verifier.actor.clone(),
+            kind: v.verifier.kind.as_str().to_owned(),
+        })
+        .collect();
+    verified_by.sort();
+    verified_by.dedup();
+    let resolved_by = repo
+        .load_resolution(dir)?
+        .map(|r| {
+            let actor = r
+                .resolution
+                .resolved_by_ref
+                .trim_start_matches("person://")
+                .to_owned();
+            let kind = register
+                .actor(&actor)
+                .map_or_else(|| "unknown".to_owned(), |e| e.actor_kind.to_string());
+            ActorView { actor, kind }
+        })
+        .into_iter()
+        .collect();
+    Ok(ReviewView {
+        authorized_by,
+        verified_by,
+        resolved_by,
+        verification_records: verifications.records.len(),
+        distinct_humans: Vec::new(),
+    }
+    .counted())
+}
+
+/// The review record as a trailer for `war show` and `war status <alias>`.
+#[must_use]
+pub fn render_review(r: &openwarrant_core::status::ReviewView) -> String {
+    let who = |list: &[openwarrant_core::status::ActorView]| {
+        if list.is_empty() {
+            "none on record".to_owned()
+        } else {
+            list.iter()
+                .map(|a| format!("{} ({})", a.actor, a.kind))
+                .collect::<Vec<_>>()
+                .join(", ")
+        }
+    };
+    format!(
+        "\n## Acts on record (§27.4)\n\n\
+         - authorized by: {}\n\
+         - verified by: {} ({} verification record(s))\n\
+         - resolved by: {}\n\
+         - distinct humans on record: {}{}\n",
+        who(&r.authorized_by),
+        who(&r.verified_by),
+        r.verification_records,
+        who(&r.resolved_by),
+        r.distinct_humans.len(),
+        if r.distinct_humans.is_empty() {
+            String::new()
+        } else {
+            format!(" ({})", r.distinct_humans.join(", "))
+        }
+    )
 }
 
 /// The Markdown projection, with its path.

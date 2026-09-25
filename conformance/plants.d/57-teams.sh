@@ -151,6 +151,9 @@ TT_OUT=$(tt_ssh "$TT_TMP/ada" "$WAR" --root "$PLANT_ROOT" sign TT-WAR-0002 --ssh
 for tt_a in TT-WAR-0001 TT-WAR-0002; do
     tt_d="$PLANT_ROOT/docs/warrants/$tt_a"
     tt_c=$(sed -n 's/^contract_digest = "\(.*\)"/\1/p' "$tt_d/authorization.toml" | head -1)
+    # 0002's resolution names Ada, who also authorized it and will verify it:
+    # the one-human Warrant OBL-004 reads.
+    tt_r=Ben; [[ "$tt_a" == TT-WAR-0002 ]] && tt_r=Ada
     cat > "$tt_d/resolution.toml" <<RES
 schema = "oh.war/resolution/v1"
 warrant = "$tt_a"
@@ -166,8 +169,8 @@ artifact_manifest_digest = "absent"
 gate_run_refs = []
 judgment_refs = []
 residual_risk_refs = []
-resolved_by_ref = "person://Ben"
-acting_role_ref = "role-assignment://Ben/resolver"
+resolved_by_ref = "person://$tt_r"
+acting_role_ref = "role-assignment://$tt_r/resolver"
 meaning = "Planted: recorded without a signature so that a resolve act awaits one."
 effective_at = "2026-09-24T00:00:00Z"
 recorded_at = "2026-09-24T00:00:00Z"
@@ -194,6 +197,64 @@ else
     tt_true "the list shows who an act is assigned to" "$(grep 'resolve' <<<"$TT_OUT" | tr '\n' '|')" 1
 fi
 
+# One person's queue: `--as` keeps the acts that actor may sign now, assigned
+# ones first, and `--json` carries the same list.
+tt_json() { python3 -c "$1" <<<"$2" 2>/dev/null; } # python-condition, json
+TT_OUT=$("$WAR" --root "$PLANT_ROOT" sign --list --as Ada 2>&1)
+if ! grep -q 'TT-WAR-0001  resolve' <<<"$TT_OUT" && grep -q 'TT-WAR-0002  resolve' <<<"$TT_OUT" && grep -q 'by Ada:' <<<"$TT_OUT"; then
+    tt_true "sign --list --as Ada omits Ben's act" "0002 only" 0
+else
+    tt_true "sign --list --as Ada omits Ben's act" "$(tr '\n' '|' <<<"$TT_OUT")" 1
+fi
+TT_OUT=$("$WAR" --root "$PLANT_ROOT" sign --list --as Ben 2>&1)
+if grep -A1 'by Ben:' <<<"$TT_OUT" | grep -q 'TT-WAR-0001  resolve .*\[assigned: Ben\]' && grep -q 'TT-WAR-0002  resolve' <<<"$TT_OUT"; then
+    tt_true "sign --list --as Ben lists it, assigned first" "0001 first, then 0002" 0
+else
+    tt_true "sign --list --as Ben lists it, assigned first" "$(tr '\n' '|' <<<"$TT_OUT")" 1
+fi
+TT_OUT=$("$WAR" --root "$PLANT_ROOT" --json sign --list --as Ada 2>/dev/null)
+tt_json 'import json,sys; r=json.load(sys.stdin)["result"]; t=[(a["target"],a["act"]) for a in r["acts"]]; sys.exit(0 if r["actor"]=="Ada" and ("TT-WAR-0002","resolve") in t and ("TT-WAR-0001","resolve") not in t else 1)' "$TT_OUT"
+tt_true "the same, under --json, for Ada" "acts: 0002 resolve, no 0001" $?
+TT_OUT=$("$WAR" --root "$PLANT_ROOT" --json sign --list --as Ben 2>/dev/null)
+tt_json 'import json,sys; a=json.load(sys.stdin)["result"]["acts"]; sys.exit(0 if a and a[0]["target"]=="TT-WAR-0001" and a[0]["assigned"]==["Ben"] and a[0]["assigned_to_actor"] is True and any(x["target"]=="TT-WAR-0002" for x in a) else 1)' "$TT_OUT"
+tt_true "the same, under --json, for Ben" "0001 first, assigned_to_actor" $?
+TT_OUT=$("$WAR" --root "$PLANT_ROOT" --json sign --list 2>/dev/null)
+tt_json 'import json,sys; a=json.load(sys.stdin)["result"]["acts"]; t=[x["target"] for x in a if x["act"]=="resolve"]; sys.exit(0 if "TT-WAR-0001" in t and "TT-WAR-0002" in t else 1)' "$TT_OUT"
+tt_true "with no --as, --json lists both, as before" "0001 and 0002" $?
+TT_OUT=$("$WAR" --root "$PLANT_ROOT" inbox --as Ada 2>&1)
+if ! grep -q 'TT-WAR-0001' <<<"$TT_OUT" && grep -q 'TT-WAR-0002' <<<"$TT_OUT"; then
+    tt_true "inbox --as Ada omits Ben's act" "0002 only" 0
+else
+    tt_true "inbox --as Ada omits Ben's act" "$(tr '\n' '|' <<<"$TT_OUT")" 1
+fi
+TT_OUT=$("$WAR" --root "$PLANT_ROOT" inbox --as Ben 2>&1)
+if grep -q 'TT-WAR-0001' <<<"$TT_OUT" && grep -q 'TT-WAR-0002' <<<"$TT_OUT"; then
+    tt_true "inbox --as Ben lists it" "0001 and 0002" 0
+else
+    tt_true "inbox --as Ben lists it" "$(tr '\n' '|' <<<"$TT_OUT")" 1
+fi
+TT_OUT=$("$WAR" --root "$PLANT_ROOT" --json inbox --as Ada 2>/dev/null)
+tt_json 'import json,sys; i=[x["alias"] for x in json.load(sys.stdin)["result"]["items"]]; sys.exit(0 if "TT-WAR-0002" in i and "TT-WAR-0001" not in i else 1)' "$TT_OUT"
+tt_true "inbox --as Ada, under --json" "items: 0002, no 0001" $?
+TT_OUT=$("$WAR" --root "$PLANT_ROOT" --json inbox --as Ben 2>/dev/null)
+tt_json 'import json,sys; i=json.load(sys.stdin)["result"]["items"]; sys.exit(0 if i and i[0]["alias"]=="TT-WAR-0001" and i[0].get("assigned") is True and any(x["alias"]=="TT-WAR-0002" for x in i) else 1)' "$TT_OUT"
+tt_true "inbox --as Ben, under --json, assigned first" "0001 first, assigned" $?
+
+# war check names the signed assignment as signed (the accepting case; the
+# moved one is below).
+TT_OUT=$("$WAR" --root "$PLANT_ROOT" --json check TT-WAR-0001 2>/dev/null)
+tt_json 'import json,sys; d=json.load(sys.stdin)["diagnostics"]; r=[x["rule"] for x in d if x["rule"].startswith("assignment.")]; sys.exit(0 if r==["assignment.signed"] else 1)' "$TT_OUT"
+tt_true "war check reads the signed assignment" "assignment.signed, and no other assignment rule" $?
+
+# OBL-004 before any verification: no verifier on record, and nothing says
+# otherwise.
+TT_OUT=$("$WAR" --root "$PLANT_ROOT" show TT-WAR-0002 2>&1)
+if grep -q 'verified by: none on record (0 verification record(s))' <<<"$TT_OUT" && ! grep -qi 'reviewed' <<<"$TT_OUT"; then
+    tt_true "no verification: war show says none on record" "verified by: none on record" 0
+else
+    tt_true "no verification: war show says none on record" "$(grep -A5 'Acts on record' <<<"$TT_OUT" | tr '\n' '|')" 1
+fi
+
 # Ben loses the resolver role. Nobody may sign; Ada is not substituted.
 tt_roles '["authorizer", "verifier"]'
 TT_OUT=$("$WAR" --root "$PLANT_ROOT" sign TT-WAR-0001 --dry-run 2>&1); tt_expect "a revoked assignee makes nobody eligible" "$TT_OUT" $? 2 'assignment.role-revoked'
@@ -204,8 +265,16 @@ tt_roles
 cp "$TT_W/assignment.toml" "$TT_TMP/assignment.keep"
 tt_assign '["Ada"]' '["Ada"]'
 TT_OUT=$("$WAR" --root "$PLANT_ROOT" sign TT-WAR-0001 --as Ada --dry-run 2>&1); tt_expect "an assignment edited after signing" "$TT_OUT" $? 2 'assignment.moved'
+TT_OUT=$("$WAR" --root "$PLANT_ROOT" check TT-WAR-0001 2>&1); TT_STATUS=$?
+if [[ $TT_STATUS -ne 0 ]] && grep -q 'ERROR.*assignment.moved.*TT-WAR-0001' <<<"$TT_OUT"; then
+    tt_true "war check names the moved assignment" "ERROR assignment.moved TT-WAR-0001 (exit $TT_STATUS)" 0
+else
+    tt_true "war check names the moved assignment" "exit $TT_STATUS: $(grep -i assignment <<<"$TT_OUT" | head -3 | tr '\n' '|')" 1
+fi
 rm -f "$TT_W/assignment.toml"
 TT_OUT=$("$WAR" --root "$PLANT_ROOT" sign TT-WAR-0001 --as Ada --dry-run 2>&1); tt_expect "an assignment removed after signing" "$TT_OUT" $? 2 'assignment.moved'
+TT_OUT=$("$WAR" --root "$PLANT_ROOT" check TT-WAR-0001 2>&1)
+grep -q 'ERROR.*assignment.moved.*TT-WAR-0001' <<<"$TT_OUT"; tt_true "war check names the removed assignment" "ERROR assignment.moved" $?
 # The journal is a file an agent can edit too. Strip the recorded digest from
 # it as well: the signed response still echoes the assignment, so the removal
 # is still refused rather than read as "never assigned".
@@ -264,8 +333,52 @@ cp "$TT_TMP/assignment.keep" "$TT_W/assignment.toml"
 tt_verdict "$TT_TMP/v-ada.toml" TT-WAR-0001 OBL-001 Ada
 TT_OUT=$("$WAR" --root "$PLANT_ROOT" verify TT-WAR-0001 --response "$TT_TMP/v-ada.toml" 2>&1); tt_expect "the assigned verifier's verdict" "$TT_OUT" $? 0 'verify.recorded'
 [[ -f "$TT_W/verifications/OBL-001.toml" ]]; tt_true "the assigned verdict is written" "verifications/OBL-001.toml" $?
-tt_verdict "$TT_TMP/v-ben-u.toml" TT-WAR-0002 OBL-001 Ben
-TT_OUT=$("$WAR" --root "$PLANT_ROOT" verify TT-WAR-0002 --response "$TT_TMP/v-ben-u.toml" 2>&1); tt_expect "unassigned: any distinct verifier, as before" "$TT_OUT" $? 0 'verify.recorded'
+tt_verdict "$TT_TMP/v-ada-u.toml" TT-WAR-0002 OBL-001 Ada
+TT_OUT=$("$WAR" --root "$PLANT_ROOT" verify TT-WAR-0002 --response "$TT_TMP/v-ada-u.toml" 2>&1); tt_expect "unassigned: any distinct verifier, as before" "$TT_OUT" $? 0 'verify.recorded'
+
+# --- OBL-002: a hand-written resolution is narrowed like war sign ------------
+
+tt_resolution() { # file, alias, resolver
+    cat > "$1" <<RR
+schema = "oh.war/resolution-response/v1"
+warrant = "$2"
+contract_digest = "$(sed -n 's/^contract_digest = "\(.*\)"/\1/p' "$PLANT_ROOT/docs/warrants/$2/resolution.toml" | head -1)"
+resolved_by = "$3"
+acting_role = "resolver"
+common_outcome = "satisfied"
+profile_outcome = "delivered"
+meaning = "A planted response."
+effective_time = "2026-09-24T00:00:00Z"
+RR
+}
+tt_resolution "$TT_TMP/r-ada.toml" TT-WAR-0001 Ada
+cp "$TT_W/journal.jsonl" "$TT_TMP/journal.before"
+TT_OUT=$("$WAR" --root "$PLANT_ROOT" resolve TT-WAR-0001 --response "$TT_TMP/r-ada.toml" 2>&1); tt_expect "a hand-written resolution by the unassigned" "$TT_OUT" $? 2 'resolution.not-assigned'
+cmp -s "$TT_W/journal.jsonl" "$TT_TMP/journal.before"; tt_true "the refused resolution writes nothing" "journal unchanged" $?
+TT_OUT=$(tt_ssh "$TT_TMP/ben" "$WAR" --root "$PLANT_ROOT" sign TT-WAR-0001 --ssh-sign </dev/null); TT_STATUS=$?
+if [[ $TT_STATUS -eq 0 ]] && grep -q 'resolution.signature-supplied' <<<"$TT_OUT"; then
+    tt_true "the assigned resolver signs" "resolution.signature-supplied as Ben" 0
+else
+    tt_true "the assigned resolver signs" "exit $TT_STATUS: $(grep -E '(ERROR|PLANT|resolution\.)' <<<"$TT_OUT" | head -3 | tr '\n' '|')" 1
+fi
+
+# --- OBL-004: no view claims two-person review that did not happen -----------
+
+# TT-WAR-0002: Ada authorized, verified and resolved. TT-WAR-0001: Ada
+# authorized and verified, Ben resolved.
+TT_OUT=$("$WAR" --root "$PLANT_ROOT" --json status 2>/dev/null)
+tt_json 'import json,sys; w={x["alias"]:x for x in json.load(sys.stdin)["result"]["warrants"]}; r=w["TT-WAR-0002"]["review"]; sys.exit(0 if r["distinct_humans"]==["Ada"] and "reviewed" not in json.dumps(r) else 1)' "$TT_OUT"
+tt_true "one human in every role counts one" "status --json: distinct_humans [Ada]" $?
+tt_json 'import json,sys; w={x["alias"]:x for x in json.load(sys.stdin)["result"]["warrants"]}; r=w["TT-WAR-0001"]["review"]; sys.exit(0 if r["distinct_humans"]==["Ada","Ben"] and [a["actor"] for a in r["resolved_by"]]==["Ben"] else 1)' "$TT_OUT"
+tt_true "two humans on record count two" "status --json: distinct_humans [Ada, Ben]" $?
+TT_OUT=$("$WAR" --root "$PLANT_ROOT" show TT-WAR-0002 2>&1)
+if grep -q 'distinct humans on record: 1 (Ada)' <<<"$TT_OUT" && ! grep -qi 'reviewed' <<<"$TT_OUT"; then
+    tt_true "war show: one distinct human" "distinct humans on record: 1 (Ada)" 0
+else
+    tt_true "war show: one distinct human" "$(grep -A5 'Acts on record' <<<"$TT_OUT" | tr '\n' '|')" 1
+fi
+TT_OUT=$("$WAR" --root "$PLANT_ROOT" status TT-WAR-0001 2>&1)
+grep -q 'distinct humans on record: 2 (Ada, Ben)' <<<"$TT_OUT"; tt_true "war status <alias>: two distinct humans" "distinct humans on record: 2 (Ada, Ben)" $?
 
 command rm -rf "$TT_TMP"
 corpus_gone "$PLANT_ROOT"

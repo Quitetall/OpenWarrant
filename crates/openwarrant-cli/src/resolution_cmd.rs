@@ -397,6 +397,38 @@ pub fn ingest_with(
         );
         return Ok(report);
     }
+    // OW-WAR-0137: on a Warrant whose authorizer signed an assignment, only
+    // the assigned resolver's response is taken — whether it records a
+    // resolution or supplies the signature a recorded one lacks — and an
+    // assignment that is not the one signed lets nobody resolve. Checked
+    // before either path writes anything. Unassigned Warrants skip this.
+    match crate::authorize::assignment_standing(repo, &dir)?
+        .for_act(crate::authorize::assignment::Act::Resolve)
+    {
+        Ok(None) => {}
+        Ok(Some(assigned)) if assigned.contains(&response.resolved_by) => {}
+        Ok(Some(assigned)) => {
+            refuse(
+                &mut report,
+                "resolution.not-assigned",
+                format!(
+                    "{alias}: {:?} is not the assigned resolver; the assignment the authorizer \
+                     signed names {}. An assignment narrows who may resolve",
+                    response.resolved_by,
+                    assigned.join(", ")
+                ),
+            );
+            return Ok(report);
+        }
+        Err(finding) => {
+            refuse(
+                &mut report,
+                finding.rule,
+                format!("{alias}: {}", finding.message),
+            );
+            return Ok(report);
+        }
+    }
     if dir.join("resolution.toml").is_file() {
         // One narrow exception to "a resolution is written once": the recorded
         // resolution binds this contract, says exactly what this response says,
