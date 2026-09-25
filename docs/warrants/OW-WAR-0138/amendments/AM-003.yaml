@@ -1,0 +1,19 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-003"
+band: "manual_revision"
+reason: "Two files outside the declared set are needed by D-003 and D-004. (1) presence.rs is a new module of openwarrant-core, and a module exists only when core's lib.rs declares it; without that one line D-003 cannot be compiled or tested where the work order puts it. (2) `war sign --batch` signs through batch_cmd.rs, which calls sign.rs's signing function with no repository and so no policy; left alone, `require_user_presence` refuses an ordinary key on a single act and accepts the same key for any number of acts in a batch. Both are call-site changes. Wording drafted by the performer `claude`."
+governing_adr_or_policy: "sas://WAR-SAS-27.2"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. The deliverable set gains D-010, crates/openwarrant-core/src/lib.rs (the presence module declared), and D-011, crates/openwarrant-cli/src/batch_cmd.rs (a batch signs under the presence policy and the key-binding check). The next revision is authorized against the amended contract."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-25"
+
+semantic_diff:
+  - element: "deliverables"
+    before: "D-001..D-009."
+    after: "Also D-010: crates/openwarrant-core/src/lib.rs, the presence module declared; and D-011: crates/openwarrant-cli/src/batch_cmd.rs, a batch signed under the presence policy and the key-binding check."
+
+affected_stages: []
+affected_milestones: []

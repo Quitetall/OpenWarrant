@@ -92,3 +92,23 @@ required = true
 content_addressed = false
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[[deliverable]]
+id = "D-010"
+title = "core lib.rs declares the presence module (AM-003)"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/lib.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-011"
+title = "war sign --batch signs under the presence policy and the key-binding check (AM-003)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/batch_cmd.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002"]

@@ -34537,6 +34537,12 @@ M4 — records and plants:
 9. `conformance/plants.d/58-authn.sh` (new), the refusals in the assurance
    atom.
 
+- (AM-003) `crates/openwarrant-core/src/lib.rs`: declares the `presence`
+  module, so D-003 is part of the SDK it is written for.
+- (AM-003) `crates/openwarrant-cli/src/batch_cmd.rs`: `war sign --batch`
+  signs through the same presence policy and key-binding check as a single
+  act, so the policy cannot be stepped around by signing in a batch.
+
 ## Frozen Surfaces
 
 - The sshsig namespaces (`oh.war/response`, `oh.war/dsse`).
@@ -34726,6 +34732,8 @@ test mode is labeled in every record it produces.
 | D-007 | THREAT_MODEL rows 1 and 6 narrowed | `docs/THREAT_MODEL.md` | not_content_addressed |
 | D-008 | authority.md: the cutover | `docs/cli/authority.md` | not_content_addressed |
 | D-009 | the plants | `conformance/plants.d/58-authn.sh` | not_content_addressed |
+| D-010 | core lib.rs declares the presence module (AM-003) | `crates/openwarrant-core/src/lib.rs` | not_content_addressed |
+| D-011 | war sign --batch signs under the presence policy and the key-binding check (AM-003) | `crates/openwarrant-cli/src/batch_cmd.rs` | not_content_addressed |
 
 #### OW-WAR-0139 — The web UI beyond this machine: LAN and other devices, authenticated
 
@@ -37538,4 +37546,8 @@ From the [authority register](../../docs/authority/roles.toml).
 
 ## Awaiting a human
 
-Nothing awaits a signature.
+Every command here has been judged by the act's dry run (`war sign <target> --dry-run`): the ingest ran with the write withheld. `would record` means the signature is the only thing missing.
+
+| act | Warrant | command | judged | why |
+|---|---|---|---|---|
+| authorize | OW-WAR-0138 | `war sign OW-WAR-0138` | would record | revision 4 awaits authorization under AM-003 |
