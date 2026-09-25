@@ -1,6 +1,0 @@
-# Make signup easier
-
-## Desired outcome
-
-Reduce the information a new user must enter to create an account.
-

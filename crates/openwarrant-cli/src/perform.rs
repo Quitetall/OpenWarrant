@@ -69,12 +69,7 @@ struct Performance {
 }
 
 /// `war perform <alias> <stage>`: compile the Dispatch, hand it over, ingest.
-pub fn run(
-    repo: &Repository,
-    alias: &str,
-    stage_id: &str,
-    prototype: bool,
-) -> Result<Report, RepoError> {
+pub fn run(repo: &Repository, alias: &str, stage_id: &str) -> Result<Report, RepoError> {
     let mut report = Report::default();
     let dir = repo.warrant_dir(alias)?;
     let loaded = repo.load_warrant(&dir)?;
@@ -154,7 +149,7 @@ pub fn run(
         return Ok(report);
     }
 
-    let dispatch = match compile(repo, alias, stage_id, &dir, &mut report, prototype)? {
+    let dispatch = match compile(repo, alias, stage_id, &dir, &mut report)? {
         Some(d) => d,
         None => return Ok(report),
     };
@@ -259,7 +254,7 @@ fn discard(outcome: &Performance) {
 }
 
 /// `war perform --all`: every open agent stage, one at a time.
-pub fn all(repo: &Repository, prototype: bool) -> Result<Report, RepoError> {
+pub fn all(repo: &Repository) -> Result<Report, RepoError> {
     let mut report = Report::default();
     let (_, frontier) = crate::frontier::run(repo, None)?;
     let open: Vec<(String, String)> = frontier
@@ -281,7 +276,7 @@ pub fn all(repo: &Repository, prototype: bool) -> Result<Report, RepoError> {
         open.len()
     ));
     for (alias, stage) in open {
-        let one = run(repo, &alias, &stage, prototype)?;
+        let one = run(repo, &alias, &stage)?;
         for d in one.diagnostics {
             report.push(d);
         }
@@ -298,7 +293,6 @@ fn compile(
     stage_id: &str,
     dir: &camino::Utf8Path,
     report: &mut Report,
-    prototype: bool,
 ) -> Result<Option<StageDispatch>, RepoError> {
     let dispatches = dir.join(DISPATCHES_DIR);
     std::fs::create_dir_all(&dispatches).map_err(|source| RepoError::Io {
@@ -310,13 +304,10 @@ fn compile(
         repo,
         alias,
         stage_id,
-        crate::dispatch::Options {
-            attempt_kind: openwarrant_core::execution::AttemptKind::Initial,
-            prior_failure_evidence: &[],
-            emit_to: Some(&scratch),
-            emit_context_to: None,
-            prototype,
-        },
+        openwarrant_core::execution::AttemptKind::Initial,
+        &[],
+        Some(&scratch),
+        None,
     )?;
     if !compiled.is_ready() {
         let _ = std::fs::remove_file(&scratch);

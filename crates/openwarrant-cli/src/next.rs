@@ -95,7 +95,6 @@ pub fn derive(pending: &[Pending], status: &openwarrant_core::status::CorpusStat
                 alias,
                 deliverable_id,
                 request,
-                ..
             } => (
                 alias.clone(),
                 "correct",

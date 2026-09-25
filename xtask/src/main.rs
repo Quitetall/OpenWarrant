@@ -655,9 +655,7 @@ mod tests {
                 .map(|e| e.file_name().to_string_lossy().into_owned())
                 .collect();
         shipped.sort();
-        // The contract is that every shipped reference is linked and present,
-        // not that the skill can never gain another task-specific reference.
-        assert!(!shipped.is_empty());
+        assert_eq!(shipped.len(), 4);
         assert!(
             skill_problems(&skill, &shipped).is_empty(),
             "{:?}",

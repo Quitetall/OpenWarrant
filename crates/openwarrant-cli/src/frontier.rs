@@ -62,67 +62,27 @@ pub struct Frontier {
 
 pub const SCHEMA: &str = "oh.war/frontier/v1";
 
-fn stage_events(dir: &camino::Utf8Path) -> Result<(BTreeSet<String>, BTreeSet<String>), RepoError> {
+fn stage_events(dir: &camino::Utf8Path) -> (BTreeSet<String>, BTreeSet<String>) {
     let mut claimed = BTreeSet::new();
     let mut done = BTreeSet::new();
-    let path = dir.join(crate::journal_cmd::FILE);
-    match std::fs::symlink_metadata(&path) {
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok((claimed, done)),
-        Err(source) => {
-            return Err(RepoError::Io {
-                context: format!("could not inspect {path}"),
-                source,
-            });
-        }
-        Ok(_) => {}
-    }
-    let metadata = std::fs::metadata(&path).map_err(|source| RepoError::Io {
-        context: format!("could not inspect {path}"),
-        source,
-    })?;
-    if !metadata.is_file() {
-        return Err(RepoError::Message(format!(
-            "{path}: journal must be a regular file"
-        )));
-    }
-    // The legacy loader treats non-files as absent. Admission must distinguish
-    // missing history from damaged containers and dangling links.
-    let text = std::fs::read_to_string(&path).map_err(|source| RepoError::Io {
-        context: format!("could not read {path}"),
-        source,
-    })?;
-    let j =
-        crate::journal_cmd::parse(&text).map_err(|e| RepoError::Message(format!("{path}: {e}")))?;
-    for e in &j.events {
-        if !matches!(
-            e.event_type.as_str(),
-            "dispatch.compiled" | "submission.recorded"
-        ) {
-            continue;
-        }
-        let payload: serde_json::Value = serde_json::from_str(&e.payload).map_err(|_| {
-            RepoError::Message(format!(
-                "{path}: {} event {} has invalid JSON payload",
-                e.event_type, e.id
-            ))
-        })?;
-        let stage = payload
-            .get("stage")
-            .and_then(serde_json::Value::as_str)
-            .filter(|stage| !stage.trim().is_empty())
-            .ok_or_else(|| {
-                RepoError::Message(format!(
-                    "{path}: {} event {} requires a nonempty string stage",
-                    e.event_type, e.id
-                ))
-            })?;
-        if e.event_type == "dispatch.compiled" {
-            claimed.insert(stage.to_owned());
-        } else {
-            done.insert(stage.to_owned());
+    if let Ok(j) = crate::journal_cmd::load(dir) {
+        for e in &j.events {
+            let stage = serde_json::from_str::<serde_json::Value>(&e.payload)
+                .ok()
+                .and_then(|v| v.get("stage").and_then(|s| s.as_str()).map(str::to_owned));
+            let Some(stage) = stage else { continue };
+            match e.event_type.as_str() {
+                "dispatch.compiled" => {
+                    claimed.insert(stage);
+                }
+                "submission.recorded" => {
+                    done.insert(stage);
+                }
+                _ => {}
+            }
         }
     }
-    Ok((claimed, done))
+    (claimed, done)
 }
 
 /// The frontier of one Warrant, or of every unresolved Warrant.
@@ -134,37 +94,35 @@ pub fn run(repo: &Repository, alias: Option<&str>) -> Result<(Report, Frontier),
     };
     let mut rows = Vec::new();
     for dir in dirs {
-        let one = repo.load_warrant(&dir)?;
+        let Ok(one) = repo.load_warrant(&dir) else {
+            continue;
+        };
         let alias = dir.file_name().unwrap_or_default().to_owned();
         if repo.load_resolution(&dir)?.is_some() {
             continue;
         }
-        let basis = one.basis.as_ref().ok_or_else(|| {
-            RepoError::Message(format!("{alias}: no readable workspace basis for frontier"))
-        })?;
+        let Some(basis) = &one.basis else { continue };
         let Some(text) = basis
             .atoms
             .iter()
             .find(|a| a.role == "milestones")
             .and_then(|a| String::from_utf8(a.bytes.clone()).ok())
         else {
-            if one
-                .validated
-                .as_ref()
-                .is_some_and(|v| !v.raw.atoms.iter().any(|a| a.role == "milestones"))
-            {
-                continue;
-            }
-            return Err(RepoError::Message(format!(
-                "{alias}: no readable milestones atom for frontier"
-            )));
+            continue;
         };
-        let graph = openwarrant_core::milestones::parse(&text)
-            .map_err(|e| RepoError::Message(format!("{alias}: invalid milestones: {e}")))?;
-        let established: BTreeSet<String> = crate::resolve::assess(repo, &one)?
-            .established
-            .into_iter()
-            .collect();
+        let Ok(graph) = openwarrant_core::milestones::parse(&text) else {
+            report.push(Diagnostic::warn(
+                "frontier.milestones",
+                repo.relative(&dir),
+                format!(
+                    "{alias}: the milestones atom does not parse; `war check {alias}` names why"
+                ),
+            ));
+            continue;
+        };
+        let established: BTreeSet<String> = crate::resolve::assess(repo, &one)
+            .map(|a| a.established.into_iter().collect())
+            .unwrap_or_default();
         let complete: BTreeMap<&str, bool> = graph
             .milestones
             .iter()
@@ -196,7 +154,7 @@ pub fn run(repo: &Repository, alias: Option<&str>) -> Result<(Report, Frontier),
                 ));
             }
         }
-        let (claimed, done) = stage_events(&dir)?;
+        let (claimed, done) = stage_events(&dir);
         // One row per stage: its milestones' waits are unioned.
         let mut per_stage: BTreeMap<String, (Vec<String>, BTreeSet<String>)> = BTreeMap::new();
         for m in &graph.milestones {
