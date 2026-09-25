@@ -74,3 +74,33 @@ required = true
 content_addressed = false
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[[deliverable]]
+id = "D-008"
+title = "the TLS dependency and the QR code crate, exact pins (AM-003)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/Cargo.toml"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-009"
+title = "the lockfile for D-008 (AM-003)"
+kind = "file"
+target_ref = "Cargo.lock"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-010"
+title = "`war ui --lan` flags and `war ui devices` (AM-003)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002"]
