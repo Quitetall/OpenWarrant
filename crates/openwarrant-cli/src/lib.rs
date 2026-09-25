@@ -817,6 +817,11 @@ enum Command {
         /// Needs --ssh-sign; one dialog signs the list (docs/SIGNING.md).
         #[arg(long, num_args = 0..=1, value_delimiter = ',', default_missing_value = "")]
         batch: Option<Vec<String>>,
+        /// Undo an interrupted batch (OW-WAR-0130): put every path its marker
+        /// lists back to its prior bytes. Signs nothing, needs no key. The
+        /// same act as the target `recover:<id>`, which stays as an alias.
+        #[arg(long, value_name = "BATCH_ID")]
+        recover: Option<String>,
     },
 
     /// The SAS as a controlled document (§101): propose, accept, diff, status.
@@ -1116,7 +1121,13 @@ pub fn entrypoint() -> ExitCode {
         Err(report) => {
             // §76.2: an explicit diagnostic naming what was wrong and where,
             // never a bare "error". Under --json, an envelope on stdout.
-            output::error(mode, &report.to_string());
+            let message = report.to_string();
+            output::error(mode, &message);
+            // OW-WAR-0130: a `war` the repository does not admit is a refusal
+            // to proceed, not a malfunction: not ready, exit 2.
+            if message.contains(repo::compat::TOO_OLD) {
+                return ExitCode::from(EXIT_NOT_READY);
+            }
             ExitCode::from(EXIT_DIAGNOSTIC)
         }
     }
@@ -2586,6 +2597,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             verify,
             kind,
             batch,
+            recover,
         } => {
             let repository = open_repo()?;
             if list {
@@ -2644,10 +2656,15 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 verify,
                 kind,
             };
-            if let Some(targets) = batch {
-                let mut targets: Vec<String> =
-                    targets.into_iter().filter(|t| !t.is_empty()).collect();
+            if batch.is_some() || recover.is_some() {
+                let mut targets: Vec<String> = batch
+                    .unwrap_or_default()
+                    .into_iter()
+                    .filter(|t| !t.is_empty())
+                    .collect();
                 targets.extend(target);
+                // Named with anything else, `batch.recover-alone` refuses it.
+                targets.extend(recover.map(|id| format!("{}{id}", batch_cmd::RECOVER_PREFIX)));
                 let report = batch_cmd::run(&repository, &targets, &opts)?;
                 return Ok(output::finish(mode, "sign", &report, None));
             }

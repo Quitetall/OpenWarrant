@@ -53,7 +53,14 @@ stages:
     responsibility_tier: "T2"
     executor_ref: "agent://fixture"
 YAML
-printf '\n[perform]\nperformer_argv = ["%s"]\nperformer_timeout_secs = 600\nmax_concurrent = 1\n' "$PC_FX" >> "$PC_ROOT/openwarrant.toml"
+# `war init` writes a [perform] table (OW-WAR-0132: allow_unmetered, its
+# cost stated); this plant's own table replaces it, never a second one.
+python3 - "$PC_ROOT/openwarrant.toml" <<'STRIP'
+import re, sys
+p = sys.argv[1]; t = open(p).read()
+open(p, "w").write(re.sub(r"(?ms)^\[perform\]\n.*?(?=^\[|\Z)", "", t))
+STRIP
+printf '\n[perform]\nperformer_argv = ["%s"]\nperformer_timeout_secs = 600\nmax_concurrent = 1\nallow_unmetered = true\n' "$PC_FX" >> "$PC_ROOT/openwarrant.toml"
 "$PC_WAR" --root "$PC_ROOT" compile > /dev/null 2>&1
 git -C "$PC_ROOT" add -A > /dev/null 2>&1
 git -C "$PC_ROOT" -c user.email=plant@invalid -c user.name=plant commit -qm "cancellation plant" > /dev/null 2>&1 \

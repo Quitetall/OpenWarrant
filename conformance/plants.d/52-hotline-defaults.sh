@@ -88,6 +88,13 @@ touch "$HD_MARKS/\$stage"
 printf '%s' "\$d" | exec "$HD_FX/echo-submission.sh"
 SH
 chmod +x "$HD_TMP/marker-performer.sh"
+# `war init` writes a [perform] table (OW-WAR-0132: allow_unmetered, its
+# cost stated); this plant's own table replaces it, never a second one.
+python3 - "$HD_CFG" <<'STRIP'
+import re, sys
+p = sys.argv[1]; t = open(p).read()
+open(p, "w").write(re.sub(r"(?ms)^\[perform\]\n.*?(?=^\[|\Z)", "", t))
+STRIP
 printf '\n[perform]\nperformer_argv = ["%s"]\nperformer_timeout_secs = 60\nmax_concurrent = 1\nallow_unmetered = true\n' \
     "$HD_TMP/marker-performer.sh" >> "$HD_CFG"
 "$HD_WAR" --root "$HD_ROOT" compile > /dev/null 2>&1
@@ -241,15 +248,21 @@ if [[ "$HD_D" == "unknown docs/authority/roles.toml" && "$HD_R1" == "blocked|$HD
 else
     hd_fail "frontier with no responder" "finding '$HD_D'; row '$HD_R1'"
 fi
-# `war next` must say the same. It does not: next.rs carries no diagnostics
-# and is outside OW-WAR-0132's declared set. This plant stays, and fails,
-# until the finding reaches `war next`.
+# `war next` must say the same (AM-002, next.rs): the finding travels in its
+# result's `findings`, and the held stage is not offered to an agent.
 hd_war --json next > "$HD_TMP/n.json" 2> /dev/null
-HD_D=$(hd_diag "$HD_TMP/n.json" question.no-responder)
-if [[ "$HD_D" == "unknown docs/authority/roles.toml" ]]; then
-    hd_ok "next with no responder" "UNKNOWN question.no-responder naming roles.toml"
+HD_N=$(python3 - "$HD_TMP/n.json" "$HD_W" << 'PY'
+import json, sys
+r = json.load(open(sys.argv[1])).get("result") or {}
+f = [x for x in r.get("findings", []) if x.get("rule") == "question.no-responder"]
+offered = [a["command"] for a in r.get("actions", []) if a.get("command", "").startswith(f"war dispatch {sys.argv[2]} STAGE-001")]
+print(f"{f[0]['severity']} {f[0].get('file') or ''}" if f else "none", "offered" if offered else "held")
+PY
+)
+if [[ "$HD_N" == "unknown docs/authority/roles.toml held" ]]; then
+    hd_ok "next with no responder" "UNKNOWN question.no-responder naming roles.toml; STAGE-001 not offered"
 else
-    hd_fail "next with no responder" "war next reports no question.no-responder (finding '$HD_D')"
+    hd_fail "next with no responder" "war next: '$HD_N'"
 fi
 # The agent still cannot answer, and the question is untouched.
 HD_SUM0=$(sha256sum "$HD_Q/$HD_QID.toml" | cut -d' ' -f1)
@@ -410,5 +423,19 @@ else
 fi
 
 hd_reset
+# AM-002 (init/mod.rs): a program `war init` makes states allow_unmetered =
+# true, with the unknown cost said beside it, so its first `war perform` is
+# not refused; the refusal above still holds for a repository without it.
+HD_INIT=$(mktemp -d)
+"$HD_WAR" init --namespace HI --root "$HD_INIT" > /dev/null 2>&1
+if grep -q '^allow_unmetered = true$' "$HD_INIT/openwarrant.toml" \
+    && grep -B4 '^allow_unmetered = true$' "$HD_INIT/openwarrant.toml" | grep -q 'UNKNOWN' \
+    && [[ $(grep -c '^\[perform\]$' "$HD_INIT/openwarrant.toml") -eq 1 ]]; then
+    hd_ok "war init allows unmetered" "allow_unmetered = true under one [perform], its cost named UNKNOWN"
+else
+    hd_fail "war init allows unmetered" "$(grep -A12 '^\[perform\]' "$HD_INIT/openwarrant.toml" 2>&1 | tr '\n' '|')"
+fi
+command rm -rf "$HD_INIT"
+
 corpus_gone "$HD_ROOT"
 rm -rf "$HD_TMP"

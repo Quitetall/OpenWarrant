@@ -382,7 +382,21 @@ pub fn run_with(
         History::Inside { .. } => {}
     }
 
+    // OW-WAR-0132 AM-002: a new program can perform. No performer adapter
+    // meters spend, so every performance's cost is UNKNOWN; the key says run
+    // it anyway, knowing that, and the file says so beside it. A repository
+    // WITHOUT the key is still refused `perform.unmetered-not-allowed`.
+    config.perform.allow_unmetered = Some(true);
     let rendered = toml::to_string_pretty(&config).map_err(InitError::Serialize)?;
+    let rendered = rendered.replacen(
+        "allow_unmetered = true\n",
+        "# No performer adapter meters spend: every performance's cost is UNKNOWN,\n\
+         # journalled as `spend: \"unknown\"`, never 0. `true` runs it knowing that;\n\
+         # it does not make the cost known. Remove it and `war perform` refuses\n\
+         # `perform.unmetered-not-allowed` (docs/HOTLINE.md).\n\
+         allow_unmetered = true\n",
+        1,
+    );
     fs::write(&config_path, rendered).map_err(|source| InitError::Io {
         context: format!("could not write {config_path}"),
         source,

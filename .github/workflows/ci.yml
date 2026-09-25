@@ -44,6 +44,12 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # Full history (OW-WAR-0125 AM-002): `sas.section-current` asks git
+          # whether a cited section moved since the pinned SAS revision. At
+          # depth 1 that is unanswerable and reads UNKNOWN, correctly, and
+          # the gate would go not-ready on a sound corpus.
+          fetch-depth: 0
 
       # No toolchain is named here on purpose. `rust-toolchain.toml` pins
       # 1.97.1 exactly, and rustup honours it; naming a version in the workflow

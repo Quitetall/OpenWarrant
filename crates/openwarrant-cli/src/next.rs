@@ -70,6 +70,22 @@ pub struct Next {
     /// Why the list is empty, when it is. Never silently empty.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub nothing: Option<String>,
+    /// What stands in the way that no action here can clear (OW-WAR-0132):
+    /// today `question.no-responder`, a blocking question nobody in the
+    /// authority register may answer. UNKNOWN, never silently "waiting".
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub findings: Vec<Finding>,
+}
+
+/// A finding carried into `war next`, in the envelope diagnostic's shape.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct Finding {
+    pub rule: String,
+    /// `unknown` / `warn` / `error`, as the envelope spells a severity.
+    pub severity: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub file: Option<String>,
+    pub message: String,
 }
 
 /// The pure part: given the pending human acts and the corpus projection,
@@ -243,7 +259,65 @@ pub fn derive(pending: &[Pending], status: &openwarrant_core::status::CorpusStat
         schema: SCHEMA,
         actions,
         nothing,
+        findings: Vec::new(),
     }
+}
+
+/// OW-WAR-0132: the frontier's question edge, applied to the table. A stage
+/// a blocking question holds is not offered to an agent (`war dispatch` would
+/// start work the question is meant to stop), and the frontier's
+/// `question.no-responder` is carried as a finding. Pure over the frontier,
+/// so the rule is testable without a repository.
+pub fn apply_questions(
+    next: &mut Next,
+    frontier: &crate::frontier::Frontier,
+    report: &crate::diagnostic::Report,
+) {
+    let held: std::collections::BTreeSet<(&str, &str)> = frontier
+        .rows
+        .iter()
+        .filter(|r| {
+            r.state == crate::frontier::StageState::Blocked
+                && r.waiting_on.iter().any(|w| is_question(w))
+        })
+        .map(|r| (r.warrant.as_str(), r.stage.as_str()))
+        .collect();
+    next.actions.retain(|a| {
+        a.action != "execute" || {
+            let stage = a.command.rsplit(' ').next().unwrap_or_default();
+            !held.contains(&(a.warrant.as_str(), stage))
+        }
+    });
+    for d in &report.diagnostics {
+        if d.rule == "question.no-responder" {
+            next.findings.push(Finding {
+                rule: d.rule.clone(),
+                severity: d.severity.label().to_ascii_lowercase(),
+                file: d.file.clone(),
+                message: d.message.clone(),
+            });
+        }
+    }
+    if next.actions.is_empty() && next.nothing.is_none() {
+        next.nothing = Some(if held.is_empty() {
+            "nothing awaits a signature and no stage is actionable".to_owned()
+        } else {
+            format!(
+                "every actionable stage waits on a blocking question: {}",
+                held.iter()
+                    .map(|(w, s)| format!("{w}/{s}"))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )
+        });
+    }
+}
+
+/// `Q-nnn`, as the frontier names a question in `waiting_on`; a milestone is
+/// `M-…` / `MS-…` and never matches.
+fn is_question(id: &str) -> bool {
+    id.strip_prefix("Q-")
+        .is_some_and(|n| !n.is_empty() && n.bytes().all(|b| b.is_ascii_digit()))
 }
 
 pub fn run(repo: &Repository) -> Result<Next, RepoError> {
@@ -259,6 +333,8 @@ pub fn run_with(
 ) -> Result<Next, RepoError> {
     let pending = sign::pending(repo)?;
     let mut next = derive(&pending, status);
+    let (report, frontier) = crate::frontier::run(repo, None)?;
+    apply_questions(&mut next, &frontier, &report);
     judge(repo, &pending, &mut next);
     Ok(next)
 }
@@ -419,12 +495,119 @@ pub fn render(n: &Next) -> String {
     if let Some(why) = &n.nothing {
         s.push_str(&format!("nothing to do: {why}\n"));
     }
+    for f in &n.findings {
+        s.push_str(&format!(
+            "{} {}{}: {}\n",
+            f.severity.to_ascii_uppercase(),
+            f.rule,
+            f.file
+                .as_deref()
+                .map(|p| format!(" ({p})"))
+                .unwrap_or_default(),
+            f.message
+        ));
+    }
     s
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn row(
+        stage: &str,
+        state: crate::frontier::StageState,
+        waiting: &[&str],
+    ) -> crate::frontier::Row {
+        crate::frontier::Row {
+            warrant: "X-WAR-0001".to_owned(),
+            stage: stage.to_owned(),
+            title: String::new(),
+            milestone: "MS-001".to_owned(),
+            executor_kind: "agent".to_owned(),
+            state,
+            waiting_on: waiting.iter().map(|s| (*s).to_owned()).collect(),
+        }
+    }
+
+    fn execute(stage: &str) -> Action {
+        Action {
+            actor: Actor::Agent,
+            warrant: "X-WAR-0001".to_owned(),
+            action: "execute".to_owned(),
+            command: format!("war dispatch X-WAR-0001 {stage}"),
+            why: String::new(),
+            judged: None,
+        }
+    }
+
+    #[test]
+    fn a_question_held_stage_is_not_offered_and_no_responder_is_carried() {
+        use crate::frontier::StageState::{Blocked, Open};
+        let frontier = crate::frontier::Frontier {
+            schema: crate::frontier::SCHEMA.to_owned(),
+            rows: vec![
+                row("STAGE-001", Blocked, &["Q-001"]),
+                row("STAGE-002", Open, &[]),
+                row("STAGE-003", Blocked, &["MS-000"]),
+            ],
+            open: 1,
+            claimed: 0,
+            done: 0,
+            blocked: 2,
+        };
+        let mut report = crate::diagnostic::Report::default();
+        report.push(crate::diagnostic::Diagnostic::unknown(
+            "question.no-responder",
+            "docs/authority/roles.toml".to_owned(),
+            "nobody can answer",
+        ));
+        let mut next = Next {
+            schema: SCHEMA,
+            actions: vec![
+                execute("STAGE-001"),
+                execute("STAGE-002"),
+                execute("STAGE-003"),
+            ],
+            nothing: None,
+            findings: Vec::new(),
+        };
+        apply_questions(&mut next, &frontier, &report);
+        let offered: Vec<&str> = next.actions.iter().map(|a| a.command.as_str()).collect();
+        // The question-held stage is gone; a milestone wait is not this rule's.
+        assert_eq!(
+            offered,
+            [
+                "war dispatch X-WAR-0001 STAGE-002",
+                "war dispatch X-WAR-0001 STAGE-003"
+            ]
+        );
+        assert_eq!(next.findings.len(), 1);
+        assert_eq!(next.findings[0].severity, "unknown");
+        assert_eq!(
+            next.findings[0].file.as_deref(),
+            Some("docs/authority/roles.toml")
+        );
+        assert!(render(&next).contains("UNKNOWN question.no-responder"));
+
+        // Refusal side: with only the held stage, the list says why it is
+        // empty instead of going silent, and nothing is offered.
+        let mut next = Next {
+            schema: SCHEMA,
+            actions: vec![execute("STAGE-001")],
+            nothing: None,
+            findings: Vec::new(),
+        };
+        apply_questions(&mut next, &frontier, &crate::diagnostic::Report::default());
+        assert!(next.actions.is_empty());
+        assert!(next.findings.is_empty());
+        assert!(
+            next.nothing
+                .as_deref()
+                .unwrap_or_default()
+                .contains("X-WAR-0001/STAGE-001")
+        );
+    }
 
     #[test]
     fn an_agent_is_never_handed_a_signing_act_and_humans_come_first() {

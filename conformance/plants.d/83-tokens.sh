@@ -126,7 +126,14 @@ print(json.dumps({"schema": "oh.war/stage-submission/v1", "dispatch_id": d["disp
 '
 SH
 chmod +x "$TOK_TMP/performer.sh"
-printf '\n[perform]\nperformer_argv = ["%s"]\nperformer_timeout_secs = 60\nmax_concurrent = 1\n' "$TOK_TMP/performer.sh" >> "$TOK_ROOT/openwarrant.toml"
+# `war init` writes a [perform] table (OW-WAR-0132: allow_unmetered, its
+# cost stated); this plant's own table replaces it, never a second one.
+python3 - "$TOK_ROOT/openwarrant.toml" <<'STRIP'
+import re, sys
+p = sys.argv[1]; t = open(p).read()
+open(p, "w").write(re.sub(r"(?ms)^\[perform\]\n.*?(?=^\[|\Z)", "", t))
+STRIP
+printf '\n[perform]\nperformer_argv = ["%s"]\nperformer_timeout_secs = 60\nmax_concurrent = 1\nallow_unmetered = true\n' "$TOK_TMP/performer.sh" >> "$TOK_ROOT/openwarrant.toml"
 "$WAR" --root "$TOK_ROOT" compile >/dev/null 2>&1
 git -C "$TOK_ROOT" add -A >/dev/null 2>&1
 git -C "$TOK_ROOT" -c user.email=plant@invalid -c user.name=plant commit -qm "budget plant" >/dev/null 2>&1 \

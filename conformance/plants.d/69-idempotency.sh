@@ -120,8 +120,17 @@ else
     ip_fail "recovering an unknown batch refuses" "exit $IB_STATUS: $(ip_errors "$IB_OUT")"
 fi
 
-# --recover: every path the marker lists is its prior bytes again, or absent.
-IB_OUT=$(ib sign --batch "recover:$IB_ID" 2>&1); IB_STATUS=$?
+# --recover named with another target is refused: recovery is its own act.
+IB_OUT=$(ib sign --recover "$IB_ID" --batch IB-WAR-0001 2>&1); IB_STATUS=$?
+if [[ $IB_STATUS -eq 2 ]] && grep -q 'batch.recover-alone' <<<"$IB_OUT" && [[ -f "$IB_MARKER" ]]; then
+    ip_ok "--recover with a target refuses" "batch.recover-alone; the marker stays"
+else
+    ip_fail "--recover with a target refuses" "exit $IB_STATUS: $(ip_errors "$IB_OUT")"
+fi
+
+# --recover (the flag; `recover:<id>` above is its alias): every path the
+# marker lists is its prior bytes again, or absent.
+IB_OUT=$(ib sign --recover "$IB_ID" 2>&1); IB_STATUS=$?
 IB_MOVED=$(python3 - "$IP_TMP/marker.json" "$IB" <<'PY'
 import hashlib, json, os, sys
 m = json.load(open(sys.argv[1])); root = sys.argv[2]
@@ -347,8 +356,12 @@ fi
 
 # war evidence record: the program's gate (`war check --generated`) once, then
 # the same act again. The projections are brought up to date first, so the
-# gate passes and its run is admissible.
+# gate passes and its run is admissible. The acts above are committed first:
+# under OW-WAR-0133 a run over an uncommitted tree binds `worktree:dirty`,
+# whose reuse is unknown, and an unknown is asked again, never replayed.
 ia compile >/dev/null 2>&1
+git -C "$IA" add -A >/dev/null 2>&1
+git -C "$IA" -c user.email=plant@invalid -c user.name=plant commit -qm "the acts so far" >/dev/null 2>&1
 IA_OUT=$(PATH="$IP_TMP/bin:$PATH" ia evidence record "$IA_A" 2>&1)
 if grep -qE 'PASS +gate-run\.receipt|receipt' <<<"$IA_OUT" && ls "$IA_DIR"/gate-runs/*.receipt.json >/dev/null 2>&1; then
     ip_ok "war evidence record records once" "$(ls "$IA_DIR"/gate-runs/*.receipt.json | wc -l) receipt(s)"
@@ -380,7 +393,7 @@ IV_BASE=$(iv status 2>&1); IV_BASE_STATUS=$?
 
 iv_requires ">=99"
 IV_OUT=$(iv status 2>&1); IV_STATUS=$?
-if [[ $IV_STATUS -ne 0 ]] && grep -q 'compat.war-too-old' <<<"$IV_OUT" && grep -qF '>=99' <<<"$IV_OUT" \
+if [[ $IV_STATUS -eq 2 ]] && grep -q 'compat.war-too-old' <<<"$IV_OUT" && grep -qF '>=99' <<<"$IV_OUT" \
     && grep -qF "war $IV_VERSION" <<<"$IV_OUT" && ! grep -q 'IV-WAR-' <<<"$IV_OUT"; then
     ip_ok "requires_war >=99 refuses" "compat.war-too-old (exit $IV_STATUS), >=99 and war $IV_VERSION named, no Warrant read"
 else

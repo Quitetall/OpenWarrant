@@ -29,6 +29,10 @@ use crate::diagnostic::Diagnostic;
 /// The version of the running `war`.
 pub(crate) const WAR_VERSION: &str = env!("CARGO_PKG_VERSION");
 
+/// The rule a `war` older than `[project] requires_war` is refused under;
+/// `entrypoint` maps it to exit 2.
+pub(crate) const TOO_OLD: &str = "compat.war-too-old";
+
 /// The frozen records of docs/COMPATIBILITY.md and the schema major this
 /// `war` reads for each. A record's major moves only with a `v2`, which is a
 /// release the owner re-authorizes into; this table moves with it.
@@ -83,12 +87,12 @@ fn check_version(
     // Validation already refused a malformed requirement; parsing again here
     // keeps this function honest on its own.
     let parsed = VersionReq::parse(req)
-        .map_err(|why| format!("compat.war-too-old: {config_file}: requires_war {req:?}: {why}"))?;
+        .map_err(|why| format!("{TOO_OLD}: {config_file}: requires_war {req:?}: {why}"))?;
     if parsed.matches(running) {
         return Ok(());
     }
     Err(format!(
-        "compat.war-too-old: {config_file} requires war {req} ([project] requires_war) and this \
+        "{TOO_OLD}: {config_file} requires war {req} ([project] requires_war) and this \
          is war {running}. Nothing was read: records this repository holds may have been written \
          by a war this one does not know. Install a war that satisfies {req}"
     ))
