@@ -262,8 +262,12 @@ fi
 printf '\nThe problem, answered after signing.\n' >> "$CU_R/docs/warrants/$W2/atoms/10-intent.md"
 cu_commit "the successor's contract moves"
 CU_BEFORE=$(git -C "$CU_R" status --porcelain | sort)
-NEXT_JSON=$("$WAR" --root "$CU_R" --json next 2>&1)
-NEXT_TXT=$("$WAR" --root "$CU_R" next 2>&1)
+# Judging an act drafts its response under the temp directory, so `next`
+# runs with its own (TMPDIR): "no draft left" is then about these two runs,
+# not about whatever else on the machine is running `war` in /tmp.
+CU_NEXT_TMP=$(mktemp -d)
+NEXT_JSON=$(TMPDIR="$CU_NEXT_TMP" "$WAR" --root "$CU_R" --json next 2>&1)
+NEXT_TXT=$(TMPDIR="$CU_NEXT_TMP" "$WAR" --root "$CU_R" next 2>&1)
 CU_AFTER=$(git -C "$CU_R" status --porcelain | sort)
 if python3 -c '
 import json, sys
@@ -289,11 +293,12 @@ else
     cu_fail "every signing act is judged" "$(grep -E 'war sign' <<<"$NEXT_TXT" | tr '\n' '|')"
 fi
 if [[ "$CU_BEFORE" == "$CU_AFTER" ]] && ! grep -q 'ssh-keygen\|SSH_AUTH_SOCK' <<<"$NEXT_JSON$NEXT_TXT" \
-    && [[ -z "$(ls -d /tmp/war-dry-run-* 2>/dev/null)" ]]; then
+    && [[ -z "$(ls -A "$CU_NEXT_TMP" 2>/dev/null)" ]]; then
     cu_ok "war next writes nothing" "tree unchanged, no draft left, no key named"
 else
-    cu_fail "war next writes nothing" "tree moved, a draft survived, or ssh was named"
+    cu_fail "war next writes nothing" "tree moved, a draft survived ($(ls -A "$CU_NEXT_TMP" 2>/dev/null | tr '\n' ' ')), or ssh was named"
 fi
+command rm -rf "$CU_NEXT_TMP"
 # The judged queue is what CURRENT.md carries under *Awaiting a human*.
 "$WAR" --root "$CU_R" compile >/dev/null 2>&1
 if grep -E "^\| authorize \| $W2 \| .war sign $W2. \| would refuse: authorize.no-amendment \|" "$CUR" >/dev/null; then

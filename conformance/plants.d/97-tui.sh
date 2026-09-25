@@ -56,9 +56,14 @@ else
 fi
 
 # OBL-003: the queue's rows are `war sign --list`'s — the board the app
-# renders is the console's board, compared through its JSON.
-TUI_LIST=$("$WAR" sign --list 2>&1)
-if "$WAR" console --json 2>/dev/null | python3 -c '
+# renders is the console's board, compared through its JSON. Over a scratch
+# program whose queue holds two authorizations and a SAS acceptance (lib.sh,
+# `scratch_queue`): this corpus's queue is empty whenever the owner has
+# signed everything, and an empty board has nothing to compare.
+TUI_ROOT=$(scratch_queue TQ)
+[[ -d "${TUI_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
+TUI_LIST=$("$WAR" --root "$TUI_ROOT" sign --list 2>&1)
+if "$WAR" --root "$TUI_ROOT" console --json 2>/dev/null | python3 -c '
 import sys, json
 d = json.load(sys.stdin)
 acts = [a["target"] for a in d["result"]["acts"]]
@@ -66,6 +71,8 @@ listed = sys.argv[1]
 assert acts, "no act on the board to compare"
 for t in acts:
     assert t in listed, f"{t} on the board, not in war sign --list"
+rows = [l for l in listed.splitlines() if l.startswith("  ") and l.strip()]
+assert len(rows) == len(acts), f"{len(rows)} listed, {len(acts)} on the board"
 ' "$TUI_LIST" 2>/dev/null; then
     printf 'ok    %-34s board acts == sign --list rows\n' "the queue is war sign --list"
     PASSED=$((PASSED + 1))
@@ -73,6 +80,7 @@ else
     printf 'FAIL  %-34s the board and sign --list disagree\n' "the queue is war sign --list"
     FAILED=$((FAILED + 1))
 fi
+corpus_gone "$TUI_ROOT"
 
 # OBL-002: a panic after setup leaves the terminal restored — the alternate
 # screen is left (ESC[?1049l) after it was entered, under a pty.

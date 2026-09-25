@@ -165,6 +165,41 @@ scratch_corpus() {
     printf '%s' "$d"
 }
 
+# scratch_queue <NAMESPACE>  ->  echoes the root of a program whose signing
+# queue is not empty
+#
+# The plants that read "the signing queue" read this repository's until the
+# owner signed every pending act on 2026-09-25 and seven of them failed at
+# once: an empty queue is a true state of the corpus, and a plant that needs
+# acts on the board has to bring its own. This one holds three acts of two
+# kinds a plant can make without a key — two authorizations (the scaffold's
+# adopt Warrant and one from `war new`) and a SAS acceptance (`war sas
+# propose`) — and the example register as its register, so two humans are
+# eligible and a plant that signs or dry-runs names one with `--as`.
+#
+# Committed, so `corpus_reset` returns it to exactly this. The caller removes
+# it with `corpus_gone`: set from a command substitution, it never reaches
+# SCRATCH_CORPORA.
+scratch_queue() {
+    local d n
+    d=$(scratch_corpus "$1")
+    [[ -d "${d:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
+    cp "$d/docs/authority/roles.toml.example" "$d/docs/authority/roles.toml"
+    cp "$d/docs/authority/allowed_signers.example" "$d/docs/authority/allowed_signers"
+    "$WAR" --root "$d" new "A second pending authorization" >/dev/null 2>&1 \
+        || { printf 'PLANT SETUP FAILED: war new in %s\n' "$d" >&2; exit 9; }
+    "$WAR" --root "$d" sas propose 0.1.0 >/dev/null 2>&1 \
+        || { printf 'PLANT SETUP FAILED: war sas propose in %s\n' "$d" >&2; exit 9; }
+    "$WAR" --root "$d" compile >/dev/null 2>&1 \
+        || { printf 'PLANT SETUP FAILED: war compile in %s\n' "$d" >&2; exit 9; }
+    git -C "$d" add -A >/dev/null 2>&1
+    git -C "$d" -c user.email=plant@invalid -c user.name=plant commit -qm "register, a queue of three" >/dev/null 2>&1 \
+        || { printf 'PLANT SETUP FAILED: queue commit in %s\n' "$d" >&2; exit 9; }
+    n=$("$WAR" --root "$d" sign --list 2>/dev/null | grep -cE '^  ([A-Z]+-WAR-[0-9]{4}|SAS [0-9]+\.[0-9]+\.[0-9]+) ')
+    [[ "$n" -eq 3 ]] || { printf 'PLANT SETUP FAILED: wanted three pending acts in %s, have %s\n' "$d" "$n" >&2; exit 9; }
+    printf '%s' "$d"
+}
+
 corpus_reset() { git -C "$1" reset --hard -q && git -C "$1" clean -fdq; }
 
 corpus_gone() {

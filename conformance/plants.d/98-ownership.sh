@@ -44,20 +44,32 @@ else
 fi
 
 # The dry run must exercise the SAME refusals the real ingest does, and must
-# never say an act was recorded. Over this corpus's whole queue: every act
-# ends as `would-record` or `would-refuse` (or `needs-decision`, the sweep's
-# own word for an act waiting on a flag), nothing ends as `<act>.recorded`,
-# and a refusal is preceded by the ingest rule it came from. Not pinned to
-# an alias: the queue moves, and a plant pinned to a moment in it breaks the
-# night the owner signs (lib.sh, `scratch_warrant`).
-DR2_BEFORE=$(git status --porcelain -- docs/ | sort)
-DR2_OUT=$("$WAR" sign --all --dry-run 2>&1)
-DR2_AFTER=$(git status --porcelain -- docs/ | sort)
+# never say an act was recorded. Over a whole queue: every act ends as
+# `would-record` or `would-refuse` (or `needs-decision`, the sweep's own word
+# for an act waiting on a flag), nothing ends as `<act>.recorded`, and a
+# refusal is preceded by the ingest rule it came from. Not pinned to an alias
+# of this corpus: the queue moves, and a plant pinned to a moment in it breaks
+# the night the owner signs (lib.sh, `scratch_warrant`) — which is also why
+# the queue is this scratch's, grown here to three acts of two kinds (a
+# second authorization and a SAS acceptance beside DR-WAR-0001), and not this
+# corpus's, which is empty whenever the owner has signed everything.
+"$WAR" --root "$PLANT_ROOT" new "A second pending authorization" >/dev/null 2>&1 \
+    || { printf 'PLANT SETUP FAILED: war new in %s\n' "$PLANT_ROOT" >&2; exit 9; }
+"$WAR" --root "$PLANT_ROOT" sas propose 0.1.0 >/dev/null 2>&1 \
+    || { printf 'PLANT SETUP FAILED: war sas propose in %s\n' "$PLANT_ROOT" >&2; exit 9; }
+"$WAR" --root "$PLANT_ROOT" compile >/dev/null 2>&1
+git -C "$PLANT_ROOT" add -A >/dev/null 2>&1
+git -C "$PLANT_ROOT" -c user.email=plant@invalid -c user.name=plant commit -qm "a queue of three" >/dev/null 2>&1
+DR_QUEUE=$("$WAR" --root "$PLANT_ROOT" sign --list 2>/dev/null | grep -cE '^  (DR-WAR-[0-9]{4}|SAS [0-9.]+) ')
+[[ "$DR_QUEUE" -eq 3 ]] || { printf 'PLANT SETUP FAILED: wanted three pending acts, have %s\n' "$DR_QUEUE" >&2; exit 9; }
+DR2_BEFORE=$(git -C "$PLANT_ROOT" status --porcelain | sort)
+DR2_OUT=$("$WAR" --root "$PLANT_ROOT" sign --all --dry-run --as your-name-here 2>&1)
+DR2_AFTER=$(git -C "$PLANT_ROOT" status --porcelain | sort)
 DR2_JUDGED=$(grep -cE 'sign\.(would-record|would-refuse)' <<<"$DR2_OUT")
 DR2_RECORDED=$(grep -cE '(authorize|resolution|correction)\.recorded|attest\.emitted' <<<"$DR2_OUT")
 if [[ "$DR2_JUDGED" -gt 0 && "$DR2_RECORDED" -eq 0 ]] \
     && [[ "$DR2_BEFORE" == "$DR2_AFTER" ]] \
-    && ! ls docs/authority/responses/*.draft.toml >/dev/null 2>&1; then
+    && ! ls "$PLANT_ROOT"/docs/authority/responses/*.draft.toml >/dev/null 2>&1; then
     printf 'ok    %-34s %s act(s) judged, none recorded, nothing written\n' "dry run names the real refusal" "$DR2_JUDGED"
     PASSED=$((PASSED + 1))
 else
@@ -66,18 +78,42 @@ else
     FAILED=$((FAILED + 1))
 fi
 
-# --all --dry-run over a real queue: many acts, still nothing written, no
-# draft left in a temp directory either.
-DR3_BEFORE=$(git status --porcelain | sort)
-"$WAR" sign --all --dry-run >/dev/null 2>&1
-DR3_AFTER=$(git status --porcelain | sort)
-if [[ "$DR3_BEFORE" == "$DR3_AFTER" ]] && [[ -z "$(ls -d /tmp/war-dry-run-* 2>/dev/null)" ]]; then
+# --all --dry-run over a whole queue: many acts, still nothing written, no
+# draft left in a temp directory either. The temp directory is this run's own
+# (TMPDIR), so a draft another `war` on the machine leaves in /tmp is not
+# read as this run's, and one this run leaves is not hidden by it.
+DR3_TMP=$(mktemp -d)
+DR3_BEFORE=$(git -C "$PLANT_ROOT" status --porcelain | sort)
+DR3_OUT=$(TMPDIR="$DR3_TMP" "$WAR" --root "$PLANT_ROOT" sign --all --dry-run --as your-name-here 2>&1)
+DR3_AFTER=$(git -C "$PLANT_ROOT" status --porcelain | sort)
+DR3_JUDGED=$(grep -cE 'sign\.(would-record|would-refuse)' <<<"$DR3_OUT")
+if [[ "$DR3_JUDGED" -gt 0 && "$DR3_BEFORE" == "$DR3_AFTER" ]] && [[ -z "$(ls -A "$DR3_TMP" 2>/dev/null)" ]]; then
     printf 'ok    %-34s a whole queue judged, nothing written\n' "dry run of every pending act"
     PASSED=$((PASSED + 1))
 else
-    printf 'FAIL  %-34s tree moved or a temp draft survived\n' "dry run of every pending act"
+    printf 'FAIL  %-34s tree moved or a temp draft survived: %s\n' "dry run of every pending act" "$(ls -A "$DR3_TMP" 2>/dev/null | tr '\n' ' ')"
     FAILED=$((FAILED + 1))
 fi
+command rm -rf "$DR3_TMP"
+
+# This corpus's queue, whatever it holds today: the dry run is never silent
+# about it — acts judged, or `sign.nothing-pending` said — and records and
+# writes nothing either way.
+DR4_TMP=$(mktemp -d)
+DR4_BEFORE=$(git status --porcelain | sort)
+DR4_OUT=$(TMPDIR="$DR4_TMP" "$WAR" sign --all --dry-run 2>&1)
+DR4_AFTER=$(git status --porcelain | sort)
+if { [[ $(grep -cE 'sign\.(would-record|would-refuse|needs-decision|who)' <<<"$DR4_OUT") -gt 0 ]] \
+        || grep -q 'sign.nothing-pending' <<<"$DR4_OUT"; } \
+    && ! grep -qE '(authorize|resolution|correction)\.recorded|attest\.emitted' <<<"$DR4_OUT" \
+    && [[ "$DR4_BEFORE" == "$DR4_AFTER" ]] && [[ -z "$(ls -A "$DR4_TMP" 2>/dev/null)" ]]; then
+    printf 'ok    %-34s %s\n' "this corpus's queue, dry run" "$(grep -oE 'sign\.nothing-pending' <<<"$DR4_OUT" || echo 'acts judged'), nothing written"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s silent, recorded, or wrote\n' "this corpus's queue, dry run"
+    FAILED=$((FAILED + 1))
+fi
+command rm -rf "$DR4_TMP"
 
 # A dry run holds no key: the code path must never reach ssh-keygen.
 if ! grep -q 'ssh-keygen\|SSH_AUTH_SOCK' <<<"$DR_OUT$DR2_OUT"; then
