@@ -1825,6 +1825,33 @@ impl Drop for RemoveOnDrop {
     }
 }
 
+/// `war sign --all --dry-run` over a queue the caller has already read.
+///
+/// The same judgement [`run`] reaches for no target, `all` and `dry_run`:
+/// none of `run`'s earlier refusals applies to that combination (no
+/// `--verify`, `--revoke` or tty requirement, no invalidation without a
+/// target), so it is `pending` then [`dry_run`] over every act. `war next`
+/// holds the queue it derived its actions from; reading it a second time to
+/// judge them cost a whole `pending` sweep (t-280c). The caller passes the
+/// queue it read in this process with nothing written since.
+pub fn dry_run_all(repo: &Repository, all: &[Pending]) -> Result<Report, RepoError> {
+    let opts = Options {
+        dry_run: true,
+        all: true,
+        ..Options::default()
+    };
+    let mut report = Report::default();
+    let chosen: Vec<&Pending> = all.iter().collect();
+    if chosen.is_empty() {
+        report.push(Diagnostic::pass(
+            "sign.nothing-pending",
+            "nothing awaits a signature",
+        ));
+        return Ok(report);
+    }
+    dry_run(repo, &chosen, &opts, report)
+}
+
 fn dry_run(
     repo: &Repository,
     chosen: &[&Pending],

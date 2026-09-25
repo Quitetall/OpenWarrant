@@ -256,6 +256,20 @@ impl Repository {
             context: format!("could not read {path}"),
             source,
         })?;
+        // Every authority verdict reads the register, and `war next` asked
+        // ~1,400 times (t-280c). The parse is a function of this path and
+        // these bytes only, so it is memoized for the process keyed by both:
+        // an edited register is a different key, never a stale grant. The
+        // file is still read on every call; a register that will not parse
+        // or validate is not cached and is refused again each time.
+        let cache = REGISTERS.get_or_init(Default::default);
+        if let Some(known) = cache.lock().ok().and_then(|c| {
+            c.get(&path)
+                .filter(|(k, _)| *k == text)
+                .map(|(_, v)| v.clone())
+        }) {
+            return Ok(known);
+        }
 
         #[derive(serde::Deserialize)]
         struct File {
@@ -274,7 +288,11 @@ impl Repository {
                 .validate()
                 .map_err(|e| RepoError::Message(format!("{path}: {e}")))?;
         }
-        Ok(AuthorityRegister::new(file.assignment))
+        let register = AuthorityRegister::new(file.assignment);
+        if let Ok(mut c) = cache.lock() {
+            c.insert(path, (text, register.clone()));
+        }
+        Ok(register)
     }
 
     /// The persisted authorization for one Warrant (§28.4), if any.
@@ -664,17 +682,40 @@ impl Repository {
             .filter(|p| p.extension() == Some("toml"))
             .collect();
         paths.sort();
-        let mut out = Vec::new();
+        let mut texts = Vec::with_capacity(paths.len());
         for path in paths {
             let text = fs::read_to_string(&path).map_err(|source| RepoError::Io {
                 context: format!("could not read {path}"),
                 source,
             })?;
-            let r: openwarrant_core::SasRevision = toml::from_str(&text)
+            texts.push((path, text));
+        }
+        // Every `load_warrant` asks for its SAS pin, and `war next` loaded
+        // a Warrant ~1,300 times: parsing the same few revision files each
+        // time was 40% of its run (t-280c). The parse is a function of
+        // exactly these paths and bytes, so it is memoized for the process
+        // keyed by them — a changed, added or removed revision is a
+        // different key, never a stale answer. The files are still read on
+        // every call; only the parse is shared. A parse or validation
+        // failure is not cached.
+        let cache = SAS_REVISIONS.get_or_init(Default::default);
+        if let Some(known) = cache.lock().ok().and_then(|c| {
+            c.get(&dir)
+                .filter(|(k, _)| *k == texts)
+                .map(|(_, v)| v.clone())
+        }) {
+            return Ok(known);
+        }
+        let mut out = Vec::new();
+        for (path, text) in &texts {
+            let r: openwarrant_core::SasRevision = toml::from_str(text)
                 .map_err(|e| RepoError::Message(format!("could not parse {path}: {e}")))?;
             r.validate()
                 .map_err(|e| RepoError::Message(format!("{path}: {e}")))?;
             out.push(r);
+        }
+        if let Ok(mut c) = cache.lock() {
+            c.insert(dir, (texts, out.clone()));
         }
         Ok(out)
     }
@@ -1407,9 +1448,129 @@ fn references(text: &str) -> Vec<String> {
     out
 }
 
+/// Parsed SAS revisions this process has already read, per revisions
+/// directory, with the exact (path, text) pairs they were parsed from
+/// (`Repository::load_sas_revisions`).
+type SasRevisionMemo = std::collections::HashMap<
+    Utf8PathBuf,
+    (
+        Vec<(Utf8PathBuf, String)>,
+        Vec<openwarrant_core::SasRevision>,
+    ),
+>;
+static SAS_REVISIONS: std::sync::OnceLock<std::sync::Mutex<SasRevisionMemo>> =
+    std::sync::OnceLock::new();
+
+/// Authority registers this process has already parsed, per path, with the
+/// exact text each was parsed from (`Repository::load_authority_register`).
+type RegisterMemo = std::collections::HashMap<Utf8PathBuf, (String, AuthorityRegister)>;
+static REGISTERS: std::sync::OnceLock<std::sync::Mutex<RegisterMemo>> = std::sync::OnceLock::new();
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A scratch repository with this corpus's `openwarrant.toml` (t-280c).
+    fn scratch_repo(name: &str) -> (Utf8PathBuf, Repository) {
+        let dir = Utf8PathBuf::from_path_buf(std::env::temp_dir())
+            .unwrap()
+            .join(format!("war-repo-memo-{name}-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(dir.join("docs/sas/revisions")).unwrap();
+        fs::create_dir_all(dir.join("docs/authority")).unwrap();
+        fs::copy(
+            corpus().join("openwarrant.toml"),
+            dir.join("openwarrant.toml"),
+        )
+        .unwrap();
+        let repo = Repository::open(dir.clone()).expect("scratch repository opens");
+        (dir, repo)
+    }
+
+    fn corpus() -> Utf8PathBuf {
+        Utf8PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../..")
+            .canonicalize_utf8()
+            .unwrap()
+    }
+
+    /// t-280c: the parsed SAS revisions are shared within a process, but a
+    /// revision added, edited or broken after the first read is seen on the
+    /// next one — the memo is keyed by the bytes, never a stale answer, and a
+    /// file that no longer parses is refused rather than answered from memory.
+    #[test]
+    fn the_sas_revision_memo_follows_every_edit_and_refuses_a_broken_file() {
+        let (dir, repo) = scratch_repo("sas");
+        let revs = dir.join("docs/sas/revisions");
+        let src = corpus().join("docs/sas/revisions");
+        fs::copy(src.join("1.0.0.toml"), revs.join("1.0.0.toml")).unwrap();
+        let first = repo.load_sas_revisions().unwrap();
+        assert_eq!(first.len(), 1);
+        assert_eq!(
+            repo.load_sas_revisions().unwrap(),
+            first,
+            "a repeat read agrees"
+        );
+
+        fs::copy(src.join("1.1.0.toml"), revs.join("1.1.0.toml")).unwrap();
+        let versions: Vec<String> = repo
+            .load_sas_revisions()
+            .unwrap()
+            .into_iter()
+            .map(|r| r.version)
+            .collect();
+        assert_eq!(versions, ["1.0.0", "1.1.0"], "an added revision is seen");
+
+        let text = fs::read_to_string(revs.join("1.1.0.toml")).unwrap();
+        fs::write(revs.join("1.1.0.toml"), format!("{text}\n[[[not toml")).unwrap();
+        assert!(
+            repo.load_sas_revisions().is_err(),
+            "a revision broken after it was read is refused, not remembered"
+        );
+        fs::write(revs.join("1.1.0.toml"), &text).unwrap();
+        assert_eq!(repo.load_sas_revisions().unwrap().len(), 2);
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    /// t-280c: the same for the authority register — a grant removed after
+    /// the first read is gone on the next, and a register that stops parsing
+    /// is refused, however many times the old one was read.
+    #[test]
+    fn the_register_memo_follows_every_edit_and_refuses_a_broken_register() {
+        let (dir, repo) = scratch_repo("register");
+        let roles = dir.join("docs/authority/roles.toml");
+        let one = |actor: &str| {
+            format!(
+                "[[assignment]]\nactor = \"{actor}\"\nactor_kind = \"human\"\n\
+                 roles = [\"authorizer\"]\nassigned_by = \"{actor}\"\n\
+                 effective_time = \"2026-01-01T00:00:00Z\"\n"
+            )
+        };
+        fs::write(&roles, format!("{}\n{}", one("ada"), one("bob"))).unwrap();
+        let reg = repo.load_authority_register().unwrap();
+        assert!(reg.actor("ada").is_some() && reg.actor("bob").is_some());
+        let again = repo.load_authority_register().unwrap();
+        assert!(again.actor("bob").is_some());
+
+        fs::write(&roles, one("ada")).unwrap();
+        let reg = repo.load_authority_register().unwrap();
+        assert!(reg.actor("ada").is_some());
+        assert!(
+            reg.actor("bob").is_none(),
+            "a withdrawn grant is not remembered"
+        );
+
+        fs::write(
+            &roles,
+            format!("{}\n[[assignment]]\nactor = 1\n", one("ada")),
+        )
+        .unwrap();
+        assert!(
+            repo.load_authority_register().is_err(),
+            "a register broken after it was read is refused, not remembered"
+        );
+        let _ = fs::remove_dir_all(&dir);
+    }
 
     const UUID: &str = "01a0d04c-5ee5-7ba2-9dc3-b9c50dcc6ba1";
 
