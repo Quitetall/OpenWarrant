@@ -30,7 +30,11 @@
 //!   which exists only if the key was loaded with `ssh-add -c`. Without `-c`
 //!   the AI agent's shell can reach the same socket and sign as the human, and
 //!   `war` cannot tell the two apart. That is the one thing the operator must
-//!   get right, and the docs say so where the key is configured.
+//!   get right, and the docs say so where the key is configured. A security
+//!   key (`sk-`) is the exception (OW-WAR-0138): its signature carries the
+//!   authenticator's presence flag, `war` reads it after verification and
+//!   records it, and `[policy] require_user_presence` refuses any signature
+//!   that does not show it. `docs/AUTHENTICATION.md` is the contract.
 //! - **It shows what is being signed, not the TOML.** Title, revision, what
 //!   changed (for an amendment), obligations, every residual risk with its
 //!   consequence, the digest. Those are the things the signer is accepting.
@@ -1826,30 +1830,145 @@ pub(crate) fn pubkey_for_principal(
     }
 }
 
-/// Sign `file` as `principal` and verify the result. Returns the `.sig` path.
+/// Why a signature was not made, with the rule it reports under.
+///
+/// `Display` is `<rule>: <why>`, so a caller that only formats the refusal
+/// (the batch path) still names the rule.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct SignRefusal {
+    pub rule: &'static str,
+    pub why: String,
+}
+
+impl SignRefusal {
+    fn new(rule: &'static str, why: impl Into<String>) -> Self {
+        Self {
+            rule,
+            why: why.into(),
+        }
+    }
+}
+
+impl std::fmt::Display for SignRefusal {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}: {}", self.rule, self.why)
+    }
+}
+
+/// A signature `war sign` made and verified, and what it shows about the key.
+#[derive(Debug, Clone)]
+pub(crate) struct Signed {
+    pub sig: Utf8PathBuf,
+    /// Read from the signature blob AFTER `ssh-keygen -Y verify` accepted it
+    /// (OW-WAR-0138 U-002: `ssh-keygen` accepts an `sk` signature without the
+    /// presence flag and does not report the flag).
+    pub parsed: openwarrant_core::presence::SshSig,
+}
+
+impl Signed {
+    pub(crate) fn presence(&self) -> openwarrant_core::presence::Presence {
+        self.parsed.presence()
+    }
+}
+
+/// Every principal an `allowed_signers` text binds to this exact key blob.
+fn principals_for_key(allowed_signers: &str, blob: &[u8]) -> Vec<String> {
+    let mut out = Vec::new();
+    for l in allowed_signers
+        .lines()
+        .map(str::trim)
+        .filter(|l| !l.is_empty() && !l.starts_with('#'))
+    {
+        let fields: Vec<&str> = l.split_whitespace().collect();
+        let Some(principals) = fields.first() else {
+            continue;
+        };
+        let bound = fields.windows(2).skip(1).any(|w| {
+            !w[0].contains('=')
+                && openwarrant_core::presence::public_key_blob(w[0], w[1]).is_ok_and(|b| b == blob)
+        });
+        if bound {
+            out.extend(principals.split(',').map(str::to_owned));
+        }
+    }
+    out.sort();
+    out.dedup();
+    out
+}
+
+/// The key a signature was made with must be the key `allowed_signers` binds
+/// to the principal the actor was resolved to — checked from the signature's
+/// own bytes, BEFORE `ssh-keygen -Y verify` is asked (OW-WAR-0138).
+///
+/// Without a protected store the actor-to-principal binding is `roles.toml`,
+/// and `ssh-keygen -Y sign -f <that principal's key>` makes the signature, so
+/// through an honest `ssh-keygen` this cannot differ; `-Y verify -I` would
+/// refuse the difference anyway, under a less exact name. It refuses what an
+/// honest signer never produces: a signature by some other key presented for
+/// this actor, however it was made.
+fn key_bound_to_principal(
+    allowed_signers: &str,
+    principal: &str,
+    bound_line: &str,
+    parsed: &openwarrant_core::presence::SshSig,
+) -> Result<(), String> {
+    let mut f = bound_line.split_whitespace();
+    let (Some(kt), Some(b64)) = (f.next(), f.next()) else {
+        return Err(format!("the key line for {principal:?} is malformed"));
+    };
+    let bound = openwarrant_core::presence::public_key_blob(kt, b64)
+        .map_err(|e| format!("the key allowed_signers binds to {principal:?}: {e}"))?;
+    if parsed.public_key == bound {
+        return Ok(());
+    }
+    let others = principals_for_key(allowed_signers, &parsed.public_key);
+    Err(format!(
+        "the signature was made by a {} key (sha256 {}) that allowed_signers binds to {}; the \
+         actor signing is bound to principal {principal:?}, whose key is a {kt} key (sha256 {}). \
+         A signature by another key is not a signature by this actor",
+        parsed.key_type,
+        &openwarrant_compiler::sha256_hex(&parsed.public_key)[..16],
+        if others.is_empty() {
+            "no principal".to_owned()
+        } else {
+            format!("{others:?}")
+        },
+        &openwarrant_compiler::sha256_hex(&bound)[..16],
+    ))
+}
+
+/// Sign `file` as `principal` and verify the result.
 ///
 /// The private key is never touched here: `ssh-keygen -Y sign -f <pubkey>`
 /// asks the agent for it, and an agent loaded with `ssh-add -c` asks the human
 /// through a confirmation dialog no shell can answer. `war` cannot check that
 /// `-c` was used — that is the one thing the operator must get right, and the
-/// docs say so. Verification against the allowed_signers file happens before
-/// anything is renamed, so a signature that does not verify writes nothing.
+/// docs say so. A security key is the exception: its signature carries the
+/// authenticator's presence flag, which [`Signed::presence`] reads.
+/// Verification against the allowed_signers file happens before anything is
+/// renamed, so a signature that does not verify writes nothing.
+///
+/// This makes and checks the signature; it applies no policy. An act is
+/// signed through [`ssh_sign_act`], which does.
 pub(crate) fn ssh_sign_file(
     allowed_signers: &Utf8Path,
     principal: &str,
     file: &Utf8Path,
-) -> Result<Utf8PathBuf, String> {
+) -> Result<Signed, SignRefusal> {
+    let refused = |why: String| SignRefusal::new("sign.ssh-refused", why);
     let text = std::fs::read_to_string(allowed_signers).map_err(|e| {
-        format!("{allowed_signers}: {e}. --ssh-sign needs that file, written by a human")
+        refused(format!(
+            "{allowed_signers}: {e}. --ssh-sign needs that file, written by a human"
+        ))
     })?;
     let pubkey = pubkey_for_principal(&text, principal)
-        .map_err(|why| format!("{allowed_signers}: {why}"))?;
+        .map_err(|why| refused(format!("{allowed_signers}: {why}")))?;
     // Unique per process so two signers of one file cannot delete each other's
     // key mid-sign, and named so a stray one (crash between write and cleanup)
     // reads as a temp file, not an authority artifact.
     let pub_path = Utf8PathBuf::from(format!("{file}.{}.tmp.pub", std::process::id()));
     crate::compile::atomic::write(&pub_path, format!("{pubkey} {principal}\n"))
-        .map_err(|e| format!("could not write {pub_path}: {e}"))?;
+        .map_err(|e| refused(format!("could not write {pub_path}: {e}")))?;
     let sign = std::process::Command::new("ssh-keygen")
         .args(["-Y", "sign", "-f"])
         .arg(&pub_path)
@@ -1857,25 +1976,90 @@ pub(crate) fn ssh_sign_file(
         .arg(file)
         .output();
     let _ = std::fs::remove_file(&pub_path);
-    let out = sign.map_err(|e| format!("could not run ssh-keygen: {e}"))?;
+    let out = sign.map_err(|e| refused(format!("could not run ssh-keygen: {e}")))?;
     if !out.status.success() {
-        return Err(format!(
+        return Err(refused(format!(
             "ssh-keygen -Y sign refused ({}): {}",
             out.status,
             String::from_utf8_lossy(&out.stderr).trim()
-        ));
+        )));
     }
     let sig = sig_path(file);
     if !sig.is_file() {
-        return Err(format!(
+        return Err(refused(format!(
             "ssh-keygen reported success but {sig} does not exist"
-        ));
+        )));
+    }
+    // Read the signature's own key before asking `ssh-keygen` whether it
+    // verifies: a signature that is unreadable, or by another key than the
+    // one bound to this principal, is refused by what it is.
+    let parsed = match std::fs::read_to_string(&sig)
+        .map_err(|e| e.to_string())
+        .and_then(|t| openwarrant_core::presence::parse_armored(&t).map_err(|e| e.to_string()))
+    {
+        Ok(p) => p,
+        Err(why) => {
+            let _ = std::fs::remove_file(&sig);
+            return Err(refused(format!(
+                "{sig} could not be read as a signature: {why}"
+            )));
+        }
+    };
+    if let Err(why) = key_bound_to_principal(&text, principal, &pubkey, &parsed) {
+        let _ = std::fs::remove_file(&sig);
+        return Err(SignRefusal::new("sign.actor-key-mismatch", why));
     }
     if let Err(why) = ssh_verify_file(allowed_signers, principal, file) {
         let _ = std::fs::remove_file(&sig);
-        return Err(why);
+        return Err(refused(why));
     }
-    Ok(sig)
+    Ok(Signed { sig, parsed })
+}
+
+/// Sign an act's file as `actor`, under this repository's policy.
+///
+/// The actor is resolved to a principal through the register, the signature
+/// is made and verified ([`ssh_sign_file`]), and then, with `[policy]
+/// require_user_presence` set, a signature that does not show a person at the
+/// key is refused `sign.presence-required` and its `.sig` removed — before
+/// the caller renames anything into place. Presence is read, never inferred:
+/// an ordinary key and a security key without its presence flag are both
+/// unverified (OW-WAR-0138).
+pub(crate) fn ssh_sign_act(
+    repo: &Repository,
+    actor: &str,
+    file: &Utf8Path,
+) -> Result<Signed, SignRefusal> {
+    let principal =
+        principal_of(repo, actor).map_err(|why| SignRefusal::new("sign.ssh-principal", why))?;
+    let signed = ssh_sign_file(&allowed_signers_path(repo), &principal, file)?;
+    if repo.config.policy.require_user_presence
+        && signed.presence() != openwarrant_core::presence::Presence::Verified
+    {
+        let _ = std::fs::remove_file(&signed.sig);
+        return Err(SignRefusal::new(
+            "sign.presence-required",
+            format!(
+                "[policy] require_user_presence is set and this signature does not show a person \
+                 at the key ({}). Sign with a security key (`sk-` key type) and touch it; nothing \
+                 was recorded",
+                signed.parsed.describe()
+            ),
+        ));
+    }
+    Ok(signed)
+}
+
+/// Under `[policy] require_user_presence`, the terminal path is refused: it
+/// makes no signature, so nothing could show presence.
+fn tty_path_refusal(require_user_presence: bool, opts: &Options) -> Option<SignRefusal> {
+    (require_user_presence && !opts.ssh_sign).then(|| {
+        SignRefusal::new(
+            "sign.presence-required",
+            "[policy] require_user_presence is set, and a terminal confirmation makes no \
+             signature for presence to be read from; use --ssh-sign with a security key",
+        )
+    })
 }
 
 /// `ssh-keygen -Y verify` of `file` against its `.sig` sidecar.
@@ -1968,6 +2152,7 @@ fn attest_after(
     p: &Pending,
     actor: &str,
     response: &Utf8Path,
+    signed: Option<&Signed>,
 ) -> Result<Utf8PathBuf, String> {
     let (act, target, record): (&str, String, Utf8PathBuf) = match p {
         Pending::Authorize { alias, .. } => (
@@ -2050,6 +2235,19 @@ fn attest_after(
             serde_json::Value::String(actor.to_owned()),
         );
         map.insert("act".to_owned(), serde_json::Value::String(act.to_owned()));
+        // OW-WAR-0138: presence as the response's signature shows it. The
+        // attestation is signed, so this is a signed record of it; the
+        // `.sig` beside the response remains the evidence it is read from.
+        if let Some(s) = signed {
+            map.insert(
+                "presence".to_owned(),
+                serde_json::Value::String(s.presence().as_str().to_owned()),
+            );
+            map.insert(
+                "signing_key_type".to_owned(),
+                serde_json::Value::String(s.parsed.key_type.clone()),
+            );
+        }
     }
     let mut extra = Vec::new();
     if let Some(d) = response_toml
@@ -2104,7 +2302,15 @@ fn attest_after(
                 &uuid,
                 "attestation.recorded",
                 &format!("human://{actor}"),
-                &serde_json::json!({"act": act, "path": repo.relative(&written)}).to_string(),
+                &match signed {
+                    Some(s) => serde_json::json!({
+                        "act": act,
+                        "path": repo.relative(&written),
+                        "presence": s.presence().as_str(),
+                    }),
+                    None => serde_json::json!({"act": act, "path": repo.relative(&written)}),
+                }
+                .to_string(),
             )
             .map_err(|e| e.to_string())?;
         }
@@ -2210,6 +2416,13 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
         ));
         return Ok(report);
     }
+    if !opts.show
+        && !opts.dry_run
+        && let Some(r) = tty_path_refusal(repo.config.policy.require_user_presence, opts)
+    {
+        report.push(Diagnostic::error(r.rule, "war sign".to_owned(), r.why));
+        return Ok(report);
+    }
     let all = pending(repo)?;
     let chosen: Vec<&Pending> = match (target, opts.all) {
         (Some(t), _) => match select(&all, t) {
@@ -2309,6 +2522,7 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
         if opts.edit {
             edit(&draft_path)?;
         }
+        let mut signed_with: Option<Signed> = None;
         let confirmed = if opts.ssh_sign {
             // No prompt: the confirmation is the agent's dialog. The screen is
             // still printed so the signer sees what the dialog is for.
@@ -2320,19 +2534,22 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
                 "└ Signing as {actor} ({}) with ssh — confirm in the agent's dialog",
                 role(p)
             );
-            let principal = match principal_of(repo, &actor) {
-                Ok(pr) => pr,
-                Err(why) => {
-                    discard_draft(&draft_path);
-                    report.push(Diagnostic::error("sign.ssh-principal", line(p), why));
-                    continue;
+            match ssh_sign_act(repo, &actor, &draft_path) {
+                Ok(s) => {
+                    // OW-WAR-0138: what the signature shows, read from its
+                    // bytes. The response cannot carry it — the signature is
+                    // over the response — so it goes in this report, the
+                    // attestation's predicate and the journal.
+                    report.push(Diagnostic::pass(
+                        "sign.presence",
+                        format!("{}: {}", line(p), s.parsed.describe()),
+                    ));
+                    signed_with = Some(s);
+                    true
                 }
-            };
-            match ssh_sign_file(&allowed_signers_path(repo), &principal, &draft_path) {
-                Ok(_) => true,
-                Err(why) => {
+                Err(r) => {
                     discard_draft(&draft_path);
-                    report.push(Diagnostic::error("sign.ssh-refused", line(p), why));
+                    report.push(Diagnostic::error(r.rule, line(p), r.why));
                     continue;
                 }
             }
@@ -2431,7 +2648,7 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
             // OW-ADR-0015: an ssh-signed act is attested with the same key.
             // The act stands whether or not this succeeds; a refusal here is
             // a WARN naming why, never a reason to undo an ingested record.
-            match attest_after(repo, p, &actor, &path) {
+            match attest_after(repo, p, &actor, &path, signed_with.as_ref()) {
                 Ok(written) => report.push(Diagnostic::pass(
                     "attest.emitted",
                     format!(
@@ -2587,10 +2804,29 @@ fn verify_existing(
         }
     };
     match ssh_verify_file(&allowed_signers_path(repo), &principal, &path) {
-        Ok(()) => report.push(Diagnostic::pass(
-            "sign.verified",
-            format!("{t}: signature verifies as {principal} ({actor}) under {SSH_NAMESPACE}"),
-        )),
+        Ok(()) => {
+            report.push(Diagnostic::pass(
+                "sign.verified",
+                format!("{t}: signature verifies as {principal} ({actor}) under {SSH_NAMESPACE}"),
+            ));
+            // OW-WAR-0138: read only after `ssh-keygen` accepted the bytes.
+            // An unreadable blob is reported, never promoted to a presence.
+            match std::fs::read_to_string(sig_path(&path))
+                .map_err(|e| e.to_string())
+                .and_then(|s| {
+                    openwarrant_core::presence::parse_armored(&s).map_err(|e| e.to_string())
+                }) {
+                Ok(parsed) => report.push(Diagnostic::pass(
+                    "sign.presence",
+                    format!("{t}: {}", parsed.describe()),
+                )),
+                Err(why) => report.push(Diagnostic::warn(
+                    "sign.presence-unreadable",
+                    path.to_string(),
+                    format!("the signature verifies and its blob could not be read: {why}"),
+                )),
+            }
+        }
         Err(why) => report.push(Diagnostic::error(
             "sign.not-verified",
             path.to_string(),
@@ -2698,7 +2934,41 @@ mod tests {
         assert!(
             ssh_sign_file(&allowed, "nobody", &renamed)
                 .unwrap_err()
+                .why
                 .contains("no key for principal")
+        );
+        // OW-WAR-0138: the signature names the key that made it, and it is
+        // the key allowed_signers binds to the principal. Another key —
+        // here a second throwaway bound to "other" — is refused by name,
+        // and the refusal says whom that key IS bound to.
+        let signed = std::fs::read_to_string(sig_path(&renamed)).unwrap();
+        let parsed = openwarrant_core::presence::parse_armored(&signed).unwrap();
+        assert_eq!(
+            parsed.presence(),
+            openwarrant_core::presence::Presence::Unverified,
+            "an ordinary key is never verified"
+        );
+        let text = std::fs::read_to_string(&allowed).unwrap();
+        let line = pubkey_for_principal(&text, "tester").unwrap();
+        key_bound_to_principal(&text, "tester", &line, &parsed).expect("its own key");
+        let other = dir.join("other");
+        assert!(
+            std::process::Command::new("ssh-keygen")
+                .args(["-q", "-t", "ed25519", "-N", "", "-C", "other", "-f"])
+                .arg(&other)
+                .status()
+                .unwrap()
+                .success()
+        );
+        let other_pub = std::fs::read_to_string(dir.join("other.pub")).unwrap();
+        let both = format!("{text}other {other_pub}");
+        let other_line = pubkey_for_principal(&both, "other").unwrap();
+        let why = key_bound_to_principal(&both, "other", &other_line, &parsed).unwrap_err();
+        assert!(why.contains("[\"tester\"]"), "{why}");
+        assert!(why.contains("\"other\""), "{why}");
+        assert_eq!(
+            principals_for_key(&both, &parsed.public_key),
+            vec!["tester"]
         );
         // No temp .pub left behind by any of the above.
         let leftovers = std::fs::read_dir(&dir)
@@ -2708,6 +2978,24 @@ mod tests {
             .count();
         assert_eq!(leftovers, 0);
         std::fs::remove_dir_all(dir).unwrap();
+    }
+
+    /// OW-WAR-0138: under the policy, the terminal path is refused (it makes
+    /// no signature to read presence from); the ssh path goes on to the
+    /// signature; with the policy off, neither is refused here.
+    #[test]
+    fn the_terminal_path_is_refused_only_under_the_presence_policy() {
+        let tty = Options::default();
+        let ssh = Options {
+            ssh_sign: true,
+            ..Options::default()
+        };
+        let r = tty_path_refusal(true, &tty).expect("refused");
+        assert_eq!(r.rule, "sign.presence-required");
+        assert!(r.to_string().starts_with("sign.presence-required: "));
+        assert!(tty_path_refusal(true, &ssh).is_none());
+        assert!(tty_path_refusal(false, &tty).is_none());
+        assert!(tty_path_refusal(false, &ssh).is_none());
     }
 
     fn authorize_pending(risks: usize) -> Pending {

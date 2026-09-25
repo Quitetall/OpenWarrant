@@ -1,1 +1,1 @@
-{"acts":[],"count":0,"schema":"oh.war/corpus-pending/v1"}
+{"acts":[{"action":"authorize","command":"war sign OW-WAR-0138","warrant":"OW-WAR-0138","why":"revision 4 awaits authorization under AM-003"}],"count":1,"schema":"oh.war/corpus-pending/v1"}

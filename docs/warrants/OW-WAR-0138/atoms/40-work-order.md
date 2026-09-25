@@ -63,6 +63,12 @@ M4 — records and plants:
 9. `conformance/plants.d/58-authn.sh` (new), the refusals in the assurance
    atom.
 
+- (AM-003) `crates/openwarrant-core/src/lib.rs`: declares the `presence`
+  module, so D-003 is part of the SDK it is written for.
+- (AM-003) `crates/openwarrant-cli/src/batch_cmd.rs`: `war sign --batch`
+  signs through the same presence policy and key-binding check as a single
+  act, so the policy cannot be stepped around by signing in a batch.
+
 ## Frozen Surfaces
 
 - The sshsig namespaces (`oh.war/response`, `oh.war/dsse`).
