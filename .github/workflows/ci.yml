@@ -67,6 +67,23 @@ jobs:
       - name: cargo xtask gate
         run: cargo xtask gate
 
+      # OW-WAR-0134: an acceptance is valid only for the candidate a human
+      # accepted. On a pull request HEAD is the merge commit -- the tree that
+      # would land -- and HEAD^1 the target branch, so `--base HEAD^1` asks only
+      # about the resolutions this pull request carries. An in-scope move since
+      # a resolution's locator is `acceptance.candidate-moved`, and a locator
+      # history cannot read is UNKNOWN; either exits non-zero and fails the job.
+      # The locator commits live on the pull request's branch, so this step
+      # fetches the history the shallow checkout left out; it sets nothing on
+      # the checkout step itself.
+      - name: Acceptance still describes the merge candidate
+        if: github.event_name == 'pull_request'
+        run: |
+          if [ "$(git rev-parse --is-shallow-repository)" = true ]; then
+            git fetch --no-tags --unshallow origin "$GITHUB_SHA"
+          fi
+          cargo run --quiet -p openwarrant-cli --bin war -- pins --candidate HEAD --base HEAD^1 --resolved-only
+
   bonsai-report:
     name: bonsai-report
     if: github.event_name == 'pull_request'

@@ -101,3 +101,65 @@ ssh-add -c ~/.ssh/<your key>
 
 Without `-c`, anything that can reach your agent can sign as you. `war`
 cannot check this. Test Deny before you trust Allow.
+
+## After you sign: when the candidate changes before merge
+
+A resolution records what you accepted, including a `[locator]`: the commit
+the delivered bytes were at when you signed. Between your signature and the
+merge the tree can still move: the target branch moves and the Warrant branch
+is rebased or merged, a conflict is resolved by hand, a squash produces a
+commit the locator does not name.
+
+```bash
+war pins --candidate                      # HEAD, against every resolved Warrant
+war pins --candidate <rev> --base <rev>   # only resolutions not already on <base>
+```
+
+For each resolved Warrant it answers one of:
+- `unchanged`: every path that moved since the locator is out of scope;
+- `acceptance.candidate-moved`: an in-scope path moved, or a pinned
+  deliverable's bytes no longer match the digest you signed for. Each path is
+  named, and the command exits non-zero;
+- `acceptance.unknown`: the resolution has no locator (resolved before
+  OW-ADR-0021), or git cannot read the locator commit. It is never reported
+  as unchanged, and the command exits non-zero;
+- `acceptance.landed` (with `--base`): the resolution is already on the base,
+  so it merged earlier and is not a candidate now.
+
+In scope means what the gates the Warrant cites read: each Gate Definition
+may declare `inputs` globs, and a gate that declares none puts the whole
+tree in scope. The Warrant's own records (its directory, the corpus
+projections, its signed responses) are not the candidate.
+
+CI runs `war pins --candidate HEAD --base HEAD^1 --resolved-only` on every
+pull request, against the merge commit. A moved acceptance fails the job
+before merge, not after.
+
+**What the finding means.** The candidate about to land is not the one you
+accepted, in a way the Warrant's gates would see.
+
+**What it does not mean.** The resolution is not wrong. It is still true of
+the candidate it accepted, and nothing writes to `resolution.toml`, disputes
+it, or annuls it.
+
+**What it requires next (Q-001, answered (b)).** An in-scope change before
+merge requires re-running the gates and the independent verifier on the new
+candidate: re-run the cited gates, then hand `war verify <alias>` to a
+verifier that is not the performer and ingest its answer with
+`war verify <alias> --response <file>`. When every obligation is
+re-established on that candidate, the finding clears for that candidate only;
+a further in-scope commit raises it again. Your acceptance carries forward;
+no new signature is asked of you.
+
+**When a pinned deliverable itself changed (Q-001 (a)).** A new human
+re-acceptance is required, and today that act is a correction:
+`war correct <alias> <D-id>` emits what you sign. Re-verification does not
+clear this case.
+
+Two limits, stated so they are not mistaken for coverage:
+- `war evidence record` replays a gate run that is still admissible for the
+  contract, so re-running a gate on the new tree is the verifier's to demand
+  until receipts are bound to the tree (OW-WAR-0133). The finding clears on
+  the ingested verification.
+- A squash or rebase merge can make a locator unreachable once the branch is
+  deleted; from then on the answer is `acceptance.unknown`, for good.

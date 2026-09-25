@@ -138,6 +138,51 @@ pub fn render(p: &Pins) -> String {
     s
 }
 
+/// `war pins --candidate <rev>` — each pin, and beside every resolved
+/// Warrant's pins whether the candidate is still the one a human accepted
+/// (OW-WAR-0134): `unchanged`, `moved` with the in-scope paths
+/// (`acceptance.candidate-moved`), or `UNKNOWN` with the reason. The finding
+/// is about the candidate; nothing here writes a resolution.
+///
+/// The report is the verdict: an in-scope move is an error and an UNKNOWN
+/// blocks, so either exits non-zero. `base`, when given, sets aside every
+/// Warrant already resolved there — merged earlier, not a candidate now —
+/// which is how CI asks only about the acceptances a pull request carries.
+pub fn candidate(
+    repo: &Repository,
+    candidate: &str,
+    base: Option<&str>,
+    resolved_only: bool,
+) -> Result<(crate::diagnostic::Report, serde_json::Value), RepoError> {
+    let pins = list(repo, resolved_only)?;
+    let (report, acceptance) = crate::acceptance::assess(repo, candidate, base)?;
+    let beside: Vec<serde_json::Value> = pins
+        .pins
+        .iter()
+        .map(|pin| {
+            let mut v = crate::output::value(pin);
+            if pin.state == PinState::Resolved
+                && let Some(a) = acceptance
+                    .warrants
+                    .iter()
+                    .find(|a| a.warrant == pin.warrant)
+                && let Some(obj) = v.as_object_mut()
+            {
+                obj.insert("acceptance".to_owned(), crate::output::value(&a.state));
+            }
+            v
+        })
+        .collect();
+    Ok((
+        report,
+        serde_json::json!({
+            "schema": SCHEMA,
+            "pins": beside,
+            "acceptance": crate::output::value(&acceptance),
+        }),
+    ))
+}
+
 /// `war pins --history <path>` — every Warrant that ever governed a path,
 /// oldest first, and whether each delivery still verifies from history.
 ///

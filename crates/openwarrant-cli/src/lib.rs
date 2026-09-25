@@ -9,6 +9,7 @@ use camino::Utf8PathBuf;
 use clap::{Parser, Subcommand};
 use openwarrant_core::Profile;
 
+pub mod acceptance;
 pub mod attest;
 pub mod authority_check;
 pub mod authority_cmd;
@@ -1008,6 +1009,17 @@ enum Command {
         /// whether each delivery still verifies from history (OW-ADR-0021).
         #[arg(long, value_name = "PATH")]
         history: Option<String>,
+        /// Whether each resolved Warrant's accepted candidate is still the
+        /// one about to merge (OW-WAR-0134): the paths that moved since the
+        /// resolution's locator, in scope or not. Defaults to `HEAD`. An
+        /// in-scope move is `acceptance.candidate-moved` and exits non-zero;
+        /// history that cannot answer is UNKNOWN.
+        #[arg(long, value_name = "REV", num_args = 0..=1, default_missing_value = "HEAD", conflicts_with_all = ["refresh", "history"])]
+        candidate: Option<String>,
+        /// With `--candidate`: set aside Warrants already resolved at this
+        /// revision (merged earlier). CI passes the target branch's commit.
+        #[arg(long, value_name = "REV", requires = "candidate")]
+        base: Option<String>,
     },
     /// What should happen next, and whose act it is. An agent is never handed
     /// a signing act; it is told that a human must sign, and how.
@@ -2011,6 +2023,17 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             let report = pins::refresh(&repository, alias.as_deref())?;
             let _ = resolved_only;
             Ok(output::finish(mode, "pins", &report, None))
+        }
+        Command::Pins {
+            candidate: Some(candidate),
+            base,
+            resolved_only,
+            ..
+        } => {
+            let repository = open_repo()?;
+            let (report, result) =
+                pins::candidate(&repository, &candidate, base.as_deref(), resolved_only)?;
+            Ok(output::finish(mode, "pins", &report, Some(result)))
         }
         Command::Pins {
             history: Some(path),
