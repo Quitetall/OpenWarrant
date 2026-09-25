@@ -61,4 +61,26 @@ else
     FAILED=$((FAILED + 1))
 fi
 
+# t-67ed: plain `war init` leads with the ticket loop. Its first hint, the
+# line straight after `initialized`, is the ticket start; the scripted
+# `--program` scaffold above never prints it (its three lines are pinned).
+GI_PLAIN=$(mktemp -d)
+GI_OUT4=$(cd "$GI_PLAIN" && git init -q . && "$WAR_ABS" init --namespace TK </dev/null 2>&1)
+if [[ $? -eq 0 ]] && [[ $(sed -n 1p <<<"$GI_OUT4") == initialized* ]] \
+    && [[ $(sed -n 2p <<<"$GI_OUT4") == 'start: `war create '* ]] \
+    && grep -q 'no signature needed' <<<"$GI_OUT4"; then
+    printf 'ok    %-34s the first hint is the ticket start\n' "plain init leads with tickets"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s %s\n' "plain init leads with tickets" "$(tr '\n' '|' <<<"$GI_OUT4")"
+    FAILED=$((FAILED + 1))
+fi
+if ! grep -q '^start:' <<<"$GI_OUT3"; then
+    printf 'ok    %-34s no start line in the pinned three\n' "scaffold output keeps its shape"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s the --program scaffold printed a start line\n' "scaffold output keeps its shape"
+    FAILED=$((FAILED + 1))
+fi
+rm -rf "$GI_PLAIN"
 rm -rf "$GI_TMP"

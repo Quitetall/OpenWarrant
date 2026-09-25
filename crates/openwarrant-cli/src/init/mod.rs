@@ -64,8 +64,16 @@ pub fn run(
     name: Option<&str>,
     root: Option<Utf8PathBuf>,
 ) -> Result<(), InitError> {
-    run_with(namespace, name, root, Baseline::Head).map(|_| ())
+    run_with(namespace, name, root, Baseline::Head, true).map(|_| ())
 }
+
+/// The first hint plain `war init` prints (t-67ed): most work starts as a
+/// ticket, and nothing in that loop needs a signature. The `--program`
+/// scaffold does not print it — its three lines are pinned (99-init,
+/// 59-adoption), and asking for the scaffold is asking for the authority layer.
+pub const START_HINT: &str = "start: `war create \"what this work accomplishes\" --item \"...\"`, then \
+     `war ready`, `war claim <id>`, `war done <id>` — no signature needed. Agents run \
+     `war prime` first (AGENTS.md). Sign-off is opt-in: `war promote <ticket>`.";
 
 /// Which commit `war init` records as the adoption baseline (OW-WAR-0124).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -291,11 +299,14 @@ fn baseline_block(template: &str, baseline: Option<&str>) -> String {
 }
 
 /// `war init` with a chosen baseline. Returns the baseline recorded, if any.
+/// `start_hint` prints [`START_HINT`] directly under the `initialized` line,
+/// so the ticket start is the first thing a person reads after it.
 pub fn run_with(
     namespace: &str,
     name: Option<&str>,
     root: Option<Utf8PathBuf>,
     baseline: Baseline<'_>,
+    start_hint: bool,
 ) -> Result<Option<String>, InitError> {
     let root = match root {
         Some(path) => path,
@@ -422,6 +433,9 @@ pub fn run_with(
     // §76.3: silence on sound state is the ideal, but `init` is a mutation and
     // the operator needs to know what was created and where.
     println!("initialized {} ({})", config.project.name, config_path);
+    if start_hint {
+        println!("{START_HINT}");
+    }
     if let Some(id) = &recorded {
         let before = git_line(&root, &["rev-list", "--count", id]).unwrap_or_else(|| "?".into());
         println!(
@@ -477,7 +491,7 @@ pub fn run_program_with(
             "--program needs a non-empty name without a newline or `|`; got {program:?}"
         )));
     }
-    let recorded = run_with(namespace, Some(program), root.clone(), baseline)?;
+    let recorded = run_with(namespace, Some(program), root.clone(), baseline, false)?;
     let root = match root {
         Some(r) => r,
         None => {
