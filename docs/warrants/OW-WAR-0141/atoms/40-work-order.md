@@ -61,6 +61,16 @@ chosen, this revision is amended before the work is dispatched.
     It uses a fake `gh` on PATH that records its argv and answers from a
     fixture, and a fake drafter.
 
+- (AM-002) `crates/openwarrant-cli/src/lib.rs`: the `--issue` and
+  `--issue-file` flags of `war plan`, and their wiring into the plan
+  handler.
+- (AM-002) `crates/openwarrant-cli/src/next.rs`: each open intake question
+  appended to `war next` as a human `answer` act.
+- (AM-002) `crates/openwarrant-cli/src/mcp/tools.rs`: `war_plan_request`,
+  `war_plan_validate` and `war_plan_apply` take `issue_file` or `issue` in
+  place of the sentence, through the same intake reader, review rule and
+  `plan/intake.json` as the CLI.
+
 ## Frozen Surfaces
 
 - `oh.war/draft-request/v1` and `oh.war/draft-proposal/v2` (except the
