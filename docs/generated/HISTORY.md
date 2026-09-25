@@ -2483,7 +2483,7 @@ fixed by this ADR. A later change to any of them is a new ADR.
 
 ### OW-WAR-0001 — Establish the OpenWarrant repository and Rust workspace
 
-[manifest](../../docs/warrants/OW-WAR-0001/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0001/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0001/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0001/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 2 (`f29c7d95baeb90a7bbad57a26b07846c724482c66a1e9ed7a2670af8d00b776d`), Basis SAS 0.1.0-draft.1.
 
@@ -3029,7 +3029,7 @@ and it closes in OW-WAR-0003 and OW-WAR-0004.
 
 ### OW-WAR-0003 — Implement the canonical WAR IR and RFC 8785 digesting
 
-[manifest](../../docs/warrants/OW-WAR-0003/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0003/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0003/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0003/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 2 (`a22a4da86554d16d8f1f49019ae8f8968d320e8c3c9b998fd8f7915a05956bba`), Basis SAS 0.1.0-draft.1.
 
@@ -3449,7 +3449,7 @@ review that lists questions without answers is a plan, not a review.
 
 ### OW-WAR-0004 — Implement the generated parent document and drift checking
 
-[manifest](../../docs/warrants/OW-WAR-0004/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0004/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0004/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0004/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 2 (`e8b329d18814c638553a7f460b04b8efb3e7da074ea29867d631b484083d49ab`), Basis SAS 0.1.0-draft.1.
 
@@ -4040,7 +4040,7 @@ this watches whether it stays right.
 
 ### OW-WAR-0006 — Complete ADR federation: relations, supersession, and currency
 
-[manifest](../../docs/warrants/OW-WAR-0006/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0006/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0006/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0006/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`1477ad6a82409b0591ce5dbfd1a3f07c084c34984c185e0841cb11c0c92806d9`), Basis SAS 0.1.0-draft.1.
 
@@ -4234,7 +4234,7 @@ Adopting shipped work sets a precedent this project should not repeat. The recor
 
 ### OW-WAR-0007 — Parse and validate milestones, stages, and named typed ports
 
-[manifest](../../docs/warrants/OW-WAR-0007/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0007/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0007/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0007/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 2 (`12522bfbd7a6d6256af05cd08990bea99161fa24556428d306fc8b46d097e662`), Basis SAS 0.1.0-draft.1.
 
@@ -5059,7 +5059,7 @@ Conservative classification will produce escalations a human considers unnecessa
 
 ### OW-WAR-0011 — Implement prerequisites and Preflight
 
-[manifest](../../docs/warrants/OW-WAR-0011/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0011/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0011/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0011/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`0df5ae3aad7476d807f37548d66b21e9954797e8977bbfbbcdf96ad6e4d34377`), Basis SAS 0.1.0-draft.1.
 
@@ -5407,7 +5407,7 @@ Self-declared trust is the whole model's soft spot and it is inherited from the 
 
 ### OW-WAR-0013 — Validate SAS and Roadmap traceability
 
-[manifest](../../docs/warrants/OW-WAR-0013/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0013/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0013/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0013/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`e82d467e4e4b5350f79ce6cc08b3028e56e6328ad467684387dec3c7cce9868f`), Basis SAS 0.1.0-draft.1.
 
@@ -7432,7 +7432,7 @@ Self-certification, as above. Every controlled Warrant in this repository will r
 
 ### OW-WAR-0023 — Implement Stage Dispatch compilation and actor-specific projection
 
-[manifest](../../docs/warrants/OW-WAR-0023/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0023/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0023/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0023/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`6c3c0fb78ae995976138a18c657a34b5adcced8b63cfafe396d940f6eaaf7768`), Basis SAS 0.1.0-draft.1.
 
@@ -8128,7 +8128,7 @@ Katana's schema may have moved since `651ba435`, and this host cannot check. Eve
 
 ### OW-WAR-0027 — Implement the BLUT adapter: PlanSpec lowering and lineage receipt
 
-[manifest](../../docs/warrants/OW-WAR-0027/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0027/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0027/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0027/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`f62657b83de96d3602d45b0ce361d5d6b70ced4ce01be0aaf924f4f2861f17a2`), Basis SAS 0.1.0-draft.1.
 
@@ -8293,7 +8293,7 @@ BLUT's PlanSpec version may move. Pinning it is a dependency-management problem 
 
 ### OW-WAR-0028 — Implement Knowledge Fabric typed actions and the controlled-action envelope
 
-[manifest](../../docs/warrants/OW-WAR-0028/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0028/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0028/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0028/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`f1710e739af7b6b5dde1edc1b6d0aaad99a3c7beff224364eb37de467ed25987`), Basis SAS 0.1.0-draft.1.
 
@@ -8459,7 +8459,7 @@ This is a client-side contract only. Server-side enforcement is KF's, and testin
 
 ### OW-WAR-0029 — Implement KF registration, global identity allocation, and federation
 
-[manifest](../../docs/warrants/OW-WAR-0029/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0029/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0029/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0029/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`1d8b13131a5829166712ddf1f53751476e9438d4bf26d98dd5026b258e267698`), Basis SAS 0.1.0-draft.1.
 
@@ -8642,7 +8642,7 @@ The Identifier Registry does not exist. Until it does, an allocated enterprise I
 
 ### OW-WAR-0030 — Implement portable preservation: one-file export and round trip
 
-[manifest](../../docs/warrants/OW-WAR-0030/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0030/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0030/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0030/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`4bd76924b820035c67ff954234c3be6742115ee1fa384208433f8f0adac2ec09`), Basis SAS 0.1.0-draft.1.
 
@@ -9638,7 +9638,7 @@ Question quality is unmeasurable pre-telemetry. Until OW-WAR-0039, §99 criterio
 
 ### OW-WAR-0036 — Implement normative-decision detection and proposed-ADR generation
 
-[manifest](../../docs/warrants/OW-WAR-0036/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0036/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0036/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0036/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`5dc61ed786b3e6606335e2128761765f68cf329f0df2ffdb9c0d7539f387af65`), Basis SAS 0.1.0-draft.1.
 
@@ -9803,7 +9803,7 @@ Over-detection is the practical risk: a detector that flags routine work will be
 
 ### OW-WAR-0037 — Implement `war diff`: semantic difference between revisions
 
-[manifest](../../docs/warrants/OW-WAR-0037/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0037/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0037/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0037/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`ef2591f109829dd91c51010ae702eb149cfb9c17b7e73e60b973e5cca0a4d9a0`), Basis SAS 0.1.0-draft.1.
 
@@ -10167,7 +10167,7 @@ The corpus moves. An import is a snapshot, and a snapshot presented as current i
 
 ### OW-WAR-0039 — Implement telemetry, unit economics, and untracked-work detection
 
-[manifest](../../docs/warrants/OW-WAR-0039/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0039/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0039/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0039/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`144ad9331646730f7a9aa0d45d4f83981cda71c534b97d762b0e094c9dba3d99`), Basis SAS 0.1.0-draft.1.
 
@@ -10558,7 +10558,7 @@ Unstartable until Liminal is checked out — the only Warrant in the roadmap tha
 
 ### OW-WAR-0041 — Discharge the Phase 0 exit: real telemetry distributions, with a baseline
 
-[manifest](../../docs/warrants/OW-WAR-0041/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0041/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0041/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0041/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`c59efbab5b418007476e09b682503b15be1697fe2ed8cc9a671f080829310773`), Basis SAS 0.1.0-draft.1.
 
@@ -11165,7 +11165,7 @@ federation work, not this Warrant's.
 
 ### OW-WAR-0043 — Discharge the Phase 3 exit: migrate the LamQuant ADR corpus, fabricating nothing
 
-[manifest](../../docs/warrants/OW-WAR-0043/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0043/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0043/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0043/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`a9d2de0049ca54a08e8ccd5438c785deff8a8aba77c34b52fbfce12cb3ae9d6b`), Basis SAS 0.1.0-draft.1.
 
@@ -11589,7 +11589,7 @@ tired.
 
 ### OW-WAR-0044 — Discharge the Phase 4 exit: KF is institutional authority, Git stays Source Holder
 
-[manifest](../../docs/warrants/OW-WAR-0044/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0044/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0044/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0044/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`f63c78bd49e749168df0516d78a1846a6de498ee2a5b5fd877ba2ed133407791`), Basis SAS 0.1.0-draft.1.
 
@@ -14856,7 +14856,7 @@ check caught it before the gate did.
 
 ### OW-WAR-0059 — Commit gate receipts as evidence and record the first resolutions
 
-[manifest](../../docs/warrants/OW-WAR-0059/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0059/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0059/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0059/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`5361789fdc6e4b70c5ffe0e0cb8111f7cd6e7fefa5273f519402ce81273a6cf0`), Basis SAS 0.1.0-draft.1.
 

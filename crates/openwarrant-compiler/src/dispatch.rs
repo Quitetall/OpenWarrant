@@ -93,6 +93,20 @@ pub enum DispatchError {
         /// The three largest items, largest first, each with its estimate.
         largest: Vec<(String, u64)>,
     },
+    /// §33.4 under Q-002 (c), OW-WAR-0133: one source included whole at two
+    /// digests or two revisions. The packet would carry two versions of one
+    /// file and nothing says which binds; refused, naming both.
+    #[error(
+        "the context manifest includes {path} twice, at {} — one source at two digests or \
+         revisions is a conflict §33.4 says blocks readiness, and no precedence rule can \
+         choose between two versions of the same file",
+        versions.join(" and ")
+    )]
+    SourceConflict {
+        path: String,
+        /// Each version as `<commit>:<digest>`, sorted.
+        versions: Vec<String>,
+    },
     /// RQ-046: a Dispatch declares its estimate and budget. One compiled with
     /// no token account at all would carry neither, so it is not emitted.
     #[error(
@@ -170,6 +184,50 @@ pub struct DispatchInputs<'a> {
     pub dispatch_id: String,
 }
 
+/// §33.4, the one mechanical conflict kind (Q-002 (c), OW-WAR-0133): a
+/// source path included WHOLE at two different digests or revisions.
+///
+/// Keyed on the holder's kind and path. Items that carry section selectors
+/// are selections of a file, not versions of it, and never conflict; an
+/// external reference carries no digest to disagree with. Semantic conflict
+/// between two different sources ("these atoms disagree") is not detected:
+/// no mechanical rule exists for it, and none is invented here.
+///
+/// # Errors
+///
+/// [`DispatchError::SourceConflict`] for the first conflicting path, sorted.
+pub fn source_conflicts(context: &ContextManifest) -> Result<(), DispatchError> {
+    use std::collections::{BTreeMap, BTreeSet};
+    let mut versions: BTreeMap<(&str, &str), BTreeSet<String>> = BTreeMap::new();
+    for item in &context.included {
+        if item.holder.kind == "external"
+            || item.holder.path.trim().is_empty()
+            || !item.selector_sections.is_empty()
+        {
+            continue;
+        }
+        versions
+            .entry((item.holder.kind.as_str(), item.holder.path.as_str()))
+            .or_default()
+            .insert(format!(
+                "{}:{}",
+                if item.holder.commit_sha.is_empty() {
+                    "(floating)"
+                } else {
+                    item.holder.commit_sha.as_str()
+                },
+                item.content_digest
+            ));
+    }
+    match versions.into_iter().find(|(_, v)| v.len() > 1) {
+        Some(((_, path), v)) => Err(DispatchError::SourceConflict {
+            path: path.to_owned(),
+            versions: v.into_iter().collect(),
+        }),
+        None => Ok(()),
+    }
+}
+
 /// The sources §47.2 says must survive projection: every required atom.
 #[must_use]
 pub fn required_normative_sources(basis: &CompilationBasis) -> Vec<String> {
@@ -218,6 +276,8 @@ pub fn compile_dispatch(inputs: DispatchInputs<'_>) -> Result<StageDispatch, Dis
     let tokens = token_account(tokens.ok_or(DispatchError::TokensUnrecorded)?)?;
     attempt.validate()?;
     context.validate()?;
+    // §33.4 — checked here, not by a caller, so every caller inherits it.
+    source_conflicts(context)?;
 
     // §33.6 / §47.2 — every required atom is either in the manifest or
     // recorded as omitted with a reason. Neither is not an option.
@@ -861,5 +921,83 @@ stages:
             Err(DispatchError::TokensUnrecorded) => {}
             other => panic!("expected TokensUnrecorded, got {other:?}"),
         }
+    }
+
+    /// OW-WAR-0133 OBL-005, Q-002 (c): one path at two digests refuses the
+    /// Dispatch and names both; the same path twice at one digest, or a
+    /// section of it, is not a conflict (the control).
+    #[test]
+    fn one_source_at_two_digests_is_refused_and_both_are_named() {
+        let (basis, validated) = fixture();
+        let mut ctx = context_for(&basis);
+        let mut twin = ctx.included[0].clone();
+        twin.id = "artifact-alias".to_owned();
+        ctx.included.push(twin.clone());
+        compile(
+            &basis,
+            &validated,
+            &ctx,
+            "STAGE-001",
+            &attempt(AttemptKind::Initial),
+        )
+        .expect("the same path at one digest is not a conflict");
+
+        let mut section = twin.clone();
+        section.id = "section-alias".to_owned();
+        section.content_digest = "sha256:section".to_owned();
+        section.selector_sections = vec!["Heading".to_owned()];
+        ctx.included.push(section);
+        compile(
+            &basis,
+            &validated,
+            &ctx,
+            "STAGE-001",
+            &attempt(AttemptKind::Initial),
+        )
+        .expect("a section of a file is a selection, not a version");
+
+        let first = ctx.included[0].content_digest.clone();
+        ctx.included
+            .last_mut()
+            .expect("pushed")
+            .selector_sections
+            .clear();
+        match compile(
+            &basis,
+            &validated,
+            &ctx,
+            "STAGE-001",
+            &attempt(AttemptKind::Initial),
+        ) {
+            Err(DispatchError::SourceConflict { path, versions }) => {
+                assert_eq!(path, ctx.included[0].holder.path);
+                assert_eq!(versions.len(), 2, "{versions:?}");
+                assert!(versions.iter().any(|v| v.ends_with(&first)), "{versions:?}");
+                assert!(
+                    versions.iter().any(|v| v.ends_with("sha256:section")),
+                    "{versions:?}"
+                );
+            }
+            other => panic!("expected SourceConflict, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn one_source_at_two_revisions_is_refused() {
+        let (basis, validated) = fixture();
+        let mut ctx = context_for(&basis);
+        let mut twin = ctx.included[0].clone();
+        twin.id = "older".to_owned();
+        twin.holder.commit_sha = "1".repeat(40);
+        ctx.included.push(twin);
+        let err = compile(
+            &basis,
+            &validated,
+            &ctx,
+            "STAGE-001",
+            &attempt(AttemptKind::Initial),
+        )
+        .expect_err("two revisions of one path");
+        assert!(matches!(err, DispatchError::SourceConflict { .. }), "{err}");
     }
 }

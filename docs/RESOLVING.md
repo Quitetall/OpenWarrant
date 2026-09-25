@@ -158,9 +158,12 @@ war evidence record OW-WAR-0010              # runs every cited gate, mints §44
 war compile                                  # the receipt changed the projection; refresh before the next
 ```
 
-A receipt counts only while it reseals and is bound to the contract as it
-compiles now; edit the contract and `war check` reports `evidence.stale-binding`
-until a new run is recorded. A Warrant whose assurance atom cites no gate cannot
+A receipt counts only while it reseals, is bound to the contract as it
+compiles now, and the source it ran over still holds; edit the contract or
+that source and `war check` reports `evidence.stale-binding` until a new run
+is recorded (see "When recorded evidence still counts" below). Commit the
+receipt, the journal line and the refreshed projection together; none of
+them moves the source a receipt names. A Warrant whose assurance atom cites no gate cannot
 record evidence (OW-WAR-0016 today) — that needs an amendment naming a gate.
 
 When all thirteen are met, the resolution is the third two-half seam. From a
@@ -193,6 +196,101 @@ effective_time = "2026-09-02T18:00:00Z"
 war resolve OW-WAR-0010 --response /tmp/OW-WAR-0010.resolution.response.toml
 war compile                           # the Warrant now reads `resolved`; the Release axis moves
 ```
+
+## When recorded evidence still counts
+
+The contract digest does not cover the delivered code, the deliverable set or
+a gate's fixtures (OW-ADR-0004). A receipt bound to the contract alone would
+survive any edit to them. OW-WAR-0133 closes that gap.
+
+### What a receipt names
+
+`war evidence record` adds these entries to `subject_digests`, next to
+`contract:sha256:…`. They are new entries, not new fields, so every receipt
+already on disk still parses and still reseals.
+
+| subject | what it names |
+|---|---|
+| `tree:<sha>` | `git rev-parse HEAD^{tree}` when the gate started |
+| `worktree:dirty` | the working tree differed from that tree when the gate started |
+| `inputs:sha256:<hex>` | the bytes of every file the Gate Definition's `inputs` globs match |
+| `deliverables:sha256:<hex>` | the bytes of the Warrant's declared deliverables, in `D-` order |
+
+`fixture_digests` holds one `<path>#sha256:<hex>` for each file the
+definition lists under `fixtures`. It is empty only when the definition lists
+none. A declared fixture that cannot be read stops the run before it starts.
+
+### The reuse rule
+
+For a Warrant that is not resolved, a recorded run counts toward requirement 5
+only if all of these still hold:
+
+1. **The contract.** The receipt names the current contract digest.
+2. **The fixtures.** Every recorded fixture digest matches the file's bytes
+   today.
+3. **The source.** If the gate's definition declares `inputs`, the files those
+   globs match must digest as they did. A definition may declare, for example,
+   `inputs: ["crates/**", "Cargo.lock"]` and `fixtures: ["conformance/x.toml"]`.
+   These are new keys, and a definition is immutable (§43.3), so a shipped
+   gate that adopts them takes a new version. If the definition declares no
+   inputs, the tree decides instead. The run holds only if nothing has changed
+   since the recorded tree, and a run over a dirty tree has no tree to hold to.
+
+The source comparison skips a Warrant's `gate-runs/` and `journal.jsonl`,
+because recording evidence writes them. It also skips the projections
+`war compile` writes (`generated/` under the warrants, ADR and SAS roots, and
+`docs/generated/`), because the corpus status projects each run's
+admissibility. Without these exclusions, committing a receipt would move the
+tree the receipt names. `war check --generated` checks the projections
+against their sources.
+
+The deliverables digest is recorded and advisory. A gate is judged on what it
+declares it reads. If a gate reads files outside its declared `inputs`, it can
+keep a stale pass. The tree subject in the receipt shows that happened; it
+does not prevent it.
+
+| finding | `war check` rule | severity | requirement 5 |
+|---|---|---|---|
+| every subject holds | `evidence.admissible` | pass | counts |
+| the contract, an input, a fixture or the tree has moved | `evidence.stale-binding`, naming the recorded subject | warning | does not count |
+| the rule needs a subject the receipt does not name, or the source cannot be read: every receipt minted before OW-WAR-0133, a run over a dirty tree, a gate with no registered definition | `evidence.reuse-unknown` | warning | does not count |
+| the receipt does not reseal, or disagrees with its run | `evidence.receipt-invalid` | error | does not count |
+
+A stale or unknown run is a true record. It is not a failure, and it is not
+evidence about the source as it stands now (Law 15). The fix for either is
+`war evidence record <alias>`. The reuse rule never makes a `reuse-unknown`
+receipt count.
+
+A **resolved** Warrant is not re-evaluated. Its receipts are history, and its
+resolution still binds them (RQ-059). `war check` reports them as admissible
+with "resolved: the source is not re-evaluated". No resolution record is
+rewritten.
+
+### The compiler's three rules for a Dispatch's context
+
+- **Source.** Every required atom is included whole, or the Dispatch is
+  refused (`RequiredAtomUnaccounted`, `RequiredAtomOmitted`). Precedence is
+  still assigned by item kind: a Warrant's atoms are `authorized_war_contract`
+  and everything else is `informative_source`. No Warrant can declare
+  precedence yet (§33.4; U-003 of OW-WAR-0133).
+- **Omission.** A required item is never omitted, and every omission carries a
+  reason (`context.rs`, `RequiredItemOmitted`). If a stage's budget cannot hold
+  its required atoms, the whole Dispatch is refused by `dispatch.over-budget`,
+  which names the largest items. Nothing is dropped to fit.
+- **Conflict.** One mechanical kind is detected: a single source path included
+  whole at two digests or at two revisions. The compiler refuses that Dispatch
+  (`SourceConflict`) and names both versions. A section of a file is a
+  selection, not a version, and never conflicts. Two different sources that
+  disagree in prose are not detected, because no mechanical rule exists for
+  that. The stage selector never includes one path whole twice, so today this
+  refusal guards other callers of the compiler, not `war dispatch`.
+
+  Known gap: the manifest written by `war dispatch --emit-context` still reads
+  `conflicts: []`, with nothing to say whether a check ran. That manifest is
+  built in `crates/openwarrant-cli/src/dispatch.rs`, and its type lives in
+  `crates/openwarrant-core/src/context.rs`. OW-WAR-0133 declared neither file,
+  so it could not change that field to `unchecked`. Treat `conflicts: []` as
+  unchecked. It is not a finding that no conflict exists.
 
 ## Step 5 — correcting a delivered artifact after resolution
 
