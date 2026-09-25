@@ -1,1 +1,1 @@
-{"acts":[],"count":0,"schema":"oh.war/corpus-pending/v1"}
+{"acts":[{"action":"accept","command":"war sign 1.1.1","warrant":"SAS 1.1.1","why":"a proposed SAS revision awaits acceptance"}],"count":1,"schema":"oh.war/corpus-pending/v1"}

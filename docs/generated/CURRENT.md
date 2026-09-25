@@ -37538,4 +37538,8 @@ From the [authority register](../../docs/authority/roles.toml).
 
 ## Awaiting a human
 
-Nothing awaits a signature.
+Every command here has been judged by the act's dry run (`war sign <target> --dry-run`): the ingest ran with the write withheld. `would record` means the signature is the only thing missing.
+
+| act | Warrant | command | judged | why |
+|---|---|---|---|---|
+| accept | SAS 1.1.1 | `war sign 1.1.1` | would record | a proposed SAS revision awaits acceptance |

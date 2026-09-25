@@ -187,5 +187,26 @@ if [[ "$RM_LEGACY_OK" -eq 1 ]]; then
 else
     rm_fail "the legacy roadmaps are lineage" "a lineage line is missing or doubled, a file is not retired, or the rc.3 draft check fails"
 fi
+
+# The SAS proposal that points §98 at the record: recorded, matching the
+# document, and NOT in force — 1.1.0 stays normative until a human accepts.
+RM_SAS=$("$WAR" sas status 2>&1)
+RM_CHECK=$("$WAR" check 2>&1)
+if grep -qE 'PASS sas.revision +1\.1\.1 · proposed · .* matches the document' <<<"$RM_SAS" \
+    && grep -qE 'WARN sas.revision +1\.1\.0 · accepted · .* does not match the document' <<<"$RM_SAS" \
+    && awk '/^## 98\. /{f=1; next} /^## /{f=0} f' docs/sas/WAR_Software_Architecture_Specification.md | grep -qxF "The phases are the roadmap record's (OW-ADR-0023)." \
+    && ! grep -q '^### Phase 0 ' docs/sas/WAR_Software_Architecture_Specification.md \
+    && grep -qE 'WARN sas.proposed-unaccepted .*revision 1\.1\.1 \(proposed\).*accepted revision 1\.1\.0 remains normative' <<<"$RM_CHECK"; then
+    rm_ok "§98 points at the record, proposed" "1.1.1 proposed and matching; 1.1.0 stays normative"
+else
+    rm_fail "§98 points at the record, proposed" "$(grep -E '1\.1\.[01]|proposed-unaccepted' <<<"$RM_SAS$RM_CHECK" | head -3 | tr '\n' '|')"
+fi
+
 corpus_gone "$PLANT_ROOT"
 unset PLANT_ROOT
+
+# On this repository, after the scratch program is gone (PLANT_ROOT unset):
+# the refusal: a document edited after the proposal matches no revision, and
+# the check says so instead of reading the proposal as still in hand.
+plant "the SAS edited after its proposal" "sas.digest-drift" "revision 1.1.0 (accepted) records" 2 \
+    "printf '\nThe phases are listed here after all.\n' >> docs/sas/WAR_Software_Architecture_Specification.md; assert_present 'listed here after all' docs/sas/WAR_Software_Architecture_Specification.md"
