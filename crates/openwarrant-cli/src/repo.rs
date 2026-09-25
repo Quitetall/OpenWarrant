@@ -929,6 +929,22 @@ impl Repository {
     ) {
         let alias = validated.alias.to_string();
         let profile = &validated.profile;
+        // Unanswered is a warning on a draft and an error once a human has
+        // authorized the contract, as `atom.preset-unanswered` is.
+        let authorized = self
+            .load_authorization(dir)
+            .ok()
+            .flatten()
+            .is_some_and(|a| {
+                a.revision.state == openwarrant_core::contract::RevisionState::Authorized
+            });
+        let unanswered = |rule: &str, file: String, message: String| {
+            if authorized {
+                Diagnostic::error(rule, file, message)
+            } else {
+                Diagnostic::warn(rule, file, message)
+            }
+        };
         report.push(Diagnostic::pass(
             "profile.registered",
             format!(
@@ -957,7 +973,12 @@ impl Repository {
             ));
         }
         if let Some(role) = definition.acceptance_role.as_deref() {
-            report.push(self.acceptance_authority(&alias, role, &file_of(role), atoms));
+            report.push(
+                self.acceptance_authority(&alias, role, &file_of(role), atoms)
+                    .unwrap_or_else(|message| {
+                        unanswered("profile.acceptance-authority", file_of(role), message)
+                    }),
+            );
         }
         for role in &definition.reference_roles {
             let file = file_of(role);
@@ -967,7 +988,7 @@ impl Repository {
             let text = String::from_utf8_lossy(&atom.bytes);
             let refs = references(&text);
             if refs.is_empty() {
-                report.push(Diagnostic::error(
+                report.push(unanswered(
                     "profile.reference-missing",
                     file,
                     format!(
@@ -987,14 +1008,15 @@ impl Repository {
     /// The acceptance authority a profile's acceptance atom names, checked
     /// against the register with no new role: acceptance is the existing
     /// resolution act, so the actor must be a human holding `resolver` who
-    /// did not perform the work (§27.1, §27.2).
+    /// did not perform the work (§27.1, §27.2). `Err` carries the message
+    /// when the atom names nobody: unanswered, which the caller grades.
     fn acceptance_authority(
         &self,
         alias: &str,
         role: &str,
         file: &str,
         atoms: &[AtomSource],
-    ) -> Diagnostic {
+    ) -> Result<Diagnostic, String> {
         const RULE: &str = "profile.acceptance-authority";
         let named = atoms
             .iter()
@@ -1007,58 +1029,54 @@ impl Repository {
             .map(|s| s.trim().to_owned())
             .filter(|s| !s.is_empty());
         let Some(actor) = named else {
-            return Diagnostic::error(
-                RULE,
-                file,
-                format!(
-                    "{alias}: {role} names no `acceptance_authority` in its header; \
-                     acceptance is a resolution, and somebody must be entitled to make it"
-                ),
-            );
+            return Err(format!(
+                "{alias}: {role} names no `acceptance_authority` in its header; \
+                 acceptance is a resolution, and somebody must be entitled to make it"
+            ));
         };
         let register = match self.load_authority_register() {
             Ok(register) => register,
             Err(e) => {
-                return Diagnostic::error(
+                return Ok(Diagnostic::error(
                     RULE,
                     file,
                     format!("{alias}: the register could not be read: {e}"),
-                );
+                ));
             }
         };
         let Some(assignment) = register.actor(&actor) else {
-            return Diagnostic::error(
+            return Ok(Diagnostic::error(
                 RULE,
                 file,
                 format!(
                     "{alias}: acceptance authority {actor:?} has no assignment in \
                      docs/authority/roles.toml; only a human the register names may accept"
                 ),
-            );
+            ));
         };
         if assignment.actor_kind != ActorKind::Human {
-            return Diagnostic::error(
+            return Ok(Diagnostic::error(
                 RULE,
                 file,
                 format!(
-                    "{alias}: acceptance authority {actor:?} is {kind:?}-kind; acceptance is \
+                    "{alias}: acceptance authority {actor:?} is {kind}-kind; acceptance is \
                      the resolution act, which only a human records here (§27.1, §27.2)",
-                    kind = assignment.actor_kind
+                    kind = format!("{:?}", assignment.actor_kind).to_lowercase()
                 ),
-            );
+            ));
         }
         if actor == self.performer() {
-            return Diagnostic::error(
+            return Ok(Diagnostic::error(
                 RULE,
                 file,
                 format!(
                     "{alias}: acceptance authority {actor:?} is the performer; nobody accepts \
                      their own delivery (§27.2)"
                 ),
-            );
+            ));
         }
         if !assignment.holds(ActorRole::Resolver) {
-            return Diagnostic::error(
+            return Ok(Diagnostic::error(
                 RULE,
                 file,
                 format!(
@@ -1066,15 +1084,15 @@ impl Repository {
                      docs/authority/roles.toml; acceptance is `war resolve`, and no other \
                      role grants it"
                 ),
-            );
+            ));
         }
-        Diagnostic::pass(
+        Ok(Diagnostic::pass(
             RULE,
             format!(
                 "{alias}: acceptance authority {actor:?} is a human holding resolver; \
                  acceptance is `war resolve` by that actor"
             ),
-        )
+        ))
     }
 
     /// One reference from a reference role: resolved, or UNKNOWN when this
