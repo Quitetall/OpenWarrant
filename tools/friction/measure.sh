@@ -15,6 +15,12 @@
 #            --runs times on the program the first setup built
 #   corpus   with --corpus <repo>: the read-only routine acts against an
 #            existing repository, which must be unchanged afterwards
+#   intake   (OW-WAR-0141) a GitHub issue, as a fixture `gh issue view --json`
+#            file, becomes a drafted Warrant and one queue row: `war plan
+#            --issue-file … --draft --apply` with a fixture drafter under
+#            `[intake] policy_approval`, then the queue read. --runs times on
+#            the program the first setup built, one issue per run. The
+#            drafter is a fixture, so a model's latency is not measured
 #
 # Three rules the record keeps, and the plants in
 # conformance/plants.d/50-friction.sh hold:
@@ -231,6 +237,67 @@ for run in $(seq 1 "$RUNS"); do
     done
 done
 
+# --- intake: an issue becomes a queue row (OW-WAR-0141) --------------------------
+#
+# The human files the ticket; that is the whole of their part, counted and not
+# timed. The tool's part is `war plan --issue-file` with a fixture drafter —
+# not a model, whose latency is waiting and is recorded as not_measured — and
+# the queue read that shows the one row the human sees next.
+INTAKE_DRAFTER="$TMP/intake-drafter.py"
+cat > "$INTAKE_DRAFTER" <<'DRAFTER'
+# A fixture drafter (OW-WAR-0141): answers every request with a complete
+# oh.war/draft-proposal/v2 whose intent quotes the request. No model.
+import json, sys
+req = json.load(sys.stdin)
+text = req["user_request"]
+quoted = "\n".join("> " + l for l in text.splitlines())
+title = text.splitlines()[0]
+ops = [
+    {"op": "create_atom", "role": "intent", "ordinal": 10, "path": "10-intent.md",
+     "body": "# Intent\n\n## Problem\n\n" + quoted + "\n\n## Desired Outcome\n\nWhat the issue asks.\n\n## Scope\n\nThe issue.\n\n## Non-goals\n\n- Anything else.\n\n## SAS and Roadmap Traceability\n\nNone; a fixture.\n"},
+    {"op": "create_atom", "role": "basis", "ordinal": 20, "path": "20-basis.md",
+     "body": "# Basis\n\n## Governing text\n\n- SAS §74.\n\n## Assumptions carried in\n\n- None.\n"},
+    {"op": "create_atom", "role": "work_order", "ordinal": 40, "path": "40-work-order.md",
+     "body": "# Work Order\n\n## Deliverables\n\n1. `CHANGELOG.md`\n\n## Frozen Surfaces\n\nNone.\n\n## Premade Instructions\n\n- None.\n\n## Autonomy and Escalation\n\nTier T1.\n\n## Rollback\n\nRevert.\n"},
+    {"op": "create_atom", "role": "milestones", "ordinal": 45, "path": "45-milestones.yaml",
+     "body": "schema: \"oh.war/milestones/v1\"\n\nmilestones:\n  - id: \"M1\"\n    title: \"Fixture\"\n    stage_refs: [\"STAGE-001\"]\n    obligation_refs: [\"OBL-001\"]\n\nstages:\n  - id: \"STAGE-001\"\n    title: \"Fixture\"\n    executor_kind: \"human\"\n    responsibility_tier: \"T1\"\n"},
+    {"op": "create_atom", "role": "assurance", "ordinal": 60, "path": "60-assurance.md",
+     "body": "# Assurance\n\n## Acceptance Obligations\n\n### OBL-001 — the fixture exists\n- **scope:** this directory.\n- **gate:** `gate://software.repo.war-check@1.0.0`\n- **evidence:** `war check` passes.\n\n## Gate Adequacy\n\nRequired at `basic`.\n\n**Adversarial question:** none; a fixture.\n\n- **outcome:** gap_accepted\n\n## Residual Risk\n\n- None.\n"},
+]
+print(json.dumps({"api_version": "oh.war/draft-proposal/v2",
+                  "proposed_identity": {"title": title, "profile": "delivery", "assurance": "basic"},
+                  "operations": ops, "risk_assessment": "fixture"}))
+DRAFTER
+INTAKE_OK=1
+python3 - "$P/openwarrant.toml" "$INTAKE_DRAFTER" <<'PY' || INTAKE_OK=0
+import json, re, sys
+p, drafter = sys.argv[1], sys.argv[2]
+t = open(p).read()
+argv = json.dumps(["python3", drafter])
+t, n = re.subn(r"(?m)^drafter_argv = .*$", "drafter_argv = " + argv, t, count=1)
+if n != 1:
+    raise SystemExit("no [plan] drafter_argv line to set")
+t = t.rstrip("\n") + "\n\n[intake]\npolicy_approval = true\n"
+open(p, "w").write(t)
+PY
+INTAKE_ROWS="$TMP/intake-rows.tsv"
+: > "$INTAKE_ROWS"
+for run in $(seq 1 "$RUNS"); do
+    issue="$TMP/intake-issue-$run.json"
+    printf '{"number": %d, "title": "Keep a changelog (friction run %d)", "body": "Every release lists what changed in CHANGELOG.md.", "url": "https://github.com/example/friction/issues/%d", "labels": []}\n' \
+        $((100 + run)) "$run" $((100 + run)) > "$issue"
+    step intake plan-issue "$run" 0 "$P" -- war plan --issue-file "$issue" --draft --apply
+    step intake queue "$run" 0 "$P" -- war sign --list
+    # The row the human sees next, for the Warrant this run drafted: counted.
+    drafted=$(grep -oE "$NS-WAR-[0-9]{4}: [0-9]+ operation" "$LOGS/intake.plan-issue.$run.log" | head -1 | cut -d: -f1 || true)
+    rows=""
+    if [[ -n "$drafted" ]]; then
+        rows=$(grep -E "^  $drafted " "$LOGS/intake.queue.$run.log" | sed 's/^ *//' | tr '\n' '\037' || true)
+    fi
+    printf '%s\t%s\t%s\n' "$run" "${drafted:-none}" "${rows%$'\037'}" >> "$INTAKE_ROWS"
+done
+[[ "$INTAKE_OK" == 1 ]] || { STEP_FAILED=1; printf 'measure.sh: could not configure the intake drafter in %s\n' "$P" >&2; }
+
 # --- the same acts, read-only, against an existing repository ------------------
 CORPUS_ALIAS=""
 CORPUS_CHANGED=0
@@ -296,6 +363,7 @@ restore_agent
 if [[ -n "$AGENT_PID" ]] && kill -0 "$AGENT_PID" 2>/dev/null; then AGENT_GONE=false; else AGENT_GONE=true; fi
 if [[ "$OLD_SOCK_SET" == 1 && "${SSH_AUTH_SOCK:-}" == "$OLD_SOCK" ]] || [[ "$OLD_SOCK_SET" == 0 && -z "${SSH_AUTH_SOCK+x}" ]]; then SOCK_RESTORED=true; else SOCK_RESTORED=false; fi
 
+export INTAKE_ROWS INTAKE_DRAFTER
 export STEPS RUNS WAR WAR_VERSION WAR_SHA PROFILE PROFILE_BY REPO_COMMIT REPO_DIRTY CPU LOAD_START LOAD_END \
     CORPUS CORPUS_ALIAS CORPUS_CHANGED AGENT_PID AGENT_GONE SOCK_RESTORED STEP_FAILED OUT
 
@@ -306,7 +374,7 @@ E = os.environ
 runs = int(E["RUNS"])
 
 rows = {}
-order = {"setup": [], "program": [], "corpus": []}
+order = {"setup": [], "program": [], "corpus": [], "intake": []}
 for line in open(E["STEPS"], encoding="utf-8"):
     section, sid, run, rc, ms, accept, argv = line.rstrip("\n").split("\t")
     key = (section, sid)
@@ -408,6 +476,42 @@ H_ROUTINE_SIGN = {
     "time": "not_measured",
 }
 
+# OW-WAR-0141: the intake rows. Filing the ticket is the human's only step
+# before the queue row, and it asks nothing of `war`: no file, no command, no
+# dialog, no request read. Its counts are the lengths of those lists.
+H_FILE_ISSUE = {
+    "id": "human-file-issue",
+    "kind": "human",
+    "what": "File the ticket: a title and a body in the tracker. The Jira comparison's only step",
+    "asks": {
+        "files_edited": [],
+        "commands": [],
+        "dialogs": [],
+        "reads": [],
+        "outside_war": ["write the issue's title and body in GitHub Issues"],
+    },
+    "simulated_by": "a fixture `gh issue view --json` file written by this script",
+    "time": "not_measured",
+}
+intake_rows = []
+for line in open(E["INTAKE_ROWS"], encoding="utf-8"):
+    _run, _alias, queue_rows = line.rstrip("\n").split("\t")
+    intake_rows.append([r for r in queue_rows.split("\x1f") if r])
+H_NEXT = {
+    "id": "human-next-contact",
+    "kind": "human",
+    "what": "The next contact: the drafted Warrant's authorization, one row in the approval queue",
+    "asks": {
+        "files_edited": [],
+        "commands": [],
+        "dialogs": [],
+        "reads": ["one queue row: the drafted Warrant's authorization request"],
+    },
+    "observed_queue_rows": intake_rows,
+    "simulated_by": "not simulated: the row is read from `war sign --list` and counted; answering it is the routine sign",
+    "time": "not_measured",
+}
+
 setup_steps = []
 for sid in order["setup"]:
     setup_steps.append(tool_step("setup", sid))
@@ -424,11 +528,14 @@ for sid in order["program"]:
     if sid == "authorize":
         program_steps.append(H_ROUTINE_SIGN)
 
+intake_steps = [H_FILE_ISSUE] + [tool_step("intake", sid) for sid in order["intake"]] + [H_NEXT]
+
 def humans(steps):
     return sum(1 for s in steps if s["kind"] == "human")
 
 setup_total = total("setup", order["setup"])
 program_total = total("program", order["program"])
+intake_total = total("intake", order["intake"])
 
 def summary(tot, steps, what):
     n = humans(steps)
@@ -479,10 +586,31 @@ record = {
         },
         "corpus": None,
     },
+    "intake": {
+        "acts": "OW-WAR-0141: an issue becomes a drafted Warrant and one queue row",
+        "from": "a GitHub issue, as `gh issue view --json` output in a file",
+        "to": "one row in the approval queue: the drafted Warrant's authorization, waiting for a human",
+        "where": "the program the first setup built, with `[intake] policy_approval = true`; one issue per run",
+        "drafter": {
+            "kind": "fixture",
+            "argv": ["python3", E["INTAKE_DRAFTER"]],
+            "model_latency": "not_measured",
+        },
+        "comparison": {
+            "prompt": "about 10 s to write it, then nothing (OW-WAR-0141 10-intent; not measured here)",
+            "jira_ticket": "about 1 min to write it, then nothing (OW-WAR-0141 10-intent; not measured here)",
+        },
+        "steps": intake_steps,
+        "sequence_total": intake_total,
+        "human_steps": humans(intake_steps),
+        "human_time": "not_measured",
+        "summary": summary(intake_total, intake_steps, "one intake sequence"),
+    },
     "not_measured": [
         "every human step: its time is not_measured, never zero (docs/FRICTION.md gives the manual protocol)",
         "any OS but the one named under machine",
         "authoring a Warrant's atoms: the routine Warrants keep `war new`'s TODO atoms",
+        "a drafter model's latency: the intake drafter is a fixture",
     ],
     "ssh_agent": {
         "pid": int(E["AGENT_PID"]) if E["AGENT_PID"] else None,
@@ -505,7 +633,7 @@ if E["CORPUS"]:
     }
 
 failed = []
-for sec, steps in (("setup", setup_steps), ("program", program_steps),
+for sec, steps in (("setup", setup_steps), ("program", program_steps), ("intake", intake_steps),
                    ("corpus", (record["routine"]["corpus"] or {}).get("steps", []))):
     for s in steps:
         if s["kind"] == "tool" and s["median_ms"] == UNKNOWN:
@@ -518,6 +646,7 @@ with open(E["OUT"], "w", encoding="utf-8") as f:
     f.write("\n")
 print(record["setup"]["summary"])
 print(record["routine"]["program"]["summary"])
+print(record["intake"]["summary"])
 if failed:
     print("unknown: " + ", ".join(failed))
 PY

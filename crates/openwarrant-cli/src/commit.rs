@@ -12,6 +12,14 @@
 //! unless asked, and a human may always pass their own `-m`. What the tool
 //! will not do is invent a subject for changes it cannot classify, because a
 //! commit message that describes the wrong change is worse than none.
+//!
+//! A Warrant drafted from a GitHub issue (OW-WAR-0141) carries
+//! `plan/intake.json`. A commit changing that Warrant's records ends with the
+//! tracker's reference, once per issue: `Closes #N` when the Warrant's
+//! `resolution.toml` is among the changes, `Refs #N` otherwise. GitHub closes
+//! the issue when the commit reaches the default branch; `war` makes no
+//! network call and writes nothing to the tracker (U-003). Only a resolution
+//! closes: an authorization, a delivery or a question only refers.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
@@ -199,7 +207,52 @@ pub fn message(repo: &Repository) -> Result<String, RepoError> {
              the records and confirmed nothing."
         );
     }
+    let refs = tracker_refs(repo, &paths, &warrants);
+    if !refs.is_empty() {
+        let _ = writeln!(s, "\n{}", refs.join("\n"));
+    }
     Ok(s)
+}
+
+/// The tracker references for the issue-linked Warrants among `warrants`:
+/// one line per issue, `Closes #N` when that Warrant's resolution changed,
+/// `Refs #N` otherwise. A Warrant with no intake record contributes none,
+/// and neither does one whose record is unreadable or names another tracker.
+fn tracker_refs(repo: &Repository, paths: &[String], warrants: &BTreeSet<String>) -> Vec<String> {
+    let mut issues: BTreeMap<u64, bool> = BTreeMap::new();
+    for alias in warrants {
+        let record = repo
+            .warrants_dir()
+            .join(alias)
+            .join("plan")
+            .join(crate::plan::intake::RECORD_FILE);
+        let Ok(text) = std::fs::read_to_string(&record) else {
+            continue;
+        };
+        let Ok(rec) = serde_json::from_str::<crate::plan::intake::IntakeRecord>(&text) else {
+            continue;
+        };
+        if rec.tracker != crate::plan::intake::TRACKER_GITHUB {
+            continue;
+        }
+        let Ok(number) = rec.id.parse::<u64>() else {
+            continue;
+        };
+        let resolved = paths.iter().any(|p| {
+            warrant_of(p).as_deref() == Some(alias.as_str()) && classify(p) == Kind::Resolution
+        });
+        *issues.entry(number).or_default() |= resolved;
+    }
+    issues
+        .into_iter()
+        .map(|(n, closes)| {
+            if closes {
+                format!("Closes #{n}")
+            } else {
+                format!("Refs #{n}")
+            }
+        })
+        .collect()
 }
 
 fn subject(
