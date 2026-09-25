@@ -1,0 +1,561 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:openwarrant:schema:packet:1.0.0-rc.2",
+  "title": "OpenWarrant RC.2 task packet - candidate structural schema",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "oh.war/context-packet/1.0.0-rc.2"
+    },
+    "compiler": {
+      "type": "string"
+    },
+    "basis_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "task": {
+      "type": "object",
+      "properties": {
+        "source_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "role": {
+          "enum": [
+            "preparation",
+            "implementation",
+            "verification",
+            "human-review"
+          ]
+        },
+        "stage": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_digest",
+        "role"
+      ],
+      "additionalProperties": false
+    },
+    "brief": {
+      "type": "object",
+      "properties": {
+        "outcome": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/bound"
+          }
+        },
+        "scope": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/bound"
+          }
+        },
+        "context": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/bound"
+          }
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/bound"
+          }
+        },
+        "outputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/bound"
+          }
+        },
+        "stop": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/bound"
+          }
+        }
+      },
+      "required": [
+        "outcome",
+        "scope",
+        "context",
+        "constraints",
+        "outputs",
+        "stop"
+      ],
+      "additionalProperties": false
+    },
+    "binding_context": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ref": {
+            "$ref": "#/$defs/bound"
+          },
+          "kind": {
+            "enum": [
+              "binding",
+              "background",
+              "opaque"
+            ]
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/reason"
+            }
+          }
+        },
+        "required": [
+          "ref",
+          "kind",
+          "required",
+          "reasons"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "reference_catalog": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/catalog"
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/source"
+      }
+    },
+    "selection_inputs": {
+      "type": "object",
+      "properties": {
+        "stage": {
+          "type": "string"
+        },
+        "subsystems": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "origins": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/diagnostic"
+      }
+    },
+    "readiness": {
+      "$ref": "#/$defs/readiness"
+    },
+    "coverage": {
+      "const": "declared-inputs-and-dependencies"
+    },
+    "accounting": {
+      "type": "object",
+      "properties": {
+        "entry_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "estimated_tokens": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "method": {
+          "const": "utf8-bytes-div4-ceil"
+        },
+        "budget": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "package_payload_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "entry_bytes",
+        "estimated_tokens",
+        "method",
+        "budget",
+        "package_payload_bytes"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema",
+    "compiler",
+    "basis_digest",
+    "task",
+    "brief",
+    "binding_context",
+    "reference_catalog",
+    "sources",
+    "selection_inputs",
+    "diagnostics",
+    "readiness",
+    "coverage",
+    "accounting"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "bound": {
+      "type": "object",
+      "properties": {
+        "source_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "start": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "end": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "source_digest",
+        "unit",
+        "start",
+        "end"
+      ],
+      "additionalProperties": false
+    },
+    "reason": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "source_path": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "source_path",
+        "id"
+      ],
+      "additionalProperties": false
+    },
+    "readiness": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "enum": [
+            "ready",
+            "blocked",
+            "not_evaluated"
+          ]
+        },
+        "basis": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "value",
+        "basis",
+        "limitations"
+      ],
+      "additionalProperties": false
+    },
+    "diagnostic": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "error",
+            "warning",
+            "info"
+          ]
+        },
+        "message": {
+          "type": "string"
+        },
+        "source_path": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "pointer": {
+          "type": "string"
+        },
+        "details": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "code",
+        "severity",
+        "message",
+        "details"
+      ],
+      "additionalProperties": false
+    },
+    "source": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "source_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "byte_length": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "holder": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "enum": [
+                "local",
+                "git",
+                "external",
+                "example"
+              ]
+            },
+            "locator": {
+              "type": "string"
+            },
+            "commit": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "locator"
+          ],
+          "additionalProperties": false
+        },
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "trust": {
+              "type": "string"
+            },
+            "classification": {
+              "type": "string"
+            },
+            "taints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "authority": {
+              "enum": [
+                "unestablished",
+                "established"
+              ]
+            },
+            "basis_refs": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "trust",
+            "classification",
+            "taints",
+            "authority",
+            "basis_refs"
+          ],
+          "additionalProperties": false
+        },
+        "document": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "schema": {
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "warrant",
+                "sas",
+                "adr",
+                "context"
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "revision",
+            "schema",
+            "kind"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "path",
+        "source_digest",
+        "byte_length",
+        "holder",
+        "metadata"
+      ],
+      "additionalProperties": false
+    },
+    "condition": {
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "stage": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "subsystem": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "path": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "catalog": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "target": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/bound"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "condition": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/condition"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "result": {
+          "enum": [
+            "TRUE",
+            "FALSE",
+            "UNKNOWN"
+          ]
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "supplied": {
+          "type": "boolean"
+        },
+        "selected": {
+          "type": "boolean"
+        },
+        "required": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "source",
+        "id",
+        "target",
+        "condition",
+        "result",
+        "reasons",
+        "supplied",
+        "selected",
+        "required"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
