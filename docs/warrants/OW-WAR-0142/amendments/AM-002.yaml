@@ -1,0 +1,19 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-002"
+band: "manual_revision"
+reason: "Building M2-M4 against the recommended answers (Q-001 A, Q-002 as drafted, Q-003 refuse) reached eleven files outside the signed set, each the smallest change a declared item needs: (1) authority_check.rs, because every reader of an authorization asks it whether a human signed, and a covered record is signed through its class, so the two class acts (Act::AcceptStanding, Act::RevokeStanding) and the covered verdict belong there; (2) attest.rs, because a class act's attestation belongs to no Warrant and `attest --all --verify` must read it; (3) resolution_cmd.rs, because the policy service's resolution is ingested there and item 11's refusal (resolve.standing-needs-human) must stop it; (4) next.rs and console.rs, whose exhaustive matches on Pending must name item 9's two new acts; (5) mcp/tools.rs and mcp/mod.rs, because the Premade Instructions say `war mcp --describe` lists standing apply and show and refuses standing propose --ingest; (6) schemas.rs, schemas/typescript/standing-authorization.ts and schemas/typescript/manifest.json, because item 5's schema and pack are generated from the types and drift-checked with their TypeScript projection; (7) docs/sas/revisions/1.2.0.toml, the record item 2's `war sas propose 1.2.0` writes. Wording drafted by the performer `claude`."
+governing_adr_or_policy: "sas://WAR-SAS-37.5"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. The deliverable set gains D-017 to D-027 and the work order names them as items 15 to 21; the contract digest moves and revision 3 is authorized against the amended contract. Nothing already delivered changes meaning."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-25"
+
+semantic_diff:
+  - element: "deliverables"
+    before: "D-001..D-016."
+    after: "Also D-017 authority_check.rs, D-018 attest.rs, D-019 resolution_cmd.rs, D-020 next.rs, D-021 console.rs, D-022 mcp/tools.rs, D-023 mcp/mod.rs, D-024 schemas.rs, D-025 schemas/typescript/standing-authorization.ts, D-026 schemas/typescript/manifest.json, D-027 docs/sas/revisions/1.2.0.toml."
+
+affected_stages: []
+affected_milestones: []

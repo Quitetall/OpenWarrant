@@ -82,6 +82,29 @@ M3, the human acts and ownership (A only):
 13. `docs/SIGNING.md`: *Routine work under a standing authorization*.
 14. `CONTEXT.md`: the term *standing authorization*.
 
+Added by AM-002, each the smallest change an item above needs:
+
+15. `crates/openwarrant-cli/src/authority_check.rs`: the class acts
+    `Act::AcceptStanding` and `Act::RevokeStanding`, and, for an
+    authorization no response signs, the covered verdict, re-derived on every
+    call and never cached.
+16. `crates/openwarrant-cli/src/attest.rs`: where a class act's attestation
+    lives, and `war attest --all --verify` reading it.
+17. `crates/openwarrant-cli/src/resolution_cmd.rs`: the ingest refuses
+    `resolve.standing-needs-human` before it judges anything else.
+18. `crates/openwarrant-cli/src/next.rs` and
+    `crates/openwarrant-cli/src/console.rs`: item 9's two acts in their
+    matches on `Pending`.
+19. `crates/openwarrant-cli/src/mcp/tools.rs` and
+    `crates/openwarrant-cli/src/mcp/mod.rs`: `war_standing_apply`,
+    `war_standing_show`, and the refused names.
+20. `crates/openwarrant-cli/src/schemas.rs`,
+    `schemas/typescript/standing-authorization.ts` and
+    `schemas/typescript/manifest.json`: item 5's record in the generated
+    pack and its projection.
+21. `docs/sas/revisions/1.2.0.toml`: what item 2's `war sas propose 1.2.0`
+    writes.
+
 ## Frozen Surfaces
 
 - `oh.war/authorization/v1`: a covered record uses its existing fields.

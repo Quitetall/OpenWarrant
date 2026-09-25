@@ -36543,6 +36543,29 @@ M3, the human acts and ownership (A only):
 13. `docs/SIGNING.md`: *Routine work under a standing authorization*.
 14. `CONTEXT.md`: the term *standing authorization*.
 
+Added by AM-002, each the smallest change an item above needs:
+
+15. `crates/openwarrant-cli/src/authority_check.rs`: the class acts
+    `Act::AcceptStanding` and `Act::RevokeStanding`, and, for an
+    authorization no response signs, the covered verdict, re-derived on every
+    call and never cached.
+16. `crates/openwarrant-cli/src/attest.rs`: where a class act's attestation
+    lives, and `war attest --all --verify` reading it.
+17. `crates/openwarrant-cli/src/resolution_cmd.rs`: the ingest refuses
+    `resolve.standing-needs-human` before it judges anything else.
+18. `crates/openwarrant-cli/src/next.rs` and
+    `crates/openwarrant-cli/src/console.rs`: item 9's two acts in their
+    matches on `Pending`.
+19. `crates/openwarrant-cli/src/mcp/tools.rs` and
+    `crates/openwarrant-cli/src/mcp/mod.rs`: `war_standing_apply`,
+    `war_standing_show`, and the refused names.
+20. `crates/openwarrant-cli/src/schemas.rs`,
+    `schemas/typescript/standing-authorization.ts` and
+    `schemas/typescript/manifest.json`: item 5's record in the generated
+    pack and its projection.
+21. `docs/sas/revisions/1.2.0.toml`: what item 2's `war sas propose 1.2.0`
+    writes.
+
 ## Frozen Surfaces
 
 - `oh.war/authorization/v1`: a covered record uses its existing fields.
@@ -36861,6 +36884,17 @@ once, at acceptance, after the blind verifier.
 | D-014 | the plants | `conformance/plants.d/69-standing.sh` | not_content_addressed |
 | D-015 | docs/SIGNING.md: routine work under a standing authorization | `docs/SIGNING.md` | not_content_addressed |
 | D-016 | CONTEXT.md: the term | `CONTEXT.md` | not_content_addressed |
+| D-017 | cli: the class acts and the covered verdict | `crates/openwarrant-cli/src/authority_check.rs` | not_content_addressed |
+| D-018 | cli: class-act attestations | `crates/openwarrant-cli/src/attest.rs` | not_content_addressed |
+| D-019 | cli: a covered Warrant's policy-service resolution refused at ingest | `crates/openwarrant-cli/src/resolution_cmd.rs` | not_content_addressed |
+| D-020 | cli: the class acts in war next | `crates/openwarrant-cli/src/next.rs` | not_content_addressed |
+| D-021 | cli: the class acts in the console | `crates/openwarrant-cli/src/console.rs` | not_content_addressed |
+| D-022 | cli: war_standing_apply and war_standing_show | `crates/openwarrant-cli/src/mcp/tools.rs` | not_content_addressed |
+| D-023 | cli: the refused MCP names | `crates/openwarrant-cli/src/mcp/mod.rs` | not_content_addressed |
+| D-024 | cli: the pack's new member | `crates/openwarrant-cli/src/schemas.rs` | not_content_addressed |
+| D-025 | schema: the TypeScript projection of the class | `schemas/typescript/standing-authorization.ts` | not_content_addressed |
+| D-026 | schema: the TypeScript projection manifest | `schemas/typescript/manifest.json` | not_content_addressed |
+| D-027 | SAS 1.2.0: the proposed revision record (A only) | `docs/sas/revisions/1.2.0.toml` | not_content_addressed |
 
 ### OW-WAR-0143 — war knows when it is old: build identity, a notice when a newer release exists, and an update that works from every version
 
