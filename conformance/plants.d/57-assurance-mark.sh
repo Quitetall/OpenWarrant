@@ -74,8 +74,8 @@ fi
 # Refusal: the same file with a status no ADR may hold is malformed, by name.
 sed -i 's/^status: proposed$/status: decided-by-its-author/' "$PLANT_ROOT/docs/adr/atoms/OW-ADR-0025-assurance-mark.md"
 AM_CHECK=$("$WAR" --root "$PLANT_ROOT" check 2>&1)
-if grep -q 'adr.malformed' <<<"$AM_CHECK" && grep -q 'OW-ADR-0025' <<<"$(grep 'adr.malformed' <<<"$AM_CHECK")"; then
-    am_ok "a mangled mark ADR is refused" "adr.malformed names OW-ADR-0025"
+if grep -q 'adr.malformed' <<<"$AM_CHECK" && grep -q 'OW-ADR-0025' <<<"$(grep -A1 'adr.malformed' <<<"$AM_CHECK")"; then
+    am_ok "a mangled mark ADR is refused" "adr.malformed, at OW-ADR-0025"
 else
     am_fail "a mangled mark ADR is refused" "$(grep -E 'adr\.' <<<"$AM_CHECK" | head -2)"
 fi
