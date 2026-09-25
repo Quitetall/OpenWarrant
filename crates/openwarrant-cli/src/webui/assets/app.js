@@ -36,6 +36,10 @@
     return n;
   };
   const code = (s) => el("code", { text: s });
+  // Tickets leads the navigation. The link is added here rather than in
+  // index.html so the loopback page's bytes stay those OW-WAR-0139 OBL-005
+  // pins; the page is the same either way.
+  $("nav").prepend(el("a", { href: "#p=tickets", "data-page": "tickets", text: "Tickets" }));
   const api = async (path, init) => {
     const r = await fetch("/api/" + path, {
       ...init,
