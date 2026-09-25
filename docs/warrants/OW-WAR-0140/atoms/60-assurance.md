@@ -60,16 +60,9 @@ classification: internal
   - no new `ActorRole` variant exists (source check);
   - a `kf://` invoice reference reports UNKNOWN, not PASS and not ERROR.
 
-### OBL-005 — the Phase 10 Exit, bounded by U-001
-- **scope:** `roadmap://OW-PHASE-10/exit`, over the fixture only.
-- **gate:** `gate://software.repo.war-check@1.0.0`
-- **evidence:**
-  - OBL-003's result, and the fixture resolves through the existing act;
-  - the legal, finance and QMS decisions §98 requires are cited by
-    reference.
-
-  Without those citations this obligation is not established, whatever
-  the fixture shows. Under U-001 option B it moves to a later Warrant.
+(AM-003) OBL-005, the Phase 10 Exit, left this Warrant under U-001 option
+B. It moves to the later Warrant that cites the legal, finance and QMS
+decisions §98 requires; its text is kept in AM-003's semantic diff.
 
 ## Gate Adequacy
 

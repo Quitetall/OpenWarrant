@@ -320,7 +320,7 @@ Source: the Warrants under the configured warrants path.
 - **OW-WAR-0137** · roadmap: roadmap://OW-PHASE-9/teams
 - **OW-WAR-0138** · roadmap: roadmap://OW-PHASE-9/authentication
 - **OW-WAR-0139** · roadmap: roadmap://OW-PHASE-9/web-lan
-- **OW-WAR-0140** · roadmap: roadmap://OW-PHASE-10/contractor-profile, roadmap://OW-PHASE-10/exit
+- **OW-WAR-0140** · roadmap: roadmap://OW-PHASE-10/contractor-profile
 - **OW-WAR-0141** · roadmap: roadmap://OW-PHASE-2/intake
 - **OW-WAR-0142** · roadmap: roadmap://OW-PHASE-9/standing-authorization
 - **OW-WAR-0143** · roadmap: roadmap://OW-PHASE-9/self-update

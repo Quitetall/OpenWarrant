@@ -71,7 +71,7 @@ target_ref = "docs/EXAMPLES/04-contractor.md"
 required = true
 content_addressed = false
 provenance_required = false
-obligation_refs = ["OBL-005"]
+obligation_refs = ["OBL-002", "OBL-004"]
 
 [[deliverable]]
 id = "D-008"
@@ -88,6 +88,36 @@ id = "D-009"
 title = "the plants"
 kind = "file"
 target_ref = "conformance/plants.d/56-contractor.sh"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002", "OBL-003", "OBL-004"]
+
+[[deliverable]]
+id = "D-010"
+title = "the repository loads profiles/ into the registry (AM-003)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/repo.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[[deliverable]]
+id = "D-011"
+title = "war new --profile resolves through the registry (AM-003)"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/lib.rs"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-002"]
+
+[[deliverable]]
+id = "D-012"
+title = "the non-binding contractor fixture (AM-003)"
+kind = "file"
+target_ref = "conformance/fixtures/contractor/work-order.sh"
 required = true
 content_addressed = false
 provenance_required = false

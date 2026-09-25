@@ -23,9 +23,6 @@ contribution = "partial"
 [[roadmap]]
 ref = "roadmap://OW-PHASE-10/contractor-profile"
 
-[[roadmap]]
-ref = "roadmap://OW-PHASE-10/exit"
-
 [[atoms]]
 ordinal = 10
 role = "intent"
