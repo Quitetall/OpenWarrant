@@ -201,17 +201,22 @@ enum SasCommand {
 /// `war gate <action>` (OW-WAR-0136).
 #[derive(clap::Subcommand, Debug)]
 enum GateAction {
-    /// The request to invalidate one Gate Definition version (§45, RQ-057):
-    /// its definition digest, the grounds, and every resolution the sweep
-    /// would dispute, transitively, by alias. Writes nothing: the ingest
-    /// waits on OW-WAR-0136 Q-001 (who may invalidate, and whether it is a
-    /// signed act).
+    /// Invalidate one Gate Definition version (§45, RQ-057). With
+    /// `--grounds`: the request — its definition digest, the grounds, every
+    /// resolution the sweep would dispute, transitively, by alias, and who may
+    /// sign. Writes nothing. With `--response`: ingest a signed invalidation
+    /// (`war sign <gate>@<version> --grounds … --ssh-sign` does both halves),
+    /// writing the record and one dispute per reached resolution. An agent,
+    /// the performer, and an unsigned response are refused.
     Invalidate {
         /// `<gate_id>@<version>`.
         gate: String,
         /// Why the definition is invalid (§56.4 grounds).
-        #[arg(long)]
-        grounds: String,
+        #[arg(long, required_unless_present = "response")]
+        grounds: Option<String>,
+        /// A signed `oh.war/invalidation-response/v1` to ingest.
+        #[arg(long, conflicts_with = "grounds")]
+        response: Option<Utf8PathBuf>,
     },
 }
 
@@ -806,7 +811,9 @@ enum Command {
     /// once, and on `y` runs the same ingest a hand-written response would.
     /// There is no `--yes`.
     Sign {
-        /// A Warrant alias, or a SAS version. Omit with --list or --all.
+        /// A Warrant alias, a SAS version, `<alias>/<D-id>` (a correction),
+        /// `roadmap`, or `<gate_id>@<version>` (a gate invalidation, with
+        /// --grounds). Omit with --list or --all.
         target: Option<String>,
         /// Show what awaits a signature and exit. Needs no terminal.
         #[arg(long)]
@@ -820,6 +827,11 @@ enum Command {
         /// Your own words, appended to the drafted meaning.
         #[arg(long)]
         meaning: Option<String>,
+        /// For a gate invalidation (`<gate_id>@<version>`): why the definition
+        /// is invalid (§56.4). Your words, signed as written; every dispute
+        /// repeats them.
+        #[arg(long, conflicts_with = "meaning")]
+        grounds: Option<String>,
         /// Resolution outcome when §38.6 forbids `satisfied`:
         /// not_satisfied, cancelled, blocked.
         #[arg(long)]
@@ -1392,10 +1404,24 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         }
 
         Command::Gate {
-            action: Some(GateAction::Invalidate { gate, grounds }),
+            action:
+                Some(GateAction::Invalidate {
+                    gate,
+                    response: Some(path),
+                    ..
+                }),
             ..
         } => {
             let repository = open_repo()?;
+            let report = invalidation::ingest(&repository, &gate, &path)?;
+            Ok(output::finish(mode, "gate.invalidate", &report, None))
+        }
+        Command::Gate {
+            action: Some(GateAction::Invalidate { gate, grounds, .. }),
+            ..
+        } => {
+            let repository = open_repo()?;
+            let grounds = grounds.unwrap_or_default();
             let (report, request) = invalidation::request(&repository, &gate, &grounds)?;
             match request {
                 Some(req) => {
@@ -2803,6 +2829,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             all,
             actor,
             meaning,
+            grounds,
             outcome,
             adr,
             independence,
@@ -2874,7 +2901,9 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 .transpose()?;
             let opts = sign::Options {
                 actor,
-                meaning,
+                // An invalidation's grounds travel as its meaning: they are
+                // the signer's words, as a correction's reason is.
+                meaning: grounds.or(meaning),
                 outcome,
                 adr_ref: adr,
                 independence,

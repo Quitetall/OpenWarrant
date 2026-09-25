@@ -109,9 +109,10 @@ Every command takes `--json` and answers with one `oh.war/report/v1` envelope.
 `war next --json` names every pending act with its actor; no action it hands an
 agent is a signature.
 
-Four acts are a human's and only a human's — authorize, resolve, accept a SAS
-revision, correct a resolved Warrant's delivered file. You emit the request; the
-tool refuses your signature by kind (§27.2), whatever the response file says.
+Five acts are a human's and only a human's — authorize, resolve, accept a SAS
+revision, correct a resolved Warrant's delivered file, invalidate a Gate
+Definition version. You emit the request; the tool refuses your signature by
+kind (§27.2), whatever the response file says.
 
 ### Drafting — both paths reach the same gauntlet
 

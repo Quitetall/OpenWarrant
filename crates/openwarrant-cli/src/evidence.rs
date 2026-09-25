@@ -54,6 +54,18 @@
 //! are warnings, because the file is not wrong; requirement 5 is what they
 //! leave unmet. A RESOLVED Warrant is not re-evaluated: its receipts are
 //! history, and its resolution keeps binding them (RQ-059).
+//!
+//! # And the gate it ran (OW-WAR-0136)
+//!
+//! 6. the Gate Definition version the run names has not been invalidated by
+//!    a signed invalidation (§45, RQ-057). A receipt of an invalidated gate
+//!    is a true record of a run that happened; it is not admissible for
+//!    requirement 5 on a Warrant not yet resolved, and `war check` says so
+//!    as `evidence.gate-invalidated`, naming the invalidation. A record
+//!    nobody signed does not count, and is reported
+//!    (`evidence.invalidation-not-counted`) rather than obeyed. A RESOLVED
+//!    Warrant's receipts are history here too: the invalidation disputes its
+//!    resolution instead (`resolution.disputed`).
 
 use camino::{Utf8Path, Utf8PathBuf};
 use openwarrant_compiler::canonical::sha256_digest;
@@ -76,6 +88,20 @@ pub struct GateEvidence {
     /// Whether the source the receipt names still holds, judged when the
     /// record was loaded (OW-WAR-0133).
     pub reuse: Reuse,
+    /// Whether the run's gate is invalidated, judged when the record was
+    /// loaded (OW-WAR-0136). Always `None` for a resolved Warrant.
+    pub invalidation: Option<crate::invalidation::GateInvalidation>,
+}
+
+impl GateEvidence {
+    /// Why this run's gate no longer counts, when a signed invalidation says so.
+    #[must_use]
+    pub fn invalidated(&self) -> Option<&str> {
+        match &self.invalidation {
+            Some(crate::invalidation::GateInvalidation::Counted(why)) => Some(why),
+            _ => None,
+        }
+    }
 }
 
 /// Whether a receipt's source subjects still hold (OW-WAR-0133).
@@ -182,6 +208,11 @@ pub fn standing(evidence: &GateEvidence, contract_digest: Option<&str>) -> Stand
                 receipt.subject_digests.join(", ")
             }
         ));
+    }
+    // A true record bound to this contract, of a gate a human has since
+    // invalidated: a record, not evidence (OW-WAR-0136).
+    if let Some(why) = evidence.invalidated() {
+        return Standing::Stale(why.to_owned());
     }
     match &evidence.reuse {
         Reuse::Historical | Reuse::Holds(_) => Standing::Admissible,
@@ -337,6 +368,11 @@ pub fn load(repo: &Repository, warrant_dir: &Utf8Path) -> Result<Vec<GateEvidenc
         .collect();
     paths.sort();
     let resolved = warrant_dir.join("resolution.toml").is_file();
+    // One answer per gate per load: a Warrant's runs of one gate share it.
+    let mut invalidations: std::collections::BTreeMap<
+        String,
+        Option<crate::invalidation::GateInvalidation>,
+    > = std::collections::BTreeMap::new();
 
     let mut out = Vec::with_capacity(paths.len());
     for run_path in paths {
@@ -373,12 +409,21 @@ pub fn load(repo: &Repository, warrant_dir: &Utf8Path) -> Result<Vec<GateEvidenc
             Some(r) => reuse_of(repo, &run.gate, r),
             None => Reuse::Unknown("no receipt".to_owned()),
         };
+        let invalidation = if resolved {
+            None
+        } else {
+            invalidations
+                .entry(run.gate.clone())
+                .or_insert_with(|| crate::invalidation::gate_invalidation(repo, &run.gate))
+                .clone()
+        };
         out.push(GateEvidence {
             run,
             run_path,
             receipt,
             receipt_path,
             reuse,
+            invalidation,
         });
     }
     Ok(out)
@@ -560,7 +605,21 @@ pub fn check(
     for e in &evidence {
         let path = repo.relative(&e.run_path);
         let gate = &e.run.gate;
+        if let Some(crate::invalidation::GateInvalidation::NotCounted(why)) = &e.invalidation {
+            report.push(Diagnostic::warn(
+                "evidence.invalidation-not-counted",
+                path.clone(),
+                format!("{alias}: {gate} · {why}"),
+            ));
+        }
         match standing(e, contract_digest) {
+            Standing::Stale(why) if e.invalidated() == Some(why.as_str()) => {
+                report.push(Diagnostic::warn(
+                    "evidence.gate-invalidated",
+                    path,
+                    format!("{alias}: {gate} · {why}"),
+                ));
+            }
             Standing::Admissible => report.push(Diagnostic::pass(
                 "evidence.admissible",
                 format!(
@@ -648,7 +707,29 @@ mod tests {
             receipt,
             receipt_path: "x.receipt.json".into(),
             reuse: Reuse::Holds("tree:t".into()),
+            invalidation: None,
         }
+    }
+
+    #[test]
+    fn a_receipt_of_an_invalidated_gate_is_a_record_not_evidence() {
+        let mut e = evidence(
+            run("pass"),
+            Some(receipt(Verdict::Pass, &contract_subject(C))),
+        );
+        e.invalidation = Some(crate::invalidation::GateInvalidation::NotCounted(
+            "unsigned".into(),
+        ));
+        assert!(
+            admissibility(&e, Some(C)).is_ok(),
+            "an invalidation nobody signed never counts"
+        );
+        e.invalidation = Some(crate::invalidation::GateInvalidation::Counted(
+            "g@1.0.0 was invalidated by S".into(),
+        ));
+        let why = admissibility(&e, Some(C)).unwrap_err();
+        assert!(why.contains("invalidated by S"), "{why}");
+        assert!(admissible_runs(&[e], Some(C)).is_empty());
     }
 
     const C: &str = "sha256:0123";

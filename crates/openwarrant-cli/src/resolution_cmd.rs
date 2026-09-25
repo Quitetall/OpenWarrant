@@ -700,6 +700,7 @@ pub fn check(
     current_contract_digest: Option<&str>,
     report: &mut Report,
 ) {
+    check_disputes(repo, warrant_dir, alias, report);
     let path = warrant_dir.join("resolution.toml");
     match repo.load_resolution(warrant_dir) {
         Ok(None) => {}
@@ -739,5 +740,141 @@ pub fn check(
             repo.relative(&path),
             format!("{alias}: {e} — an unreadable resolution is not an absent one"),
         )),
+    }
+}
+
+/// OW-WAR-0136 — standing read from disputes, never written into the record.
+///
+/// A resolution with an open dispute is `resolution.disputed`: the record is
+/// true history and is not relied on while the dispute stands. A dispute
+/// counts only when the invalidation that wrote it counts — its response
+/// signed by a human holding `resolver` who is not the performer
+/// ([`crate::invalidation::counted_record`]) — and lists this file at the
+/// digest it has now. Anything else is an error on the dispute, and the
+/// resolution's standing is what the resolution says: an unsigned
+/// invalidation never counts.
+pub fn check_disputes(repo: &Repository, warrant_dir: &Utf8Path, alias: &str, report: &mut Report) {
+    let disputes = crate::invalidation::load_disputes(warrant_dir);
+    if disputes.is_empty() {
+        return;
+    }
+    let resolution = repo.load_resolution(warrant_dir).ok().flatten();
+    for (path, parsed) in disputes {
+        let rel = repo.relative(&path);
+        let record = match parsed {
+            Ok(r) => r,
+            Err(e) => {
+                report.push(Diagnostic::error(
+                    "resolution.dispute-malformed",
+                    rel,
+                    format!("{alias}: {e} — an unreadable dispute is not an absent one"),
+                ));
+                continue;
+            }
+        };
+        if record.schema != crate::invalidation::DISPUTE_SCHEMA
+            || record.warrant != alias
+            || record.status != crate::invalidation::OPEN
+        {
+            report.push(Diagnostic::error(
+                "resolution.dispute-malformed",
+                rel,
+                format!(
+                    "{alias}: a dispute is {} of this Warrant with status {:?}; this one is {:?} \
+                     of {:?} with status {:?}. Closing a dispute is a later act, never an edit",
+                    crate::invalidation::DISPUTE_SCHEMA,
+                    crate::invalidation::OPEN,
+                    record.schema,
+                    record.warrant,
+                    record.status
+                ),
+            ));
+            continue;
+        }
+        if let Err(e) = record.dispute.validate() {
+            report.push(Diagnostic::error(
+                "resolution.dispute-malformed",
+                rel,
+                format!("{alias}: §56.4 — {e}"),
+            ));
+            continue;
+        }
+        let Some(resolution) = &resolution else {
+            report.push(Diagnostic::error(
+                "resolution.dispute-orphan",
+                rel,
+                format!("{alias}: disputes a resolution, and {alias} has none"),
+            ));
+            continue;
+        };
+        if record.dispute.challenged_resolution != resolution.resolution.id {
+            report.push(Diagnostic::error(
+                "resolution.dispute-orphan",
+                rel,
+                format!(
+                    "{alias}: disputes {} and the resolution on record is {}",
+                    record.dispute.challenged_resolution, resolution.resolution.id
+                ),
+            ));
+            continue;
+        }
+        let invalidation = match crate::invalidation::counted_record(repo, &record.gate) {
+            None => Err(format!(
+                "it names {} and no invalidation of {} is recorded",
+                record.invalidation, record.gate
+            )),
+            Some(r) => r,
+        };
+        let invalidation = match invalidation {
+            Ok(i) => i,
+            Err(why) => {
+                report.push(Diagnostic::error(
+                    "resolution.dispute-unsigned",
+                    rel,
+                    format!(
+                        "{alias}: this dispute does not count, and the resolution stands as \
+                         recorded — {why}"
+                    ),
+                ));
+                continue;
+            }
+        };
+        let now = std::fs::read(&path)
+            .map(|b| format!("sha256:{}", openwarrant_compiler::sha256_hex(&b)))
+            .unwrap_or_default();
+        match invalidation.disputes.iter().find(|d| d.path == rel) {
+            None => report.push(Diagnostic::error(
+                "resolution.dispute-unlisted",
+                rel,
+                format!(
+                    "{alias}: {} does not list this dispute; a dispute the signed invalidation \
+                     did not write does not count",
+                    record.invalidation
+                ),
+            )),
+            Some(d) if d.sha256 != now || d.warrant != alias => {
+                report.push(Diagnostic::error(
+                    "resolution.dispute-edited",
+                    rel,
+                    format!(
+                        "{alias}: {} recorded this dispute at {} and it is now {now} — edited \
+                         after it was written",
+                        record.invalidation, d.sha256
+                    ),
+                ));
+            }
+            Some(_) => report.push(Diagnostic::warn(
+                "resolution.disputed",
+                rel,
+                format!(
+                    "{alias}: resolution {} is disputed ({}, open): {}. Reliance: {} \
+                     resolution.toml is unchanged; standing is read from the dispute",
+                    resolution.resolution.id,
+                    record.dispute.id,
+                    record.dispute.grounds,
+                    record.dispute.reliance_policy
+                ),
+            )),
+        }
     }
 }

@@ -113,8 +113,9 @@ before the baseline establishes none of them.
 
 ## What the owner signs
 
-Four acts are a human's and only a human's: accepting the SAS, authorizing
-a Warrant, resolving it, and correcting a resolved Warrant's delivered
-file. Adoption adds none. The baseline is written by `war init`, not
+Five acts are a human's and only a human's: accepting the SAS, authorizing
+a Warrant, resolving it, correcting a resolved Warrant's delivered file,
+and invalidating a Gate Definition version (which disputes every
+resolution resting on it; docs/INVALIDATION.md). Adoption adds none. The baseline is written by `war init`, not
 signed, because it is a statement about where the record starts — not an
 authorization of anything before or after it.

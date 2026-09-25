@@ -60,6 +60,9 @@ pub enum Act {
     /// A roadmap revision (OW-ADR-0023). Its own schema, so a SAS acceptance
     /// can never verify as a roadmap's or the reverse.
     AcceptRoadmap,
+    /// A Gate Definition version invalidated (OW-WAR-0136, §45). Subject
+    /// `<gate_id>@<version>`, bound to the definition file's digest.
+    Invalidate,
 }
 
 impl Act {
@@ -77,6 +80,7 @@ impl Act {
             Self::Accept => "oh.war/sas-acceptance-response/v1",
             Self::Correct => "oh.war/correction-response/v1",
             Self::AcceptRoadmap => "oh.war/roadmap-acceptance-response/v1",
+            Self::Invalidate => "oh.war/invalidation-response/v1",
         }
     }
 
@@ -87,6 +91,7 @@ impl Act {
             Self::Accept => "SAS acceptance",
             Self::Correct => "correction",
             Self::AcceptRoadmap => "roadmap acceptance",
+            Self::Invalidate => "gate invalidation",
         }
     }
 }
@@ -155,6 +160,7 @@ pub fn response_stem(act: Act, subject: &str) -> String {
         Act::Authorize | Act::Accept | Act::AcceptRoadmap => subject.to_owned(),
         Act::Resolve => format!("{subject}.resolution"),
         Act::Correct => format!("{subject}.correction"),
+        Act::Invalidate => format!("{subject}.invalidation"),
     }
 }
 
@@ -541,6 +547,12 @@ mod tests {
                 c.as_str()
                     .ends_with("OW-WAR-0055.D-001.correction.response.toml"),
                 "{c}"
+            );
+            let i = response_path(&repo, Act::Invalidate, "ops.exit-demo@1.0.0");
+            assert!(
+                i.as_str()
+                    .ends_with("ops.exit-demo@1.0.0.invalidation.response.toml"),
+                "{i}"
             );
         }
     }

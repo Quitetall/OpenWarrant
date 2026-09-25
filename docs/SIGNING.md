@@ -1,8 +1,9 @@
 # Signing
 
 A human's signature is the only thing that authorizes a Warrant, resolves
-one, corrects a delivered file, or accepts a SAS or roadmap revision (SAS
-§27.2). The tool drafts the paperwork and checks it; it never signs.
+one, corrects a delivered file, invalidates a Gate Definition version, or
+accepts a SAS or roadmap revision (SAS §27.2). The tool drafts the paperwork
+and checks it; it never signs.
 
 ## One act
 
@@ -12,7 +13,8 @@ war sign <target> --ssh-sign     # your agent's dialog is the signature
 ```
 
 `<target>` is a Warrant alias (authorize or resolve), `<alias>/<D-id>` (a
-correction), a SAS version, or `roadmap`. Each act costs two dialogs:
+correction), a SAS version, `roadmap`, or `<gate_id>@<version>` (a gate
+invalidation, below). Each act costs two dialogs:
 - one for the response;
 - one for its attestation (the DSSE envelope `war attest --verify` checks).
 
@@ -84,6 +86,23 @@ attest --verify` finds them there by digest. The kept file is history, not a
 second authorization: nothing reads it as one. If a file under that name
 already exists with other bytes, the act is refused
 (`authorize.retire-collision`) and nothing is written (OW-WAR-0144).
+
+## Invalidating a gate
+
+```bash
+war gate invalidate <gate_id>@<version> --grounds "<why>"      # the request; writes nothing
+war sign <gate_id>@<version> --grounds "<why>" --dry-run        # what the ingest would say
+war sign <gate_id>@<version> --grounds "<why>" --ssh-sign       # HUMAN: the act
+```
+
+Nothing in the records asks for an invalidation, so it is never in `war
+sign --list` or `--all`: it exists when you name the gate and the grounds.
+The grounds are your words, signed as written; every dispute repeats them.
+The screen lists every resolution the sweep reaches — directly through a
+receipt, or through a resolved parent — and the response names them, so
+your signature covers exactly that list. Only a human holding `resolver`
+who is not the performer may sign it; it is never batched. What it writes
+and what it never rewrites: docs/INVALIDATION.md.
 
 ## From the web UI
 
