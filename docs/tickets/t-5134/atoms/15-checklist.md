@@ -1,5 +1,5 @@
 # Checklist
 
-- [ ] 59-webui-lan OBL-003: fail when the forbidden call is found by any of its greps (i-5626)
-- [ ] 67-pins-next and 69-current: require the observed war command's exit status (i-ee5b)
-- [ ] A refusing case for each (a planted signing call; a war that exits 1) (i-ad3b)
+- [x] 59-webui-lan OBL-003: fail when the forbidden call is found by any of its greps (i-5626) — done by claude, 2026-09-26: 59-webui-lan OBL-003: wl_signing_seams runs each grep on its own, keeps each status; a non-comment hit from either refuses, and a grep exit 2 or an absent dir is no answer. The old group passed a planted sign::run call whenever the second grep found nothing (reproduced).
+- [x] 67-pins-next and 69-current: require the observed war command's exit status (i-ee5b) — done by claude, 2026-09-26: 67-pins-next: nx_not_offered requires war next to exit 0 before 'not offered' counts. 69-current: cu_no_history reads check --generated --json, requires exit 0|2 matching the envelope and a generated.drift comparison, and no HISTORY.md. Found: in 69-current's scratch corpus check --generated exits 2 (atom.preset-unanswered on the authorized scaffold), so the old check never reached its grep: it passed on war's non-zero exit.
+- [x] A refusing case for each (a planted signing call; a war that exits 1) (i-ad3b) — done by claude, 2026-09-26: Refusing cases: 59 a copy of webui/ with a planted crate::sign::run(repo, Some(..)) and ssh-add wording removed (so only the first grep hits; the old check passed it), an unreadable .rs (grep 2), and no webui/; 67 and 69 a stub war that exits 1. All refuse; 59/67/69 subset 77 passed 0 failed.
