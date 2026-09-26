@@ -70,7 +70,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | no required unknown remains | 86 |
 | every required obligation is dispositioned | 83 |
 | independence requirements are met | 83 |
-| artifact digests verify | 69 |
+| artifact digests verify | 68 |
 | required deliverables exist | 57 |
 | required judgments exist | 55 |
 | residual risks have sufficient authority | 55 |
