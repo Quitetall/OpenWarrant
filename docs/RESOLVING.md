@@ -216,6 +216,24 @@ already on disk still parses and still reseals.
 | `inputs:sha256:<hex>` | the bytes of every file the Gate Definition's `inputs` globs match |
 | `deliverables:sha256:<hex>` | the bytes of the Warrant's declared deliverables, in `D-` order |
 
+The Bonsai evidence gate (`software.repo.bonsai-evidence`) verifies a
+supplied `war bonsai check` document rather than the tree, so its receipt
+also binds that document by bytes in `raw_evidence_refs` (t-dec1). Record it
+with the reference:
+
+```bash
+war evidence record OW-WAR-0050 --gate software.repo.bonsai-evidence@1.0.0 \
+    --evidence-ref "file:bonsai-evidence.json#sha256:$(sha256sum bonsai-evidence.json | cut -d' ' -f1)"
+```
+
+The document must be a passing report for the Warrant's current contract,
+at the path the gate definition passes to `--evidence`, and committed (an
+untracked file is `worktree:dirty`). Without the reference the gate is not
+run and `evidence.bonsai-evidence-ref-required` names this remedy; a
+reference to another file is `gate-run.bonsai-ref-not-read`; a reference is
+refused for any other gate. The receipt carries one contract subject and the
+deliverable subject beside it, and the observed tree.
+
 `fixture_digests` holds one `<path>#sha256:<hex>` for each file the
 definition lists under `fixtures`. It is empty only when the definition lists
 none. A declared fixture that cannot be read stops the run before it starts.

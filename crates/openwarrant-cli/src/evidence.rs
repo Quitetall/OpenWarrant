@@ -443,7 +443,19 @@ fn attached_payload(key: &str, verdict: &str, receipt_digest: &str) -> String {
 /// digest. Refuses a Warrant that does not compile: there is nothing to bind
 /// the receipt to. Refuses a named gate the Warrant does not cite: a receipt
 /// for a gate no obligation asks about is not evidence of anything.
-pub fn record(repo: &Repository, alias: &str, only: Option<&str>) -> Result<Report, RepoError> {
+///
+/// `evidence_ref` is the Bonsai binding (t-dec1): the Bonsai evidence gate
+/// verifies a supplied `war bonsai check` document, and its receipt binds
+/// that document by bytes, `file:<path>#sha256:<digest>`, beside the
+/// contract and deliverable subjects. The Bonsai gate is not run without
+/// one (`evidence.bonsai-evidence-ref-required`, naming the remedy); a
+/// reference is refused when no Bonsai gate is being recorded.
+pub fn record(
+    repo: &Repository,
+    alias: &str,
+    only: Option<&str>,
+    evidence_ref: Option<&str>,
+) -> Result<Report, RepoError> {
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
     let (Some(basis), Some(validated)) = (&one.basis, &one.validated) else {
@@ -477,6 +489,15 @@ pub fn record(repo: &Repository, alias: &str, only: Option<&str>) -> Result<Repo
         }
         None => cited,
     };
+
+    if let Some(r) = evidence_ref
+        && !targets.iter().any(|k| crate::gate_cmd::is_bonsai_gate(k))
+    {
+        return Err(RepoError::Message(format!(
+            "--evidence-ref {r:?} is a Bonsai binding, and no Bonsai evidence gate is being \
+             recorded; it is taken only with --gate software.repo.bonsai-evidence@<version>"
+        )));
+    }
 
     let out_dir = dir.join(GATE_RUNS_DIR);
     // OW-WAR-0133: the deliverable set's bytes beside the contract. The tree,
@@ -551,7 +572,29 @@ pub fn record(repo: &Repository, alias: &str, only: Option<&str>) -> Result<Repo
         }
     }
     for key in fresh {
-        let sub = crate::gate_cmd::run(repo, true, Some(key), true, &subject, &[], Some(&out_dir))?;
+        let refs: Vec<String> = if crate::gate_cmd::is_bonsai_gate(key) {
+            let Some(r) = evidence_ref else {
+                report.push(Diagnostic::error(
+                    "evidence.bonsai-evidence-ref-required",
+                    key.clone(),
+                    format!(
+                        "{alias}: {key} verifies a supplied Bonsai evidence document, and its \
+                         receipt binds that document by bytes; nothing was run. Remedy: write a \
+                         passing document with `war bonsai check --warrant {alias} --base <sha> \
+                         --head <sha> --bonsai <binary>` to the file the gate definition passes \
+                         to --evidence, commit it (an untracked file marks the run \
+                         worktree:dirty), then `war evidence record {alias} --gate {key} \
+                         --evidence-ref file:<that path>#sha256:<its sha256>`"
+                    ),
+                ));
+                continue;
+            };
+            vec![r.to_owned()]
+        } else {
+            Vec::new()
+        };
+        let sub =
+            crate::gate_cmd::run(repo, true, Some(key), true, &subject, &refs, Some(&out_dir))?;
         let minted = sub.diagnostics.iter().any(|d| d.rule == "gate-run.receipt");
         for d in sub.diagnostics {
             report.push(d);
