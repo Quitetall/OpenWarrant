@@ -54,8 +54,8 @@ else
     fi
 
     WU_PORT=${WU_HOST##*:}
-    if WU_BOUND=$(ss -ltnH 2>/dev/null | awk '{print $4}') && grep -qx "127.0.0.1:$WU_PORT" <<<"$WU_BOUND" \
-        && ! { WU_BOUND=$(ss -ltnH 2>/dev/null | awk '{print $4}') && grep -qE "^(0\.0\.0\.0|\*|\[::\]):$WU_PORT$" <<<"$WU_BOUND"; }; then
+    if ss -ltnH 2>/dev/null | awk '{print $4}' | grep -qx "127.0.0.1:$WU_PORT" \
+        && ! ss -ltnH 2>/dev/null | awk '{print $4}' | grep -qE "^(0\.0\.0\.0|\*|\[::\]):$WU_PORT$"; then
         printf 'ok    %-34s 127.0.0.1:%s only\n' "bound to loopback" "$WU_PORT"; PASSED=$((PASSED + 1))
     else
         printf 'FAIL  %-34s not loopback-only\n' "bound to loopback"; FAILED=$((FAILED + 1))
@@ -110,8 +110,8 @@ kill "$WU_PID" 2>/dev/null; wait "$WU_PID" 2>/dev/null
 command rm -f "$WU_OUT" "$WU_ERR"
 
 # No key, no socket, no in-process signing under webui/.
-if ! { WU_HITS=$(grep -rn 'ssh-keygen\|SSH_AUTH_SOCK\|sign::run(repo, Some\|ssh_sign_file\|authorize::ingest\|resolution_cmd::ingest' "$WU_SRC" \
-    | grep -v ':\s*//') && grep -q . <<<"$WU_HITS"; }; then
+if ! grep -rn 'ssh-keygen\|SSH_AUTH_SOCK\|sign::run(repo, Some\|ssh_sign_file\|authorize::ingest\|resolution_cmd::ingest' "$WU_SRC" \
+    | grep -v ':\s*//' | grep -q .; then
     printf 'ok    %-34s no key, socket or signing call\n' "the web UI holds no authority"; PASSED=$((PASSED + 1))
 else
     printf 'FAIL  %-34s webui/ names a key, socket or signing seam\n' "the web UI holds no authority"; FAILED=$((FAILED + 1))

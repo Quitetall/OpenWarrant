@@ -13,9 +13,11 @@
 # (-c, -v, -o), that uses `||`, or names the pattern in a comment, runs and
 # its pass counts. Refused: five files, one per spelling (-q, -qF, an option
 # before -q, `|&` into --quiet, a `|` ending one line and grep -q starting the
-# next), are each FAILED by name and line and never run. And `line_has` itself:
-# true over more than a pipe buffer of matching lines every time, false when
-# the filter matches nothing, and a -v test reads only the filter's lines.
+# next), and 63-webui.sh's name on bytes other than the ones OW-WAR-0139
+# OBL-005 holds unmodified, are each FAILED by name and line and never run.
+# And `line_has` itself: true over more than a pipe buffer of matching lines
+# every time, false when the filter matches nothing, and a -v test reads only
+# the filter's lines.
 #
 # This file spells grep as two strings joined, so the scan it tests does not
 # refuse it.
@@ -47,6 +49,8 @@ qg_refused 54-amp "war next |& $QG --quiet 'war claim'"
     printf 'war next 2>/dev/null |\n'
     printf '    %s -q "war claim" && :\n' "$QG"
 } > "$QG_DIR/55-split.sh"
+# The one held file (OW-WAR-0139 OBL-005) is held by its bytes, not its name.
+{ cat "$REPO_ROOT/conformance/plants.d/63-webui.sh"; printf '# one byte more\n'; } > "$QG_DIR/63-webui.sh"
 
 # qg_run <file...>  ->  the inner run's output, then "TOTALS <passed> <failed>"
 qg_run() {
@@ -69,16 +73,26 @@ else
     qg_fail "captured greps run" "ran: $QG_LOG; $(grep '^FAIL' <<<"$QG_OUT" | head -1)"
 fi
 QG_MISSED=""
-for QG_CASE in 51-q:2 52-qF:2 53-late:2 54-amp:2 55-split:3; do
+for QG_CASE in 51-q:2 52-qF:2 53-late:2 54-amp:2 55-split:3 63-webui:57; do
     QG_NAME=${QG_CASE%%:*}
     [[ "$QG_LOG" != *"$QG_NAME"* ]] \
         && grep -q "^FAIL  $QG_NAME.sh .*pipes into a quiet grep.*: ${QG_CASE#*:}: " <<<"$QG_OUT" \
         || QG_MISSED="$QG_MISSED $QG_NAME"
 done
-if [[ -z "$QG_MISSED" ]] && grep -q '^TOTALS 1 5$' <<<"$QG_OUT"; then
-    qg_ok "a pipe into a quiet grep is refused" "-q, -qF, -E -q, |& --quiet, a split pipe: each FAILED at its line, none ran; totals 1 passed, 5 failed"
+if [[ -z "$QG_MISSED" ]] && grep -q '^TOTALS 1 6$' <<<"$QG_OUT"; then
+    qg_ok "a pipe into a quiet grep is refused" "-q, -qF, -E -q, |& --quiet, a split pipe, the held file's name on other bytes: each FAILED at its line, none ran; totals 1 passed, 6 failed"
 else
     qg_fail "a pipe into a quiet grep is refused" "missed:$QG_MISSED; ran: $QG_LOG; $(tail -1 <<<"$QG_OUT")"
+fi
+
+# The held file itself: its bytes are the ones OW-WAR-0139 OBL-005 holds, and
+# the scan still sees its pipes, so only the hold lets it run.
+if plant_quiet_grep_held "$REPO_ROOT/conformance/plants.d/63-webui.sh" \
+    && [[ -n "$(plant_quiet_grep_pipes "$REPO_ROOT/conformance/plants.d/63-webui.sh")" ]] \
+    && ! plant_quiet_grep_held "$QG_DIR/63-webui.sh" && ! plant_quiet_grep_held "$QG_DIR/51-q.sh"; then
+    qg_ok "one file held by its bytes" "63-webui.sh at 0397209b runs (OW-WAR-0139 OBL-005); other bytes under its name do not"
+else
+    qg_fail "one file held by its bytes" "63-webui.sh is $(sha256sum conformance/plants.d/63-webui.sh | cut -c1-8), or the hold matched other bytes"
 fi
 
 # line_has over more than one pipe buffer of matching lines: never false.
