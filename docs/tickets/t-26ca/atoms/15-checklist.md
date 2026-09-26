@@ -1,5 +1,5 @@
 # Checklist
 
-- [ ] Reproduce the 000 under load (e.g. parallel requests or stress) (i-5cb3)
-- [ ] Always write the 431 before closing (drain or shutdown write side first) (i-b2bd)
-- [ ] Plant: the oversized request gets 431 N times in a row under load (i-4996)
+- [x] Reproduce the 000 under load (e.g. parallel requests or stress) (i-5cb3) — done by claude, 2026-09-26: Reproduced: 400 oversized requests (9000-byte header), 32 parallel, one CPU burner per core, load ~40: 2 x 000 and 49 x 431-then-'Connection reset by peer' (curl exit 56). Cause: server closed with unread request bytes -> kernel RST.
+- [x] Always write the 431 before closing (drain or shutdown write side first) (i-b2bd) — done by claude, 2026-09-26: 64c44347: refusal writes its answer, shutdown(Write), drains <=64 KiB / 1 s, then closes (loopback refusals and every LAN connection). A read timeout mid-request is a pause up to the deadline, not 400 (seen 1/50 under load); TLS handshake likewise. Same load after: 1200/1200 clean 431. Unit tests incl. a control that the undrained close is ConnectionReset.
+- [x] Plant: the oversized request gets 431 N times in a row under load (i-4996) — done by claude, 2026-09-26: conformance/plants.d/63-webui-refusals.sh: 50 oversized headers + 50 oversized bodies, 16 clients at once, a burner per core; each must be 431/413 with curl exit 0. Old binary fails it 3/3; new passes 8/8 runs (two parallel clones, 24 extra burners, load 47-61). 63-webui.sh untouched.
