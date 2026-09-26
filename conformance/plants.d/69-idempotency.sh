@@ -97,15 +97,15 @@ IB_LISTED=$(python3 -c 'import json,sys; print(len(json.load(open(sys.argv[1]))[
 
 # war check names it, as an ERROR, with the batch and its paths.
 IB_OUT=$(ib check 2>&1); IB_STATUS=$?
-if [[ $IB_STATUS -ne 0 ]] && grep -E '^ERROR +batch\.interrupted' <<<"$IB_OUT" | grep -q -- "$IB_ID" \
-    && grep 'batch.interrupted' <<<"$IB_OUT" | grep -q 'authorization.toml'; then
+if [[ $IB_STATUS -ne 0 ]] && line_has -E '^ERROR +batch\.interrupted' -G "$IB_ID" <<<"$IB_OUT" \
+    && line_has -G 'batch.interrupted' -G 'authorization.toml' <<<"$IB_OUT"; then
     ip_ok "war check names the interrupted batch" "ERROR batch.interrupted $IB_ID, its paths listed"
 else
     ip_fail "war check names the interrupted batch" "exit $IB_STATUS: $(grep -E 'batch\.' <<<"$IB_OUT" | head -2 | tr '\n' '|')"
 fi
 # And a new batch, even a dry run, refuses the same.
 IB_OUT=$(ib sign --batch --as "Plant Signer" --dry-run </dev/null 2>&1); IB_STATUS=$?
-if [[ $IB_STATUS -eq 2 ]] && grep -E '^ERROR +batch\.interrupted' <<<"$IB_OUT" | grep -q -- "$IB_ID" \
+if [[ $IB_STATUS -eq 2 ]] && line_has -E '^ERROR +batch\.interrupted' -G "$IB_ID" <<<"$IB_OUT" \
     && ! grep -q 'batch.would-record' <<<"$IB_OUT"; then
     ip_ok "a new batch refuses while interrupted" "batch.interrupted (dry run, exit 2)"
 else
@@ -431,7 +431,7 @@ assert_present 'oh.war/verification/v9' "$IV_REC"
 IV_OUT=$(iv check 2>&1)
 IV_LINE=$(grep -A1 'compat.newer-record' <<<"$IV_OUT" | tr '\n' ' ')
 if grep -qE '^UNKNOWN +compat\.newer-record' <<<"$IV_OUT" && grep -q 'verifications/OBL-001.toml' <<<"$IV_LINE" \
-    && grep -q 'v9' <<<"$IV_LINE" && ! grep -E '^(PASS|ERROR)' <<<"$IV_OUT" | grep -q 'compat.newer-record' \
+    && grep -q 'v9' <<<"$IV_LINE" && ! line_has -E '^(PASS|ERROR)' -G 'compat.newer-record' <<<"$IV_OUT" \
     && [[ $(grep -c '^ERROR' <<<"$IV_OUT") -eq $IV_ERRORS_V1 ]]; then
     ip_ok "a v9 record is UNKNOWN" "UNKNOWN compat.newer-record, no PASS, no new ERROR ($IV_ERRORS_V1)"
 else

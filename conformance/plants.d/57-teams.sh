@@ -191,7 +191,7 @@ else
 fi
 TT_OUT=$("$WAR" --root "$PLANT_ROOT" sign TT-WAR-0002 --dry-run 2>&1); tt_expect "unassigned: both eligible, as before" "$TT_OUT" $? 2 'more than one eligible signer (Ada, Ben)'
 TT_OUT=$("$WAR" --root "$PLANT_ROOT" sign --list 2>&1)
-if grep -q 'TT-WAR-0001  resolve .*\[assigned: Ben\]' <<<"$TT_OUT" && grep 'TT-WAR-0002  resolve' <<<"$TT_OUT" | grep -qv '\[assigned'; then
+if grep -q 'TT-WAR-0001  resolve .*\[assigned: Ben\]' <<<"$TT_OUT" && line_has -G 'TT-WAR-0002  resolve' -v '\[assigned' <<<"$TT_OUT"; then
     tt_true "the list shows who an act is assigned to" "[assigned: Ben] on 0001 only" 0
 else
     tt_true "the list shows who an act is assigned to" "$(grep 'resolve' <<<"$TT_OUT" | tr '\n' '|')" 1
@@ -207,7 +207,7 @@ else
     tt_true "sign --list --as Ada omits Ben's act" "$(tr '\n' '|' <<<"$TT_OUT")" 1
 fi
 TT_OUT=$("$WAR" --root "$PLANT_ROOT" sign --list --as Ben 2>&1)
-if grep -A1 'by Ben:' <<<"$TT_OUT" | grep -q 'TT-WAR-0001  resolve .*\[assigned: Ben\]' && grep -q 'TT-WAR-0002  resolve' <<<"$TT_OUT"; then
+if line_has -A1 'by Ben:' -G 'TT-WAR-0001  resolve .*\[assigned: Ben\]' <<<"$TT_OUT" && grep -q 'TT-WAR-0002  resolve' <<<"$TT_OUT"; then
     tt_true "sign --list --as Ben lists it, assigned first" "0001 first, then 0002" 0
 else
     tt_true "sign --list --as Ben lists it, assigned first" "$(tr '\n' '|' <<<"$TT_OUT")" 1

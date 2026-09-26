@@ -134,7 +134,7 @@ import sys, json
 r = json.load(sys.stdin)["result"]["ready"]
 print(next(x["ticket"] + "/" + x["item"] for x in r if x["text"] == "Ready plant item"))' 2>/dev/null)
 "$WAR" --root "$PLANT_ROOT" claim "$NX_ITEM" --as plant-agent >/dev/null 2>&1
-if [[ -n $NX_ITEM ]] && ! "$WAR" --root "$PLANT_ROOT" next 2>/dev/null | grep -qF "war claim $NX_ITEM"; then
+if [[ -n $NX_ITEM ]] && ! { NX_NEXT=$("$WAR" --root "$PLANT_ROOT" next 2>/dev/null) && grep -qF "war claim $NX_ITEM" <<<"$NX_NEXT"; }; then
     printf 'ok    %-34s a claimed item is no longer offered\n' "next refuses a claimed ticket item"
     PASSED=$((PASSED + 1))
 else

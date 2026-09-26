@@ -198,7 +198,8 @@ RM_SAS=$("$WAR" sas status 2>&1)
 RM_POINTER_STATE=$(sed -n 's/^state = "\(.*\)"/\1/p' docs/sas/revisions/1.1.1.toml 2>/dev/null)
 if [[ "$RM_POINTER_STATE" == accepted || "$RM_POINTER_STATE" == proposed ]] \
     && grep -qE 'PASS sas.revision +[0-9][^ ]* · (accepted|proposed) · .* matches the document' <<<"$RM_SAS" \
-    && awk '/^## 98\. /{f=1; next} /^## /{f=0} f' docs/sas/WAR_Software_Architecture_Specification.md | grep -qxF "The phases are the roadmap record's (OW-ADR-0023)." \
+    && RM_S98=$(awk '/^## 98\. /{f=1; next} /^## /{f=0} f' docs/sas/WAR_Software_Architecture_Specification.md) \
+    && grep -qxF "The phases are the roadmap record's (OW-ADR-0023)." <<<"$RM_S98" \
     && ! grep -q '^### Phase 0 ' docs/sas/WAR_Software_Architecture_Specification.md; then
     rm_ok "§98 points at the record" "1.1.1 $RM_POINTER_STATE; the document matches a recorded revision"
 else

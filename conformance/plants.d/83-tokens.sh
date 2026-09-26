@@ -35,7 +35,8 @@ plant "a non-numeric budget is refused" "milestones.invalid" "budget_tokens" 2 \
 
 # The compile is journalled with its size.
 "$WAR" dispatch OW-WAR-0047 STAGE-002 --emit "$TOK_TMP/d2.json" >/dev/null 2>&1
-if tail -1 docs/warrants/OW-WAR-0047/journal.jsonl | grep -q '"type":"dispatch.compiled"' && tail -1 docs/warrants/OW-WAR-0047/journal.jsonl | grep -q 'estimated_tokens'; then
+if TOK_LAST=$(tail -1 docs/warrants/OW-WAR-0047/journal.jsonl) && grep -q '"type":"dispatch.compiled"' <<<"$TOK_LAST" \
+    && TOK_LAST=$(tail -1 docs/warrants/OW-WAR-0047/journal.jsonl) && grep -q 'estimated_tokens' <<<"$TOK_LAST"; then
     printf 'ok    %-34s the last journal event is dispatch.compiled with its estimate\n' "a compile is journalled"
     PASSED=$((PASSED + 1))
 else
@@ -203,7 +204,7 @@ fi
 # performed, and the performer leaves its marker.
 tok_reset
 tok_unbudget STAGE-001
-if grep -A6 'id: "STAGE-001"' "$TOK_MS" | grep -q budget_tokens; then
+if line_has -A6 'id: "STAGE-001"' -G budget_tokens <"$TOK_MS"; then
     printf 'PLANT MUTATION WAS A NO-OP: STAGE-001 still carries a budget\n' >&2; exit 9
 fi
 TOK_OUT=$("$WAR" --root "$TOK_ROOT" perform "$TOK_W" STAGE-001 --prototype 2>&1)
@@ -244,7 +245,7 @@ fi
 # so "no receipt" above is the refusal's doing.
 tok_reset
 tok_unbudget STAGE-003
-if grep -A6 'id: "STAGE-003"' "$TOK_MS" | grep -q budget_tokens; then
+if line_has -A6 'id: "STAGE-003"' -G budget_tokens <"$TOK_MS"; then
     printf 'PLANT MUTATION WAS A NO-OP: STAGE-003 still carries a budget\n' >&2; exit 9
 fi
 TOK_OUT=$("$WAR" --root "$TOK_ROOT" run "$TOK_W" STAGE-003 --prototype 2>&1)

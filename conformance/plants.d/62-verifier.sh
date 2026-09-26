@@ -126,7 +126,7 @@ VF_MISSING=""
 for VF_F in --no-session-persistence --strict-mcp-config --restricted; do
     grep -qx -- "$VF_F" <<<"$VF_ARGV" || VF_MISSING="$VF_MISSING $VF_F"
 done
-grep -A1 -x -- '--tools' <<<"$VF_ARGV" | sed -n 2p | grep -qx '' || VF_MISSING="$VF_MISSING --tools-empty"
+[[ $(grep -A1 -x -- '--tools' <<<"$VF_ARGV" | sed -n '2s/^/x/p') == x ]] || VF_MISSING="$VF_MISSING --tools-empty"
 VF_DENY=$(grep -A1 -x -- '--disallowedTools' <<<"$VF_ARGV" | sed -n 2p)
 for VF_T in Bash Read Write Edit; do
     grep -q "\\b$VF_T\\b" <<<"$VF_DENY" || VF_MISSING="$VF_MISSING deny:$VF_T"

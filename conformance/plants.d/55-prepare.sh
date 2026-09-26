@@ -173,7 +173,7 @@ PP_LIST=$(pp_war sign --list 2>&1)
 if [[ $PP_STATUS -eq 0 ]] \
     && grep -q "prepare.awaits-authorization .*$PP_A: deliver done (1 recorded, 0 current) .*run STAGE-002 skipped .*evidence plant.tree@1.0.0 done, software.repo.war-check@1.0.0 done .*STAGE-002 wait" <<<"$PP_OUT" \
     && grep -q '^content_addressed = true$' "$PP_W/deliverables.toml" \
-    && pp_git log -1 --format=%s | grep -q '^prepare: delivery provenance' \
+    && PP_SUBJECT=$(pp_git log -1 --format=%s) && grep -q '^prepare: delivery provenance' <<<"$PP_SUBJECT" \
     && [[ ! -e "$PP_W/verifications" && ! -e "$PP_W/authorization.toml" ]] \
     && grep -q "$PP_A .*authorize" <<<"$PP_LIST"; then
     pp_ok "unauthorized: stops before verify" "delivered, committed, evidence recorded; STAGE-002 waits (§47); queue: authorize"

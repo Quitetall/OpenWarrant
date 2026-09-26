@@ -429,7 +429,7 @@ hd_reset
 HD_INIT=$(mktemp -d)
 "$HD_WAR" init --namespace HI --root "$HD_INIT" > /dev/null 2>&1
 if grep -q '^allow_unmetered = true$' "$HD_INIT/openwarrant.toml" \
-    && grep -B4 '^allow_unmetered = true$' "$HD_INIT/openwarrant.toml" | grep -q 'UNKNOWN' \
+    && line_has -B4 '^allow_unmetered = true$' -G 'UNKNOWN' <"$HD_INIT/openwarrant.toml" \
     && [[ $(grep -c '^\[perform\]$' "$HD_INIT/openwarrant.toml") -eq 1 ]]; then
     hd_ok "war init allows unmetered" "allow_unmetered = true under one [perform], its cost named UNKNOWN"
 else

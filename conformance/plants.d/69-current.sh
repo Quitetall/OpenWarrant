@@ -101,7 +101,7 @@ else
 fi
 DRY_ALL=$("$WAR" sign --all --dry-run 2>&1)
 AUTH_0073=$("$WAR" authorize OW-WAR-0073 2>&1)
-if ! grep -E 'authorize.no-amendment' <<<"$DRY_ALL" | grep -q 'OW-WAR-0073' \
+if ! line_has -E 'authorize.no-amendment' -G 'OW-WAR-0073' <<<"$DRY_ALL" \
     && grep -q 'contract_digest = "691f51ce' <<<"$AUTH_0073"; then
     cu_ok "OW-WAR-0073's signature stands" "no authorize.no-amendment; contract 691f51ce…"
 else
@@ -125,7 +125,7 @@ fi
 
 # history = false (the default for a new program): no HISTORY.md, no drift.
 if [[ ! -e "$CU_R/docs/generated/HISTORY.md" ]] \
-    && ! "$WAR" --root "$CU_R" check --generated 2>&1 | grep -q 'HISTORY.md'; then
+    && ! { CU_GEN=$("$WAR" --root "$CU_R" check --generated 2>&1) && grep -q 'HISTORY.md' <<<"$CU_GEN"; }; then
     cu_ok "history off writes no history" "no HISTORY.md, nothing compared"
 else
     cu_fail "history off writes no history" "HISTORY.md exists or was compared"

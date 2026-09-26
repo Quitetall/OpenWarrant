@@ -168,7 +168,7 @@ WL_LOOPBACK_DIGEST=532d4d64d802abe3aa6b26f68215cad571cd81d366d9e1b7b6e9fa7fd75f3
 WL_FREE=$((20000 + RANDOM % 20000))
 WL_OUT=$(env -u SSH_AUTH_SOCK XDG_STATE_HOME="$WL_STATE" "$WAR" --root "$PLANT_ROOT" ui --port 0 --lan "127.0.0.2:$WL_FREE" 2>&1 & WLP=$!; sleep 1.5; if kill -0 "$WLP" 2>/dev/null; then echo STILL-RUNNING; awk '{print $4}' <<<"$(ss -ltnH 2>/dev/null)" | grep -x "127.0.0.2:$WL_FREE"; kill "$WLP"; fi; wait "$WLP"; echo "exit=$?")
 if grep -q 'ui.lan-needs-tls' <<<"$WL_OUT" && grep -q 'exit=1' <<<"$WL_OUT" && ! grep -q 'STILL-RUNNING' <<<"$WL_OUT" \
-    && ! awk '{print $4}' <<<"$(ss -ltnH 2>/dev/null)" | grep -qx "127.0.0.2:$WL_FREE"; then
+    && ! grep -qx "127.0.0.2:$WL_FREE" <<<"$(awk '{print $4}' <<<"$(ss -ltnH 2>/dev/null)")"; then
     wl_ok "OBL-001 --lan with no certificate" "ui.lan-needs-tls, exit 1, nothing bound"
 else
     wl_fail "OBL-001 --lan with no certificate" "$(tr '\n' ' ' <<<"$WL_OUT" | head -c 200)"
@@ -229,8 +229,8 @@ PY
     else
         wl_fail "OBL-001 HSTS and the CSP on every response" "a response lacks one"
     fi
-    if awk '{print $4}' <<<"$(ss -ltnH 2>/dev/null)" | grep -qx "127.0.0.2:$WL_AP" \
-        && ! awk '{print $4}' <<<"$(ss -ltnH 2>/dev/null)" | grep -qE "^(0\.0\.0\.0|\*|\[::\]|127\.0\.0\.1):$WL_AP$"; then
+    if grep -qx "127.0.0.2:$WL_AP" <<<"$(awk '{print $4}' <<<"$(ss -ltnH 2>/dev/null)")" \
+        && ! grep -qE "^(0\.0\.0\.0|\*|\[::\]|127\.0\.0\.1):$WL_AP$" <<<"$(awk '{print $4}' <<<"$(ss -ltnH 2>/dev/null)")"; then
         wl_ok "OBL-001 bound only to the given address" "127.0.0.2:$WL_AP only"
     else
         wl_fail "OBL-001 bound only to the given address" "$(ss -ltnH | awk '{print $4}' | grep ":$WL_AP$" | tr '\n' ' ')"
@@ -508,9 +508,9 @@ fi
 # ---- OBL-003: no key, socket or signing call under webui/ -------------------
 # 63-webui.sh's pattern over every file, and the agent's tools over the Rust
 # (the page's own text tells the owner to load the key with `ssh-add -c`).
-if ! { grep -rn 'ssh-keygen\|SSH_AUTH_SOCK\|sign::run(repo, Some\|ssh_sign_file\|authorize::ingest\|resolution_cmd::ingest' "$WL_SRC";
+if ! { WL_HITS=$({ grep -rn 'ssh-keygen\|SSH_AUTH_SOCK\|sign::run(repo, Some\|ssh_sign_file\|authorize::ingest\|resolution_cmd::ingest' "$WL_SRC";
        grep -rn --include='*.rs' 'ssh-add\|SSH_AGENT\|ssh_agent' "$WL_SRC"; } \
-    | grep -v ':\s*//' | grep -q .; then
+    | grep -v ':\s*//') && grep -q . <<<"$WL_HITS"; }; then
     wl_ok "OBL-003 webui/ holds no signing authority" "no ssh key, agent socket or signing call"
 else
     wl_fail "OBL-003 webui/ holds no signing authority" "webui/ names a key, socket or signing seam"

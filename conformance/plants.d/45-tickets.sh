@@ -239,7 +239,7 @@ fi
 # `war check`: tickets add no authority finding; a malformed checklist is named.
 TK_CHK=$(tkw check 2>&1); TK_S=$?
 if [[ $TK_S -eq 0 ]] && grep -q '^PASS ticket.well-formed' <<<"$TK_CHK" \
-    && ! grep -E '^ERROR' <<<"$TK_CHK" | grep -qi 'ticket'; then
+    && ! line_has -E '^ERROR' -i 'ticket' <<<"$TK_CHK"; then
     tk_ok "check: an unsigned ticket is sound" "exit 0; no ticket finding about authorization, evidence or verification"
 else
     tk_fail "check: an unsigned ticket is sound" "exit $TK_S: $(grep -E '^(ERROR|WARN)' <<<"$TK_CHK" | head -3)"
