@@ -25586,8 +25586,8 @@ Only by answering; presets ask, and an unanswered required heading is named.
 | D-007 | history.rs: the optional history | `crates/openwarrant-compiler/src/history.rs` | verified |
 | D-008 | compile.rs writes and drift-checks both | `crates/openwarrant-cli/src/compile.rs` | verified |
 | D-009 | the compiler's module list | `crates/openwarrant-compiler/src/lib.rs` | verified |
-| D-010 | docs/generated/CURRENT.md | `docs/generated/CURRENT.md` | verified |
-| D-011 | docs/generated/HISTORY.md | `docs/generated/HISTORY.md` | verified |
+| D-010 | docs/generated/CURRENT.md | `docs/generated/CURRENT.md` | not_content_addressed |
+| D-011 | docs/generated/HISTORY.md | `docs/generated/HISTORY.md` | not_content_addressed |
 | D-012 | the [generated] history key | `crates/openwarrant-core/src/config.rs` | not_content_addressed |
 | D-013 | openwarrant.toml: history = true here | `openwarrant.toml` | verified |
 | D-014 | check.rs: atom.role-unprojected, atom.preset-unanswered | `crates/openwarrant-cli/src/check.rs` | verified |
@@ -29954,8 +29954,8 @@ anything.
 | D-002 | The lossless, fence-aware section split and join | `crates/openwarrant-core/src/sas_sections.rs` | verified |
 | D-003 | The sas_sections export | `crates/openwarrant-core/src/lib.rs` | not_content_addressed |
 | D-004 | SECTIONS.json and SECTIONS.md written by war compile | `crates/openwarrant-cli/src/compile.rs` | verified |
-| D-005 | The generated section index | `docs/sas/generated/SECTIONS.json` | verified |
-| D-006 | The generated section index, for reading | `docs/sas/generated/SECTIONS.md` | verified |
+| D-005 | The generated section index | `docs/sas/generated/SECTIONS.json` | not_content_addressed |
+| D-006 | The generated section index, for reading | `docs/sas/generated/SECTIONS.md` | not_content_addressed |
 | D-007 | sas.section-ref and sas.section-current | `crates/openwarrant-cli/src/check.rs` | verified |
 | D-008 | war sas diff names changed sections | `crates/openwarrant-cli/src/sas.rs` | verified |
 | D-009 | The SAS section plants | `conformance/plants.d/56-sas-sections.sh` | verified |
