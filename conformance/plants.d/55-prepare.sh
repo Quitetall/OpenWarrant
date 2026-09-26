@@ -201,6 +201,22 @@ if [[ $PP_STATUS -eq 0 ]] \
 else
     pp_fail "a failing gate stops it, named" "exit $PP_STATUS: $(pp_line "$PP_OUT")"
 fi
+# The commit prepare made is whole: the stage's records and the projections
+# compiled from them are in it, so a clone of it (where a battery runs) reads
+# no drift. Before t-88d2 the commit carried only what the tree rule sees.
+PP_HEADSHA=$(pp_git log -1 --format=%H --grep='^prepare: delivery provenance')
+PP_CLONE="$PP_TMP/head-clone"
+PP_HEADCHECK=$( { git clone -q --no-hardlinks "$PLANT_ROOT" "$PP_CLONE" \
+    && git -C "$PP_CLONE" checkout -q --detach "$PP_HEADSHA" \
+    && env -u SSH_AUTH_SOCK -u SSH_AGENT_PID "$PP_WAR" --root "$PP_CLONE" check --generated </dev/null; } 2>&1); PP_HEADCHECK_STATUS=$?
+if [[ -n "$PP_HEADSHA" && $PP_HEADCHECK_STATUS -eq 0 ]] \
+    && grep -q '^PASS generated.drift' <<<"$PP_HEADCHECK" \
+    && grep -qF "$PP_A/dispatches/" <<<"$(pp_git show --name-only --format= "$PP_HEADSHA")"; then
+    pp_ok "prepare's commit reads no drift" "a clone of ${PP_HEADSHA:0:8}: stage records and projections committed together"
+else
+    pp_fail "prepare's commit reads no drift" "${PP_HEADSHA:-no prepare commit}, check exit $PP_HEADCHECK_STATUS: $(grep -m1 -E '^ERROR' <<<"$PP_HEADCHECK")"
+fi
+command rm -rf "$PP_CLONE"
 sed -i 's|^argv: \["false"\]|argv: ["true"]|' "$PLANT_ROOT/docs/gates/plant.tree@1.0.0.yaml"
 pp_git commit -qam "the tree gate passes again" >/dev/null
 

@@ -24,10 +24,13 @@
 //!    A Dispatch projects an AUTHORIZED contract (§47): an unauthorized
 //!    Warrant's stages wait for the sitting's authorization, and prepare says
 //!    so and stops that Warrant before verification.
-//! 3. **commit** — what 1 and 2 wrote, and only that. A receipt minted over
-//!    a dirty tree names no source (`worktree:dirty`, reuse UNKNOWN), so the
-//!    evidence must run over a committed one. Anything else dirty refuses the
-//!    whole run before step 1. `--no-commit` stops here instead.
+//! 3. **commit** — the source 1 and 2 wrote, and nothing else of source. A
+//!    receipt minted over a dirty tree names no source (`worktree:dirty`,
+//!    reuse UNKNOWN), so the evidence must run over a committed one. Anything
+//!    else dirty refuses the whole run before step 1. `--no-commit` stops here
+//!    instead. With it, after `war compile`, go every record the tree rule
+//!    skips and every projection: a battery runs in a clone of HEAD, and HEAD's
+//!    projections must be the ones its records compile to (t-88d2).
 //! 4. **evidence** — `war evidence record <alias> --gate <key>` for each cited
 //!    gate that has no admissible run for the contract as it compiles now.
 //! 5. **verify** — `war verify <alias> --run`: the configured INDEPENDENT
@@ -989,7 +992,41 @@ fn foreign_dirt(repo: &Repository, aliases: &[String]) -> Result<Vec<String>, St
         .collect())
 }
 
-/// Step 3: commit exactly the records steps 1 and 2 wrote.
+/// Changed paths the tree rule skips, which a commit must still carry: every
+/// record (evidence, a signature already made, a verification, a ticket) and
+/// every compiled projection. The projections are compiled from all of them,
+/// so HEAD is consistent only if it holds what they were compiled from.
+/// Committing a signed record is not signing it; none of these moves the tree
+/// a receipt names.
+fn carried_records(repo: &Repository) -> Result<Vec<String>, String> {
+    let ex = crate::gate_cmd::source::Exclusions::of(repo);
+    let out = std::process::Command::new("git")
+        .arg("-C")
+        .arg(repo.root.as_str())
+        .args(["status", "--porcelain=v1", "-z", "--untracked-files=all"])
+        .output()
+        .map_err(|e| format!("git status: {e}"))?;
+    if !out.status.success() {
+        return Err(String::from_utf8_lossy(&out.stderr).trim().to_owned());
+    }
+    let mut paths = Vec::new();
+    let mut entries = out.stdout.split(|b| *b == 0).filter(|e| !e.is_empty());
+    while let Some(entry) = entries.next() {
+        let entry = String::from_utf8_lossy(entry);
+        let (xy, path) = entry.split_at(3.min(entry.len()));
+        // A rename or copy is followed by its source path.
+        if xy.starts_with('R') || xy.starts_with('C') {
+            entries.next();
+        }
+        if ex.excludes_from_tree(path) {
+            paths.push(path.to_owned());
+        }
+    }
+    Ok(paths)
+}
+
+/// Step 3: commit the records steps 1 and 2 wrote, and the projections
+/// compiled from them.
 fn commit_records(
     repo: &Repository,
     work: &mut [Work],
@@ -1039,6 +1076,38 @@ fn commit_records(
         }
         return None;
     }
+    // The projections are compiled from every record, the stage runs and
+    // journals the tree rule skips included. A commit of `ours` alone leaves
+    // HEAD's projections stale against HEAD's own records, and every gate that
+    // runs in a clone of HEAD (the battery) reads drift. So every record and
+    // the projections compiled from them go in too. All are outside the tree
+    // rule: carrying them moves no receipt.
+    if let Err(why) = compile(repo) {
+        let why = format!("`war compile` before the commit failed: {why}");
+        for w in work.iter_mut().filter(|w| w.live()) {
+            w.push("commit", &w.alias.clone(), Outcome::Error, why.clone());
+            w.stop(State::Error, why.clone());
+        }
+        return None;
+    }
+    let carried = match carried_records(repo) {
+        Ok(c) => c,
+        Err(why) => {
+            for w in work.iter_mut().filter(|w| w.live()) {
+                w.stop(
+                    State::Unknown,
+                    format!("the working tree cannot be named: {why}"),
+                );
+            }
+            return None;
+        }
+    };
+    let ours: Vec<String> = ours
+        .into_iter()
+        .chain(carried)
+        .collect::<std::collections::BTreeSet<_>>()
+        .into_iter()
+        .collect();
     let touched: Vec<&str> = aliases
         .iter()
         .filter(|a| {
