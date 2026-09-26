@@ -746,6 +746,71 @@ pub mod source {
         }
     }
 
+    /// The tree reads of one read-only command, remembered (t-eca6).
+    ///
+    /// [`moved_since`] runs two git walks of the whole working tree, and the
+    /// commands that judge evidence ask it once per receipt, several times per
+    /// receipt: 944 walks for one `war next` over 127 receipts, most naming one
+    /// tree. Within a process that runs no gate and writes no source, the
+    /// working tree does not change under it (another process changing it
+    /// mid-command is a race the command never promised to see), so the same
+    /// question has the same answer. [`remember_tree_reads`] turns this on; only
+    /// such a command may call it, once, before its first read. It is off
+    /// otherwise: `observe` must see the tree a gate is about to run over, not
+    /// the one an earlier gate in the same process left.
+    static TREE_READS: TreeReads = std::sync::Mutex::new(None);
+
+    /// Off (`None`), or on with what has been read so far.
+    pub type TreeReads = std::sync::Mutex<Option<std::collections::HashMap<String, Vec<String>>>>;
+
+    /// Remember [`moved_since`]'s git reads for the rest of this process. For
+    /// one-shot read-only commands only (`war next`, `war check`).
+    pub fn remember_tree_reads() {
+        let mut memo = TREE_READS
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if memo.is_none() {
+            *memo = Some(std::collections::HashMap::new());
+        }
+    }
+
+    /// `read()`, or what it returned for `key` earlier in this process when
+    /// [`remember_tree_reads`] is on. An error is never remembered.
+    fn tree_read(
+        key: String,
+        read: impl FnOnce() -> Result<Vec<String>, String>,
+    ) -> Result<Vec<String>, String> {
+        tree_read_in(&TREE_READS, key, read)
+    }
+
+    /// [`tree_read`] over a given memo, so a test can hold its own.
+    pub fn tree_read_in(
+        memo: &TreeReads,
+        key: String,
+        read: impl FnOnce() -> Result<Vec<String>, String>,
+    ) -> Result<Vec<String>, String> {
+        let remembered = memo
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .as_ref()
+            .map(|m| m.get(&key).cloned());
+        match remembered {
+            None => read(),
+            Some(Some(paths)) => Ok(paths),
+            Some(None) => {
+                let paths = read()?;
+                if let Some(m) = memo
+                    .lock()
+                    .unwrap_or_else(std::sync::PoisonError::into_inner)
+                    .as_mut()
+                {
+                    m.insert(key, paths.clone());
+                }
+                Ok(paths)
+            }
+        }
+    }
+
     fn git(root: &Utf8Path, args: &[&str]) -> Result<Vec<u8>, String> {
         let out = Command::new("git")
             .arg("-C")
@@ -789,11 +854,18 @@ pub mod source {
         tree: &str,
         ex: &Exclusions,
     ) -> Result<Vec<String>, String> {
-        let mut moved = nul_paths(&git(root, &["diff", "--name-only", "-z", tree, "--"])?);
-        moved.extend(nul_paths(&git(
-            root,
-            &["ls-files", "--others", "--exclude-standard", "-z"],
-        )?));
+        let mut moved = tree_read(format!("diff\0{root}\0{tree}"), || {
+            Ok(nul_paths(&git(
+                root,
+                &["diff", "--name-only", "-z", tree, "--"],
+            )?))
+        })?;
+        moved.extend(tree_read(format!("others\0{root}"), || {
+            Ok(nul_paths(&git(
+                root,
+                &["ls-files", "--others", "--exclude-standard", "-z"],
+            )?))
+        })?);
         moved.retain(|p| !ex.excludes_from_tree(p));
         moved.sort();
         moved.dedup();
@@ -1415,9 +1487,52 @@ pub mod receipt {
 #[cfg(test)]
 mod source_tests {
     use super::source::{
-        glob_matches, is_authority_record, is_evidence_record, is_ticket_record,
-        is_verification_record,
+        TreeReads, glob_matches, is_authority_record, is_evidence_record, is_ticket_record,
+        is_verification_record, tree_read_in,
     };
+
+    /// t-eca6: off, every question is asked again; on, a tree read is asked
+    /// once and answered from memory after; an error is never remembered.
+    #[test]
+    fn tree_reads_are_remembered_only_when_turned_on() {
+        let calls = std::cell::Cell::new(0);
+        let read = || {
+            calls.set(calls.get() + 1);
+            Ok(vec![format!("moved-{}", calls.get())])
+        };
+        let off: TreeReads = std::sync::Mutex::new(None);
+        assert_eq!(
+            tree_read_in(&off, "k".into(), read),
+            Ok(vec!["moved-1".into()])
+        );
+        assert_eq!(
+            tree_read_in(&off, "k".into(), read),
+            Ok(vec!["moved-2".into()])
+        );
+
+        let on: TreeReads = std::sync::Mutex::new(Some(std::collections::HashMap::new()));
+        calls.set(0);
+        assert_eq!(
+            tree_read_in(&on, "k".into(), read),
+            Ok(vec!["moved-1".into()])
+        );
+        assert_eq!(
+            tree_read_in(&on, "k".into(), read),
+            Ok(vec!["moved-1".into()])
+        );
+        assert_eq!(calls.get(), 1, "the second read came from memory");
+        assert_eq!(
+            tree_read_in(&on, "other".into(), read),
+            Ok(vec!["moved-2".into()])
+        );
+
+        let failing = || Err("git failed".to_owned());
+        assert!(tree_read_in(&on, "err".into(), failing).is_err());
+        assert_eq!(
+            tree_read_in(&on, "err".into(), read),
+            Ok(vec!["moved-3".into()])
+        );
+    }
 
     #[test]
     fn globs_keep_star_within_a_segment_and_let_double_star_span() {
