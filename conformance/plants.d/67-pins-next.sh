@@ -34,10 +34,22 @@ signs = [a for a in v["actions"] if a["command"].startswith("war sign")]
 bad = [a for a in signs if a["actor"] == "agent"]
 sys.exit(1 if bad or (sys.argv[1] == "need" and not signs) else 0)' "$1"; }
 # The corpus answer is read once, timed (t-280c, below) and checked here.
-NX_S=$(date +%s%N)
-NX_CORPUS=$("$WAR" --json next 2>/dev/null)
-NX_RC=$?
-NX_MS=$(( ($(date +%s%N) - NX_S) / 1000000 ))
+# nx_timed_next: run `war --json next` on this corpus; set NX_CORPUS, NX_RC,
+# NX_MS (CPU: user + system, `war` and the git it runs) and NX_WALL_MS.
+nx_timed_next() {
+    local tmp times saved_tf="${TIMEFORMAT-}" had_tf="${TIMEFORMAT+set}"
+    tmp=$(mktemp -d)
+    TIMEFORMAT='%3R %3U %3S'
+    { time "$WAR" --json next > "$tmp/out" 2>/dev/null; } 2> "$tmp/time"
+    NX_RC=$?
+    if [[ -n "$had_tf" ]]; then TIMEFORMAT="$saved_tf"; else unset TIMEFORMAT; fi
+    NX_CORPUS=$(cat "$tmp/out")
+    times=$(tail -1 "$tmp/time")
+    NX_WALL_MS=$(awk '{ printf "%d", $1 * 1000 }' <<<"$times")
+    NX_MS=$(awk '{ printf "%d", ($2 + $3) * 1000 }' <<<"$times")
+    rm -rf "$tmp"
+}
+nx_timed_next
 if "$WAR" --root "$PLANT_ROOT" --json next 2>/dev/null | nx_no_agent_signs need \
     && printf '%s' "$NX_CORPUS" | nx_no_agent_signs any; then
     printf 'ok    %-34s no agent action is a signature\n' "next never hands an agent a signature"
@@ -49,22 +61,37 @@ fi
 
 # t-280c: `war next` on this corpus answers in bounded time. It took ~7 s
 # (debug build) when the dry run read the whole signing queue a second time
-# and every Warrant load re-parsed the SAS revisions; ~3 s after. The bound
-# is about 2x that, generous for a loaded machine, and below the old time so
-# the regression is caught. A fast answer is only a pass if it is also a
-# whole one: it exited 0, is an oh.war/next/v1 report, and hands no agent a
-# signature (the refusal above, over the same bytes).
+# and every Warrant load re-parsed the SAS revisions; ~3 s after. A fast
+# answer is only a pass if it is also a whole one: it exited 0, is an
+# oh.war/next/v1 report, and hands no agent a signature (the refusal above,
+# over the same bytes).
+#
+# The bound is on CPU time, not wall time (t-d052). The regression was work
+# done twice, and work is CPU; wall time also counts every moment the process
+# waited for a core, so three batteries at once on a loaded machine read
+# 6.2-7.7 s against the old 6000 ms wall bound with nothing regressed. CPU time
+# does not count the wait. Measured on one corpus (933448d2) at load average
+# ~42: the old binary 11.3-11.5 s CPU, the fixed one 4.8-4.9 s; idle, the old
+# one ~7 s. 6000 ms of CPU sits between them. A sample over the bound is taken
+# once more and the lower counts: a regression is over it both times, a
+# single descheduled-and-migrated sample is not.
 NX_BOUND_MS=6000
+if [[ $NX_RC -eq 0 && $NX_MS -ge $NX_BOUND_MS ]]; then
+    NX_FIRST_MS=$NX_MS
+    nx_timed_next
+    [[ $NX_FIRST_MS -lt $NX_MS ]] && NX_MS=$NX_FIRST_MS
+fi
 if [[ $NX_RC -eq 0 && $NX_MS -lt $NX_BOUND_MS ]] \
     && grep -q '"oh.war/next/v1"' <<<"$NX_CORPUS" \
     && printf '%s' "$NX_CORPUS" | nx_no_agent_signs any; then
-    printf 'ok    %-34s %s ms (< %s ms), no agent action is a signature\n' "next answers this corpus in time" "$NX_MS" "$NX_BOUND_MS"
+    printf 'ok    %-34s %s ms CPU (< %s ms; %s ms wall), no agent action is a signature\n' "next answers this corpus in time" "$NX_MS" "$NX_BOUND_MS" "$NX_WALL_MS"
     PASSED=$((PASSED + 1))
 else
-    printf 'FAIL  %-34s %s ms (bound %s ms), exit %s, or an agent action is a signature\n' "next answers this corpus in time" "$NX_MS" "$NX_BOUND_MS" "$NX_RC"
+    printf 'FAIL  %-34s %s ms CPU (bound %s ms; %s ms wall), exit %s, or an agent action is a signature\n' "next answers this corpus in time" "$NX_MS" "$NX_BOUND_MS" "$NX_WALL_MS" "$NX_RC"
     FAILED=$((FAILED + 1))
 fi
-unset NX_S NX_CORPUS NX_RC NX_MS NX_BOUND_MS
+unset NX_CORPUS NX_RC NX_MS NX_WALL_MS NX_BOUND_MS NX_FIRST_MS
+unset -f nx_timed_next
 # t-67ed: a ready ticket item is listed before any human act, as a claim.
 # The human acts stay listed after it, still judged, and still a human's.
 # Refusal: once the item is claimed it is no longer offered.

@@ -3,20 +3,20 @@
 # states from the records a resolution reads; the glossary rides in every
 # Dispatch; an em-dash in an agent-facing document is refused by name.
 
+SKILLS_TMP=$(mktemp -d)
+
 # OW-WAR-0067's milestones: M1 open, M2 waits on M1, M3 waits on M2.
 plant_cmd "an unblocked stage is OPEN" "OPEN" "OW-WAR-0067  STAGE-001" 0 \
     "true" frontier OW-WAR-0067
 plant_cmd "a stage behind an incomplete milestone is blocked" "blocked" "waits on M1" 0 \
     "true" frontier OW-WAR-0067
 plant_cmd "a dispatched stage is CLAIMED" "CLAIMED" "STAGE-001" 0 \
-    "\"\$WAR\" dispatch OW-WAR-0068 STAGE-001 --emit /tmp/openwarrant-plant-dispatch.json >/dev/null 2>&1; assert_present 'dispatch.compiled' docs/warrants/OW-WAR-0068/journal.jsonl" \
+    "\"\$WAR\" dispatch OW-WAR-0068 STAGE-001 --emit \"\$SKILLS_TMP/dispatch.json\" >/dev/null 2>&1; assert_present 'dispatch.compiled' docs/warrants/OW-WAR-0068/journal.jsonl" \
     frontier OW-WAR-0068
-rm -f /tmp/openwarrant-plant-dispatch.json
 plant_cmd "frontier --json carries its schema" "oh.war/frontier/v1" "blocked" 0 \
     "true" --json frontier OW-WAR-0067
 
 # The glossary is carried by the selector whenever it exists, and not invented when it does not.
-SKILLS_TMP=$(mktemp -d)
 "$WAR" dispatch OW-WAR-0047 STAGE-002 --emit-context "$SKILLS_TMP/with.json" >/dev/null 2>&1
 if grep -q '"CONTEXT.md"' "$SKILLS_TMP/with.json"; then
     printf 'ok    %-34s CONTEXT.md is a selected item\n' "the glossary rides in the Dispatch"
@@ -41,7 +41,13 @@ restore
 
 # writing-for-agents: an em-dash in a skill is refused by file and line.
 printf '\nA planted sentence — with an em-dash.\n' >> .claude/skills/war-grill/SKILL.md
-SKILLS_OUT=$(cargo xtask skills 2>&1); SKILLS_STATUS=$?
+# xtask is built apart from ./target/debug and run as a copy (battery_tool,
+# lib.sh; t-d052); it reads .claude/skills/ from this tree.
+if battery_tool "$SKILLS_TMP" xtask -p xtask; then
+    SKILLS_OUT=$("$SKILLS_TMP/xtask" skills 2>&1); SKILLS_STATUS=$?
+else
+    SKILLS_OUT="xtask did not build (battery_tool)"; SKILLS_STATUS=125
+fi
 git checkout -- .claude/skills/war-grill/SKILL.md
 if [[ $SKILLS_STATUS -ne 0 ]] && grep -q 'em-dash: .claude/skills/war-grill/SKILL.md' <<< "$SKILLS_OUT"; then
     printf 'ok    %-34s rejected by cargo xtask skills (file and line)\n' "an em-dash in a skill"

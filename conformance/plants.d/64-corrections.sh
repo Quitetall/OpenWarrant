@@ -70,7 +70,11 @@ effective_time = "$when"
 EOF
 }
 
-RESP=/tmp/openwarrant-plant-correction.toml
+# The response file lives in this plant's own temporary directory. It was a
+# fixed /tmp path, and two batteries running at once overwrote each other's
+# response between write and ingest (t-0e4f).
+CO_TMP=$(mktemp -d)
+RESP=$(mktemp "$CO_TMP/correction.XXXXXX")
 
 # 1. Drift with no correction record is still the error it always was.
 plant "a resolved deliverable drifted with no correction" "deliverable.digest-drift" "war correct" 2 \
@@ -166,4 +170,5 @@ plant_cmd "a correction on an unresolved warrant" "correction.not-resolved" "reg
     correct OW-WAR-0063 D-003 --response "$RESP"
 git checkout -- conformance/plants.d/00-corpus.sh 2>/dev/null || true
 
-rm -f "$RESP"
+rm -rf "$CO_TMP"
+unset CO_TMP RESP
