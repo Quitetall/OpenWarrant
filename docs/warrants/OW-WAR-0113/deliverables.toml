@@ -216,21 +216,9 @@ title = "docs/generated/CURRENT.md"
 kind = "document"
 target_ref = "docs/generated/CURRENT.md"
 required = true
-content_addressed = true
+content_addressed = false
 provenance_required = false
 obligation_refs = ["OBL-002"]
-
-[deliverable.provenance]
-producer = "claude"
-producing_attempt = "unrecorded"
-contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
-tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
-creation_method = "authored"
-content_digest = "sha256:ea3a681bfcd6e1f4463ee23493994285fa57b46839692fa75a8e606bb2be64da"
-media_type = "text/markdown"
-classification = "internal"
-retention = "repository-lifetime"
-source_holder = "git"
 
 [[deliverable]]
 id = "D-011"
@@ -238,21 +226,9 @@ title = "docs/generated/HISTORY.md"
 kind = "document"
 target_ref = "docs/generated/HISTORY.md"
 required = false
-content_addressed = true
+content_addressed = false
 provenance_required = false
 obligation_refs = ["OBL-002"]
-
-[deliverable.provenance]
-producer = "claude"
-producing_attempt = "unrecorded"
-contract_digest = "de4f417c01cbc9bd1504d343d9b394fbb8d073593884e545467df34dbd04b1f9"
-tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
-creation_method = "authored"
-content_digest = "sha256:3e565e1d0baf47a9fc8888f77bc507184a807de46a81e172bdcd2d4c5bd1817a"
-media_type = "text/markdown"
-classification = "internal"
-retention = "repository-lifetime"
-source_holder = "git"
 
 [[deliverable]]
 id = "D-012"

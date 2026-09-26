@@ -88,21 +88,9 @@ title = "The generated section index"
 kind = "file"
 target_ref = "docs/sas/generated/SECTIONS.json"
 required = true
-content_addressed = true
+content_addressed = false
 provenance_required = false
 obligation_refs = ["OBL-002"]
-
-[deliverable.provenance]
-producer = "claude"
-producing_attempt = "unrecorded"
-contract_digest = "c970ba32f4716c73adbc050153db292ef5952936aa0c3ea8a39c94ab87238660"
-tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
-creation_method = "authored"
-content_digest = "sha256:6194747e9011dbc8f3f0dd24e7c9bc21117ec550bc87ea76d1676915e09fc506"
-media_type = "application/json"
-classification = "internal"
-retention = "repository-lifetime"
-source_holder = "git"
 
 [[deliverable]]
 id = "D-006"
@@ -110,21 +98,9 @@ title = "The generated section index, for reading"
 kind = "file"
 target_ref = "docs/sas/generated/SECTIONS.md"
 required = true
-content_addressed = true
+content_addressed = false
 provenance_required = false
 obligation_refs = ["OBL-002"]
-
-[deliverable.provenance]
-producer = "claude"
-producing_attempt = "unrecorded"
-contract_digest = "c970ba32f4716c73adbc050153db292ef5952936aa0c3ea8a39c94ab87238660"
-tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
-creation_method = "authored"
-content_digest = "sha256:8df9a43caae2fec0337ebb6006ef73736b3bb53c0bfecf7ce7280a1b8449a380"
-media_type = "text/markdown"
-classification = "internal"
-retention = "repository-lifetime"
-source_holder = "git"
 
 [[deliverable]]
 id = "D-007"

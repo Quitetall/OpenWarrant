@@ -26,6 +26,9 @@
 //! Refusing the whole Warrant for it left every Warrant that shares a file
 //! with a later one (`lib.rs`, `sign.rs`, most of the corpus) undeliverable.
 //!
+//! A compiled projection (`deliver.projection`) is named and not recorded:
+//! `generated.drift` verifies it, and a digest of it cannot hold still.
+//!
 //! Any refusal refuses the whole command and nothing is written: a delivery
 //! recorded for three of four files reads, later, as a Warrant that
 //! delivered three.
@@ -167,6 +170,8 @@ pub fn run_with(
         |a| a.revision.contract_digest.clone(),
     );
     let ownership = crate::ownership::Ownership::index(repo)?;
+    let projections = crate::gate_cmd::source::Exclusions::of(repo);
+    let warrants = repo.config.paths.warrants.to_string();
     let tool = crate::build_identity::version_line();
 
     let mut edits: Vec<(String, ArtifactProvenance)> = Vec::new();
@@ -203,6 +208,25 @@ pub fn run_with(
                 continue;
             }
         };
+        // A compiled projection (CURRENT.md, a Warrant's generated/ views) is
+        // whatever its records compile to, and `generated.drift` is its check.
+        // A pinned digest of it cannot hold still: the projections render each
+        // deliverable's digest status, so compiling one moves its own bytes
+        // and the next compile reads it drifted (t-88d2).
+        if projections.excludes(path)
+            && !crate::gate_cmd::source::is_evidence_record(path, &warrants)
+        {
+            report.push(Diagnostic::pass(
+                "deliver.projection",
+                format!(
+                    "{alias}: {} → {} is a compiled projection; not recorded — its bytes are \
+                     what the records compile to, and `war check --generated` is what verifies \
+                     them",
+                    d.id, d.target_ref
+                ),
+            ));
+            continue;
+        }
         // OW-ADR-0021: a path a Warrant authorized after this one governs is
         // that Warrant's now. Only an AUTHORIZED Warrant can be earlier than
         // another; a draft that declares a governed path becomes its owner

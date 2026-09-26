@@ -9,7 +9,8 @@
 # `war check` clean; again, and nothing moves. Refused, each with nothing
 # written: a missing file (and the whole command with it), an id the Warrant
 # does not declare, and a path a LATER authorized Warrant governs
-# (OW-ADR-0021) — while that later Warrant records the same path. The
+# (OW-ADR-0021) — while that later Warrant records the same path — and a
+# compiled projection, which `generated.drift` verifies instead. The
 # resolved-Warrant refusal is in 55-prepare.sh, which resolves one.
 #
 # A scratch program (DL), a key generated here, and a throwaway ssh-agent
@@ -62,6 +63,16 @@ id = "D-003"
 title = "a file nobody wrote"
 kind = "file"
 target_ref = "src/missing.txt"
+required = false
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+
+[[deliverable]]
+id = "D-004"
+title = "the master document, compiled"
+kind = "document"
+target_ref = "docs/generated/CURRENT.md"
 required = false
 content_addressed = false
 provenance_required = false
@@ -199,6 +210,18 @@ if [[ $DL_STATUS -eq 0 ]] && [[ "$(dl_pin "$DL_B" D-001)" == "$DL_WANT" ]]; then
     dl_ok "the governing Warrant delivers it" "$DL_B/D-001 content addressed at src/a.txt's bytes"
 else
     dl_fail "the governing Warrant delivers it" "exit $DL_STATUS: $(dl_line "$DL_OUT")"
+fi
+
+# 5. Not recorded: a compiled projection. Its bytes are what the records
+#    compile to (`generated.drift` checks them); a pinned digest of CURRENT.md
+#    moves the moment it is compiled, since it renders digest status (t-88d2).
+DL_BEFORE=$(dl_sha "$DL_M")
+DL_OUT=$(dl_war deliver "$DL_A" D-004 2>&1); DL_STATUS=$?
+if [[ $DL_STATUS -eq 0 ]] && grep -qE "^PASS +deliver\.projection .*D-004 → docs/generated/CURRENT.md is a compiled projection" <<<"$DL_OUT" \
+    && ! grep -q 'deliver.recorded' <<<"$DL_OUT" && [[ "$(dl_sha "$DL_M")" == "$DL_BEFORE" ]]; then
+    dl_ok "a compiled projection is not pinned" "deliver.projection names D-004; nothing written"
+else
+    dl_fail "a compiled projection is not pinned" "exit $DL_STATUS: $(dl_line "$DL_OUT")"
 fi
 
 command rm -rf "$DL_TMP"
