@@ -343,19 +343,34 @@ for a in acts:
     WL_N=$(wl_nonce "$WL_AP" "$WL_T/jar1")
     WL_R1=$(wl_curl "$WL_AP" -b "$WL_T/jar1" -H "Origin: $WL_AB" -H 'Content-Type: application/json' \
         -d "{\"id\":\"$WL_REM\",\"nonce\":\"$WL_N\"}" -o /dev/null -w '%{http_code}' "$WL_AB/api/act")
-    for _ in $(seq 1 120); do
-        grep -q '"state":"done"' <(curl -s -H "Authorization: Bearer $WL_TOK" "http://$WL_LHOST/api/act") && break
+    # t-470e: the contract is 202, then the act. The server logs the act and
+    # sets the state to running before it answers 202; the remedy (`war
+    # compile`, a child process) runs after, and GET /api/act says `done`
+    # with its id and exit when it has finished. So wait for THIS act's
+    # `done` — not any `done` — bounded in wall-clock time, not in polls
+    # (a poll is slow on a loaded machine), require exit 0, and only then
+    # ask `war check`. A failure names which of these did not hold.
+    WL_WAIT_END=$((SECONDS + 180))
+    WL_DONE=""
+    while ((SECONDS < WL_WAIT_END)); do
+        WL_DONE=$(curl -s -H "Authorization: Bearer $WL_TOK" "http://$WL_LHOST/api/act" | python3 -c '
+import sys, json
+s = json.load(sys.stdin)
+if s.get("state") == "done" and s.get("id") == sys.argv[1]:
+    x = s.get("exit")
+    print("exit", x if x == 0 else "%s: %s" % (x, " ".join(str(s.get("output", "")).split())[:160]))' "$WL_REM" 2>/dev/null)
+        [[ -n "$WL_DONE" ]] && break
         sleep 0.5
     done
     WL_R2=$(wl_curl "$WL_AP" -b "$WL_T/jar1" -H "Origin: $WL_AB" -H 'Content-Type: application/json' \
         -d "{\"id\":\"$WL_REM\",\"nonce\":\"$WL_N\"}" -w ' %{http_code}' "$WL_AB/api/act")
     sleep 1
     WL_LINES=$(grep -ac "war ui: act $WL_REM: war --root .* compile — from device" "$WL_T/A.log")
-    if [[ -n "$WL_REM" && "$WL_R1" == 202 && "$WL_LINES" == 1 ]] \
-        && ! grep -q '^ERROR relations.child-listed' <<<"$("$WAR" --root "$PLANT_ROOT" check 2>/dev/null)"; then
+    WL_LEFT=$(grep -c '^ERROR relations.child-listed' <<<"$("$WAR" --root "$PLANT_ROOT" check 2>/dev/null)")
+    if [[ -n "$WL_REM" && "$WL_R1" == 202 && "$WL_LINES" == 1 && "$WL_DONE" == "exit 0" && "$WL_LEFT" == 0 ]]; then
         wl_ok "OBL-003 an auto remedy with a fresh nonce" "202; ran war compile once; the error is gone"
     else
-        wl_fail "OBL-003 an auto remedy with a fresh nonce" "id '$WL_REM' → $WL_R1; act log lines $WL_LINES"
+        wl_fail "OBL-003 an auto remedy with a fresh nonce" "id '$WL_REM' → $WL_R1; act log lines $WL_LINES; act ${WL_DONE:-not done in 180 s}; child-listed errors left $WL_LEFT"
     fi
     if [[ "$WL_R2" == *act.nonce-used*409 && "$WL_LINES" == 1 ]]; then
         wl_ok "OBL-002 an act replayed with its nonce" "409 act.nonce-used; the act log has one line"

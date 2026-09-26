@@ -94,6 +94,58 @@ connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-a
 
 const HEADER_LIMIT: usize = 8192;
 const BODY_LIMIT: usize = 4096;
+/// After a refusal, how many unread request bytes the server discards, and
+/// for how long, before it closes (t-26ca). Bounded both ways: a client
+/// that keeps sending is cut off, never read to its end.
+const DRAIN_LIMIT: usize = 64 * 1024;
+const DRAIN_TIME: Duration = Duration::from_secs(1);
+
+/// The command an act runs: this server's own binary (t-470e).
+/// `current_exe()` names a path, and when the file at that path is
+/// replaced while the server runs — a rebuild, an upgrade — the path names
+/// a deleted file and the act fails to start (`exit -1`, "No such file or
+/// directory") after the page said 202. On Linux `/proc/self/exe`, opened
+/// by the child that forks from this server, is the running binary's own
+/// inode whatever happened to the path, so the act runs the binary that
+/// built the allowlist; its argv\[0\] stays `war`. Elsewhere, `current_exe()`.
+fn war_command() -> std::io::Result<std::process::Command> {
+    #[cfg(target_os = "linux")]
+    {
+        let proc_exe = std::path::Path::new("/proc/self/exe");
+        if proc_exe.exists() {
+            use std::os::unix::process::CommandExt;
+            let mut c = std::process::Command::new(proc_exe);
+            c.arg0("war");
+            return Ok(c);
+        }
+    }
+    std::env::current_exe().map(std::process::Command::new)
+}
+
+/// Close a connection whose response is written without resetting it
+/// (t-26ca). A refusal stops reading mid-request; closing a socket with
+/// unread bytes makes the kernel send RST, and a client that has not yet
+/// read the answer loses it (curl: status 000, "connection reset by
+/// peer"). So: end our side (FIN after the response), then discard what
+/// the client still sends until it closes, up to [`DRAIN_LIMIT`] bytes
+/// and [`DRAIN_TIME`], then close.
+fn drain_and_close(tcp: &mut TcpStream) {
+    let _ = tcp.flush();
+    let _ = tcp.shutdown(std::net::Shutdown::Write);
+    let until = Instant::now() + DRAIN_TIME;
+    let mut seen = 0usize;
+    let mut sink = [0u8; 4096];
+    while seen < DRAIN_LIMIT {
+        let left = until.saturating_duration_since(Instant::now());
+        if left.is_zero() || tcp.set_read_timeout(Some(left)).is_err() {
+            break;
+        }
+        match tcp.read(&mut sink) {
+            Ok(0) | Err(_) => break,
+            Ok(n) => seen += n,
+        }
+    }
+}
 
 fn err(s: impl std::fmt::Display) -> RepoError {
     RepoError::Message(s.to_string())
@@ -548,6 +600,15 @@ fn json_response(stream: &mut Conn, status: &str, v: &Value) -> std::io::Result<
     )
 }
 
+/// A read that ran into the socket's read timeout: the peer paused, it did
+/// not end. The caller's deadline decides when a pause is too long.
+pub(crate) fn stalled(e: &std::io::Error) -> bool {
+    matches!(
+        e.kind(),
+        std::io::ErrorKind::WouldBlock | std::io::ErrorKind::TimedOut
+    )
+}
+
 /// Read one request within the bounds, or say which bound it broke. The
 /// caller has set the socket's read timeout.
 fn read_request(stream: &mut dyn Read) -> Result<Request, (&'static str, &'static str)> {
@@ -565,8 +626,12 @@ fn read_request(stream: &mut dyn Read) -> Result<Request, (&'static str, &'stati
             ));
         }
         match stream.read(&mut chunk) {
-            Ok(0) | Err(_) => return Err(("400 Bad Request", "incomplete request")),
-            Ok(n) => bytes.extend_from_slice(&chunk[..n]),
+            Ok(n) if n > 0 => bytes.extend_from_slice(&chunk[..n]),
+            // A read that times out is a pause, not an end: the deadline
+            // above is the bound (t-26ca). Under load a client can stall
+            // longer than one read's timeout mid-request.
+            Err(e) if stalled(&e) => {}
+            Ok(_) | Err(_) => return Err(("400 Bad Request", "incomplete request")),
         }
     };
     let head = String::from_utf8_lossy(&bytes[..head_end]).into_owned();
@@ -602,8 +667,9 @@ fn read_request(stream: &mut dyn Read) -> Result<Request, (&'static str, &'stati
             return Err(("408 Request Timeout", "body not received in time"));
         }
         match stream.read(&mut chunk) {
-            Ok(0) | Err(_) => return Err(("400 Bad Request", "incomplete body")),
-            Ok(n) => body.extend_from_slice(&chunk[..n]),
+            Ok(n) if n > 0 => body.extend_from_slice(&chunk[..n]),
+            Err(e) if stalled(&e) => {}
+            Ok(_) | Err(_) => return Err(("400 Bad Request", "incomplete body")),
         }
     }
     body.truncate(len);
@@ -690,7 +756,9 @@ impl Server {
         let req = match read_request(stream.io) {
             Ok(r) => r,
             Err((status, why)) => {
-                return respond(stream, status, "text/plain", why.as_bytes());
+                let answered = respond(stream, status, "text/plain", why.as_bytes());
+                drain_and_close(&mut tcp);
+                return answered;
             }
         };
         // The Host is exactly the bound loopback address; an Origin, when
@@ -754,6 +822,9 @@ impl Server {
         }
         tls.conn.send_close_notify();
         let _ = tls.flush();
+        // A refusal leaves request bytes unread here too; the answer must
+        // not be lost to a reset (t-26ca).
+        drain_and_close(&mut tls.sock);
     }
 
     fn serve_lan(&self, stream: &mut Conn, lan: &Lan, peer: &str) -> std::io::Result<()> {
@@ -1448,10 +1519,9 @@ impl Server {
                         }
                     })
                     .collect();
-                let text = std::env::current_exe()
-                    .and_then(|exe| {
-                        std::process::Command::new(exe)
-                            .arg("--root")
+                let text = war_command()
+                    .and_then(|mut c| {
+                        c.arg("--root")
                             .arg(root.as_str())
                             .args(&dry)
                             .current_dir(root.as_str())
@@ -1479,9 +1549,8 @@ impl Server {
                     return;
                 }
             }
-            let out = std::env::current_exe().and_then(|exe| {
-                std::process::Command::new(exe)
-                    .arg("--root")
+            let out = war_command().and_then(|mut c| {
+                c.arg("--root")
                     .arg(root.as_str())
                     .args(&argv)
                     .current_dir(root.as_str())
@@ -1906,6 +1975,91 @@ fn help(repo: &Repository) -> Result<Value, RepoError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// t-26ca: a client sends an oversized request, then reads the answer
+    /// only after the server has finished with the connection — a busy
+    /// machine's order of events. `graceful` is the server's refusal path
+    /// with [`drain_and_close`]; without it the socket is dropped with
+    /// request bytes unread. Returns what the client read, or its error.
+    fn refuse_then_read_late(graceful: bool) -> std::io::Result<String> {
+        let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
+        let addr = listener.local_addr().expect("addr");
+        let mut server = Some(std::thread::spawn(move || {
+            let (mut tcp, _) = listener.accept().expect("accept");
+            let _ = tcp.set_read_timeout(Some(Duration::from_secs(1)));
+            let refused = read_request(&mut tcp)
+                .err()
+                .expect("an oversized request is refused");
+            {
+                let mut conn = Conn {
+                    io: &mut tcp,
+                    extra: "",
+                };
+                respond(&mut conn, refused.0, "text/plain", refused.1.as_bytes()).expect("write");
+            }
+            if graceful {
+                drain_and_close(&mut tcp);
+            }
+        }));
+        let mut client = TcpStream::connect(addr).expect("connect");
+        let big = "a".repeat(9000);
+        client
+            .write_all(format!("GET / HTTP/1.1\r\nHost: x\r\nX-Big: {big}\r\n\r\n").as_bytes())
+            .expect("send");
+        if !graceful && let Some(s) = server.take() {
+            s.join().expect("server");
+        }
+        std::thread::sleep(Duration::from_millis(100));
+        let mut got = String::new();
+        let read = client.read_to_string(&mut got);
+        drop(client);
+        if let Some(s) = server {
+            s.join().expect("server");
+        }
+        read.map(|_| got)
+    }
+
+    /// A client that pauses mid-request for longer than one read's timeout
+    /// but inside the deadline is read to the end, not refused as
+    /// incomplete (t-26ca: under load, one of fifty oversized requests got
+    /// 400 instead of 431 this way).
+    #[test]
+    fn a_pause_shorter_than_the_deadline_is_not_the_end_of_a_request() {
+        let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
+        let addr = listener.local_addr().expect("addr");
+        let client = std::thread::spawn(move || {
+            let mut c = TcpStream::connect(addr).expect("connect");
+            c.write_all(b"GET /x HTTP/1.1\r\nHost: h\r\n")
+                .expect("first half");
+            std::thread::sleep(Duration::from_millis(1300));
+            c.write_all(b"X-After: pause\r\n\r\n").expect("second half");
+            c
+        });
+        let (mut tcp, _) = listener.accept().expect("accept");
+        let _ = tcp.set_read_timeout(Some(Duration::from_secs(1)));
+        let req = read_request(&mut tcp)
+            .map_err(|e| e.1)
+            .expect("read to the end");
+        assert_eq!(req.path, "/x");
+        assert_eq!(req.header("x-after"), ["pause"]);
+        drop(client.join().expect("client"));
+    }
+
+    #[test]
+    fn a_refusal_reaches_a_client_that_reads_late() {
+        let got = refuse_then_read_late(true).expect("no reset");
+        assert!(got.starts_with("HTTP/1.1 431 "), "{got}");
+        assert!(got.ends_with("request limit exceeded"), "{got}");
+    }
+
+    /// The control: the same refusal without the drain is lost to a reset,
+    /// which is what curl reported as status 000.
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn without_the_drain_the_refusal_is_lost_to_a_reset() {
+        let err = refuse_then_read_late(false).expect_err("the kernel resets");
+        assert_eq!(err.kind(), std::io::ErrorKind::ConnectionReset, "{err}");
+    }
 
     #[test]
     fn the_csp_allows_no_inline_code() {
