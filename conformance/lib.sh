@@ -396,6 +396,25 @@ plant_quiet_grep_pipes() {
         }' "$1"
 }
 
+# plant_quiet_grep_held <file>: true when <file> is one whose exact bytes an
+# obligation holds, so it may not be converted: its name and sha256 are below.
+# Any other bytes under that name are scanned like every file.
+#
+#   63-webui.sh  OW-WAR-0139 OBL-005: "63-webui.sh passes unmodified"; 59-webui-lan
+#                checks this digest. Its three quiet-grep pipes (ss | awk, and the
+#                source grep) stay until an amendment of OW-WAR-0139 releases it.
+PLANT_QUIET_GREP_HELD=(
+    "63-webui.sh 0397209b30e60b7aab726f1742ba7556c844e671f2df1a81692cd0d9ac376a79"
+)
+plant_quiet_grep_held() {
+    local _qh_entry _qh_sum
+    _qh_sum=$(sha256sum "$1" | cut -d' ' -f1)
+    for _qh_entry in "${PLANT_QUIET_GREP_HELD[@]}"; do
+        [[ "$_qh_entry" == "$(basename "$1") $_qh_sum" ]] && return 0
+    done
+    return 1
+}
+
 # plant_files_in <dir>: the plant files, one per line, in byte order.
 plant_files_in() {
     local LC_ALL=C
@@ -437,7 +456,7 @@ plant_fixed_tmp_paths() {
 # run_plant_files <file...>: source each in turn under the rules above. A file
 # that names a fixed /tmp path, or that pipes into a quiet grep, is not run: it
 # is FAILED by name, with the line (plant_fixed_tmp_paths,
-# plant_quiet_grep_pipes).
+# plant_quiet_grep_pipes; plant_quiet_grep_held names the one exception).
 run_plant_files() {
     local _rpf_file _rpf_base _rpf_now _rpf_leak _rpf_line _rpf_tmp _rpf_pipe
     local -a _rpf_files=("$@")
@@ -459,7 +478,7 @@ run_plant_files() {
             continue
         fi
         _rpf_pipe=$(plant_quiet_grep_pipes "$_rpf_file")
-        if [[ -n "$_rpf_pipe" ]]; then
+        if [[ -n "$_rpf_pipe" ]] && ! plant_quiet_grep_held "$_rpf_file"; then
             printf 'FAIL  %-34s pipes into a quiet grep, so it was not run (capture first; line_has): %s\n' \
                 "$(basename "$_rpf_file")" "$(head -1 <<<"$_rpf_pipe")"
             FAILED=$((FAILED + 1))
