@@ -12,7 +12,9 @@
 # closed cleanly (curl exit 0), and likewise every oversized body is 413,
 # with RF_PAR clients at once and a CPU burner per core running. Refused:
 # the same requests are refusals — nothing is served, and the server is
-# still up and answering a normal request after them.
+# still up and answering a normal request after them. And (t-5f49) a
+# socket that sends nothing is answered 408 when the time bound runs out,
+# never 431, while the page is served beside it.
 
 echo "== web ui refusals under load (t-26ca) =="
 PLANT_ROOT=$(scratch_corpus RF)
@@ -61,6 +63,35 @@ else
         printf 'ok    %-34s %s of %s answered 413, closed cleanly\n' "oversized bodies under load" "$RF_N" "$RF_N"; PASSED=$((PASSED + 1))
     else
         printf 'FAIL  %-34s count status exit: %s\n' "oversized bodies under load" "$RF_BDY"; FAILED=$((FAILED + 1))
+    fi
+    # t-5f49: a socket that sends nothing does not hold the page — it is
+    # read on its own thread — and when the time bound runs out it is
+    # answered 408, not 431: it sent nothing too large. (Under load the
+    # bound once ran out on a client starved of CPU, whose ordinary headers
+    # and oversized body were answered 431.)
+    RF_PORT=${RF_HOST##*:}
+    if exec {RF_FD}<>"/dev/tcp/127.0.0.1/$RF_PORT"; then
+        # Order, not a stopwatch: a client under load can be starved for
+        # seconds, so the page's wall time proves nothing. The page must be
+        # answered while the silent socket is still open and unanswered; a
+        # server that read connections one after another would answer the
+        # silent socket (at its time bound) before it got to the page.
+        RF_BESIDE=$(curl -s -m 10 -o /dev/null -w '%{http_code}' "$RF_B/")
+        RF_EARLY=$(timeout 0.5 head -c 1 <&"$RF_FD" | od -An -c | tr -d ' \n')
+        if [[ "$RF_BESIDE" == 200 && -z "$RF_EARLY" ]]; then
+            printf 'ok    %-34s the page is 200 while it is still unanswered\n' "a silent socket holds nothing"; PASSED=$((PASSED + 1))
+        else
+            printf 'FAIL  %-34s page %s; the silent socket had already been answered: %s\n' "a silent socket holds nothing" "$RF_BESIDE" "${RF_EARLY:-no}"; FAILED=$((FAILED + 1))
+        fi
+        RF_SILENT=$(timeout 30 head -c 200 <&"$RF_FD" | head -1 | tr -d '\r')
+        exec {RF_FD}<&-
+        if [[ "$RF_SILENT" == "HTTP/1.1 408 "* ]]; then
+            printf 'ok    %-34s %s\n' "a silent socket is 408, not 431" "$RF_SILENT"; PASSED=$((PASSED + 1))
+        else
+            printf 'FAIL  %-34s got %q\n' "a silent socket is 408, not 431" "$RF_SILENT"; FAILED=$((FAILED + 1))
+        fi
+    else
+        printf 'FAIL  %-34s could not open a socket to %s\n' "a silent socket holds nothing" "$RF_PORT"; FAILED=$((FAILED + 1))
     fi
     # The server survived them: the page is still served.
     RF_AFTER=$(curl -s -o /dev/null -w '%{http_code}' "$RF_B/")
