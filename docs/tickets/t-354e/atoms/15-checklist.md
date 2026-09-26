@@ -1,5 +1,5 @@
 # Checklist
 
-- [ ] Unset the verifier env in lib.sh; plants set what they need (i-2795)
-- [ ] Audit other env vars the plants read (i-eb08)
-- [ ] Plant: the battery's totals are identical with and without CLAUDE_PERFORMER_MODEL exported (i-45af)
+- [x] Unset the verifier env in lib.sh; plants set what they need (i-2795) — done by claude, 2026-09-26: bcdbb94f: lib.sh unsets CLAUDE_{PERFORMER,VERIFIER,DRAFTER}_MODEL, CLAUDE_{PERFORMER,VERIFIER,DRAFTER}_LOG, CLAUDE_BIN before any plant; plants that need one already set it on the command (62-verifier vf … CLAUDE_PERFORMER_MODEL=…).
+- [x] Audit other env vars the plants read (i-eb08) — done by claude, 2026-09-26: Audited env::var in crates/ and $VARS in conformance/tools. Also unset: OPENWARRANT_ACTOR, OPENWARRANT_FAULT{,_FILE}, OPENWARRANT_TEST_BATCH_{KILL,FAIL}_AFTER, OPENWARRANT_RELEASES_URL, VISUAL, EDITOR, repository-locating GIT_* (GIT_DIR etc., a battery from a git hook), SSH_AUTH_SOCK/SSH_AGENT_PID. XDG_STATE/CACHE/DATA_HOME point at a battery-owned temp dir (63-webui and 46-webui-tickets used the caller's pairing state). HOME, XDG_CONFIG_HOME, PATH left, reasons in lib.sh.
+- [x] Plant: the battery's totals are identical with and without CLAUDE_PERFORMER_MODEL exported (i-45af) — done by claude, 2026-09-26: Plant 62-battery-env.sh: 45-tickets+62-verifier in a child battery, totals 27 0 with and without CLAUDE_*/OPENWARRANT_ACTOR/VISUAL/EDITOR exported, no verifier log written; refusal: CLAUDE_PERFORMER_MODEL re-exported after lib.sh gives 26 1 with 'independence only where true' FAIL.
