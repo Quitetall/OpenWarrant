@@ -55,7 +55,8 @@ drafter_timeout_secs = 1'; \
 # untracked, so it is removed here rather than by `restore`.
 plan_set_drafter "drafter_argv = [\"bash\", \"$FX/drafter/echo-proposal.sh\"]
 drafter_name = \"echo-fixture\""
-APPLY_OUT=$("$WAR" --json plan "add a changelog" --draft --reviewed --apply --out /tmp/openwarrant-plant-proposal.json 2>/dev/null)
+PLAN_TMP=$(mktemp -d)
+APPLY_OUT=$("$WAR" --json plan "add a changelog" --draft --reviewed --apply --out "$PLAN_TMP/proposal.json" 2>/dev/null)
 APPLY_STATUS=$?
 NEW_ALIAS=$(printf '%s' "$APPLY_OUT" | python3 -c 'import sys, json
 try:
@@ -75,7 +76,8 @@ else
     FAILED=$((FAILED + 1))
 fi
 [[ -n "$NEW_DIR" ]] && rm -rf "docs/warrants/$NEW_DIR"
-rm -f /tmp/openwarrant-plant-proposal.json
+rm -rf "$PLAN_TMP"
+unset PLAN_TMP
 git checkout -- docs/adr/ docs/warrants/generated 2>/dev/null || true
 
 # §91.8 test 57 — validating the same proposal twice yields byte-identical

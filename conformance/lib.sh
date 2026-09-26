@@ -250,6 +250,39 @@ plant_war() {
 
 trap 'restore; scratch_corpora_gone' EXIT
 
+# battery_tool <dest-dir> <binary> <cargo build args...>
+#
+# Build a tool the battery needs and `./target/debug/war` is not (the schema
+# generator behind the `schema` feature; xtask), and copy its binary to
+# <dest-dir>/<binary>, a path only this battery runs. Returns non-zero, with
+# cargo's output on stderr, when the build fails.
+#
+# Why not `cargo run` (t-d052): the battery gate runs each battery in its own
+# clone with CARGO_TARGET_DIR pointing at ONE shared build directory. A
+# `cargo run` from a clone sees sources at a new path, rebuilds, and replaces
+# `<target>/debug/war` by unlink-then-link while every other battery is
+# executing that path: a battery that starts `war` in the gap gets exit 127, or
+# empty output where it wanted JSON. And a `--features schema` build left the
+# schema-featured war, with whatever pack a plant had planted, as the binary
+# every later plant ran. So the tools build into a directory of their own,
+# `<target>/battery-tools`, never the one `$WAR` lives in, under a lock so
+# two batteries do not copy a binary out while the other relinks it; the copy
+# is what runs. What a tool reads comes from its working directory (this
+# tree), not from where it was built.
+battery_tool() {
+    local dest="$1" bin="$2" tools
+    shift 2
+    tools="$(cd "$REPO_ROOT" && readlink -f "${CARGO_TARGET_DIR:-target}")/battery-tools" || return 1
+    mkdir -p "$tools" || return 1
+    (
+        # flock where it exists (util-linux); without it, cargo's own lock
+        # still serialises the builds and only the copy can race.
+        if command -v flock >/dev/null 2>&1; then flock 9 || exit 1; fi
+        CARGO_TARGET_DIR="$tools" cargo build -q "$@" >&2 || exit 1
+        command cp "$tools/debug/$bin" "$dest/$bin"
+    ) 9>"$tools/.lock"
+}
+
 # ---- running the plant files (t-dc28) --------------------------------------
 #
 # `plants.d/NN-<name>.sh`: the NN is a GROUPING, not an id. Branches add plant
@@ -283,9 +316,34 @@ plant_tree_state() {
     git -C "$REPO_ROOT" status --porcelain --untracked-files=all -- "${PLANT_PATHS[@]}"
 }
 
-# run_plant_files <file...>: source each in turn under the rules above.
+# plant_fixed_tmp_paths <file>: each line of <file> that names a fixed path
+# under /tmp, as "N: <line>"; nothing when there is none.
+#
+# Batteries run side by side (one `ops.conformance.plants@1.1.0` gate per
+# Warrant, each in its own clone), and a fixed path under /tmp is the one
+# thing their clones still share: two batteries overwrite each other's file
+# between a write and the read that follows it (t-0e4f: plant 64's correction
+# response). A plant's scratch file belongs in a directory from `mktemp -d`.
+# What counts: a path that STARTS at /tmp/ (not .../tmp/ inside another
+# path, not `${TMPDIR:-/tmp}/`, which is the temp root and never fixed), on a
+# line that is not a comment, unless the path is a mktemp template (XXX).
+plant_fixed_tmp_paths() {
+    awk '
+        /^[[:space:]]*#/ { next }
+        {
+            s = $0
+            while (match(s, /(^|[^A-Za-z0-9_.}\/~-])\/tmp\/[^[:space:]"'"'"'`;)|&<>]*/)) {
+                if (substr(s, RSTART, RLENGTH) !~ /XXX/) { printf "%d: %s\n", NR, $0; break }
+                s = substr(s, RSTART + RLENGTH)
+            }
+        }' "$1"
+}
+
+# run_plant_files <file...>: source each in turn under the rules above. A file
+# that names a fixed /tmp path is not run: it is FAILED by name, with the line
+# (plant_fixed_tmp_paths).
 run_plant_files() {
-    local _rpf_file _rpf_base _rpf_now _rpf_leak _rpf_line
+    local _rpf_file _rpf_base _rpf_now _rpf_leak _rpf_line _rpf_tmp
     local -a _rpf_files=("$@")
     # A sourced file would see these positional parameters; it gets none.
     set --
@@ -297,6 +355,13 @@ run_plant_files() {
         # to test.
         unset PLANT_ROOT
         cd "$REPO_ROOT" || exit 1
+        _rpf_tmp=$(plant_fixed_tmp_paths "$_rpf_file")
+        if [[ -n "$_rpf_tmp" ]]; then
+            printf 'FAIL  %-34s names a fixed /tmp path, so it was not run (use mktemp -d): %s\n' \
+                "$(basename "$_rpf_file")" "$(head -1 <<<"$_rpf_tmp")"
+            FAILED=$((FAILED + 1))
+            continue
+        fi
         restore
         # shellcheck source=/dev/null
         source "$_rpf_file"
