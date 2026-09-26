@@ -53,6 +53,24 @@ st_ok() { printf 'ok    %-34s %s\n' "$1" "$2"; PASSED=$((PASSED + 1)); }
 st_fail() { printf 'FAIL  %-34s %s\n' "$1" "$2"; FAILED=$((FAILED + 1)); }
 st_errors() { grep -E '^(ERROR|WARN|UNKNOWN)' <<<"$1" | head -3 | tr '\n' '|'; }
 st_tree() { (cd "$1" && find . -type f -print0 | sort -z | xargs -0 sha256sum) | sha256sum | cut -d' ' -f1; }
+# st_snap <dir>: one `<sha256>  ./<path>` line per file, so a changed tree can
+# say WHICH paths moved (t-0f24), not only that its digest did.
+st_snap() { (cd "$1" && find . -type f -print0 | sort -z | xargs -0 sha256sum); }
+# st_moved <before> <after>: the paths whose line differs, space-separated.
+st_moved() { diff <(printf '%s\n' "$1") <(printf '%s\n' "$2") | sed -n 's/^[<>] [0-9a-f]*  //p' | sort -u | tr '\n' ' '; }
+# st_line_has <text> <ERE> <fixed>: some line matches ERE and contains fixed.
+#
+# Not `grep -E … | grep -q …`: under `set -o pipefail` the second grep exits
+# at its first match, and when the first has more than one pipe buffer's worth
+# of matching lines to write (the `**` refusal names 21 authority paths, 6 KB)
+# its next write takes SIGPIPE and the pipeline reads false. That is what
+# failed 'propose refuses **' once in three concurrent batteries (t-0f24):
+# 10 in 2000 evaluations of that pipeline over the same bytes, unloaded.
+st_line_has() {
+    local lines
+    lines=$(grep -E -- "$2" <<<"$1") || return 1
+    grep -qF -- "$3" <<<"$lines"
+}
 st_commit() { git -C "$1" add -A >/dev/null 2>&1; git -C "$1" -c user.email=plant@invalid -c user.name=plant commit -qm "$2" >/dev/null 2>&1; }
 
 # st_corpus <NS> → root. The plant signer is the only human who may sign;
@@ -308,25 +326,37 @@ SA_STANDING="$SA/docs/authority/standing"
 for bad in "docs/authority/roles.toml" "docs/authority/allowed_signers" "openwarrant.toml" \
     "crates/openwarrant-cli/src/sign.rs" "**" "docs/**"; do
     st_class "$ST_TMP/bad.toml" "bad" 1 "\"$bad\""
-    SA_BEFORE=$(st_tree "$SA/docs")
+    SA_BEFORE=$(st_snap "$SA/docs")
     SA_OUT=$("$WAR" --root "$SA" standing propose "$ST_TMP/bad.toml" 2>&1); SA_STATUS=$?
-    if [[ $SA_STATUS -ne 0 ]] && grep -E '^ERROR +standing\.never-coverable' <<<"$SA_OUT" | grep -qF -- "\`$bad\`" \
-        && [[ "$(st_tree "$SA/docs")" == "$SA_BEFORE" ]]; then
+    SA_AFTER=$(st_snap "$SA/docs")
+    # Each condition named on failure, and the paths that moved (t-0f24).
+    SA_WHY=()
+    [[ $SA_STATUS -ne 0 ]] || SA_WHY+=("exit 0")
+    st_line_has "$SA_OUT" '^ERROR +standing\.never-coverable' "\`$bad\`" \
+        || SA_WHY+=("no ERROR standing.never-coverable naming \`$bad\`")
+    [[ "$SA_AFTER" == "$SA_BEFORE" ]] || SA_WHY+=("docs/ moved: $(st_moved "$SA_BEFORE" "$SA_AFTER")")
+    if [[ ${#SA_WHY[@]} -eq 0 ]]; then
         st_ok "propose refuses $bad" "standing.never-coverable, nothing written"
     else
-        st_fail "propose refuses $bad" "exit $SA_STATUS: $(st_errors "$SA_OUT")"
+        st_fail "propose refuses $bad" "exit $SA_STATUS; $(printf '%s; ' "${SA_WHY[@]}")$(st_errors "$SA_OUT")"
     fi
     # The same class placed by hand: the signature is refused too, by name,
     # and the dry run writes nothing.
     mkdir -p "$SA_STANDING"
     cp "$ST_TMP/bad.toml" "$SA_STANDING/bad@1.toml"
-    SA_BEFORE=$(st_tree "$SA/docs")
+    SA_BEFORE=$(st_snap "$SA/docs")
     SA_OUT=$("$WAR" --root "$SA" sign standing:bad@1 --as "Plant Signer" --dry-run 2>&1); SA_STATUS=$?
-    if [[ $SA_STATUS -ne 0 ]] && grep -q 'standing.never-coverable' <<<"$SA_OUT" && grep -qF -- "\`$bad\`" <<<"$SA_OUT" \
-        && ! grep -q 'would-record' <<<"$SA_OUT" && [[ "$(st_tree "$SA/docs")" == "$SA_BEFORE" ]]; then
+    SA_AFTER=$(st_snap "$SA/docs")
+    SA_WHY=()
+    [[ $SA_STATUS -ne 0 ]] || SA_WHY+=("exit 0")
+    { grep -q 'standing.never-coverable' <<<"$SA_OUT" && grep -qF -- "\`$bad\`" <<<"$SA_OUT"; } \
+        || SA_WHY+=("no standing.never-coverable naming \`$bad\`")
+    ! grep -q 'would-record' <<<"$SA_OUT" || SA_WHY+=("would-record")
+    [[ "$SA_AFTER" == "$SA_BEFORE" ]] || SA_WHY+=("docs/ moved: $(st_moved "$SA_BEFORE" "$SA_AFTER")")
+    if [[ ${#SA_WHY[@]} -eq 0 ]]; then
         st_ok "sign --dry-run refuses $bad" "standing.never-coverable, nothing written"
     else
-        st_fail "sign --dry-run refuses $bad" "exit $SA_STATUS: $(st_errors "$SA_OUT")"
+        st_fail "sign --dry-run refuses $bad" "exit $SA_STATUS; $(printf '%s; ' "${SA_WHY[@]}")$(st_errors "$SA_OUT")"
     fi
     command rm -f "$SA_STANDING/bad@1.toml"
 done
@@ -527,7 +557,7 @@ fi
 cp "$SB_W1_DIR/deliverables.toml" "$ST_TMP/w1-deliverables.toml"
 printf '\n[[deliverable]]\nid = "D-009"\ntitle = "outside"\nkind = "file"\ntarget_ref = "lib/outside.rs"\nrequired = false\ncontent_addressed = false\nprovenance_required = false\nobligation_refs = ["OBL-001"]\n' >> "$SB_W1_DIR/deliverables.toml"
 SB_CHECK=$(sb check 2>&1); SB_STATUS=$?
-if [[ $SB_STATUS -ne 0 ]] && grep -E '^ERROR +standing\.outside-class' <<<"$SB_CHECK" | grep -q "$SB_W1" \
+if [[ $SB_STATUS -ne 0 ]] && st_line_has "$SB_CHECK" '^ERROR +standing\.outside-class' "$SB_W1" \
     && ! grep -qE "^PASS +standing\.inside-class .*$SB_W1" <<<"$SB_CHECK"; then
     st_ok "edited outside the class: ERROR" "standing.outside-class, not PASS"
 else
@@ -616,7 +646,7 @@ SB_C=$(st_warrant "$SB" "standing://routine@2" "Routine, same file" src/shared.r
 SB_C_BEFORE=$(st_tree "$SB/docs/warrants/$SB_C")
 SB_OUT=$(sb standing apply "$SB_C" 2>&1); SB_STATUS=$?
 if [[ -f "$SB/docs/warrants/$SB_O/authorization.toml" ]] && [[ $SB_STATUS -ne 0 ]] \
-    && grep -E '^ERROR +standing\.in-flight-owner' <<<"$SB_OUT" | grep -q "$SB_O" \
+    && st_line_has "$SB_OUT" '^ERROR +standing\.in-flight-owner' "$SB_O" \
     && [[ "$(st_tree "$SB/docs/warrants/$SB_C")" == "$SB_C_BEFORE" ]]; then
     st_ok "a path owned by work in flight" "standing.in-flight-owner names $SB_O, nothing written"
 else
@@ -634,7 +664,7 @@ if [[ $SB_BEFORE_REVOKE -eq 0 ]] && [[ $SB_REVOKE_STATUS -eq 0 ]] && grep -q 'st
 else
     st_fail "applied after revocation" "dry run $SB_BEFORE_REVOKE, revoke $SB_REVOKE_STATUS: $(st_errors "$SB_REVOKE")"
 fi
-if grep -E '^WARN +standing\.revoked' <<<"$SB_CHECK" | grep -q "$SB_LIB" \
+if st_line_has "$SB_CHECK" '^WARN +standing\.revoked' "$SB_LIB" \
     && grep -qE "^PASS +authority\.signed +$SB_LIB" <<<"$SB_CHECK"; then
     st_ok "an earlier record stands (§31)" "standing.revoked is a warning; $SB_LIB still signed"
 else
@@ -705,7 +735,7 @@ fi
 # A class carrying a resolution term is refused as an unknown term.
 st_class "$ST_TMP/resolving.toml" "resolving" 1 '"src/**"' "" 10 'resolution = "policy_service"'
 SC_OUT=$(sc standing propose "$ST_TMP/resolving.toml" 2>&1); SC_STATUS=$?
-if [[ $SC_STATUS -ne 0 ]] && grep -E '^ERROR +standing\.unknown-term' <<<"$SC_OUT" | grep -q 'resolution' \
+if [[ $SC_STATUS -ne 0 ]] && st_line_has "$SC_OUT" '^ERROR +standing\.unknown-term' 'resolution' \
     && [[ ! -f "$SC/docs/authority/standing/resolving@1.toml" ]]; then
     st_ok "a class with a resolution term" "standing.unknown-term, nothing written"
 else
@@ -764,7 +794,7 @@ SC_OUT=$(sc standing apply "$SC_T" 2>&1); SC_STATUS=$?
 printf '// changed under %s\n' "$SC_T" >> "$SC/src/c1.rs"
 SC_CHECK=$(sc check 2>&1)
 if [[ $SC_STATUS -eq 0 ]] && grep -q 'standing.recorded' <<<"$SC_OUT" \
-    && grep -E 'deliverable\.superseded-by' <<<"$SC_CHECK" | grep -q "${SC_A[0]}" \
+    && st_line_has "$SC_CHECK" 'deliverable\.superseded-by' "${SC_A[0]}" \
     && ! grep -qE "^ERROR +deliverable\.digest-drift .*${SC_A[0]}" <<<"$SC_CHECK"; then
     st_ok "a resolved owner's path is taken" "standing.recorded; ${SC_A[0]}'s pin reads deliverable.superseded-by"
 else
