@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "GR-ops.conformance.plants@1.1.0 has verdict pass, and its captured stdout ends with '1167 passed, 0 failed' (the stdout is marked truncated, but that summary line is visible). However, the run came from `war gate --run` with arguments `bash conformance/plant-isolated.sh`, not from `war run` on STAGE-002. Its receipt's subject_digests are contract:, deliverables: and tree:, with no dispatch digest, so the required binding to the stage's dispatch digest is absent. No dispatch record for STAGE-002 is in the bundle. The battery passing is shown, but not the claim that it passed as a stage bound to a dispatch."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,3 @@
+# war deliver: declare a deliverable delivered, by command
+
+A Warrant's deliverables are declared delivered by recording provenance on each (content_addressed + provenance.content_digest in deliverables.toml). No command does this: it was done by a throwaway script (deliver.py). Without it a verification bundle carries no deliverable bytes and the blind verifier cannot establish anything that rests on them (seen on OW-WAR-0066, 2026-09-26). Add `war deliver <alias> [<D-id>...]` that records provenance for each existing deliverable (sha256 of the file now, creation method, tool identity from the build), refuses a missing file, a resolved Warrant, and a file pinned by a later authorized Warrant (OW-ADR-0021), and never touches a resolved Warrant's deliverables.toml.

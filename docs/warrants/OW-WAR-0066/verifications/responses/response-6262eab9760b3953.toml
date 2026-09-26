@@ -1,0 +1,40 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0066"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle has no dispatch record, no submission and no journal event (`plants` is empty and no deliverables are included). The only ops.echo evidence is gate run GR-ops.echo@1.0.0, produced by `war gate --run` with arguments [\"true\"] and verdict pass. Its receipt's subject_digests are contract:, deliverables: and tree:, with no `dispatch:<digest>` subject. The battery stdout contains a line saying a service stage's receipt subject is the dispatch digest and its submission requests verify. That is a scratch-warrant plant about general behaviour, and it does not show STAGE-001 of OW-WAR-0066 under `war run`. Nothing in the bundle shows a submission requesting `verify` or a `submission.recorded` event for this stage."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "GR-ops.conformance.plants@1.1.0 has verdict pass, and its captured stdout ends with '1167 passed, 0 failed' (the stdout is marked truncated, but that summary line is visible). However, the run came from `war gate --run` with arguments `bash conformance/plant-isolated.sh`, not from `war run` on STAGE-002. Its receipt's subject_digests are contract:, deliverables: and tree:, with no dispatch digest, so the required binding to the stage's dispatch digest is absent. No dispatch record for STAGE-002 is in the bundle. The battery passing is shown, but not the claim that it passed as a stage bound to a dispatch."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
