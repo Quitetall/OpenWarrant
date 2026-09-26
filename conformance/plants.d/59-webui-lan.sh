@@ -229,11 +229,14 @@ PY
     else
         wl_fail "OBL-001 HSTS and the CSP on every response" "a response lacks one"
     fi
-    if grep -qx "127.0.0.2:$WL_AP" <<<"$(awk '{print $4}' <<<"$(ss -ltnH 2>/dev/null)")" \
-        && ! grep -qE "^(0\.0\.0\.0|\*|\[::\]|127\.0\.0\.1):$WL_AP$" <<<"$(awk '{print $4}' <<<"$(ss -ltnH 2>/dev/null)")"; then
-        wl_ok "OBL-001 bound only to the given address" "127.0.0.2:$WL_AP only"
+    # This server's listeners only: a battery running beside this one may hold
+    # the same port number on another address, and that is not this server's.
+    WL_MINE=$(ss -ltnpH 2>/dev/null | awk -v p="pid=$WL_APID," 'index($0, p) { print $4 }')
+    if [[ -n "$WL_APID" ]] && grep -qx "127.0.0.2:$WL_AP" <<<"$WL_MINE" \
+        && ! grep -qE "^(0\.0\.0\.0|\*|\[::\]|127\.0\.0\.1):$WL_AP$" <<<"$WL_MINE"; then
+        wl_ok "OBL-001 bound only to the given address" "127.0.0.2:$WL_AP only, of pid $WL_APID's listeners"
     else
-        wl_fail "OBL-001 bound only to the given address" "$(ss -ltnH | awk '{print $4}' | grep ":$WL_AP$" | tr '\n' ' ')"
+        wl_fail "OBL-001 bound only to the given address" "pid ${WL_APID:-none}: $(tr '\n' ' ' <<<"$WL_MINE")"
     fi
 
     # ---- OBL-004 and OBL-002: pairing, credentials ------------------------
