@@ -544,10 +544,7 @@ fn load(repo: &Repository, alias: &str, performer: &str) -> Result<Sources, Repo
         .map(|ev| {
             ev.iter()
                 .map(|e| {
-                    let receipt = e
-                        .receipt
-                        .as_ref()
-                        .map(|r| serde_json::to_value(r).unwrap_or_default());
+                    let receipt = e.receipt.as_ref().map(carried_receipt);
                     let stream = |name: &str| {
                         let from_receipt = receipt
                             .as_ref()
@@ -596,6 +593,24 @@ fn load(repo: &Repository, alias: &str, performer: &str) -> Result<Sources, Repo
         root: repo.root.clone(),
         warrant_dir: dir,
     })
+}
+
+/// A receipt as a bundle carries it: every field but `working_directory`.
+///
+/// That field is the absolute path of the checkout the gate ran in — a fact
+/// about the performer's machine, not about the work. Carried, it made the
+/// bundle (its bytes, its digest, its token estimate) depend on where the
+/// repository sits: `war eval`'s scratch programs are named with a PID and a
+/// nanosecond count whose digit counts vary, and the same fixture measured
+/// 3043 and 3042 tokens (t-ade4). A bundle is a function of the tree and the
+/// configuration only; the receipt file in the tree still holds the field,
+/// and `receipt_digest` still covers it.
+fn carried_receipt(r: &openwarrant_core::gate_run::GateReceipt) -> serde_json::Value {
+    let mut v = serde_json::to_value(r).unwrap_or_default();
+    if let Some(map) = v.as_object_mut() {
+        map.remove("working_directory");
+    }
+    v
 }
 
 // ── one stream, one file, carried ───────────────────────────────────────────
@@ -1433,6 +1448,40 @@ mod tests {
             scope: scope.to_owned(),
             evidence: evidence.to_owned(),
         }
+    }
+
+    #[test]
+    fn a_carried_receipt_does_not_depend_on_where_the_checkout_sits() {
+        let at = |dir: &str| openwarrant_core::gate_run::GateReceipt {
+            run_id: "GR-x".into(),
+            gate_definition_digest: "sha256:aa".into(),
+            gate_binding_digest: "unbound:x".into(),
+            subject_digests: vec!["tree:abc".into()],
+            fixture_digests: vec![],
+            runner: "test".into(),
+            runtime_environment: "test".into(),
+            arguments: vec![],
+            working_directory: dir.into(),
+            started_at: "2026-09-02T00:00:00Z".into(),
+            completed_at: "2026-09-02T00:00:01Z".into(),
+            exit_result: "pass".into(),
+            selected_test_count: 0,
+            selected_test_manifest: vec![],
+            raw_evidence_refs: vec![],
+            stdout_ref: "o".into(),
+            stderr_ref: "e".into(),
+            resource_usage: "wall-clock only".into(),
+            verdict: openwarrant_core::gate_run::Verdict::Pass,
+            receipt_digest: "sha256:bb".into(),
+        };
+        // t-ade4: two scratch programs whose names differ by a digit.
+        let a = carried_receipt(&at("/tmp/war-eval-1849790-0-638569984-code-01"));
+        let b = carried_receipt(&at("/tmp/war-eval-999999-0-38569984-code-01"));
+        assert_eq!(a, b);
+        assert!(a.get("working_directory").is_none());
+        // Everything else is carried.
+        assert_eq!(a["receipt_digest"], "sha256:bb");
+        assert_eq!(a["subject_digests"][0], "tree:abc");
     }
 
     #[test]

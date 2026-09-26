@@ -16,6 +16,12 @@ Notable changes to OpenWarrant. Format loosely follows
   not carried or was cut — and `war verify --run` calls the verifier once
   per bundle. OW-WAR-0112's single 241k-token bundle, which timed the
   verifier out, is now seven of at most 48k.
+- A bundle no longer carries a gate receipt's `working_directory` (t-ade4).
+  It was the absolute path of the checkout the gate ran in, so a bundle's
+  bytes, digest and token estimate depended on where the repository sat:
+  `war eval` measured the same fixture at 3043 and 3042 tokens as a scratch
+  program's PID and nanosecond digits varied. The receipt in the tree keeps
+  the field, and its `receipt_digest` still covers it.
 
 ## [1.0.0-alpha.2] — 2026-09-19
 
