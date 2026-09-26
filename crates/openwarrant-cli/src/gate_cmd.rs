@@ -341,8 +341,8 @@ pub fn run_gate(def: &GateDefinition, repo: &Repository, dir: &camino::Utf8Path)
 ///
 /// - `tree:<sha>` — `git rev-parse HEAD^{tree}` when the gate started;
 /// - `worktree:dirty` — present when the working tree differed from that
-///   tree, outside the evidence records, projections, authority records and
-///   ticket bookkeeping ([`source::Exclusions`]);
+///   tree, outside the evidence records, projections, authority records,
+///   verification records and ticket bookkeeping ([`source::Exclusions`]);
 /// - `inputs:sha256:<hex>` — the bytes of every file the Gate Definition's
 ///   `inputs` globs match, when it declares any;
 /// - `deliverables:sha256:<hex>` — the bytes of the Warrant's declared
@@ -357,8 +357,8 @@ pub fn run_gate(def: &GateDefinition, repo: &Repository, dir: &camino::Utf8Path)
 /// A gate that declares `inputs` is judged by them: the run holds while those
 /// files digest the same. A gate that declares none falls back to the tree:
 /// the run holds while nothing outside the evidence records, compiled
-/// projections, authority records and ticket bookkeeping has changed since the
-/// tree it ran over.
+/// projections, authority records, verification records and ticket
+/// bookkeeping has changed since the tree it ran over.
 /// The deliverables digest is recorded and advisory —
 /// a gate reads what its inputs say it reads, and a gate that reads more than
 /// it declares keeps a stale pass that the tree subject makes visible (R-001).
@@ -378,6 +378,22 @@ pub fn run_gate(def: &GateDefinition, repo: &Repository, dir: &camino::Utf8Path)
 /// nothing about authority records written after them, and that is the
 /// stated limit. Declared `inputs` are not narrowed by this: a gate that
 /// declares it reads an authority record is held to it.
+///
+/// # Why a verification does not move the tree (t-fed6)
+///
+/// Nor do the records `war verify` writes under a Warrant's `verifications/`
+/// — each obligation's verdict (`<id>.toml`), the bundle a verifier was
+/// handed (`bundle-<digest16>.json`) and the responses kept under
+/// `responses/` ([`source::is_verification_record`]). They are judgments
+/// about the evidence, not the source a gate ran over: the blind verifier
+/// reads the receipts (in the bundle) and writes its verdicts after them.
+/// Bound to the tree, that write staled every tree-bound receipt, and
+/// recording again changed the receipts the verdicts were made against — a
+/// loop with no fixed point. Each verdict is judged by its own ingest
+/// (admissibility, independence, the register) and live by `war resolve`.
+/// A gate that reads verification records — `document.review@1.0.0`,
+/// `war check` — says nothing about ones written after its receipt: the
+/// stated limit. Anything else under `verifications/` stays bound.
 ///
 /// # Why working a ticket does not move the tree (t-5d82)
 ///
@@ -557,6 +573,46 @@ pub mod source {
         }
     }
 
+    /// Whether a repository-relative path is a record `war verify` writes
+    /// under a Warrant's `verifications/` (t-fed6):
+    ///
+    /// - `<warrants>/<alias>/verifications/<name>.toml` — one obligation's
+    ///   verdict (`war verify --response`, `--run`); every `*.toml` directly
+    ///   there is read as one ([`crate::repo::Repository::load_verifications`]);
+    /// - `<warrants>/<alias>/verifications/bundle-<16 hex>.json` — the bundle
+    ///   `war verify --bundle` and `--run` hand a verifier;
+    /// - `<warrants>/<alias>/verifications/responses/…` — the whole responses
+    ///   `--run` keeps ([`crate::bundle::RESPONSES_DIR`]).
+    ///
+    /// Named file by file: anything else a person keeps under
+    /// `verifications/` stays bound.
+    #[must_use]
+    pub fn is_verification_record(path: &str, warrants: &str) -> bool {
+        let Some(rest) = under(path, warrants) else {
+            return false;
+        };
+        let mut parts = rest.splitn(3, '/');
+        let (Some(_alias), Some("verifications"), Some(rest)) =
+            (parts.next(), parts.next(), parts.next())
+        else {
+            return false;
+        };
+        if let Some(response) = under(rest, crate::bundle::RESPONSES_DIR) {
+            return !response.is_empty();
+        }
+        if rest.contains('/') {
+            return false;
+        }
+        if let Some(stem) = rest.strip_suffix(".toml") {
+            return !stem.is_empty();
+        }
+        rest.strip_prefix("bundle-")
+            .and_then(|r| r.strip_suffix(".json"))
+            .is_some_and(|h| {
+                h.len() == 16 && h.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'))
+            })
+    }
+
     /// Whether a repository-relative path is a file the ticket loop writes
     /// while a ticket is worked (t-5d82): `<tickets>/<t-id>/<file>` for the
     /// files [`crate::ticket::Bookkeeping`] names (manifest, journal, intent,
@@ -607,8 +663,9 @@ pub mod source {
     /// is what holds a projection to its sources; the tree rule does not
     /// need to.
     ///
-    /// The tree rule skips two classes more: the records a human act writes
-    /// ([`is_authority_record`]) and the files the ticket loop writes
+    /// The tree rule skips three classes more: the records a human act writes
+    /// ([`is_authority_record`]), the records `war verify` writes
+    /// ([`is_verification_record`]) and the files the ticket loop writes
     /// ([`is_ticket_record`]); [`Exclusions::excludes_from_tree`]. Declared
     /// inputs do not — a gate that says it reads one is held to it.
     #[derive(Debug, Clone)]
@@ -673,13 +730,15 @@ pub mod source {
         }
 
         /// What the tree rule skips: [`Exclusions::excludes`], the records a
-        /// human act writes, and the files the ticket loop writes. A signature
-        /// (t-22fd) or a `war claim` / `done` / `note` (t-5d82) after a run
+        /// human act writes, the records `war verify` writes, and the files
+        /// the ticket loop writes. A signature (t-22fd), a verification
+        /// (t-fed6) or a `war claim` / `done` / `note` (t-5d82) after a run
         /// does not move the tree that run names.
         #[must_use]
         pub fn excludes_from_tree(&self, path: &str) -> bool {
             self.excludes(path)
                 || is_authority_record(path, &self.warrants, &self.sas, &self.roadmap, &self.gates)
+                || is_verification_record(path, &self.warrants)
                 || self
                     .tickets
                     .as_ref()
@@ -1355,7 +1414,10 @@ pub mod receipt {
 
 #[cfg(test)]
 mod source_tests {
-    use super::source::{glob_matches, is_authority_record, is_evidence_record, is_ticket_record};
+    use super::source::{
+        glob_matches, is_authority_record, is_evidence_record, is_ticket_record,
+        is_verification_record,
+    };
 
     #[test]
     fn globs_keep_star_within_a_segment_and_let_double_star_span() {
@@ -1506,5 +1568,40 @@ mod source_tests {
             &outside,
             "docs/warrants"
         ));
+    }
+
+    /// t-fed6: what `war verify` writes under `verifications/` is skipped by
+    /// the tree rule, file by file; anything else there, and a verification
+    /// directory anywhere but directly in a Warrant, is not.
+    #[test]
+    fn verification_records_are_named_file_by_file_and_nothing_else_is_one() {
+        let v = |p: &str| is_verification_record(p, "docs/warrants");
+        for p in [
+            "docs/warrants/X-WAR-0001/verifications/OBL-001.toml",
+            "docs/warrants/X-WAR-0001/verifications/OBL-000.toml",
+            "docs/warrants/X-WAR-0001/verifications/bundle-e01bd0803ee4ca7e.json",
+            "docs/warrants/X-WAR-0001/verifications/responses/response-e01bd0803ee4ca7e.toml",
+            "docs/warrants/X-WAR-0001/verifications/responses/verdicts.toml",
+        ] {
+            assert!(v(p), "{p} is written by war verify");
+        }
+        for p in [
+            "docs/warrants/X-WAR-0001/verifications/notes.md",
+            "docs/warrants/X-WAR-0001/verifications/bundle-e01bd0803ee4ca7.json",
+            "docs/warrants/X-WAR-0001/verifications/bundle-E01BD0803EE4CA7E.json",
+            "docs/warrants/X-WAR-0001/verifications/bundle-e01bd0803ee4ca7e.json.bak",
+            "docs/warrants/X-WAR-0001/verifications/.toml",
+            "docs/warrants/X-WAR-0001/verifications/sub/OBL-001.toml",
+            "docs/warrants/X-WAR-0001/verifications/responses",
+            "docs/warrants/X-WAR-0001/verifications",
+            "docs/warrants/X-WAR-0001/atoms/60-assurance.md",
+            "docs/warrants/X-WAR-0001/deliverables.toml",
+            "docs/warrants/verifications/OBL-001.toml",
+            "verifications/OBL-001.toml",
+            "crates/x/verifications/OBL-001.toml",
+            "docs/tickets/t-fed6/verifications/OBL-001.toml",
+        ] {
+            assert!(!v(p), "{p} is not a verification record");
+        }
     }
 }

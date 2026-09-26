@@ -1,5 +1,5 @@
 # Checklist
 
-- [ ] Exclude verifications/ (records, bundles, responses) from the tree binding; update RESOLVING.md's reuse-rule subsections (i-99e3)
-- [ ] Plant: receipt recorded, then war verify --response written, receipt still admissible; a source change still stales it (i-deba)
-- [ ] Write the agent's pre-sitting order in SIGNING.md: evidence → verify → document gates → sitting (i-907a)
+- [x] Exclude verifications/ (records, bundles, responses) from the tree binding; update RESOLVING.md's reuse-rule subsections (i-99e3) — done by claude, 2026-09-26: gate_cmd.rs source::is_verification_record in Exclusions::excludes_from_tree only: <alias>/verifications/<name>.toml, bundle-<16hex>.json, responses/**; unit test; RESOLVING.md subsection 'A verification does not move the tree'
+- [x] Plant: receipt recorded, then war verify --response written, receipt still admissible; a source change still stales it (i-deba) — done by claude, 2026-09-26: conformance/plants.d/55-evidence-verifications.sh: accept (bundle, --response via establishes-all.sh, --run; uncommitted then committed; admissible, req 5 met) and refuse (src byte; verifications/notes.md) 5/5; 1/5 on the pre-change binary
+- [x] Write the agent's pre-sitting order in SIGNING.md: evidence → verify → document gates → sitting (i-907a) — done by claude, 2026-09-26: SIGNING.md One sitting: evidence -> verify -> document gates (--gate document.review@1.0.0) -> sitting, and why it no longer loops

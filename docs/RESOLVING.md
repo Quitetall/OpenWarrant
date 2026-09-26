@@ -355,6 +355,69 @@ committed), and the receipt still admissible naming its tree; and a source
 byte, or a file in a ticket's directory the loop does not write, changed
 after the receipt, which stales it by name.
 
+#### A verification does not move the tree (t-fed6)
+
+The independent verifier reads the receipts — they are in the bundle it is
+handed — and writes its verdicts after them. Bound to the tree, that write
+staled every receipt of a gate with no `inputs`; recording the evidence
+again changed the receipts the verdicts had been made against, and the
+verdicts were then about evidence that no longer existed. A loop with no
+fixed point. The tree rule now skips what `war verify` writes under a
+Warrant's `verifications/`, file by file:
+
+| written by | skipped |
+|---|---|
+| `war verify --response`, `--run` (the ingest) | `<alias>/verifications/<name>.toml` — one obligation's verdict; every `*.toml` directly there is read as one |
+| `war verify --bundle`, `--run` | `<alias>/verifications/bundle-<digest16>.json` — what the verifier was handed |
+| `war verify --run` | `<alias>/verifications/responses/**` — the verifier's whole response, kept when the ingest accepted it |
+| the ingest | `<alias>/journal.jsonl` — already an evidence record |
+
+Nothing else between the evidence and the sitting writes into the
+repository: `war verify` with none of `--response`, `--bundle` or `--run`
+prints the request and writes nothing, and `war document review` (what
+`document.review@1.0.0` runs) writes nothing — its run is recorded like any
+gate's, under `gate-runs/`. Two outputs are outside the tool's reach, and
+stay bound if they land in the tree: a response file handed to
+`war verify --response` from anywhere but `<alias>/verifications/responses/`
+(keep it there, or outside the repository), and the blind verifier's
+diagnostic log (`tools/verifier/claude-verifier.sh` writes one only when
+`CLAUDE_VERIFIER_LOG` names a directory — name one outside the repository or
+an ignored one).
+
+**Why these are records, not source.** A verification is a judgment about
+the evidence, made by someone who did not produce it; no deliverable, atom
+or Gate Definition is built from one. What a receipt would add about
+verifications is already established elsewhere, and more strictly:
+
+- each verdict is judged by its own ingest when it is written —
+  admissibility against the assurance atom, independence from the performer,
+  the verifier register — and a refused verdict is never written;
+- a resolution judges them live: `satisfied` is accepted only when every
+  declared obligation is established by an admissible verification (§38.6),
+  read from `verifications/` each time the resolution is assessed.
+
+So the stated limit is: **a receipt of a gate that reads verification
+records says nothing about verification records written after it.** Two
+gates cited here read them: `document.review@1.0.0` (every obligation of a
+document Warrant needs an established independent verification) and
+`software.repo.war-check@1.0.0` (`war check` reads the whole corpus,
+verifications included). Run now, either still reads every one. This is also
+what lets `document.review@1.0.0` be recorded after the verification it
+needs without that verification staling the rest of the evidence
+(`docs/SIGNING.md`, "One sitting").
+
+**What stays bound.** Anything else under `verifications/` (a note, a
+subdirectory other than `responses/`, a file named like a bundle that is not
+one), a `verifications/` directory anywhere but directly in a Warrant, and
+everything the subsections above leave bound. Declared `inputs` are not
+narrowed: a gate whose verdict is about verifications declares them and is
+held to them. `conformance/plants.d/55-evidence-verifications.sh` shows both
+halves: a receipt recorded, then a verifier's response ingested, a bundle
+written and a `--run` response kept (uncommitted, then committed), and the
+receipt still admissible naming its tree; and a source byte, or a
+non-record file under `verifications/`, changed after the receipt, which
+stales it by name.
+
 The deliverables digest is recorded and advisory. A gate is judged on what it
 declares it reads. If a gate reads files outside its declared `inputs`, it can
 keep a stale pass. The tree subject in the receipt shows that happened; it
