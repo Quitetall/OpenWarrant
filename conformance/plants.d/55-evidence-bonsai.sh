@@ -114,7 +114,7 @@ fi
 # ---- accepted: the document the gate reads, for this contract, committed.
 # The receipt names one contract subject, the deliverable and tree subjects
 # beside it, not dirty, and the document by bytes; `war check` admits it.
-git -C "$BZ_ROOT" status --porcelain | grep -q . && git -C "$BZ_ROOT" checkout -q -- . 2>/dev/null
+[[ -n "$(git -C "$BZ_ROOT" status --porcelain)" ]] && git -C "$BZ_ROOT" checkout -q -- . 2>/dev/null
 BZ_REF=$(bz_ref bonsai-evidence.json)
 BZ_OUT=$(bz_war evidence record "$BZ_W" --gate "$BZ_GATE" --evidence-ref "$BZ_REF" 2>&1); BZ_RC=$?
 BZ_RECEIPT="$BZ_RUNS/software_repo_bonsai-evidence_1_0_0.receipt.json"
