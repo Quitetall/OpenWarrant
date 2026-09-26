@@ -975,14 +975,16 @@ enum Command {
         /// A verifier's response to ingest. Without it, the request is emitted.
         #[arg(long)]
         response: Option<Utf8PathBuf>,
-        /// Write the verification bundle (`oh.war/verification-bundle/v1`):
+        /// Write the verification bundle (`oh.war/verification-bundle/v2`):
         /// the request with the authorized digest, every atom, each
         /// deliverable's bytes, the plants naming the alias, gate runs and
         /// prior verifications, under `verifications/bundle-<digest>.json`.
+        /// Over `[verify] max_bundle_tokens`, one bundle per obligation,
+        /// each carrying what that obligation names, excerpted to fit.
         #[arg(long, conflicts_with = "response")]
         bundle: bool,
-        /// Write the bundle, run `[verify] verifier_argv` on it, and ingest
-        /// what it prints through the same seam as `--response`.
+        /// Write the bundle(s), run `[verify] verifier_argv` once on each, and
+        /// ingest what each prints through the same seam as `--response`.
         #[arg(long, conflicts_with_all = ["response", "bundle"])]
         run: bool,
     },

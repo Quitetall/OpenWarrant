@@ -19,7 +19,11 @@
 # It reads the bundle `war` compiled, on stdin, and nothing else. The bundle
 # carries the contract atoms, the deliverables' bytes, the plants naming the
 # Warrant, the gate runs and prior verifications — and nothing the performer
-# said about them.
+# said about them. A Warrant too large for one bundle (`[verify]
+# max_bundle_tokens`, t-9f7e) is sent as one bundle per obligation, and `war
+# verify --run` calls this script once per bundle, each under the timeout:
+# the script answers for exactly the obligations in `request.obligations`,
+# whichever scope the bundle has.
 #
 # The model chooses, per obligation, a disposition and the evidence for it —
 # nothing else. Who the verifier is, and the independence it has, are written
@@ -41,7 +45,9 @@ model="${CLAUDE_VERIFIER_MODEL:-claude-sonnet-5}"
 performer_model="${CLAUDE_PERFORMER_MODEL:-}"
 log="${CLAUDE_VERIFIER_LOG:-}"
 claude="${CLAUDE_BIN:-claude}"
-system='You are an independent verifier (OpenWarrant, SAS §46). You receive one oh.war/verification-bundle/v1 JSON document on stdin: the Warrant'"'"'s authorized contract (its atoms), the bytes of its deliverables, the conformance plants that name it, its recorded gate runs, and any prior verifications. You did not do this work and you have not seen anyone'"'"'s account of it.
+system='You are an independent verifier (OpenWarrant, SAS §46). You receive one oh.war/verification-bundle/v2 JSON document on stdin: the Warrant'"'"'s authorized contract (its atoms), the bytes of its deliverables, the conformance plants that name it, its recorded gate runs with what they printed, and any prior verifications. You did not do this work and you have not seen anyone'"'"'s account of it.
+
+The bundle is bounded. With "scope": "obligation" it carries one obligation and only the deliverables that obligation names or that list it; deliverables_not_carried names the rest by digest. A deliverable or gate output with "truncated": true is shown only in part: "text" (a head, or a stream'"'"'s tail) and/or "excerpts" (numbered lines exactly as in the file); its sha256, bytes and lines are of the whole file. obligation_evidence says, per obligation, which named paths were carried or are absent (and why), and for each named term where it is shown and where the budget cut it (cut_from). Bytes you were not shown are not evidence either way.
 
 For EACH obligation in request.obligations, decide from the bundle alone:
 - "established": the evidence in the bundle shows the obligation'"'"'s claim holds, within its stated scope, and shows a refusal where the obligation asks for one.
