@@ -40,6 +40,43 @@ WAR="./target/debug/war"
 export OPENWARRANT_IN_BATTERY=1
 export OPENWARRANT_NO_UPDATE_CHECK=1
 
+# A battery gives the same answer whatever its caller exports (t-354e). Run
+# with CLAUDE_PERFORMER_MODEL exported, 62-verifier's 'independence only where
+# true' failed every time: its "unset" case read the caller's model. Every
+# variable below is one `war`, the wrappers under tools/ or a fixture reads,
+# and whose value changes what a plant observes; a plant that needs one sets
+# it on the command it runs, never by inheriting it.
+#
+#   CLAUDE_*            the verifier, performer and drafter wrappers: the
+#                       model (and so the independence claimed), the claude
+#                       binary run, and where a run record is appended
+#   OPENWARRANT_ACTOR   who a ticket act is recorded as
+#   OPENWARRANT_FAULT*  atomic.rs's fault injection: a write that fails
+#   OPENWARRANT_TEST_*  batch_cmd.rs's kill/fail-after test hooks
+#   OPENWARRANT_RELEASES_URL  where `war update` looks
+#   VISUAL, EDITOR      what `war sign --edit` runs
+#   GIT_DIR, GIT_WORK_TREE, GIT_INDEX_FILE, ...  set when the battery is
+#                       started from a git hook: every `git -C <scratch>`
+#                       would then read the caller's repository instead
+#   SSH_AUTH_SOCK, SSH_AGENT_PID  the caller's agent: a plant that signs brings
+#                       its own agent and key, and none may reach the owner's
+#
+# Not unset, and why: HOME and XDG_CONFIG_HOME carry git's own configuration
+# (the plants commit with `-c user.*`, and nothing they assert reads HOME);
+# OPENWARRANT_NO_PROJECTS above already keeps XDG_CONFIG_HOME's project list
+# out; PATH is how the plants find git and ssh-keygen. XDG_STATE_HOME (the web
+# UI's device pairings), XDG_CACHE_HOME (the update notice) and XDG_DATA_HOME
+# (`war install`) are pointed at a directory of this battery's own below the
+# trap, so a plant never reads, or writes, the caller's pairings.
+unset CLAUDE_PERFORMER_MODEL CLAUDE_VERIFIER_MODEL CLAUDE_VERIFIER_LOG CLAUDE_BIN \
+    CLAUDE_PERFORMER_LOG CLAUDE_DRAFTER_MODEL CLAUDE_DRAFTER_LOG \
+    OPENWARRANT_ACTOR OPENWARRANT_FAULT OPENWARRANT_FAULT_FILE \
+    OPENWARRANT_TEST_BATCH_KILL_AFTER OPENWARRANT_TEST_BATCH_FAIL_AFTER \
+    OPENWARRANT_RELEASES_URL VISUAL EDITOR \
+    GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_COMMON_DIR GIT_OBJECT_DIRECTORY \
+    GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_NAMESPACE GIT_PREFIX \
+    SSH_AUTH_SOCK SSH_AGENT_PID
+
 if [[ ! -x "$WAR" ]]; then
     echo "build first: cargo build --workspace" >&2
     exit 1
@@ -249,6 +286,13 @@ plant_war() {
 }
 
 trap 'restore; scratch_corpora_gone' EXIT
+
+# The battery's own XDG state, cache and data (t-354e, above), removed with
+# the scratch corpora.
+BATTERY_XDG=$(mktemp -d) || { printf 'PLANT SETUP FAILED: mktemp\n' >&2; exit 9; }
+SCRATCH_CORPORA+=("$BATTERY_XDG")
+export XDG_STATE_HOME="$BATTERY_XDG/state" XDG_CACHE_HOME="$BATTERY_XDG/cache" \
+    XDG_DATA_HOME="$BATTERY_XDG/data"
 
 # battery_tool <dest-dir> <binary> <cargo build args...>
 #
