@@ -134,12 +134,33 @@ import sys, json
 r = json.load(sys.stdin)["result"]["ready"]
 print(next(x["ticket"] + "/" + x["item"] for x in r if x["text"] == "Ready plant item"))' 2>/dev/null)
 "$WAR" --root "$PLANT_ROOT" claim "$NX_ITEM" --as plant-agent >/dev/null 2>&1
-if [[ -n $NX_ITEM ]] && ! { NX_NEXT=$("$WAR" --root "$PLANT_ROOT" next 2>/dev/null) && grep -qF "war claim $NX_ITEM" <<<"$NX_NEXT"; }; then
+# nx_not_offered <war> <item>: true only when `war next` RAN and passed (exit
+# 0) and does not offer <item>. A war that exits non-zero printed nothing to
+# find, which is not "no longer offered" (t-5134).
+nx_not_offered() {
+    local out
+    out=$("$1" --root "$PLANT_ROOT" next 2>/dev/null) || return 1
+    ! grep -qF "war claim $2" <<<"$out"
+}
+if [[ -n $NX_ITEM ]] && nx_not_offered "$WAR" "$NX_ITEM"; then
     printf 'ok    %-34s a claimed item is no longer offered\n' "next refuses a claimed ticket item"
     PASSED=$((PASSED + 1))
 else
-    printf 'FAIL  %-34s %s is still offered after its claim\n' "next refuses a claimed ticket item" "${NX_ITEM:-?}"
+    printf 'FAIL  %-34s %s is still offered after its claim, or war next failed\n' "next refuses a claimed ticket item" "${NX_ITEM:-?}"
     FAILED=$((FAILED + 1))
 fi
+# The refusing case: a war that exits 1 is not an answer.
+NX_STUB_DIR=$(mktemp -d)
+printf '#!/bin/sh\nexit 1\n' > "$NX_STUB_DIR/war-exits-1"
+chmod +x "$NX_STUB_DIR/war-exits-1"
+if [[ -n $NX_ITEM ]] && ! nx_not_offered "$NX_STUB_DIR/war-exits-1" "$NX_ITEM"; then
+    printf 'ok    %-34s war exited 1: refused\n' "a failing next is not 'not offered'"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s a war that exits 1 passed the claimed-item check\n' "a failing next is not 'not offered'"
+    FAILED=$((FAILED + 1))
+fi
+command rm -rf "$NX_STUB_DIR"
+unset NX_STUB_DIR
 corpus_gone "$PLANT_ROOT"
 unset PLANT_ROOT

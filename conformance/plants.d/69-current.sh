@@ -124,11 +124,38 @@ else
 fi
 
 # history = false (the default for a new program): no HISTORY.md, no drift.
-if [[ ! -e "$CU_R/docs/generated/HISTORY.md" ]] \
-    && ! { CU_GEN=$("$WAR" --root "$CU_R" check --generated 2>&1) && grep -q 'HISTORY.md' <<<"$CU_GEN"; }; then
+# cu_no_history <war>: true only when `check --generated` RAN — its report
+# is an envelope with an exit code of 0 or 2 (this scratch corpus holds
+# findings of its own, so 2 is an answer) and a generated.drift comparison in
+# it — and no diagnostic names HISTORY.md. A war that exits 1, or prints no
+# report, observed nothing, which is not "nothing compared" (t-5134).
+cu_no_history() {
+    local out rc
+    [[ ! -e "$CU_R/docs/generated/HISTORY.md" ]] || return 1
+    out=$("$1" --root "$CU_R" --json check --generated 2>/dev/null)
+    rc=$?
+    [[ $rc -eq 0 || $rc -eq 2 ]] || return 1
+    python3 -c '
+import json, sys
+r = json.loads(sys.stdin.read())
+d = r["diagnostics"]
+assert r["exit_code"] == int(sys.argv[1]), "envelope and exit disagree"
+assert any(x["rule"] == "generated.drift" for x in d), "no generated comparison ran"
+assert not any("HISTORY.md" in (x.get("message") or "") + (x.get("file") or "") for x in d), "HISTORY.md compared"
+' "$rc" <<<"$out" 2>/dev/null
+}
+if cu_no_history "$WAR"; then
     cu_ok "history off writes no history" "no HISTORY.md, nothing compared"
 else
-    cu_fail "history off writes no history" "HISTORY.md exists or was compared"
+    cu_fail "history off writes no history" "HISTORY.md exists or was compared, or check --generated gave no report"
+fi
+# The refusing case: a war that exits 1 is not an answer.
+printf '#!/bin/sh\nexit 1\n' > "$CU_TMP/war-exits-1"
+chmod +x "$CU_TMP/war-exits-1"
+if ! cu_no_history "$CU_TMP/war-exits-1"; then
+    cu_ok "a failing check is not 'no history'" "war exited 1: refused"
+else
+    cu_fail "a failing check is not 'no history'" "a war that exits 1 passed the history check"
 fi
 
 plant "a hand edit to CURRENT.md is drift" "generated.drift" "CURRENT.md" 2 \

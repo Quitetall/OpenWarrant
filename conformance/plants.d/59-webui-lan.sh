@@ -508,13 +508,58 @@ fi
 # ---- OBL-003: no key, socket or signing call under webui/ -------------------
 # 63-webui.sh's pattern over every file, and the agent's tools over the Rust
 # (the page's own text tells the owner to load the key with `ssh-add -c`).
-if ! { WL_HITS=$({ grep -rn 'ssh-keygen\|SSH_AUTH_SOCK\|sign::run(repo, Some\|ssh_sign_file\|authorize::ingest\|resolution_cmd::ingest' "$WL_SRC";
-       grep -rn --include='*.rs' 'ssh-add\|SSH_AGENT\|ssh_agent' "$WL_SRC"; } \
-    | grep -v ':\s*//') && grep -q . <<<"$WL_HITS"; }; then
+#
+# wl_signing_seams <dir>: true only when both greps RAN over <dir> (exit 0 or
+# 1) and neither found a line that is not a comment; the lines found go to
+# $WL_HITS. Each grep's status is its own: a hit from either is a refusal, and
+# a grep that could not read <dir> (exit 2) is no answer (t-5134).
+wl_signing_seams() {
+    local a b sa sb
+    [[ -d "$1" ]] || { WL_HITS="$1: not a directory"; return 1; }
+    a=$(grep -rn 'ssh-keygen\|SSH_AUTH_SOCK\|sign::run(repo, Some\|ssh_sign_file\|authorize::ingest\|resolution_cmd::ingest' "$1")
+    sa=$?
+    b=$(grep -rn --include='*.rs' 'ssh-add\|SSH_AGENT\|ssh_agent' "$1")
+    sb=$?
+    WL_HITS=$(grep -v ':\s*//' <<<"$a"$'\n'"$b")
+    (( sa <= 1 && sb <= 1 )) || { WL_HITS="grep exited $sa/$sb over $1"; return 1; }
+    [[ -z "${WL_HITS//$'\n'/}" ]]
+}
+if wl_signing_seams "$WL_SRC"; then
     wl_ok "OBL-003 webui/ holds no signing authority" "no ssh key, agent socket or signing call"
 else
-    wl_fail "OBL-003 webui/ holds no signing authority" "webui/ names a key, socket or signing seam"
+    wl_fail "OBL-003 webui/ holds no signing authority" "webui/ names a key, socket or signing seam: $(head -2 <<<"$WL_HITS")"
 fi
+# The refusing case: a copy of webui/ with one planted signing call, which
+# only the FIRST grep names. The copy's doc comment naming `ssh-add` is
+# reworded so the second grep finds nothing at all: that is the case the old
+# group hid, its status being the second grep's 1.
+WL_PLANTED=$(mktemp -d)
+cp -r "$WL_SRC" "$WL_PLANTED/webui"
+sed -i 's/ssh-add/ssh add/g; s/SSH_AGENT/SSH AGENT/g; s/ssh_agent/ssh agent/g' "$WL_PLANTED/webui/"*.rs
+printf '\nfn planted(repo: &Repository) { let _ = crate::sign::run(repo, Some(1)); }\n' >> "$WL_PLANTED/webui/mod.rs"
+if ! wl_signing_seams "$WL_PLANTED/webui" && line_has -F 'mod.rs' -F 'sign::run(repo, Some' <<<"$WL_HITS"; then
+    wl_ok "OBL-003 a planted signing call" "refused: $(head -c 80 <<<"$WL_HITS")"
+else
+    wl_fail "OBL-003 a planted signing call" "a sign::run call in webui/ was not found"
+fi
+# And a grep that could not read what it was pointed at (exit 2) is no
+# answer: a clean copy of webui/ with one unreadable file, and no webui/ at all.
+mkdir "$WL_PLANTED/unreadable"
+cp -r "$WL_SRC/." "$WL_PLANTED/unreadable/"
+printf 'fn nothing() {}\n' > "$WL_PLANTED/unreadable/closed.rs"
+chmod 000 "$WL_PLANTED/unreadable/closed.rs"
+if [[ $(id -u) -eq 0 ]] || ! wl_signing_seams "$WL_PLANTED/unreadable"; then
+    wl_ok "OBL-003 a grep that cannot read" "refused: $WL_HITS"
+else
+    wl_fail "OBL-003 a grep that cannot read" "an unreadable file under webui/ passed"
+fi
+chmod 600 "$WL_PLANTED/unreadable/closed.rs"
+if ! wl_signing_seams "$WL_PLANTED/absent"; then
+    wl_ok "OBL-003 no webui/ to read" "refused: $WL_HITS"
+else
+    wl_fail "OBL-003 no webui/ to read" "an absent webui/ passed"
+fi
+command rm -rf "$WL_PLANTED"
 
 command rm -rf "$WL_T"
 corpus_gone "$PLANT_ROOT"
