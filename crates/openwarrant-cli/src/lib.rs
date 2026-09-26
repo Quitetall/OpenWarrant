@@ -3104,6 +3104,8 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             pending,
         } => {
             let repository = open_repo()?;
+            // One-shot and read-only: the tree does not move under it (t-eca6).
+            gate_cmd::source::remember_tree_reads();
             if timeline || pending {
                 let (what, value) = if timeline {
                     let t = timeline::build_timeline(&repository)?;
