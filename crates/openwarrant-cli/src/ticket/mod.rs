@@ -631,7 +631,10 @@ fn holder(c: Option<&claim::Claim>, now: u64) -> String {
 }
 
 /// The blockers of `item` in `t` that are not done yet, by name; an unknown
-/// one is named as such and blocks (fail closed).
+/// one is named as such and blocks (fail closed). The one definition of
+/// "blocked": `ready_rows` and `claim_cmd` both call it over a fresh
+/// `Store::load_all` of the checklist files, with no cache between them
+/// (t-9d3e).
 fn open_blockers(tickets: &[Ticket], t: &Ticket, item: &Item) -> Vec<String> {
     let find = |id: &str| tickets.iter().find(|x| x.id() == id);
     item.after

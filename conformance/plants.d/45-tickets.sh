@@ -140,22 +140,79 @@ fi
 
 # ---------------------------------------------------------------- OBL-004 --
 # Blockers keep items out of `ready`, and a blocked claim is refused.
-TK_OUT=$(tkj create "Ordered work" --item "Foundation")
-TK5=$(tk_field "$TK_OUT" 'v["result"]["id"]'); TK5_F=$(tk_field "$TK_OUT" 'v["result"]["items"][0]["id"]')
-TK5_W=$(tk_field "$(tkj add "$TK5" "Walls" --after "$TK5_F")" 'v["result"]["item"]')
-TK5_R=$(tk_field "$(tkj add "$TK5" "Roof" --after "$TK5/$TK5_W")" 'v["result"]["item"]')
-TK5_OTHER=$(tk_field "$(tkj create "Paint" --item "Paint the walls")" 'v["result"]["id"]')
-TK5_SC=$(tk_field "$(tkj add "$TK5_OTHER" "Second coat" --after "$TK5")" 'v["result"]["item"]')
-TK_IDS=$(tk_field "$(tkj ready)" '",".join(r["ticket"]+"/"+str(r["item"]) for r in v["result"]["ready"])')
+#
+# Every step's exit is checked by name (t-9d3e). This block once failed on a
+# loaded machine with a line that read like `ready` and `claim` disagreeing;
+# it was one `war add` that did not run (a concurrent relink of the binary),
+# leaving an id empty, and an empty id in a `grep "a\|b\|"` pattern matches
+# everything. A step that failed is reported as that step, never as the two
+# commands disagreeing, and list membership is exact, not a pattern.
+TK_SETUP=""
+tk_step() { local what=$1; shift; TK_STEP_OUT=$(tkj "$@"); local rc=$?; [[ $rc -eq 0 ]] || TK_SETUP="$TK_SETUP $what(exit $rc)"; return $rc; }
+tk_in() { [[ -n "$2" && ",$1," == *",$2,"* ]]; }
+tk_ready_ids() { tk_field "$TK_STEP_OUT" '",".join(r["ticket"]+"/"+str(r["item"]) for r in v["result"]["ready"])'; }
+tk_step create-ordered create "Ordered work" --item "Foundation"
+TK5=$(tk_field "$TK_STEP_OUT" 'v["result"]["id"]'); TK5_F=$(tk_field "$TK_STEP_OUT" 'v["result"]["items"][0]["id"]')
+tk_step add-walls add "$TK5" "Walls" --after "$TK5_F"; TK5_W=$(tk_field "$TK_STEP_OUT" 'v["result"]["item"]')
+tk_step add-roof add "$TK5" "Roof" --after "$TK5/$TK5_W"; TK5_R=$(tk_field "$TK_STEP_OUT" 'v["result"]["item"]')
+tk_step create-paint create "Paint" --item "Paint the walls"; TK5_OTHER=$(tk_field "$TK_STEP_OUT" 'v["result"]["id"]')
+tk_step add-second-coat add "$TK5_OTHER" "Second coat" --after "$TK5"; TK5_SC=$(tk_field "$TK_STEP_OUT" 'v["result"]["item"]')
+for tk_v in TK5 TK5_F TK5_W TK5_R TK5_OTHER TK5_SC; do [[ -n "${!tk_v}" ]] || TK_SETUP="$TK_SETUP no-id:$tk_v"; done
+tk_step ready-before ready; TK_IDS=$(tk_ready_ids)
 TK_ERR=$(tkw claim "$TK5/$TK5_W" 2>&1 >/dev/null); TK_S=$?
-tkw claim "$TK5/$TK5_F" >/dev/null 2>&1 && tkw done "$TK5/$TK5_F" >/dev/null 2>&1
-TK_IDS2=$(tk_field "$(tkj ready)" '",".join(r["ticket"]+"/"+str(r["item"]) for r in v["result"]["ready"])')
-if grep -q "$TK5/$TK5_F" <<<"$TK_IDS" && ! grep -q "$TK5_W\|$TK5_R\|$TK5_SC" <<<"$TK_IDS" && [[ -n "$TK5_SC" ]] \
-    && [[ $TK_S -eq 2 ]] && grep -q "ticket.blocked.*waits on $TK5_F" <<<"$TK_ERR" \
-    && grep -q "$TK5/$TK5_W" <<<"$TK_IDS2" && ! grep -q "$TK5_R" <<<"$TK_IDS2"; then
-    tk_ok "blockers keep items out of ready" "walls waits on the foundation, roof on walls, a ticket on a ticket; claim refused"
+tk_step claim-foundation claim "$TK5/$TK5_F"
+tk_step done-foundation done "$TK5/$TK5_F"
+tk_step ready-after ready; TK_IDS2=$(tk_ready_ids)
+# Once done has exited 0, the item `ready` now lists is one `claim` takes.
+TK_ERR2=$(tkw claim "$TK5/$TK5_W" 2>&1 >/dev/null); TK_S2=$?
+TK_WHY=""
+tk_in "$TK_IDS" "$TK5/$TK5_F" || TK_WHY="$TK_WHY foundation-not-ready-before"
+for x in "$TK5/$TK5_W" "$TK5/$TK5_R" "$TK5_OTHER/$TK5_SC"; do tk_in "$TK_IDS" "$x" && TK_WHY="$TK_WHY $x-ready-before"; done
+[[ $TK_S -eq 2 ]] && grep -q "ticket.blocked.*waits on $TK5_F" <<<"$TK_ERR" || TK_WHY="$TK_WHY blocked-claim-not-refused(exit $TK_S)"
+tk_in "$TK_IDS2" "$TK5/$TK5_W" || TK_WHY="$TK_WHY walls-not-ready-after"
+tk_in "$TK_IDS2" "$TK5/$TK5_R" && TK_WHY="$TK_WHY roof-ready-after"
+[[ $TK_S2 -eq 0 ]] || TK_WHY="$TK_WHY walls-ready-but-claim-exit-$TK_S2"
+if [[ -z "$TK_SETUP" && -z "$TK_WHY" ]]; then
+    tk_ok "blockers keep items out of ready" "walls waits on the foundation, roof on walls, a ticket on a ticket; claim refused, then taken once done"
+elif [[ -n "$TK_SETUP" ]]; then
+    tk_fail "blockers keep items out of ready" "a step did not run, so nothing is established:$TK_SETUP"
 else
-    tk_fail "blockers keep items out of ready" "before: $TK_IDS; claim $TK_S: $TK_ERR; after: $TK_IDS2"
+    tk_fail "blockers keep items out of ready" "failed:$TK_WHY; before: $TK_IDS; claim $TK_S: $TK_ERR; after: $TK_IDS2; claim $TK_S2: $TK_ERR2"
+fi
+
+# t-9d3e: after `war done` on a blocker exits 0, `ready` lists the item it
+# held and `claim` takes it — 200 times, eight workers on one corpus. A step
+# that failed is counted apart (named in the message), never as disagreement.
+TK_AG=$(mktemp -d)
+tk_agree_worker() {
+    local k=$1 n o t f w
+    for ((n = 0; n < 25; n++)); do
+        o=$(tkj create "Agree $k.$n" --item Foundation --as "ag-$k") || { echo "setup create exit $?" >>"$TK_AG/$k"; continue; }
+        t=$(tk_field "$o" 'v["result"]["id"]'); f=$(tk_field "$o" 'v["result"]["items"][0]["id"]')
+        o=$(tkj add "$t" Walls --after "$f" --as "ag-$k") || { echo "setup add exit $?" >>"$TK_AG/$k"; continue; }
+        w=$(tk_field "$o" 'v["result"]["item"]')
+        [[ -n "$t" && -n "$f" && -n "$w" ]] || { echo "setup no-id" >>"$TK_AG/$k"; continue; }
+        tkw claim "$t/$f" --as "ag-$k" >/dev/null 2>&1 || { echo "setup claim exit $?" >>"$TK_AG/$k"; continue; }
+        tkw done "$t/$f" --as "ag-$k" >/dev/null 2>&1 || { echo "setup done exit $?" >>"$TK_AG/$k"; continue; }
+        o=$(tkw ready --as "ag-$k" 2>/dev/null) || { echo "setup ready exit $?" >>"$TK_AG/$k"; continue; }
+        grep -q "^$t/$w " <<<"$o" || { echo "disagree $t/$w not ready after done" >>"$TK_AG/$k"; continue; }
+        o=$(tkw claim "$t/$w" --as "ag-$k" 2>&1 >/dev/null) || { echo "disagree $t/$w ready, claim refused: $o" >>"$TK_AG/$k"; continue; }
+        echo "agreed" >>"$TK_AG/$k"
+    done
+}
+TK_PIDS=()
+for k in 1 2 3 4 5 6 7 8; do tk_agree_worker "$k" & TK_PIDS+=($!); done
+for pid in "${TK_PIDS[@]}"; do wait "$pid"; done
+TK_AGREED=$(cat "$TK_AG"/* 2>/dev/null | grep -c '^agreed$')
+TK_DIS=$(cat "$TK_AG"/* 2>/dev/null | grep '^disagree' | head -3 | paste -sd ';')
+TK_SET=$(cat "$TK_AG"/* 2>/dev/null | grep '^setup' | sort | uniq -c | tr -s ' ' | head -3 | paste -sd ';')
+command rm -rf "$TK_AG"
+if [[ $TK_AGREED -eq 200 ]]; then
+    tk_ok "done→claim never refuses, 200x" "8 workers × 25: every unblocked item listed by ready and taken by claim"
+elif [[ -n "$TK_DIS" ]]; then
+    tk_fail "done→claim never refuses, 200x" "$TK_AGREED/200 agreed; ready and claim disagreed: $TK_DIS"
+else
+    tk_fail "done→claim never refuses, 200x" "$TK_AGREED/200 agreed; a step did not run (not a disagreement): $TK_SET"
 fi
 
 # ---------------------------------------------------------------- OBL-005 --

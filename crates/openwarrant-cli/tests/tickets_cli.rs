@@ -201,6 +201,65 @@ fn of_concurrent_claim_processes_exactly_one_wins() {
     let _ = std::fs::remove_dir_all(&root);
 }
 
+/// t-9d3e: once `war done` on a blocker has exited 0, `war ready` lists the
+/// item it held and `war claim` takes it — never one without the other. Four
+/// workers on one corpus, ten rounds each, every command's exit checked by
+/// name so a step that failed cannot pass for the two disagreeing.
+#[test]
+fn after_done_ready_and_claim_agree_under_concurrency() {
+    let root = scratch("agree");
+    let workers: Vec<_> = (0..4)
+        .map(|w| {
+            let root = root.clone();
+            std::thread::spawn(move || {
+                let actor = format!("worker-{w}");
+                let step = |args: &[&str]| -> serde_json::Value {
+                    let mut all = vec!["--json"];
+                    all.extend_from_slice(args);
+                    all.extend_from_slice(&["--as", &actor]);
+                    let out = war(&root, &all);
+                    assert!(
+                        out.status.success(),
+                        "{actor}: {args:?} exited {:?}: {}{}",
+                        out.status.code(),
+                        String::from_utf8_lossy(&out.stdout),
+                        String::from_utf8_lossy(&out.stderr)
+                    );
+                    serde_json::from_slice(&out.stdout).unwrap()
+                };
+                for n in 0..10 {
+                    let title = format!("{actor} round {n}");
+                    let created = step(&["create", &title, "--item", "Foundation"]);
+                    let t = created["result"]["id"].as_str().unwrap().to_owned();
+                    let f = created["result"]["items"][0]["id"]
+                        .as_str()
+                        .unwrap()
+                        .to_owned();
+                    let added = step(&["add", &t, "Walls", "--after", &f]);
+                    let walls = added["result"]["item"].as_str().unwrap().to_owned();
+                    step(&["claim", &format!("{t}/{f}")]);
+                    step(&["done", &format!("{t}/{f}")]);
+                    let ready = step(&["ready"]);
+                    let listed = ready["result"]["ready"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .any(|r| r["ticket"] == t.as_str() && r["item"] == walls.as_str());
+                    assert!(
+                        listed,
+                        "{actor}: {t}/{walls} not ready once its blocker was done"
+                    );
+                    step(&["claim", &format!("{t}/{walls}")]);
+                }
+            })
+        })
+        .collect();
+    for w in workers {
+        w.join().unwrap();
+    }
+    let _ = std::fs::remove_dir_all(&root);
+}
+
 /// An unsigned ticket is a normal working state: `war check` on a program
 /// holding one reports no error for it, and a malformed checklist is named.
 #[test]
