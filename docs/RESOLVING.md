@@ -615,12 +615,15 @@ war verify <alias> --response verdicts.toml
 ## Handing the verification to someone who is not you
 
 `war verify <alias> --performer <you> --bundle` writes
-`verifications/bundle-<digest>.json` (`oh.war/verification-bundle/v1`): the
+`verifications/bundle-<digest>.json` (`oh.war/verification-bundle/v2`): the
 request with the authorized contract digest, every atom, each deliverable's
 bytes (whole under `[verify] max_excerpt_bytes`, else the head with the full
 digest and `truncated: true`), the plants that name the alias, the `#[test]`
 names in Rust deliverables, the committed gate runs, the prior verifications,
-and its own token estimate. Hand that one file to a separate context — another
+and its own token estimate. A Warrant whose bundle exceeds `[verify]
+max_bundle_tokens` gets one bundle per obligation instead, each carrying only
+what that obligation lists or names, excerpted to fit with whole-file
+digests, and saying what it did not carry. Hand that one file to a separate context — another
 session, another model, a person — and ingest what comes back with
 `war verify <alias> --response <file>`.
 

@@ -6,6 +6,17 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+### Changed
+
+- Verification bundles are bounded (t-9f7e). `oh.war/verification-bundle/v2`
+  carries its estimate over the whole JSON against `[verify]
+  max_bundle_tokens` (default 48000). A Warrant over it gets one bundle per
+  obligation — the deliverables it lists or names, excerpted by numbered
+  lines with whole-file digests, and `obligation_evidence` saying what was
+  not carried or was cut — and `war verify --run` calls the verifier once
+  per bundle. OW-WAR-0112's single 241k-token bundle, which timed the
+  verifier out, is now seven of at most 48k.
+
 ## [1.0.0-alpha.2] — 2026-09-19
 
 ### Security

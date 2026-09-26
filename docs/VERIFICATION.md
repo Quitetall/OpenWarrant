@@ -29,11 +29,23 @@ directory to keep the raw answer and a run record.
 
 ## What the verifier sees
 
-Only the bundle `war` compiled (`oh.war/verification-bundle/v1`): the
-authorized atoms, each deliverable's bytes (excerpted past
-`max_excerpt_bytes`, with the full digest), the plants that name the
-Warrant, its gate runs and prior verifications. No transcript, no
+Only the bundle `war` compiled (`oh.war/verification-bundle/v2`): the
+authorized atoms, deliverable bytes, the plants that name the Warrant, its
+gate runs with what they printed, and prior verifications. No transcript, no
 rationale, no journal (§46.2).
+
+Each bundle is bounded by `[verify] max_bundle_tokens` (default 48000,
+estimated over the whole JSON; t-9f7e). A Warrant that fits is one bundle
+and one call. One that does not is one bundle per obligation, and `war
+verify --run` calls the wrapper once per bundle, each under
+`verifier_timeout_secs`: the bundle carries the deliverables that obligation
+lists in `obligation_refs` or names by path, excerpted by numbered lines
+(the head, then the lines naming its backticked terms) when a file exceeds
+its share, always with the whole file's sha256. `obligation_evidence` says
+which named paths were not carried and why, and which named terms the budget
+cut; a response answering an obligation its bundle did not carry is refused
+(`verify.outside-bundle`). The largest wave bundles (~48k tokens) took the
+wrapper 11-23 s each on 2026-09-26.
 
 ## How it is kept blind and powerless
 

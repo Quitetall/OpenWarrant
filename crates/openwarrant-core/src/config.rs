@@ -504,6 +504,13 @@ pub struct VerifyPolicy {
     /// this head with their full digest. 0 means the default (65536).
     #[serde(default)]
     pub max_excerpt_bytes: usize,
+    /// The reading budget of one bundle, in estimated tokens over its whole
+    /// canonical JSON (t-9f7e). A Warrant whose bundle fits is sent whole; one
+    /// that does not is split into one bundle per obligation, each bounded to
+    /// this by excerpts carrying whole-file digests. 0 means the default
+    /// (48000).
+    #[serde(default)]
+    pub max_bundle_tokens: u64,
 }
 
 impl VerifyPolicy {
@@ -522,6 +529,15 @@ impl VerifyPolicy {
             65_536
         } else {
             self.max_excerpt_bytes
+        }
+    }
+
+    #[must_use]
+    pub fn max_bundle_tokens(&self) -> u64 {
+        if self.max_bundle_tokens == 0 {
+            48_000
+        } else {
+            self.max_bundle_tokens
         }
     }
 }

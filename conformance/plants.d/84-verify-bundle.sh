@@ -25,15 +25,18 @@ PY
     grep -qxF "verifier_argv = [$1]" openwarrant.toml
 }
 
-# Deterministic: two bundles of one tree share one digest, hence one file.
+# Deterministic: two runs over one tree write the same digests, hence the
+# same files. OW-WAR-0063 exceeds `[verify] max_bundle_tokens`, so each run
+# writes one bundle per obligation (t-9f7e); the second adds none.
 "$WAR" verify OW-WAR-0063 --performer claude --bundle >/dev/null 2>&1
+VB_1=$(ls "$VB"/bundle-*.json 2>/dev/null | wc -l)
 "$WAR" verify OW-WAR-0063 --performer claude --bundle >/dev/null 2>&1
 VB_N=$(ls "$VB"/bundle-*.json 2>/dev/null | wc -l)
-if [[ "$VB_N" -eq 1 ]]; then
-    printf 'ok    %-34s two bundles, one digest, one file\n' "the bundle is deterministic"
+if [[ "$VB_1" -ge 1 && "$VB_N" -eq "$VB_1" ]]; then
+    printf 'ok    %-34s two runs, the same %s digest(s), no new file\n' "the bundle is deterministic" "$VB_N"
     PASSED=$((PASSED + 1))
 else
-    printf 'FAIL  %-34s %s bundle file(s) after two runs\n' "the bundle is deterministic" "$VB_N"
+    printf 'FAIL  %-34s %s bundle file(s) after one run, %s after two\n' "the bundle is deterministic" "$VB_1" "$VB_N"
     FAILED=$((FAILED + 1))
 fi
 rm -f "$VB"/bundle-*.json
