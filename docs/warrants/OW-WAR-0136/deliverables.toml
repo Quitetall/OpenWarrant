@@ -9,9 +9,21 @@ title = "Gate invalidation: the request, the record, and §45's sweep over the c
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/invalidation.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-003", "OBL-004", "OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a8a3a314ca724492b3b184d2f65df04bd829577ca2a7503709703742cac61bab"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:99fe8fde97611b03d3fdcdd4e454778774f38a53c150e5b9fd5b3188541e9d14"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
@@ -29,9 +41,21 @@ title = "war attest --custody: the §41.5 audit of a resolution's evidence"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/attest.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a8a3a314ca724492b3b184d2f65df04bd829577ca2a7503709703742cac61bab"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:77dafda4c870063742c2df8547d047765a733110261dcf65e4e39f1b715d63cd"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-004"
@@ -39,9 +63,21 @@ title = "Standing read from disputes: resolution.disputed in war check"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/resolution_cmd.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a8a3a314ca724492b3b184d2f65df04bd829577ca2a7503709703742cac61bab"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:0d5c3aad354f9868c58d539dd7a71bc82ca6da4b35250e136d4ea8f67c56dfec"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-005"
@@ -59,9 +95,21 @@ title = "The war gate invalidate and war attest --custody flags"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/lib.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002", "OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a8a3a314ca724492b3b184d2f65df04bd829577ca2a7503709703742cac61bab"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:d1fb48286b6312903d99eed3c14879af7caa8719a4c86935585e870034105c1c"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-007"
@@ -69,9 +117,21 @@ title = "The Phase 9 exit plants, §91.10 test 75 among them"
 kind = "file"
 target_ref = "conformance/plants.d/58-invalidation.sh"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a8a3a314ca724492b3b184d2f65df04bd829577ca2a7503709703742cac61bab"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:e0e5510a573fd7638b8b44ca6c51944a0947c80ef6e726a7ee42c7a19b88b9e5"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-008"
@@ -79,9 +139,21 @@ title = "Custody, invalidation and dispute: what each act does and who may do it
 kind = "file"
 target_ref = "docs/INVALIDATION.md"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a8a3a314ca724492b3b184d2f65df04bd829577ca2a7503709703742cac61bab"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:5b1acab63dd086266d56cb4a5610aaeb90a7c4b84f78ba709c6af0e313644b3d"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-009"
@@ -89,9 +161,21 @@ title = "The live demonstration gate, only if Q-002 selects the live corpus"
 kind = "file"
 target_ref = "docs/gates/ops.exit-demo@1.0.0.yaml"
 required = false
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-006"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a8a3a314ca724492b3b184d2f65df04bd829577ca2a7503709703742cac61bab"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:40078c2e909a6b3412ff02381d2410402b8354f3946dbd79f80174678b88f974"
+media_type = "application/yaml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-010"
@@ -109,9 +193,21 @@ title = "war next names the invalidate act (AM-003; Q-001 a or b only)"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/next.rs"
 required = false
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a8a3a314ca724492b3b184d2f65df04bd829577ca2a7503709703742cac61bab"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:4b58cae5885f2d335bf058d4c557b3be09b28c06e8644d494b2e9644803a4cfd"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-012"
@@ -119,9 +215,21 @@ title = "The console names the invalidate act (AM-003; Q-001 a or b only)"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/console.rs"
 required = false
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a8a3a314ca724492b3b184d2f65df04bd829577ca2a7503709703742cac61bab"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:f14bc04ec248112ca80eedc22bb5a5ef85a0b50e5a13f8c8f75c59b42c6294dd"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-013"
@@ -139,9 +247,21 @@ title = "The human acts, gate invalidation among them (AM-003; Q-001 a or b only
 kind = "file"
 target_ref = "AGENTS.md"
 required = false
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a8a3a314ca724492b3b184d2f65df04bd829577ca2a7503709703742cac61bab"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:66ae7471b5d0f3866c2fd4899811afb34ec6d8a8d5b652fa195fbd5d452ebb22"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-015"
@@ -149,9 +269,21 @@ title = "Signing an invalidation (AM-003; Q-001 a or b only)"
 kind = "file"
 target_ref = "docs/SIGNING.md"
 required = false
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a8a3a314ca724492b3b184d2f65df04bd829577ca2a7503709703742cac61bab"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:de5546cbd2eb69261c91aaffb19e42fe3f58e06f436e56384725aff055b0d684"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-016"
@@ -159,9 +291,21 @@ title = "The human acts in the AGENTS.md war init writes (AM-003; Q-001 a or b o
 kind = "file"
 target_ref = "crates/openwarrant-cli/templates/AGENTS.md.tmpl"
 required = false
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a8a3a314ca724492b3b184d2f65df04bd829577ca2a7503709703742cac61bab"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:a5e438348cb328d1e238161424ea78499cf7882efa46da7dad6a730abbdc57a0"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-017"
@@ -169,9 +313,21 @@ title = "The human acts an adopter meets (AM-003; Q-001 a or b only)"
 kind = "file"
 target_ref = "docs/ADOPTING.md"
 required = false
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a8a3a314ca724492b3b184d2f65df04bd829577ca2a7503709703742cac61bab"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:2a3427344c30f87e7c5445f11f0b1c4e7e4b80dc4df8e72ac0117f24d8e2fca8"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-018"
@@ -179,6 +335,18 @@ title = "The legacy workflow rendered from the AGENTS.md template (AM-003; Q-001
 kind = "file"
 target_ref = "docs/agents/legacy-warrant-workflow.md"
 required = false
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a8a3a314ca724492b3b184d2f65df04bd829577ca2a7503709703742cac61bab"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:4aeb03d9a116b8bff46d0b4146ddcaf986bacccf05a703a218643824d7b3e755"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

@@ -9,9 +9,21 @@ title = "One atomic write path: temp, fsync, rename, prestate, no symlinks"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/atomic.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "64c1d7ed89868e015673de626f23be848870e1193272ec9548a7f2635e433424"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:ddd3e448f2045f1fc5ce1c570a52196388af2a41e9737cc70013095049b16526"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
@@ -19,9 +31,21 @@ title = "Authorization and judgments written atomically"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/authorize.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "64c1d7ed89868e015673de626f23be848870e1193272ec9548a7f2635e433424"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:d7d1a247ee9faeb8af60877ac3e3e9381ebdfc36bbc358aa964def5ed799ad9d"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-003"
@@ -29,9 +53,21 @@ title = "Resolution written atomically, against its prestate"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/resolution_cmd.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "64c1d7ed89868e015673de626f23be848870e1193272ec9548a7f2635e433424"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:0d5c3aad354f9868c58d539dd7a71bc82ca6da4b35250e136d4ea8f67c56dfec"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-004"
@@ -39,9 +75,21 @@ title = "Verification records written atomically"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/verify.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "64c1d7ed89868e015673de626f23be848870e1193272ec9548a7f2635e433424"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:059ab2d1ecf4d31724d162a26c5529dadd2cdcc077dee66bd7f2fd7bad21253d"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-005"
@@ -59,9 +107,21 @@ title = "No partial generated parent: views and projections written atomically"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/compile.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "64c1d7ed89868e015673de626f23be848870e1193272ec9548a7f2635e433424"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:0c3d08949f1d2b6194b3e09728c55e2a943ea771c4878123572e5bdcf6cabac8"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-007"
@@ -79,9 +139,21 @@ title = "Durable journal appends and journal.torn-tail"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/journal_cmd.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "64c1d7ed89868e015673de626f23be848870e1193272ec9548a7f2635e433424"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:2c358c285a415ffe1b0fc71c1a234546249ca388ce334ea65dd25e0de4e084e9"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-009"
@@ -89,9 +161,21 @@ title = "storage.stray-temp in war check"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/check.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "64c1d7ed89868e015673de626f23be848870e1193272ec9548a7f2635e433424"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:f0e32001865b12553679bd67be0d7b2c9cb69902e26d73677e9b49592361b8c3"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-010"
@@ -99,9 +183,21 @@ title = "The storage protocol, crash points, and the retained-artifact rule"
 kind = "file"
 target_ref = "docs/STORAGE.md"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "64c1d7ed89868e015673de626f23be848870e1193272ec9548a7f2635e433424"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:5917abcf887edc6c51fe7684627c3cc48402de63f3345d7f6ffe53d510e41d0b"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-011"
@@ -109,6 +205,18 @@ title = "The storage plants"
 kind = "file"
 target_ref = "conformance/plants.d/53-storage.sh"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "64c1d7ed89868e015673de626f23be848870e1193272ec9548a7f2635e433424"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:2dc97da795be05e67b8575de50216b80802a6b8696c3fdcd76fe814740d1efe5"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

@@ -11,9 +11,21 @@ title = "war ui --lan: TLS-only, exact Host and Origin, loopback unchanged"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/webui/mod.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-003", "OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6db924518ae6feaf38bce9c6d17d4109c6ad44128dab70ef11cff8cc2ee32910"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:f644364d5847a020c76264048fcbc1f15be8cb9148e166e7a4754f7d67388cf4"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
@@ -21,9 +33,21 @@ title = "TLS for the LAN listener"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/webui/tls.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6db924518ae6feaf38bce9c6d17d4109c6ad44128dab70ef11cff8cc2ee32910"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:384e529e8d7abf367098bf65100eb5fb444279379ccb96107011deb671407a9f"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-003"
@@ -31,9 +55,21 @@ title = "pairing, device credentials, nonces"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/webui/pairing.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6db924518ae6feaf38bce9c6d17d4109c6ad44128dab70ef11cff8cc2ee32910"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:f4cd13e662b88fb2b8a33fa31878feae9f8a5916beeae537943f5d9b71486371"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-004"
@@ -41,9 +77,21 @@ title = "the page: pairing, nonces, host-only rows"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/webui/assets/app.js"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6db924518ae6feaf38bce9c6d17d4109c6ad44128dab70ef11cff8cc2ee32910"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:2aef1b8761b6c1430c2af9cd920b083b09824d70d51e3b76a7000bd1c87683c9"
+media_type = "text/javascript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-005"
@@ -51,9 +99,21 @@ title = "WEBUI.md: Reach on the LAN"
 kind = "file"
 target_ref = "docs/WEBUI.md"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6db924518ae6feaf38bce9c6d17d4109c6ad44128dab70ef11cff8cc2ee32910"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:d78f16786b6e9cfeb2cee143cd225675fc35be68eec67d00b3ed9b96842ce6ca"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-006"
@@ -71,9 +131,21 @@ title = "the plants"
 kind = "file"
 target_ref = "conformance/plants.d/59-webui-lan.sh"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6db924518ae6feaf38bce9c6d17d4109c6ad44128dab70ef11cff8cc2ee32910"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:45120bcf22667098ce45fc43680c05b3bd7a71141993cc2bf53d5ba5dc96c39e"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-008"
@@ -81,9 +153,21 @@ title = "the TLS dependency and the QR code crate, exact pins (AM-003)"
 kind = "file"
 target_ref = "crates/openwarrant-cli/Cargo.toml"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6db924518ae6feaf38bce9c6d17d4109c6ad44128dab70ef11cff8cc2ee32910"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:12c7834eddd1df0a80e740bed9e9b204411baed824cfa98fb6ebe527be1dceb9"
+media_type = "application/toml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-009"
@@ -91,9 +175,21 @@ title = "the lockfile for D-008 (AM-003)"
 kind = "file"
 target_ref = "Cargo.lock"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6db924518ae6feaf38bce9c6d17d4109c6ad44128dab70ef11cff8cc2ee32910"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:95214eb62cd9938d8f004c237a53f25486507dd4c0d557a4fe2c833911891ec3"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-010"
@@ -101,6 +197,18 @@ title = "`war ui --lan` flags and `war ui devices` (AM-003)"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/lib.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "6db924518ae6feaf38bce9c6d17d4109c6ad44128dab70ef11cff8cc2ee32910"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:d1fb48286b6312903d99eed3c14879af7caa8719a4c86935585e870034105c1c"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

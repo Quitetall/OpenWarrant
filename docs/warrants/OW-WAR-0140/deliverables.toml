@@ -9,9 +9,21 @@ title = "Profile resolves through a pinned registry"
 kind = "file"
 target_ref = "crates/openwarrant-core/src/role.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "111c2d7c8b5e77d87019734cfd191710709f6f9bed91dcfc09c42ee4b3d9a3f3"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:d5036482de3a3d01e2a8cf900a6e17414eed1d1454d0dc6b7853da95ab7b0a86"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
@@ -19,9 +31,21 @@ title = "profile-required namespaced roles; fail closed elsewhere"
 kind = "file"
 target_ref = "crates/openwarrant-core/src/manifest.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "111c2d7c8b5e77d87019734cfd191710709f6f9bed91dcfc09c42ee4b3d9a3f3"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:2eff55b05b91edf88195b8953cea59e6258a03e95b0899a3bb4420705e1f5614"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-003"
@@ -29,9 +53,21 @@ title = "the delivery profile as data"
 kind = "file"
 target_ref = "profiles/delivery.toml"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "111c2d7c8b5e77d87019734cfd191710709f6f9bed91dcfc09c42ee4b3d9a3f3"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:38fcace93bd017d6661f2298b7043139d921b45a9c78b9fbcb53a08fd27a31e4"
+media_type = "application/toml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-004"
@@ -39,9 +75,21 @@ title = "the decision profile as data"
 kind = "file"
 target_ref = "profiles/decision.toml"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "111c2d7c8b5e77d87019734cfd191710709f6f9bed91dcfc09c42ee4b3d9a3f3"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:d22926c20af6fbceaf11c9a62fdf62c4bb42413e47802c04282e44b9da9cbe5c"
+media_type = "application/toml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-005"
@@ -49,9 +97,21 @@ title = "the contractor profile"
 kind = "file"
 target_ref = "profiles/contractor.toml"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002", "OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "111c2d7c8b5e77d87019734cfd191710709f6f9bed91dcfc09c42ee4b3d9a3f3"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:ca641d04ae7b44cbf8a0bb2a0c57e4743caebe9d2bf2086a41e727295e03f55c"
+media_type = "application/toml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-006"
@@ -59,9 +119,21 @@ title = "war new --profile contractor"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/new.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "111c2d7c8b5e77d87019734cfd191710709f6f9bed91dcfc09c42ee4b3d9a3f3"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:221cee082678d7cd2b3ee5b0ce8b4e963c7fd4d6e88be69470070af0269b7bb0"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-007"
@@ -69,9 +141,21 @@ title = "the walked contractor example"
 kind = "file"
 target_ref = "docs/EXAMPLES/04-contractor.md"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "111c2d7c8b5e77d87019734cfd191710709f6f9bed91dcfc09c42ee4b3d9a3f3"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:513c7353f2001240e58ae72053ca64d46ef5994bb54bc5ff680ff08dc74c6c34"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-008"
@@ -79,9 +163,21 @@ title = "docs/PROFILES.md"
 kind = "file"
 target_ref = "docs/PROFILES.md"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "111c2d7c8b5e77d87019734cfd191710709f6f9bed91dcfc09c42ee4b3d9a3f3"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:276c66e3b5bf77948bf281474252710a6d80ece18e3551ba8eaca4402dabc995"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-009"
@@ -89,9 +185,21 @@ title = "the plants"
 kind = "file"
 target_ref = "conformance/plants.d/56-contractor.sh"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002", "OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "111c2d7c8b5e77d87019734cfd191710709f6f9bed91dcfc09c42ee4b3d9a3f3"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:7541ffd41a596ac799555bc62d4f37fe7ddd269cf3e1e64d967b52b43837aeb1"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-010"
@@ -99,9 +207,21 @@ title = "the repository loads profiles/ into the registry (AM-003)"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/repo.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "111c2d7c8b5e77d87019734cfd191710709f6f9bed91dcfc09c42ee4b3d9a3f3"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:c7807ff20c5afbd46f5a26deb5a72558b77bd734a5f7854d123bf21da32136b9"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-011"
@@ -109,9 +229,21 @@ title = "war new --profile resolves through the registry (AM-003)"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/lib.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "111c2d7c8b5e77d87019734cfd191710709f6f9bed91dcfc09c42ee4b3d9a3f3"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:d1fb48286b6312903d99eed3c14879af7caa8719a4c86935585e870034105c1c"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-012"
@@ -119,6 +251,18 @@ title = "the non-binding contractor fixture (AM-003)"
 kind = "file"
 target_ref = "conformance/fixtures/contractor/work-order.sh"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002", "OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "111c2d7c8b5e77d87019734cfd191710709f6f9bed91dcfc09c42ee4b3d9a3f3"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:19bd62cad2201a0ab67216ade9a1d912c1b47b247246c2751be7db9dc0ea7081"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

@@ -12,9 +12,21 @@ title = "OW-ADR-0029, the standing-authorization decision"
 kind = "document"
 target_ref = "docs/adr/atoms/OW-ADR-0029-standing-authorization.md"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "74dfa8a94254bb899131ba4af66cc8accaf8cf56aa193b6200b15a7d384b5f2c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:52ad1e5371e73d18970427847c65435bd2530bfa779e25c6461a1d38adf7f446"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
@@ -22,9 +34,21 @@ title = "SAS 1.2.0: §28.8, the §37.5 clause, one §106 row (A only)"
 kind = "document"
 target_ref = "docs/sas/WAR_Software_Architecture_Specification.md"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "74dfa8a94254bb899131ba4af66cc8accaf8cf56aa193b6200b15a7d384b5f2c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:85f5e7eff8def10702ecd1fcc74f09cc8e0b6ba9d11d1db2b9c24cd576562a9f"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-003"
@@ -32,9 +56,21 @@ title = "core: the class and the coverage check"
 kind = "file"
 target_ref = "crates/openwarrant-core/src/standing.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002", "OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "74dfa8a94254bb899131ba4af66cc8accaf8cf56aa193b6200b15a7d384b5f2c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:479e8e1678564a2e45cf3cbfe50c98f6bff356ad135c81989aae1a0b20864150"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-004"
@@ -52,9 +88,21 @@ title = "schema: oh.war/standing-authorization/v1"
 kind = "file"
 target_ref = "schemas/oh.war/standing-authorization/v1.json"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "74dfa8a94254bb899131ba4af66cc8accaf8cf56aa193b6200b15a7d384b5f2c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:ee7a8d1cae87d00a0804d4c5ab8a98e630c0494437fa237aee14e214ca9c80ae"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-006"
@@ -62,9 +110,21 @@ title = "schema pack"
 kind = "file"
 target_ref = "schemas/pack.json"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "74dfa8a94254bb899131ba4af66cc8accaf8cf56aa193b6200b15a7d384b5f2c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:628024b677db15424d84ec569f97cf4a369dd4844c31b39ab3cd5e41751cfff8"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-007"
@@ -72,9 +132,21 @@ title = "cli: war standing propose, show, apply"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/standing_cmd.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002", "OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "74dfa8a94254bb899131ba4af66cc8accaf8cf56aa193b6200b15a7d384b5f2c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:eb6f4209317384626479200900fe1d46fe4f5751992b86d05a2ac2ce698716e7"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-008"
@@ -82,9 +154,21 @@ title = "cli: the command and module list"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/lib.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "74dfa8a94254bb899131ba4af66cc8accaf8cf56aa193b6200b15a7d384b5f2c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:d1fb48286b6312903d99eed3c14879af7caa8719a4c86935585e870034105c1c"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-009"
@@ -92,9 +176,21 @@ title = "cli: the standing.* check rules, re-derived"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/check.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "74dfa8a94254bb899131ba4af66cc8accaf8cf56aa193b6200b15a7d384b5f2c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:f0e32001865b12553679bd67be0d7b2c9cb69902e26d73677e9b49592361b8c3"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-010"
@@ -122,9 +218,21 @@ title = "cli: no covered path taken from work in flight"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/ownership.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-006"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "74dfa8a94254bb899131ba4af66cc8accaf8cf56aa193b6200b15a7d384b5f2c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:d6ed966a852136f415d4fcc3f574cde705f42abd4bfd37675c602e1b61548533"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-013"
@@ -132,9 +240,21 @@ title = "cli: a covered Warrant is never resolved by a policy service"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/resolve.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "74dfa8a94254bb899131ba4af66cc8accaf8cf56aa193b6200b15a7d384b5f2c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:db18ed48bb18097cbb80729a8e53daf05abcc4fd9ff310041a19a6894d04d825"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-014"
@@ -142,9 +262,21 @@ title = "the plants"
 kind = "file"
 target_ref = "conformance/plants.d/69-standing.sh"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002", "OBL-003", "OBL-004", "OBL-005", "OBL-006", "OBL-007"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "74dfa8a94254bb899131ba4af66cc8accaf8cf56aa193b6200b15a7d384b5f2c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:4178a1fab18f5d1f4ed31253f393ea877c02b2ab47149a63b19da49958ed985f"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-015"
@@ -152,9 +284,21 @@ title = "docs/SIGNING.md: routine work under a standing authorization"
 kind = "document"
 target_ref = "docs/SIGNING.md"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-007"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "74dfa8a94254bb899131ba4af66cc8accaf8cf56aa193b6200b15a7d384b5f2c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:de5546cbd2eb69261c91aaffb19e42fe3f58e06f436e56384725aff055b0d684"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-016"
@@ -162,9 +306,21 @@ title = "CONTEXT.md: the term"
 kind = "document"
 target_ref = "CONTEXT.md"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "74dfa8a94254bb899131ba4af66cc8accaf8cf56aa193b6200b15a7d384b5f2c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:11e9d60d8e0bd4614ebd3de947708968317dde3935fc785be4a5cfb6d70031c3"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-017"
@@ -182,9 +338,21 @@ title = "cli: class-act attestations"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/attest.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "74dfa8a94254bb899131ba4af66cc8accaf8cf56aa193b6200b15a7d384b5f2c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:77dafda4c870063742c2df8547d047765a733110261dcf65e4e39f1b715d63cd"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-019"
@@ -192,9 +360,21 @@ title = "cli: a covered Warrant's policy-service resolution refused at ingest"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/resolution_cmd.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "74dfa8a94254bb899131ba4af66cc8accaf8cf56aa193b6200b15a7d384b5f2c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:0d5c3aad354f9868c58d539dd7a71bc82ca6da4b35250e136d4ea8f67c56dfec"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-020"
@@ -202,9 +382,21 @@ title = "cli: the class acts in war next"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/next.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "74dfa8a94254bb899131ba4af66cc8accaf8cf56aa193b6200b15a7d384b5f2c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:4b58cae5885f2d335bf058d4c557b3be09b28c06e8644d494b2e9644803a4cfd"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-021"
@@ -212,9 +404,21 @@ title = "cli: the class acts in the console"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/console.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "74dfa8a94254bb899131ba4af66cc8accaf8cf56aa193b6200b15a7d384b5f2c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:f14bc04ec248112ca80eedc22bb5a5ef85a0b50e5a13f8c8f75c59b42c6294dd"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-022"
@@ -222,9 +426,21 @@ title = "cli: war_standing_apply and war_standing_show"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/mcp/tools.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "74dfa8a94254bb899131ba4af66cc8accaf8cf56aa193b6200b15a7d384b5f2c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:4c7301b2b60f4a27a45cf91440cdf4016f0404c00b88715afc39ff99743f0d6e"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-023"
@@ -232,9 +448,21 @@ title = "cli: the refused MCP names"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/mcp/mod.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "74dfa8a94254bb899131ba4af66cc8accaf8cf56aa193b6200b15a7d384b5f2c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:16b46eaf5863510577f60d3b692e5a02885d4a738070cfa10f983219a028e225"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-024"
@@ -242,9 +470,21 @@ title = "cli: the pack's new member"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/schemas.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "74dfa8a94254bb899131ba4af66cc8accaf8cf56aa193b6200b15a7d384b5f2c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:f0adc4c6697aa40f71b0d2a1e421974e1c5361879b1b2ea564d17af1c427bbc3"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-025"
@@ -252,9 +492,21 @@ title = "schema: the TypeScript projection of the class"
 kind = "file"
 target_ref = "schemas/typescript/standing-authorization.ts"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "74dfa8a94254bb899131ba4af66cc8accaf8cf56aa193b6200b15a7d384b5f2c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:d6cdc2af5ec4cfa58b26a5cb869cf94c074c7698409919a32e12355fcea1fe20"
+media_type = "text/x-typescript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-026"
@@ -262,9 +514,21 @@ title = "schema: the TypeScript projection manifest"
 kind = "file"
 target_ref = "schemas/typescript/manifest.json"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "74dfa8a94254bb899131ba4af66cc8accaf8cf56aa193b6200b15a7d384b5f2c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:84dd59fedb0976e061947610f9546cd5ac39c317408f68271789869e1bbf3b10"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-027"
@@ -272,6 +536,18 @@ title = "SAS 1.2.0: the proposed revision record (A only)"
 kind = "document"
 target_ref = "docs/sas/revisions/1.2.0.toml"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "74dfa8a94254bb899131ba4af66cc8accaf8cf56aa193b6200b15a7d384b5f2c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:6a96999bc917a4656d401903ef3ea431a199180a5657018c2dc7be775819c908"
+media_type = "application/toml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

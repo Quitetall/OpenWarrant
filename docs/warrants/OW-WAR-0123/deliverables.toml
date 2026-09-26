@@ -12,9 +12,21 @@ title = "The parent citation check: revision exists, number and digest agree, mo
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/check.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-006"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "2633499af5e82d2208eda0a3845b5d5e5c2d9cf04d788a95cc03c49f881ad40c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:f0e32001865b12553679bd67be0d7b2c9cb69902e26d73677e9b49592361b8c3"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
@@ -22,9 +34,21 @@ title = "war new --parent: the exact citation, written from the parent's authori
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/new.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "2633499af5e82d2208eda0a3845b5d5e5c2d9cf04d788a95cc03c49f881ad40c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:221cee082678d7cd2b3ee5b0ce8b4e963c7fd4d6e88be69470070af0269b7bb0"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-003"
@@ -32,9 +56,21 @@ title = "The --parent flag on war new"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/lib.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "2633499af5e82d2208eda0a3845b5d5e5c2d9cf04d788a95cc03c49f881ad40c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:d1fb48286b6312903d99eed3c14879af7caa8719a4c86935585e870034105c1c"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-004"
@@ -42,6 +78,18 @@ title = "The parent revision plants"
 kind = "file"
 target_ref = "conformance/plants.d/58-parent-revision.sh"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "2633499af5e82d2208eda0a3845b5d5e5c2d9cf04d788a95cc03c49f881ad40c"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:e0a3f1e224799eabd8b2e4d0fe6884450e3ee42f24a2fe15dc27e67e9d24e175"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

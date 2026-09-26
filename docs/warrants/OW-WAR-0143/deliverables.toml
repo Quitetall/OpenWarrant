@@ -14,9 +14,21 @@ title = "Build identity: gather and classify, shared by build.rs and the crate"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/build_identity.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "8af51b39c3a080d8989c97aef5ab29eb56e0fc82e9427547030d1c7f2fafe93e"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:41354246246ee406b30b2cc59bce0c5f306184e4a903dba2e398740f828ef122"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
@@ -24,9 +36,21 @@ title = "build.rs: the identity embedded at build time; a release build that is 
 kind = "file"
 target_ref = "crates/openwarrant-cli/build.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "8af51b39c3a080d8989c97aef5ab29eb56e0fc82e9427547030d1c7f2fafe93e"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:0f7c07a86514940a7cb553291230a1dddca8fe80e0b0506eeae832bf4e71550f"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-003"
@@ -34,9 +58,21 @@ title = "install.rs: identity, precedence, default channel, verification before 
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/install.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "8af51b39c3a080d8989c97aef5ab29eb56e0fc82e9427547030d1c7f2fafe93e"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:c83af7a2248f7df33fcb94ea546a0d9f114f888bc2d041d6c8e2881aeaeac28e"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-004"
@@ -44,9 +80,21 @@ title = "notice.rs: the cached, detached, opt-out release notice"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/notice.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "8af51b39c3a080d8989c97aef5ab29eb56e0fc82e9427547030d1c7f2fafe93e"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:305fcea16b95d8f4078fa8629e8967f844136f5d353d003fcc1f47e0471f786f"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-005"
@@ -54,9 +102,21 @@ title = "lib.rs: the version string, version --probe, __release-check, the notic
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/lib.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-003", "OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "8af51b39c3a080d8989c97aef5ab29eb56e0fc82e9427547030d1c7f2fafe93e"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:d1fb48286b6312903d99eed3c14879af7caa8719a4c86935585e870034105c1c"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-006"
@@ -64,9 +124,21 @@ title = "tui/mod.rs binary_row: compares identity, names the remedy"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/tui/mod.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "8af51b39c3a080d8989c97aef5ab29eb56e0fc82e9427547030d1c7f2fafe93e"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:eecdcf128c9b988baf0fba8f8a93221a0fc34244ce0a4518b35dc5c13eca22d8"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-007"
@@ -74,9 +146,21 @@ title = "install.sh against the current release contract, into the managed layou
 kind = "file"
 target_ref = "install.sh"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-006"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "8af51b39c3a080d8989c97aef5ab29eb56e0fc82e9427547030d1c7f2fafe93e"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:933c641da7e13f1ec8d3f7ed1c1f2bb2f94ae1732e083f43f593e995ed0391f5"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-008"
@@ -84,9 +168,21 @@ title = "release.yml: OPENWARRANT_RELEASE_TAG at build, install.sh attached"
 kind = "file"
 target_ref = ".github/workflows/release.yml"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-006"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "8af51b39c3a080d8989c97aef5ab29eb56e0fc82e9427547030d1c7f2fafe93e"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:388b90e6318a377e4460421881ccbdbd4951b4cf7e2f3e97e5a8cb81bf64857c"
+media_type = "application/yaml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-009"
@@ -94,9 +190,21 @@ title = "The install document"
 kind = "file"
 target_ref = "docs/INSTALL.md"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-007"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "8af51b39c3a080d8989c97aef5ab29eb56e0fc82e9427547030d1c7f2fafe93e"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:454f5d2b7cfb451cec872abf1a58bda10a1cb46a06f073dde5acd8691d8436f9"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-010"
@@ -104,9 +212,21 @@ title = "README.md: a pointer to docs/INSTALL.md"
 kind = "file"
 target_ref = "README.md"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-007"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "8af51b39c3a080d8989c97aef5ab29eb56e0fc82e9427547030d1c7f2fafe93e"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:539e76bd5214180159c83380f6a17e79b0e5dbf11e076b29b41eae956c5db0c7"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-011"
@@ -114,9 +234,21 @@ title = "QUICKSTART.md step 0: a pointer to docs/INSTALL.md"
 kind = "file"
 target_ref = "QUICKSTART.md"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-007"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "8af51b39c3a080d8989c97aef5ab29eb56e0fc82e9427547030d1c7f2fafe93e"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:83c205b5797666cb18d8d81cc323b6703f14711fe8f3a6e8d004b9d18031b37e"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-012"
@@ -124,6 +256,18 @@ title = "The update, notice, bootstrap and identity plants"
 kind = "file"
 target_ref = "conformance/plants.d/61-update.sh"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005", "OBL-006", "OBL-007"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "8af51b39c3a080d8989c97aef5ab29eb56e0fc82e9427547030d1c7f2fafe93e"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:825e42b88da7f6ebcf3c8088b33c696f1d0a3bac7cfb920d97318773a8125acc"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

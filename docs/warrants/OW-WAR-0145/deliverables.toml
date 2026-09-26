@@ -9,9 +9,21 @@ title = "Run the battery in a disposable clone of HEAD"
 kind = "file"
 target_ref = "conformance/plant-isolated.sh"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "3e6680715edd0ac5580678bad85c00da7f06f2e6c96f1a4c506f3c1de6d49933"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:fe992b77011dc45ee5967aba56fb1584cd0c267c6a77ea8773be3afd879e2525"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
@@ -19,9 +31,21 @@ title = "ops.conformance.plants@1.1.0, askable"
 kind = "file"
 target_ref = "docs/gates/ops.conformance.plants@1.1.0.yaml"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "3e6680715edd0ac5580678bad85c00da7f06f2e6c96f1a4c506f3c1de6d49933"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:ee4bc551c3a60134d64a330c5c63d99b43e152311a334dbe5609a567fe6fe216"
+media_type = "application/yaml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-003"
@@ -29,6 +53,18 @@ title = "The isolated-battery plants"
 kind = "file"
 target_ref = "conformance/plants.d/48-isolated-battery.sh"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "3e6680715edd0ac5580678bad85c00da7f06f2e6c96f1a4c506f3c1de6d49933"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:cd14a181bc6018498429c5caa0011ecaa00e160ebbc277cc478af171442ece2f"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

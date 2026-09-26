@@ -12,9 +12,21 @@ title = "OW-ADR-0028: SAS sections are atoms — identity, the two steps, the pr
 kind = "file"
 target_ref = "docs/adr/atoms/OW-ADR-0028-sas-sections-are-atoms.md"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-006"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "c970ba32f4716c73adbc050153db292ef5952936aa0c3ea8a39c94ab87238660"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:f61ba64c466cb65fe47ca4f18923a0dc64cfb86f632faa7166b50e6fa7b99245"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
@@ -22,9 +34,21 @@ title = "The lossless, fence-aware section split and join"
 kind = "file"
 target_ref = "crates/openwarrant-core/src/sas_sections.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "c970ba32f4716c73adbc050153db292ef5952936aa0c3ea8a39c94ab87238660"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:8095618f1531fa1977fe53312d3ff4edc6eda5c7b8716d50f07fc6133ad1c2a2"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-003"
@@ -42,9 +66,21 @@ title = "SECTIONS.json and SECTIONS.md written by war compile"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/compile.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "c970ba32f4716c73adbc050153db292ef5952936aa0c3ea8a39c94ab87238660"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:0c3d08949f1d2b6194b3e09728c55e2a943ea771c4878123572e5bdcf6cabac8"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-005"
@@ -52,9 +88,21 @@ title = "The generated section index"
 kind = "file"
 target_ref = "docs/sas/generated/SECTIONS.json"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "c970ba32f4716c73adbc050153db292ef5952936aa0c3ea8a39c94ab87238660"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:6194747e9011dbc8f3f0dd24e7c9bc21117ec550bc87ea76d1676915e09fc506"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-006"
@@ -62,9 +110,21 @@ title = "The generated section index, for reading"
 kind = "file"
 target_ref = "docs/sas/generated/SECTIONS.md"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "c970ba32f4716c73adbc050153db292ef5952936aa0c3ea8a39c94ab87238660"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:8df9a43caae2fec0337ebb6006ef73736b3bb53c0bfecf7ce7280a1b8449a380"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-007"
@@ -72,9 +132,21 @@ title = "sas.section-ref and sas.section-current"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/check.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "c970ba32f4716c73adbc050153db292ef5952936aa0c3ea8a39c94ab87238660"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:f0e32001865b12553679bd67be0d7b2c9cb69902e26d73677e9b49592361b8c3"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-008"
@@ -82,9 +154,21 @@ title = "war sas diff names changed sections"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/sas.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "c970ba32f4716c73adbc050153db292ef5952936aa0c3ea8a39c94ab87238660"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:c6999c2b715be63d2616f8d3e16b7073555c2e7f1c5846f1a0d9f53486864329"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-009"
@@ -92,9 +176,21 @@ title = "The SAS section plants"
 kind = "file"
 target_ref = "conformance/plants.d/56-sas-sections.sh"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "c970ba32f4716c73adbc050153db292ef5952936aa0c3ea8a39c94ab87238660"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:8a40e04460fb1fbcb52f280b055201a116f295fef85c67e2e3c877910139207a"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-010"
@@ -102,6 +198,18 @@ title = "The CI gate job fetches full history, so section currency is answered t
 kind = "file"
 target_ref = ".github/workflows/ci.yml"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "c970ba32f4716c73adbc050153db292ef5952936aa0c3ea8a39c94ab87238660"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:459e38ff572c1c9b70b9ab117c6ca9de6d4e5473be7f8cac813b557d0934db7c"
+media_type = "application/yaml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

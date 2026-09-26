@@ -12,9 +12,21 @@ title = "war frontier: a blocking question blocks its stage; no responder is UNK
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/frontier.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "06a0d514789bb8ed3f6abe172d5969d3045bd7085392fdf1ae9d3d25ada4e3a9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:42b9b654062768ce50c54df7f17fd35b029c775abe6c7df6c223ef399907ae80"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
@@ -22,9 +34,21 @@ title = "war perform: question, spend and attempt admission; perform.ended"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/perform.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "06a0d514789bb8ed3f6abe172d5969d3045bd7085392fdf1ae9d3d25ada4e3a9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:8a2c6162dd3ba6a523feb40d1d73915fba6071e5f1d425c767aee6d0764de2d2"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-003"
@@ -42,9 +66,21 @@ title = "This repository's allow_unmetered = true"
 kind = "file"
 target_ref = "openwarrant.toml"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "06a0d514789bb8ed3f6abe172d5969d3045bd7085392fdf1ae9d3d25ada4e3a9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:377ec3711bb86174ba66a6e492aa3439785ffa8b7737a9045efecf5b14b3e893"
+media_type = "application/toml"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-005"
@@ -52,9 +88,21 @@ title = "How the hotline blocks, who can answer, and the time, spend and attempt
 kind = "file"
 target_ref = "docs/HOTLINE.md"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "06a0d514789bb8ed3f6abe172d5969d3045bd7085392fdf1ae9d3d25ada4e3a9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:281bd201bec3e5688f9810647a354d647290a6093750c1dc45f921bef590cbca"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-006"
@@ -62,9 +110,21 @@ title = "The hotline-defaults plants"
 kind = "file"
 target_ref = "conformance/plants.d/52-hotline-defaults.sh"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "06a0d514789bb8ed3f6abe172d5969d3045bd7085392fdf1ae9d3d25ada4e3a9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:87187f72c56a490eab0cbbe9a4128432b958ce6aa741f9434594ed548f06ecda"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-007"
@@ -72,9 +132,21 @@ title = "The cancel plants state allow_unmetered for their scratch config (AM-00
 kind = "file"
 target_ref = "conformance/plants.d/60-perform-cancel.sh"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "06a0d514789bb8ed3f6abe172d5969d3045bd7085392fdf1ae9d3d25ada4e3a9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:7f7518ff656ef1e98a4bb95174288c9dac3bb7a9c64318848c790901756f54af"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-008"
@@ -82,9 +154,21 @@ title = "The token plants state allow_unmetered for their scratch config (AM-002
 kind = "file"
 target_ref = "conformance/plants.d/83-tokens.sh"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "06a0d514789bb8ed3f6abe172d5969d3045bd7085392fdf1ae9d3d25ada4e3a9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:1c20c426cead858aad627f57bfd3c3e7922916b7b020fc2bc35e86343515e824"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-009"
@@ -92,9 +176,21 @@ title = "war next names no-responder and skips question-blocked stages (AM-002)"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/next.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "06a0d514789bb8ed3f6abe172d5969d3045bd7085392fdf1ae9d3d25ada4e3a9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:4b58cae5885f2d335bf058d4c557b3be09b28c06e8644d494b2e9644803a4cfd"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-010"
@@ -102,6 +198,18 @@ title = "A new program states allow_unmetered = true (AM-002)"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/init/mod.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "06a0d514789bb8ed3f6abe172d5969d3045bd7085392fdf1ae9d3d25ada4e3a9"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:718ec2faea164a02e823e448712c06e00353f7476fbcc79ab26197e5c25166ab"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

@@ -9,9 +9,21 @@ title = "The corpus identity rules"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/identity_check.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "f1ce632345f8220b62e3e8c5897b2dbb4bf84955d3e08cfa559c7e628ee90276"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:6b79fb92cd25135ddf6410dd61d0332a15c428037b785dda29c10d998b99e3c3"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
@@ -19,9 +31,21 @@ title = "war check runs the identity rules"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/check.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "f1ce632345f8220b62e3e8c5897b2dbb4bf84955d3e08cfa559c7e628ee90276"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:f0e32001865b12553679bd67be0d7b2c9cb69902e26d73677e9b49592361b8c3"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-003"
@@ -29,9 +53,21 @@ title = "war blut names the stage by UUID"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/blut.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "f1ce632345f8220b62e3e8c5897b2dbb4bf84955d3e08cfa559c7e628ee90276"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:d1a5535bf39c0aeacf3858df1f493ce5715a7e724bde57cd026ef16371677b11"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-004"
@@ -39,6 +75,18 @@ title = "The identity plants"
 kind = "file"
 target_ref = "conformance/plants.d/51-identity.sh"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "f1ce632345f8220b62e3e8c5897b2dbb4bf84955d3e08cfa559c7e628ee90276"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:cd76854f3555bcb03dcd678ffb78cd92e33b1acf2dbe4bc56e2422e63ead144b"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

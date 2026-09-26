@@ -24,9 +24,21 @@ title = "The journal replays an equivalent append and refuses a conflicting one"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/journal_cmd.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "52b38fa1bdca2d5b697c4bb2b3ef3eb6ff98f404451f7bdd33ec2e52e94512f3"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:2c358c285a415ffe1b0fc71c1a234546249ca388ce334ea65dd25e0de4e084e9"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-003a"
@@ -34,9 +46,21 @@ title = "war ask checks before its first write"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/questions.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "52b38fa1bdca2d5b697c4bb2b3ef3eb6ff98f404451f7bdd33ec2e52e94512f3"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:bb60512be10ce5c11440bef9e0ffe6fbee6caf9bfb77579ce51a094d51a50383"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-003b"
@@ -44,9 +68,21 @@ title = "war submit checks before its first write"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/run_cmd.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "52b38fa1bdca2d5b697c4bb2b3ef3eb6ff98f404451f7bdd33ec2e52e94512f3"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:cd135cfd932ad844dac3ec34f176416fdb4c7a0e08a2cc92800e532a611a2d8c"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-003c"
@@ -54,9 +90,21 @@ title = "war verify --response checks before its first write"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/verify.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "52b38fa1bdca2d5b697c4bb2b3ef3eb6ff98f404451f7bdd33ec2e52e94512f3"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:059ab2d1ecf4d31724d162a26c5529dadd2cdcc077dee66bd7f2fd7bad21253d"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-003d"
@@ -74,9 +122,21 @@ title = "The single-act authorization ingest checks before its first write"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/authorize.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "52b38fa1bdca2d5b697c4bb2b3ef3eb6ff98f404451f7bdd33ec2e52e94512f3"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:d7d1a247ee9faeb8af60877ac3e3e9381ebdfc36bbc358aa964def5ed799ad9d"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-004"
@@ -84,9 +144,21 @@ title = "compat.rs: requires_war and schema-major recognition"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/compat.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "52b38fa1bdca2d5b697c4bb2b3ef3eb6ff98f404451f7bdd33ec2e52e94512f3"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:9de51dbbc82686c3ff1c6d7caf3d167ff7d39d4623e514e95fcae07c240169d1"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-005"
@@ -104,9 +176,21 @@ title = "Repository::discover runs the compat check once"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/repo.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "52b38fa1bdca2d5b697c4bb2b3ef3eb6ff98f404451f7bdd33ec2e52e94512f3"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:c7807ff20c5afbd46f5a26deb5a72558b77bd734a5f7854d123bf21da32136b9"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-007"
@@ -114,9 +198,21 @@ title = "Reading backward: what an older war does with newer records"
 kind = "file"
 target_ref = "docs/COMPATIBILITY.md"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "52b38fa1bdca2d5b697c4bb2b3ef3eb6ff98f404451f7bdd33ec2e52e94512f3"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:3dcb0e0a2e48beeb8f4c2275252c3e8bd63151a066bccfa77d88a44abe678221"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-008"
@@ -124,9 +220,21 @@ title = "The idempotency, batch-atomicity and version plants"
 kind = "file"
 target_ref = "conformance/plants.d/69-idempotency.sh"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "52b38fa1bdca2d5b697c4bb2b3ef3eb6ff98f404451f7bdd33ec2e52e94512f3"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:e5b9784bc1ec4ce1edd29239183513461619510b43e742f028f626f172da9a70"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-013"
@@ -134,6 +242,18 @@ title = "`war sign --batch --recover <id>` as a flag, and exit 2 for compat.war-
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/lib.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "52b38fa1bdca2d5b697c4bb2b3ef3eb6ff98f404451f7bdd33ec2e52e94512f3"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:d1fb48286b6312903d99eed3c14879af7caa8719a4c86935585e870034105c1c"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

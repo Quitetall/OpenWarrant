@@ -9,9 +9,21 @@ title = "The intake record, its file reader and the optional fetch adapter"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/intake.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "2a0d9737dabfb8e7cb9b68771d0b01a5fbd57a7ee70716eca0c5caa2d523e82f"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:2530f54e85d8605b3a05d6f863023474f1798f129fcef24f8d334dff5aa8bd1d"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
@@ -19,9 +31,21 @@ title = "war plan --issue / --issue-file, policy review, pre-Warrant questions"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/plan.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "2a0d9737dabfb8e7cb9b68771d0b01a5fbd57a7ee70716eca0c5caa2d523e82f"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:a4ffd5e91e6ecc855147efc975e48f03bacce4ba7fd476c55e017ec5e6da2c89"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-003"
@@ -29,9 +53,21 @@ title = "Intake questions listed and answered beside Warrant questions"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/questions.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "2a0d9737dabfb8e7cb9b68771d0b01a5fbd57a7ee70716eca0c5caa2d523e82f"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:bb60512be10ce5c11440bef9e0ffe6fbee6caf9bfb77579ce51a094d51a50383"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-004"
@@ -39,9 +75,21 @@ title = "The [intake] table, absent by default"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/repo.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "2a0d9737dabfb8e7cb9b68771d0b01a5fbd57a7ee70716eca0c5caa2d523e82f"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:c7807ff20c5afbd46f5a26deb5a72558b77bd734a5f7854d123bf21da32136b9"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-005"
@@ -49,9 +97,21 @@ title = "Closes/Refs trailers for issue-linked Warrants"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/commit.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "2a0d9737dabfb8e7cb9b68771d0b01a5fbd57a7ee70716eca0c5caa2d523e82f"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:414eae141fc389c681cd840cbae8c605bd4c76a341c125fbf119783d5d938bc6"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-006"
@@ -59,9 +119,21 @@ title = "The drafter asks through unresolved_questions"
 kind = "file"
 target_ref = "conformance/fixtures/drafter/claude-drafter.sh"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "2a0d9737dabfb8e7cb9b68771d0b01a5fbd57a7ee70716eca0c5caa2d523e82f"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:dc9b224e9d0fe4b8b21f0accea9c6eda797acc866e035c199b630cd46de8496f"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-007"
@@ -69,9 +141,21 @@ title = "Intake rows in the friction script"
 kind = "file"
 target_ref = "tools/friction/measure.sh"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-006"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "2a0d9737dabfb8e7cb9b68771d0b01a5fbd57a7ee70716eca0c5caa2d523e82f"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:8d45ce246ade7384c71281cd35c09a46a71231d97c21c6d9238afbfb9782d672"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-008"
@@ -79,9 +163,21 @@ title = "The second friction baseline, with intake"
 kind = "file"
 target_ref = "docs/friction/baseline-2.json"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-006"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "2a0d9737dabfb8e7cb9b68771d0b01a5fbd57a7ee70716eca0c5caa2d523e82f"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:95efdb5ffca0c7bb0688f8cfe0240a5bb8cdaeaff17e942a5db8d2285ac97937"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-009"
@@ -89,9 +185,21 @@ title = "Intake against a prompt and a Jira ticket"
 kind = "file"
 target_ref = "docs/FRICTION.md"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-006"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "2a0d9737dabfb8e7cb9b68771d0b01a5fbd57a7ee70716eca0c5caa2d523e82f"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:ae7d80f443756c70e11e598c955354cbca58cb969d087c55ab37624422619fb2"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-010"
@@ -99,9 +207,21 @@ title = "How an issue becomes a Warrant, and what closes it"
 kind = "file"
 target_ref = "docs/agents/issue-tracker.md"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-004", "OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "2a0d9737dabfb8e7cb9b68771d0b01a5fbd57a7ee70716eca0c5caa2d523e82f"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:e28c1ce14e22ef284fca31ed5edfd0ba51c3bbb31a220c7d980bcfaba8ee7533"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-011"
@@ -109,9 +229,21 @@ title = "The intake plants"
 kind = "file"
 target_ref = "conformance/plants.d/54-intake.sh"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004", "OBL-005", "OBL-006"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "2a0d9737dabfb8e7cb9b68771d0b01a5fbd57a7ee70716eca0c5caa2d523e82f"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:6eb0f128a597f899e3c08583810ad496837ff80bcf3aecc8388508bd1152cb91"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-012"
@@ -119,9 +251,21 @@ title = "war plan --issue / --issue-file flags and their wiring into the plan ha
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/lib.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "2a0d9737dabfb8e7cb9b68771d0b01a5fbd57a7ee70716eca0c5caa2d523e82f"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:d1fb48286b6312903d99eed3c14879af7caa8719a4c86935585e870034105c1c"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-013"
@@ -129,9 +273,21 @@ title = "Open intake questions as human answer acts in war next (AM-002)"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/next.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "2a0d9737dabfb8e7cb9b68771d0b01a5fbd57a7ee70716eca0c5caa2d523e82f"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:4b58cae5885f2d335bf058d4c557b3be09b28c06e8644d494b2e9644803a4cfd"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-014"
@@ -139,6 +295,18 @@ title = "An issue input on the war_plan_* MCP tools (AM-002)"
 kind = "file"
 target_ref = "crates/openwarrant-cli/src/mcp/tools.rs"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "2a0d9737dabfb8e7cb9b68771d0b01a5fbd57a7ee70716eca0c5caa2d523e82f"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+creation_method = "authored"
+content_digest = "sha256:4c7301b2b60f4a27a45cf91440cdf4016f0404c00b88715afc39ff99743f0d6e"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
