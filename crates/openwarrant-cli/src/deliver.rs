@@ -16,9 +16,15 @@
 //!   moved (AGENTS.md rule 4, OW-WAR-0064);
 //! - a deliverable whose file is missing (`deliver.missing`): a digest of
 //!   nothing is not a delivery;
-//! - a path a LATER authorized Warrant governs (`deliver.governed`,
-//!   OW-ADR-0021): its bytes are that Warrant's to record now;
 //! - a target that is not a file in this repository (`deliver.not-a-file`).
+//!
+//! A path a LATER authorized Warrant governs (OW-ADR-0021) is not refused
+//! and not recorded: its bytes are that Warrant's to record now, and this
+//! Warrant's pin of it is historical — it verifies at this Warrant's own
+//! resolution, not against today's file. It is named (`deliver.governed`,
+//! with who governs it) and the Warrant's other deliverables are recorded.
+//! Refusing the whole Warrant for it left every Warrant that shares a file
+//! with a later one (`lib.rs`, `sign.rs`, most of the corpus) undeliverable.
 //!
 //! Any refusal refuses the whole command and nothing is written: a delivery
 //! recorded for three of four files reads, later, as a Warrant that
@@ -204,13 +210,13 @@ pub fn run_with(
         if let Some(at) = authorized_at.as_deref()
             && let Some(owner) = ownership.newer_than(&d.target_ref, alias, Some(at))
         {
-            report.push(Diagnostic::error(
+            report.push(Diagnostic::pass(
                 "deliver.governed",
-                file.clone(),
                 format!(
                     "{alias}: {} → {} is governed by {}/{} (authorized {}), later than {alias} \
-                     (authorized {at}). Its bytes are that Warrant's to record (OW-ADR-0021); \
-                     `war pins` shows who governs what",
+                     (authorized {at}); not recorded here — its bytes are that Warrant's to \
+                     record, and this pin is historical (OW-ADR-0021). `war pins` shows who \
+                     governs what",
                     d.id, d.target_ref, owner.alias, owner.deliverable_id, owner.authorized_at
                 ),
             ));

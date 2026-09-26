@@ -161,7 +161,8 @@ else
 fi
 git -C "$PLANT_ROOT" checkout -q -- "docs/warrants/$DL_A/deliverables.toml"
 
-# 4. Refused: a path a LATER authorized Warrant governs. Authorize A, then B,
+# 4. Not recorded: a path a LATER authorized Warrant governs is named and
+#    left alone (its pin is historical, OW-ADR-0021). Authorize A, then B,
 #    one batch each, a second apart, with a throwaway agent killed after.
 DL_OLD_SOCK=${SSH_AUTH_SOCK:-}
 unset SSH_AUTH_SOCK SSH_AGENT_PID
@@ -186,11 +187,11 @@ if [[ ! -f "$PLANT_ROOT/docs/warrants/$DL_A/authorization.toml" || ! -f "$PLANT_
 fi
 DL_BEFORE=$(dl_sha "$DL_M")
 DL_OUT=$(dl_war deliver "$DL_A" D-001 2>&1); DL_STATUS=$?
-if [[ $DL_STATUS -eq 2 ]] && grep -q "deliver.governed .*D-001 → src/a.txt is governed by $DL_B/D-001" <<<"$DL_OUT" \
-    && [[ "$(dl_sha "$DL_M")" == "$DL_BEFORE" ]]; then
-    dl_ok "a later Warrant's path is refused" "deliver.governed names $DL_B/D-001; nothing written"
+if [[ $DL_STATUS -eq 0 ]] && grep -qE "^PASS +deliver\.governed .*D-001 → src/a.txt is governed by $DL_B/D-001" <<<"$DL_OUT" \
+    && ! grep -q 'deliver.recorded' <<<"$DL_OUT" && [[ "$(dl_sha "$DL_M")" == "$DL_BEFORE" ]]; then
+    dl_ok "a later Warrant's path is not recorded" "deliver.governed names $DL_B/D-001; nothing written"
 else
-    dl_fail "a later Warrant's path is refused" "exit $DL_STATUS: $(dl_line "$DL_OUT")"
+    dl_fail "a later Warrant's path is not recorded" "exit $DL_STATUS: $(dl_line "$DL_OUT")"
 fi
 # ... and the Warrant that governs it records it (the control).
 DL_OUT=$(dl_war deliver "$DL_B" D-001 2>&1); DL_STATUS=$?
