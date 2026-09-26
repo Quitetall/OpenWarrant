@@ -329,8 +329,8 @@ pub fn reuse_of(repo: &Repository, gate: &str, receipt: &GateReceipt) -> Reuse {
         Ok(moved) => Reuse::Moved {
             subject: tree,
             detail: format!(
-                "{} path(s) outside the evidence records, projections, authority records and \
-                 ticket bookkeeping have changed since ({}{})",
+                "{} path(s) outside the evidence records, projections, authority records, \
+                 verification records and ticket bookkeeping have changed since ({}{})",
                 moved.len(),
                 moved.iter().take(3).cloned().collect::<Vec<_>>().join(", "),
                 if moved.len() > 3 { ", …" } else { "" }

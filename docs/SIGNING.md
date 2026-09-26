@@ -79,25 +79,49 @@ Nothing in the record claims the batch; the batch claims the record.
 ## One sitting: authorize and resolve after the work is done
 
 The agent finishes the work without asking you for anything; you then do
-every act for it in one sitting. That works because a signature does not
-make recorded evidence stale: the tree rule skips the records a human act
-writes (see "The reuse rule" in `docs/RESOLVING.md`).
+every act for it in one sitting. That works because neither a signature nor
+a verification makes recorded evidence stale: the tree rule skips the
+records a human act writes and the records `war verify` writes (see "The
+reuse rule" in `docs/RESOLVING.md`).
 
-**Before the sitting (the agent, no signature):**
+**Before the sitting (the agent, no signature), in this order:**
 1. Deliver, and declare it in `deliverables.toml`.
-2. `war verify <alias> --run` (or `--response` from an independent
-   verifier), commit.
-3. `war evidence record <alias>`, `war compile`, commit — **last**. A
-   verification record is not an authority record: committing one after the
-   evidence moves the tree a no-`inputs` receipt names, and the agent
-   records again.
+2. Evidence: `war evidence record <alias>`, `war compile`, commit. A gate
+   that needs the verifications (below) may fail here; that is expected.
+3. Verify: `war verify <alias> --performer <you> --run` (or `--bundle`,
+   handed to an independent verifier, then `--response <file>` with the
+   file outside the repository or under `verifications/responses/`),
+   `war compile`, commit. The verifier reads the receipts from step 2 in
+   its bundle and judges them.
+4. Document gates: a gate that reads the verifications
+   (`document.review@1.0.0` needs an established independent verification
+   for every obligation), recorded now:
+   `war evidence record <alias> --gate document.review@1.0.0`, `war compile`,
+   commit.
+
+**Why this order no longer loops.** It used to: a verification written
+after the evidence moved the tree every no-`inputs` receipt named, so the
+agent recorded again — and the new receipts were not the ones the
+verifier had judged, so it verified again, which staled them again. No
+step now writes anything a receipt is bound to: step 3 writes verification
+records, step 4 and the sitting write evidence and authority records, and
+the tree rule skips all three. So each step leaves the ones before it
+standing — the receipts from step 2 are still the ones the verdicts are
+about when the sitting reads them. What that costs, stated in
+`docs/RESOLVING.md`: a receipt of a gate that reads verifications or
+authority records (`war check`, the battery, `document.review@1.0.0`) says
+nothing about ones written after it, and the verifier never sees step 4's
+receipt — that gate's verdict is only that the verifications exist, which
+the resolution checks again live (§38.6). A source change anywhere in this
+order still stales the receipts by name, and the agent starts again at
+step 2.
 
 **The sitting, in this order:**
 1. A SAS or roadmap acceptance, if one governs the work, alone
    (`war sign <version> --ssh-sign`). Accepting one changes what the corpus
    is judged against, so it is bound like source: it stales every
-   tree-bound receipt, and the agent must record evidence again before
-   step 3. Keep acceptances out of a sitting that resolves.
+   tree-bound receipt, and the agent must go back to step 2 above before
+   step 3 here. Keep acceptances out of a sitting that resolves.
 2. Authorize: `war sign --batch --ssh-sign` (every pending authorization),
    or `war sign <alias> --ssh-sign`. Commit nothing yet if you like; the
    records are skipped either way.
