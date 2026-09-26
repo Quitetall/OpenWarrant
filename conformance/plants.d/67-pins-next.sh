@@ -34,22 +34,21 @@ signs = [a for a in v["actions"] if a["command"].startswith("war sign")]
 bad = [a for a in signs if a["actor"] == "agent"]
 sys.exit(1 if bad or (sys.argv[1] == "need" and not signs) else 0)' "$1"; }
 # The corpus answer is read once, timed (t-280c, below) and checked here.
-# nx_timed_next: run `war --json next` on this corpus; set NX_CORPUS, NX_RC,
-# NX_MS (CPU: user + system, `war` and the git it runs) and NX_WALL_MS.
-nx_timed_next() {
-    local tmp times saved_tf="${TIMEFORMAT-}" had_tf="${TIMEFORMAT+set}"
-    tmp=$(mktemp -d)
+# nx_cpu_ms <war args...>: run `war <args>` on this corpus; print "<cpu ms>
+# <wall ms> <exit>", CPU being user + system of war and the git it runs. Its
+# stdout goes to $NX_OUT.
+NX_TMP=$(mktemp -d)
+NX_OUT="$NX_TMP/out"
+nx_cpu_ms() {
+    local rc saved_tf="${TIMEFORMAT-}" had_tf="${TIMEFORMAT+set}"
     TIMEFORMAT='%3R %3U %3S'
-    { time "$WAR" --json next > "$tmp/out" 2>/dev/null; } 2> "$tmp/time"
-    NX_RC=$?
+    { time "$WAR" "$@" > "$NX_OUT" 2>/dev/null; } 2> "$NX_TMP/time"
+    rc=$?
     if [[ -n "$had_tf" ]]; then TIMEFORMAT="$saved_tf"; else unset TIMEFORMAT; fi
-    NX_CORPUS=$(cat "$tmp/out")
-    times=$(tail -1 "$tmp/time")
-    NX_WALL_MS=$(awk '{ printf "%d", $1 * 1000 }' <<<"$times")
-    NX_MS=$(awk '{ printf "%d", ($2 + $3) * 1000 }' <<<"$times")
-    rm -rf "$tmp"
+    awk -v rc="$rc" '{ printf "%d %d %d\n", ($2 + $3) * 1000, $1 * 1000, rc }' < <(tail -1 "$NX_TMP/time")
 }
-nx_timed_next
+read -r NX_MS NX_WALL_MS NX_RC < <(nx_cpu_ms --json next)
+NX_CORPUS=$(cat "$NX_OUT")
 if "$WAR" --root "$PLANT_ROOT" --json next 2>/dev/null | nx_no_agent_signs need \
     && printf '%s' "$NX_CORPUS" | nx_no_agent_signs any; then
     printf 'ok    %-34s no agent action is a signature\n' "next never hands an agent a signature"
@@ -66,32 +65,46 @@ fi
 # oh.war/next/v1 report, and hands no agent a signature (the refusal above,
 # over the same bytes).
 #
-# The bound is on CPU time, not wall time (t-d052). The regression was work
-# done twice, and work is CPU; wall time also counts every moment the process
-# waited for a core, so three batteries at once on a loaded machine read
-# 6.2-7.7 s against the old 6000 ms wall bound with nothing regressed. CPU time
-# does not count the wait. Measured on one corpus (933448d2) at load average
-# ~42: the old binary 11.3-11.5 s CPU, the fixed one 4.8-4.9 s; idle, the old
-# one ~7 s. 6000 ms of CPU sits between them. A sample over the bound is taken
-# once more and the lower counts: a regression is over it both times, a
-# single descheduled-and-migrated sample is not.
-NX_BOUND_MS=6000
-if [[ $NX_RC -eq 0 && $NX_MS -ge $NX_BOUND_MS ]]; then
-    NX_FIRST_MS=$NX_MS
-    nx_timed_next
-    [[ $NX_FIRST_MS -lt $NX_MS ]] && NX_MS=$NX_FIRST_MS
-fi
-if [[ $NX_RC -eq 0 && $NX_MS -lt $NX_BOUND_MS ]] \
+# What is timed, and against what (t-d052). A wall-clock bound failed with
+# nothing regressed when three batteries ran at once (6.2-7.7 s against 6000
+# ms): wall time counts every moment `war` waited for a core. CPU time does
+# not, but on its own it still moved 1.45x under load on this machine (a
+# hybrid CPU: a process that lands on an efficiency core spends more CPU on
+# the same work). So the bound is RELATIVE: `war next`'s CPU over `war
+# status`'s, the same corpus loaded by a command without next's work, timed
+# in the same run, interleaved, the lowest of three each. Load moves both;
+# the ratio stays. Measured on one machine: before t-280c next/status =
+# 11.35/2.63 = 4.3, after 4.84/2.06 = 2.35 (corpus 933448d2, load average
+# 42, single samples); at this corpus with t-eca6's memo, 2.5-2.6 (min of
+# three, three runs, load average 13). The t-280c fix shifted the ratio by
+# 1.85x, so it would read ~4.7 here; NX_RATIO_BOUND sits between, ~1.35x
+# from each. A regression that slows both alike (the
+# t-eca6 walk per receipt: next 17 s CPU, status 68 s) is what the absolute
+# backstop is for: above any load seen (5.5 s CPU three-wide), far below that.
+NX_RATIO_BOUND=3.4
+NX_ABS_BOUND_MS=15000
+NX_ST_MS=
+for NX_I in 1 2 3; do
+    read -r NX_S_MS _ NX_S_RC < <(nx_cpu_ms --json status)
+    if [[ $NX_S_RC -eq 0 ]] && [[ -z $NX_ST_MS || $NX_S_MS -lt $NX_ST_MS ]]; then NX_ST_MS=$NX_S_MS; fi
+    [[ $NX_I -eq 3 ]] && break
+    read -r NX_S_MS _ NX_S_RC < <(nx_cpu_ms --json next)
+    if [[ $NX_S_RC -eq 0 && $NX_S_MS -lt $NX_MS ]]; then NX_MS=$NX_S_MS; fi
+done
+NX_RATIO=$(awk -v n="$NX_MS" -v s="${NX_ST_MS:-0}" 'BEGIN { if (s > 0) printf "%.2f", n / s; else print "none" }')
+if [[ $NX_RC -eq 0 && $NX_RATIO != none && $NX_MS -lt $NX_ABS_BOUND_MS ]] \
+    && awk -v r="$NX_RATIO" -v b="$NX_RATIO_BOUND" 'BEGIN { exit !(r < b) }' \
     && grep -q '"oh.war/next/v1"' <<<"$NX_CORPUS" \
     && printf '%s' "$NX_CORPUS" | nx_no_agent_signs any; then
-    printf 'ok    %-34s %s ms CPU (< %s ms; %s ms wall), no agent action is a signature\n' "next answers this corpus in time" "$NX_MS" "$NX_BOUND_MS" "$NX_WALL_MS"
+    printf 'ok    %-34s next/status CPU %s (< %s; %s/%s ms; %s ms wall), no agent action is a signature\n' "next answers this corpus in time" "$NX_RATIO" "$NX_RATIO_BOUND" "$NX_MS" "$NX_ST_MS" "$NX_WALL_MS"
     PASSED=$((PASSED + 1))
 else
-    printf 'FAIL  %-34s %s ms CPU (bound %s ms; %s ms wall), exit %s, or an agent action is a signature\n' "next answers this corpus in time" "$NX_MS" "$NX_BOUND_MS" "$NX_WALL_MS" "$NX_RC"
+    printf 'FAIL  %-34s next/status CPU %s (bound %s; %s/%s ms, backstop %s ms), exit %s, or an agent action is a signature\n' "next answers this corpus in time" "$NX_RATIO" "$NX_RATIO_BOUND" "$NX_MS" "${NX_ST_MS:-none}" "$NX_ABS_BOUND_MS" "$NX_RC"
     FAILED=$((FAILED + 1))
 fi
-unset NX_CORPUS NX_RC NX_MS NX_WALL_MS NX_BOUND_MS NX_FIRST_MS
-unset -f nx_timed_next
+rm -rf "$NX_TMP"
+unset NX_TMP NX_OUT NX_CORPUS NX_RC NX_MS NX_WALL_MS NX_ST_MS NX_RATIO NX_RATIO_BOUND NX_ABS_BOUND_MS NX_I NX_S_MS NX_S_RC
+unset -f nx_cpu_ms
 # t-67ed: a ready ticket item is listed before any human act, as a claim.
 # The human acts stay listed after it, still judged, and still a human's.
 # Refusal: once the item is claimed it is no longer offered.
