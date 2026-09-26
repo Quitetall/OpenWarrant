@@ -84,8 +84,12 @@ a verification makes recorded evidence stale: the tree rule skips the
 records a human act writes and the records `war verify` writes (see "The
 reuse rule" in `docs/RESOLVING.md`).
 
-**Before the sitting (the agent, no signature), in this order:**
-1. Deliver, and declare it in `deliverables.toml`.
+**Before the sitting (the agent, no signature), in this order** — or all
+of it as one command, `war prepare <alias>...` (below):
+1. Deliver: declare it in `deliverables.toml`, then `war deliver <alias>`
+   records §37.2 provenance at the bytes on disk; commit.
+   `deliverables.toml` is bound into every tree-bound receipt, so this is
+   first.
 2. Evidence: `war evidence record <alias>`, `war compile`, commit. A gate
    that needs the verifications (below) may fail here; that is expected.
 3. Verify: `war verify <alias> --performer <you> --run` (or `--bundle`,
@@ -98,6 +102,40 @@ reuse rule" in `docs/RESOLVING.md`).
    for every obligation), recorded now:
    `war evidence record <alias> --gate document.review@1.0.0`, `war compile`,
    commit.
+
+**`war prepare` (t-cee5).** `war prepare <alias>...` (or `--all`: every
+unresolved Warrant that is authorized or awaits authorization) does the
+steps above unattended and idempotently, skipping what is already current,
+in this order:
+
+1. `war deliver` each Warrant;
+2. `war run <alias> <STAGE>` for each stage whose executor is a gate
+   (`executor_kind: service`, `executor_ref: gate://…`) — an obligation may
+   need that stage's dispatch-bound receipt, which `war evidence record`
+   does not make. A Dispatch projects an authorized contract (§47), so an
+   unauthorized Warrant's stages wait: prepare stops it before verification
+   (`prepare.awaits-authorization`) and you run it again after the sitting's
+   authorize, before its resolve;
+3. commit exactly what 1 and 2 wrote (`deliverables.toml`, `dispatches/`,
+   `submissions/`): a receipt over a dirty tree names no source. Any other
+   uncommitted change refuses the run before step 1. `--no-commit` stops
+   here instead and names what to commit;
+4. `war evidence record <alias> --gate <key>` for each cited gate with no
+   admissible run;
+5. `war verify <alias> --run` — the configured independent verifier — unless
+   every obligation already has an admissible `established` verdict
+   (`--reverify` asks again);
+6. the document gates.
+
+A gate whose argv is `war` (`war check --generated`, `war document review`)
+reads the projections every receipt changes, so it runs alone with
+`war compile` just before it; other gates (the battery runs in a clone) and
+the verifier run up to `--jobs N` at once. It prints one line per Warrant,
+the `war sign --list` lines left for you, and a summary. A gate that ran and
+failed stops that Warrant, named, and is a result (exit 0); a step that
+could not be done exits 2, as does a gate result nobody could obtain. It
+never signs, never writes a disposition and never asks: its children run
+with no ssh-agent, and its one commit disables commit signing.
 
 **Why this order no longer loops.** It used to: a verification written
 after the evidence moved the tree every no-`inputs` receipt named, so the

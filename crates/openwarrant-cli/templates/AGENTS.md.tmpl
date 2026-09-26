@@ -129,6 +129,7 @@ war authorize <alias>                      # the REQUEST: what a human would sig
 #   ── stop. A human runs `war sign <alias>` (terminal) or `--ssh-sign` (dialog). ──
 war pins --resolved-only                   # before editing anything: what a resolution pins
 # deliver; declare it in deliverables.toml
+war deliver <alias>                        # record delivery: §37.2 provenance at the bytes on disk
 war evidence record <alias>                # run the cited gates; mint §44.6 receipts
 war verify <alias> --performer <you>       # the request for an INDEPENDENT verifier
 # hand the request to something that is not you — a separate context, never your own
@@ -137,6 +138,12 @@ war resolve --dry-run <alias>              # what still blocks closure; §38.6 b
 war resolve <alias>                        # the REQUEST
 #   ── stop. A human runs `war sign <alias>`. ──
 ```
+
+Once the work is done, `war prepare <alias>` (or `--all`) walks the agent's
+half of this in the order that keeps each step standing — deliver, run each
+gate-executed stage, record the cited gates, run the configured independent
+verifier, record the document gates — skips what is current, signs nothing,
+and prints the acts left for a human.
 
 Every command takes `--json` and answers with one `oh.war/report/v1` envelope.
 `war next --json` names every pending act with its actor; no action it hands an
@@ -168,7 +175,7 @@ the working tree. Answer questions with `--answer Q-001="..."`.
 #### Over MCP
 
 `war mcp` serves the same surface to any harness over stdio: every read, every
-request half, and the writes an agent may make (`war_new`, `war_evidence_record`,
+request half, and the writes an agent may make (`war_new`, `war_deliver`, `war_evidence_record`,
 `war_compile`, `war_gate_run`, `war_journal_backfill`, a reviewed
 `war_plan_apply`). Each tool answers with the `oh.war/report/v1` envelope. It
 registers **no** signing, ingesting, `sas propose`, `kf`, `telemetry`,

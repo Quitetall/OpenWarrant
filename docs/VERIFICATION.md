@@ -16,10 +16,14 @@ verifier_argv = ["tools/verifier/claude-verifier.sh"]
 ## Running it
 
 ```bash
+war deliver <alias>                           # delivery recorded: the bytes the bundle carries
 war evidence record <alias>                   # the cited gates, receipts minted
 war verify <alias> --performer <who did the work> --run
 war resolve <alias> --dry-run                 # what still blocks closure
 ```
+
+`war prepare <alias>` runs these, and the service stages and document gates
+around them, in order (docs/SIGNING.md, "One sitting").
 
 `--run` compiles the bundle, hands its path to the wrapper, and ingests
 what the wrapper prints through the same seam as `war verify --response`.

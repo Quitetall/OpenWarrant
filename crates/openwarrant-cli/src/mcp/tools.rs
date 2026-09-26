@@ -356,6 +356,18 @@ pub struct EvidenceParams {
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct DeliverParams {
+    /// Local alias.
+    pub alias: String,
+    /// Deliverable ids (`D-001`); omit for every deliverable declared.
+    #[serde(default)]
+    pub ids: Vec<String>,
+    /// Report what would be recorded and write nothing.
+    #[serde(default)]
+    pub dry_run: bool,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 pub struct CompileParams {
     /// Local alias; omit to compile the whole corpus and its projections.
     #[serde(default)]
@@ -1069,6 +1081,26 @@ impl WarServer {
         report_of(
             "evidence",
             crate::evidence::record(&self.repo, &p.alias, p.gate.as_deref()),
+        )
+    }
+
+    #[tool(
+        name = "war_deliver",
+        description = "Declare a Warrant's deliverables delivered (`war deliver`): record §37.2 provenance on each — the sha256 of the file now, how it was made, the build of war that recorded it — and set content_addressed. Refuses a resolved Warrant, a missing file, and a path a later authorized Warrant governs (OW-ADR-0021); any refusal writes nothing. Run it before `war_evidence_record`: deliverables.toml is bound into every tree-bound receipt.",
+        annotations(read_only_hint = false)
+    )]
+    fn war_deliver(&self, Parameters(p): Parameters<DeliverParams>) -> ToolResult {
+        report_of(
+            "deliver",
+            crate::deliver::run(
+                &self.repo,
+                &p.alias,
+                &crate::deliver::Options {
+                    ids: &p.ids,
+                    dry_run: p.dry_run,
+                    ..Default::default()
+                },
+            ),
         )
     }
 

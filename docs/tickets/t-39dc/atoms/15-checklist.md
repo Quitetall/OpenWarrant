@@ -1,4 +1,4 @@
 # Checklist
 
-- [ ] war deliver with accepting and refusing plants (i-19b2)
-- [ ] MCP tool war_deliver; docs (i-0ab4)
+- [x] war deliver with accepting and refusing plants (i-19b2) — done by claude, 2026-09-26: war deliver <alias> [<D-id>...] (deliver.rs): §37.2 provenance from the bytes on disk (sha256, creation_method, tool identity = build_identity::version_line, contract_digest = the authorized revision or 'unrecorded'), content_addressed = true; edited key by key as text (comments kept), parsed back and compared, written with atomic::write_if over the bytes read. Refuses deliver.resolved, deliver.missing, deliver.governed (a later authorized Warrant, OW-ADR-0021), deliver.unknown-id, deliver.not-a-file; any refusal writes nothing. Idempotent (deliver.current). Plants: conformance/plants.d/55-deliver.sh (6), resolved refusal in 55-prepare.sh.
+- [x] MCP tool war_deliver; docs (i-0ab4) — done by claude, 2026-09-26: MCP tool war_deliver (mcp/tools.rs); docs: SIGNING.md One sitting step 1 and the war prepare section, VERIFICATION.md, the AGENTS template and docs/agents/legacy-warrant-workflow.md (loop line + war_deliver in the MCP write list).

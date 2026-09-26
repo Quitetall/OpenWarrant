@@ -28,6 +28,7 @@ pub mod console;
 pub mod context_select;
 pub mod contract_history;
 pub mod correct;
+pub mod deliver;
 pub mod diagnostic;
 pub mod diff_target;
 pub mod dispatch;
@@ -58,6 +59,7 @@ pub mod perform;
 pub mod pins;
 pub mod plan;
 pub mod preflight_cmd;
+pub mod prepare;
 pub mod preservation;
 pub mod progress;
 pub mod progress_viewer;
@@ -1105,6 +1107,66 @@ enum Command {
         command: SasCommand,
     },
 
+    /// Declare a Warrant's deliverables delivered (t-39dc): record §37.2
+    /// provenance on each — the sha256 of the file now, how it was made, the
+    /// build of `war` that recorded it — and set `content_addressed`.
+    /// Refuses a resolved Warrant (its `deliverables.toml` is bound), a
+    /// missing file, and a path a later authorized Warrant governs
+    /// (OW-ADR-0021); any refusal writes nothing. Idempotent: a deliverable
+    /// already recorded at its bytes is left as it is.
+    Deliver {
+        /// The Warrant's local alias.
+        alias: String,
+        /// Deliverable ids (`D-001`). Omit for every deliverable declared.
+        ids: Vec<String>,
+        /// §37.2 `producer`. Defaults to the recorded one, then
+        /// `[project] performer`.
+        #[arg(long)]
+        producer: Option<String>,
+        /// §37.2 `creation_method` (`authored`, `generated`, …). Defaults to
+        /// the recorded one, then `authored`.
+        #[arg(long)]
+        method: Option<String>,
+        /// Report what would be recorded and write nothing.
+        #[arg(long)]
+        dry_run: bool,
+    },
+    /// Take Warrants to their sign-off unattended (t-cee5): deliver, run
+    /// each gate-executed stage (`war run`), record each cited gate not
+    /// already admissible (`war evidence record`), run the configured
+    /// independent verifier (`war verify --run`), record the document gates
+    /// last — then print what is left for a human. Idempotent and resumable:
+    /// what is current is skipped. Never signs, never writes a disposition,
+    /// never asks. See docs/SIGNING.md "One sitting".
+    Prepare {
+        /// Warrant aliases. Or `--all`.
+        #[arg(required_unless_present = "all")]
+        aliases: Vec<String>,
+        /// Every Warrant not resolved that is authorized or awaits
+        /// authorization.
+        #[arg(long, conflicts_with = "aliases")]
+        all: bool,
+        /// Gates that run outside the working tree (a battery in a clone),
+        /// and verifier runs, at most this many at once. Gates that run
+        /// `war` itself read the projections receipts change, so they run
+        /// one at a time with `war compile` just before each, whatever this
+        /// says.
+        #[arg(long, default_value_t = 1, value_parser = clap::value_parser!(u32).range(1..=64))]
+        jobs: u32,
+        /// Do not commit the delivery and stage-run records before the
+        /// evidence. A receipt over a dirty tree names no source, so without
+        /// the commit prepare stops before recording evidence and says what
+        /// to commit.
+        #[arg(long)]
+        no_commit: bool,
+        /// Run the verifier even when every obligation already has an
+        /// admissible `established` verdict.
+        #[arg(long)]
+        reverify: bool,
+        /// Print each Warrant's plan and run nothing.
+        #[arg(long)]
+        dry_run: bool,
+    },
     /// Every file a Warrant's `deliverables.toml` pins, with the Warrant's
     /// state — ask BEFORE editing; a resolved Warrant's pin moves only through
     /// `war correct` (OW-WAR-0064).
@@ -2726,6 +2788,57 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 output::value(&pins),
             );
             Ok(EXIT_OK)
+        }
+        Command::Deliver {
+            alias,
+            ids,
+            producer,
+            method,
+            dry_run,
+        } => {
+            let repository = open_repo()?;
+            let report = deliver::run(
+                &repository,
+                &alias,
+                &deliver::Options {
+                    ids: &ids,
+                    producer: producer.as_deref(),
+                    method: method.as_deref(),
+                    dry_run,
+                },
+            )?;
+            Ok(output::finish(mode, "deliver", &report, None))
+        }
+        Command::Prepare {
+            aliases,
+            all,
+            jobs,
+            no_commit,
+            reverify,
+            dry_run,
+        } => {
+            let repository = open_repo()?;
+            let options = prepare::Options {
+                aliases,
+                all,
+                jobs: jobs as usize,
+                commit: !no_commit,
+                reverify,
+                dry_run,
+            };
+            let (report, result) = prepare::run(&repository, &options)?;
+            match mode {
+                output::Mode::Human => {
+                    print!("{}", prepare::render(&report, &result));
+                    Ok(output::exit_code(&report))
+                }
+                output::Mode::Json => Ok(output::finish(
+                    mode,
+                    "prepare",
+                    &report,
+                    Some(output::value(&result)),
+                )),
+            }
         }
         Command::Run {
             alias,
