@@ -1,0 +1,27 @@
+{
+  "run_id": "GR-01a0df10-4d9e-76e0-ac2d-5fa107faaaad",
+  "gate_definition_digest": "sha256:e71542fab7b258d849bc07d65fabd4fb30f67eac536d81b35b478b72587c4385",
+  "gate_binding_digest": "unbound:ops.conformance.plants@1.1.0",
+  "subject_digests": [
+    "dispatch:2c31d7b17d4e4c4f66f86ddb342ecc39f6588f0a637d58198a88c8ab097dece2"
+  ],
+  "fixture_digests": [],
+  "runner": "war gate --run",
+  "runtime_environment": "linux x86_64 / rustc 1.97.1",
+  "arguments": [
+    "bash",
+    "conformance/plant-isolated.sh"
+  ],
+  "working_directory": "/mnt/4tb/tmp/ow-mvp-alpha1",
+  "started_at": "2026-09-26T18:53:02Z",
+  "completed_at": "2026-09-26T19:12:41Z",
+  "exit_result": "pass",
+  "selected_test_count": 0,
+  "selected_test_manifest": [],
+  "raw_evidence_refs": [],
+  "stdout_ref": "docs/warrants/OW-WAR-0120/gate-runs/01a0df10-4d9e-76e0-ac2d-5fa107faaaad/ops_conformance_plants_1_1_0.stdout.txt",
+  "stderr_ref": "docs/warrants/OW-WAR-0120/gate-runs/01a0df10-4d9e-76e0-ac2d-5fa107faaaad/ops_conformance_plants_1_1_0.stderr.txt",
+  "resource_usage": "wall-clock only; 2 argv item(s)",
+  "verdict": "pass",
+  "receipt_digest": "sha256:4db66c84f66282e05ac2515a77b521fdfe7c8ee47cd48e5e6bcd1c18bd0a2f90"
+}

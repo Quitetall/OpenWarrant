@@ -1,0 +1,1 @@
+Terminated                 ( cd "$clone/r" && OPENWARRANT_IN_BATTERY=1 bash "$battery" )
