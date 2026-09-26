@@ -141,6 +141,11 @@ enum EvidenceCommand {
         /// One cited gate (`<id>@<version>`). Defaults to every cited gate.
         #[arg(long)]
         gate: Option<String>,
+        /// The Bonsai evidence document the Bonsai gate's receipt binds,
+        /// `file:<path>#sha256:<digest>` (t-dec1). Required to record
+        /// `software.repo.bonsai-evidence`; refused for any other gate.
+        #[arg(long = "evidence-ref")]
+        evidence_ref: Option<String>,
     },
 }
 
@@ -2549,8 +2554,17 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         }
         Command::Evidence { command } => {
             let repository = open_repo()?;
-            let EvidenceCommand::Record { alias, gate } = command;
-            let report = evidence::record(&repository, &alias, gate.as_deref())?;
+            let EvidenceCommand::Record {
+                alias,
+                gate,
+                evidence_ref,
+            } = command;
+            let report = evidence::record(
+                &repository,
+                &alias,
+                gate.as_deref(),
+                evidence_ref.as_deref(),
+            )?;
             Ok(output::finish(mode, "evidence", &report, None))
         }
         Command::Projects { add, forget } => {

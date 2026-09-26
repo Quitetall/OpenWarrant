@@ -353,6 +353,10 @@ pub struct EvidenceParams {
     /// One gate key to run; omit for every gate the assurance atom cites.
     #[serde(default)]
     pub gate: Option<String>,
+    /// The Bonsai evidence document the Bonsai gate's receipt binds,
+    /// `file:<path>#sha256:<digest>`; required for that gate only.
+    #[serde(default)]
+    pub evidence_ref: Option<String>,
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
@@ -1080,7 +1084,12 @@ impl WarServer {
     fn war_evidence_record(&self, Parameters(p): Parameters<EvidenceParams>) -> ToolResult {
         report_of(
             "evidence",
-            crate::evidence::record(&self.repo, &p.alias, p.gate.as_deref()),
+            crate::evidence::record(
+                &self.repo,
+                &p.alias,
+                p.gate.as_deref(),
+                p.evidence_ref.as_deref(),
+            ),
         )
     }
 

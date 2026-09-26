@@ -1036,6 +1036,26 @@ pub fn run(
             continue;
         }
 
+        // t-dec1: the Bonsai gate verifies the document its argv names; a
+        // receipt binding a DIFFERENT file's digest would record evidence
+        // about bytes the gate never read.
+        if def.gate_id == BONSAI_EVIDENCE_GATE
+            && let Some(bound) = raw_evidence_refs.first().and_then(|r| bonsai_ref_path(r))
+            && bonsai_gate_reads(def) != Some(bound)
+        {
+            report.push(Diagnostic::error(
+                "gate-run.bonsai-ref-not-read",
+                def.key(),
+                format!(
+                    "the evidence reference names {bound:?}, and the gate reads {} — nothing \
+                     was run. Bind the document the gate verifies",
+                    bonsai_gate_reads(def)
+                        .map_or_else(|| "no --evidence file".to_owned(), |p| format!("{p:?}"))
+                ),
+            ));
+            continue;
+        }
+
         let started_at = receipt::now_rfc3339_public();
         // OW-WAR-0133: what the gate is about to run over, named before it is
         // spawned. A recorded run that cannot name a declared fixture is not
@@ -1226,21 +1246,42 @@ fn validate_bonsai_bindings(
         }
         return Ok(());
     }
-    if subject_digests.len() != 1 || raw_evidence_refs.len() != 1 {
-        return Err(RepoError::Message(
-            "Bonsai receipt binding requires exactly one contract subject and one evidence reference"
-                .to_owned(),
-        ));
-    }
-    if !matches!(
-        only,
-        Some(BONSAI_EVIDENCE_GATE) | Some("software.repo.bonsai-evidence@1.0.0")
-    ) {
+    // One contract subject and one evidence reference: the document is
+    // checked against THAT contract. Since OW-WAR-0133 `war evidence record`
+    // binds the deliverable set beside the contract (t-dec1); that subject
+    // is carried beside the pairing, never in place of it, and nothing else
+    // is — the tree, inputs and fixtures are observed by the runner, not
+    // passed in.
+    let contracts: Vec<&String> = subject_digests
+        .iter()
+        .filter(|s| s.starts_with("contract:"))
+        .collect();
+    if contracts.len() != 1 || raw_evidence_refs.len() != 1 {
         return Err(RepoError::Message(format!(
-            "Bonsai receipt bindings are valid only for {BONSAI_EVIDENCE_GATE}@1.0.0"
+            "Bonsai receipt binding requires exactly one contract subject and one evidence \
+             reference; got {} contract subject(s) and {} evidence reference(s){}",
+            contracts.len(),
+            raw_evidence_refs.len(),
+            if raw_evidence_refs.is_empty() {
+                " — pass --evidence-ref file:<path>#sha256:<digest> naming the passing \
+                 `war bonsai check` document"
+            } else {
+                ""
+            }
         )));
     }
-    let subject = &subject_digests[0];
+    if let Some(other) = subject_digests.iter().find(|s| {
+        !s.starts_with("contract:")
+            && !s
+                .strip_prefix(source::DELIVERABLES)
+                .is_some_and(is_hex_digest)
+    }) {
+        return Err(RepoError::Message(format!(
+            "Bonsai receipt subject {other:?} is neither the contract subject nor \
+             deliverables:sha256:<64 hex>, the only subject carried beside it"
+        )));
+    }
+    let subject = contracts[0];
     let Some(contract_digest) = subject.strip_prefix("contract:sha256:") else {
         return Err(RepoError::Message(
             "Bonsai receipt subject must be contract:sha256:<digest>".to_owned(),
@@ -1282,6 +1323,30 @@ fn validate_bonsai_bindings(
         ));
     }
     Ok(())
+}
+
+/// Whether `key` (`<id>` or `<id>@<version>`) is the Bonsai evidence gate,
+/// whose receipt binds a document by bytes (§43.5).
+#[must_use]
+pub fn is_bonsai_gate(key: &str) -> bool {
+    key.split('@').next() == Some(BONSAI_EVIDENCE_GATE)
+}
+
+/// The repository path in a `file:<path>#sha256:<digest>` reference.
+fn bonsai_ref_path(reference: &str) -> Option<&str> {
+    reference
+        .strip_prefix("file:")
+        .and_then(|r| r.rsplit_once("#sha256:"))
+        .map(|(path, _)| path)
+}
+
+/// The file the Bonsai gate's argv hands to `--evidence`.
+fn bonsai_gate_reads(def: &GateDefinition) -> Option<&str> {
+    def.argv
+        .iter()
+        .position(|a| a == "--evidence")
+        .and_then(|i| def.argv.get(i + 1))
+        .map(String::as_str)
 }
 
 fn safe_evidence_path(path: &str) -> bool {
