@@ -33,8 +33,8 @@ fi
 C_RLIST=$(c_list)
 C_RBOARD=$(c_board)
 if [[ "$C_RLIST" == "$C_RBOARD" ]] && { [[ "$C_RLIST" -gt 0 ]] \
-    || { "$WAR" sign --list 2>&1 | grep -q 'nothing awaits a signature' \
-        && printf 'x\n' | "$WAR" console 2>&1 | grep -q 'nothing awaits a signature'; }; }; then
+    || { C_SIGNLIST=$("$WAR" sign --list 2>&1) && grep -q 'nothing awaits a signature' <<<"$C_SIGNLIST" \
+        && C_CONSOLE=$(printf 'x\n' | "$WAR" console 2>&1) && grep -q 'nothing awaits a signature' <<<"$C_CONSOLE"; }; }; then
     printf 'ok    %-34s %s acts; none is said, not shown blank\n' "this corpus's board is its queue" "$C_RBOARD"
     PASSED=$((PASSED + 1))
 else

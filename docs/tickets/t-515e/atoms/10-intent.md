@@ -1,0 +1,3 @@
+# Plants pipe grep into grep -q under pipefail (SIGPIPE race)
+
+Found by t-0f24: `grep PATTERN <<<"$OUT" | grep -q X` under set -o pipefail reads false when the first grep's matches exceed one 4 KiB pipe buffer and the second exits at its first match (SIGPIPE → 141). 69-standing is fixed (st_line_has: capture, then one grep). The same pattern remains in 58-invalidation (13), 53-storage (4), 69-idempotency (4), 59-webui-lan (3), 57-teams (2), 45-tickets, 56-acceptance-validity, 69-current (1 each). A lib.sh helper (line_has) and a check refusing the pattern in plants.d, as 99-fixed-tmp does for /tmp paths.

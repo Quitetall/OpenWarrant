@@ -86,8 +86,8 @@ else
     st_fail "crash in sign: no partial record" "exit $ST_STATUS, before $ST_BEFORE after $ST_AFTER, temps [$ST_TEMP]: $(st_errors "$ST_OUT")"
 fi
 ST_OUT=$(st_war check 2>&1)
-if [[ -n "$ST_TEMP" ]] && grep -F "$ST_TEMP" <<<"$ST_OUT" | grep -qE 'WARN +storage\.stray-temp' \
-    && grep 'storage.stray-temp' <<<"$ST_OUT" | grep -qF "replace $ST_REL/authorization.toml"; then
+if [[ -n "$ST_TEMP" ]] && line_has -F "$ST_TEMP" -E 'WARN +storage\.stray-temp' <<<"$ST_OUT" \
+    && line_has -G 'storage.stray-temp' -F "replace $ST_REL/authorization.toml" <<<"$ST_OUT"; then
     st_ok "the stopped sign is named" "storage.stray-temp → $ST_REL/authorization.toml"
 else
     st_fail "the stopped sign is named" "no storage.stray-temp naming [$ST_TEMP]: $(grep 'storage\.' <<<"$ST_OUT" | head -2 | tr '\n' '|')"
@@ -124,8 +124,8 @@ else
 fi
 ST_OUT=$(st_war check --generated 2>&1)
 ST_RECORD="${ST_TEMP%.*.*.war-tmp}"; ST_RECORD="$(dirname "$ST_RECORD")/$(basename "$ST_RECORD" | sed 's/^\.//')"
-if [[ -n "$ST_TEMP" ]] && grep -F "$ST_TEMP" <<<"$ST_OUT" | grep -qE 'WARN +storage\.stray-temp' \
-    && grep 'storage.stray-temp' <<<"$ST_OUT" | grep -qF "replace $ST_RECORD," \
+if [[ -n "$ST_TEMP" ]] && line_has -F "$ST_TEMP" -E 'WARN +storage\.stray-temp' <<<"$ST_OUT" \
+    && line_has -G 'storage.stray-temp' -F "replace $ST_RECORD," <<<"$ST_OUT" \
     && [[ "$ST_FILES" == "$(st_tree)" ]]; then
     st_ok "the stopped compile is named" "storage.stray-temp → $ST_RECORD; committed views intact"
 else

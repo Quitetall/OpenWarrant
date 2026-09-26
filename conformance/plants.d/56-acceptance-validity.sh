@@ -191,7 +191,7 @@ av_commit() { git -C "$PLANT_ROOT" add -A >/dev/null 2>&1 && git -C "$PLANT_ROOT
 av_sha()  { sha256sum < "$AV_RES" | cut -d' ' -f1; }
 av_lines() { grep -E '^(PASS|ERROR|UNKNOWN|WARN)' <<<"$1" | head -3 | tr '\n' '|'; }
 # A finding naming a path: the rule and the path on the same diagnostic.
-av_names() { grep -F -- "$1" <<<"$2" | grep -qF -- "$3"; }
+av_names() { line_has -F "$1" -F "$3" <<<"$2"; }
 av_verify() { # disposition, evidence
     sed -e "s/^disposition = .*/disposition = \"$1\"/" -e "s|^evidence = .*|evidence = \"$2\"|" \
         "$AV_TMP/verified.toml" > "$AV_TMP/reverify.toml"

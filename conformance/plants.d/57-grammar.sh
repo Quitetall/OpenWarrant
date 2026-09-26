@@ -366,7 +366,7 @@ gr_uncited() { # <document> -> each cited rule or plant id nothing above produce
     grep -oE 'rule `[a-z][a-z0-9_-]*(\.[a-z0-9_-]+)+`' "$1" | sed 's/^rule `//; s/`$//' | sort -u \
         | while read -r r; do grep -Fqw -- "$r" "$GR_SEEN" || printf 'rule %s\n' "$r"; done
     grep -oE '`G-[A-Z][0-9]+`' "$1" | tr -d '`' | sort -u \
-        | while read -r r; do printf '%s\n' "${GR_RAN[@]}" | grep -Fqx -- "$r" || printf 'plant %s\n' "$r"; done
+        | while read -r r; do grep -Fqx -- "$r" <<<"$(printf '%s\n' "${GR_RAN[@]}")" || printf 'plant %s\n' "$r"; done
 }
 
 GR_DOC=docs/GRAMMAR.md

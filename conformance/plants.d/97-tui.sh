@@ -11,8 +11,8 @@ TUI_SRC=crates/openwarrant-cli/src/tui
 
 # OBL-002: no key, no socket, no signature construction under tui/. Comment
 # lines are allowed to NAME the things they forbid; code lines are not.
-if ! grep -rn 'ssh-keygen\|SSH_AUTH_SOCK\|ssh_sign(\|sign::run(\|sign::ingest\|authorize::ingest\|resolution_cmd::ingest\|correct::ingest' "$TUI_SRC" \
-    | grep -v ':\s*//' | grep -q .; then
+if ! { TUI_HITS=$(grep -rn 'ssh-keygen\|SSH_AUTH_SOCK\|ssh_sign(\|sign::run(\|sign::ingest\|authorize::ingest\|resolution_cmd::ingest\|correct::ingest' "$TUI_SRC" \
+    | grep -v ':\s*//') && grep -q . <<<"$TUI_HITS"; }; then
     printf 'ok    %-34s no key, no socket, no signing call under tui/\n' "the app holds no authority"
     PASSED=$((PASSED + 1))
 else

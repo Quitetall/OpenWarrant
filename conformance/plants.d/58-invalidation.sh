@@ -291,12 +291,12 @@ IV_V=$(iv_war attest "$IV_B" --verify 2>&1); IV_VS=$?
 IV_C_OUT=$(iv_war attest "$IV_B" --custody 2>&1); IV_CS=$?
 if grep -q 'receipt-invalid' <<<"$IV_CHECK"; then
     iv_fail "the replacement reseals" "war check calls the replaced receipt invalid; the plant did not reseal it"
-elif [[ $IV_VS -ne 0 ]] && grep 'attest.subject-drift' <<<"$IV_V" | grep -qF "$IV_RECEIPT"; then
+elif [[ $IV_VS -ne 0 ]] && line_has -G 'attest.subject-drift' -F "$IV_RECEIPT" <<<"$IV_V"; then
     iv_ok "a replaced receipt fails --verify" "attest.subject-drift names $IV_RECEIPT (exit $IV_VS)"
 else
     iv_fail "a replaced receipt fails --verify" "exit $IV_VS: $(iv_lines "$IV_V")"
 fi
-if [[ $IV_CS -ne 0 ]] && grep -E '^ERROR +attest\.custody-drift' <<<"$IV_C_OUT" | grep -qF "$IV_RECEIPT"; then
+if [[ $IV_CS -ne 0 ]] && line_has -E '^ERROR +attest\.custody-drift' -F "$IV_RECEIPT" <<<"$IV_C_OUT"; then
     iv_ok "a replaced receipt fails --custody" "attest.custody-drift names $IV_RECEIPT (exit $IV_CS)"
 else
     iv_fail "a replaced receipt fails --custody" "exit $IV_CS: $(iv_lines "$IV_C_OUT")"
@@ -353,7 +353,7 @@ fi
 # auditor who is not the performer records it.
 IV_BEFORE=$(iv_records)
 IV_OUT=$(iv_war attest "$IV_A" --custody --record claude 2>&1); IV_S=$?
-if [[ $IV_S -ne 0 ]] && grep -E '^ERROR +attest\.custody-self-act' <<<"$IV_OUT" | grep -q 'SelfAct' \
+if [[ $IV_S -ne 0 ]] && line_has -E '^ERROR +attest\.custody-self-act' -G 'SelfAct' <<<"$IV_OUT" \
     && [[ ! -e "$IV_W/$IV_A/custody-audit.toml" ]] && iv_clean && [[ "$(iv_records)" == "$IV_BEFORE" ]]; then
     iv_ok "the performer may not record it" "attest.custody-self-act (SelfAct); nothing written"
 else
@@ -438,7 +438,7 @@ RESP
     printf '%s' "$IV_TMP/resolve-$1.toml"
 }
 IV_OUT=$(iv_war resolve "$IV_E" --response "$(iv_response claude)" 2>&1); IV_S=$?
-if [[ $IV_S -ne 0 ]] && grep -E '^ERROR +resolution\.not-permitted' <<<"$IV_OUT" | grep -q 'performed this work' \
+if [[ $IV_S -ne 0 ]] && line_has -E '^ERROR +resolution\.not-permitted' -G 'performed this work' <<<"$IV_OUT" \
     && [[ ! -e "$IV_W/$IV_E/resolution.toml" ]]; then
     iv_ok "the performer may not resolve" "resolution.not-permitted (SelfAct); no resolution.toml"
 else
@@ -493,7 +493,7 @@ print("effective_time = \"2026-09-25T00:00:00Z\"")' "$1" "$IV_GROUNDS" > "$IV_TM
 
 # Control, before: E's receipt of G counts, and nothing is disputed.
 IV_OUT=$(iv_war check "$IV_E" 2>&1)
-if grep -E '^PASS +evidence\.admissible' <<<"$IV_OUT" | grep -qF "$IV_G" \
+if line_has -E '^PASS +evidence\.admissible' -F "$IV_G" <<<"$IV_OUT" \
     && ! grep -q 'resolution.disputed' <<<"$(iv_war check 2>&1)"; then
     iv_ok "before: G's receipt counts on E" "evidence.admissible; no resolution disputed"
 else
@@ -505,21 +505,21 @@ fi
 # before anything is written.
 IV_BEFORE=$(iv_records)
 IV_OUT=$(iv_war gate invalidate "$IV_G" --response "$(iv_inv_response plant-agent)" 2>&1); IV_S=$?
-if [[ $IV_S -ne 0 ]] && grep -E '^ERROR +invalidation\.agent' <<<"$IV_OUT" | grep -q '§27.2' \
+if [[ $IV_S -ne 0 ]] && line_has -E '^ERROR +invalidation\.agent' -G '§27.2' <<<"$IV_OUT" \
     && iv_clean && iv_no_disputes; then
     iv_ok "an agent's invalidation: refused" "invalidation.agent (§27.2, by kind); nothing written"
 else
     iv_fail "an agent's invalidation: refused" "exit $IV_S: $(iv_lines "$IV_OUT")"
 fi
 IV_OUT=$(iv_war gate invalidate "$IV_G" --response "$(iv_inv_response claude)" 2>&1); IV_S=$?
-if [[ $IV_S -ne 0 ]] && grep -E '^ERROR +invalidation\.self-act' <<<"$IV_OUT" | grep -q 'SelfAct' \
+if [[ $IV_S -ne 0 ]] && line_has -E '^ERROR +invalidation\.self-act' -G 'SelfAct' <<<"$IV_OUT" \
     && iv_clean && iv_no_disputes; then
     iv_ok "the performer's invalidation: refused" "invalidation.self-act (SelfAct); nothing written"
 else
     iv_fail "the performer's invalidation: refused" "exit $IV_S: $(iv_lines "$IV_OUT")"
 fi
 IV_OUT=$(iv_war gate invalidate "$IV_G" --response "$(iv_inv_response "Plant Signer")" 2>&1); IV_S=$?
-if [[ $IV_S -ne 0 ]] && grep -E '^ERROR +invalidation\.unsigned' <<<"$IV_OUT" | grep -q 'never counts' \
+if [[ $IV_S -ne 0 ]] && line_has -E '^ERROR +invalidation\.unsigned' -G 'never counts' <<<"$IV_OUT" \
     && iv_clean && iv_no_disputes; then
     iv_ok "an unsigned invalidation: refused" "invalidation.unsigned, though its signer is eligible; nothing written"
 else
@@ -529,7 +529,7 @@ fi
 # holding resolver who is not the performer.
 IV_OUT=$(iv_war sign "$IV_G" --grounds "$IV_GROUNDS" --as claude --dry-run 2>&1); IV_S1=$?
 IV_OUT2=$(iv_war sign "$IV_G" --grounds "$IV_GROUNDS" --as plant-agent --dry-run 2>&1); IV_S2=$?
-if [[ $IV_S1 -ne 0 && $IV_S2 -ne 0 ]] && grep -E '^ERROR +sign\.who' <<<"$IV_OUT" | grep -q 'permits: Plant Signer' \
+if [[ $IV_S1 -ne 0 && $IV_S2 -ne 0 ]] && line_has -E '^ERROR +sign\.who' -G 'permits: Plant Signer' <<<"$IV_OUT" \
     && grep -qE '^ERROR +sign\.who' <<<"$IV_OUT2" && iv_clean; then
     iv_ok "war sign offers neither" "sign.who for the performer and the agent; only Plant Signer is eligible"
 else
@@ -538,7 +538,7 @@ fi
 # The accepting dry run: every refusal passed, the signature the only thing
 # missing, nothing written.
 IV_OUT=$(iv_war sign "$IV_G" --grounds "$IV_GROUNDS" --as "Plant Signer" --dry-run 2>&1); IV_S=$?
-if [[ $IV_S -eq 0 ]] && grep -E '^PASS +invalidation\.would-record' <<<"$IV_OUT" | grep -qF "($IV_A, $IV_B, $IV_C)" \
+if [[ $IV_S -eq 0 ]] && line_has -E '^PASS +invalidation\.would-record' -F "($IV_A, $IV_B, $IV_C)" <<<"$IV_OUT" \
     && grep -qE '^PASS +sign\.would-record' <<<"$IV_OUT" && iv_clean && iv_no_disputes \
     && [[ "$(iv_records)" == "$IV_BEFORE" ]]; then
     iv_ok "the resolver's dry run would record" "invalidation.would-record ($IV_A, $IV_B, $IV_C); nothing written"
@@ -629,8 +629,8 @@ else
 fi
 IV_OUT=$(iv_war check "$IV_E" 2>&1)
 IV_OUT2=$(iv_war resolve "$IV_E" --dry-run 2>&1); IV_S=$?
-if grep -E '^WARN +evidence\.gate-invalidated' <<<"$IV_OUT" | grep -qF "docs/gates/invalidations/$IV_G.toml" \
-    && ! grep -E '^PASS +evidence\.admissible' <<<"$IV_OUT" | grep -qF "$IV_G" && [[ $IV_S -ne 0 ]]; then
+if line_has -E '^WARN +evidence\.gate-invalidated' -F "docs/gates/invalidations/$IV_G.toml" <<<"$IV_OUT" \
+    && ! line_has -E '^PASS +evidence\.admissible' -F "$IV_G" <<<"$IV_OUT" && [[ $IV_S -ne 0 ]]; then
     iv_ok "G's receipt is inadmissible on E" "evidence.gate-invalidated names the invalidation; $IV_E no longer resolvable"
 else
     iv_fail "G's receipt is inadmissible on E" "exit $IV_S: $(iv_lines "$IV_OUT") $(iv_lines "$IV_OUT2")"
@@ -663,7 +663,7 @@ IV_OUT2=$(iv_war check "$IV_E" 2>&1)
 if [[ $(grep -cE '^ERROR +resolution\.dispute-unsigned' <<<"$IV_OUT") -eq 3 ]] \
     && ! grep -q 'resolution.disputed' <<<"$IV_OUT" \
     && grep -qE '^WARN +evidence\.invalidation-not-counted' <<<"$IV_OUT2" \
-    && grep -E '^PASS +evidence\.admissible' <<<"$IV_OUT2" | grep -qF "$IV_G"; then
+    && line_has -E '^PASS +evidence\.admissible' -F "$IV_G" <<<"$IV_OUT2"; then
     iv_ok "unsigned, it never counts" "3x resolution.dispute-unsigned, none disputed; E's receipt admissible"
 else
     iv_fail "unsigned, it never counts" "$(iv_lines "$IV_OUT") $(iv_lines "$IV_OUT2")"

@@ -345,6 +345,57 @@ battery_tool() {
 #
 # A new plant file needs no free number: pick the group it belongs to.
 
+# line_has <filter-flag> <filter-pattern> <test-flag> <test-pattern> <<<"$text"
+#
+# True when some line of the text matches the filter and, among the lines that
+# do, one matches the test: what `grep F P <<<"$text" | grep -qT Q` meant,
+# without the pipe. Each flag is one grep option word (-G for a basic regex,
+# -E, -F, -xF, -v, -i, -A1, ...); the patterns are never read as options.
+#
+# Not `grep … | grep -q …` (t-515e): under `set -o pipefail` the second grep
+# exits at its first match, and when the first has more than one pipe
+# buffer's worth of lines to write, its next write takes SIGPIPE (141) and the
+# pipeline reads false with the line plainly there. 69-standing's
+# 'propose refuses **' failed that way (t-0f24). Here the filter's lines are
+# captured whole, then tested. A filter that matches nothing is false, as the
+# pipeline was; the test reads exactly the filter's lines, none added.
+line_has() {
+    local _lh_lines
+    _lh_lines=$(grep "$1" -- "$2" && printf x) || return 1
+    _lh_lines=${_lh_lines%x}
+    grep -q "$3" -- "$4" <<<"${_lh_lines%$'\n'}"
+}
+
+# plant_quiet_grep_pipes <file>: each line of <file> that pipes into a quiet
+# grep (`| grep -q`, `-qF`, `-Fq`, `--quiet`, `|& grep -E -q` ...), as
+# "N: <line>"; nothing when there is none. A pipe whose `|` ends one line and
+# whose grep starts the next is named at the grep's line.
+#
+# Under `set -o pipefail` (set above), `producer | grep -q X` is true only
+# when the producer also exits 0, and `grep -q` exits at its first match: a
+# producer with more than one pipe buffer still to write takes SIGPIPE and
+# the check reads false, or, negated, true (t-515e). Capture the producer's
+# output first and grep that; `line_has` for grep into grep. A comment line
+# may name the pattern; `||` is not a pipe.
+plant_quiet_grep_pipes() {
+    awk '
+        function quiet(s) {
+            sub(/^[[:space:]]+/, "", s)
+            return s ~ /^grep([[:space:]]+-[^[:space:]]*)*[[:space:]]+(-[A-Za-z0-9]*q[A-Za-z0-9]*|--quiet|--silent)([[:space:]]|$)/
+        }
+        /^[[:space:]]*#/ { next }
+        {
+            s = $0
+            gsub(/\|\|/, "\001\001", s)
+            gsub(/\|&/, "|", s)
+            n = split(s, seg, "|")
+            hit = (open && quiet(seg[1]))
+            for (i = 2; i <= n && !hit; i++) if (quiet(seg[i])) hit = 1
+            if (hit) printf "%d: %s\n", NR, $0
+            open = (s ~ /\|[[:space:]]*\\?[[:space:]]*$/)
+        }' "$1"
+}
+
 # plant_files_in <dir>: the plant files, one per line, in byte order.
 plant_files_in() {
     local LC_ALL=C
@@ -384,10 +435,11 @@ plant_fixed_tmp_paths() {
 }
 
 # run_plant_files <file...>: source each in turn under the rules above. A file
-# that names a fixed /tmp path is not run: it is FAILED by name, with the line
-# (plant_fixed_tmp_paths).
+# that names a fixed /tmp path, or that pipes into a quiet grep, is not run: it
+# is FAILED by name, with the line (plant_fixed_tmp_paths,
+# plant_quiet_grep_pipes).
 run_plant_files() {
-    local _rpf_file _rpf_base _rpf_now _rpf_leak _rpf_line _rpf_tmp
+    local _rpf_file _rpf_base _rpf_now _rpf_leak _rpf_line _rpf_tmp _rpf_pipe
     local -a _rpf_files=("$@")
     # A sourced file would see these positional parameters; it gets none.
     set --
@@ -403,6 +455,13 @@ run_plant_files() {
         if [[ -n "$_rpf_tmp" ]]; then
             printf 'FAIL  %-34s names a fixed /tmp path, so it was not run (use mktemp -d): %s\n' \
                 "$(basename "$_rpf_file")" "$(head -1 <<<"$_rpf_tmp")"
+            FAILED=$((FAILED + 1))
+            continue
+        fi
+        _rpf_pipe=$(plant_quiet_grep_pipes "$_rpf_file")
+        if [[ -n "$_rpf_pipe" ]]; then
+            printf 'FAIL  %-34s pipes into a quiet grep, so it was not run (capture first; line_has): %s\n' \
+                "$(basename "$_rpf_file")" "$(head -1 <<<"$_rpf_pipe")"
             FAILED=$((FAILED + 1))
             continue
         fi
