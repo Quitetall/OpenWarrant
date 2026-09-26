@@ -764,7 +764,7 @@ pub mod source {
     pub type TreeReads = std::sync::Mutex<Option<std::collections::HashMap<String, Vec<String>>>>;
 
     /// Remember [`moved_since`]'s git reads for the rest of this process. For
-    /// one-shot read-only commands only (`war next`, `war check`).
+    /// one-shot read-only commands only (`war next`, `war check`, `war status`).
     pub fn remember_tree_reads() {
         let mut memo = TREE_READS
             .lock()
