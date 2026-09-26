@@ -55,7 +55,8 @@
 //!   with a fresh single-use nonce, and may mark a signing act "requested
 //!   from <device>" in the host's queue — which starts nothing.
 //! - Connections are served on their own threads, at most
-//!   [`LAN_CONNECTIONS`] at once, with the loopback's size and time bounds.
+//!   [`LAN_CONNECTIONS`] at once, with the loopback's size bounds and a
+//!   shorter time bound ([`LAN_REQUEST_TIME`]).
 //!
 //! # Tickets (t-67ed)
 //!
@@ -94,6 +95,24 @@ connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-a
 
 const HEADER_LIMIT: usize = 8192;
 const BODY_LIMIT: usize = 4096;
+/// How long one loopback request may take to arrive, headers and body
+/// together, from its accept. Running out of it is 408,
+/// never 431 or 413: those name a size, and a client that is merely slow
+/// sent nothing too large (t-5f49). Under load a client can be descheduled
+/// for seconds between its connect and its first byte — measured with
+/// three batteries' CPU burners running: sockets silent for 2.1 s, 4.8 s
+/// and 5.2 s after accept, and one curl whose first write came 8.8 s after
+/// its connect. Each connection is read on its own thread, so a silent
+/// socket costs a thread for this long, not the page.
+const LOOPBACK_REQUEST_TIME: Duration = Duration::from_secs(12);
+/// At most this many loopback connections are open (being read or waiting
+/// to be served) at once; the accept loop waits for a slot past it.
+const LOOPBACK_CONNECTIONS: usize = 32;
+/// The same bound on the LAN listener, unchanged by t-5f49: its
+/// connections are served on their own threads, [`LAN_CONNECTIONS`] at
+/// once, and a peer on the network is not the owner's starved local
+/// client, so a slot is not held longer than it was.
+const LAN_REQUEST_TIME: Duration = Duration::from_secs(2);
 /// After a refusal, how many unread request bytes the server discards, and
 /// for how long, before it closes (t-26ca). Bounded both ways: a client
 /// that keeps sending is cut off, never read to its end.
@@ -398,10 +417,28 @@ a paired device reads, runs automatic remedies and can ask for a signature here;
             }
         });
     }
+    // Each loopback connection is READ on its own thread, and SERVED one at
+    // a time under `turn` (t-5f49). Reading on the accept loop let one
+    // silent socket — a client starved of CPU, or a browser's speculative
+    // preconnect — hold every other request for the whole time bound;
+    // serving stays serial, as it always was, so no route runs beside
+    // another. At most LOOPBACK_CONNECTIONS are open at once; past that the
+    // loop stops accepting (the kernel queues) rather than dropping one.
+    let turn = Arc::new(Mutex::new(()));
+    let live = Arc::new(AtomicUsize::new(0));
     loop {
+        if live.load(Ordering::SeqCst) >= LOOPBACK_CONNECTIONS {
+            std::thread::sleep(Duration::from_millis(15));
+            continue;
+        }
         match listener.accept() {
             Ok((stream, _)) => {
-                let _ = state.handle(stream);
+                live.fetch_add(1, Ordering::SeqCst);
+                let (s, turn, live) = (Arc::clone(&state), Arc::clone(&turn), Arc::clone(&live));
+                std::thread::spawn(move || {
+                    let _ = s.handle(stream, &turn);
+                    live.fetch_sub(1, Ordering::SeqCst);
+                });
             }
             Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
                 std::thread::sleep(Duration::from_millis(15));
@@ -609,21 +646,34 @@ pub(crate) fn stalled(e: &std::io::Error) -> bool {
     )
 }
 
-/// Read one request within the bounds, or say which bound it broke. The
-/// caller has set the socket's read timeout.
-fn read_request(stream: &mut dyn Read) -> Result<Request, (&'static str, &'static str)> {
-    let deadline = Instant::now() + Duration::from_secs(2);
+/// Read one request within the bounds, or say which bound it broke:
+/// `within` is the time bound. The caller has set the socket's read
+/// timeout.
+fn read_request(
+    stream: &mut dyn Read,
+    within: Duration,
+) -> Result<Request, (&'static str, &'static str)> {
+    let deadline = Instant::now() + within;
     let mut bytes = Vec::new();
     let mut chunk = [0u8; 1024];
     let head_end = loop {
         if let Some(i) = bytes.windows(4).position(|w| w == b"\r\n\r\n") {
             break i;
         }
-        if bytes.len() >= HEADER_LIMIT || Instant::now() >= deadline {
+        // Two bounds, two answers (t-5f49). Only the size bound is 431; a
+        // header section still incomplete when the time runs out is 408,
+        // whatever the request would have carried. Under load the time
+        // bound fired on a socket that had delivered nothing yet, and the
+        // client, whose headers were ordinary and whose body was the
+        // oversized part, was told its headers were too large.
+        if bytes.len() >= HEADER_LIMIT {
             return Err((
                 "431 Request Header Fields Too Large",
                 "request limit exceeded",
             ));
+        }
+        if Instant::now() >= deadline {
+            return Err(("408 Request Timeout", "request not received in time"));
         }
         match stream.read(&mut chunk) {
             Ok(n) if n > 0 => bytes.extend_from_slice(&chunk[..n]),
@@ -744,7 +794,11 @@ fn printable(s: &str) -> String {
 }
 
 impl Server {
-    fn handle(&self, tcp: TcpStream) -> std::io::Result<()> {
+    /// One loopback connection: read its request on the caller's thread,
+    /// then serve it holding `turn`, so requests are served one at a time
+    /// however many are being read. A refusal of the read is answered
+    /// without waiting for the turn: it runs no route.
+    fn handle(&self, tcp: TcpStream, turn: &Mutex<()>) -> std::io::Result<()> {
         let mut tcp = tcp;
         let _ = tcp.set_read_timeout(Some(Duration::from_secs(1)));
         let _ = tcp.set_write_timeout(Some(Duration::from_secs(2)));
@@ -753,7 +807,7 @@ impl Server {
             extra: "",
         };
         let stream = &mut stream;
-        let req = match read_request(stream.io) {
+        let req = match read_request(stream.io, LOOPBACK_REQUEST_TIME) {
             Ok(r) => r,
             Err((status, why)) => {
                 let answered = respond(stream, status, "text/plain", why.as_bytes());
@@ -761,6 +815,9 @@ impl Server {
                 return answered;
             }
         };
+        let _turn = turn
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
         // The Host is exactly the bound loopback address; an Origin, when
         // present, is exactly this page's. A DNS-rebinding page names another
         // Host; a cross-site page sends another Origin.
@@ -828,7 +885,7 @@ impl Server {
     }
 
     fn serve_lan(&self, stream: &mut Conn, lan: &Lan, peer: &str) -> std::io::Result<()> {
-        let req = match read_request(stream.io) {
+        let req = match read_request(stream.io, LAN_REQUEST_TIME) {
             Ok(r) => r,
             Err((status, why)) => {
                 return respond(stream, status, "text/plain", why.as_bytes());
@@ -1987,7 +2044,7 @@ mod tests {
         let mut server = Some(std::thread::spawn(move || {
             let (mut tcp, _) = listener.accept().expect("accept");
             let _ = tcp.set_read_timeout(Some(Duration::from_secs(1)));
-            let refused = read_request(&mut tcp)
+            let refused = read_request(&mut tcp, LOOPBACK_REQUEST_TIME)
                 .err()
                 .expect("an oversized request is refused");
             {
@@ -2037,12 +2094,81 @@ mod tests {
         });
         let (mut tcp, _) = listener.accept().expect("accept");
         let _ = tcp.set_read_timeout(Some(Duration::from_secs(1)));
-        let req = read_request(&mut tcp)
+        let req = read_request(&mut tcp, LOOPBACK_REQUEST_TIME)
             .map_err(|e| e.1)
             .expect("read to the end");
         assert_eq!(req.path, "/x");
         assert_eq!(req.header("x-after"), ["pause"]);
         drop(client.join().expect("client"));
+    }
+
+    /// Read one request sent by `send` (on its own thread) within `within`,
+    /// with a 100 ms read timeout; the refusal's status, or "ok".
+    fn status_of(within: Duration, send: impl FnOnce(&mut TcpStream) + Send + 'static) -> String {
+        let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
+        let addr = listener.local_addr().expect("addr");
+        let client = std::thread::spawn(move || {
+            let mut c = TcpStream::connect(addr).expect("connect");
+            send(&mut c);
+            c
+        });
+        let (mut tcp, _) = listener.accept().expect("accept");
+        let _ = tcp.set_read_timeout(Some(Duration::from_millis(100)));
+        let got =
+            read_request(&mut tcp, within).map_or_else(|e| e.0.to_owned(), |_| "ok".to_owned());
+        drop(client.join().expect("client"));
+        got
+    }
+
+    /// t-5f49: the time bound running out is 408, not 431. Under load a
+    /// socket that had delivered nothing when the bound ran out was told
+    /// its headers were too large, though it carried ordinary headers and
+    /// an oversized body.
+    #[test]
+    fn a_request_that_does_not_arrive_in_time_is_408_not_431() {
+        let silent = status_of(Duration::from_millis(300), |_| {
+            std::thread::sleep(Duration::from_millis(600));
+        });
+        assert!(silent.starts_with("408 "), "{silent}");
+        let half = status_of(Duration::from_millis(300), |c| {
+            c.write_all(b"POST /api/act HTTP/1.1\r\nHost: h\r\n")
+                .expect("half");
+            std::thread::sleep(Duration::from_millis(600));
+        });
+        assert!(half.starts_with("408 "), "{half}");
+    }
+
+    /// The control on the other side: the size bounds still answer by size.
+    /// Headers over the bound are 431 however fast they come, and ordinary
+    /// headers with an oversized body are 413 — whether the body arrives
+    /// in the same write as the headers or after a pause longer than one
+    /// read's timeout.
+    #[test]
+    fn the_size_bounds_still_answer_by_size() {
+        let within = Duration::from_secs(5);
+        let big = status_of(within, |c| {
+            let x = "a".repeat(9000);
+            let _ =
+                c.write_all(format!("GET / HTTP/1.1\r\nHost: h\r\nX-Big: {x}\r\n\r\n").as_bytes());
+        });
+        assert!(big.starts_with("431 "), "{big}");
+        let body = "a".repeat(8000);
+        let head = format!(
+            "POST /api/act HTTP/1.1\r\nHost: h\r\nContent-Length: {}\r\n\r\n",
+            body.len()
+        );
+        let (h1, b1) = (head.clone(), body.clone());
+        let together = status_of(within, move |c| {
+            let _ = c.write_all(format!("{h1}{b1}").as_bytes());
+        });
+        assert!(together.starts_with("413 "), "{together}");
+        let paused = status_of(within, move |c| {
+            std::thread::sleep(Duration::from_millis(300));
+            let _ = c.write_all(head.as_bytes());
+            std::thread::sleep(Duration::from_millis(300));
+            let _ = c.write_all(body.as_bytes());
+        });
+        assert!(paused.starts_with("413 "), "{paused}");
     }
 
     #[test]
