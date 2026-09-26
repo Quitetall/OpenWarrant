@@ -177,6 +177,9 @@ impl Tls {
             match conn.complete_io(&mut tcp) {
                 Ok((0, 0)) => return Err("the peer closed during the handshake".to_owned()),
                 Ok(_) => {}
+                // A pause longer than one read's timeout is not a failed
+                // handshake; HANDSHAKE_LIMIT is the bound (t-26ca).
+                Err(e) if super::stalled(&e) => {}
                 Err(e) => return Err(e.to_string()),
             }
         }
