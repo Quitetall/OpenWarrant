@@ -16,12 +16,19 @@ plant_cmd "a service stage runs and submits verify" "run.passed" "ops.echo" 0 \
     "true" \
     run "$RUN_ALIAS" STAGE-001
 SUB=$(ls "$RUN_DIR"/submissions/*.json 2>/dev/null | head -1)
-RUN_RECEIPT=$(find "$RUN_DIR/gate-runs" -type f -name '*.receipt.json' -print -quit)
+# The receipt of THIS run: the one under its dispatch's own directory. The
+# Warrant's committed evidence sits beside it in gate-runs/ (an ops.echo
+# receipt recorded over a tree, not a dispatch), and a search of the whole
+# directory returned whichever the file system listed first: a new dispatch id
+# each run, so a different order each run, and this plant failed at random
+# (t-d052, first seen in parallel runs, where it is no likelier than alone).
+RUN_SUB_DID=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['dispatch_id'])" "$SUB" 2>/dev/null)
+RUN_RECEIPT=$(find "$RUN_DIR/gate-runs/${RUN_SUB_DID:-none}" -type f -name '*.receipt.json' -print -quit 2>/dev/null)
 if [[ -n "$SUB" && -n "$RUN_RECEIPT" ]] && grep -q '"requested_next_action": "verify"' "$SUB" && grep -q 'dispatch:' "$RUN_RECEIPT"; then
     printf 'ok    %-34s receipt subject is the dispatch digest; submission requests verify\n' "the run left its records"
     PASSED=$((PASSED + 1))
 else
-    printf 'FAIL  %-34s submission=%s\n' "the run left its records" "${SUB:-none}"
+    printf 'FAIL  %-34s submission=%s receipt=%s\n' "the run left its records" "${SUB:-none}" "${RUN_RECEIPT:-none}"
     FAILED=$((FAILED + 1))
 fi
 # Keep one real dispatch id for the submit plants, then clean.
