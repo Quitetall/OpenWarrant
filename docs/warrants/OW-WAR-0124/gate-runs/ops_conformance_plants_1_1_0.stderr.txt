@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+  File "<stdin>", line 2, in <genexpr>
+KeyError: 'result'
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+FileNotFoundError: [Errno 2] No such file or directory: '/mnt/4tb/tmp/battery-tmp/tmp.yzCdaBkn4o/docs/warrants/unreadable: Expecting value: line 1 column 1 (char 0)/atoms'

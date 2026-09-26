@@ -1,0 +1,3 @@
+# Plant 64 writes a fixed /tmp path, so parallel batteries collide
+
+conformance/plants.d/64-corrections.sh sets RESP=/tmp/openwarrant-plant-correction.toml. Two batteries running at once (the ops.conformance.plants@1.1.0 gate for several Warrants in parallel) overwrite each other's response file: 'an agent signing a correction' exited 1 (wanted 2) and 'a correction whose new digest is not the file' missed correction.stale, on OW-WAR-0115/0116's evidence runs. It is the only plant with a fixed /tmp path. Workaround in use: stagger parallel batteries. Fix after the evidence wave (a commit now would stale the receipts).
