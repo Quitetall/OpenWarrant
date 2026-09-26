@@ -3045,6 +3045,8 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         }
         Command::Next => {
             let repository = open_repo()?;
+            // One-shot and read-only: the tree does not move under it (t-eca6).
+            gate_cmd::source::remember_tree_reads();
             let next = next::run(&repository)?;
             output::emit(
                 mode,
@@ -3288,6 +3290,8 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 }
                 return Ok(output::finish(mode, "check", &report, None));
             }
+            // One-shot and read-only: the tree does not move under it (t-eca6).
+            gate_cmd::source::remember_tree_reads();
             let mut report = check::run(&repository, alias.as_deref(), generated)?;
             if alias.is_none() {
                 match ticket::Store::open(&repository, None) {
