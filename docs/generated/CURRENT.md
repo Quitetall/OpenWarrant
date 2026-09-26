@@ -2001,7 +2001,7 @@ Q-001, answer A); the four-phase plan it replaced survives as these tiers.
 - **Outcome:** WAR UUID and local alias; commit/PR linkage; lightweight event logging; amendment, escalation, and gate-result classification; untracked-work detection.
 - **Tier:** 3 Workflow Integration · **after:** nothing
 - **Achieved:** blocked by 4 (exit Warrant OW-WAR-0041)
-- **Members (4):** OW-WAR-0039 `ready_to_resolve`, OW-WAR-0041 `ready_to_resolve`, OW-WAR-0100 `draft`, OW-WAR-0118 `draft`
+- **Members (4):** OW-WAR-0039 `draft`, OW-WAR-0041 `draft`, OW-WAR-0100 `draft`, OW-WAR-0118 `draft`
 - **No Warrant yet:** friction-baseline
 
 #### OW-PHASE-1 — File-native WAR compiler
@@ -2010,7 +2010,7 @@ Q-001, answer A); the four-phase plan it replaced survives as these tiers.
 - **Outcome:** war init; war new; manifest; authored atom profile; canonical IR; war check; war compile; full Markdown parent; canonical JSON; generated drift gate.
 - **Tier:** 1 Library and Standard · **after:** nothing
 - **Achieved:** achieved (exit Warrant OW-WAR-0061)
-- **Members (34):** OW-WAR-0001 `ready_to_resolve`, OW-WAR-0002 `resolved`, OW-WAR-0003 `ready_to_resolve`, OW-WAR-0004 `ready_to_resolve`, OW-WAR-0005 `resolved`, OW-WAR-0007 `ready_to_resolve`, OW-WAR-0008 `resolved`, OW-WAR-0009 `resolved`, OW-WAR-0010 `resolved`, OW-WAR-0012 `resolved`, OW-WAR-0013 `ready_to_resolve`, OW-WAR-0014 `resolved`, OW-WAR-0031 `resolved`, OW-WAR-0033 `resolved`, OW-WAR-0049 `draft`, OW-WAR-0055 `resolved`, OW-WAR-0057 `resolved`, OW-WAR-0060 `resolved`, OW-WAR-0061 `resolved`, OW-WAR-0075 `draft`, OW-WAR-0076 `draft`, OW-WAR-0085 `draft`, OW-WAR-0087 `draft`, OW-WAR-0092 `draft`, OW-WAR-0097 `draft`, OW-WAR-0112 `draft`, OW-WAR-0113 `draft`, OW-WAR-0114 `draft`, OW-WAR-0115 `draft`, OW-WAR-0116 `draft`, OW-WAR-0119 `draft`, OW-WAR-0120 `draft`, OW-WAR-0121 `draft`, OW-WAR-0122 `draft`
+- **Members (34):** OW-WAR-0001 `draft`, OW-WAR-0002 `resolved`, OW-WAR-0003 `draft`, OW-WAR-0004 `draft`, OW-WAR-0005 `resolved`, OW-WAR-0007 `draft`, OW-WAR-0008 `resolved`, OW-WAR-0009 `resolved`, OW-WAR-0010 `resolved`, OW-WAR-0012 `resolved`, OW-WAR-0013 `draft`, OW-WAR-0014 `resolved`, OW-WAR-0031 `resolved`, OW-WAR-0033 `resolved`, OW-WAR-0049 `draft`, OW-WAR-0055 `resolved`, OW-WAR-0057 `resolved`, OW-WAR-0060 `resolved`, OW-WAR-0061 `resolved`, OW-WAR-0075 `draft`, OW-WAR-0076 `draft`, OW-WAR-0085 `draft`, OW-WAR-0087 `draft`, OW-WAR-0092 `draft`, OW-WAR-0097 `draft`, OW-WAR-0112 `draft`, OW-WAR-0113 `draft`, OW-WAR-0114 `draft`, OW-WAR-0115 `draft`, OW-WAR-0116 `draft`, OW-WAR-0119 `draft`, OW-WAR-0120 `draft`, OW-WAR-0121 `draft`, OW-WAR-0122 `draft`
 - **No Warrant yet:** identity, retention, storage, document-grammar
 
 #### OW-PHASE-2 — Agent planner
@@ -2019,7 +2019,7 @@ Q-001, answer A); the four-phase plan it replaced survives as these tiers.
 - **Outcome:** war plan; interview; Draft Proposal protocol; Katana drafter adapter; semantic diff; proposed ADR generation.
 - **Tier:** 3 Workflow Integration · **after:** OW-PHASE-1
 - **Achieved:** blocked by 10 (exit Warrant OW-WAR-0042)
-- **Members (11):** OW-WAR-0034 `resolved`, OW-WAR-0035 `draft`, OW-WAR-0037 `ready_to_resolve`, OW-WAR-0042 `draft`, OW-WAR-0068 `draft`, OW-WAR-0070 `draft`, OW-WAR-0088 `draft`, OW-WAR-0101 `draft`, OW-WAR-0105 `draft`, OW-WAR-0141 `draft`, OW-WAR-0147 `draft`
+- **Members (11):** OW-WAR-0034 `resolved`, OW-WAR-0035 `draft`, OW-WAR-0037 `draft`, OW-WAR-0042 `draft`, OW-WAR-0068 `draft`, OW-WAR-0070 `draft`, OW-WAR-0088 `draft`, OW-WAR-0101 `draft`, OW-WAR-0105 `draft`, OW-WAR-0141 `draft`, OW-WAR-0147 `draft`
 
 #### OW-PHASE-3 — ADR federation
 
@@ -2027,7 +2027,7 @@ Q-001, answer A); the four-phase plan it replaced survives as these tiers.
 - **Outcome:** first-class ADR atoms; local and global identity; ADR Overview; WAR/ADR relations; existing ADR importer.
 - **Tier:** 1 Library and Standard · **after:** OW-PHASE-1
 - **Achieved:** blocked by 9 (exit Warrant OW-WAR-0043)
-- **Members (12):** OW-WAR-0006 `ready_to_resolve`, OW-WAR-0036 `ready_to_resolve`, OW-WAR-0038 `resolved`, OW-WAR-0043 `ready_to_resolve`, OW-WAR-0058 `resolved`, OW-WAR-0062 `resolved`, OW-WAR-0064 `draft`, OW-WAR-0074 `draft`, OW-WAR-0084 `draft`, OW-WAR-0123 `draft`, OW-WAR-0124 `draft`, OW-WAR-0125 `draft`
+- **Members (12):** OW-WAR-0006 `draft`, OW-WAR-0036 `draft`, OW-WAR-0038 `resolved`, OW-WAR-0043 `draft`, OW-WAR-0058 `resolved`, OW-WAR-0062 `resolved`, OW-WAR-0064 `draft`, OW-WAR-0074 `draft`, OW-WAR-0084 `draft`, OW-WAR-0123 `draft`, OW-WAR-0124 `draft`, OW-WAR-0125 `draft`
 - **No Warrant yet:** parent-revision, adoption, sas-atoms
 
 #### OW-PHASE-4 — Knowledge Fabric registration
@@ -2036,7 +2036,7 @@ Q-001, answer A); the four-phase plan it replaced survives as these tiers.
 - **Outcome:** typed KF actions; global allocation; lifecycle; contract revisions; synchronization; audit; preservation.
 - **Tier:** 2 SDK and Compiler Integration · **after:** OW-PHASE-1, OW-PHASE-3
 - **Achieved:** blocked by 10 (exit Warrant OW-WAR-0044)
-- **Members (10):** OW-WAR-0028 `ready_to_resolve`, OW-WAR-0029 `ready_to_resolve`, OW-WAR-0030 `ready_to_resolve`, OW-WAR-0032 `draft`, OW-WAR-0044 `ready_to_resolve`, OW-WAR-0110 `draft`, OW-WAR-0111 `draft`, OW-WAR-0126 `draft`, OW-WAR-0127 `draft`, OW-WAR-0128 `draft`
+- **Members (10):** OW-WAR-0028 `draft`, OW-WAR-0029 `draft`, OW-WAR-0030 `draft`, OW-WAR-0032 `draft`, OW-WAR-0044 `draft`, OW-WAR-0110 `draft`, OW-WAR-0111 `draft`, OW-WAR-0126 `draft`, OW-WAR-0127 `draft`, OW-WAR-0128 `draft`
 - **No Warrant yet:** kf-authority, native-authority, kf-compiler
 
 #### OW-PHASE-5 — Dispatch and Katana execution
@@ -2045,7 +2045,7 @@ Q-001, answer A); the four-phase plan it replaced survives as these tiers.
 - **Outcome:** Preflight; Stage Dispatch; Katana runtime receipt; Stage Submission; attempts; blockers and deviations.
 - **Tier:** 2 SDK and Compiler Integration · **after:** OW-PHASE-1
 - **Achieved:** blocked by 27 (exit Warrant OW-WAR-0045)
-- **Members (31):** OW-WAR-0011 `ready_to_resolve`, OW-WAR-0015 `resolved`, OW-WAR-0023 `ready_to_resolve`, OW-WAR-0024 `resolved`, OW-WAR-0025 `resolved`, OW-WAR-0026 `draft`, OW-WAR-0045 `draft`, OW-WAR-0056 `resolved`, OW-WAR-0065 `draft`, OW-WAR-0069 `draft`, OW-WAR-0077 `draft`, OW-WAR-0078 `draft`, OW-WAR-0079 `draft`, OW-WAR-0080 `draft`, OW-WAR-0081 `draft`, OW-WAR-0082 `draft`, OW-WAR-0086 `draft`, OW-WAR-0093 `draft`, OW-WAR-0094 `draft`, OW-WAR-0095 `draft`, OW-WAR-0098 `draft`, OW-WAR-0099 `draft`, OW-WAR-0102 `draft`, OW-WAR-0103 `draft`, OW-WAR-0104 `draft`, OW-WAR-0106 `draft`, OW-WAR-0109 `draft`, OW-WAR-0129 `draft`, OW-WAR-0130 `draft`, OW-WAR-0131 `draft`, OW-WAR-0132 `draft`
+- **Members (31):** OW-WAR-0011 `draft`, OW-WAR-0015 `resolved`, OW-WAR-0023 `draft`, OW-WAR-0024 `resolved`, OW-WAR-0025 `resolved`, OW-WAR-0026 `draft`, OW-WAR-0045 `draft`, OW-WAR-0056 `resolved`, OW-WAR-0065 `draft`, OW-WAR-0069 `draft`, OW-WAR-0077 `draft`, OW-WAR-0078 `draft`, OW-WAR-0079 `draft`, OW-WAR-0080 `draft`, OW-WAR-0081 `draft`, OW-WAR-0082 `draft`, OW-WAR-0086 `draft`, OW-WAR-0093 `draft`, OW-WAR-0094 `draft`, OW-WAR-0095 `draft`, OW-WAR-0098 `draft`, OW-WAR-0099 `draft`, OW-WAR-0102 `draft`, OW-WAR-0103 `draft`, OW-WAR-0104 `draft`, OW-WAR-0106 `draft`, OW-WAR-0109 `draft`, OW-WAR-0129 `draft`, OW-WAR-0130 `draft`, OW-WAR-0131 `draft`, OW-WAR-0132 `draft`
 - **No Warrant yet:** budget-refusal, idempotency, adapters, hotline-defaults
 
 #### OW-PHASE-6 — Gate Registry and assurance case
@@ -2054,7 +2054,7 @@ Q-001, answer A); the four-phase plan it replaced survives as these tiers.
 - **Outcome:** Gate Definitions; qualifications; bindings; runs; evidence; observations; inferences; judgments; adequacy review; resolution.
 - **Tier:** 1 Library and Standard · **after:** OW-PHASE-1
 - **Achieved:** achieved (exit Warrant OW-WAR-0046)
-- **Members (20):** OW-WAR-0016 `resolved`, OW-WAR-0017 `resolved`, OW-WAR-0018 `resolved`, OW-WAR-0019 `resolved`, OW-WAR-0020 `resolved`, OW-WAR-0021 `resolved`, OW-WAR-0022 `resolved`, OW-WAR-0046 `resolved`, OW-WAR-0050 `draft`, OW-WAR-0059 `draft`, OW-WAR-0063 `ready_to_resolve`, OW-WAR-0066 `draft`, OW-WAR-0083 `draft`, OW-WAR-0107 `draft`, OW-WAR-0117 `draft`, OW-WAR-0133 `draft`, OW-WAR-0134 `draft`, OW-WAR-0135 `draft`, OW-WAR-0145 `draft`, OW-WAR-0146 `draft`
+- **Members (20):** OW-WAR-0016 `resolved`, OW-WAR-0017 `resolved`, OW-WAR-0018 `resolved`, OW-WAR-0019 `resolved`, OW-WAR-0020 `resolved`, OW-WAR-0021 `resolved`, OW-WAR-0022 `resolved`, OW-WAR-0046 `resolved`, OW-WAR-0050 `draft`, OW-WAR-0059 `draft`, OW-WAR-0063 `draft`, OW-WAR-0066 `draft`, OW-WAR-0083 `draft`, OW-WAR-0107 `draft`, OW-WAR-0117 `draft`, OW-WAR-0133 `draft`, OW-WAR-0134 `draft`, OW-WAR-0135 `draft`, OW-WAR-0145 `draft`, OW-WAR-0146 `draft`
 - **No Warrant yet:** verification-pipeline, evidence-reuse, acceptance-validity, assurance-mark
 
 #### OW-PHASE-7 — BLUT adapter
@@ -2063,7 +2063,7 @@ Q-001, answer A); the four-phase plan it replaced survives as these tiers.
 - **Outcome:** named-port stage graph; PlanSpec lowering; resources; artifacts; BLUT lineage receipt.
 - **Tier:** 3 Workflow Integration · **after:** OW-PHASE-5
 - **Achieved:** blocked by 3 (exit Warrant OW-WAR-0047)
-- **Members (3):** OW-WAR-0027 `ready_to_resolve`, OW-WAR-0047 `draft`, OW-WAR-0108 `draft`
+- **Members (3):** OW-WAR-0027 `draft`, OW-WAR-0047 `draft`, OW-WAR-0108 `draft`
 
 #### OW-PHASE-8 — Liminal production compiler
 
@@ -2108,7 +2108,7 @@ Each earlier plan is one line of lineage; the record above replaces it.
 
 #### OW-WAR-0039 — Implement telemetry, unit economics, and untracked-work detection
 
-[manifest](../../docs/warrants/OW-WAR-0039/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0039/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0039/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0039/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`144ad9331646730f7a9aa0d45d4f83981cda71c534b97d762b0e094c9dba3d99`), Basis SAS 0.1.0-draft.1.
 
@@ -2285,7 +2285,7 @@ Human authoring cost is approximate. Treating it as precise would be its own fal
 
 #### OW-WAR-0041 — Discharge the Phase 0 exit: real telemetry distributions, with a baseline
 
-[manifest](../../docs/warrants/OW-WAR-0041/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0041/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0041/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0041/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`c59efbab5b418007476e09b682503b15be1697fe2ed8cc9a671f080829310773`), Basis SAS 0.1.0-draft.1.
 
@@ -2990,7 +2990,7 @@ as fast, would report the target met when nobody measured it.
 
 #### OW-WAR-0001 — Establish the OpenWarrant repository and Rust workspace
 
-[manifest](../../docs/warrants/OW-WAR-0001/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0001/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0001/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0001/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 2 (`f29c7d95baeb90a7bbad57a26b07846c724482c66a1e9ed7a2670af8d00b776d`), Basis SAS 0.1.0-draft.1.
 
@@ -3536,7 +3536,7 @@ and it closes in OW-WAR-0003 and OW-WAR-0004.
 
 #### OW-WAR-0003 — Implement the canonical WAR IR and RFC 8785 digesting
 
-[manifest](../../docs/warrants/OW-WAR-0003/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0003/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0003/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0003/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 2 (`a22a4da86554d16d8f1f49019ae8f8968d320e8c3c9b998fd8f7915a05956bba`), Basis SAS 0.1.0-draft.1.
 
@@ -3956,7 +3956,7 @@ review that lists questions without answers is a plan, not a review.
 
 #### OW-WAR-0004 — Implement the generated parent document and drift checking
 
-[manifest](../../docs/warrants/OW-WAR-0004/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0004/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0004/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0004/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 2 (`e8b329d18814c638553a7f460b04b8efb3e7da074ea29867d631b484083d49ab`), Basis SAS 0.1.0-draft.1.
 
@@ -4547,7 +4547,7 @@ this watches whether it stays right.
 
 #### OW-WAR-0007 — Parse and validate milestones, stages, and named typed ports
 
-[manifest](../../docs/warrants/OW-WAR-0007/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0007/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0007/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0007/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 2 (`12522bfbd7a6d6256af05cd08990bea99161fa24556428d306fc8b46d097e662`), Basis SAS 0.1.0-draft.1.
 
@@ -5544,7 +5544,7 @@ Self-declared trust is the whole model's soft spot and it is inherited from the 
 
 #### OW-WAR-0013 — Validate SAS and Roadmap traceability
 
-[manifest](../../docs/warrants/OW-WAR-0013/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0013/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0013/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0013/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`e82d467e4e4b5350f79ce6cc08b3028e56e6328ad467684387dec3c7cce9868f`), Basis SAS 0.1.0-draft.1.
 
@@ -12782,7 +12782,7 @@ Question quality is unmeasurable pre-telemetry. Until OW-WAR-0039, §99 criterio
 
 #### OW-WAR-0037 — Implement `war diff`: semantic difference between revisions
 
-[manifest](../../docs/warrants/OW-WAR-0037/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0037/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0037/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0037/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`ef2591f109829dd91c51010ae702eb149cfb9c17b7e73e60b973e5cca0a4d9a0`), Basis SAS 0.1.0-draft.1.
 
@@ -14970,7 +14970,7 @@ the working form is what keeps the contract corpus unchanged.
 
 #### OW-WAR-0006 — Complete ADR federation: relations, supersession, and currency
 
-[manifest](../../docs/warrants/OW-WAR-0006/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0006/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0006/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0006/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`1477ad6a82409b0591ce5dbfd1a3f07c084c34984c185e0841cb11c0c92806d9`), Basis SAS 0.1.0-draft.1.
 
@@ -15164,7 +15164,7 @@ Adopting shipped work sets a precedent this project should not repeat. The recor
 
 #### OW-WAR-0036 — Implement normative-decision detection and proposed-ADR generation
 
-[manifest](../../docs/warrants/OW-WAR-0036/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0036/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0036/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0036/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`5dc61ed786b3e6606335e2128761765f68cf329f0df2ffdb9c0d7539f387af65`), Basis SAS 0.1.0-draft.1.
 
@@ -15546,7 +15546,7 @@ The corpus moves. An import is a snapshot, and a snapshot presented as current i
 
 #### OW-WAR-0043 — Discharge the Phase 3 exit: migrate the LamQuant ADR corpus, fabricating nothing
 
-[manifest](../../docs/warrants/OW-WAR-0043/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0043/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0043/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0043/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`a9d2de0049ca54a08e8ccd5438c785deff8a8aba77c34b52fbfce12cb3ae9d6b`), Basis SAS 0.1.0-draft.1.
 
@@ -18361,7 +18361,7 @@ anything.
 
 #### OW-WAR-0028 — Implement Knowledge Fabric typed actions and the controlled-action envelope
 
-[manifest](../../docs/warrants/OW-WAR-0028/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0028/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0028/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0028/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`f1710e739af7b6b5dde1edc1b6d0aaad99a3c7beff224364eb37de467ed25987`), Basis SAS 0.1.0-draft.1.
 
@@ -18527,7 +18527,7 @@ This is a client-side contract only. Server-side enforcement is KF's, and testin
 
 #### OW-WAR-0029 — Implement KF registration, global identity allocation, and federation
 
-[manifest](../../docs/warrants/OW-WAR-0029/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0029/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0029/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0029/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`1d8b13131a5829166712ddf1f53751476e9438d4bf26d98dd5026b258e267698`), Basis SAS 0.1.0-draft.1.
 
@@ -18710,7 +18710,7 @@ The Identifier Registry does not exist. Until it does, an allocated enterprise I
 
 #### OW-WAR-0030 — Implement portable preservation: one-file export and round trip
 
-[manifest](../../docs/warrants/OW-WAR-0030/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0030/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0030/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0030/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`4bd76924b820035c67ff954234c3be6742115ee1fa384208433f8f0adac2ec09`), Basis SAS 0.1.0-draft.1.
 
@@ -19052,7 +19052,7 @@ Generation propagates a misreading faithfully. Only conformance against the SAS'
 
 #### OW-WAR-0044 — Discharge the Phase 4 exit: KF is institutional authority, Git stays Source Holder
 
-[manifest](../../docs/warrants/OW-WAR-0044/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0044/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0044/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0044/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`f63c78bd49e749168df0516d78a1846a6de498ee2a5b5fd877ba2ed133407791`), Basis SAS 0.1.0-draft.1.
 
@@ -20642,7 +20642,7 @@ side wrote it.
 
 #### OW-WAR-0011 — Implement prerequisites and Preflight
 
-[manifest](../../docs/warrants/OW-WAR-0011/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0011/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0011/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0011/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`0df5ae3aad7476d807f37548d66b21e9954797e8977bbfbbcdf96ad6e4d34377`), Basis SAS 0.1.0-draft.1.
 
@@ -20972,7 +20972,7 @@ Identity without correctness, as above — inherent, not a defect here.
 
 #### OW-WAR-0023 — Implement Stage Dispatch compilation and actor-specific projection
 
-[manifest](../../docs/warrants/OW-WAR-0023/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0023/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0023/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0023/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`6c3c0fb78ae995976138a18c657a34b5adcced8b63cfafe396d940f6eaaf7768`), Basis SAS 0.1.0-draft.1.
 
@@ -28973,7 +28973,7 @@ one Warrant drifts the projection the next Warrant's gate run checks, so
 
 #### OW-WAR-0063 — Complete the conformance battery: the plants and tests the verifier named as missing
 
-[manifest](../../docs/warrants/OW-WAR-0063/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0063/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0063/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0063/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`ea6dfe4e55e0d364f95803ba7e176d83a7a08cca7bb6ca49e246971ca876c0ab`), Basis SAS 0.1.0-draft.3.
 
@@ -31411,7 +31411,7 @@ verifier conclude a gate printed nothing wrong.
 
 #### OW-WAR-0027 — Implement the BLUT adapter: PlanSpec lowering and lineage receipt
 
-[manifest](../../docs/warrants/OW-WAR-0027/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0027/authorization.toml) · profile `delivery` · rung `ready_to_resolve` · currency `current`
+[manifest](../../docs/warrants/OW-WAR-0027/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0027/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
 Contract revision 1 (`f62657b83de96d3602d45b0ce361d5d6b70ced4ce01be0aaf924f4f2861f17a2`), Basis SAS 0.1.0-draft.1.
 
@@ -38076,23 +38076,4 @@ Every command here has been judged by the act's dry run (`war sign <target> --dr
 | authorize | OW-WAR-0140 | `war sign OW-WAR-0140` | would record | revision 4 awaits authorization under AM-003 |
 | authorize | OW-WAR-0142 | `war sign OW-WAR-0142` | would record | revision 3 awaits authorization under AM-002 |
 | authorize | OW-WAR-0147 | `war sign OW-WAR-0147` | would record | revision 1 awaits authorization |
-| resolve | OW-WAR-0001 | `war sign OW-WAR-0001` | would refuse: sign.needs-decision | the thirteen are met; 1 obligation(s) unestablished, so the outcome must be named |
-| resolve | OW-WAR-0003 | `war sign OW-WAR-0003` | would refuse: sign.needs-decision | the thirteen are met; 1 obligation(s) unestablished, so the outcome must be named |
-| resolve | OW-WAR-0004 | `war sign OW-WAR-0004` | would refuse: sign.needs-decision | the thirteen are met; 3 obligation(s) unestablished, so the outcome must be named |
-| resolve | OW-WAR-0006 | `war sign OW-WAR-0006` | would refuse: sign.needs-decision | the thirteen are met; 1 obligation(s) unestablished, so the outcome must be named |
-| resolve | OW-WAR-0007 | `war sign OW-WAR-0007` | would refuse: sign.needs-decision | the thirteen are met; 2 obligation(s) unestablished, so the outcome must be named |
-| resolve | OW-WAR-0011 | `war sign OW-WAR-0011` | would refuse: sign.needs-decision | the thirteen are met; 1 obligation(s) unestablished, so the outcome must be named |
-| resolve | OW-WAR-0013 | `war sign OW-WAR-0013` | would refuse: sign.needs-decision | the thirteen are met; 1 obligation(s) unestablished, so the outcome must be named |
-| resolve | OW-WAR-0023 | `war sign OW-WAR-0023` | would refuse: sign.needs-decision | the thirteen are met; 2 obligation(s) unestablished, so the outcome must be named |
-| resolve | OW-WAR-0027 | `war sign OW-WAR-0027` | would refuse: sign.needs-decision | the thirteen are met; 1 obligation(s) unestablished, so the outcome must be named |
-| resolve | OW-WAR-0028 | `war sign OW-WAR-0028` | would refuse: sign.needs-decision | the thirteen are met; 2 obligation(s) unestablished, so the outcome must be named |
-| resolve | OW-WAR-0029 | `war sign OW-WAR-0029` | would refuse: sign.needs-decision | the thirteen are met; 1 obligation(s) unestablished, so the outcome must be named |
-| resolve | OW-WAR-0030 | `war sign OW-WAR-0030` | would refuse: sign.needs-decision | the thirteen are met; 1 obligation(s) unestablished, so the outcome must be named |
-| resolve | OW-WAR-0036 | `war sign OW-WAR-0036` | would refuse: sign.needs-decision | the thirteen are met; 1 obligation(s) unestablished, so the outcome must be named |
-| resolve | OW-WAR-0037 | `war sign OW-WAR-0037` | would refuse: sign.needs-decision | the thirteen are met; 1 obligation(s) unestablished, so the outcome must be named |
-| resolve | OW-WAR-0039 | `war sign OW-WAR-0039` | would refuse: sign.needs-decision | the thirteen are met; 1 obligation(s) unestablished, so the outcome must be named |
-| resolve | OW-WAR-0041 | `war sign OW-WAR-0041` | would refuse: sign.needs-decision | the thirteen are met; 1 obligation(s) unestablished, so the outcome must be named |
-| resolve | OW-WAR-0043 | `war sign OW-WAR-0043` | would refuse: sign.needs-decision | the thirteen are met; 1 obligation(s) unestablished, so the outcome must be named |
-| resolve | OW-WAR-0044 | `war sign OW-WAR-0044` | would refuse: sign.needs-decision | the thirteen are met; 3 obligation(s) unestablished, so the outcome must be named |
-| resolve | OW-WAR-0063 | `war sign OW-WAR-0063` | would refuse: sign.needs-decision | the thirteen are met; 1 obligation(s) unestablished, so the outcome must be named |
 | accept | SAS 1.2.0 | `war sign 1.2.0` | would refuse: sign.needs-decision | a proposed SAS revision awaits acceptance |
