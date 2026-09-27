@@ -19,11 +19,12 @@ gate holds.
   are not resolved. Most `implementation/` files are referenced by no record.
   They are candidates for a later pruning decision, and this Warrant prunes
   nothing.
-- **The budget did not hold at 1,000 Warrants.** Three of nine rows are within
-  their limit. Six are over by at least ten times: `check --generated`, `next`,
-  `sign --list`, `compile`, and both console paths. The cost comes from
-  signature verification, and bytes have nothing to do with it. OW-WAR-0120's
-  OBL-005 is refuted by this record.
+- **The budget holds at 1,000 Warrants.** All nine rows are within their
+  limit on the machine the record names (2026-09-27, `6bcc01bf`), and none is
+  `unknown`. `check --generated` has the least room, 8% under. The first
+  measurement (2026-09-24) did not hold: six rows were over by at least ten
+  times, from repeated reads of records that could not change during the
+  command. That record, and what changed, is below.
 
 ## Journals
 

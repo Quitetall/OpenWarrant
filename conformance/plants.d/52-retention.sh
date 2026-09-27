@@ -168,6 +168,15 @@ errs += [f"{k}: in the doc, not the record" for k in got if k not in want]
 held = "held" if r["held"] else "did not hold"
 if f"The budget {held}" not in doc:
     errs.append(f"the doc does not say 'The budget {held}'")
+# The brief answers state the record's verdict and never its opposite: a
+# brief left saying "did not hold" beside a table that held passed this check
+# once (OW-WAR-0120 OBL-004, refuted by the blind verifier, 2026-09-27).
+brief = doc.split("## The answers in brief", 1)[-1].split("\n## ", 1)[0]
+now, other = ("holds", "did not hold") if r["held"] else ("did not hold", "holds")
+if f"The budget {now}" not in brief:
+    errs.append(f"the brief answers do not say 'The budget {now}'")
+if f"The budget {other}" in brief:
+    errs.append(f"the brief answers say 'The budget {other}'")
 for n in (str(r["corpus"]["warrants"]), str(r["corpus"]["resolved"])):
     if n not in doc.replace(",", ""):
         errs.append(f"the doc never states {n}")
@@ -191,6 +200,22 @@ if [[ "$RT_V" == *"check: doc"* ]]; then
     rt_ok "a doctored budget row is refused" "check named"
 else
     rt_fail "a doctored budget row is refused" "$RT_V"
+fi
+
+# ... and a brief that contradicts the record is refused.
+python3 - "$REPO_ROOT/docs/RETENTION.md" "$RT_TMP/RETENTION.md" <<'PY'
+import sys
+s = open(sys.argv[1], encoding="utf-8").read()
+head, rest = s.split("## The answers in brief", 1)
+brief, tail = rest.split("\n## ", 1)
+brief = brief.replace("The budget holds", "The budget did not hold")
+open(sys.argv[2], "w", encoding="utf-8").write(head + "## The answers in brief" + brief + "\n## " + tail)
+PY
+RT_V=$(rt_check_doc "$RT_TMP/RETENTION.md" "$RT_BASE")
+if [[ "$RT_V" == *"the brief answers"* ]]; then
+    rt_ok "a brief against the record is refused" "the brief's verdict named"
+else
+    rt_fail "a brief against the record is refused" "$RT_V"
 fi
 
 command rm -rf "$RT_TMP"
