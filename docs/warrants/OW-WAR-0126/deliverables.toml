@@ -11,6 +11,18 @@ title = "The authority split: what stays local, and what a registered Warrant's 
 kind = "document"
 target_ref = "docs/adr/atoms/OW-ADR-0024-kf-owns-registered-lifecycle.md"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "4bc6703686d63b4cd565b333cb2ece70c4d51b505c8f421e7dd1e12192c6c091"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 163d3f3a9ecf, debug)"
+creation_method = "authored"
+content_digest = "sha256:ebe52d32b329740e7d907d96928e2ace285f30d3cf27bd130b081313d6f89e3b"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

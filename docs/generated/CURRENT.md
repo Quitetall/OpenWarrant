@@ -958,7 +958,7 @@ SAS revision **1.1.1** (accepted), sha256:`230e2829d80d11e4ccaf8f893205994ce1631
 
 ## Decisions
 
-9 accepted decision(s), expanded; 16 proposed, one line each.
+9 accepted decision(s), expanded; 18 proposed, one line each.
 
 ### OW-ADR-0001 — ADR OW-0001: Adopt `serde_jcs` as the RFC 8785 canonical JSON implementation
 
@@ -1964,7 +1964,9 @@ are the evidence, recorded under OW-WAR-0073 OBL-001 rather than asserted here.
 - [OW-ADR-0021](../../docs/adr/atoms/OW-ADR-0021-pin-ownership.md) — ADR OW-0021: A delivered path is governed by the latest authorized Warrant that declares it
 - [OW-ADR-0022](../../docs/adr/atoms/OW-ADR-0022-current-by-relation.md) — ADR OW-0022: Two projections, current by relation; atoms are the only authored thing
 - [OW-ADR-0023](../../docs/adr/atoms/OW-ADR-0023-roadmap-is-a-record.md) — ADR OW-0023: The roadmap is a record — one per program, beside the SAS
+- [OW-ADR-0024](../../docs/adr/atoms/OW-ADR-0024-kf-owns-registered-lifecycle.md) — ADR OW-0024: Knowledge Fabric owns a registered Warrant's lifecycle; what stays local, and what each human act becomes
 - [OW-ADR-0025](../../docs/adr/atoms/OW-ADR-0025-assurance-mark.md) — ADR OW-0025: The assurance mark — baseline v1, how a mark comes to exist, and what it binds
+- [OW-ADR-0027](../../docs/adr/atoms/OW-ADR-0027-kf-compiler-interface.md) — ADR OW-0027: The Knowledge Fabric compiler interface — who compiles, and the process contract between them
 - [OW-ADR-0028](../../docs/adr/atoms/OW-ADR-0028-sas-sections-are-atoms.md) — ADR OW-0028: SAS sections are atoms — identity now, authored source later
 - [OW-ADR-0029](../../docs/adr/atoms/OW-ADR-0029-standing-authorization.md) — ADR OW-0029: Standing authorization — one signature authorizes a bounded class of routine work
 
@@ -20005,7 +20007,7 @@ planted, and the follow-on implementation would decide the rule itself.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | The authority split: what stays local, and what a registered Warrant's acts become | `docs/adr/atoms/OW-ADR-0024-kf-owns-registered-lifecycle.md` | not_content_addressed |
+| D-001 | The authority split: what stays local, and what a registered Warrant's acts become | `docs/adr/atoms/OW-ADR-0024-kf-owns-registered-lifecycle.md` | verified |
 
 #### OW-WAR-0127 — Native systems keep artifact authority: OpenWarrant references, never re-owns, what another system holds
 
@@ -20660,8 +20662,8 @@ side wrote it.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | The Knowledge Fabric compiler interface: request, result, process contract, examples | `docs/integrations/kf-compiler.md` | not_content_addressed |
-| D-002 | Who compiles, and the alternatives not chosen: OW-ADR-0027 | `docs/adr/atoms/OW-ADR-0027-kf-compiler-interface.md` | not_content_addressed |
+| D-001 | The Knowledge Fabric compiler interface: request, result, process contract, examples | `docs/integrations/kf-compiler.md` | verified |
+| D-002 | Who compiles, and the alternatives not chosen: OW-ADR-0027 | `docs/adr/atoms/OW-ADR-0027-kf-compiler-interface.md` | verified |
 
 ### OW-PHASE-5 — Dispatch and Katana execution
 
