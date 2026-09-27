@@ -67,7 +67,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | every required gate has admissible result | 114 |
 | no blocker remains | 86 |
 | no required unknown remains | 86 |
-| artifact digests verify | 71 |
+| artifact digests verify | 68 |
 | required judgments exist | 55 |
 | residual risks have sufficient authority | 55 |
 | required deliverables exist | 53 |
@@ -180,7 +180,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0026` Implement the Katana runtime seam, capabilities, and receipts | draft | NOT satisfied | 1 | 0 of 3 | every required gate has admissible result |
 | `OW-WAR-0027` Implement the BLUT adapter: PlanSpec lowering and lineage receipt | draft | NOT satisfied | 0 | 2 of 3 | every required gate has admissible result |
 | `OW-WAR-0028` Implement Knowledge Fabric typed actions and the controlled-action envelope | draft | NOT satisfied | 0 | 0 of 3 | every required gate has admissible result |
-| `OW-WAR-0029` Implement KF registration, global identity allocation, and federation | draft | NOT satisfied | 0 | 0 of 4 | artifact digests verify |
+| `OW-WAR-0029` Implement KF registration, global identity allocation, and federation | draft | NOT satisfied | 0 | 0 of 4 | every required gate has admissible result |
 | `OW-WAR-0030` Implement portable preservation: one-file export and round trip | draft | NOT satisfied | 0 | 0 of 3 | every required gate has admissible result |
 | `OW-WAR-0031` Implement the local draft journal | resolved | would satisfy | 0 | 3 of 3 | artifact digests verify |
 | `OW-WAR-0032` Generate the schema pack and implement protocol versioning | draft | NOT satisfied | 0 | 0 of 4 | required deliverables exist |

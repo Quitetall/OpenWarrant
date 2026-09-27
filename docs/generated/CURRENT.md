@@ -9233,7 +9233,7 @@ the app shows a `human` remedy and stops.
 | D-017 | A diagnostic carries its remedy | `crates/openwarrant-cli/src/diagnostic.rs` | verified |
 | D-018 | The remedy on the wire and in the REMEDIES block | `crates/openwarrant-cli/src/output.rs` | verified |
 | D-019 | The report schema | `schemas/oh.war/report/v1.json` | verified |
-| D-020 | The schema pack | `schemas/pack.json` | drift |
+| D-020 | The schema pack | `schemas/pack.json` | verified |
 | D-021 | init, unchanged in behaviour, as a module directory | `crates/openwarrant-cli/src/init/mod.rs` | verified |
 | D-022 | The guided init | `crates/openwarrant-cli/src/init/guided.rs` | verified |
 | D-023 | roles.toml.example states the rule | `docs/authority/roles.toml.example` | verified |
@@ -9257,7 +9257,7 @@ the app shows a `human` remedy and stops.
 | D-041 | The resolution schema: the optional locator | `schemas/oh.war/resolution/v1.json` | verified |
 | D-042 | The TypeScript projection of the authorization record | `schemas/typescript/authorization.ts` | verified |
 | D-043 | The TypeScript projection of the resolution record | `schemas/typescript/resolution.ts` | verified |
-| D-044 | The TypeScript pack manifest | `schemas/typescript/manifest.json` | drift |
+| D-044 | The TypeScript pack manifest | `schemas/typescript/manifest.json` | verified |
 
 #### OW-WAR-0113 — Two projections from atoms by relation: the current master document, and the history
 
@@ -10494,41 +10494,41 @@ assert it with.
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | OW-ADR-0023, the roadmap-is-a-record decision | `docs/adr/atoms/OW-ADR-0023-roadmap-is-a-record.md` | verified |
-| D-002 | The roadmap manifest | `docs/roadmap/roadmap.toml` | not_content_addressed |
-| D-003 | The roadmap intent atom | `docs/roadmap/atoms/10-intent.md` | not_content_addressed |
-| D-004 | The roadmap phases atom | `docs/roadmap/atoms/20-phases.yaml` | not_content_addressed |
-| D-005 | Roadmap revision 1 | `docs/roadmap/revisions/1.toml` | not_content_addressed |
-| D-006 | core: the roadmap record | `crates/openwarrant-core/src/roadmap.rs` | not_content_addressed |
+| D-002 | The roadmap manifest | `docs/roadmap/roadmap.toml` | verified |
+| D-003 | The roadmap intent atom | `docs/roadmap/atoms/10-intent.md` | verified |
+| D-004 | The roadmap phases atom | `docs/roadmap/atoms/20-phases.yaml` | verified |
+| D-005 | Roadmap revision 1 | `docs/roadmap/revisions/1.toml` | verified |
+| D-006 | core: the roadmap record | `crates/openwarrant-core/src/roadmap.rs` | verified |
 | D-007 | core: module list | `crates/openwarrant-core/src/lib.rs` | not_content_addressed |
-| D-008 | core: the phase range from the record | `crates/openwarrant-core/src/traceability.rs` | not_content_addressed |
-| D-009 | core: status types and the corrected fallback | `crates/openwarrant-core/src/status.rs` | not_content_addressed |
-| D-010 | cli: the loader | `crates/openwarrant-cli/src/repo.rs` | not_content_addressed |
-| D-011 | cli: war roadmap | `crates/openwarrant-cli/src/roadmap_cmd.rs` | not_content_addressed |
-| D-012 | cli: the edit machine | `crates/openwarrant-cli/src/roadmap_edit.rs` | not_content_addressed |
-| D-013 | cli: the four checks | `crates/openwarrant-cli/src/check.rs` | not_content_addressed |
+| D-008 | core: the phase range from the record | `crates/openwarrant-core/src/traceability.rs` | verified |
+| D-009 | core: status types and the corrected fallback | `crates/openwarrant-core/src/status.rs` | verified |
+| D-010 | cli: the loader | `crates/openwarrant-cli/src/repo.rs` | verified |
+| D-011 | cli: war roadmap | `crates/openwarrant-cli/src/roadmap_cmd.rs` | verified |
+| D-012 | cli: the edit machine | `crates/openwarrant-cli/src/roadmap_edit.rs` | verified |
+| D-013 | cli: the four checks | `crates/openwarrant-cli/src/check.rs` | verified |
 | D-014 | cli: Objectives from the record | `crates/openwarrant-cli/src/status.rs` | not_content_addressed |
 | D-015 | cli: the acceptance act | `crates/openwarrant-cli/src/sign.rs` | not_content_addressed |
-| D-016 | cli: the command and module list | `crates/openwarrant-cli/src/lib.rs` | not_content_addressed |
-| D-017 | cli: the remedies for the new rules | `crates/openwarrant-cli/src/remedy.rs` | not_content_addressed |
-| D-018 | cli: the app's Roadmap pane | `crates/openwarrant-cli/src/tui/mod.rs` | not_content_addressed |
-| D-019 | cli: war progress reads the record | `crates/openwarrant-cli/src/progress_viewer.rs` | not_content_addressed |
-| D-020 | cli: the progress roadmap reader | `crates/openwarrant-cli/src/progress_viewer/roadmap.rs` | not_content_addressed |
-| D-021 | compiler: the Roadmap section of CURRENT.md | `crates/openwarrant-compiler/src/current.rs` | not_content_addressed |
-| D-022 | schema: oh.war/roadmap/v1 | `schemas/oh.war/roadmap/v1.json` | not_content_addressed |
-| D-023 | schema pack | `schemas/pack.json` | not_content_addressed |
-| D-024 | The SAS: §98 points at the record | `docs/sas/WAR_Software_Architecture_Specification.md` | not_content_addressed |
-| D-025 | PRODUCTION_ROADMAP.md retired to lineage | `docs/roadmap/PRODUCTION_ROADMAP.md` | not_content_addressed |
-| D-026 | view.json retired | `docs/roadmap/view.json` | not_content_addressed |
-| D-027 | rc2 plan retired | `docs/design/rc2-implementation-roadmap.json` | not_content_addressed |
-| D-028 | rc.3 plan retired | `docs/sas/drafts/1.0.0-rc.3/roadmap.json` | not_content_addressed |
-| D-029 | CONTEXT.md: the term | `CONTEXT.md` | not_content_addressed |
-| D-030 | docs/TUI.md: the Roadmap pane | `docs/TUI.md` | not_content_addressed |
-| D-031 | the plants | `conformance/plants.d/70-roadmap.sh` | not_content_addressed |
-| D-032 | compile: the roadmap gathered for CURRENT.md and HISTORY.md (AM-003) | `crates/openwarrant-cli/src/compile.rs` | not_content_addressed |
-| D-033 | compiler: earlier roadmap revisions in HISTORY.md (AM-003) | `crates/openwarrant-compiler/src/history.rs` | not_content_addressed |
-| D-034 | SAS 1.1.1, proposed: §98 points at the record (AM-003) | `docs/sas/revisions/1.1.1.toml` | not_content_addressed |
-| D-035 | Roadmap revision 3, proposed: the retirements (AM-003) | `docs/roadmap/revisions/3.toml` | not_content_addressed |
-| D-036 | core: the real-document §98 test reads the roadmap record (AM-003) | `crates/openwarrant-core/src/sas.rs` | not_content_addressed |
+| D-016 | cli: the command and module list | `crates/openwarrant-cli/src/lib.rs` | verified |
+| D-017 | cli: the remedies for the new rules | `crates/openwarrant-cli/src/remedy.rs` | verified |
+| D-018 | cli: the app's Roadmap pane | `crates/openwarrant-cli/src/tui/mod.rs` | verified |
+| D-019 | cli: war progress reads the record | `crates/openwarrant-cli/src/progress_viewer.rs` | verified |
+| D-020 | cli: the progress roadmap reader | `crates/openwarrant-cli/src/progress_viewer/roadmap.rs` | verified |
+| D-021 | compiler: the Roadmap section of CURRENT.md | `crates/openwarrant-compiler/src/current.rs` | verified |
+| D-022 | schema: oh.war/roadmap/v1 | `schemas/oh.war/roadmap/v1.json` | verified |
+| D-023 | schema pack | `schemas/pack.json` | verified |
+| D-024 | The SAS: §98 points at the record | `docs/sas/WAR_Software_Architecture_Specification.md` | verified |
+| D-025 | PRODUCTION_ROADMAP.md retired to lineage | `docs/roadmap/PRODUCTION_ROADMAP.md` | verified |
+| D-026 | view.json retired | `docs/roadmap/view.json` | verified |
+| D-027 | rc2 plan retired | `docs/design/rc2-implementation-roadmap.json` | verified |
+| D-028 | rc.3 plan retired | `docs/sas/drafts/1.0.0-rc.3/roadmap.json` | verified |
+| D-029 | CONTEXT.md: the term | `CONTEXT.md` | verified |
+| D-030 | docs/TUI.md: the Roadmap pane | `docs/TUI.md` | verified |
+| D-031 | the plants | `conformance/plants.d/70-roadmap.sh` | verified |
+| D-032 | compile: the roadmap gathered for CURRENT.md and HISTORY.md (AM-003) | `crates/openwarrant-cli/src/compile.rs` | verified |
+| D-033 | compiler: earlier roadmap revisions in HISTORY.md (AM-003) | `crates/openwarrant-compiler/src/history.rs` | verified |
+| D-034 | SAS 1.1.1, proposed: §98 points at the record (AM-003) | `docs/sas/revisions/1.1.1.toml` | verified |
+| D-035 | Roadmap revision 3, proposed: the retirements (AM-003) | `docs/roadmap/revisions/3.toml` | verified |
+| D-036 | core: the real-document §98 test reads the roadmap record (AM-003) | `crates/openwarrant-core/src/sas.rs` | verified |
 
 #### OW-WAR-0115 — The hub: war opens from anywhere, with every project and its progress
 
@@ -18736,7 +18736,7 @@ The Identifier Registry does not exist. Until it does, an allocated enterprise I
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | Identity allocation and the unallocated enterprise id (§101.5) | `crates/openwarrant-core/src/identity.rs` | drift |
+| D-001 | Identity allocation and the unallocated enterprise id (§101.5) | `crates/openwarrant-core/src/identity.rs` | verified |
 
 #### OW-WAR-0030 — Implement portable preservation: one-file export and round trip
 
@@ -20358,12 +20358,12 @@ joined path is what shows no reader does.
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | The native reference form, decided: OW-ADR-0026 | `docs/adr/atoms/OW-ADR-0026-native-held-deliverables.md` | verified |
-| D-002 | Classify a target_ref; refuse a native reference without a non-Git holder | `crates/openwarrant-core/src/deliverable.rs` | not_content_addressed |
-| D-003 | §56.1 requirements 2 and 3 never read a native reference from disk | `crates/openwarrant-cli/src/resolve.rs` | not_content_addressed |
-| D-004 | Drift skips native references; validation surfaces the refusals | `crates/openwarrant-cli/src/check.rs` | not_content_addressed |
-| D-005 | pins and pins --refresh leave a native reference alone | `crates/openwarrant-cli/src/pins.rs` | not_content_addressed |
-| D-006 | A correction of a native reference is refused | `crates/openwarrant-cli/src/correct.rs` | not_content_addressed |
-| D-007 | The verification bundle carries the reference, not bytes | `crates/openwarrant-cli/src/bundle.rs` | not_content_addressed |
+| D-002 | Classify a target_ref; refuse a native reference without a non-Git holder | `crates/openwarrant-core/src/deliverable.rs` | verified |
+| D-003 | §56.1 requirements 2 and 3 never read a native reference from disk | `crates/openwarrant-cli/src/resolve.rs` | verified |
+| D-004 | Drift skips native references; validation surfaces the refusals | `crates/openwarrant-cli/src/check.rs` | verified |
+| D-005 | pins and pins --refresh leave a native reference alone | `crates/openwarrant-cli/src/pins.rs` | verified |
+| D-006 | A correction of a native reference is refused | `crates/openwarrant-cli/src/correct.rs` | verified |
+| D-007 | The verification bundle carries the reference, not bytes | `crates/openwarrant-cli/src/bundle.rs` | verified |
 | D-008 | Digest state says held by its system | `crates/openwarrant-cli/src/status.rs` | not_content_addressed |
 | D-009 | The native-authority plants | `conformance/plants.d/61-native-authority.sh` | verified |
 
@@ -30341,7 +30341,7 @@ this level requires. The author does not record them.
 | D-002 | Admissibility: a moved source is a record, a missing one is UNKNOWN | `crates/openwarrant-cli/src/evidence.rs` | verified |
 | D-003 | The context manifest's conflict field, stage selection | `crates/openwarrant-cli/src/context_select.rs` | verified |
 | D-004 | The context manifest's conflict field, compiled Dispatch | `crates/openwarrant-compiler/src/dispatch.rs` | verified |
-| D-005 | The evidence-reuse and context plants | `conformance/plants.d/55-evidence-reuse.sh` | drift |
+| D-005 | The evidence-reuse and context plants | `conformance/plants.d/55-evidence-reuse.sh` | verified |
 | D-006 | When recorded evidence still counts: the reuse rule and the compiler's three rules | `docs/RESOLVING.md` | verified |
 | D-007 | The context manifest says conflicts were unchecked (AM-002) | `crates/openwarrant-cli/src/dispatch.rs` | verified |
 | D-008 | The context manifest type carries the conflict state (AM-002) | `crates/openwarrant-core/src/context.rs` | verified |
@@ -36480,7 +36480,7 @@ once, at acceptance, after the blind verifier.
 | D-003 | core: the class and the coverage check | `crates/openwarrant-core/src/standing.rs` | verified |
 | D-004 | core: module list | `crates/openwarrant-core/src/lib.rs` | not_content_addressed |
 | D-005 | schema: oh.war/standing-authorization/v1 | `schemas/oh.war/standing-authorization/v1.json` | verified |
-| D-006 | schema pack | `schemas/pack.json` | drift |
+| D-006 | schema pack | `schemas/pack.json` | verified |
 | D-007 | cli: war standing propose, show, apply | `crates/openwarrant-cli/src/standing_cmd.rs` | verified |
 | D-008 | cli: the command and module list | `crates/openwarrant-cli/src/lib.rs` | verified |
 | D-009 | cli: the standing.* check rules, re-derived | `crates/openwarrant-cli/src/check.rs` | verified |
@@ -36498,9 +36498,9 @@ once, at acceptance, after the blind verifier.
 | D-021 | cli: the class acts in the console | `crates/openwarrant-cli/src/console.rs` | verified |
 | D-022 | cli: war_standing_apply and war_standing_show | `crates/openwarrant-cli/src/mcp/tools.rs` | verified |
 | D-023 | cli: the refused MCP names | `crates/openwarrant-cli/src/mcp/mod.rs` | verified |
-| D-024 | cli: the pack's new member | `crates/openwarrant-cli/src/schemas.rs` | drift |
+| D-024 | cli: the pack's new member | `crates/openwarrant-cli/src/schemas.rs` | verified |
 | D-025 | schema: the TypeScript projection of the class | `schemas/typescript/standing-authorization.ts` | verified |
-| D-026 | schema: the TypeScript projection manifest | `schemas/typescript/manifest.json` | drift |
+| D-026 | schema: the TypeScript projection manifest | `schemas/typescript/manifest.json` | verified |
 | D-027 | SAS 1.2.0: the proposed revision record (A only) | `docs/sas/revisions/1.2.0.toml` | verified |
 
 #### OW-WAR-0143 — war knows when it is old: build identity, a notice when a newer release exists, and an update that works from every version
