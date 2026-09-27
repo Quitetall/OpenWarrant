@@ -15,7 +15,7 @@ classification: internal
 - **scope:** the act table in OW-ADR-0024, against the acts `war sign`
   performs in this repository at the reviewed commit. No claim about acts
   added later.
-- **gate:** `gate://document.review@1.0.0`
+- **gate:** `gate://document.review@1.1.0`
 - **evidence:**
   - the reviewer lists the acts `war sign --list` and `sign.rs` handle and
     finds a row for each;
@@ -26,7 +26,7 @@ classification: internal
 ### OBL-002 — every changed act names the refusal a plant can test
 - **scope:** the rows whose "after registration" cell is refused or
   forwarded.
-- **gate:** `gate://document.review@1.0.0`
+- **gate:** `gate://document.review@1.1.0`
 - **evidence:**
   - each such row names a diagnostic rule id and the input that triggers
     it;
@@ -36,7 +36,7 @@ classification: internal
 ### OBL-003 — the ADR claims nothing about KF that it cannot cite
 - **scope:** every sentence in OW-ADR-0024 about Knowledge Fabric's
   behaviour.
-- **gate:** `gate://document.review@1.0.0`
+- **gate:** `gate://document.review@1.1.0`
 - **evidence:**
   - each such sentence cites a KF file at a named commit, or sits in a list
     of open questions for KF's owner;

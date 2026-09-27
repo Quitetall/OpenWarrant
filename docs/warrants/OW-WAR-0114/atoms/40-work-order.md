@@ -35,8 +35,9 @@ M2 — the record:
 3. `crates/openwarrant-core/src/roadmap.rs`: `Roadmap`, `Phase`,
    `RoadmapRevision`.
    - Parsing refuses duplicate ids, an unknown `depends_on`, and a cycle.
-   - `schemas/oh.war/roadmap/v1.json` is regenerated; the pack version moves
-     once.
+   - `schemas/oh.war/roadmap/v1.json` is generated into the pack; the pack
+     version does not move: an added `v1` schema is not a format change
+     (docs/COMPATIBILITY.md).
 4. Repository loader methods: `load_roadmap`, `load_roadmap_revisions`.
 5. `crates/openwarrant-cli/src/roadmap_cmd.rs`:
    - `war roadmap` shows phases, members, rungs and achievement.

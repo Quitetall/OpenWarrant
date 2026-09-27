@@ -15,7 +15,7 @@ classification: internal
 - **scope:** the request and result tables in
   `docs/integrations/kf-compiler.md`, against §81.1 and §81.2 of the SAS
   at the reviewed commit.
-- **gate:** `gate://document.review@1.0.0`
+- **gate:** `gate://document.review@1.1.0`
 - **evidence:**
   - the reviewer finds a row for each of the nine inputs and nine results;
   - each row says carried, deferred with a reason, or refused;
@@ -23,7 +23,7 @@ classification: internal
 
 ### OBL-002 — the process contract names what it refuses
 - **scope:** the process-contract section of `kf-compiler.md`.
-- **gate:** `gate://document.review@1.0.0`
+- **gate:** `gate://document.review@1.1.0`
 - **evidence:**
   - for a path given instead of bytes, an unknown protocol version, input
     over the bound, and a request needing the network, the document names
@@ -34,7 +34,7 @@ classification: internal
 ### OBL-003 — nothing is invented about either side
 - **scope:** every element of `kf-compiler.md` and OW-ADR-0027 that
   describes existing behaviour.
-- **gate:** `gate://document.review@1.0.0`
+- **gate:** `gate://document.review@1.1.0`
 - **evidence:**
   - each OpenWarrant element names its source file or says "to build";
   - each KF element cites a KF file at a named commit, or sits in "Open
@@ -44,7 +44,7 @@ classification: internal
 
 ### OBL-004 — the examples parse and name their digests
 - **scope:** the fenced JSON examples in `kf-compiler.md`.
-- **gate:** `gate://document.review@1.0.0`
+- **gate:** `gate://document.review@1.1.0`
 - **evidence:**
   - the reviewer extracts each block and `jq .` exits 0 on it;
   - every digest in them carries an algorithm and a domain (RQ-081);
