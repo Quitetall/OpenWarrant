@@ -22,7 +22,9 @@
 //!
 //! - A Warrant whose bundle fits is sent **whole** (`scope = "warrant"`), as
 //!   before: one bundle, one verifier call, each deliverable whole under
-//!   `max_excerpt_bytes` else its head.
+//!   `max_excerpt_bytes` else its head; a gate stream over that cap is
+//!   excerpted as below (its tail, the sections of this Warrant's plants,
+//!   the obligations' terms, every FAIL/ERROR line), never cut to its tail.
 //! - One that does not fit is split into **one bundle per obligation**
 //!   (`scope = "obligation"`). Each carries the deliverables that obligation
 //!   names — by `obligation_refs` in `deliverables.toml`, or by path in its
@@ -495,6 +497,10 @@ struct Sources {
     files: Vec<File>,
     runs: Vec<Run>,
     plants: Vec<BundledPlant>,
+    /// What a gate stream's `== … ==` section header must contain for the
+    /// section to be offered: the alias, and each header a delivered plant
+    /// file echoes (a plant's banner need not name the Warrant).
+    heads: Vec<String>,
     prior: Vec<openwarrant_core::verification::Verification>,
     cap: usize,
     budget: u64,
@@ -523,7 +529,7 @@ fn load(repo: &Repository, alias: &str, performer: &str) -> Result<Sources, Repo
             });
         }
     }
-    let files = repo
+    let files: Vec<File> = repo
         .load_deliverables(&dir)
         .map(|set| {
             set.records
@@ -579,7 +585,19 @@ fn load(repo: &Repository, alias: &str, performer: &str) -> Result<Sources, Repo
         .load_verifications(&dir)
         .map(|v| v.records)
         .unwrap_or_default();
+    let mut heads = vec![alias.to_owned()];
+    for f in &files {
+        if !f.record.target_ref.starts_with("conformance/") {
+            continue;
+        }
+        if let Ok(bytes) = &f.read {
+            heads.extend(echoed_headers(&String::from_utf8_lossy(bytes)));
+        }
+    }
+    heads.sort();
+    heads.dedup();
     Ok(Sources {
+        heads,
         alias: alias.to_owned(),
         authorized_contract_digest,
         request,
@@ -593,6 +611,22 @@ fn load(repo: &Repository, alias: &str, performer: &str) -> Result<Sources, Repo
         root: repo.root.clone(),
         warrant_dir: dir,
     })
+}
+
+/// The `== … ==` headers a plant file echoes literally: `echo "== x =="`.
+/// One with a shell expansion in it is skipped; its printed form is unknown.
+fn echoed_headers(source: &str) -> Vec<String> {
+    source
+        .lines()
+        .filter_map(|l| {
+            let rest = l.trim().strip_prefix("echo ")?;
+            let quoted = rest.trim().strip_prefix(['"', '\''])?;
+            let end = quoted.rfind(['"', '\''])?;
+            let text = &quoted[..end];
+            (text.starts_with("== ") && text.ends_with(" ==") && !text.contains('$'))
+                .then(|| text.to_owned())
+        })
+        .collect()
 }
 
 /// A receipt as a bundle carries it: every field but `working_directory`.
@@ -903,14 +937,27 @@ fn warrant_bundle(src: &Sources) -> Result<Bundle, RepoError> {
         .iter()
         .map(|f| carry_file(f, Carry::Head(src.cap), &[], vec![]))
         .collect();
+    // A stream over the cap is excerpted, not cut to its tail: the battery
+    // prints this Warrant's section wherever its plant sits, usually far from
+    // the end, and a tail-only stream left every obligation resting on it
+    // unshown (OW-WAR-0118, 0120, 0144 on 2026-09-27; t-7aca).
+    let mut stream_keys: Vec<String> = src
+        .request
+        .obligations
+        .iter()
+        .flat_map(|o| named(o).1)
+        .collect();
+    stream_keys.push(src.alias.clone());
+    stream_keys.sort();
+    stream_keys.dedup();
     let gate_runs: Vec<serde_json::Value> = src
         .runs
         .iter()
         .map(|r| {
             run_value(
                 r,
-                captured(&r.stdout, Carry::Head(src.cap), &[], &[]),
-                captured(&r.stderr, Carry::Head(src.cap), &[], &[]),
+                captured(&r.stdout, Carry::Excerpt(src.cap), &src.heads, &stream_keys),
+                captured(&r.stderr, Carry::Excerpt(src.cap), &src.heads, &stream_keys),
             )
         })
         .collect();
@@ -1010,7 +1057,7 @@ fn obligation_bundle_at(
         .collect();
     // Obligation ids repeat across Warrants (every one has an OBL-001), so a
     // gate's corpus-wide output is searched for the alias and the terms only.
-    let heads = [src.alias.clone()];
+    let heads = &src.heads;
     let gate_runs: Vec<serde_json::Value> = src
         .runs
         .iter()
@@ -1020,8 +1067,8 @@ fn obligation_bundle_at(
             let err = shares[chosen.len() + 2 * k + 1];
             run_value(
                 r,
-                captured(&r.stdout, Carry::Excerpt(out), &heads, &stream_keys),
-                captured(&r.stderr, Carry::Excerpt(err), &heads, &stream_keys),
+                captured(&r.stdout, Carry::Excerpt(out), heads, &stream_keys),
+                captured(&r.stderr, Carry::Excerpt(err), heads, &stream_keys),
             )
         })
         .collect();
@@ -1434,6 +1481,39 @@ pub const RESPONSES_DIR: &str = "responses";
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_plant_s_literal_headers_are_read_and_an_expanded_one_is_not() {
+        let src = "echo \"== friction measurement (OW-WAR-0118) ==\"\n  echo '== second =='\necho \"== $X ==\"\necho \"not a header\"\nprintf '== no ==\\n'\n";
+        assert_eq!(
+            echoed_headers(src),
+            vec!["== friction measurement (OW-WAR-0118) ==", "== second =="]
+        );
+    }
+
+    #[test]
+    fn an_excerpted_stream_keeps_a_section_far_from_its_tail() {
+        let mut text = String::new();
+        text.push_str("== ours ==\nok    the claim this Warrant rests on\n");
+        for i in 0..5000 {
+            text.push_str(&format!("ok    filler line {i}\n"));
+        }
+        text.push_str("1 passed, 0 failed\n");
+        let s = Stream {
+            bytes: Some(text.into_bytes()),
+            recorded: None,
+        };
+        let heads = vec!["== ours ==".to_owned()];
+        let tail_only = captured(&s, Carry::Head(8192), &heads, &[]);
+        assert!(!tail_only["text"].as_str().unwrap().contains("the claim this Warrant"));
+        let v = captured(&s, Carry::Excerpt(8192), &heads, &[]);
+        assert_eq!(v["truncated"], true);
+        assert!(stream_text(&v).contains("the claim this Warrant rests on"));
+        assert!(v["text"].as_str().unwrap().contains("1 passed, 0 failed"));
+        // A section whose header matches no head is not offered.
+        let none = captured(&s, Carry::Excerpt(8192), &["== theirs ==".to_owned()], &[]);
+        assert!(!stream_text(&none).contains("the claim this Warrant rests on"));
+    }
 
     #[test]
     fn test_names_are_read_from_test_attributes_only() {
