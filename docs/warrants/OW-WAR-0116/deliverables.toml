@@ -255,3 +255,27 @@ media_type = "text/x-shellscript"
 classification = "internal"
 retention = "repository"
 source_holder = "git"
+
+# AM-003: what the blind verifier could not see, observed beside D-011, which
+# is held byte-for-byte (OW-WAR-0139 OBL-005 and the quiet-grep exemption).
+[[deliverable]]
+id = "D-012"
+title = "the verifier's plants: /api/act by method, the act's command, one act at a time, progress on this corpus"
+kind = "file"
+target_ref = "conformance/plants.d/63-webui-verified.sh"
+required = true
+content_addressed = true
+provenance_required = false
+obligation_refs = ["OBL-001", "OBL-002", "OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "47ce387b2b36596e0ddae343564fecbb67bf95a2d7be349f30cc008dacfd018e"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 7096304759e1, debug)"
+creation_method = "authored"
+content_digest = "sha256:7cc03fb968056b2629bd697ed6fe22ac9aede7289469918c8a5a87ac80ea1200"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
