@@ -1,0 +1,20 @@
+# A ticket (OW-WAR-0147): the working form of a delivery Warrant. The atoms beside
+# this file are the ticket; `war show t-dee8e` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-dee8e"
+uuid = "01a0e516-5336-7980-ab62-1f65a67dfc38"
+title = "OW-WAR-0114 D-022: generate schemas/oh.war/roadmap/v1.json into the pack"
+profile = "ticket"
+priority = 2
+created_at = "2026-09-27T22:57:20Z"
+created_by = "claude"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"
