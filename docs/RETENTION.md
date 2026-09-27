@@ -126,61 +126,64 @@ ssh-agent it ends in `sign.ssh-refused` (exit 2, so the row would read
 end of input instead.
 
 `docs/scale/baseline-1000.json` is `tools/scale/budget.sh`'s unedited output,
-recorded 2026-09-24T03:16:41Z. Machine facts:
+recorded 2026-09-27T09:14:55Z. Machine facts:
 
-- **Binary:** `war 1.0.0-alpha.2`, built with the release profile. The binary's
-  sha256 is `bdaa3db0…81bb`, built from `fdd346c5`. The record names
-  `0afa1ba1`, the checkout's commit when it ran, which changes no source.
+- **Binary:** `war 1.0.0-alpha.2`, built with the release profile from
+  `6bcc01bf`, the commit the record names. The binary's sha256 is
+  `977ba837…1037`.
 - **Machine:** Linux 7.2.6 x86_64 on a 13th Gen Intel Core i5-13600K, with
   `nproc` 20.
-- **Load average:** 1.82 / 7.56 / 12.93 at the start and 1.54 / 1.94 / 5.99 at
-  the end.
+- **Load average:** 6.83 / 6.81 / 6.53 at the start and 5.84 / 6.04 / 6.25 at
+  the end. Other sessions shared the machine.
 - **Corpus:** 1000 Warrants by `war status --json`: 500 resolved, 249
   authorized and 251 draft. It was built by `tools/scale/synth-corpus.sh --n
-  1000 --resolved 500`.
+  1000 --resolved 500` in 780 s.
 - **Runs:** 5 runs per row. The cap is 10 times the limit.
 
 | row | command | limit ms | median ms | verdict |
 | --- | --- | --- | --- | --- |
-| `check` | war check | 10000 | 8371 | within |
-| `check-generated` | war check --generated | 10000 | >= 100000 | **over** |
-| `next` | war next | 10000 | >= 100000 | **over** |
-| `status` | war status | 10000 | 2929 | within |
-| `pins-resolved-only` | war pins --resolved-only | 10000 | 2724 | within |
-| `sign-list` | war sign --list | 10000 | >= 100000 | **over** |
-| `compile` | war compile | 30000 | >= 300000 | **over** |
-| `console-json` | war console --json | 10000 | >= 100000 | **over** |
-| `console-select` | war console, answering `1` | 10000 | >= 100000 | **over** |
+| `check` | war check | 10000 | 3339 | within |
+| `check-generated` | war check --generated | 10000 | 9163 | within |
+| `next` | war next | 10000 | 2817 | within |
+| `status` | war status | 10000 | 430 | within |
+| `pins-resolved-only` | war pins --resolved-only | 10000 | 946 | within |
+| `sign-list` | war sign --list | 10000 | 4143 | within |
+| `compile` | war compile | 30000 | 6893 | within |
+| `console-json` | war console --json | 10000 | 5277 | within |
+| `console-select` | war console, answering `1` | 10000 | 6589 | within |
 
-The budget did not hold. A `>=` row was still running at the cap on its first
-run, and `budget.sh` stopped it. That row's time is a lower bound and its
-verdict is over; its later runs were skipped. No row is `unknown`: every
-command that finished exited 0. Generating the corpus also ran a whole-corpus
-`war compile` on the 1000 Warrants. That compile took about 62 minutes at a
-load of about 20. `synth-corpus.sh` logged the figure and `budget.sh` did not
-measure it.
+The budget held. Every row is within its limit and none is `unknown`.
+`check-generated` has the least room, 8% under its limit at this load: it is
+the row to watch.
 
-### Where the time goes
+### The first measurement, and what changed
 
-The time goes to signature verification, not to bytes. Every command that is
-over verifies recorded signatures by spawning `ssh-keygen -Y verify` once per
-check. It repeats checks, and nothing caches a result. Counted with `strace`
-on synthetic programs (release build, during development):
+The first record (2026-09-24T03:16:41Z, a release build of `fdd346c5`, sha256
+`bdaa3db0…81bb`, on the same machine at a load of 1.8 to 12.9) did not hold:
+`check-generated`, `next`, `sign-list` and `console-json` were still running
+at their 100 s cap, `compile` at its 300 s cap, and `console-select` likewise.
+Generating the corpus took about 62 minutes. `check` (8371 ms), `status` and
+`pins` were within.
 
-| program | recorded responses | `sign --list` spawns | `next` | `compile` | `check` | `status` |
-| --- | --- | --- | --- | --- | --- | --- |
-| 12 Warrants | 22 | 65 | | | | |
-| 100 Warrants | 176 | 3849 | 3923 | 8068 | 199 | 74 |
+The time went to repeated reads of records that could not change during the
+command. `ssh-keygen -Y verify` was spawned once per check, and the same
+responses were checked again and again: at 100 Warrants, 176 recorded
+responses cost `sign --list` 3849 spawns and `compile` 8068, roughly quadratic
+in signed records. The 2026-09-25 memo of `ssh_verify`'s verdict by the
+digest of its inputs removed the spawns. Stack samples at 1000 Warrants on
+2026-09-27 then found the walks still repeated per Warrant or per act: a
+directory scan per alias looked up, a stat of every record per pending act,
+the batches re-parsed and the responses re-listed per signature, three files
+re-hashed per verdict, and a `git show` per manifest (t-f815). Each is now
+done once per process in a command that writes no source (`war check`,
+`status`, `next` and `compile`, which writes projections only), or not at all.
 
-Eight times the responses brings about 59 times the spawns, so the growth is
-roughly quadratic in signed records. `war sign <alias>` spent 9 s per resolution in
-this loop at 60 Warrants, and 13 to 23 s at 100. That is why `synth-corpus.sh` records
-its resolutions through `war resolve --response` by default. `check`,
-`status` and `pins` grow linearly and stay within the budget.
-
-A fix is a later Warrant's work. §88 requires an ADR and differential
-conformance for any optimization that could change output. The obvious
-candidate is verifying each signature once per process.
+§88: no performance optimization may change semantic output without an ADR
+and differential conformance. These change none. The binary before them
+(`f918cf57`) and after (`6bcc01bf`) printed byte-identical output for `war
+check`, `check --generated`, `check --json`, `next`, `status`, `sign --list`,
+`console --json` and `pins --resolved-only`, on the 1000-Warrant corpus and on
+this repository: 16 of 16 compared.
 
 ### What this measurement is, and is not
 
@@ -192,7 +195,8 @@ candidate is verifying each signature once per process.
   attestation `war sign` adds. Its gate is a fixture: `sha256sum --check` over
   the fixture files. Its atoms are short and it has no amendments or
   corrections. Each of these makes it cheaper than a real corpus of the same
-  size, so a row that is over here would be over on real records too.
+  size, so a row that is over here would be over on real records too, and a
+  row within here is not shown to be within on real records of this size.
 - Each resolved Warrant carries one `implementation/` log of 1461 bytes. That
   is the median over this repository's resolved Warrants, as A-002 asks. The
   large logs in this repository sit in unresolved Warrants, which the median

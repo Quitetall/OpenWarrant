@@ -1,6 +1,6 @@
 {
   "schema": "openwarrant.scale/budget-run/v1",
-  "recorded_at": "2026-09-24T03:16:41Z",
+  "recorded_at": "2026-09-27T09:14:55Z",
   "procedure": "tools/scale/budget.sh (OW-WAR-0120); docs/RETENTION.md",
   "budget": {
     "file": "tools/scale/budget.toml",
@@ -17,14 +17,14 @@
   "runs": 5,
   "cap_factor": 10,
   "war": {
-    "path": "/mnt/4tb/tmp/ow-w-0118/target/release/war",
-    "version": "war 1.0.0-alpha.2",
+    "path": "/mnt/4tb/tmp/cargo-nvme/merge/release/war",
+    "version": "war 1.0.0-alpha.2 (unreleased, commit 6bcc01bf04a7)",
     "build_profile": "release",
     "build_profile_determined_by": "binary path (target/release)",
-    "sha256": "bdaa3db0fe4993e667404324316808d109948e4b0ed2e8c978710dca477881bb"
+    "sha256": "977ba8376eb1fd283550994d61f6a1253f9720e362579b24e901e97395221037"
   },
   "repository": {
-    "commit": "0afa1ba135579d93c2df31e8ca5c1b4c3762cec9"
+    "commit": "6bcc01bf04a7328d7fba8d2ac4c1ec824b3e2fae"
   },
   "machine": {
     "os": "Linux",
@@ -33,19 +33,19 @@
     "cpu_model": "13th Gen Intel(R) Core(TM) i5-13600K",
     "nproc": 20,
     "load_average_start": [
-      "1.82",
-      "7.56",
-      "12.93"
+      "6.83",
+      "6.81",
+      "6.53"
     ],
     "load_average_end": [
-      "1.54",
-      "1.94",
-      "5.99"
+      "5.84",
+      "6.04",
+      "6.25"
     ]
   },
   "timing": "wall clock per run, milliseconds, `date +%s%N` around the command; no ssh-agent reachable",
   "corpus": {
-    "root": "/tmp/claude-1000/-mnt-4tb-OpenWarrant/75a5c04e-16f9-4563-a9d4-b6c4821b9f4a/scratchpad/sc1000",
+    "root": "/mnt/4tb/tmp/scale-1000",
     "counted_by": "war status --json",
     "warrants": 1000,
     "by_phase": {
@@ -67,14 +67,14 @@
       },
       "counted_by": "war status --json",
       "fixture": "every record is synthetic; the signer, performer and verifier are throwaway names",
-      "gate": "gate://synth.fixture-bytes@1.0.0 (fixture: sha256sum --check synth/SHA256SUMS)",
+      "gate": "gate://synth.fixture-bytes@1.1.0 (fixture: sha256sum --check synth/SHA256SUMS; inputs synth/**)",
       "generator": "tools/scale/synth-corpus.sh",
       "implementation_log_bytes": 1461,
       "resolve_with": "response",
       "resolved": 500,
       "schema": "openwarrant.scale/synth-counts/v1",
-      "seconds": 5151,
-      "war": "/mnt/4tb/tmp/ow-w-0118/target/release/war",
+      "seconds": 778,
+      "war": "/mnt/4tb/tmp/cargo-nvme/merge/release/war",
       "war_check_exit": 0,
       "warrants": 1000
     },
@@ -96,14 +96,14 @@
         0
       ],
       "times_ms": [
-        8445,
-        8344,
-        8351,
-        8408,
-        8371
+        3450,
+        3340,
+        3339,
+        3331,
+        3317
       ],
-      "median_ms": 8371,
-      "max_ms": 8445,
+      "median_ms": 3339,
+      "max_ms": 3450,
       "verdict": "within"
     },
     {
@@ -114,13 +114,23 @@
         "--generated"
       ],
       "limit_ms": 10000,
-      "exit_codes": [],
-      "verdict": "over",
-      "median_ms": "unknown",
-      "max_ms": "unknown",
-      "times_ms": [],
-      "at_least_ms": 100000,
-      "why": "run 1 was still going at the cap of 100000 ms (10x the limit) and was stopped; later runs skipped"
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "times_ms": [
+        9163,
+        9804,
+        8992,
+        9284,
+        8985
+      ],
+      "median_ms": 9163,
+      "max_ms": 9804,
+      "verdict": "within"
     },
     {
       "id": "next",
@@ -129,13 +139,23 @@
         "next"
       ],
       "limit_ms": 10000,
-      "exit_codes": [],
-      "verdict": "over",
-      "median_ms": "unknown",
-      "max_ms": "unknown",
-      "times_ms": [],
-      "at_least_ms": 100000,
-      "why": "run 1 was still going at the cap of 100000 ms (10x the limit) and was stopped; later runs skipped"
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "times_ms": [
+        2816,
+        2817,
+        2841,
+        2857,
+        2813
+      ],
+      "median_ms": 2817,
+      "max_ms": 2857,
+      "verdict": "within"
     },
     {
       "id": "status",
@@ -152,14 +172,14 @@
         0
       ],
       "times_ms": [
-        2937,
-        2929,
-        2919,
-        2961,
-        2921
+        428,
+        445,
+        430,
+        430,
+        429
       ],
-      "median_ms": 2929,
-      "max_ms": 2961,
+      "median_ms": 430,
+      "max_ms": 445,
       "verdict": "within"
     },
     {
@@ -178,14 +198,14 @@
         0
       ],
       "times_ms": [
-        2710,
-        2724,
-        2739,
-        2763,
-        2724
+        931,
+        963,
+        919,
+        973,
+        946
       ],
-      "median_ms": 2724,
-      "max_ms": 2763,
+      "median_ms": 946,
+      "max_ms": 973,
       "verdict": "within"
     },
     {
@@ -196,13 +216,23 @@
         "--list"
       ],
       "limit_ms": 10000,
-      "exit_codes": [],
-      "verdict": "over",
-      "median_ms": "unknown",
-      "max_ms": "unknown",
-      "times_ms": [],
-      "at_least_ms": 100000,
-      "why": "run 1 was still going at the cap of 100000 ms (10x the limit) and was stopped; later runs skipped"
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "times_ms": [
+        4162,
+        4091,
+        4162,
+        4135,
+        4143
+      ],
+      "median_ms": 4143,
+      "max_ms": 4162,
+      "verdict": "within"
     },
     {
       "id": "compile",
@@ -211,13 +241,23 @@
         "compile"
       ],
       "limit_ms": 30000,
-      "exit_codes": [],
-      "verdict": "over",
-      "median_ms": "unknown",
-      "max_ms": "unknown",
-      "times_ms": [],
-      "at_least_ms": 300000,
-      "why": "run 1 was still going at the cap of 300000 ms (10x the limit) and was stopped; later runs skipped"
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "times_ms": [
+        6957,
+        7003,
+        6837,
+        6854,
+        6893
+      ],
+      "median_ms": 6893,
+      "max_ms": 7003,
+      "verdict": "within"
     },
     {
       "id": "console-json",
@@ -227,13 +267,23 @@
         "--json"
       ],
       "limit_ms": 10000,
-      "exit_codes": [],
-      "verdict": "over",
-      "median_ms": "unknown",
-      "max_ms": "unknown",
-      "times_ms": [],
-      "at_least_ms": 100000,
-      "why": "run 1 was still going at the cap of 100000 ms (10x the limit) and was stopped; later runs skipped"
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "times_ms": [
+        4403,
+        4452,
+        5519,
+        5523,
+        5277
+      ],
+      "median_ms": 5277,
+      "max_ms": 5523,
+      "verdict": "within"
     },
     {
       "id": "console-select",
@@ -243,23 +293,26 @@
       ],
       "limit_ms": 10000,
       "stdin": "1\n",
-      "exit_codes": [],
-      "verdict": "over",
-      "median_ms": "unknown",
-      "max_ms": "unknown",
-      "times_ms": [],
-      "at_least_ms": 100000,
-      "why": "run 1 was still going at the cap of 100000 ms (10x the limit) and was stopped; later runs skipped"
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "times_ms": [
+        6601,
+        6589,
+        6559,
+        7198,
+        6581
+      ],
+      "median_ms": 6589,
+      "max_ms": 7198,
+      "verdict": "within"
     }
   ],
-  "over": [
-    "check-generated",
-    "next",
-    "sign-list",
-    "compile",
-    "console-json",
-    "console-select"
-  ],
+  "over": [],
   "unknown": [],
-  "held": false
+  "held": true
 }
