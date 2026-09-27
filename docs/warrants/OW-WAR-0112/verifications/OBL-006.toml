@@ -1,0 +1,19 @@
+obligation = "OBL-006"
+disposition = "not_established"
+evidence = """The bundle shows some of the required behavior but not all of it, and one part contradicts the obligation's own evidence text. conformance/plants.d/97-tui.sh (D-034) confirms `war tui` from a pipe exits 2 as `tui.no-tty` and that `war` alone on /dev/null exits 2 naming `war status --json` with no alternate-screen escape code — but for `war --json </dev/null` the plant's own assertion is `grep -q 'exit=1'`, i.e. exit code 1, not the exit 2 the obligation's evidence text asserts, so that specific claim is contradicted rather than confirmed. The obligation_evidence structure shows the term "war --json sdk --request -" has an empty shown_in list — nowhere in the carried deliverables, the plant (D-034), or either gate run's stdout (ops.conformance.plants@1.1.0, software.repo.war-check@1.0.0) is that invocation exercised, so the claim that the sdk argv scan is untouched and still answers with an envelope is wholly unevidenced. Likewise no plant or test asserts that every embedded document renders in the Help pane without panicking; D-034 only checks that docs/TUI.md's headings name the nine panes, and D-035/D-036/D-037 are the document texts themselves, not a rendering test. Finally, no pty-based plant exercises bare `war` at a terminal (only `war tui --panic-after-setup` is run under `script`), so the positive half of the claim — that no-args at a terminal opens the app — is not independently demonstrated. Given confirmed pieces, an unevidenced piece, and a directly contradicted exit-code claim, the obligation as stated is not established."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

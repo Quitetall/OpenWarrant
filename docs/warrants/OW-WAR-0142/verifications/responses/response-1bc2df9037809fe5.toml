@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0142"
+
+[[verifications]]
+obligation = "OBL-007"
+disposition = "established"
+evidence = "D-014 (conformance/plants.d/69-standing.sh) section 'SC' implements exactly the claimed measurement: it shims ssh-keygen so every '-Y sign' call is logged to signs.log, signs the class once (expected 2 signatures), applies three covered Warrants with zero further signing (SC_PREWORK), dispatches all three before any resolution, resolves them in one 'sign --batch' (SC_RESOLVE_SIGNS), and separately runs the same three as ordinary (non-covered) Warrants through an authorize batch then a resolve batch, checking that none dispatch before the authorize batch and that exactly 4 signatures are used. The gate run GR-ops.conformance.plants@1.1.0 (verdict: pass, run_id GR-ops.conformance.plants@1.1.0, tested commit 39d30f3d2b2ca57dd9864ce4c6f6c804b8c32f88) has a stdout excerpt (lines 957-1002) showing 'ok    A: 2 once, 0 before work, 2 after  class 2, pre-work 0 (3 started), resolution batch 2' and 'ok    B: 4, and nothing starts first     0 of 3 dispatched before the authorize batch; 4 signatures for 3', which match the obligation's claimed counts (2/0/2 under standing, 4 and no early start under ordinary batching) exactly, and the overall run reports '1214 passed, 0 failed'. obligation_evidence confirms the 'ssh-keygen -Y sign' and 'ssh-keygen' terms are shown in full (cut_from empty), so nothing decisive was truncated away."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

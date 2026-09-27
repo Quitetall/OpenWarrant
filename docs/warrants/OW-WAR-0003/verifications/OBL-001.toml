@@ -1,12 +1,11 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "The test 'ir::tests::api_version_and_kind_are_pinned' passed, directly verifying that the IR's api_version and kind are exactly the pinned constants, and the overall test suite and 'war check --generated' exit 0 confirm successful lowering."
+evidence = """ir.rs pins API_VERSION = "oh.war/v1" and KIND = "work_authorization_record", and lower.rs assigns exactly those constants into WarIr. Gate run GR-software.repo.war-check@1.0.0 (`war check --generated`, verdict pass, bound to the authorized contract digest a22a4da8…) shows generated.drift PASS ('match a fresh compilation') for every Warrant visible in the tail, and the summary line reads '1987 pass · 290 warn · 0 unknown · 0 error'. Lowering therefore succeeds across the corpus, which includes the five Warrants. The head of stdout, which would show the OW-WAR-0001–0005 lines, is truncated, so this rests on the corpus summary. The test api_version_and_kind_are_pinned exists in ir.rs, but no test-run output is shown."""
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

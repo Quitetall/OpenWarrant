@@ -1,12 +1,11 @@
 obligation = "OBL-003"
-disposition = "established"
-evidence = "The test `structured::tests::every_milestones_atom_in_this_repository_parses` in `crates/openwarrant-core/src/structured.rs` passes, demonstrating that all in-envelope milestones atoms are parsed without being flagged, establishing that execution choices are not flagged."
+disposition = "not_established"
+evidence = "Evidence required is 'a plant of an in-envelope choice, which must pass.' The plants array in the bundle is empty, and neither carried deliverable (D-001 ADR overview renderer, D-002 structured atom parser) implements or tests the normative/execution classifier described in the work order. The test every_milestones_atom_in_this_repository_parses in D-002 only confirms that milestones YAML files parse under the restricted grammar; it makes no assertion about whether an in-envelope execution choice is flagged as requiring an ADR, so it does not speak to §19.2's exclusion. No plant or gate-run line specific to OW-WAR-0036 addresses this obligation, so it is not established."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

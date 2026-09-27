@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass) captured stdout that includes the 56-sas-sections.sh plant block (matching D-009's source, which implements sec_revision_bytes/join(split(...)) comparisons and the fenced/unfenced '## 999. Fake' cases). The stdout lines 'ok lossless split of 0.1.0-draft.1 joined sha256:aad5256cb59e = revision record' through '...1.2.0' show join(split(bytes)) recomputing each recorded revision's pinned sha256 for every revision file under docs/sas/revisions/ (a superset covering the five the obligation's scope names), with no 'UNKNOWN: no commit holds sha256' failures, which is D-009's fallback when history lacks the bytes. The fence case is shown directly: 'ok a fenced ## 999. is not a section §105 changed; no section 999' and its paired negative control 'ok an unfenced ## 999. is a section rejected as new by sas.diff.section-added' establish that a heading inside a fence is not split into a section while the identical heading outside a fence is, which is exactly OBL-001's fence claim. All of these are 'ok' (not FAIL) in the gate's stdout, and the overall run verdict is pass with '1214 passed, 0 failed'."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

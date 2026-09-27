@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "OBL-004 names gate://software.repo.war-check@1.0.0 as its evidence, and gate run GR-software.repo.war-check@1.0.0 is present in the bundle with receipt exit_result 'pass', verdict 'pass', and subject_digests binding it to this contract (sha256:63e708e8...) and this deliverable set. Its stdout explicitly shows 'PASS identity.atom-mismatch OW-WAR-0089: 4 atom(s) name this Warrant's UUID' for this Warrant, and the run's overall summary is '2039 pass · 238 warn · 0 unknown · 0 error (worst: WARN)' — zero structural errors anywhere in the checked corpus, including OW-WAR-0089, with only WARN-level remedies (`war evidence record OW-WAR-0089`, `war sas repin OW-WAR-0089`) outstanding, none of which are ERROR-severity structural failures."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,12 +1,11 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No plant or test in the measured evidence directly demonstrates the refusal of the specific unresolvable reference `sas://WAR-SAS-RQ-999`; the test `traceability::tests::unstable_or_malformed_identifiers_are_refused` exists but does not explicitly cover unresolvable references."
+evidence = "obligation_evidence for OBL-002 shows the term 'sas://WAR-SAS-RQ-999' with shown_in: [] — it appears nowhere in the bundle. The bundle's plants array is empty, and no gate-run line, deliverable excerpt, or Overview text records a refusal of this specific unresolvable reference; the closest test, unstable_or_malformed_identifiers_are_refused in D-001, only exercises malformed grammar, not an unresolvable-but-well-formed identifier like RQ-999. There is nothing here to decide the claim either way."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires showing that old digests are retained, the original baseline is unchanged, and the full gate passes, but gate_runs is empty and no deliverable digests (e.g., for OW39/OW41 provenance files) are carried in this bundle — deliverables is []. There is no gate run id, no printed gate output, and no digest comparison available to verify preservation of prior content digests or a passing full gate; only the assurance atom's assertion that this is so is present."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

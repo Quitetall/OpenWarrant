@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0124"
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "D-008 (conformance/plants.d/59-adoption.sh) implements exactly the sequence the obligation requires: telemetry is polled right after init, after one uncited commit, after a commit citing ACME-WAR-0001, and after one citing OW-WAR-0001, checking ad_candidates and the 'AD_HEAD..HEAD' / 'all history' strings. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, bound to the current contract and tree 2b24c062778e0d87732c7f85873cd25ceb8fbad3 per the software.repo.war-check evidence.admissible PASS line) shows these plant lines all passing: 'ok 0 candidates right after init read from 8f65cc9f827edc293e0b2329ab2ef540d2f09d3f..HEAD', 'ok one uncited commit is 1 candidate 1', 'ok an ACME-WAR citation is tracked still 1', 'ok an OW-WAR citation is not tracked 2', and the companion 'no baseline reads all history' plant showing 5 candidates named as 'all history'. D-006 (telemetry.rs) supplies the mechanism matching the obligation's scope claim: untracked_candidates() bounds the git log range to '<baseline>..HEAD' when repo.config.adoption is set, matches citations against the repository's own namespace prefix ('{namespace}-WAR-') rather than a hardcoded OW- prefix, and history_read() prints which range was used, which is exactly what OBL-002's evidence points require and what the plant asserts via grep on 'AD_HEAD..HEAD' and 'all history'. No truncation or cut_from is recorded against the relevant terms in obligation_evidence, so the full chain (code, plant, and passing gate output) is visible in the bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No refusal fixtures, malformed/over-limit input runs, or 'unchanged prior output on failed writes' evidence appear anywhere in the bundle; deliverables is empty and plants is empty ([]). The single gate run (GR-software.repo.war-check@1.0.0) checks Warrant-corpus structural conformance, not boundary input handling for the packaging/install seam OBL-002 scopes. Absent any such evidence, the obligation cannot be decided."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

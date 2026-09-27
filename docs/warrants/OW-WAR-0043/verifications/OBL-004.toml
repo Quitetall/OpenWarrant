@@ -1,12 +1,11 @@
 obligation = "OBL-004"
-disposition = "not_established"
-evidence = "The measured evidence does not list the seven plants for §91.4 test 24 and §91.5 tests 30-35, and the list of 138 plants does not include any for OW-WAR-0043."
+disposition = "refuted"
+evidence = "The obligation requires all seven plants (§91.4 test 24, §91.5 tests 30-35) in conformance/, each rejected by a named rule. atoms/60-assurance.md's own JDG-001 states plainly that only one plant exists (§91.5 test 31, evidenced by EV-004/OBS-004 — 'relations.child-listed' rejecting a removed child line), and enumerates the remaining six (test 24, 30, 32, 33, 34, 35) as not planted, each with a stated reason a rule or decision is still missing, per atoms/20-basis.md's 'Known gap' section. obligation_evidence also confirms conformance/ is not a carried deliverable of this Warrant. The bundle's own record therefore affirmatively shows six of the seven required plants do not exist, refuting the claim that 'the parent/child and ADR conformance tests are planted.'"
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

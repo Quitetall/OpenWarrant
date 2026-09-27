@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle carries no deliverables (deliverables: []), no conformance plants (plants: []), and no prior verifications. The only gate run present is software.repo.war-check@1.0.0 (run GR-software.repo.war-check@1.0.0), which is a structural/authority check over the repo's Warrant records, not an execution of decode_packet/check_packet_integrity or any offline-provider export. Nothing in the bundle shows explicit inputs, outputs, exit codes or fixture/build revisions for the S05 integrity subset or T32–T37 packages that OBL-001 requires, so the scoped behavior is not observed here."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

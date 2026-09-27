@@ -1,12 +1,11 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "None of the 646 passing tests or 138 planted violations in the measured evidence address the counting of clarification questions per plan, and no receipt or artifact demonstrates this requirement."
+evidence = "obligation_evidence for OBL-002 lists no named_paths and an empty terms array, meaning nothing in the bundle was located that speaks to clarification-count telemetry. The deliverables list is empty and plants is empty, so no test, receipt, or artifact recording a per-plan clarification count is present anywhere in this bundle. The single gate run's visible stdout tail (OW-WAR-0138 onward) never mentions clarification counting; the Assurance atom (atoms/60-assurance.md) itself acknowledges this is 'unmeasurable pre-telemetry.' There is nothing here to establish or refute the claim."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

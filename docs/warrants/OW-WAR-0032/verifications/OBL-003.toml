@@ -1,12 +1,11 @@
 obligation = "OBL-003"
-disposition = "established"
-evidence = "The plant '[OW-WAR-0020] generated view edited by hand' was rejected by its named rule, demonstrating that hand-editing of generated schemas is refused as required."
+disposition = "not_established"
+evidence = "OBL-003 requires evidence of a plant editing a generated schema by hand and being refused, but the bundle's plants array is empty — no such plant, its output, or a refusal record is present anywhere in the bundle. The gate run stdout tail does not reference a generated-schema hand-edit plant (it discusses unrelated manifest/journal/authority checks for other warrants). No drift-check-on-hand-edit evidence exists in this bundle."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

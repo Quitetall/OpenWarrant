@@ -1,12 +1,11 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "D-002 (blut-plan-check-2026-09-03.md) records BLUT's own verbatim verdict 'PASS blut.accepted' with fingerprint b69b886e4c9f and exit 0, confirming the lowered PlanSpec was accepted by the external binary; D-003 (OW-WAR-0047.planspec.json) is the emitted PlanSpec that was accepted."
+evidence = "D-002 (docs/warrants/OW-WAR-0027/evidence/blut-plan-check-2026-09-03.md) records BLUT's own verbatim output from `lqt plan check`, including 'PASS blut.ports-mapped OW-WAR-0047: 3 port(s) map to kinds BLUT declares' and 'PASS blut.accepted ... BLUT accepted the lowering (fingerprint b69b886e4c9f, 8 recipes registered, exit 0)'; D-003 (OW-WAR-0047.planspec.json) is the exact PlanSpec that was accepted. Together these show a stage graph using named typed ports (§49.2 port map in D-001's PORT_KIND_MAP) was lowered and that BLUT itself, a separate external binary, accepted the resulting PlanSpec — satisfying the obligation's stated evidence within its scope."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

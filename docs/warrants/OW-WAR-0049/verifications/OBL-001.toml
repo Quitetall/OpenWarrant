@@ -1,12 +1,11 @@
 obligation = "OBL-001"
-disposition = "not_established"
-evidence = "The basis atom of OW-WAR-0049 explicitly states that no §30.3 revision was needed for OW-WAR-0005's test 10 claim because it was implemented rather than corrected by amendment, and no §31 amendment record is present in the measured evidence."
+disposition = "refuted"
+evidence = "atoms/20-basis.md's INF-001 ('the claim in OW-WAR-0005 is now true, so there is nothing to amend') states plainly that implementing §91.2 test 10 made OW-WAR-0005's OBL-002 claim true and that 'no §30.3 revision was needed' and there was 'nothing to amend' — a deliberate decision not to produce a §31 amendment record. This directly contradicts OBL-001's required evidence (a §31 amendment record naming the semantic diff, reason, authorizer and admissibility decision) and the work order's Deliverable 2, which requires an amendment record against OW-WAR-0005 as its own item independent of how test 10 was resolved. No amendment record appears in the bundle's deliverables (empty) or in the visible gate-run output, so the bundle itself shows the required correction-by-amendment did not occur."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

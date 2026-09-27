@@ -1,12 +1,11 @@
 obligation = "OBL-002"
-disposition = "established"
-evidence = "The measured `cargo xtask gate` run on 1.97.1 shows all nine steps passing, including format, clippy, tests, and licenses, with exit status 0 and a per-step report confirming success."
+disposition = "not_established"
+evidence = "The only recorded gate run, GR-software.repo.war-check@1.0.0, ran 'war check --generated', whose 381,934-byte stdout consists entirely of Warrant-corpus compliance lines (identity.*, sas.*, authority.*, deliverable.*, journal.*) about OW-WAR-0001 through OW-WAR-0147 and has nothing resembling fmt/clippy/test/license step results. The run's own footer explicitly states: '`war gate --run` executes a registered gate (§44), but `war check` does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run.' obligation_evidence shows 'cargo xtask gate' only as text present in D-004 (the CI step name) and the atoms (the work-order describing it as a deliverable to build), never as an executed report. No per-step report or exit status for `cargo xtask gate` appears in the bundle."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

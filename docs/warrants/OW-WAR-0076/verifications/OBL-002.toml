@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No refusal fixtures, CLI/API outputs, or exit codes for malformed/duplicate/conflicting inputs are included; deliverables is empty and no conformance/sdk/author/ refusal cases are shown. The war-check gate run (GR-software.repo.war-check@1.0.0) only checks repository/Warrant record structure (manifests, digests, journal, SAS pins) and explicitly is not evidence that any acceptance gate for runtime refusal behavior was run ('war check does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run'). No observed refusal for this obligation's scope is present."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

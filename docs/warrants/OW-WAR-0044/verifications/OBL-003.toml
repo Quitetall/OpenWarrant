@@ -1,12 +1,11 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "No test, plant, or receipt in the measured evidence specifically addresses Git remaining Source Holder after registration or refuses a plant asserting KF as Source Holder for an authored atom."
+evidence = "No deliverable, gate-run excerpt, or plant in the bundle addresses Git remaining Source Holder 'after registration' for this Warrant, and per JDG-001/OBS-007 no registration ever occurred, so the scoped subject (a registered Warrant whose atoms could be checked post-registration) does not exist in the evidence shown."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

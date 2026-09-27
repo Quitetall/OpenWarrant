@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0125"
+
+[[verifications]]
+obligation = "OBL-005"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict: pass, subject_digests include contract:sha256:c970ba32...238660 matching this bundle's authorized_contract_digest) printed the three exact checks the obligation's evidence names, produced by the plant script D-009 (conformance/plants.d/56-sas-sections.sh) exercising D-008's (crates/openwarrant-cli/src/sas.rs) `sections_diff`: 'ok    the document against itself        no section named' (candidate = the document itself, exit 0, 'no section added, removed or changed' with no sas.diff.section- lines), 'ok    one word in §62.3                 section 62 named (in 62.3), and no other' (grep -c sas.diff.section- == 1, matching sas.diff.section-changed for section 62 only), and 'ok    a §106 row removed                rejected by sas.diff.removed (WAR-SAS-RQ-001)' (exit 2, sas.diff.removed fired, showing the existing §106 refusal still fires unchanged alongside the section logic). All three plant assertions passed with no corresponding FAIL lines, and the overall battery reports '1214 passed, 0 failed'."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

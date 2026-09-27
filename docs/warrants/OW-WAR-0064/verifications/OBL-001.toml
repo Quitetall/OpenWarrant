@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle carries no deliverable for an ADR on the correction act: the deliverables array is empty, and atoms/20-basis.md (the only basis text shown) does not cite any such ADR. The gate stdout (truncated to a tail beginning at OW-WAR-0138) happens to mention 'docs/adr/atoms/OW-ADR-0012-correction-act.md' only in an unrelated identity.adr-not-v7 UUID-version warning, which shows the file exists but says nothing about whether it answers §34.4's four steps, was proposed by the performer, or was adopted by the owner. There is no resolution record shown and no confirmation this Warrant is resolved, which OBL-001 requires as the test point. Absent evidence, this is not established."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

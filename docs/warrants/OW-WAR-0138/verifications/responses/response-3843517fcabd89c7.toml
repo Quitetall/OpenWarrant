@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0138"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "The claim rests on four sub-claims, each shown in the bundle. (1)/(2) config.rs (D-006) unit test `the_store_governs_and_a_differing_file_value_is_a_divergence` sets the file's allow_automated_resolution=true and independence=Some(default) against a store Policy with allow_automated_resolution=false and independence=None, calls govern_from_store, and asserts the resulting config takes the store's false/None values, records both as Divergence entries (keys \"[policy] allow_automated_resolution\" and \"[independence]\"), and that `service.may_resolve(..., ctx(c.policy.allow_automated_resolution))` returns Err while `ctx(true)` succeeds — i.e. the store's false, not the file's true, governs closure. This is corroborated end-to-end by conformance/plants.d/58-authn.sh (D-009), whose 'allow_automated_resolution edited' and '[independence] set true, not counted' checks grep for `policy.unprotected-divergence` and `WARN independence.undeclared` (not `independence.sufficient`), and the gate run ops.conformance.plants@1.1.0 (run GR-ops.conformance.plants@1.1.0, verdict pass) stdout shows both as 'ok' with the exact stated messages ('policy.unprotected-divergence names both values; the store's false governs' and 'a divergence; war check reports the store's undeclared'). (3) 'a v1 store still loads' is covered by authority_transition.rs (D-005) test `a_v1_revision_keeps_its_bytes_and_digest` and by the same plant/gate-run line 'a v1 store loads and grants nobody' (status reads v1; authority.store-v1). (4) 'a v2 transition with an unsigned policy change is refused' is shown in the plant's 'an unsigned policy change, refused' check (unsigned activate exits non-zero with `authority-signer`; a signature over tampered policy bytes gives `authority-signature-invalid`; head unmoved) and confirmed passing in the same gate stdout excerpt. The gate run's overall verdict is pass (1214 passed, 0 failed) and the stderr permission-denied lines concern an unrelated fixture, not this evidence. Together the unit-level config.rs test and the scratch-program plant/gate output establish every bullet the obligation names."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "The war-check gate run (run_id GR-software.repo.war-check@1.0.0, verdict 'pass') is a corpus-wide report with gate_binding_digest 'unbound:software.repo.war-check@1.0.0' and deliverables digest e3b0c44...855 (the empty-input hash), so it is not bound to OW-WAR-0076's own deliverable set. Its stdout is truncated to a tail beginning at OW-WAR-0138, so the specific manifest.valid/deliverable.digests/obligations.valid/milestones.valid lines for OW-WAR-0076 are not shown; the only visible line naming OW-WAR-0076 is 'PASS identity.atom-mismatch OW-WAR-0076: 4 atom(s) name this Warrant's UUID', while the REMEDIES section lists both 'auto war evidence record OW-WAR-0076' and 'human war sas repin OW-WAR-0076', indicating unresolved WARN-level items for this Warrant's own records that are not visible in the shown excerpt. This partial, truncated view is insufficient to establish structural validity of OW-WAR-0076's authored records."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

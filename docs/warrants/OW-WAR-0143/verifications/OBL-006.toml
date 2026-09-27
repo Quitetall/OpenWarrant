@@ -1,0 +1,19 @@
+obligation = "OBL-006"
+disposition = "established"
+evidence = """D-012 (conformance/plants.d/61-update.sh) contains the OBL-006 block that: (1) runs install.sh via `up_run env OW_BIN_DIR=... bash "$UP_SH"` against the fixture HTTP server on an empty HOME and then checks the resulting `war update --check` output for `PASS install.on-path $UP_LINK` and absence of `update.not-ours`; (2) reruns install.sh against a tampered fixture archive and asserts non-zero exit, an empty install root, no link, and a `CHECKSUM MISMATCH` message; (3) reruns install.sh with a pre-existing plain file at the link path and asserts non-zero exit, byte-identical file, and a message naming `$UP_LINK is a file`; (4) reruns install.sh with a fake `war 1.0.0-alpha.2` earlier on PATH and asserts a `WARNING: ... comes before ... on PATH, and says: war 1.0.0-alpha.2` line. D-007 (install.sh) implements matching behavior for each case (the CHECKSUM MISMATCH die message, the 'is a file this installer did not create' die message, and the PATH-shadow WARNING note). The gate run GR-ops.conformance.plants@1.1.0 (verdict 'pass') stdout excerpt shows all four corresponding lines as 'ok': 'install.sh on an empty HOME: a managed war', 'install.sh refuses a tampered archive', 'install.sh leaves a plain file alone', and 'install.sh names an older war earlier on PATH', with the battery-wide tally '1214 passed, 0 failed' confirming no failures anywhere in the run. Together the obligation's scope (install.sh against the fixture server with temporary HOME/OW_BIN_DIR), the carried source of both the test and the deliverable, and the passing gate output establish every accepted and refused case the obligation names."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

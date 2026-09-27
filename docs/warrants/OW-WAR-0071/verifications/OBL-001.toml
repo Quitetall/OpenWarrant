@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's obligation_evidence marks both scoped paths — docs/sas/WAR_Software_Architecture_Specification.md and docs/sas/revisions/1.1.0.toml — as absent/not carried, and docs/sas/generated/NORMATIVE.{md,json} is not carried either. The only evidence source, the software.repo.war-check@1.0.0 gate run, is truncated to a 365KB-file tail that begins mid-way through OW-WAR-0138's checks; obligation_evidence confirms the specific required terms (sas.stale-digest, sas.repin-unknown-requirement, war sas propose 1.1.0, NORMATIVE recompilation) have shown_in: [] — not present in the shown portion. The tail does show 'PASS authority.signed SAS-1.1.0: signed by brian over docs/authority/responses/SAS-1.1.0.response.toml' and multiple sas.section-current lines referencing SAS 1.1.0, which is consistent with acceptance but does not itself demonstrate the digest-recording, no-stale-digest, and normative-recompile checks the obligation specifies. Insufficient carried evidence to establish or refute."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

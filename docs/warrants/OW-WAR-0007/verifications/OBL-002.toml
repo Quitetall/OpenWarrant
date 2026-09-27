@@ -1,12 +1,11 @@
 obligation = "OBL-002"
-disposition = "not_established"
-evidence = "No test or plant for dangling `obligation_refs` is present in the measured evidence; only dangling `stage_refs` and duplicate IDs are covered by the listed tests."
+disposition = "refuted"
+evidence = """OBL-002's scope names five malformed-graph cases including 'dangling obligation_refs', but D-001's MilestoneError enum (crates/openwarrant-core/src/milestones.rs) has no variant for a dangling obligation reference, and validate_references() only checks m.stage_refs against stage_ids and m.depends_on against milestone_ids — obligation_refs is parsed via list(record, "obligation_refs") and stored on Milestone with no cross-check against any known-obligation set at all. A milestone naming a nonexistent obligation therefore parses successfully rather than being refused, directly contradicting the claim that 'every malformed graph is REFUSED' for that scope. This is corroborated by atoms/60-assurance.md's adequacy review, which records only three executed attacks (dangling stage_ref, dependency cycle, a stage-only field on a milestone) rather than the five the obligation's own evidence line requires, and none of the three tests obligation_refs."""
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

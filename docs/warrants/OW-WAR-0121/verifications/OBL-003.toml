@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = "The plant conformance/plants.d/53-storage.sh (D-011) contains the exact test for OBL-003: it copies a signed authorization.toml to a location outside the scratch program, replaces docs/warrants/ST-WAR-0002/authorization.toml with a symlink to that outside file, runs `war sign ST-WAR-0002 --ssh-sign`, and asserts a non-zero exit, the ERROR storage.symlink-target diagnostic, that the outside file's SHA-256 is unchanged, that the target path is still the untouched symlink, and that no temp file was left ('a symlinked record is refused' check, and the paired 'a symlinked view is refused' check for war compile). The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, subject contract digest matching authorized_contract_digest 64c1d7...433424) has stdout excerpts showing both lines actually printed: 'ok a symlinked record is refused storage.symlink-target (exit 2); the linked file untouched' and 'ok a symlinked view is refused storage.symlink-target (exit 1); the linked file untouched', with the overall run reporting 1214 passed, 0 failed. D-001 (atomic.rs) implements the corresponding refusal: `is_symlink` checks before writing and before rename, returning `Refused::symlink` with rule `storage.symlink-target`, and D-001's own unit test `a_symlinked_target_is_refused` confirms the same behavior at the unit level. Together the plant source, the gate's captured stdout for exactly these two lines, and the implementing code in atomic.rs meet the obligation's stated evidence requirement in full."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

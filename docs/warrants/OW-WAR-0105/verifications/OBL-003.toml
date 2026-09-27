@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "The bundle contains zero gate_runs and zero deliverables, so there is no browser walkthrough evidence, no immutable-record persistence test, no authentication/replay test, and no package/gate suite result to inspect (obligation_evidence again shows an empty named_paths list for OBL-003). The claims about no-auto-save, preview non-overwrite, record survival, and passing suites appear only as text in atoms/60-assurance.md and atoms/40-work-order.md, which describe intent, not proof."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

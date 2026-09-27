@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = """The attached gate run GR-software.repo.war-check@1.0.0 (receipt exit_result/verdict "pass") is bound via subject_digests to this contract (sha256:759743…, matching authorized_contract_digest) and to tree:2b24c062778e0d87732c7f85873cd25ceb8fbad3, the same non-stale tree cited by the run's own "bound to the current contract and to its source" lines — this run is current, not one of the stale-bound receipts flagged elsewhere (e.g. OW-WAR-0140/145/146/147 against tree:e68d1caf…). Within the shown stdout tail, "PASS identity.atom-mismatch OW-WAR-0083: 4 atom(s) name this Warrant's UUID" directly confirms one structural check on this Warrant's atoms passed, and the run's final tally ("2033 pass · 244 warn · 0 unknown · 0 error (worst: WARN)") shows zero FAIL/ERROR entries across the whole sweep that includes OW-WAR-0083, so none of its structural checks (manifest, deliverable digests, obligations, milestones) failed even though their individual PASS lines fall outside the visible truncated excerpt."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

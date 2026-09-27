@@ -1,12 +1,11 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "The measured evidence includes 646 passing tests and 138 plant violations, but none cite a file, test, or receipt that demonstrates generated TypeScript types exist or that KF imports them, as required by §83.4."
+evidence = "deliverables is empty, so no generated TypeScript type files or KF source importing them are present in the bundle. The only gate evidence (GR-software.repo.war-check@1.0.0) shows a truncated stdout tail covering OW-WAR-0138–OW-WAR-0147 and repo-wide meta-checks (identity, ADR, SAS), with no line addressing TypeScript generation or KF's imports per §83.4. This matches the absence already noted in obligation_evidence, which lists no named_paths or terms for OBL-004."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

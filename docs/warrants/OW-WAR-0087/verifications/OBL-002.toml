@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "As with OBL-001, deliverables and plants are absent (deliverables: [], plants: []), and obligation_evidence for OBL-002 carries no named_paths or terms. There is no record of any refusal fixture being run or of unchanged prior output on a failed write, so the boundary-refusal claim in atoms/60-assurance.md OBL-002 is unsupported by anything in the bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

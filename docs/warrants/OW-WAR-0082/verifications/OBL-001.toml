@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = """The bundle carries zero deliverables ("deliverables": []) and no plants; obligation_evidence for OBL-001 lists no named_paths and no terms. The only gate run present is software.repo.war-check@1.0.0, a structural manifest/record checker whose own output explicitly disclaims runtime relevance ('gate execution — war gate --run executes a registered gate (§44), but war check does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run'). The assurance atom (60-assurance.md) itself states 'These implementation observations are NOT RUN until attached evidence proves them. No disposition is declared here.' There is no test, fixture run, or captured input/output/exit-code trace of the SDK/provider boundary anywhere in the bundle, so the claim of enforced context budgets and cache invalidation cannot be decided."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

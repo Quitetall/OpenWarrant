@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "D-001 lists `rendering_is_byte_identical_across_runs`, and D-002 (compile.rs) writes only when the bytes differ. Both are consistent with the claim, but no test result is in the bundle. Nothing shows two consecutive `war compile` runs over an unmodified tree followed by `git diff --exit-code` exiting 0. The only gate run, GR-software.repo.war-check@1.0.0, is `war check --generated`, which compares committed views to a fresh compilation once. It is a different procedure from the obligation's evidence, and its stdout is not included either. The claim is plausible from the code but not demonstrated."
+evidence = "The obligation's stated evidence is two consecutive `war compile` runs over an unmodified tree followed by `git diff --exit-code` exiting 0; obligation_evidence lists this term ('git diff --exit-code') as shown_in: [] — nowhere in the bundle. compile.rs's `run()` only writes a file when bytes differ from prestate (write-if-changed logic), and render.rs lists rendering_is_byte_identical_across_runs as a unit-test name, but neither is a recorded execution of the two-compile-plus-diff procedure the obligation specifies. The single gate run present (`war check --generated`) is a different, one-shot committed-vs-fresh-compile comparison, its stdout is truncated with no visible OW-WAR-0004 line, and it is not the CLI-level double-compile/diff evidence the obligation calls for."
 performer = "claude"
 
 [verifier]

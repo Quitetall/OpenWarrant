@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict: pass) executed conformance/plants.d/62-verifier.sh (D-003) against tools/verifier/claude-verifier.sh (D-001), and its stdout shows 'ok    verdicts pass through              1 established, 1 refuted, evidence kept' and 'ok    the model cannot name itself       identity and flags identical with and without its claims' — exactly the two checks OBL-001's evidence calls for (the fixture's dispositions/evidence reaching the response, and a fixture claiming a verifier/actor/independence flags producing byte-identical identity/flags output). D-003's script (the vf_flags/VF_GOOD_FLAGS comparison and the 'claim' mode) is the mechanism producing that result."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

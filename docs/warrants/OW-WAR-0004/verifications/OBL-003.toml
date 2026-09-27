@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "The bundle has no conformance plants (`plants` is empty) and no test that mutates a committed parent. The drift-check implementation is not in the deliverables: compile.rs only exposes `projections` for comparison, and the `war check` comparison code is absent. The sole gate run passed on an unmutated tree, so it shows only that no drift was found there. It does not show a non-zero exit or a named file on a one-byte mutation. The prior verifier also reached not_established for this reason."
+evidence = "plants is empty in the bundle, and no gate run or test result shows a single-byte mutation of a committed generated parent followed by `war check --generated` exiting non-zero and naming the file. The drift-detection/refusal code path itself is not among the carried deliverables (compile.rs exposes only `projections()` for comparison; the comparison/refusal logic invoked by `war check` is absent). The one recorded gate run (GR-software.repo.war-check@1.0.0) passed on the tree as committed (verdict: pass, exit_result: pass), demonstrating only that no drift was found on an unmutated tree — the opposite condition from what OBL-003 requires to be shown."
 performer = "claude"
 
 [verifier]

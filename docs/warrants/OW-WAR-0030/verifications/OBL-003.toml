@@ -1,12 +1,11 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "No test in crates/openwarrant-cli/src/export.rs or its tests (e.g., every_required_content_is_classified) verifies that superseded, disputed, or annulled records are present in the export; the measured evidence lacks any specific check for history survival in the export deliverable."
+evidence = "Neither export.rs, its three tests (`every_required_content_is_classified`, `an_unreconnected_round_trip_is_refused_as_vacuous`, `a_reconnected_round_trip_with_equal_digests_verifies`), nor the truncated `software.repo.war-check@1.0.0` gate stdout (which covers repo-wide checks like manifest/deliverable/journal validity, unrelated to superseded/disputed/annulled record export) contain any check or assertion about superseded, disputed, or annulled records being present after export. The bundle carries no evidence bearing on RQ-084 one way or the other."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

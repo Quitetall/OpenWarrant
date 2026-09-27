@@ -1,12 +1,11 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "The measured evidence does not include the output of `war telemetry --verify` for the commit, and the gate run steps do not include a telemetry baseline check."
+evidence = "The bundle's obligation_evidence entry for OBL-003 states the named path artifacts/telemetry-baseline.json is 'not carried' (absent) and its cited term 'war telemetry --commit <sha> --verify' has an empty shown_in with no cut_from, meaning no output for that command appears anywhere in the bundle. The gate run GR-software.repo.war-check@1.0.0 stdout excerpts (lines 993-1007, 2551, 2707, 2782, and the tail) contain no telemetry-baseline check line, only manifest/deliverable/traceability/authority/SAS-pin findings for OW-WAR-0063. The prior verification (performer mimo-v2.5-pro) independently reached not_established for the same reason. Deliverables D-001 through D-004 are the check.rs unknown-requirement logic, adr.rs supersession tests, plants.d/00-corpus.sh, and corpus_status.rs — none of them is or exercises artifacts/telemetry-baseline.json. With the named artifact absent from the bundle and no verify output shown, the claim that the §94 baseline is current and declared cannot be decided from this bundle."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

@@ -1,12 +1,11 @@
 obligation = "OBL-003"
-disposition = "established"
-evidence = "The plant '[OW-WAR-0020] a relation attached with no reviewer' was attempted and refused by its named rule, exercising the control that no relation is fabricated without review."
+disposition = "not_established"
+evidence = "The bundle's top-level 'plants' array is empty ([]), so no plant record attempting an auto-attach relation is present to show a refusal, despite the obligation's evidence requirement being exactly 'a plant attempting auto-attachment, refused.' D-001 contains an `attach()` function and doc comments asserting that `UntrackedWork::attach_relation` 'shipped in alpha' and 'no command has ever called' it outside a unit test, which is itself an admission that this path has not been exercised as a plant. The single gate run's stdout is `war check --generated` output over warrant/document structure and contains no record of an attach attempt or its refusal. With no plant evidence in the bundle, the obligation is not established."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

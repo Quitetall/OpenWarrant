@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0147"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict: pass, bound to tree 2b24c062778e0d87732c7f85873cd25ceb8fbad3, confirmed admissible by the software.repo.war-check@1.0.0 run's 'PASS evidence.admissible ... ops.conformance.plants@1.1.0') shows the line 'ok create→ready→claim→done, unsigned t-3635 done; nothing signed, the signing queue unchanged (1)' and 'ok --draft: the drafter's items, or none no drafter: refused, nothing created; a drafter: its two deliverables'. The underlying plant D-013 (conformance/plants.d/45-tickets.sh) shows the exact checks behind those lines: every call goes through tkw(), which closes stdin with `</dev/null` and unsets OPENWARRANT_ACTOR/SSH_AUTH_SOCK (no terminal, no human); it greps the checklist for `^- \\[x\\] Write the grammar ($TK_I1) — done by claude, [0-9-]*: grammar written$` and for `\"ticket.item_done\"` in the journal, counts authorization*/resolution*/*.sig files under docs/tickets (TK_SIGNED -eq 0), and compares `war sign --list` counts before and after (TK_CHECK_BEFORE == TK_CHECK_AFTER); separately it creates without a configured drafter and asserts `ticket.no-drafter`, then with a fixture drafter asserts the items equal exactly the drafter's two deliverables. D-012 (tests/tickets_cli.rs, untruncated, test `create_ready_claim_done_needs_no_signature_and_no_human`) independently creates a two-item ticket, claims/dones both items through the shipped binary, asserts the checklist has exactly two ticked lines containing '— done by claude, ' and the note text, asserts no authorization/resolution/.sig files exist under docs/tickets, and asserts `war check` reports only `ticket.well-formed`. Together the admissible, passing gate run and the two independently-carried deliverables establish every accepting and refusing evidence bullet within the obligation's stated scope (45-tickets.sh scratch program and the tickets_cli.rs scratch repos)."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

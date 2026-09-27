@@ -1,12 +1,11 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "The test `every_required_content_is_classified` in crates/openwarrant-cli/src/export.rs ensures all §68.2 required contents are classified, and the plant '[OW-WAR-0020] a §68 export missing required contents' was rejected, demonstrating that missing sections cause validation failure."
+disposition = "refuted"
+evidence = "crates/openwarrant-cli/src/export.rs's own module doc and its `absent_reason` function state unconditionally that the exporter 'does not collect' four of §68.2's contents — 'actions and relevant audit receipts', 'runtime receipt refs', 'artifacts', and 'resolution and standing' — regardless of whether such sections exist for the Warrant. The Work Order's own prerequisite ('an export without resolution is not §68.2's export') is thus violated by design, and the module comment itself calls the category labels and digest 'insufficient preservation evidence'. The only test, `every_required_content_is_classified`, merely checks that each content string is classified as present-or-explained, not that populated sections are actually exported, so it cannot rescue the claim of completeness."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

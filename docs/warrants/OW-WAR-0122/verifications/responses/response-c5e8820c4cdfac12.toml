@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0122"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "refuted"
+evidence = "D-001 (docs/GRAMMAR.md) is carried in full (not truncated, 350 lines) and its own text fails OBL-004's evidence bullet 'every divergence has a proposed SAS text marked as a proposal.' DV-1 through DV-13 in the '## Divergences' section each close with a '> *Proposed SAS text, §…:*' blockquote, but DV-14 ('An unknown bold key inside evidence ends the evidence silently') ends after 'that is a tool change for a later Warrant, not this document's.' with no proposed SAS text at all. The cited gate run document.review@1.0.0 (GR-document.review@1.0.0, verdict fail) also does not establish this obligation for OW-WAR-0122: its stdout shows only a procedural document.review-absent error (no third-party verification yet) and never assesses table completeness or DV-14 specifically, so it does not substitute for direct inspection. Since the deliverable itself, which the obligation scopes to, shows a divergence entry lacking the proposal the evidence bullet requires, the claim as stated does not hold."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

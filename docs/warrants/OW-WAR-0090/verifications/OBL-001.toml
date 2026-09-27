@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables array is empty and no deliverables_not_carried explanation is given; obligation_evidence for OBL-001 shows named_paths:[] and terms:[], meaning no deliverable content, phase-exit records, source-set manifest, or real-user observation data was carried. The only gate run present is software.repo.war-check@1.0.0, which performs structural/manifest checks, not runtime phase-exit observation. Atom 60-assurance.md itself states 'These implementation observations are NOT RUN until attached evidence proves them. No disposition is declared here,' confirming the claim was never attempted, so absence of evidence here cannot establish or refute it."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

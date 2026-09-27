@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No deliverables, gate_runs, or plants are included in the bundle, and obligation_evidence for OBL-002 shows no named_paths, terms, or carried excerpts. There is no fixture output, refusal log, or gate run demonstrating malformed-field rejection, stale-digest refusal, cost-cap enforcement, timeout handling, oversized-output rejection, or interrupted-attempt tracking. The obligation is only asserted in atoms/60-assurance.md, not evidenced."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

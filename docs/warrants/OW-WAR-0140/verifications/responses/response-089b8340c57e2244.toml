@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0140"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, deemed admissible and bound to tree 2b24c062778e0d87732c7f85873cd25ceb8fbad3 per software.repo.war-check's 'PASS evidence.admissible' line) has its stdout excerpted at lines 419-467, showing the '== contractor profile (OW-WAR-0140) ==' section with every check the obligation's evidence bullets name printing 'ok': 'contractor IR = delivery IR, less the named' (profile, schema id, contractor.* entries, their digests removed as specified) and its control 'any other IR difference fails the comparison' (a changed title is caught, so the equality check is not vacuous); 'the seam left the frozen core alone' (14 modules unchanged; it touched only role.rs, manifest.rs) as the frozen-module-list check; 'an invoice field on a core struct: caught' as the planted-defect control for that same check; and 'no term string in the core IR' plus its control 'a term copied into a core field is found' (FIXTURE-WO-0001 caught in identity.title) for the no-leaked-terms bullet. These checks are defined in the carried, untruncated deliverable D-009 (conformance/plants.d/56-contractor.sh), which implements the IR-diff (ct_ir_equal), the frozen-module diff (CT_FROZEN array against the seam commit), and the invoice-field plant exactly as the obligation's scope and evidence require. No contradicting output appears in the excerpted stdout or stderr for this section."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

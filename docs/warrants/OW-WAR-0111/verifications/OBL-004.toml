@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "No parsing test outputs, gate runs, or plants show behavior on path traversal, duplicate paths, symlinks, digest mismatch, unsupported version, oversize input, or destination overwrite; deliverables and gate_runs arrays are empty and obligation_evidence for OBL-004 carries no named_paths or terms, so none of the required safety refusals or the valid-import success can be verified."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

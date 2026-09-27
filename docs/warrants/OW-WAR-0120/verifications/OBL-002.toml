@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = """Same gate run and same truncation problem as OBL-001: the visible portion of ops.conformance.plants@1.1.0's stdout does not contain 52-retention.sh's OBL-002 section ("the real budget passes at N=12", "a 1 ms budget names every command"), and obligation_evidence lists no terms for OBL-002 as directly shown in that stdout. D-002 (budget.toml) and D-003 (budget.sh) show the mechanism exists and is coded to behave this way, but no gate output in the bundle shows it actually ran and produced the stated exits."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

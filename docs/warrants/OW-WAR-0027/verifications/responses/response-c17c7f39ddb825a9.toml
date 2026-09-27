@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0027"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "D-002 (docs/warrants/OW-WAR-0027/evidence/blut-plan-check-2026-09-03.md) records BLUT's own verbatim output from `lqt plan check`, including 'PASS blut.ports-mapped OW-WAR-0047: 3 port(s) map to kinds BLUT declares' and 'PASS blut.accepted ... BLUT accepted the lowering (fingerprint b69b886e4c9f, 8 recipes registered, exit 0)'; D-003 (OW-WAR-0047.planspec.json) is the exact PlanSpec that was accepted. Together these show a stage graph using named typed ports (§49.2 port map in D-001's PORT_KIND_MAP) was lowered and that BLUT itself, a separate external binary, accepted the resulting PlanSpec — satisfying the obligation's stated evidence within its scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "The bundle's plants array is empty and no deliverable or gate output shows a plant that fabricates a lineage receipt being refused; milestones.yaml names STAGE-002 'Plant a self-minted lineage receipt' as the vehicle for this obligation but no such stage's output or refusal record is carried. D-001 (blut.rs), the only code deliverable, implements PlanSpec lowering and BLUT's typecheck verdict only — it contains no lineage-receipt consumption or fabrication-refusal logic, and D-002/D-003 concern the lowering/typecheck path, not receipts. There is nothing in the bundle to decide the claim either way."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "D-002 explicitly records the binary used as '/mnt/4tb/LamQuant/training/cookbooks/lamquant/target/release/lqt (blut 0.2.0-alpha.1+23cd95ac5e18), built from training/engine at 23cd95ac' and shows the command `war blut OW-WAR-0047 --verify <lqt> --emit ...` being run against it, with BLUT's own PASS/verdict lines and a real fingerprint returned — this is a run against a real, locally-built BLUT binary from the training/engine checkout named in the obligation's scope, not a mock, matching the required evidence of 'an integration run, not a mock.'"
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

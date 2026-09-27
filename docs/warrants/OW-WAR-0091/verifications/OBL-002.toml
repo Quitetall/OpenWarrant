@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No deliverables are carried in the bundle (deliverables: []) and obligation_evidence for OBL-002 shows empty named_paths/terms, so no refusal fixtures, invalid-input tests, or unchanged-prior-output-on-failed-write records are present. The single gate run (software.repo.war-check@1.0.0) checks manifest/atom structural well-formedness across the corpus, not the release/publish boundary's handling of malformed or authority-confused inputs, so it cannot speak to this obligation."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

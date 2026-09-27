@@ -1,0 +1,19 @@
+obligation = "OBL-005"
+disposition = "not_established"
+evidence = "The bundle contains only the five authored atoms (intent, basis, work_order, milestones, assurance) describing what should be built; it carries no CLI deliverable, no gate run showing legacy envelope bytes unchanged, and no KF producer/consumer observation records. obligation_evidence for OBL-005 is empty, so the claim of honest reporting and preserved legacy bytes is asserted in the plan only, not shown by any evidence in this bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

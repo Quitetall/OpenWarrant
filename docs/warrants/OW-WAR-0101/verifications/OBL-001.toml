@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = """The bundle carries no deliverables ("deliverables":[]), no gate_runs, and no plants. obligation_evidence for OBL-001 lists no named_paths and no terms; the selection is merely 'warrant: every deliverable of the Warrant' with nothing actually shown. There is no adapter code, HTTP fixture, or test output present to demonstrate conforming responses emitting or malformed/truncated/missing-field cases refusing without proposal stdout, so the claim cannot be decided from this bundle."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

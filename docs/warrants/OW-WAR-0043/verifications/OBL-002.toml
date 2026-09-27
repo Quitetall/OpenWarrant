@@ -1,12 +1,11 @@
 obligation = "OBL-002"
-disposition = "established"
-evidence = "The test 'migrate::tests::the_body_is_preserved_byte_for_byte_and_its_digest_recomputes' passed, directly verifying that ADR bodies are preserved byte-for-byte and their digests recompute correctly, which fulfills the obligation's requirement for zero differences across the corpus."
+disposition = "not_established"
+evidence = "The only executable evidence in the bundle for byte preservation is D-001's unit test the_body_is_preserved_byte_for_byte_and_its_digest_recomputes, which runs against a single synthetic ADR in a scratch temp corpus, not the frozen 173-ADR LamQuant corpus the obligation's scope names. The claim about the real corpus, OBS-001 ('173 ADRs imported ... zero preservation failures'), is sourced from EV-001, whose admissibility is performer_report_only and whose digest is the placeholder 'sha256:pending-receipt-binding' — not a sealed, independently checkable measurement. The import artifact itself (artifacts/lamquant-adr-import.json) is not among the carried deliverables. Combined with the commit discrepancy noted under OBL-001, the bundle does not show which corpus, if any, was actually measured for the zero-differences claim."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

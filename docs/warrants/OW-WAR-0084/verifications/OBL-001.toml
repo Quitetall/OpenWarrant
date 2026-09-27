@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables array is empty and obligation_evidence for OBL-001 lists no named_paths and no terms, so no legacy-adapter or lineage/digest source, test, or run output is carried. The only gate run present, GR-software.repo.war-check@1.0.0, is a structural repo-check ('war check') and its own summary explicitly notes 'gate execution — war check does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run', so it cannot stand in for observing the scoped behavior. No evidence of the scoped behavior being executed over exact historical source bytes is present."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

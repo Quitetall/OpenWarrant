@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires independent reproduction/review and secure human acceptance of the exact result, but the bundle's prior_verifications list is empty and there is no independent-review record, baseline comparison, or human acceptance artifact tied to this Warrant's OBL-001/002 outcomes. The assurance atom explicitly states no disposition is declared for the implementation observations yet, so qualification evidence cannot exist prior to that. Nothing in the war-check gate output (which only checks record structure) substitutes for independent qualification review."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

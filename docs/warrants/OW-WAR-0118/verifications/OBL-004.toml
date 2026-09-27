@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "Scope is limited to docs/friction/baseline-1.json (D-002) and docs/FRICTION.md (D-003) at delivery, both fully present (truncated:false), letting direct comparison replace the gate. D-002 names build_profile 'release', war.version 'war 1.0.0-alpha.2', and a 40-hex commit 'fdd346c54417069593d0f393dc63fe24d70424b8', satisfying the first evidence bullet. Every table row in D-003 (setup: git-init 3/15, init-program 3/959, sas-propose 3/18, sas-sign 16/68, check 10/40, compile 13/51, authorize 5/18, authorize-sign 16/87; routine: new 3/3, check-alias 10/12, compile 93/157, authorize 3/3, sign 35/45, next 53/63, status 14/29, resolve-dry-run 6/9; corpus: check-alias 171/192, next 8064/8698, status 591/1130, resolve-dry-run 115/118) matches D-002's medians/maxes exactly, and every human step in D-003 reads 'not measured'. D-003 states verbatim 'Setup target: neither met nor missed by this evidence.' D-001's SETUP/ROUTINE arrays and the fixed Python step-emission order (e.g. H_ROUTINE_SIGN inserted right after the 'authorize' tool_step) are static, unconditional lists, so a re-run necessarily reproduces the same step sequence — satisfying the re-run-order requirement by construction, not by inference about correctness."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,12 +1,11 @@
 obligation = "OBL-003"
-disposition = "established"
-evidence = "The test 'execution::tests::a_performer_cannot_request_resolution' passes, verifying that the system refuses resolution requests from performers, which aligns with the §51.2 no self-completion constraint."
+disposition = "not_established"
+evidence = "obligation_evidence claims the term 'resolve' is shown in the war-check stdout and in atoms, but the visible stdout excerpt (truncated, tail-only) contains no occurrence of 'resolve' or any Submission/refusal record, only unrelated PASS/WARN lines for other Warrants and the global corpus. atoms/20-basis.md only asserts as a design constraint that a resolve request 'is refused by name' — that is an authored expectation, not evidence of an executed refusal. A prior verifier cited a unit test 'a_performer_cannot_request_resolution', but that test's output does not appear in this bundle's gate_runs or deliverables, so it cannot be checked here. No Submission or plant artifact is carried."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

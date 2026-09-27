@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "No deliverables are carried (deliverables:[] ), so there is no drifted artifact, no correction record, and no war-check output specific to OW-WAR-0064 showing both the uncorrected-drift refusal and the corrected-drift acceptance. The single war-check gate run's stdout is truncated to a tail that starts at OW-WAR-0138 and never reaches OW-WAR-0064's own PASS/FAIL lines for deliverable.digest-drift; obligation_evidence only notes the term 'deliverable.digest-drift' is shown in the atoms text (the work order's description of the rule), not in any gate output tied to this obligation's plants."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "As with OBL-001, no deliverables, plants, or gate output addressing refusal behavior at the SDK/provider boundary are present in the bundle; obligation_evidence for OBL-002 shows no named_paths or terms. The only gate run (software.repo.war-check@1.0.0) checks repository/record structure, not runtime refusal behavior, and its own NOT CHECKED section confirms it does not execute gates or observe runtime conduct. No observed refusal, malformed-input trace, or unchanged-prior-output-on-failed-write evidence is shown anywhere."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

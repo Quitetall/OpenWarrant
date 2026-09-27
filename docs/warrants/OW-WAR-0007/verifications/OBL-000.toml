@@ -1,12 +1,11 @@
 obligation = "OBL-000"
 disposition = "not_established"
-evidence = "The measured evidence includes tests and receipts for the structured parser but no ADR artifact naming the parser or verifying its licence against Apache-2.0, as required by the obligation."
+evidence = "The bundle's deliverables array (scope: warrant, no deliverables_not_carried listed) contains only D-001 (crates/openwarrant-core/src/milestones.rs) — no ADR document is carried as a deliverable of OW-WAR-0007. The gate run stdout's identity.alias-ref warning does show 'OW-ADR-0003: governs war://OW-WAR-0007 ... → docs/adr/atoms/OW-ADR-0003-structured-atom-subset.md', suggesting an ADR titled 'structured-atom-subset' exists and governs this Warrant, but its text is not shown anywhere in the bundle, so neither its actual resolution of the parser question nor the required Apache-2.0 licence check can be confirmed. Absent that content, the obligation's specific evidence requirement is not carried."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

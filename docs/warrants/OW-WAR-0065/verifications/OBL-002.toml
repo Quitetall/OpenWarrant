@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "OBL-002's own stated evidence requirement is that 'an independent reviewer records established for this obligation' and that the gate refuses closure without it, but obligation_evidence for OBL-002 lists the term 'established' with shown_in: [] and cut_from: [] (i.e. not shown at all), and gate_runs and prior_verifications are both empty arrays. There is no gate run output or reviewer verdict in the bundle to check the Decision section against the Measurements section, so the obligation's required evidence is simply absent, not merely truncated."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

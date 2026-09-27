@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "The gate run's own stdout (GR-software.repo.war-check@1.0.0) states in its NOT CHECKED section that '143 of 143 Warrant(s) have no disposed obligations — §38.6 yields no resolution verdict for them,' which includes OW-WAR-0088, and prior_verifications is empty. There is no independent reproduction/review, baseline comparison, or secure human acceptance record for this exact result anywhere in the bundle, so qualification of OBL-001/002 cannot be established."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,12 +1,11 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "The measured evidence includes tests, plants, and receipts for relation checks and other validations, but no Progress Log entry naming commit 3678455 and the violated obligation is present in the provided artifacts."
+evidence = "No Progress Log atom or deliverable is carried in the bundle at all (the atoms present are only intent, basis, work_order, milestones, and assurance). obligation_evidence for OBL-003 shows the term '3678455' appearing only in 'atoms' — specifically atoms/10-intent.md's own Intent narrative describing the problem — not in any Progress Log entry naming the commit and the violated obligation as OBL-003 requires. This matches the prior verification's finding of not_established, and nothing in this bundle's gate run stdout or deliverables supplies the missing Progress Log record."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

@@ -1,12 +1,11 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "The measured evidence includes a receipt for gate GR-software.repo.war-check@1.0.0 and 644 passing tests, but none of these demonstrate the exact bytes handed to the agent being digested and compared against the compiled Dispatch, nor a recorded run with a deliberately omitted input that raised a §53.1 BLOCKER."
+evidence = "obligation_evidence for OBL-002 lists no terms and no named_paths were carried; deliverables is empty. There is no artifact in the bundle showing the exact bytes handed to an agent digested against a compiled Dispatch, and no recorded run showing a deliberately-omitted input producing a §53.1 BLOCKER. The single gate run (software.repo.war-check@1.0.0) is a repo-structure checker unrelated to Dispatch delivery or agent execution, and the visible (truncated) stdout portion covers OW-WAR-0138 through OW-WAR-0147 and global corpus checks, never OW-WAR-0045's Dispatch/agent handoff."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

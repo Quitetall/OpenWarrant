@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0122"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "D-003 (57-grammar.sh) defines exactly the four plants OBL-001 names — G-H1 (role changed), G-H2 (warrant_uuid changed), G-H3 (order changed), G-H4 (schema removed) — each asserting exit 2, rule `atom.header`, and a detail string naming the key and both values (or, for G-H4, the missing key). The gate run `ops.conformance.plants@1.1.0` (run_id GR-ops.conformance.plants@1.1.0, verdict pass, subject contract digest matching the bundle's authorized_contract_digest) shows all four as `ok` with the exact expected messages: G-H1 \"rejected by atom.header (header's `role` is \\\"intent\\\", but the manifest's role is \\\"basis\\\")\", G-H2 naming both `warrant_uuid` values, G-H3 naming both `order` values, and G-H4 \"the header has no `schema`\". D-002 (repo.rs) shows the `header_mismatches` function is invoked only when `rel.ends_with(\".md\") && entry.role != \"adr\"`, matching the obligation's stated scope, and its own unit tests (`each_key_is_named_with_both_values_or_as_missing`) independently confirm the message format for a changed value and for a missing key. Together the code, the plant definitions, and the passing gate run establish the claim within its stated scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

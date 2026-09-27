@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = """The gate run GR-software.repo.war-check@1.0.0 targets exactly the gate named in OBL-004, with subject_digests including contract:sha256:d2a7746854b5197abbeb84930812833a78647e815d98d96f4e89e8aed961d4e7 matching this bundle's authorized_contract_digest, and receipt verdict/exit_result "pass". The visible stdout tail's run summary shows "2036 pass · 241 warn · 0 unknown · 0 error (worst: WARN)" for the whole corpus check that includes OW-WAR-0086, and the REMEDIES section names OW-WAR-0086 only for two WARN-level remedies (`war evidence record OW-WAR-0086`, `war sas repin OW-WAR-0086`), not any structural error, PASS obligations.valid/milestones.valid/generated.drift class failures. This is a structural (war-check) result showing OW-WAR-0086's authored records are structurally valid within the stated no-runtime-claim scope."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

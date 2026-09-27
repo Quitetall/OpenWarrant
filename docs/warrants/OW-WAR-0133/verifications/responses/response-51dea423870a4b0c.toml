@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0133"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "D-005 (conformance/plants.d/55-evidence-reuse.sh, carried whole, untruncated) defines the exact scenarios OBL-001 requires: 'a clean receipt names its source' checks that the recorded receipt's subject_digests contain contract:sha256:*, tree:<HEAD^{tree}>, deliverables:sha256:<digest> and inputs:sha256:<digest>, with no worktree:dirty, and that er_seal verify succeeds; 'a dirty receipt says so' checks worktree:dirty is present and the seal still verifies. The gate run GR-ops.conformance.plants@1.1.0 (run_id, subject_digests matching authorized_contract_digest b5c583da...903349, verdict pass) is the recorded execution of this script (arguments: bash conformance/plant-isolated.sh), and its stdout excerpt at line 357 directly shows 'ok a dirty receipt says so worktree:dirty named, seal recomputes; reuse-unknown (dirty tree has no name)', confirming the dirty-tree half of the obligation. The same stdout's tail gives the run's final tally 'tested commit 39d30f3d2b2ca57dd9864ce4c6f6c804b8c32f88 ... 1214 passed, 0 failed', a global counter across every er_ok/er_fail call in the battery including 55-evidence-reuse.sh's 'a clean receipt names its source' check; since that counter shows zero failures, the clean-tree scenario (which precedes the dirty one in the same script and would have incremented FAILED had it not passed) must also have produced 'ok'. software.repo.war-check@1.0.0's stdout further corroborates admissibility with 'PASS evidence.admissible OW-WAR-0133: ops.conformance.plants@1.1.0 · required pass, receipt reseals and is bound to the current contract and to its source (tree:2b24c062778e0d87732c7f85873cd25ceb8fbad3)'. Together these establish, within the obligation's stated scope (receipts minted by war evidence record on a scratch corpus in a git repository), that a clean-tree receipt names contract/tree/deliverables and a dirty-tree receipt additionally names worktree:dirty, with the seal recomputing in both cases."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

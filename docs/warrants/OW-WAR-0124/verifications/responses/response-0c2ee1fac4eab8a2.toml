@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0124"
+
+[[verifications]]
+obligation = "OBL-006"
+disposition = "not_established"
+evidence = "D-005 (guided.rs, untruncated) shows the test functions with_history_the_step_after_program_is_baseline and without_history_baseline_is_skipped, which do demonstrate that Baseline follows Program with history and is skipped without it, and that confirming the proposed commit yields exactly one Effect::Adopt. The functions an_existing_authority_file_is_never_written_again and the_agent_is_a_performer_and_nothing_else are also present and their bodies are consistent with the claimed behavior (roles.toml left alone when it already exists, agent entry limited to 'performer'). However, the obligation's stated evidence explicitly requires 'a grep of the diff to guided.rs' showing no line touching render_roles, render_allowed_signers, or the Signer/KeyLoaded answer arms, and 'the existing tests ... pass unmodified' — meaning unchanged relative to a prior version. The bundle carries only the final file content of D-005, with no prior version, diff, or cargo-test execution record; the two gate runs present (ops.conformance.plants@1.1.0 and software.repo.war-check@1.0.0) show conformance-script output and war-check static/manifest checks, not a unit-test run or a diff against a prior guided.rs. Without a diff or a test-execution log, the bundle cannot show that these specific arms were left untouched or that the cited tests were run and passed rather than merely being present in source, so the obligation is not established from the bundle alone."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,12 +1,11 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "The test 'migrate::tests::the_artifact_is_reproducible' in crates/openwarrant-cli/src/migrate.rs passes, verifying that re-running the import at the recorded commit SHA produces byte-identical output, and the ImportArtifact struct includes the commit_sha field as required."
+disposition = "refuted"
+evidence = "atoms/20-basis.md states the resolution requirement is 'a named LamQuant commit, agreed and frozen for the duration of the import' and names it as SHA-F = ba9ed833faa9a52940d5e9d424566466e9066867 (LamQuant ADR 0186 clause 5). But atoms/60-assurance.md EV-001's recorded method is `war migrate --corpus /mnt/4tb/LamQuant/docs/decisions --commit 0e0e04a7a6cff7901c073c27cc233d9af9f11664` — a different 40-character commit entirely. The import the bundle documents did not run against the commit the Basis identifies as agreed and frozen, so the claim that 'the import ran against one named, frozen commit' (i.e. the one this Warrant froze) does not hold on this bundle's own evidence."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

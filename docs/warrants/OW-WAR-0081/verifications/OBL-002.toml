@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No plants, deliverables, or gate output addressing malformed/incomplete/conflicting/over-limit/authority-confused inputs are present anywhere in the bundle. The sole gate run (software.repo.war-check@1.0.0) is a structural check of Warrant metadata and its printed output contains no reference to boundary refusal behavior for decode_packet/check_packet_integrity or the provider export path, so there is no observed refusal evidence to decide this obligation either way."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass, exit_result pass, subject contract digest sha256:da9d7ca9597fe9ec2014a24dd6175ed27340a02f5c83d8ecf18923bae93092f1 matching authorized_contract_digest) captured stdout lines 468-496 showing the 57-assurance-mark.sh plant (D-005) running exactly the scenario OBL-002 scopes: a scratch Warrant MK-WAR-0001 resolved end-to-end with an accepted baseline copy, then `war mark MK-WAR-0001 --json` producing 'oh.war/mark/v1; baseline, resolution, attestation, commit, contract, OBL-001 each recompute' (line 'ok a met baseline earns a mark'), followed by 'ok a mark recomputes to the same bytes' confirming determinism. The plant's embedded MK_CHECK python routine (visible in D-005's text) independently recomputes sha256 digests of the baseline, resolution and attestation files and the resolution's locator commit and contract_digest directly from the corpus tree and diffs them against the fields inside the emitted Mark statement (schema, baseline.id/sha256/independence_floor, resolution.sha256, attestation.path/sha256, commit, contract_digest, obligations, requirements), reporting only when they diverge; the corresponding stdout line reports no divergence. D-002 (mark.rs) excerpts show the Mark struct and evaluate()/record()/verify() functions whose fields match exactly what the plant checks. The overall battery total ('1214 passed, 0 failed') confirms no failures elsewhere in the run that would undercut this section. This is a genuine, corpus-recomputed check rather than a bare assertion, and it establishes OBL-002 within its stated scope."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

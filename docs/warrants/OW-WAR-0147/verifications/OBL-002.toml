@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, sealed to the current tree per war-check's PASS evidence.admissible line) shows in its stdout excerpt the three OBL-002 lines all 'ok': 'a held item refuses a second claim … naming alice and since when', 'concurrent claims: exactly one wins … 8 processes, 1 claim, 1 journal event', and 'a stale claim is stolen, journalled … refused, then --steal took it from alice; fresh: refused'. The full (untruncated) plant script D-013 (conformance/plants.d/45-tickets.sh) contains the exact assertions behind these lines: TK_S/TK_S2 checks that a second claim exits 2 with `ticket.claimed-by-other` and 'claimed by alice since', eight backgrounded `tkw claim` processes checked for exactly one winner (TK_WON=1) and one `ticket.claimed` journal line (TK_JC=1), and the TTL block asserting refusal without --steal ('--steal. takes it'), success with --steal plus a `ticket.claim_stolen` journal entry naming 'from':'alice', and a fresh claim refused with 'not stale'. This is corroborated by unit tests in the full (untruncated) D-007 (claim.rs): `of_concurrent_claims_exactly_one_wins` (32 threads × 20 rounds, asserting exactly one Won and every loser reading the winner by name) and `a_stale_claim_is_stolen_once_and_a_fresh_one_is_not_clobbered` (steal succeeds once, a second stealer judging the same stale claim loses to the new holder), and by the full D-012 test `of_concurrent_claim_processes_exactly_one_wins` (12 real OS processes, exactly one exits 0, losers' stderr names the winner). The D-006 excerpt (ticket/mod.rs lines 1218-1347) shows the corresponding claim_cmd refusal/steal code path (TTL check, 'not stale' hint, claim::steal call) matching this behavior. Together the gate run, the plant script it executed, and the underlying unit/integration tests converge on the same exclusivity, naming, and stale-only-steal claims, so the obligation is established within its stated scope."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

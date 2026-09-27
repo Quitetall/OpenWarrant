@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires a separate verifier's reproduction and reported findings distinct from performer assertions, but prior_verifications is empty and no independent-review artifact is named in deliverables or obligation_evidence. The single gate run present (software.repo.war-check@1.0.0) is an automated structural check, not the independent human/verifier review the obligation demands, so nothing here shows independent evidence of acceptance."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

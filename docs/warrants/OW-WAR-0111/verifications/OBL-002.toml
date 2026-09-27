@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No deliverables (e.g. exported/imported archive files, CLI output showing re-export) or gate_runs (e.g. a round-trip test execution) are carried in the bundle; obligation_evidence for OBL-002 shows no named_paths or terms. Without any observed import/re-export bytes or KF-instance evidence, the claim of canonical byte/semantic identity or proper refusal on missing evidence cannot be checked."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,19 @@
+obligation = "OBL-007"
+disposition = "established"
+evidence = "D-039 (sas_repin.rs) implements the claimed behavior: `run()` builds one Plan per candidate, checks each manifest's implemented rows against the latest SAS revision before writing anything, refuses the whole batch via `sas.repin-refused` if any Plan fails, writes `AM-<n>.yaml` with `sas_revision`/`predecessor_sas_revision` (see `render()`), and short-circuits on resolved Warrants with `sas.repin-resolved`. D-040 (88-sas-repin.sh) is the conformance plant exercising these paths on OW-WAR-0047 (authorized, unresolved) and OW-WAR-0062 (resolved). The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, bound to the current contract digest 3eb47417… and tree 2b24c062…, so the evidence is current) shows the specific outcomes in its stdout excerpts: 'a re-pin that loses an implemented row rejected by sas.repin-unknown-requirement (9.9.9)' (line 1150); the '== sas repin (OW-WAR-0112) ==' block (lines 1153-1214) showing 'repin writes the amendment; rev 3 pending rejected by rev 3 (authorize)' confirming `war sign --list` then asks for the next authorization revision, 'the written re-pin checks clean pinned to 1.1.1, the warning gone', 'repin of a resolved Warrant refused, nothing written', and 'repin --all --dry-run 112 candidate(s), nothing written'. Together these cover every clause of OBL-007's evidence statement within its stated scope (sas_repin.rs, amendments/, 88-sas-repin.sh)."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

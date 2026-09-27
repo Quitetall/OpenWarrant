@@ -1,12 +1,11 @@
 obligation = "OBL-006"
-disposition = "established"
-evidence = "The plant '[OW-WAR-0010] a resolution of a contract that has since moved' was rejected by the system, and the `check` function in `resolution_cmd.rs` is designed to report resolutions as stale when the contract has moved."
+disposition = "not_established"
+evidence = "The bundle's plants array is empty, and obligation_evidence for OBL-006 shows resolution.toml is absent for OW-WAR-0059 ('no deliverable of OW-WAR-0059 and no file at this path: not carried'), so the scenario the obligation requires — a well-formed resolution.toml binding a stale digest — was never instantiated here. The projection term 'binds_current_contract = false' (and even the bare field name 'binds_current_contract') is listed with shown_in: [] , meaning the bundle carries no location where the projection's reporting of staleness is demonstrated. The gate run stdout excerpts for GR-software.repo.war-check@1.0.0 list many PASS/WARN rules (manifest.valid, evidence.not-a-pass, journal.append-only, sas.pin-superseded, gate.resolved, etc.) but no resolution.stale or resolution.recorded line for OW-WAR-0059. D-002 (resolution_cmd.rs) contains code that would emit 'resolution.stale' when digests mismatch, but per §51.3 a performer's code or claim is not evidence of behavior — only an executed check counts. The lone prior_verification citing a plant is for '[OW-WAR-0010]', a different Warrant than the one under review (OW-WAR-0059), and its evidence text only asserts the check 'is designed to' report staleness rather than describing an observed refusal, so it cannot substitute for a plant against this Warrant's own contract. Taken together, the bundle does not carry an executed demonstration that OW-WAR-0059's resolution is marked stale after its contract moved."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "There is no queue-history data, crash/restart gate run, or cancellation test evidence anywhere in the bundle (deliverables, gate_runs, and plants are all empty arrays, and OBL-003's obligation_evidence entry has no named_paths/terms), so the claims about ambiguous requests never being replayed, retained attempts remaining discoverable, cancellation preventing dispatch, and corrupt history refusing cannot be checked against anything shown."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

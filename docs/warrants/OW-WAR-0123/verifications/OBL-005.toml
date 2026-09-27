@@ -1,0 +1,19 @@
+obligation = "OBL-005"
+disposition = "established"
+evidence = """D-002 (new.rs) implements `parent_citation`/`run_with_parent`, reading the parent's authorization.toml and writing `[[parents]]` with `ref = "war://<uuid>"`, `contract_revision` and `contract_digest = "sha256:<digest>"`, refusing an alias with no authorization or an unvalidated manifest before anything is created; its unit test `a_parent_without_an_authorized_revision_is_refused_and_nothing_is_created` exercises the OW-WAR-9999 and draft-parent refusals. D-003 (lib.rs) adds the `--parent <ALIAS>` flag to `war new` with matching documentation. D-004 (58-parent-revision.sh) codifies the OBL-005 plants in a full clone ($F) and a scratch program ($PR_P): writing a child via `--parent OW-WAR-0001` and asserting the manifest contains the parent's exact uuid, `contract_revision = 2` and `contract_digest = sha256:f29c7d95…`, that the child then passes `relations.parent-revision`, and that `--parent OW-WAR-9999` and `--parent <a draft>` (both a program draft and a corpus draft) exit non-zero with no directory created and no git status change. The `ops.conformance.plants@1.1.0` gate run (verdict pass, bound to the authorized contract digest) shows these exact plant lines succeeding: "new --parent writes the citation OW-WAR-0148 cites revision 2 at f29c7d95…", "new --parent child passes pass relations.parent-revision ×1", "new --parent OW-WAR-9999 refused (exit 1), nothing created", "new --parent <a draft> refused (exit 1), nothing created", "new --parent <a corpus draft> refused (exit 1), nothing created", within the overall "1214 passed, 0 failed" run. Together these establish both halves of OBL-005's evidence within its stated scratch-copy scope."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

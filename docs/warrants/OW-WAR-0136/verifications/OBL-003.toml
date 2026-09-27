@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = "The gate run for gate://ops.conformance.plants@1.1.0 (run_id GR-ops.conformance.plants@1.1.0) passed (1214 passed, 0 failed) and its stdout excerpt includes the exact plant lines for this scenario: 'ok invalidating G reaches A, B, C — C through its parent A; D unaffected', 'ok invalidating H reaches C, D only — A and B, which rest on G, are left standing', 'ok three disputes, §56.4's six fields IV-WAR-0001, IV-WAR-0002 direct; IV-WAR-0003 through IV-WAR-0001; owner the signer; IV-WAR-0004 none', and 'ok war check: resolution.disputed for IV-WAR-0001, IV-WAR-0002, IV-WAR-0003 and not IV-WAR-0004; 0 errors'. The plant source (D-007, conformance/plants.d/58-invalidation.sh) sets up exactly the corpus OBL-003's scope describes (A=IV-WAR-0001 and B=IV-WAR-0002 resting on gate G, C=IV-WAR-0003 resting on gate H and A's §20.2 child, D=IV-WAR-0004 resting only on H as the control) and its iv_sweep/python check explicitly verifies the dispute set equals {A,B,C} with D excluded and each dispute file carries all six §56.4 fields (challenged_resolution, grounds, affected_evidence_or_judgment, reliance_policy, owner, required_re_verification) with owner matching the signer. The obligation_evidence entry for OBL-003 confirms the terms 'war check' and 'resolution.disputed' are shown (not cut) in D-001, D-004, D-007 and both gate-run stdouts, and D-004's excerpt (resolution_cmd.rs::check_disputes) corroborates that check_disputes emits resolution.disputed only when a counted dispute names the file. Together the plant script logic and the passing gate receipt directly demonstrate the claim within its stated scope."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

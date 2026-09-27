@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "docs/PROJECTION_CONTRACT.md, one of the two scoped artifacts, is explicitly listed in obligation_evidence as absent/not carried ('a repository path that is not a deliverable of OW-WAR-0071: not carried'). The ADR atom's point 3 ('new §76.6') describes the rule in prose, but the bundle gives no way to confirm PROJECTION_CONTRACT.md actually cites §76.6 or names the existing network-refusal plant as precedent, since that file's contents are not shown and no plant is carried (plants: []). The claim cannot be decided from what's here."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

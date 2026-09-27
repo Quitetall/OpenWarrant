@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0132"
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "The obligation requires three things: (1) both `war frontier` and `war next` report UNKNOWN `question.no-responder` naming roles.toml while the stage stays blocked, (2) the finding disappears once a human is restored, and (3) `war answer --as <agent>` is still refused and the question file is byte-identical. D-006's plant script (52-hotline-defaults.sh) defines all three checks as 'frontier with no responder', 'next with no responder', 'an agent answering, no responder', and 'frontier with a responder'. The gate run GR-ops.conformance.plants@1.1.0's stdout excerpts show lines 261-262 ('frontier with no responder' ok, 'next with no responder' ok) and line 264 ('frontier with a responder' ok), covering claims (1) and (2). But the excerpt set skips line 263, which is where 'an agent answering, no responder' would print, and obligation_evidence explicitly lists the term \"war answer --as <agent>\" with shown_in: [] — meaning the bundle does not carry that specific result anywhere. The aggregate '1214 passed, 0 failed' tail of the same truncated stdout is not tied to that specific assertion and the bundle's own obligation_evidence annotation flags it as unshown, so claim (3) — never answered — is not established by what is actually shown, only inferable, which is not sufficient."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

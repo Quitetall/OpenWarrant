@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = """The cited gate run GR-ops.conformance.plants@1.1.0 (ops.conformance.plants@1.1.0, verdict pass, receipt exit_result pass) carries stdout lines that individually match every evidence bullet of OBL-004: 'an edited glob unsigns the class → standing.unsigned in check and at apply; SB-WAR-0002 no longer signed' (edit-one-glob unsigns, apply refused); 'a class with no signature → standing.unsigned, nothing written' (unsigned class covers nothing); 'an agent or the performer signs → refused by kind (AgentProhibited) and as SelfAct; nothing written', backed by D-014's excerpted script showing st_sign_as invoking `war sign standing:unsigned@1 --ssh-sign --as plant-agent`/`claude` and asserting the AgentProhibited/SelfAct refusals with an unchanged responses-directory digest; 'no MCP tool signs a class → apply and show listed; accept, revoke, propose --ingest refused', corroborated by D-022 (mcp/tools.rs, war_standing_apply/show only) and the fully-carried D-023 (mcp/mod.rs) whose REFUSED_TOOLS constant lists war_standing_propose_ingest/accept/revoke/ingest and whose test no_refused_tool_is_registered_and_no_signing_or_ingesting_name_exists asserts none of them is registered; and 'revision 2 covers what 1 did not → lib/ refused under @1, covered under @2; SB-WAR-0002 keeps @1', which is the D-014-scripted check (`grep -qF 'policy_basis = "standing://routine@1"' "$SB_AUTH"`) showing the earlier Warrant's record still names the earlier revision under §31. Together the passing battery run and the corresponding deliverable excerpts show the class widens only by a new signed revision and that a wider revision does not re-cover Warrants authorized under an earlier one."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

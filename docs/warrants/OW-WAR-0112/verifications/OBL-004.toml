@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = '''The claim is supported at two levels. At the machine level, D-022 (init/guided.rs) lists and partially shows the tests `an_existing_authority_file_is_never_written_again`, `the_agent_is_a_performer_and_nothing_else`, and `canned_answers_walk_to_done_and_every_write_is_from_a_typed_answer`; the shown excerpt of `the_agent_is_a_performer_and_nothing_else` asserts exactly one agent assignment with `roles == ["performer"]` and a separate human entry, and the excerpt around lines 653-677 shows the written header asserted to contain `typed at a terminal by "Ada"` and `loaded with \`ssh-add -c\`: yes`, i.e. date/name/-c answer. At the CLI level, `conformance/plants.d/99-init.sh` (D-027, untruncated) runs `war init </dev/null` with no terminal and asserts refusal with nothing written, and `war init --program "Plant Program" --namespace PP </dev/null` and asserts `roles.toml`/`allowed_signers` are never created (only the `.example` templates) and that output is exactly the three pinned lines — matching the obligation's `war init --program X --namespace Y </dev/null` scenario. These same plant checks (`init without a terminal asks nothing`, `--non-interactive never asks`, `scripted scaffold unchanged`, `examples state the rule`) appear as `ok` in gate run GR-ops.conformance.plants@1.1.0's stdout under `== guided init (OW-WAR-0112) ==`, and that gate run's overall verdict is `pass`. Finally, D-023, D-024, D-025 and D-026 (roles.toml.example, allowed_signers.example, RESOLVING.md, QUICKSTART.md) are all carried in full or with relevant excerpts and each states the write-once-at-a-terminal rule and the agent-as-performer-only rule in their own text. Together these establish the terminal gate, the write-once behavior, the agent-restricted entry, the header contents, and the documents stating the rule, within the obligation's stated scope.'''
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

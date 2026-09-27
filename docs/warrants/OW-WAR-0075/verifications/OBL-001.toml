@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle carries no deliverables (deliverables: [] and obligation_evidence for OBL-001 lists no named_paths/terms), so there is no parse_document/validate_document source, no sdk_probe output, and no fixture run demonstrating footer RC.3 or legacy RC.2 parsing, span/byte preservation, or field/kind/extension/validity checks. The only gate run present, GR-software.repo.war-check@1.0.0, is a repo structural checker (manifest/deliverable/identity checks) and never exercises parse_document or validate_document, so it cannot speak to this obligation's scope. Nothing in the bundle shows the scoped behavior actually running."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

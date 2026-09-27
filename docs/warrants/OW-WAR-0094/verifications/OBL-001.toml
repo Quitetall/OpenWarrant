@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle carries no deliverables, gate_runs, or plants (all empty arrays); obligation_evidence lists no named_paths for OBL-001 and only references 'warrant: every deliverable of the Warrant' without any actual bytes shown. Only the authored atoms (intent, basis, work order, milestones, assurance) are present, which describe the intended contract for exact bounded execution but contain no evidence of an actual HTTP start, synthetic harness run, Git worktree, or check execution. There is nothing to decide the claim either way."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

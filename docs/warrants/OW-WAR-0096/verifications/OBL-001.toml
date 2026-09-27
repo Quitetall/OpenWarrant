@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables, gate_runs, and plants arrays are all empty; obligation_evidence for OBL-001 lists no named_paths and no terms. Only the assurance atom (atoms/60-assurance.md) asserts that authorized update/recovery passes and various malformed/forged inputs refuse, but no actual authority_transition test output, gate run, or deliverable bytes are carried in the bundle to substantiate that assertion."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

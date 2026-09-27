@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0132"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "The obligation's own plant, conformance/plants.d/52-hotline-defaults.sh (D-006), implements exactly the three checks the obligation names on the scratch corpus HD-WAR-0002: 'a hard spend cap' (hard_spend_cap=\"1.00 USD\" -> perform.spend-unenforceable, no dispatch.compiled increase, zero packets, no marker), 'allow_unmetered absent' (-> perform.unmetered-not-allowed naming the key) paired with 'allow_unmetered = true' (stage runs), and 'spend is unknown, never zero' (asserts every perform.ended line across three runs is spend:\"unknown\" and a regex finds no spend:0 or spend:\"0\", backed by the negative control 'a zero spend would be seen'). The gate run GR-ops.conformance.plants@1.1.0 (verdict: pass, 1214 passed/0 failed) shows these exact five lines in its stdout excerpts all reporting 'ok' with the matching detail text ('rejected by perform.spend-unenforceable; nothing compiled or spawned', 'rejected by perform.unmetered-not-allowed, naming the key', 'STAGE-001 performed; perform.ended answered', '7 perform.ended lines, each spend \"unknown\"; no spend 0', 'the planted \"spend\":0 matches the check above'). This is corroborated by the source in perform.rs (D-002, hotline_admitted function pushing perform.spend-unenforceable and perform.unmetered-not-allowed diagnostics, and journal_ended writing spend:\"unknown\"), the PerformPolicy in config.rs (D-003, unmetered_allowed() requiring Some(true)), this repository's own openwarrant.toml (D-004, allow_unmetered = true with the unknown-cost comment), and docs/HOTLINE.md (D-005) describing the same rules. Together the executed gate evidence and the implementing code establish the claim within its stated scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

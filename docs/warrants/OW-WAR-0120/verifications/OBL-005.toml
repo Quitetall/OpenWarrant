@@ -1,0 +1,19 @@
+obligation = "OBL-005"
+disposition = "refuted"
+evidence = """D-004 (baseline-1000.json), present and untruncated, records "held": false with "over": ["check-generated","next","sign-list","compile","console-json","console-select"] — six of the nine budget.toml rows show verdict "over" with medians at or beyond their 10x cap (e.g. check-generated and next at >=100000ms against a 10000ms limit, compile at >=300000ms against 30000ms), on the machine named in that same record. The obligation's own evidence clause states that if any row is over, it is refuted and the record says which — exactly what D-004 shows."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

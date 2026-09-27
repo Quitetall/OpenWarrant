@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "established"
+evidence = "The scratch-corpus plant conformance/plants.d/58-invalidation.sh (D-007) implements exactly this obligation on the IV scratch corpus with a throwaway ssh-agent key: its excerpted Python check (lines ~243-263) recomputes sha256 for each gate_run_refs receipt plus its .run.toml, stdout_ref and stderr_ref and compares against the resolve-attestation's subject digests, and the gate run GR-ops.conformance.plants@1.1.0 (verdict: pass) recorded that exact check succeeding — stdout line 'ok    receipts are attestation subjects  receipt, run, stdout, stderr each at its digest on disk'. The same gate run's stdout then shows the replacement case and its control: 'ok    a replaced receipt fails --verify  attest.subject-drift names docs/warrants/IV-WAR-0002/gate-runs/plant_g_1_0_0.receipt.json (exit 2)', 'ok    a replaced receipt fails --custody attest.custody-drift names ... (exit 2)', and 'ok    untouched, verify and custody pass attest.verified, attest.custody-audited (exit 0, 0)'. These four lines map one-to-one onto OBL-001's three evidence bullets, the gate cited by the obligation (gate://ops.conformance.plants@1.1.0) matches the run, and attest.rs (D-003) shows the custody-drift/subject-drift detection logic (comparing attested digest to bytes on disk) that produces these diagnostics. No cut_from truncation is recorded for the relevant terms in obligation_evidence, so the deciding lines were shown in full."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

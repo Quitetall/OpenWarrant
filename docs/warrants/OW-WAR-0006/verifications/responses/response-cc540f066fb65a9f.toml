@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0006"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "D-001 (crates/openwarrant-core/src/adr.rs) contains a test named `supersession_relations_are_read_in_both_directions` that exercises parsing of `supersedes`/`superseded_by` from frontmatter, but the only gate run in the bundle (GR-software.repo.war-check@1.0.0) invokes `war check --generated`, not `cargo test`, and its own stdout explicitly lists under NOT CHECKED that 'war check' does not run gates/tests, so there is no execution record confirming this or any other unit test actually passed. Nor does any deliverable or gate output show a 'canonical round trip' (serialize-then-reparse or equivalent) for supersedes/superseded_by — the term 'supersedes' is only shown inside D-001/D-002/D-003 source and the bundle's own atoms per obligation_evidence, never against an actual round-trip assertion. The claim in prior_verifications about a `lower::tests::relations_are_carried_through` round-trip test refers to a file not carried in this bundle's deliverables, so it cannot be checked independently. Evidence present is partial (parse-only, unexecuted) and the round-trip half of the required evidence is entirely absent."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "The bundle's top-level `plants` array is empty ([]), so no conformance plants of a supersession cycle or a status/currency conflict are carried, contradicting OBL-002's explicit evidence requirement of 'two plants, two observed refusals'. D-002 (lifecycle.rs) and D-003 (relations.rs) contain unit tests such as `a_supersession_cannot_leave_unresolved_work_unaddressed` and `a_cycle_is_found_once`, but these are synthetic Rust unit tests, not the required planted ADR/Warrant artifacts, and — as with OBL-001 — the only gate run present (`war check --generated`) does not execute cargo tests at all (its own stdout says so under NOT CHECKED). The gate stdout does show `PASS composition.acyclic parent graph is acyclic across 143 Warrant(s)`, which reflects the absence of a cycle in the real corpus, not a planted cycle being refused. No excerpt shows a `relations.currency-cycle` or CONFLICT diagnostic firing against a planted case."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "No Progress Log atom or deliverable is carried in the bundle at all (the atoms present are only intent, basis, work_order, milestones, and assurance). obligation_evidence for OBL-003 shows the term '3678455' appearing only in 'atoms' — specifically atoms/10-intent.md's own Intent narrative describing the problem — not in any Progress Log entry naming the commit and the violated obligation as OBL-003 requires. This matches the prior verification's finding of not_established, and nothing in this bundle's gate run stdout or deliverables supplies the missing Progress Log record."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

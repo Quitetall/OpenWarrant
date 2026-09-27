@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0039"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The only deliverable, D-001 (crates/openwarrant-cli/src/telemetry.rs, 18005 bytes, not truncated), shows the `take()` function's design for computing §94 measures from git log/journal data or marking them `not_measurable_yet`, but the bundle contains no test_names, no baseline artifact, and no execution output for `war telemetry`. The one gate run present (GR-software.repo.war-check@1.0.0, stdout 373774 bytes, truncated) exercises `war check --generated`, whose printed PASS/WARN lines (manifest.valid, deliverable.digests, identity.atom-mismatch, milestones.valid, etc.) validate warrant structure and never mention telemetry, measures, or any run of the take() function. Absent any execution evidence that a measurement was actually recorded for a real operation, the claim rests on source code alone and is not established."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-002 shows the term '3678455' is shown only in 'atoms' (the narrative in atoms/10-intent.md recounting that the ADR Overview commit was found by manual log-reading), with no cut_from entries — i.e. it was never shown as detector output. No journal event, baseline artifact, or gate stdout in the bundle shows `untracked_work_candidates` (the field produced by `untracked_candidates()` in D-001) actually containing commit 3678455. The single gate run's stdout is entirely `war check --generated` output over warrant/ADR/manifest records and never invokes or reports telemetry detection results. There is no evidence the detector was run against this repository's history at all, so the claim cannot be established."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "The bundle's top-level 'plants' array is empty ([]), so no plant record attempting an auto-attach relation is present to show a refusal, despite the obligation's evidence requirement being exactly 'a plant attempting auto-attachment, refused.' D-001 contains an `attach()` function and doc comments asserting that `UntrackedWork::attach_relation` 'shipped in alpha' and 'no command has ever called' it outside a unit test, which is itself an admission that this path has not been exercised as a plant. The single gate run's stdout is `war check --generated` output over warrant/document structure and contains no record of an attach attempt or its refusal. With no plant evidence in the bundle, the obligation is not established."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

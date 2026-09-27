@@ -1,0 +1,19 @@
+obligation = "OBL-005"
+disposition = "not_established"
+evidence = "The obligation's scope names three blocker kinds: an item of the same ticket, a whole ticket, and an item of another ticket (t-x/i-y). The gate run GR-ops.conformance.plants@1.1.0 (stdout excerpt 'ok blockers keep items out of ready' and 'ok done→claim never refuses, 200x') and conformance/plants.d/45-tickets.sh's block labeled '---- OBL-004 --' ('Blockers keep items out of ready, and a blocked claim is refused') demonstrate only the first two: TK5's 'Walls' item is kept out of `war ready` and refuses `war claim` with `ticket.blocked ... waits on <foundation>` until the same-ticket foundation item is done, and TK5_OTHER's 'Second coat' is blocked on the whole ticket TK5. Neither this plant (D-013, untruncated, so its full content is visible) nor the gate stdout constructs an item blocked by another ticket's specific item (`t-x/i-y`) and checks it is excluded from `ready` or refused by `claim`. obligation_evidence itself flags this gap: the term `t-x/i-y` is listed as shown only in D-004 and D-006, not in D-013 or the gate stdout — meaning it appears only as source (ticket.rs's `cross_ticket_blockers_parse` unit test, which checks parsing only, and mod.rs's `open_blockers` function, which treats `Blocker::ItemOf` structurally like the other variants) with no behavioral test proving it actually keeps an item out of `ready` or causes `claim` to refuse it. Since one of the three scoped blocker kinds lacks any behavioral evidence, the obligation's claim is not shown to hold across its full stated scope."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

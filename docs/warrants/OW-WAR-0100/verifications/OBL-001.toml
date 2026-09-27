@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables, gate_runs, and plants arrays are all empty; only the five authored contract atoms (10-intent.md, 20-basis.md, 40-work-order.md, 45-milestones.yaml, 60-assurance.md) are present. obligation_evidence claims the term 'not_measurable_yet' is 'shown_in': ['atoms'], meaning it appears only in the assurance atom's own prose (60-assurance.md) describing what the evidence should show, not in any actual telemetry.rs source, CLI output, or gate run. There is no deliverable file, test output, or gate run in the bundle demonstrating that a missing eligibility collector actually emits 'not_measurable_yet' rather than 'value: 0'. The claim is asserted in the contract but not evidenced by any artifact."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

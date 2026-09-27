@@ -1,0 +1,19 @@
+obligation = "OBL-005"
+disposition = "established"
+evidence = "The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, 1214 passed/0 failed) executed conformance/plants.d/57-assurance-mark.sh (D-005), whose OBL-005 section records a mark via `war mark $MK_A --record` (stdout line 'an earned mark is recorded ... mark-v1.json written') on the same scratch Warrant used for the OBL-002 mark ('a met baseline earns a mark'), then exercises `--verify` with the mk_stale/mk_ok helpers. The captured stdout excerpt (lines 468-496) shows all three required behaviors passing: 'an unchanged mark verifies ... mark.verified (exit 0)' (the control), 'an edited resolution ... mark.stale names `resolution` (exit 2)', and 'an in-scope change ... mark.stale names `candidate` (exit 2)', plus an additional out-of-scope-change control also passing. D-002 (mark.rs) implements the corresponding `verify` function that recomputes bindings and reports `mark.stale`/`mark.verified`, consistent with what the plant observed. All three evidence bullets the obligation names are directly shown as passing assertions in the same gate run."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,12 +1,11 @@
 obligation = "OBL-004"
-disposition = "established"
-evidence = "The passing tests 'export::tests::a_reconnected_round_trip_with_equal_digests_verifies' and 'export::tests::an_unreconnected_round_trip_is_refused_as_vacuous' demonstrate that round trips preserve semantic and digest identity and refuse vacuous comparisons, while the plants '[OW-WAR-0020] a round trip that never reconnected the bytes' and '[OW-WAR-0020] a round trip with the bytes reconnected' were correctly rejected, confirming the control."
+disposition = "not_established"
+evidence = "OBL-004's scope is 'the registered Warrant, exported into an empty compatible instance,' but JDG-001 states registration never completed. EV-003/OBS-004/OBS-005 describe general §68 export mechanics (an export refusing due to 4 of 14 required §68.2 contents being absent, and a vacuous round trip being refused while a reconnected one verifies) but none of this is tied to a registered Warrant with a KF-allocated identifier, so the obligation's specific scope is not shown to be met."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

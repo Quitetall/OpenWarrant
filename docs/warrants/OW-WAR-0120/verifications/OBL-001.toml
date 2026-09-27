@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = """The only run of gate://ops.conformance.plants@1.1.0 (run GR-ops.conformance.plants@1.1.0, verdict pass) has truncated:true stdout, and its shown text never contains the "== retention and the scale budget (OW-WAR-0120) ==" banner or any of 52-retention.sh's (D-006) rt_ok/rt_fail lines for OBL-001 (e.g. "the synthetic program checks clean", "war status counts 6 resolved", "a non-empty --out is refused", "the repository tree is unchanged"). obligation_evidence explicitly marks terms central to this obligation ("--out", "git status --porcelain") as cut_from the ops.conformance.plants@1.1.0 stdout. The trailing "1214 passed, 0 failed" summary is visible but the bundle rule that bytes not shown are not evidence either way means that aggregate cannot substitute for the specific, truncated-away proof this obligation's scope requires."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

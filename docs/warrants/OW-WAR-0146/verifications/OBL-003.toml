@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = """OBL-003's scope requires two `--bundle` runs producing one digest and a `--run` with the fake-`claude` verifier of `62-verifier.sh`; obligation_evidence for OBL-003 shows `62-verifier.sh` as a named_path with `absent: "no deliverable of OW-WAR-0146 and no file at this path: not carried"`, i.e. the file this obligation's scope depends on is not even present in the repository tree the bundle describes. The only gate run bundled is the static software.repo.war-check gate (again disclaimed by the bundle's own NOT CHECKED note as not executing any gate), so there is no recorded execution of `war verify --bundle` twice, no digest comparison, and no ingestion log ('verify.recorded') to confirm determinism or verifier ingestion. The claim cannot be established from the evidence carried."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

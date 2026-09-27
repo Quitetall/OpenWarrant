@@ -1,1 +1,2 @@
-Terminated                 ( cd "$clone/r" && OPENWARRANT_IN_BATTERY=1 bash "$battery" )
+grep: /mnt/4tb/tmp/battery-tmp/tmp.LzJ55752WY/unreadable/closed.rs: Permission denied
+grep: /mnt/4tb/tmp/battery-tmp/tmp.LzJ55752WY/unreadable/closed.rs: Permission denied

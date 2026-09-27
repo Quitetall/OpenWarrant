@@ -1,12 +1,11 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "The measured evidence lists 138 passing plants but does not explicitly link any to §91.2 tests 11 and 13, and no ADR is cited for recorded narrowing of tests 14 and 15 as required."
+evidence = "The bundle's deliverables array is empty and plants is empty, so none of the five §91.2 tests' plants or narrowing ADRs can be inspected. obligation_evidence for OBL-002 shows only the generic 'warrant: every deliverable of the Warrant' selection with no named paths or terms. The one gate run (GR-software.repo.war-check@1.0.0) is truncated to its tail, covering Warrants OW-WAR-0138 onward and corpus-wide checks; the only OW-WAR-0049-specific lines visible are 'identity.atom-mismatch OW-WAR-0049' and remedy entries ('war evidence record OW-WAR-0049', 'war sas repin OW-WAR-0049') — no amendment.valid, obligations.valid, or plant-result line for OW-WAR-0049 is shown. The NOT CHECKED section does corroborate tests 14/15 as narrowed per OW-ADR-0008, but nothing in the bundle evidences tests 10, 11 or 13's disposition (plant against the shipped binary, or ADR-recorded narrowing in the owning obligation's scope)."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

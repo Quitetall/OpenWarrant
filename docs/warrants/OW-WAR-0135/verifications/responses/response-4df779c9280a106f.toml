@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0135"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "conformance/plants.d/57-assurance-mark.sh (D-005, carried whole, not truncated) implements exactly the three required checks under the 'war mark' section for MK-WAR-0001: 'no locator is UNKNOWN, not met' asserts BL-004 evaluates to unknown with detail containing 'no [locator]' and no mark is produced; 'a strengthened baseline names both' asserts a mark whose baseline.id/extensions/requirements list is 'v1 plant-extra' with RX-001 alongside BL-001..BL-006; 'a v1 with BL-004 removed' asserts exit!=0, a mark.baseline-weakened line naming 'BL-004 removed', and no mark.earned line. The gate run GR-ops.conformance.plants@1.1.0 (gate ops.conformance.plants@1.1.0, verdict pass, subject_digests including contract:sha256:da9d7ca9...093092f1 matching authorized_contract_digest) produced stdout whose excerpted lines confirm all three ran and passed: 'ok a strengthened baseline names both v1 + plant-extra; RX-001 beside BL-001..BL-006', 'ok an unanswerable requirement RX-001 UNKNOWN (no such check), no mark, nothing unmet', 'ok a v1 with BL-004 removed mark.baseline-weakened: BL-004 removed; no v1 mark', and 'ok no locator is UNKNOWN, not met BL-004 UNKNOWN (no [locator]); no mark', with the overall run reporting '1214 passed, 0 failed' at the tested commit. mark.rs (D-002) and baseline-v1.toml (D-004) show the underlying `located` check returning Answer::Unknown with the same 'no [locator]' message and the `weakened()`/extension logic that names removed or relaxed requirements, corroborating the plant's assertions. obligation_evidence confirms the terms 'war mark' and 'UNKNOWN' are shown (not cut) across D-002, D-004, D-005 and the gate stdout, so no relevant evidence was hidden by the budget."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "established"
+evidence = "Plant D-008 (conformance/plants.d/59-adoption.sh, carried in full, untruncated) builds AD_A with three commits and asserts openwarrant.toml's [adoption] baseline equals AD_HEAD (captured via `git rev-parse HEAD` before init) and that `war check` on the result exits 0; it builds AD_B and asserts `--baseline 0000000` exits non-zero with no openwarrant.toml or docs/ written; it builds AD_C with git-init but no commits and asserts no [adoption] table and the unchanged three-line output. Gate run GR-ops.conformance.plants@1.1.0 (verdict pass, bound to contract digest 4bb6019c22...9c3b895 and tree 2b24c062778e0d87732c7f85873cd25ceb8fbad3, matching the authorized contract) shows its stdout excerpt under '== brownfield adoption (OW-WAR-0124) ==' with the matching lines 'ok init records HEAD as the baseline 8f65cc9f...', 'ok the adopted scaffold passes check exit 0', 'ok --baseline 0000000 is refused exit 1, nothing written', and 'ok no commits, no [adoption] table three lines, as before', directly satisfying the first two evidence bullets. The obligation_evidence block marks 99-init.sh and 75-init-program.sh as not carried as files, but the same gate run's final tally 'ok war check names the interrupted batch ...' followed by the closing '1214 passed, 0 failed' (shown, untruncated at that point) covers the whole battery including those two named plants, so nothing in the run contradicts or fails them; combined with software.repo.war-check@1.0.0's PASS on generated.drift and deliverable.owned for the same tree, this establishes the no-commit scaffold still passes as before."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

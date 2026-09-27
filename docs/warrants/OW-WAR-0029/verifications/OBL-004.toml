@@ -1,12 +1,11 @@
 obligation = "OBL-004"
-disposition = "established"
-evidence = "The plant '[OW-WAR-0020] fabricated enterprise id' was rejected by the system, demonstrating that fabrication of enterprise IDs is still refused."
+disposition = "not_established"
+evidence = "The obligation's evidence requirement is 'the existing plant still passes,' but the bundle's `plants` array is empty ([]), so no plant record is present to inspect. D-001 also contains no `enterprise_id` field or fabrication-refusal code/test (its refusal tests, e.g. non_v7_uuid_is_refused and malformed_aliases_are_refused, concern UUID version and alias syntax, not enterprise-ID fabrication). With no plant evidence carried and no relevant test in the sole deliverable, the bundle does not show the fabrication refusal was exercised."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

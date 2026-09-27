@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "prior_verifications is empty and no independent-reviewer output, baseline comparison, or human-acceptance record is present anywhere in the bundle. atoms/60-assurance.md itself states under 'Gate Adequacy' that 'war check cannot establish runtime behavior or independent verification,' and the sole gate_run present (software.repo.war-check) is exactly that check, so it cannot supply the independent qualification OBL-003 requires."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,12 +1,11 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "No test or measurement in the provided evidence demonstrates that every state change goes through an action; the tests in kf.rs (e.g., an_https_url_is_accepted, a_short_idempotency_key_never_reaches_the_network) only validate URL and idempotency key properties, not the enforcement of action-based state changes."
+evidence = "D-001 (crates/openwarrant-cli/src/kf.rs) shows a typed ActionEnvelope struct and a single write method Client::post_action that requires one, alongside a read-only health() call — structurally suggestive of 'typed and enveloped' actions for this file. But the obligation's own evidence bar is 'every state change goes through an action,' a system-wide claim, and the bundle carries only this one deliverable with no test asserting that no other write path exists anywhere in the codebase; the three named tests (an_https_url_is_accepted, a_non_http_url_is_refused, a_short_idempotency_key_never_reaches_the_network) test URL scheme and idempotency-key length only. The gate run GR-software.repo.war-check@1.0.0's own NOT CHECKED section states '`war check` does not invoke [war gate --run], so nothing here is evidence that a Warrant's acceptance gates were run,' so that run is not functional evidence about kf.rs. Absent an executed test or plant demonstrating the universal claim, this is not established from the bundle."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

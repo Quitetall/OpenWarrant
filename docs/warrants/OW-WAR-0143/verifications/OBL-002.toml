@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "D-003 (install.rs) shows `update()` performing the SHA-256 check on the downloaded archive before creating any staging directory, refusing update.no-checksum before download when no `.sha256` asset is listed, then after checksum passes extracting into a `<version>.incoming.<pid>` staging dir, running manifest_check (update.manifest-mismatch) and identity_check (update.identity-mismatch) before the atomic rename that both moves the previous `<root>/<version>` aside and only then repoints the managed symlink; every failure path calls `discard()`, which removes the staging directory and only removes the root if it did not pre-exist. D-012 (61-update.sh) exercises exactly this scope: `up_managed` puts a symlink on the temporary PATH into the install root, `up_refused_update` snapshots the root's full listing, link targets and file hashes before and after each case and checks for leftover `*.incoming.*` directories, and is run for tamper (checksum-mismatch), nosum (no-checksum), manifest-bad (manifest-mismatch) and a wrong-version wrapper (identity-mismatch), plus a well-formed release case checking the new version is installed, the link repointed, the previous version kept, and `update.unsigned` reported. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass) stdout excerpt lines 782-819 shows each of these named plants passing verbatim: 'a changed byte is refused ... update.checksum-mismatch; root and link unchanged', 'no .sha256 is refused ... update.no-checksum', 'a MANIFEST.json disagreement is refused ... update.manifest-mismatch', 'a bin/war of another version is refused ... update.identity-mismatch', and 'a verified release switches the link ... 99.0.0-alpha.1 installed; 1.0.0-alpha.2 kept; update.unsigned, update.source', with the battery's overall total '1214 passed, 0 failed'. obligation_evidence confirms every cited term (update.checksum-mismatch, update.no-checksum, update.manifest-mismatch, update.identity-mismatch, update.unsigned, .sha256, bin/war) is shown with no cut_from truncation."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

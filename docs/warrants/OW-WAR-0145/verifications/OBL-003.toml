@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "The war-check run (GR-software.repo.war-check@1.0.0) shows the corpus-wide summary '0 error' and 'PASS deliverable.digests OW-WAR-0145', but obligation_evidence explicitly marks the term 'gate.registered' as cut_from the software.repo.war-check@1.0.0 stdout (shown only in D-003's grep pattern, not in actual output), so no PASS for 'gate.registered ... ops.conformance.plants@1.1.0' as mutating false is visible in what the bundle shows — no such line appears anywhere in the provided stdout tail, which instead uses a different check name 'gate.resolved'. Additionally the bundle carries no before/after comparison of docs/gates/ops.conformance.plants@1.0.0.yaml to show it is byte-identical to before delivery; that file is not among the deliverables and no digest/diff evidence is given. Two of the three required evidence items are therefore not shown."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

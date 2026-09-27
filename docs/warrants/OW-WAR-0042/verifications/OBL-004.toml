@@ -1,12 +1,11 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "The measured evidence lists 34 planted violations from conformance/plant.sh, but none are explicitly identified as §91.8 tests 52–58, and there is no mapping or dedicated entries in the conformance directory for those seven tests."
+evidence = "obligation_evidence for OBL-004 explicitly marks the named path 'conformance/' as absent: 'a repository path that is not a deliverable of OW-WAR-0042: not carried.' The bundle's only conformance-related artifact is one comment line from conformance/plants.d/71-plan.sh, which does not show seven entries rejecting proposals for §91.8 tests 52–58 by named rule, nor any refusal of an agent attempting to authorize or allocate an enterprise ID (tests 53/54). The gate stdout's 2006 pass/271 warn summary is corpus-wide and does not identify any of these seven plants by name. With the conformance/ directory not carried, this obligation cannot be decided from the bundle."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

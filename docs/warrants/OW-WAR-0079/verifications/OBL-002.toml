@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No deliverables, fixtures, or gate output showing malformed/conflicting/over-limit/authority-confused inputs and their refusals are present in the bundle (deliverables: [], plants: [], obligation_evidence for OBL-002 has no named_paths/terms). The single attached gate run is the unrelated software.repo.war-check structural check, which reports WARNs/PASSes about Warrant record formatting (e.g. sas.pin-superseded, deliverable.undeclared-at-authorization) and explicitly states it does not execute gates or observe runtime behavior. There is no evidence of an observed refusal at the boundary OBL-002 requires."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

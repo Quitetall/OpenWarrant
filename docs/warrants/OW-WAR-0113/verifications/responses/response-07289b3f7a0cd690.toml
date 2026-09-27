@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0113"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "crates/openwarrant-cli/src/next.rs (D-015) shows `judge()` setting `a.judged` for every action whose command starts with `war sign `, defaulting unmatched targets to `WouldRefuse{rule:\"sign.dry-run-failed\"}` rather than leaving it absent, and `order()` sorting Human-WouldRecord before Human-WouldRefuse before Agent; its own tests `an_agent_is_never_handed_a_signing_act_and_humans_come_first` and `a_verdict_names_the_ingest_rule_not_the_summary` assert judged.is_some() on every human act and that refused acts sort after recordable ones by rule name. crates/openwarrant-cli/src/tui/mod.rs (D-016) `help_rows` renders `a.judged.as_ref().map(|j| format!(\" [{}]\", j.word()))` beside each row's command, so the app's Help pane carries the same verdict text. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, bound to contract de4f417c... and tree 2b24c062...) executed conformance/plants.d/69-current.sh (D-038)'s OBL-003 section on a scratch corpus and its captured stdout lines read 'ok every signing act is judged the refusable one last, its rule beside the command' and 'ok war next writes nothing tree unchanged, no draft left, no key named', directly confirming both the `[would refuse: authorize.no-amendment]` rendering (matching CU-WAR-0002 in the plant script) and that `war next` leaves the git tree and temp draft untouched with no ssh key named, which is the plant's `98-ownership.sh`-style check the obligation's evidence names."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = "D-003's argv-inspection block (grep for --no-session-persistence, --strict-mcp-config, --restricted, --tools '' emptiness, and --disallowedTools naming Bash/Read/Write/Edit) is exercised in the same gate run, whose stdout shows 'ok    the verifier holds no tool         --tools '', no MCP, restricted, no session, empty cwd', matching OBL-003's scope and evidence exactly, with the plant designed to fail (VF_MISSING) if any flag is removed."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

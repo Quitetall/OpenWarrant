@@ -1,12 +1,11 @@
 obligation = "OBL-002"
-disposition = "established"
-evidence = "The plant '[OW-WAR-0020] a §67 action without --confirm-write' was rejected by its named rule, demonstrating that direct status edits via Knowledge Fabric actions are refused without the required confirmation flag."
+disposition = "not_established"
+evidence = "OBL-002's stated evidence is 'a plant; ideally it does not compile,' but the bundle's top-level plants array is empty ([]), so no plant of any kind — compiling or refused — is carried here. D-001's Client exposes no field or method for a direct status edit (only post_action(action_type, actor, envelope)), which is suggestive but is inspection of the code's shape, not an executed plant showing a direct write attempt failing. The gate run GR-software.repo.war-check@1.0.0 stdout is a repo-wide compliance sweep (manifest/digest/traceability/journal checks) and contains no line addressing a direct-status-write attempt. With the specifically requested evidence type entirely absent from the bundle, this cannot be established."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

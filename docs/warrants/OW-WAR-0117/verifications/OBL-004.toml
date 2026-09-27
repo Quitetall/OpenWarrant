@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "The distinct_model_required half is shown: gate run GR-ops.conformance.plants@1.1.0 stdout reads 'ok    independence only where true       distinct model: unset no, same no, different yes; human never', matching the wrapper-level bullets. But OBL-004's scope also requires 'war check's independence findings on this repository' — that basic/controlled reporting is sufficient and independence.undeclared no longer appears — and obligation_evidence explicitly marks the terms 'basic' and 'independence.undeclared' as cut_from the ops.conformance.plants@1.1.0 stdout, shown only in D-004 (docs/VERIFICATION.md) and the atoms, i.e. only asserted in prose, not demonstrated by any war check run on this repository. Since a required part of the claim's scope is only asserted and the relevant evidence was cut by the budget, the obligation cannot be established as a whole."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

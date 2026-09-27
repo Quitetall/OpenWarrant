@@ -1,0 +1,19 @@
+obligation = "OBL-006"
+disposition = "refuted"
+evidence = """Two of the three evidence points hold: D-001 (docs/adr/atoms/OW-ADR-0028-sas-sections-are-atoms.md) carries frontmatter status: proposed and governs: ["war://01a0d04c-5f26-7ba0-a64b-2618b983ba43"] (this Warrant's UUID, matching atoms/10-intent.md), and its 'Proposed SAS text' section explicitly states the §105 wording 'is proposed wording for a separate SAS revision... OW-WAR-0125 changes no SAS byte.' But the third required evidence point—'the SAS document's sha256 after delivery equals revision 1.1.0's'—is contradicted by the gate run GR-ops.conformance.plants@1.1.0 stdout: the 56-sas-sections.sh block reports 'the section index names its source sha256:85f5e7eff8de, revision 1.2.0', while the same stdout's lossless-split lines show 1.1.0's own join digest is sha256:321413359168, a different value. The document in force at delivery is therefore pinned to revision 1.2.0, not 1.1.0, so the obligation's own stated evidence criterion fails on the bundle's own gate output."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

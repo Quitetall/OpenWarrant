@@ -1,12 +1,11 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "The passing test 'new::tests::allocation_preserves_the_uuid' directly verifies that the UUID remains identical before and after allocation, satisfying §91.3 test 17."
+disposition = "not_established"
+evidence = "The only carried deliverable, D-001 (crates/openwarrant-core/src/identity.rs, 316 lines, untruncated), defines only `WarUuid` and `LocalAlias`; it contains no allocation/registration function or `EnterpriseId` type at all, and its test_names list (minted_identity_is_v7, minted_identities_are_distinct, non_v7_uuid_is_refused, alias_round_trips, hyphenated_namespace_survives, malformed_aliases_are_refused, namespace_mismatch_is_refused, same_alias_different_repositories_are_distinct_records) contains no test that allocates an enterprise ID and checks the UUID before/after. The only gate run in the bundle, GR-software.repo.war-check@1.0.0, is a `war check` document-consistency run whose own stdout states under NOT CHECKED that 'war check does not invoke [gates], so nothing here is evidence that a Warrant's acceptance gates were run,' so there is no test-execution evidence either. With no allocation code and no execution evidence, the bundle cannot show UUID preservation across allocation."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

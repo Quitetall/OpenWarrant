@@ -1,12 +1,11 @@
 obligation = "OBL-002"
-disposition = "established"
-evidence = "The committed receipt for gate run software_repo_war-check on OW-WAR-0032 and the passing war check --generated on the committed corpus demonstrate that FormatBasis.digest matches the assembled pack."
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-002 names the term 'FormatBasis.digest' but shows it with empty shown_in and empty cut_from — it was never included in the bundle, not even partially. deliverables is empty, so FormatBasis.toml/lock or the assembled pack cannot be inspected, and the gate run's visible stdout tail (OW-WAR-0138–0147 checks) contains no mention of FormatBasis or a pack digest. There is no basis in this bundle to compare a pinned digest against an assembled pack."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

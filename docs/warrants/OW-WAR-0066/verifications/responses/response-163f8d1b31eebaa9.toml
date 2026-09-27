@@ -1,0 +1,40 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0066"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The only ops.echo evidence is gate run GR-ops.echo@1.0.0, whose receipt records runner \"war gate --run\" with arguments [\"true\"] and subject_digests [\"contract:sha256:498240f8...\", \"deliverables:sha256:e3b0c442...\", \"tree:2b24c062...\"] — no \"dispatch:<digest>\" subject, matching obligation_evidence's entry for the term \"dispatch:<digest>\" whose shown_in list is empty. There is no dispatch record, no submission, and no journal event in the bundle (plants and deliverables are both empty). The battery's stdout (gate ops.conformance.plants@1.1.0) does contain lines like \"a service stage runs and submits verify\" and \"the run left its records\", but obligation_evidence marks the term \"submission.recorded\" as shown only in that conformance-plant stdout, not as an actual STAGE-001 dispatch/submission of OW-WAR-0066. The obligation asks for STAGE-001 under `war run`; nothing in the bundle shows `war run` was invoked for this Warrant or a receipt bound to that stage's dispatch digest."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 has verdict pass and stdout ending \"1214 passed, 0 failed\", but its receipt shows runner \"war gate --run\" with arguments [\"bash\",\"conformance/plant-isolated.sh\"] and subject_digests limited to contract:, deliverables: and tree: — there is no dispatch digest subject anywhere in the receipt. obligation_evidence for OBL-002 lists only the term \"war run\" (shown in atoms), giving no evidence that the battery ran as STAGE-002 under `war run` or that its receipt was bound to that stage's dispatch digest. No dispatch record for STAGE-002 appears in the bundle (deliverables and plants are empty), so the required binding to the stage's dispatch digest cannot be confirmed."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

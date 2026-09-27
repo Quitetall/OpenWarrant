@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "conformance/plants.d/58-invalidation.sh (D-007, excerpts lines 302-382) defines iv_fields, which asserts the exact nine §41.5 field names (collector, original digest, transfer method, storage event, instrument or runner identity, calibration or qualification, transformations, access history, derivative lineage), that each field is either 'present' with a value and no reason or 'unknown' with a reason and no value, and specifically that access history is unknown with reason 'git records no reads'; it then checks IV_A's custody audit yields original digest 'present:' and OW-WAR-0062's yields 'unknown:not attested' with the literal text 'original digest: UNKNOWN (not attested)' and no PASS line for original digest, and finally that --record by the performer 'claude' is refused via attest.custody-self-act (SelfAct) with nothing written to custody-audit.toml while a different auditor 'plant-verifier' succeeds. The recorded gate run GR-ops.conformance.plants@1.1.0 (verdict pass) captured this exact sequence executing with 'ok' outcomes: 'nine fields, scratch resolution … original digest present', 'an old resolution is not attested … OW-WAR-0062: original digest UNKNOWN (not attested), not present', 'the performer may not record it … attest.custody-self-act (SelfAct); nothing written', and 'another auditor records it … custody-audit.toml names plant-verifier, verdict intact'. Since both the plant's assertions and the actual battery execution (not merely source code) confirm every clause of OBL-002's evidence requirement, and obligation_evidence shows all cited terms ('UNKNOWN', 'UNKNOWN (not attested)', '--record', 'SelfAct') present with no cuts, the obligation is established within its stated scope."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

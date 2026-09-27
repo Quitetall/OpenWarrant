@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "D-001's retain_superseded and D-002's plant assertions ('a dry run keeps nothing', 'a colliding kept name refuses' -> authorize.retire-collision) state the intended check, and obligation_evidence explicitly lists 'authorize.retire-collision' as cut_from the gate stdout for this run. The shown portion of GR-ops.conformance.plants@1.1.0's stdout does not include the OW-WAR-0144/AR-WAR-0001 plant section, so there is no visible confirmation that the dry-run-leaves-tree-unchanged check or the retire-collision refusal actually printed 'ok' for this run. The aggregate '1214 passed, 0 failed' total does not substitute for the specific missing lines, per the rule that bytes not shown are not evidence either way."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

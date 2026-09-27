@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No CLI deliverable, key material, store fixture, or gate run is present in the bundle (deliverables: [], gate_runs: [], obligation_evidence for OBL-002 has empty named_paths and terms). The claim of successful approval/reload and refusal of unsigned/forged/replayed/concurrent updates is only asserted in atoms/60-assurance.md, not demonstrated by any carried evidence."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "The cited gate run GR-software.repo.war-check@1.0.0 has subject_digests including contract:sha256:40e708ab...cf708 matching this Warrant's authorized_contract_digest and an overall verdict of 'pass' (2035 pass/242 warn/0 error), and stdout shows 'PASS identity.atom-mismatch OW-WAR-0085: 4 atom(s) name this Warrant's UUID', but the stdout is marked truncated:true and the visible tail begins mid-OW-WAR-0138's section, so the per-Warrant lines for OW-WAR-0085 itself (manifest.valid, deliverable.digests, obligations.valid, milestones.valid, generated.drift) are not shown, and the remedies list surfaces WARN items specifically for OW-WAR-0085 ('auto war evidence record OW-WAR-0085', 'human war sas repin OW-WAR-0085') whose underlying detail lines are likewise cut off. OBL-004's evidence also requires 'existing planted refusals', but the bundle's plants array is empty, so that half of the required evidence is absent entirely."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

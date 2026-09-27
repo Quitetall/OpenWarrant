@@ -1,12 +1,11 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "The test `show::tests::identical_documents_produce_no_changes` verifies that identical IRs produce no semantic changes, and the `semantic_diff` function in `crates/openwarrant-cli/src/show.rs` compares canonical JSON trees, ensuring that rendering differences do not affect the diff."
+evidence = "D-001 (crates/openwarrant-cli/src/show.rs, present in full, not truncated) shows `diff()` reading canonical JSON (`generated/WAR.json` and a freshly computed `canonical_json(&ir)`) and calling `semantic_diff`, which walks only `serde_json::Value` trees — the function never receives rendered Markdown, so a rendering-only change cannot alter its inputs. The unit test `identical_documents_produce_no_changes` (lines in the `#[cfg(test)] mod tests` block) confirms that two identical IR documents produce zero SemanticChange entries, which is exactly what a pair of revisions differing only in rendering reduces to under this architecture (rendering is a downstream projection of the IR, per the module doc comment referencing §91.1 test 3). Together the code path and this test establish, within the stated scope, that such a diff reports no semantic change."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

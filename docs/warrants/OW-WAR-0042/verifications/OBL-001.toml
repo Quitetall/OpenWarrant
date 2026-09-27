@@ -1,12 +1,11 @@
 obligation = "OBL-001"
-disposition = "not_established"
-evidence = "The basis atom explicitly states that no drafting agent is available on this host, and no recorded exchange showing a canonical request on stdin and a canonical Draft Proposal on stdout from a separate process is present in the provided artifacts, such as the §44.6 receipts or test outputs."
+disposition = "refuted"
+evidence = "The Basis atom (atoms/20-basis.md) states as a 'blocking unknown' that no drafting agent speaks oh.war/agent-drafter/v1 today and that Katana is not cloned on this host, and the Assurance atom's JDG-001 explicitly records 'OBL-001 and OBL-002... require a real drafting agent answering over §75.2 as a SEPARATE PROCESS... No agent has been invoked. ... All three are recorded as open rather than narrowed.' No gate run, plant, or deliverable in the bundle shows a subsequent stdin/stdout exchange with a separate drafting process; the war-check stdout only reports generic corpus checks (e.g. 'PASS identity.atom-mismatch OW-WAR-0042') with no mention of an agent exchange. This is an affirmative statement in the record that the required event has not occurred, so the claim is refuted."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-002 likewise carries no named_paths or terms, plants is empty, and no gate run or deliverable addresses the three named refusal cases (companion-contract invalidation, old 1.0.0 signature rejection, legacy-SAS mislabeling). No refusal observation of any kind appears in the bundle, so the counterexample controls cannot be confirmed."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

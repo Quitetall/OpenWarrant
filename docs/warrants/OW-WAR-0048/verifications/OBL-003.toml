@@ -1,12 +1,11 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "No test, receipt, or artifact in the measured evidence demonstrates a recorded invocation of a real Liminal compiler over the versioned protocol for the compatibility corpus; the 646 passing tests and the war-check receipt do not address this obligation."
+evidence = "No deliverable, gate output, or plant in the bundle records an invocation of a Liminal compiler over `--protocol oh.war/liminal-v1`. The Basis atom (20-basis.md) states as a 'Blocking unknown' that 'No Liminal compiler profile exists to compare against' and that Liminal 'is not checked out here,' which is the only mention of Liminal in the bundle and affirmatively describes the prerequisite as unmet rather than satisfied. The single gate run's stdout (truncated tail) contains no reference to Liminal at all."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

@@ -1,12 +1,11 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "The measured evidence includes that `war check --generated` on the committed corpus exited with code 0, directly demonstrating that the draft passes the required check."
+disposition = "not_established"
+evidence = "the verifier returned no usable verdict for this obligation"
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

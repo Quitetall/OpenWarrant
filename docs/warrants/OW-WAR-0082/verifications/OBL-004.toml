@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "The named gate for OBL-004, software.repo.war-check@1.0.0 (run_id GR-software.repo.war-check@1.0.0), completed with verdict 'pass' and its receipt's subject_digests include 'contract:sha256:6913df06...172b4', matching this request's authorized_contract_digest exactly, so the run is bound to this exact Warrant's contract. The visible stdout tail shows 'PASS identity.atom-mismatch OW-WAR-0082: 4 atom(s) name this Warrant's UUID' and the run-wide summary '2032 pass · 245 warn · 0 unknown · 0 error (worst: WARN)', i.e. zero structural errors across the checked corpus including this Warrant. Remedy items naming OW-WAR-0082 (auto 'war evidence record OW-WAR-0082', human 'war sas repin OW-WAR-0082') are WARN-level record-hygiene notes, not structural-validity failures, and are within the obligation's stated scope of authored records/references."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

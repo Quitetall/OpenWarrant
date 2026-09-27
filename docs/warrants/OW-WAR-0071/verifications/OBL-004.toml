@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "refuted"
+evidence = "OBL-004's evidence requires 'the ADR is status: accepted'. The ADR atom (../../adr/atoms/OW-ADR-0019-sas-1-1-0-batch-act-and-renderings.md, sha256 dbed46acc…) is carried in full and its own frontmatter states 'status: proposed', reiterated in its body's Status section: 'Proposed. Accepted when the repository owner signs SAS revision 1.1.0 … the revision is not accepted until that signature exists.' This directly contradicts the accepted-status requirement, even though the ADR does correctly 'govern' warrant UUID 01a0983e-32d7-7473-b6e1-fbef061a1e5f and does state the rejected alternatives (dropping ssh-add -c, per-act signing, a time-boxed session, a tool-held key) with reasons. Because the bundle's own text shows the required condition false, the obligation is refuted rather than merely unestablished."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

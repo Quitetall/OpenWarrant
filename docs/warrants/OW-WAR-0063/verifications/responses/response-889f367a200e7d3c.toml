@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0063"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "D-001 (crates/openwarrant-cli/src/check.rs, lines 1178-1228) shows the traceability.unknown-requirement diagnostic logic, and D-003 (conformance/plants.d/00-corpus.sh, line ~1198-1201) shows the plant 'a requirement reference §106 does not contain' that rewrites OW-WAR-0058/manifest.toml's ref to sas://WAR-SAS-RQ-999 and expects exit 2 with 'RQ-999'. But the bundle's only gate run (GR-software.repo.war-check@1.0.0) is a plain `war check --generated` over the committed corpus as-is (its stdout excerpts show ordinary PASS/WARN diagnostics for OW-WAR-0063, e.g. 'PASS traceability.refs OW-WAR-0063: 2 requirement ref(s) ... parse'), not an execution of the conformance plant battery, so there is no transcript in this bundle showing the RQ-999 mutation was actually run and observed to be refused. The prior_verifications entry claims '138 passed, 0 failed' for this exact plant, but it cites the file as 'conformance/plant.sh', which does not match this bundle's actual script path 'conformance/plants.d/00-corpus.sh', so that account cannot be relied on to confirm execution. Per §39.3 (an executed attack is evidence, a described one is a plan), the code and the plant's mutation script being present is not itself the executed attack; that gap on the second half of the claim (the corpus passing) is supported by the 0-error overall summary, but the first half — the plant's own refusal being observed — is not shown."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

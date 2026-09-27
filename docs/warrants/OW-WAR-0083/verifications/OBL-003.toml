@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = 'No independent reproduction, review, or human-acceptance record for this exact result appears anywhere in the bundle: prior_verifications is empty, plants is empty, and the assurance atom (60-assurance.md) itself states "These implementation observations are NOT RUN until attached evidence proves them. No disposition is declared here." There is nothing carried that could show qualification evidence for OBL-001/002 of this exact result.'
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

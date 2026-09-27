@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables array is empty, obligation_evidence for OBL-001 lists no named_paths and no terms, and no conformance plants or fixture/CLI-output evidence is carried. Nothing in the bundle shows an actual invocation of the CLI or the public SDK calls (e.g. no cases.json run, no sdk_cli.rs test output), so the claimed parity behavior in atoms/60-assurance.md OBL-001 cannot be checked against any observed bytes."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

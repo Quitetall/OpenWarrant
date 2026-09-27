@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = """D-016 (remedy.rs) shows a unit test `no_auto_remedy_is_a_signing_act` walking TABLE and asserting no Auto remedy carries a signing verb or `--ssh-sign`, which supports the 'no automatic remedy signs' half of the claim, and D-018/software.repo.war-check@1.0.0's stdout excerpt shows a printed `REMEDIES:` block satisfying that element. But the bundle never carries the specific evidence the obligation names: no `war check --json` run appears anywhere (the only software.repo.war-check@1.0.0 receipt invoked `war check --generated` in human mode, not `--json`), so there is no shown envelope proving `remedy.kind = "human"` with an argv beginning `war sign` on a planted drift, or `remedy.kind = "auto"` with `war compile` on a planted stale projection — and the one drift-related plant line visible in the ops.conformance.plants@1.1.0 excerpt ('drift carries a human correction human, war correct <alias> <D>, no placeholders') shows the drift remedy's argv is `war correct`, not `war sign`, which does not match the obligation's stated acceptance text. Finally, `89-schemas.sh` is explicitly listed in obligation_evidence.named_paths as absent ('no deliverable of OW-WAR-0112 and no file at this path: not carried'), so its passing and `SCHEMA_PACK_VERSION` being unchanged cannot be confirmed from anything carried in the bundle. Because several of the obligation's named acceptance facts are neither shown nor derivable from what is carried, the claim cannot be established, and the one concrete data point that is shown does not clearly match the stated criterion, so it is not established rather than affirmatively refuted."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

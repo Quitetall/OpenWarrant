@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0087"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables array is empty, obligation_evidence for OBL-001 lists no named_paths and no terms, and no conformance plants or fixture/CLI-output evidence is carried. Nothing in the bundle shows an actual invocation of the CLI or the public SDK calls (e.g. no cases.json run, no sdk_cli.rs test output), so the claimed parity behavior in atoms/60-assurance.md OBL-001 cannot be checked against any observed bytes."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "As with OBL-001, deliverables and plants are absent (deliverables: [], plants: []), and obligation_evidence for OBL-002 carries no named_paths or terms. There is no record of any refusal fixture being run or of unchanged prior output on a failed write, so the boundary-refusal claim in atoms/60-assurance.md OBL-002 is unsupported by anything in the bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "prior_verifications is empty and no independent-reviewer output, baseline comparison, or human-acceptance record is present anywhere in the bundle. atoms/60-assurance.md itself states under 'Gate Adequacy' that 'war check cannot establish runtime behavior or independent verification,' and the sole gate_run present (software.repo.war-check) is exactly that check, so it cannot supply the independent qualification OBL-003 requires."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "The gate cited by OBL-004, gate://software.repo.war-check@1.0.0, was run (run_id GR-software.repo.war-check@1.0.0, verdict 'pass', exit_result 'pass') with subject_digests binding it to this exact contract (contract:sha256:0f06cebb...81e2fa1, matching authorized_contract_digest) and to tree:2b24c062778e0d87732c7f85873cd25ceb8fbad3. The visible tail of stdout shows the structural line 'PASS identity.atom-mismatch OW-WAR-0087: 4 atom(s) name this Warrant's UUID' and no ERROR-level line for OW-WAR-0087 (only a routine WARN sas.pin-superseded, reflected in the remedies list as 'human war sas repin OW-WAR-0087', which does not change the recorded overall verdict of pass). The obligation's own scope is limited to this structural check with no runtime claim, exactly matching what software.repo.war-check performs per the 'Gate Adequacy' note in atoms/60-assurance.md."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

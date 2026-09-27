@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No refusal fixtures, gate stdout, or deliverable content addressing malformed/conflicting/over-limit inputs appears anywhere in the bundle; the assurance atom (atoms/60-assurance.md) itself flags that 'Unknown observations cannot pass' and that these implementation observations are 'NOT RUN until attached evidence proves them.' The single gate run present (software.repo.war-check@1.0.0) is a structural check unrelated to boundary-refusal behavior, so there is no evidence to establish or refute OBL-002."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

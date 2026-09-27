@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "Two of the three claims stand on direct gate-run output: the ops.conformance.plants@1.1.0 and software.repo.war-check@1.0.0 stdout excerpts show real PASS lines for `deliverable.superseded-by` (e.g. OW-WAR-0005: D-001 on check.rs, now governed by OW-WAR-0142/D-009, exit-0/PASS severity) and passing `deliverable.digest-drift` rejections (line 106: 'a deliverable digest that no longer matches rejected by deliverable.digest-drift (OW-WAR-0061: D-001 records sha256:dead)'; line 857 similarly), confirming a historical pin passes and an undeclared edit still drifts. But the third piece, 'history stays readable', is not shown to be exercised: the scope names `.claude/hooks/guard-pins.sh` (D-010) and its claimed behavior (permits an edit to a historical pin, denies one to a current pin) has no corresponding plant or gate-run line anywhere in the bundle — D-013 (98-ownership.sh, the only ownership plant carried) never invokes the hook, only `war check`, `war pins`, `war correct`, and `war attest`, so the hook's logic is source-only and untested here. Likewise, no executed evidence shows `war pins --history <path>` rendering two owners oldest-first (the closest confirmed test, `the_latest_authorization_governs_and_the_earlier_pin_is_historical` in D-004, exercises `Ownership::lineage()`, a different function from `pins::history()` in D-007, which has no listed unit tests), and no resolution recorded after this Warrant is shown in the bundle carrying a `[locator]` with a real 40-lowercase-hex `commit_sha` — `resolution_cmd.rs` (D-009) has no test_names and the only locator-related run line shown (line 489, 'BL-004 UNKNOWN (no [locator]); no mark') concerns pre-ADR resolutions, not a populated locator. Absent evidence for the hook and for the history/locator rendering leaves this obligation not established, though nothing in the bundle contradicts it either."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

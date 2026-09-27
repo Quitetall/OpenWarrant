@@ -1,0 +1,105 @@
+PASS document.digested                  OW-WAR-0065: D-001 is at its recorded digest
+ERROR document.review-absent             OW-WAR-0065: OBL-001 has no `established` verification from someone other than the performer (claude); `war verify OW-WAR-0065 --bundle` and hand it off
+                                             → docs/warrants/OW-WAR-0065/verifications
+                                             → info: war verify OW-WAR-0065 --bundle
+ERROR document.review-absent             OW-WAR-0065: OBL-002 has no `established` verification from someone other than the performer (claude); `war verify OW-WAR-0065 --bundle` and hand it off
+                                             → docs/warrants/OW-WAR-0065/verifications
+                                             → info: war verify OW-WAR-0065 --bundle
+PASS document.digested                  OW-WAR-0122: D-001 is at its recorded digest
+PASS document.reviewed                  OW-WAR-0122: OBL-001 established by a verifier who is not the performer
+PASS document.reviewed                  OW-WAR-0122: OBL-002 established by a verifier who is not the performer
+PASS document.reviewed                  OW-WAR-0122: OBL-003 established by a verifier who is not the performer
+ERROR document.review-absent             OW-WAR-0122: OBL-004 has no `established` verification from someone other than the performer (claude); `war verify OW-WAR-0122 --bundle` and hand it off
+                                             → docs/warrants/OW-WAR-0122/verifications
+                                             → info: war verify OW-WAR-0122 --bundle
+PASS document.digested                  OW-WAR-0125: D-001 is at its recorded digest
+ERROR document.undigested                OW-WAR-0125: D-006 records no content digest
+                                             → docs/sas/generated/SECTIONS.md
+PASS document.reviewed                  OW-WAR-0125: OBL-001 established by a verifier who is not the performer
+ERROR document.review-absent             OW-WAR-0125: OBL-002 has no `established` verification from someone other than the performer (claude); `war verify OW-WAR-0125 --bundle` and hand it off
+                                             → docs/warrants/OW-WAR-0125/verifications
+                                             → info: war verify OW-WAR-0125 --bundle
+PASS document.reviewed                  OW-WAR-0125: OBL-003 established by a verifier who is not the performer
+PASS document.reviewed                  OW-WAR-0125: OBL-004 established by a verifier who is not the performer
+PASS document.reviewed                  OW-WAR-0125: OBL-005 established by a verifier who is not the performer
+ERROR document.review-absent             OW-WAR-0125: OBL-006 has no `established` verification from someone other than the performer (claude); `war verify OW-WAR-0125 --bundle` and hand it off
+                                             → docs/warrants/OW-WAR-0125/verifications
+                                             → info: war verify OW-WAR-0125 --bundle
+ERROR document.undigested                OW-WAR-0126: D-001 does not exist
+                                             → docs/adr/atoms/OW-ADR-0024-kf-owns-registered-lifecycle.md
+ERROR document.review-absent             OW-WAR-0126: OBL-001 has no `established` verification from someone other than the performer (claude); `war verify OW-WAR-0126 --bundle` and hand it off
+                                             → docs/warrants/OW-WAR-0126/verifications
+                                             → info: war verify OW-WAR-0126 --bundle
+ERROR document.review-absent             OW-WAR-0126: OBL-002 has no `established` verification from someone other than the performer (claude); `war verify OW-WAR-0126 --bundle` and hand it off
+                                             → docs/warrants/OW-WAR-0126/verifications
+                                             → info: war verify OW-WAR-0126 --bundle
+ERROR document.review-absent             OW-WAR-0126: OBL-003 has no `established` verification from someone other than the performer (claude); `war verify OW-WAR-0126 --bundle` and hand it off
+                                             → docs/warrants/OW-WAR-0126/verifications
+                                             → info: war verify OW-WAR-0126 --bundle
+ERROR document.review-absent             OW-WAR-0126: OBL-004 has no `established` verification from someone other than the performer (claude); `war verify OW-WAR-0126 --bundle` and hand it off
+                                             → docs/warrants/OW-WAR-0126/verifications
+                                             → info: war verify OW-WAR-0126 --bundle
+ERROR document.undigested                OW-WAR-0128: D-001 does not exist
+                                             → docs/integrations/kf-compiler.md
+ERROR document.undigested                OW-WAR-0128: D-002 does not exist
+                                             → docs/adr/atoms/OW-ADR-0027-kf-compiler-interface.md
+ERROR document.review-absent             OW-WAR-0128: OBL-001 has no `established` verification from someone other than the performer (claude); `war verify OW-WAR-0128 --bundle` and hand it off
+                                             → docs/warrants/OW-WAR-0128/verifications
+                                             → info: war verify OW-WAR-0128 --bundle
+ERROR document.review-absent             OW-WAR-0128: OBL-002 has no `established` verification from someone other than the performer (claude); `war verify OW-WAR-0128 --bundle` and hand it off
+                                             → docs/warrants/OW-WAR-0128/verifications
+                                             → info: war verify OW-WAR-0128 --bundle
+ERROR document.review-absent             OW-WAR-0128: OBL-003 has no `established` verification from someone other than the performer (claude); `war verify OW-WAR-0128 --bundle` and hand it off
+                                             → docs/warrants/OW-WAR-0128/verifications
+                                             → info: war verify OW-WAR-0128 --bundle
+ERROR document.review-absent             OW-WAR-0128: OBL-004 has no `established` verification from someone other than the performer (claude); `war verify OW-WAR-0128 --bundle` and hand it off
+                                             → docs/warrants/OW-WAR-0128/verifications
+                                             → info: war verify OW-WAR-0128 --bundle
+ERROR document.review-absent             OW-WAR-0128: OBL-005 has no `established` verification from someone other than the performer (claude); `war verify OW-WAR-0128 --bundle` and hand it off
+                                             → docs/warrants/OW-WAR-0128/verifications
+                                             → info: war verify OW-WAR-0128 --bundle
+PASS document.digested                  OW-WAR-0135: D-001 is at its recorded digest
+PASS document.digested                  OW-WAR-0135: D-006 is at its recorded digest
+ERROR document.review-absent             OW-WAR-0135: OBL-001 has no `established` verification from someone other than the performer (claude); `war verify OW-WAR-0135 --bundle` and hand it off
+                                             → docs/warrants/OW-WAR-0135/verifications
+                                             → info: war verify OW-WAR-0135 --bundle
+PASS document.reviewed                  OW-WAR-0135: OBL-002 established by a verifier who is not the performer
+PASS document.reviewed                  OW-WAR-0135: OBL-003 established by a verifier who is not the performer
+PASS document.reviewed                  OW-WAR-0135: OBL-004 established by a verifier who is not the performer
+PASS document.reviewed                  OW-WAR-0135: OBL-005 established by a verifier who is not the performer
+PASS document.digested                  OW-WAR-0138: D-001 is at its recorded digest
+PASS document.digested                  OW-WAR-0138: D-007 is at its recorded digest
+PASS document.digested                  OW-WAR-0138: D-008 is at its recorded digest
+PASS document.reviewed                  OW-WAR-0138: OBL-001 established by a verifier who is not the performer
+PASS document.reviewed                  OW-WAR-0138: OBL-002 established by a verifier who is not the performer
+PASS document.reviewed                  OW-WAR-0138: OBL-003 established by a verifier who is not the performer
+PASS document.reviewed                  OW-WAR-0138: OBL-004 established by a verifier who is not the performer
+PASS document.digested                  OW-WAR-0142: D-001 is at its recorded digest
+PASS document.digested                  OW-WAR-0142: D-002 is at its recorded digest
+PASS document.digested                  OW-WAR-0142: D-015 is at its recorded digest
+PASS document.digested                  OW-WAR-0142: D-016 is at its recorded digest
+ERROR document.review-absent             OW-WAR-0142: OBL-001 has no `established` verification from someone other than the performer (claude); `war verify OW-WAR-0142 --bundle` and hand it off
+                                             → docs/warrants/OW-WAR-0142/verifications
+                                             → info: war verify OW-WAR-0142 --bundle
+PASS document.reviewed                  OW-WAR-0142: OBL-002 established by a verifier who is not the performer
+PASS document.reviewed                  OW-WAR-0142: OBL-003 established by a verifier who is not the performer
+PASS document.reviewed                  OW-WAR-0142: OBL-004 established by a verifier who is not the performer
+ERROR document.review-absent             OW-WAR-0142: OBL-005 has no `established` verification from someone other than the performer (claude); `war verify OW-WAR-0142 --bundle` and hand it off
+                                             → docs/warrants/OW-WAR-0142/verifications
+                                             → info: war verify OW-WAR-0142 --bundle
+PASS document.reviewed                  OW-WAR-0142: OBL-006 established by a verifier who is not the performer
+PASS document.reviewed                  OW-WAR-0142: OBL-007 established by a verifier who is not the performer
+PASS document.reviewed-warrants         8 Warrant(s) with Markdown deliverables reviewed
+
+REMEDIES:
+  info  war verify OW-WAR-0065 --bundle   (×2)
+  info  war verify OW-WAR-0122 --bundle   (×1)
+  info  war verify OW-WAR-0125 --bundle   (×2)
+  info  war verify OW-WAR-0126 --bundle   (×4)
+  info  war verify OW-WAR-0128 --bundle   (×5)
+  info  war verify OW-WAR-0135 --bundle   (×1)
+  info  war verify OW-WAR-0142 --bundle   (×2)
+
+33 pass · 0 warn · 0 unknown · 21 error   (worst: ERROR)
+
+NOT READY

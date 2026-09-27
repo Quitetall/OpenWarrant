@@ -1,12 +1,11 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "The basis atom explicitly states Katana is not checked out on the host, and no §48.4 receipt for Katana execution appears in the committed receipts or measured tests."
+evidence = "The bundle's deliverables array is empty and obligation_evidence for OBL-001 shows the term 'dispatch_digest' with shown_in: [] — nowhere in the bundle. The only gate run present, GR-software.repo.war-check@1.0.0, is the corpus-wide 'war check --generated' compliance checker; its own output states under NOT CHECKED that 'war check does not invoke [gate execution], so nothing here is evidence that a Warrant's acceptance gates were run.' No §48.4 Katana receipt, no Dispatch bytes, and no Katana version pin appear anywhere in the bundle for OW-WAR-0045."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "established"
+evidence = "D-002 (authorize.rs, excerpts) shows AuthorizationRequest carrying `assignment`/`assignment_digest` fields and the `assignment_refusal` function that fires `authorize.stale-assignment` before any signature check and before anything is written; D-001 (assignment.rs, untruncated) shows `validate()` producing `assignment.role-missing`, `assignment.agent-prohibited`, and `assignment.self-verify`, each pinned by passing unit tests (`an_actor_without_the_role_is_refused_not_granted`, `an_agent_resolver_is_refused_by_kind_even_holding_the_role`, `the_performer_cannot_be_its_own_verifier`); D-010 (check.rs, excerpts) shows `check_assignment` emitting `assignment.moved` for an edited or removed post-signing assignment. The cited gate run GR-ops.conformance.plants@1.1.0 (verdict pass, bound to the current contract/tree per the software.repo.war-check run's `evidence.admissible` PASS line) executed conformance/plants.d/57-teams.sh (D-008, untruncated) on exactly the scoped scratch program (Ada/Ben as humans, claude as agent in a freshly written roles.toml), and its captured stdout shows every required behavior passing under the correct rule name: 'the request lists the assignment and digest', 'a response signing another assignment → authorize.stale-assignment (exit 2)', 'a refused authorization writes nothing → no authorization.toml', 'an assigned actor without the role → assignment.role-missing (exit 2)', 'the agent named as resolver → assignment.agent-prohibited (exit 2)', 'the performer as its own verifier → assignment.self-verify (exit 2)', 'an assignment edited after signing → assignment.moved (exit 2)', 'war check names the moved assignment → ERROR assignment.moved TT-WAR-0001', and the removal case likewise. Every specific evidentiary bullet OBL-001 lists is thus backed by both source and an executed, passing plant run within the stated scope."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

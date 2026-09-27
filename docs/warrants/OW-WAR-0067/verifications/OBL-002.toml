@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-002 shows no named_paths at all and marks the '.sig' term as only present somewhere in the software.repo.war-check@1.0.0 stdout, while 'war sign --verify' is shown nowhere. The visible (truncated) tail of that stdout (GR-software.repo.war-check@1.0.0) covers only OW-WAR-0138 through OW-WAR-0147 plus SAS 1.0.0/1.1.0/1.1.1 acceptance lines; it contains no authority.signed line for the SAS 1.0.0 acceptance tied to this Warrant, nor for authorizations of OW-WAR-0064/0065/0066, nor for OW-WAR-0042's resolution, and no DSSE attestation or journal entries for those specific acts are shown. The stdout is explicitly truncated (367315 bytes, only a tail shown), so the relevant portion, if any, was cut by the budget rather than absent from the record — evidence not shown is not evidence either way."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

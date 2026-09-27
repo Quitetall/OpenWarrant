@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0086"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle carries zero deliverables (deliverables: []) despite full \"warrant\" scope, so none of the work-order paths (adapter.rs, conformance/integration/, docs/integrations/sdk.md) or the planned acceptance receipt from `python3 conformance/integration/adapter/run.py` are present. The only gate run included is software.repo.war-check@1.0.0, a structural/document check, which the Assurance atom (60-assurance.md, \"Gate Adequacy\") explicitly says cannot establish runtime behavior (\"war check cannot establish runtime behavior or independent verification. Unknown observations cannot pass.\"). No plants, no fixture output, and no execution trace of the real-provider/offline-flow claim are shown, so the scoped behavior cannot be judged from this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-002 lists no named_paths and no terms, and plants is empty ([]), so there are no observed refusal fixtures, malformed/over-limit/authority-confused input cases, or unchanged-prior-output-on-failed-write evidence in the bundle. The only run captured is the war-check structural gate, which checks Warrant records, not boundary refusal behavior, so the claim that the boundary refuses invalid inputs is not supported by anything shown here."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires independent reproduction/review and secure human acceptance of the exact OBL-001/002 result, but since OBL-001 and OBL-002 are themselves unestablished (no deliverable bytes, no behavior evidence in this bundle) there is nothing exact to qualify. No independent-review record, baseline comparison, or human acceptance artifact appears anywhere in the bundle's atoms, gate_runs, or obligation_evidence for OBL-003."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "The gate run GR-software.repo.war-check@1.0.0 targets exactly the gate named in OBL-004, with subject_digests including contract:sha256:d2a7746854b5197abbeb84930812833a78647e815d98d96f4e89e8aed961d4e7 matching this bundle's authorized_contract_digest, and receipt verdict/exit_result \"pass\". The visible stdout tail's run summary shows \"2036 pass · 241 warn · 0 unknown · 0 error (worst: WARN)\" for the whole corpus check that includes OW-WAR-0086, and the REMEDIES section names OW-WAR-0086 only for two WARN-level remedies (`war evidence record OW-WAR-0086`, `war sas repin OW-WAR-0086`), not any structural error, PASS obligations.valid/milestones.valid/generated.drift class failures. This is a structural (war-check) result showing OW-WAR-0086's authored records are structurally valid within the stated no-runtime-claim scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

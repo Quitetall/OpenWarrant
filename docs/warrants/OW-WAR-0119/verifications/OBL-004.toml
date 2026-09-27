@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, 1214 passed/0 failed) prints, inside the '== identity (OW-WAR-0119) ==' section defined by D-004 (conformance/plants.d/51-identity.sh), the actual lines 'ok [[supersedes]] by alias  error identity.alias-ref (exit 2)', 'ok [[supersedes]] by UUID  no error identity.alias-ref', 'ok [[parents]] by alias  error identity.alias-ref (exit 2)', 'ok [[parents]] by UUID  no error identity.alias-ref', 'ok an ADR governs by alias  warn identity.alias-ref (exit 0)', 'ok an ADR governs by alias: no error  no error identity.alias-ref', and 'ok corpus: alias-form governs listed  6 ADR(s) warned' — each id_expect/id_none assertion in the plant script checks the rule name, severity, exit code and message substring (including the resolved UUID) on the war check --json diagnostics, so these are not mere assertions but observed gate output. The same run also prints 'ok blut names the stage by UUID  war://01a021a6-0dfd-7e45-b33b-749b95409cd1' and the plant's grep confirms the output does not contain 'war://OW-WAR-0047', directly showing war blut's lowering names the stage by UUID rather than alias on a real corpus Warrant. This is corroborated by D-003's unit test the_stage_identity_is_the_uuid_and_never_the_alias, which asserts stage_identity() strips a 'war://' prefix, parses as a UUIDv7 equal to the manifest's uuid, and never contains the alias 'OW-WAR-0047'. Together the plant definitions, their execution in the recorded gate run, and the blut.rs unit test source establish every evidence bullet OBL-004 lists."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

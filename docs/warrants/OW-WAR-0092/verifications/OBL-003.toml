@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "No work-report fixtures, rendered output, or legacy-record comparisons are included in deliverables (empty) and obligation_evidence lists no named_paths or terms for OBL-003. There is nothing showing a rendered 'completed/unverified' report or a resolved legacy Warrant displaying unknown implementation state; the claim rests solely on the unverified assurance atom text."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = 'The bundle carries no deliverables at all (top-level "deliverables": []); obligation_evidence for OBL-001 marks the named path "questions/" as absent ("a record of OW-WAR-0069 ... not a deliverable: not carried"), and the terms "war questions --open" and "war watch --once" are shown_in: [] (not shown anywhere in the bundle). The only plant reference given is conformance/plants.d/91-questions.sh line 3, which is a bare comment line ("# refuses the reverse. Every plant runs against OW-WAR-0069...") with no actual test body or output shown. The gate run (GR-software.repo.war-check@1.0.0) is a generic repo-wide well-formedness checker whose visible stdout excerpt covers OW-WAR-0138 through OW-WAR-0147 and general corpus checks; it never mentions OW-WAR-0069, questions/, or an agent-actor refusal. There is no evidence in the bundle that a question record exists, that an agent-kind answer is refused, or that `war watch` names an open question.'
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

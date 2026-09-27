@@ -1,12 +1,11 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "The artifact artifacts/telemetry-baseline.json names commit 8da1ca1 and records values or 'not_measurable_yet' for all eighteen §94 measures, as required by the deliverable D-002."
+evidence = "D-002's `measures` object gives every entry either `{value, method}` or `{not_measurable_yet, reason}` with no exceptions (e.g. `auto-authorizable fraction` is `value: 0` but its method explicitly states 'and MEASURED zero — §56.1 requirement 10 is unmet ... so none is auto-authorizable', i.e. a stated real zero, not an untaken one). D-001's `unmeasurable()` function and its module-doc corroborate that unmeasurable measures are deliberately non-zero-coded. Since D-002 is present in full (truncated: false), this can be checked directly against every measure without relying on the cited unit test."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

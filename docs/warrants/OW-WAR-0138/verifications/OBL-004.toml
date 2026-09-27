@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "D-001 (docs/AUTHENTICATION.md, fully carried, not truncated) annotates essentially every substantive claim with explicit 'Carried by:' and 'Exercised by:' lines naming source files (authority_check.rs, sign.rs, presence.rs, webui/pairing.rs, etc.) and plant/unit-test names (58-authn.sh, 63-webui.sh, 59-webui-lan.sh, presence.rs unit tests), and closes with a 'Claims and what carries them' table mapping each authentication/protection/presence claim to its control or test, including the residual 'without a store: not established, operator review' line that names operator duty as the carrier where no mechanism exists. Its 'What a session is' section defines a session as 'the human's unlocked operating-system session in which their key is loaded' and states plainly '`war` issues nothing that authenticates a person. It has no login and no session token that stands for a human,' then goes on to describe the loopback token and device credential while explicitly stating neither authenticates a person or can sign — satisfying the requirement that session be defined without relying on any war-issued credential. D-007 (docs/THREAT_MODEL.md, fully carried) row 1 states the narrowed residual ('Narrowed by OW-WAR-0138: with a security key and the policy set, a signature made with no one at the key is refused... What remains: war cannot verify that -c was used for an ordinary key...') and row 6 likewise ('narrowed to the store's own protection: war checks the owner and mode it can see and cannot prove a separate account (R-003)...'), each followed by an 'Exercised by' cell naming plants.d/58-authn.sh and specific sub-tests. The gate run GR-ops.conformance.plants@1.1.0's stdout excerpt (lines 591-616) independently confirms many of the exact plant cases D-001/D-007 cite by name (e.g. 'another actor's key, refused', 'the store requires presence', 'a grant removed, the next act refused') actually ran and passed, corroborating that the cited carriers exist rather than being merely asserted."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

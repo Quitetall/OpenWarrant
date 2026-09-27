@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No deliverables, plants, or gate output addressing the parser/validator boundary are present in the bundle; obligation_evidence for OBL-002 is empty (no named_paths, no terms). The single captured gate, GR-software.repo.war-check@1.0.0, checks Warrant-record structure, not the document boundary's response to malformed/incomplete/conflicting/over-limit/authority-confused inputs, and no refusal fixture or stderr showing a rejection is included. Absence of carried evidence means this cannot be decided either way."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

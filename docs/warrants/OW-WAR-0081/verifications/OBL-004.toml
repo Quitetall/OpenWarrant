@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "The obligation's own designated gate, software.repo.war-check@1.0.0 (run GR-software.repo.war-check@1.0.0), ran with subject_digests binding it to this Warrant's authorized contract (contract:sha256:7886b09...c2d4e, matching authorized_contract_digest) and returned verdict 'pass'. The truncated stdout shows the OW-WAR-0081-specific line 'PASS identity.atom-mismatch OW-WAR-0081: 4 atom(s) name this Warrant's UUID' and a non-blocking 'sas.pin-superseded' WARN (listed in the remedies as 'human war sas repin OW-WAR-0081'), and the run's own summary totals '2031 pass · 246 warn · 0 unknown · 0 error (worst: WARN)' across the whole corpus, meaning no structural error occurred for any Warrant including OW-WAR-0081. This is exactly the structural-check evidence OBL-004's scope calls for (authored records/references, no runtime or assurance claim), so it is established."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

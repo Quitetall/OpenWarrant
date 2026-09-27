@@ -1,12 +1,11 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "The provided evidence includes a single gate run receipt and CI steps, but no artifact or measurement demonstrates a CI run on both `x86_64-unknown-linux-gnu` and `aarch64-apple-darwin` triples producing byte-identical canonical JSON compared by digest across hosts."
+evidence = "The bundle carries no deliverables (deliverables: []) and no CI workflow output for the canonical-IR comparison job. The only gate run shown is `GR-software.repo.war-check@1.0.0`, a repo-wide `war check --generated` invocation whose own NOT CHECKED section states 'war check does not invoke [gates], so nothing here is evidence that a Warrant's acceptance gates were run,' and its visible (truncated-tail) stdout discusses unrelated warrants (OW-WAR-0138–0147) and general repo checks, never a two-host byte-comparison of canonical JSON on x86_64-unknown-linux-gnu vs aarch64-apple-darwin. obligation_evidence for OBL-001 names no carried paths at all. The atoms (10-intent.md, 20-basis.md) only describe the plan/assumption that the two-host run is 'free' and still needed — Basis atom explicitly lists 'no Liminal compiler profile exists' as a blocking unknown and treats the two-host claim as unresolved, not as evidence it was run."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

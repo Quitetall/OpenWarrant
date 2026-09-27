@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = """The same gate run's stdout under '== the blind verifier (OW-WAR-0117) ==' shows 'ok    an answer that is garbage          2 not_established', 'ok    an answer that is skip             1 not_established', 'ok    an answer that is probably         2 not_established', and 'ok    an unknown disposition is dropped  no "probably" in the response', covering non-JSON, omitted-obligation, and unknown-disposition answers. It also shows 'ok    a failing verifier records nothing verify.verifier-failed (exit 2), no record moved', directly matching the requirement that a non-zero claude exit causes war verify --run to write nothing. All checks are 'ok' and the battery totals '1214 passed, 0 failed'."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

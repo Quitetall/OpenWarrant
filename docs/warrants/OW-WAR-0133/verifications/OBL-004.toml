@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "D-007 (crates/openwarrant-cli/src/dispatch.rs) sets `context.conflict_check = ConflictCheck::of(&context)` before the manifest is emitted, and D-008 (crates/openwarrant-core/src/context.rs) defines `ConflictCheck{checked, unchecked, found}` with `ConflictCheck::of` recording `SAME_SOURCE_TWO_VERSIONS` as checked, `SEMANTIC_UNCHECKED` as unchecked, and the actual findings — so a bare `conflicts: []` is no longer emitted without this accompanying statement. The plant D-005 (conformance/plants.d/55-evidence-reuse.sh) exercises exactly this scope, compiling `war dispatch ER-WAR-0002 STAGE-001 --prototype --emit-context …` on a scratch Warrant and judging the emitted `conflict_check` field with `judge.py` (checked includes same-source-two-versions, found is a list, an unchecked semantic entry exists), then rejects a copy with `conflict_check` stripped. The recorded gate run for `ops.conformance.plants@1.1.0` (run_id GR-ops.conformance.plants@1.1.0, verdict pass) has a stdout excerpt at lines 371-373 showing both relevant assertions passed: 'ok the conflict field says what ran … same-source-two-versions checked, found []; semantic named unchecked' and 'ok a bare conflicts: [] … rejected: no statement that a check ran'. `war check`'s stdout further shows this run's `evidence.admissible`, bound to the current contract and source tree, so it is not stale. Together the code, the plant, and the passing gate run directly establish the obligation within its stated scope."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

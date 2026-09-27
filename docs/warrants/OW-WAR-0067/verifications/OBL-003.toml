@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-003 shows the 'deliverable.digest-drift' term and 'git tag -l v1.0.0' as not shown anywhere in the bundle (shown_in: []), and 'war check' is only shown via the same truncated stdout tail, which never lists a deliverable.digest-drift finding for OW-WAR-0067 nor any git-tag output for v1.0.0. The overall run verdict is 'pass' with '2017 pass · 260 warn · 0 unknown · 0 error', but the NOT CHECKED section states plainly that '143 of 143 Warrant(s) have no disposed obligations — §38.6 yields no resolution verdict for them,' meaning the gate itself does not certify resolution of OW-WAR-0067's corrections or confirm the tag. No tag command output is present in the bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

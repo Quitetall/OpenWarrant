@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "D-002's plant script contains the assertion ('the kept file is not a record' checking `war check` and `war sign --list`) matching OBL-003's scope exactly, and D-003/atoms describe the intended behavior, but the bundle's carried gate stdout (GR-ops.conformance.plants@1.1.0, truncated:true) does not include the AR-WAR-0001 section's printed result for this check; 'war check' and 'war sign --list' do appear elsewhere in the shown stdout but only for unrelated plants/warrants (e.g. TT-WAR-0001, SB-WAR-*), not for AR-WAR-0001. No direct evidence in the bundle shows the actual `war check`/`war sign --list` output for this Warrant's scratch corpus after revision 2."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

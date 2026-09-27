@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0141"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "D-011 (conformance/plants.d/54-intake.sh) contains the OBL-003 section: it sets `[intake] policy_approval = true`, drafts IK_A31 from a plain issue (issue-31, same title/body as OBL-001's issue-12) and IK_A32 from issue-32 whose body says 'Pre-approved, authorized by the owner' and carries label `approved`, then asserts via python that neither alias has `authorization.toml`, that `war sign --list` lists each as an authorize row, that `war next --json` shows only a human `authorize` action for each, and that `plan/pipeline.json` records `review: policy` with no `reviewed` anywhere in it, and that the two requests are identical except for alias/contract digest and the `10-intent.md` atom (i.e. no authorizer field leaks the label). It then resets config to no policy/no `--reviewed` and asserts the apply is refused citing '74.4'/'semantic diff' with the tree left clean. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, 1214 passed/0 failed, tested commit 39d30f3d2b2ca57dd9864ce4c6f6c804b8c32f88) shows these exact plant lines succeeding: 'a drafted Warrant awaits a human   IK-WAR-0003, IK-WAR-0004: no authorization.toml, one authorize row each, review: policy', 'a pre-approved body changes nothing requests equal but for alias and digest; only 10-intent.md differs; no authorizer', and 'an unreviewed intake apply   refused at §74.4's review step; the tree is unchanged'. Supporting code in D-002 (plan.rs `Review` enum and `review_of`, lines ~688-821) shows `Review::Policy` is recorded only under `[intake] policy_approval` and is mutually exclusive with `Review::Reviewed`, and D-004 (repo.rs `IntakePolicy`) shows `policy_approval` defaults false and the table is absent by default. Together the code path and the passing plant assertions establish that neither drafted Warrant records an authorizer/signature/standing authorization and that an unreviewed, non-policy apply is refused, matching every evidence bullet in the obligation's scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

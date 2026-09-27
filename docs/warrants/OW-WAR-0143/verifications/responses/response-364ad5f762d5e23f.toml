@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0143"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, 1214 passed/0 failed) shows, in its stdout excerpt, four 'ok' lines matching exactly the obligation's evidence bullets: 'no flags, prereleases only: found — update.available v99.0.0-alpha.1 (default channel preview)' (Accepted, no-flag prerelease case), '§11's ordering is a unit test of precedes — precedence_follows_the_semver_example_ordering' (Accepted, SemVer ordering), 'an older newest release is not offered — update.ahead; no archive GET; root unchanged' (Refused, downgrade case), and 'same version, not the release: unreleased — update.unreleased names commit e4e52b0391f7; never update.current' (Refused, unreleased-build case). These correspond line-for-line to the plant code in D-012 (conformance/plants.d/61-update.sh), which runs `war update --check`/`war update` against a fixture server built from the battery's own `war` (up_list, up_archive) and checks request logs for absence of archive GETs on the downgrade case. D-003 (install.rs) supplies the `compare`/`precedes`/`pick`/`standing`/`check`/`update` implementations and the full `precedence_follows_the_semver_example_ordering` unit test asserting `compare`/`precedes` against the exact SemVer 2.0.0 §11 example list (1.0.0-alpha through 2.1.1), consistent with the plant's grep-verified test name and version strings. No obligation_evidence entry marks any of these terms as cut_from truncation, and no contrary result appears anywhere in the bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

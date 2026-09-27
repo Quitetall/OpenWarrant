@@ -1,12 +1,11 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "The war-check receipt (GR-software.repo.war-check@1.0.0) does not demonstrate parity measurement across the whole corpus, and the basis atom identifies a blocking unknown regarding the Liminal compiler required for such measurement, with no artifact showing `compiled_by_both == corpus_size` or observables declared before the run."
+evidence = "No parity run, corpus count, or declared-observables record appears anywhere in the bundle: deliverables is empty and obligation_evidence lists the required terms (`compiled_by_both`, `corpus_size`, `compiled_by_both == corpus_size`) as neither shown nor cut — they are simply absent from what was carried. The gate run's stdout tail is a generic `war check` report over unrelated warrants and contains no parity metrics. OBL-004 also depends on OBL-003 (per milestones.yaml, M4 depends on M3), which is itself not established, so the precondition for measuring parity against a real Liminal profile is not shown to exist."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

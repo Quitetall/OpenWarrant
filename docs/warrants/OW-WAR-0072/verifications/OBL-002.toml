@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "OBL-002's obligation_evidence lists no named_paths at all, and its two terms — 'git status' (shown_in: []) and 'batch.digest-moved' (shown_in: ['atoms'] only) — are either shown nowhere or shown only in the plan text of atoms/40-work-order.md and atoms/60-assurance.md, never in an actual plant or gate transcript. The bundle's top-level 'plants' array is empty, and the sole gate run's visible stdout (a repo-wide 'war check' listing warrants OW-WAR-0138 onward, truncated) never names OW-WAR-0072 or any batch.* refusal, ending instead with 'NOT CHECKED: 143 of 143 Warrant(s) have no disposed obligations.' There is no evidence the nine refusals were ever exercised, so this cannot be established or refuted from the bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

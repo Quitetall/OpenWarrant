@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "No evidence of source revisions, artifact identity retention, or preserved OW32 records is included; obligation_evidence for OBL-004 lists no named_paths and no terms, and prior_verifications is empty. Absent any deliverable or gate run showing the original OW-WAR-0032 atoms/verdicts alongside this work's artifacts, the bundle does not demonstrate history was preserved or that a shared contract was referenced."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "OBL-002 also cites gate://software.repo.war-check@1.0.0. As with OBL-001, the only gate run carried is that static corpus-check gate, whose own output disclaims that `war check` executes any gate (see the NOT CHECKED note quoted above), and no execution of the mismatch-detection scenario (editing stdout after receipt minting, in `47-bundle-output.sh`'s OBL-002 section) is recorded in gate_runs. The `carried_receipt` unit test in D-001 (a_carried_receipt_does_not_depend_on_where_the_checkout_sits) is unrelated to digest mismatch detection, and no test run results are bundled at all. Without any recorded execution of the mismatch check, the claim that `mismatch: true` is set correctly (and absent when no digest is recorded) cannot be decided from this bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

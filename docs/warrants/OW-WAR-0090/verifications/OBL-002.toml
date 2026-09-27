@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No fixtures, refusal outputs, or mutation-vs-lookup evidence for the boundary are carried in this bundle (deliverables:[], obligation_evidence for OBL-002 has empty named_paths/terms, and plants:[] contains no planted refusal cases). The single gate run (software.repo.war-check@1.0.0) checks Warrant record structure, not boundary input handling, so it cannot speak to this obligation. 60-assurance.md explicitly disclaims that these observations are not yet run, so the bundle gives no basis to decide either way."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

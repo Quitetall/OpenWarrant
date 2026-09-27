@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle carries no deliverables (deliverables: [] and deliverables_not_carried is absent/empty) and no plants or test/runtime evidence for provider behavior. The only gate run present is software.repo.war-check@1.0.0, a structural repo-check tool whose own output states 'war check does not invoke gates, so nothing here is evidence that a Warrant's acceptance gates were run,' and its NOT CHECKED section confirms '143 of 143 Warrant(s) have no disposed obligations.' Nothing in the bundle shows a provider response decoded through SDK types or compared against expected source units for T27–T31, so OBL-001's claim cannot be assessed."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

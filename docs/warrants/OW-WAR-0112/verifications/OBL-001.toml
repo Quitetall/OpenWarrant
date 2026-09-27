@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "D-013 (conformance/plants.d/98-ownership.sh), run under gate GR-ops.conformance.plants@1.1.0 (stdout lines ~1249-1251: 'path added after signing … declared, not owned' and 'owned set edited after signing attest.subject-drift (exit 2)'), demonstrates only two of the five claims in OBL-001's evidence field: deliverable.undeclared-at-authorization and attest.subject-drift. The plant contains no case for a response whose deliverable_set_digest differs from the manifest being refused authorize.stale-deliverables, nor for an authorization whose effective_time precedes an existing owner being refused authorize.time-before-owner — obligation_evidence itself confirms both terms are shown only in D-005 (authorize.rs source), D-015 (threat-model prose) and the atoms, never in any gate_runs stdout, with cut_from empty (i.e. genuinely absent, not merely truncated). D-005's own test_names list (a_well_formed_human_authorization_is_accepted, a_signature_against_a_moved_digest_is_refused, etc.) names no test for either rule. The fifth claim — `war sign --show` printing 'Grants ownership of:' — is likewise only source code in D-006 (sign.rs), whose actual format string is 'grants ownership of {} path(s) · set {}', not the capitalized/colon form the ADR and obligation describe, and no gate output shows `sign --show` being run. Because three of the five required evidentiary points rest on source code and design prose rather than any demonstrated gate run or test execution, the bundle does not establish that OBL-001 holds in full, though the two points it does show (undeclared-at-authorization, subject-drift) are confirmed."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

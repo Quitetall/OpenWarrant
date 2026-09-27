@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires independent reproduction/review and secure human acceptance of the exact OBL-001/002 result, but the bundle carries no such review record, no baseline-condition evidence, and no signed acceptance response tied to this Warrant's exact deliverables (authority.signed lines in the war-check stdout are for other Warrants such as OW-WAR-0138/0139, not OW-WAR-0079, and the visible portion of the stdout is truncated before OW-WAR-0079's own section). Atom 60-assurance.md itself states 'war check cannot establish runtime behavior or independent verification,' confirming the one gate run present cannot substitute for the qualification evidence OBL-003 needs."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

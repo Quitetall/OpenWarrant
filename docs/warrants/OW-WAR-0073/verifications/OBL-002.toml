@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-002 shows crates/openwarrant-cli/src/tui/ and conformance/plants.d/97-tui.sh as not carried, and deliverables is empty, so no source grep for ssh-keygen/SSH_AUTH_SOCK, no plant run, and no non-TTY-exit or panic-restoration test result is present. The only gate run in the bundle is the generic corpus war-check (record structure/journal/manifest checks), which does not execute conformance plants.d/97-tui.sh or any TUI-specific grep. The 'shown_in: atoms' entries for ssh-keygen etc. only mean those words appear in the Warrant's own prose, not that a grep was run. Nothing decides whether the rendering holds no authority."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

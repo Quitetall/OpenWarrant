@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "established"
+evidence = """D-002 (relations.rs) shows the `Derived` enum and `currency()` function computing superseded/annulled/deprecated purely from `supersedes` relations and resolution standing, refusing a written `currency = "superseded"|"annulled"` with `relations.currency-authored` and a `supersedes` cycle with `relations.currency-cycle`, backed by unit tests `a_written_field_does_not_make_a_warrant_superseded` and `a_cycle_is_found_once`. D-005 shows OW-WAR-0073's manifest.toml reverted with no `currency` field present. The cited gate run GR-ops.conformance.plants@1.1.0 (verdict pass, subject contract digest `sha256:de4f417c...` matching `authorized_contract_digest`) shows in its stdout excerpts exactly the required outcomes: 'currency derived from the relation ... no field written', 'a written currency is refused ... rejected by relations.currency-authored', 'a supersedes cycle is refused ... rejected by relations.currency-cycle', and 'OW-WAR-0073's signature stands ... no authorize.no-amendment; contract 691f51ce…'. The companion war-check gate run (software.repo.war-check@1.0.0) independently confirms on the real corpus 'PASS relations.currency OW-WAR-0073: superseded, derived from OW-WAR-0112's authorized `supersedes`; nothing is written'. D-040 (conformance/plants.d/00-corpus.sh, test 33 re-aimed) and D-038 (69-current.sh) show the same derivation/refusal pair planted and passing on the real corpus. Together these establish every clause of the obligation's evidence requirement within its stated scope."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

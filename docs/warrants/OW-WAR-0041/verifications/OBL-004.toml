@@ -1,12 +1,11 @@
 obligation = "OBL-004"
 disposition = "established"
-evidence = "The test `telemetry::tests::no_success_metric_claims_a_direction` passes, confirming that the telemetry baseline artifact states no delta for any §100 metric, as required by the obligation."
+evidence = "D-002's `success_metrics` object lists exactly the sixteen §100 metrics named in D-001's SUCCESS_METRICS array (e.g. 'context lost between humans and agents', 'clarification turns', ... 'ability to hand work between agents and humans'), and every one of the sixteen values is the literal string 'no baseline' with no numeric delta stated anywhere in the artifact, directly satisfying the obligation's evidence requirement."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

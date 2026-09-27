@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "No named_paths or deliverables are carried for OBL-003, and the queue/questions/frontier panes' source is not in the bundle. The gate run present is the corpus-wide record check, not a comparison of the TUI queue against `war sign --list` output, nor evidence of `war answer`/`war perform`/`war run` calls from the TUI. The claim that acting panes reuse existing acts is unverifiable from this bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

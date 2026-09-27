@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict: pass, exit_result: pass) captured stdout excerpts from conformance/plants.d/58-authn.sh (D-009) show every listed evidence item passing by name: 'ok the register's human, refused authority.legacy-fallback on authorize, on resolve, and at signing' (the agent key + human entry added to allowed_signers/roles.toml outside the store, refused on both authorize and resolve, matching D-009's 'ERROR authority.legacy-fallback .*SK-WAR-0006: the authorization' / '...SK-WAR-0007 resolution' checks); 'ok a grant removed, the next act refused authority.not-granted at the new head; nothing recorded' and 'ok revocation reaches the read path'; 'ok an unreadable store authority.verify-unavailable on read and sign; nothing recorded'; 'ok another actor's key, refused sign.actor-key-mismatch names the key's principal; nothing recorded' and 'ok another key under the store, refused sign.actor-key-mismatch; the store binds that key to nobody'; 'ok the store's human signs recorded; authority.signed through the store, labeled a test store' (the positive, corroborated by D-009's 'PASS sign.verified' check); and 'ok the store unset, the register back authority.unprotected; the legacy path as before', which is the no-store case warning authority.unprotected. The battery total 'TOTALS ... 1214 passed, 0 failed' with the gate's own verdict pass indicates 96-authority.sh (part of the same battery, though its bytes are not separately carried per obligation_evidence's 'absent' note) also passed unchanged, since any failure there would show in the zero-failure count. obligation_evidence's terms table shows every named term (allowed_signers, authority.verify-unavailable, --as, sign.actor-key-mismatch, war check, authority.unprotected) shown with no cut_from, i.e. not truncated away. authority_check.rs (D-002) and sign.rs (D-004) excerpts corroborate the mechanism (LegacyFallback verdict, signer_for's legacy-fallback branch, key_bound_to_principal producing sign.actor-key-mismatch), consistent with what the plant observed. Scope is respected: this is all on the scratch/test-mode store with disposable keys, and no claim is made about a deployed store's OS protection."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

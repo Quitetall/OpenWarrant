@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0085"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables array is empty and deliverables_not_carried/obligation_evidence show no named_paths or terms carried for OBL-001 (selection 'warrant: every deliverable of the Warrant' but nothing actually shown). No sdk_probe.rs output, no conformance/sdk/ run_phase1.py receipt, no CLI/driver invocation logs, and no docs/reviews/phase-1.md content are present. The only evidence item, gate run GR-software.repo.war-check@1.0.0, is a structural check (manifest/traceability/journal), not a record of SDK operation execution, so there is nothing in the bundle showing the required inputs/outputs/exit codes across S01-S08/SDK-01-24/FOOTER-01-08."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No refusal fixtures, plant runs, or CLI/driver error-path transcripts are carried: the 'plants' array is empty and deliverables is empty, so there is no observed named refusal, no unchanged-prior-output-on-failed-write evidence, and no mutation-of-real-content test shown. The war-check gate stdout only reports repository-manifest WARN/PASS lines (e.g. deliverable.undeclared-at-authorization, sas.pin-superseded) unrelated to SDK/CLI input validation, so the boundary-refusal claim cannot be assessed from this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "prior_verifications is empty and no independent reproduction, baseline-condition record, or human-acceptance record for OW-WAR-0085's exact result is included in the bundle; the gate run's WARN list even flags 'human war sas repin OW-WAR-0085' as an outstanding remedy and the war-check stdout notes '143 of 143 Warrant(s) have no disposed obligations — §38.6 yields no resolution verdict for them', confirming no qualification/acceptance evidence for this Warrant is present."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "The cited gate run GR-software.repo.war-check@1.0.0 has subject_digests including contract:sha256:40e708ab...cf708 matching this Warrant's authorized_contract_digest and an overall verdict of 'pass' (2035 pass/242 warn/0 error), and stdout shows 'PASS identity.atom-mismatch OW-WAR-0085: 4 atom(s) name this Warrant's UUID', but the stdout is marked truncated:true and the visible tail begins mid-OW-WAR-0138's section, so the per-Warrant lines for OW-WAR-0085 itself (manifest.valid, deliverable.digests, obligations.valid, milestones.valid, generated.drift) are not shown, and the remedies list surfaces WARN items specifically for OW-WAR-0085 ('auto war evidence record OW-WAR-0085', 'human war sas repin OW-WAR-0085') whose underlying detail lines are likewise cut off. OBL-004's evidence also requires 'existing planted refusals', but the bundle's plants array is empty, so that half of the required evidence is absent entirely."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

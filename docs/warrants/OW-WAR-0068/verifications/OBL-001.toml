@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The obligation's own evidence field requires a recorded run where grilling answers land in plan/request.json, but obligation_evidence for OBL-001 states this path is explicitly absent ('no deliverable of OW-WAR-0068 and no file at this path: not carried'). The bundle only carries D-004 (war-grill/SKILL.md) and D-005 (war-spec/SKILL.md), which are method descriptions, plus D-003 (context_select.rs) showing code that would carry CONTEXT.md in a Dispatch manifest when present — but no actual Dispatch manifest deliverable or war-spec proposal artifact is in the bundle to confirm §74.4 steps 1-4 were run. No gate run or plant result demonstrates any of these three required facts actually occurred; only source and skill prose are shown, so the claim of 'landing records, not chat' cannot be confirmed from this bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

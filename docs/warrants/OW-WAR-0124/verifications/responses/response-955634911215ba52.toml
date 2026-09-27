@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0124"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "D-004 (templates/adopt/20-basis.md) renders the `{{#baseline}}` block with the sentence 'Nothing before it is claimed, owned or verified by any Warrant.' D-008 (conformance/plants.d/59-adoption.sh) implements the three checks the obligation names: it greps the rendered ACME-WAR-0001/atoms/20-basis.md for the baseline commit id and that sentence with no leftover `{{`; it runs `war pins` on the adopted scratch repo and asserts none of src/a.txt, src/b.txt, src/c.txt (the three pre-baseline files) appear, and separately confirms the control is non-vacuous by showing `war pins --resolved-only` does list paths on this corpus; and it runs `war resolve --dry-run ACME-WAR-0001` asserting exit 2 with 'UNKNOWN resolution.requirement-unmet ... not established' and 'no admissible verification', with no PASS line. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, evidence.admissible PASS and bound to the current contract/tree per the software.repo.war-check@1.0.0 stdout excerpt) has its stdout excerpt (lines 699-722) showing exactly these three results as 'ok': 'the adopt Basis names the baseline and claims nothing before it', 'pins lists no pre-baseline file exit 0', 'pins lists paths where some are pinned this corpus', and 'resolve --dry-run: nothing established exit 2'. obligation_evidence confirms 20-basis.md was carried as D-004 and that the 'war pins' and 'war resolve --dry-run' terms are shown, uncut, in D-007, the plant script, and both gate stdouts."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

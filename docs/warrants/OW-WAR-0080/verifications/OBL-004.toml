@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "OBL-004 cites gate://software.repo.war-check@1.0.0, and the corresponding gate_runs entry (run_id GR-software.repo.war-check@1.0.0, exit_result 'pass', verdict 'pass') is bound to this Warrant's contract via subject_digests 'contract:sha256:33688b0563e1990ca6ba612eb55a227ff1bc22a40f7c083dbd100004c3d9563a', matching authorized_contract_digest. The run's stdout summary reports '2030 pass · 247 warn · 0 unknown · 0 error (worst: WARN)' — zero errors across the entire structural check — and the REMEDIES list shows only two advisory (WARN-level, non-fatal) items tied to OW-WAR-0080 ('auto war evidence record OW-WAR-0080' and 'human war sas repin OW-WAR-0080'), with no FAIL/ERROR entries for this Warrant's atoms/identity/milestones/obligations records. This supports that the Warrant's authored records are structurally valid within OBL-004's narrow scope."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "refuted"
+evidence = "The bundle's single plant (conformance/plants.d/90-skills.sh:9) directly names OW-WAR-0067 STAGE-001 — the milestones atom (45-milestones.yaml) maps STAGE-001 'Relicense to Apache-2.0' to M1/OBL-001 — and asserts that stage's status is 'OPEN', i.e. unblocked but not performed. An open relicense stage means the tree is not yet relicensed, contradicting OBL-001's claim. This is reinforced by obligation_evidence showing Cargo.toml as 'not carried' for this Warrant and LICENSE/NOTICE/allowed_signers only appearing as text in the atoms (never as actual deliverable bytes), with no cargo xtask gate spdx/licences output or war attest --all output present anywhere in the bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

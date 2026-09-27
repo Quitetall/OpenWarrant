@@ -1,0 +1,19 @@
+obligation = "OBL-005"
+disposition = "not_established"
+evidence = "The obligation's stated evidence is a passing run of `war telemetry --commit <baseline> --verify` against `artifacts/telemetry-baseline.json`, but obligation_evidence explicitly lists that exact term with shown_in: [] — it appears nowhere in the bundle — and names artifacts/telemetry-baseline.json as absent ('a repository path that is not a deliverable of OW-WAR-0124: not carried'). The cited gate run GR-software.repo.war-check@1.0.0 ran `war check --generated`, not `war telemetry --verify`, and its own stdout carries a WARN (evidence.stale-binding) noting the receipt was taken over an earlier tree with 139 changed paths since, so even that unrelated run is flagged as not current evidence. D-006 (telemetry.rs) shows code that, when `repo.config.adoption` is None, omits `adoption_baseline` and reads all history exactly as before, which is consistent with the claim, but source inspection alone does not substitute for the demanded --verify run against the actual artifact, which the bundle does not carry."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,12 +1,11 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "The committed receipt file 'docs/warrants/OW-WAR-0044/gate-runs/software_repo_war-check_1_0_0.receipt.json' demonstrates a real KF instance answering a typed action, with `recorded_at` assigned by the server, and the code in 'crates/openwarrant-cli/src/kf.rs' ensures the client does not supply this value, as verified by the test 'seam::tests::a_client_cannot_assign_recorded_at'."
+disposition = "not_established"
+evidence = "atoms/60-assurance.md's JDG-001 states OBL-001 requires a recorded action envelope with a server-assigned recorded_at via a real WRITE to KF, and explicitly holds it undischarged ('held, not narrowed: nothing about the obligations has changed'). The only concrete server interaction shown is EV-001 (a read-only `war kf health` call) and OBS-007 (`war kf act --confirm-write` reached the server but got a 404 because `core.action` has no registered action types, and the type used was deliberately invalid for diagnosis). No recorded action envelope or receipt exists anywhere in the bundle, and D-001 (kf.rs)'s own tests (an_https_url_is_accepted, a_non_http_url_is_refused, a_short_idempotency_key_never_reaches_the_network) never exercise a live write. The prior verification for OBL-001 cites a receipt file and a test 'seam::tests::a_client_cannot_assign_recorded_at' that appear nowhere in this bundle and are not corroborated by it."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

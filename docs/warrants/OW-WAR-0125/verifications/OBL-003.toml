@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass) stdout excerpts lines 460-462 show 'ok sas://WAR-SAS-999 cites nothing rejected by ERROR sas.section-ref (has no section 999)' and 'ok sas://WAR-SAS-43.9 cites nothing rejected by ERROR sas.section-ref (has no subsection 43.9)', matching the two required refusal plants. Line 458 shows 'ok existing section citations resolve 88 of 88 pass sas.section-ref', confirming zero sas.section-ref errors among the corpus's real section citations (a superset of the sixteen the obligation names). The plant source in D-009 (conformance/plants.d/56-sas-sections.sh, untruncated) defines exactly these two negative plants against a real amendment file (SEC_AM) via sed substitution and the 'existing section citations resolve' check via `war check` on the live repo, matching the obligation's scope of governing_adr_or_policy in amendments in this repository. D-007 (crates/openwarrant-cli/src/check.rs) excerpts show check_section_refs implementing the sas.section-ref rule that raises an error when resolve() finds no matching section/subsection, consistent with the observed gate output."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

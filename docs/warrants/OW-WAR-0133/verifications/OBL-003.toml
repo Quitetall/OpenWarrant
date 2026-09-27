@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = "D-005 (conformance/plants.d/55-evidence-reuse.sh, carried in full, not truncated) defines both required checks under its `# ---------------------------------------------------------------- OBL-003 ---` section: the 'a contract-only receipt' plant (resealing a receipt with only the contract subject on scratch Warrant ER-WAR-0001 and asserting it is reported as a WARN-level `evidence.reuse-unknown` naming 'no tree', check exits 0, and `resolve --dry-run` still shows requirement 5 unmet), and the 'resolved history is untouched' plant (hashing every `resolution.toml` in this repository before and after running `war --json check` and `war check OW-WAR-0010`, asserting the hashes are byte-identical and that no resolved Warrant gains a new error or reuse-unknown, with OW-WAR-0010 itself showing `evidence.admissible ... resolved: the source is not re-evaluated`). The gate run GR-ops.conformance.plants@1.1.0 (receipt sealed, verdict pass) shows an excerpted stdout line at 365, 'ok    a contract-only receipt            evidence.reuse-unknown, a warning (check exits 0); requirement 5 unmet', directly confirming the first check passed, and its tail text reports 'tested commit 39d30f3d2b2ca57dd9864ce4c6f6c804b8c32f88' preceded by '1214 passed, 0 failed', meaning every plant in the battery — including the untruncated 'resolved history is untouched' check defined in the same file — passed with zero failures. Together the transparent script logic and the run's zero-failure summary establish both evidence bullets the assurance atom (OBL-003) requires within its stated scope."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

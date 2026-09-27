@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0137"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass, 1214 passed/0 failed), which obligation_evidence explicitly names as where 'war status --json' and 'war show' are shown for this obligation, contains the exact plant checks required: 'one human in every role counts one -> status --json: distinct_humans [Ada]', 'two humans on record count two -> status --json: distinct_humans [Ada, Ben]', 'war show: one distinct human -> distinct humans on record: 1 (Ada)', 'war status <alias>: two distinct humans -> distinct humans on record: 2 (Ada, Ben)', and 'no verification: war show says none on record -> verified by: none on record'. This matches the implementation in D-012 (crates/openwarrant-core/src/status.rs), whose ReviewView::counted() filters authorized_by/verified_by/resolved_by to kind==\"human\", dedups and sorts into distinct_humans, and in D-011 (crates/openwarrant-cli/src/status.rs) render_review(), whose format string reports 'verified by: {list} ({n} verification record(s))' and 'distinct humans on record: {n}' without ever emitting the word 'reviewed'. Together the passing plant assertions and the reviewed source establish both required counting behaviors and the absence of a false 'reviewed' claim when no verification record exists, within the scoped scratch program."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

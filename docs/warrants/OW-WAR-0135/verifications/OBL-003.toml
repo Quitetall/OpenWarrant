@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = "D-002 (crates/openwarrant-cli/src/mark.rs) implements the four refusal paths named by the obligation: NO_RESOLUTION for a Warrant with no resolution.toml (Q47), the `attested` check's 'no resolve attestation' branch when attestations/ is absent (TTY signature), its `attest.failed`-driven unmet when the DSSE signature does not verify, and `established`'s `v.admissible_for(floor)` unmet path for a non-independent (performer-only) verdict. D-005 (conformance/plants.d/57-assurance-mark.sh) drives exactly these four cases against the scratch MK-WAR-0001 corpus via `mk_refused`: 'no resolution, no mark' (BL-001/Q47), 'no attestation, no mark' (BL-002/'no resolve attestation'), 'a forged attestation, no mark' (BL-002/'attest.failed', with a bit-flip on resolve-*.dsse.json and a no-op guard), and 'a self-verified obligation, no mark' (BL-003/'OBL-001: not admissible', by setting the verification's actor to the performer 'claude', i.e. RQ-053's performer-only verdict). The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, contract digest matching this bundle's authorized_contract_digest) has a stdout excerpt (lines 468-496) showing each of these four labels printed as 'ok' with the exact detail text the script asserts ('BL-001 unmet: ... Q47', 'BL-002 unmet: no resolve attestation', 'BL-002 unmet: attest.failed', 'BL-003 unmet: OBL-001: not admissible'), and the battery total is '1214 passed, 0 failed', so the bundle shows all four required refusals actually executed and passing, not merely asserted in source."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

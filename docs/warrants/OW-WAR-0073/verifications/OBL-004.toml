@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "OBL-004's scope (corpus, obligations, evidence, journal panes) has no deliverables or named_paths carried in the bundle. There is no plant output showing an obligation rendered as 'inadmissible' matching `war resolve --dry-run`, nor a corrupted-record fixture showing named-unreadable behavior. The single gate run is unrelated corpus-check output (manifest/journal/SAS checks across 143 warrants), not a check of the TUI's reading panes against status::build/resolve::assess. The claim cannot be decided from what's shown."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

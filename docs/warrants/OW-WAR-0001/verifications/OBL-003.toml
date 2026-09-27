@@ -1,12 +1,11 @@
 obligation = "OBL-003"
-disposition = "established"
-evidence = "The conformance/plant.sh battery contains 138 deliberate violations each rejected by its named rule (e.g., '[OW-WAR-0055] a roadmap ref past the last phase', '[OW-WAR-0059] a receipt edited after it was sealed', '[OW-WAR-0031] a journal line edited in place'), and the final step of `cargo xtask gate` is 'planted violations (conformance/plant.sh)' which exercises the gate's rejection path; the receipt for GR-software.repo.war-check@1.0.0 confirms the gate infrastructure is qualified against its declared fault model."
+disposition = "not_established"
+evidence = "The sole gate run in the bundle, GR-software.repo.war-check@1.0.0, records exit_result 'pass' and run.verdict 'pass' — the opposite of the required rejection — and is for the 'war check' command, not 'cargo xtask gate'. No second run, and no run at all showing 'cargo xtask gate' exiting non-zero with named failing steps, is present anywhere in gate_runs or the deliverables. The obligation exists precisely to rule out a gate that never rejects, and the bundle carries no rejecting run to establish it; the prior verifier's citation of 'conformance/plant.sh' violations conflates the SAS-corpus conformance plants (plants[] entry at conformance/plants.d/58-parent-revision.sh) with `cargo xtask gate`'s own step report, which is not shown here."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

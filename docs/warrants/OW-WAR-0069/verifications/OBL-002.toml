@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = 'No deliverable for perform.rs or any performer fixture is carried in the bundle (deliverables: []). obligation_evidence shows the term "war perform" is only shown_in "atoms" (i.e. it appears in the work-order text, not as executed evidence), "submission.recorded" is shown_in: [] entirely, and "resolve" is shown_in atoms and the war-check stdout only incidentally (that stdout excerpt, covering OW-WAR-0138–0147, contains no reference to a performer, a Dispatch/submission run, or a §51.2 refusal — its only appearances of related terms are in unrelated contexts like "war evidence record" and "resolution_cmd.rs" for a different Warrant). No gate run, plant, or deliverable in the bundle demonstrates a Dispatch-in/submission-out run or a refusal of a performer requesting resolve.'
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

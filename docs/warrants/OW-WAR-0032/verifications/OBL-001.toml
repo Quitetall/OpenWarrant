@@ -1,12 +1,11 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "The `war check --generated` command on the committed corpus exited 0, demonstrating that the generated schemas validate the existing corpus, and the receipt for gate run software_repo_war-check_1_0_0.receipt.json confirms successful validation."
+disposition = "not_established"
+evidence = "The bundle's deliverables array is empty, so no generated JSON Schema, IR/manifest/Dispatch/Submission/gate schema files, or corpus-validation output tied to OW-WAR-0032 is present. The single gate run (GR-software.repo.war-check@1.0.0, receipt sha256:75e48307...) has a truncated stdout whose visible tail covers only OW-WAR-0138 through OW-WAR-0147 manifest/obligation/journal checks and unrelated doc-drift checks (CURRENT.md, HISTORY.md, CORPUS_STATUS.*); nothing in the shown text validates generated JSON Schema against any corpus. obligation_evidence lists no named_paths or terms for OBL-001 at all, so nothing was carried to decide this."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

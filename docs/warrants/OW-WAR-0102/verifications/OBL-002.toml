@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No deliverables, gate_runs, or plants are present in the bundle to show any completion-word emission logic, projection of final/nonfinal records, or an unauthenticated-request refusal. obligation_evidence for OBL-002 carries no named_paths or terms. Only the atoms (intent/basis/work-order/assurance) describe what is intended, but intent is not evidence of behavior, so the claim is undecidable from this bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

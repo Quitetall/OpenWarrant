@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0125"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (receipt verdict \"pass\", exit_result \"pass\") shows all three required behaviors in its stdout excerpts: line 459 \"existing section citations current 88 of 88 pass sas.section-current\" (all cited sections at the pinned 0.1.0-draft.1 revision report unchanged), line 463 \"a cited section that changed ... WARN sas.section-current (sas://WAR-SAS-98 changed between SAS 0.1.0-draft.1 ... SAS 1.1.1)\" (the planted citation of a changed section warns, naming both the pinned and the now-latest-accepted revision), and line 467 \"a shallow clone cannot say UNKNOWN sas.section-current (sas://WAR-SAS-43.5, shallow)\" (the same class of citation reads UNKNOWN, never pass or warn, when history is absent). D-009 (conformance/plants.d/56-sas-sections.sh) shows the plant deriving SEC_LATEST dynamically from whichever revision record currently carries `state = \"accepted\"`, and its own comment notes a hardcoded version 1.1.0 \"went stale the day 1.1.1 was proposed\" — confirming the mechanism compares against the current latest accepted revision rather than a fixed one, which is why the observed warning names 1.1.1 rather than the 1.1.0 the obligation's scope was drafted against. D-007 (crates/openwarrant-cli/src/check.rs, lines 1965-2151, function check_section_refs) implements exactly this pass/warn/unknown logic against the pinned vs. latest-accepted digest. Together these establish the substantive claim — per-section currency, correctly UNKNOWN when history cannot say — even though the specific revision number in the obligation's scope text is now superseded by a later accepted revision."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

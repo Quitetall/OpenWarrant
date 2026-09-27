@@ -1,12 +1,11 @@
 obligation = "OBL-001"
-disposition = "established"
-evidence = "The test 'the_measure_and_metric_counts_match_the_sas' in telemetry.rs verifies that the measurement set aligns with §94's list, and the take function records measures for real operations as confirmed by all passing tests in the measured evidence."
+disposition = "not_established"
+evidence = "The only deliverable, D-001 (crates/openwarrant-cli/src/telemetry.rs, 18005 bytes, not truncated), shows the `take()` function's design for computing §94 measures from git log/journal data or marking them `not_measurable_yet`, but the bundle contains no test_names, no baseline artifact, and no execution output for `war telemetry`. The one gate run present (GR-software.repo.war-check@1.0.0, stdout 373774 bytes, truncated) exercises `war check --generated`, whose printed PASS/WARN lines (manifest.valid, deliverable.digests, identity.atom-mismatch, milestones.valid, etc.) validate warrant structure and never mention telemetry, measures, or any run of the take() function. Absent any execution evidence that a measurement was actually recorded for a real operation, the claim rests on source code alone and is not established."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

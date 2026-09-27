@@ -1,0 +1,19 @@
+obligation = "OBL-007"
+disposition = "established"
+evidence = "conformance/plants.d/45-tickets.sh (D-013) builds exactly the scope's fixtures — ticket $TK5 with an open item Walls and a note about concrete over timber, ticket $TK6 whose sole item is hand-edited to '— done by alice, 2020-01-01', and the recently-completed $TK ticket — then runs `war prime` and `war prime $TK5` and asserts: the open Walls item is listed, the done Foundation item is not, no `- [x]` line appears anywhere, the note text is present, exactly one line for $TK6 appears matching '- t-57253c — An old finished job (done 2020-01-01, 1 item(s))' under Done earlier, $TK appears in the recent-done section, and `prime $TK5` reports '1 item(s) done' without listing Foundation. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass) stdout excerpt confirms this exact check succeeded: 'ok    prime: undone items, old done compacted remaining items and notes; t-57253c (2020) is one line; t-3635 recent'. compact_after_days is left at its unoverridden default of 7 in this plant, matching the obligation's scope, and the 2020 ticket falls well outside that window while the fresh one falls inside it, so both branches of the compaction rule are exercised."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

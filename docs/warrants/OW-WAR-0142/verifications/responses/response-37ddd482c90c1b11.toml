@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0142"
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, receipt sha256:223d94937a855748589beb27a52fbe8a9204d145a1db85a1e5db1e8364678afb, '1214 passed, 0 failed') carries stdout excerpts from the 69-standing.sh 'SB' section that directly match every element OBL-002 requires: 'inside the class: authorized' confirms a covered Warrant's authorization.toml carries its own digest, the class signer, policy_basis=standing://routine@1 and its declared set, and that `war check` passes it; and the run shows a full set of named refusals with 'nothing written' — 'a path outside the class' (standing.outside-class), 'assurance controlled' (standing.assurance), 'profile decision' (standing.profile), 'an adr atom' (standing.adr), 'an accepted residual risk' (standing.residual-risk), 'a gate the class does not name' (standing.gate), both budget refusals (standing.budget), 'an application after expires_at' (standing.expired), and 'an application past max_warrants' (standing.exhausted). It also shows 'edited outside the class: ERROR' (standing.outside-class, not PASS) and 'applied after revocation' (standing.revoked, nothing written) with 'an earlier record stands (§31)'. Deliverable D-014 (69-standing.sh, target of this obligation) carries the underlying assertion code for the positive case (st_class/st_sign/sb standing apply, grep checks for contract_digest, authorizer='Plant Signer', policy_basis, target_ref, PASS standing.inside-class, no ERROR) and the st_refused helper that asserts each rejected Warrant's directory is byte-identical before and after, matching the scope's 'nothing written' requirement. Together the passing gate receipt and the matching plant source establish both the positive and refusal halves of the claim within the stated scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

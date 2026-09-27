@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0096"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables, gate_runs, and plants arrays are all empty; obligation_evidence for OBL-001 lists no named_paths and no terms. Only the assurance atom (atoms/60-assurance.md) asserts that authorized update/recovery passes and various malformed/forged inputs refuse, but no actual authority_transition test output, gate run, or deliverable bytes are carried in the bundle to substantiate that assertion."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No CLI deliverable, key material, store fixture, or gate run is present in the bundle (deliverables: [], gate_runs: [], obligation_evidence for OBL-002 has empty named_paths and terms). The claim of successful approval/reload and refusal of unsigned/forged/replayed/concurrent updates is only asserted in atoms/60-assurance.md, not demonstrated by any carried evidence."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "There is no sandbox fixture, CLI output, or gate run in the bundle to show same-account bootstrap refusal, labeling of unprotected test mode, or the sandbox isolation boundary; obligation_evidence lists no named_paths or terms for OBL-003, and deliverables/gate_runs/plants are all empty."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "No legacy export bytes, CLI command transcripts, or fixture-mode activation logs are carried (deliverables and gate_runs are empty, and OBL-004's obligation_evidence entry has no named_paths or terms). The claims about unchanged legacy export, inert draft/propose, and single approve --activate completion appear only in the assurance atom's text, not in any evidenced artifact."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

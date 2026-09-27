@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0123"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "conformance/plants.d/58-parent-revision.sh (D-004) sets up a full, verified non-shallow clone ($PR_FULL/r) of the repository and, on OW-WAR-0002, first cites parent OW-WAR-0001 at revision 1 with digest ab7e2df7… then checks with pr_expect/pr_none for a pass on relations.parent-revision ('cited at revision 1, at that revision's digest'), a warn on relations.parent-moved naming 'from revision 1 to revision 2', and no error on either relations.parent-revision or relations.parent-digest; it then re-cites at revision 2 with digest f29c7d95… and checks for a pass on relations.parent-revision, no warn on relations.parent-moved, and no error on either rule. The gate run GR-ops.conformance.plants@1.1.0 (verdict: pass) stdout excerpt shows exactly these assertions succeeding: 'ok exact revision 1 passes ... pass relations.parent-revision', 'ok exact revision 1: parent moved ... warn relations.parent-moved', 'ok exact revision 1: no revision error', 'ok exact revision 1: no digest error', 'ok exact revision 2 passes ... pass relations.parent-revision', 'ok exact revision 2: no moved warning', 'ok exact revision 2: no revision error', 'ok exact revision 2: no digest error', with the run totaling '1214 passed, 0 failed'. The obligation_evidence entry for OBL-003 confirms the needed terms (ab7e2df7…, relations.parent-moved, f29c7d95…) are shown in D-004 and the gate stdout, none cut by budget. This matches the obligation's exact claim and scope (full Git history) without contradiction."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

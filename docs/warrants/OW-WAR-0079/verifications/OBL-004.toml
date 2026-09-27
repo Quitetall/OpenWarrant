@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "OBL-004's scope is limited to structural validity of this Warrant's authored records, and it names exactly gate://software.repo.war-check@1.0.0 as its evidentiary gate. That gate's run (GR-software.repo.war-check@1.0.0) is attached with subject_digests binding it to this Warrant's own authorized_contract_digest (sha256:c8a069f42...440324), and its receipt/run records report exit_result 'pass' and verdict 'pass'. The run's aggregate tally (2029 pass, 248 warn, 0 error, worst: WARN) shows no ERROR-level findings anywhere in the corpus, and the only findings attributable to OW-WAR-0079 in the REMEDIES summary ('auto war evidence record OW-WAR-0079', 'human war sas repin OW-WAR-0079') are WARN-tier remediation items, not structural failures, consistent with the gate's own pass verdict for this contract."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

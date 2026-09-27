@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "refuted"
+evidence = "D-001 (the delivered docs/adr/atoms/OW-ADR-0029-standing-authorization.md, sha256 52ad1e53...) is byte-identical to the pre-decision draft atom: its Status reads 'Not decided' and its Decision section reads verbatim '*Pending Q-001.* If A: the mechanism above,' with status: proposed still in the front matter. OBL-001 requires 'the Decision section matches the answer in Q-001, and answered_by is a person,' but no such answer is recorded in D-001, and obligation_evidence confirms questions/Q-001.toml is absent from the bundle entirely ('not a deliverable: not carried'), so there is no record of what, if anything, the owner answered. Yet the bundle also carries D-027 (docs/sas/revisions/1.2.0.toml, state = 'proposed', predecessor 1.1.1, citing OW-ADR-0029 and adding WAR-SAS-RQ-038 for standing authorization) and gate run GR-ops.conformance.plants@1.1.0's stdout excerpt shows an extensive '== standing authorization (OW-WAR-0142) ==' battery of passing tests for the full standing-authorization mechanism — work that, per atoms/40-work-order.md's Scope section and milestones (M2-M4 built only under answer A), presupposes the owner already chose A. This is inconsistent with D-001 still declaring the ADR 'Not decided' and the Decision 'Pending Q-001': either the decision was made and the ADR was never rewritten to match it (contradicting the obligation's explicit requirement), or the downstream build work proceeded without the required prior decision. Either way the bundle shows the obligation's specific claim - that the Decision section is recorded and matches an owner's answer - does not hold."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

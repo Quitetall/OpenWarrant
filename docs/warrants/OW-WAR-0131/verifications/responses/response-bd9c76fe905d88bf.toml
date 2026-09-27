@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0131"
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "The gate run GR-ops.conformance.plants@1.1.0 (verdict pass) stdout excerpt at lines 768-770 shows the three exact plant results from conformance/plants.d/60-perform-cancel.sh (D-006): \"ok a second writer is refused rejected by perform.writer-alive (pid 1564787); no marker, no new Dispatch\", \"ok a mismatched writer is unknown rejected by perform.writer-unknown (start time); nothing started, record kept\", and \"ok a gone writer is handed off perform.writer-stopped; the record was removed and the performer started\". These map one-to-one onto D-006's pc_ok() messages for the 'a second writer is refused', 'a mismatched writer is unknown', and 'a gone writer is handed off' cases, which respectively assert (per the script's own checks) that the second call is rejected with no second marker file and no new dispatch.compiled event, that a planted .writer with a start-time mismatch is refused perform.writer-unknown with the record kept, and that a planted .writer naming a gone process group is removed and lets the performer start. D-001 (perform.rs)'s handoff()/probe() functions and the WriterRecord/Liveness types implement exactly this Alive/Gone/Unknown distinction, and obligation_evidence confirms the terms 'perform.writer-alive'/'perform.writer-unknown'/'.writer' are shown (not cut) across D-001, D-006, D-007 and the gate stdout. Together these establish all three evidence bullets OBL-002 requires, within its stated scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

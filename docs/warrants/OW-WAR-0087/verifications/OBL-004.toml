@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "The gate cited by OBL-004, gate://software.repo.war-check@1.0.0, was run (run_id GR-software.repo.war-check@1.0.0, verdict 'pass', exit_result 'pass') with subject_digests binding it to this exact contract (contract:sha256:0f06cebb...81e2fa1, matching authorized_contract_digest) and to tree:2b24c062778e0d87732c7f85873cd25ceb8fbad3. The visible tail of stdout shows the structural line 'PASS identity.atom-mismatch OW-WAR-0087: 4 atom(s) name this Warrant's UUID' and no ERROR-level line for OW-WAR-0087 (only a routine WARN sas.pin-superseded, reflected in the remedies list as 'human war sas repin OW-WAR-0087', which does not change the recorded overall verdict of pass). The obligation's own scope is limited to this structural check with no runtime claim, exactly matching what software.repo.war-check performs per the 'Gate Adequacy' note in atoms/60-assurance.md."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

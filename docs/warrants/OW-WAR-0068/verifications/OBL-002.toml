@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "D-002 (frontier.rs) implements the four StageState values and blocking-edge logic, and D-010 (conformance/plants.d/90-skills.sh) contains plant *source* asserting 'an unblocked stage is OPEN', 'a stage behind an incomplete milestone is blocked', and the glossary-riding-in-Dispatch checks, but the bundle's top-level 'plants' array is empty and gate_runs only contains the software.repo.war-check@1.0.0 receipt, whose visible (tail-truncated) stdout covers OW-WAR-0138 through OW-WAR-0147 plus repo-wide identity/composition checks — it never shows an OW-WAR-0068-specific milestones.valid/obligations.valid line, and explicitly states under NOT CHECKED that 'war check does not invoke' gates, so no plant execution evidence is present. D-007 (war-review/SKILL.md) and D-008 (war-map/SKILL.md) describe the two-axis review and blocking_unknown fog methodology as intended process, not an actual review or map artifact that named both axes or recorded blocking_unknown assumptions read by war check. No frontier run output or actual review/map record is in the bundle to corroborate the described designs."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

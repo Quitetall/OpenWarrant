@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass, 1214 passed/0 failed, subject_digests bound to this Warrant's contract and tree) prints a section headed '== the hub (OW-WAR-0115) ==' (stdout lines 1020-1057) with five ok lines that map onto every clause of OBL-001's evidence: 'used projects are remembered ... war status in two repositories lists both', 'a moved project is not forgotten ... listed as missing, by name' (the deleted/moved-path-shown-as-missing requirement), '--forget removes exactly one ... the other stays', 'the opt-out writes nothing ... no projects.toml' (OPENWARRANT_NO_PROJECTS=1 leaves the file absent), and 'an unwritable list changes nothing ... exit 0 either way' (the unwritable-config-dir exit-code requirement). This is corroborated by the carried code in D-001 (projects.rs): touch() honoring OPENWARRANT_NO_PROJECTS, save()'s write-then-rename, listed()/rows() marking a project 'missing' via parsed.is_none() rather than removing it from the BTreeMap, and run()'s --forget path removing exactly one key; and by the D-002 (lib.rs) excerpt at lines 1557-1594 showing the open_repo closure calling projects::touch(&r.root) on every repository discovery, best-effort. The plant script itself (conformance/plants.d/71-hub.sh, D-006) is not carried, so the exact invocation syntax (e.g. whether --json was used for the 'lists both' check) is not independently visible, but the named test outcomes from the actual gate run align with every scoped behavior in the obligation's evidence clause."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

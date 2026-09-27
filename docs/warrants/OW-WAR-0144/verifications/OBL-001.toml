@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = """D-001 (authorize.rs) implements retain_superseded, and D-002 (49-authorization-retained.sh) contains the exact plant assertions for this claim ("revision 1 is kept beside revision 2", "the revision-1 envelope verifies" via attest.subject-archived, and the control check for attest.subject-drift), but obligation_evidence marks the terms 'attest.subject-archived' and (implicitly) the plant's own printed output as cut_from the gate run's stdout — the GR-ops.conformance.plants@1.1.0 receipt's stdout shown in the bundle is truncated (truncated:true) and its visible text jumps between unrelated plant sections (e.g. OW-WAR-0136, OW-WAR-0139) without ever showing the '== authorization retention (OW-WAR-0144) ==' section or its ar_ok/ar_fail lines. The overall summary '1214 passed, 0 failed' is shown, but it does not itself demonstrate the specific claims (byte-identical digest match, attest --verify producing subject-archived, and the drift control) since the section proving those specific assertions ran and passed was not carried in the bundle. Source code and script existing is not execution evidence."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

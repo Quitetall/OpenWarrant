@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0146"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "OBL-001 cites gate://software.repo.war-check@1.0.0 as its evidence source, and the bundle's sole gate_runs entry is exactly that gate for OW-WAR-0146 (run_id GR-software.repo.war-check@1.0.0). Its stdout (truncated, tail shown) is a static corpus check (manifest/digest/journal/authority checks across all Warrants) and its own 'NOT CHECKED' section states explicitly: 'gate execution — `war gate --run` executes a registered gate (§44), but `war check` does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run.' No run of `conformance/plants.d/47-bundle-output.sh` (D-002) or of bundle.rs's own `#[test]` functions is carried anywhere in gate_runs, so there is no execution evidence that a bundled gate run's stdout.text/stdout.sha256/truncated/captured behave as OBL-001 requires. D-001 and D-002 show the code and the plant's assertions exist, but code presence is not evidence of runtime behavior; per the Warrant's own intent atom (atoms/10-intent.md, Non-goals), an obligation whose cited gate does not run the tests it names stays unestablishable."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "OBL-002 also cites gate://software.repo.war-check@1.0.0. As with OBL-001, the only gate run carried is that static corpus-check gate, whose own output disclaims that `war check` executes any gate (see the NOT CHECKED note quoted above), and no execution of the mismatch-detection scenario (editing stdout after receipt minting, in `47-bundle-output.sh`'s OBL-002 section) is recorded in gate_runs. The `carried_receipt` unit test in D-001 (a_carried_receipt_does_not_depend_on_where_the_checkout_sits) is unrelated to digest mismatch detection, and no test run results are bundled at all. Without any recorded execution of the mismatch check, the claim that `mismatch: true` is set correctly (and absent when no digest is recorded) cannot be decided from this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003's scope requires two `--bundle` runs producing one digest and a `--run` with the fake-`claude` verifier of `62-verifier.sh`; obligation_evidence for OBL-003 shows `62-verifier.sh` as a named_path with `absent: \"no deliverable of OW-WAR-0146 and no file at this path: not carried\"`, i.e. the file this obligation's scope depends on is not even present in the repository tree the bundle describes. The only gate run bundled is the static software.repo.war-check gate (again disclaimed by the bundle's own NOT CHECKED note as not executing any gate), so there is no recorded execution of `war verify --bundle` twice, no digest comparison, and no ingestion log ('verify.recorded') to confirm determinism or verifier ingestion. The claim cannot be established from the evidence carried."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = 'The bundle carries zero deliverables (deliverables: []) despite full "warrant" scope, so none of the work-order paths (adapter.rs, conformance/integration/, docs/integrations/sdk.md) or the planned acceptance receipt from `python3 conformance/integration/adapter/run.py` are present. The only gate run included is software.repo.war-check@1.0.0, a structural/document check, which the Assurance atom (60-assurance.md, "Gate Adequacy") explicitly says cannot establish runtime behavior ("war check cannot establish runtime behavior or independent verification. Unknown observations cannot pass."). No plants, no fixture output, and no execution trace of the real-provider/offline-flow claim are shown, so the scoped behavior cannot be judged from this bundle.'
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,19 @@
+obligation = "OBL-005"
+disposition = "established"
+evidence = "D-004 (conformance/plants.d/51-identity.sh) computes the corpus's v4 ADR set independently (via a python scan of docs/adr/atoms/*.md's adr_uuid fields) and asserts it equals the set of paths `war check --json` warns with identity.adr-not-v7, then separately asserts `git -C $REPO_ROOT diff --quiet HEAD -- docs/adr/` is empty. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass) stdout excerpt (lines 223-273) shows both assertions passing: 'ok    corpus: adr-not-v7 one by one      13 v4 ADR(s), once each, no v7' and 'ok    no ADR identity rewritten          git diff over docs/adr/ is empty'. This matches the 13-of-23 v4 ADR count stated in atoms/20-basis.md (A-001) and directly satisfies both evidence bullets of OBL-005's scope: the plant confirms the rule fires once per v4 ADR and never for a v7 one, and confirms no ADR file was rewritten by the work."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

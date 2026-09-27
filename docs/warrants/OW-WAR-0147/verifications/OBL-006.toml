@@ -1,0 +1,19 @@
+obligation = "OBL-006"
+disposition = "not_established"
+evidence = "The plant run GR-ops.conformance.plants@1.1.0 (ops.conformance.plants@1.1.0 stdout) directly confirms the first two evidence bullets by execution: 'ok check: an unsigned ticket is sound exit 0; no ticket finding about authorization, evidence or verification', 'ok a Warrant naming profile ticket refused: a working form is not a Warrant of the contract corpus', and 'ok promote drafts a Warrant, opt-in t-3635 → TK-WAR-0002, a draft awaiting its human; twice refused' (matching the ticket.already-promoted refusal). D-006 (ticket/mod.rs) and D-013 (45-tickets.sh) source corroborate the mechanism (check(), promote() calling new::run, the plant's grep assertions on promoted_to, journal, and absence of an authorization file). However, the obligation's third bullet also requires that 'the registry refuses every malformed working form (role.rs tests: no core role, a compiler-produced or foreign role, a duplicate, an unknown form, core_roles without the form, an acceptance role, a core profile with a form)'. The only evidence for this is the source of the test a_working_form_is_refused_on_every_malformation in D-002 (role.rs), which is marked truncated:true and whose shown excerpt cuts off exactly at the final enumerated case ('a core profile has no working form'), before its assertion completes. No gate run in the bundle (only ops.conformance.plants@1.1.0 and software.repo.war-check@1.0.0 are present) executes cargo test or otherwise reports this test, or any role.rs/manifest.rs unit test, as having actually run and passed — the bundle shows only the test's source code, which is assertion of intent, not proof of a passing run. Because the obligation's own evidence text ties acceptance to that unit-test outcome and the bundle carries neither the completed source nor an execution record for it, this component is only asserted, not established, so the obligation as a whole cannot be marked established."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

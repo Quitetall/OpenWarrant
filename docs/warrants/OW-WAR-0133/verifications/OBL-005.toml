@@ -1,0 +1,19 @@
+obligation = "OBL-005"
+disposition = "not_established"
+evidence = "The plant script D-005 (conformance/plants.d/55-evidence-reuse.sh) defines two checks for OBL-005: a budget-too-small case expecting `dispatch.over-budget .*largest: atoms/` (not the literal `RequiredItemOmitted` the obligation's own evidence text names), and the Q-002(c) same-path-two-digests case. The only excerpted line from the actual ops.conformance.plants@1.1.0 run (stdout excerpt at line 373) is the script's own admission: 'UNKNOWN OBL-005 conflict via war dispatch not reachable through the stage selector; unit-tested in the compiler and core' — i.e. the conflict-refusal half of OBL-005, which the obligation's scope requires to be shown 'as reached through war dispatch', was not exercised through that path at all in this run, only (per the script comment) unit-tested in crates/openwarrant-compiler/src/dispatch.rs and core/src/context.rs, neither of which is a carried deliverable in this bundle. The bundle shows no specific pass/fail line for the 'a budget too small for the atoms' case (only the aggregate battery tail 'ir 1214 passed, 0 failed', which cannot be attributed to this specific check), and crates/openwarrant-cli/src/dispatch.rs (D-007, the code that would actually wire RequiredItemOmitted into `war dispatch`'s refusal) is listed under deliverables_not_carried. With the conflict half explicitly marked UNKNOWN by the run itself and the omission half unverifiable from the bytes shown, the bundle does not establish this obligation."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

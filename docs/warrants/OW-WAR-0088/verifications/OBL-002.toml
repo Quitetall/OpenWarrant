@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No deliverables, gate output, or plants in the bundle show any refusal fixture, exit code, or unchanged-output-on-failed-write for the interactive authoring boundary; obligation_evidence for OBL-002 carries no named_paths or terms. The single gate run is the structural war-check over the whole repo tree, not a run of the named test/refusal fixtures for this boundary, so positive or negative behavior of the boundary is not observed anywhere in the bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

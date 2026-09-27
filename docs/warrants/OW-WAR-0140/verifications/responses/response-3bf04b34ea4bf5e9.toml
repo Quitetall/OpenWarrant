@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0140"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, evidence.admissible per the war-check PASS line naming it) has its stdout excerpt showing exactly the acceptance checks the plant D-009 (conformance/plants.d/56-contractor.sh) defines via ct_acceptance and ct_roles: 'a human holding resolver may accept PASS: is a human holding resolver', 'an agent is refused by kind ERROR: is agent-kind', 'no resolver: refused by name ERROR: does not hold `resolver`', 'the performer is refused (§27.2) ERROR: is the performer', 'no new ActorRole variant Performer Verifier Authorizer Resolver RiskAcceptor Judge', and 'a kf:// invoice reference is UNKNOWN no Knowledge Fabric reachable'. The plant source (D-009) shows these checks operate on the fixture program written by D-012 (work-order.sh), matching the obligation's stated scope, and obligation_evidence confirms the terms 'resolver', 'ActorRole', and 'kf://' are shown (not cut) across D-007, D-009, D-012 and the gate stdout. All five evidence items the obligation lists are thus shown passing in the bundle with no contrary indication."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

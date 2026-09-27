@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = 'The bundle carries zero deliverables ("deliverables":[]) and obligation_evidence for OBL-001 lists no named_paths and no terms, with the only selection note being "warrant: every deliverable of the Warrant" — i.e. there is nothing to observe. No plants and no gate run exercises check_records/evaluate_readiness/evaluate_assurance; the sole gate run present (GR-software.repo.war-check@1.0.0) is a structural repo-linter run, not a test of the SDK scheduling/records behavior the obligation names. Absent any evidence of the scoped behavior, this cannot be decided.'
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

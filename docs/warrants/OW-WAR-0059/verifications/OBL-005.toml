@@ -1,12 +1,11 @@
 obligation = "OBL-005"
-disposition = "established"
-evidence = "The plant 'satisfied signed over an unestablished obligation' in conformance/plant.sh, listed under OW-WAR-0010, was rejected by its named rule and exercises the control for this obligation by testing that `satisfied` is refused when obligations are not established."
+disposition = "not_established"
+evidence = """The bundle's own obligation_evidence entry for OBL-005 shows 'resolution.outcome-unsupported' present only in D-002 (source code), with 'common_outcome = "satisfied"' shown nowhere and no plant present anywhere ("plants":[] is empty). D-002 (resolution_cmd.rs) does contain the guard `if response.common_outcome == CommonOutcome::Satisfied && a.would_resolve_satisfied != Some(true) { ... "resolution.outcome-unsupported" ... }`, which shows the mechanism is coded, but no execution trace in this bundle shows that rule actually firing: the gate run receipt/stdout excerpts (run GR-software.repo.war-check@1.0.0, OW-WAR-0059) list many 'PASS resolution.recorded' lines and one unrelated WARN (evidence.not-a-pass) but no instance of resolution.outcome-unsupported being triggered. The only item asserting the plant ran and was refused is the prior_verifications entry from verifier lamu:mimo-v2.5-pro, which is itself an account/claim rather than the underlying plant output or run log, and conformance/plant.sh is not carried in this bundle for independent inspection. Per the rule that a claim is not established merely because code looks plausible or because another party asserts it, and because the execution evidence this obligation specifically requires (a plant refused as resolution.outcome-unsupported, naming the obligations) is not shown in this bundle, the obligation is not established from the bundle alone."""
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

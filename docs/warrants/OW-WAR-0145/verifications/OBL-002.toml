@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "D-001 (conformance/plant-isolated.sh, lines 27-30) contains the refusal logic ('plant-isolated.refused-nested', exit 2) and D-003 contains a plant that would invoke it with OPENWARRANT_IN_BATTERY=1, but the bundle carries no execution trace of plant-isolated.sh being run with that variable set — the only gate_runs entry is software.repo.war-check@1.0.0, an unrelated static corpus check, and obligation_evidence shows no run output for this term beyond the source files D-001/D-003 themselves. Without an actual run (exit code and captured stderr line), the claim rests on reading code, which is insufficient to establish it."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

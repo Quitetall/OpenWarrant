@@ -1,12 +1,11 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "The deliverable D-001 (kf.rs) implements the KF seam but contains no code or tests for enterprise identifier provenance, and no receipt or test in the measured evidence demonstrates an identifier returned from KF or refusal of a locally-derived one."
+evidence = "JDG-001 in atoms/60-assurance.md groups OBL-002 with OBL-001 and OBL-004 as requiring an actual write to KF that never completed (blocked at OBS-007's 404 from an empty action registry). D-001 (crates/openwarrant-cli/src/kf.rs) contains no code path handling an enterprise identifier, and no receipt or allocator response naming an identifier appears anywhere in the bundle, so there is no evidence of either a KF-issued identifier or a contrasting local-fabrication refusal."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

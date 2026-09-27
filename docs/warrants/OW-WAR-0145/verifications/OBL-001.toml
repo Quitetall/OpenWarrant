@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's only gate_runs entry is GR-software.repo.war-check@1.0.0 (a `war check --generated` run), not an execution of `war gate --run --gate ops.conformance.plants@1.1.0` on a scratch corpus with a fake battery and uncommitted files. D-003's ib_run()/ib_tree() functions define exactly the check the obligation asks for, and D-001/D-002 are the source the plant would exercise, but no captured stdout/stderr or run record shows these plants were actually executed — the war-check stdout (itself only a tail, truncated:true) contains no 'ib_ok'/'ib_fail' lines or 'askability askable · verdict pass' output, and no separate gate run for ops.conformance.plants@1.1.0 is recorded for OW-WAR-0145 (no matching 'evidence.admissible' line appears in its section of the war-check output, unlike OW-WAR-0138/0139/0140 etc.). Source code alone cannot establish that the run occurred, passed, left the tree untouched, or correctly refused on a failing fake battery."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

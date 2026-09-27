@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = """Gate run GR-ops.conformance.plants@1.1.0 (verdict: pass, 1214 passed/0 failed) printed the exact three plant checks OBL-003 requires: 'requires_war >=99 refuses — compat.war-too-old (exit 2), >=99 and war 1.0.0-alpha.2 named, no Warrant read' (from conformance/plants.d/69-idempotency.sh's `iv_requires ">=99"` case, D-008), 'requires_war = this war passes — =1.0.0-alpha.2: status unchanged from no key (exit 0)' (comparing the equal-version case against the no-key baseline IV_BASE), and 'a v9 record is UNKNOWN — compat.newer-record, no PASS, no new ERROR (0)' paired with the negative control 'a v1 record is not newer — compat.newer-record silent'. D-004 (compat.rs, untruncated, tests requires_war_refuses_an_older_war_naming_both_versions and a_newer_major_is_unknown_and_an_unrelated_schema_is_ignored) shows the TOO_OLD constant, check_version's refusal naming both versions, and newer_records emitting Severity::Unknown compat.newer-record. D-006 (repo.rs excerpts) shows Repository::discover calling compat::check before profiles/records are loaded and load_warrant calling compat::newer_records, and D-013 (lib.rs excerpt) shows the top-level dispatch mapping any message containing repo::compat::TOO_OLD to EXIT_NOT_READY (exit 2). D-007 (docs/COMPATIBILITY.md, untruncated) documents the same requires_war/compat.newer-record mechanism consistently. All evidence bullets in the obligation are matched by passing, named plant lines from the actual gate execution, not merely asserted."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

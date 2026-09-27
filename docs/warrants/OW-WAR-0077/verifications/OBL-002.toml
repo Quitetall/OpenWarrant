@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "plants is empty ([]) and deliverables is empty, so there is no observed refusal for malformed/incomplete/conflicting/over-limit/authority-confused inputs anywhere in the bundle. The gate run present is the structural war-check, not a refusal test of the SDK/provider boundary, and 60-assurance.md explicitly warns that 'Unknown observations cannot pass' — no refusal evidence is carried."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

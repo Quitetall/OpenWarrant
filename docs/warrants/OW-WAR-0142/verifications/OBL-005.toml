@@ -1,0 +1,19 @@
+obligation = "OBL-005"
+disposition = "not_established"
+evidence = "The obligation's scope specifically requires the refusal be shown 'with policy.allow_automated_resolution = true and a policy_service actor in roles.toml.' obligation_evidence flags docs/authority/roles.toml as absent entirely ('no deliverable of OW-WAR-0142 and no file at this path'), and the exact term 'policy.allow_automated_resolution = true' is not shown anywhere in the bundle (shown_in: []); only the bare config-flag identifier appears, in code excerpts of D-013 (resolve.rs) and D-019 (resolution_cmd.rs). The plant script D-014 (conformance/plants.d/69-standing.sh), section SC, does write a resolution-response fixture named 'plant-policy' with meaning 'The policy service resolves a basic mechanical Warrant (§27.3)', and the live gate run GR-ops.conformance.plants@1.1.0 (verdict pass, 1214 passed/0 failed) shows matching stdout lines 'ok the policy service resolves resolve.standing-needs-human, nothing written', 'ok war resolve alone writes no resolution', 'ok a class with a resolution term standing.unknown-term, nothing written', and 'ok a human resolves them in one batch 3 resolutions, 1 batch document, by Plant Signer' — all consistent with the obligation's four evidence bullets. However, the corpus-setup helper (st_corpus/roles fixture) that would show policy.allow_automated_resolution actually being set true and a policy_service-kind actor being registered is not carried in the bundle, and the code excerpt shown for resolve.rs (lines 409-433) indicates the refusal fires purely from the Warrant's standing policy_basis, independent of the config flag or actor kind — meaning the demonstrated test may never have exercised the scope's named adversarial precondition at all. Because the bundle does not carry roles.toml or any excerpt confirming the flag/actor setup, the claim cannot be confirmed as tested under the exact scope stated, though nothing refutes it either."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

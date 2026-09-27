@@ -1,12 +1,11 @@
 obligation = "OBL-003"
-disposition = "established"
-evidence = "The tests in identity.rs, such as identity::tests::minted_identity_is_v7 and identity::tests::alias_round_trips, all pass and demonstrate that identity allocation (WarUuid minting and LocalAlias parsing) functions correctly offline without Knowledge Fabric, as required for the deliverable D-001."
+disposition = "not_established"
+evidence = "D-001's unit tests (e.g. minted_identity_is_v7, alias_round_trips) are pure in-process Rust tests with no KF dependency, so their existence is consistent with offline operation, but the bundle gives no record that these tests were actually executed and passed: the only gate run present, GR-software.repo.war-check@1.0.0, states in its own NOT CHECKED section that `war check` 'does not invoke [gates]... nothing here is evidence that a Warrant's acceptance gates were run.' Without a test-execution record or a described 'full local flow with KF unreachable' scenario (per the obligation's own evidence requirement), offline preservation cannot be established from source code alone."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

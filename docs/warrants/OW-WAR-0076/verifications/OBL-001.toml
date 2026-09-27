@@ -1,0 +1,19 @@
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables array is empty and obligation_evidence for OBL-001 shows selection 'warrant: every deliverable of the Warrant' with no named_paths or terms actually populated — no bytes of author.rs, conformance/sdk/author/ fixtures, or any parse_document/validate_document output are present anywhere in the bundle. The only evidence item is the software.repo.war-check@1.0.0 gate run, which is a structural/authority linter over the whole corpus and never inspects runtime SDK behavior (footer ordering, unit preservation, revision handling). There is nothing here showing readable-text-first/footer-last output or preserved units, so the claim cannot be decided from this bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

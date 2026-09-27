@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "Same empty-evidence state as OBL-001: obligation_evidence for OBL-002 shows no named_paths/terms, deliverables is empty, plants is empty, and prior_verifications is empty, so no refusal fixtures, negative-input tests, or fixture-name-selection checks are shown anywhere in the bundle. The only gate run (software.repo.war-check) checks Warrant-record structure, not input refusal behavior at the check_records/evaluate_readiness/evaluate_assurance boundary. No basis to say refusals occurred or did not occur."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

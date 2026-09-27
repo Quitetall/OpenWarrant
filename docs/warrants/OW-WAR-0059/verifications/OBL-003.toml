@@ -1,12 +1,11 @@
 obligation = "OBL-003"
-disposition = "established"
-evidence = "The tests in `evidence::tests` (e.g., `a_sealed_bound_passing_receipt_is_admissible`) verify that only admissible evidence bound to the contract digest is considered, and `war check --generated` passes on the committed corpus, ensuring requirement 5 is answered from tracked inputs."
+disposition = "not_established"
+evidence = "The only deliverable carried with bytes is D-001 crates/openwarrant-cli/src/evidence.rs, whose `load` function reads a Warrant's gate-runs/ (GATE_RUNS_DIR) rather than docs/receipts/ — but that shows only the evidence module's own read path, not 'the corpus projection's source' the obligation's evidence text cites, which is not among D-001/D-002/D-003 and is nowhere in the bundle. D-002 (resolution_cmd.rs) and D-003 (gate_cmd.rs) are listed only in deliverables_not_carried by digest, with no bytes shown. obligation_evidence for OBL-003 explicitly marks the named path 'gate-runs/' absent ('a record of OW-WAR-0059 (docs/warrants/OW-WAR-0059/gate-runs), not a deliverable: not carried'), so the actual tracked directory content cannot be inspected. The single gate_runs entry (run GR-software.repo.war-check@1.0.0, receipt bound to contract:sha256:5361789f...) has a truncated stdout showing only scattered excerpts (lines 929-944, 2549, 2709, 2784, and a tail); none of the visible text states that three Warrants read requirement 5 as met or shows the replaced caveat naming gate-runs/ as the obligation's evidence claims — the visible excerpt instead shows a WARN 'evidence.not-a-pass' line for OW-WAR-0059 itself, which is not proof of the claim either way. Because the bundle does not carry the projection source and cuts the check output past what is needed, the claim that requirement 5 answers from tracked inputs only cannot be decided from this bundle; the prior agent verification's 'established' disposition is not itself evidence and cites no bundle item beyond the same untraceable generalities."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

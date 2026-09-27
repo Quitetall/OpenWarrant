@@ -1,0 +1,19 @@
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-003 shows the term 'war eval' appearing only in the atoms (the work-order text at atoms/40-work-order.md item 8), never in any deliverable, and the term '.claude/skills/**' is shown nowhere in the bundle at all (empty shown_in). No eval task files or baseline results for grill/spec/tickets are among the deliverables (D-001 through D-010 are CONTEXT.md, frontier.rs, context_select.rs, four SKILL.md files, docs/SKILLS.md, and the plants script). D-010 contains only the em-dash refusal plant's shell-script source ('an em-dash in a skill is refused by file and line', invoking a local xtask build), with no corresponding gate run or plant execution record in this bundle showing it actually ran and passed. Without eval-task deliverables or an executed em-dash-refusal result, the claim that the superset is measured cannot be established from this bundle."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

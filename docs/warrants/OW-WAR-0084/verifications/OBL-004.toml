@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "The named gate software.repo.war-check@1.0.0 (run GR-software.repo.war-check@1.0.0) executed against subject_digests including contract:sha256:253369a99... which matches the bundle's authorized_contract_digest, and its receipt/exit_result/verdict are all 'pass'. Within the visible tail of stdout, the line 'PASS identity.atom-mismatch OW-WAR-0084: 4 atom(s) name this Warrant's UUID' directly confirms structural validity of OW-WAR-0084's authored atoms, and the run's aggregate tally ('2034 pass · 243 warn · 0 unknown · 0 error') shows zero structural errors across the corpus this Warrant is part of. This matches OBL-004's scope and cited gate exactly (a structural check on this Warrant's authored records)."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

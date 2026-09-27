@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "The plant script conformance/plants.d/69-current.sh (D-038) runs a Python assertion block directly against the real repository's docs/generated/CURRENT.md and HISTORY.md — checking that OW-WAR-0073 appears exactly once in CURRENT.md's prose as the lineage line 'OW-WAR-0073 → OW-WAR-0112', has no heading of its own, that none of its atom paragraphs appear outside a current atom's verbatim body, and that its intent atom appears verbatim in HISTORY.md — and gate run GR-ops.conformance.plants@1.1.0's stdout reports this as passing ('ok CURRENT.md on this corpus every current atom verbatim; 0073 one lineage line', 'ok the history holds what was replaced CU-WAR-0001's intent verbatim, and its lineage' pattern repeated for the real-corpus check, 'ok the verbatim test can fail' confirming the check is not vacuous). The same run reports 'ok a hand edit to CURRENT.md is drift rejected by generated.drift (CURRENT.md)' and the analogous HISTORY.md case, 'ok history off writes no history no HISTORY.md, nothing compared' plus the paired negative control 'ok a failing check is not 'no history' war exited 1: refused', and 'ok four documents point at CURRENT.md README, QUICKSTART, AGENTS, TUI: read it first'. That last point is corroborated directly in the carried deliverable bytes: D-034 (README.md) says 'Read first: the current state — the master document `war compile` writes... docs/generated/CURRENT.md', D-035 (QUICKSTART.md) says 'Read `docs/generated/CURRENT.md` first', and D-036 (AGENTS.md) says 'First, always: read docs/generated/CURRENT.md'. Gate run GR-software.repo.war-check@1.0.0, over the same tree (tree:2b24c062778e0d87732c7f85873cd25ceb8fbad3) as the plants run, additionally shows 'PASS generated.drift' and 'PASS relations.currency OW-WAR-0073: superseded, derived from OW-WAR-0112' for the live corpus, confirming the projections are freshly compiled and currency-consistent. Together these bundle items cover every clause of OBL-002's evidence requirement on the real corpus, not merely a scratch one, and none of the checks failed."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

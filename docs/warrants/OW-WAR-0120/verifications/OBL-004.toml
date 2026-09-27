@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = """D-004 (docs/scale/baseline-1000.json, present, not truncated) itself states build_profile "release", war.version "war 1.0.0-alpha.2", repository.commit "0afa1ba135579d93c2df31e8ca5c1b4c3762cec9" (40 hex chars), machine.cpu_model and machine.os populated, and corpus.counted_by "war status --json" with warrants=1000 and resolved=500 (>=500). D-005 (docs/RETENTION.md, present, not truncated) reproduces the same commit/binary/machine facts and a budget table whose limit/median/verdict values for every row (check, check-generated, next, status, pins-resolved-only, sign-list, compile, console-json, console-select) match D-004's rows exactly, and both state the budget "did not hold", satisfying the requirement that RETENTION.md's numbers match the record."""
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

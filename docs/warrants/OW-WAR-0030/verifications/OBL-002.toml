@@ -1,12 +1,11 @@
 obligation = "OBL-002"
-disposition = "established"
-evidence = "The test 'export::tests::a_reconnected_round_trip_with_equal_digests_verifies' in crates/openwarrant-cli/src/export.rs verifies that a round trip with reconnected evidence and equal digests passes, demonstrating byte-stability through digest comparison."
+disposition = "refuted"
+evidence = "The `round_trip` function in export.rs explicitly refuses whenever a caller asks for the reconnected (real) comparison, returning the error 'legacy round-trip cannot verify preserved bytes: --reconnect is a claim, not an import; use the experimental archive transport for bounded byte-preservation checks' — i.e. this deliverable has no importer and cannot perform §68.3's export→import→re-export check at all. The passing test `a_reconnected_round_trip_with_equal_digests_verifies` does not exercise `assemble`/`round_trip`; it hand-builds a `RoundTrip{evidence_reconnected: true, ...}` with two identical hard-coded digest literals and checks `verify()`, which only proves the verification predicate's logic, not that any real export-import-export cycle preserves bytes. No gate run or other evidence in the bundle shows an actual reconnected round trip succeeding."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

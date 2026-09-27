@@ -1,12 +1,11 @@
 obligation = "OBL-000"
 disposition = "not_established"
-evidence = "The code comment in canonical.rs references OW-ADR-0001, but no merged ADR artifact naming the crate and version is provided in the evidence; the license check passed via the gate run step 'licenses (cargo deny: permissive-only)'."
+evidence = "The accepted ADR OW-ADR-0001 is in the bundle and names serde_jcs 0.2, and canonical.rs calls serde_jcs::to_vec and to_string. The obligation also needs a merged ADR and `cargo deny check licenses` passing with the crate in the graph. The bundle does not show the merge. It carries no Cargo.toml, Cargo.lock or deny output, and the only gate run, `war check --generated`, does not run cargo deny. The term 'cargo deny check licenses' appears only in the atoms. The prior verifier's 'licenses (cargo deny)' step is not in the carried gate output."
 performer = "claude"
 
 [verifier]
-actor = "lamu:mimo-v2.5-pro"
+actor = "claude-verifier (claude-sonnet-5)"
 kind = "agent"
-model = "mimo-v2.5-pro"
 
 [verifier.independence]
 performer_transcript_blind = true

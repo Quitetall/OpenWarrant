@@ -1,0 +1,19 @@
+obligation = "OBL-008"
+disposition = "not_established"
+evidence = "The plant gate run GR-ops.conformance.plants@1.1.0 (stdout excerpt, lines 155-171) shows 'ok the loop over war mcp  claim, a second agent refused by name, done, prime', and D-012 (tickets_cli.rs, an_agent_works_a_ticket_over_mcp) exercises war_create/war_claim/war_done/war_add/war_note/war_prime/war_show/war_tickets over the live MCP transport with a second actor's war_claim refused (exit_code 2, message naming 'claude'), and D-013 (45-tickets.sh) drives claim/intruder-refusal/done/prime over stdio with the checklist ending up '— done by mcp-agent'. That establishes the loop-works and named-refusal half of the claim. But the obligation also requires showing 'mcp::tests still find no signing or ingesting tool registered', and the bundle's own obligation_evidence index records that term with shown_in: [] — no gate run in this bundle executes cargo test's mcp::mod::tests (ops.conformance.plants@1.1.0's stdout is a shell-script plant run, not a cargo test run, and software.repo.war-check@1.0.0 runs 'war check --generated', not cargo test). D-011 (mcp/mod.rs) does contain the full source of no_refused_tool_is_registered_and_no_signing_or_ingesting_name_exists and REFUSED_TOOLS, but that is code, not an execution result confirming it passed; no test-run evidence in the bundle confirms it actually ran or passed. Since one required half of the obligation's evidence (the no-authority-tool refusal check having actually run) is not carried, the obligation cannot be established from this bundle alone."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

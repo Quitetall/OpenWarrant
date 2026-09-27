@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No deliverables, gate_runs, or plants are included in the bundle to check whether collection-gap reasons in telemetry.rs or the CLI regression test (crates/openwarrant-cli/tests/telemetry_integrity_cli.rs, named in 40-work-order.md) actually describe absent capability versus inventing history. obligation_evidence for OBL-002 lists no terms and no named_paths, so nothing was even excerpted for review; the only text available is the assurance atom's restatement of the obligation itself, which is not independent evidence of the code's behavior."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

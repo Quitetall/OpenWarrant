@@ -1,0 +1,19 @@
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "As with OBL-001, deliverables and gate_runs are empty and obligation_evidence for OBL-002 names no paths and shows no terms. The assurance atom (atoms/60-assurance.md) merely restates the obligation's own text as intended evidence; no persisted attempt records, hard-cap refusal outputs, or restart/timeout behavior are shown in the bundle. No basis to establish or refute."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

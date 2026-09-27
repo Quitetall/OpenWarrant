@@ -1,0 +1,19 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "The ops.conformance.plants@1.1.0 gate run (GR-ops.conformance.plants@1.1.0, verdict pass) stdout carries both halves of this obligation directly: the excerpt at lines 1-10 shows 'ok    stale parent contract digest       rejected by relations.parent-digest (no longer the one it was authorized against)', i.e. the pre-existing 00-corpus.sh plant still fails as relations.parent-digest, and the excerpt at lines 647-698 shows the shallow-clone assertions from D-004 (58-parent-revision.sh) all passing: 'ok    shallow: revision 1 is UNKNOWN     unknown relations.parent-revision ×1', 'ok    shallow: not PASS ... no pass relations.parent-revision', 'ok    shallow: not ERROR (revision) ... no error relations.parent-revision', 'ok    shallow: not ERROR (digest) ... no error relations.parent-digest', matching the obligation's evidence text verbatim. D-004's own text shows the plant script cloning the repo with `git clone -q --depth 1` into PR_SHALLOW and asserting exactly these outcomes, and D-001's check_parent_citations/ParentRevisions code (via contract_history::resolve) is the mechanism that turns an unreadable earlier revision into Diagnostic::unknown rather than pass or error, consistent with what the plant observed. The 00-corpus.sh file itself is listed in obligation_evidence as not carried, so its byte-for-byte 'unmodified' status is not independently visible, but the gate output confirms its behavior (still rejecting with relations.parent-digest) is unchanged, which is what the obligation's evidence bullet asserts."
+performer = "claude"
+
+[verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
