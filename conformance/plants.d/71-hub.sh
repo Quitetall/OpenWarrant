@@ -119,6 +119,62 @@ else
     hub_ok "war from anywhere opens the hub" "(script(1) absent; the pty plant did not run)"
 fi
 
+# OBL-002: the Help pane's first row names the running binary's version and
+# path. The pty stream is replayed onto a 300x40 grid (ratatui redraws only
+# the cells that change, so the raw stream is not the screen), and the row
+# under the Help title must carry `war --version`'s line and this binary's
+# canonical path.
+if command -v script >/dev/null 2>&1; then
+    HUB_VER=$("$HUB_WAR" --version 2>/dev/null | head -1)
+    HUB_SCREEN=$( (sleep 4; printf 2; sleep 3; printf q) | XDG_CONFIG_HOME="$HUB_CFG" OPENWARRANT_NO_PROJECTS= timeout 30 \
+        script -qec "stty cols 300 rows 40; cd '$HUB_A' && '$HUB_WAR'" /dev/null 2>/dev/null \
+        | python3 -c '
+import re, sys
+s = sys.stdin.buffer.read().decode("utf8", "replace")
+R, C = 40, 300
+scr = [[" "] * C for _ in range(R)]
+r = c = 0
+i = 0
+tok = re.compile(r"\x1b\[([0-9;?]*)([A-Za-z@])|\x1b[()][A-Za-z0-9]|\x1b[=>78]|\x1b\][^\x07]*\x07")
+while i < len(s):
+    m = tok.match(s, i)
+    if m:
+        a, f = m.group(1), m.group(2)
+        if f:
+            n = [int(x) if x.isdigit() else 0 for x in a.replace("?", "").split(";")] if a else []
+            if f in "Hf":
+                r = (n[0] if n and n[0] else 1) - 1
+                c = (n[1] if len(n) > 1 and n[1] else 1) - 1
+            elif f == "J" and "?" not in a:
+                scr = [[" "] * C for _ in range(R)]
+            elif f == "K" and 0 <= r < R:
+                for x in range(max(c, 0), C):
+                    scr[r][x] = " "
+            elif f == "C":
+                c += n[0] if n and n[0] else 1
+        i = m.end()
+        continue
+    ch = s[i]
+    i += 1
+    if ch == "\r":
+        c = 0
+    elif ch == "\n":
+        r = min(r + 1, R - 1)
+    elif ch >= " " and 0 <= r < R and 0 <= c < C:
+        scr[r][c] = ch
+        c += 1
+print("\n".join("".join(l).rstrip() for l in scr))
+')
+    HUB_HELP_ROW=$(awk '/Help — what next/ { getline; print; exit }' <<<"$HUB_SCREEN")
+    if [[ -n "$HUB_VER" && "$HUB_HELP_ROW" == *"$HUB_VER at $HUB_WAR"* ]]; then
+        hub_ok "Help's first row is this binary" "$(sed 's/^[│▶ ]*//; s/ *│$//' <<<"$HUB_HELP_ROW" | cut -c1-160)"
+    else
+        hub_fail "Help's first row is this binary" "wanted '$HUB_VER at $HUB_WAR'; row: ${HUB_HELP_ROW:-none}"
+    fi
+else
+    printf 'UNKNOWN %-32s %s\n' "Help's first row is this binary" "(script(1) absent; not run, not passed)"
+fi
+
 # No terminal: still a refusal by name, from anywhere.
 HUB_NOWHERE=$(mktemp -d)
 HUB_OUT=$(cd "$HUB_NOWHERE" && XDG_CONFIG_HOME="$HUB_CFG" "$HUB_WAR" </dev/null 2>&1; echo "exit=$?")

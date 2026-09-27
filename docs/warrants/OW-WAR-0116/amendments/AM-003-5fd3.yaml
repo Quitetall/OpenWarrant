@@ -1,0 +1,29 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-003-5fd3"
+band: "manual_revision"
+reason: "OBL-001's evidence and the work order's deliverable 9 require `a GET on /api/act is refused 405`. The server has answered GET /api/act with the current act's state (idle, running, or done with its exit and output) since the delivery commit 03473136, and its clients depend on it: app.js's watchAct() polls it after a POST, 63-webui.sh waits on it for the done state, and OW-WAR-0139's 59-webui-lan.sh reads it. That GET starts nothing, needs the token (401 without), and is held to the same Host and Origin checks as every API read; every method but GET and POST is 405. The property the clause guards (no act starts except by a POST carrying the token and a matching Origin, so no cross-site GET can start one) holds, and the intent's `POST only for acts` is met: reading an act's state is not an act. The clause was drafted before the state route existed and names the wrong method; a blind verifier refuted OBL-001 on it (2026-09-27). Moving the state to another route would break OW-WAR-0139's delivered plant for no gain in safety. This amendment restates the clause as what the server does and what the plant now observes. It also writes OBL-003's act line with the `--as <signer>` the server adds when `war ui --as` is given (the plant's scaffold register names two signers, so it must pass one), which OBL-003's `exactly` omitted. Third, OBL-002 cites `gate://software.repo.war-check@1.0.0`, and `war check` never starts the server or reads /api/progress, so no run of that gate can show any clause of OBL-002; the verifier found the terms `war roadmap` and `/api/progress` in no evidence. 63-webui.sh now compares /api/progress on this corpus with `war roadmap --json` and `war status --json` field by field, and times /api/version's move; this amendment makes that battery the gate OBL-002 cites and adds OBL-002 to milestone MB. Nothing else changes. Wording drafted by the performer `claude`."
+governing_adr_or_policy: "sas://WAR-SAS-38.1"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. No code changes: 63-webui.sh gains assertions that a GET on /api/act needs the token, answers the idle state and starts no act, and that PUT and DELETE are 405; that the act's whole log line is the command above and a second POST is 409; and that /api/progress on this corpus equals `war roadmap` and `war status`, with /api/version moving in under 4000 ms. The assurance and work-order atoms take the wording below, the contract digest moves, the next revision is authorized against it, and OBL-001, OBL-002 and OBL-003 are re-verified from a fresh battery run."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-27"
+
+semantic_diff:
+  - element: "obligations"
+    before: "OBL-001 evidence: `... a POST with a foreign or missing Origin 403, a GET on /api/act 405, a request over the header bound 431 ...`"
+    after: "OBL-001 evidence: `... a POST with a foreign or missing Origin 403, any method on /api/act but GET and POST 405, a GET on /api/act 401 without the token and, with it, answering the act state and starting no act, a request over the header bound 431 ...`"
+  - element: "deliverables"
+    before: "Work order deliverable 9: `a GET to /api/act is refused 405;`"
+    after: "Work order deliverable 9: `any method on /api/act but GET and POST is refused 405, and a GET answers the act state and starts nothing;`"
+  - element: "obligations"
+    before: "OBL-003 evidence: `the act run for a valid id is exactly war --root <root> sign <target> --ssh-sign`"
+    after: "OBL-003 evidence: `the act run for a valid id is exactly war --root <root> sign <target> [--as <signer>] --ssh-sign, with --as present exactly when war ui was started with it`"
+
+  - element: "gates"
+    before: "OBL-002 gate: `gate://software.repo.war-check@1.0.0`; milestone MB's obligation_refs: OBL-001, OBL-003."
+    after: "OBL-002 gate: `gate://ops.conformance.plants@1.1.0`; milestone MB's obligation_refs: OBL-001, OBL-002, OBL-003."
+
+affected_stages: []
+affected_milestones: ["MB"]
