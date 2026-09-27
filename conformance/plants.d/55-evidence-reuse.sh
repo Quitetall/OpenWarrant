@@ -423,12 +423,54 @@ else
 fi
 git -C "$ER_ROOT" reset --hard -q "$ER_CTX_BASE"
 
-# OBL-005's conflict half is not exercised through the binary. The
-# one-path-at-two-digests refusal is the compiler's (`source_conflicts` over
-# `ContextManifest::source_versions`; unit tests in
-# crates/openwarrant-compiler/src/dispatch.rs and core/src/context.rs), and
-# the stage selector never includes one path whole at two digests, so no stage
-# a plant can write reaches it.
-er_unknown "OBL-005 conflict via war dispatch" "not reachable through the stage selector; unit-tested in the compiler and core"
+# OBL-005's conflict half (Q-002 (c)) through `war dispatch`. The selector
+# reads every whole item from the working tree at one HEAD, so a path listed
+# twice at rest yields one digest — the control. The refusal is reachable only
+# when the path's bytes change between the two reads, which is what one source
+# at two versions IS for a single compilation. A FIFO makes that deterministic:
+# each read of it gets the next write, so the two `context_artifacts` entries
+# naming it are read at two digests. Nothing else in `war dispatch` opens it.
+mkdir -p "$ER_ROOT/notes"
+printf 'at rest\n' > "$ER_ROOT/notes/moving.txt"
+python3 - "$ER_D2/atoms/45-milestones.yaml" <<'PY'
+import sys
+p = sys.argv[1]
+t = open(p).read().replace('    budget_tokens: 10\n', '')
+t += '    context_artifacts: ["notes/moving.txt", "notes/moving.txt"]\n'
+open(p, "w").write(t)
+PY
+assert_present 'context_artifacts: ["notes/moving.txt", "notes/moving.txt"]' "$ER_D2/atoms/45-milestones.yaml"
+er_war compile >/dev/null 2>&1
+er_commit "conflict plant: one artifact listed twice"
+command rm -f "$ER_TMP/d.json" "$ER_TMP/c.json"
+# Control: the same path listed twice, at rest, is one version and compiles.
+ER_OUT=$(er_war dispatch ER-WAR-0002 STAGE-001 --prototype --emit "$ER_TMP/d.json" --emit-context "$ER_TMP/c.json" 2>&1)
+ER_STATUS=$?
+ER_FOUND=$(python3 -c 'import json,sys; c=json.load(open(sys.argv[1])); print(len([i for i in c["included"] if i["holder"]["path"]=="notes/moving.txt"]), c["conflict_check"]["found"])' "$ER_TMP/c.json" 2>&1)
+if [[ $ER_STATUS -eq 0 && "$ER_FOUND" == "2 []" ]]; then
+    er_ok "one path twice at one digest" "compiles: two items, one version, conflict_check.found []"
+else
+    er_fail "one path twice at one digest" "exit $ER_STATUS; [$ER_FOUND] $(grep -m1 -E 'ERROR|dispatch' <<<"$ER_OUT")"
+fi
+command rm -f "$ER_TMP/d.json" "$ER_TMP/c.json" "$ER_ROOT/notes/moving.txt"
+mkfifo "$ER_ROOT/notes/moving.txt"
+ER_V1=$(printf 'version one\n' | sha256sum | cut -d' ' -f1)
+ER_V2=$(printf 'version two\n' | sha256sum | cut -d' ' -f1)
+# The writer blocks on each open until war reads; bounded, so a war that never
+# reads the path cannot hang the battery.
+timeout 20 bash -c 'printf "version one\n" > "$1"; printf "version two\n" > "$1"' _ "$ER_ROOT/notes/moving.txt" &
+ER_WRITER=$!
+ER_OUT=$(timeout 30 "$ER_WAR" --root "$ER_ROOT" dispatch ER-WAR-0002 STAGE-001 --prototype --emit "$ER_TMP/d.json" --emit-context "$ER_TMP/c.json" 2>&1)
+ER_STATUS=$?
+kill "$ER_WRITER" 2>/dev/null; wait "$ER_WRITER" 2>/dev/null
+if [[ $ER_STATUS -ne 0 && "$ER_OUT" == *"dispatch.source-conflict"* && "$ER_OUT" == *"notes/moving.txt twice"* \
+      && "$ER_OUT" == *"sha256:$ER_V1"* && "$ER_OUT" == *"sha256:$ER_V2"* \
+      && ! -e "$ER_TMP/d.json" && ! -e "$ER_TMP/c.json" ]]; then
+    er_ok "one path at two digests refuses" "dispatch.source-conflict names notes/moving.txt at sha256:${ER_V1:0:12}… and sha256:${ER_V2:0:12}…; nothing emitted"
+else
+    er_fail "one path at two digests refuses" "exit $ER_STATUS; $(grep -m1 -E 'ERROR|dispatch' <<<"$ER_OUT")"
+fi
+command rm -f "$ER_ROOT/notes/moving.txt"
+git -C "$ER_ROOT" reset --hard -q "$ER_CTX_BASE" && git -C "$ER_ROOT" clean -fdq
 
 rm -rf "$ER_TMP"

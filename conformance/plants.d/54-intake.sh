@@ -32,6 +32,11 @@ ik_fail() { printf 'FAIL  %-34s %s\n' "$1" "$2"; FAILED=$((FAILED + 1)); }
 cat > "$IK_BIN/gh" <<'GH'
 #!/usr/bin/env bash
 printf '%s\n' "$*" >> "$IK_GH_LOG"
+# The environment it was given, beside the argv: the plant asserts the planted
+# token reached this child, so "no token in the repository" is not vacuous.
+# (Only beside a log the plant named: never into the working directory.)
+[[ "${IK_GH_LOG:-}" == /* ]] && \
+    printf 'GH_TOKEN=%s GITHUB_TOKEN=%s\n' "${GH_TOKEN-<unset>}" "${GITHUB_TOKEN-<unset>}" >> "$IK_GH_LOG.env"
 [[ -n "${IK_GH_FAIL:-}" ]] && { echo "gh: planted failure" >&2; exit 4; }
 [[ -n "${IK_GH_SLEEP:-}" ]] && sleep "$IK_GH_SLEEP"
 cat "$IK_GH_ISSUE"
@@ -380,6 +385,7 @@ corpus_reset "$PLANT_ROOT"
 # --- OBL-004: tracker access is off by default, holds no secret, writes nothing -
 IK_GH_ISSUE="$IK_TMP/issue-12.json"
 : > "$IK_GH_LOG"
+: > "$IK_GH_LOG.env"
 IK_OUT=$(ik_war plan --issue 12 --draft --reviewed --apply 2>&1)
 IK_STATUS=$?
 if [[ $IK_STATUS -ne 0 && "$IK_OUT" == *"intake.not-configured"* && ! -s "$IK_GH_LOG" \
@@ -428,12 +434,50 @@ if [[ -s "$IK_GH_LOG" && -z "$IK_WRITES" ]]; then
 else
     ik_fail "the fake gh saw no tracker write" "[$(tr '\n' '|' <<<"$IK_WRITES")]"
 fi
-IK_LEAK=$(grep -rIl -- "$IK_TOKEN" "$PLANT_ROOT" 2>/dev/null || true)
+# The token was really in play: every fake-gh call of this section saw both
+# variables set to the planted value in the environment war gave it.
+IK_ENVS=$(sort -u "$IK_GH_LOG.env")
+if [[ -s "$IK_GH_LOG" && "$(grep -c . "$IK_GH_LOG.env")" == "$(grep -c . "$IK_GH_LOG")" \
+      && "$IK_ENVS" == "GH_TOKEN=$IK_TOKEN GITHUB_TOKEN=$IK_TOKEN" ]]; then
+    ik_ok "the planted token reached the fetch" "$(grep -c . "$IK_GH_LOG.env") gh call(s), each with GH_TOKEN and GITHUB_TOKEN=$IK_TOKEN"
+else
+    ik_fail "the planted token reached the fetch" "calls $(grep -c . "$IK_GH_LOG"), env lines [$(tr '\n' '|' <<<"$IK_ENVS")]"
+fi
+# Where a leak would show: any file under the root (.git included, text only)
+# and every committed or since-deleted blob in history (packed or loose
+# objects are compressed, so a file grep alone would miss a committed token).
+ik_leaks() { # <root> → the hits, one per line
+    grep -rIl -- "$IK_TOKEN" "$1" 2>/dev/null
+    local hist
+    hist=$(git -C "$1" log --all -p --format= 2>/dev/null)
+    [[ "$hist" == *"$IK_TOKEN"* ]] && printf 'git history of %s\n' "$1"
+    return 0
+}
+IK_LEAK=$(ik_leaks "$PLANT_ROOT")
 if [[ -z "$IK_LEAK" ]]; then
-    ik_ok "no planted token in the repository" "grep -r $IK_TOKEN: nothing, .git included"
+    ik_ok "no planted token in the repository" "grep -r $IK_TOKEN and git log --all -p: nothing, .git included"
 else
     ik_fail "no planted token in the repository" "$IK_LEAK"
 fi
+# Control: the same search over a clone into which the token IS written — once
+# left in the tree, once committed and then deleted — finds both.
+IK_CTL="$IK_TMP/leak-control"
+git clone -q "$PLANT_ROOT" "$IK_CTL" 2>/dev/null
+printf '%s\n' "$IK_TOKEN" > "$IK_CTL/leaked-in-tree.txt"
+IK_CTL_TREE=$(ik_leaks "$IK_CTL")
+command rm -f "$IK_CTL/leaked-in-tree.txt"
+printf 'token = "%s"\n' "$IK_TOKEN" > "$IK_CTL/leaked-in-history.toml"
+git -C "$IK_CTL" add leaked-in-history.toml
+git -C "$IK_CTL" -c user.name=plant -c user.email=plant@example.invalid commit -qm "control: a token" --no-gpg-sign
+git -C "$IK_CTL" rm -q leaked-in-history.toml
+git -C "$IK_CTL" -c user.name=plant -c user.email=plant@example.invalid commit -qm "control: deleted" --no-gpg-sign
+IK_CTL_HIST=$(ik_leaks "$IK_CTL")
+if [[ "$IK_CTL_TREE" == *leaked-in-tree.txt* && "$IK_CTL_HIST" == *"git history of"* ]]; then
+    ik_ok "control: a written token is found" "in the tree and in a deleted commit"
+else
+    ik_fail "control: a written token is found" "tree [$IK_CTL_TREE] history [$IK_CTL_HIST]"
+fi
+command rm -rf "$IK_CTL"
 
 # --- AM-002 (D-014): the war_plan_* MCP tools take an issue --------------------
 # The same intake reader and review rule over MCP, driven by the battery's
@@ -673,5 +717,5 @@ unset PLANT_ROOT IK_TMP IK_BIN IK_GH_LOG IK_GH_ISSUE IK_TOKEN IK_WAR_ABS IK_OUT 
     IK_A12 IK_A31 IK_A32 IK_FA IK_NEW IK_BEFORE IK_AFTER IK_CHECK IK_OUTSIDE IK_CASE IK_F IK_RULE IK_DIRTY IK_BODY \
     IK_SENTENCE IK_SKEY IK_IKEY IK_ALIAS_TAKEN IK_Q IK_N IK_REDRAFTS IK_REDRAFT_FAIL IK_KEY IK_CMD IK_ST IK_NEWDIR \
     IK_OPEN IK_NEXT_LEFT IK_SCHEMA_TEXT IK_LIST IK_NEXT IK_ATOMS IK_CALLS IK_CALLS_BEFORE IK_S1 IK_S2 IK_D1 IK_D2 \
-    IK_WRITES IK_LEAK IK_W12 IK_PLAIN IK_M1 IK_M2 IK_M3 IK_M4 IK_REC IK_PLANT \
+    IK_WRITES IK_LEAK IK_ENVS IK_CTL IK_CTL_TREE IK_CTL_HIST IK_W12 IK_PLAIN IK_M1 IK_M2 IK_M3 IK_M4 IK_REC IK_PLANT \
     IK_MCP_PROPOSAL IK_R IK_REQ IK_MA IK_REC_ID IK_REV IK_E1 IK_E2
