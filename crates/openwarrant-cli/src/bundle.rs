@@ -557,6 +557,11 @@ struct Sources {
     /// section to be offered: the alias, and each header a delivered plant
     /// file echoes (a plant's banner need not name the Warrant).
     heads: Vec<String>,
+    /// The check names this Warrant's plants print (`ok    <name>`), read
+    /// from its delivered plant files and any plant file an obligation names:
+    /// a plant need not print a header of its own, and its lines then sit
+    /// under another plant's section (t-7aca).
+    checks: Vec<String>,
     prior: Vec<openwarrant_core::verification::Verification>,
     cap: usize,
     budget: u64,
@@ -652,8 +657,38 @@ fn load(repo: &Repository, alias: &str, performer: &str) -> Result<Sources, Repo
     }
     heads.sort();
     heads.dedup();
+    let mut plant_sources: Vec<String> = files
+        .iter()
+        .filter(|f| f.record.target_ref.starts_with("conformance/"))
+        .filter_map(|f| f.read.as_ref().ok())
+        .map(|b| String::from_utf8_lossy(b).into_owned())
+        .collect();
+    for o in &request.obligations {
+        for path in named(o).0 {
+            let named_plant = path.starts_with("conformance/plants.d/")
+                || (path.ends_with(".sh") && !path.contains('/'));
+            if !named_plant {
+                continue;
+            }
+            let full = if path.contains('/') {
+                repo.root.join(&path)
+            } else {
+                repo.root.join("conformance/plants.d").join(&path)
+            };
+            if let Ok(text) = std::fs::read_to_string(&full) {
+                heads.extend(echoed_headers(&text));
+                plant_sources.push(text);
+            }
+        }
+    }
+    heads.sort();
+    heads.dedup();
+    let mut checks: Vec<String> = plant_sources.iter().flat_map(|t| check_names(t)).collect();
+    checks.sort();
+    checks.dedup();
     Ok(Sources {
         heads,
+        checks,
         alias: alias.to_owned(),
         authorized_contract_digest,
         request,
@@ -666,6 +701,55 @@ fn load(repo: &Repository, alias: &str, performer: &str) -> Result<Sources, Repo
         budget: repo.config.verify.max_bundle_tokens(),
         root: repo.root.clone(),
         warrant_dir: dir,
+    })
+}
+
+/// The names a plant file gives its checks: the first argument of a
+/// `<prefix>_ok`, `_fail`, `_expect` or `_pass` call, and of a `printf 'ok
+/// %-34s …' "name"`. One with a shell expansion in it is skipped; its
+/// printed form is unknown.
+fn check_names(source: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    for line in source.lines() {
+        let mut rest = line;
+        while let Some(at) = rest.find(['_', '\'']) {
+            let tail = &rest[at..];
+            let after = ["_ok \"", "_fail \"", "_expect \"", "_pass \""]
+                .iter()
+                .find(|m| tail.starts_with(**m))
+                .map(|m| &tail[m.len()..])
+                .or_else(|| {
+                    tail.strip_prefix("'ok    %-34s")
+                        .and_then(|t| t.find("' \"").map(|i| &t[i + 3..]))
+                });
+            if let Some(after) = after
+                && let Some(end) = after.find('"')
+            {
+                let name = &after[..end];
+                if !name.is_empty() && !name.contains('$') {
+                    out.push(name.to_owned());
+                }
+            }
+            rest = &rest[at + 1..];
+        }
+    }
+    out
+}
+
+/// Whether a stream line is a check result named `name`: `ok    <name>`,
+/// `FAIL  <name>` or `UNKNOWN <name>`, the name followed by a space or the
+/// end of the line.
+fn is_check_line(line: &str, names: &[String]) -> bool {
+    let rest = line
+        .strip_prefix("ok    ")
+        .or_else(|| line.strip_prefix("FAIL  "))
+        .or_else(|| line.strip_prefix("UNKNOWN "));
+    let Some(rest) = rest else {
+        return false;
+    };
+    names.iter().any(|n| {
+        rest.strip_prefix(n.as_str())
+            .is_some_and(|t| t.is_empty() || t.starts_with(' ') || t.starts_with('\n'))
     })
 }
 
@@ -720,7 +804,13 @@ enum Carry {
 /// header names the Warrant or obligation, the lines naming a term, and the
 /// FAIL/ERROR lines. `mismatch` only when the receipt records a digest for
 /// the stream and the file's differs.
-fn captured(s: &Stream, carry: Carry, heads: &[String], terms: &[String]) -> serde_json::Value {
+fn captured(
+    s: &Stream,
+    carry: Carry,
+    heads: &[String],
+    checks: &[String],
+    terms: &[String],
+) -> serde_json::Value {
     let Some(bytes) = &s.bytes else {
         return serde_json::json!({ "captured": false });
     };
@@ -762,6 +852,15 @@ fn captured(s: &Stream, carry: Carry, heads: &[String], terms: &[String]) -> ser
                     open = Some(i);
                 }
             }
+        }
+        // This Warrant's own check lines first, wherever they sit: a section
+        // is offered whole or until the allowance runs out, and a long one
+        // could crowd them out.
+        let own: Vec<usize> = (0..n)
+            .filter(|&i| is_check_line(p.lines[i], checks))
+            .collect();
+        for i in own {
+            p.offer(i, i + 1);
         }
         for (a, b) in sections {
             p.offer(a, b);
@@ -1016,8 +1115,20 @@ fn warrant_bundle(src: &Sources) -> Result<Bundle, RepoError> {
         .map(|r| {
             run_value(
                 r,
-                captured(&r.stdout, Carry::Excerpt(src.cap), &src.heads, &stream_keys),
-                captured(&r.stderr, Carry::Excerpt(src.cap), &src.heads, &stream_keys),
+                captured(
+                    &r.stdout,
+                    Carry::Excerpt(src.cap),
+                    &src.heads,
+                    &src.checks,
+                    &stream_keys,
+                ),
+                captured(
+                    &r.stderr,
+                    Carry::Excerpt(src.cap),
+                    &src.heads,
+                    &src.checks,
+                    &stream_keys,
+                ),
             )
         })
         .collect();
@@ -1127,8 +1238,20 @@ fn obligation_bundle_at(
             let err = shares[chosen.len() + 2 * k + 1];
             run_value(
                 r,
-                captured(&r.stdout, Carry::Excerpt(out), heads, &stream_keys),
-                captured(&r.stderr, Carry::Excerpt(err), heads, &stream_keys),
+                captured(
+                    &r.stdout,
+                    Carry::Excerpt(out),
+                    heads,
+                    &src.checks,
+                    &stream_keys,
+                ),
+                captured(
+                    &r.stderr,
+                    Carry::Excerpt(err),
+                    heads,
+                    &src.checks,
+                    &stream_keys,
+                ),
             )
         })
         .collect();
@@ -1564,19 +1687,25 @@ mod tests {
             recorded: None,
         };
         let heads = vec!["== ours ==".to_owned()];
-        let tail_only = captured(&s, Carry::Head(8192), &heads, &[]);
+        let tail_only = captured(&s, Carry::Head(8192), &heads, &[], &[]);
         assert!(
             !tail_only["text"]
                 .as_str()
                 .unwrap()
                 .contains("the claim this Warrant")
         );
-        let v = captured(&s, Carry::Excerpt(8192), &heads, &[]);
+        let v = captured(&s, Carry::Excerpt(8192), &heads, &[], &[]);
         assert_eq!(v["truncated"], true);
         assert!(stream_text(&v).contains("the claim this Warrant rests on"));
         assert!(v["text"].as_str().unwrap().contains("1 passed, 0 failed"));
         // A section whose header matches no head is not offered.
-        let none = captured(&s, Carry::Excerpt(8192), &["== theirs ==".to_owned()], &[]);
+        let none = captured(
+            &s,
+            Carry::Excerpt(8192),
+            &["== theirs ==".to_owned()],
+            &[],
+            &[],
+        );
         assert!(!stream_text(&none).contains("the claim this Warrant rests on"));
     }
 
@@ -1600,6 +1729,43 @@ mod tests {
         for e in byte_windows(&wide, 1001, &[]) {
             assert!(e.text.chars().all(|c| c == 'é'));
         }
+    }
+
+    #[test]
+    fn a_plant_s_check_lines_are_carried_under_any_section() {
+        let src = "er_ok \"a clean receipt names its source\" \"$X\"\n\
+                   wu_expect \"an act by PUT\" \"$(x)\" 405\n\
+                   printf 'ok    %-34s %s\\n' \"the web UI holds no authority\" \"x\"\n\
+                   er_fail \"$dynamic\" \"x\"\n";
+        let names = check_names(src);
+        assert_eq!(
+            names,
+            vec![
+                "a clean receipt names its source",
+                "an act by PUT",
+                "the web UI holds no authority"
+            ]
+        );
+        let mut text = String::from("== someone else's plant ==\n");
+        for i in 0..3000 {
+            text.push_str(&format!("ok    filler {i}\n"));
+        }
+        text.push_str("ok    a clean receipt names its source   contract, tree; seal recomputes\n");
+        text.push_str("ok    a clean receipt names its source, again  not this one\n");
+        for i in 0..3000 {
+            text.push_str(&format!("ok    more filler {i}\n"));
+        }
+        let s = Stream {
+            bytes: Some(text.into_bytes()),
+            recorded: None,
+        };
+        let v = captured(&s, Carry::Excerpt(4096), &[], &names, &[]);
+        let shown = stream_text(&v);
+        assert!(shown.contains("a clean receipt names its source   contract"));
+        assert!(
+            !shown.contains("names its source, again"),
+            "a longer name is another check"
+        );
     }
 
     #[test]
