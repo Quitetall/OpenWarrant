@@ -235,8 +235,9 @@ The slug is the name the Warrant written for it will cite.
 
 - No Warrant's signed contract moves. `war roadmap assign` refuses a
   signed Warrant and names the amendment path.
-- The roadmap record adds a schema (`oh.war/roadmap/v1`) and the pack
-  version moves once, in M2, with a regenerated pack.
+- The roadmap record adds a schema (`oh.war/roadmap/v1`) to the pack in M2;
+  the pack version does not move, as docs/COMPATIBILITY.md requires for an
+  added `v1` schema.
 - Pinned files declared in `deliverables.toml` are edited only after this
   Warrant is authorized (OW-ADR-0021).
 

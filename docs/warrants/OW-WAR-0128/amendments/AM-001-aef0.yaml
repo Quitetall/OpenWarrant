@@ -1,0 +1,19 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-001-aef0"
+band: "manual_revision"
+reason: "OBL-001, OBL-002, OBL-003 and OBL-004 cite `gate://document.review@1.0.0`, whose argv is `war document review` with no alias: it reviews every Warrant in the corpus that binds to the gate, so the receipt `war evidence record OW-WAR-0128` mints is decided by other Warrants' documents (OW-WAR-0138's receipt read FAIL in prepare runs 3 and 4 on errors that were all other Warrants'). `document.review@1.1.0` is the same gate with argv `war document review <warrant>`, bound by `war evidence record` and `war run` to the Warrant being recorded; run for no Warrant it is not askable (t-4f521). This amendment moves OBL-001, OBL-002, OBL-003 and OBL-004 to `@1.1.0`. Nothing else changes. Wording drafted by the performer `claude`."
+governing_adr_or_policy: "sas://WAR-SAS-44.6"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. No artifact changes. The assurance atom's OBL-001, OBL-002, OBL-003 and OBL-004 cite gate://document.review@1.1.0 in the revision this amendment is carried by; the signature authorizes that revision. Then `war evidence record OW-WAR-0128 --gate document.review@1.1.0`."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-27"
+
+semantic_diff:
+  - element: "gates"
+    before: "OBL-001, OBL-002, OBL-003 and OBL-004 cite gate://document.review@1.0.0 (reviews the whole corpus; its verdict is decided by other Warrants' documents)."
+    after: "OBL-001, OBL-002, OBL-003 and OBL-004 cite gate://document.review@1.1.0 (reviews OW-WAR-0128's documents only)."
+
+affected_stages: []
+affected_milestones: []
