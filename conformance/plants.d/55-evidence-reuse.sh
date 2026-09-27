@@ -454,24 +454,26 @@ else
 fi
 command rm -f "$ER_TMP/d.json" "$ER_TMP/c.json" "$ER_ROOT/notes/moving.txt"
 mkfifo "$ER_ROOT/notes/moving.txt"
-ER_V1=$(printf 'version one\n' | sha256sum | cut -d' ' -f1)
-ER_V2=$(printf 'version two\n' | sha256sum | cut -d' ' -f1)
-# The writer alternates the two versions for as long as war runs, one per
-# open, so war's two reads of the path get different bytes whatever the load;
-# it blocks on each open until war reads, and is killed when war is done. (A
-# writer with its own deadline ran out under three parallel batteries, and
-# war then blocked opening a FIFO with no writer: exit 124, t-3293.)
-bash -c 'while :; do printf "version one\n" > "$1"; printf "version two\n" > "$1"; done' _ "$ER_ROOT/notes/moving.txt" &
+# The writer alternates two versions, one per open, for as long as war runs,
+# and is killed when war is done. It pauses after each version so a reader
+# reaches end of file and closes before the next open: a writer that reopened
+# at once could land its next version in the same read (prepare run 5 read
+# "one" and "two" as one blob, t-3293). A writer with its own deadline ran
+# out under load (run 4, exit 124). What is asserted is the claim itself: one
+# path, two different digests, refused.
+bash -c 'while :; do printf "version one\n" > "$1"; sleep 0.3; printf "version two\n" > "$1"; sleep 0.3; done' _ "$ER_ROOT/notes/moving.txt" &
 ER_WRITER=$!
 ER_OUT=$(timeout 300 "$ER_WAR" --root "$ER_ROOT" dispatch ER-WAR-0002 STAGE-001 --prototype --emit "$ER_TMP/d.json" --emit-context "$ER_TMP/c.json" 2>&1)
 ER_STATUS=$?
 kill "$ER_WRITER" 2>/dev/null; wait "$ER_WRITER" 2>/dev/null
-if [[ $ER_STATUS -ne 0 && "$ER_OUT" == *"dispatch.source-conflict"* && "$ER_OUT" == *"notes/moving.txt twice"* \
-      && "$ER_OUT" == *"sha256:$ER_V1"* && "$ER_OUT" == *"sha256:$ER_V2"* \
+ER_CONFLICT=$(grep -m1 'dispatch.source-conflict' <<<"$ER_OUT")
+ER_DIGESTS=$(grep -oE 'sha256:[0-9a-f]{64}' <<<"$ER_CONFLICT" | sort -u)
+if [[ $ER_STATUS -ne 0 && "$ER_CONFLICT" == *"notes/moving.txt twice"* \
+      && $(grep -c . <<<"$ER_DIGESTS") -eq 2 \
       && ! -e "$ER_TMP/d.json" && ! -e "$ER_TMP/c.json" ]]; then
-    er_ok "one path at two digests refuses" "dispatch.source-conflict names notes/moving.txt at sha256:${ER_V1:0:12}… and sha256:${ER_V2:0:12}…; nothing emitted"
+    er_ok "one path at two digests refuses" "dispatch.source-conflict names notes/moving.txt at $(head -c 19 <<<"$ER_DIGESTS")… and $(tail -1 <<<"$ER_DIGESTS" | head -c 19)…; nothing emitted"
 else
-    er_fail "one path at two digests refuses" "exit $ER_STATUS; $(grep -m1 -E 'ERROR|dispatch' <<<"$ER_OUT")"
+    er_fail "one path at two digests refuses" "exit $ER_STATUS; ${ER_CONFLICT:-no dispatch.source-conflict: $(grep -m1 -E '^ERROR' <<<"$ER_OUT")}"
 fi
 command rm -f "$ER_ROOT/notes/moving.txt"
 git -C "$ER_ROOT" reset --hard -q "$ER_CTX_BASE" && git -C "$ER_ROOT" clean -fdq
