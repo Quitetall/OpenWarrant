@@ -223,4 +223,72 @@ else
     sec_fail "a shallow clone cannot say" "exit $st; wanted UNKNOWN, not pass or warning"
 fi
 
+# OBL-006 — the decision is a proposal: OW-ADR-0028's status is `proposed`,
+# it governs this Warrant, and its §105 text is marked as a proposal for a
+# separate SAS revision. The refusal: a copy whose status is `accepted`.
+sec_adr_problems() { # <adr file> -> each way it is not a governing proposal
+    local fm
+    fm=$(awk 'NR==1 && /^---$/ {f=1; next} f && /^---$/ {exit} f' "$1")
+    grep -qx 'status: proposed' <<<"$fm" || echo "status is not proposed"
+    grep -qF -- '"war://01a0d04c-5f26-7ba0-a64b-2618b983ba43"' <<<"$fm" || echo "does not govern OW-WAR-0125"
+    local flat
+    flat=$(tr '\n' ' ' < "$1")
+    grep -qE 'proposed wording for a separate SAS +revision' <<<"$flat" || echo "no proposal marking"
+}
+SEC_ADR=docs/adr/atoms/OW-ADR-0028-sas-sections-are-atoms.md
+SEC_ADR_BAD=$(sec_adr_problems "$SEC_ADR" 2>&1)
+if [[ -f "$SEC_ADR" && -z "$SEC_ADR_BAD" ]]; then
+    sec_ok "OBL-006 OW-ADR-0028 is a proposal" "status proposed; governs OW-WAR-0125; §105 text marked"
+else
+    sec_fail "OBL-006 OW-ADR-0028 is a proposal" "${SEC_ADR_BAD:-missing}"
+fi
+sed 's/^status: proposed$/status: accepted/' "$SEC_ADR" > "$SEC_TMP/adr.md"
+SEC_ADR_BAD=$(sec_adr_problems "$SEC_TMP/adr.md" 2>&1)
+if [[ "$SEC_ADR_BAD" == "status is not proposed" ]]; then
+    sec_ok "OBL-006 an accepted ADR is seen" "a copy with status accepted is reported"
+else
+    sec_fail "OBL-006 an accepted ADR is seen" "reported: ${SEC_ADR_BAD:-nothing}"
+fi
+
+# OBL-006 — OW-WAR-0125 changes no SAS byte. The claim is about what this
+# Warrant delivered, not about the document today: later revisions (1.1.1,
+# 1.2.0) changed the SAS under other Warrants. So: at the commit that first
+# delivered the section index, the SAS is byte for byte revision 1.1.0; and
+# no deliverable of OW-WAR-0125 names the SAS document. Each is paired with
+# the refusal that shows the comparison can fail.
+SEC_DELIVERED=$(git log --diff-filter=A --format=%H -- docs/sas/generated/SECTIONS.json | tail -1)
+SEC_PIN_110=$(sed -n 's/^sha256 = "\(.*\)"/\1/p' docs/sas/revisions/1.1.0.toml)
+SEC_PIN_111=$(sed -n 's/^sha256 = "\(.*\)"/\1/p' docs/sas/revisions/1.1.1.toml)
+SEC_AT_DELIVERY=""
+[[ -n "$SEC_DELIVERED" ]] \
+    && SEC_AT_DELIVERY=$(git show "$SEC_DELIVERED:$SEC_DOC" 2>/dev/null | sha256sum | cut -d' ' -f1)
+if [[ -z "$SEC_DELIVERED" || -z "$SEC_PIN_110" ]]; then
+    # Law 15: without the history or the record, nothing is claimed.
+    sec_fail "OBL-006 the SAS at delivery is 1.1.0" "UNKNOWN: no commit adds SECTIONS.json, or no 1.1.0 record"
+elif [[ "$SEC_AT_DELIVERY" == "$SEC_PIN_110" && "$SEC_AT_DELIVERY" != "$SEC_PIN_111" ]]; then
+    sec_ok "OBL-006 the SAS at delivery is 1.1.0" "${SEC_DELIVERED:0:8}: sha256:${SEC_AT_DELIVERY:0:12} = revision 1.1.0, not 1.1.1"
+else
+    sec_fail "OBL-006 the SAS at delivery is 1.1.0" "${SEC_DELIVERED:0:8}: sha256:${SEC_AT_DELIVERY:0:12}, 1.1.0 pins ${SEC_PIN_110:0:12}"
+fi
+
+sec_sas_deliverables() { # <deliverables.toml> -> each target_ref naming the SAS document
+    sed -n 's/^target_ref = "\(.*\)"/\1/p' "$1" | grep -Fx -- "$SEC_DOC"
+}
+SEC_OWN=docs/warrants/OW-WAR-0125/deliverables.toml
+SEC_HIT=$(sec_sas_deliverables "$SEC_OWN")
+SEC_N=$(grep -c '^target_ref = ' "$SEC_OWN" 2>/dev/null)
+if [[ -f "$SEC_OWN" && "$SEC_N" -gt 0 && -z "$SEC_HIT" ]]; then
+    sec_ok "OBL-006 no deliverable is the SAS" "$SEC_N deliverable(s); none is $SEC_DOC"
+else
+    sec_fail "OBL-006 no deliverable is the SAS" "$SEC_N deliverable(s); naming the SAS: ${SEC_HIT:-none}"
+fi
+cp "$SEC_OWN" "$SEC_TMP/deliverables.toml"
+printf '\n[[deliverable]]\nid = "D-999"\ntarget_ref = "%s"\n' "$SEC_DOC" >> "$SEC_TMP/deliverables.toml"
+SEC_HIT=$(sec_sas_deliverables "$SEC_TMP/deliverables.toml")
+if [[ "$SEC_HIT" == "$SEC_DOC" ]]; then
+    sec_ok "OBL-006 a SAS deliverable is seen" "a planted D-999 naming the SAS is reported"
+else
+    sec_fail "OBL-006 a SAS deliverable is seen" "a planted D-999 naming the SAS was not reported"
+fi
+
 rm -rf "$SEC_TMP"

@@ -395,3 +395,42 @@ else
 fi
 
 command rm -f "$GR_SEEN"
+
+# ---------------------------------------------------------------------------
+# OBL-004: every divergence carries a proposed SAS text, marked as a proposal.
+# A `**DV-N.` entry runs to the next one (or the end); it must hold a
+# `> *Proposed SAS text, §…:*` line. Then a copy with a planted divergence
+# that proposes nothing must be reported.
+# ---------------------------------------------------------------------------
+
+gr_unproposed() { # <document> -> each DV-N whose entry has no proposed SAS text
+    awk '
+        /^\*\*DV-[0-9]+\./ { if (dv != "" && !seen) print dv; dv = $1; sub(/^\*\*/, "", dv); sub(/\.$/, "", dv); seen = 0; next }
+        /^## / && dv != "" { if (!seen) print dv; dv = ""; next }
+        /^> \*Proposed SAS text, §[^:]*:\*/ { seen = 1 }
+        END { if (dv != "" && !seen) print dv }
+    ' "$1"
+}
+
+GR_DVS=$(grep -cE '^\*\*DV-[0-9]+\.' "$GR_DOC" 2>/dev/null)
+GR_UNPROPOSED=$(gr_unproposed "$GR_DOC" 2>/dev/null)
+if [[ "$GR_DVS" -gt 0 && -z "$GR_UNPROPOSED" ]]; then
+    printf 'ok    %-34s %s divergence(s), each with a proposed SAS text\n' "G-D3 every divergence proposes" "$GR_DVS"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s %s divergence(s); no proposal: %s\n' "G-D3 every divergence proposes" "$GR_DVS" "$(tr '\n' ' ' <<<"$GR_UNPROPOSED")"
+    FAILED=$((FAILED + 1))
+fi
+
+GR_COPY=$(mktemp)
+cp "$GR_DOC" "$GR_COPY" 2>/dev/null
+printf '\n**DV-99. A planted divergence.** It proposes nothing.\n' >> "$GR_COPY"
+GR_UNPROPOSED=$(gr_unproposed "$GR_COPY")
+command rm -f "$GR_COPY"
+if [[ "$GR_UNPROPOSED" == "DV-99" ]]; then
+    printf 'ok    %-34s a divergence without one is reported\n' "G-D4 the proposal control refuses"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s reported: %s\n' "G-D4 the proposal control refuses" "$(tr '\n' ' ' <<<"$GR_UNPROPOSED")"
+    FAILED=$((FAILED + 1))
+fi

@@ -348,3 +348,9 @@ refusals would all have been dropped. Write nested evidence bullets without
 bold keys (`  - refusal: …`). `war` should refuse or warn on an unknown key
 inside an obligation rather than drop text; that is a tool change for a
 later Warrant, not this document's.
+
+> *Proposed SAS text, §38.2:* append to DV-5's Markdown form: "Inside an
+> obligation, a bullet `- **key:** value` whose key is not one the form
+> defines SHALL fail, naming the obligation and the key, whatever the
+> bullet's indentation. A conforming tool SHALL NOT drop any line of an
+> obligation without a finding."

@@ -1,0 +1,22 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-001-4610"
+band: "manual_revision"
+reason: "OBL-001, OBL-002 and OBL-003 cite gate://software.repo.war-check@1.0.0, a static `war check` that runs no gate and no plant; its own output says so. The evidence each names is a run of conformance/plants.d/47-bundle-output.sh (D-002), which the battery runs. The blind verifier found all three not established because the cited gate's receipt carries none of it. OBL-003's scope also names the wrong verifier and a path that does not resolve: it says 'the fake-`claude` verifier of `62-verifier.sh`', which the bundle read as a repository path and reported absent; 47-bundle-output.sh's OBL-003 plant in fact runs `war verify --run` with verifier_argv set to conformance/fixtures/verifier/establishes-all.sh, not 62-verifier.sh's fake claude (conformance/plants.d/62-verifier.sh, OW-WAR-0117). Nothing is narrowed. Wording drafted by the performer `claude`."
+governing_adr_or_policy: "sas://WAR-SAS-44.6"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. No artifact changes. On signature, 60-assurance.md cites gate://ops.conformance.plants@1.1.0 on OBL-001..003 and OBL-003's scope names the fixture verifier by its full path; the contract digest moves, the next revision is authorized against it, and the battery is recorded with `war evidence record OW-WAR-0146`."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-27"
+
+semantic_diff:
+  - element: "gates"
+    before: "OBL-001, OBL-002 and OBL-003 cite gate://software.repo.war-check@1.0.0."
+    after: "OBL-001, OBL-002 and OBL-003 cite gate://ops.conformance.plants@1.1.0; the evidence is conformance/plants.d/47-bundle-output.sh's section of its run."
+  - element: "obligations"
+    before: "OBL-003 scope: two `--bundle` runs over one tree, and `war verify --run` with the fake-`claude` verifier of `62-verifier.sh`."
+    after: "OBL-003 scope: two `--bundle` runs over one tree, and `war verify --run` with `verifier_argv` set to `conformance/fixtures/verifier/establishes-all.sh`, as conformance/plants.d/47-bundle-output.sh runs it."
+
+affected_stages: []
+affected_milestones: []

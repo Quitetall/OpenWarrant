@@ -307,4 +307,119 @@ else
     ad_unknown "no git: identity.changed" "this build has no identity.changed rule (OW-WAR-0119 not merged); unasked"
 fi
 
+# --- OBL-005: this repository, which has no [adoption], reads all history ---
+# The count is recomputed here from `git log` by §95's rule as telemetry.rs
+# states it (a subject word that is this namespace's alias or a war:// ref is
+# tracked), so a bound applied without an [adoption] table would show as a
+# difference. Nothing is written into the repository: --out is a temp file.
+# The refusal half is "no baseline reads all history" above, run the other way:
+# with a baseline, the same count is bounded.
+if grep -q '^\[adoption\]' "$REPO_ROOT/openwarrant.toml"; then
+    ad_unknown "this repository reads all history" "this repository declares [adoption]; OBL-005's scope is one that does not"
+else
+    AD_T=$("$AD_WAR" --root "$REPO_ROOT" telemetry --commit plant --out "$AD_TMP/self.json" 2>&1)
+    AD_NS=$(sed -n 's/^namespace = "\(.*\)"/\1/p' "$REPO_ROOT/openwarrant.toml" | head -1)
+    AD_WANT=$(git -C "$REPO_ROOT" log --format='%h %s' | python3 -c '
+import sys
+prefix = sys.argv[1] + "-WAR-"
+def tracked(subject):
+    for w in subject.split():
+        w = w.strip("".join(c for c in set(w) if not (c.isascii() and c.isalnum()) and c != "-"))
+        if (w.startswith(prefix) and len(w) > len(prefix)) or (w.startswith("war://") and len(w) > 6):
+            return True
+    return False
+print(sum(1 for l in sys.stdin.read().splitlines() if not tracked(l.partition(" ")[2])))
+' "$AD_NS")
+    if [[ -n "$AD_NS" && "$(ad_candidates "$AD_T")" == "$AD_WANT" ]] && grep -Fq 'all history (no [adoption] baseline)' <<<"$AD_T" \
+        && [[ -f "$AD_TMP/self.json" ]] && ! grep -Fq 'adoption_baseline' "$AD_TMP/self.json"; then
+        ad_ok "this repository reads all history" "$AD_WANT candidates, recounted from git log; no adoption_baseline"
+    else
+        ad_fail "this repository reads all history" "reported $(ad_candidates "$AD_T"), recounted $AD_WANT; $(grep -F '§95' <<<"$AD_T")"
+    fi
+fi
+
+# --- OBL-006: OW-WAR-0124's diff to guided.rs leaves the authority steps -----
+# For each commit whose subject names OW-WAR-0124 and that changed guided.rs,
+# the file before and after is compared region by region: render_roles,
+# render_allowed_signers, the Signer and KeyLoaded arms of `answer`, and the
+# two named tests. A region with the same bytes on both sides is one no line
+# of the diff touches. The refusal: a copy with one line planted inside
+# render_roles is reported. That the tests PASS is cargo test's to show; no
+# gate here runs it, and this line does not claim it.
+AD_GUIDED=crates/openwarrant-cli/src/init/guided.rs
+AD_REGIONS_PY='
+import re, sys
+MARKERS = {
+    "render_roles": (r"pub fn render_roles\(", False),
+    "render_allowed_signers": (r"pub fn render_allowed_signers\(", False),
+    "Signer arm": (r"\(\s*Step::Signer,\s*Answer::Signer\s*\{", True),
+    "KeyLoaded arm": (r"\(Step::KeyLoaded,\s*Answer::KeyLoaded\(", True),
+    "an_existing_authority_file_is_never_written_again": (r"fn an_existing_authority_file_is_never_written_again\(", False),
+    "the_agent_is_a_performer_and_nothing_else": (r"fn the_agent_is_a_performer_and_nothing_else\(", False),
+}
+def close(src, i):  # i at "{": index after its matching "}", skipping strings and chars
+    depth, n = 0, len(src)
+    while i < n:
+        c = src[i]
+        if c == "\"":
+            i += 1
+            while i < n and src[i] != "\"":
+                i += 2 if src[i] == "\\" else 1
+        elif c == "\x27":
+            if i + 1 < n and src[i + 1] == "\\":
+                i = src.index("\x27", i + 2)
+            elif i + 2 < n and src[i + 2] == "\x27":
+                i += 2
+        elif c == "{":
+            depth += 1
+        elif c == "}":
+            depth -= 1
+            if depth == 0:
+                return i + 1
+        i += 1
+    return None
+def regions(src):
+    out = {}
+    for name, (pat, arm) in MARKERS.items():
+        m = re.search(pat, src)
+        if not m:
+            out[name] = None
+            continue
+        at = src.index("=>", m.end()) if arm else m.end()
+        b = src.index("{", at)
+        e = close(src, b)
+        out[name] = src[m.start():e] if e else None
+    return out
+old, new = (open(f).read() for f in sys.argv[1:3])
+ro, rn = regions(old), regions(new)
+for k in MARKERS:
+    if ro[k] is None or rn[k] is None:
+        print("missing " + k)
+    elif ro[k] != rn[k]:
+        print("touched " + k)
+'
+AD_COMMITS=$(git log --format=%H --grep='OW-WAR-0124' -- "$AD_GUIDED")
+AD_TOUCHED=""
+for c in $AD_COMMITS; do
+    git show "$c^:$AD_GUIDED" > "$AD_TMP/guided.old" 2>/dev/null || { AD_TOUCHED="$AD_TOUCHED ${c:0:8}:no-parent"; continue; }
+    git show "$c:$AD_GUIDED" > "$AD_TMP/guided.new"
+    AD_R=$(python3 -c "$AD_REGIONS_PY" "$AD_TMP/guided.old" "$AD_TMP/guided.new" 2>&1)
+    [[ -n "$AD_R" ]] && AD_TOUCHED="$AD_TOUCHED ${c:0:8}:$(tr '\n' ',' <<<"$AD_R")"
+done
+if [[ -z "$AD_COMMITS" ]]; then
+    ad_unknown "0124 leaves the authority steps" "no commit naming OW-WAR-0124 changed $AD_GUIDED in this history (shallow?)"
+elif [[ -z "$AD_TOUCHED" ]]; then
+    ad_ok "0124 leaves the authority steps" "$(wc -w <<<"$AD_COMMITS" | tr -d ' ') commit(s): six regions byte-identical before and after"
+else
+    ad_fail "0124 leaves the authority steps" "$AD_TOUCHED"
+fi
+cp "$AD_GUIDED" "$AD_TMP/guided.planted"
+sed -i '/^pub fn render_roles(/,/^}/ s/^    format!($/    let _planted = ();\n    format!(/' "$AD_TMP/guided.planted"
+AD_R=$(python3 -c "$AD_REGIONS_PY" "$AD_GUIDED" "$AD_TMP/guided.planted" 2>&1)
+if [[ "$AD_R" == "touched render_roles" ]]; then
+    ad_ok "a touched authority step is seen" "a line planted in render_roles is reported, and nothing else"
+else
+    ad_fail "a touched authority step is seen" "reported: ${AD_R:-nothing}"
+fi
+
 rm -rf "$AD_TMP"

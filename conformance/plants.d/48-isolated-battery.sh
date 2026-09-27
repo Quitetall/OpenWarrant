@@ -96,6 +96,33 @@ else
     ib_fail "1.1.0 registered, 1.0.0 untouched" "$(grep 'ops.conformance.plants' <<<"$IB_CHECK" | head -2 | tr '\n' '|')"
 fi
 
+# OBL-003, the rest: @1.0.0's bytes are the ones it had before OW-WAR-0145
+# delivered @1.1.0 (the parent of the commit that added it), and `war check`
+# on this repository reports no error. The refusal: one byte more is not seen
+# as the same file, so the comparison can fail.
+IB_OLD=docs/gates/ops.conformance.plants@1.0.0.yaml
+IB_ADDED=$(git log --diff-filter=A --format=%H -- "docs/gates/$IB_GATE.yaml" | tail -1)
+IB_BEFORE=$( [[ -n "$IB_ADDED" ]] && git show "$IB_ADDED^:$IB_OLD" 2>/dev/null | sha256sum | cut -d' ' -f1)
+IB_NOW=$(sha256sum "$IB_OLD" | cut -d' ' -f1)
+if [[ -z "$IB_ADDED" || -z "$IB_BEFORE" ]]; then
+    ib_fail "1.0.0 is byte-identical" "UNKNOWN: no commit adds $IB_GATE.yaml in this history"
+elif [[ "$IB_NOW" == "$IB_BEFORE" ]]; then
+    ib_ok "1.0.0 is byte-identical" "sha256:${IB_NOW:0:12}, as before ${IB_ADDED:0:8}"
+else
+    ib_fail "1.0.0 is byte-identical" "sha256:${IB_NOW:0:12} now, sha256:${IB_BEFORE:0:12} before ${IB_ADDED:0:8}"
+fi
+IB_PLUS=$( { cat "$IB_OLD"; printf 'x'; } | sha256sum | cut -d' ' -f1)
+if [[ "$IB_PLUS" != "$IB_BEFORE" ]]; then
+    ib_ok "a changed 1.0.0 is seen" "one byte more is a different digest"
+else
+    ib_fail "a changed 1.0.0 is seen" "the comparison could not fail"
+fi
+if grep -qE '^[0-9]+ pass · [0-9]+ warn · [0-9]+ unknown · 0 error ' <<<"$IB_CHECK" && ! grep -q '^ERROR ' <<<"$IB_CHECK"; then
+    ib_ok "war check reports no error" "$(grep -oE '[0-9]+ pass · .* error' <<<"$IB_CHECK" | head -1)"
+else
+    ib_fail "war check reports no error" "$(grep -E '^ERROR ' <<<"$IB_CHECK" | head -2 | cut -c1-160 | tr '\n' '|')"
+fi
+
 command rm -rf "$IB_TMP"
 corpus_gone "$PLANT_ROOT"
 unset PLANT_ROOT IB_TMP IB_OUT IB_SEEN

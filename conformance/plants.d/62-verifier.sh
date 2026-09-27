@@ -149,6 +149,43 @@ else
     vf_fail "independence only where true" "unset $VF_A, same $VF_B, different $VF_C of $VF_OBLS, human $VF_H"
 fi
 
+# OBL-004, the repository half: with [independence] declared, `war check`
+# names the basic and the controlled levels by the rule their minimums
+# produce, and never independence.undeclared. OW-WAR-0117 is basic and
+# OW-WAR-0003 controlled; the finding is per level, so one of each is enough.
+# The refusal: a clone of HEAD without the [independence] table reports
+# independence.undeclared, so its absence above is not a check that cannot fire.
+vf_levels() { # <root> -> the independence.* lines of a basic and a controlled check
+    "$WAR" --root "$1" check OW-WAR-0117 2>&1 | grep -E '^[A-Z]+ +independence\.'
+    "$WAR" --root "$1" check OW-WAR-0003 2>&1 | grep -E '^[A-Z]+ +independence\.'
+}
+VF_LV=$(vf_levels "$REPO_ROOT")
+if grep -qE '^(PASS|WARN|ERROR) +independence\.(sufficient|insufficient) .* basic Warrant' <<<"$VF_LV" \
+    && grep -qE '^(PASS|WARN|ERROR) +independence\.(sufficient|insufficient) .* controlled Warrant' <<<"$VF_LV" \
+    && ! grep -q 'independence.undeclared' <<<"$VF_LV"; then
+    vf_ok "independence is declared" "$(grep -oE 'independence\.[a-z]+ +[0-9]+ [a-z]+' <<<"$VF_LV" | tr -s ' ' | paste -sd ';' -)"
+else
+    vf_fail "independence is declared" "$(tr '\n' ' ' <<<"${VF_LV:-no independence finding}")"
+fi
+VF_CLONE=$(mktemp -d)
+git clone -q --depth 1 "file://$REPO_ROOT" "$VF_CLONE/r" 2>/dev/null \
+    || { printf 'PLANT SETUP FAILED: clone of HEAD\n' >&2; exit 9; }
+python3 - "$VF_CLONE/r/openwarrant.toml" <<'PY2'
+import re, sys
+p = sys.argv[1]; s = open(p).read()
+t = re.sub(r'(?ms)^\[independence\]\n.*?(?=^\[|\Z)', '', s)
+open(p, 'w').write(t)
+PY2
+VF_LV=$(vf_levels "$VF_CLONE/r")
+if ! grep -q '^\[independence\]' "$VF_CLONE/r/openwarrant.toml" \
+    && grep -q 'independence.undeclared' <<<"$VF_LV" \
+    && ! grep -qE 'independence\.(sufficient|insufficient)' <<<"$VF_LV"; then
+    vf_ok "an undeclared independence is seen" "without [independence]: independence.undeclared"
+else
+    vf_fail "an undeclared independence is seen" "$(tr '\n' ' ' <<<"${VF_LV:-nothing reported}")"
+fi
+command rm -rf "$VF_CLONE"
+
 command rm -rf "$VF_TMP"
 corpus_gone "$PLANT_ROOT"
 unset PLANT_ROOT
