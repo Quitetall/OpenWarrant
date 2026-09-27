@@ -944,10 +944,11 @@ fn screen(p: &Pending, actor: &str, role: &str, reason: Option<&str>) -> String 
             // signing a digest, and a digest hides a path as well as it
             // protects one.
             if request.deliverables.is_empty() {
-                s.push_str("│ grants ownership of: nothing declared\n");
+                s.push_str("│ Grants ownership of: nothing declared\n");
             } else {
+                // OW-ADR-0021's words, then every path: "Grants ownership of:".
                 s.push_str(&format!(
-                    "│ grants ownership of {} path(s)  ·  set {}\n",
+                    "│ Grants ownership of: {} path(s)  ·  set {}\n",
                     request.deliverables.len(),
                     request
                         .deliverable_set_digest

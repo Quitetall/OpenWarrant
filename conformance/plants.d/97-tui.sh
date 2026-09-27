@@ -29,29 +29,66 @@ else
     FAILED=$((FAILED + 1))
 fi
 
-# Without a terminal: `war` alone exits 2 by name and writes no escape codes.
-TUI_OUT=$("$WAR" </dev/null 2>&1 | cat)
-TUI_STATUS=${PIPESTATUS[0]}
+# Without a terminal: `war` alone exits 2 by name, then clap's usage, and
+# writes no escape code at all — not the alternate screen, not a colour.
 TUI_OUT2=$("$WAR" </dev/null 2>&1; echo "exit=$?")
 if grep -q 'exit=2' <<<"$TUI_OUT2" && grep -q 'tui.no-tty' <<<"$TUI_OUT2" \
-    && ! grep -q $'\x1b\[?1049h' <<<"$TUI_OUT2" && grep -q 'war status --json' <<<"$TUI_OUT2"; then
-    printf 'ok    %-34s exit 2, tui.no-tty, names war status --json\n' "no terminal, no app"
+    && grep -q '^Usage: war \[OPTIONS\] \[COMMAND\]' <<<"$TUI_OUT2" \
+    && ! grep -q $'\x1b' <<<"$TUI_OUT2" && grep -q 'war status --json' <<<"$TUI_OUT2"; then
+    printf 'ok    %-34s exit 2, tui.no-tty, usage, names war status --json, no escape\n' "no terminal, no app"
     PASSED=$((PASSED + 1))
 else
-    printf 'FAIL  %-34s %s\n' "no terminal, no app" "$(tail -1 <<<"$TUI_OUT2")"
+    printf 'FAIL  %-34s %s\n' "no terminal, no app" "$(tail -3 <<<"$TUI_OUT2" | tr '\n' '|')"
     FAILED=$((FAILED + 1))
 fi
-: "$TUI_OUT" "$TUI_STATUS"
 
-# `war tui` by name behaves the same; `war --json` alone names the envelopes.
+# `war tui` by name behaves the same.
 TUI_OUT3=$("$WAR" tui </dev/null 2>&1; echo "exit=$?")
-TUI_OUT4=$("$WAR" --json </dev/null 2>&1; echo "exit=$?")
-if grep -q 'exit=2' <<<"$TUI_OUT3" && grep -q 'tui.no-tty' <<<"$TUI_OUT3" \
-    && grep -q 'exit=1' <<<"$TUI_OUT4" && grep -q 'war console --json' <<<"$TUI_OUT4"; then
-    printf 'ok    %-34s war tui refuses alike; war --json names the envelopes\n' "tui by name and --json"
+if grep -q 'exit=2' <<<"$TUI_OUT3" && grep -q 'tui.no-tty' <<<"$TUI_OUT3"; then
+    printf 'ok    %-34s exit 2, tui.no-tty\n' "war tui from a pipe"
     PASSED=$((PASSED + 1))
 else
-    printf 'FAIL  %-34s tui: %s / json: %s\n' "tui by name and --json" "$(tail -1 <<<"$TUI_OUT3")" "$(tail -1 <<<"$TUI_OUT4")"
+    printf 'FAIL  %-34s %s\n' "war tui from a pipe" "$(tail -1 <<<"$TUI_OUT3")"
+    FAILED=$((FAILED + 1))
+fi
+
+# `war --json` alone, and `war tui --json`: a rendering has no envelope, so
+# each is refused by name (`tui.json`) IN an envelope, exit 2, naming
+# `war console --json` and `war status --json`. The envelope's own exit_code
+# must be the process's.
+for TUI_ARGS in "--json" "tui --json"; do
+    # shellcheck disable=SC2086 # the two words are two arguments
+    TUI_JSON=$("$WAR" $TUI_ARGS </dev/null 2>/dev/null); TUI_STATUS=$?
+    if [[ $TUI_STATUS -eq 2 ]] && python3 -c '
+import sys, json
+d = json.load(sys.stdin)
+assert d["schema"] == "oh.war/report/v1" and d["exit_code"] == 2, d
+[x] = [x for x in d["diagnostics"] if x["severity"] == "error"]
+assert x["rule"] == "tui.json", x
+assert "`war console --json`" in x["message"] and "`war status --json`" in x["message"], x
+' <<<"$TUI_JSON" 2>/dev/null; then
+        printf 'ok    %-34s exit 2, tui.json, names war console/status --json\n' "war $TUI_ARGS refuses by name"
+        PASSED=$((PASSED + 1))
+    else
+        printf 'FAIL  %-34s exit %s: %s\n' "war $TUI_ARGS refuses by name" "$TUI_STATUS" "$(head -c 200 <<<"$TUI_JSON" | tr '\n' ' ')"
+        FAILED=$((FAILED + 1))
+    fi
+done
+
+# The `sdk` argv scan is untouched: `war --json sdk --request -` still answers
+# with an envelope — an ill-formed request refused inside one, never clap's
+# usage and never the app.
+TUI_SDK=$(printf '{}' | "$WAR" --json sdk --request - 2>/dev/null); TUI_STATUS=$?
+if python3 -c '
+import sys, json
+d = json.load(sys.stdin)
+assert d["schema"] == "oh.war/report/v1", d
+assert not any(x["rule"].startswith("tui.") for x in d["diagnostics"]), d
+' <<<"$TUI_SDK" 2>/dev/null && ! grep -q '^Usage:' <<<"$TUI_SDK"; then
+    printf 'ok    %-34s an envelope (exit %s), not usage, not the app\n' "war --json sdk --request -" "$TUI_STATUS"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s exit %s: %s\n' "war --json sdk --request -" "$TUI_STATUS" "$(head -c 200 <<<"$TUI_SDK" | tr '\n' ' ')"
     FAILED=$((FAILED + 1))
 fi
 

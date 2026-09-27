@@ -213,7 +213,20 @@ pub fn history(repo: &Repository, path: &str) -> Result<String, RepoError> {
             let head = crate::correct::head_for(&repo.load_corrections(&dir)?, &d.id, &recorded)
                 .1
                 .unwrap_or_else(|_| recorded.clone());
+            // This Warrant's claim on the path, if its signed authorization
+            // recorded one (OW-ADR-0021): the time it took ownership.
+            let owned_at = ownership
+                .lineage(path)
+                .into_iter()
+                .find(|o| o.alias == alias)
+                .map(|o| o.authorized_at.clone());
             let standing = match (&resolved, ownership.current(path)) {
+                (None, Some(cur)) if owned_at.is_some() && cur.alias == alias => {
+                    "current (authorized, unresolved)".to_owned()
+                }
+                (None, Some(cur)) if owned_at.is_some() => {
+                    format!("authorized, superseded → {}", cur.alias)
+                }
                 (None, _) => "draft or authorized".to_owned(),
                 (Some(_), Some(cur)) if cur.alias == alias => "current".to_owned(),
                 (Some(_), Some(cur)) => format!("historical → {}", cur.alias),
@@ -244,9 +257,12 @@ pub fn history(repo: &Repository, path: &str) -> Result<String, RepoError> {
                     }
                 }
             };
-            let when = resolved
-                .as_ref()
-                .map(|r| r.resolution.effective_at.clone())
+            // Oldest first means in the order the Warrants took the path: an
+            // owner by its authorization time, a Warrant that owns nothing (a
+            // record made before the ADR) by its resolution. One with neither
+            // (a draft) has no place in the order and is listed last.
+            let when = owned_at
+                .or_else(|| resolved.as_ref().map(|r| r.resolution.effective_at.clone()))
                 .unwrap_or_default();
             rows.push((
                 when,
@@ -256,7 +272,7 @@ pub fn history(repo: &Repository, path: &str) -> Result<String, RepoError> {
             ));
         }
     }
-    rows.sort();
+    rows.sort_by(|a, b| (a.0.is_empty(), a).cmp(&(b.0.is_empty(), b)));
     if rows.is_empty() {
         s.push_str(&format!("no Warrant declares {path}\n"));
         return Ok(s);

@@ -232,3 +232,290 @@ else
     printf 'FAIL  %-34s exit %s, subject-drift on authorization.toml not reported\n' "owned set edited after signing" "$OE_STATUS"
     FAILED=$((FAILED + 1))
 fi
+
+# ---------------------------------------------------------------------------
+# Ownership, signed, on a scratch program (OW-WAR-0112 OBL-001, OBL-002,
+# OBL-003). Two Warrants declare the same path, ADOPTED.md: the scaffold's
+# adoption Warrant (OS-WAR-0001) and one from `war new` (OS-WAR-0002). A plant
+# human's throwaway key signs every response — `ssh-keygen -Y sign -f`, never
+# an agent, SSH_AUTH_SOCK unset — because ownership is granted only by a
+# verified signature: an unsigned record owns nothing, so no refusal below
+# would have an owner to refuse against. Nothing here is this corpus.
+echo "== ownership, signed on a scratch program (OW-WAR-0112) =="
+OS_ROOT=$(scratch_corpus OS)
+[[ -d "${OS_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
+OS_TMP=$(mktemp -d)
+OS_A=OS-WAR-0001
+OS_B=OS-WAR-0002
+OS_ADIR="$OS_ROOT/docs/warrants/$OS_A"
+OS_BDIR="$OS_ROOT/docs/warrants/$OS_B"
+# Signatures are found where `authority_check` looks: docs/authority/responses/.
+OS_RESP="$OS_ROOT/docs/authority/responses"
+# The scaffold's gate is `war check --generated` by name: the war built here
+# must be the one it finds.
+os()        { PATH="$REPO_ROOT/target/debug:$PATH" "$REPO_ROOT/${WAR#./}" --root "$OS_ROOT" "$@"; }
+os_commit() {
+    git -C "$OS_ROOT" add -A >/dev/null 2>&1
+    git -C "$OS_ROOT" -c user.email=plant@invalid -c user.name=plant -c commit.gpgsign=false \
+        commit -qm "$1" >/dev/null 2>&1
+}
+os_tree()   { git -C "$OS_ROOT" status --porcelain | sort; }
+os_sign()   { env -u SSH_AUTH_SOCK -u SSH_AGENT_PID ssh-keygen -q -Y sign -f "$OS_TMP/id_plant" -n oh.war/response "$1" >/dev/null 2>&1; }
+os_setup_failed() { printf 'PLANT SETUP FAILED: %s in %s\n' "$1" "$OS_ROOT" >&2; exit 9; }
+os_ok()     { printf 'ok    %-34s %s\n' "$1" "$2"; PASSED=$((PASSED + 1)); }
+os_fail()   { printf 'FAIL  %-34s %s\n' "$1" "$2"; FAILED=$((FAILED + 1)); }
+os_lines()  { grep -E '^(PASS|ERROR|UNKNOWN|WARN)' <<<"$1" | head -3 | tr '\n' '|'; }
+# An authorization response: alias, effective time, set digest.
+os_auth_response() {
+    local digest
+    digest=$(os authorize "$1" 2>/dev/null | grep '^contract_digest' | cut -d'"' -f2)
+    [[ -n "$digest" ]] || os_setup_failed "no contract digest for $1"
+    printf 'schema = "oh.war/authorization-response/v1"\nwarrant = "%s"\ncontract_digest = "%s"\nauthorizer = "Plant Human"\nacting_role = "authorizer"\nmeaning = "plant fixture"\neffective_time = "%s"\nindependence = "separate_role"\ndeliverable_set_digest = "%s"\n' \
+        "$1" "$digest" "$2" "$3"
+}
+os_set_digest() { os authorize "$1" 2>/dev/null | grep '^deliverable_set_digest' | cut -d'"' -f2; }
+# A hook event: an Edit of <path> in the scratch program.
+os_hook() {
+    printf '{"session_id":"plant","hook_event_name":"PreToolUse","tool_name":"Edit","cwd":"%s","tool_input":{"file_path":"%s","old_string":"a","new_string":"b"}}' \
+        "$OS_ROOT" "$1" \
+        | PATH="$REPO_ROOT/target/debug:$PATH" bash "$REPO_ROOT/.claude/hooks/guard-pins.sh" 2>/dev/null
+}
+
+env -u SSH_AUTH_SOCK -u SSH_AGENT_PID ssh-keygen -q -t ed25519 -N "" -C plant -f "$OS_TMP/id_plant" \
+    || os_setup_failed "ssh-keygen"
+printf 'plant namespaces="oh.war/response,oh.war/dsse" %s\n' "$(cut -d' ' -f1,2 "$OS_TMP/id_plant.pub")" \
+    > "$OS_ROOT/docs/authority/allowed_signers"
+cat > "$OS_ROOT/docs/authority/roles.toml" <<'ROLES'
+[[assignment]]
+actor = "Plant Human"
+actor_kind = "human"
+roles = ["authorizer", "resolver", "risk_acceptor", "judge"]
+assigned_by = "conformance/plants.d/98-ownership.sh"
+effective_time = "2026-01-01T00:00:00Z"
+note = "Exists only while the ownership plants run; its key is generated and discarded here."
+ssh_principal = "plant"
+
+[[assignment]]
+actor = "claude"
+actor_kind = "agent"
+roles = ["performer"]
+assigned_by = "conformance/plants.d/98-ownership.sh"
+effective_time = "2026-01-01T00:00:00Z"
+note = "The performer."
+ROLES
+mkdir -p "$OS_RESP"
+os sas propose 0.1.0 >/dev/null 2>&1 || os_setup_failed "war sas propose"
+OS_SAS=$(grep '^sha256' "$OS_ROOT/docs/sas/revisions/0.1.0.toml" 2>/dev/null | cut -d'"' -f2)
+printf 'schema = "oh.war/sas-acceptance-response/v1"\nversion = "0.1.0"\nsha256 = "%s"\naccepted_by = "Plant Human"\nacting_role = "owner"\nmeaning = "plant fixture"\neffective_time = "2026-09-02T00:00:00Z"\n' \
+    "$OS_SAS" > "$OS_RESP/SAS-0.1.0.response.toml"
+os_sign "$OS_RESP/SAS-0.1.0.response.toml"
+os sas accept 0.1.0 --response "$OS_RESP/SAS-0.1.0.response.toml" >/dev/null 2>&1 || os_setup_failed "war sas accept"
+python3 - "$OS_ROOT/openwarrant.toml" "$REPO_ROOT/conformance/fixtures/verifier/establishes-all.sh" <<'PY' || os_setup_failed "the verifier fixture"
+import sys
+path, verifier = sys.argv[1], sys.argv[2]
+text = open(path).read()
+if "verifier_argv = []" not in text:
+    sys.exit(1)
+open(path, "w").write(text.replace("verifier_argv = []", f'verifier_argv = ["{verifier}"]', 1))
+PY
+printf 'adopted\n' > "$OS_ROOT/ADOPTED.md"
+cat > "$OS_ADIR/deliverables.toml" <<TOML
+schema = "oh.war/deliverables/v1"
+
+[[deliverable]]
+id = "D-001"
+title = "The adoption note"
+kind = "file"
+target_ref = "ADOPTED.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "conformance/plants.d/98-ownership.sh"
+producing_attempt = "$OS_A/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "printf"
+creation_method = "generated"
+content_digest = "sha256:$(sha256sum < "$OS_ROOT/ADOPTED.md" | cut -d' ' -f1)"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+TOML
+printf 'schema = "oh.war/rationale/v1"\n' > "$OS_ADIR/rationale.toml"
+os new "The second owner of ADOPTED.md" >/dev/null 2>&1 || os_setup_failed "war new"
+[[ -d "$OS_BDIR" ]] || os_setup_failed "no $OS_B"
+cat > "$OS_BDIR/deliverables.toml" <<'TOML'
+schema = "oh.war/deliverables/v1"
+
+[[deliverable]]
+id = "D-001"
+title = "The adoption note, taken over"
+kind = "file"
+target_ref = "ADOPTED.md"
+required = false
+content_addressed = false
+provenance_required = false
+TOML
+os compile >/dev/null 2>&1
+os_commit "two Warrants declare ADOPTED.md" || os_setup_failed "baseline commit"
+
+# `war sign --show`: "Grants ownership of:" and then every declared path.
+# Refusal side: it is a rendering, so the tree does not move.
+OS_BEFORE=$(os_tree)
+OS_OUT=$(os sign "$OS_A" --show --as "Plant Human" 2>&1)
+if grep -q '│ Grants ownership of: 1 path(s)' <<<"$OS_OUT" \
+    && [[ $(sed -n '/Grants ownership of:/,$p' <<<"$OS_OUT" | grep -cE '^│   D-[0-9]{3}  ') -eq 1 ]] \
+    && grep -q '│   D-001  ADOPTED.md' <<<"$OS_OUT" && [[ "$OS_BEFORE" == "$(os_tree)" ]]; then
+    os_ok "sign --show lists what it grants" "Grants ownership of: D-001 ADOPTED.md; nothing written"
+else
+    os_fail "sign --show lists what it grants" "$(grep -i -A2 'ownership' <<<"$OS_OUT" | tr '\n' '|')"
+fi
+
+# A response signing a set the manifest does not hold: refused by name, and
+# nothing written — no authorization.toml, no journal line.
+os_auth_response "$OS_A" 2026-09-20T00:00:00Z "sha256:$(printf '0%.0s' {1..64})" > "$OS_RESP/$OS_A.stale.response.toml"
+os_sign "$OS_RESP/$OS_A.stale.response.toml"
+OS_BEFORE=$(os_tree)
+OS_OUT=$(os authorize "$OS_A" --response "$OS_RESP/$OS_A.stale.response.toml" 2>&1); OS_STATUS=$?
+if [[ $OS_STATUS -eq 2 ]] && grep -q '^ERROR authorize.stale-deliverables' <<<"$OS_OUT" \
+    && [[ ! -e "$OS_ADIR/authorization.toml" ]] && [[ "$OS_BEFORE" == "$(os_tree)" ]]; then
+    os_ok "a response over a moved set" "authorize.stale-deliverables (exit 2), nothing written"
+else
+    os_fail "a response over a moved set" "exit $OS_STATUS: $(os_lines "$OS_OUT")"
+fi
+command rm -f "$OS_RESP/$OS_A.stale.response.toml" "$OS_RESP/$OS_A.stale.response.toml.sig"
+
+# The paired control: the same response over the set the manifest holds is
+# recorded, and OS-WAR-0001 now owns ADOPTED.md from 2026-09-20.
+os_auth_response "$OS_A" 2026-09-20T00:00:00Z "$(os_set_digest "$OS_A")" > "$OS_RESP/$OS_A.response.toml"
+os_sign "$OS_RESP/$OS_A.response.toml"
+OS_OUT=$(os authorize "$OS_A" --response "$OS_RESP/$OS_A.response.toml" 2>&1); OS_STATUS=$?
+if [[ $OS_STATUS -eq 0 ]] && grep -q '^PASS authorize.recorded' <<<"$OS_OUT" \
+    && grep -q 'target_ref = "ADOPTED.md"' "$OS_ADIR/authorization.toml" 2>/dev/null; then
+    os_ok "the signed set is recorded" "authorize.recorded; owned: ADOPTED.md"
+else
+    os_fail "the signed set is recorded" "exit $OS_STATUS: $(os_lines "$OS_OUT")"
+fi
+os_commit "OS-WAR-0001 authorized"
+
+# A second Warrant dated BEFORE the owner it would displace: refused by name,
+# nothing written.
+os_auth_response "$OS_B" 2026-09-10T00:00:00Z "$(os_set_digest "$OS_B")" > "$OS_RESP/$OS_B.early.response.toml"
+os_sign "$OS_RESP/$OS_B.early.response.toml"
+OS_BEFORE=$(os_tree)
+OS_OUT=$(os authorize "$OS_B" --response "$OS_RESP/$OS_B.early.response.toml" 2>&1); OS_STATUS=$?
+if [[ $OS_STATUS -eq 2 ]] && line_has -E '^ERROR authorize.time-before-owner' -F "when $OS_A was authorized for ADOPTED.md" <<<"$OS_OUT" \
+    && [[ ! -e "$OS_BDIR/authorization.toml" ]] && [[ "$OS_BEFORE" == "$(os_tree)" ]]; then
+    os_ok "an authorization dated before owner" "authorize.time-before-owner naming $OS_A (exit 2), nothing written"
+else
+    os_fail "an authorization dated before owner" "exit $OS_STATUS: $(os_lines "$OS_OUT")"
+fi
+command rm -f "$OS_RESP/$OS_B.early.response.toml" "$OS_RESP/$OS_B.early.response.toml.sig"
+
+# OS-WAR-0001 resolved: evidence over the committed tree, the fixture
+# verifier, and a signed resolution. The record carries a [locator] whose
+# commit is the tree it was resolved at.
+os evidence record "$OS_A" >/dev/null 2>&1; os compile >/dev/null 2>&1; os_commit "evidence"
+os verify "$OS_A" --performer claude --run >/dev/null 2>&1; os compile >/dev/null 2>&1; os_commit "verified"
+os evidence record "$OS_A" >/dev/null 2>&1; os compile >/dev/null 2>&1; os_commit "evidence over the verified tree"
+OS_HEAD=$(git -C "$OS_ROOT" rev-parse HEAD)
+OS_DIGEST=$(os authorize "$OS_A" 2>/dev/null | grep '^contract_digest' | cut -d'"' -f2)
+printf 'schema = "oh.war/resolution-response/v1"\nwarrant = "%s"\ncontract_digest = "%s"\nresolved_by = "Plant Human"\nacting_role = "resolver"\ncommon_outcome = "satisfied"\nprofile_outcome = "delivered"\nmeaning = "plant fixture"\neffective_time = "2026-09-22T00:00:00Z"\n' \
+    "$OS_A" "$OS_DIGEST" > "$OS_RESP/$OS_A.resolution.response.toml"
+os_sign "$OS_RESP/$OS_A.resolution.response.toml"
+OS_OUT=$(os resolve "$OS_A" --response "$OS_RESP/$OS_A.resolution.response.toml" 2>&1); OS_STATUS=$?
+OS_LOC=$(python3 -c '
+import sys, tomllib
+r = tomllib.load(open(sys.argv[1], "rb"))
+print(r.get("locator", {}).get("commit_sha", ""))' "$OS_ADIR/resolution.toml" 2>/dev/null)
+if [[ $OS_STATUS -eq 0 ]] && [[ "$OS_LOC" =~ ^[0-9a-f]{40}$ ]] && [[ "$OS_LOC" == "$OS_HEAD" ]]; then
+    os_ok "a resolution carries its locator" "[locator] commit_sha = ${OS_LOC:0:12}… (40 lowercase hex, the resolved HEAD)"
+else
+    os_fail "a resolution carries its locator" "exit $OS_STATUS, commit_sha '$OS_LOC', HEAD $OS_HEAD: $(os_lines "$OS_OUT")"
+fi
+os compile >/dev/null 2>&1; os_commit "OS-WAR-0001 resolved"
+
+# While OS-WAR-0001 is the only owner its pin is current: the hook denies the
+# edit and names the correction act.
+OS_HOOK=$(os_hook "$OS_ROOT/ADOPTED.md")
+if grep -q '"permissionDecision":"deny"' <<<"$OS_HOOK" && grep -q "war correct $OS_A D-001" <<<"$OS_HOOK"; then
+    os_ok "the hook denies a current pin" "deny, names war correct $OS_A D-001"
+else
+    os_fail "the hook denies a current pin" "hook said: $(cut -c1-200 <<<"$OS_HOOK")"
+fi
+
+# OBL-003 over the same program: `war check --json` on a planted drift and on
+# a planted stale projection. The drift is the resolved pin moved: a HUMAN
+# remedy naming the correction and the signature it ends in. The stale
+# projection is an atom edited without `war compile`: an AUTO `war compile`.
+printf 'moved\n' >> "$OS_ROOT/ADOPTED.md"
+printf '\nA planted line.\n' >> "$OS_BDIR/atoms/10-intent.md"
+OS_JSON=$(os check --generated --json 2>/dev/null)
+OS_HUMAN=$(os check --generated 2>&1)
+corpus_reset "$OS_ROOT"
+if python3 -c '
+import sys, json
+alias = sys.argv[1]
+d = json.load(sys.stdin)
+drift = [x for x in d["diagnostics"] if x["rule"] == "deliverable.digest-drift"]
+assert drift, "no drift"
+r = drift[0]["remedy"]
+assert r["kind"] == "human", r
+assert r["argv"] == ["war", "correct", alias, "D-001"], r
+assert f"war sign {alias}/D-001 --ssh-sign" in r["purpose"], r
+stale = [x for x in d["diagnostics"] if x["rule"] == "generated.drift" and x["severity"] != "pass"]
+assert stale, "no stale projection"
+for x in stale:
+    assert x["remedy"]["kind"] == "auto" and x["remedy"]["argv"] == ["war", "compile"], x
+assert d["exit_code"] == 2 and d["verdict"] == "not_ready", d["verdict"]
+' "$OS_A" <<<"$OS_JSON" 2>"$OS_TMP/py.err" \
+    && [[ $(grep -c '^REMEDIES:' <<<"$OS_HUMAN") -eq 1 ]] \
+    && grep -qE '^  human +war correct OS-WAR-0001 D-001 ' <<<"$OS_HUMAN" \
+    && grep -qE '^  auto +war compile ' <<<"$OS_HUMAN"; then
+    os_ok "check --json carries each remedy" "drift: human war correct (signs with war sign $OS_A/D-001); stale: auto war compile; REMEDIES: block"
+else
+    os_fail "check --json carries each remedy" "$(tail -1 "$OS_TMP/py.err") / $(grep -A3 '^REMEDIES:' <<<"$OS_HUMAN" | tr '\n' '|')"
+fi
+
+# OS-WAR-0002 at a time AFTER the owner: recorded, and it takes the path.
+os_auth_response "$OS_B" 2026-09-25T00:00:00Z "$(os_set_digest "$OS_B")" > "$OS_RESP/$OS_B.response.toml"
+os_sign "$OS_RESP/$OS_B.response.toml"
+OS_OUT=$(os authorize "$OS_B" --response "$OS_RESP/$OS_B.response.toml" 2>&1); OS_STATUS=$?
+if [[ $OS_STATUS -eq 0 ]] && grep -q '^PASS authorize.recorded' <<<"$OS_OUT"; then
+    os_ok "a later owner is recorded" "$OS_B authorized after $OS_A"
+else
+    os_fail "a later owner is recorded" "exit $OS_STATUS: $(os_lines "$OS_OUT")"
+fi
+os_commit "OS-WAR-0002 authorized"
+
+# The resolved pin is now historical: the same moved byte that was drift
+# above is passed by name as superseded, and the hook lets through the edit
+# it denied above, on the same path.
+printf 'moved\n' >> "$OS_ROOT/ADOPTED.md"
+OS_OUT=$(os check 2>&1)
+OS_HOOK=$(os_hook "$OS_ROOT/ADOPTED.md")
+corpus_reset "$OS_ROOT"
+if line_has -E '^PASS deliverable.superseded-by' -F "$OS_A: D-001" <<<"$OS_OUT" \
+    && ! grep -qE "^ERROR +deliverable\..*$OS_A: D-001" <<<"$OS_OUT" && [[ -z "$OS_HOOK" ]]; then
+    os_ok "the hook permits a historical pin" "superseded-by $OS_B; the edit it denied is let through"
+else
+    os_fail "the hook permits a historical pin" "hook: $(cut -c1-120 <<<"$OS_HOOK"); $(grep -m2 "$OS_A: D-001" <<<"$OS_OUT" | tr '\n' '|')"
+fi
+
+# `war pins --history`: both owners, oldest first — the order they took it.
+OS_OUT=$(os pins --history ADOPTED.md 2>&1)
+OS_FIRST=$(grep -nE "^  2026-09-20T00:00:00Z +$OS_A/D-001 +historical → $OS_B" <<<"$OS_OUT" | cut -d: -f1)
+OS_SECOND=$(grep -nE "^  2026-09-25T00:00:00Z +$OS_B/D-001 +current" <<<"$OS_OUT" | cut -d: -f1)
+if [[ -n "$OS_FIRST" && -n "$OS_SECOND" ]] && [[ "$OS_FIRST" -lt "$OS_SECOND" ]] \
+    && [[ $(grep -cE '^  [0-9—]' <<<"$OS_OUT") -eq 2 ]]; then
+    os_ok "pins --history, oldest first" "$OS_A (historical) then $OS_B (current)"
+else
+    os_fail "pins --history, oldest first" "$(tr '\n' '|' <<<"$OS_OUT")"
+fi
+
+corpus_gone "$OS_ROOT"
+command rm -rf "$OS_TMP"

@@ -56,6 +56,24 @@ use crate::repo::{RepoError, Repository};
 /// escape code on a pipe.
 pub const NO_TTY: &str = "tui.no-tty";
 
+/// The refusal for `war --json` and `war tui --json`: a terminal
+/// application is a rendering and has no envelope, so it names the commands
+/// that do. Exit 2, as an envelope, like every other refusal.
+pub const JSON: &str = "tui.json";
+
+/// Print the `tui.json` refusal as an envelope; returns the exit code.
+pub fn refuse_json() -> u8 {
+    let mut report = Report::default();
+    report.push(Diagnostic::error(
+        JSON,
+        "-".to_owned(),
+        "the app is a rendering and has no envelope; for a script use `war status --json`, \
+         `war console --json`, `war next --json` or `war check --json`",
+    ));
+    println!("{}", crate::output::envelope("tui", &report, None));
+    crate::output::exit_code(&report)
+}
+
 /// `war` / `war tui`. Returns the exit code.
 pub fn run(root: Option<Utf8PathBuf>, panic_after_setup: bool) -> Result<u8, RepoError> {
     if !crate::sign::at_a_terminal() {
@@ -832,37 +850,7 @@ impl Model {
             .as_ref()
             .map_or("OW", |r| r.config.project.namespace.as_str())
             .to_owned();
-        for (name, text) in [
-            (
-                "docs/TUI.md",
-                include_str!("../../../../docs/TUI.md").to_owned(),
-            ),
-            (
-                "QUICKSTART.md",
-                include_str!("../../../../QUICKSTART.md").to_owned(),
-            ),
-            (
-                "README.md",
-                include_str!("../../../../README.md").to_owned(),
-            ),
-            (
-                "docs/DEFINITIONS.md",
-                include_str!("../../../../docs/DEFINITIONS.md").to_owned(),
-            ),
-            (
-                "docs/SKILLS.md",
-                include_str!("../../../../docs/SKILLS.md").to_owned(),
-            ),
-            (
-                "AGENTS.md (as `war init` ships it)",
-                crate::init::render_agents_md(&ns),
-            ),
-        ] {
-            docs.push(Doc {
-                name: name.to_owned(),
-                text,
-            });
-        }
+        docs.extend(embedded_docs(&ns));
         docs
     }
 
@@ -1688,6 +1676,43 @@ fn draw_doc(f: &mut ratatui::Frame, m: &Model, body: Rect) {
     );
 }
 
+/// The documents embedded at build time, in the order Help shows them after
+/// this repository's own: what `war init` ships, so help never drifts from it.
+fn embedded_docs(ns: &str) -> Vec<Doc> {
+    [
+        (
+            "docs/TUI.md",
+            include_str!("../../../../docs/TUI.md").to_owned(),
+        ),
+        (
+            "QUICKSTART.md",
+            include_str!("../../../../QUICKSTART.md").to_owned(),
+        ),
+        (
+            "README.md",
+            include_str!("../../../../README.md").to_owned(),
+        ),
+        (
+            "docs/DEFINITIONS.md",
+            include_str!("../../../../docs/DEFINITIONS.md").to_owned(),
+        ),
+        (
+            "docs/SKILLS.md",
+            include_str!("../../../../docs/SKILLS.md").to_owned(),
+        ),
+        (
+            "AGENTS.md (as `war init` ships it)",
+            crate::init::render_agents_md(ns),
+        ),
+    ]
+    .into_iter()
+    .map(|(name, text)| Doc {
+        name: name.to_owned(),
+        text,
+    })
+    .collect()
+}
+
 fn centered(area: Rect, pct_w: u16, pct_h: u16) -> Rect {
     let w = area.width * pct_w / 100;
     let h = area.height * pct_h / 100;
@@ -1925,6 +1950,46 @@ mod tests {
                 doc.contains(&needle),
                 "docs/TUI.md does not mention {needle}"
             );
+        }
+    }
+
+    /// OW-WAR-0112 OBL-006: every embedded document renders in the Help pane
+    /// without a panic — through `md::render` and the same Paragraph
+    /// `draw_doc` builds, into a normal and a cramped terminal, scrolled to
+    /// its end. Refusal side: the renderer is seen to have produced text, so
+    /// an empty rendering does not pass as "no panic".
+    #[test]
+    fn every_embedded_document_renders_in_the_help_pane() {
+        use ratatui::backend::TestBackend;
+        let docs = embedded_docs("OW");
+        assert_eq!(docs.len(), 6, "the six documents the work order names");
+        for doc in &docs {
+            let text = md::render(&doc.text);
+            assert!(
+                text.lines.len() > 3,
+                "{} rendered to {} line(s)",
+                doc.name,
+                text.lines.len()
+            );
+            for (w, h) in [(100, 30), (12, 4)] {
+                let mut terminal = Terminal::new(TestBackend::new(w, h)).expect("test backend");
+                let lines = u16::try_from(text.lines.len()).unwrap_or(u16::MAX);
+                terminal
+                    .draw(|f| {
+                        f.render_widget(
+                            Paragraph::new(text.clone())
+                                .block(
+                                    Block::default()
+                                        .borders(Borders::ALL)
+                                        .title(format!(" {} ", doc.name)),
+                                )
+                                .wrap(Wrap { trim: false })
+                                .scroll((lines, 0)),
+                            f.area(),
+                        );
+                    })
+                    .unwrap_or_else(|e| panic!("{} did not draw at {w}x{h}: {e}", doc.name));
+            }
         }
     }
 

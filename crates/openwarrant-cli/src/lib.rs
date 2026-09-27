@@ -1569,14 +1569,18 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
     let Some(command) = cli.command else {
         // `war` alone. `--json` has no envelope to give — a terminal
         // application is not a projection — so it names the commands that do.
+        // Refused by name (`tui.json`), exit 2, like every other refusal.
         if cli.json {
-            return Err(Box::new(repo::RepoError::Message(
-                "`war --json` has no envelope: the app is a rendering. Use `war status --json`, \
-                 `war console --json`, `war next --json` or `war check --json`"
-                    .to_owned(),
-            )));
+            return Ok(tui::refuse_json());
         }
-        return Ok(tui::run(root, false)?);
+        let code = tui::run(root, false)?;
+        // No terminal: the refusal above, then clap's usage — `war` alone in a
+        // script is a caller that wanted a subcommand.
+        if code == EXIT_NOT_READY && !sign::at_a_terminal() {
+            use clap::CommandFactory as _;
+            eprintln!("\n{}", Cli::command().render_usage());
+        }
+        return Ok(code);
     };
     // The ticket loop: a store over the ticket files, and one printer.
     let tickets = |actor: Option<&str>| -> Result<(repo::Repository, ticket::Store), Box<dyn std::error::Error>> {
@@ -1706,7 +1710,12 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             let (_, store) = tickets(None)?;
             Ok(ticket_answer(mode, "show", &ticket::show(&store, &alias)?))
         }
-        Command::Tui { panic_after_setup } => Ok(tui::run(root, panic_after_setup)?),
+        Command::Tui { panic_after_setup } => {
+            if matches!(mode, output::Mode::Json) {
+                return Ok(tui::refuse_json());
+            }
+            Ok(tui::run(root, panic_after_setup)?)
+        }
         Command::Sdk { request, output } => Ok(sdk::run(&request, output.as_deref())),
         Command::Init {
             namespace,
