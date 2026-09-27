@@ -80,6 +80,7 @@ pub struct RoadmapManifest {
     pub atoms: Vec<RoadmapAtomRef>,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct RoadmapAtomRef {

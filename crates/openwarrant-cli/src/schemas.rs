@@ -66,6 +66,9 @@ fn entries() -> Vec<Entry> {
         entry::<openwarrant_compiler::WarIr>("war"),
         // OW-ADR-0029: the class a human signs once for routine work.
         entry::<openwarrant_core::standing::StandingAuthorization>("standing-authorization"),
+        // OW-WAR-0114 (OW-ADR-0023): `roadmap.toml`, as `war roadmap` reads it —
+        // the core manifest plus `[[placement]]` and `[[retires]]`.
+        entry::<crate::roadmap_cmd::Manifest>("roadmap"),
     ]
 }
 
@@ -259,7 +262,8 @@ mod tests {
         let (b, pb) = render_all().unwrap();
         assert_eq!(a, b);
         assert_eq!(pa.transitive_digest, pb.transitive_digest);
-        assert_eq!(a.len(), 15);
+        assert_eq!(a.len(), entries().len());
+        assert!(a.contains_key("roadmap"), "the roadmap record has a schema");
         for (record, text) in &a {
             let v: serde_json::Value = serde_json::from_str(text).unwrap();
             assert_eq!(v["$id"], format!("oh.war/{record}/v1"));
