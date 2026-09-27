@@ -44,7 +44,7 @@ classification: internal
 
 ### OBL-004 — the document separates the standard from the tool, and proposes rather than makes SAS changes
 - **scope:** `docs/GRAMMAR.md`.
-- **gate:** `gate://document.review@1.0.0`
+- **gate:** `gate://document.review@1.1.0`
 - **evidence:** every table row has both a standard column and a `war`
   column; every "standard" cell quotes a SAS clause or says
   "unspecified"; every divergence has a proposed SAS text marked as a

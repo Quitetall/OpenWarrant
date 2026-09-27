@@ -15,7 +15,7 @@ classification: internal
 - **scope:** `docs/adr/atoms/OW-ADR-0029-standing-authorization.md`,
   `questions/Q-001.toml` and, under A only, the SAS 1.2.0 proposal
   (`docs/sas/revisions/1.2.0.toml`). No claim about any code.
-- **gate:** `gate://document.review@1.0.0`
+- **gate:** `gate://document.review@1.1.0`
 - **evidence:**
   - The ADR states A, B and C, each with its human cost per routine
     change (dialogs per round, reads per change, whether work waits),

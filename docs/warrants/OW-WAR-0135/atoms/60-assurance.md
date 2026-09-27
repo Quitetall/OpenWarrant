@@ -14,7 +14,7 @@ classification: internal
 ### OBL-001 — the mark is decided, and every requirement names its evidence
 - **scope:** the ADR and `docs/assurance/baseline-v1.toml`. No claim that
   the baseline is the right one; that is the owner's acceptance.
-- **gate:** `gate://document.review@1.0.0`
+- **gate:** `gate://document.review@1.1.0`
 - **evidence:**
   - the ADR is accepted by the owner, not by its author;
   - each baseline requirement names the record or finding that evidences

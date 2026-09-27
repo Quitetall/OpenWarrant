@@ -58,7 +58,7 @@ classification: internal
 
 ### OBL-004 — the contract says what each claim rests on
 - **scope:** `docs/AUTHENTICATION.md`, `docs/THREAT_MODEL.md`.
-- **gate:** `gate://document.review@1.0.0`
+- **gate:** `gate://document.review@1.1.0`
 - **evidence:**
   - every "authenticated", "protected" and "presence" claim cites a plant,
     a test or an operator duty;
