@@ -38,8 +38,10 @@ use serde::{Deserialize, Serialize};
 use crate::diagnostic::{Diagnostic, Report};
 use crate::repo::{RepoError, Repository};
 
-/// `roadmap.toml` as this command reads it: the core manifest plus the
-/// placement shim.
+/// `roadmap.toml` (`oh.war/roadmap/v1`) as `war roadmap` reads it: the core
+/// manifest plus the placement shim and the plans it retires. The schema pack
+/// generates `schemas/oh.war/roadmap/v1.json` from this type.
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Manifest {
@@ -60,6 +62,7 @@ pub struct Manifest {
 
 /// One retired plan: where it was, and the one line that says what became
 /// of it.
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Retired {
@@ -69,6 +72,7 @@ pub struct Retired {
     pub lineage: String,
 }
 
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Placement {
