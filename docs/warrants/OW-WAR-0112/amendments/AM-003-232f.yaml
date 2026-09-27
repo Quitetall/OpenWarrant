@@ -2,7 +2,7 @@ schema: "oh.war/amendment/v1"
 
 id: "AM-003-232f"
 band: "manual_revision"
-reason: "OBL-003's evidence asks that `war check --json` on a planted drift carry `remedy.kind = \"human\"` and an argv BEGINNING `war sign`. The shipped remedy for `deliverable.digest-drift` is `human` with argv `war correct <alias> <D-id>` and a purpose naming `war sign <alias>/<D-id> --ssh-sign`. The obligation's argv cannot be met as written: a bare `war sign <alias>/<D-id> --ssh-sign` on a drift with no recorded correction refuses (`sign.rs`: \"a correction needs --kind behaviour-change|added-refusal\"), because the kind is the human's decision, and the remedy may neither guess it nor carry a placeholder (conformance/plants.d/74-remedy.sh refuses a remedy with `<` in its argv). `war correct` is the command that answers the drift: it emits the request naming both digests, and the purpose names the signature it ends in. This amendment makes the obligation say what can be true; no code changes. Found by the blind verifier's OBL-003 verdict (2026-09-27); wording drafted by the performer `claude`, for the owner's authorization."
+reason: "OBL-003's evidence asks that `war check --json` on a planted drift carry `remedy.kind = \"human\"` and an argv BEGINNING `war sign`. The shipped remedy for `deliverable.digest-drift` is `human` with argv `war correct <alias> <D-id>` and a purpose naming `war sign <alias>/<D-id> --ssh-sign`. The obligation's argv cannot be met as written: a bare `war sign <alias>/<D-id> --ssh-sign` on a drift with no recorded correction refuses (`sign.rs`: \"a correction needs --kind behaviour-change|added-refusal\"), because the kind is the human's decision, and the remedy may neither guess it nor carry a placeholder (conformance/plants.d/74-remedy.sh refuses a remedy with `<` in its argv). `war correct` is the command that answers the drift: it emits the request naming both digests, and the purpose names the signature it ends in. This amendment makes the obligation say what can be true; no code changes. Found by the blind verifier's OBL-003 verdict (2026-09-27); wording drafted by the performer `claude`, for the owner's authorization. It also moves OBL-003 to gate://ops.conformance.plants@1.1.0: the evidence is a planted drift on a scratch program (98-ownership.sh), and the static war-check gate over this repository never plants one, so no run of it could establish OBL-003 (found when the amendments were applied, 2026-09-27)."
 governing_adr_or_policy: "sas://WAR-SAS-76.2"
 artifact_admissibility: "remain_admissible"
 restart_or_repair_instruction: "Continue. No artifact changes; OBL-003's evidence sentence changes, the contract digest moves, and the next revision is authorized against it. conformance/plants.d/98-ownership.sh (\"check --json carries each remedy\") asserts the amended text over a scratch program."
@@ -14,6 +14,10 @@ semantic_diff:
   - element: "obligations"
     before: "OBL-003: `war check --json` on a planted drift carries `remedy.kind = \"human\"` and an argv beginning `war sign`."
     after: "OBL-003: `war check --json` on a planted drift carries `remedy.kind = \"human\"`, argv `war correct <alias> <D-id>` with no placeholder, and a purpose naming `war sign <alias>/<D-id> --ssh-sign`."
+
+  - element: "gates"
+    before: "OBL-003 cites gate://software.repo.war-check@1.0.0."
+    after: "OBL-003 cites gate://ops.conformance.plants@1.1.0: its evidence is 98-ownership.sh's run on a scratch program (`war check --generated --json` over a planted drift and a planted stale atom), which a static `war check` of this repository never performs."
 
 affected_stages: []
 affected_milestones: []
