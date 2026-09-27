@@ -47,7 +47,9 @@ classification: internal
 - **scope:** the same scratch program.
 - **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
-  - accepting: done by the holder ticks the one line and releases the claim;
+  - accepting: done by the holder ticks the one line and releases the claim:
+    the lock file that existed after the claim is gone after done, and
+    `war tickets` lists the holder's claim on the item before and not after;
   - refusing: done of an item someone else holds (`ticket.claimed-by-other`),
     of an unclaimed item (`ticket.not-claimed`) and of an unknown id
     (`ticket.unknown`), each exit 2, with no box ticked.
@@ -77,9 +79,12 @@ classification: internal
 - **evidence:**
   - refusing: while their blockers are open the items are absent from
     `war ready`, and `war claim` of one exits 2 `ticket.blocked` naming what
-    it waits on;
-  - accepting: once the blocker is done the item appears in `war ready`,
-    and the item behind it still does not.
+    it waits on — for each of the three kinds;
+  - refusing: `war add --after t-x/i-y` naming no item of `t-x` exits 2
+    `ticket.blocker-unknown` and adds no line;
+  - accepting: once the blocker is done the item appears in `war ready`
+    and `war claim` takes it — for each of the three kinds — and the item
+    behind it still does not.
 
 ### OBL-006 — the authority layer is opt-in
 - **scope:** `war check` on a scratch program holding unsigned tickets;
@@ -96,7 +101,9 @@ classification: internal
     `ticket.already-promoted`; the registry refuses every malformed working
     form (`role.rs` tests: no core role, a compiler-produced or foreign
     role, a duplicate, an unknown form, `core_roles` without the form, an
-    acceptance role, a core profile with a form).
+    acceptance role, a core profile with a form); the plant drives each of
+    the eight through the binary, where `war check` and `war ready` both
+    refuse it by name and the unmodified `profiles/ticket.toml` passes both.
 
 ### OBL-007 — prime shows what is left, and compacts what is done
 - **scope:** a scratch program with open, recently done and 2020-done
@@ -117,7 +124,12 @@ classification: internal
     checklist names the MCP actor (plant; `tickets_cli.rs` adds create,
     add, note and show);
   - refusing: a second actor's `war_claim` is refused naming the holder,
-    and `mcp::tests` still find no signing or ingesting tool registered.
+    and `mcp::tests` still find no signing or ingesting tool registered;
+    the plant reads the same predicate from the live `tools/list` of that
+    session (the ticket tools present, no name in `REFUSED_TOOLS`, no
+    `sign` or `ingest` name but `war_sign_list` and `war_sign_show`), and a
+    call of `war_sign` or `war_verify_ingest` is an error with nothing
+    signed.
 
 ### OBL-009 — each ticket command answers fast on this corpus
 - **scope:** this repository's working tree (146 Warrants) on the machine

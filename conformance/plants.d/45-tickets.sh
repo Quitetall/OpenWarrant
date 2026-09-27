@@ -19,6 +19,8 @@ tkw() { env -u OPENWARRANT_ACTOR -u SSH_AUTH_SOCK "$WAR" --root "$PLANT_ROOT" "$
 tkj() { tkw --json "$@" 2>/dev/null; }
 # field <json> <python expression over v>
 tk_field() { python3 -c "import json,sys; v=json.loads(sys.argv[1]); print($2)" "$1" 2>/dev/null; }
+# Exact membership of a comma-separated list; an empty needle is never in it.
+tk_in() { [[ -n "$2" && ",$1," == *",$2,"* ]]; }
 TK_CHECK_BEFORE=$("$WAR" --root "$PLANT_ROOT" sign --list 2>/dev/null | grep -cE '^  [A-Z]+-WAR-[0-9]{4} ')
 
 # ---------------------------------------------------------------- OBL-001 --
@@ -46,7 +48,7 @@ else
 fi
 
 # ---------------------------------------------------------------- OBL-002 --
-# A held item: a second agent is refused by name; done needs your own claim.
+# A held item: a second agent is refused by name.
 TK_OUT=$(tkj create "Second ticket" --item "Only item" --item "Other item")
 TK2=$(tk_field "$TK_OUT" 'v["result"]["id"]')
 TK2_I=$(tk_field "$TK_OUT" 'v["result"]["items"][0]["id"]')
@@ -58,6 +60,9 @@ if [[ $TK_S -eq 2 ]] && grep -q 'ticket.claimed-by-other' <<<"$TK_ERR" && grep -
 else
     tk_fail "a held item refuses a second claim" "exit $TK_S: $TK_ERR"
 fi
+
+# ---------------------------------------------------------------- OBL-003 --
+# Done needs your own claim, and spends it.
 TK_ERR=$(tkw done "$TK2/$TK2_I" --as bob 2>&1 >/dev/null); TK_S=$?
 TK_ERR2=$(tkw done "$TK2/$TK2_J" --as bob 2>&1 >/dev/null); TK_S2=$?
 TK_ERR3=$(tkw done i-zzzz --as bob 2>&1 >/dev/null); TK_S3=$?
@@ -68,6 +73,28 @@ if [[ $TK_S -eq 2 && $TK_S2 -eq 2 && $TK_S3 -eq 2 ]] && grep -q 'claimed-by-othe
 else
     tk_fail "done refuses unclaimed and unknown" "$TK_S/$TK_S2/$TK_S3: $TK_ERR | $TK_ERR2 | $TK_ERR3"
 fi
+# The accepting half: the holder's done ticks its one line and releases the
+# claim — the lock file is gone and `war tickets` lists no claim on the item,
+# where both showed carol's claim a moment before (so the check is not
+# vacuous), and a second agent can then take nothing stale.
+tk_claims_on() { tk_field "$(tkj tickets)" '",".join(c["actor"]+"@"+c["ticket"]+"/"+str(c.get("item")) for r in v["result"]["tickets"] for c in r["claims"] if r["id"]=="'"$1"'")'; }
+TK_LOCK="$PLANT_ROOT/.openwarrant/state/claims/$TK2--$TK2_J.lock"
+tkw claim "$TK2/$TK2_J" --as carol >/dev/null 2>&1; TK_S=$?
+TK_HELD=0; [[ -f "$TK_LOCK" ]] && TK_HELD=1
+TK_CLB=$(tk_claims_on "$TK2")
+tkw done "$TK2/$TK2_J" --as carol --note "carol finished" >/dev/null 2>&1; TK_S2=$?
+TK_GONE=0; [[ -e "$TK_LOCK" ]] || TK_GONE=1
+TK_CLA=$(tk_claims_on "$TK2")
+TK_TICKED=$(grep -c '^- \[x\]' "$PLANT_ROOT/docs/tickets/$TK2/atoms/15-checklist.md")
+if [[ $TK_S -eq 0 && $TK_S2 -eq 0 && $TK_HELD -eq 1 && $TK_GONE -eq 1 && $TK_TICKED -eq 1 ]] \
+    && tk_in "$TK_CLB" "carol@$TK2/$TK2_J" && ! tk_in "$TK_CLA" "carol@$TK2/$TK2_J" \
+    && grep -q "^- \[x\] Other item ($TK2_J) — done by carol, [0-9-]*: carol finished$" "$PLANT_ROOT/docs/tickets/$TK2/atoms/15-checklist.md"; then
+    tk_ok "done by the holder releases it" "carol's lock held, then gone after done; war tickets: '$TK_CLB' -> '$TK_CLA'; one line ticked"
+else
+    tk_fail "done by the holder releases it" "claim=$TK_S done=$TK_S2 held=$TK_HELD gone=$TK_GONE ticked=$TK_TICKED claims: '$TK_CLB' -> '$TK_CLA'"
+fi
+
+# ---------------------------------------------------------------- OBL-002 --
 # Concurrent claims from separate processes: exactly one wins.
 TK_OUT=$(tkj create "Race" --item "Contended")
 TK3=$(tk_field "$TK_OUT" 'v["result"]["id"]'); TK3_I=$(tk_field "$TK_OUT" 'v["result"]["items"][0]["id"]')
@@ -99,7 +126,7 @@ else
     tk_fail "a stale claim is stolen, journalled" "$TK_S/$TK_S2/$TK_S3: $TK_ERR | $TK_ERR3"
 fi
 
-# ---------------------------------------------------------------- OBL-003 --
+# ---------------------------------------------------------------- OBL-004 --
 # The file is the state: a hand edit is honoured, and a write moves only its line.
 TK_OUT=$(tkj create "Hand edited" --item "First" --item "Second" --item "Third")
 TK4=$(tk_field "$TK_OUT" 'v["result"]["id"]')
@@ -138,8 +165,9 @@ else
     tk_fail "a hand-edited checklist is honoured" "ready: $TK_TXT; diff: $TK_DIFF"
 fi
 
-# ---------------------------------------------------------------- OBL-004 --
-# Blockers keep items out of `ready`, and a blocked claim is refused.
+# ---------------------------------------------------------------- OBL-005 --
+# Blockers keep items out of `ready`, and a blocked claim is refused: an item
+# of the same ticket, a whole ticket, and another ticket's item (t-x/i-y).
 #
 # Every step's exit is checked by name (t-9d3e). This block once failed on a
 # loaded machine with a line that read like `ready` and `claim` disagreeing;
@@ -149,7 +177,6 @@ fi
 # commands disagreeing, and list membership is exact, not a pattern.
 TK_SETUP=""
 tk_step() { local what=$1; shift; TK_STEP_OUT=$(tkj "$@"); local rc=$?; [[ $rc -eq 0 ]] || TK_SETUP="$TK_SETUP $what(exit $rc)"; return $rc; }
-tk_in() { [[ -n "$2" && ",$1," == *",$2,"* ]]; }
 tk_ready_ids() { tk_field "$TK_STEP_OUT" '",".join(r["ticket"]+"/"+str(r["item"]) for r in v["result"]["ready"])'; }
 tk_step create-ordered create "Ordered work" --item "Foundation"
 TK5=$(tk_field "$TK_STEP_OUT" 'v["result"]["id"]'); TK5_F=$(tk_field "$TK_STEP_OUT" 'v["result"]["items"][0]["id"]')
@@ -157,27 +184,61 @@ tk_step add-walls add "$TK5" "Walls" --after "$TK5_F"; TK5_W=$(tk_field "$TK_STE
 tk_step add-roof add "$TK5" "Roof" --after "$TK5/$TK5_W"; TK5_R=$(tk_field "$TK_STEP_OUT" 'v["result"]["item"]')
 tk_step create-paint create "Paint" --item "Paint the walls"; TK5_OTHER=$(tk_field "$TK_STEP_OUT" 'v["result"]["id"]')
 tk_step add-second-coat add "$TK5_OTHER" "Second coat" --after "$TK5"; TK5_SC=$(tk_field "$TK_STEP_OUT" 'v["result"]["item"]')
-for tk_v in TK5 TK5_F TK5_W TK5_R TK5_OTHER TK5_SC; do [[ -n "${!tk_v}" ]] || TK_SETUP="$TK_SETUP no-id:$tk_v"; done
+# Another ticket's item: trim waits on this ticket's foundation (t-x/i-y).
+tk_step create-trim create "Trim" --item "Measure"; TK5_X=$(tk_field "$TK_STEP_OUT" 'v["result"]["id"]')
+tk_step add-trim add "$TK5_X" "Fit the trim" --after "$TK5/$TK5_F"; TK5_XT=$(tk_field "$TK_STEP_OUT" 'v["result"]["item"]')
+TK5_XA=$(tk_field "$TK_STEP_OUT" '",".join(b["kind"]+":"+b["ticket"]+"/"+b.get("item","") for b in v["result"]["after"])')
+# A whole ticket, to its end: grout waits on tiling, a ticket of one item.
+tk_step create-tiling create "Tiling" --item "Lay tiles"; TK5_T=$(tk_field "$TK_STEP_OUT" 'v["result"]["id"]')
+TK5_TI=$(tk_field "$TK_STEP_OUT" 'v["result"]["items"][0]["id"]')
+tk_step create-grout create "Grout" --item "Mix"; TK5_G=$(tk_field "$TK_STEP_OUT" 'v["result"]["id"]')
+tk_step add-grout add "$TK5_G" "Grout the tiles" --after "$TK5_T"; TK5_GI=$(tk_field "$TK_STEP_OUT" 'v["result"]["item"]')
+for tk_v in TK5 TK5_F TK5_W TK5_R TK5_OTHER TK5_SC TK5_X TK5_XT TK5_T TK5_TI TK5_G TK5_GI; do [[ -n "${!tk_v}" ]] || TK_SETUP="$TK_SETUP no-id:$tk_v"; done
+# The cross-ticket blocker's refusal at the door: `--after` another ticket's
+# item that does not exist is refused by name and adds nothing (an id that
+# no item of TK5 starts with).
+for TK5_NO in i-0000 i-1111 i-2222 i-3333; do [[ "$TK5_F" != "$TK5_NO"* && "$TK5_W" != "$TK5_NO"* && "$TK5_R" != "$TK5_NO"* ]] && break; done
+TK_ERRX=$(tkw add "$TK5_X" "Nowhere" --after "$TK5/$TK5_NO" 2>&1 >/dev/null); TK_SX=$?
 tk_step ready-before ready; TK_IDS=$(tk_ready_ids)
 TK_ERR=$(tkw claim "$TK5/$TK5_W" 2>&1 >/dev/null); TK_S=$?
+TK_ERR3=$(tkw claim "$TK5_X/$TK5_XT" 2>&1 >/dev/null); TK_S3=$?
+TK_ERR4=$(tkw claim "$TK5_G/$TK5_GI" 2>&1 >/dev/null); TK_S4=$?
 tk_step claim-foundation claim "$TK5/$TK5_F"
 tk_step done-foundation done "$TK5/$TK5_F"
+tk_step claim-tiles claim "$TK5_T/$TK5_TI"
+tk_step done-tiles done "$TK5_T/$TK5_TI"
 tk_step ready-after ready; TK_IDS2=$(tk_ready_ids)
 # Once done has exited 0, the item `ready` now lists is one `claim` takes.
 TK_ERR2=$(tkw claim "$TK5/$TK5_W" 2>&1 >/dev/null); TK_S2=$?
+TK_ERR5=$(tkw claim "$TK5_X/$TK5_XT" 2>&1 >/dev/null); TK_S5=$?
+TK_ERR6=$(tkw claim "$TK5_G/$TK5_GI" 2>&1 >/dev/null); TK_S6=$?
 TK_WHY=""
 tk_in "$TK_IDS" "$TK5/$TK5_F" || TK_WHY="$TK_WHY foundation-not-ready-before"
-for x in "$TK5/$TK5_W" "$TK5/$TK5_R" "$TK5_OTHER/$TK5_SC"; do tk_in "$TK_IDS" "$x" && TK_WHY="$TK_WHY $x-ready-before"; done
+for x in "$TK5/$TK5_W" "$TK5/$TK5_R" "$TK5_OTHER/$TK5_SC" "$TK5_X/$TK5_XT" "$TK5_G/$TK5_GI"; do
+    tk_in "$TK_IDS" "$x" && TK_WHY="$TK_WHY $x-ready-before"
+done
+[[ "$TK5_XA" == "item_of:$TK5/$TK5_F" ]] || TK_WHY="$TK_WHY trim-after-is-'$TK5_XA'"
+[[ $TK_SX -eq 2 ]] && grep -q "ticket.blocker-unknown" <<<"$TK_ERRX" \
+    && ! grep -q "Nowhere" "$PLANT_ROOT/docs/tickets/$TK5_X/atoms/15-checklist.md" \
+    || TK_WHY="$TK_WHY unknown-cross-blocker-not-refused(exit $TK_SX: $TK_ERRX)"
 [[ $TK_S -eq 2 ]] && grep -q "ticket.blocked.*waits on $TK5_F" <<<"$TK_ERR" || TK_WHY="$TK_WHY blocked-claim-not-refused(exit $TK_S)"
+[[ $TK_S3 -eq 2 ]] && grep -q "ticket.blocked.*waits on $TK5/$TK5_F" <<<"$TK_ERR3" \
+    || TK_WHY="$TK_WHY cross-item-claim-not-refused(exit $TK_S3: $TK_ERR3)"
+[[ $TK_S4 -eq 2 ]] && grep -q "ticket.blocked.*waits on $TK5_T" <<<"$TK_ERR4" \
+    || TK_WHY="$TK_WHY whole-ticket-claim-not-refused(exit $TK_S4: $TK_ERR4)"
 tk_in "$TK_IDS2" "$TK5/$TK5_W" || TK_WHY="$TK_WHY walls-not-ready-after"
-tk_in "$TK_IDS2" "$TK5/$TK5_R" && TK_WHY="$TK_WHY roof-ready-after"
+tk_in "$TK_IDS2" "$TK5_X/$TK5_XT" || TK_WHY="$TK_WHY trim-not-ready-after"
+tk_in "$TK_IDS2" "$TK5_G/$TK5_GI" || TK_WHY="$TK_WHY grout-not-ready-after"
+for x in "$TK5/$TK5_R" "$TK5_OTHER/$TK5_SC"; do tk_in "$TK_IDS2" "$x" && TK_WHY="$TK_WHY $x-ready-after"; done
 [[ $TK_S2 -eq 0 ]] || TK_WHY="$TK_WHY walls-ready-but-claim-exit-$TK_S2"
+[[ $TK_S5 -eq 0 ]] || TK_WHY="$TK_WHY trim-ready-but-claim-exit-$TK_S5($TK_ERR5)"
+[[ $TK_S6 -eq 0 ]] || TK_WHY="$TK_WHY grout-ready-but-claim-exit-$TK_S6($TK_ERR6)"
 if [[ -z "$TK_SETUP" && -z "$TK_WHY" ]]; then
-    tk_ok "blockers keep items out of ready" "walls waits on the foundation, roof on walls, a ticket on a ticket; claim refused, then taken once done"
+    tk_ok "blockers keep items out of ready" "same ticket (walls on foundation, roof on walls), another ticket's item (trim on $TK5/$TK5_F), a whole ticket (grout on $TK5_T, second coat on $TK5): out of ready and claim refused while open; ready and taken once done, the item behind still out; an unknown t-x/i-y refused"
 elif [[ -n "$TK_SETUP" ]]; then
     tk_fail "blockers keep items out of ready" "a step did not run, so nothing is established:$TK_SETUP"
 else
-    tk_fail "blockers keep items out of ready" "failed:$TK_WHY; before: $TK_IDS; claim $TK_S: $TK_ERR; after: $TK_IDS2; claim $TK_S2: $TK_ERR2"
+    tk_fail "blockers keep items out of ready" "failed:$TK_WHY; before: $TK_IDS; after: $TK_IDS2"
 fi
 
 # t-9d3e: after `war done` on a blocker exits 0, `ready` lists the item it
@@ -215,7 +276,7 @@ else
     tk_fail "done→claim never refuses, 200x" "$TK_AGREED/200 agreed; a step did not run (not a disagreement): $TK_SET"
 fi
 
-# ---------------------------------------------------------------- OBL-005 --
+# ---------------------------------------------------------------- OBL-007 --
 # `war prime`: undone items only, notes, and old done tickets compacted.
 tkw note "$TK5" "Chose concrete over timber: the site floods." >/dev/null 2>&1
 TK_OUT=$(tkj create "An old finished job" --item "Old work")
@@ -235,8 +296,9 @@ else
     tk_fail "prime: undone items, old done compacted" "$(head -c 600 <<<"$TK_PRIME")"
 fi
 
-# ---------------------------------------------------------------- OBL-006 --
-# `war check`: tickets add no authority finding; a malformed checklist is named.
+# ------------------------------------------------------- OBL-006, OBL-004 --
+# `war check`: tickets add no authority finding (OBL-006); a malformed
+# checklist is named (OBL-004).
 TK_CHK=$(tkw check 2>&1); TK_S=$?
 if [[ $TK_S -eq 0 ]] && grep -q '^PASS ticket.well-formed' <<<"$TK_CHK" \
     && ! line_has -E '^ERROR' -i 'ticket' <<<"$TK_CHK"; then
@@ -270,12 +332,57 @@ if [[ $TK_S -ne 0 ]] && grep -q 'profile ticket is a working form' <<<"$TK_CHK";
 else
     tk_fail "a Warrant naming profile ticket" "exit $TK_S: $(grep -E '^ERROR' <<<"$TK_CHK" | head -2)"
 fi
+# The registry refuses every malformed working form, through the binary: each
+# variant of the shipped profiles/ticket.toml is refused by `war check` and by
+# the ticket loop itself (`war ready`), naming what is wrong; the unmodified
+# copy passes both, so the refusals are the variants' and not the copy's.
+mkdir -p "$PLANT_ROOT/profiles"
+TK_PF="$PLANT_ROOT/profiles/ticket.toml"
+TK_BAD=""; TK_NBAD=0
+tk_bad_form() {  # <label> <expected detail> ; the variant is already in place
+    local out rc out2 rc2
+    out=$(tkw check 2>&1); rc=$?
+    out2=$(tkw ready 2>&1); rc2=$?
+    TK_NBAD=$((TK_NBAD + 1))
+    if [[ $rc -eq 0 || $rc2 -eq 0 ]] || ! grep -qF -- "$2" <<<"$out" || ! grep -qF -- "$2" <<<"$out2"; then
+        TK_BAD="$TK_BAD $1(check $rc, ready $rc2: $(grep -m1 -i 'profile' <<<"$out"))"
+    fi
+}
+tk_variant() { python3 - profiles/ticket.toml "$TK_PF" "$1" "$2" <<'PY2'
+import sys
+src, dst, a, b = sys.argv[1:]
+s = open(src).read()
+assert s.count(a) == 1, a
+open(dst, "w").write(s.replace(a, b))
+PY2
+}
+command cp profiles/ticket.toml "$TK_PF"
+tkw check >/dev/null 2>&1; TK_S=$?; tkw ready >/dev/null 2>&1; TK_S2=$?
+tk_variant 'core_roles = ["intent"]' 'core_roles = []' && tk_bad_form no-core-role "a working form names at least one core role"
+tk_variant 'core_roles = ["intent"]' 'core_roles = ["control"]' && tk_bad_form compiler-produced 'core role "control" is not an authored role of `delivery`'
+tk_variant 'core_roles = ["intent"]' 'core_roles = ["adr"]' && tk_bad_form foreign-role 'core role "adr" is not an authored role of `delivery`'
+tk_variant 'core_roles = ["intent"]' 'core_roles = ["intent", "intent"]' && tk_bad_form duplicate 'core role "intent" is listed twice'
+tk_variant $'\nform = "working"\n' $'\nform = "sketch"\n' && tk_bad_form unknown-form 'form "sketch"; the forms are "contract" and "working"'
+tk_variant $'\nform = "working"\n' $'\n' && tk_bad_form core-roles-without-form '`core_roles` without `form = "working"`'
+tk_variant $'\nform = "working"\n' $'\nform = "working"\nacceptance_role = "ticket.checklist"\n' && tk_bad_form acceptance-role "a working form has no acceptance or reference role"
+command rm -f "$TK_PF"
+printf '%s\n' 'schema = "oh.war/profile/v1"' 'name = "delivery"' 'core = true' 'form = "working"' \
+    'required_roles = ["control", "intent", "basis", "work_order", "milestones", "assurance", "relations_and_integrity"]' \
+    > "$PLANT_ROOT/profiles/delivery.toml"
+tk_bad_form core-with-form "redefines core profile delivery: a core profile has no working form"
+command rm -rf "$PLANT_ROOT/profiles"
+if [[ $TK_S -eq 0 && $TK_S2 -eq 0 && $TK_NBAD -eq 8 && -z "$TK_BAD" ]]; then
+    tk_ok "every malformed working form refused" "the shipped profile passes; 8 variants refused by check and by ready, each by name: no core role, compiler-produced, foreign, duplicate, unknown form, core_roles without form, acceptance role, core profile with a form"
+else
+    tk_fail "every malformed working form refused" "unmodified: check $TK_S, ready $TK_S2; $TK_NBAD variants; not refused as named:$TK_BAD"
+fi
 
-# ---------------------------------------------------------------- OBL-007 --
+# ------------------------------------------------------- OBL-008, OBL-006 --
 # MCP: the same loop over `war mcp`; promote; --draft with and without a drafter.
 TK_OUT=$(tkj create "Over MCP" --item "Via a tool")
 TK7=$(tk_field "$TK_OUT" 'v["result"]["id"]'); TK7_I=$(tk_field "$TK_OUT" 'v["result"]["items"][0]["id"]')
 TK_TX=$(mktemp)
+TK_SIGS0=$(find "$PLANT_ROOT/docs" \( -name 'authorization*' -o -name 'resolution*' -o -name '*.sig' \) | wc -l)
 {
     printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"plant","version":"0"}}}'
     printf '%s\n' '{"jsonrpc":"2.0","method":"notifications/initialized"}'
@@ -283,6 +390,9 @@ TK_TX=$(mktemp)
     printf '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"war_claim","arguments":{"target":"%s/%s","actor":"intruder"}}}\n' "$TK7" "$TK7_I"
     printf '{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"war_done","arguments":{"target":"%s/%s","actor":"mcp-agent","note":"via mcp"}}}\n' "$TK7" "$TK7_I"
     printf '%s\n' '{"jsonrpc":"2.0","id":5,"method":"tools/call","params":{"name":"war_prime","arguments":{}}}'
+    printf '%s\n' '{"jsonrpc":"2.0","id":6,"method":"tools/list","params":{}}'
+    printf '{"jsonrpc":"2.0","id":7,"method":"tools/call","params":{"name":"war_sign","arguments":{"alias":"%s"}}}\n' "$TK7"
+    printf '%s\n' '{"jsonrpc":"2.0","id":8,"method":"tools/call","params":{"name":"war_verify_ingest","arguments":{}}}'
 } > "$TK_TX"
 TK_MCP=$(cd "$PLANT_ROOT" && env -u OPENWARRANT_ACTOR python3 "$REPO_ROOT/conformance/fixtures/mcp/drive.py" "$REPO_ROOT/$WAR" "$TK_TX" 2>/dev/null)
 command rm -f "$TK_TX"
@@ -292,6 +402,45 @@ if grep -q '"id":2.*"exit_code":0' <<<"$TK_MCP" && grep -q '"id":3.*claimed by m
     tk_ok "the loop over war mcp" "claim, a second agent refused by name, done, prime"
 else
     tk_fail "the loop over war mcp" "$(head -c 400 <<<"$TK_MCP")"
+fi
+# Still no authority tool, on the live router of that same session: the
+# tool list carries the ticket loop and no signing or ingesting tool (the
+# predicate of mcp::tests, read from `tools/list` rather than the source),
+# none of REFUSED_TOOLS, and calling war_sign or war_verify_ingest is an error
+# with nothing signed.
+TK_MCPF=$(mktemp); printf '%s\n' "$TK_MCP" > "$TK_MCPF"
+TK_NOAUTH=$(python3 - "$REPO_ROOT/crates/openwarrant-cli/src/mcp/mod.rs" "$TK_MCPF" <<'PY2'
+import json, re, sys
+src = open(sys.argv[1]).read()
+refused = re.findall(r'^\s*"(war_[a-z_]+)",', src.split("pub const REFUSED_TOOLS", 1)[1].split("];", 1)[0], re.M)
+by_id = {}
+for line in open(sys.argv[2], encoding="utf-8"):
+    try:
+        m = json.loads(line)
+    except ValueError:
+        continue
+    by_id[m.get("id")] = m
+names = [t["name"] for t in by_id.get(6, {}).get("result", {}).get("tools", [])]
+why = []
+if len(refused) < 20: why.append(f"read {len(refused)} refused names")
+for need in ("war_create", "war_ready", "war_claim", "war_done", "war_add", "war_note", "war_prime", "war_show", "war_tickets"):
+    if need not in names: why.append(f"missing {need}")
+why += [f"registered {r}" for r in refused if r in names]
+why += [f"signing name {n}" for n in names if "sign" in n and n not in ("war_sign_list", "war_sign_show")]
+why += [f"ingesting name {n}" for n in names if "ingest" in n]
+for i, tool in ((7, "war_sign"), (8, "war_verify_ingest")):
+    r = by_id.get(i)
+    if r is None: why.append(f"no answer to {tool}")
+    elif "error" not in r and not r.get("result", {}).get("isError"): why.append(f"{tool} answered: {json.dumps(r)[:120]}")
+print("ok %d tools, %d refused names absent" % (len(names), len(refused)) if not why else "; ".join(why))
+PY2
+)
+command rm -f "$TK_MCPF"
+TK_SIGS=$(find "$PLANT_ROOT/docs" \( -name 'authorization*' -o -name 'resolution*' -o -name '*.sig' \) | wc -l)
+if [[ "$TK_NOAUTH" == ok* && $TK_SIGS -eq $TK_SIGS0 ]]; then
+    tk_ok "war mcp: still no authority tool" "${TK_NOAUTH#ok }; war_sign and war_verify_ingest refused as unknown, nothing signed"
+else
+    tk_fail "war mcp: still no authority tool" "$TK_NOAUTH; signed files $TK_SIGS0 -> $TK_SIGS"
 fi
 TK_P=$(tkj promote "$TK")
 TK_W=$(tk_field "$TK_P" 'v["result"]["warrant"]')
@@ -333,7 +482,7 @@ else
     tk_fail "--draft: the drafter's items, or none" "exit $TK_S ($TK_N/$TK_N2): $TK_ERR; drafted: $TK_DI $(head -c 300 <<<"$TK_D")"
 fi
 
-# ---------------------------------------------------------------- OBL-008 --
+# ---------------------------------------------------------------- OBL-009 --
 # Timing, on THIS repository's corpus: every ticket command well under a
 # second (asserted < 2000 ms, generous for a loaded machine). The ticket made
 # here is removed afterwards; the corpus is untouched.
