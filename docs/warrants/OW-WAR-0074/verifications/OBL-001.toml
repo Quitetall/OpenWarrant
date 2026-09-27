@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "the verifier returned no usable verdict for this obligation"
+evidence = "deliverables is empty and obligation_evidence for OBL-001 lists no named_paths and no terms. There is no docs/sas/drafts/1.0.0-rc.2/, rc2-adoption-plan.md, adoption ADR, or candidate revision toml shown anywhere in the bundle, and no recomputed manifest digest is shown to compare against the basis atom's cited candidate manifest sha256 201b707e9...cf31. The gate excerpts only show structural PASS lines (manifest.valid, journal.append-only, authority.signed, obligations.valid) plus WARN sas.pin-superseded and WARN evidence.stale-binding; none of these demonstrate that an adoption record actually binds the SAS/format-contract/schemas/fixtures, nor that a human accepted the exact candidate through the approved procedure. Nothing in the bundle carries the required deliverables or acceptance record."
 performer = "claude"
 
 [verifier]

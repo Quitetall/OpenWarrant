@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "refuted"
-evidence = "atoms/20-basis.md states that after OW-WAR-0041 made the 'attach_relation' reviewer control functional, 'What remains for OBL-004 is a disposition of OW-WAR-0005 M4 through that verb' — i.e., by this Warrant's own authored record, the actual §95 disposition of OW-WAR-0005 M4 with a named reviewer had not yet been performed. No deliverable, gate-run line, or authority record anywhere in the bundle (deliverables is empty; the visible gate-run excerpts show no M4 disposition or reviewer-attachment line) contradicts this or shows the action being subsequently completed, so the bundle itself shows the claim that the untracked work IS dispositioned does not hold."
+evidence = "atoms/20-basis.md states, after describing OW-WAR-0041's fix to `UntrackedWork::attach_relation`, that 'What remains for OBL-004 is a disposition of OW-WAR-0005 M4 through that verb' — i.e. the Warrant's own record states the §95 disposition with a named reviewer had not yet been performed. deliverables is empty, and none of the gate-run stdout excerpts (which are truncated but show no attach-relation, RelationFabricated, or M4-disposition line) show this action having since occurred, nor does obligation_evidence name any path carried for OBL-004. The bundle's own authored account of outstanding work is affirmative evidence that the claimed disposition does not hold."
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "The only gate run, GR-software.repo.war-check@1.0.0, ran 'war check --generated'; its 391,841-byte stdout (shown via excerpts and a tail) consists entirely of Warrant-corpus compliance lines (identity.*, sas.*, authority.*, deliverable.*, journal.*, manifest.valid, etc.) about Warrants OW-WAR-0001 through OW-WAR-0147, with nothing resembling fmt/clippy/test/license step results, and its footer explicitly disclaims gate execution. obligation_evidence shows 'cargo xtask gate' only as text present in D-004 (the CI step name invoking it) and in the atoms (the work-order describing it as a deliverable to build), never as an executed report with exit status or per-step results."
+evidence = "obligation_evidence shows 'cargo xtask gate' only as text present in D-004 (naming it as a CI step to run) and in the atoms (describing it as a deliverable), never as an executed report. The sole gate_runs entry, GR-software.repo.war-check@1.0.0 (command: './target/debug/war check --generated'), produced 393,932 bytes of stdout consisting entirely of Warrant-corpus conformance lines (identity.*, manifest.valid, journal.append-only, sas.*, etc.) for OW-WAR-0001 through OW-WAR-0147, with no fmt/clippy/test/license step results, and its own NOT CHECKED section states plainly that 'war check does not invoke [gates], so nothing here is evidence that a Warrant's acceptance gates were run.' No per-step report or exit status for cargo xtask gate is carried."
 performer = "claude"
 
 [verifier]

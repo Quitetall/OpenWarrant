@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "OBL-004 likewise has no named_paths and no deliverables carried, so nothing from the corpus/obligations/evidence/journal panes' implementation is in the bundle. The gate run's visible excerpts (e.g. PASS obligations.valid, PASS journal.append-only, WARN evidence.stale-binding) are generic `war check` validations of the Warrant corpus itself, not a test that the TUI's panes read through status::build/resolve::assess, nor a plant showing an inadmissible obligation rendered with refusal words or a corrupted record rendered as named-unreadable. Terms status::build, resolve::assess, inadmissible are shown_in 'atoms' only. No evidence in the bundle establishes or refutes this claim."
+evidence = "OBL-004 similarly has an empty named_paths list and no deliverables are carried, so nothing from the corpus/obligations/evidence/journal panes' implementation, and no plant demonstrating an inadmissible-verification render or a corrupted-record 'named-unreadable' render, appears in the bundle. The gate run's visible excerpts (PASS obligations.valid, PASS journal.append-only, WARN evidence.stale-binding, etc.) are generic `war check` validations of the Warrant corpus records themselves, not evidence that the TUI panes read through status::build/resolve::assess or handle inadmissibility/corruption as claimed. status::build, resolve::assess, and inadmissible are shown_in 'atoms' only. Nothing here establishes or refutes the claim."
 performer = "claude"
 
 [verifier]

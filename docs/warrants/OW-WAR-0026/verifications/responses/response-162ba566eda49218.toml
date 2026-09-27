@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0026"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "refuted"
+evidence = "D-001 (crates/openwarrant-core/src/seam.rs, truncated: false, full 1061 lines, sha256 matches the whole file) is the sole carried deliverable and the only one obligation_evidence attaches to OBL-001. It defines no 'Dispatch' type and no function that compiles a Dispatch into a Katana request; its only §48-relevant type, KatanaReceipt, is validated on the consuming side (KatanaReceipt::validate), not produced from a Dispatch. atoms/40-work-order.md lists 'Dispatch → Katana request mapping' as deliverable #1, and the one deliverable shown does not contain it. The gate run GR-software.repo.war-check@1.0.0's own NOT CHECKED section states 'war check' does not invoke gates/tests, so it supplies no evidence of a mapping existing elsewhere. The claimed mapping does not hold in the evidence shown."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "OBL-002's stated evidence is 'a plant where OpenWarrant fabricates a receipt, refused,' but the bundle's top-level plants array is empty — no such plant is carried. KatanaReceipt::validate() in the fully-shown D-001 only checks non-empty required fields and dispatch_digest equality; it has no provenance/signature check, so the code alone cannot show a fabricated-but-well-formed receipt would be refused. The gate run's stdout excerpts (e.g. lines 452-466) and its NOT CHECKED note confirm 'war check' does not execute gates or tests, so no test run in the bundle substitutes for the missing plant. Absent that plant, the bundle does not carry enough to decide the claim either way."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "refuted"
+evidence = "D-001 is shown in full (truncated: false, complete 1061 lines) and contains no field, error variant, or function declaring the seam 'unverified against a live Katana' or reporting UNKNOWN status — only SeamError variants for validation failures (KatanaReceiptIncomplete, ReceiptDispatchMismatch, etc.), none referencing live-runtime verification. The gate run's visible stdout excerpts (lines 452-466, 2618, 2807, 2887) and truncated tail discuss OW-WAR-0026 record well-formedness, sas.pin-superseded, and evidence.stale-binding warnings — unrelated to a seam-specific unverified marker. With the full deliverable shown and the required self-declaring marker absent from it, the claim does not hold."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

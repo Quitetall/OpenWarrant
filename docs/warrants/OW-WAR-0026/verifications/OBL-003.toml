@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "refuted"
-evidence = "D-001 is carried in full (truncated: false, complete 1061-line file) and contains no field, type, error variant, or function that declares the seam 'unverified against a live Katana' or reports UNKNOWN on every run — the only reporting is via SeamError variants and KatanaReceipt/BlutLowering/AdapterParity validation, none of which mention live-Katana verification status. The gate run's visible stdout excerpts (lines 451-465, 2602, 2791, 2871 and the truncated tail) discuss OW-WAR-0026 record well-formedness and unrelated SAS pin-superseded/evidence-stale-binding warnings, not any seam-specific unverified marker. With the full deliverable shown and the required marker absent, the obligation's claim does not hold."
+evidence = "D-001 is shown in full (truncated: false, complete 1061 lines) and contains no field, error variant, or function declaring the seam 'unverified against a live Katana' or reporting UNKNOWN status — only SeamError variants for validation failures (KatanaReceiptIncomplete, ReceiptDispatchMismatch, etc.), none referencing live-runtime verification. The gate run's visible stdout excerpts (lines 452-466, 2618, 2807, 2887) and truncated tail discuss OW-WAR-0026 record well-formedness, sas.pin-superseded, and evidence.stale-binding warnings — unrelated to a seam-specific unverified marker. With the full deliverable shown and the required self-declaring marker absent from it, the claim does not hold."
 performer = "claude"
 
 [verifier]

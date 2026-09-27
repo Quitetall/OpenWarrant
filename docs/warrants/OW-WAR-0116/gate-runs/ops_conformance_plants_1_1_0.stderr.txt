@@ -1,2 +1,9 @@
-grep: /mnt/4tb/tmp/battery-tmp/tmp.DEcRnvHtz9/unreadable/closed.rs: Permission denied
-grep: /mnt/4tb/tmp/battery-tmp/tmp.DEcRnvHtz9/unreadable/closed.rs: Permission denied
+grep: /mnt/4tb/tmp/battery-tmp/tmp.GCcDcuFeuD/unreadable/closed.rs: Permission denied
+grep: /mnt/4tb/tmp/battery-tmp/tmp.GCcDcuFeuD/unreadable/closed.rs: Permission denied
+/mnt/4tb/tmp/battery-tmp/war-isolated-battery.3rO14c/r/conformance/plants.d/63-webui-verified.sh: line 120: /proc/2029573/cmdline: No such file or directory
+/mnt/4tb/tmp/battery-tmp/war-isolated-battery.3rO14c/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/2029467/task/2029575/children: No such file or directory
+/mnt/4tb/tmp/battery-tmp/war-isolated-battery.3rO14c/r/conformance/plants.d/63-webui-verified.sh: line 120: /proc/2029574/cmdline: No such file or directory
+/mnt/4tb/tmp/battery-tmp/war-isolated-battery.3rO14c/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/2029467/task/2029568/children: No such file or directory
+/mnt/4tb/tmp/battery-tmp/war-isolated-battery.3rO14c/r/conformance/plants.d/63-webui-verified.sh: line 120: /proc/2029975/cmdline: No such file or directory
+/mnt/4tb/tmp/battery-tmp/war-isolated-battery.3rO14c/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/2029467/task/2029985/children: No such file or directory
+/mnt/4tb/tmp/battery-tmp/war-isolated-battery.3rO14c/r/conformance/plants.d/63-webui-verified.sh: line 118: /proc/2029467/task/2029974/children: No such file or directory

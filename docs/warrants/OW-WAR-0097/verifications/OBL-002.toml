@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No deliverables or gate_runs are carried in the bundle; obligation_evidence for OBL-002 shows no named_paths or terms, so there is no before/after file snapshot or marker-file evidence from the disposable initialized CLI fixture to confirm records were not mutated or that a configured backend was not run."
+evidence = "No deliverables or gate_runs are carried; obligation_evidence for OBL-002 shows no named_paths or terms. There is no before/after file snapshot, no marker-file check, and no record of a disposable initialized CLI fixture being run, so nothing in the bundle confirms or contradicts that diagnostics avoid mutating records or invoking configured backends."
 performer = "claude"
 
 [verifier]

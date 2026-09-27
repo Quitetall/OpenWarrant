@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "the verifier returned no usable verdict for this obligation"
+evidence = "obligation_evidence for OBL-002 lists the required term 'sas://WAR-SAS-RQ-999' with shown_in: [] — it is not present anywhere in the bundle — and the top-level 'plants' array is empty, so no plant of this identifier and no refusal output for it is shown. The gate run's stdout excerpts and the traceability.rs test suite (e.g. unstable_or_malformed_identifiers_are_refused) only cover malformed-grammar refusals, not a well-formed-but-nonexistent requirement id like RQ-999, which is the specific case §OBL-002 asks about. With no plant and no refusal evidence carried, the obligation cannot be decided."
 performer = "claude"
 
 [verifier]

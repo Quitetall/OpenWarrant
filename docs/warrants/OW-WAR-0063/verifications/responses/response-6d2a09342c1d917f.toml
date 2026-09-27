@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0063"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "D-001 (crates/openwarrant-cli/src/check.rs, check_traceability) shows the traceability.unknown-requirement rule now implemented against known_requirements parsed from §106, so the control exists in code. But D-003 (conformance/plants.d/00-corpus.sh) is truncated, and obligation_evidence marks the term 'traceability.unknown-requirement' as cut_from D-003 — present in that file but not shown to the verifier — while the specific plant text 'a requirement reference §106 does not contain' naming RQ-999 never appears in either the deliverable's shown text or the separately supplied plants excerpts (which surface only an unrelated 'an implements entry with no contribution stated' plant at line 1204 and a corrections snippet). The bundle's only gate run, GR-software.repo.war-check@1.0.0, is a plain `war check --generated` over the unmutated OW-WAR-0063 tree with no plant mutation applied. Per §39.3 code plus an unexecuted, unseen plant is a plan, not an executed attack, so the refusal this obligation claims is not shown to have occurred."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "Of the work order's (atoms/40-work-order.md) five deliverable items, only test source is visible and only partially: D-002 (crates/openwarrant-core/src/adr.rs) carries supersession_relations_are_read_in_both_directions in full, and D-004 (crates/openwarrant-compiler/src/corpus_status.rs) carries the_banner_precedes_the_title_and_the_renderer_divides_nothing and every_committed_war_json_carries_the_sas_pin in full. D-003 (conformance/plants.d/00-corpus.sh), truncated at 1213 lines, is the shell source for the duplicate-milestone-id, contribution-unstated, and CORPUS_STATUS.md-hand-edit plants, but the only OW-WAR-0063-scoped plant lines actually surfaced (top-level plants array, lines 1187/1204) show a header comment and one contribution-unstated plant — none of the others named in the work order. Critically, no gate run or transcript in the bundle executes cargo test or the plant battery: the sole gate run (GR-software.repo.war-check@1.0.0) is an ordinary `war check --generated` invocation whose stdout excerpts show routine per-Warrant diagnostics, not plant mutations firing or test-suite results. Source existing without an execution record is a plan under §39.3, not the executed attack this obligation requires for every named control."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-003 explicitly states artifacts/telemetry-baseline.json is 'not carried' and absent because it is not a deliverable of OW-WAR-0063, and the cited term 'war telemetry --commit <sha> --verify' has empty shown_in and cut_from — meaning no output for that command appears anywhere in the bundle, truncated or otherwise. None of D-001 through D-004 touches the telemetry baseline, and the sole gate run's stdout excerpts contain only manifest/deliverable/traceability/authority/SAS-pin diagnostics for OW-WAR-0063 with no baseline-verification line. With the named artifact and its verification output both absent from the bundle, the claim that the §94 baseline is current and declared cannot be decided."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

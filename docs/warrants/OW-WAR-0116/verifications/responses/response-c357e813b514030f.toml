@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0116"
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "Deliverable D-012 (conformance/plants.d/63-webui-verified.sh) runs, on this corpus, a Python comparison between the server's /api/progress and the outputs of `war roadmap --json` and `war status --json`, checking phase order, per-phase title/tier/exit/depends_on/achieved/exit_warrant/open, per-member rung equality, and the unassigned group. Gate run GR-ops.conformance.plants@1.1.0 (verdict pass) printed exactly the results of this script in its captured stdout: 'ok progress on this corpus 11 phases in war roadmap's order (OW-PHASE-0 .. OW-PHASE-10); 143 members' rungs = status; 25 open slug(s); 0 unassigned; accepted revision 3' and 'ok progress is not read from view.json no view.json under webui/', which together satisfy the eleven-phase-order, rung-equality, open-slugs/unassigned, and no-view.json clauses of OBL-002's evidence; the same run also printed 'ok a record change is seen the version moved in 270 ms (< 4000)' against a scratch corpus, satisfying the four-second /api/version clause. D-003 (app.js) shows, in the carried source, the poll()/render() closure that refetches page data via api(path) whenever the returned version differs from the last seen one, which is the mechanism behind 'the page's data refetches.' obligation_evidence confirms none of the relevant terms (progress, /api/progress, war roadmap, war status --json, /api/version) were cut by the budget. The gate.adequacy check in the software.repo.war-check@1.0.0 run's stdout (line 'PASS evidence.admissible ... ops.conformance.plants@1.1.0 · required pass, receipt reseals and is bound to the current contract') independently confirms this plants receipt is admissible evidence for the current contract despite its raw subject_digests recording an earlier contract hash. No failing line contradicts any of these checks in the bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

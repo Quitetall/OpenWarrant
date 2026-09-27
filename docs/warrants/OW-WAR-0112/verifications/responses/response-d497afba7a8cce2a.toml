@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0112"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "D-027 (conformance/plants.d/99-init.sh, carried whole, untruncated) runs `war init </dev/null` and asserts refusal with nothing written, and runs `war init --program \"Plant Program\" --namespace PP </dev/null` asserting only the .example templates exist (never roles.toml/allowed_signers) and stdout is exactly the three pinned lines; the ops.conformance.plants@1.1.0 gate run (verdict pass) shows the '== guided init (OW-WAR-0112) ==' block with all six of these exact 'ok' lines passing, twice, confirming the plant actually ran and passed against this tree. D-022 (init/guided.rs, excerpted) shows the unit test `the_agent_is_a_performer_and_nothing_else` in full, asserting a rendered roles.toml has exactly one actor_kind=\"agent\" assignment with roles==[\"performer\"] and nothing else, directly establishing the 'never for an agent' grant shape. The excerpt spanning lines 804-820 shows an assertion 'roles.toml exists and is left alone' when roles_exist is true, evidencing the write-once/no-overwrite behavior the test `an_existing_authority_file_is_never_written_again` (named in test_names) targets, and the excerpt at lines 653-677 shows the written text asserted to contain 'typed at a terminal by \"Ada\"' and 'loaded with `ssh-add -c`: yes', with render_roles embedding effective_time into the same text — together covering the header's date, typed name and -c answer. D-023 (roles.toml.example, whole) and D-024 (allowed_signers.example, whole) state the write-once-at-a-terminal, agent-is-performer-only rule verbatim; D-025 (RESOLVING.md, excerpted) states 'war init … at a terminal: asks your name, your key, and writes both files once'; D-026 (QUICKSTART.md, whole) states the same and that 'the agent entry it writes is performer only'. The one gap is that the plant pins the current three-line output rather than diffing against a stored pre-Warrant release artifact, so the 'byte-identical to the release before this Warrant' sub-clause is supported by a fixed-format assertion rather than a literal comparison; this is a minor shortfall against an otherwise well-evidenced obligation whose core claims (no authority files written non-interactively, write-once, agent-only-performer, header contents, all four documents stating the rule) are each shown directly in carried, largely untruncated deliverables and a passing gate run."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

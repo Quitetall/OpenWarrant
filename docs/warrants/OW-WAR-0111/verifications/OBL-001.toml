@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "deliverables and gate_runs are empty and obligation_evidence for OBL-001 lists no named_paths or terms despite selection 'every deliverable of the Warrant'; only the five authored atoms (10-intent.md, 20-basis.md, 40-work-order.md, 45-milestones.yaml, 60-assurance.md) are present, which state the plan and acceptance criteria but contain no archive bytes, digests, or category coverage from any retained fixture or real corpus sample, so preservation of exact bytes/digests and required-category refusal behavior cannot be checked."
+evidence = "The bundle's deliverables and gate_runs arrays are empty, and obligation_evidence for OBL-001 lists no named_paths or terms despite the selection 'every deliverable of the Warrant'; only the five authored atoms (10-intent.md, 20-basis.md, 40-work-order.md, 45-milestones.yaml, 60-assurance.md) are present, describing the plan and acceptance criteria in 60-assurance.md but containing no archive bytes, digests, or category coverage from any retained fixture or real corpus sample, so exact byte/digest preservation and required-category refusal behavior cannot be checked."
 performer = "claude"
 
 [verifier]

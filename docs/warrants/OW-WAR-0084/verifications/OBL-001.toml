@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "The bundle's deliverables array is empty and obligation_evidence for OBL-001 lists no named_paths and no terms, so no legacy-adapter or lineage/digest source, test, or run output over exact historical source bytes is carried anywhere in this bundle. The sole gate run, GR-software.repo.war-check@1.0.0, is a structural repo-check whose own NOT CHECKED section states 'gate execution — war check does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run,' and its stdout excerpts contain only manifest/identity/milestone/journal checks, none touching the legacy adapter or digest boundary named in scope."
+evidence = "The bundle's deliverables array is empty, and obligation_evidence for OBL-001 lists no named_paths and no terms, so no legacy-adapter or lineage/digest source, test, or execution output over exact historical source bytes is carried in this bundle. The only gate run, GR-software.repo.war-check@1.0.0, is a structural repo-check whose own stdout NOT CHECKED section states 'war check does not invoke [gates], so nothing here is evidence that a Warrant's acceptance gates were run,' and its excerpts (manifest.valid, traceability.refs, journal.append-only, authority.signed, gate.resolved, milestones.valid, obligations.valid, generated.drift, identity.atom-mismatch) never touch the legacy adapter or digest boundary named in OBL-001's scope."
 performer = "claude"
 
 [verifier]

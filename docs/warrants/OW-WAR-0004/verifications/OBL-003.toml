@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "The bundle's 'plants' array is empty, and no gate run, test result, or excerpt shows a single-byte mutation of a committed generated parent followed by a `war check --generated` invocation that exits non-zero and names the file. The one recorded gate run, GR-software.repo.war-check@1.0.0, ran against the tree as committed (subject_digests include tree:e54ccac17a000db9430a08ded5ae9ad1923067b0) and its only relevant visible line is 'PASS generated.drift OW-WAR-0004: 2 generated view(s) match a fresh compilation' — a clean, unmutated pass, which demonstrates the opposite condition from what OBL-003 requires evidence of. No deliverable or atom in the bundle records a planted-drift trial or its outcome."
+evidence = "The bundle's plants array is empty, and no gate run, excerpt, or test result shows a single-byte mutation of a committed generated parent followed by a `war check --generated` invocation that exits non-zero and names the file. The sole gate run's subject_digests record tree:9729d66838274661a8b7382db6ef1108887babec (an unmutated tree), and its only relevant visible line, 'PASS generated.drift OW-WAR-0004: 2 generated view(s) match a fresh compilation', documents a clean pass — the opposite of the planted-drift-refused scenario OBL-003 requires evidence of. No deliverable or atom in the bundle records a planted-drift trial or its outcome, so the obligation cannot be decided from what is shown."
 performer = "claude"
 
 [verifier]

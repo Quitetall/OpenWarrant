@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0006"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "D-001 (crates/openwarrant-core/src/adr.rs) contains test `supersession_relations_are_read_in_both_directions`, but it only calls `AdrRecord::parse` on frontmatter text and asserts the resulting `supersedes`/`superseded_by` fields — it never serializes an `AdrRecord` back to canonical text and reparses it, so the 'canonical round trip' OBL-001's evidence requirement names does not appear in D-001, D-002, or D-003. The only gate run in the bundle, GR-software.repo.war-check@1.0.0 (`war check --generated`, exit_result pass), is not a test runner: its own stdout NOT CHECKED section states 'gate execution — `war gate --run` executes a registered gate (§44), but `war check` does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run,' so there is no execution record showing `cargo test` or the listed test_names were run at all, let alone that a round trip was exercised and passed. obligation_evidence for OBL-001 confirms 'supersedes'/'superseded_by' are shown only in source deliverables and atoms text, not in any gate execution output."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "The bundle's top-level `plants` array is empty, so no planted supersession cycle and no planted status/currency conflict are carried in evidence, despite OBL-002 requiring 'two plants, two observed refusals naming the specific rule.' D-003 (relations.rs) contains unit tests like `a_cycle_is_found_once` and D-002 (lifecycle.rs) contains `a_supersession_cannot_leave_unresolved_work_unaddressed`, but these are synthetic in-source unit tests operating on hand-built `Currencies::derive`/`Supersession` inputs, not the required plants run against the actual repository via a conformance gate. The gate stdout excerpts show unrelated PASS lines (e.g. identity.atom-mismatch, journal.append-only, relations.currency for OW-WAR-0073) but no `relations.currency-cycle` diagnostic or ADR status/currency CONFLICT diagnostic tied to a planted case, and obligation_evidence lists no terms at all for OBL-002."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "No Progress Log atom or deliverable is carried in this bundle — the atoms present are only intent, basis, work_order, milestones, and assurance (atoms/10-intent.md, 20-basis.md, 40-work-order.md, 45-milestones.yaml, 60-assurance.md), and the three deliverables (D-001, D-002, D-003) are all Rust source files, not a Progress Log. obligation_evidence for OBL-003 shows the term '3678455' appearing only under 'atoms', which is atoms/10-intent.md's own Intent narrative ('The ADR Overview shipped in commit `3678455` with NO Warrant authorizing it'), not a Progress Log entry naming the commit and the specific obligation it violated as OBL-003's evidence requires. No gate output or deliverable contains any such record."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

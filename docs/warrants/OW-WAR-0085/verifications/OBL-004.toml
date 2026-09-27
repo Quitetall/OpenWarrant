@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "The cited gate run's excerpts (lines 1273-1287 and 2575) show OW-WAR-0085-specific structural results — PASS manifest.valid, traceability.refs, journal.append-only, authority.signed, gate.resolved, milestones.valid, obligations.valid, bonsai-scope.valid, generated.drift, identity.atom-mismatch (4 atoms) — alongside WARN evidence.stale-binding and WARN sas.pin-superseded for OW-WAR-0085, with subject_digests matching this Warrant's authorized_contract_digest, so the 'structural check' half of OBL-004's required evidence is substantially present. However, OBL-004's evidence explicitly also requires 'existing planted refusals,' and the bundle's plants array is empty, so that half of the required evidence is entirely absent, leaving the obligation not established."
+evidence = "Gate run GR-software.repo.war-check@1.0.0's excerpts show OW-WAR-0085-specific structural PASS results (manifest.valid, traceability.refs, journal.append-only, authority.signed, gate.resolved, milestones.valid, obligations.valid, bonsai-scope.valid, generated.drift, identity.atom-mismatch) with subject_digests matching this Warrant's authorized_contract_digest, satisfying the 'structural check' half of the evidence requirement. However OBL-004 also requires 'existing planted refusals,' and the plants array is empty, so that half is entirely absent, leaving the obligation not established."
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "OBL-003 requires a full legacy-Warrant reconciliation inventory (per atoms/10-intent.md and atoms/40-work-order.md's docs/releases/ deliverable), but the bundle carries no docs/releases/ file, gate run, or plant, and obligation_evidence lists no named_paths for OBL-003, so no inventory or its accuracy can be checked."
+evidence = "OBL-003 requires a full legacy-Warrant reconciliation inventory (per atoms/10-intent.md and the docs/releases/ deliverable named in atoms/40-work-order.md), but the bundle carries no docs/releases/ file, gate run, or plant, and obligation_evidence lists no named_paths for OBL-003, so neither the existence nor the accuracy of any inventory can be checked."
 performer = "claude"
 
 [verifier]

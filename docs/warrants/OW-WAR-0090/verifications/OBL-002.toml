@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No refusal fixtures, boundary-input test outputs, or mutation-vs-lookup evidence are carried: deliverables:[] and obligation_evidence for OBL-002 shows named_paths:[]/terms:[], and plants:[] contains no planted refusal cases for this Warrant. The only gate run present (software.repo.war-check@1.0.0) checks Warrant-record structure, not input-boundary refusal behavior. 60-assurance.md states the OBL-001/002 observations are not run, so the bundle gives no basis to decide the boundary's refusal behavior either way."
+evidence = "No refusal fixtures, boundary-input outputs, or mutation-vs-fixture-lookup evidence are carried: deliverables is empty, obligation_evidence for OBL-002 shows named_paths:[]/terms:[], and plants:[] contains no planted refusal cases for this Warrant. The only gate run present, software.repo.war-check@1.0.0, checks Warrant-record structure (manifest.valid, journal.append-only, etc.), not input-boundary refusal behavior, and 60-assurance.md explicitly states the OBL-001/OBL-002 observations are not run. The bundle gives no basis to decide the boundary's refusal behavior either way."
 performer = "claude"
 
 [verifier]

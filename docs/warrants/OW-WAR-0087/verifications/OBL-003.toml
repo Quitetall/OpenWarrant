@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "prior_verifications shows only not_established findings on OBL-001/002 in this same bundle state, and there is no independent-reproduction record, baseline comparison, or secure human acceptance for this exact result. The war-check gate stdout excerpt itself states 'NOT CHECKED: 143 of 143 Warrant(s) have no disposed obligations — §38.6 yields no resolution verdict for them, which is the expected state of work that has not been assessed,' confirming OW-WAR-0087 has no disposed/qualified obligations yet. Since OBL-003's scope depends on qualifying OBL-001/002, which are themselves unestablished, and no independent qualification record exists, the claim cannot be established."
+evidence = "OBL-003's scope is qualification of the exact OBL-001/OBL-002 result, but both are not_established from this same bundle's evidence, and the war-check stdout excerpt itself states '143 of 143 Warrant(s) have no disposed obligations — §38.6 yields no resolution verdict for them, which is the expected state of work that has not been assessed,' confirming OW-WAR-0087 has not been qualified. No independent reproduction, baseline comparison, or secure human acceptance record for this exact result is present anywhere in the bundle (obligation_evidence for OBL-003 also shows empty named_paths/terms), so qualification cannot be established."
 performer = "claude"
 
 [verifier]

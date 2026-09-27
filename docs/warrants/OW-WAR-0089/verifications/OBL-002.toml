@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "OBL-002 requires observed named refusals and evidence that prior output on failed writes was left unchanged, for the packaging/install boundary. deliverables is empty, plants is empty ([]), and obligation_evidence lists no named_paths or terms for OBL-002. The sole gate run present checks structural conformance of the Warrant corpus (manifest.valid, traceability.refs, etc.), not boundary input handling for this seam. No refusal fixtures, malformed-input runs, or write-preservation evidence appear anywhere in the bundle, so the obligation cannot be established or refuted."
+evidence = "OBL-002 requires observed named refusals and evidence that prior output on failed writes was left unchanged. deliverables is empty, plants is empty ([]), and obligation_evidence lists no named_paths or terms for OBL-002. The sole gate run present, GR-software.repo.war-check@1.0.0, checks structural conformance of the Warrant corpus (manifest.valid, traceability.refs, journal.append-only, authority.signed, gate.resolved, milestones.valid, obligations.valid, bonsai-scope.valid, generated.drift, identity.atom-mismatch) rather than boundary input handling for the packaging/install seam. No refusal fixtures, malformed-input runs, or write-preservation evidence appear anywhere in the bundle."
 performer = "claude"
 
 [verifier]

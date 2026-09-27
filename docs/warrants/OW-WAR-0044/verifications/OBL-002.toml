@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "refuted"
-evidence = "JDG-001 groups OBL-002 with OBL-001 and OBL-004 as requiring an actual completed WRITE to KF, and states the write 'stopped at KF's own registry, which answers 404 for an unregistered action type (OBS-007)' — i.e. no identifier was ever allocated or returned during this Warrant's work. Neither of OBL-002's two required evidentiary pieces (an identifier in a KF receipt, and a recorded refusal of a locally-derived identifier of identical shape) appears in D-001 (kf.rs, which contains no enterprise-identifier handling at all) or anywhere else in the bundle. The bundle's own judgment record affirmatively documents that this registration activity did not occur, which is stronger than silence."
+evidence = "JDG-001 explicitly groups OBL-002 with OBL-001 as requiring a completed write to KF and states that write 'stopped at KF's own registry' before any action could be recorded (OBS-007's 404 for an unregistered action type). No enterprise identifier appears anywhere in D-001 (crates/openwarrant-cli/src/kf.rs has no identifier-allocation logic) or in any evidence/observation record, and no refusal of a locally-fabricated identifier is recorded either. The judgment record's own account that registration never completed is affirmative evidence against the claim, not silence."
 performer = "claude"
 
 [verifier]

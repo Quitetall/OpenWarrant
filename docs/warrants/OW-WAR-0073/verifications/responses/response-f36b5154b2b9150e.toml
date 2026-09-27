@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0073"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "deliverables is empty and obligation_evidence for OBL-001 marks Cargo.toml, Cargo.lock, deny.toml and tui/ as 'not carried' (not a deliverable of OW-WAR-0073). The only gate run, GR-software.repo.war-check@1.0.0, is a generic `war check --generated` corpus record-validity scan (subject_digests cover the whole tree, not this Warrant's deliverables); its visible excerpts (PASS relations.currency, PASS manifest.valid, WARN evidence.stale-binding, WARN sas.pin-superseded, PASS obligations.valid, etc.) contain no `cargo deny check licenses` result, no `cargo tree` diff, and no result for a 'only tui/ may use ratatui|crossterm' unit test. The terms cargo deny check licenses / cargo tree / tokio / async-std are shown_in: [] entirely, and OW-ADR-0020 / the use-boundary term are shown_in 'atoms' only (i.e. referenced in the Warrant's own prose, not evidenced by any gate output or file). Nothing in the bundle shows or refutes the licence/async claim."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence shows crates/openwarrant-cli/src/tui/ and conformance/plants.d/97-tui.sh as not carried, and deliverables is empty, so no source grep for ssh-keygen/SSH_AUTH_SOCK/signature construction, no execution of the 97-tui.sh plant, and no panic-recovery or non-TTY-exit result appears anywhere in the bundle. GR-software.repo.war-check@1.0.0's excerpts are generic corpus-manifest/journal/SAS-pin checks (e.g. PASS journal.append-only, WARN sas.pin-superseded) with no mention of 97-tui.sh, terminal restoration, or exit code 2 on non-TTY. The terms ssh-keygen, SSH_AUTH_SOCK, war sign --ssh-sign, war tui are all shown_in 'atoms' only, meaning they appear in the Warrant's authored text, not in any grep or plant run recorded here."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003's obligation_evidence has an empty named_paths list and deliverables is empty, so no queue/questions/frontier pane source and no plant result comparing rendered rows to `war sign --list`, nor any record of a TUI-originated `war answer`/`war perform`/`war run` call, is present in the bundle. The single gate run is the generic corpus-wide `war check` record-validity scan, unrelated to comparing the TUI's queue against `war sign --list` output. war sign --list, war perform, and war run are shown_in 'atoms' only (the Warrant's own text), not evidenced by any executed comparison or receipt."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "OBL-004 similarly has an empty named_paths list and no deliverables are carried, so nothing from the corpus/obligations/evidence/journal panes' implementation, and no plant demonstrating an inadmissible-verification render or a corrupted-record 'named-unreadable' render, appears in the bundle. The gate run's visible excerpts (PASS obligations.valid, PASS journal.append-only, WARN evidence.stale-binding, etc.) are generic `war check` validations of the Warrant corpus records themselves, not evidence that the TUI panes read through status::build/resolve::assess or handle inadmissibility/corruption as claimed. status::build, resolve::assess, and inadmissible are shown_in 'atoms' only. Nothing here establishes or refutes the claim."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

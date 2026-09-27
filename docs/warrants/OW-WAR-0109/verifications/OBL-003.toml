@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "There is no queue-history data, crash/restart gate run, or cancellation test evidence anywhere in the bundle (deliverables, gate_runs, and plants are all empty arrays, and OBL-003's obligation_evidence entry has no named_paths/terms), so the claims about ambiguous requests never being replayed, retained attempts remaining discoverable, cancellation preventing dispatch, and corrupt history refusing cannot be checked against anything shown."
+evidence = "The bundle carries no queue-history data, crash/restart gate run, or cancellation test evidence (deliverables, gate_runs, and plants are empty; OBL-003's obligation_evidence entry has no named_paths/terms), so the claims in atoms/40-work-order.md and atoms/60-assurance.md about ambiguous requests never being replayed, retained attempts remaining discoverable, cancellation preventing dispatch, and corrupt history refusing cannot be checked against anything shown."
 performer = "claude"
 
 [verifier]

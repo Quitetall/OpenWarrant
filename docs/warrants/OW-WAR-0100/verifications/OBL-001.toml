@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "The bundle carries deliverables:[], gate_runs:[], and plants:[]; only the five authored contract atoms are present. obligation_evidence for OBL-001 shows the term 'not_measurable_yet' only 'shown_in': ['atoms'] (i.e. in 60-assurance.md's own prose restating the obligation), and 'value: 0' is shown_in: [] (nowhere). No telemetry.rs source, CLI output, or gate run demonstrates that a missing eligibility collector actually emits not_measurable_yet rather than value: 0. The claim is asserted by the contract but not evidenced by any artifact in this bundle."
+evidence = "deliverables, gate_runs, and plants are all empty; obligation_evidence for OBL-001 shows 'not_measurable_yet' only shown_in ['atoms'] (the assurance atom's own restatement) and 'value: 0' shown_in [] nowhere. No telemetry.rs source or CLI gate output in this bundle demonstrates the actual behavior of a missing eligibility collector, so the claim is asserted by 60-assurance.md but not evidenced by any independent artifact."
 performer = "claude"
 
 [verifier]

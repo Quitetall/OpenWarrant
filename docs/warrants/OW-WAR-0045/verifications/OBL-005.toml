@@ -1,6 +1,6 @@
 obligation = "OBL-005"
 disposition = "not_established"
-evidence = "obligation_evidence for OBL-005 explicitly marks the named path 'conformance/' as absent: 'a repository path that is not a deliverable of OW-WAR-0045: not carried.' The required fourteen entries under conformance/ for §91.7 tests 43–51 and §91.9 tests 59–63 are not shown anywhere in the bundle, and the sole gate run's visible stdout contains no per-test conformance-plant output for OW-WAR-0045 (it covers other Warrants and global corpus checks). The gate run's own 'NOT CHECKED' note that '143 of 143 Warrant(s) have no disposed obligations' further indicates no obligation resolution has occurred."
+evidence = "obligation_evidence for OBL-005 explicitly records the named path 'conformance/' as absent, with the reason 'a repository path that is not a deliverable of OW-WAR-0045: not carried.' The fourteen required entries under conformance/ for §91.7 tests 43-51 and §91.9 tests 59-63 are not shown in the bundle, and the gate run's visible stdout contains only the generic corpus-wide checks (its own NOT CHECKED note states '143 of 143 Warrant(s) have no disposed obligations') with no per-test conformance-plant output for this Warrant."
 performer = "claude"
 
 [verifier]

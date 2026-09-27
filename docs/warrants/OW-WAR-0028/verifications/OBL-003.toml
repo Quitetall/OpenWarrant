@@ -1,6 +1,6 @@
 obligation = "OBL-003"
-disposition = "refuted"
-evidence = "The work order (atoms/40-work-order.md, Deliverables item 2 and Frozen Surfaces) requires 'the action envelope with concurrency token and idempotency key,' and the Basis (atoms/20-basis.md) names optimistic concurrency (§67.3) as a hard constraint. D-001's ActionEnvelope struct (crates/openwarrant-cli/src/kf.rs) carries only target_ids, payload, reason, and idempotency_key — no concurrency token, version, or ETag field is present anywhere in the envelope or in Client::post_action's headers (x-kf-actor, x-kf-acting-role, x-kf-organization). None of the three carried tests (an_https_url_is_accepted, a_non_http_url_is_refused, a_short_idempotency_key_never_reaches_the_network) exercises a stale write or duplicate-retry scenario; the only idempotency behavior tested is a client-side length check on the key string, not dedup. Since D-001 is the sole deliverable carried for this obligation and it visibly lacks the concurrency-token mechanism the frozen envelope surface requires, the bundle affirmatively shows the concurrency half of OBL-003's claim does not hold."
+disposition = "not_established"
+evidence = "the verifier returned no usable verdict for this obligation"
 performer = "claude"
 
 [verifier]

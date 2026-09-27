@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "OBL-003 requires showing retained digests, an unchanged original baseline, and a passing full gate, but gate_runs is [] and deliverables is [], so there is no gate run id, no printed gate output, and no digest comparison for the OW39/OW41 provenance files referenced in 40-work-order.md and 20-basis.md. Only 60-assurance.md's assertion that provenance remains intact is available, with no supporting artifact."
+evidence = "OBL-003 requires evidence of retained digests, an unchanged baseline, and a passing full gate, but gate_runs is [] (no gate run id or printed output) and deliverables is [] (no digest comparison), leaving only 60-assurance.md's unsupported assertion that provenance remains intact."
 performer = "claude"
 
 [verifier]

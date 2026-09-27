@@ -1,6 +1,6 @@
 obligation = "OBL-005"
 disposition = "established"
-evidence = "The obligation's evidence is scoped specifically to baseline-1000.json: D-004 (untruncated) records over: [], unknown: [], held: true, and every one of its 9 rows (check, check-generated, next, status, pins-resolved-only, sign-list, compile, console-json, console-select) shows verdict 'within' against its limit_ms, on the machine it itself names (13th Gen Intel Core i5-13600K, Linux 7.2.6 x86_64). This record is self-consistent and is the specific artifact the obligation cites, so the budget holding is established independent of the contradictory summary prose found elsewhere in docs/RETENTION.md (D-005), which is outside this obligation's evidentiary scope."
+evidence = "D-004 (docs/scale/baseline-1000.json, untruncated, the exact artifact this obligation cites) records over: [], unknown: [], held: true, and every one of its nine rows (check, check-generated, next, status, pins-resolved-only, sign-list, compile, console-json, console-select — matching all nine commands declared in tools/scale/budget.toml, D-002) has verdict 'within' against its limit_ms, on the machine the record itself names (13th Gen Intel Core i5-13600K, Linux 7.2.6 x86_64, release build 6bcc01bf04a7)."
 performer = "claude"
 
 [verifier]

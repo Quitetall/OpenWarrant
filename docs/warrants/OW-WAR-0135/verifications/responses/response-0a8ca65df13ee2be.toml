@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0135"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "D-002 (crates/openwarrant-cli/src/mark.rs) implements the refusal paths this obligation names: the NO_RESOLUTION constant citing Q47 for a missing resolution.toml, `attested()`'s 'no resolve attestation names …' branch when attestations/ is absent, its unmet path built from `crate::attest::verify_file`'s error diagnostic when a DSSE signature does not verify, and `established()`'s `v.admissible_for(floor)` unmet path ('not admissible at {floor}') for a performer-only verdict (RQ-053). D-005 (conformance/plants.d/57-assurance-mark.sh) drives exactly these four cases against the scratch MK-WAR-0001 corpus via the `mk_refused` helper — removing resolution.toml, removing attestations/, bit-flipping one byte of a DSSE signature (with a git-diff no-op guard confirming the mutation actually changed bytes), and setting the verification's actor to the performer 'claude' — plus a fifth related case (a non-human resolver). The gate run GR-ops.conformance.plants@1.1.0 (gate ops.conformance.plants@1.1.0, verdict pass) has a non-truncated excerpt of its stdout (lines 484–511) printing all five as 'ok' with the exact detail text the plant asserts: 'no resolution, no mark … BL-001 unmet: Q47', 'no attestation, no mark … BL-002 unmet: no resolve attestation', 'a forged attestation, no mark … BL-002 unmet: attest.failed', 'a self-verified obligation, no mark … BL-003 unmet: OBL-001: not admissible', and 'a non-human resolver, no mark … BL-002 unmet: is not a human', each followed by exit 2 and no mark.earned/mark statement produced. This is executed evidence, not merely source inspection, and it covers all four refusal conditions the obligation's evidence list requires within the stated scratch-corpus scope. (Note: the prior verification's claim that the gate run's subject_digests contract hash matches this bundle's authorized_contract_digest is not supported — the receipt shows 'contract:sha256:a871e182…' while authorized_contract_digest is 'da9d7ca9…', and gate_binding_digest is 'unbound:ops.conformance.plants@1.1.0', so this battery run is not itself bound to OW-WAR-0135's contract; that discrepancy does not by itself undermine the plant-level evidence above, which is independent of contract binding.)"
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

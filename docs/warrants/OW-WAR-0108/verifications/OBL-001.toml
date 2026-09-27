@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "The bundle's deliverables array is empty and no gate_runs or plants are present; obligation_evidence for OBL-001 lists no named_paths and selects 'every deliverable of the Warrant', but zero deliverables were carried. Only the authored atoms (10-intent.md, 20-basis.md, 40-work-order.md, 45-milestones.yaml, 60-assurance.md) are shown, and 60-assurance.md merely asserts the required evidence (regression test, retained-bytes check, symlink check, provider CI pass) without any actual test output, hash, or run record. No bytes were shown that could confirm the standard cookbook's materialize_dataset_path behavior."
+evidence = "the verifier returned no usable verdict for this obligation"
 performer = "claude"
 
 [verifier]

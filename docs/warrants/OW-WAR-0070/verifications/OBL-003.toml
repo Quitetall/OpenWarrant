@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "obligation_evidence for OBL-003 shows both named paths, docs/cli/inbox.md and CHANGELOG.md, as absent ('a repository path that is not a deliverable of OW-WAR-0070: not carried'), with no terms carried for either the state-to-act table text or a CHANGELOG 'Unreleased' entry. The deliverables array is empty and the only gate run present (software.repo.war-check@1.0.0, run_id GR-software.repo.war-check@1.0.0) is a whole-corpus record-integrity check whose visible excerpts never reference docs/cli/inbox.md or CHANGELOG.md content. With no doc or changelog bytes carried in this bundle, there is no basis to establish or refute that the command is documented or the change recorded."
+evidence = "obligation_evidence for OBL-003 marks both docs/cli/inbox.md and CHANGELOG.md as not carried, with no terms shown for a state-to-act table or an Unreleased entry. The deliverables array is empty, and the single gate run (GR-software.repo.war-check@1.0.0) is a corpus-wide record-integrity check whose visible excerpts never reference either file's content. Absent any doc or changelog bytes in the bundle, whether the command is documented or the change recorded cannot be established or refuted."
 performer = "claude"
 
 [verifier]

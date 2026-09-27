@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0112"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "D-016 (remedy.rs) carries `no_auto_remedy_is_a_signing_act`, which walks `TABLE` and asserts no `Auto` remedy carries a `SIGNING_VERBS` verb or `--ssh-sign`, and `classify()` never returns `Auto` for a signing verb, supporting 'no automatic remedy signs' for the table and the fallback classifier. The ops.conformance.plants@1.1.0 gate run's stdout excerpt at line ~1099 shows 'ok check --json carries each remedy drift: human war correct (signs with war sign OS-WAR-0001/D-001); stale: auto war compile; REMEDIES: block', matching the required planted-drift (human, `war correct <alias> <D-id>`, purpose naming `war sign <alias>/<D-id> --ssh-sign`) and planted-stale-projection (auto, `war compile`) facts, and the software.repo.war-check@1.0.0 gate run's own stdout independently ends in a real `REMEDIES:` block followed by 'WELL-FORMED', confirming `war check` ends with that block on this corpus. However, the obligation also requires '`89-schemas.sh` passes with `SCHEMA_PACK_VERSION` unchanged', and obligation_evidence explicitly states `89-schemas.sh` is absent ('no deliverable of OW-WAR-0112 and no file at this path: not carried'), and the literal term `SCHEMA_PACK_VERSION` is shown only inside atoms/40-work-order.md's prose (a work-order instruction), never in any gate output or deliverable text, so there is no evidence bounding whether the pack version was in fact left unchanged versus before this Warrant — D-020 (schemas/pack.json) shows only the current version string with no prior baseline to compare against. Because this specifically named piece of required evidence is neither carried nor derivable from what is shown, the obligation cannot be established, matching the prior verification's finding on this same bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

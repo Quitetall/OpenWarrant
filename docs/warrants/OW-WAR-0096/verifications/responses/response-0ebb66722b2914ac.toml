@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0096"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "deliverables, gate_runs, and plants are all empty arrays, and OBL-001's obligation_evidence entry lists no named_paths and no terms. The only support for the claim is the authored assertion in atoms/60-assurance.md ('authorized update/recovery pass; self-grants, wrong parent/repository/sequence, malformed keys/records, empty signers and oversized input refuse with named diagnostics'), which is a contract statement, not test output. No authority_transition test run, transcript, or record is carried to substantiate it."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No CLI binary, key fixture, store fixture, or gate run appears anywhere in the bundle (deliverables: [], gate_runs: [], and OBL-002's obligation_evidence has empty named_paths/terms). The claim of successful approval/reload and refusal of unsigned/forged/replayed/concurrent updates plus the fake-PATH-verifier check exists only as prose in atoms/60-assurance.md, with no evidenced command transcript or test result."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "There is no sandbox fixture, bootstrap-refusal transcript, or isolation-boundary test in the bundle; deliverables, gate_runs, and plants are empty, and OBL-003's obligation_evidence has no named_paths or terms. The described behavior (same-account bootstrap refusal, labeled unprotected test mode, in-sandbox writes succeeding while outside bytes stay inaccessible) is asserted only in atoms/60-assurance.md."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "No legacy-export bytes, CLI transcripts, or fixture-mode activation logs are carried — deliverables and gate_runs are empty and OBL-004's obligation_evidence entry has no named_paths or terms. The claims of unchanged legacy export, inert draft/propose, and a single approve --activate completion are stated only in atoms/60-assurance.md, not demonstrated by any carried artifact."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

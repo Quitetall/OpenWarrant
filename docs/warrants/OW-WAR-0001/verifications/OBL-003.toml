@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "The sole gate run in the bundle, GR-software.repo.war-check@1.0.0, records exit_result 'pass' and run.verdict 'pass' — the opposite of the required rejection — and its command is 'war check --generated', not 'cargo xtask gate'. No second run, and no run at all showing 'cargo xtask gate' exiting non-zero with named failing steps, is present anywhere in gate_runs or the deliverables. The obligation exists specifically to rule out a gate that never rejects, and no rejecting run for the actual gate under obligation is carried in this bundle."
+evidence = "The only recorded gate run, GR-software.repo.war-check@1.0.0, has exit_result 'pass' and run.verdict 'pass' — the opposite of the rejection this obligation requires — and its argv is 'war check --generated', not 'cargo xtask gate'. No second run and no run of any kind showing cargo xtask gate exiting non-zero with named failing steps (fmt/clippy/tests/licenses) appears anywhere in gate_runs or the deliverables, so the bundle carries no evidence of the control having been observed to reject."
 performer = "claude"
 
 [verifier]

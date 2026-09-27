@@ -1,0 +1,97 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0044"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "refuted"
+evidence = "atoms/60-assurance.md's JDG-001 states OBL-001 is 'held, not narrowed' and that the write 'stopped at KF's own registry, which answers 404 for an unregistered action type (OBS-007)' — i.e. core.action is empty and no §67 action could be recorded in this instance. OBS-007 documents the write attempt against the live instance reaching a 404, not a recorded envelope/receipt. EV-001 (war kf health) is read-only and D-001's three tests (an_https_url_is_accepted, a_non_http_url_is_refused, a_short_idempotency_key_never_reaches_the_network) never perform a live write either. The bundle affirmatively shows the required recorded action envelope and receipt never came into existence, so the claim is shown false rather than merely unproven."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "refuted"
+evidence = "JDG-001 explicitly groups OBL-002 with OBL-001 as requiring a completed write to KF and states that write 'stopped at KF's own registry' before any action could be recorded (OBS-007's 404 for an unregistered action type). No enterprise identifier appears anywhere in D-001 (crates/openwarrant-cli/src/kf.rs has no identifier-allocation logic) or in any evidence/observation record, and no refusal of a locally-fabricated identifier is recorded either. The judgment record's own account that registration never completed is affirmative evidence against the claim, not silence."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003's scope is explicitly 'for the registered Warrant,' but JDG-001/OBS-007 establish that no registration ever completed (the write stopped at a 404 before any action was recorded). Neither the D-001 deliverable, the gate run GR-software.repo.war-check@1.0.0 (whose visible excerpts are generic repo-wide PASS/WARN lines such as manifest.valid, journal.append-only, sas.pin-superseded — nothing about post-registration Source Holder status), nor any plant addresses whether authored atoms would still resolve to Git after a registration event, because that event is not shown to have occurred."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "OBL-004 scopes to 'the registered Warrant, exported into an empty compatible instance,' but per JDG-001 no Warrant was ever registered with KF (OBS-007's 404). EV-003/OBS-004/OBS-005 show general §68 mechanics working — an export refusing over 4 of 14 absent §68.2 contents, and a vacuous round trip correctly refused while a reconnected one verifies (with a falsification control on evidence_reconnected) — but none of this is tied to a specific registered Warrant carrying a KF-allocated identifier, so the obligation as scoped is not addressed by the bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-005"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-005 marks the named path 'conformance/' as explicitly absent from this bundle ('a repository path that is not a deliverable of OW-WAR-0044: not carried'), so none of the seven required plants for §91.3 tests 19/22 and §91.13 tests 91-95 can be inspected. EV-002 and EV-003 in atoms/60-assurance.md reference only two unrelated plant.sh scenarios (a missing --confirm-write flag and an unservable https:// URL; an incomplete export and a vacuous round trip) that are not mapped to the required test numbers, so no evidence of the specified plants is shown."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

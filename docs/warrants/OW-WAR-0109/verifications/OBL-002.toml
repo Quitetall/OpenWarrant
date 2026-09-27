@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No deliverables, gate runs, or plants are carried in the bundle, and obligation_evidence for OBL-002 shows no named_paths or terms; the 60-assurance.md atom only declares the expected evidence (changed source/config, unmet dependencies, unknown writer, verified-start, unknown-cost cap refusals; matching ready work success) without any admission-evaluator code, test log, or gate run demonstrating these outcomes."
+evidence = "No deliverables, gate runs, or plants are carried, and obligation_evidence for OBL-002 has no named_paths or terms; atoms/60-assurance.md and atoms/40-work-order.md only state the intended admission checks (changed source/configuration, unmet dependencies, unknown writer, verified-start, unknown-cost cap refusals; matching ready work success) without any admission-evaluator code or gate run showing these outcomes actually occur."
 performer = "claude"
 
 [verifier]

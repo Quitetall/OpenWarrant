@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "refuted"
-evidence = "OBL-003 is scoped to the ingest loop and sign.rs, and obligation_evidence records sign.rs as 'no deliverable of OW-WAR-0072 and no file at this path: not carried.' The terms batch.agent, batch.not-permitted, batch.unknown-act and batch_ref are shown_in: ['atoms'] only (the work order's own description), and 'war sign --list' is shown nowhere. Combined with the empty top-level deliverables list, this confirms no ingest loop or per-act reuse code exists in the bundle to grant or restrict authority, so the claim that 'a batch grants no authority a single act would not' is refuted by the confirmed absence of the very file (sign.rs) the obligation is scoped to."
+evidence = "OBL-003 is scoped to 'the ingest loop, sign.rs's per-act ingests,' and obligation_evidence records sign.rs as 'no deliverable of OW-WAR-0072 and no file at this path: not carried.' The terms batch.agent, batch.not-permitted, batch.unknown-act and batch_ref are shown_in ['atoms'] only (i.e. only in the work-order's own description of what should be built), and 'war sign --list' is shown nowhere. Combined with the globally empty deliverables list, there is no ingest-loop code reusing sign.rs's per-act ingests to examine, so 'a batch grants no authority a single act would not' is refuted by the confirmed absence of the file the obligation is scoped to."
 performer = "claude"
 
 [verifier]

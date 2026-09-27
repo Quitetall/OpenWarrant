@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "OBL-003 requires independent reproduction/review and secure human acceptance of the exact OBL-001/002 result, but since neither OBL-001 nor OBL-002 is shown established in this bundle (no deliverable bytes, no runtime evidence), there is no exact result for such qualification to attach to. No independent-review record, baseline comparison, or human-acceptance artifact appears in obligation_evidence, gate_runs, or prior_verifications for OBL-003 beyond bare assertion."
+evidence = "OBL-003 requires independent reproduction/review and secure human acceptance of the exact OBL-001/002 result, but since neither OBL-001 nor OBL-002 is established in this bundle (no deliverable bytes, no runtime evidence, empty obligation_evidence terms/named_paths), there is no exact qualified result for such review to attach to. No independent-review record, baseline comparison, or human-acceptance artifact appears anywhere in the bundle beyond bare assertion in the atom text."
 performer = "claude"
 
 [verifier]

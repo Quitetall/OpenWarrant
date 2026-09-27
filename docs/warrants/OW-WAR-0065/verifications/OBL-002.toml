@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "the verifier returned no usable verdict for this obligation"
+evidence = "OBL-002's required evidence is that 'an independent reviewer records established for this obligation.' obligation_evidence for OBL-002 lists the term 'established' with both shown_in and cut_from as empty arrays, meaning that record is neither present in the bundle nor cut for budget reasons — it simply does not exist here. gate_runs is empty, so gate://document.review@1.0.0 was never recorded as having run, and prior_verifications shows the earlier verifier also returned 'not_established' for OBL-002 with no usable verdict. There is no basis in the bundle to conclude an independent reviewer ever evaluated the Decision section against the Measurements section."
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "the verifier returned no usable verdict for this obligation"
+evidence = "OBL-003's evidence requirement is that 'the Overview lists the uncovered ones by identifier,' but no Overview document is among the bundle's deliverables (only D-001, traceability.rs, is carried), and obligation_evidence for OBL-003 shows empty named_paths and empty terms, meaning no path or content relevant to this obligation was carried at all. The gate stdout's NOT CHECKED section confirms no coverage-gap report is being verified by war-check. Absent any Overview text or coverage-report evidence, the claim cannot be established."
 performer = "claude"
 
 [verifier]

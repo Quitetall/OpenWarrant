@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0125"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass, exit_result pass, subject tree 9729d66838274661a8b7382db6ef1108887babec) captured full untruncated stdout (sha256 704f5702f168868e9520b99c2489f0ddfe3e151a945765f35fbd9db78f5dd073) containing the output of D-009 (conformance/plants.d/56-sas-sections.sh), whose sec_revision_bytes/join(split) loop is shown fully in the deliverable text. The stdout lines 'ok lossless split of 0.1.0-draft.1 joined sha256:aad5256cb59e = revision record', '...draft.2 ... daa1c89a3ca0', '...draft.3 ... 742dfd066b8d', '...1.0.0 ... b7105f528305', and '...1.1.0 ... 321413359168' cover all five revisions the basis atom (20-basis.md) names as recorded as of 2026-09-23, each with no FAIL and no 'UNKNOWN: no commit holds sha256' fallback line, showing join(split(bytes)) reproduced each pinned sha256 from history. The fence claim is shown by the paired lines 'ok a fenced ## 999. is not a section §105 changed; no section 999' and 'ok an unfenced ## 999. is a section rejected as new by sas.diff.section-added', matching D-009's planted-fence test verbatim: the fenced heading produced no section 999 while the identical heading outside a fence did, demonstrating the plant is capable of failing rather than passing vacuously. All cited lines are 'ok', and the battery run ends '1270 passed, 0 failed'. This is corroborated by prior_verifications[0] (claude-verifier, disposition established) reaching the same conclusion from the same evidence."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

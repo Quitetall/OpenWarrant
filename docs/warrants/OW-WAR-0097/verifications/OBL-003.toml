@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "The bundle contains only the five authored atoms (intent, basis, work_order, milestones, assurance) and no deliverables, gate_runs, or plants; obligation_evidence for OBL-003 lists no named_paths or terms, so no JSON fixture report showing admission UNKNOWN, execution_authorized false, or the remedy argument vector is present to decide the claim."
+evidence = "The bundle contains only the five authored atoms (10-intent.md, 20-basis.md, 40-work-order.md, 45-milestones.yaml, 60-assurance.md) plus empty deliverables/gate_runs/plants arrays; obligation_evidence for OBL-003 lists no named_paths or terms. No JSON fixture report is shown demonstrating admission UNKNOWN, execution_authorized false, the absent-authority warning, refusal of an unknown Warrant, or the exact remedy argument vector, so the claim cannot be decided from this bundle."
 performer = "claude"
 
 [verifier]

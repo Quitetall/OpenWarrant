@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No deliverables, fixtures, or plants demonstrating malformed/incomplete/conflicting/over-limit/authority-confused inputs and their refusals are present (deliverables: [], plants: [], obligation_evidence for OBL-002 has empty named_paths and terms). The lone attached gate run, GR-software.repo.war-check@1.0.0, is the unrelated structural check reporting only manifest/traceability/journal/authority record findings for OW-WAR-0079 (e.g. PASS manifest.valid, WARN sas.pin-superseded) with no observed boundary refusal for invalid provider-selection inputs. There is no evidence in the bundle of a refusal at the boundary OBL-002 requires."
+evidence = "No deliverables, fixtures, or plants demonstrating malformed/incomplete/conflicting/over-limit/authority-confused inputs and their refusals are present (deliverables: [], plants: [], obligation_evidence for OBL-002 has empty named_paths and terms). The only attached gate run is the unrelated structural check for OW-WAR-0079's records (manifest.valid, journal.append-only, authority.signed, etc.), which contains no refusal at the provider-selection boundary OBL-002 requires. There is no basis in the bundle to establish or refute a boundary refusal here."
 performer = "claude"
 
 [verifier]

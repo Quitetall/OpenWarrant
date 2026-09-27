@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "The bundle's deliverables array is empty and its subject_digests entry 'deliverables:sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' is the well-known empty-input digest, so no packaged SDK/CLI/skills/license notices, install logs, exit codes, or documented consumer walkthrough are carried. The only gate run, GR-software.repo.war-check@1.0.0 (`war check --generated`), is a structural repo-linter over Warrant records and contains no install/walkthrough test output; plants is also empty ([]). There is nothing in the bundle from which to observe the clean-install and consumer-walkthrough behavior OBL-001 requires, so it cannot be decided either way from what is shown."
+evidence = "The bundle's deliverables array is empty and the gate run's subject_digests list 'deliverables:sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' (the empty-input digest), so no packaged SDK/CLI/skills/license notices, install logs, exit codes, or documented consumer walkthrough are carried in this bundle. plants is empty ([]) and the only gate run, GR-software.repo.war-check@1.0.0 ('war check --generated'), is a structural Warrant-record linter whose stdout excerpts contain no install or walkthrough test output. obligation_evidence for OBL-001 lists no named_paths or terms. There is nothing shown from which to observe the clean-install/consumer-walkthrough behavior OBL-001 requires, so it cannot be decided either way."
 performer = "claude"
 
 [verifier]

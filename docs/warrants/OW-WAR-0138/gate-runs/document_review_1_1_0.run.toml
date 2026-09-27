@@ -1,0 +1,6 @@
+id = "GR-document.review@1.1.0"
+gate = "document.review@1.1.0"
+askability = "askable"
+execution_status = "completed"
+verdict = "pass"
+reason_code = "passed"

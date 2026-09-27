@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "deliverables is empty ([]) and obligation_evidence for OBL-001 marks questions/ as explicitly absent ('a record of OW-WAR-0069 ... not a deliverable: not carried'), with the terms 'war questions --open' and 'war watch --once' shown_in: [] (nowhere in the bundle). The sole plant reference, conformance/plants.d/91-questions.sh line 3, is a comment fragment ('# refuses the reverse...') with no test body or run output. The gate run GR-software.repo.war-check@1.0.0's OW-WAR-0069-specific excerpt (stdout lines 1079-1092) only checks manifest/milestone/obligation well-formedness and journal append-only-ness, plus explicitly states in its NOT CHECKED section that 'war check does not invoke' gate execution and that '143 of 143 Warrants have no disposed obligations' — i.e. it never executed or reported on the questions.rs refusal behavior. No evidence of an agent-actor being refused, a listed question, or war watch naming it exists in the bundle."
+evidence = "the verifier returned no usable verdict for this obligation"
 performer = "claude"
 
 [verifier]

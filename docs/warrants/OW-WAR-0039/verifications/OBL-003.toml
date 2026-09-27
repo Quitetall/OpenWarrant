@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "The bundle's 'plants' array is empty, so no plant record attempting an auto-attach relation and its refusal is present, despite OBL-003's evidence requirement being exactly 'a plant attempting auto-attachment, refused.' D-001's doc comment on `attach()` states that `UntrackedWork::attach_relation` 'shipped in alpha' and that 'no command has ever called it, so the refusal had never run outside a unit test' — an explicit admission this path has not been exercised as a plant, and no unit-test output or test_names are carried in the bundle either (D-001's test_names field is empty). The gate run's stdout covers only `war check --generated` structural checks and contains no attach-attempt or refusal record, so nothing in the bundle demonstrates the refusal occurring."
+evidence = "The bundle's plants array is empty, so no plant record of an auto-attach attempt and its refusal is present, despite OBL-003's stated evidence requirement being exactly 'a plant attempting auto-attachment, refused.' D-001's own doc comment on `attach()` admits the refusal path 'shipped in alpha' and 'no command has ever called it, so the refusal had never run outside a unit test,' and D-001's test_names field is empty, so no test execution is carried either. The gate run's stdout (war check --generated) contains no attach-attempt or refusal record among its excerpted lines, so nothing in the bundle demonstrates the no-fabrication rule was actually exercised."
 performer = "claude"
 
 [verifier]

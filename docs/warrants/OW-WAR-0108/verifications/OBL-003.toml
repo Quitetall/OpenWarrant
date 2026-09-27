@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "OBL-003 requires evidence of preserved original failures, unchanged signed sources, no copied lineage, and passing projections/checks/full gate, plus visible unavailable provider checks. The bundle carries zero deliverables and zero gate_runs, so none of these can be verified from records; 20-basis.md's own text acknowledges provider checks are currently unavailable due to billing limits, which is consistent with but not proof of the obligation's 'remain visible and prevent integration completion claims' requirement, since no actual OpenWarrant run record, projection, or gate output was included in the bundle."
+evidence = "OBL-003 requires evidence of preserved original failures, unchanged signed sources, no copied lineage, and passing projections/checks/full gate, with unavailable provider checks kept visible. The bundle has zero deliverables and zero gate_runs, so none of the required run records, projections, or gate outputs are present to check. 20-basis.md's acknowledgment that provider CI is currently unavailable due to billing limits is consistent with, but does not itself prove, that this unavailability was made visible within an actual OpenWarrant integration run — no such run evidence is in the bundle."
 performer = "claude"
 
 [verifier]

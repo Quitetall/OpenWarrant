@@ -1,6 +1,6 @@
 obligation = "OBL-005"
 disposition = "not_established"
-evidence = "The bundle contains only the five authored atoms describing intended work (e.g. 20-basis.md noting the format decision is unverified and 40-work-order.md step 5 calling for repair of 'old false verification output'); it carries no CLI deliverable, no gate run showing legacy envelope bytes unchanged, and no KF producer/consumer observation records, and obligation_evidence for OBL-005 is empty, so honest reporting and legacy-byte preservation are only planned, not shown."
+evidence = "The bundle contains only the five authored atoms describing intended work (e.g. 20-basis.md noting the format decision is unverified, and 40-work-order.md step 5 calling for repair of 'old false verification output'); it carries no CLI deliverable, no gate run showing legacy envelope bytes unchanged, and no KF producer/consumer observation records, and obligation_evidence for OBL-005 is empty, so honest reporting and legacy-byte preservation are only planned, not shown."
 performer = "claude"
 
 [verifier]

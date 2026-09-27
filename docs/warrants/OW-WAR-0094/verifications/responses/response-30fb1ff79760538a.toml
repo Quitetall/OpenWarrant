@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0094"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle carries no deliverables, no gate_runs, and no plants; obligation_evidence for OBL-001 lists no named_paths or terms, only the generic selection 'warrant: every deliverable of the Warrant'. Only atoms/40-work-order.md and atoms/60-assurance.md state the intended contract (HTTP start, worktree isolation, refusal on stale subject/duplicate writer/failed checks) but there is no actual HTTP start record, harness output, Git worktree state, or check run result to show the claim holds."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No deliverables or gate_runs are present and obligation_evidence for OBL-002 names no paths or terms. atoms/40-work-order.md and atoms/60-assurance.md describe the intended hard-cap refusal, verified-start refusal, and restart/timeout non-completion behavior, but no persisted attempt records or controller output demonstrating these behaviors actually occurring are included."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "deliverables is empty and obligation_evidence for OBL-003 lists no named_paths or terms, so docs/releases/remaining-build-scope.md and any skill drafting reference content are entirely absent from the bundle. Only atoms/10-intent.md's statement of intent ('record model-neutral local/cloud skill drafting in the roadmap') is present, which is insufficient to verify that commands match actual SDK/drafting seams or that no credentials/paid calls appear."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

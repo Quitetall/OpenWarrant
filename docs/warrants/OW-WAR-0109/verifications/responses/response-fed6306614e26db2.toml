@@ -4,7 +4,7 @@ warrant = "OW-WAR-0109"
 [[verifications]]
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "The bundle's deliverables, gate_runs, and plants arrays are all empty, and obligation_evidence for OBL-001 lists no named_paths or terms despite selection 'every deliverable of the Warrant'; only the authored intent/basis/work-order/milestones/assurance atoms are present, which state requirements but contain no queue implementation, test run, or fixture output showing unavailable-stays-queued, single-attempt dispatch, or restart/duplicate-request behavior."
+evidence = "deliverables, gate_runs, and plants are all empty arrays, and obligation_evidence for OBL-001 lists no named_paths or terms despite the selection 'every deliverable of the Warrant'; only atoms/10-intent.md, atoms/20-basis.md, atoms/40-work-order.md, atoms/45-milestones.yaml, and atoms/60-assurance.md are present, which describe the required behavior (unavailable stays queued without attempt, available creates one attempt, repeated polling/duplicate request/restart do not create a second writer) but contain no queue implementation, fixture run, or test output demonstrating it."
 performer = "claude"
 [verifications.verifier]
 actor = "claude-verifier (claude-sonnet-5)"
@@ -23,7 +23,7 @@ distinct_human_required = false
 [[verifications]]
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No deliverables, gate runs, or plants are carried in the bundle, and obligation_evidence for OBL-002 shows no named_paths or terms; the 60-assurance.md atom only declares the expected evidence (changed source/config, unmet dependencies, unknown writer, verified-start, unknown-cost cap refusals; matching ready work success) without any admission-evaluator code, test log, or gate run demonstrating these outcomes."
+evidence = "No deliverables, gate runs, or plants are carried, and obligation_evidence for OBL-002 has no named_paths or terms; atoms/60-assurance.md and atoms/40-work-order.md only state the intended admission checks (changed source/configuration, unmet dependencies, unknown writer, verified-start, unknown-cost cap refusals; matching ready work success) without any admission-evaluator code or gate run showing these outcomes actually occur."
 performer = "claude"
 [verifications.verifier]
 actor = "claude-verifier (claude-sonnet-5)"
@@ -42,7 +42,7 @@ distinct_human_required = false
 [[verifications]]
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "There is no queue-history data, crash/restart gate run, or cancellation test evidence anywhere in the bundle (deliverables, gate_runs, and plants are all empty arrays, and OBL-003's obligation_evidence entry has no named_paths/terms), so the claims about ambiguous requests never being replayed, retained attempts remaining discoverable, cancellation preventing dispatch, and corrupt history refusing cannot be checked against anything shown."
+evidence = "The bundle carries no queue-history data, crash/restart gate run, or cancellation test evidence (deliverables, gate_runs, and plants are empty; OBL-003's obligation_evidence entry has no named_paths/terms), so the claims in atoms/40-work-order.md and atoms/60-assurance.md about ambiguous requests never being replayed, retained attempts remaining discoverable, cancellation preventing dispatch, and corrupt history refusing cannot be checked against anything shown."
 performer = "claude"
 [verifications.verifier]
 actor = "claude-verifier (claude-sonnet-5)"
@@ -61,7 +61,7 @@ distinct_human_required = false
 [[verifications]]
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "The bundle contains no API/browser deliverable, no probe-handling code, and no gate run output (deliverables, gate_runs, plants all empty; OBL-004's obligation_evidence has no named_paths or terms), leaving no evidence of pending-reason readability, auth/injection refusal, bounded probe handling for unknown/malformed/timeout/oversized output, or the required browser QA observation."
+evidence = "There is no API/browser deliverable, probe-handling code, or gate run output (deliverables, gate_runs, plants all empty; OBL-004's obligation_evidence has no named_paths or terms), leaving no evidence of pending-reason readability, auth/injection refusal, bounded probe handling for unknown/malformed/timeout/oversized output, or the required browser QA observation described in atoms/40-work-order.md and atoms/60-assurance.md."
 performer = "claude"
 [verifications.verifier]
 actor = "claude-verifier (claude-sonnet-5)"

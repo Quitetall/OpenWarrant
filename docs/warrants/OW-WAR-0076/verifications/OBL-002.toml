@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No refusal fixtures, CLI/API transcripts, or exit codes for malformed/duplicate/conflicting/authority-confused inputs appear anywhere in the bundle: deliverables is empty, plants is empty, and obligation_evidence for OBL-002 lists no named_paths or terms. The single gate run present (GR-software.repo.war-check@1.0.0) is explicitly a corpus-structure linter that, per its own printed NOT CHECKED note, does not execute or evidence acceptance gates for runtime behavior. There is no shown refusal for this boundary, so the claim cannot be established or refuted from what is carried."
+evidence = "plants is an empty list and obligation_evidence for OBL-002 likewise shows named_paths:[] and terms:[], so no refusal fixtures, CLI transcripts, or exit codes for malformed/duplicate/conflicting/authority-confused inputs are present anywhere in the bundle. The only gate run carried is software.repo.war-check@1.0.0, a record-structure linter (its PASS lines cover manifest.valid, traceability.refs, obligations.valid, etc., all about Warrant record shape, not SDK input handling), and its own NOT CHECKED section disclaims evidencing acceptance-gate execution. No observed refusal for this boundary is shown, so this obligation cannot be established or refuted."
 performer = "claude"
 
 [verifier]

@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0059"
+
+[[verifications]]
+obligation = "OBL-007"
+disposition = "not_established"
+evidence = "The gate_runs entry for software.repo.war-check@1.0.0 (run_id GR-software.repo.war-check@1.0.0, OW-WAR-0059) has stdout excerpts showing 'PASS evidence.admissible OW-WAR-0010: software.repo.war-check@1.0.0 · required pass, receipt reseals and is bound to the current contract (resolved: the source is not re-evaluated)' (lines 199-200) and the equivalent for OW-WAR-0020 (lines 363-364), which satisfies the obligation's first evidentiary clause ('war check reports evidence.admissible for OW-WAR-0010 and OW-WAR-0020'). But obligation_evidence for OBL-007 explicitly records the terms 'war resolve --dry-run', 'requirements_met = true', and 'requirements_met' as shown_in: [] — i.e. absent from the bundle entirely — so there is no transcript anywhere showing 'war resolve --dry-run' reporting all thirteen requirements met for either Warrant, nor a 'war resolve <alias>' request payload with 'requirements_met = true' and 'satisfied' among permitted outcomes. Both Warrants are in fact shown already resolved ('PASS resolution.recorded OW-WAR-0010: satisfied · resolved by person://Brian Lam at 2026-09-02T09:30:00Z' and likewise for OW-WAR-0020), which is consistent with but does not substitute for the dry-run/request evidence the obligation's own evidence field names. Since two of the three named evidentiary items are not carried in the bundle at all, and bytes not shown are not evidence either way, the obligation cannot be fully established or refuted from this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

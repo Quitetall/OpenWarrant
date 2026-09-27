@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "The obligation's required evidence is 'a plant where OpenWarrant fabricates a receipt, refused,' but the bundle's plants array is empty, so that specific evidence is entirely absent. KatanaReceipt::validate() in D-001 (fully shown) only checks non-empty required fields and that dispatch_digest matches an expected value — it has no provenance or signature check — so the code alone neither confirms nor rules out that a hand-fabricated receipt with matching digest would be refused in practice. Absent the plant and any test exercising the actual consume/attach path against a fabricated receipt, and with the gate run's own NOT CHECKED note confirming gates/tests are not executed by war check, there is not enough in the bundle to decide this either way."
+evidence = "OBL-002's stated evidence is 'a plant where OpenWarrant fabricates a receipt, refused,' but the bundle's top-level plants array is empty — no such plant is carried. KatanaReceipt::validate() in the fully-shown D-001 only checks non-empty required fields and dispatch_digest equality; it has no provenance/signature check, so the code alone cannot show a fabricated-but-well-formed receipt would be refused. The gate run's stdout excerpts (e.g. lines 452-466) and its NOT CHECKED note confirm 'war check' does not execute gates or tests, so no test run in the bundle substitutes for the missing plant. Absent that plant, the bundle does not carry enough to decide the claim either way."
 performer = "claude"
 
 [verifier]

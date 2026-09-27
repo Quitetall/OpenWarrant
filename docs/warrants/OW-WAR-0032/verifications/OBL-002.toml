@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "obligation_evidence names the term 'FormatBasis.digest' for OBL-002 but with both shown_in and cut_from empty — the term was never carried into the bundle, not even partially — and deliverables is empty so no FormatBasis file or assembled pack is present to compare digests against. The gate run's visible stdout excerpts contain no mention of FormatBasis or a pack digest. There is no basis in this bundle to decide whether FormatBasis.digest matches the assembled pack."
+evidence = "obligation_evidence names the term 'FormatBasis.digest' for OBL-002 but both shown_in and cut_from are empty arrays, indicating the term was never carried into the bundle at all (not shown, not cut for budget) rather than merely truncated. deliverables is empty, so there is no FormatBasis file or assembled pack artifact to compare digests against. The gate run's visible stdout excerpts contain no mention of FormatBasis or a pack digest, and the WARN evidence.stale-binding line further notes the receipt's tree predates 33 changed paths, undermining reliance on it even where relevant. There is nothing in the bundle from which to decide whether FormatBasis.digest matches the assembled pack."
 performer = "claude"
 
 [verifier]

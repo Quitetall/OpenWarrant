@@ -1,0 +1,40 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0037"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "D-001 (crates/openwarrant-cli/src/show.rs) is carried in full, truncated:false, 547 lines. Its `diff()` function builds both comparison sides purely from canonical IR — reading `generated/WAR.json` as `from` and calling `openwarrant_compiler::render::canonical_json(&ir)` for a freshly-lowered `to` — and passes only these `serde_json::Value` trees into `semantic_diff`/`walk`, which recurses over JSON structure and never touches `render::render_view`'s Markdown output. Consequently two revisions differing only in rendering collapse to identical canonical JSON under this code path, and the in-file test `identical_documents_produce_no_changes` demonstrates that identical JSON documents yield an empty change list, with `diff()` then emitting `Diagnostic::pass(\"diff.identical\", ...)`. This is fully decidable from the shown source and tests within the stated scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "The same fully-shown `diff()`/`semantic_diff`/`walk` code in D-001, and the tests exercising it (an_added_field_is_reported, a_removed_field_is_reported, nested_changes_are_reported_by_path, array_changes_are_reported_by_index), only produce a flat, undifferentiated list of every JSON path that changed between two documents — there is no code that computes a contract digest, detects that it moved, or singles out which one of the reported paths caused that specific digest to move, as OBL-002 and the work-order's premade instruction ('Attribute digest movement to a field') require. The gate run's stdout excerpt itself notes the contract digest 'covers 8 of 17 §28.5 elements,' underscoring that a generic path diff cannot by itself distinguish a digest-causing field from unrelated changed fields. No deliverable, test, or gate excerpt in the bundle shows this attribution behavior, so the claim cannot be decided from what is carried."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

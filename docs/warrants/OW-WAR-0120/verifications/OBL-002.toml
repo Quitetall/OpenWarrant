@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "established"
-evidence = "Same excerpt (gate run GR-ops.conformance.plants@1.1.0, stdout lines 280-290) shows 'ok the real budget passes at N=12 every row within, exit 0' and 'ok a 1 ms budget names every command exit 1, each row OVER BUDGET by name', which are D-006's rt_ok outputs for the two required checks — passing with the real tools/scale/budget.toml (D-002) and failing/naming every row with a 1ms budget, as tools/scale/budget.sh (D-003) is coded to do."
+evidence = "The same untruncated excerpt of gate run GR-ops.conformance.plants@1.1.0 (stdout lines 280-291) shows 'ok the real budget passes at N=12 every row within, exit 0' and 'ok a 1 ms budget names every command exit 1, each row OVER BUDGET by name' — D-006's rt_ok outputs for exactly the two required checks, exercising tools/scale/budget.sh (D-003) against the real tools/scale/budget.toml (D-002) and against a 1ms-limit copy, on the 12-Warrant corpus."
 performer = "claude"
 
 [verifier]

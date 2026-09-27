@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0097"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle carries deliverables:[], gate_runs:[], and plants:[] entirely empty, and obligation_evidence for OBL-001 lists no named_paths and no terms despite selection claiming to cover every deliverable of the Warrant. No CLI fixture invoking invalid repository/authority TOML, no exit code, no error diagnostic text, and no report envelope are present anywhere in the bundle to decide whether the claim holds."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No deliverables or gate_runs are carried; obligation_evidence for OBL-002 shows no named_paths or terms. There is no before/after file snapshot, no marker-file check, and no record of a disposable initialized CLI fixture being run, so nothing in the bundle confirms or contradicts that diagnostics avoid mutating records or invoking configured backends."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "The bundle contains only the five authored atoms (10-intent.md, 20-basis.md, 40-work-order.md, 45-milestones.yaml, 60-assurance.md) plus empty deliverables/gate_runs/plants arrays; obligation_evidence for OBL-003 lists no named_paths or terms. No JSON fixture report is shown demonstrating admission UNKNOWN, execution_authorized false, the absent-authority warning, refusal of an unknown Warrant, or the exact remedy argument vector, so the claim cannot be decided from this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

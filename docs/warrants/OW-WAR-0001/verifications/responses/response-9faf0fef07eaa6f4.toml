@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0001"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-001 shows the term 'cargo build --workspace' with shown_in: [] (it appears nowhere in the bundle) and 'rustc --version' shown only inside D-004 (.github/workflows/ci.yml), where it is merely a CI step definition ('cargo --version') rather than captured output of an actual run. The one gate run present, GR-software.repo.war-check@1.0.0, invoked 'war check --generated' — a Warrant-corpus record check — whose own stdout footer states 'war check does not invoke gates', so it supplies no build exit status or rustc version for any actual compilation. No evidence of the workspace having been built is carried."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence shows 'cargo xtask gate' only as text present in D-004 (naming it as a CI step to run) and in the atoms (describing it as a deliverable), never as an executed report. The sole gate_runs entry, GR-software.repo.war-check@1.0.0 (command: './target/debug/war check --generated'), produced 393,932 bytes of stdout consisting entirely of Warrant-corpus conformance lines (identity.*, manifest.valid, journal.append-only, sas.*, etc.) for OW-WAR-0001 through OW-WAR-0147, with no fmt/clippy/test/license step results, and its own NOT CHECKED section states plainly that 'war check does not invoke [gates], so nothing here is evidence that a Warrant's acceptance gates were run.' No per-step report or exit status for cargo xtask gate is carried."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "The only recorded gate run, GR-software.repo.war-check@1.0.0, has exit_result 'pass' and run.verdict 'pass' — the opposite of the rejection this obligation requires — and its argv is 'war check --generated', not 'cargo xtask gate'. No second run and no run of any kind showing cargo xtask gate exiting non-zero with named failing steps (fmt/clippy/tests/licenses) appears anywhere in gate_runs or the deliverables, so the bundle carries no evidence of the control having been observed to reject."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "obligation_evidence explicitly marks the named path 'openwarrant.toml' as absent — 'a repository path that is not a deliverable of OW-WAR-0001: not carried' — with no carried paths listed, and shows the term 'war init' only inside the atoms (10-intent.md's Desired Outcome and 40-work-order.md's deliverable list), which are descriptions of the requirement, not process output. No gate run or deliverable in the bundle records an invocation of the war binary performing init or reinit, so neither of the two runs the obligation's evidence clause requires (successful init; refused reinit with namespace intact) is present."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

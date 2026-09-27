@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0036"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "OBL-001 requires evidence that a decision classifier is shared between OW-WAR-0010 and this Warrant, with a test asserting it. The two carried deliverables, D-001 (crates/openwarrant-compiler/src/adr_overview.rs, an ADR-overview renderer) and D-002 (crates/openwarrant-core/src/structured.rs, a restricted-YAML parser), contain no classifier code, and none of their test_names reference OW-WAR-0010 or a shared function. obligation_evidence lists no named_paths or terms for OBL-001, and the gate run's shown stdout excerpts discuss unrelated checks (manifest.valid, journal.append-only, authority.signed, sas.pin-superseded, identity.atom-mismatch), not a classifier. Bytes not shown are not evidence either way."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "OBL-002 requires 'a plant and its refusal' for §91.4 test 23, but the plants array in this bundle is empty and obligation_evidence lists no named_paths or terms for OBL-002. The gate run stdout (D-length 386042 bytes, truncated) only shows excerpts at lines 592-606, 2614, 2793, 2873, plus a tail — none of which report a decision-detection plant or refusal of an undocumented normative decision; the tail instead lists unrelated NOT CHECKED items including 'gate execution — war check does not invoke it' and 'Preflight readiness ... not implemented,' undercutting any inference that such a check even ran. D-001 and D-002 implement ADR-overview rendering and YAML parsing, not decision detection. The bundle gives no basis to decide this claim."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires 'a plant of an in-envelope choice, which must pass,' but plants is empty and obligation_evidence lists no named_paths or terms for OBL-003. Neither carried deliverable implements or tests the normative/execution classifier from atoms/40-work-order.md or §19.2's exclusion; D-002's every_milestones_atom_in_this_repository_parses only checks that milestones YAML parses under the restricted grammar, which is unrelated to whether an in-envelope execution choice avoids being flagged. The gate run's visible excerpts contain no line addressing this obligation, and the run's own NOT CHECKED tail states 'war check does not run gates,' further indicating this specific claim was not exercised. The bundle does not support establishing or refuting it."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

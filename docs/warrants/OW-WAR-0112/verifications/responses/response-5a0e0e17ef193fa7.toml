@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0112"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (gate ops.conformance.plants@1.1.0, verdict: pass, receipt exit_result pass) executes D-013 (conformance/plants.d/98-ownership.sh) on scratch programs, and its captured stdout excerpts show every element of OBL-001's evidence clause actually exercised and passing: 'ok a response over a moved set authorize.stale-deliverables (exit 2), nothing written' (a validly ssh-signed response per the script's os_sign call, still refused for a stale deliverable_set_digest before being recorded); 'ok path added after signing declared, not owned; OW-WAR-0061 keeps its pin', matching D-013's grep for 'deliverable.undeclared-at-authorization .*OW-WAR-0112: D-999' with no superseded-by move — independently corroborated on the real corpus by the software.repo.war-check@1.0.0 gate's WARN deliverable.undeclared-at-authorization rows for OW-WAR-0136/0138/0139/0140; 'ok owned set edited after signing attest.subject-drift (exit 2)', matching D-013's grep for 'attest.subject-drift .*OW-WAR-0112/authorization.toml'; 'ok an authorization dated before owner authorize.time-before-owner naming OS-WAR-0001 (exit 2), nothing written'; and 'ok sign --show lists what it grants Grants ownership of: D-001 ADOPTED.md; nothing written'. D-005 (authorize.rs) source shows the stale-deliverables check reading the manifest's current set and refusing 'before anything else is considered', and D-006 (sign.rs) shows the exact 'Grants ownership of:' rendering the plant greps for, with a prior independent agent verification reaching the same conclusion on the same run. No contradicting evidence or failed adversarial plant appears in the bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

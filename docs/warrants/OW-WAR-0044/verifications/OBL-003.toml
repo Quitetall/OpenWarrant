@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "OBL-003's scope is 'for the registered Warrant,' but JDG-001/OBS-007 establish no Warrant was ever registered — the write attempt stopped at a 404 before any registration event occurred. No deliverable, gate-run excerpt (the software.repo.war-check@1.0.0 run only reports repo-wide PASS/WARN checks unrelated to post-registration Source Holder status), or plant in the bundle addresses whether authored atoms 'still resolve to Git' after a registration that never happened, so the obligation's precondition is absent from the evidence shown."
+evidence = "OBL-003's scope is explicitly 'for the registered Warrant,' but JDG-001/OBS-007 establish that no registration ever completed (the write stopped at a 404 before any action was recorded). Neither the D-001 deliverable, the gate run GR-software.repo.war-check@1.0.0 (whose visible excerpts are generic repo-wide PASS/WARN lines such as manifest.valid, journal.append-only, sas.pin-superseded — nothing about post-registration Source Holder status), nor any plant addresses whether authored atoms would still resolve to Git after a registration event, because that event is not shown to have occurred."
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "OBL-003 requires independent reproduction/review and secure human acceptance of the exact OBL-001/002 result, but prior_verifications in this bundle contains only the same-scope not_established/established calls from a prior pass with no independent-review artifact, baseline comparison, or human sign-off tied to the runtime claims. 60-assurance.md states no disposition is declared for the implementation observations yet, so qualification evidence over them cannot yet exist. The war-check gate output (structural only) does not substitute for qualification review, so the bundle does not carry enough to decide this obligation."
+evidence = "OBL-003 requires independent reproduction/review and secure human acceptance of the exact OBL-001/002 result. The only prior_verifications entries present are earlier not_established calls on OBL-001/002 themselves plus an established OBL-004 call — none constitutes independent qualification review or human sign-off over runtime behavior. 60-assurance.md confirms no disposition on the implementation observations has been declared yet ('No disposition is declared here'), and the war-check gate is structural-only, so qualification evidence cannot exist yet; not established."
 performer = "claude"
 
 [verifier]

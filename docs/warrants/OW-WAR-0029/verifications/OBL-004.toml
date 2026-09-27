@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "The obligation's evidence requirement is 'the existing plant still passes,' but the bundle's plants array is empty ([]), so no plant record is present. D-001 also contains no enterprise_id field or fabrication-refusal code/test — its refusal tests (non_v7_uuid_is_refused, malformed_aliases_are_refused) concern UUID version and alias syntax, not enterprise-ID fabrication. With no plant evidence carried and no relevant test in the sole deliverable, the bundle does not show the fabrication refusal was exercised."
+evidence = "The obligation's stated evidence is 'the existing plant still passes,' but the bundle's plants array is empty ([]), so no plant record is carried at all. D-001 has no enterprise_id field and no fabrication-refusal code or test — its refusal tests (non_v7_uuid_is_refused, malformed_aliases_are_refused) concern UUID version and alias syntax only, not enterprise-ID fabrication per §91.3 test 20. With no plant evidence and no relevant test in the sole carried deliverable, the refusal cannot be shown to still hold."
 performer = "claude"
 
 [verifier]

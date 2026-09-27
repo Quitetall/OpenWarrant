@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "obligation_evidence claims the term 'resolve' is shown in the war-check stdout and in atoms, but none of the stdout excerpts actually contain 'resolve' or any Submission/refusal record — they are PASS/WARN lines for other Warrants and global corpus checks. atoms/20-basis.md ('The type cannot express `resolve`; a text request for it is refused by name') is an authored design assumption in the Basis atom, not a record of an executed Submission being refused. No Submission or plant artifact is carried in deliverables, which is empty."
+evidence = "obligation_evidence claims the term 'resolve' is shown in the war-check stdout and in atoms, but none of the stdout excerpts (which are PASS/WARN lines for OW-WAR-0001 through OW-WAR-0147, e.g. lines 741-759 for OW-WAR-0045 itself) actually contain the word 'resolve' or any Submission/refusal record. atoms/20-basis.md's statement 'The type cannot express `resolve`; a text request for it is refused by name' is an authored design assumption in the Basis atom, not a record of an executed Submission or a plant being refused. No Submission or plant artifact appears in the empty deliverables list."
 performer = "claude"
 
 [verifier]

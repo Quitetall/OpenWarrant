@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "OBL-003 requires independent reproduction/review and secure human acceptance of this exact result, contingent on OBL-001/002. Since OBL-001 and OBL-002 have no supporting evidence in this bundle, and prior_verifications contains no independent human-acceptance record for this exact result (only prior agent verdicts, none of which constitute the secure human acceptance the obligation names), qualification of the exact result cannot be shown."
+evidence = "OBL-003 requires independent reproduction/review plus secure human acceptance of the exact result, conditioned on OBL-001/002, neither of which is supported by any evidence in this bundle. prior_verifications contains only prior agent-verifier verdicts (all not_established), not a secure human acceptance record of this exact result, and the current bundle adds no new deliverable or plant evidence. Qualification of the result therefore cannot be established."
 performer = "claude"
 
 [verifier]

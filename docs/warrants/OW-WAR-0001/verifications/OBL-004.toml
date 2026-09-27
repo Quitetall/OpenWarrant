@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "obligation_evidence for OBL-004 explicitly marks 'openwarrant.toml' as a named path that is 'absent — a repository path that is not a deliverable of OW-WAR-0001: not carried,' with no carried paths listed. The term 'war init' is shown only inside the atoms (10-intent.md's Desired Outcome prose and 40-work-order.md's deliverable list describing the requirement), never as process output. No gate run or deliverable in the bundle records an invocation of the `war` binary performing init, so neither the successful-initialization run nor the reinitialization-refusal run required by the obligation's evidence clause is present in this bundle."
+evidence = "obligation_evidence explicitly marks the named path 'openwarrant.toml' as absent — 'a repository path that is not a deliverable of OW-WAR-0001: not carried' — with no carried paths listed, and shows the term 'war init' only inside the atoms (10-intent.md's Desired Outcome and 40-work-order.md's deliverable list), which are descriptions of the requirement, not process output. No gate run or deliverable in the bundle records an invocation of the war binary performing init or reinit, so neither of the two runs the obligation's evidence clause requires (successful init; refused reinit with namespace intact) is present."
 performer = "claude"
 
 [verifier]

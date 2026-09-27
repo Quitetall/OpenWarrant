@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "No deliverable, gate excerpt, or plant records any invocation of a Liminal compiler with `--protocol oh.war/liminal-v1`. The only mention of Liminal in the whole bundle is in atoms/20-basis.md, which lists it as a 'Blocking unknown' stating 'No Liminal compiler profile exists to compare against' and 'is not checked out here' — i.e. the atom affirmatively describes the prerequisite as unmet at authoring time, and nothing in the gate run's stdout excerpts (which only discuss war-check administrative checks across many unrelated OW-WAR numbers) references Liminal at all."
+evidence = "No deliverable, gate excerpt, or plant records a Liminal invocation with `--protocol oh.war/liminal-v1`. The only mention of Liminal in the bundle is atoms/20-basis.md's 'Blocking unknown', which states 'No Liminal compiler profile exists to compare against' and 'is not checked out here' at authoring time — the opposite of evidence that one was later stood up and invoked. The gate run's stdout excerpts contain no Liminal reference at all."
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "OBL-003 requires independent reproduction/review, baseline conditions, and secure human acceptance of the exact result, but obligation_evidence carries no named_paths/terms for it, deliverables is empty, and prior_verifications in the bundle are themselves this same verifier's own prior (not-established) passes on OBL-001/002 — they supply no independent reproduction that could qualify the result, and in fact confirm OBL-001/002 remain unestablished. The gate run's own stdout states '143 of 143 Warrant(s) have no disposed obligations — §38.6 yields no resolution verdict for them', which includes OW-WAR-0088. No baseline comparison or human-acceptance record for this exact result is present."
+evidence = "OBL-003 requires independent reproduction/review, applicable baseline conditions, and secure human acceptance of the exact result, but obligation_evidence names no paths/terms for it and deliverables is empty. prior_verifications contains only this same automated verifier's own earlier not-established passes on OBL-001/002, which supply no independent reproduction and in fact confirm those obligations remain undecided; the gate run's stdout itself notes '143 of 143 Warrant(s) have no disposed obligations — §38.6 yields no resolution verdict for them', covering OW-WAR-0088. There is no baseline comparison or human acceptance record for this exact result in the bundle."
 performer = "claude"
 
 [verifier]

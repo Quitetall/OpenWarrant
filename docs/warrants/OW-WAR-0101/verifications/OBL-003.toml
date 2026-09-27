@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "OBL-003 requires retained raw request/response, identities, and an actual semantic pipeline result for one exact local model/executable, but deliverables, gate_runs, and plants are all empty and obligation_evidence lists no named_paths or terms for OBL-003. atoms/20-basis.md only points to a prior observation ('implementation/local-draft-20260918') without including it in this bundle, so the underlying evidence is absent and the claim cannot be established or refuted."
+evidence = "OBL-003 requires retained raw request/response, identities, and an actual semantic pipeline result for one exact local model/executable, but deliverables, gate_runs, and plants are all empty and obligation_evidence lists no named_paths or terms for OBL-003. atoms/20-basis.md only references a prior observation (implementation/local-draft-20260918) without including it in this bundle, so the underlying evidence is absent and the claim cannot be established or refuted."
 performer = "claude"
 
 [verifier]

@@ -5,7 +5,7 @@
   "subject_digests": [
     "contract:sha256:63e708e8ca565b054243e8cdc87177af4104615aef0e9bf289c3a271047712b7",
     "deliverables:sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "tree:e54ccac17a000db9430a08ded5ae9ad1923067b0"
+    "tree:9729d66838274661a8b7382db6ef1108887babec"
   ],
   "fixture_digests": [],
   "runner": "war gate --run",
@@ -16,8 +16,8 @@
     "--generated"
   ],
   "working_directory": "/mnt/4tb/tmp/ow-mvp-alpha1",
-  "started_at": "2026-09-27T15:14:03Z",
-  "completed_at": "2026-09-27T15:14:18Z",
+  "started_at": "2026-09-27T21:57:14Z",
+  "completed_at": "2026-09-27T21:57:30Z",
   "exit_result": "pass",
   "selected_test_count": 0,
   "selected_test_manifest": [],
@@ -26,5 +26,5 @@
   "stderr_ref": "docs/warrants/OW-WAR-0089/gate-runs/software_repo_war-check_1_0_0.stderr.txt",
   "resource_usage": "wall-clock only; 3 argv item(s)",
   "verdict": "pass",
-  "receipt_digest": "sha256:5ba6b5dfec216a11388f9b424cff6001a03ece196413bfbb574da9079490625a"
+  "receipt_digest": "sha256:ef6e529a6abe37d5eebd0fd736049c8bcb98628adca890140ce20321eb27cbf6"
 }

@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "deliverables, gate_runs, and plants are all empty arrays, and obligation_evidence for OBL-001 lists no named_paths or terms beyond the blanket selection 'warrant: every deliverable of the Warrant'. Only the authored atoms (10-intent.md, 20-basis.md, 40-work-order.md, 45-milestones.yaml, 60-assurance.md) are present, which state the intent and acceptance criteria for a model-neutral draft surviving validation, but carry no code, fixture, or gate run output showing a configured process, the real SDK, or reference HTTP/storage actually producing a validated editable source or preserving fields/revision history on save. No evidence bears on the claim either way."
+evidence = "deliverables, gate_runs, and plants are all empty arrays, and obligation_evidence for OBL-001 lists no named_paths or terms beyond the blanket selection 'warrant: every deliverable of the Warrant'. Only the authored atoms (10-intent.md, 20-basis.md, 40-work-order.md, 45-milestones.yaml, 60-assurance.md) are present, stating intent and acceptance criteria but carrying no code, fixture, or gate run output showing a configured process, the real SDK, or reference HTTP/storage actually producing a validated editable source or preserving fields/revision history on save. No evidence bears on the claim either way."
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "No independent reproduction, review record, or human acceptance of the OBL-001/OBL-002 result is present; deliverables is empty, obligation_evidence for OBL-003 lists no named_paths/terms, and prior_verifications in this bundle are the performer/verifier's own prior not_established findings for the same obligations rather than an acceptance record. The single gate run is a structural check, not a qualification review of a release result, so the bundle gives no basis to decide this obligation."
+evidence = "OBL-003 requires independent reproduction/review and secure human acceptance of the exact OBL-001/OBL-002 result, but those obligations are themselves not established by this bundle (no deliverables, no evidence_refs), so there is no qualified result to accept. prior_verifications in the bundle are this same verification lineage's own not_established findings, not an acceptance record, and the single gate run is a structural manifest check unrelated to qualification review. Nothing in the bundle supports establishing this obligation."
 performer = "claude"
 
 [verifier]
