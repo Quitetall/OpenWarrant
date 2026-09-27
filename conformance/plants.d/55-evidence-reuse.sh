@@ -456,11 +456,14 @@ command rm -f "$ER_TMP/d.json" "$ER_TMP/c.json" "$ER_ROOT/notes/moving.txt"
 mkfifo "$ER_ROOT/notes/moving.txt"
 ER_V1=$(printf 'version one\n' | sha256sum | cut -d' ' -f1)
 ER_V2=$(printf 'version two\n' | sha256sum | cut -d' ' -f1)
-# The writer blocks on each open until war reads; bounded, so a war that never
-# reads the path cannot hang the battery.
-timeout 20 bash -c 'printf "version one\n" > "$1"; printf "version two\n" > "$1"' _ "$ER_ROOT/notes/moving.txt" &
+# The writer alternates the two versions for as long as war runs, one per
+# open, so war's two reads of the path get different bytes whatever the load;
+# it blocks on each open until war reads, and is killed when war is done. (A
+# writer with its own deadline ran out under three parallel batteries, and
+# war then blocked opening a FIFO with no writer: exit 124, t-3293.)
+bash -c 'while :; do printf "version one\n" > "$1"; printf "version two\n" > "$1"; done' _ "$ER_ROOT/notes/moving.txt" &
 ER_WRITER=$!
-ER_OUT=$(timeout 30 "$ER_WAR" --root "$ER_ROOT" dispatch ER-WAR-0002 STAGE-001 --prototype --emit "$ER_TMP/d.json" --emit-context "$ER_TMP/c.json" 2>&1)
+ER_OUT=$(timeout 300 "$ER_WAR" --root "$ER_ROOT" dispatch ER-WAR-0002 STAGE-001 --prototype --emit "$ER_TMP/d.json" --emit-context "$ER_TMP/c.json" 2>&1)
 ER_STATUS=$?
 kill "$ER_WRITER" 2>/dev/null; wait "$ER_WRITER" 2>/dev/null
 if [[ $ER_STATUS -ne 0 && "$ER_OUT" == *"dispatch.source-conflict"* && "$ER_OUT" == *"notes/moving.txt twice"* \
