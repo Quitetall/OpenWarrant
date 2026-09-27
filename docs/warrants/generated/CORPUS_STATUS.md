@@ -67,7 +67,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | every required gate has admissible result | 114 |
 | no blocker remains | 86 |
 | no required unknown remains | 86 |
-| artifact digests verify | 75 |
+| artifact digests verify | 71 |
 | required deliverables exist | 57 |
 | required judgments exist | 55 |
 | residual risks have sufficient authority | 55 |
@@ -267,7 +267,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0117` An independent verifier: a blind, tool-less process that war verify --run hands each bundle to | draft | would satisfy | 0 | 2 of 2 | every required gate has admissible result |
 | `OW-WAR-0118` Measure the friction targets: setup in ten minutes, a routine act in sixty seconds | draft | would satisfy | 0 | 3 of 3 | every required gate has admissible result |
 | `OW-WAR-0119` Identity is the UUIDv7: immutable across revisions, and no alias ever stands in for it | draft | would satisfy | 0 | 2 of 2 | every required gate has admissible result |
-| `OW-WAR-0120` Retention: compact journals, archive resolved Warrants, and hold a budget at 1,000 Warrants | draft | NOT satisfied | 0 | 1 of 3 | artifact digests verify |
+| `OW-WAR-0120` Retention: compact journals, archive resolved Warrants, and hold a budget at 1,000 Warrants | draft | NOT satisfied | 0 | 1 of 3 | every required gate has admissible result |
 | `OW-WAR-0121` Storage: atomic writes, crash recovery, and migration of retained artifacts | draft | would satisfy | 0 | 3 of 3 | every required gate has admissible result |
 | `OW-WAR-0122` The document grammar: a schema for atoms, headers and Markdown, and what a conforming tool must accept | draft | NOT satisfied | 1 | 2 of 3 | exact authorized Contract Revision |
 | `OW-WAR-0123` A child cites the exact revision of its parent, and a moved parent is a finding | draft | would satisfy | 1 | 3 of 3 | exact authorized Contract Revision |
@@ -277,7 +277,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0127` Native systems keep artifact authority: OpenWarrant references, never re-owns, what another system holds | draft | unknown | 1 | 0 of 3 | required deliverables exist |
 | `OW-WAR-0128` The Knowledge Fabric compiler interface: what OpenWarrant hands KF and what it gets back | draft | unknown | 3 | 0 of 1 | required deliverables exist |
 | `OW-WAR-0129` A Dispatch over its budget is refused, by name, before any agent starts | draft | would satisfy | 0 | 3 of 3 | every required gate has admissible result |
-| `OW-WAR-0130` Idempotent acts, all-or-nothing batches, and version negotiation between war and its records | draft | NOT satisfied | 0 | 2 of 4 | artifact digests verify |
+| `OW-WAR-0130` Idempotent acts, all-or-nothing batches, and version negotiation between war and its records | draft | NOT satisfied | 0 | 2 of 4 | every required gate has admissible result |
 | `OW-WAR-0131` Agent and harness adapters per OS: writer handoff and cancellation | draft | would satisfy | 0 | 3 of 3 | every required gate has admissible result |
 | `OW-WAR-0132` Hotline defaults: time and spend limits, repair accounting, and delivery when nobody answers | draft | NOT satisfied | 0 | 2 of 4 | every required gate has admissible result |
 | `OW-WAR-0133` Evidence reuse after a source change, and the compiler's source, conflict and omission rules | draft | NOT satisfied | 0 | 1 of 3 | exact authorized Contract Revision |

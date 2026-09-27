@@ -34,7 +34,7 @@ Everything this repository has recorded, current or not: 143 subject(s), their l
 | 2026-09-24 | 63 | authorization.recorded 38, correction.recorded 13, draft.created 6, question.asked 3, verification.recorded 3 |
 | 2026-09-25 | 79 | authorization.recorded 34, draft.created 1, sync.receipt_attached 44 |
 | 2026-09-26 | 249 | dispatch.compiled 32, submission.recorded 32, sync.receipt_attached 183, verification.recorded 2 |
-| 2026-09-27 | 1009 | dispatch.compiled 7, submission.recorded 7, sync.receipt_attached 195, verification.recorded 800 |
+| 2026-09-27 | 1017 | dispatch.compiled 11, submission.recorded 11, sync.receipt_attached 195, verification.recorded 800 |
 
 ## Roadmap revisions
 
@@ -26942,7 +26942,7 @@ then the act is the one the server chose, and the key's dialog asks.
 | D-009 | README.md: war ui | `README.md` | verified |
 | D-010 | THREAT_MODEL row | `docs/THREAT_MODEL.md` | verified |
 | D-011 | the plants | `conformance/plants.d/63-webui.sh` | verified |
-| D-012 | the verifier's plants: /api/act by method, the act's command, one act at a time, progress on this corpus | `conformance/plants.d/63-webui-verified.sh` | drift |
+| D-012 | the verifier's plants: /api/act by method, the act's command, one act at a time, progress on this corpus | `conformance/plants.d/63-webui-verified.sh` | verified |
 
 ### OW-WAR-0117 — An independent verifier: a blind, tool-less process that war verify --run hands each bundle to
 
@@ -28138,8 +28138,8 @@ would answer the owner's question with a number nobody measured.
 | D-002 | The declared budget | `tools/scale/budget.toml` | verified |
 | D-003 | The budget gate | `tools/scale/budget.sh` | verified |
 | D-004 | The 1,000-Warrant measurement | `docs/scale/baseline-1000.json` | verified |
-| D-005 | Journals, archiving and the budget, answered from the numbers | `docs/RETENTION.md` | drift |
-| D-006 | The retention plants | `conformance/plants.d/52-retention.sh` | drift |
+| D-005 | Journals, archiving and the budget, answered from the numbers | `docs/RETENTION.md` | verified |
+| D-006 | The retention plants | `conformance/plants.d/52-retention.sh` | verified |
 
 ### OW-WAR-0121 — Storage: atomic writes, crash recovery, and migration of retained artifacts
 
@@ -31634,7 +31634,7 @@ nothing about concurrent writers on a shared filesystem.
 | D-001 | Batch step 6: the durable .recording marker, batch.interrupted, --recover | `crates/openwarrant-cli/src/batch_cmd.rs` | not_content_addressed |
 | D-002 | The journal replays an equivalent append and refuses a conflicting one | `crates/openwarrant-cli/src/journal_cmd.rs` | verified |
 | D-003a | war ask checks before its first write | `crates/openwarrant-cli/src/questions.rs` | verified |
-| D-003b | war submit checks before its first write | `crates/openwarrant-cli/src/run_cmd.rs` | drift |
+| D-003b | war submit checks before its first write | `crates/openwarrant-cli/src/run_cmd.rs` | verified |
 | D-003c | war verify --response checks before its first write | `crates/openwarrant-cli/src/verify.rs` | verified |
 | D-003d | war evidence record checks before its first write | `crates/openwarrant-cli/src/evidence.rs` | not_content_addressed |
 | D-003e | The single-act authorization ingest checks before its first write | `crates/openwarrant-cli/src/authorize.rs` | verified |
@@ -32777,11 +32777,11 @@ this level requires. The author does not record them.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | Receipts name the tree, the deliverable bytes and the fixtures they ran over | `crates/openwarrant-cli/src/gate_cmd.rs` | drift |
-| D-002 | Admissibility: a moved source is a record, a missing one is UNKNOWN | `crates/openwarrant-cli/src/evidence.rs` | drift |
+| D-001 | Receipts name the tree, the deliverable bytes and the fixtures they ran over | `crates/openwarrant-cli/src/gate_cmd.rs` | verified |
+| D-002 | Admissibility: a moved source is a record, a missing one is UNKNOWN | `crates/openwarrant-cli/src/evidence.rs` | verified |
 | D-003 | The context manifest's conflict field, stage selection | `crates/openwarrant-cli/src/context_select.rs` | verified |
 | D-004 | The context manifest's conflict field, compiled Dispatch | `crates/openwarrant-compiler/src/dispatch.rs` | verified |
-| D-005 | The evidence-reuse and context plants | `conformance/plants.d/55-evidence-reuse.sh` | drift |
+| D-005 | The evidence-reuse and context plants | `conformance/plants.d/55-evidence-reuse.sh` | verified |
 | D-006 | When recorded evidence still counts: the reuse rule and the compiler's three rules | `docs/RESOLVING.md` | verified |
 | D-007 | The context manifest says conflicts were unchecked (AM-002) | `crates/openwarrant-cli/src/dispatch.rs` | verified |
 | D-008 | The context manifest type carries the conflict state (AM-002) | `crates/openwarrant-core/src/context.rs` | verified |
