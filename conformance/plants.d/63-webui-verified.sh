@@ -8,8 +8,12 @@
 #   OBL-002: a record change is seen within four seconds; /api/progress on this
 #            corpus is `war roadmap`'s phases with `war status`'s rungs, and
 #            nothing under webui/ reads view.json.
-#   OBL-003: the act's command, whole, from the server's log, and one act at a
-#            time (of two POSTs sent at once, one is 202 and one 409).
+#   OBL-003: the Queue row carries its dry-run verdict beside its allowlist
+#            id; an id not on the allowlist is 403 and starts no process (no
+#            act line, no child of the server; a started act is the control
+#            that the same observation sees one); the act's command, whole,
+#            from the server's log; and one act at a time (of two POSTs sent
+#            at once, one is 202 and one 409).
 # Every server runs with SSH_AUTH_SOCK unset: no act can reach an ssh agent.
 
 echo "== web ui, what the verifier asked (OW-WAR-0116) =="
@@ -76,12 +80,78 @@ else
     # OBL-003: the act's command, whole, and one act at a time.
     WU_Q=$(curl -s -H "Authorization: Bearer $WU_TOK" "$WU_B/api/queue")
     WU_ID=$(python3 -c 'import sys,json; d=json.load(sys.stdin); print(next((a["act_id"] for a in d["acts"] if "act_id" in a), ""))' <<<"$WU_Q" 2>/dev/null)
+    # The Queue row itself: its dry-run verdict beside the allowlist id, and
+    # an id is on a row only when its verdict is "would record".
+    WU_ROW=$(python3 -c '
+import sys, json
+d = json.load(sys.stdin)
+rows = [a for a in d["acts"] if a.get("target") == "WV-WAR-0001"]
+assert len(rows) == 1, f"{len(rows)} rows for WV-WAR-0001"
+r = rows[0]
+assert r.get("verdict") == "would record", "verdict %r" % r.get("verdict")
+assert r.get("act_id", "").startswith("sign-"), "act_id %r" % r.get("act_id")
+assert all(a.get("verdict") == "would record" for a in d["acts"] if "act_id" in a), "an id on a row whose verdict is not would record"
+print("%s WV-WAR-0001: verdict %r, act_id %s" % (r["act"], r["verdict"], r["act_id"]))
+' <<<"$WU_Q" 2>&1)
+    if [[ $? -eq 0 ]]; then
+        printf 'ok    %-34s %s\n' "the Queue row: verdict and id" "$WU_ROW"; PASSED=$((PASSED + 1))
+    else
+        printf 'FAIL  %-34s %s\n' "the Queue row: verdict and id" "$(tail -1 <<<"$WU_ROW" | head -c 300)"; FAILED=$((FAILED + 1))
+    fi
+
+    # An id not on the allowlist: 403 with the allowlist's refusal (not the
+    # Origin's), and no process: no `war ui: act` line in the server's log,
+    # the act state still idle (a started act is never idle again), and no
+    # act among the server's children. The tree is read by a sampler that
+    # runs from before the POST to a second after it, reading every thread's
+    # /proc children list and each child's command line in a loop without
+    # forking — an act's children live well under a second, too briefly for
+    # a ps afterwards. The server has other children (its record watcher runs
+    # git), so an act is a child whose command line carries `sign`, the verb
+    # every signing act runs, dry or not. The started act below, watched by
+    # the same sampler, is the control that this sees one.
+    wu_sample() { # out-file, stop-file
+        local f p a
+        local -a pids args
+        while [[ ! -e "$2" ]]; do
+            for f in /proc/"$WU_PID"/task/*/children; do
+                pids=(); read -r -a pids <"$f" 2>/dev/null
+                for p in "${pids[@]}"; do
+                    args=(); mapfile -d '' -t args <"/proc/$p/cmdline" 2>/dev/null
+                    a="${args[*]}"
+                    [[ -n "$a" ]] && printf '%s: %s\n' "$p" "${a:0:160}"
+                done
+            done
+        done >"$1"
+    }
+    wu_acts_in() { grep -E '^[0-9]+: [^ ]*war( .*)? sign( |$)' "$1" | sort -u; }
+    WU_KF=$(mktemp); WU_KSTOP=$(mktemp -u)
+    wu_sample "$WU_KF" "$WU_KSTOP" & WU_KPID=$!
+    WU_A0=$(grep -c '^war ui: act ' "$WU_ERR")
+    WU_R=$(curl -s -w ' %{http_code}' -X POST -H "Origin: $WU_B" -H "Authorization: Bearer $WU_TOK" -H 'Content-Type: application/json' -d '{"id":"sign-0000000000000000"}' "$WU_B/api/act")
+    sleep 1
+    : >"$WU_KSTOP"; wait "$WU_KPID"
+    WU_KIDS=$(wu_acts_in "$WU_KF")
+    WU_OTHER=$(cut -d' ' -f2- "$WU_KF" | cut -d' ' -f1-3 | sort -u | tr '\n' ';')
+    command rm -f "$WU_KF" "$WU_KSTOP"
+    WU_A1=$(grep -c '^war ui: act ' "$WU_ERR")
+    WU_S3=$(curl -s -H "Authorization: Bearer $WU_TOK" "$WU_B/api/act")
+    if [[ "$WU_R" == 'not an act this page may start 403' && "$WU_A0" == 0 && "$WU_A1" == 0 && "$WU_S3" == '{"state":"idle"}' && -z "$WU_KIDS" ]]; then
+        printf 'ok    %-34s %s; no act line, state idle, no act among its children (others seen: %s)\n' "an act not on the allowlist" "$WU_R" "${WU_OTHER:-none}"; PASSED=$((PASSED + 1))
+    else
+        printf 'FAIL  %-34s %s; act lines %s -> %s; state %s; children [%s]\n' "an act not on the allowlist" "$WU_R" "$WU_A0" "$WU_A1" "$WU_S3" "$WU_KIDS"; FAILED=$((FAILED + 1))
+    fi
+
     if [[ -n "$WU_ID" ]]; then
         # Two POSTs at once: an act takes a process spawn to start, far longer
         # than the gap between two concurrent requests, so exactly one is
         # accepted and the other finds it running. (Sent one after the other,
         # a fast act can finish first, and a second act is then correct.)
         WU_P1=$(mktemp); WU_P2=$(mktemp)
+        # The control for the 403's observation: the same sampler, watching
+        # a started act, sees its child (the dry run, then the sign).
+        WU_KF=$(mktemp); WU_KSTOP=$(mktemp -u)
+        wu_sample "$WU_KF" "$WU_KSTOP" & WU_KPID=$!
         WU_CURLS=()
         for f in "$WU_P1" "$WU_P2"; do
             wu_code -X POST -H "Origin: $WU_B" -H "Authorization: Bearer $WU_TOK" -H 'Content-Type: application/json' -d "{\"id\":\"$WU_ID\"}" "$WU_B/api/act" >"$f" &
@@ -94,7 +164,14 @@ else
             [[ "$WU_ST" == *'"state":"done"'* ]] && break
             sleep 0.5
         done
+        : >"$WU_KSTOP"; wait "$WU_KPID"
+        WU_CKIDS=$(wu_acts_in "$WU_KF" | head -2 | sed "s|$PLANT_ROOT|<root>|" | tr '\n' ';'); command rm -f "$WU_KF" "$WU_KSTOP"
         wu_expect "two acts at once: one runs" "$WU_BOTH" "202 409 "
+        if [[ -n "$WU_CKIDS" && "$WU_ST" != '{"state":"idle"}' ]]; then
+            printf 'ok    %-34s a started act is seen: %s state %s\n' "control: the same observation" "$WU_CKIDS" "${WU_ST:0:15}"; PASSED=$((PASSED + 1))
+        else
+            printf 'FAIL  %-34s a started act showed children [%s], state %s: the 403 check would miss one\n' "control: the same observation" "$WU_CKIDS" "${WU_ST:0:40}"; FAILED=$((FAILED + 1))
+        fi
         WU_LINES=$(grep -c '^war ui: act ' "$WU_ERR")
         WU_LINE=$(grep -m1 '^war ui: act ' "$WU_ERR")
         WU_WANT="war ui: act $WU_ID: war --root $PLANT_ROOT sign WU-WAR-0001 --as your-name-here --ssh-sign"

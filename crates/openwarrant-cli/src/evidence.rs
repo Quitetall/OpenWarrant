@@ -593,8 +593,16 @@ pub fn record(
         } else {
             Vec::new()
         };
-        let sub =
-            crate::gate_cmd::run(repo, true, Some(key), true, &subject, &refs, Some(&out_dir))?;
+        let sub = crate::gate_cmd::run_for(
+            repo,
+            true,
+            Some(key),
+            true,
+            &subject,
+            &refs,
+            Some(&out_dir),
+            Some(alias),
+        )?;
         let minted = sub.diagnostics.iter().any(|d| d.rule == "gate-run.receipt");
         for d in sub.diagnostics {
             report.push(d);

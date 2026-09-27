@@ -77,10 +77,41 @@ pub fn askability_of(def: &GateDefinition, repo: &Repository) -> Option<ReasonCo
     if !repo.root.is_dir() {
         return Some(ReasonCode::ForeignWorkingDirectory);
     }
+    // A Warrant-scoped gate that was not bound to a Warrant: there is no
+    // subject to ask about, so it is not run — never run with the literal
+    // placeholder, which would ask a different question.
+    if def.argv.iter().any(|a| a == WARRANT_ARG) {
+        return Some(ReasonCode::NotRun);
+    }
     if !tool_is_available(program, repo) {
         return Some(classify_missing(program));
     }
     None
+}
+
+/// The argv item a Warrant-scoped gate writes where the Warrant it is run
+/// for belongs. `war evidence record <alias>` and `war run` replace it with
+/// the alias, so the gate reviews that Warrant and its receipt's `arguments`
+/// name it; run with no Warrant, the gate is not askable (`not_run`).
+///
+/// Why it exists (t-4f521): `document.review@1.0.0`'s static argv reviewed every
+/// Warrant in the corpus, so a receipt bound to one Warrant's contract and
+/// deliverables carried a verdict decided by other Warrants' documents.
+pub const WARRANT_ARG: &str = "<warrant>";
+
+/// `def` with every [`WARRANT_ARG`] item replaced by `alias`. With no alias
+/// the definition is returned as written, and [`askability_of`] refuses it.
+#[must_use]
+pub fn bind_warrant(def: &GateDefinition, alias: Option<&str>) -> GateDefinition {
+    let mut bound = def.clone();
+    if let Some(alias) = alias {
+        for a in &mut bound.argv {
+            if a == WARRANT_ARG {
+                alias.clone_into(a);
+            }
+        }
+    }
+    bound
 }
 
 /// Distinguish the three ways a thing can be absent (§96.4 keeps them apart).
@@ -1005,7 +1036,8 @@ pub mod source {
     }
 }
 
-/// `war gate list` / `war gate run`.
+/// `war gate list` / `war gate run`, for no particular Warrant: a gate whose
+/// argv names [`WARRANT_ARG`] is listed and run as not askable.
 pub fn run(
     repo: &Repository,
     execute: bool,
@@ -1014,6 +1046,30 @@ pub fn run(
     subject_digests: &[String],
     raw_evidence_refs: &[String],
     out_dir: Option<&camino::Utf8Path>,
+) -> Result<Report, RepoError> {
+    run_for(
+        repo,
+        execute,
+        only,
+        record,
+        subject_digests,
+        raw_evidence_refs,
+        out_dir,
+        None,
+    )
+}
+
+/// [`run`], for one Warrant: each definition's [`WARRANT_ARG`] is `warrant`.
+#[allow(clippy::too_many_arguments)]
+pub fn run_for(
+    repo: &Repository,
+    execute: bool,
+    only: Option<&str>,
+    record: bool,
+    subject_digests: &[String],
+    raw_evidence_refs: &[String],
+    out_dir: Option<&camino::Utf8Path>,
+    warrant: Option<&str>,
 ) -> Result<Report, RepoError> {
     validate_bonsai_bindings(repo, only, subject_digests, raw_evidence_refs)?;
     let dir = receipts_dir(repo, out_dir);
@@ -1028,6 +1084,16 @@ pub fn run(
     for def in &registry.definitions {
         if only.is_some_and(|filter| def.gate_id != filter && def.key() != filter) {
             continue;
+        }
+        let bound = bind_warrant(def, warrant);
+        let def = &bound;
+        if def.argv.iter().any(|a| a == WARRANT_ARG) {
+            report.note(format!(
+                "{}: its argv names {WARRANT_ARG}, so it is asked about one Warrant: \
+                 `war evidence record <alias> --gate {}`",
+                def.key(),
+                def.key()
+            ));
         }
 
         if !execute {
@@ -1794,5 +1860,91 @@ mod source_tests {
         ] {
             assert!(!v(p), "{p} is not a verification record");
         }
+    }
+}
+
+#[cfg(test)]
+mod warrant_arg_tests {
+    use super::{WARRANT_ARG, askability_of, bind_warrant, run_gate};
+    use crate::diagnostic::Report;
+    use crate::repo::Repository;
+    use openwarrant_core::{Askability, ExecutionStatus, ReasonCode, Verdict};
+
+    fn this_repo() -> Repository {
+        let root = camino::Utf8PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+        Repository::open(root).expect("this repository opens")
+    }
+
+    fn definition(repo: &Repository, key: &str) -> openwarrant_core::gate::GateDefinition {
+        let mut report = Report::default();
+        let registry = crate::check::load_gate_registry(repo, &mut report);
+        registry
+            .definitions
+            .iter()
+            .find(|d| d.key() == key)
+            .unwrap_or_else(|| panic!("{key} is registered"))
+            .clone()
+    }
+
+    fn scratch_dir(name: &str) -> camino::Utf8PathBuf {
+        let dir = camino::Utf8PathBuf::from_path_buf(std::env::temp_dir())
+            .unwrap()
+            .join(format!("war-warrant-arg-{name}-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        dir
+    }
+
+    /// document.review@1.1.0 is asked about the Warrant it is run for, and
+    /// about no other; 1.0.0, which names no Warrant, is bound unchanged.
+    #[test]
+    fn a_warrant_scoped_gate_names_the_warrant_it_is_run_for() {
+        let repo = this_repo();
+        let def = definition(&repo, "document.review@1.1.0");
+        assert!(def.argv.iter().any(|a| a == WARRANT_ARG));
+        let bound = bind_warrant(&def, Some("OW-WAR-0138"));
+        assert_eq!(
+            bound.argv,
+            ["./target/debug/war", "document", "review", "OW-WAR-0138"]
+        );
+        assert_eq!(bound.digest, def.digest, "binding is not a new definition");
+        assert_ne!(askability_of(&bound, &repo), Some(ReasonCode::NotRun));
+
+        let old = definition(&repo, "document.review@1.0.0");
+        assert_eq!(bind_warrant(&old, Some("OW-WAR-0138")).argv, old.argv);
+    }
+
+    /// The refusal: run for no Warrant, the gate is not askable (`not_run`)
+    /// and nothing is spawned — not even its stream files are created.
+    #[test]
+    fn a_warrant_scoped_gate_run_for_no_warrant_is_not_run() {
+        let repo = this_repo();
+        let def = definition(&repo, "document.review@1.1.0");
+        let unbound = bind_warrant(&def, None);
+        assert_eq!(unbound.argv, def.argv);
+        assert_eq!(askability_of(&unbound, &repo), Some(ReasonCode::NotRun));
+        let dir = scratch_dir("unbound");
+        let run = run_gate(&unbound, &repo, &dir);
+        assert_eq!(run.askability, Askability::NotAskable);
+        assert_eq!(run.execution_status, ExecutionStatus::NotRun);
+        assert_eq!(run.verdict, Verdict::Unknown);
+        assert_eq!(run.reason_code, Some(ReasonCode::NotRun));
+        run.validate().expect("a coherent run");
+        assert!(!dir.exists(), "nothing was spawned, so nothing was written");
+    }
+
+    /// The spawn: the bound argv is what runs. `echo <warrant>` bound to an
+    /// alias writes the alias, and never the placeholder.
+    #[test]
+    fn the_bound_argv_is_what_is_spawned() {
+        let repo = this_repo();
+        let mut def = definition(&repo, "document.review@1.1.0");
+        def.argv = vec!["echo".into(), WARRANT_ARG.into()];
+        let dir = scratch_dir("spawn");
+        let run = run_gate(&bind_warrant(&def, Some("OW-WAR-0138")), &repo, &dir);
+        assert_eq!(run.execution_status, ExecutionStatus::Completed);
+        assert_eq!(run.verdict, Verdict::Pass);
+        let out = std::fs::read_to_string(dir.join("document_review_1_1_0.stdout.txt")).unwrap();
+        assert_eq!(out, "OW-WAR-0138\n");
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }

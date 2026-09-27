@@ -271,7 +271,7 @@ pub fn run(
         .wall_time_seconds
         .unwrap_or_else(|| repo.config.run.wall_time_seconds());
     let bound = def.timeout_secs.map_or(wall, |g| g.min(wall));
-    let mut bounded = def.clone();
+    let mut bounded = crate::gate_cmd::bind_warrant(def, Some(alias));
     bounded.timeout_secs = Some(bound);
     let started_at = now_rfc3339();
     // Each dispatch owns distinct evidence paths. Re-running the same gate
@@ -299,7 +299,7 @@ pub fn run(
     if gate_run.execution_status == openwarrant_core::ExecutionStatus::Completed {
         match crate::gate_cmd::receipt::mint(
             repo,
-            def,
+            &bounded,
             &gate_run,
             &started_at,
             &gate_run.verdict.to_string(),
