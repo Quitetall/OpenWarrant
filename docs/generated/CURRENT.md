@@ -9147,7 +9147,7 @@ stages:
 ### OBL-003 — every non-pass diagnostic carries a remedy, and no automatic remedy signs
 - **scope:** `remedy.rs`, `diagnostic.rs`, `output.rs`, `schemas/oh.war/report/v1.json`.
 - **gate:** `gate://software.repo.war-check@1.0.0`
-- **evidence:** a unit test walks the remedy table and every fallback path and asserts no `auto` argv contains `sign`, `authorize`, `resolve`, `correct`, `accept` or `answer`; `war check --json` on a planted drift carries `remedy.kind = "human"` and an argv beginning `war sign`; on a planted stale projection carries `remedy.kind = "auto"` and `war compile`; `war check` ends with a `REMEDIES:` block; `89-schemas.sh` passes with `SCHEMA_PACK_VERSION` unchanged.
+- **evidence:** a unit test walks the remedy table and every fallback path and asserts no `auto` argv contains `sign`, `authorize`, `resolve`, `correct`, `accept` or `answer`; `war check --json` on a planted drift carries `remedy.kind = "human"`, argv `war correct <alias> <D-id>` with no placeholder, and a purpose naming `war sign <alias>/<D-id> --ssh-sign`; on a planted stale projection carries `remedy.kind = "auto"` and `war compile`; `war check` ends with a `REMEDIES:` block; `89-schemas.sh` passes with `SCHEMA_PACK_VERSION` unchanged.
 
 ### OBL-004 — the guided init writes the authority files only from a terminal, once, and never for an agent
 - **scope:** `init/guided.rs`, `docs/authority/`, the four documents.
@@ -10977,7 +10977,8 @@ M4 — documents and plants:
    - a POST with a foreign Origin is refused 403;
    - a POST naming an id not on the allowlist is refused 403, and nothing
      runs;
-   - a GET to `/api/act` is refused 405;
+   - any method on `/api/act` but GET and POST is refused 405, and a GET
+     answers the act state and starts nothing;
    - responses carry the CSP without `unsafe-inline`;
    - a wrong Host is refused;
    - an oversized request is refused 431;
@@ -11038,7 +11039,7 @@ milestones:
     title: "The battery, run as the gate these obligations cite"
     depends_on: ["M1", "M2", "M3", "M4"]
     stage_refs: ["STAGE-005"]
-    obligation_refs: ["OBL-001", "OBL-003"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003"]
 
 stages:
   - id: "STAGE-001"
@@ -11088,17 +11089,17 @@ stages:
 ### OBL-001 — the server refuses everything it should, by name
 - **scope:** `webui/mod.rs`, `progress_viewer/server.rs`, loopback only.
 - **gate:** `gate://ops.conformance.plants@1.1.0`
-- **evidence:** on a scratch program with `war ui --port 0 --no-open`, an API request without the token is 401, with a wrong token 401, with a foreign Host 400, a POST with a foreign or missing Origin 403, a GET on `/api/act` 405, a request over the header bound 431; every response's CSP contains no `unsafe-inline` and includes `frame-ancestors 'none'`; the listening socket is bound to 127.0.0.1 only (from `/proc/net/tcp` or `ss`); a source grep finds no `ssh-keygen`, `SSH_AUTH_SOCK` or signing call under `webui/`.
+- **evidence:** on a scratch program with `war ui --port 0 --no-open`, an API request without the token is 401, with a wrong token 401, with a foreign Host 400, a POST with a foreign or missing Origin 403, any method on `/api/act` but GET and POST 405, a GET on `/api/act` 401 without the token and, with it, answering the act state and starting no act, a request over the header bound 431; every response's CSP contains no `unsafe-inline` and includes `frame-ancestors 'none'`; the listening socket is bound to 127.0.0.1 only (from `/proc/net/tcp` or `ss`); a source grep finds no `ssh-keygen`, `SSH_AUTH_SOCK` or signing call under `webui/`.
 
 ### OBL-002 — the Progress page is the canonical roadmap, and it stays current
 - **scope:** the `progress` view, `app.js`'s Progress page.
-- **gate:** `gate://software.repo.war-check@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** `/api/progress` on this corpus lists the eleven phases in the order `war roadmap` prints them, each member's rung equal to `war status --json`'s, the open slugs of the accepted revision, and the unassigned group; no field is read from `view.json`; after a record changes on disk, `/api/version` returns a new value within four seconds and the page's data refetches.
 
 ### OBL-003 — a button starts only an act the CLI would run, after its dry run, and a human's dialog signs
 - **scope:** POST `/api/act`, the allowlist, the Queue page.
 - **gate:** `gate://ops.conformance.plants@1.1.0`
-- **evidence:** on a scratch program with one pending authorization, the Queue row carries the dry-run verdict and an allowlist id; a POST naming an id not on the allowlist is 403 and starts no process; a POST with a body carrying an `argv` field is refused 400; the act run for a valid id is exactly `war --root <root> sign <target> --ssh-sign` (asserted from the server's act log line, without a key: the plant expects the child to fail at signing, not to sign); a second POST while one runs is 409; a resolution needing an outcome shows its terminal command and no id.
+- **evidence:** on a scratch program with one pending authorization, the Queue row carries the dry-run verdict and an allowlist id; a POST naming an id not on the allowlist is 403 and starts no process; a POST with a body carrying an `argv` field is refused 400; the act run for a valid id is exactly `war --root <root> sign <target> [--as <signer>] --ssh-sign`, with `--as` present exactly when `war ui` was started with it (asserted from the server's act log line, without a key: the plant expects the child to fail at signing, not to sign); a second POST while one runs is 409; a resolution needing an outcome shows its terminal command and no id.
 
 ## Gate Adequacy
 
@@ -17582,7 +17583,7 @@ stages:
 
 ### OBL-006 — the corpus result is the one the owner chose
 - **scope:** this repository's corpus at the commit the battery runs on.
-- **gate:** `gate://software.repo.war-check@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** `war check` reports each of OW-WAR-0002 to 0005 once
   under `relations.parent-revision`, naming revision 2, at the severity
   U-001's answer set, and reports no parent finding for any other
@@ -17932,22 +17933,28 @@ stages:
 
 ### OBL-005 — this repository's telemetry does not move
 - **scope:** this repository, which has no `[adoption]` table.
-- **gate:** `gate://software.repo.war-check@1.0.0`
-- **evidence:** `war telemetry --commit <the committed baseline's commit>
-  --verify` against `artifacts/telemetry-baseline.json` still passes.
+- **gate:** `gate://ops.conformance.plants@1.1.0`
+- **evidence:** on this repository, `war telemetry` reads all history
+  ('all history (no [adoption] baseline)'), writes no `adoption_baseline`,
+  and its §95 count equals the count recomputed from `git log` by the rule
+  telemetry.rs states. Refusal: 'no baseline reads all history' and the
+  bounded count in a scratch repository with `[adoption]` (OBL-002's
+  plants).
 
 ### OBL-006 — the guided setup asks for the baseline and changes no authority step
 - **scope:** `init::guided` unit tests with canned answers, and a grep of
   the diff to `guided.rs`.
-- **gate:** `gate://software.repo.war-check@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - with a history, the step after Program is Baseline, and confirming
     yields exactly one `Effect` writing `[adoption]`;
   - with no history, Baseline is skipped;
   - the existing tests `an_existing_authority_file_is_never_written_again`
     and `the_agent_is_a_performer_and_nothing_else` pass unmodified;
-  - no line of the diff touches `render_roles`, `render_allowed_signers`
-    or the Signer and KeyLoaded arms.
+  - for each commit naming OW-WAR-0124 that changed guided.rs,
+    `render_roles`, `render_allowed_signers`, the Signer and KeyLoaded arms
+    of `answer`, and the two named tests are byte-identical before and
+    after. Refusal: a line planted in render_roles is reported.
 
 ### OBL-007 — init makes the directory a git repository, and never nests one
 - **scope:** `war init` and `war init --program` on scratch directories:
@@ -18303,7 +18310,8 @@ stages:
 - **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - after `war compile`, both files exist and name the document's sha256
-    and revision `1.1.0`;
+    and the revision whose record under docs/sas/revisions/ pins that
+    sha256;
   - changing one digest in `SECTIONS.json` makes `war check --generated`
     fail with a drift finding naming the file.
 
@@ -18337,13 +18345,17 @@ stages:
 
 ### OBL-006 — the decision is recorded as a proposal, and no SAS text changes
 - **scope:** `OW-ADR-0028` and the SAS document.
-- **gate:** `gate://document.review@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the ADR's status is `proposed`, and it names this Warrant in
     `governs`;
   - its proposed §105 text is marked as a proposal for a separate SAS
     revision;
-  - the SAS document's sha256 after delivery equals revision `1.1.0`'s.
+  - at the commit that delivered the section index (the first to add
+    docs/sas/generated/SECTIONS.json), the SAS document's sha256 equals
+    revision `1.1.0`'s and not `1.1.1`'s; and no deliverable of OW-WAR-0125
+    names the SAS document. Refusal: a planted deliverable naming the SAS
+    is reported.
 
 ## Gate Adequacy
 
@@ -30285,8 +30297,12 @@ stages:
   `war dispatch`; the conflict kind Q-002 selects, if any.
 - **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
-  - a stage whose budget cannot hold a required atom is refused by name
-    (`RequiredItemOmitted`), not dispatched without it;
+  - a stage whose budget cannot hold a required atom is refused by the
+    compiler's token account, reported as `dispatch.over-budget` naming the
+    largest items (a required atom among them), and nothing is emitted; the
+    same stage within budget compiles with every required atom included and
+    none omitted. `RequiredItemOmitted` is the manifest invariant behind it
+    and is not reachable from the selector;
   - under Q-002 (c): one source path planted at two digests refuses the
     Dispatch and names both digests. Under Q-002 (a), this bullet is not
     claimed.
@@ -30646,8 +30662,10 @@ stages:
   - under (b): the finding clears only after a verification of the new
     candidate is ingested, and clears for that candidate only; a second
     in-scope commit raises it again;
-  - under (a): the finding clears only after the re-acceptance record the
-    SAS revision defines;
+  - for a pinned deliverable whose bytes moved: a verification of the new
+    candidate does not clear the finding, and a signed correction of that
+    deliverable (OW-WAR-0064; its chain head matching the new digest) does.
+    No new act kind;
   - under (c): this obligation is withdrawn by amendment, not left
     unsatisfied.
 
@@ -31203,7 +31221,7 @@ stages:
 - **scope:** `war gate --run --gate ops.conformance.plants@1.1.0` on a
   scratch corpus with a fake battery script; the corpus carries an
   uncommitted marker file and an uncommitted edit to a tracked file.
-- **gate:** `gate://software.repo.war-check@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the run is askable and completes with verdict pass, and its output
     names the tested commit, which equals `HEAD`;
@@ -31217,12 +31235,12 @@ stages:
 ### OBL-002 — a battery inside the battery refuses instead of recursing
 - **scope:** `conformance/plant-isolated.sh` run with
   `OPENWARRANT_IN_BATTERY=1`.
-- **gate:** `gate://software.repo.war-check@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** exit 2 with a line naming the refusal, and no clone made.
 
 ### OBL-003 — the new version is registered and the old one is untouched
 - **scope:** `war check` on this repository after delivery.
-- **gate:** `gate://software.repo.war-check@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** `gate.registered` PASS for `ops.conformance.plants@1.1.0`
   as `mutating false`; `@1.0.0`'s file is byte-identical to before; `war
   check` reports 0 errors.
@@ -31380,7 +31398,7 @@ stages:
 ### OBL-001 — a bundled gate run carries its output
 - **scope:** `war verify <alias> --bundle` on a scratch Warrant with one
   recorded `software.repo.war-check` run.
-- **gate:** `gate://software.repo.war-check@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the bundle's run entry has `stdout.text` equal to the tail of
     `gate-runs/<gate>.stdout.txt`, and `stdout.sha256` equal to that
@@ -31393,15 +31411,16 @@ stages:
 ### OBL-002 — output that disagrees with its receipt is flagged
 - **scope:** the same scratch Warrant, the stdout file edited after the
   receipt was minted, where the receipt records a stdout digest.
-- **gate:** `gate://software.repo.war-check@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** the entry carries `mismatch: true`; unedited, `mismatch` is
   absent or false. Where the receipt records no stdout digest, the plant
   says so and asserts only that the field is absent.
 
 ### OBL-003 — the bundle stays deterministic and verifiable
 - **scope:** two `--bundle` runs over one tree, and `war verify --run` with
-  the fake-`claude` verifier of `62-verifier.sh`.
-- **gate:** `gate://software.repo.war-check@1.0.0`
+  `verifier_argv` set to `conformance/fixtures/verifier/establishes-all.sh`,
+  as conformance/plants.d/47-bundle-output.sh runs it.
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** one bundle file after two runs (one digest), and the fake
   verifier's response is ingested as before.
 
@@ -38082,10 +38101,19 @@ Every command here has been judged by the act's dry run (`war sign <target> --dr
 
 | act | Warrant | command | judged | why |
 |---|---|---|---|---|
+| authorize | OW-WAR-0112 | `war sign OW-WAR-0112` | would record | revision 4 awaits authorization under AM-003-232f |
+| authorize | OW-WAR-0116 | `war sign OW-WAR-0116` | would record | revision 4 awaits authorization under AM-003-5fd3 |
+| authorize | OW-WAR-0123 | `war sign OW-WAR-0123` | would record | revision 4 awaits authorization under AM-003-e752 |
+| authorize | OW-WAR-0124 | `war sign OW-WAR-0124` | would record | revision 4 awaits authorization under AM-003-da78 |
+| authorize | OW-WAR-0125 | `war sign OW-WAR-0125` | would record | revision 5 awaits authorization under AM-004-22e6 |
+| authorize | OW-WAR-0133 | `war sign OW-WAR-0133` | would record | revision 6 awaits authorization under AM-005-58e8 |
+| authorize | OW-WAR-0134 | `war sign OW-WAR-0134` | would record | revision 4 awaits authorization under AM-003-7737 |
 | authorize | OW-WAR-0136 | `war sign OW-WAR-0136` | would record | revision 4 awaits authorization under AM-003 |
 | authorize | OW-WAR-0138 | `war sign OW-WAR-0138` | would record | revision 5 awaits authorization under AM-004 |
 | authorize | OW-WAR-0139 | `war sign OW-WAR-0139` | would record | revision 4 awaits authorization under AM-003 |
 | authorize | OW-WAR-0140 | `war sign OW-WAR-0140` | would record | revision 4 awaits authorization under AM-003 |
 | authorize | OW-WAR-0142 | `war sign OW-WAR-0142` | would record | revision 3 awaits authorization under AM-002 |
+| authorize | OW-WAR-0145 | `war sign OW-WAR-0145` | would record | revision 2 awaits authorization under AM-001-57c5 |
+| authorize | OW-WAR-0146 | `war sign OW-WAR-0146` | would record | revision 2 awaits authorization under AM-001-4610 |
 | authorize | OW-WAR-0147 | `war sign OW-WAR-0147` | would record | revision 1 awaits authorization |
 | accept | SAS 1.2.0 | `war sign 1.2.0` | would refuse: sign.needs-decision | a proposed SAS revision awaits acceptance |

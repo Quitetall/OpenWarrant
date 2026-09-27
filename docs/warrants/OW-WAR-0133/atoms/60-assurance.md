@@ -57,8 +57,12 @@ classification: internal
   `war dispatch`; the conflict kind Q-002 selects, if any.
 - **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
-  - a stage whose budget cannot hold a required atom is refused by name
-    (`RequiredItemOmitted`), not dispatched without it;
+  - a stage whose budget cannot hold a required atom is refused by the
+    compiler's token account, reported as `dispatch.over-budget` naming the
+    largest items (a required atom among them), and nothing is emitted; the
+    same stage within budget compiles with every required atom included and
+    none omitted. `RequiredItemOmitted` is the manifest invariant behind it
+    and is not reachable from the selector;
   - under Q-002 (c): one source path planted at two digests refuses the
     Dispatch and names both digests. Under Q-002 (a), this bullet is not
     claimed.

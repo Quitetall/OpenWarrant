@@ -25,7 +25,7 @@ milestones:
     title: "The battery, run as the gate these obligations cite"
     depends_on: ["M1", "M2", "M3", "M4"]
     stage_refs: ["STAGE-005"]
-    obligation_refs: ["OBL-001", "OBL-003"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003"]
 
 stages:
   - id: "STAGE-001"

@@ -15,7 +15,7 @@ classification: internal
 - **scope:** `war gate --run --gate ops.conformance.plants@1.1.0` on a
   scratch corpus with a fake battery script; the corpus carries an
   uncommitted marker file and an uncommitted edit to a tracked file.
-- **gate:** `gate://software.repo.war-check@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the run is askable and completes with verdict pass, and its output
     names the tested commit, which equals `HEAD`;
@@ -29,12 +29,12 @@ classification: internal
 ### OBL-002 — a battery inside the battery refuses instead of recursing
 - **scope:** `conformance/plant-isolated.sh` run with
   `OPENWARRANT_IN_BATTERY=1`.
-- **gate:** `gate://software.repo.war-check@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** exit 2 with a line naming the refusal, and no clone made.
 
 ### OBL-003 — the new version is registered and the old one is untouched
 - **scope:** `war check` on this repository after delivery.
-- **gate:** `gate://software.repo.war-check@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** `gate.registered` PASS for `ops.conformance.plants@1.1.0`
   as `mutating false`; `@1.0.0`'s file is byte-identical to before; `war
   check` reports 0 errors.

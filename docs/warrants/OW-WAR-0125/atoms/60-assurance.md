@@ -28,7 +28,8 @@ classification: internal
 - **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - after `war compile`, both files exist and name the document's sha256
-    and revision `1.1.0`;
+    and the revision whose record under docs/sas/revisions/ pins that
+    sha256;
   - changing one digest in `SECTIONS.json` makes `war check --generated`
     fail with a drift finding naming the file.
 
@@ -62,13 +63,17 @@ classification: internal
 
 ### OBL-006 — the decision is recorded as a proposal, and no SAS text changes
 - **scope:** `OW-ADR-0028` and the SAS document.
-- **gate:** `gate://document.review@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - the ADR's status is `proposed`, and it names this Warrant in
     `governs`;
   - its proposed §105 text is marked as a proposal for a separate SAS
     revision;
-  - the SAS document's sha256 after delivery equals revision `1.1.0`'s.
+  - at the commit that delivered the section index (the first to add
+    docs/sas/generated/SECTIONS.json), the SAS document's sha256 equals
+    revision `1.1.0`'s and not `1.1.1`'s; and no deliverable of OW-WAR-0125
+    names the SAS document. Refusal: a planted deliverable naming the SAS
+    is reported.
 
 ## Gate Adequacy
 

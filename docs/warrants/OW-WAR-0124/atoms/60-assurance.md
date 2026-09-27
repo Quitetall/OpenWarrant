@@ -56,22 +56,28 @@ classification: internal
 
 ### OBL-005 — this repository's telemetry does not move
 - **scope:** this repository, which has no `[adoption]` table.
-- **gate:** `gate://software.repo.war-check@1.0.0`
-- **evidence:** `war telemetry --commit <the committed baseline's commit>
-  --verify` against `artifacts/telemetry-baseline.json` still passes.
+- **gate:** `gate://ops.conformance.plants@1.1.0`
+- **evidence:** on this repository, `war telemetry` reads all history
+  ('all history (no [adoption] baseline)'), writes no `adoption_baseline`,
+  and its §95 count equals the count recomputed from `git log` by the rule
+  telemetry.rs states. Refusal: 'no baseline reads all history' and the
+  bounded count in a scratch repository with `[adoption]` (OBL-002's
+  plants).
 
 ### OBL-006 — the guided setup asks for the baseline and changes no authority step
 - **scope:** `init::guided` unit tests with canned answers, and a grep of
   the diff to `guided.rs`.
-- **gate:** `gate://software.repo.war-check@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
   - with a history, the step after Program is Baseline, and confirming
     yields exactly one `Effect` writing `[adoption]`;
   - with no history, Baseline is skipped;
   - the existing tests `an_existing_authority_file_is_never_written_again`
     and `the_agent_is_a_performer_and_nothing_else` pass unmodified;
-  - no line of the diff touches `render_roles`, `render_allowed_signers`
-    or the Signer and KeyLoaded arms.
+  - for each commit naming OW-WAR-0124 that changed guided.rs,
+    `render_roles`, `render_allowed_signers`, the Signer and KeyLoaded arms
+    of `answer`, and the two named tests are byte-identical before and
+    after. Refusal: a line planted in render_roles is reported.
 
 ### OBL-007 — init makes the directory a git repository, and never nests one
 - **scope:** `war init` and `war init --program` on scratch directories:

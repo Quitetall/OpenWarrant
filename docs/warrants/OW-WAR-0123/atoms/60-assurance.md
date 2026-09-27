@@ -62,7 +62,7 @@ classification: internal
 
 ### OBL-006 — the corpus result is the one the owner chose
 - **scope:** this repository's corpus at the commit the battery runs on.
-- **gate:** `gate://software.repo.war-check@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** `war check` reports each of OW-WAR-0002 to 0005 once
   under `relations.parent-revision`, naming revision 2, at the severity
   U-001's answer set, and reports no parent finding for any other

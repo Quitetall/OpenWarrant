@@ -68,7 +68,8 @@ M4 — documents and plants:
    - a POST with a foreign Origin is refused 403;
    - a POST naming an id not on the allowlist is refused 403, and nothing
      runs;
-   - a GET to `/api/act` is refused 405;
+   - any method on `/api/act` but GET and POST is refused 405, and a GET
+     answers the act state and starts nothing;
    - responses carry the CSP without `unsafe-inline`;
    - a wrong Host is refused;
    - an oversized request is refused 431;

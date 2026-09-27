@@ -24,7 +24,7 @@ classification: internal
 ### OBL-003 — every non-pass diagnostic carries a remedy, and no automatic remedy signs
 - **scope:** `remedy.rs`, `diagnostic.rs`, `output.rs`, `schemas/oh.war/report/v1.json`.
 - **gate:** `gate://software.repo.war-check@1.0.0`
-- **evidence:** a unit test walks the remedy table and every fallback path and asserts no `auto` argv contains `sign`, `authorize`, `resolve`, `correct`, `accept` or `answer`; `war check --json` on a planted drift carries `remedy.kind = "human"` and an argv beginning `war sign`; on a planted stale projection carries `remedy.kind = "auto"` and `war compile`; `war check` ends with a `REMEDIES:` block; `89-schemas.sh` passes with `SCHEMA_PACK_VERSION` unchanged.
+- **evidence:** a unit test walks the remedy table and every fallback path and asserts no `auto` argv contains `sign`, `authorize`, `resolve`, `correct`, `accept` or `answer`; `war check --json` on a planted drift carries `remedy.kind = "human"`, argv `war correct <alias> <D-id>` with no placeholder, and a purpose naming `war sign <alias>/<D-id> --ssh-sign`; on a planted stale projection carries `remedy.kind = "auto"` and `war compile`; `war check` ends with a `REMEDIES:` block; `89-schemas.sh` passes with `SCHEMA_PACK_VERSION` unchanged.
 
 ### OBL-004 — the guided init writes the authority files only from a terminal, once, and never for an agent
 - **scope:** `init/guided.rs`, `docs/authority/`, the four documents.

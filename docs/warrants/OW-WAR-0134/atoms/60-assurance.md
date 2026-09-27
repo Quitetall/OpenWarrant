@@ -54,8 +54,10 @@ classification: internal
   - under (b): the finding clears only after a verification of the new
     candidate is ingested, and clears for that candidate only; a second
     in-scope commit raises it again;
-  - under (a): the finding clears only after the re-acceptance record the
-    SAS revision defines;
+  - for a pinned deliverable whose bytes moved: a verification of the new
+    candidate does not clear the finding, and a signed correction of that
+    deliverable (OW-WAR-0064; its chain head matching the new digest) does.
+    No new act kind;
   - under (c): this obligation is withdrawn by amendment, not left
     unsatisfied.
 
