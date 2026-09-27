@@ -67,8 +67,8 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | every required gate has admissible result | 114 |
 | no blocker remains | 86 |
 | no required unknown remains | 86 |
-| artifact digests verify | 75 |
-| required deliverables exist | 57 |
+| artifact digests verify | 76 |
+| required deliverables exist | 56 |
 | required judgments exist | 55 |
 | residual risks have sufficient authority | 55 |
 | exact authorized Contract Revision | 17 |
@@ -261,7 +261,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0111` Implement content-bearing preservation archives and honest import round trips | draft | NOT satisfied | 0 | 0 of 3 | required deliverables exist |
 | `OW-WAR-0112` war is the app: ownership, a guided start, and remedies | draft | NOT satisfied | 0 | 3 of 6 | exact authorized Contract Revision |
 | `OW-WAR-0113` Two projections from atoms by relation: the current master document, and the history | draft | NOT satisfied | 0 | 4 of 6 | every required gate has admissible result |
-| `OW-WAR-0114` The roadmap becomes a record: one per program, beside the SAS | draft | unknown | 0 | 0 of 6 | required deliverables exist |
+| `OW-WAR-0114` The roadmap becomes a record: one per program, beside the SAS | draft | unknown | 0 | 0 of 6 | every required obligation is dispositioned |
 | `OW-WAR-0115` The hub: war opens from anywhere, with every project and its progress | draft | would satisfy | 0 | 3 of 3 | every required gate has admissible result |
 | `OW-WAR-0116` war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap | draft | NOT satisfied | 0 | 2 of 5 | exact authorized Contract Revision |
 | `OW-WAR-0117` An independent verifier: a blind, tool-less process that war verify --run hands each bundle to | draft | would satisfy | 0 | 2 of 2 | every required gate has admissible result |
