@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "refuted"
-evidence = "atoms/20-basis.md's resolved-unknown entry for OBL-004 (attributed to OW-WAR-0041) states the blocking capability gap — 'attach_relation refuses an empty reviewer... and no command called it' — is now closed by 'war telemetry --attach <scope> --warrant <alias> --reviewer <who>', with both directions planted, but immediately adds 'What remains for OBL-004 is a disposition of OW-WAR-0005 M4 through that verb,' i.e. the actual dispositioning action for M4 had not been performed as of this record. No deliverable, gate-run line, or §95 disposition record anywhere in the bundle shows that action being subsequently carried out with a named reviewer, so the bundle's own authored text shows the claim that the untracked work IS dispositioned does not hold."
+evidence = "atoms/20-basis.md states that after OW-WAR-0041 made the 'attach_relation' reviewer control functional, 'What remains for OBL-004 is a disposition of OW-WAR-0005 M4 through that verb' — i.e., by this Warrant's own authored record, the actual §95 disposition of OW-WAR-0005 M4 with a named reviewer had not yet been performed. No deliverable, gate-run line, or authority record anywhere in the bundle (deliverables is empty; the visible gate-run excerpts show no M4 disposition or reviewer-attachment line) contradicts this or shows the action being subsequently completed, so the bundle itself shows the claim that the untracked work IS dispositioned does not hold."
 performer = "claude"
 
 [verifier]

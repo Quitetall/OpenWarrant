@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0134"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "crates/openwarrant-cli/src/acceptance.rs (D-001) implements exactly the two required paths: `let Some(locator) = record.locator.as_ref() else { ... Diagnostic::unknown(UNKNOWN, ..., \"no locator; resolved before OW-ADR-0021\") }` and `if commit(&root, &locator.commit_sha).is_none() { ... Diagnostic::unknown(UNKNOWN, ..., format!(\"commit {} not readable\", ...)) }`, both leaving `a.state` at its default `State::Unknown` (never `Unchanged`) and both using `Diagnostic::unknown` rather than `Diagnostic::error`. conformance/plants.d/56-acceptance-validity.sh (D-005) drives both cases on the scratch corpus: it strips the `[locator]` table and asserts the output matches `UNKNOWN +acceptance\\.unknown +$AV_A: UNKNOWN \\(no locator` with no `acceptance.(unchanged|candidate-moved)` and no `^ERROR` line, then rewrites `commit_sha` to a 40-hex value not in the repo and asserts `UNKNOWN +acceptance\\.unknown +$AV_A: UNKNOWN \\(commit 0123456789ab not readable` under the same negative checks. Gate run GR-ops.conformance.plants@1.1.0 (verdict pass) shows both plants actually executed and passing in its stdout excerpt: 'ok no locator is UNKNOWN acceptance.unknown (no locator), no error, not unchanged' and 'ok an unreadable locator is UNKNOWN acceptance.unknown (commit not readable), no error', inside the run's overall '1260 passed, 0 failed'. The companion gate run software.repo.war-check@1.0.0 confirms this receipt is bound to the current contract/tree via its `evidence.admissible` line, so the pass is current evidence, not stale. obligation_evidence for OBL-003 lists commit_sha/UNKNOWN/unchanged as fully shown (no cut_from) across D-001, D-005, and both gate stdouts, so nothing decisive was cut by the budget. This matches OBL-003's stated scope and evidence exactly."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

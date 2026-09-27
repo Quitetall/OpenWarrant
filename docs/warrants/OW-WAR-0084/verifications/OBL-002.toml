@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No refusal fixtures, test names, or gate output addressing malformed/conflicting/over-limit/authority-confused inputs appear anywhere in the bundle; deliverables is empty and OBL-002's obligation_evidence carries no named_paths or terms. The single gate run (software.repo.war-check@1.0.0) only performs corpus-wide structural checks (manifest, digests, identity, milestones) and never exercises the adapter's input-validation boundary, so no observed refusal is shown for this obligation's scope."
+evidence = "No refusal fixtures, test names, stderr, or gate output addressing malformed/incomplete/conflicting/over-limit/authority-confused inputs appear anywhere in the bundle; deliverables is empty and OBL-002's obligation_evidence carries no named_paths or terms. The single gate run (software.repo.war-check@1.0.0) performs only corpus-wide structural checks (e.g. PASS manifest.valid, PASS journal.append-only, PASS identity.atom-mismatch for OW-WAR-0084) and never exercises the adapter's input-validation boundary, so no observed refusal is shown for this obligation's scope."
 performer = "claude"
 
 [verifier]

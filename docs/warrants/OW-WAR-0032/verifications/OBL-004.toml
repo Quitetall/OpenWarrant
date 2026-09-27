@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "deliverables is empty, so no generated TypeScript type files or KF source importing them are present in the bundle. The only gate evidence (GR-software.repo.war-check@1.0.0) shows a truncated stdout tail covering OW-WAR-0138–OW-WAR-0147 and repo-wide meta-checks (identity, ADR, SAS), with no line addressing TypeScript generation or KF's imports per §83.4. This matches the absence already noted in obligation_evidence, which lists no named_paths or terms for OBL-004."
+evidence = "deliverables is empty, so no generated TypeScript type files or KF source importing them are present. obligation_evidence for OBL-004 lists no named_paths or terms. The gate run's visible stdout excerpts address only manifest/traceability/journal/authority/gate-resolution/milestone/obligation record checks for OW-WAR-0032, with no line addressing TypeScript generation or KF imports per §83.4, so nothing in the bundle speaks to this obligation."
 performer = "claude"
 
 [verifier]

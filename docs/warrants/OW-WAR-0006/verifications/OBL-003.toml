@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "No Progress Log atom or deliverable is carried in the bundle at all (the atoms present are only intent, basis, work_order, milestones, and assurance). obligation_evidence for OBL-003 shows the term '3678455' appearing only in 'atoms' — specifically atoms/10-intent.md's own Intent narrative describing the problem — not in any Progress Log entry naming the commit and the violated obligation as OBL-003 requires. This matches the prior verification's finding of not_established, and nothing in this bundle's gate run stdout or deliverables supplies the missing Progress Log record."
+evidence = "No Progress Log atom or deliverable is carried in this bundle — the atoms present are only intent, basis, work_order, milestones, and assurance (atoms/10-intent.md, 20-basis.md, 40-work-order.md, 45-milestones.yaml, 60-assurance.md). obligation_evidence for OBL-003 shows the term '3678455' appearing only under 'atoms', which is atoms/10-intent.md's own Intent narrative ('The ADR Overview shipped in commit `3678455` with NO Warrant authorizing it'), not a Progress Log entry naming the commit and the violated obligation as required. No deliverable (D-001, D-002, D-003) or gate output contains any such record."
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "D-001's unit tests (e.g. minted_identity_is_v7, alias_round_trips) are pure in-process Rust tests with no KF dependency, so their existence is consistent with offline operation, but the bundle gives no record that these tests were actually executed and passed: the only gate run present, GR-software.repo.war-check@1.0.0, states in its own NOT CHECKED section that `war check` 'does not invoke [gates]... nothing here is evidence that a Warrant's acceptance gates were run.' Without a test-execution record or a described 'full local flow with KF unreachable' scenario (per the obligation's own evidence requirement), offline preservation cannot be established from source code alone."
+evidence = "D-001's unit tests (e.g. minted_identity_is_v7, alias_round_trips) are pure in-process Rust tests with no KF dependency, consistent with offline operation, but the bundle records no execution of these tests: the only gate run present, GR-software.repo.war-check@1.0.0, states in its own NOT CHECKED section that `war check` 'does not invoke [gates]... nothing here is evidence that a Warrant's acceptance gates were run.' No 'full local flow with KF unreachable' scenario, as the obligation's evidence requirement names, is present anywhere in the bundle."
 performer = "claude"
 
 [verifier]

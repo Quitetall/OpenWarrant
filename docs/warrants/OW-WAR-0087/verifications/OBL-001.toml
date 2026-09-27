@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "The bundle's deliverables array is empty, obligation_evidence for OBL-001 lists no named_paths and no terms, and no conformance plants or fixture/CLI-output evidence is carried. Nothing in the bundle shows an actual invocation of the CLI or the public SDK calls (e.g. no cases.json run, no sdk_cli.rs test output), so the claimed parity behavior in atoms/60-assurance.md OBL-001 cannot be checked against any observed bytes."
+evidence = "deliverables is the empty array and obligation_evidence for OBL-001 carries named_paths: [] and terms: [], plants is also empty, and the sole gate_runs entry is software.repo.war-check (a structural check), not the sdk_cli acceptance driver described in atoms/60-assurance.md's 'Planned acceptance entry point' (cargo test -p openwarrant-cli --test sdk_cli against conformance/sdk/cli/cases.json). No CLI invocation, SDK call output, exit code, or comparison between the two is present anywhere in the bundle, so the claimed parity behavior cannot be checked against any observed bytes."
 performer = "claude"
 
 [verifier]

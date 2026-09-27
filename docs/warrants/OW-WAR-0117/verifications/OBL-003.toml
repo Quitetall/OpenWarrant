@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "established"
-evidence = "D-003's argv-inspection block (grep for --no-session-persistence, --strict-mcp-config, --restricted, --tools '' emptiness, and --disallowedTools naming Bash/Read/Write/Edit) is exercised in the same gate run, whose stdout shows 'ok    the verifier holds no tool         --tools '', no MCP, restricted, no session, empty cwd', matching OBL-003's scope and evidence exactly, with the plant designed to fail (VF_MISSING) if any flag is removed."
+evidence = "GR-ops.conformance.plants@1.1.0's stdout line 'ok the verifier holds no tool --tools '', no MCP, restricted, no session, empty cwd' reflects D-003's argv-inspection block, which greps the recorded fake-claude argv for --no-session-persistence, --strict-mcp-config, --restricted, empty --tools, and --disallowedTools naming Bash/Read/Write/Edit, failing (VF_MISSING) if any is absent. D-001's own argv construction (--disallowedTools listing Bash,Edit,Write,...Read... and --no-session-persistence) matches what the plant checks, and the gate run's overall verdict is pass with none of these checks failing."
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "OBL-003 depends on independent reproduction/review and secure human acceptance built on OBL-001/002, neither of which has any supporting evidence in this bundle (empty deliverables, empty plants, no gate run addressing phase-4 qualification). 60-assurance.md states 'Unverified completion records actual OBL-001/002 outcomes and notes qualification gaps' and that qualification review has not occurred; with no reproduction records, baseline conditions, or acceptance records present, the bundle does not carry enough to decide qualification either way."
+evidence = "OBL-003's qualification claim depends on independent reproduction/review and secure human acceptance built on OBL-001 and OBL-002, neither of which has any supporting evidence in this bundle (empty deliverables array, empty plants array, and no gate run addressing Phase 4 qualification or the four phase exits). Atom 60-assurance.md itself notes 'Unverified completion records actual OBL-001/002 outcomes and notes qualification gaps' and that no disposition is declared for these observations yet. With no reproduction records, baseline-condition evidence, or acceptance records carried, the bundle does not show qualification holds or fails."
 performer = "claude"
 
 [verifier]

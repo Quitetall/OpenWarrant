@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "The bundle's deliverables array is empty and gate_runs, plants, and prior_verifications are all empty; obligation_evidence for OBL-001 lists no named_paths and only a generic selection string 'warrant: every deliverable of the Warrant' with zero terms shown. No consent confirmation or session records for P1, P2, or P3 are present anywhere in the bundle, so there is no evidence to establish or refute that three real consenting participants existed."
+evidence = "deliverables[] is empty and gate_runs, plants are all empty arrays; obligation_evidence for OBL-001 lists no named_paths and only the generic selection string 'warrant: every deliverable of the Warrant' with zero terms. Only the authored atoms (10-intent.md, 20-basis.md, 40-work-order.md, 45-milestones.yaml, 60-assurance.md) are present, which describe the planned study design, not any executed session; no consent confirmation or session records for P1, P2, or P3 exist in the bundle, so the claim of three real consenting participants cannot be decided from this evidence."
 performer = "claude"
 
 [verifier]

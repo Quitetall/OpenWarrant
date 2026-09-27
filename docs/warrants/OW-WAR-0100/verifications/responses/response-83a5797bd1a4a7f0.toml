@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0100"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle carries deliverables:[], gate_runs:[], and plants:[]; only the five authored contract atoms are present. obligation_evidence for OBL-001 shows the term 'not_measurable_yet' only 'shown_in': ['atoms'] (i.e. in 60-assurance.md's own prose restating the obligation), and 'value: 0' is shown_in: [] (nowhere). No telemetry.rs source, CLI output, or gate run demonstrates that a missing eligibility collector actually emits not_measurable_yet rather than value: 0. The claim is asserted by the contract but not evidenced by any artifact in this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "deliverables, gate_runs, and plants are all empty, and obligation_evidence for OBL-002 lists no terms and no named_paths, so nothing was excerpted from telemetry.rs or crates/openwarrant-cli/tests/telemetry_integrity_cli.rs (both named only in 40-work-order.md's prose) to check whether collection-gap reasons describe absent capability rather than inventing history. Only the assurance atom's restatement of the obligation is present, which is not independent evidence of code behavior."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires showing retained digests, an unchanged original baseline, and a passing full gate, but gate_runs is [] and deliverables is [], so there is no gate run id, no printed gate output, and no digest comparison for the OW39/OW41 provenance files referenced in 40-work-order.md and 20-basis.md. Only 60-assurance.md's assertion that provenance remains intact is available, with no supporting artifact."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

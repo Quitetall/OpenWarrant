@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "The bundle carries no deliverables (deliverables: [] and deliverables_not_carried is absent/empty) and no plants or test/runtime evidence for provider behavior. The only gate run present is software.repo.war-check@1.0.0, a structural repo-check tool whose own output states 'war check does not invoke gates, so nothing here is evidence that a Warrant's acceptance gates were run,' and its NOT CHECKED section confirms '143 of 143 Warrant(s) have no disposed obligations.' Nothing in the bundle shows a provider response decoded through SDK types or compared against expected source units for T27–T31, so OBL-001's claim cannot be assessed."
+evidence = "deliverables is an empty list, plants is empty, and the only gate_runs entry (GR-software.repo.war-check@1.0.0) is a structural repo-check whose own stdout says 'war check does not invoke gates, so nothing here is evidence that a Warrant's acceptance gates were run.' Nothing in the bundle shows a provider response decoded through SDK types or compared against expected T27–T31 source units, role/task scope, source identities, binding text, or background summaries, so OBL-001's claim cannot be assessed from what is carried."
 performer = "claude"
 
 [verifier]

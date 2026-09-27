@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "The bundle contains only the five authored atoms (10-intent.md, 20-basis.md, 40-work-order.md, 45-milestones.yaml, 60-assurance.md); there are zero deliverables, zero gate_runs, and zero plants to show webapp behavior, completion-report wording, or package/gate test results. obligation_evidence for OBL-003 likewise carries no named_paths or terms, so the browser/report distinction this obligation requires is entirely unshown."
+evidence = "The bundle contains only the authored atoms with zero deliverables, gate_runs, or plants to show webapp behavior, completion-report wording, or package/gate test results. obligation_evidence for OBL-003 likewise carries no named_paths or terms, so the required browser/report distinction between waiting and completion is entirely unshown."
 performer = "claude"
 
 [verifier]

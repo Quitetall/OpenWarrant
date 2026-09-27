@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "The test official_rfc8785_vectors in canonical.rs reads external vectors from conformance/rfc8785/ and compares bytes, which is the right design. The vector files are not carried in the bundle, and no output of a cargo test run is shown. The only gate run is `war check`, whose 'NOT CHECKED' section says it does not invoke gates or run tests. The adequacy-review claim that all six vectors serialise correctly is asserted in an atom, not evidenced. The 'plus the five Warrants' part of the scope has no canonical-output evidence either."
+evidence = "canonical.rs's official_rfc8785_vectors test reads external vectors from conformance/rfc8785/ and asserts byte equality, which is the right design per the obligation's evidence requirement, but the vector files themselves are not carried in the bundle and no test-execution output (pass/fail) for this test is shown anywhere. The only gate run present, GR-software.repo.war-check@1.0.0 (`war check --generated`), explicitly disclaims running gates/tests in its NOT CHECKED section, and obligation_evidence lists no terms shown for OBL-002 at all."
 performer = "claude"
 
 [verifier]

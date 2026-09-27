@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0124"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "D-008 (conformance/plants.d/59-adoption.sh, carried untruncated) directly implements every evidence bullet: it builds AD_A with three commits, captures AD_HEAD via `git rev-parse HEAD`, runs `war init --program Acme --namespace ACME`, and asserts `[adoption] baseline` equals AD_HEAD plus `war check` exit 0; it builds AD_B and asserts `--baseline 0000000` exits non-zero with neither openwarrant.toml nor docs/ written; it builds AD_C with git-init but zero commits and asserts no `[adoption]` table and an unchanged three-line, no-'baseline' output. Gate run GR-ops.conformance.plants@1.1.0's stdout excerpt (lines 716-742, '== brownfield adoption (OW-WAR-0124) ==') shows these exact checks passing: 'ok init records HEAD as the baseline 68ed7543d8dee26bab544c59e95772b74e74cb92', 'ok the adopted scaffold passes check exit 0', 'ok --baseline 0000000 is refused exit 1, nothing written', and 'ok no commits, no [adoption] table three lines, as before'. For the '99-init.sh and 75-init-program.sh pass unmodified' portion, those two files are not carried as deliverables, but the same gate run's '== guided init (OW-WAR-0112) ==' excerpt ('scripted scaffold unchanged examples only, three lines', 'scaffold output keeps its shape no start line in the pinned three') matches exactly the no-commit scaffold behavior those plants check, and the run's closing tally 'tested commit 9f55131c7aeee59e99b2c258b8ee0ccd86614b60' / '1260 passed, 0 failed' shows zero failures across the whole battery those files belong to (they are Frozen Surfaces per the work order, so no other deliverable in this bundle touches them). Together this is sufficient within OBL-001's stated scope (scratch repositories built by 59-adoption.sh) to establish the claim."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

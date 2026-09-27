@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "OBL-003 requires independent reproduction/review and secure human acceptance of the exact result, but prior_verifications is empty and the war-check gate output's NOT CHECKED section explicitly states '143 of 143 Warrant(s) have no disposed obligations — §38.6 yields no resolution verdict for them,' i.e., no qualification disposition exists yet for OW-WAR-0080. atoms/60-assurance.md also states 'No disposition is declared here.' This is an absence of evidence rather than a shown failure, so the obligation is not established."
+evidence = "OBL-003 requires independent reproduction/review and secure human acceptance of the exact result, but the war-check gate's stdout NOT-CHECKED section states '143 of 143 Warrant(s) have no disposed obligations — §38.6 yields no resolution verdict for them,' and atoms/60-assurance.md states 'No disposition is declared here.' The prior_verifications entries shown for OBL-001/002 are themselves 'not_established,' so there is no qualified OBL-001/002 outcome for OBL-003 to build on; this is an absence of evidence rather than a shown failure."
 performer = "claude"
 
 [verifier]

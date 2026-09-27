@@ -1,0 +1,97 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0111"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "deliverables and gate_runs are empty and obligation_evidence for OBL-001 lists no named_paths or terms despite selection 'every deliverable of the Warrant'; only the five authored atoms (10-intent.md, 20-basis.md, 40-work-order.md, 45-milestones.yaml, 60-assurance.md) are present, which state the plan and acceptance criteria but contain no archive bytes, digests, or category coverage from any retained fixture or real corpus sample, so preservation of exact bytes/digests and required-category refusal behavior cannot be checked."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No deliverables (exported/imported archive files, CLI transcripts) or gate_runs (a round-trip execution) are carried, and obligation_evidence for OBL-002 shows no named_paths or terms; nothing in the bundle shows an actual import into an isolated destination or empty compatible KF instance, or canonical byte/semantic identity on re-export, so the round-trip claim is unverifiable from this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "There are no fixture records, importer output, or gate runs demonstrating that superseded/disputed/annulled states survive import or that the importer grants no authority; obligation_evidence carries nothing for OBL-003, and the atoms (e.g. 40-work-order.md step 3/4) only describe the requirement, not evidence that it was met."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "deliverables and gate_runs are empty, and obligation_evidence for OBL-004 has no named_paths or terms; no test outputs or plants show behavior on path traversal, duplicate paths, symlinks, digest mismatch, unsupported version, oversize input, or destination overwrite, nor a successful valid-archive import, so none of the required safety refusals can be verified."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-005"
+disposition = "not_established"
+evidence = "The bundle contains only the five authored atoms describing intended work (e.g. 20-basis.md noting the format decision is unverified and 40-work-order.md step 5 calling for repair of 'old false verification output'); it carries no CLI deliverable, no gate run showing legacy envelope bytes unchanged, and no KF producer/consumer observation records, and obligation_evidence for OBL-005 is empty, so honest reporting and legacy-byte preservation are only planned, not shown."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

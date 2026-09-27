@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "refuted"
-evidence = "The obligation requires all seven plants (§91.4 test 24, §91.5 tests 30-35) in conformance/, each rejected by a named rule. atoms/60-assurance.md's own JDG-001 states plainly that only one plant exists (§91.5 test 31, evidenced by EV-004/OBS-004 — 'relations.child-listed' rejecting a removed child line), and enumerates the remaining six (test 24, 30, 32, 33, 34, 35) as not planted, each with a stated reason a rule or decision is still missing, per atoms/20-basis.md's 'Known gap' section. obligation_evidence also confirms conformance/ is not a carried deliverable of this Warrant. The bundle's own record therefore affirmatively shows six of the seven required plants do not exist, refuting the claim that 'the parent/child and ADR conformance tests are planted.'"
+evidence = "atoms/60-assurance.md's own JDG-001 states directly that only one of the seven required plants exists — §91.5 test 31, evidenced by EV-004/OBS-004 (rejected by 'relations.child-listed') — and enumerates the other six (§91.4 test 24, §91.5 tests 30, 32, 33, 34, 35) as unimplemented, matching the 'Known gap' entries in atoms/20-basis.md that each state a missing rule or unresolved decision. obligation_evidence additionally confirms the conformance/ path is not carried by this bundle. The Warrant's own assurance record thus affirmatively shows six of the seven required plants do not exist, refuting the claim that the parent/child and ADR conformance tests are planted."
 performer = "claude"
 
 [verifier]

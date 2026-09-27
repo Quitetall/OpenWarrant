@@ -1,6 +1,6 @@
 obligation = "OBL-002"
-disposition = "not_established"
-evidence = "JDG-001 in atoms/60-assurance.md groups OBL-002 with OBL-001 and OBL-004 as requiring an actual write to KF that never completed (blocked at OBS-007's 404 from an empty action registry). D-001 (crates/openwarrant-cli/src/kf.rs) contains no code path handling an enterprise identifier, and no receipt or allocator response naming an identifier appears anywhere in the bundle, so there is no evidence of either a KF-issued identifier or a contrasting local-fabrication refusal."
+disposition = "refuted"
+evidence = "JDG-001 groups OBL-002 with OBL-001 and OBL-004 as requiring an actual completed WRITE to KF, and states the write 'stopped at KF's own registry, which answers 404 for an unregistered action type (OBS-007)' — i.e. no identifier was ever allocated or returned during this Warrant's work. Neither of OBL-002's two required evidentiary pieces (an identifier in a KF receipt, and a recorded refusal of a locally-derived identifier of identical shape) appears in D-001 (kf.rs, which contains no enterprise-identifier handling at all) or anywhere else in the bundle. The bundle's own judgment record affirmatively documents that this registration activity did not occur, which is stronger than silence."
 performer = "claude"
 
 [verifier]

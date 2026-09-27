@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "No deliverable, gate-run excerpt, or plant in the bundle addresses Git remaining Source Holder 'after registration' for this Warrant, and per JDG-001/OBS-007 no registration ever occurred, so the scoped subject (a registered Warrant whose atoms could be checked post-registration) does not exist in the evidence shown."
+evidence = "OBL-003's scope is 'for the registered Warrant,' but JDG-001/OBS-007 establish no Warrant was ever registered — the write attempt stopped at a 404 before any registration event occurred. No deliverable, gate-run excerpt (the software.repo.war-check@1.0.0 run only reports repo-wide PASS/WARN checks unrelated to post-registration Source Holder status), or plant in the bundle addresses whether authored atoms 'still resolve to Git' after a registration that never happened, so the obligation's precondition is absent from the evidence shown."
 performer = "claude"
 
 [verifier]

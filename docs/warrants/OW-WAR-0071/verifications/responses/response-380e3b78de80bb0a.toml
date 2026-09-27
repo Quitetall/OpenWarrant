@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0071"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "obligation_evidence marks both named scope paths (docs/sas/WAR_Software_Architecture_Specification.md, docs/sas/revisions/1.1.0.toml) as absent/not carried, and docs/sas/generated/NORMATIVE.{md,json} is likewise not carried anywhere in this bundle (deliverables: []). The sole evidence source is the software.repo.war-check@1.0.0 gate run (GR-software.repo.war-check@1.0.0), whose stdout is truncated (373,467 bytes shown only via scattered excerpts) and whose own obligation_evidence.terms entry shows the required terms sas.stale-digest, sas.repin-unknown-requirement, and 'war sas propose 1.1.0' all have shown_in: []. What excerpts are visible instead show OW-WAR-0071 itself authorized against SAS 1.0.0 with a WARN sas.pin-superseded noting the latest recorded revision is 1.1.1, and a WARN evidence.stale-binding stating the receipt's tree predates 91 changed paths — meaning this run cannot speak reliably to this Warrant's own subject state. No basis to establish or refute."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "OBL-002's scope is the SAS's new §27.6 text and its §106 rows as accepted, but the SAS document is not carried (per OBL-001's named_paths, confirmed absent) and no §27.6/§106 excerpt appears anywhere in the bundle. The only related text is OW-ADR-0019's 'Decision' section (atoms path ../../adr/atoms/OW-ADR-0019-...md), which drafts five refusal-shaped clauses and a '§106 rows: Three' line, but this is the ADR's proposal for what the revision should say, not the accepted SAS text, and the ADR's own status is 'proposed' (see its frontmatter and Status section). The obligation also requires 'an independent reviewer confirms no clause is unfalsifiable,' and no review artifact exists (plants: [], prior_verifications field is not evidence of this run, no reviewer record in gate_runs). Cannot be decided from what's carried."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "docs/PROJECTION_CONTRACT.md, one of the two scoped artifacts, is explicitly listed in obligation_evidence as absent/not carried ('a repository path that is not a deliverable of OW-WAR-0071: not carried'). ADR OW-ADR-0019 point 3 describes a proposed new §76.6 rule in prose ('A rendering holds no authority... MAY issue commands and MUST NOT perform an act'), but the bundle provides no way to confirm PROJECTION_CONTRACT.md actually cites §76.6 or names the existing network-refusal plant as precedent, since that file's contents aren't shown and plants: [] carries no plant evidence. Not established."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "refuted"
+evidence = "OBL-004's evidence explicitly requires 'the ADR is status: accepted'. The ADR atom (path ../../adr/atoms/OW-ADR-0019-sas-1-1-0-batch-act-and-renderings.md, sha256 dbed46acc...) is carried in full: its frontmatter reads 'status: proposed' and its body's Status section states 'Proposed. Accepted when the repository owner signs SAS revision 1.1.0 (§101.3 requires this ADR for an architecture-changing revision, and the revision is not accepted until that signature exists).' This directly contradicts the accepted-status requirement. The ADR does correctly list 'governs: - \"war://01a0983e-32d7-7473-b6e1-fbef061a1e5f\"' matching this Warrant's UUID (also confirmed by the gate run excerpt 'PASS identity.atom-mismatch OW-WAR-0071: 3 atom(s) name this Warrant's UUID'), and it does state the rejected alternatives (dropping ssh-add -c, per-act signing, a time-boxed session, a tool-held key) with reasons under 'Why not the alternatives.' But because the bundle's own carried text shows the required accepted-status condition to be false, the obligation is refuted rather than merely unestablished."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

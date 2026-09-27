@@ -1,6 +1,6 @@
 obligation = "OBL-003"
-disposition = "not_established"
-evidence = "D-002's plant script contains the assertion ('the kept file is not a record' checking `war check` and `war sign --list`) matching OBL-003's scope exactly, and D-003/atoms describe the intended behavior, but the bundle's carried gate stdout (GR-ops.conformance.plants@1.1.0, truncated:true) does not include the AR-WAR-0001 section's printed result for this check; 'war check' and 'war sign --list' do appear elsewhere in the shown stdout but only for unrelated plants/warrants (e.g. TT-WAR-0001, SB-WAR-*), not for AR-WAR-0001. No direct evidence in the bundle shows the actual `war check`/`war sign --list` output for this Warrant's scratch corpus after revision 2."
+disposition = "established"
+evidence = "The excerpt from GR-ops.conformance.plants@1.1.0 (lines 209-216) shows 'ok the kept file is not a record check clean; no authorization pending', which is D-002's ar_ok line following its check that `war check` produced no ERROR and `war sign --list` shows no 'AR-WAR-0001 .*authorize' row — exactly OBL-003's scope and evidence. Combined with the earlier passed check in the same run confirming the authorization.toml grep for 'revision = 2', this establishes that after revision 2 the kept file is not read as a second authorization."
 performer = "claude"
 
 [verifier]

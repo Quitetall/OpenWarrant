@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0125"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass, run_id GR-ops.conformance.plants@1.1.0, receipt exit_result pass) captured stdout containing the 56-sas-sections.sh block (D-009), whose sec_revision_bytes/join(split()) loop reproduces exactly the obligation's two evidence items. The stdout lines 'ok lossless split of 0.1.0-draft.1 joined sha256:aad5256cb59e = revision record' through '...1.1.0' (plus later revisions 1.1.1, 1.2.0 also passing) show join(split(bytes)) recomputing the revision record's pinned sha256 for every recorded revision, a superset covering the five the obligation's scope names, with no 'UNKNOWN: no commit holds sha256' failures (D-009's fallback when history lacks the bytes). The fence claim is shown directly by the paired lines 'ok a fenced ## 999. is not a section §105 changed; no section 999' and 'ok an unfenced ## 999. is a section rejected as new by sas.diff.section-added', which is D-009's planted-fence test matching the obligation's second evidence bullet verbatim (a heading inside a fence produces no section, while the identical heading outside a fence does, showing the plant is capable of failing). All these lines are 'ok', not FAIL, and the whole battery ends '1260 passed, 0 failed' with a pass verdict, so the obligation's stated evidence is shown holding within its scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

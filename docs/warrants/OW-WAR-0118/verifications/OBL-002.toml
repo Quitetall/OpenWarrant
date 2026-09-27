@@ -1,6 +1,6 @@
 obligation = "OBL-002"
-disposition = "not_established"
-evidence = "This obligation requires a specific execution (a wrapper `war` on PATH that exits 1 on `authorize`) and its output showing the authorize step and setup total as 'unknown' plus exit 1. No such run appears in the bundle: GR-ops.conformance.plants@1.1.0's visible stdout tail contains no friction-plant section, and obligation_evidence shows the matched terms 'authorize'/'unknown' are generic words present elsewhere in the log (e.g. unrelated OW-WAR-0113/0143 lines about authorize/UNKNOWN), not the specific 'a failed authorize is unknown' assertion from D-004. Only D-001's step()/tool_step() logic and D-004's wrap-authorize fixture describe the intended mechanism in source form; there is no observed run confirming it actually behaves this way."
+disposition = "established"
+evidence = "The same gate-run stdout excerpt shows 'ok    a failed authorize is unknown      step and setup total unknown, exit 1' and 'ok    an erroring resolve --dry-run      exit 1 is unknown, not a not-ready answer', which are the direct outputs of D-004's wrap-authorize and wrap-resolve fixtures (a `war` wrapper on PATH that exits 1 for `authorize`/`resolve` and passes other commands through), matching D-001's step()/tool_step() logic that marks a step and every total containing it 'unknown' and exits 1 on any unaccepted exit code. Both plant assertions read 'ok', and the battery's overall '1260 passed, 0 failed' confirms neither failed."
 performer = "claude"
 
 [verifier]

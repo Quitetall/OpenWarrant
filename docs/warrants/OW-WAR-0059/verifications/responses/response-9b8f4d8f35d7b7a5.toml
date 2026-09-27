@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0059"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "D-001 (crates/openwarrant-cli/src/evidence.rs) carries and shows the unit test `an_edited_receipt_does_not_reseal`, which flips a sealed receipt's verdict and asserts admissibility's returned error contains 'does not recompute', satisfying the unit-test half of OBL-001's evidence requirement. The second half — a plant flipping a committed receipt's verdict and `war check` refusing it as `evidence.receipt-invalid` — is not shown: the top-level `plants` array is empty, and `obligation_evidence.terms` lists `evidence.receipt-invalid` as shown only in D-001 (the diagnostic's own definition/match arms) and the atoms, not in any plant transcript or in the carried gate-run stdout excerpts for `software.repo.war-check@1.0.0`, whose visible lines report `evidence.stale-binding` but no `evidence.receipt-invalid` firing. No plant execution or output naming this rule is present anywhere in the bundle, so that half of the claim is not evidenced, only asserted by prior_verifications (an account, not bundle evidence). Per scope rules, an obligation requiring both a unit test and a plant is not established when only one half is shown."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

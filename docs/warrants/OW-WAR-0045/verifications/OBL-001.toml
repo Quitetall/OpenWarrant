@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "The bundle's deliverables array is empty and obligation_evidence for OBL-001 shows the term 'dispatch_digest' with shown_in: [] — nowhere in the bundle. The only gate run present, GR-software.repo.war-check@1.0.0, is the corpus-wide 'war check --generated' compliance checker; its own output states under NOT CHECKED that 'war check does not invoke [gate execution], so nothing here is evidence that a Warrant's acceptance gates were run.' No §48.4 Katana receipt, no Dispatch bytes, and no Katana version pin appear anywhere in the bundle for OW-WAR-0045."
+evidence = "deliverables is empty and obligation_evidence for OBL-001 lists the term 'dispatch_digest' with shown_in: [] — nowhere in the bundle. The single gate run present (GR-software.repo.war-check@1.0.0) is the generic corpus-wide 'war check --generated' structural checker, and its own stdout excerpt states under NOT CHECKED that 'war check does not invoke [gate execution], so nothing here is evidence that a Warrant's acceptance gates were run.' No §48.4 Katana receipt, no Dispatch bytes, and no Katana version pin appear anywhere for OW-WAR-0045, so a real, version-pinned Katana execution cannot be shown from this bundle."
 performer = "claude"
 
 [verifier]

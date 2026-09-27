@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0027"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "D-001 (crates/openwarrant-cli/src/blut.rs) implements §49.2 named-typed-port mapping via PORT_KIND_MAP and lowers a stage graph to a BLUT PlanSpec, refusing incompatible/unbound cases. D-002 (docs/warrants/OW-WAR-0027/evidence/blut-plan-check-2026-09-03.md) records BLUT's own verbatim output from running `lqt plan check` on the emitted spec: 'PASS blut.ports-mapped OW-WAR-0047: 3 port(s) map to kinds BLUT declares' and 'PASS blut.accepted ... BLUT accepted the lowering (fingerprint b69b886e4c9f, 8 recipes registered, exit 0)'. D-003 (OW-WAR-0047.planspec.json) is the exact PlanSpec BLUT accepted. Together these show a stage graph using named typed ports was lowered and BLUT — a separate external binary — accepted the resulting PlanSpec, matching the obligation's required evidence within its stated scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "The bundle's plants array is empty, and no deliverable or gate output shows a plant fabricating a lineage receipt being refused. atoms/45-milestones.yaml names STAGE-002 ('Plant a self-minted lineage receipt') as the vehicle for this obligation, but no such stage's execution or refusal is carried anywhere in the bundle. D-001, the only code deliverable, contains lowering and BLUT-verdict logic only (grep of the file shows no lineage-receipt consumption or fabrication-detection code), and its own verify() function explicitly states 'a typecheck produces none of' the status/artifact/lineage receipts OBL-001's sibling obligation would need — confirming the file does not address receipts at all. D-002/D-003 are about the PlanSpec typecheck path, not receipts. There is nothing in the bundle to decide this claim either way."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "D-002 explicitly identifies the verifying binary as '/mnt/4tb/LamQuant/training/cookbooks/lamquant/target/release/lqt (blut 0.2.0-alpha.1+23cd95ac5e18), built from training/engine at 23cd95ac' and records the command `war blut OW-WAR-0047 --verify <lqt> --emit ...` run against it, with BLUT's own PASS/verdict lines and a real fingerprint (b69b886e4c9f) returned by that separate program — not a mock. obligation_evidence confirms the term 'training/engine' is shown (in D-002 and the atoms) and not cut by the budget. This is a genuine integration run against a real, locally built BLUT binary sourced from the checkout named in the obligation's scope, satisfying the required evidence of 'an integration run, not a mock.'"
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "obligation_evidence for OBL-002 shows the term 'sas://WAR-SAS-RQ-999' with shown_in: [] — it appears nowhere in the bundle. The bundle's plants array is empty, and no gate-run line, deliverable excerpt, or Overview text records a refusal of this specific unresolvable reference; the closest test, unstable_or_malformed_identifiers_are_refused in D-001, only exercises malformed grammar, not an unresolvable-but-well-formed identifier like RQ-999. There is nothing here to decide the claim either way."
+evidence = "the verifier returned no usable verdict for this obligation"
 performer = "claude"
 
 [verifier]

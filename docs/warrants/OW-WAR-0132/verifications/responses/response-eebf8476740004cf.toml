@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0132"
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "D-006's plant script (52-hotline-defaults.sh) defines four checks for this obligation: 'frontier with no responder', 'next with no responder', 'an agent answering, no responder', and 'frontier with a responder'. Gate run GR-ops.conformance.plants@1.1.0's stdout excerpts show 'frontier with no responder' ok and 'next with no responder' ok at lines 267-268, and 'frontier with a responder' ok at line 270 — establishing that both `war frontier` and `war next` surface UNKNOWN `question.no-responder` naming roles.toml while the stage stays blocked, and that the finding clears once the human is restored. But line 269, where 'an agent answering, no responder' (the `war answer --as <agent>` refusal and byte-identical-file check) would appear, is not included in the excerpts, and the bundle's own obligation_evidence entry explicitly lists the term 'war answer --as <agent>' with shown_in: [], flagging that this specific result is not carried anywhere in the bundle. The truncated stdout's closing tally ('1260 passed, 0 failed') is an aggregate over the whole battery, not a look at that specific assertion, and per the bundle's own rule bytes not shown are not evidence either way. Because the obligation's 'never answered' clause is left unevidenced even though the 'never silent' clause is well-evidenced, the obligation as a whole cannot be established from this bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

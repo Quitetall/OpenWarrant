@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "obligation_evidence for OBL-002 names the term 'FormatBasis.digest' but shows it with empty shown_in and empty cut_from — it was never included in the bundle, not even partially. deliverables is empty, so FormatBasis.toml/lock or the assembled pack cannot be inspected, and the gate run's visible stdout tail (OW-WAR-0138–0147 checks) contains no mention of FormatBasis or a pack digest. There is no basis in this bundle to compare a pinned digest against an assembled pack."
+evidence = "obligation_evidence names the term 'FormatBasis.digest' for OBL-002 but with both shown_in and cut_from empty — the term was never carried into the bundle, not even partially — and deliverables is empty so no FormatBasis file or assembled pack is present to compare digests against. The gate run's visible stdout excerpts contain no mention of FormatBasis or a pack digest. There is no basis in this bundle to decide whether FormatBasis.digest matches the assembled pack."
 performer = "claude"
 
 [verifier]

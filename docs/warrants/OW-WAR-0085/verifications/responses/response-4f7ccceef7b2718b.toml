@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0085"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "The bundle's deliverables array is empty and obligation_evidence for OBL-001 lists no named_paths or terms actually carried (only the selection string 'warrant: every deliverable of the Warrant'). There is no sdk_probe.rs run, no conformance/sdk/run_phase1.py receipt, no CLI/driver transcript, and no docs/reviews/phase-1.md content shown anywhere. The sole evidence item, gate run GR-software.repo.war-check@1.0.0, is a repository-manifest structural check (manifest.valid, obligations.valid, milestones.valid, generated.drift, etc.) and its own excerpted stdout explicitly disclaims runtime evidence: 'gate execution — war gate --run executes a registered gate (§44), but war check does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run.' There is nothing in the bundle recording actual SDK/CLI inputs, outputs, or exit codes across S01–S08/SDK-01–24/FOOTER-01–08."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "The plants array is empty and deliverables is empty, so no observed named refusal, no unchanged-prior-output-on-failed-write record, and no mutation-of-real-content test is present anywhere in the bundle. The war-check gate's stdout excerpts only report repository/manifest-level PASS/WARN lines (e.g. evidence.stale-binding, sas.pin-superseded, authority.signed) which are unrelated to SDK/CLI input-validation behavior, so the boundary-refusal claim in OBL-002's scope cannot be assessed from anything shown."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "prior_verifications in this same bundle are themselves the only prior verification records, and each is disposed 'not_established'; no independent reproduction, baseline-condition record, or secure human-acceptance record for OW-WAR-0085's exact result is included. The war-check gate stdout tail even states '143 of 143 Warrant(s) have no disposed obligations — §38.6 yields no resolution verdict for them,' and flags 'human war sas repin OW-WAR-0085' as an outstanding remedy, confirming no qualification/acceptance evidence for this Warrant exists in the bundle."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "The cited gate run's excerpts (lines 1273-1287 and 2575) show OW-WAR-0085-specific structural results — PASS manifest.valid, traceability.refs, journal.append-only, authority.signed, gate.resolved, milestones.valid, obligations.valid, bonsai-scope.valid, generated.drift, identity.atom-mismatch (4 atoms) — alongside WARN evidence.stale-binding and WARN sas.pin-superseded for OW-WAR-0085, with subject_digests matching this Warrant's authorized_contract_digest, so the 'structural check' half of OBL-004's required evidence is substantially present. However, OBL-004's evidence explicitly also requires 'existing planted refusals,' and the bundle's plants array is empty, so that half of the required evidence is entirely absent, leaving the obligation not established."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

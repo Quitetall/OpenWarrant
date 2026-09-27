@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "the verifier returned no usable verdict for this obligation"
+evidence = "No deliverables, gate_runs, or plants are present in the bundle to show a two-stage PlanSpec execution, done status, artifact receipts, byte comparison, or port-refusal behavior. The only content is the authored intent/basis/work-order/assurance atoms, which describe what OBL-002 requires (done status, receipts, equal bytes, lineage reference, port validation) but contain no actual run evidence; 20-basis.md itself states GitHub 'currently refuses to start provider CI' and that integration observation is unavailable. There is nothing in obligation_evidence beyond an empty named_paths list to substantiate the claim."
 performer = "claude"
 
 [verifier]

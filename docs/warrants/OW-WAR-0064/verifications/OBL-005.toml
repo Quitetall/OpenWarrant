@@ -1,6 +1,6 @@
 obligation = "OBL-005"
 disposition = "not_established"
-evidence = "No correction record or 'war show' output is present in the bundle (deliverables:[]), so there is no way to confirm the superseded digest is readable, and no plant output shows a 'digest removed from record' attack being refused for OW-WAR-0064. obligation_evidence lists only that the term 'war show' appears in the atoms (the work-order text describing the requirement), which is not evidence of the actual behavior."
+evidence = "the verifier returned no usable verdict for this obligation"
 performer = "claude"
 
 [verifier]

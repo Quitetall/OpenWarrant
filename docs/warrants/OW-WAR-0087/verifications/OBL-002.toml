@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "As with OBL-001, deliverables and plants are absent (deliverables: [], plants: []), and obligation_evidence for OBL-002 carries no named_paths or terms. There is no record of any refusal fixture being run or of unchanged prior output on a failed write, so the boundary-refusal claim in atoms/60-assurance.md OBL-002 is unsupported by anything in the bundle."
+evidence = "As with OBL-001, deliverables: [] and plants: [] are both empty and obligation_evidence for OBL-002 lists no named_paths or terms. There is no record in the bundle of any refusal fixture being run, no invalid-input case output, and no observation of unchanged prior output on a failed write; the sole gate run present is the structural war-check, which does not exercise CLI refusal behavior. The boundary-refusal claim is therefore unsupported by anything shown."
 performer = "claude"
 
 [verifier]

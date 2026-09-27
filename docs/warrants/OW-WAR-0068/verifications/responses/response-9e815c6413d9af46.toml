@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0068"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "obligation_evidence explicitly states the named path plan/request.json is 'not carried' (absent from the Warrant's deliverables entirely), yet OBL-001's own evidence clause requires a recorded run showing grilling answers land in that exact file. The bundle carries only D-004 (war-grill/SKILL.md) and D-005 (war-spec/SKILL.md), which are method-description prose, and D-003 (context_select.rs) which shows code capable of carrying CONTEXT.md in a Dispatch manifest but no actual emitted manifest deliverable. No gate run, plant, or artifact in the bundle demonstrates a completed grilling interview, a Dispatch manifest listing the glossary, or a war-spec proposal that passed §74.4 steps 1-4; the gate run GR-software.repo.war-check@1.0.0's visible stdout excerpts show only unrelated PASS/WARN lines for OW-WAR-0068 (manifest.valid, deliverable.digests, etc.), none of which touch grilling or spec-drafting evidence. With the sole named evidentiary path confirmed absent and no substitute evidence shown, the claim cannot be established."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "D-002 (frontier.rs) implements the four StageState values and blocking-edge derivation, and D-010 (conformance/plants.d/90-skills.sh) contains the source of plants asserting OPEN/blocked/CLAIMED states and glossary-carrying, but the bundle's top-level plants array is empty, meaning no plant execution results are present—only the plant script text as a deliverable. The single gate run's visible stdout excerpts cover generic repo-wide checks (manifest.valid, milestones.valid, obligations.valid for OW-WAR-0068) and explicitly note under NOT CHECKED that 'war check does not run gates' and gate execution is not evidence that acceptance gates were run; no frontier command output or plant pass/fail for OW-WAR-0068 specifically is shown. D-007 (war-review/SKILL.md) and D-008 (war-map/SKILL.md) describe the intended two-axis review and blocking_unknown wayfinding methodology as process instructions, not an executed review naming both axes or an actual map Warrant with blocking_unknown fog that war check read. Without any executed frontier run, review record, or map artifact, the obligation is not established."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-003 shows the term 'war eval' appearing only within the atoms (atoms/40-work-order.md deliverable #8, an intent statement), with shown_in for that term listing only 'atoms' and never a deliverable; the term '.claude/skills/**' has an empty shown_in list, meaning it appears nowhere in the bundle at all. No eval-task files or fixture-agent baseline results are among the ten carried deliverables (D-001 CONTEXT.md, D-002 frontier.rs, D-003 context_select.rs, D-004 through D-008 SKILL.md files, D-009 docs/SKILLS.md, D-010 the plants script). D-010 contains only the shell source of an em-dash-refusal plant ('an em-dash in a skill is refused by file and line', building xtask and checking its output), with no corresponding execution record in the bundle's plants array or gate_runs showing it ran or its verdict. Since neither the eval-task deliverables nor an executed em-dash-refusal result are shown, the claim that the superset is measured cannot be established."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

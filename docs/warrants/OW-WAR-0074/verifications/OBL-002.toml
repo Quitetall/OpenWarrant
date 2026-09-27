@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "obligation_evidence for OBL-002 likewise carries no named_paths or terms, plants is empty, and no gate run or deliverable addresses the three named refusal cases (companion-contract invalidation, old 1.0.0 signature rejection, legacy-SAS mislabeling). No refusal observation of any kind appears in the bundle, so the counterexample controls cannot be confirmed."
+evidence = "obligation_evidence for OBL-002 carries no named_paths or terms, the deliverables array is empty, and plants is empty. No gate run or excerpt addresses the three named refusal cases (invalidation on a changed companion contract/manifest, rejection of an old 1.0.0 signature as RC.2 acceptance, or rejection of a legacy-SAS proposal mislabeled RC.2). None of this is shown anywhere in the bundle, so the counterexample controls cannot be confirmed."
 performer = "claude"
 
 [verifier]

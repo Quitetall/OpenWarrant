@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No refusal fixtures, plant runs, or CLI/driver error-path transcripts are carried: the 'plants' array is empty and deliverables is empty, so there is no observed named refusal, no unchanged-prior-output-on-failed-write evidence, and no mutation-of-real-content test shown. The war-check gate stdout only reports repository-manifest WARN/PASS lines (e.g. deliverable.undeclared-at-authorization, sas.pin-superseded) unrelated to SDK/CLI input validation, so the boundary-refusal claim cannot be assessed from this bundle."
+evidence = "The plants array is empty and deliverables is empty, so no observed named refusal, no unchanged-prior-output-on-failed-write record, and no mutation-of-real-content test is present anywhere in the bundle. The war-check gate's stdout excerpts only report repository/manifest-level PASS/WARN lines (e.g. evidence.stale-binding, sas.pin-superseded, authority.signed) which are unrelated to SDK/CLI input-validation behavior, so the boundary-refusal claim in OBL-002's scope cannot be assessed from anything shown."
 performer = "claude"
 
 [verifier]

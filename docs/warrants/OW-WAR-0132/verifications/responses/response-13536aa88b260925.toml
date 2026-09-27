@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0132"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "The obligation's own plant, conformance/plants.d/52-hotline-defaults.sh (D-006), builds a scratch corpus (HD-WAR-0002, via scratch_corpus HD) and runs exactly the three cases the obligation names under `war perform` with the `[perform]` spend keys: 'a hard spend cap' sets hard_spend_cap=\"1.00 USD\", asserts exit!=0, perform.spend-unenforceable in output, no marker written, zero dispatch packets, and dispatch.compiled count unchanged (nothing compiled or spawned); 'allow_unmetered absent' strips the key and asserts perform.unmetered-not-allowed naming 'allow_unmetered = true', paired with 'allow_unmetered = true' where the stage runs and is marked answered; and 'spend is unknown, never zero' collects 7 perform.ended lines across the kept journals from the repair/recovery runs and asserts every one carries spend:\"unknown\" while a regex finds no \\\"spend\\\":0 or \\\"spend\\\":\\\"0\\\", backed by the negative control 'a zero spend would be seen' proving the same regex catches a deliberately planted zero. The single gate run in the bundle, GR-ops.conformance.plants@1.1.0 (receipt verdict: pass, exit_result: pass, 1260 passed/0 failed), shows its stdout excerpts containing exactly these five 'ok' lines with matching detail text ('rejected by perform.spend-unenforceable; nothing compiled or spawned', 'rejected by perform.unmetered-not-allowed, naming the key', 'STAGE-001 performed; perform.ended answered', '7 perform.ended lines, each spend \"unknown\"; no spend 0', 'the planted \"spend\":0 matches the check above'), so the plant that decides this obligation is shown to have actually run and passed, not merely asserted. This is corroborated by the implementing code: perform.rs's hotline_admitted (D-002) pushes perform.spend-unenforceable when hard_spend_cap is set and perform.unmetered-not-allowed when unmetered_allowed() is false, and journal_ended writes spend:\"unknown\"; config.rs's PerformPolicy::unmetered_allowed (D-003) requires an explicit Some(true); and this repository's own openwarrant.toml (D-004) sets allow_unmetered = true with a comment stating the cost is unknown. Scope matches (a scratch corpus, the [perform] spend keys, no claim about real metered spend), so the bundle establishes the claim."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

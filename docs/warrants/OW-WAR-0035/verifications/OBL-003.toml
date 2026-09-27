@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = """OBL-003's evidence requirement is 'a plant' showing the draft remains unauthorized, but this bundle's plants array is empty ("plants":[]) and obligation_evidence for OBL-003 has empty terms and no named_paths. No self-authorization plant, its expected rejection message, or any gate line addressing §27.2 appears in the shown gate stdout tail (which only covers OW-WAR-0138 onward and generic identity/composition checks). Without a plant record or equivalent evidence in this bundle, the claim that planning never authorizes cannot be established or refuted from what was carried."""
+evidence = "OBL-003 requires 'a plant; the draft remains unauthorized' as evidence, but the bundle's plants array is empty ([]) and obligation_evidence for OBL-003 shows no named_paths and an empty terms array. The single gate run's visible stdout tail (spanning the OW-WAR-0130 through OW-WAR-0146 repin listing and the OW-WAR-0035-scoped checks) contains no plant, rejection trace, or line addressing self-authorization or §27.2. Without a plant record or equivalent artifact demonstrating a self-authorizing plan was attempted and rejected, this bundle carries nothing to establish or refute the claim."
 performer = "claude"
 
 [verifier]

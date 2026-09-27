@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "not_established"
-evidence = "D-001 (crates/openwarrant-core/src/seam.rs) contains no Dispatch type or Dispatch→Katana-request compilation function anywhere in its 1061 lines; it only defines KatanaReceipt (receipt consumption), ActionEnvelope, BlutLowering and parity types. The work order (atoms/40-work-order.md) lists 'Dispatch → Katana request mapping' as deliverable #1, but this is the sole deliverable carried for the warrant and it does not contain that mapping, so the obligation's core claim is unaddressed by the evidence shown. The gate run's own NOT CHECKED section states 'war check' does not execute the crate's gates/tests, so the listed test names (e.g. the_receipt_holds_a_prompt_ir_digest_and_not_prompt_ir) are not confirmed as having actually run and passed by this bundle."
+disposition = "refuted"
+evidence = "D-001 (crates/openwarrant-core/src/seam.rs) is carried in full (truncated: false, all 1061 lines, sha256 matches whole file) and contains no Dispatch type and no function compiling a Dispatch into a Katana request; the crate's only §48-relevant type is KatanaReceipt, which is consumed (validated), not produced. atoms/40-work-order.md lists 'Dispatch → Katana request mapping' as deliverable #1, and this sole carried deliverable does not contain it, so the claim that a Dispatch maps to a Katana request does not hold in the evidence shown. The gate run (GR-software.repo.war-check@1.0.0) only checks warrant-record well-formedness and explicitly states in its NOT CHECKED section that 'war check' does not invoke gates/tests, so it supplies no countervailing evidence of a mapping existing elsewhere."
 performer = "claude"
 
 [verifier]

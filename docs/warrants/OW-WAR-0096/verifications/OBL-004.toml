@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "No legacy export bytes, CLI command transcripts, or fixture-mode activation logs are carried (deliverables and gate_runs are empty, and OBL-004's obligation_evidence entry has no named_paths or terms). The claims about unchanged legacy export, inert draft/propose, and single approve --activate completion appear only in the assurance atom's text, not in any evidenced artifact."
+evidence = "No legacy-export bytes, CLI transcripts, or fixture-mode activation logs are carried — deliverables and gate_runs are empty and OBL-004's obligation_evidence entry has no named_paths or terms. The claims of unchanged legacy export, inert draft/propose, and a single approve --activate completion are stated only in atoms/60-assurance.md, not demonstrated by any carried artifact."
 performer = "claude"
 
 [verifier]

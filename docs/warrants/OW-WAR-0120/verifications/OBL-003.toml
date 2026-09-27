@@ -1,6 +1,6 @@
 obligation = "OBL-003"
-disposition = "not_established"
-evidence = """The manifest-corruption scenario's expected output ("a failing command is unknown") from 52-retention.sh (D-006) does not appear anywhere in the visible, truncated ops.conformance.plants@1.1.0 stdout, and obligation_evidence gives no shown_in entry tying this obligation's specific check to that stdout. D-003's source code implements the unknown/Law-15 logic correctly, but the bundle carries no run evidence confirming it fired as described within the corrupted-manifest scope."""
+disposition = "established"
+evidence = "The same gate-run excerpt (lines 280-290) shows 'ok a failing command is unknown check,check-generated,next,status,compile unknown, exit 1', matching D-006's rt_ok message format after corrupting a manifest in the 12-Warrant corpus and re-running budget.sh; this confirms the commands that failed were marked 'unknown' (not 'within') and the script exited 1, per D-003's Law-15 handling in its source."
 performer = "claude"
 
 [verifier]

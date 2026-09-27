@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "No war-grill skill code, test run output, lint output, or gate_runs entries are present in the bundle (gate_runs is empty). The obligation requires focused tests, package suite, lint and full gate results with exact subjects, none of which appear anywhere in the supplied atoms."
+evidence = "gate_runs is empty and no war-grill code or output is carried, so there are no focused test results, package suite output, lint output, or full-gate run with subjects to verify queue-item identity/unanswered-status preservation or absence of invented human answers."
 performer = "claude"
 
 [verifier]

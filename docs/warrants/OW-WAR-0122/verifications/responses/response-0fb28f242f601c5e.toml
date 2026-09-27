@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0122"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "refuted"
+evidence = "D-001 (docs/GRAMMAR.md, carried in full, 356 lines, sha256 fb72211b...) states its own methodology in 'How to read it': 'Each standard cell quotes the clause it rests on, or says unspecified where the SAS says nothing,' matching OBL-004's evidence bullet. But several standard cells in the tables do neither. In §2.3's row '§62's example with `holder` removed | §62 | accept | the reader accepts it...' the standard cell is the bare word 'accept' with no quotation and no 'unspecified'. In §3's structured-atoms table, the row 'a mapping below a sequence item | §62.1 | accept: YAML | refuse, rule `milestones.invalid`...' and the row 'a duplicate key | §62.1 | refuse: YAML requires unique keys | refuse, rule `milestones.invalid`...' likewise give standard cells that paraphrase rather than quote SAS text and do not say 'unspecified'. In §7's roles table, 'a namespaced role, required | §16.4 | refuse: an unknown required role | refuse, rule `manifest.invalid`' is the same pattern. These are direct, bundle-visible violations of the evidence bullet 'every standard cell quotes a SAS clause or says unspecified,' so the claim that the document separates standard from tool conformance as the obligation requires does not hold. Separately, the prior verification (disposition refuted) flagged that DV-14 lacked a proposed SAS text; in this bundle's copy of D-001, DV-14 does carry one ('Proposed SAS text, §38.2: append to DV-5's Markdown form...'), so that specific defect appears to have been fixed since the prior verification, but the standard-cell defect above independently refutes the obligation. The document.review@1.0.0 gate run (GR-document.review@1.0.0, verdict fail) is not relevant to this finding — its stdout only reports missing third-party verification records, not table-completeness checks."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0136"
+
+[[verifications]]
+obligation = "OBL-005"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass, subject_digests bound to the current contract/tree) captured stdout from conformance/plants.d/58-invalidation.sh (D-007) running on the scratch IV corpus. The stdout excerpt (lines 634-663) contains all four cases OBL-005 requires, each explicitly noting 'nothing written': 'an agent's invalidation: refused invalidation.agent (§27.2, by kind); nothing written', 'the performer's invalidation: refused invalidation.self-act (SelfAct); nothing written', 'the performer may not record it attest.custody-self-act (SelfAct); nothing written', and 'the performer may not resolve resolution.not-permitted (SelfAct); no resolution.toml'. D-007's own excerpted script logic (lines 499-523) shows the agent and performer invalidation checks are gated on the command's actual non-zero exit code, a regex match on the specific error rule, and helper predicates iv_clean && iv_no_disputes verifying nothing was recorded before the 'ok' line is printed, confirming these are genuine assertions rather than bare narration; the same iv_ok convention evidently applies to the custody and resolve lines in the same run. This is corroborated by the independent prior verification (claude-verifier, distinct-model and blind-transcript independence) which reached the same 'established' disposition citing the identical stdout lines."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

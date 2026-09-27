@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0105"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "deliverables, gate_runs, and plants are all empty arrays, and obligation_evidence for OBL-001 lists no named_paths or terms beyond the blanket selection 'warrant: every deliverable of the Warrant'. Only the authored atoms (10-intent.md, 20-basis.md, 40-work-order.md, 45-milestones.yaml, 60-assurance.md) are present, which state the intent and acceptance criteria for a model-neutral draft surviving validation, but carry no code, fixture, or gate run output showing a configured process, the real SDK, or reference HTTP/storage actually producing a validated editable source or preserving fields/revision history on save. No evidence bears on the claim either way."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "No deliverables, gate_runs, or plants are included in the bundle, and obligation_evidence for OBL-002 shows an empty named_paths list with only the blanket warrant-level selection. There is no fixture output, refusal log, or gate run demonstrating malformed/extra authority field rejection, stale context digest refusal, unknown cost cap enforcement, timeout handling, oversized output rejection, unavailable harness refusal, or interrupted-attempt tracking without inferred duplicate dispatch. The obligation is only asserted in atoms/40-work-order.md and atoms/60-assurance.md, not evidenced."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "The bundle contains zero gate_runs and zero deliverables, so there is no browser walkthrough evidence, no immutable-record persistence test, no authentication/replay test, and no package/gate suite result to inspect; obligation_evidence again shows an empty named_paths list for OBL-003 beyond the blanket warrant-level selection. The claims about no-auto-save, preview non-overwrite, record survival across restart, and passing suites appear only as prose in atoms/60-assurance.md and atoms/40-work-order.md, which describe intended behavior rather than demonstrated proof."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

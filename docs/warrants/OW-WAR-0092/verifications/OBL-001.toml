@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "The bundle carries no deliverables (deliverables: []), no plants, and no gate_runs. obligation_evidence for OBL-001 lists no named_paths and no terms — only the selection string 'warrant: every deliverable of the Warrant'. There is no offline HTML artifact, no rendered tracker rows, no XSS-safety test, and no evidence of the 'existing source destinations refuse unchanged' behavior anywhere in the bundle. The claim is asserted in the assurance atom but nothing in the bundle demonstrates it."
+evidence = "The bundle's deliverables, plants, and gate_runs arrays are all empty, and obligation_evidence for OBL-001 lists no named_paths and no terms — only the selection string 'warrant: every deliverable of the Warrant'. No offline HTML artifact, rendered tracker rows, XSS-safety test, or 'source destinations refuse unchanged' behavior is present in the bundle to inspect."
 performer = "claude"
 
 [verifier]

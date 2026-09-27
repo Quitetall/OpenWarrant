@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "The bundle's deliverables array is empty and obligation_evidence for OBL-001 shows selection 'warrant: every deliverable of the Warrant' with no named_paths or terms actually populated — no bytes of author.rs, conformance/sdk/author/ fixtures, or any parse_document/validate_document output are present anywhere in the bundle. The only evidence item is the software.repo.war-check@1.0.0 gate run, which is a structural/authority linter over the whole corpus and never inspects runtime SDK behavior (footer ordering, unit preservation, revision handling). There is nothing here showing readable-text-first/footer-last output or preserved units, so the claim cannot be decided from this bundle."
+evidence = "The bundle carries deliverables:[] and obligation_evidence for OBL-001 shows no named_paths or terms, so no bytes of author.rs, conformance/sdk/author/ fixtures, or parse_document/validate_document output exist in this bundle. The only evidence item is gate run GR-software.repo.war-check@1.0.0, whose own NOT CHECKED section states 'war check does not invoke [gates it cites]... nothing here is evidence that a Warrant's acceptance gates were run,' and its PASS lines (e.g. manifest.valid, obligations.valid) address record structure, not runtime SDK behavior such as text-first/footer-last ordering or unit preservation. No observed instance of author_document/edit_document plus parse/validate output is present, so this obligation cannot be decided from the bundle."
 performer = "claude"
 
 [verifier]

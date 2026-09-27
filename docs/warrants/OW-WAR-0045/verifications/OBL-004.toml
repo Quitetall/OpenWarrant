@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "obligation_evidence shows both required terms, 'realized_capabilities' and 'UnauthorizedCapabilityRealized', with shown_in: [] — absent from the bundle. Deliverables is empty, so no receipt or recorded capability comparison is carried. The one gate run present addresses repo-manifest/authority/traceability structure across many Warrants, not §48.3 capability containment for OW-WAR-0045's executed attempt. A prior verifier's citation of a test name is not corroborated by any evidence visible in this bundle."
+evidence = "obligation_evidence for OBL-004 lists both required terms, 'realized_capabilities' and 'UnauthorizedCapabilityRealized', with shown_in: [] — absent from the bundle. deliverables is empty, so no receipt or recorded capability comparison is carried, and the sole gate run addresses repo-manifest/authority/traceability structure across many Warrants rather than §48.3 capability containment for OW-WAR-0045's executed attempt."
 performer = "claude"
 
 [verifier]

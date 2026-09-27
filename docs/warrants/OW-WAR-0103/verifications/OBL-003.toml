@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "No gate_runs (empty array) are present in the bundle, so there is no evidence of targeted suites, clippy, generated checks, or a full repository gate having been executed. atoms/40-work-order.md and atoms/60-assurance.md only specify what should be checked, not the results of any such check."
+evidence = "gate_runs is an empty array, so there is no record of targeted suites, clippy, generated checks, or a full repository gate having been run. atoms/40-work-order.md and atoms/60-assurance.md only describe what checks should be performed, not any executed results."
 performer = "claude"
 
 [verifier]

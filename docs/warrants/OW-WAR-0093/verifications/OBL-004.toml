@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "OBL-004 requires evidence of a separate review context/repository gate and absence of a self-issued Verified mark, but gate_runs and plants are both empty arrays and prior_verifications is empty, leaving nothing in the bundle to confirm or refute independent review occurred."
+evidence = "OBL-004 requires evidence of a separate review context and repository gate with no self-issued Verified mark; gate_runs and plants are both empty, prior_verifications shows only a prior not_established assessment from the same class of automated verifier rather than an independent repository gate, and obligation_evidence carries no named_paths for OBL-004, leaving nothing to confirm independent review occurred."
 performer = "claude"
 
 [verifier]

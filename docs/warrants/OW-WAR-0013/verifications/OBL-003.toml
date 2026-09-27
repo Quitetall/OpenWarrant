@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "No deliverable in the bundle carries WARRANT_OVERVIEW.md content — the only gate-run line touching it is 'PASS warrant-overview.drift WARRANT_OVERVIEW.md matches a fresh compilation', which shows internal consistency, not that the file 'lists the uncovered ones by identifier' as OBL-003's evidence requires. The sole deliverable D-001's derive_all function only maps over requirements already present in the supplied Implements links, so it cannot itself enumerate all 57 §106 requirements to find ones with zero links; whether that enumeration/set-difference happens in an Overview generator elsewhere in the repo is not shown in this bundle. Absent the Overview's actual content, this cannot be decided from the evidence carried."
+evidence = "the verifier returned no usable verdict for this obligation"
 performer = "claude"
 
 [verifier]

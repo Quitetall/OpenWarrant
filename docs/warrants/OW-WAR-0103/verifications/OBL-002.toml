@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No gate_runs or deliverables are carried in this bundle to show real stdio JSON-RPC war_questions/war_answers behavior against the fixture. atoms/60-assurance.md states the expected evidence (healthy record visible beside malformed companion, exit status/MCP error flag, answers refuse) but this is only the acceptance criterion text, not an actual MCP session transcript or gate output."
+evidence = "No gate_runs or deliverables carrying real stdio JSON-RPC war_questions/war_answers sessions are present in this bundle (deliverables, gate_runs, plants all empty). atoms/60-assurance.md states the acceptance criteria (healthy record visible beside malformed companion, exit status/MCP error flag, answers refuse) as text only, with no MCP transcript or output artifact to verify it against."
 performer = "claude"
 
 [verifier]

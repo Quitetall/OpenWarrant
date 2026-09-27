@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0112"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "D-027 (conformance/plants.d/99-init.sh, carried whole, untruncated) runs `war init </dev/null` with no terminal and asserts refusal with nothing written, and runs `war init --program \"Plant Program\" --namespace PP </dev/null` asserting only the `.example` templates exist (never `roles.toml`/`allowed_signers`) and that stdout is exactly the same three pinned lines the release always printed; these exact checks appear as passing 'ok' lines under '== guided init (OW-WAR-0112) ==' in gate run GR-ops.conformance.plants@1.1.0 (verdict pass). D-022 (init/guided.rs, excerpted) contains the fully-shown unit test `the_agent_is_a_performer_and_nothing_else`, which parses a rendered `roles.toml` and asserts exactly one `actor_kind = \"agent\"` assignment whose `roles` is `[\"performer\"]` and nothing else, directly establishing the 'never for an agent' clause. The excerpt spanning lines ~804-820 of the same file shows an assertion 'roles.toml exists and is left alone' paired with a write only to the still-missing `allowed_signers`, supporting the 'refuses to touch existing files' clause for the case shown. The excerpt at lines 653-677 shows the written text asserted to contain `typed at a terminal by \"Ada\"` and `loaded with \\`ssh-add -c\\`: yes`, and the neighboring `render_roles` body embeds `effective_time = {now:?}` into the same written file, together covering the header's name, -c answer and date. D-023 (roles.toml.example, whole) and D-024 (allowed_signers.example, whole) state the write-once-at-a-terminal and performer-only rules verbatim; D-025 (RESOLVING.md, excerpted at lines 37-61) states '`war init` … at a terminal: asks your name, your key, and writes both files once'; D-026 (QUICKSTART.md, whole) states 'let `war init` at a terminal ask for these and write both files from your answers — once … the agent entry it writes is `performer` only'. Together these four documents, the CLI-level plant (passing in the cited gate run), and the two directly-shown unit tests establish the obligation's claims within its stated scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

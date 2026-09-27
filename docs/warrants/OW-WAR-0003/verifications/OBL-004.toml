@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "The obligation requires two runs differing in process, working directory, environment ordering and locale. The tests canonical_output_is_stable_across_two_computations, digests_are_stable_across_runs and lowering_is_deterministic compute twice inside one process and one environment, so they vary none of those factors. No cross-process or cross-environment run is in the bundle, and no test result is shown at all. The atom itself admits same-host determinism only. The prior verification's reliance on lowering_is_deterministic is not evidence."
+evidence = "The obligation's scope requires two runs differing in process, working directory, environment ordering, and locale. The only relevant tests in the bundle — canonical_output_is_stable_across_two_computations (D-002), digests_are_stable_across_runs (D-002), and lowering_is_deterministic (D-004) — compute both values inside a single process/environment, varying none of the required dimensions, and no execution output for any of them is shown. Atom atoms/60-assurance.md itself states the 'known limitation' that 'two hosts is satisfied here by two runs on one machine' and that OBL-004 'must not be read as proving cross-platform canonicalization,' confirming the bundle carries no evidence of the cross-process/cross-environment comparison the obligation names."
 performer = "claude"
 
 [verifier]

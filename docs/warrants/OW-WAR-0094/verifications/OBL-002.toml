@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "As with OBL-001, deliverables and gate_runs are empty and obligation_evidence for OBL-002 names no paths and shows no terms. The assurance atom (atoms/60-assurance.md) merely restates the obligation's own text as intended evidence; no persisted attempt records, hard-cap refusal outputs, or restart/timeout behavior are shown in the bundle. No basis to establish or refute."
+evidence = "As with OBL-001, no deliverables or gate_runs are carried and obligation_evidence for OBL-002 names no paths or terms. atoms/60-assurance.md and atoms/40-work-order.md state the intended hard-cap, verified-start refusal, and restart/timeout behavior, but no persisted attempt records or actual controller outputs demonstrating a hard-cap refusal, a verified-start refusal, or restart-after-crash behavior are present in the bundle to confirm or deny the claim."
 performer = "claude"
 
 [verifier]

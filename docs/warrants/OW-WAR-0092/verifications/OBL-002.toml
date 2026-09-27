@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No deliverables, gate_runs, or plants are present to show the --serve loopback endpoint's behavior. obligation_evidence for OBL-002 shows no named_paths or terms, meaning none of the claimed behaviors (refresh on edit, stale-state preservation, unknown-state on invalid reports, Host/Origin/POST/traversal/oversize refusal, GET success) are shown by any file, test output, or run log in this bundle."
+evidence = "No deliverables, gate_runs, or plants are present to demonstrate the --serve loopback endpoint's behavior. obligation_evidence for OBL-002 carries no named_paths or terms, so none of the claimed behaviors (refresh on edit, stale-state preservation, unknown-state on invalid reports, Host/Origin/POST/traversal/oversize refusal, GET success) are shown by any file, test output, or run log."
 performer = "claude"
 
 [verifier]

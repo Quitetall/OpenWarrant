@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "No HTML/browser deliverable, screenshot, or gate run demonstrating escaping of hostile text, pending-inventory rendering, or brevity configuration is included; deliverables and gate_runs are both empty and obligation_evidence lists no named_paths or terms for OBL-003. The atoms only state the requirement (60-assurance.md, work-order.md) but provide no evidence of the actual rendered output, so this cannot be established or refuted."
+evidence = "No HTML/browser deliverable, screenshot, or gate run demonstrating escaping of hostile text, pending-inventory rendering, or brevity configuration is included; deliverables and gate_runs are both empty and obligation_evidence lists no named_paths or terms for OBL-003. atoms/60-assurance.md and atoms/40-work-order.md only state the requirement, with no rendered output or QA record in the bundle to confirm or deny it."
 performer = "claude"
 
 [verifier]

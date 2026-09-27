@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "The test every_domain_pair_yields_a_distinct_digest in canonical.rs would check distinctness across all DigestDomain::ALL, which now has 16 domains against the obligation's stated fifteen. digest.rs shows 16 distinct URI literals. No test execution output is in the bundle, because the sole gate run is `war check --generated`, which does not run cargo tests. The passing result is asserted only by prior verifications, which are not evidence."
+evidence = "digest.rs's every_domain_pair_yields_a_distinct_digest test would check the full pairwise set the obligation demands (105 pairs for 15 domains, though DigestDomain::ALL now enumerates 16 named domains including VerificationBundle), and domain_uris_are_unique enforces distinct URIs at the type level, but no test-run output is in the bundle to show these assertions actually executed and passed. The single gate run is `war check --generated`, which per its own NOT CHECKED section does not execute gates or tests, and obligation_evidence lists no terms carried for OBL-003."
 performer = "claude"
 
 [verifier]

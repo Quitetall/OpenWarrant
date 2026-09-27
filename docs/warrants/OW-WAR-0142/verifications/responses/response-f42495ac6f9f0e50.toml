@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0142"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "refuted"
+evidence = "D-001 (docs/adr/atoms/OW-ADR-0029-standing-authorization.md, sha256 52ad1e53...) is the delivered ADR, and its own text states in the Status section 'Proposed by the performer under OW-WAR-0142. **Not decided.** The owner chooses A, B or C by answering OW-WAR-0142 Q-001' and its Decision section reads verbatim '*Pending Q-001.* If A: the mechanism above,' with front matter still `status: proposed`. OBL-001's evidence bullet requires 'the Decision section matches the answer in Q-001, and `answered_by` is a person' — D-001 shows no such matched decision and no `answered_by` field anywhere (obligation_evidence lists the term `answered_by` with `shown_in: []`, i.e. not shown at all). questions/Q-001.toml, the other named scope item, is confirmed absent by obligation_evidence ('not a deliverable: not carried'), so there is no record anywhere in the bundle of what the owner answered. D-027 (docs/sas/revisions/1.2.0.toml) likewise sits at `state = \"proposed\"`, not adopted, consistent with an unanswered Q-001. Taken together, within the obligation's own scope (the ADR, Q-001.toml, and the SAS revision — no claim about code), the bundle affirmatively shows the Decision section is not recorded and matches no answer, which is the opposite of what OBL-001 requires; this is a refutation, not a mere absence of evidence."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

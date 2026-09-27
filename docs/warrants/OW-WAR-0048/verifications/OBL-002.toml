@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "obligation_evidence for OBL-002 explicitly marks `.github/workflows/ci.yml` as absent ('a repository path that is not a deliverable of OW-WAR-0048: not carried'), and deliverables is empty, so no version of the runner-tier comment — corrected or stale — is present anywhere in the bundle. The war-check gate run's visible output does not reference ci.yml's runner comment. There is nothing to compare the comment's current text against the obligation's required wording."
+evidence = "obligation_evidence explicitly marks `.github/workflows/ci.yml` as absent: 'a repository path that is not a deliverable of OW-WAR-0048: not carried', and deliverables is empty, so neither the corrected comment nor its prior stale text is shown anywhere in the bundle. The gate run's visible stdout excerpts never mention ci.yml's runner-tier comment. There is nothing to check the required wording against, so the obligation cannot be decided from this bundle."
 performer = "claude"
 
 [verifier]

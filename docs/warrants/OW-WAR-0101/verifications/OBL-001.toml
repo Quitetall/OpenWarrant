@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = """The bundle carries no deliverables ("deliverables":[]), no gate_runs, and no plants. obligation_evidence for OBL-001 lists no named_paths and no terms; the selection is merely 'warrant: every deliverable of the Warrant' with nothing actually shown. There is no adapter code, HTTP fixture, or test output present to demonstrate conforming responses emitting or malformed/truncated/missing-field cases refusing without proposal stdout, so the claim cannot be decided from this bundle."""
+evidence = "deliverables, gate_runs, and plants are all empty arrays, and obligation_evidence for OBL-001 lists no named_paths and no terms — only the placeholder selection 'warrant: every deliverable of the Warrant' with nothing actually carried. There is no adapter source, HTTP fixture, or test transcript in the bundle showing a conforming response emitting or malformed/truncated/missing-field inputs refusing without proposal stdout, so the claim cannot be decided from this bundle."
 performer = "claude"
 
 [verifier]

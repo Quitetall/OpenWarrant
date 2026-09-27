@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "the verifier returned no usable verdict for this obligation"
+evidence = "No plants (plants: []) and no deliverables are carried in this bundle, so there is no record of any malformed/incomplete/conflicting/over-limit/authority-confused input being fed to the SDK or provider boundary, nor any observed refusal output. OBL-002 explicitly requires 'observed named refusals,' and obligation_evidence shows no named_paths for OBL-002 at all — the claim is unaddressed by any carried evidence."
 performer = "claude"
 
 [verifier]

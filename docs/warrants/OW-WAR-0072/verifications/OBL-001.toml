@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "refuted"
-evidence = "The bundle's deliverables list for OW-WAR-0072 is empty ([]), and obligation_evidence for OBL-001 states both named paths in its scope — openwarrant-core/src/batch.rs and docs/authority/batches/ — are absent for the explicit reason 'no deliverable of OW-WAR-0072 and no file at this path.' The canonical-JCS/DigestDomain and --verify terms are only shown in the atoms (the work order's plan text), never in any deliverable or gate output. Since the file the obligation is scoped to does not exist in the repository, the claim that 'the signed subject is the list, canonically' cannot hold — there is no batch.rs implementing it."
+evidence = "deliverables is [] for this Warrant, and obligation_evidence for OBL-001 explicitly marks both named paths in its scope as absent: 'openwarrant-core/src/batch.rs' — 'no deliverable of OW-WAR-0072 and no file at this path: not carried' — and 'docs/authority/batches/' likewise not carried. The DigestDomain and canonical-JCS terms are shown only inside atoms/40-work-order.md (the plan text), never in any deliverable, and '--verify' is shown nowhere at all. With no batch.rs file existing in the bundle, there is no canonical digest implementation to examine, so the claim that 'the signed subject is the list, canonically' is refuted by the confirmed absence of the file it is scoped to."
 performer = "claude"
 
 [verifier]

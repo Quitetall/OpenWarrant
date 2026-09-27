@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "plants is empty ([]) and deliverables is empty, so there is no observed refusal for malformed/incomplete/conflicting/over-limit/authority-confused inputs anywhere in the bundle. The gate run present is the structural war-check, not a refusal test of the SDK/provider boundary, and 60-assurance.md explicitly warns that 'Unknown observations cannot pass' — no refusal evidence is carried."
+evidence = "plants is an empty array and deliverables is empty, so no observed refusal for malformed/incomplete/conflicting/over-limit/authority-confused inputs is carried anywhere in the bundle. The single gate run is the generic war-check structural checker, not a boundary-refusal test, and 60-assurance.md warns 'Unknown observations cannot pass.' There is no fixture, conformance output, or plant showing a refusal at the SDK/provider boundary."
 performer = "claude"
 
 [verifier]

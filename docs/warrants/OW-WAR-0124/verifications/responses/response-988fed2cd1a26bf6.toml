@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0124"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "established"
+evidence = "conformance/plants.d/59-adoption.sh (D-008, untruncated) builds a scratch repo AD_D containing docs/adr/0001-x.md, runs `war init --program Acme --namespace ACME`, and asserts the output contains exactly one occurrence of `war migrate --corpus docs/adr --commit $AD_DHEAD` (grep -Fc ... -eq 1) and that `$AD_D/artifacts` does not exist — matching the obligation's first two evidence clauses verbatim. The same script then checks the negative case: AD_E (docs/adr/README.md only, no NNNN-*.md file) and AD_A (ACME repo with no adr directory at all) both produce no 'war migrate' line in their init output, matching the obligation's third clause ('without the directory the line is absent'). The gate run GR-ops.conformance.plants@1.1.0 stdout excerpt shows both corresponding plant lines passing — 'ok    existing ADRs get the migrate line one line, nothing imported' and 'ok    no ADR corpus, no migrate line     README.md alone, or no directory' — inside an overall '1260 passed, 0 failed' verdict:pass run. The second gate run (software.repo.war-check@1.0.0) independently confirms this plants run is admissible evidence for the current contract via its PASS evidence.admissible line for ops.conformance.plants@1.1.0 ('receipt reseals and is bound to the current contract and to its source'), so the passing run is tied to this Warrant's authorized contract, not a stale one. D-002's migrate_line function in init/mod.rs produces exactly the string format the plant greps for. Together the plant's assertions, matching directly to the obligation's stated evidence, and the confirmed-current passing gate run establish the obligation."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

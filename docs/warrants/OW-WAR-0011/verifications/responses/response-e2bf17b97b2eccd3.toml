@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0011"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "crates/openwarrant-core/src/preflight.rs (D-001, untruncated, 460 lines) defines all six §32 groups as a vocabulary (CheckGroup::Contract/Context/Graph/Runtime/Gates/Authority) backed by CONTRACT_CHECKS/CONTEXT_CHECKS/GRAPH_CHECKS/RUNTIME_CHECKS/GATE_CHECKS/AUTHORITY_CHECKS transcribed verbatim from §32.1–§32.6, and the test the_check_groups_and_counts_match_the_sas pins their counts (6,6,5,10,9,5 summing to TOTAL_CHECKS=41) and asserts no duplicate check names. PreflightReceipt::outcome() returns CheckOutcome::NotRun for any check absent from the map rather than Passed, and the tests not_run_blocks_exactly_as_failed_does and an_absent_check_is_not_run_not_passed show a check either resolves to a readiness-permitting outcome (Passed/NotApplicable) or blocks (NotRun/Failed) — an empty receipt blocks on all 41 checks across all six groups, so none is silently omitted. This is exactly the evidence OBL-001 names, present in full in the carried deliverable."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "OBL-002's evidence clause requires 'a plant; the verdict is not-ready with the dimension named,' consistent with milestones.yaml STAGE-002 ('Plant an unresolvable context and an absent gate tool'). The bundle's plants array is empty, and obligation_evidence for OBL-002 lists no named_paths or terms carried. The gate run GR-software.repo.war-check@1.0.0 stdout explicitly places 'Preflight readiness (§32.7)' under NOT CHECKED, stating 'Preflight is not implemented, and war check does not run gates' — i.e. no war-level check exercises this at all. The in-memory unit test not_run_blocks_exactly_as_failed_does manipulates a synthetic PreflightReceipt directly; it is not a plant of an unresolvable context or absent gate tool and shows no not-ready verdict produced against a planted scenario. Nothing in the bundle demonstrates the required planted blocking case."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003's scope is 'every Preflight run' and its evidence clause requires the runtime dimension to report unknown while no live actor exists, on every actual run — not merely that the type is capable of representing NotRun. The bundle carries no war preflight CLI deliverable, no generated receipt from a real invocation, and no gate-run output showing a run where the runtime group reports NotRun/unknown; the gate run stdout instead confirms 'Preflight readiness (§32.7)' is NOT CHECKED because Preflight is not implemented. The cited test the_receipt_states_what_it_does_not_prove only asserts that PreflightReceipt::meaning() contains the §32.7 disclaimer text and says nothing about the runtime dimension's outcome on any run, so it cannot establish this per-run reporting claim."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "D-001 (docs/research/tokenizer-approximation.md) shows a Measurements table with a single generic 'Commands' line (wc -c/wc -w) rather than a command placed beside each individual figure, and the obligation also requires that 'a reviewer re-ran at least one' figure via gate://document.review@1.0.0 — but gate_runs is empty and prior_verifications is empty, so no reviewer re-run is recorded anywhere in the bundle. Absent that half of the required evidence, the claim cannot be established from what's shown."
+evidence = "the verifier returned no usable verdict for this obligation"
 performer = "claude"
 
 [verifier]

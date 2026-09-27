@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "prior_verifications is empty and no independent reproduction/review artifact or human-acceptance record for this exact result is included in the bundle; the only gate run is the automated software.repo.war-check@1.0.0 structural check, which is not independent qualification evidence for OBL-001/002. With no such record carried, qualification cannot be decided from this bundle."
+evidence = "prior_verifications carries four entries, but those themselves rest on OBL-001 and OBL-002 being not_established (no independent reproduction/review evidence for the scoped SDK/provider behavior is present), and none of them constitutes a secure human acceptance record for this exact result. No independent reproduction, baseline-condition record, or human sign-off artifact for OBL-001/002's exact subject is carried in the bundle, so qualification cannot be decided."
 performer = "claude"
 
 [verifier]

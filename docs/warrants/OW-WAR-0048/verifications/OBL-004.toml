@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "No parity run, corpus count, or declared-observables record appears anywhere in the bundle: deliverables is empty and obligation_evidence lists the required terms (`compiled_by_both`, `corpus_size`, `compiled_by_both == corpus_size`) as neither shown nor cut — they are simply absent from what was carried. The gate run's stdout tail is a generic `war check` report over unrelated warrants and contains no parity metrics. OBL-004 also depends on OBL-003 (per milestones.yaml, M4 depends on M3), which is itself not established, so the precondition for measuring parity against a real Liminal profile is not shown to exist."
+evidence = "obligation_evidence for OBL-004 lists the required terms `compiled_by_both`, `corpus_size`, and `compiled_by_both == corpus_size` with empty shown_in and empty cut_from — they are simply not present anywhere in the carried material, and deliverables is empty. The gate run's visible stdout tail contains generic `war check` administrative output (manifest validity, traceability, journal, milestones) for OW-WAR-0048 and other warrants, with no parity metrics, observable declarations, or corpus counts. Per atoms/45-milestones.yaml, M4 (parity) depends on M3 (Liminal profile), which OBL-003 shows is itself unestablished, so no basis exists in the bundle for a completed parity measurement."
 performer = "claude"
 
 [verifier]

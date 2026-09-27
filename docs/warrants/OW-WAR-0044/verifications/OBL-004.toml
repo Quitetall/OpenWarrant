@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "not_established"
-evidence = "OBL-004's scope is 'the registered Warrant, exported into an empty compatible instance,' but JDG-001 states registration never completed. EV-003/OBS-004/OBS-005 describe general §68 export mechanics (an export refusing due to 4 of 14 required §68.2 contents being absent, and a vacuous round trip being refused while a reconnected one verifies) but none of this is tied to a registered Warrant with a KF-allocated identifier, so the obligation's specific scope is not shown to be met."
+evidence = "OBL-004's scope requires 'the registered Warrant, exported into an empty compatible instance,' but per JDG-001 no registration completed. EV-003/OBS-004/OBS-005 show general §68 export mechanics working (an export refusing due to 4 of 14 required §68.2 contents being absent, and a vacuous round trip correctly refused while a reconnected one verifies, with a falsification control on evidence_reconnected), but none of this is tied to the specific registered Warrant with a KF-allocated identifier that OBL-004 scopes to, so the obligation as stated is not shown to be met."
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No deliverables are carried in the bundle (deliverables: []) and obligation_evidence for OBL-002 shows empty named_paths/terms, so no refusal fixtures, invalid-input tests, or unchanged-prior-output-on-failed-write records are present. The single gate run (software.repo.war-check@1.0.0) checks manifest/atom structural well-formedness across the corpus, not the release/publish boundary's handling of malformed or authority-confused inputs, so it cannot speak to this obligation."
+evidence = "deliverables is empty and obligation_evidence for OBL-002 shows no named_paths or terms, so no refusal fixtures, malformed/over-limit input tests, or unchanged-prior-output-on-failed-write records are in the bundle. The plants array is also empty, meaning no conformance plants naming this Warrant are shown. The war-check gate run only checks manifest/atom structural well-formedness, not the release boundary's handling of invalid inputs, so nothing in the bundle speaks to this obligation either way."
 performer = "claude"
 
 [verifier]

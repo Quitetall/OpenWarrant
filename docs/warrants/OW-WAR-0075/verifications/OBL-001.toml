@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "The bundle carries no deliverables (deliverables: [] and obligation_evidence for OBL-001 lists no named_paths/terms), so there is no parse_document/validate_document source, no sdk_probe output, and no fixture run demonstrating footer RC.3 or legacy RC.2 parsing, span/byte preservation, or field/kind/extension/validity checks. The only gate run present, GR-software.repo.war-check@1.0.0, is a repo structural checker (manifest/deliverable/identity checks) and never exercises parse_document or validate_document, so it cannot speak to this obligation's scope. Nothing in the bundle shows the scoped behavior actually running."
+evidence = "deliverables is an empty array and obligation_evidence for OBL-001 lists no named_paths and no terms, so the bundle carries no parse_document/validate_document source, no sdk_probe execution output, and no fixture results demonstrating footer RC.3 or legacy RC.2 parsing, span/byte preservation, or field/kind/extension/validity checks. The sole gate run, GR-software.repo.war-check@1.0.0, is a repository structural checker whose own stdout excerpt states 'war check does not invoke [gates]... nothing here is evidence that a Warrant's acceptance gates were run,' so it cannot speak to parse_document/validate_document behavior. No runtime evidence for the scoped behavior is present."
 performer = "claude"
 
 [verifier]

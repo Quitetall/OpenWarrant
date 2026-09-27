@@ -1,6 +1,6 @@
 obligation = "OBL-004"
 disposition = "established"
-evidence = "D-002's `success_metrics` object lists exactly the sixteen §100 metrics named in D-001's SUCCESS_METRICS array (e.g. 'context lost between humans and agents', 'clarification turns', ... 'ability to hand work between agents and humans'), and every one of the sixteen values is the literal string 'no baseline' with no numeric delta stated anywhere in the artifact, directly satisfying the obligation's evidence requirement."
+evidence = """D-002's success_metrics object (full, untruncated) lists all sixteen §100 metrics named in D-001's SUCCESS_METRICS constant, each valued as the literal string "no baseline" with no numeric delta anywhere in the artifact — directly matching the obligation's required evidence and atom 60-assurance.md's JDG-001 stating 'all sixteen §100 metrics record no baseline.'"""
 performer = "claude"
 
 [verifier]

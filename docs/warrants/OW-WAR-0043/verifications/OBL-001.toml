@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "refuted"
-evidence = "atoms/20-basis.md states the resolution requirement is 'a named LamQuant commit, agreed and frozen for the duration of the import' and names it as SHA-F = ba9ed833faa9a52940d5e9d424566466e9066867 (LamQuant ADR 0186 clause 5). But atoms/60-assurance.md EV-001's recorded method is `war migrate --corpus /mnt/4tb/LamQuant/docs/decisions --commit 0e0e04a7a6cff7901c073c27cc233d9af9f11664` — a different 40-character commit entirely. The import the bundle documents did not run against the commit the Basis identifies as agreed and frozen, so the claim that 'the import ran against one named, frozen commit' (i.e. the one this Warrant froze) does not hold on this bundle's own evidence."
+evidence = "atoms/20-basis.md identifies SHA-F = ba9ed833faa9a52940d5e9d424566466e9066867 (LamQuant ADR 0186 clause 5) as the commit 'agreed and frozen for the duration of the import.' atoms/60-assurance.md's EV-001 records the actual command run: `war migrate --corpus /mnt/4tb/LamQuant/docs/decisions --commit 0e0e04a7a6cff7901c073c27cc233d9af9f11664` — a distinct 40-character SHA. The bundle's own atoms therefore show the import was executed against a commit other than the one the Warrant's Basis names as the agreed, frozen one, so the obligation's claim does not hold on this evidence."
 performer = "claude"
 
 [verifier]

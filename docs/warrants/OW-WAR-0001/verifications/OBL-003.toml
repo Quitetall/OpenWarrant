@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "The sole gate run in the bundle, GR-software.repo.war-check@1.0.0, records exit_result 'pass' and run.verdict 'pass' — the opposite of the required rejection — and is for the 'war check' command, not 'cargo xtask gate'. No second run, and no run at all showing 'cargo xtask gate' exiting non-zero with named failing steps, is present anywhere in gate_runs or the deliverables. The obligation exists precisely to rule out a gate that never rejects, and the bundle carries no rejecting run to establish it; the prior verifier's citation of 'conformance/plant.sh' violations conflates the SAS-corpus conformance plants (plants[] entry at conformance/plants.d/58-parent-revision.sh) with `cargo xtask gate`'s own step report, which is not shown here."
+evidence = "The sole gate run in the bundle, GR-software.repo.war-check@1.0.0, records exit_result 'pass' and run.verdict 'pass' — the opposite of the required rejection — and its command is 'war check --generated', not 'cargo xtask gate'. No second run, and no run at all showing 'cargo xtask gate' exiting non-zero with named failing steps, is present anywhere in gate_runs or the deliverables. The obligation exists specifically to rule out a gate that never rejects, and no rejecting run for the actual gate under obligation is carried in this bundle."
 performer = "claude"
 
 [verifier]

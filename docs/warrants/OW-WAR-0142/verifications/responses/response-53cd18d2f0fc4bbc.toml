@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0142"
+
+[[verifications]]
+obligation = "OBL-007"
+disposition = "established"
+evidence = "D-014 (conformance/plants.d/69-standing.sh), section 'SC', implements exactly the measurement OBL-007 describes: a shimmed ssh-keygen logs every '-Y sign' call, the class is signed once (SC_CLASS_SIGNS), three covered Warrants are applied and dispatched with zero further signing (SC_PREWORK/SC_STARTED), resolved in one 'sign --batch' (SC_RESOLVE_SIGNS), and the same three run again as ordinary (non-standing) Warrants through separate authorize and resolve batches (SC_B_STARTED/SC_B_SIGNS). The gate run GR-ops.conformance.plants@1.1.0 (gate ops.conformance.plants@1.1.0, verdict 'pass') has a stdout excerpt (lines 989-1034) that directly shows the four assertions printed by this section: 'ok A: 2 once, 0 before work, 2 after class 2, pre-work 0 (3 started), resolution batch 2' and 'ok B: 4, and nothing starts first 0 of 3 dispatched before the authorize batch; 4 signatures for 3', which match the obligation's claimed counts (class: 2, before work: 0, resolution batch: 2, ordinary/B: 4 with no early start) exactly, and the run's tail (in the same stdout field) reports the battery finished '1260 passed, 0 failed'. obligation_evidence confirms the terms 'ssh-keygen -Y sign' and 'ssh-keygen' are shown in D-014 in full (cut_from empty), so the signature-counting mechanism the obligation's evidence depends on is not truncated away."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

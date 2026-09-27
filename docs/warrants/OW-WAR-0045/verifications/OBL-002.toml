@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "obligation_evidence for OBL-002 lists no terms and no named_paths were carried; deliverables is empty. There is no artifact in the bundle showing the exact bytes handed to an agent digested against a compiled Dispatch, and no recorded run showing a deliberately-omitted input producing a §53.1 BLOCKER. The single gate run (software.repo.war-check@1.0.0) is a repo-structure checker unrelated to Dispatch delivery or agent execution, and the visible (truncated) stdout portion covers OW-WAR-0138 through OW-WAR-0147 and global corpus checks, never OW-WAR-0045's Dispatch/agent handoff."
+evidence = "obligation_evidence for OBL-002 carries no named_paths and no terms, and deliverables is empty. There is no artifact showing exact bytes handed to an agent digested against a compiled Dispatch, and no recorded run of a deliberately-omitted input producing a §53.1 BLOCKER. The only gate run is the unrelated corpus-wide structural check (its visible excerpts cover OW-WAR-0138–0147 and global corpus rules, never a Dispatch/agent handoff for OW-WAR-0045)."
 performer = "claude"
 
 [verifier]

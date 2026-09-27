@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "No named_paths or deliverables are carried for OBL-003, and the queue/questions/frontier panes' source is not in the bundle. The gate run present is the corpus-wide record check, not a comparison of the TUI queue against `war sign --list` output, nor evidence of `war answer`/`war perform`/`war run` calls from the TUI. The claim that acting panes reuse existing acts is unverifiable from this bundle."
+evidence = "OBL-003 has no named_paths entries at all in obligation_evidence and deliverables is empty, so no queue/questions/frontier pane source, no plant comparing the TUI queue to `war sign --list`, and no evidence of a `war answer`/`war perform`/`war run` call originating from the TUI is present. The sole gate run is the generic corpus-wide `war check` scan (manifest, journal, SAS pin, obligations.valid, etc.), which is a record-structure check unrelated to comparing rendered queue rows against `war sign --list` output. The terms war sign --list, war perform, war run are shown_in 'atoms' only, reflecting the Warrant's own text rather than any executed comparison."
 performer = "claude"
 
 [verifier]

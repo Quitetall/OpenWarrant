@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0133"
+
+[[verifications]]
+obligation = "OBL-005"
+disposition = "established"
+evidence = "D-005 (conformance/plants.d/55-evidence-reuse.sh) is carried in full and implements both halves of OBL-005 through the actual `war dispatch` binary on ER-WAR-0002/STAGE-001: the budget-too-small case (asserting exit!=0, `dispatch.over-budget .*largest: atoms/`, and no emitted files) with an in-budget control asserting every required atom is included and none omitted, and the Q-002(c) case using a FIFO to force one path (`notes/moving.txt`) to be read at two digests, asserting `dispatch.source-conflict` naming both `sha256:$ER_V1` and `sha256:$ER_V2` and that nothing is emitted. The recorded run of gate `ops.conformance.plants@1.1.0` (run_id GR-ops.conformance.plants@1.1.0, verdict pass, subject tree:e54ccac17a000db9430a08ded5ae9ad1923067b0) shows exact-string stdout excerpts confirming this script actually executed against the real binary and passed: line 377 'ok    a budget too small for the atoms   rejected by dispatch.over-budget naming required atoms; nothing emitted', which is a verbatim match of D-005's own `er_ok` call for that case, plus corroborating over-budget lines at 1129/1134/1136-1137 from the same battery. The stdout tail records the battery's total as '1260 passed, 0 failed' with exit_result 'pass', meaning no assertion anywhere in the plants.d corpus — including this script's remaining budget-control and conflict-refusal checks, for which no individual excerpt line was separately shown — registered a FAIL. obligation_evidence confirms 'war dispatch' and 'dispatch.over-budget' are shown (the latter both in D-005 and in the live stdout) and 'RequiredItemOmitted' is shown in D-008 (crates/openwarrant-core/src/context.rs), consistent with the obligation's scope of the omission rule as reached through `war dispatch`."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

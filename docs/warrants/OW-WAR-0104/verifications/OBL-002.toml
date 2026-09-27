@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No HTML serializer output, workbench API responses, or browser observations are included in this bundle (deliverables and plants arrays are both empty). There is nothing to inspect for executable/network content, escaping, HTTP payload parity, auth/write refusal, or stale-content removal, so the claim cannot be evaluated from this bundle."
+evidence = "No HTML serializer output, workbench API responses, or browser observation records appear anywhere in the bundle (deliverables=[], plants=[]). There is no evidence to check for executable/network content, escaping of hostile strings, HTTP payload parity, authentication/write refusal, or stale-content removal after failed refresh."
 performer = "claude"
 
 [verifier]

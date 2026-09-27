@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0144"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass, subject_digests include contract:sha256:6e0436ee0f07d5ff9948c101b9a8036bdd542e962d10f3e2e9f4e989c9f01166, matching the bundle's authorized_contract_digest) carries an excerpt of its stdout at lines 209-216 showing the '== authorization retention (OW-WAR-0144) ==' section printing 'ok revision 1 is kept beside revision 2 authorization.a35db489.toml, same bytes', 'ok the revision-1 envelope verifies attest.subject-archived', and 'ok without it, the envelope drifts attest.subject-drift names authorization.toml'. These correspond exactly to D-002's (49-authorization-retained.sh) ar_ok assertions comparing sha256sum of the kept file against AR_R1 (the pre-amendment digest), checking `war attest --all --verify` for attest.subject-archived, and the control that removes the kept file and re-checks for attest.subject-drift naming authorization.toml — precisely OBL-001's three evidence requirements, all shown as passed in the actual (not merely asserted) gate output."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "The same excerpt (gate run GR-ops.conformance.plants@1.1.0, lines 209-216) shows 'ok a dry run keeps nothing the Warrant directory is byte-identical' and 'ok a colliding kept name refuses authorize.retire-collision, revision 1 untouched', which are the literal ar_ok lines D-002 emits after its ar_dir byte-comparison around `war sign ... --dry-run` and after planting a colliding authorization.<digest8>.toml and re-signing. This directly confirms both OBL-002 requirements (dry run leaves the tree byte-identical; a colliding kept file causes authorize.retire-collision with no file changed) as actually executed and passed, not merely asserted by the source."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "The excerpt from GR-ops.conformance.plants@1.1.0 (lines 209-216) shows 'ok the kept file is not a record check clean; no authorization pending', which is D-002's ar_ok line following its check that `war check` produced no ERROR and `war sign --list` shows no 'AR-WAR-0001 .*authorize' row — exactly OBL-003's scope and evidence. Combined with the earlier passed check in the same run confirming the authorization.toml grep for 'revision = 2', this establishes that after revision 2 the kept file is not read as a second authorization."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

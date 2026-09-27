@@ -1,6 +1,6 @@
 obligation = "OBL-002"
-disposition = "not_established"
-evidence = """Same gate run and same truncation problem as OBL-001: the visible portion of ops.conformance.plants@1.1.0's stdout does not contain 52-retention.sh's OBL-002 section ("the real budget passes at N=12", "a 1 ms budget names every command"), and obligation_evidence lists no terms for OBL-002 as directly shown in that stdout. D-002 (budget.toml) and D-003 (budget.sh) show the mechanism exists and is coded to behave this way, but no gate output in the bundle shows it actually ran and produced the stated exits."""
+disposition = "established"
+evidence = "Same excerpt (gate run GR-ops.conformance.plants@1.1.0, stdout lines 280-290) shows 'ok the real budget passes at N=12 every row within, exit 0' and 'ok a 1 ms budget names every command exit 1, each row OVER BUDGET by name', which are D-006's rt_ok outputs for the two required checks — passing with the real tools/scale/budget.toml (D-002) and failing/naming every row with a 1ms budget, as tools/scale/budget.sh (D-003) is coded to do."
 performer = "claude"
 
 [verifier]

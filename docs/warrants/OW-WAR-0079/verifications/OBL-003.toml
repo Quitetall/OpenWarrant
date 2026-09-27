@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "OBL-003 requires independent reproduction/review and secure human acceptance of the exact OBL-001/002 result, but the bundle carries no such review record, no baseline-condition evidence, and no signed acceptance response tied to this Warrant's exact deliverables (authority.signed lines in the war-check stdout are for other Warrants such as OW-WAR-0138/0139, not OW-WAR-0079, and the visible portion of the stdout is truncated before OW-WAR-0079's own section). Atom 60-assurance.md itself states 'war check cannot establish runtime behavior or independent verification,' confirming the one gate run present cannot substitute for the qualification evidence OBL-003 needs."
+evidence = "OBL-003 requires independent reproduction/review and secure human acceptance of the exact OBL-001/002 result, but the bundle carries no such review record and no signed acceptance tied to this exact deliverable set (the war-check stdout excerpt's 'authority.signed' line for OW-WAR-0079 attests only that docs/authority/responses/OW-WAR-0079.response.toml was signed by brian, which is record-signing, not qualification review of a produced result, and no such result exists in the bundle to qualify). Atom 60-assurance.md itself states 'war check cannot establish runtime behavior or independent verification,' and with OBL-001/002 themselves not established, there is nothing exact to qualify."
 performer = "claude"
 
 [verifier]

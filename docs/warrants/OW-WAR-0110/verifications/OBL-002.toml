@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No generator source, artifact/source identity manifest, unsupported-construct refusal test output, drift-check run, or digest comparison is carried in this bundle (deliverables and gate_runs are both empty). The only content is the 60-assurance.md atom stating what evidence *would* be needed, which is an assertion of requirements, not evidence that the requirements were met."
+evidence = "No generator source, artifact/source identity manifest, unsupported-construct refusal output, drift-check run, or digest comparison appears anywhere in the bundle (deliverables and gate_runs are both empty). The 60-assurance.md atom only states what evidence would be required, which is a requirement statement, not evidence that it was met."
 performer = "claude"
 
 [verifier]

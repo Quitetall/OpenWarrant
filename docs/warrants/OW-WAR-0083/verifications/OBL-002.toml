@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "Same empty-evidence state as OBL-001: obligation_evidence for OBL-002 shows no named_paths/terms, deliverables is empty, plants is empty, and prior_verifications is empty, so no refusal fixtures, negative-input tests, or fixture-name-selection checks are shown anywhere in the bundle. The only gate run (software.repo.war-check) checks Warrant-record structure, not input refusal behavior at the check_records/evaluate_readiness/evaluate_assurance boundary. No basis to say refusals occurred or did not occur."
+evidence = "Same empty-evidence state as OBL-001: obligation_evidence for OBL-002 has no named_paths/terms, deliverables is empty, and plants is empty, so no malformed/incomplete/conflicting/over-limit/authority-confused input case, refusal fixture, or 'unchanged prior output on failed write' is shown anywhere. The only gate run present (software.repo.war-check) checks Warrant record structure, not boundary refusal behavior. Nothing in the bundle demonstrates a refusal or its absence."
 performer = "claude"
 
 [verifier]

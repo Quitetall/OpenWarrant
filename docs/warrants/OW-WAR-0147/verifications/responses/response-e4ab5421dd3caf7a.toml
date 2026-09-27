@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0147"
+
+[[verifications]]
+obligation = "OBL-007"
+disposition = "established"
+evidence = "conformance/plants.d/45-tickets.sh (D-013), OBL-007 block: it adds a note to $TK5 ('Chose concrete over timber...'), creates $TK6 ('An old finished job') and hand-edits its sole item to a 2020-01-01 done line, then runs `war prime` and `war prime $TK5` and asserts (a) the open Walls item is listed and the done Foundation item and every `- [x]` line are absent from the whole `prime` output, (b) the note text is present, (c) $TK6 appears exactly once, formatted '- $TK6 — An old finished job (done 2020-01-01, 1 item(s))', under Done earlier while $TK (done earlier in the OBL-001 block) appears in the recent-done section, and (d) `war prime $TK5` reports '1 item(s) done' and does not list Foundation. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass) stdout excerpt shows this exact assertion succeeding: 'ok    prime: undone items, old done compacted remaining items and notes; t-49d7da (2020) is one line; t-19d9 recent', matching TK6=t-49d7da and TK=t-19d9 from that run. render.rs (D-008) supplies the mechanism exercised — `prime`'s partition of tickets by state and by compact_after_days (default 7, per Store.compact_days and obligation_evidence's shown term), the annotation() function that attaches claim/blocker text to open items, and prime_one's done-count-without-listing behaviour — so both the runtime proof and the code path are present and mutually consistent, together covering the obligation's accepting and refusing evidence within its stated scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

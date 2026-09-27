@@ -1,0 +1,59 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0145"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (receipt: askability askable, execution_status completed, verdict pass) embeds the actual invocation of the plant OBL-001 describes: its captured stdout excerpt at lines 199-209 shows plant 48-isolated-battery.sh's own assertions all report 'ok', specifically 'the battery gate is askable ran and passed', 'the working tree is untouched files, index, HEAD and the uncommitted edit identical', 'the clone is removed nothing left under the temp directory', 'it tests HEAD, not the working tree committed bytes, tested commit 8dfe8553a17b01c1fd72a5ad13290999358d6c5e' (confirming the fake battery saw only committed bytes, never the uncommitted edit), and 'a failing battery fails the gate verdict fail'. These lines are the direct output of exactly the checks D-003's ib_run/ib_tree functions define against a scratch corpus with a fake battery, uncommitted marker and uncommitted edit, matching OBL-001's scope and evidence requirements point for point."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "The same GR-ops.conformance.plants@1.1.0 stdout excerpt (lines 199-209) shows 'ok    a nested battery refuses           exit 2, refused-nested, no clone made', which is D-003's assertion that runs `bash conformance/plant-isolated.sh` directly with OPENWARRANT_IN_BATTERY=1 and checks for exit status 2, the 'plant-isolated.refused-nested' line (defined in D-001 lines ~27-30), and an empty IB_TMP — exactly OBL-002's scope and required evidence, observed in actual captured execution output rather than merely inferred from source."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "Gate run GR-software.repo.war-check@1.0.0 (an actual `./target/debug/war check --generated` run on this repository after OW-WAR-0145's deliverables and signed authorization are already in effect, per its own 'PASS deliverable.digests OW-WAR-0145' and 'PASS authority.signed OW-WAR-0145' lines) shows at excerpt line 3 'PASS gate.registered ops.conformance.plants@1.1.0: local candidate, qualified against its declared fault model', and its summary line reports '2053 pass · 224 warn · 0 unknown · 0 error', satisfying the registration and zero-error requirements directly; D-002 (docs/gates/ops.conformance.plants@1.1.0.yaml) is carried in full and declares `mutating: \"false\"` for this exact registered gate/version. The byte-identical-@1.0.0 requirement is corroborated by the same GR-ops.conformance.plants@1.1.0 excerpt's 'ok    1.0.0 is byte-identical            sha256:467b90edd95a, as before 4c99de1c' together with its paired negative control 'ok    a changed 1.0.0 is seen            one byte more is a different digest', which shows the comparison is discriminating rather than vacuous."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

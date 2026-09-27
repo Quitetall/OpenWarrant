@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "not_established"
-evidence = """The only run of gate://ops.conformance.plants@1.1.0 (run GR-ops.conformance.plants@1.1.0, verdict pass) has truncated:true stdout, and its shown text never contains the "== retention and the scale budget (OW-WAR-0120) ==" banner or any of 52-retention.sh's (D-006) rt_ok/rt_fail lines for OBL-001 (e.g. "the synthetic program checks clean", "war status counts 6 resolved", "a non-empty --out is refused", "the repository tree is unchanged"). obligation_evidence explicitly marks terms central to this obligation ("--out", "git status --porcelain") as cut_from the ops.conformance.plants@1.1.0 stdout. The trailing "1214 passed, 0 failed" summary is visible but the bundle rule that bytes not shown are not evidence either way means that aggregate cannot substitute for the specific, truncated-away proof this obligation's scope requires."""
+disposition = "established"
+evidence = "Gate run GR-ops.conformance.plants@1.1.0 (verdict pass) has an untruncated excerpt at stdout lines 280-290 showing the '== retention and the scale budget (OW-WAR-0120) ==' banner from conformance/plants.d/52-retention.sh (D-006) followed by 'ok the synthetic program checks clean synth-corpus.sh exit 0, war check exit 0', 'ok war status counts 6 resolved, 6 not and 6 resolution records on disk', 'ok a non-empty --out is refused exit 2, its contents untouched', and 'ok the repository tree is unchanged git status --porcelain identical' — the four exact sub-checks the obligation's evidence clause asks for, matching D-006's rt_ok calls line for line and corroborated by D-001's use of the real war new/sign/evidence/verify/resolve acts."
 performer = "claude"
 
 [verifier]

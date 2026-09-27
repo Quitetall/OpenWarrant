@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0059"
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "The bundle carries no plant (plants array is empty) exercising this refusal, and obligation_evidence for OBL-004 confirms resolution.toml is absent for OW-WAR-0059 (no deliverable, no file at that path) and the term 'claude' is shown nowhere (shown_in: []). The only matching item is the literal string 'resolution.agent' appearing in D-002 (crates/openwarrant-cli/src/resolution_cmd.rs), which shows the refusal branch exists in source but is not execution evidence that ingesting a response naming 'claude' actually triggers it or that no resolution.toml is written. The sole gate run, GR-software.repo.war-check@1.0.0, and its stdout excerpts contain no mention of resolution.agent, an agent-resolver test, or OW-WAR-0059 having any resolution attempt at all. Per §51.3 a performer's claim is not evidence, and the prior verification (claude-verifier, disposition not_established) reached the same conclusion for the same reasons."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

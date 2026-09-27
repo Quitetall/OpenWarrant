@@ -1,0 +1,78 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0074"
+
+[[verifications]]
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "the verifier returned no usable verdict for this obligation"
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "not_established"
+evidence = "obligation_evidence for OBL-002 carries no named_paths or terms, the deliverables array is empty, and plants is empty. No gate run or excerpt addresses the three named refusal cases (invalidation on a changed companion contract/manifest, rejection of an old 1.0.0 signature as RC.2 acceptance, or rejection of a legacy-SAS proposal mislabeled RC.2). None of this is shown anywhere in the bundle, so the counterexample controls cannot be confirmed."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "not_established"
+evidence = "OBL-003 requires a separate verifier to reproduce OBL-001/OBL-002's observations and for the authorized human to accept or resolve through the applicable process. prior_verifications shows only prior not_established dispositions on all four obligations (same actor kind: agent, claude-verifier), and no acceptance/authority record (e.g. an authority response toml) is named as a carried deliverable here. Since the underlying OBL-001/OBL-002 observations are themselves not established in this bundle, and no independent human acceptance artifact is shown, OBL-003 cannot be established from what is carried."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false
+
+[[verifications]]
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "Gate run GR-software.repo.war-check@1.0.0 (verdict 'pass', subject_digests including contract:sha256:df700b5f1d82...556d6f64a matching authorized_contract_digest) does show OW-WAR-0074-specific structural lines in the excerpts (start_line 1141-1154: PASS manifest.valid, traceability.refs, journal.append-only, authority.signed, gate.resolved, milestones.valid, obligations.valid, generated.drift; plus WARN evidence.stale-binding and WARN sas.pin-superseded; and at line 2586 PASS identity.atom-mismatch), establishing that the atoms are well-formed. But OBL-004's evidence clause explicitly requires 'a named fixture/schema violation is refused in a disposable corpus' to show planted controls are retained, and the top-level plants array is empty with the run summary reporting '0 error' — no FAIL/refusal of any planted violation appears anywhere in the shown excerpts. Per the assurance atom's own adversarial question, a structural pass alone (with no demonstrated plant refusal) cannot establish this obligation."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

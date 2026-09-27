@@ -1,6 +1,6 @@
 obligation = "OBL-001"
-disposition = "refuted"
-evidence = "The only deliverable for this Warrant, D-001 (crates/openwarrant-core/src/traceability.rs, shown in full and untruncated, 700 lines), contains no code that resolves a `sas://` or `roadmap://` reference against a §106 requirement index or the Production Roadmap — RequirementRef::parse and RoadmapRef::parse (and their tests, e.g. the_sas_example_identifiers_parse, a_roadmap_ref_parses_with_and_without_a_slug) only validate identifier grammar. The gate run GR-software.repo.war-check@1.0.0's stdout literally reports 'N requirement ref(s) and M roadmap ref(s) parse' for each Warrant (e.g. OW-WAR-0139, OW-WAR-0140), never 'resolve', matching the code's actual capability. The Basis atom (20-basis.md) itself lists whether OpenWarrant parses §106 or requires a generated index as a 'Blocking unknown', confirming this was not decided/built. obligation_evidence's shown terms for OBL-001 are only the bare strings 'sas://'/'roadmap://' occurring in the file and atoms, not any index-lookup evidence, so the claimed evidence ('resolution against §106 and the Production Roadmap') does not hold."
+disposition = "not_established"
+evidence = "the verifier returned no usable verdict for this obligation"
 performer = "claude"
 
 [verifier]

@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No deliverables, gate_runs, or plants are carried in this bundle to show any refusal fixtures (missing/wrong token, foreign Host/Origin, unsupported fields, malformed/over-limit requests, stale edit, competing process, corrupt input); atoms/40-work-order.md and atoms/60-assurance.md only state the requirement, so it cannot be decided from the bundle."
+evidence = "No deliverables, gate_runs, or plants are carried in this bundle, and obligation_evidence for OBL-002 shows no named_paths or terms; the refusal behaviors described in atoms/40-work-order.md and atoms/60-assurance.md (bad token, foreign Host/Origin, stale writes, corrupt input, etc.) are only asserted requirements with no test run or fixture output evidencing them."
 performer = "claude"
 
 [verifier]

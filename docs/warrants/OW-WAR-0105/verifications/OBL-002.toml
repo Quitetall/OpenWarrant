@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No deliverables, gate_runs, or plants are included in the bundle, and obligation_evidence for OBL-002 shows no named_paths, terms, or carried excerpts. There is no fixture output, refusal log, or gate run demonstrating malformed-field rejection, stale-digest refusal, cost-cap enforcement, timeout handling, oversized-output rejection, or interrupted-attempt tracking. The obligation is only asserted in atoms/60-assurance.md, not evidenced."
+evidence = "No deliverables, gate_runs, or plants are included in the bundle, and obligation_evidence for OBL-002 shows an empty named_paths list with only the blanket warrant-level selection. There is no fixture output, refusal log, or gate run demonstrating malformed/extra authority field rejection, stale context digest refusal, unknown cost cap enforcement, timeout handling, oversized output rejection, unavailable harness refusal, or interrupted-attempt tracking without inferred duplicate dispatch. The obligation is only asserted in atoms/40-work-order.md and atoms/60-assurance.md, not evidenced."
 performer = "claude"
 
 [verifier]

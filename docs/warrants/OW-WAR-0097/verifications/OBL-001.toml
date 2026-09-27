@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "not_established"
-evidence = "The bundle's deliverables, gate_runs, and plants arrays are all empty, and obligation_evidence for OBL-001 lists no named_paths and no terms despite selection being 'every deliverable of the Warrant'; no CLI fixture output, exit code, error diagnostic, or report envelope is present to show the claim holds or fails."
+evidence = "The bundle's deliverables, gate_runs, and plants arrays are all empty, and obligation_evidence for OBL-001 lists no named_paths and no terms despite the selection covering every deliverable of the Warrant; no CLI fixture output, exit code, error diagnostic, or report envelope is carried to show the claim holds or fails."
 performer = "claude"
 
 [verifier]

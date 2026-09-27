@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "No deliverables, gate_runs, or plants are present in the bundle to show any completion-word emission logic, projection of final/nonfinal records, or an unauthenticated-request refusal. obligation_evidence for OBL-002 carries no named_paths or terms. Only the atoms (intent/basis/work-order/assurance) describe what is intended, but intent is not evidence of behavior, so the claim is undecidable from this bundle."
+evidence = "No deliverables, gate_runs, or plants are present to show completion-word emission logic, projection of final/nonfinal records, or an unauthenticated-request refusal test. obligation_evidence for OBL-002 carries no named_paths or terms, only the same generic warrant-level selection string. atoms/60-assurance.md and atoms/40-work-order.md state the requirement but the bundle contains no execution or code evidence, so the claim is undecidable."
 performer = "claude"
 
 [verifier]

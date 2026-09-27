@@ -1,6 +1,6 @@
 obligation = "OBL-001"
 disposition = "established"
-evidence = "D-002's `measures` object gives every entry either `{value, method}` or `{not_measurable_yet, reason}` with no exceptions (e.g. `auto-authorizable fraction` is `value: 0` but its method explicitly states 'and MEASURED zero — §56.1 requirement 10 is unmet ... so none is auto-authorizable', i.e. a stated real zero, not an untaken one). D-001's `unmeasurable()` function and its module-doc corroborate that unmeasurable measures are deliberately non-zero-coded. Since D-002 is present in full (truncated: false), this can be checked directly against every measure without relying on the cited unit test."
+evidence = """D-002 (artifacts/telemetry-baseline.json, full, untruncated, sha256 020600c4...) names commit "6e08dd6" and gives every §94 measure either a numeric value with method or an explicit not_measurable_yet reason — no measure is missing. D-001's `take()` function (telemetry.rs) shows the code path that produced these values deterministically from the named commit's repo state. Atom 40-work-order.md's Non-goals ('No tuning... measuring is this Warrant') and the bundle's warrant-scope deliverable list (only D-001/D-002, no tuning-related change) show nothing in this delivery altered assurance defaults or amendment policy, consistent with the baseline preceding any tuning."""
 performer = "claude"
 
 [verifier]

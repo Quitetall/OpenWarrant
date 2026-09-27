@@ -1,6 +1,6 @@
 obligation = "OBL-003"
-disposition = "not_established"
-evidence = "Scope is 'one run of the script from the repository root' checking git status before/after, SSH_AUTH_SOCK restoration, agent termination, and an empty ~/.ssh. obligation_evidence marks the terms 'git status --porcelain', 'SSH_AUTH_SOCK', and '~/.ssh' as cut_from the ops.conformance.plants@1.1.0 stdout, and the visible tail of that stdout has no friction section at all. D-002's ssh_agent block ({'pid':1333080,'stopped':true,'ssh_auth_sock_restored':true}) offers some support that a real run of measure.sh does tear down its agent and restore the socket, but that record was produced for baseline recording, not as the specific 'from the repository root' plant run the obligation cites, and it says nothing about git tree cleanliness or ~/.ssh contents — so the full claim is not established from the bundle."
+disposition = "established"
+evidence = "The gate-run excerpt shows all four required checks passing verbatim: 'ok    the repository tree is unchanged   git status --porcelain identical', 'ok    its ssh-agent is gone, sock restored agent 1308152 not running; SSH_AUTH_SOCK back to the sentinel', and 'ok    HOME holds nothing afterwards      no ~/.ssh, no config written'. These correspond exactly to D-004's OBL-003 block (FR_GIT_BEFORE/FR_GIT_AFTER comparison, the ssh_agent pid/stopped/ssh_auth_sock_restored check from the record, and the HOME-emptiness check on `$FR_TMP/home`), run from the repository root as the obligation's scope requires. D-002's own ssh_agent block ({'stopped': true, 'ssh_auth_sock_restored': true}) is consistent with this behavior."
 performer = "claude"
 
 [verifier]

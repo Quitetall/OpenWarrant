@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0116"
+
+[[verifications]]
+obligation = "OBL-002"
+disposition = "established"
+evidence = "Deliverable D-012 (conformance/plants.d/63-webui-verified.sh) contains a Python-driven comparison, run against this corpus (using $REPO_ROOT, not a scratch fixture), that asserts the /api/progress phase order equals `war roadmap --json`'s phase order field-by-field (title, tier, exit, depends_on, achieved, exit_warrant, open) and that every member's rung equals `war status --json`'s rung, including the unassigned group. The gate run GR-ops.conformance.plants@1.1.0 (verdict pass, subject_digests bound to tree:e54ccac1..., and independently confirmed current by the war-check gate's 'PASS evidence.admissible ... receipt reseals and is bound to the current contract and to its source') printed this script's actual output at stdout lines 862-925: 'ok progress on this corpus 11 phases in war roadmap's order (OW-PHASE-0 .. OW-PHASE-10); 143 members' rungs = status; 25 open slug(s); 0 unassigned; accepted revision 3', 'ok progress is not read from view.json no view.json under webui/', and 'ok a record change is seen the version moved in 270 ms (< 4000)'. This directly satisfies the eleven-phase-order, rung-equality, open-slugs, unassigned-group, no-view.json, and four-second-refresh clauses of OBL-002's evidence. D-003 (app.js) additionally shows, in source, the poll()/render() logic that refetches page data via api(path) whenever /api/version's value changes, confirming 'the page's data refetches' half of the claim. Together these carried items — not merely asserted in the atoms — establish the obligation within its stated scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "OBL-003 requires a separate verifier's reproduction and reported findings distinct from performer assertions, but prior_verifications is empty and no independent-review artifact is named in deliverables or obligation_evidence. The single gate run present (software.repo.war-check@1.0.0) is an automated structural check, not the independent human/verifier review the obligation demands, so nothing here shows independent evidence of acceptance."
+evidence = "OBL-003 requires a separate verifier to reproduce OBL-001/OBL-002's observations and for the authorized human to accept or resolve through the applicable process. prior_verifications shows only prior not_established dispositions on all four obligations (same actor kind: agent, claude-verifier), and no acceptance/authority record (e.g. an authority response toml) is named as a carried deliverable here. Since the underlying OBL-001/OBL-002 observations are themselves not established in this bundle, and no independent human acceptance artifact is shown, OBL-003 cannot be established from what is carried."
 performer = "claude"
 
 [verifier]

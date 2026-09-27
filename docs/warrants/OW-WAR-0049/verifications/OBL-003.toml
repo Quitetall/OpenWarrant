@@ -1,6 +1,6 @@
 obligation = "OBL-003"
 disposition = "not_established"
-evidence = "obligation_evidence explicitly marks the named term 'check.rs' for OBL-003 as absent: 'no deliverable of OW-WAR-0049 and no file at this path: not carried.' With the file itself not in the bundle and no gate-run line addressing the check.rs note's content, there is no basis to decide whether the note naming tests 14/15 as unchecked was removed or updated to cite OW-ADR-0008's narrowing."
+evidence = "obligation_evidence for OBL-003 explicitly marks the named term 'check.rs' as absent: 'no deliverable of OW-WAR-0049 and no file at this path: not carried.' With the file not carried and no gate-run line examining its note content, there is no way to tell whether the stale note about tests 14/15 was removed or updated to cite OW-ADR-0008."
 performer = "claude"
 
 [verifier]

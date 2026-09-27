@@ -1,0 +1,21 @@
+schema = "oh.war/verification-response/v1"
+warrant = "OW-WAR-0142"
+
+[[verifications]]
+obligation = "OBL-003"
+disposition = "established"
+evidence = "D-003 (standing.rs) shows the parser test `a_tui_class_parses_and_a_class_naming_authority_is_refused`, asserting `parse()` returns `Refusal::NeverCoverable` naming each of docs/authority/roles.toml, docs/authority/allowed_signers, openwarrant.toml, crates/openwarrant-cli/src/sign.rs, `**`, and `docs/**` (plus extras), while crates/openwarrant-cli/src/tui/** parses cleanly as the positive control. D-014 (69-standing.sh) section SA, shown in the excerpted lines 314-384, drives the CLI-level check for that exact same path set: it runs `war standing propose` and `war sign standing:bad@1 --as \"Plant Signer\" --dry-run` for each, asserting an ERROR/refusal matching `standing.never-coverable` naming the path and that `docs/` is byte-identical before and after (nothing written), then runs the tui.toml positive control (`standing.proposed`, `sign --dry-run` `standing.would-record`) and greps (`st_extends`) to confirm NEVER_COVERABLE is a compiled-in constant read from no file, with a planted read expected to be caught. The executed gate run GR-ops.conformance.plants@1.1.0 (verdict: pass) stdout excerpt (lines 989-1034) shows this plant actually running with matching 'ok' lines for every required case: propose and sign --dry-run refusals for roles.toml, allowed_signers, openwarrant.toml, sign.rs, `**`, and `docs/**` each 'standing.never-coverable, nothing written', plus 'a tui/** class is accepted' and 'NEVER_COVERABLE is a constant ... a planted read is caught'. Together the parser unit test, the plant script's own assertions (visible, not truncated out), and the passing gate's captured stdout satisfy every evidentiary item OBL-003 requires within its stated scope."
+performer = "claude"
+[verifications.verifier]
+actor = "claude-verifier (claude-sonnet-5)"
+kind = "agent"
+[verifications.verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

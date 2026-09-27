@@ -1,6 +1,6 @@
 obligation = "OBL-002"
 disposition = "not_established"
-evidence = "OBL-002's stated evidence is 'a plant; ideally it does not compile,' but the bundle's top-level plants array is empty ([]), so no plant of any kind — compiling or refused — is carried here. D-001's Client exposes no field or method for a direct status edit (only post_action(action_type, actor, envelope)), which is suggestive but is inspection of the code's shape, not an executed plant showing a direct write attempt failing. The gate run GR-software.repo.war-check@1.0.0 stdout is a repo-wide compliance sweep (manifest/digest/traceability/journal checks) and contains no line addressing a direct-status-write attempt. With the specifically requested evidence type entirely absent from the bundle, this cannot be established."
+evidence = "the verifier returned no usable verdict for this obligation"
 performer = "claude"
 
 [verifier]

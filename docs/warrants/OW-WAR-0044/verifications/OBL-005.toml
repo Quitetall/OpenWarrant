@@ -1,6 +1,6 @@
 obligation = "OBL-005"
 disposition = "not_established"
-evidence = "obligation_evidence for OBL-005 explicitly marks the named path 'conformance/' as absent — 'a repository path that is not a deliverable of OW-WAR-0044: not carried' — so the seven required conformance/ entries against §91.3 tests 19/22 and §91.13 tests 91–95 cannot be inspected in this bundle at all; EV-002/EV-003 mention only two unrelated plant.sh scenarios (a missing --confirm-write and an unservable https URL; an incomplete export and a vacuous round trip), neither mapped to the required test numbers."
+evidence = "obligation_evidence for OBL-005 explicitly marks the named path 'conformance/' as absent: 'a repository path that is not a deliverable of OW-WAR-0044: not carried.' The seven required conformance/ entries against §91.3 tests 19/22 and §91.13 tests 91–95 therefore cannot be inspected at all in this bundle. EV-002 and EV-003 reference only two unrelated plant.sh scenarios (a missing --confirm-write and an unservable https:// URL; an incomplete export and a vacuous round trip), neither mapped to the required test numbers, so no plant satisfying OBL-005's evidence requirement is shown."
 performer = "claude"
 
 [verifier]
