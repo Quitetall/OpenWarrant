@@ -636,7 +636,30 @@ fn discard(drafted: &[Drafted<'_>]) {
 /// Every batch on disk, parsed and validated, with its path. A file that does
 /// not parse is skipped: it covers nothing.
 #[must_use]
-pub fn load_all(repo: &Repository) -> Vec<(Utf8PathBuf, Batch)> {
+pub fn load_all(repo: &Repository) -> std::sync::Arc<Vec<(Utf8PathBuf, Batch)>> {
+    // Asked once per signature verified. In a read-only command (t-eca6) the
+    // batches do not change under it, so they are read and validated once
+    // and shared: at 1,000 Warrants `war check --generated` re-parsed them
+    // per Warrant (OW-WAR-0120's budget, t-f815).
+    type Loaded = std::sync::Arc<Vec<(Utf8PathBuf, Batch)>>;
+    static ONCE: std::sync::OnceLock<
+        std::sync::Mutex<std::collections::HashMap<Utf8PathBuf, Loaded>>,
+    > = std::sync::OnceLock::new();
+    if crate::gate_cmd::source::tree_reads_remembered() {
+        let memo = ONCE.get_or_init(Default::default);
+        if let Some(hit) = memo.lock().ok().and_then(|m| m.get(&repo.root).cloned()) {
+            return hit;
+        }
+        let fresh = std::sync::Arc::new(load_all_fresh(repo));
+        if let Ok(mut m) = memo.lock() {
+            m.insert(repo.root.clone(), fresh.clone());
+        }
+        return fresh;
+    }
+    std::sync::Arc::new(load_all_fresh(repo))
+}
+
+fn load_all_fresh(repo: &Repository) -> Vec<(Utf8PathBuf, Batch)> {
     let dir = repo.root.join(BATCHES);
     let Ok(rd) = dir.read_dir_utf8() else {
         return vec![];

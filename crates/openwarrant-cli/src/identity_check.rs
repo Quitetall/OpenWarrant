@@ -244,6 +244,52 @@ fn baseline(repo: &Repository) -> Baseline {
     }
 }
 
+/// The bytes git holds for each `<rev>:<path>` spec, `None` for one it does
+/// not hold, in order — one `git cat-file --batch` for all of them. An error
+/// when git cannot be run or answers out of form: then nothing is known.
+fn committed_blobs(repo: &Repository, specs: &[String]) -> Result<Vec<Option<Vec<u8>>>, String> {
+    use std::io::{BufRead, Read, Write};
+    if specs.iter().any(|s| s.contains('\n')) {
+        return Err("a path holds a newline, which `git cat-file --batch` cannot name".into());
+    }
+    let mut child = std::process::Command::new("git")
+        .args(["cat-file", "--batch"])
+        .current_dir(&repo.root)
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::null())
+        .spawn()
+        .map_err(|e| e.to_string())?;
+    let mut stdin = child.stdin.take().ok_or("git's stdin")?;
+    let input: String = specs.iter().map(|s| format!("{s}\n")).collect();
+    // Written from a thread: git answers as it reads, and a pipe that fills
+    // on both sides would stall.
+    let writer = std::thread::spawn(move || stdin.write_all(input.as_bytes()));
+    let mut out = std::io::BufReader::new(child.stdout.take().ok_or("git's stdout")?);
+    let mut blobs = Vec::with_capacity(specs.len());
+    for _ in specs {
+        let mut header = String::new();
+        out.read_line(&mut header).map_err(|e| e.to_string())?;
+        let header = header.trim_end();
+        if header.ends_with(" missing") || header.ends_with(" ambiguous") {
+            blobs.push(None);
+            continue;
+        }
+        let size: usize = header
+            .rsplit(' ')
+            .next()
+            .and_then(|n| n.parse().ok())
+            .ok_or_else(|| format!("git cat-file answered {header:?}"))?;
+        let mut body = vec![0u8; size + 1];
+        out.read_exact(&mut body).map_err(|e| e.to_string())?;
+        body.pop();
+        blobs.push(Some(body));
+    }
+    let _ = writer.join();
+    let _ = child.wait();
+    Ok(blobs)
+}
+
 /// `identity.changed` — §12.2 held directly: a UUID committed at `HEAD` for a
 /// manifest path is the UUID that path still holds.
 ///
@@ -278,16 +324,30 @@ fn changed(repo: &Repository, checked: &[Loaded], report: &mut Report) {
     let mut compared = 0usize;
     let mut new = 0usize;
     let mut moved = 0usize;
-    for one in checked {
+    // Every committed manifest in one `git cat-file --batch`, not one `git
+    // show` per Warrant: 1,000 spawns were a third of `war check --generated`
+    // at 1,000 Warrants (OW-WAR-0120's budget, t-f815).
+    let checked: Vec<&Loaded> = checked.iter().filter(|o| o.validated.is_some()).collect();
+    let specs: Vec<String> = checked
+        .iter()
+        .map(|o| {
+            format!(
+                "HEAD:{prefix}{}",
+                repo.relative(&o.dir.join("manifest.toml"))
+            )
+        })
+        .collect();
+    let blobs = committed_blobs(repo, &specs);
+    for (i, one) in checked.iter().enumerate() {
         let Some(validated) = &one.validated else {
             continue;
         };
         let alias = one.alias();
         let rel = repo.relative(&one.dir.join("manifest.toml"));
-        let committed = match git(repo, &["show", &format!("HEAD:{prefix}{rel}")]) {
-            Ok(out) if out.status.success() => String::from_utf8_lossy(&out.stdout).into_owned(),
+        let committed = match blobs.as_ref().map(|b| b[i].as_ref()) {
+            Ok(Some(bytes)) => String::from_utf8_lossy(bytes).into_owned(),
             // HEAD exists and does not hold this path: a new Warrant.
-            Ok(_) => {
+            Ok(None) => {
                 new += 1;
                 continue;
             }

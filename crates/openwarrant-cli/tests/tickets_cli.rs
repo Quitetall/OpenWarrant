@@ -134,10 +134,17 @@ fn create_ready_claim_done_needs_no_signature_and_no_human() {
 #[test]
 fn claiming_a_whole_ticket_names_a_command_that_works() {
     let root = scratch("hint");
-    let created = json(&root, &["create", "Two steps", "--item", "one", "--item", "two"]);
+    let created = json(
+        &root,
+        &["create", "Two steps", "--item", "one", "--item", "two"],
+    );
     let id = created["result"]["id"].as_str().unwrap().to_owned();
     let out = war(&root, &["claim", &id]);
-    assert!(out.status.success(), "{}", String::from_utf8_lossy(&out.stderr));
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
     let text = String::from_utf8_lossy(&out.stdout).into_owned();
     // `war done <ticket>` is refused while items are open; the hint must
     // not send the agent there. It names the next open item instead.

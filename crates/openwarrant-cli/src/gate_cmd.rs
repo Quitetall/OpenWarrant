@@ -774,6 +774,17 @@ pub mod source {
         }
     }
 
+    /// Whether [`remember_tree_reads`] is on: this process is a one-shot
+    /// read-only command, and what it reads from the tree does not change
+    /// under it. Other memos (the ownership fingerprint) key off it.
+    #[must_use]
+    pub fn tree_reads_remembered() -> bool {
+        TREE_READS
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .is_some()
+    }
+
     /// `read()`, or what it returned for `key` earlier in this process when
     /// [`remember_tree_reads`] is on. An error is never remembered.
     fn tree_read(

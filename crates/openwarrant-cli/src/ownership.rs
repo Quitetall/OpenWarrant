@@ -105,6 +105,27 @@ static INDEXES: std::sync::OnceLock<
 /// batches; the SAS revisions; `openwarrant.toml`. `None` when any of it
 /// cannot be read — then nothing is cached and the index is built fresh.
 fn fingerprint(repo: &Repository) -> Option<String> {
+    // A read-only command (t-eca6) computes it once: it stats every record of
+    // every Warrant, and `war next` asked once per pending act — ~15,000 stats
+    // times ~250 acts at 1,000 Warrants (OW-WAR-0120's budget, t-f815).
+    static ONCE: std::sync::OnceLock<
+        std::sync::Mutex<std::collections::HashMap<camino::Utf8PathBuf, Option<String>>>,
+    > = std::sync::OnceLock::new();
+    if crate::gate_cmd::source::tree_reads_remembered() {
+        let memo = ONCE.get_or_init(Default::default);
+        if let Some(hit) = memo.lock().ok().and_then(|m| m.get(&repo.root).cloned()) {
+            return hit;
+        }
+        let fresh = fingerprint_fresh(repo);
+        if let Ok(mut m) = memo.lock() {
+            m.insert(repo.root.clone(), fresh.clone());
+        }
+        return fresh;
+    }
+    fingerprint_fresh(repo)
+}
+
+fn fingerprint_fresh(repo: &Repository) -> Option<String> {
     fn add(out: &mut Vec<u8>, path: &std::path::Path) -> Option<()> {
         let meta = std::fs::metadata(path).ok()?;
         if meta.is_dir() {

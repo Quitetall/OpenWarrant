@@ -1565,7 +1565,12 @@ mod tests {
         };
         let heads = vec!["== ours ==".to_owned()];
         let tail_only = captured(&s, Carry::Head(8192), &heads, &[]);
-        assert!(!tail_only["text"].as_str().unwrap().contains("the claim this Warrant"));
+        assert!(
+            !tail_only["text"]
+                .as_str()
+                .unwrap()
+                .contains("the claim this Warrant")
+        );
         let v = captured(&s, Carry::Excerpt(8192), &heads, &[]);
         assert_eq!(v["truncated"], true);
         assert!(stream_text(&v).contains("the claim this Warrant rests on"));
@@ -1584,7 +1589,10 @@ mod tests {
         let w = byte_windows(&line, 4096, &terms);
         let all: String = w.iter().map(|e| e.text.as_str()).collect();
         assert!(all.contains("\"revision\":\"1.1.0\""), "the head");
-        assert!(all.contains("\"source_sha256\":\"abc123\"}"), "the tail and the term");
+        assert!(
+            all.contains("\"source_sha256\":\"abc123\"}"),
+            "the tail and the term"
+        );
         assert!(all.len() <= 4096);
         assert!(w.iter().all(|e| e.start_line == 1 && e.end_line == 1));
         // Multi-byte text is cut on char boundaries, never inside one.

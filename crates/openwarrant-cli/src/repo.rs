@@ -421,6 +421,19 @@ impl Repository {
 
     /// Resolve a Warrant directory by local alias.
     pub fn warrant_dir(&self, alias: &str) -> Result<Utf8PathBuf, RepoError> {
+        // The same answer as the scan below, without it: the Warrant is the
+        // directory named `alias` holding a manifest. The scan read and
+        // sorted every entry per call, and callers ask per Warrant, so a
+        // 1,000-Warrant `war next` spent most of its time here. Only a plain
+        // one-component name takes the direct path.
+        let plain =
+            !alias.is_empty() && alias != "." && alias != ".." && !alias.contains(['/', '\\']);
+        if plain {
+            let dir = self.warrants_dir().join(alias);
+            if dir.join("manifest.toml").is_file() {
+                return Ok(dir);
+            }
+        }
         let dirs = self.warrant_dirs()?;
         for dir in &dirs {
             if dir.file_name() == Some(alias) {

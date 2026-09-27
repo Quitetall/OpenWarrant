@@ -3653,6 +3653,11 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
 
         Command::Compile { alias } => {
             let repository = open_repo()?;
+            // Compile writes projections only, which the tree rule excludes:
+            // it runs no gate and writes no source, so its reads of the tree
+            // and the authority records hold for the whole run (t-eca6,
+            // t-f815).
+            gate_cmd::source::remember_tree_reads();
             compile::run(&repository, alias.as_deref())?;
             if mode == output::Mode::Json {
                 output::emit(mode, "compile", "", serde_json::json!({"alias": alias}));

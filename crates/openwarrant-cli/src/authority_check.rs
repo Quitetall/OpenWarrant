@@ -537,9 +537,8 @@ fn candidate_responses(
     if primary.is_file() && !excluded(&primary) {
         out.push(primary.clone());
     }
-    if let Ok(entries) = dir.read_dir_utf8() {
-        for e in entries.flatten() {
-            let path = e.path().to_owned();
+    for path in response_files(&dir) {
+        {
             let Some(name) = path.file_name() else {
                 continue;
             };
@@ -558,6 +557,32 @@ fn candidate_responses(
     out
 }
 
+/// The files under the responses directory. Listed once per read-only
+/// command (t-eca6): every signature check lists it, and at 1,000 Warrants
+/// that was a directory read per Warrant per act (t-f815).
+fn response_files(dir: &Utf8Path) -> Vec<Utf8PathBuf> {
+    fn list(dir: &Utf8Path) -> Vec<Utf8PathBuf> {
+        dir.read_dir_utf8()
+            .map(|rd| rd.flatten().map(|e| e.path().to_owned()).collect())
+            .unwrap_or_default()
+    }
+    static ONCE: std::sync::OnceLock<
+        std::sync::Mutex<std::collections::HashMap<Utf8PathBuf, Vec<Utf8PathBuf>>>,
+    > = std::sync::OnceLock::new();
+    if !crate::gate_cmd::source::tree_reads_remembered() {
+        return list(dir);
+    }
+    let memo = ONCE.get_or_init(Default::default);
+    if let Some(hit) = memo.lock().ok().and_then(|m| m.get(dir).cloned()) {
+        return hit;
+    }
+    let fresh = list(dir);
+    if let Ok(mut m) = memo.lock() {
+        m.insert(dir.to_owned(), fresh.clone());
+    }
+    fresh
+}
+
 /// The batch that signs `response`, if one does: its signer is `actor`, it
 /// lists the response's file name and exact sha256, and its signature
 /// verifies as `principal`. `Some(Invalid)` when a listing batch's signature
@@ -573,7 +598,7 @@ fn batch_covering(
     let bytes = std::fs::read(response).ok()?;
     let digest = openwarrant_compiler::sha256_hex(&bytes);
     let mut failed = None;
-    for (path, batch) in crate::batch_cmd::load_all(repo) {
+    for (path, batch) in crate::batch_cmd::load_all(repo).iter() {
         if batch.signer != actor || batch.covers(name, &digest).is_none() {
             continue;
         }
@@ -581,7 +606,7 @@ fn batch_covering(
         if !sig.is_file() {
             continue;
         }
-        match ssh_verify(repo, trust, &path, &sig) {
+        match ssh_verify(repo, trust, path, &sig) {
             Ok(()) => {
                 return Some(Verdict::Signed {
                     principal: principal.to_owned(),
@@ -635,6 +660,49 @@ fn ssh_verify(
     // source of the key list is part of the key (OW-WAR-0138): the same
     // bytes read from the register and from a store at a given head are two
     // questions, and a store that moves to another head is another question.
+    // In a read-only command (t-eca6) the files named here do not change
+    // under it, so the paths alone name the question: building the digest key
+    // re-read and hashed three files per ask, a fifth of `war check
+    // --generated` at 1,000 Warrants (t-f815).
+    let by_path = crate::gate_cmd::source::tree_reads_remembered()
+        .then(|| format!("{allowed}\0{principal}\0{response}\0{sig}\0{}", trust.label));
+    if let Some(k) = &by_path
+        && let Some(known) = BY_PATH
+            .get_or_init(Default::default)
+            .lock()
+            .ok()
+            .and_then(|c| c.get(k).cloned())
+    {
+        return known.map_err(SshFailure::Rejected);
+    }
+    let verdict = ssh_verify_keyed(repo, trust, response, sig, allowed, principal);
+    if let Some(k) = by_path {
+        let cached = match &verdict {
+            Ok(()) => Some(Ok(())),
+            Err(SshFailure::Rejected(why)) => Some(Err(why.clone())),
+            Err(SshFailure::Unavailable(_)) => None,
+        };
+        if let (Some(v), Ok(mut c)) = (cached, BY_PATH.get_or_init(Default::default).lock()) {
+            c.insert(k, v);
+        }
+    }
+    verdict
+}
+
+/// Verdicts by path, for a read-only command only (see [`ssh_verify`]).
+static BY_PATH: std::sync::OnceLock<
+    std::sync::Mutex<std::collections::HashMap<String, Result<(), String>>>,
+> = std::sync::OnceLock::new();
+
+/// [`ssh_verify`] keyed by the digest of every byte the verdict depends on.
+fn ssh_verify_keyed(
+    repo: &Repository,
+    trust: &Trust,
+    response: &Utf8Path,
+    sig: &Utf8Path,
+    allowed: &Utf8Path,
+    principal: &str,
+) -> Result<(), SshFailure> {
     let read = |p: &Utf8Path| {
         std::fs::read(p).map_err(|e| {
             SshFailure::Unavailable(format!("could not open {}: {e}", repo.relative(p)))
