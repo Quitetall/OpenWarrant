@@ -9146,7 +9146,7 @@ stages:
 
 ### OBL-003 — every non-pass diagnostic carries a remedy, and no automatic remedy signs
 - **scope:** `remedy.rs`, `diagnostic.rs`, `output.rs`, `schemas/oh.war/report/v1.json`.
-- **gate:** `gate://software.repo.war-check@1.0.0`
+- **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:** a unit test walks the remedy table and every fallback path and asserts no `auto` argv contains `sign`, `authorize`, `resolve`, `correct`, `accept` or `answer`; `war check --json` on a planted drift carries `remedy.kind = "human"`, argv `war correct <alias> <D-id>` with no placeholder, and a purpose naming `war sign <alias>/<D-id> --ssh-sign`; on a planted stale projection carries `remedy.kind = "auto"` and `war compile`; `war check` ends with a `REMEDIES:` block; `89-schemas.sh` passes with `SCHEMA_PACK_VERSION` unchanged.
 
 ### OBL-004 — the guided init writes the authority files only from a terminal, once, and never for an agent
@@ -11127,7 +11127,8 @@ then the act is the one the server chose, and the key's dialog asks.
 | D-008 | docs/WEBUI.md | `docs/WEBUI.md` | drift |
 | D-009 | README.md: war ui | `README.md` | verified |
 | D-010 | THREAT_MODEL row | `docs/THREAT_MODEL.md` | verified |
-| D-011 | the plants | `conformance/plants.d/63-webui.sh` | drift |
+| D-011 | the plants | `conformance/plants.d/63-webui.sh` | verified |
+| D-012 | the verifier's plants: /api/act by method, the act's command, one act at a time, progress on this corpus | `conformance/plants.d/63-webui-verified.sh` | verified |
 
 #### OW-WAR-0119 — Identity is the UUIDv7: immutable across revisions, and no alias ever stands in for it
 
