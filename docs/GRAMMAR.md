@@ -33,7 +33,9 @@ it on a scratch program and checks which rule fired and for what. Where no
 plant exists the row cites the source line instead. The plant file ends with
 a drift control, `G-D1`: it fails if this document cites a rule id or a
 plant id that no plant produced. `G-D2` shows that control failing on a
-planted citation.
+planted citation. `G-D5` fails if any row's standard cell neither quotes
+the SAS (a `"…"` span) nor says unspecified, naming the row; `G-D6` shows it
+reporting a planted bare cell.
 
 ## 1. The manifest
 
@@ -113,9 +115,9 @@ Everything else is refused by name (DV-2).
 | a flow mapping, `{k: v}` | §62 | accept: "YAML frontmatter" | refuse, rule `atom.frontmatter` ("a flow mapping") | `G-R5` |
 | a block scalar, `\|` | §62 | accept: "YAML frontmatter" | refuse, rule `atom.frontmatter` ("a block scalar") | `G-R6` |
 | a folded scalar, `>` | §62 | accept: "YAML frontmatter" | refuse, rule `atom.frontmatter` ("a folded block scalar") | `G-R7` |
-| a duplicate key | §62 | refuse: "YAML frontmatter", and YAML requires a mapping's keys to be unique | refuse, rule `atom.frontmatter` ("duplicate key") | `G-R8` |
-| a nested mapping | §62 example | accept: the example nests `holder` | refuse, rule `atom.frontmatter` ("an indented (nested) mapping") (DV-1) | `G-R10` |
-| §62's example with `holder` removed | §62 | accept | the reader accepts it. Its `warrant_uuid` names the example's Warrant, so rule `atom.header` refuses it and nothing else does | `G-P1` |
+| a duplicate key | §62 | refuse: "The v1 source adapter uses Markdown with YAML frontmatter", and the YAML specification that clause names requires a mapping's keys to be unique | refuse, rule `atom.frontmatter` ("duplicate key") | `G-R8` |
+| a nested mapping | §62 example | accept: "The v1 source adapter uses Markdown with YAML frontmatter", and the example writes `holder:` over `kind: git` | refuse, rule `atom.frontmatter` ("an indented (nested) mapping") (DV-1) | `G-R10` |
+| §62's example with `holder` removed | §62 | accept: "The v1 source adapter uses Markdown with YAML frontmatter" | the reader accepts it. Its `warrant_uuid` names the example's Warrant, so rule `atom.header` refuses it and nothing else does | `G-P1` |
 
 ## 3. Structured atoms
 
@@ -129,8 +131,8 @@ extension, and always goes to that reader (source
 | construct | SAS | standard | `war` | plant |
 |---|---|---|---|---|
 | an anchor | §62.1 | accept: "MAY use YAML or canonical JSON source" | refuse, rule `milestones.invalid` ("a YAML anchor") | `G-S1` |
-| a mapping below a sequence item | §62.1 | accept: YAML | refuse, rule `milestones.invalid` ("a mapping nested below a sequence item") | `G-S2` |
-| a duplicate key | §62.1 | refuse: YAML requires unique keys | refuse, rule `milestones.invalid` ("duplicate key") | `G-S3` |
+| a mapping below a sequence item | §62.1 | accept: "Machine-dense atoms such as milestone graphs MAY use YAML or canonical JSON source." | refuse, rule `milestones.invalid` ("a mapping nested below a sequence item") | `G-S2` |
+| a duplicate key | §62.1 | refuse: "Machine-dense atoms such as milestone graphs MAY use YAML or canonical JSON source.", and the YAML specification requires a mapping's keys to be unique | refuse, rule `milestones.invalid` ("duplicate key") | `G-S3` |
 | canonical JSON source (`.json`) | §62.1 | accept: "MAY use YAML or canonical JSON source" | refuse, rule `milestones.invalid` (DV-8) | `G-S4` |
 
 ## 4. Markdown body headings
@@ -207,7 +209,7 @@ An extension role is namespaced: it contains a `.` with text on both sides.
 |---|---|---|---|---|
 | an unknown role, required | §16.4, §91.2 test 9 | refuse: "Unknown required roles SHALL fail closed." | refuse, rule `manifest.invalid` | `G-M4` |
 | an unknown role, optional, not namespaced | §16.4 | unspecified | refuse, rule `manifest.invalid` (DV-10) | `G-M5` |
-| a namespaced role, required | §16.4 | refuse: an unknown required role | refuse, rule `manifest.invalid` | `G-M6` |
+| a namespaced role, required | §16.4 | refuse: "Unknown required roles SHALL fail closed." A namespaced role is not a core role, so it is unknown | refuse, rule `manifest.invalid` | `G-M6` |
 | a namespaced role, optional | §16.4 | accept and preserve: "Unknown optional namespaced roles SHALL be preserved in the canonical export" | accept; the role is in the compiled IR | `G-M8` |
 | `decisions`, §16.1's name for ordinal 30 | §16.1, §16.2, §61 | unspecified: §16.1's table names the role `decisions`, while §16.2 and §61's example write `role = "adr"` | refuse, rule `manifest.invalid`; `adr` is the role, `decisions` its section (DV-9) | `G-M7` |
 

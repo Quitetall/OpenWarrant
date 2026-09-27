@@ -370,6 +370,57 @@ gr_uncited() { # <document> -> each cited rule or plant id nothing above produce
 }
 
 GR_DOC=docs/GRAMMAR.md
+
+# ---------------------------------------------------------------------------
+# OBL-004: every table row's standard cell (the third column) quotes a SAS
+# clause, as a "…" or “…” span, or says unspecified. Backticks alone do not
+# count: a tool's role name in backticks is not a quotation. An escaped `\|`
+# inside a cell is not a column break. Then a copy with one bare standard
+# cell must be reported, by line and construct.
+# ---------------------------------------------------------------------------
+
+gr_unquoted() { # <document> -> "line N: construct" for each standard cell that neither quotes nor says unspecified
+    awk '
+        /^\|/ {
+            row = $0; gsub(/\\\|/, "\001", row)
+            n = split(row, c, "|")
+            if (n < 6) next
+            k = c[2]; gsub(/^ +| +$/, "", k)
+            if (k == "construct" || k ~ /^-+$/) next
+            std = c[4]
+            if (std ~ /"[^"]+"/ || std ~ /“[^”]+”/ || tolower(std) ~ /unspecified/) next
+            gsub(/\001/, "\\|", k)
+            printf "line %d: %s\n", NR, k
+        }
+    ' "$1"
+}
+
+GR_ROWS=$(awk '/^\|/ && !/^\| construct \|/ && !/^\|---/' "$GR_DOC" 2>/dev/null | wc -l)
+GR_BARE=$(gr_unquoted "$GR_DOC" 2>/dev/null)
+GR_RAN+=("G-D5")
+if [[ -f "$GR_DOC" && "$GR_ROWS" -gt 0 && -z "$GR_BARE" ]]; then
+    printf 'ok    %-34s %s row(s), each standard cell quotes or says unspecified\n' "G-D5 every standard cell quotes" "$GR_ROWS"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s %s row(s); bare: %s\n' "G-D5 every standard cell quotes" "$GR_ROWS" "$(tr '\n' ';' <<<"$GR_BARE")"
+    FAILED=$((FAILED + 1))
+fi
+
+GR_COPY=$(mktemp)
+cp "$GR_DOC" "$GR_COPY" 2>/dev/null
+sed -i 's/^| a namespaced role, required | §16\.4 | refuse: "Unknown required roles SHALL fail closed\." [^|]*|/| a namespaced role, required | §16.4 | refuse |/' "$GR_COPY"
+GR_BARE=$(gr_unquoted "$GR_COPY")
+GR_PLANTED=$(grep -n '^| a namespaced role, required | §16.4 | refuse |' "$GR_COPY" | cut -d: -f1)
+command rm -f "$GR_COPY"
+GR_RAN+=("G-D6")
+if [[ -n "$GR_PLANTED" && "$GR_BARE" == "line $GR_PLANTED: a namespaced role, required" ]]; then
+    printf 'ok    %-34s a bare cell is reported: %s\n' "G-D6 the quotation control refuses" "$GR_BARE"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s planted at line %s; reported: %s\n' "G-D6 the quotation control refuses" "${GR_PLANTED:-none}" "$(tr '\n' ';' <<<"$GR_BARE")"
+    FAILED=$((FAILED + 1))
+fi
+
 GR_RAN+=("G-D1" "G-D2")
 GR_CITED=$(grep -oE 'rule `[a-z][a-z0-9_-]*(\.[a-z0-9_-]+)+`' "$GR_DOC" 2>/dev/null | sort -u | wc -l)
 GR_MISSING=$(gr_uncited "$GR_DOC" 2>/dev/null)
