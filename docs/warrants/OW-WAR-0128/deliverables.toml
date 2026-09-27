@@ -10,9 +10,21 @@ title = "The Knowledge Fabric compiler interface: request, result, process contr
 kind = "document"
 target_ref = "docs/integrations/kf-compiler.md"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "e330857777dd08724b2e76e63377f74b952613547fcef0314aed88d3deac2fc6"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 163d3f3a9ecf, debug)"
+creation_method = "authored"
+content_digest = "sha256:abe1b8069a53b3d1e554de6feacddec6d4cbe9e312c727110417db921a7c5d72"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
@@ -20,6 +32,18 @@ title = "Who compiles, and the alternatives not chosen: OW-ADR-0027"
 kind = "document"
 target_ref = "docs/adr/atoms/OW-ADR-0027-kf-compiler-interface.md"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-003", "OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "e330857777dd08724b2e76e63377f74b952613547fcef0314aed88d3deac2fc6"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 163d3f3a9ecf, debug)"
+creation_method = "authored"
+content_digest = "sha256:528cb98056f45bc21a06c4719f0ad873a05410a5ba06b8639e0babe50ea71281"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
