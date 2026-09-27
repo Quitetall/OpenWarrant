@@ -958,7 +958,7 @@ SAS revision **1.1.1** (accepted), sha256:`230e2829d80d11e4ccaf8f893205994ce1631
 
 ## Decisions
 
-9 accepted decision(s), expanded; 16 proposed, one line each.
+9 accepted decision(s), expanded; 17 proposed, one line each.
 
 ### OW-ADR-0001 — ADR OW-0001: Adopt `serde_jcs` as the RFC 8785 canonical JSON implementation
 
@@ -1965,6 +1965,7 @@ are the evidence, recorded under OW-WAR-0073 OBL-001 rather than asserted here.
 - [OW-ADR-0022](../../docs/adr/atoms/OW-ADR-0022-current-by-relation.md) — ADR OW-0022: Two projections, current by relation; atoms are the only authored thing
 - [OW-ADR-0023](../../docs/adr/atoms/OW-ADR-0023-roadmap-is-a-record.md) — ADR OW-0023: The roadmap is a record — one per program, beside the SAS
 - [OW-ADR-0025](../../docs/adr/atoms/OW-ADR-0025-assurance-mark.md) — ADR OW-0025: The assurance mark — baseline v1, how a mark comes to exist, and what it binds
+- [OW-ADR-0026](../../docs/adr/atoms/OW-ADR-0026-native-held-deliverables.md) — ADR OW-0026: A deliverable a native system holds is a reference, never a repository file
 - [OW-ADR-0028](../../docs/adr/atoms/OW-ADR-0028-sas-sections-are-atoms.md) — ADR OW-0028: SAS sections are atoms — identity now, authored source later
 - [OW-ADR-0029](../../docs/adr/atoms/OW-ADR-0029-standing-authorization.md) — ADR OW-0029: Standing authorization — one signature authorizes a bounded class of routine work
 
@@ -20352,7 +20353,7 @@ joined path is what shows no reader does.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | The native reference form, decided: OW-ADR-0026 | `docs/adr/atoms/OW-ADR-0026-native-held-deliverables.md` | not_content_addressed |
+| D-001 | The native reference form, decided: OW-ADR-0026 | `docs/adr/atoms/OW-ADR-0026-native-held-deliverables.md` | verified |
 | D-002 | Classify a target_ref; refuse a native reference without a non-Git holder | `crates/openwarrant-core/src/deliverable.rs` | not_content_addressed |
 | D-003 | §56.1 requirements 2 and 3 never read a native reference from disk | `crates/openwarrant-cli/src/resolve.rs` | not_content_addressed |
 | D-004 | Drift skips native references; validation surfaces the refusals | `crates/openwarrant-cli/src/check.rs` | not_content_addressed |
@@ -20360,7 +20361,7 @@ joined path is what shows no reader does.
 | D-006 | A correction of a native reference is refused | `crates/openwarrant-cli/src/correct.rs` | not_content_addressed |
 | D-007 | The verification bundle carries the reference, not bytes | `crates/openwarrant-cli/src/bundle.rs` | not_content_addressed |
 | D-008 | Digest state says held by its system | `crates/openwarrant-cli/src/status.rs` | not_content_addressed |
-| D-009 | The native-authority plants | `conformance/plants.d/61-native-authority.sh` | not_content_addressed |
+| D-009 | The native-authority plants | `conformance/plants.d/61-native-authority.sh` | verified |
 
 #### OW-WAR-0128 — The Knowledge Fabric compiler interface: what OpenWarrant hands KF and what it gets back
 

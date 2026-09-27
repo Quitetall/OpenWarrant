@@ -11,9 +11,21 @@ title = "The native reference form, decided: OW-ADR-0026"
 kind = "document"
 target_ref = "docs/adr/atoms/OW-ADR-0026-native-held-deliverables.md"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-005"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a39ce6323c826335d42d9f9136a3c2d5d07134b4fc8cb6d40fe2ac6ba8c06c11"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 163d3f3a9ecf, debug)"
+creation_method = "authored"
+content_digest = "sha256:ee09d5d9caee2d826d70059e01f54dbda021c27fe14286de705536c3dc67fdd8"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
 
 [[deliverable]]
 id = "D-002"
@@ -91,6 +103,18 @@ title = "The native-authority plants"
 kind = "file"
 target_ref = "conformance/plants.d/61-native-authority.sh"
 required = true
-content_addressed = false
+content_addressed = true
 provenance_required = false
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "unrecorded"
+contract_digest = "a39ce6323c826335d42d9f9136a3c2d5d07134b4fc8cb6d40fe2ac6ba8c06c11"
+tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 163d3f3a9ecf, debug)"
+creation_method = "authored"
+content_digest = "sha256:b06e154d2be03b31988991c674ff45f5056874a5d221854a89ab6ce1876c4752"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

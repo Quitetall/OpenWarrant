@@ -67,8 +67,8 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | every required gate has admissible result | 114 |
 | no blocker remains | 86 |
 | no required unknown remains | 86 |
-| artifact digests verify | 75 |
-| required deliverables exist | 57 |
+| artifact digests verify | 74 |
+| required deliverables exist | 56 |
 | required judgments exist | 55 |
 | residual risks have sufficient authority | 55 |
 | exact authorized Contract Revision | 17 |
@@ -274,7 +274,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0124` Brownfield adoption: a guided path into OpenWarrant for a repository with history and no Warrants | draft | NOT satisfied | 0 | 0 of 3 | exact authorized Contract Revision |
 | `OW-WAR-0125` The SAS as atoms: sections as governed records with their own currency | draft | NOT satisfied | 0 | 2 of 4 | exact authorized Contract Revision |
 | `OW-WAR-0126` Knowledge Fabric owns authority and lifecycle: the registration seam and what stays local | draft | unknown | 3 | 0 of 1 | required deliverables exist |
-| `OW-WAR-0127` Native systems keep artifact authority: OpenWarrant references, never re-owns, what another system holds | draft | unknown | 1 | 0 of 3 | required deliverables exist |
+| `OW-WAR-0127` Native systems keep artifact authority: OpenWarrant references, never re-owns, what another system holds | draft | unknown | 1 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0128` The Knowledge Fabric compiler interface: what OpenWarrant hands KF and what it gets back | draft | unknown | 3 | 0 of 1 | required deliverables exist |
 | `OW-WAR-0129` A Dispatch over its budget is refused, by name, before any agent starts | draft | would satisfy | 0 | 3 of 3 | every required gate has admissible result |
 | `OW-WAR-0130` Idempotent acts, all-or-nothing batches, and version negotiation between war and its records | draft | NOT satisfied | 0 | 2 of 4 | artifact digests verify |
