@@ -1,0 +1,19 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-003-7737"
+band: "manual_revision"
+reason: "OBL-005 claims, under Q-001 (a), that 'the finding clears only after the re-acceptance record the SAS revision defines'. No SAS revision defines one, and the work order forbids building one here ('Q-001 (a): a new act kind is a SAS change and a human decision. It is not built here without one'). What was delivered is a split the basis did not list: an in-scope move clears on re-verification (Q-001 (b)); a move of a PINNED deliverable clears only on the head of its signed correction chain (`war correct` / `war sign <alias>/<D-id>`, OW-WAR-0064), which acceptance.rs and docs/SIGNING.md label 'Q-001 (a)'. The performer's commit aa05d346 says Q-001 was 'answered (b)' with that split; no answer to Q-001 is recorded in this repository. The blind verifier (2026-09-27) read the (a) bullet as claimed for the pinned case and found no evidence for it. So the obligation over-claims against its own work order: its (a) bullet names a record that cannot exist under this contract. This amendment restates OBL-005 to the behaviour built — no new act kind, the existing correction as the pinned case's re-acceptance — and 56-acceptance-validity.sh now plants that clearing ('a signed correction clears the pin', beside its refusal 'a moved pin needs a human'). If the owner's answer to Q-001 is not (b)-with-that-split, this amendment is wrong and should be refused; the owner records the answer, not the performer. Wording drafted by the performer `claude`, for the owner's authorization."
+governing_adr_or_policy: "adr://OW-ADR-0012"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. No artifact changes beyond the plant already committed. In atoms/60-assurance.md, OBL-005's evidence reads: under (b), unchanged; for a pinned deliverable whose bytes moved: a verification of the new candidate does NOT clear the finding, and a signed correction of that deliverable (its chain head matching the new digest) does; under (c): withdrawn by amendment. The '(a): the re-acceptance record the SAS revision defines' bullet is removed. Q-001's answer is recorded by the owner before this revision is authorized. The contract digest moves; the next revision is authorized against it and the battery re-run."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-27"
+
+semantic_diff:
+  - element: "obligations"
+    before: "OBL-005 (a): the finding clears only after the re-acceptance record the SAS revision defines."
+    after: "OBL-005: an in-scope move clears on re-verification of that candidate only (b); a moved pinned deliverable is not cleared by re-verification and is cleared by a signed correction of it (OW-WAR-0064), no new act kind."
+
+affected_stages: []
+affected_milestones: []

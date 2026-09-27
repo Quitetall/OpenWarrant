@@ -292,7 +292,35 @@ if [[ $AV_STATUS -ne 0 ]] && av_names 'acceptance.candidate-moved' "$AV_OUT" 'sr
 else
     av_fail "a moved pin needs a human" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
 fi
+# ... and the human's re-acceptance of that pin — today a signed correction,
+# the act the finding names — is what clears it. Signed by the plant key in a
+# second throwaway agent that holds nothing else, exactly as the setup did.
+if WAR="$REPO_ROOT/$WAR" D="$PLANT_ROOT" T="$AV_TMP" A="$AV_A" \
+    env -u SSH_AUTH_SOCK -u SSH_AGENT_PID bash -euo pipefail > "$AV_TMP/correct.log" 2>&1 <<'CORRECT'
+cd "$D"
+eval "$(ssh-agent -s)" >/dev/null
+trap 'ssh-agent -k >/dev/null 2>&1 || true' EXIT
+ssh-add -q "$T/id_plant"
+keys=$(ssh-add -l)
+fp=$(ssh-keygen -lf "$T/id_plant.pub" | awk '{print $2}')
+[[ $(grep -c . <<<"$keys") -eq 1 ]] && grep -qF -- "$fp" <<<"$keys" \
+    || { echo "the throwaway agent holds more than the plant key: $keys"; exit 1; }
+"$WAR" --root . sign "$A/D-001" --ssh-sign --as "Plant Signer" --kind behaviour-change </dev/null
+CORRECT
+then
+    av_commit "the pinned deliverable re-accepted by correction"
+    AV_OUT=$(av_war pins --candidate HEAD 2>&1); AV_STATUS=$?
+    AV_CLEAR=$(grep -F "$AV_A" <<<"$AV_OUT" | grep -F 'acceptance.' || true)
+    if [[ $AV_STATUS -eq 0 && "$AV_CLEAR" == *"acceptance.unchanged"* && "$AV_CLEAR" != *"acceptance.candidate-moved"* ]]; then
+        av_ok "a signed correction clears the pin" "war sign $AV_A/D-001: acceptance.unchanged at the re-accepted candidate"
+    else
+        av_fail "a signed correction clears the pin" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
+    fi
+else
+    av_fail "a signed correction clears the pin" "the correction was not recorded: $(tail -3 "$AV_TMP/correct.log" | tr '\n' '|')"
+fi
 git -C "$PLANT_ROOT" reset -q --hard "$AV_MOVED"
+git -C "$PLANT_ROOT" clean -fdq
 
 # ── OBL-003: history that cannot answer is UNKNOWN, never unchanged ─────────
 # The readable locator above answered; the same resolution with its locator
