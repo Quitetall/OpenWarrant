@@ -96,7 +96,7 @@ and output.
 | any `/api/` call without the session token, or with a wrong one | 401 |
 | a Host other than the bound `127.0.0.1:<port>` (DNS rebinding) | 400 |
 | an Origin other than the page's | 403 |
-| an act by any method but POST | 405 |
+| `/api/act` by any method but POST or GET (GET, with the token, reads the current act's state and starts nothing) | 405 |
 | an act with no Origin | 403 |
 | an act whose id is not on the allowlist | 403, nothing runs |
 | an act body with any field but `id` (an argv, say) | 400 |
