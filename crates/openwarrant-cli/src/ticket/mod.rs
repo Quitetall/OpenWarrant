@@ -1364,9 +1364,27 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
             from.actor, from.since
         ));
     }
-    human.push_str(&format!(
-        "\nwhen it is done: `war done {what} --note \"...\"`"
-    ));
+    // A whole ticket with items open is done item by item: `war done <ticket>`
+    // is refused (`ticket.items-open`) until the last is ticked, so the hint
+    // names the next open item instead (t-87fb, t-8a2c).
+    let next_open = if item.is_none() {
+        t.checklist
+            .items
+            .iter()
+            .find(|i| !i.done)
+            .and_then(|i| i.id.clone())
+    } else {
+        None
+    };
+    match &next_open {
+        Some(next) => human.push_str(&format!(
+            "\nnext: `war done {}/{next} --note \"...\"` (the ticket is done when its last item is)",
+            t.id()
+        )),
+        None => human.push_str(&format!(
+            "\nwhen it is done: `war done {what} --note \"...\"`"
+        )),
+    }
     Ok(Outcome::ok(
         human,
         serde_json::json!({

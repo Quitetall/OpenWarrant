@@ -453,6 +453,62 @@ impl<'a> Picker<'a> {
     }
 }
 
+/// Windows of a file no whole line of which fits: canonical JSON is one
+/// line (SECTIONS.json, 77 KB), and whole-line excerpts carried nothing of
+/// it but its digest (t-3293). The head, a window around the first hit of
+/// each term, and the tail, within `allowance` bytes, cut on char
+/// boundaries; each names the line it lies in.
+fn byte_windows(text: &str, allowance: usize, terms: &[String]) -> Vec<Excerpt> {
+    let len = text.len();
+    let edge = allowance / 4;
+    let mut spans: Vec<(usize, usize)> = vec![(0, edge.min(len))];
+    let per = if terms.is_empty() {
+        0
+    } else {
+        (allowance / 2) / terms.len()
+    };
+    for t in terms {
+        if let Some(at) = text.find(t.as_str()) {
+            let from = at.saturating_sub(per / 4);
+            spans.push((from, (from + per.max(t.len())).min(len)));
+        }
+    }
+    spans.push((len.saturating_sub(edge), len));
+    spans.sort_unstable();
+    let mut merged: Vec<(usize, usize)> = Vec::new();
+    for (a, b) in spans {
+        match merged.last_mut() {
+            Some(last) if a <= last.1 => last.1 = last.1.max(b),
+            _ => merged.push((a, b)),
+        }
+    }
+    let floor = |mut i: usize| {
+        while i > 0 && !text.is_char_boundary(i) {
+            i -= 1;
+        }
+        i
+    };
+    let line_of = |i: usize| text[..i].matches('\n').count() + 1;
+    let mut left = allowance;
+    let mut out = Vec::new();
+    for (a, b) in merged {
+        let (a, b) = (floor(a), floor(b.min(a + left)));
+        if b <= a {
+            continue;
+        }
+        left -= b - a;
+        out.push(Excerpt {
+            start_line: line_of(a),
+            end_line: line_of(floor(b - 1).max(a)),
+            text: text[a..b].to_owned(),
+        });
+        if left == 0 {
+            break;
+        }
+    }
+    out
+}
+
 /// Give each item at most its size, the budget shared evenly among those
 /// that want more than the rest can spare (smallest first; ties by order).
 fn water_fill(sizes: &[usize], total: usize) -> Vec<usize> {
@@ -766,7 +822,11 @@ fn carry_file(
             let mut p = Picker::new(&whole, a);
             p.offer_head(HEAD_LINES, a / 4);
             p.offer_terms(terms, BEFORE, AFTER);
-            (true, None, p.excerpts())
+            let mut excerpts = p.excerpts();
+            if excerpts.is_empty() {
+                excerpts = byte_windows(&whole, a, terms);
+            }
+            (true, None, excerpts)
         }
         _ => (false, Some(whole.clone().into_owned()), vec![]),
     };
@@ -1513,6 +1573,25 @@ mod tests {
         // A section whose header matches no head is not offered.
         let none = captured(&s, Carry::Excerpt(8192), &["== theirs ==".to_owned()], &[]);
         assert!(!stream_text(&none).contains("the claim this Warrant rests on"));
+    }
+
+    #[test]
+    fn a_file_of_one_long_line_is_carried_in_windows() {
+        let mut line = String::from("{\"revision\":\"1.1.0\",\"body\":\"");
+        line.push_str(&"x".repeat(60_000));
+        line.push_str("\",\"source_sha256\":\"abc123\"}");
+        let terms = vec!["war compile".to_owned(), "source_sha256".to_owned()];
+        let w = byte_windows(&line, 4096, &terms);
+        let all: String = w.iter().map(|e| e.text.as_str()).collect();
+        assert!(all.contains("\"revision\":\"1.1.0\""), "the head");
+        assert!(all.contains("\"source_sha256\":\"abc123\"}"), "the tail and the term");
+        assert!(all.len() <= 4096);
+        assert!(w.iter().all(|e| e.start_line == 1 && e.end_line == 1));
+        // Multi-byte text is cut on char boundaries, never inside one.
+        let wide = "é".repeat(10_000);
+        for e in byte_windows(&wide, 1001, &[]) {
+            assert!(e.text.chars().all(|c| c == 'é'));
+        }
     }
 
     #[test]
