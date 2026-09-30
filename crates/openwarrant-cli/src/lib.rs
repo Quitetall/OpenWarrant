@@ -2986,6 +2986,10 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             ))
         }
         Command::Board { html } => {
+            // One-shot reader, like `status`: evaluating the frontier, queue
+            // and corpus may ask about the same receipt hundreds of times.
+            // Keep one tree observation per basis, never refresh the index.
+            gate_cmd::source::remember_tree_reads();
             let repository = open_repo()?;
             let (report, view) = board::build(&repository)?;
             if !matches!(mode, output::Mode::Json) {

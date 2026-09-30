@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-board-read-efficiency/conformance/controls/board-tree-reads.py", line 39, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/ow-board-read-efficiency/conformance/controls/board-tree-reads.py", line 33, in main
+    assert not repeated, f"board repeated identical tree reads: {repeated}"
+           ^^^^^^^^^^^^
+AssertionError: board repeated identical tree reads: {"('git', '-C', '/mnt/4tb/tmp/ow-board-read-efficiency', 'diff', '--name-only', '-z', '9729d66838274661a8b7382db6ef1108887babec', '--')": 548, "('git', '-C', '/mnt/4tb/tmp/ow-board-read-efficiency', 'ls-files', '--others', '--exclude-standard', '-z')": 608, "('git', '-C', '/mnt/4tb/tmp/ow-board-read-efficiency', 'diff', '--name-only', '-z', '2b24c062778e0d87732c7f85873cd25ceb8fbad3', '--')": 24, "('git', '-C', '/mnt/4tb/tmp/ow-board-read-efficiency', 'diff', '--name-only', '-z', 'e68d1caf85390eea75caab55aea5f3b968ef329f', '--')": 28, "('git', '-C', '/mnt/4tb/tmp/ow-board-read-efficiency', 'diff', '--name-only', '-z', 'f476a029566e80b2e41bfd355ef80edaa508bfa9', '--')": 4, "('git', '-C', '/mnt/4tb/tmp/ow-board-read-efficiency', 'diff', '--name-only', '-z', 'e54ccac17a000db9430a08ded5ae9ad1923067b0', '--')": 4}
