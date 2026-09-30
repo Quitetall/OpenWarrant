@@ -32,11 +32,11 @@ qg_fail() { printf 'FAIL  %-34s %s\n' "$1" "$2"; FAILED=$((FAILED + 1)); }
     printf 'QG_T=$(printf "a\\nERROR b\\n"); QG_N=$(%s -c . <<<"$QG_T" | wc -l)\n' "$QG"
     printf 'line_has -E "^ERROR" -F b <<<"$QG_T" && %s -q a <<<"$QG_T" && %s -qF b < <(printf "%%s\\n" "$QG_T")\n' "$QG" "$QG"
     printf 'QG_V=$(printf "%%s\\n" "$QG_T" | %s -v a | %s -o b); [[ -n "$QG_V" ]] || %s -q zz <<<"$QG_T"\n' "$QG" "$QG" "$QG"
-    printf 'echo 50-clean >> "%s/log"; PASSED=$((PASSED + 1))\n' "$QG_DIR"
+    printf '%s\n' 'echo 50-clean >> "$QG_DIR/log"; PASSED=$((PASSED + 1))'
 } > "$QG_DIR/50-clean.sh"
 qg_refused() { # <name> <line 2>
     {
-        printf 'echo %s >> "%s/log"; PASSED=$((PASSED + 1))\n' "$1" "$QG_DIR"
+        printf 'echo %s >> "$QG_DIR/log"; PASSED=$((PASSED + 1))\n' "$1"
         printf '%s\n' "$2"
     } > "$QG_DIR/$1.sh"
 }
@@ -45,7 +45,7 @@ qg_refused 52-qF "if war check 2>&1 | $QG -qF 'OW-WAR-0001'; then :; fi"
 qg_refused 53-late "! $QG -E '^ERROR' <<<\"\$X\" | $QG -E -q 'ticket'"
 qg_refused 54-amp "war next |& $QG --quiet 'war claim'"
 {
-    printf 'echo 55-split >> "%s/log"; PASSED=$((PASSED + 1))\n' "$QG_DIR"
+    printf '%s\n' 'echo 55-split >> "$QG_DIR/log"; PASSED=$((PASSED + 1))'
     printf 'war next 2>/dev/null |\n'
     printf '    %s -q "war claim" && :\n' "$QG"
 } > "$QG_DIR/55-split.sh"

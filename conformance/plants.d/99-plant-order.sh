@@ -18,10 +18,10 @@ PO_LEAK="docs/warrants/.plant-order-leak-$$"
 po_ok() { printf 'ok    %-34s %s\n' "$1" "$2"; PASSED=$((PASSED + 1)); }
 po_fail() { printf 'FAIL  %-34s %s\n' "$1" "$2"; FAILED=$((FAILED + 1)); }
 for n in 57-b 57-a; do
-    printf 'echo %s >> "%s/log"; PASSED=$((PASSED + 1))\n' "$n" "$PO_DIR" > "$PO_DIR/$n.sh"
+    printf 'echo %s >> "$PO_DIR/log"; PASSED=$((PASSED + 1))\n' "$n" > "$PO_DIR/$n.sh"
 done
-printf 'echo 58-leak >> "%s/log"; : > "$REPO_ROOT/%s"; PASSED=$((PASSED + 1))\n' "$PO_DIR" "$PO_LEAK" > "$PO_DIR/58-leak.sh"
-printf 'echo 59-after >> "%s/log"; if [[ -e "$REPO_ROOT/%s" ]]; then FAILED=$((FAILED + 1)); else PASSED=$((PASSED + 1)); fi\n' "$PO_DIR" "$PO_LEAK" > "$PO_DIR/59-after.sh"
+printf 'echo 58-leak >> "$PO_DIR/log"; : > "$REPO_ROOT/%s"; PASSED=$((PASSED + 1))\n' "$PO_LEAK" > "$PO_DIR/58-leak.sh"
+printf 'echo 59-after >> "$PO_DIR/log"; if [[ -e "$REPO_ROOT/%s" ]]; then FAILED=$((FAILED + 1)); else PASSED=$((PASSED + 1)); fi\n' "$PO_LEAK" > "$PO_DIR/59-after.sh"
 
 # po_run <file...>  ->  the inner run's output, then "TOTALS <passed> <failed>"
 po_run() {

@@ -23,10 +23,10 @@ ft_fail() { printf 'FAIL  %-34s %s\n' "$1" "$2"; FAILED=$((FAILED + 1)); }
     printf '# a comment may name %s/openwarrant-anything.toml\n' "$FT_ROOT"
     printf 'FT_A=$(mktemp -d); FT_B=$(mktemp %s/war-plant.XXXXXX)\n' "$FT_ROOT"
     printf 'FT_C="${TMPDIR:-%s}/war-plant-$$"; FT_D="$FT_A/tmp/inner"\n' "$FT_ROOT"
-    printf 'rm -rf "$FT_A" "$FT_B"; echo 50-clean >> "%s/log"; PASSED=$((PASSED + 1))\n' "$FT_DIR"
+    printf '%s\n' 'rm -rf "$FT_A" "$FT_B"; echo 50-clean >> "$FT_DIR/log"; PASSED=$((PASSED + 1))'
 } > "$FT_DIR/50-clean.sh"
 {
-    printf 'echo 51-fixed >> "%s/log"; PASSED=$((PASSED + 1))\n' "$FT_DIR"
+    printf '%s\n' 'echo 51-fixed >> "$FT_DIR/log"; PASSED=$((PASSED + 1))'
     printf 'RESP=%s/openwarrant-plant-fixed.toml\n' "$FT_ROOT"
 } > "$FT_DIR/51-fixed.sh"
 
