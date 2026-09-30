@@ -1,0 +1,82 @@
+{
+  "fixture_format": "openwarrant-rc2-document-preparation-1",
+  "status": "prepared-not-production-tested",
+  "basis": {
+    "format_contract": "docs/sas/drafts/1.0.0-rc.2/format-contract.md",
+    "sha256": "5752e987cd13e5f8ccd7d94594f475f46a3aa75f185d4cde3dc97595d41d1abf",
+    "sections": [
+      "F1",
+      "F2"
+    ]
+  },
+  "cases": [
+    {
+      "id": "T01-minimal",
+      "case": "T01",
+      "source": "minimal.md",
+      "expected": {
+        "parse": "valid",
+        "document_validity": "valid",
+        "identity": "example:minimal-signup",
+        "revision": 1,
+        "kind": "warrant",
+        "title": "Make signup easier",
+        "state": "draft",
+        "units": [
+          {
+            "id": "outcome",
+            "kind": "binding",
+            "start": 185,
+            "end": 273
+          },
+          {
+            "id": "scope",
+            "kind": "binding",
+            "start": 304,
+            "end": 393
+          },
+          {
+            "id": "context",
+            "kind": "binding",
+            "start": 426,
+            "end": 579
+          }
+        ],
+        "authority_grants": []
+      },
+      "bytes": 579,
+      "sha256": "f5bcafb923b6b5f31ec8f56fb06153d55106ba2cd739a3aa5f0e130bac84d3c1"
+    },
+    {
+      "id": "T02-duplicate-title",
+      "case": "T02",
+      "source": "duplicate-title.md",
+      "expected": {
+        "parse": "invalid",
+        "diagnostic": "source-invalid",
+        "partial_document": false,
+        "location": {
+          "line": 7,
+          "key": "title"
+        }
+      },
+      "bytes": 607,
+      "sha256": "a62b84902f138f70fcba2ce6e1b1df4bc2985541492b840d0241d6e143a50036"
+    },
+    {
+      "id": "T02-missing-close",
+      "case": "T02",
+      "source": "missing-header-close.md",
+      "expected": {
+        "parse": "invalid",
+        "diagnostic": "source-invalid",
+        "partial_document": false,
+        "location": {
+          "region": "header"
+        }
+      },
+      "bytes": 575,
+      "sha256": "62e659483413ce2c5eae9a264ee93d883a1eeee3400be207a2e1fabadc1014cb"
+    }
+  ]
+}
