@@ -339,6 +339,7 @@ pub fn run(
             "stage": stage_id,
             "dispatch_id": dispatch.dispatch_id,
             "dispatch_digest": dispatch.dispatch_digest,
+            "contract_digest": dispatch.contract_digest,
             "estimated_tokens": tokens.estimated_tokens,
             "budget_tokens": tokens.budget_tokens,
             "method": tokens.method,

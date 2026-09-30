@@ -59,22 +59,16 @@ fn write_json<T: serde::Serialize>(path: &Utf8Path, v: &T) -> Result<(), RepoErr
 /// journal that cannot be read is an error, not an empty set: a submission
 /// refused for "unknown dispatch" when the journal is corrupt would be
 /// refused for the wrong reason.
-fn compiled_dispatch_ids(dir: &Utf8Path) -> Result<Vec<String>, RepoError> {
-    crate::journal_cmd::load(dir).map(|j| {
-        j.events
+fn compiled_dispatch_bindings(dir: &Utf8Path) -> Result<Vec<serde_json::Value>, RepoError> {
+    crate::journal_cmd::load(dir)?.events
             .iter()
             .filter(|e| e.event_type == "dispatch.compiled")
-            .filter_map(|e| {
+            .map(|e| {
                 serde_json::from_str::<serde_json::Value>(&e.payload)
-                    .ok()
-                    .and_then(|v| {
-                        v.get("dispatch_id")
-                            .and_then(|d| d.as_str())
-                            .map(str::to_owned)
-                    })
+                    .map_err(|error| RepoError::Message(format!(
+                        "submission.dispatch-history-invalid: dispatch event {} has an unreadable payload: {error}", e.id)))
             })
             .collect()
-    })
 }
 
 const SUBMISSION_RECORDED: &str = "submission.recorded";
@@ -463,8 +457,10 @@ pub fn submit(repo: &Repository, alias: &str, file: &Utf8Path) -> Result<Report,
         ));
         return Ok(report);
     }
-    let known = compiled_dispatch_ids(&dir)?;
-    if !known.contains(&submission.dispatch_id) {
+    let known = compiled_dispatch_bindings(&dir)?;
+    let Some(binding) = known.iter().find(|b| {
+        b.get("dispatch_id").and_then(|id| id.as_str()) == Some(submission.dispatch_id.as_str())
+    }) else {
         report.push(Diagnostic::error(
             "submission.unknown-dispatch",
             file.to_string(),
@@ -473,6 +469,26 @@ pub fn submit(repo: &Repository, alias: &str, file: &Utf8Path) -> Result<Report,
                  answers a Dispatch this Warrant compiled, or it answers nothing. Nothing was written",
                 submission.dispatch_id
             ),
+        ));
+        return Ok(report);
+    };
+    let Some(expected) = binding
+        .get("contract_digest")
+        .and_then(|v| v.as_str())
+        .filter(|s| !s.is_empty())
+    else {
+        report.push(Diagnostic::unknown(
+            "submission.dispatch-unbound",
+            repo.relative(&dir.join(crate::journal_cmd::FILE)),
+            format!("{alias}: dispatch {} has no recorded contract binding. Its history is preserved, but this submission cannot be admitted from an id alone. Nothing was written", submission.dispatch_id),
+        ));
+        return Ok(report);
+    };
+    if submission.contract_digest != expected {
+        report.push(Diagnostic::error(
+            "submission.dispatch-mismatch",
+            file.to_string(),
+            format!("{alias}: contract_digest {:?} does not match the compiled dispatch's {:?}. Nothing was written", submission.contract_digest, expected),
         ));
         return Ok(report);
     }
