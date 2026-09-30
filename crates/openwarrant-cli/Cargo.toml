@@ -41,4 +41,4 @@ toml = { workspace = true }
 schema = ["openwarrant-core/schema", "openwarrant-compiler/schema"]
 
 [target.'cfg(unix)'.dependencies]
-rustix = { version = "=1.1.4", features = ["fs", "process"] }
+rustix = { version = "=1.1.5", features = ["fs", "process"] }
