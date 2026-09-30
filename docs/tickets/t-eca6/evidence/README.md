@@ -41,3 +41,8 @@ The compiler then regenerated all five affected projections on this branch;
 `debug-probe/` preserves the one-off measurement scripts with their original
 absolute checkout/output paths. They are evidence, not supported CLI tools.
 The retained controls are the portable regression seam.
+
+The final complete 48-isolated-battery run at 50dd3c55 finished **12 passed,
+zero failed**, exit 0. The measured performance fix and both preparation/refusal
+controls are complete. The full integration gate and Warrant qualification
+remain separate. Raw output: runtime-isolated-battery-final.log.
