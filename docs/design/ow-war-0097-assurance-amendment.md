@@ -48,17 +48,19 @@ The doctor adapter runs:
 cargo +1.97.1 test --locked -p openwarrant-cli --test doctor_cli
 ```
 
-It must test a named committed source revision and preserve that revision in its
-output. Builds write artifacts and tests create temporary fixtures. The adapter
-must either run in an isolated checkout with build output outside the caller's
-repository, or declare itself mutating and use a service-stage binding. Do not
-label an ordinary in-place Cargo invocation read-only merely to make it askable.
+It must test the exact source tree bound by the gate receipt. Builds write
+artifacts and tests create temporary fixtures. The review adapter runs Cargo with
+`--frozen` and a fresh temporary target directory outside the source tree. A
+service-stage binding does not bypass the current runner's refusal of mutating
+gates; declaring an in-place build mutating would not make it executable.
 
-The adapter must return nonzero when Cargo cannot run, when compilation fails,
-or when a test fails. Missing tools are unavailable observations, not successful
-acceptance. Its qualification needs observed passing and failing child commands
-and a before/after snapshot proving its claimed repository isolation. Pin its
-inputs sufficiently to reject reuse after a relevant source or fixture change.
+The adapter must propagate failing tests and compilation errors. Missing tools
+are unavailable observations, not evidence of a doctor defect. The current gate
+runner maps nonzero child exits to FAIL even for missing nested prerequisites;
+registration remains blocked until that classification preserves UNKNOWN. Its
+qualification needs observed passing and failing commands and a before/after
+snapshot proving its claimed repository isolation. Pin its inputs sufficiently
+to reject reuse after a relevant source or fixture change.
 
 ## Coverage of the existing tests
 

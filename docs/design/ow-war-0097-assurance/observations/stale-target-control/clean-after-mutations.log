@@ -1,0 +1,23 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.05s
+     Running tests/doctor_cli.rs (/tmp/openwarrant-doctor-cli-gate/debug/deps/doctor_cli-15866c24e5ab229f)
+
+running 2 tests
+test doctor_aggregates_refusals_without_running_backends_or_mutating_records ... FAILED
+test doctor_accepts_clean_scaffold_and_refuses_generated_drift ... ok
+
+failures:
+
+---- doctor_aggregates_refusals_without_running_backends_or_mutating_records stdout ----
+
+thread 'doctor_aggregates_refusals_without_running_backends_or_mutating_records' (2489439) panicked at crates/openwarrant-cli/tests/doctor_cli.rs:81:5:
+assertion failed: value["diagnostics"].as_array().unwrap().iter().any(|d|
+        d["rule"] == "doctor.authority" && d["severity"] == "error")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    doctor_aggregates_refusals_without_running_backends_or_mutating_records
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+error: test failed, to rerun pass `-p openwarrant-cli --test doctor_cli`

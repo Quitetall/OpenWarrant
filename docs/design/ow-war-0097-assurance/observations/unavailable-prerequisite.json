@@ -1,0 +1,60 @@
+{
+  "schema": "oh.war/doctor-gate-prerequisite-observation/v1",
+  "kind": "synthetic_control",
+  "checkout_revision": "73f32a7eca8ddb824d76dba52e5a73009beec0af",
+  "cli_path": "/mnt/2tb/cargo-target/debug/war",
+  "cli_sha256": "fdd9a7d3b7dfc215667c2fe216c3b43ce3dba5835125401a3052b87788c77649",
+  "argv": [
+    "/mnt/2tb/cargo-target/debug/war",
+    "gate",
+    "--gate",
+    "ops.echo@1.0.0",
+    "--run",
+    "--json"
+  ],
+  "fixture": "Scratch ops.echo definition with argv replaced by a Python child printing UNKNOWN and exiting 127. No production definition changed.",
+  "child_output": "UNKNOWN: cargo prerequisite unavailable",
+  "child_exit_code": 127,
+  "runner_exit_code": 2,
+  "runner_report": {
+    "schema": "oh.war/report/v1",
+    "command": "gate",
+    "diagnostics": [
+      {
+        "severity": "pass",
+        "rule": "gate.registered",
+        "file": null,
+        "message": "ops.echo@1.0.0: local candidate, qualified against its declared fault model"
+      },
+      {
+        "severity": "pass",
+        "rule": "gate.registered",
+        "file": null,
+        "message": "software.repo.war-check@1.0.0: local candidate, qualified against its declared fault model"
+      },
+      {
+        "severity": "pass",
+        "rule": "gate-run.receipt",
+        "file": null,
+        "message": "ops.echo@1.0.0: \u00a744.6 receipt written to docs/receipts/ops_echo_1_0_0.receipt.json"
+      },
+      {
+        "severity": "error",
+        "rule": "gate-run.fail",
+        "file": "ops.echo@1.0.0",
+        "message": "ops.echo@1.0.0: askability askable \u00b7 execution completed \u00b7 verdict fail (failed)"
+      }
+    ],
+    "notes": [],
+    "counts": {
+      "pass": 3,
+      "warn": 0,
+      "unknown": 0,
+      "error": 1,
+      "worst": "error"
+    },
+    "verdict": "not_ready",
+    "verdict_line": "NOT READY",
+    "exit_code": 2
+  }
+}

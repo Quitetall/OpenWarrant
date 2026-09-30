@@ -1,0 +1,43 @@
+# SPDX-License-Identifier: Apache-2.0
+# REVIEW COPY ONLY. Not registered in docs/gates and not bound by a signed Warrant.
+# Its behavioral controls have been observed, but unavailable-prerequisite and
+# timeout handling remain incomplete. This is a local candidate, not a mark.
+
+gate_id: "software.cli.doctor"
+version: "1.0.0"
+lifecycle: "draft"
+implementation_ref: "artifact://tools/gates/doctor-cli.py"
+output_schema_ref: "schema://exit-status/v1"
+provenance: "local_candidate"
+input_kinds: ["source-tree", "cargo-lock", "rust-toolchain", "doctor-cli-fixtures"]
+
+# Proposed activation installs doctor-gate.py as tools/gates/doctor-cli.py.
+# --frozen forbids lockfile updates and network access. Every run uses a fresh
+# temporary build directory; this prevents timestamp-based stale binary reuse.
+argv: ["python3", "tools/gates/doctor-cli.py"]
+mutating: "false"
+timeout_secs: "900"
+
+fault_model: ["doctor-authority-error-hidden", "doctor-writes-subject-files", "doctor-fabricates-execution-authorization"]
+known_blind_spots: ["Covers only the two doctor_cli fixtures; not an exhaustive configuration or platform audit.", "The tests exercise code in the caller's current source tree. Recorded evidence must bind that source tree and these fixtures; a prior run cannot silently establish a changed source tree.", "Build output and temporary fixtures are outside the source tree. This gate does not promise to leave the entire machine unchanged.", "The current gate runner interprets child nonzero exits as FAIL, including unavailable nested tools. This draft is not ready for registration until unavailable prerequisites can be preserved as UNKNOWN; no doctor defect may be inferred from missing Cargo or Rust."]
+
+qualification_qualifier: "agent://codex; bounded local observations produced by docs/design/ow-war-0097-assurance/qualify.py"
+qualification_digest: ""
+qualification_positive_controls: ["Remove the malformed-authority diagnostic: the named doctor fixture fails.", "Plant a subject-file write: recursive before/after equality fails.", "Change execution_authorized to true: the fixture's false-authorization assertion fails."]
+qualification_negative_controls: ["Both fixtures pass on unchanged source before and after the three isolated source mutations."]
+qualification_mutation_classes: ["substitution (execution_authorized)", "injection (subject-file write)", "deletion (authority diagnostic)"]
+qualification_environments: ["linux-x86_64, Rust 1.97.1, frozen local dependency cache"]
+qualification_limitations: ["Performer observations are not an independent Warrant verdict.", "No macOS observation is supplied.", "Qualification output is a review artifact, not an acceptance receipt.", "No deadline/process-tree control is supplied. Killing the outer Python adapter does not establish that nested Cargo processes stopped; keep the gate draft until this boundary is settled."]
+
+# Observed against archived source 73f32a7e, not independent dispositions.
+# See observations/qualification.json for exact archive/adapter/output digests.
+detection_results:
+  - fault_class: "doctor-authority-error-hidden"
+    mutation: "remove unavailable(authority, error) from the malformed authority branch"
+    detected: "true"
+  - fault_class: "doctor-writes-subject-files"
+    mutation: "write PLANTED_DOCTOR_WRITE into the fixture repository before checking it"
+    detected: "true"
+  - fault_class: "doctor-fabricates-execution-authorization"
+    mutation: "substitute execution_authorized true for false in the doctor result"
+    detected: "true"

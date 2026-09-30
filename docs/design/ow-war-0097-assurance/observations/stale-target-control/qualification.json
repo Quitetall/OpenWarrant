@@ -1,0 +1,87 @@
+{
+  "schema": "oh.war/doctor-gate-qualification-observation/v1",
+  "kind": "performer_observation",
+  "source_revision": "73f32a7eca8ddb824d76dba52e5a73009beec0af",
+  "source_archive_sha256": "1b88bd1148d80906319f2b48b55b7c385b56c4571d6934be5431731fb727d98b",
+  "argv": [
+    "cargo",
+    "+1.97.1",
+    "test",
+    "--frozen",
+    "--target-dir",
+    "/tmp/openwarrant-doctor-cli-gate",
+    "-p",
+    "openwarrant-cli",
+    "--test",
+    "doctor_cli"
+  ],
+  "cases": [
+    {
+      "name": "clean",
+      "exit_code": 0,
+      "expected_result_observed": true,
+      "suite_ran": true,
+      "source_unchanged_by_execution": true,
+      "source_snapshot_sha256": "b2192ea262d354154ab942080b28f099b20c812daf726acb0df4747340aea7a3",
+      "mutation": null,
+      "log": "clean.log",
+      "log_sha256": "14f897780cfbae89372264995ca4fe56f70a930591bb9a68951e4e3f1a6a83fc"
+    },
+    {
+      "name": "false-authorization",
+      "exit_code": 101,
+      "expected_result_observed": true,
+      "suite_ran": true,
+      "source_unchanged_by_execution": true,
+      "source_snapshot_sha256": "28163c06c20417bd678fdfe8c01605e7b201f14ef8c2967757fddd9ba636b6d4",
+      "mutation": {
+        "path": "crates/openwarrant-cli/src/doctor.rs",
+        "before": "\"execution_authorized\": false",
+        "after": "\"execution_authorized\": true"
+      },
+      "log": "false-authorization.log",
+      "log_sha256": "77a84018119dbacdb8308d16cec3020efc335f3db00cb3d832155b11bf20f1df"
+    },
+    {
+      "name": "subject-write",
+      "exit_code": 101,
+      "expected_result_observed": true,
+      "suite_ran": true,
+      "source_unchanged_by_execution": true,
+      "source_snapshot_sha256": "72904c842641e67398aac69905b65729d63dc347bf48fb8a6fa09ae7a6513bca",
+      "mutation": {
+        "path": "crates/openwarrant-cli/src/doctor.rs",
+        "before": "    match crate::check::run(&repo, alias, generated) {",
+        "after": "    std::fs::write(repo.root.join(\"PLANTED_DOCTOR_WRITE\"), b\"plant\").unwrap();\n    match crate::check::run(&repo, alias, generated) {"
+      },
+      "log": "subject-write.log",
+      "log_sha256": "dcd518b9cb510313abf1b7cad05479713bb01189c7e57df05322157323f72d2e"
+    },
+    {
+      "name": "hidden-authority-error",
+      "exit_code": 101,
+      "expected_result_observed": true,
+      "suite_ran": true,
+      "source_unchanged_by_execution": true,
+      "source_snapshot_sha256": "c574b18da8602bd16c7d9a7019541fb6a68adc5cf6a69600d102631a118c21f7",
+      "mutation": {
+        "path": "crates/openwarrant-cli/src/doctor.rs",
+        "before": "Err(error) => unavailable(&mut report, \"authority\", error),",
+        "after": "Err(_error) => {},"
+      },
+      "log": "hidden-authority-error.log",
+      "log_sha256": "9a25f69ec6277f84dc95cab9af5740cf703d7f527f3401fef576e64d9e66e5f7"
+    },
+    {
+      "name": "clean-after-mutations",
+      "exit_code": 101,
+      "expected_result_observed": false,
+      "suite_ran": true,
+      "source_unchanged_by_execution": true,
+      "source_snapshot_sha256": "b2192ea262d354154ab942080b28f099b20c812daf726acb0df4747340aea7a3",
+      "mutation": null,
+      "log": "clean-after-mutations.log",
+      "log_sha256": "3a5f75230150ba09da403a8fcfa13e7a5be3d7ea58eb7de812c103dc75a1c277"
+    }
+  ]
+}
