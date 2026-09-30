@@ -41,6 +41,14 @@ WAR_ABS=$(realpath "$WAR")
 ib_ok() { printf 'ok    %-34s %s\n' "$1" "$2"; PASSED=$((PASSED + 1)); }
 ib_fail() { printf 'FAIL  %-34s %s\n' "$1" "$2"; FAILED=$((FAILED + 1)); }
 
+# The preparation acts only in the disposable clone, and refuses before
+# starting the battery if its index cannot be prepared (t-eca6).
+if python3 conformance/controls/isolated-index.py; then
+    ib_ok "clone-index preparation controls" "prepared once; caller untouched; failed preparation refuses and cleans up"
+else
+    ib_fail "clone-index preparation controls" "preparation or refusal violated the boundary"
+fi
+
 # OBL-001: askable, passes, names HEAD, reads HEAD's bytes, touches nothing.
 IB_BEFORE=$(ib_tree)
 IB_OUT=$(ib_run 0)

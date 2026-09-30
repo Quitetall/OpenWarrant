@@ -41,6 +41,11 @@ git clone -q --local --no-hardlinks "$repo" "$clone/r" 2>/dev/null \
     && git -C "$clone/r" checkout -q --detach "$commit" \
     || { echo "plant-isolated.clone-failed: could not clone $repo at $commit" >&2; exit 2; }
 
+# Only the disposable clone is prepared. Read-only war commands never rewrite
+# their caller's index (t-eca6); one refresh prevents repeated racy stat reads.
+git -C "$clone/r" update-index --refresh \
+    || { echo "plant-isolated.index-refresh-failed: could not prepare the disposable clone index" >&2; exit 2; }
+
 if [[ -n "$target" && -d "$target" ]]; then
     ln -s "$target" "$clone/r/target"
     export CARGO_TARGET_DIR="$target"
