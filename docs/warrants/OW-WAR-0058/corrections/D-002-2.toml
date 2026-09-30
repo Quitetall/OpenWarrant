@@ -1,0 +1,16 @@
+schema = "oh.war/correction/v1"
+warrant = "OW-WAR-0058"
+
+[correction]
+id = "01a0a083-b1b5-7670-b59f-5de232979b2e"
+deliverable_id = "D-002"
+target_ref = "crates/openwarrant-cli/src/sas.rs"
+sequence = 2
+superseded_digest = "sha256:39eed738a2d95f3578d5d241689d22efbedf2936aaefd5bea58d09ff92597b12"
+new_digest = "sha256:60bfc8f3d01f0f08786eaeb3414d6f708637fdede7c91f89740c42364ad45408"
+reason = """crates/openwarrant-cli/src/sas.rs moved after its resolution at 2026-09-03T03:30:00Z: 2 commit(s) touched it, "release: the relicense to Apache-2.0, and seven authorizations the owner signed (OW-ADR-0017, OW-WAR-0067 STAGE-001 and STAGE-004)"; "feat(check): the rules that live in pinned files, as one correction batch". Each states its own          change; this correction records that the delivered bytes moved with them. Presented on a terminal by `war sign 1.0.0` and confirmed by the signer; the decision is the signer's and the template is the tool's."""
+kind = "behaviour-change"
+authorized_by_ref = "person://Brian Lam"
+acting_role_ref = "role://authorizer"
+effective_at = "2026-09-14T15:23:00Z"
+recorded_at = "2026-09-14T15:23:00Z"

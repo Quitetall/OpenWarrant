@@ -1,0 +1,2515 @@
+diff --git a/Cargo.lock b/Cargo.lock
+index acc1f92..e85ff16 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -73,6 +73,12 @@ version = "0.23.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "ac07cdecf99051d9a5238b80f35af32cdeba5b336e55d957b318b50137e18da5"
+ 
++[[package]]
++name = "bitflags"
++version = "2.13.2"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "3ded4057c258ba199e2d26386d3af3780957ecaee6c4ef4041c6b4b8b97c0b06"
++
+ [[package]]
+ name = "block-buffer"
+ version = "0.12.1"
+@@ -316,6 +322,16 @@ version = "1.0.2"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
+ 
++[[package]]
++name = "errno"
++version = "0.3.14"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
++dependencies = [
++ "libc",
++ "windows-sys 0.61.2",
++]
++
+ [[package]]
+ name = "find-msvc-tools"
+ version = "0.1.11"
+@@ -653,6 +669,12 @@ version = "0.2.189"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "3eaf3ede3fee6db1a4c2ee091bf8a8b4dccdc6d17f656fb07896ee72867612f2"
+ 
++[[package]]
++name = "linux-raw-sys"
++version = "0.12.1"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "32a66949e030da00e8c7d4434b251670a91556f4144941d37452769c25d58a53"
++
+ [[package]]
+ name = "litemap"
+ version = "0.8.3"
+@@ -720,6 +742,7 @@ dependencies = [
+  "openwarrant-compiler",
+  "openwarrant-core",
+  "rmcp",
++ "rustix",
+  "schemars",
+  "serde",
+  "serde_jcs",
+@@ -881,6 +904,19 @@ dependencies = [
+  "syn 3.0.3",
+ ]
+ 
++[[package]]
++name = "rustix"
++version = "1.1.4"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "b6fe4565b9518b83ef4f91bb47ce29620ca828bd32cb7e408f0062e9930ba190"
++dependencies = [
++ "bitflags",
++ "errno",
++ "libc",
++ "linux-raw-sys",
++ "windows-sys 0.61.2",
++]
++
+ [[package]]
+ name = "rustls"
+ version = "0.23.43"
+diff --git a/crates/openwarrant-cli/Cargo.toml b/crates/openwarrant-cli/Cargo.toml
+index 370003e..b99c830 100644
+--- a/crates/openwarrant-cli/Cargo.toml
++++ b/crates/openwarrant-cli/Cargo.toml
+@@ -33,6 +33,8 @@ camino = { workspace = true }
+ ureq = { workspace = true }
+ clap = { workspace = true }
+ toml = { workspace = true }
++# Descriptor-relative capture rejects symlinks at every path component.
++rustix = { version = "=1.1.4", features = ["fs"] }
+ 
+ [features]
+ # `war schemas`: the JSON Schema pack, generated from the record types.
+diff --git a/crates/openwarrant-cli/src/check.rs b/crates/openwarrant-cli/src/check.rs
+index 688de75..998dd1a 100644
+--- a/crates/openwarrant-cli/src/check.rs
++++ b/crates/openwarrant-cli/src/check.rs
+@@ -173,70 +173,76 @@ pub fn run(
+             repo.config.paths.sas.clone(),
+             err.to_string(),
+         )),
+-        Ok(revisions) => match crate::sas::pin_of(&revisions) {
+-            None => report.push(Diagnostic::warn(
+-                "sas.unrecorded",
+-                repo.config.paths.sas.clone(),
+-                "no SAS revision is recorded; the document is pinned by prose only. \
+-                 `war sas propose <version>` records one"
+-                    .to_owned(),
+-            )),
+-            Some(pin) => match repo.sas_document() {
+-                Err(err) => report.push(Diagnostic::error(
+-                    "sas.document",
++        Ok(revisions) => {
++            for r in revisions.iter().filter(|r| r.source_set.is_some()) {
++                crate::sas::source_set_status(repo, r, &mut report);
++            }
++            match crate::sas::pin_of(&revisions) {
++                None => report.push(Diagnostic::warn(
++                    "sas.unrecorded",
+                     repo.config.paths.sas.clone(),
+-                    err.to_string(),
++                    "no SAS revision is recorded; the document is pinned by prose only. \
++                 `war sas propose <version>` records one"
++                        .to_owned(),
+                 )),
+-                Ok((path, bytes)) => {
+-                    let actual = openwarrant_compiler::sha256_hex(&bytes);
+-                    if actual == pin.sha256 {
+-                        report.push(Diagnostic::pass(
+-                            "sas.pinned",
+-                            format!(
+-                                "{} matches revision {} ({}), sha256:{}",
++                Some(pin) if pin.source_set.is_some() => {}
++                Some(pin) => match repo.sas_document() {
++                    Err(err) => report.push(Diagnostic::error(
++                        "sas.document",
++                        repo.config.paths.sas.clone(),
++                        err.to_string(),
++                    )),
++                    Ok((path, bytes)) => {
++                        let actual = openwarrant_compiler::sha256_hex(&bytes);
++                        if actual == pin.sha256 {
++                            report.push(Diagnostic::pass(
++                                "sas.pinned",
++                                format!(
++                                    "{} matches revision {} ({}), sha256:{}",
++                                    repo.relative(&path),
++                                    pin.version,
++                                    pin.state,
++                                    &pin.sha256[..12]
++                                ),
++                            ));
++                        } else if let Some(proposed) = revisions
++                            .iter()
++                            .find(|r| r.sha256 == actual && r.version != pin.version)
++                        {
++                            // The remedy the error names, taken: the document IS a
++                            // recorded proposal awaiting a human. The accepted
++                            // revision stays normative until then (§101.2).
++                            report.push(Diagnostic::warn(
++                                "sas.proposed-unaccepted",
+                                 repo.relative(&path),
+-                                pin.version,
+-                                pin.state,
+-                                &pin.sha256[..12]
+-                            ),
+-                        ));
+-                    } else if let Some(proposed) = revisions
+-                        .iter()
+-                        .find(|r| r.sha256 == actual && r.version != pin.version)
+-                    {
+-                        // The remedy the error names, taken: the document IS a
+-                        // recorded proposal awaiting a human. The accepted
+-                        // revision stays normative until then (§101.2).
+-                        report.push(Diagnostic::warn(
+-                            "sas.proposed-unaccepted",
+-                            repo.relative(&path),
+-                            format!(
+-                                "the document is revision {} ({}), sha256:{}; the accepted \
++                                format!(
++                                    "the document is revision {} ({}), sha256:{}; the accepted \
+                                  revision {} remains normative until `war sign {}` accepts it",
+-                                proposed.version,
+-                                proposed.state,
+-                                &actual[..12],
+-                                pin.version,
+-                                proposed.version
+-                            ),
+-                        ));
+-                    } else {
+-                        report.push(Diagnostic::error(
+-                            "sas.digest-drift",
+-                            repo.relative(&path),
+-                            format!(
+-                                "the document is sha256:{actual} but revision {} ({}) records \
++                                    proposed.version,
++                                    proposed.state,
++                                    &actual[..12],
++                                    pin.version,
++                                    proposed.version
++                                ),
++                            ));
++                        } else {
++                            report.push(Diagnostic::error(
++                                "sas.digest-drift",
++                                repo.relative(&path),
++                                format!(
++                                    "the document is sha256:{actual} but revision {} ({}) records \
+                                  sha256:{}. §101.6: the accepted revision is normative and mirrors \
+                                  state its exact digest. Either restore the bytes or propose a \
+                                  new revision — an edited document under an unchanged record is \
+                                  the failure this check exists for",
+-                                pin.version, pin.state, pin.sha256
+-                            ),
+-                        ));
++                                    pin.version, pin.state, pin.sha256
++                                ),
++                            ));
++                        }
+                     }
+-                }
+-            },
+-        },
++                },
++            }
++        }
+     }
+ 
+     // Both corpus-wide projections drift-check through the same function, so
+@@ -280,7 +286,11 @@ pub fn run(
+             &mut report,
+         );
+         // The SAS normative projection (E1), when there is a document.
+-        if repo.sas_document().is_ok() {
++        if repo
++            .latest_sas_revision()?
++            .is_some_and(|r| r.source_set.is_some())
++            || repo.sas_document().is_ok()
++        {
+             match crate::compile::sas_normative(repo) {
+                 Ok(files) => {
+                     for file in files {
+@@ -783,11 +793,22 @@ fn check_traceability(repo: &Repository, one: &Loaded, alias: &str, report: &mut
+     // §106 of the SAS as it stands: an `implements` ref must name a row that
+     // exists. `None` when the document cannot be read — then nothing is
+     // refused and nothing is vouched for (OW-WAR-0063).
+-    let known_requirements: Option<std::collections::BTreeMap<String, String>> = repo
+-        .sas_document()
+-        .ok()
+-        .map(|(_, bytes)| openwarrant_core::sas::section_106(&String::from_utf8_lossy(&bytes)))
+-        .filter(|m| !m.is_empty());
++    let source_set_requirements = basis.sas.as_ref().and_then(|pin| {
++        repo.load_sas_revisions()
++            .ok()?
++            .into_iter()
++            .find(|r| r.version == pin.version && r.sha256 == pin.sha256 && r.source_set.is_some())
++            .map(|r| r.requirements)
++    });
++    let known_requirements: Option<std::collections::BTreeMap<String, String>> =
++        source_set_requirements.or_else(|| {
++            repo.sas_document()
++                .ok()
++                .map(|(_, bytes)| {
++                    openwarrant_core::sas::section_106(&String::from_utf8_lossy(&bytes))
++                })
++                .filter(|m| !m.is_empty())
++        });
+     for i in &basis.manifest.implements {
+         if let Err(err) = RequirementRef::parse(&i.r#ref) {
+             report.push(Diagnostic::error(
+diff --git a/crates/openwarrant-cli/src/compile.rs b/crates/openwarrant-cli/src/compile.rs
+index fcd50fc..bc67df5 100644
+--- a/crates/openwarrant-cli/src/compile.rs
++++ b/crates/openwarrant-cli/src/compile.rs
+@@ -77,7 +77,7 @@ pub fn adr_overview(repo: &Repository) -> Result<(camino::Utf8PathBuf, String),
+ /// digest of the document they came from. Agents read this, not the whole
+ /// document; the drift check keeps it honest.
+ pub fn sas_normative(repo: &Repository) -> Result<Vec<(camino::Utf8PathBuf, String)>, RepoError> {
+-    let (path, bytes) = repo.sas_document()?;
++    let (path, bytes) = repo.selected_sas_document()?;
+     let text = String::from_utf8_lossy(&bytes);
+     let sentences = openwarrant_core::normative_sentences(&text);
+     let digest = {
+@@ -89,10 +89,15 @@ pub fn sas_normative(repo: &Repository) -> Result<Vec<(camino::Utf8PathBuf, Stri
+             .map(|b| format!("{b:02x}"))
+             .collect::<String>()
+     };
+-    let revision = repo.load_sas_revisions().ok().and_then(|revs| {
+-        revs.into_iter()
+-            .find(|r| r.sha256 == digest)
+-            .map(|r| r.version)
++    let source_set_revision = repo
++        .latest_sas_revision()?
++        .filter(|r| r.source_set.is_some());
++    let revision = source_set_revision.map(|r| r.version).or_else(|| {
++        repo.load_sas_revisions().ok().and_then(|revs| {
++            revs.into_iter()
++                .find(|r| r.sha256 == digest)
++                .map(|r| r.version)
++        })
+     });
+     let source = repo.relative(&path);
+     let dir = repo.root.join(&repo.config.paths.sas).join("generated");
+@@ -330,7 +335,11 @@ pub fn run(repo: &Repository, only: Option<&str>) -> Result<(), RepoError> {
+         ];
+         // A repository with no SAS document has nothing to project; one with
+         // an unreadable one is refused as it always was, by sas_document.
+-        if repo.sas_document().is_ok() {
++        if repo
++            .latest_sas_revision()?
++            .is_some_and(|r| r.source_set.is_some())
++            || repo.sas_document().is_ok()
++        {
+             projections.extend(sas_normative(repo)?);
+         }
+         for (path, contents) in projections {
+diff --git a/crates/openwarrant-cli/src/main.rs b/crates/openwarrant-cli/src/main.rs
+index 5e7cdbf..4df09a4 100644
+--- a/crates/openwarrant-cli/src/main.rs
++++ b/crates/openwarrant-cli/src/main.rs
+@@ -47,6 +47,7 @@ mod resolution_cmd;
+ mod resolve;
+ mod run_cmd;
+ mod sas;
++mod sas_source_set;
+ #[cfg(feature = "schema")]
+ mod schemas;
+ mod show;
+@@ -115,6 +116,15 @@ enum SasCommand {
+     Propose {
+         /// e.g. `0.1.0-draft.1`, `1.0.0`.
+         version: String,
++        /// Main document in an explicit source-set candidate (repository relative).
++        #[arg(long, requires_all = ["source_set", "adr"])]
++        source: Option<String>,
++        /// Manifest listing every normative and reference member.
++        #[arg(long, requires_all = ["source", "adr"])]
++        source_set: Option<String>,
++        /// Adoption decision captured with the candidate.
++        #[arg(long, requires_all = ["source", "source_set"])]
++        adr: Option<String>,
+     },
+     /// Emit the acceptance request, or ingest a human's signed response.
+     Accept {
+@@ -1446,7 +1456,25 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
+             let repository = repo::Repository::discover(None)?;
+             let ready = |report: diagnostic::Report| Ok(output::finish(mode, "sas", &report, None));
+             match command {
+-                SasCommand::Propose { version } => ready(sas::propose(&repository, &version)?),
++                SasCommand::Propose {
++                    version,
++                    source,
++                    source_set,
++                    adr,
++                } => match (source, source_set, adr) {
++                    (Some(source), Some(manifest), Some(adr)) => ready(sas_source_set::propose(
++                        &repository,
++                        &version,
++                        &source,
++                        &manifest,
++                        &adr,
++                    )?),
++                    (None, None, None) => ready(sas::propose(&repository, &version)?),
++                    _ => Err(repo::RepoError::Message(
++                        "--source, --source-set and --adr are required together".into(),
++                    )
++                    .into()),
++                },
+                 SasCommand::Accept { version, response } => match response {
+                     Some(path) => ready(sas::accept_ingest(&repository, &version, &path)?),
+                     None => {
+diff --git a/crates/openwarrant-cli/src/repo.rs b/crates/openwarrant-cli/src/repo.rs
+index c29258a..1eb6ad5 100644
+--- a/crates/openwarrant-cli/src/repo.rs
++++ b/crates/openwarrant-cli/src/repo.rs
+@@ -526,6 +526,16 @@ impl Repository {
+         }
+     }
+ 
++    /// Main-document projection input. Legacy proposal still reads `sas_document`.
++    pub fn selected_sas_document(&self) -> Result<(Utf8PathBuf, Vec<u8>), RepoError> {
++        if let Some(record) = self.latest_sas_revision()?
++            && record.source_set.is_some()
++        {
++            return crate::sas_source_set::captured_main(self, &record);
++        }
++        self.sas_document()
++    }
++
+     #[must_use]
+     pub fn sas_revisions_dir(&self) -> Utf8PathBuf {
+         self.root.join(&self.config.paths.sas).join("revisions")
+@@ -598,6 +608,11 @@ impl Repository {
+             Some(r) => Some(r),
+             None => crate::sas::pin_of(&all).cloned(),
+         };
++        if let Some(r) = &chosen
++            && r.source_set.is_some()
++        {
++            crate::sas_source_set::validate(self, r, false)?;
++        }
+         Ok(chosen.map(|r| SasPin {
+             version: r.version,
+             sha256: r.sha256,
+diff --git a/crates/openwarrant-cli/src/sas.rs b/crates/openwarrant-cli/src/sas.rs
+index 24f14f5..a6dfe52 100644
+--- a/crates/openwarrant-cli/src/sas.rs
++++ b/crates/openwarrant-cli/src/sas.rs
+@@ -31,6 +31,8 @@ use crate::repo::{RepoError, Repository};
+ 
+ pub const ACCEPT_REQUEST_SCHEMA: &str = "oh.war/sas-acceptance-request/v1";
+ pub const ACCEPT_RESPONSE_SCHEMA: &str = "oh.war/sas-acceptance-response/v1";
++pub const ACCEPT_REQUEST_V2_SCHEMA: &str = "oh.war/sas-acceptance-request/v2";
++pub const ACCEPT_RESPONSE_V2_SCHEMA: &str = "oh.war/sas-acceptance-response/v2";
+ 
+ /// Propose the document as it stands, as `version`.
+ pub fn propose(repo: &Repository, version: &str) -> Result<Report, RepoError> {
+@@ -116,6 +118,8 @@ pub struct AcceptRequest {
+     pub diff: Section106Diff,
+     pub requirement_count: usize,
+     pub eligible_acceptors: Vec<String>,
++    #[serde(default, skip_serializing_if = "Option::is_none")]
++    pub source_set: Option<openwarrant_core::sas::SasSourceSetSubject>,
+ }
+ 
+ /// What the acceptor returns.
+@@ -135,6 +139,9 @@ pub struct AcceptResponse {
+ 
+ pub fn accept_request(repo: &Repository, version: &str) -> Result<AcceptRequest, RepoError> {
+     let record = find(repo, version)?;
++    if record.source_set.is_some() {
++        crate::sas_source_set::validate(repo, &record, true)?;
++    }
+     let predecessor = record
+         .predecessor
+         .as_deref()
+@@ -150,13 +157,18 @@ pub fn accept_request(repo: &Repository, version: &str) -> Result<AcceptRequest,
+         .unwrap_or_default();
+     let register = repo.load_authority_register()?;
+     Ok(AcceptRequest {
+-        schema: ACCEPT_REQUEST_SCHEMA.to_owned(),
++        schema: if record.source_set.is_some() {
++            ACCEPT_REQUEST_V2_SCHEMA
++        } else {
++            ACCEPT_REQUEST_SCHEMA
++        }
++        .to_owned(),
+         version: record.version.clone(),
+         source: record.source.clone(),
+         sha256: record.sha256.clone(),
+         predecessor: record.predecessor.clone(),
+         architecture_changing: record.architecture_changing,
+-        adr_required: record.architecture_changing,
++        adr_required: record.architecture_changing || record.source_set.is_some(),
+         diff,
+         requirement_count: record.requirements.len(),
+         eligible_acceptors: register
+@@ -164,6 +176,7 @@ pub fn accept_request(repo: &Repository, version: &str) -> Result<AcceptRequest,
+             .filter(|a| a.may_authorize(&repo.performer()).is_ok())
+             .map(|a| a.actor.clone())
+             .collect(),
++        source_set: record.source_set.clone(),
+     })
+ }
+ 
+@@ -171,9 +184,38 @@ pub fn accept_ingest(
+     repo: &Repository,
+     version: &str,
+     response_path: &Utf8Path,
++) -> Result<Report, RepoError> {
++    accept_inner(repo, version, response_path, None)
++}
++
++/// Called only after `war sign` obtains a real terminal confirmation.
++pub(crate) fn accept_from_terminal(
++    repo: &Repository,
++    version: &str,
++    response_path: &Utf8Path,
++    actor: &str,
++) -> Result<Report, RepoError> {
++    accept_inner(repo, version, response_path, Some(actor))
++}
++
++fn accept_inner(
++    repo: &Repository,
++    version: &str,
++    response_path: &Utf8Path,
++    terminal_actor: Option<&str>,
+ ) -> Result<Report, RepoError> {
+     let mut report = Report::default();
+-    let record = find(repo, version)?;
++    let initial = find(repo, version)?;
++    let _lock = if initial.source_set.is_some() {
++        Some(crate::sas_source_set::lock(repo, version)?)
++    } else {
++        None
++    };
++    let record = if _lock.is_some() {
++        find(repo, version)?
++    } else {
++        initial
++    };
+     let text = fs::read_to_string(response_path).map_err(|source| RepoError::Io {
+         context: format!("could not read {response_path}"),
+         source,
+@@ -192,7 +234,12 @@ pub fn accept_ingest(
+     let refuse = |report: &mut Report, rule: &str, why: String| {
+         report.push(Diagnostic::error(rule, response_path.to_string(), why));
+     };
+-    if response.schema != ACCEPT_RESPONSE_SCHEMA {
++    let expected_schema = if record.source_set.is_some() {
++        ACCEPT_RESPONSE_V2_SCHEMA
++    } else {
++        ACCEPT_RESPONSE_SCHEMA
++    };
++    if response.schema != expected_schema {
+         refuse(
+             &mut report,
+             "sas.response-schema",
+@@ -223,8 +270,16 @@ pub fn accept_ingest(
+     // The signature is over a digest; it must match the record AND the bytes on
+     // disk right now. A document edited between proposal and acceptance is a
+     // different document.
+-    let (_, bytes) = repo.sas_document()?;
+-    let current = sha256_hex(&bytes);
++    let current = if record.source_set.is_some() {
++        if let Err(e) = crate::sas_source_set::validate(repo, &record, true) {
++            refuse(&mut report, "sas.stale-source-set", e.to_string());
++            return Ok(report);
++        }
++        record.sha256.clone()
++    } else {
++        let (_, bytes) = repo.sas_document()?;
++        sha256_hex(&bytes)
++    };
+     if response.sha256 != record.sha256 || current != record.sha256 {
+         refuse(
+             &mut report,
+@@ -253,6 +308,34 @@ pub fn accept_ingest(
+         refuse(&mut report, "sas.not-permitted", e.to_string());
+         return Ok(report);
+     }
++    if let Some(subject) = &record.source_set {
++        if response.acting_role != "authorizer"
++            || response.adr_ref.as_deref() != Some(&subject.decision.path)
++        {
++            refuse(
++                &mut report,
++                "sas.response-subject",
++                "response must name the authorizer role and captured adoption decision".into(),
++            );
++            return Ok(report);
++        }
++        let authenticated = match terminal_actor {
++            Some(actor) if actor == response.accepted_by => Ok(()),
++            Some(_) => Err("response actor differs from the terminal signer".into()),
++            None => crate::sign::principal_of(repo, &response.accepted_by).and_then(|principal| {
++                crate::sign::ssh_verify_bytes(
++                    &crate::sign::allowed_signers_path(repo),
++                    &principal,
++                    response_path,
++                    text.as_bytes(),
++                )
++            }),
++        };
++        if let Err(why) = authenticated {
++            refuse(&mut report, "sas.response-signature", why);
++            return Ok(report);
++        }
++    }
+     // §101.3's ADR, named either way a person would name it: the path to the
+     // atom, or the local alias the atom declares. An alias is what `war sign
+     // --adr` is given and what the ADR calls itself, so resolving it here is
+@@ -279,6 +362,7 @@ pub fn accept_ingest(
+         }
+     }
+     let accepted = record
++        .clone()
+         .accept(SasAcceptance {
+             accepted_by: response.accepted_by.clone(),
+             actor_kind: assignment.actor_kind,
+@@ -289,7 +373,11 @@ pub fn accept_ingest(
+         })
+         .map_err(|e| RepoError::Message(e.to_string()))?;
+     let out = repo.sas_revision_path(version);
+-    write_toml(&out, &accepted)?;
++    if record.source_set.is_some() {
++        crate::sas_source_set::publish_acceptance(repo, &record, &accepted)?;
++    } else {
++        write_toml(&out, &accepted)?;
++    }
+     report.push(Diagnostic::pass(
+         "sas.accepted",
+         format!(
+@@ -358,9 +446,32 @@ pub fn diff(repo: &Repository, candidate: &Utf8Path) -> Result<Report, RepoError
+ /// Every revision on record, and which one the document currently matches.
+ pub fn status(repo: &Repository) -> Result<Report, RepoError> {
+     let mut report = Report::default();
++    let revisions = repo.load_sas_revisions()?;
++    if revisions.iter().any(|r| r.source_set.is_some()) {
++        for r in &revisions {
++            if r.source_set.is_some() {
++                source_set_status(repo, r, &mut report);
++            } else {
++                let (_, bytes) = repo.sas_document()?;
++                let matches = sha256_hex(&bytes) == r.sha256;
++                let line = format!(
++                    "{} · {} · sha256:{} · {} the legacy document",
++                    r.version,
++                    r.state,
++                    &r.sha256[..12],
++                    if matches { "matches" } else { "does not match" }
++                );
++                if matches {
++                    report.push(Diagnostic::pass("sas.revision", line));
++                } else {
++                    report.push(Diagnostic::warn("sas.revision", r.source.clone(), line));
++                }
++            }
++        }
++        return Ok(report);
++    }
+     let (path, bytes) = repo.sas_document()?;
+     let current = sha256_hex(&bytes);
+-    let revisions = repo.load_sas_revisions()?;
+     if revisions.is_empty() {
+         report.push(Diagnostic::warn(
+             "sas.unrecorded",
+@@ -391,6 +502,39 @@ pub fn status(repo: &Repository) -> Result<Report, RepoError> {
+     Ok(report)
+ }
+ 
++pub(crate) fn source_set_status(repo: &Repository, r: &SasRevision, report: &mut Report) {
++    match crate::sas_source_set::validate(repo, r, false) {
++        Err(e) => report.push(Diagnostic::error(
++            "sas.capture-invalid",
++            r.source.clone(),
++            e.to_string(),
++        )),
++        Ok(()) => {
++            report.push(Diagnostic::pass(
++                "sas.capture-intact",
++                format!(
++                    "{} · {} · complete subject sha256:{} · retained capture intact",
++                    r.version, r.state, r.sha256
++                ),
++            ));
++            match crate::sas_source_set::validate(repo, r, true) {
++                Ok(()) => report.push(Diagnostic::pass(
++                    "sas.current-matches",
++                    format!("{}: current inputs match captured subject", r.version),
++                )),
++                Err(e) => report.push(Diagnostic::warn(
++                    "sas.current-differs",
++                    r.source.clone(),
++                    format!(
++                        "{}: current inputs differ; historical capture remains intact: {e}",
++                        r.version
++                    ),
++                )),
++            }
++        }
++    }
++}
++
+ fn find(repo: &Repository, version: &str) -> Result<SasRevision, RepoError> {
+     repo.load_sas_revisions()?
+         .into_iter()
+diff --git a/crates/openwarrant-cli/src/sign.rs b/crates/openwarrant-cli/src/sign.rs
+index 8e88021..74ae706 100644
+--- a/crates/openwarrant-cli/src/sign.rs
++++ b/crates/openwarrant-cli/src/sign.rs
+@@ -371,7 +371,9 @@ pub fn line(p: &Pending) -> String {
+         Pending::Accept { version, request } => format!(
+             "SAS {version}  accept  {} requirement(s){}",
+             request.requirement_count,
+-            if request.adr_required {
++            if request.source_set.is_some() {
++                "  (adoption decision captured)"
++            } else if request.adr_required {
+                 "  (architecture-changing: --adr required)"
+             } else {
+                 ""
+@@ -492,6 +494,25 @@ fn screen(p: &Pending, actor: &str, role: &str, reason: Option<&str>) -> String
+                 request.diff.removed.len(),
+                 request.diff.retitled.len()
+             ));
++            if let Some(subject) = &request.source_set {
++                s.push_str(&format!("│ complete subject sha256:{}\n", request.sha256));
++                for (label, source) in [
++                    ("main", &subject.main),
++                    ("manifest", &subject.manifest),
++                    ("decision", &subject.decision),
++                ] {
++                    s.push_str(&format!(
++                        "│ {label}: {} · sha256:{}\n",
++                        source.path, source.sha256
++                    ));
++                }
++                if let Some(p) = &subject.predecessor {
++                    s.push_str(&format!(
++                        "│ predecessor subject: {} · sha256:{}\n",
++                        p.version, p.sha256
++                    ));
++                }
++            }
+         }
+         Pending::Correct {
+             alias,
+@@ -736,13 +757,27 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
+             }))
+         }
+         Pending::Accept { version, request } => {
+-            if request.adr_required && opts.adr_ref.is_none() {
++            let adr_ref = opts
++                .adr_ref
++                .clone()
++                .or_else(|| request.source_set.as_ref().map(|s| s.decision.path.clone()));
++            if let Some(subject) = &request.source_set
++                && adr_ref.as_deref() != Some(&subject.decision.path)
++            {
++                return Err("--adr differs from the captured adoption decision".into());
++            }
++            if request.adr_required && adr_ref.is_none() {
+                 return Err(format!(
+                     "SAS {version} is architecture-changing; §101.3 requires --adr <ref>"
+                 ));
+             }
+             Ok(Drafted::Accept(AcceptResponse {
+-                schema: sas::ACCEPT_RESPONSE_SCHEMA.to_owned(),
++                schema: if request.source_set.is_some() {
++                    sas::ACCEPT_RESPONSE_V2_SCHEMA
++                } else {
++                    sas::ACCEPT_RESPONSE_SCHEMA
++                }
++                .to_owned(),
+                 version: version.clone(),
+                 sha256: request.sha256.clone(),
+                 accepted_by: actor.to_owned(),
+@@ -760,7 +795,7 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
+                     provenance()
+                 ),
+                 effective_time: now.to_owned(),
+-                adr_ref: opts.adr_ref.clone(),
++                adr_ref,
+             }))
+         }
+         Pending::Correct {
+@@ -1127,17 +1162,38 @@ fn ssh_verify_file(
+     principal: &str,
+     file: &Utf8Path,
+ ) -> Result<(), String> {
++    let bytes = std::fs::read(file).map_err(|e| format!("could not read {file}: {e}"))?;
++    ssh_verify_bytes(allowed_signers, principal, file, &bytes)
++}
++
++/// Verify the exact bytes parsed by the caller, avoiding a second response read.
++pub(crate) fn ssh_verify_bytes(
++    allowed_signers: &Utf8Path,
++    principal: &str,
++    file: &Utf8Path,
++    bytes: &[u8],
++) -> Result<(), String> {
++    use std::io::Write;
+     let sig = sig_path(file);
+-    let input = std::fs::File::open(file).map_err(|e| format!("could not open {file}: {e}"))?;
+-    let out = std::process::Command::new("ssh-keygen")
++    let mut child = std::process::Command::new("ssh-keygen")
+         .args(["-Y", "verify", "-f"])
+         .arg(allowed_signers)
+         .args(["-I", principal, "-n", SSH_NAMESPACE, "-s"])
+         .arg(&sig)
+-        .stdin(input)
+-        .output()
++        .stdin(std::process::Stdio::piped())
++        .stdout(std::process::Stdio::piped())
++        .stderr(std::process::Stdio::piped())
++        .spawn()
+         .map_err(|e| format!("could not run ssh-keygen: {e}"))?;
+-    if out.status.success() {
++    let written = child
++        .stdin
++        .take()
++        .ok_or("ssh-keygen stdin unavailable")?
++        .write_all(bytes);
++    let out = child
++        .wait_with_output()
++        .map_err(|e| format!("could not wait for ssh-keygen: {e}"))?;
++    if out.status.success() && written.is_ok() {
+         Ok(())
+     } else {
+         Err(format!(
+@@ -1524,7 +1580,13 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
+         let ingested = match (p, &drafted) {
+             (Pending::Authorize { alias, .. }, _) => authorize::ingest(repo, alias, &path)?,
+             (Pending::Resolve { alias, .. }, _) => resolution_cmd::ingest(repo, alias, &path)?,
+-            (Pending::Accept { version, .. }, _) => sas::accept_ingest(repo, version, &path)?,
++            (Pending::Accept { version, .. }, _) => {
++                if opts.ssh_sign {
++                    sas::accept_ingest(repo, version, &path)?
++                } else {
++                    sas::accept_from_terminal(repo, version, &path, &actor)?
++                }
++            }
+             (
+                 Pending::Correct {
+                     alias,
+diff --git a/crates/openwarrant-core/src/sas.rs b/crates/openwarrant-core/src/sas.rs
+index d95d695..1a2056b 100644
+--- a/crates/openwarrant-core/src/sas.rs
++++ b/crates/openwarrant-core/src/sas.rs
+@@ -32,9 +32,41 @@ use crate::contract::ActorKind;
+ use crate::traceability::RequirementRef;
+ 
+ pub const SAS_REVISION_SCHEMA: &str = "oh.war/sas-revision/v1";
++pub const SAS_SOURCE_SET_REVISION_SCHEMA: &str = "oh.war/sas-revision/v2";
++pub const SAS_SOURCE_SET_SUBJECT_SCHEMA: &str = "oh.war/sas-source-set-subject/v1";
++
++/// A repository-relative source and its exact byte digest (unprefixed hex).
++#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
++#[serde(deny_unknown_fields)]
++pub struct SasSourceIdentity {
++    pub path: String,
++    pub sha256: String,
++}
++
++#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
++#[serde(deny_unknown_fields)]
++pub struct SasPredecessorIdentity {
++    pub version: String,
++    pub sha256: String,
++}
++
++/// Complete acceptance subject. The manifest digest binds all member bytes.
++#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
++#[serde(deny_unknown_fields)]
++pub struct SasSourceSetSubject {
++    pub schema: String,
++    pub edition: String,
++    pub main: SasSourceIdentity,
++    pub manifest: SasSourceIdentity,
++    pub decision: SasSourceIdentity,
++    #[serde(default, skip_serializing_if = "Option::is_none")]
++    pub predecessor: Option<SasPredecessorIdentity>,
++}
+ 
+ #[derive(Debug, thiserror::Error, PartialEq, Eq)]
+ pub enum SasError {
++    #[error("invalid SAS revision schema or inconsistent source-set subject")]
++    InvalidSourceSet,
+     #[error("an accepted SAS revision is immutable (§101.2); {version} is already accepted")]
+     Immutable { version: String },
+     #[error("only a proposed revision may be accepted; {version} is {state}")]
+@@ -122,6 +154,9 @@ pub struct SasRevision {
+     pub architecture_changing: bool,
+     #[serde(default, skip_serializing_if = "Option::is_none")]
+     pub acceptance: Option<SasAcceptance>,
++    /// v2 only: `sha256` identifies this complete subject, not just `source`.
++    #[serde(default, skip_serializing_if = "Option::is_none")]
++    pub source_set: Option<SasSourceSetSubject>,
+ }
+ 
+ impl SasRevision {
+@@ -145,10 +180,26 @@ impl SasRevision {
+             requirements,
+             architecture_changing,
+             acceptance: None,
++            source_set: None,
+         }
+     }
+ 
+     pub fn validate(&self) -> Result<(), SasError> {
++        match (self.schema.as_str(), &self.source_set) {
++            (SAS_REVISION_SCHEMA, None) => {}
++            (SAS_SOURCE_SET_REVISION_SCHEMA, Some(s))
++                if s.schema == SAS_SOURCE_SET_SUBJECT_SCHEMA
++                    && s.edition == self.version
++                    && s.main.path == self.source
++                    && s.predecessor.as_ref().map(|p| &p.version) == self.predecessor.as_ref()
++                    && [&s.main, &s.manifest, &s.decision]
++                        .iter()
++                        .all(|i| !i.path.is_empty() && valid_digest(&i.sha256))
++                    && s.predecessor
++                        .as_ref()
++                        .is_none_or(|p| !p.version.is_empty() && valid_digest(&p.sha256)) => {}
++            _ => return Err(SasError::InvalidSourceSet),
++        }
+         if self.version.trim().is_empty() {
+             return Err(SasError::MissingVersion);
+         }
+@@ -162,6 +213,12 @@ impl SasRevision {
+                     state: self.state,
+                 });
+             };
++            if let Some(subject) = &self.source_set
++                && (a.adr_ref.as_deref() != Some(&subject.decision.path)
++                    || a.acting_role != "authorizer")
++            {
++                return Err(SasError::InvalidSourceSet);
++            }
+             Self::check_acceptance(
+                 &self.version,
+                 self.architecture_changing,
+@@ -215,11 +272,15 @@ impl SasRevision {
+             &self.requirements,
+             &acceptance,
+         )?;
+-        Ok(Self {
++        let accepted = Self {
+             state: SasRevisionState::Accepted,
+             acceptance: Some(acceptance),
+             ..self
+-        })
++        };
++        if accepted.source_set.is_some() {
++            accepted.validate()?;
++        }
++        Ok(accepted)
+     }
+ 
+     #[must_use]
+@@ -228,6 +289,13 @@ impl SasRevision {
+     }
+ }
+ 
++fn valid_digest(digest: &str) -> bool {
++    digest.len() == 64
++        && digest
++            .bytes()
++            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
++}
++
+ /// §98's phases as the document states them: (number, title, Exit sentence).
+ ///
+ /// Read at run time rather than copied into a constant, so that a SAS revision
+diff --git a/docs/THREAT_MODEL.md b/docs/THREAT_MODEL.md
+index ab1e2a0..498f5b4 100644
+--- a/docs/THREAT_MODEL.md
++++ b/docs/THREAT_MODEL.md
+@@ -44,6 +44,32 @@ control holds them; where it does not, the entry says so.
+ 
+ ## How this document stays true
+ 
++### Source-set acceptance (OW-WAR-0074 AM-001)
++
++V2 acceptance binds the main document, exact manifest, every listed normative
++and reference member, the adoption decision, edition, and predecessor subject.
++The CLI captures regular files through descriptor-relative, no-follow opens;
++it refuses traversal, symlink components, duplicate paths, byte mismatches,
++inconsistent reads, excessive sizes, and existing publication destinations.
++The per-revision lock serializes this CLI's writers. It does not isolate an
++agent or prevent another process with repository write access from modifying
++records. Harness protections and human-owned authority files remain necessary.
++
++Direct v2 response ingestion verifies an SSH signature over the exact parsed
++response bytes. An existing human terminal confirmation remains available
++through `war sign`; a response merely claiming a human name is insufficient.
++V1 responses retain their previous semantics. SSH confirmation constraints
++remain the operator duty described in entry 1; the CLI cannot verify `ssh-add -c`.
++
++`crates/openwarrant-cli/tests/sas_source_set.rs` exercises positive capture and
++acceptance, altered inputs and records, wrong actors and signatures, symlinks,
++unsafe paths, publication collisions, immutable accepted history, and legacy
++pins. `conformance/fixtures/sas-source-set/check_changing_input.py` records a
++bounded concurrent-write observation. These checks do not prove a filesystem
++sandbox, adversarial-process isolation, power-loss recovery, or macOS runtime
++behavior from a Linux run. Retained locks and pending files require inspection
++before cleanup; they are never silently reused as a successful operation.
++
+ Each "Exercised by" cell names a test or plant that exists, or an operator duty
+ that cannot be one. When a control changes, the entry changes in the same
+ commit; when a residual closes, the entry says which slice closed it. A row
+diff --git a/crates/openwarrant-cli/src/sas_source_set.rs b/crates/openwarrant-cli/src/sas_source_set.rs
+new file mode 100644
+index 0000000..9a9f67a
+--- /dev/null
++++ b/crates/openwarrant-cli/src/sas_source_set.rs
+@@ -0,0 +1,560 @@
++// SPDX-License-Identifier: Apache-2.0
++//! Opt-in SAS acceptance bootstrap, governed by 0074 AM-001's adoption decision.
++//! File capture and publication are descriptor-relative; this is not a sandbox.
++
++use std::collections::{BTreeMap, BTreeSet};
++use std::fs::File;
++use std::io::{Read, Seek, Write};
++
++use openwarrant_compiler::{sha256_hex, to_canonical_bytes};
++use openwarrant_core::sas::{
++    SAS_SOURCE_SET_REVISION_SCHEMA, SAS_SOURCE_SET_SUBJECT_SCHEMA, SasPredecessorIdentity,
++    SasRevision, SasSourceIdentity, SasSourceSetSubject, Section106Diff, section_106,
++};
++use rustix::fs::{Mode, OFlags, openat};
++use serde::Deserialize;
++
++use crate::diagnostic::{Diagnostic, Report};
++use crate::repo::{RepoError, Repository};
++
++const MAX_FILE: u64 = 8 * 1024 * 1024;
++const MAX_TOTAL: u64 = 32 * 1024 * 1024;
++const MAX_MANIFEST: u64 = 2 * 1024 * 1024;
++const MAX_MEMBERS: usize = 1024;
++const MANIFEST_SCHEMA: &str = "oh.war/spec-source-set/1.0.0-rc.2";
++
++fn err(message: impl std::fmt::Display) -> RepoError {
++    RepoError::Message(format!("sas.source-set: {message}"))
++}
++
++fn path_parts(path: &str) -> Result<Vec<&str>, RepoError> {
++    let parts: Vec<_> = path.split('/').collect();
++    if path.len() > 4096
++        || path.contains(['\\', '\0', ':'])
++        || parts
++            .iter()
++            .any(|p| p.is_empty() || *p == "." || *p == "..")
++    {
++        return Err(err(format!("unsafe path {path:?}")));
++    }
++    Ok(parts)
++}
++
++fn version_path(version: &str) -> Result<(), RepoError> {
++    path_parts(version)?;
++    if version.contains('/')
++        || !version
++            .bytes()
++            .all(|b| b.is_ascii_alphanumeric() || b".-_".contains(&b))
++    {
++        return Err(err("unsafe edition"));
++    }
++    Ok(())
++}
++
++/// Every component is opened with NOFOLLOW, relative to an already opened dir.
++struct Store(File);
++
++impl Store {
++    fn new(repo: &Repository) -> Result<Self, RepoError> {
++        File::open(&repo.root).map(Self).map_err(err)
++    }
++
++    fn directory(&self, parts: &[&str], create: bool) -> Result<File, RepoError> {
++        let mut dir = self.0.try_clone().map_err(err)?;
++        for part in parts {
++            if create {
++                match rustix::fs::mkdirat(&dir, *part, Mode::RWXU) {
++                    Ok(()) => dir.sync_all().map_err(err)?,
++                    Err(rustix::io::Errno::EXIST) => {}
++                    Err(e) => return Err(err(e)),
++                }
++            }
++            dir = openat(
++                &dir,
++                *part,
++                OFlags::RDONLY | OFlags::DIRECTORY | OFlags::NOFOLLOW | OFlags::CLOEXEC,
++                Mode::empty(),
++            )
++            .map(File::from)
++            .map_err(|e| err(format!("unsafe or missing directory {part:?}: {e}")))?;
++        }
++        Ok(dir)
++    }
++
++    fn parent(&self, path: &str, create: bool) -> Result<(File, String), RepoError> {
++        let parts = path_parts(path)?;
++        Ok((
++            self.directory(&parts[..parts.len() - 1], create)?,
++            parts[parts.len() - 1].to_owned(),
++        ))
++    }
++
++    fn read(&self, path: &str, limit: u64) -> Result<Vec<u8>, RepoError> {
++        let (dir, name) = self.parent(path, false)?;
++        let mut file = openat(
++            &dir,
++            name.as_str(),
++            OFlags::RDONLY | OFlags::NOFOLLOW | OFlags::NONBLOCK | OFlags::CLOEXEC,
++            Mode::empty(),
++        )
++        .map(File::from)
++        .map_err(|e| err(format!("unsafe or missing file {path:?}: {e}")))?;
++        let before = file.metadata().map_err(err)?;
++        if !before.is_file() || before.len() > limit {
++            return Err(err(format!("non-regular or oversized file {path:?}")));
++        }
++        let mut bytes = Vec::new();
++        (&mut file)
++            .take(limit + 1)
++            .read_to_end(&mut bytes)
++            .map_err(err)?;
++        file.rewind().map_err(err)?;
++        let mut again = Vec::new();
++        (&mut file)
++            .take(limit + 1)
++            .read_to_end(&mut again)
++            .map_err(err)?;
++        let after = file.metadata().map_err(err)?;
++        if bytes.len() as u64 != before.len()
++            || bytes != again
++            || before.len() != after.len()
++            || before.modified().map_err(err)? != after.modified().map_err(err)?
++        {
++            return Err(err(format!("inconsistent read {path:?}")));
++        }
++        Ok(bytes)
++    }
++
++    fn new_file(&self, path: &str, bytes: &[u8]) -> Result<(), RepoError> {
++        let (dir, name) = self.parent(path, true)?;
++        let mut file = openat(
++            &dir,
++            name.as_str(),
++            OFlags::WRONLY | OFlags::CREATE | OFlags::EXCL | OFlags::NOFOLLOW | OFlags::CLOEXEC,
++            Mode::RUSR | Mode::WUSR,
++        )
++        .map(File::from)
++        .map_err(|e| {
++            err(format!(
++                "destination {path:?} already exists or cannot be created: {e}"
++            ))
++        })?;
++        file.write_all(bytes).map_err(err)?;
++        file.sync_all().map_err(err)?;
++        dir.sync_all().map_err(err)
++    }
++
++    fn new_directory(&self, path: &str) -> Result<(), RepoError> {
++        let (dir, name) = self.parent(path, true)?;
++        rustix::fs::mkdirat(&dir, name.as_str(), Mode::RWXU).map_err(|e| {
++            err(format!(
++                "snapshot destination {path:?} already exists or cannot be created: {e}"
++            ))
++        })?;
++        dir.sync_all().map_err(err)
++    }
++
++    fn publish_new(&self, path: &str, bytes: &[u8]) -> Result<(), RepoError> {
++        let pending = format!("{path}.pending");
++        self.new_file(&pending, bytes)?;
++        let (dir, name) = self.parent(path, false)?;
++        let (_, pending_name) = self.parent(&pending, false)?;
++        // A hard link publishes the complete, synced file without replacing a
++        // destination created concurrently. Both names are in this directory.
++        rustix::fs::linkat(
++            &dir,
++            pending_name.as_str(),
++            &dir,
++            name.as_str(),
++            rustix::fs::AtFlags::empty(),
++        )
++        .map_err(|e| {
++            err(format!(
++                "revision destination already exists or cannot be published: {e}"
++            ))
++        })?;
++        dir.sync_all()
++            .map_err(|e| err(format!("proposal published; directory sync failed: {e}")))?;
++        rustix::fs::unlinkat(&dir, pending_name.as_str(), rustix::fs::AtFlags::empty()).map_err(
++            |e| {
++                err(format!(
++                    "proposal published; pending-name cleanup failed: {e}"
++                ))
++            },
++        )?;
++        dir.sync_all()
++            .map_err(|e| err(format!("proposal published; cleanup sync failed: {e}")))
++    }
++}
++
++pub struct RevisionLock {
++    dir: File,
++    name: String,
++    _file: File,
++}
++
++impl Drop for RevisionLock {
++    fn drop(&mut self) {
++        let _ = rustix::fs::unlinkat(&self.dir, self.name.as_str(), rustix::fs::AtFlags::empty());
++    }
++}
++
++pub fn lock(repo: &Repository, version: &str) -> Result<RevisionLock, RepoError> {
++    version_path(version)?;
++    let store = Store::new(repo)?;
++    let (dir, name) = store.parent(
++        &format!(
++            "{}/.{version}.lock",
++            repo.relative(&repo.sas_revisions_dir())
++        ),
++        true,
++    )?;
++    let file = openat(
++        &dir,
++        name.as_str(),
++        OFlags::WRONLY | OFlags::CREATE | OFlags::EXCL | OFlags::NOFOLLOW | OFlags::CLOEXEC,
++        Mode::RUSR | Mode::WUSR,
++    )
++    .map(File::from)
++    .map_err(|e| err(format!("revision busy or retained lock {name:?}: {e}")))?;
++    Ok(RevisionLock {
++        dir,
++        name,
++        _file: file,
++    })
++}
++
++#[derive(Deserialize)]
++#[serde(deny_unknown_fields)]
++struct Manifest {
++    schema: String,
++    edition: String,
++    status: String,
++    files: Vec<Member>,
++    #[serde(default)]
++    historical_baseline: Option<serde_json::Value>,
++}
++
++#[derive(Deserialize)]
++#[serde(deny_unknown_fields)]
++struct Member {
++    path: String,
++    bytes: u64,
++    sha256: String,
++    role: String,
++}
++
++struct Capture {
++    manifest: Vec<u8>,
++    decision: Vec<u8>,
++    members: BTreeMap<String, Vec<u8>>,
++    main: Vec<u8>,
++}
++
++fn capture(
++    store: &Store,
++    subject: &SasSourceSetSubject,
++    snapshot: Option<&str>,
++) -> Result<Capture, RepoError> {
++    let manifest_path = snapshot
++        .map(|s| format!("{s}/manifest.json"))
++        .unwrap_or_else(|| subject.manifest.path.clone());
++    let manifest_bytes = store.read(&manifest_path, MAX_MANIFEST)?;
++    let manifest: Manifest = serde_json::from_slice(&manifest_bytes)
++        .map_err(|e| err(format!("invalid manifest: {e}")))?;
++    if manifest.schema != MANIFEST_SCHEMA
++        || manifest.edition != subject.edition
++        || manifest.status != "candidate-unaccepted"
++    {
++        return Err(err("manifest schema, edition or status mismatch"));
++    }
++    // Retained in the exact manifest bytes; this label grants no authority.
++    let _ = manifest.historical_baseline;
++    if manifest.files.is_empty() || manifest.files.len() > MAX_MEMBERS {
++        return Err(err("manifest member count exceeds bounds"));
++    }
++    let base = subject
++        .manifest
++        .path
++        .rsplit_once('/')
++        .map(|(p, _)| format!("{p}/"))
++        .unwrap_or_default();
++    let mut paths = BTreeSet::new();
++    let mut members = BTreeMap::new();
++    let mut main = None;
++    let mut total = manifest_bytes.len() as u64;
++    for member in manifest.files {
++        path_parts(&member.path)?;
++        if !paths.insert(member.path.clone()) {
++            return Err(err(format!("duplicate member path {:?}", member.path)));
++        }
++        if member.role != "normative" && member.role != "reference" {
++            return Err(err("unknown member role"));
++        }
++        if member.bytes > MAX_FILE {
++            return Err(err("oversized member"));
++        }
++        total = total
++            .checked_add(member.bytes)
++            .ok_or_else(|| err("capture size overflow"))?;
++        if total > MAX_TOTAL {
++            return Err(err("capture exceeds total size bound"));
++        }
++        let live = format!("{base}{}", member.path);
++        let path = snapshot
++            .map(|s| format!("{s}/members/{}", member.path))
++            .unwrap_or_else(|| live.clone());
++        let bytes = store.read(&path, member.bytes)?;
++        if bytes.len() as u64 != member.bytes
++            || member.sha256 != format!("sha256:{}", sha256_hex(&bytes))
++        {
++            return Err(err(format!(
++                "member length/digest mismatch: {}",
++                member.path
++            )));
++        }
++        if live == subject.main.path {
++            if member.role != "normative" {
++                return Err(err("main source is not normative"));
++            }
++            main = Some(bytes.clone());
++        }
++        members.insert(member.path, bytes);
++    }
++    let main = main.ok_or_else(|| err("main source is not a manifest member"))?;
++    let decision_path = snapshot
++        .map(|s| format!("{s}/decision.md"))
++        .unwrap_or_else(|| subject.decision.path.clone());
++    let decision = store.read(&decision_path, MAX_FILE)?;
++    if total + decision.len() as u64 > MAX_TOTAL {
++        return Err(err("capture exceeds total size bound"));
++    }
++    Ok(Capture {
++        manifest: manifest_bytes,
++        decision,
++        members,
++        main,
++    })
++}
++
++fn identity(path: &str, bytes: &[u8]) -> SasSourceIdentity {
++    SasSourceIdentity {
++        path: path.to_owned(),
++        sha256: sha256_hex(bytes),
++    }
++}
++
++fn subject_digest(subject: &SasSourceSetSubject) -> Result<String, RepoError> {
++    let mut bytes = SAS_SOURCE_SET_SUBJECT_SCHEMA.as_bytes().to_vec();
++    bytes.push(0);
++    bytes.extend(to_canonical_bytes(subject).map_err(err)?);
++    Ok(sha256_hex(&bytes))
++}
++
++fn snapshot_path(repo: &Repository, version: &str) -> String {
++    format!(
++        "{}/source-sets/{version}",
++        repo.relative(&repo.sas_revisions_dir())
++    )
++}
++
++pub fn propose(
++    repo: &Repository,
++    version: &str,
++    main: &str,
++    manifest: &str,
++    decision: &str,
++) -> Result<Report, RepoError> {
++    let _lock = lock(repo, version)?;
++    for path in [main, manifest, decision] {
++        path_parts(path)?;
++    }
++    let existing = repo.load_sas_revisions()?;
++    if existing.iter().any(|r| r.version == version) {
++        return Err(err("revision already exists"));
++    }
++    let predecessor = crate::sas::pin_of(&existing);
++    let mut subject = SasSourceSetSubject {
++        schema: SAS_SOURCE_SET_SUBJECT_SCHEMA.to_owned(),
++        edition: version.to_owned(),
++        main: identity(main, &[]),
++        manifest: identity(manifest, &[]),
++        decision: identity(decision, &[]),
++        predecessor: predecessor.map(|p| SasPredecessorIdentity {
++            version: p.version.clone(),
++            sha256: p.sha256.clone(),
++        }),
++    };
++    let store = Store::new(repo)?;
++    let captured = capture(&store, &subject, None)?;
++    subject.main = identity(main, &captured.main);
++    subject.manifest = identity(manifest, &captured.manifest);
++    subject.decision = identity(decision, &captured.decision);
++    let requirements = section_106(std::str::from_utf8(&captured.main).map_err(err)?);
++    if requirements.is_empty() {
++        return Err(err("main source has no §106 requirement index"));
++    }
++    let diff = predecessor
++        .map(|p| Section106Diff::between(&p.requirements, &requirements))
++        .unwrap_or_default();
++    diff.check_stability().map_err(err)?;
++    let mut record = SasRevision::proposed(
++        version,
++        main,
++        subject_digest(&subject)?,
++        predecessor.map(|p| p.version.clone()),
++        requirements,
++        diff.is_architecture_changing(),
++    );
++    record.schema = SAS_SOURCE_SET_REVISION_SCHEMA.to_owned();
++    record.source_set = Some(subject);
++    record.validate().map_err(err)?;
++    let snapshot = snapshot_path(repo, version);
++    store.new_directory(&snapshot)?;
++    store.new_file(&format!("{snapshot}/manifest.json"), &captured.manifest)?;
++    store.new_file(&format!("{snapshot}/decision.md"), &captured.decision)?;
++    for (path, bytes) in captured.members {
++        store.new_file(&format!("{snapshot}/members/{path}"), &bytes)?;
++    }
++    // Capture must be complete and current before the revision becomes visible.
++    validate(repo, &record, true)?;
++    store.publish_new(
++        &repo.relative(&repo.sas_revision_path(version)),
++        toml::to_string_pretty(&record).map_err(err)?.as_bytes(),
++    )?;
++    let mut report = Report::default();
++    report.push(Diagnostic::pass(
++        "sas.proposed",
++        format!(
++            "{version} proposed; complete subject sha256:{}; snapshot {snapshot}",
++            record.sha256
++        ),
++    ));
++    report.note(
++        "Proposed, not accepted. The complete source-set subject requires human acceptance."
++            .to_owned(),
++    );
++    Ok(report)
++}
++
++/// Checks retained bytes separately from the current input agreement.
++pub fn validate(repo: &Repository, record: &SasRevision, current: bool) -> Result<(), RepoError> {
++    record.validate().map_err(err)?;
++    version_path(&record.version)?;
++    let subject = record
++        .source_set
++        .as_ref()
++        .ok_or_else(|| err("missing source-set subject"))?;
++    for i in [&subject.main, &subject.manifest, &subject.decision] {
++        path_parts(&i.path)?;
++    }
++    if subject_digest(subject)? != record.sha256 {
++        return Err(err("subject digest mismatch"));
++    }
++    let store = Store::new(repo)?;
++    let snapshot = snapshot_path(repo, &record.version);
++    let captured = capture(&store, subject, Some(&snapshot))?;
++    check_identity(subject, &captured)?;
++    if section_106(std::str::from_utf8(&captured.main).map_err(err)?) != record.requirements {
++        return Err(err("captured requirement index differs from revision"));
++    }
++    let all = repo.load_sas_revisions()?;
++    if let Some(p) = &subject.predecessor {
++        let prior = all
++            .iter()
++            .find(|r| r.version == p.version && r.sha256 == p.sha256)
++            .ok_or_else(|| err("predecessor identity mismatch"))?;
++        let diff = Section106Diff::between(&prior.requirements, &record.requirements);
++        diff.check_stability().map_err(err)?;
++        if diff.is_architecture_changing() != record.architecture_changing {
++            return Err(err("architecture diff mismatch"));
++        }
++    }
++    if current {
++        let live = capture(&store, subject, None)?;
++        check_identity(subject, &live)?;
++        if !record.is_accepted() {
++            let others: Vec<_> = all
++                .into_iter()
++                .filter(|r| r.version != record.version)
++                .collect();
++            let predecessor = crate::sas::pin_of(&others).map(|p| SasPredecessorIdentity {
++                version: p.version.clone(),
++                sha256: p.sha256.clone(),
++            });
++            if predecessor != subject.predecessor {
++                return Err(err("predecessor changed since proposal"));
++            }
++        }
++    }
++    Ok(())
++}
++
++fn check_identity(subject: &SasSourceSetSubject, captured: &Capture) -> Result<(), RepoError> {
++    for (id, bytes) in [
++        (&subject.main, &captured.main),
++        (&subject.manifest, &captured.manifest),
++        (&subject.decision, &captured.decision),
++    ] {
++        if id.sha256 != sha256_hex(bytes) {
++            return Err(err(format!("source identity mismatch: {}", id.path)));
++        }
++    }
++    Ok(())
++}
++
++pub fn captured_main(
++    repo: &Repository,
++    record: &SasRevision,
++) -> Result<(camino::Utf8PathBuf, Vec<u8>), RepoError> {
++    validate(repo, record, false)?;
++    let subject = record
++        .source_set
++        .as_ref()
++        .ok_or_else(|| err("missing source-set subject"))?;
++    let base = subject
++        .manifest
++        .path
++        .rsplit_once('/')
++        .map(|(p, _)| format!("{p}/"))
++        .unwrap_or_default();
++    let member = subject
++        .main
++        .path
++        .strip_prefix(&base)
++        .ok_or_else(|| err("main source is outside manifest directory"))?;
++    let path = format!("{}/members/{member}", snapshot_path(repo, &record.version));
++    let bytes = Store::new(repo)?.read(&path, MAX_FILE)?;
++    if sha256_hex(&bytes) != subject.main.sha256 {
++        return Err(err("captured main changed during read"));
++    }
++    Ok((repo.root.join(path), bytes))
++}
++
++/// Caller holds the revision lock throughout validation and publication.
++pub fn publish_acceptance(
++    repo: &Repository,
++    proposed: &SasRevision,
++    accepted: &SasRevision,
++) -> Result<(), RepoError> {
++    let store = Store::new(repo)?;
++    let path = repo.relative(&repo.sas_revision_path(&proposed.version));
++    let bytes = store.read(&path, MAX_MANIFEST)?;
++    let actual: SasRevision =
++        toml::from_str(std::str::from_utf8(&bytes).map_err(err)?).map_err(err)?;
++    if &actual != proposed || proposed.is_accepted() {
++        return Err(err("proposal changed before acceptance"));
++    }
++    validate(repo, proposed, true)?;
++    let pending = format!("{path}.pending");
++    store.new_file(
++        &pending,
++        toml::to_string_pretty(accepted).map_err(err)?.as_bytes(),
++    )?;
++    let (dir, name) = store.parent(&path, false)?;
++    let (_, pending_name) = store.parent(&pending, false)?;
++    rustix::fs::renameat(&dir, pending_name.as_str(), &dir, name.as_str()).map_err(err)?;
++    dir.sync_all()
++        .map_err(|e| err(format!("acceptance published; directory sync failed: {e}")))
++}
+diff --git a/crates/openwarrant-cli/tests/sas_source_set.rs b/crates/openwarrant-cli/tests/sas_source_set.rs
+new file mode 100644
+index 0000000..6a4d42f
+--- /dev/null
++++ b/crates/openwarrant-cli/tests/sas_source_set.rs
+@@ -0,0 +1,686 @@
++// SPDX-License-Identifier: Apache-2.0
++//! Public source-set proposal, acceptance, and status contracts (0074 AM-001).
++
++use std::fs;
++use std::path::PathBuf;
++use std::process::Command;
++use std::sync::atomic::{AtomicU64, Ordering};
++
++use serde_json::{Value, json};
++use sha2::{Digest, Sha256};
++
++static NEXT: AtomicU64 = AtomicU64::new(0);
++
++struct Repo(PathBuf);
++
++impl Repo {
++    fn new() -> Self {
++        let root = std::env::temp_dir().join(format!(
++            "ow-sas-source-set-{}-{}",
++            std::process::id(),
++            NEXT.fetch_add(1, Ordering::Relaxed)
++        ));
++        fs::create_dir(&root).unwrap();
++        let repo = Self(root);
++        repo.ok(&["init", "--namespace", "TEST"]);
++        repo.write(
++            "candidate/main.md",
++            "# SAS\n\n## 106. Requirements\n\n| TEST-SAS-RQ-001 | Preserve evidence. |\n",
++        );
++        repo.write("candidate/rules.md", "Binding companion.\n");
++        repo.write("candidate/schema.json", "{}\n");
++        repo.write("candidate/example.txt", "Reference example.\n");
++        repo.write("decision.md", "Adopt this exact source set.\n");
++        repo.manifest();
++        repo
++    }
++
++    fn write(&self, path: &str, body: &str) {
++        let path = self.0.join(path);
++        fs::create_dir_all(path.parent().unwrap()).unwrap();
++        fs::write(path, body).unwrap();
++    }
++
++    fn manifest(&self) {
++        let files: Vec<_> = [
++            ("main.md", "normative"),
++            ("rules.md", "normative"),
++            ("schema.json", "normative"),
++            ("example.txt", "reference"),
++        ]
++        .iter()
++        .map(|(path, role)| {
++            let bytes = fs::read(self.0.join("candidate").join(path)).unwrap();
++            json!({"path": path, "role": role, "bytes": bytes.len(),
++                "sha256": format!("sha256:{}", Sha256::digest(&bytes).iter().map(|b| format!("{b:02x}")).collect::<String>())})
++        })
++        .collect();
++        self.write(
++            "candidate/source-set.json",
++            &json!({
++                "schema": "oh.war/spec-source-set/1.0.0-rc.2",
++                "edition": "1.0.0-rc.2", "status": "candidate-unaccepted",
++                "files": files
++            })
++            .to_string(),
++        );
++    }
++
++    fn run(&self, args: &[&str]) -> (i32, Value) {
++        let out = Command::new(env!("CARGO_BIN_EXE_war"))
++            .arg("--json")
++            .args(args)
++            .current_dir(&self.0)
++            .output()
++            .unwrap();
++        let code = out.status.code().unwrap();
++        let value = serde_json::from_slice(&out.stdout).unwrap_or_else(|_| json!({
++            "stdout": String::from_utf8_lossy(&out.stdout), "stderr": String::from_utf8_lossy(&out.stderr)
++        }));
++        (code, value)
++    }
++
++    fn ok(&self, args: &[&str]) -> Value {
++        let (code, value) = self.run(args);
++        assert_eq!(code, 0, "{args:?}: {value}");
++        value
++    }
++
++    fn propose(&self) -> Value {
++        self.ok(&[
++            "sas",
++            "propose",
++            "1.0.0-rc.2",
++            "--source",
++            "candidate/main.md",
++            "--source-set",
++            "candidate/source-set.json",
++            "--adr",
++            "decision.md",
++        ])
++    }
++
++    fn signer(&self) {
++        self.write(
++            "docs/authority/roles.toml",
++            r#"
++schema = "oh.war/authority-register/v1"
++[[assignment]]
++actor = "Fixture Human"
++actor_kind = "human"
++roles = ["authorizer"]
++assigned_by = "Fixture Human"
++effective_time = "2026-01-01T00:00:00Z"
++ssh_principal = "fixture"
++[[assignment]]
++actor = "Fixture Agent"
++actor_kind = "agent"
++roles = ["authorizer"]
++assigned_by = "Fixture Human"
++effective_time = "2026-01-01T00:00:00Z"
++"#,
++        );
++        let out = Command::new("ssh-keygen")
++            .args(["-q", "-t", "ed25519", "-N", "", "-f"])
++            .arg(self.0.join("fixture-key"))
++            .output()
++            .unwrap();
++        assert!(out.status.success(), "{out:?}");
++        let public = fs::read_to_string(self.0.join("fixture-key.pub")).unwrap();
++        self.write(
++            "docs/authority/allowed_signers",
++            &format!("fixture {public}"),
++        );
++    }
++
++    fn response(&self, request: &Value, actor: &str, schema: &str, signed: bool) {
++        let body = format!(
++            r#"schema = "{schema}"
++version = "{version}"
++sha256 = "{}"
++accepted_by = "{actor}"
++acting_role = "authorizer"
++meaning = "Accept the exact fictional fixture subject."
++effective_time = "2026-09-14T08:00:00Z"
++adr_ref = "decision.md"
++"#,
++            request["result"]["sha256"].as_str().unwrap(),
++            version = request["result"]["version"].as_str().unwrap()
++        );
++        self.write("response.toml", &body);
++        if signed {
++            let out = Command::new("ssh-keygen")
++                .args(["-Y", "sign", "-n", "oh.war/response", "-f"])
++                .arg(self.0.join("fixture-key"))
++                .arg(self.0.join("response.toml"))
++                .env_remove("SSH_AUTH_SOCK")
++                .output()
++                .unwrap();
++            assert!(out.status.success(), "{out:?}");
++        }
++    }
++}
++
++impl Drop for Repo {
++    fn drop(&mut self) {
++        fs::remove_dir_all(&self.0).unwrap();
++    }
++}
++
++#[test]
++fn proposal_captures_the_complete_subject_and_refuses_overwrite() {
++    let repo = Repo::new();
++    repo.propose();
++    let request = repo.ok(&["sas", "accept", "1.0.0-rc.2"]);
++    let r = &request["result"];
++    assert_eq!(r["schema"], "oh.war/sas-acceptance-request/v2");
++    assert_eq!(r["source_set"]["main"]["path"], "candidate/main.md");
++    assert_eq!(
++        r["source_set"]["manifest"]["path"],
++        "candidate/source-set.json"
++    );
++    assert_eq!(r["source_set"]["decision"]["path"], "decision.md");
++    assert_ne!(r["sha256"], r["source_set"]["main"]["sha256"]);
++    let (code, refused) = repo.run(&[
++        "sas",
++        "propose",
++        "1.0.0-rc.2",
++        "--source",
++        "candidate/main.md",
++        "--source-set",
++        "candidate/source-set.json",
++        "--adr",
++        "decision.md",
++    ]);
++    assert_ne!(code, 0);
++    assert!(refused.to_string().contains("already exists"), "{refused}");
++    assert_eq!(request, repo.ok(&["sas", "accept", "1.0.0-rc.2"]));
++}
++
++#[test]
++fn human_accepts_exact_capture_and_later_live_edits_preserve_history() {
++    let repo = Repo::new();
++    repo.signer();
++    repo.propose();
++    let request = repo.ok(&["sas", "accept", "1.0.0-rc.2"]);
++    let preview = repo.ok(&["sign", "1.0.0-rc.2", "--show"]);
++    assert!(preview.to_string().contains("sign.shown"));
++    // Preview does not accept or change the request.
++    assert_eq!(request, repo.ok(&["sas", "accept", "1.0.0-rc.2"]));
++    repo.response(
++        &request,
++        "Fixture Human",
++        "oh.war/sas-acceptance-response/v2",
++        true,
++    );
++    let accepted = repo.ok(&["sas", "accept", "1.0.0-rc.2", "--response", "response.toml"]);
++    assert!(accepted.to_string().contains("sas.accepted"));
++    repo.write("candidate/rules.md", "Changed after acceptance.\n");
++    let status = repo.ok(&["sas", "status"]);
++    assert!(
++        status.to_string().contains("sas.capture-intact"),
++        "{status}"
++    );
++    assert!(
++        status.to_string().contains("sas.current-differs"),
++        "{status}"
++    );
++}
++
++#[test]
++fn warrant_checks_use_the_complete_captured_subject() {
++    let repo = Repo::new();
++    repo.propose();
++    repo.ok(&["new", "Fixture outcome"]);
++    let check = repo.ok(&["check", "TEST-WAR-0001"]);
++    assert!(check.to_string().contains("sas.capture-intact"), "{check}");
++}
++
++#[test]
++fn every_changed_input_refuses_acceptance_without_changing_the_proposal() {
++    for path in [
++        "candidate/main.md",
++        "candidate/rules.md",
++        "candidate/schema.json",
++        "candidate/example.txt",
++        "candidate/source-set.json",
++        "decision.md",
++    ] {
++        let repo = Repo::new();
++        repo.signer();
++        repo.propose();
++        let request = repo.ok(&["sas", "accept", "1.0.0-rc.2"]);
++        repo.response(
++            &request,
++            "Fixture Human",
++            "oh.war/sas-acceptance-response/v2",
++            true,
++        );
++        let record_path = repo.0.join("docs/sas/revisions/1.0.0-rc.2.toml");
++        let before = fs::read(&record_path).unwrap();
++        repo.write(path, "Changed.\n");
++        let (code, refused) =
++            repo.run(&["sas", "accept", "1.0.0-rc.2", "--response", "response.toml"]);
++        assert_ne!(code, 0, "{path}: {refused}");
++        assert!(
++            refused.to_string().contains("sas.stale-source-set"),
++            "{path}: {refused}"
++        );
++        assert_eq!(before, fs::read(record_path).unwrap());
++    }
++}
++
++#[test]
++fn forged_unsigned_and_legacy_responses_cannot_accept_v2() {
++    for (actor, schema, signed, reason) in [
++        (
++            "Fixture Agent",
++            "oh.war/sas-acceptance-response/v2",
++            false,
++            "sas.not-permitted",
++        ),
++        (
++            "Fixture Human",
++            "oh.war/sas-acceptance-response/v2",
++            false,
++            "sas.response-signature",
++        ),
++        (
++            "Fixture Human",
++            "oh.war/sas-acceptance-response/v1",
++            true,
++            "sas.response-schema",
++        ),
++    ] {
++        let repo = Repo::new();
++        repo.signer();
++        repo.propose();
++        let request = repo.ok(&["sas", "accept", "1.0.0-rc.2"]);
++        repo.response(&request, actor, schema, signed);
++        let (code, refused) =
++            repo.run(&["sas", "accept", "1.0.0-rc.2", "--response", "response.toml"]);
++        assert_ne!(code, 0);
++        assert!(refused.to_string().contains(reason), "{refused}");
++        assert_eq!(request, repo.ok(&["sas", "accept", "1.0.0-rc.2"]));
++    }
++}
++
++#[test]
++fn invalid_manifests_publish_no_revision() {
++    for (case, reason) in [
++        ("duplicate", "duplicate member path"),
++        ("traversal", "unsafe path"),
++        ("absolute", "unsafe path"),
++        ("role", "main source is not normative"),
++        ("edition", "edition or status mismatch"),
++        ("schema", "manifest schema"),
++        ("oversized", "oversized member"),
++        ("digest", "member length/digest mismatch"),
++        ("missing", "unsafe or missing file"),
++        ("main", "main source is not a manifest member"),
++    ] {
++        let repo = Repo::new();
++        let manifest_path = repo.0.join("candidate/source-set.json");
++        let mut manifest: Value =
++            serde_json::from_slice(&fs::read(&manifest_path).unwrap()).unwrap();
++        match case {
++            "duplicate" => {
++                let entry = manifest["files"][0].clone();
++                manifest["files"].as_array_mut().unwrap().push(entry);
++            }
++            "traversal" => manifest["files"][0]["path"] = json!("../main.md"),
++            "absolute" => manifest["files"][0]["path"] = json!("/tmp/main.md"),
++            "role" => manifest["files"][0]["role"] = json!("reference"),
++            "edition" => manifest["edition"] = json!("different"),
++            "schema" => manifest["schema"] = json!("unrecognized"),
++            "oversized" => manifest["files"][0]["bytes"] = json!(8 * 1024 * 1024 + 1),
++            "digest" => {
++                manifest["files"][0]["sha256"] = json!(format!("sha256:{}", "0".repeat(64)))
++            }
++            "missing" => {
++                fs::remove_file(repo.0.join("candidate/rules.md")).unwrap();
++            }
++            "main" => {
++                manifest["files"].as_array_mut().unwrap().remove(0);
++            }
++            _ => unreachable!(),
++        }
++        fs::write(manifest_path, manifest.to_string()).unwrap();
++        let (code, refused) = repo.run(&[
++            "sas",
++            "propose",
++            "1.0.0-rc.2",
++            "--source",
++            "candidate/main.md",
++            "--source-set",
++            "candidate/source-set.json",
++            "--adr",
++            "decision.md",
++        ]);
++        assert_ne!(code, 0, "{case}: {refused}");
++        assert!(refused.to_string().contains(reason), "{case}: {refused}");
++        assert!(!repo.0.join("docs/sas/revisions/1.0.0-rc.2.toml").exists());
++    }
++}
++
++#[cfg(unix)]
++#[test]
++fn symlink_files_and_parent_directories_are_never_followed() {
++    for parent in [false, true] {
++        let repo = Repo::new();
++        if parent {
++            fs::rename(repo.0.join("candidate"), repo.0.join("real-candidate")).unwrap();
++            std::os::unix::fs::symlink("real-candidate", repo.0.join("candidate")).unwrap();
++        } else {
++            fs::rename(repo.0.join("candidate/main.md"), repo.0.join("actual.md")).unwrap();
++            std::os::unix::fs::symlink("../actual.md", repo.0.join("candidate/main.md")).unwrap();
++        }
++        let (code, refused) = repo.run(&[
++            "sas",
++            "propose",
++            "1.0.0-rc.2",
++            "--source",
++            "candidate/main.md",
++            "--source-set",
++            "candidate/source-set.json",
++            "--adr",
++            "decision.md",
++        ]);
++        assert_ne!(code, 0);
++        assert!(
++            refused.to_string().contains("unsafe or missing"),
++            "{refused}"
++        );
++        assert!(!repo.0.join("docs/sas/revisions/1.0.0-rc.2.toml").exists());
++    }
++}
++
++#[test]
++fn legacy_acceptance_and_authorized_warrant_pins_remain_unchanged() {
++    let repo = Repo::new();
++    repo.signer();
++    let main = fs::read_to_string(repo.0.join("candidate/main.md")).unwrap();
++    repo.write("docs/sas/main.md", &main);
++    repo.ok(&["sas", "propose", "1.0.0"]);
++    let old = repo.ok(&["sas", "accept", "1.0.0"]);
++    assert_eq!(old["result"]["schema"], "oh.war/sas-acceptance-request/v1");
++    assert!(old["result"].get("source_set").is_none());
++    repo.response(
++        &old,
++        "Fixture Human",
++        "oh.war/sas-acceptance-response/v1",
++        false,
++    );
++    repo.ok(&["sas", "accept", "1.0.0", "--response", "response.toml"]);
++    let legacy_bytes = fs::read(repo.0.join("docs/sas/revisions/1.0.0.toml")).unwrap();
++    repo.ok(&["new", "Legacy fixture outcome"]);
++    let old_warrant = repo.ok(&["authorize", "TEST-WAR-0001"]);
++    repo.write(
++        "authorization-fixture.toml",
++        &format!(
++            r#"schema = "oh.war/authorization-response/v1"
++warrant = "TEST-WAR-0001"
++contract_digest = "{}"
++authorizer = "Fixture Human"
++acting_role = "authorizer"
++meaning = "Authorize this fictional fixture."
++effective_time = "2026-09-14T08:00:00Z"
++independence = "separate_role"
++"#,
++            old_warrant["result"]["contract_digest"].as_str().unwrap()
++        ),
++    );
++    repo.ok(&[
++        "authorize",
++        "TEST-WAR-0001",
++        "--response",
++        "authorization-fixture.toml",
++    ]);
++    repo.write("candidate/main.md", &(main + "| TEST-SAS-RQ-002 | Bind the full source set. |\n\n## 107. Capture\n\nThe compiler SHALL retain the complete source-set capture.\n"));
++    repo.manifest();
++    repo.propose();
++    let next = repo.ok(&["sas", "accept", "1.0.0-rc.2"]);
++    assert_eq!(
++        next["result"]["source_set"]["predecessor"]["sha256"],
++        old["result"]["sha256"]
++    );
++    repo.response(
++        &next,
++        "Fixture Human",
++        "oh.war/sas-acceptance-response/v2",
++        true,
++    );
++    repo.ok(&["sas", "accept", "1.0.0-rc.2", "--response", "response.toml"]);
++    assert_eq!(
++        legacy_bytes,
++        fs::read(repo.0.join("docs/sas/revisions/1.0.0.toml")).unwrap()
++    );
++    let still_old = repo.ok(&["authorize", "TEST-WAR-0001"]);
++    assert_eq!(
++        old_warrant["result"]["contract_digest"],
++        still_old["result"]["contract_digest"]
++    );
++    repo.ok(&["new", "New fixture outcome"]);
++    let manifest_path = repo.0.join("docs/warrants/TEST-WAR-0002/manifest.toml");
++    let manifest = fs::read_to_string(&manifest_path).unwrap();
++    fs::write(
++        manifest_path,
++        manifest
++            + "\n[[implements]]\nref = \"sas://TEST-SAS-RQ-002\"\ncontribution = \"partial\"\n",
++    )
++    .unwrap();
++    repo.ok(&["check", "TEST-WAR-0002"]);
++    repo.ok(&["compile"]);
++    let normative = fs::read_to_string(repo.0.join("docs/sas/generated/NORMATIVE.md")).unwrap();
++    assert!(
++        normative.contains("retain the complete source-set capture"),
++        "{normative}"
++    );
++    let newer: Value = serde_json::from_slice(
++        &fs::read(
++            repo.0
++                .join("docs/warrants/TEST-WAR-0002/generated/WAR.json"),
++        )
++        .unwrap(),
++    )
++    .unwrap();
++    assert!(
++        newer
++            .to_string()
++            .contains(next["result"]["sha256"].as_str().unwrap()),
++        "{newer}"
++    );
++}
++
++#[test]
++fn changed_predecessor_and_main_only_signature_are_refused() {
++    for predecessor_change in [false, true] {
++        let repo = Repo::new();
++        repo.signer();
++        let main = fs::read_to_string(repo.0.join("candidate/main.md")).unwrap();
++        repo.write("docs/sas/main.md", &main);
++        repo.ok(&["sas", "propose", "1.0.0"]);
++        repo.propose();
++        let mut request = repo.ok(&["sas", "accept", "1.0.0-rc.2"]);
++        if !predecessor_change {
++            request["result"]["sha256"] = request["result"]["source_set"]["main"]["sha256"].clone();
++        }
++        repo.response(
++            &request,
++            "Fixture Human",
++            "oh.war/sas-acceptance-response/v2",
++            true,
++        );
++        if predecessor_change {
++            let path = repo.0.join("docs/sas/revisions/1.0.0.toml");
++            let old = fs::read_to_string(&path).unwrap();
++            let original = request["result"]["source_set"]["predecessor"]["sha256"]
++                .as_str()
++                .unwrap();
++            fs::write(path, old.replace(original, &"0".repeat(64))).unwrap();
++        }
++        let record = repo.0.join("docs/sas/revisions/1.0.0-rc.2.toml");
++        let before = fs::read(&record).unwrap();
++        let (code, refused) =
++            repo.run(&["sas", "accept", "1.0.0-rc.2", "--response", "response.toml"]);
++        assert_ne!(code, 0);
++        let reason = if predecessor_change {
++            "predecessor identity mismatch"
++        } else {
++            "sas.stale-digest"
++        };
++        assert!(refused.to_string().contains(reason), "{refused}");
++        assert_eq!(before, fs::read(record).unwrap());
++    }
++}
++
++#[test]
++fn retained_snapshot_tampering_and_reacceptance_are_refused() {
++    let repo = Repo::new();
++    repo.signer();
++    repo.propose();
++    let request = repo.ok(&["sas", "accept", "1.0.0-rc.2"]);
++    repo.response(
++        &request,
++        "Fixture Human",
++        "oh.war/sas-acceptance-response/v2",
++        true,
++    );
++    repo.ok(&["sas", "accept", "1.0.0-rc.2", "--response", "response.toml"]);
++    let before = fs::read(repo.0.join("docs/sas/revisions/1.0.0-rc.2.toml")).unwrap();
++    let (code, refused) = repo.run(&["sas", "accept", "1.0.0-rc.2", "--response", "response.toml"]);
++    assert_ne!(code, 0);
++    assert!(
++        refused.to_string().contains("already accepted"),
++        "{refused}"
++    );
++    assert_eq!(
++        before,
++        fs::read(repo.0.join("docs/sas/revisions/1.0.0-rc.2.toml")).unwrap()
++    );
++    repo.write(
++        "docs/sas/revisions/source-sets/1.0.0-rc.2/members/rules.md",
++        "Tampered capture.\n",
++    );
++    let (code, refused) = repo.run(&["sas", "status"]);
++    assert_ne!(code, 0);
++    assert!(
++        refused.to_string().contains("sas.capture-invalid"),
++        "{refused}"
++    );
++    assert!(
++        !refused.to_string().contains("sas.capture-intact"),
++        "{refused}"
++    );
++}
++
++#[test]
++fn existing_snapshot_and_retained_lock_are_never_overwritten() {
++    for locked in [false, true] {
++        let repo = Repo::new();
++        let marker = if locked {
++            "docs/sas/revisions/.1.0.0-rc.2.lock"
++        } else {
++            "docs/sas/revisions/source-sets/1.0.0-rc.2/marker"
++        };
++        repo.write(marker, "Preserve this.\n");
++        let (code, refused) = repo.run(&[
++            "sas",
++            "propose",
++            "1.0.0-rc.2",
++            "--source",
++            "candidate/main.md",
++            "--source-set",
++            "candidate/source-set.json",
++            "--adr",
++            "decision.md",
++        ]);
++        assert_ne!(code, 0);
++        let reason = if locked {
++            "retained lock"
++        } else {
++            "snapshot destination"
++        };
++        assert!(refused.to_string().contains(reason), "{refused}");
++        assert_eq!(
++            fs::read_to_string(repo.0.join(marker)).unwrap(),
++            "Preserve this.\n"
++        );
++        assert!(!repo.0.join("docs/sas/revisions/1.0.0-rc.2.toml").exists());
++    }
++}
++
++#[test]
++fn accepted_record_cannot_substitute_another_adoption_decision() {
++    let repo = Repo::new();
++    repo.signer();
++    repo.propose();
++    let request = repo.ok(&["sas", "accept", "1.0.0-rc.2"]);
++    repo.response(
++        &request,
++        "Fixture Human",
++        "oh.war/sas-acceptance-response/v2",
++        true,
++    );
++    repo.ok(&["sas", "accept", "1.0.0-rc.2", "--response", "response.toml"]);
++    let path = repo.0.join("docs/sas/revisions/1.0.0-rc.2.toml");
++    let record = fs::read_to_string(&path).unwrap();
++    fs::write(
++        path,
++        record.replace("adr_ref = \"decision.md\"", "adr_ref = \"different.md\""),
++    )
++    .unwrap();
++    let (code, refused) = repo.run(&["sas", "status"]);
++    assert_ne!(code, 0, "{refused}");
++    assert!(
++        refused
++            .to_string()
++            .contains("inconsistent source-set subject"),
++        "{refused}"
++    );
++}
++
++#[test]
++fn source_set_subject_matches_independent_canonical_vector() {
++    let repo = Repo::new();
++    repo.write(
++        "candidate/source-set.json",
++        include_str!("../../../conformance/fixtures/sas-source-set/manifest.json"),
++    );
++    repo.propose();
++    let request = repo.ok(&["sas", "accept", "1.0.0-rc.2"]);
++    let expected: Value = serde_json::from_str(include_str!(
++        "../../../conformance/fixtures/sas-source-set/subject.json"
++    ))
++    .unwrap();
++    assert_eq!(request["result"]["source_set"], expected);
++    assert_eq!(
++        request["result"]["sha256"],
++        include_str!("../../../conformance/fixtures/sas-source-set/subject.sha256").trim()
++    );
++}
++
++#[test]
++fn interrupted_publication_is_preserved_for_recovery() {
++    let repo = Repo::new();
++    let pending = "docs/sas/revisions/1.0.0-rc.2.toml.pending";
++    repo.write(pending, "Interrupted publication bytes.\n");
++    let (code, refused) = repo.run(&[
++        "sas",
++        "propose",
++        "1.0.0-rc.2",
++        "--source",
++        "candidate/main.md",
++        "--source-set",
++        "candidate/source-set.json",
++        "--adr",
++        "decision.md",
++    ]);
++    assert_ne!(code, 0, "{refused}");
++    assert!(refused.to_string().contains("already exists"), "{refused}");
++    assert_eq!(
++        fs::read_to_string(repo.0.join(pending)).unwrap(),
++        "Interrupted publication bytes.\n"
++    );
++    assert!(!repo.0.join("docs/sas/revisions/1.0.0-rc.2.toml").exists());
++}
+diff --git a/docs/design/rc2-source-set-acceptance.adr.md b/docs/design/rc2-source-set-acceptance.adr.md
+new file mode 100644
+index 0000000..957f2be
+--- /dev/null
++++ b/docs/design/rc2-source-set-acceptance.adr.md
+@@ -0,0 +1,82 @@
++# RC.2 source-set acceptance
++
++Status: proposed local architecture decision under OW-WAR-0074 AM-001. The path
++identifies this reviewable draft; no enterprise or owner-reserved ADR identifier
++is allocated. Human acceptance must name this exact decision and source subject.
++
++## Decision
++
++Add an opt-in source-set proposal to the existing SAS command:
++
++```text
++war sas propose <edition> --source <main-markdown> --source-set <manifest> --adr <decision>
++war sas accept <edition>
++war sign <edition> --ssh-sign
++war sas status
++```
++
++The three source options are used together. Without them, proposal retains its
++current single-document meaning. Repository-relative paths name the main SAS,
++the candidate manifest, and this adoption decision. Revision records remain in
++the existing configured revisions directory; candidate selection does not move
++that directory or change `paths.sas`.
++
++Source-set proposals use a new `oh.war/sas-revision/v2` record and versioned
++acceptance request/response. Legacy v1 records and their serialized meaning remain
++unchanged. The main SAS digest, manifest digest, decision digest, and complete
++acceptance-subject digest are distinct fields and are displayed as such.
++
++The complete subject is RFC 8785 canonical JSON with these meanings: schema
++`oh.war/sas-source-set-subject/v1`, edition, repository-relative main-source path
++and SHA-256, manifest path and SHA-256, adoption-decision path and SHA-256, and
++the explicit predecessor revision/version and subject digest when present.
++Its identity is SHA-256 of the UTF-8 prefix
++`oh.war/sas-source-set-subject/v1` followed by one NUL byte and those canonical
++JSON bytes. This new domain does not reinterpret any existing digest.
++
++The manifest's exact bytes bind every member's path, length, digest and role.
++All listed members are captured and checked, including reference fixtures. The
++main source must be a normative member and the manifest edition must equal the
++proposed edition. Section 106 is extracted from the same captured main bytes.
++The predecessor's retained requirement IDs remain subject to existing stability
++checks. Architecture-changing adoption requires the captured decision.
++
++Capture retains manifest, member, and adoption-decision bytes under the configured
++revision store in a per-edition snapshot. Publish a proposed record only after
++the complete capture validates. Reject existing proposal/snapshot destinations
++rather than overwriting them. Failed preparation produces no accepted record.
++Do not follow symlinks, absolute paths, traversal segments, duplicate member
++paths, or mismatched lengths/digests. Bound input sizes and reject inconsistent
++reads. This is local capture, not a repository sandbox or online resolver.
++
++Before acceptance, validate the proposed subject and snapshot and require the
++declared current inputs to match that capture. Changed input requires a fresh
++proposal. The authenticated response covers the whole subject, not only the main
++SAS digest. Human role checks, refusal of agent acceptance, response signature
++verification and separate attestation remain in force.
++
++Accepted history is judged against retained captured bytes. A later live-source
++edit cannot rewrite or invalidate what was historically accepted; status must
++distinguish that historical integrity from whether current inputs match it.
++Warrant compilation binds the complete v2 subject through its SAS pin. Old
++Warrants retain their prior SAS pins until an authorized amendment changes them.
++Historical literal `1.0.0` remains unchanged; it is designated RC.1 in edition
++history. This work proposes `1.0.0-rc.2`; Stable acceptance and release naming
++remain separate later acts.
++
++## Required proof
++
++Exercise proposal, read-only preview, acceptance, and status at their public
++interfaces. Pair valid captures with changed main, companion, schema, reference,
++manifest, decision and predecessor identities; missing/duplicate/escaping paths;
++symlinks; oversized or inconsistent reads; stale or wrong-actor responses; and
++existing-destination collisions. Verify no accepted record on refusal and
++unchanged legacy record/signature behavior. Fixtures use fictional identities
++in disposable repositories and never sign or accept the real candidate.
++
++## Boundaries
++
++This is acceptance bootstrap support. It does not implement the Phase 1 document
++parser, general context compiler, batch signing, TUI, agent orchestration,
++automatic acceptance, paid-call metering, or a new release. Existing resolved
++delivery corrections and human signatures remain explicit requirements.
+diff --git a/docs/design/rc2-source-set-acceptance-implementation.md b/docs/design/rc2-source-set-acceptance-implementation.md
+new file mode 100644
+index 0000000..2671efd
+--- /dev/null
++++ b/docs/design/rc2-source-set-acceptance-implementation.md
+@@ -0,0 +1,85 @@
++# Using the source-set acceptance extension
++
++This is the implementation guide for OW-WAR-0074 revision 2. The signed design
++is `rc2-source-set-acceptance.adr.md`; this guide does not replace that decision
++or accept the SAS. Run the implementation build in its own checkout.
++
++## Propose and inspect
++
++```sh
++cargo build --workspace
++./target/debug/war sas propose 1.0.0-rc.2 \
++  --source docs/sas/drafts/1.0.0-rc.2/WAR_Software_Architecture_Specification.md \
++  --source-set docs/sas/drafts/1.0.0-rc.2/source-set.json \
++  --adr docs/design/rc2-source-set-acceptance.adr.md
++./target/debug/war sas accept 1.0.0-rc.2 --json
++./target/debug/war sign 1.0.0-rc.2 --show
++./target/debug/war sas status
++```
++
++Proposal is performed once per edition. The real candidate has already been
++proposed in the implementation checkout. The inspection commands are read-only.
++The three proposal options must occur together. Without them the legacy
++single-document proposal keeps its previous meaning and revision store.
++
++After review, the authorized human signs through the existing signing command.
++The captured adoption decision supplies the ADR reference automatically; a
++different explicit `--adr` is refused. Direct v2 response ingestion requires its
++valid SSH signature. The existing terminal-confirmation route is also retained.
++
++## What the subject covers
++
++The v2 revision's `sha256` is the complete acceptance-subject digest. Separate
++`source_set.main`, `source_set.manifest`, and `source_set.decision` identities
++contain repository-relative paths and unprefixed SHA-256 values. The subject
++also contains the predecessor version and its recorded subject digest.
++
++The manifest uses `oh.war/spec-source-set/1.0.0-rc.2`. Its exact bytes bind every
++member's path, byte length, digest and role. Member paths are relative to the
++manifest directory. Both `normative` and `reference` members are mandatory
++capture inputs; `reference` does not mean missing bytes are allowed. The main
++document must be a normative member.
++
++The subject root uses RFC 8785 canonical JSON with the domain prefix specified
++by the adoption decision. The independent ASCII vector lives under
++`conformance/fixtures/sas-source-set/`. Existing v1 digest domains do not change.
++
++## Capture and recovery
++
++Bounds: 1,024 members; 8 MiB per member or adoption decision; 2 MiB manifest;
++32 MiB total captured input. Paths must be relative, use slash separators, and
++contain no empty, dot, traversal, backslash, colon or NUL components. Symlinks
++are refused at every component. These are capture limits, not agent isolation.
++
++Snapshots live under the configured SAS revisions directory at
++`source-sets/<edition>/`. Capture files and the manifest are synced before an
++exclusive publication exposes the complete proposal record. Acceptance holds
++a per-edition lock, validates the snapshot and current inputs, and replaces
++only the still-proposed record after authentication.
++
++A stale input requires a new proposal. Existing snapshots, locks, and pending
++publication files are never overwritten or automatically discarded. After an
++interruption, inspect them and the revision record before moving unaccepted
++temporary files aside. A published record followed by a directory-sync failure
++is reported explicitly as published with uncertain durability.
++
++`sas.capture-intact` checks retained bytes. `sas.current-differs` reports a
++separate current-input disagreement. A later edit does not rewrite accepted
++history. New Warrants pin the complete v2 subject; previously authorized
++Warrants keep their prior SAS pin until an authorized amendment changes it.
++The existing normative view projects the selected main document's captured
++bytes. General projections over all source-set documents remain compiler work.
++
++## Verification
++
++```sh
++cargo test -p openwarrant-cli --test sas_source_set
++python3 conformance/fixtures/sas-source-set/check_changing_input.py target/debug/war
++cargo xtask gate
++```
++
++The Rust tests create disposable repositories with fictional actors and keys.
++They do not accept or sign the real SAS. The concurrent-write probe is bounded
++and reports UNKNOWN if scheduling does not expose an inconsistent read.
++Required legacy delivery corrections and independent verification remain
++separate from these performer observations.
+diff --git a/conformance/fixtures/sas-source-set/README.md b/conformance/fixtures/sas-source-set/README.md
+new file mode 100644
+index 0000000..5e6a26d
+--- /dev/null
++++ b/conformance/fixtures/sas-source-set/README.md
+@@ -0,0 +1,13 @@
++# Source-set acceptance subject vector
++
++This ASCII-only vector exercises the 0074 AM-001 domain through the public CLI
++in `crates/openwarrant-cli/tests/sas_source_set.rs`. That fixture provides the
++source bytes; `manifest.json` is the exact candidate manifest including its final
++LF. `subject.json` is canonical JSON plus a display LF; the display LF is excluded
++from the digest preimage.
++
++The independent expected digest was calculated with Python's `hashlib.sha256`
++over UTF-8 `oh.war/sas-source-set-subject/v1`, one NUL byte, and the subject's
++canonical JSON bytes. Sorting keys and using compact JSON produces RFC 8785
++bytes for this vector because every key/value is ASCII and there are no numbers
++in the subject. This is a fixed input/output vector, not a replacement canonicalizer.
+diff --git a/conformance/fixtures/sas-source-set/check_changing_input.py b/conformance/fixtures/sas-source-set/check_changing_input.py
+new file mode 100644
+index 0000000..a68071a
+--- /dev/null
++++ b/conformance/fixtures/sas-source-set/check_changing_input.py
+@@ -0,0 +1,65 @@
++#!/usr/bin/env python3
++# SPDX-License-Identifier: Apache-2.0
++"""Observe concurrent-read refusal through the real proposal command.
++
++Uses disposable repositories and no identities or signing keys. A bounded
++stress observation complements deterministic fixtures; it is not a scheduling
++or filesystem-isolation guarantee. Exit nonzero if no inconsistent read was
++observed. Every attempted proposal must refuse before publishing a record.
++"""
++import hashlib
++import json
++from pathlib import Path
++import subprocess
++import sys
++import tempfile
++import threading
++
++war = str(Path(sys.argv[1]).resolve())
++observations = []
++with tempfile.TemporaryDirectory(prefix="ow-changing-source-") as temporary:
++    for attempt in range(12):
++        root = Path(temporary) / str(attempt)
++        root.mkdir()
++        subprocess.run([war, "init", "--namespace", "TEST"], cwd=root, check=True, capture_output=True)
++        (root / "candidate").mkdir()
++        main = b"# SAS\n| TEST-SAS-RQ-001 | Preserve evidence. |\n"
++        bulk = b"a" * (8 * 1024 * 1024)
++        (root / "candidate/main.md").write_bytes(main)
++        (root / "candidate/changing.bin").write_bytes(bulk)
++        (root / "decision.md").write_text("Fixture decision.\n")
++        files = [{"path": path, "bytes": len(data), "sha256": "sha256:" + hashlib.sha256(data).hexdigest(), "role": role}
++                 for path, data, role in [("main.md", main, "normative"), ("changing.bin", bulk, "reference")]]
++        manifest = {"schema": "oh.war/spec-source-set/1.0.0-rc.2", "edition": "1.0.0-rc.2", "status": "candidate-unaccepted", "files": files}
++        (root / "candidate/source-set.json").write_text(json.dumps(manifest))
++        stop, started = threading.Event(), threading.Event()
++        def change():
++            with (root / "candidate/changing.bin").open("r+b", buffering=0) as output:
++                payload = b"b" * len(bulk)
++                while not stop.is_set():
++                    output.seek(0)
++                    output.write(payload)
++                    started.set()
++        worker = threading.Thread(target=change)
++        worker.start()
++        try:
++            if not started.wait(5):
++                raise RuntimeError("writer did not start")
++            result = subprocess.run([war, "--json", "sas", "propose", "1.0.0-rc.2", "--source", "candidate/main.md",
++                                     "--source-set", "candidate/source-set.json", "--adr", "decision.md"],
++                                    cwd=root, capture_output=True, text=True, timeout=10)
++        finally:
++            stop.set()
++            worker.join(5)
++        if worker.is_alive():
++            raise RuntimeError("writer did not stop")
++        report = json.loads(result.stdout)
++        observations.append({"attempt": attempt + 1, "exit_code": result.returncode, "diagnostics": report["diagnostics"]})
++        if result.returncode == 0 or (root / "docs/sas/revisions/1.0.0-rc.2.toml").exists():
++            raise RuntimeError("changing mismatched input published a revision")
++        if "inconsistent read" in result.stdout:
++            print(json.dumps({"result": "PASS", "observations": observations}, indent=2))
++            break
++    else:
++        print(json.dumps({"result": "UNKNOWN", "observations": observations}, indent=2))
++        sys.exit(1)
+diff --git a/conformance/fixtures/sas-source-set/manifest.json b/conformance/fixtures/sas-source-set/manifest.json
+new file mode 100644
+index 0000000..7aa9b53
+--- /dev/null
++++ b/conformance/fixtures/sas-source-set/manifest.json
+@@ -0,0 +1 @@
++{"edition":"1.0.0-rc.2","files":[{"bytes":70,"path":"main.md","role":"normative","sha256":"sha256:52a089e70e1b27e488ee8c8b44367ca3674bab9d6e4faa57b08d0f9c51f8dbb2"},{"bytes":19,"path":"rules.md","role":"normative","sha256":"sha256:35644d5de06111ef666761a8f6201bb5d4b7925e9b593c7f2f3d30593c0798d6"},{"bytes":3,"path":"schema.json","role":"normative","sha256":"sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"},{"bytes":19,"path":"example.txt","role":"reference","sha256":"sha256:7ee140fd44a82550a99cd3c2d058db73d595ec74bd08c5c087d16ad89f5255a8"}],"schema":"oh.war/spec-source-set/1.0.0-rc.2","status":"candidate-unaccepted"}
+diff --git a/conformance/fixtures/sas-source-set/subject.json b/conformance/fixtures/sas-source-set/subject.json
+new file mode 100644
+index 0000000..d30eb9b
+--- /dev/null
++++ b/conformance/fixtures/sas-source-set/subject.json
+@@ -0,0 +1 @@
++{"decision":{"path":"decision.md","sha256":"3c0db109d6834f065aacc612c2301bab0c98ab0bbd76527592c1606f023d19b4"},"edition":"1.0.0-rc.2","main":{"path":"candidate/main.md","sha256":"52a089e70e1b27e488ee8c8b44367ca3674bab9d6e4faa57b08d0f9c51f8dbb2"},"manifest":{"path":"candidate/source-set.json","sha256":"c49522f8f525b6ee9fcf34784a0559fefc2c4664af06c796400eab3db81b4319"},"schema":"oh.war/sas-source-set-subject/v1"}
+diff --git a/conformance/fixtures/sas-source-set/subject.sha256 b/conformance/fixtures/sas-source-set/subject.sha256
+new file mode 100644
+index 0000000..e6e63cd
+--- /dev/null
++++ b/conformance/fixtures/sas-source-set/subject.sha256
+@@ -0,0 +1 @@
++1c1c2b1054f4b3192503d6a80ea53ee9becf767f5f90834c553f4eea80801204

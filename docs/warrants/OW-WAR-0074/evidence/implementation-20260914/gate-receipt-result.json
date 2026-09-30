@@ -1,0 +1,61 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "evidence",
+  "diagnostics": [
+    {
+      "severity": "pass",
+      "rule": "gate.registered",
+      "file": null,
+      "message": "document.review@1.0.0: local candidate, qualified against its declared fault model"
+    },
+    {
+      "severity": "pass",
+      "rule": "gate.registered",
+      "file": null,
+      "message": "ops.conformance.plants@1.0.0: local candidate, qualified against its declared fault model"
+    },
+    {
+      "severity": "pass",
+      "rule": "gate.registered",
+      "file": null,
+      "message": "ops.echo@1.0.0: local candidate, qualified against its declared fault model"
+    },
+    {
+      "severity": "pass",
+      "rule": "gate.registered",
+      "file": null,
+      "message": "software.repo.bonsai-evidence@1.0.0: local candidate, qualified against its declared fault model"
+    },
+    {
+      "severity": "pass",
+      "rule": "gate.registered",
+      "file": null,
+      "message": "software.repo.war-check@1.0.0: local candidate, qualified against its declared fault model"
+    },
+    {
+      "severity": "pass",
+      "rule": "gate-run.receipt",
+      "file": null,
+      "message": "software.repo.war-check@1.0.0: §44.6 receipt written to docs/warrants/OW-WAR-0074/gate-runs/software_repo_war-check_1_0_0.receipt.json"
+    },
+    {
+      "severity": "error",
+      "rule": "gate-run.fail",
+      "file": "software.repo.war-check@1.0.0",
+      "message": "software.repo.war-check@1.0.0: askability askable · execution completed · verdict fail (failed)"
+    }
+  ],
+  "notes": [
+    "OW-WAR-0074: recording 1 gate run(s) bound to contract:sha256:0e1d8a130b1015e03d7f358334b7703bc08f0e5dfb7560ec6ae52c6ed8ec618d"
+  ],
+  "counts": {
+    "pass": 6,
+    "warn": 0,
+    "unknown": 0,
+    "error": 1,
+    "worst": "error"
+  },
+  "verdict": "not_ready",
+  "verdict_line": "NOT READY",
+  "exit_code": 2
+}

@@ -41,5 +41,9 @@ revision process. Do not require unrelated legacy Warrants to be closed.
 
 The legacy SAS command captures the configured source, not an arbitrary RC.2
 candidate path. Establish the exact acceptance procedure before invoking it.
-Any tool change needed to bind the complete candidate set requires a separately
-reviewed scope amendment here; do not silently edit a signed historical record.
+AM-001 proposes the bounded acceptance-tool extension. The exact local adoption
+decision is docs/design/rc2-source-set-acceptance.adr.md at SHA-256
+`7f93d7eb9826678880c6c8548c40cfdc29cec80e5bc91dd2c74ac91f4ace7dbc`. Its public proposal, preview, acceptance, and status seams
+are the implementation/test contract. Revision 2 must be signed before executing
+that extension. Preserve original records and prepare human correction requests
+for changed resolved deliveries.

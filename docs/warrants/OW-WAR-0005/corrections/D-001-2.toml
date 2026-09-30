@@ -1,0 +1,16 @@
+schema = "oh.war/correction/v1"
+warrant = "OW-WAR-0005"
+
+[correction]
+id = "01a0a083-6758-74c0-834f-da80407c476b"
+deliverable_id = "D-001"
+target_ref = "crates/openwarrant-cli/src/check.rs"
+sequence = 2
+superseded_digest = "sha256:36b98eafc8ceee4eecedfaafc7de591dbe98419966924d670dbd39ba5d6993a6"
+new_digest = "sha256:55d1ad8b178e8d7c1c9306f689f5db675017bc6ecdc8767fda9e58f478296217"
+reason = """crates/openwarrant-cli/src/check.rs moved after its resolution at 2026-09-03T03:30:00Z: 6 commit(s) touched it, "release: the relicense to Apache-2.0, and seven authorizations the owner signed (OW-ADR-0017, OW-WAR-0067 STAGE-001 and STAGE-004)"; "feat(sas): SAS 1.0.0 proposed — one architecture-changing revision folding the 1.0 plan's edits, and the circular pin (B4, OW-ADR-0016)"; "feat(status): CORPUS_TIMELINE.json and CORPUS_PENDING.json — two more committed projections for the progress platform (D2)" and 3 more. Each states its own          change; this correction records that the delivered bytes moved with them. Presented on a terminal by `war sign 1.0.0` and confirmed by the signer; the decision is the signer's and the template is the tool's."""
+kind = "behaviour-change"
+authorized_by_ref = "person://Brian Lam"
+acting_role_ref = "role://authorizer"
+effective_at = "2026-09-14T15:22:41Z"
+recorded_at = "2026-09-14T15:22:41Z"

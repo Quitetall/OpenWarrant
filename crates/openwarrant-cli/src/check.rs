@@ -173,70 +173,76 @@ pub fn run(
             repo.config.paths.sas.clone(),
             err.to_string(),
         )),
-        Ok(revisions) => match crate::sas::pin_of(&revisions) {
-            None => report.push(Diagnostic::warn(
-                "sas.unrecorded",
-                repo.config.paths.sas.clone(),
-                "no SAS revision is recorded; the document is pinned by prose only. \
-                 `war sas propose <version>` records one"
-                    .to_owned(),
-            )),
-            Some(pin) => match repo.sas_document() {
-                Err(err) => report.push(Diagnostic::error(
-                    "sas.document",
+        Ok(revisions) => {
+            for r in revisions.iter().filter(|r| r.source_set.is_some()) {
+                crate::sas::source_set_status(repo, r, &mut report);
+            }
+            match crate::sas::pin_of(&revisions) {
+                None => report.push(Diagnostic::warn(
+                    "sas.unrecorded",
                     repo.config.paths.sas.clone(),
-                    err.to_string(),
+                    "no SAS revision is recorded; the document is pinned by prose only. \
+                 `war sas propose <version>` records one"
+                        .to_owned(),
                 )),
-                Ok((path, bytes)) => {
-                    let actual = openwarrant_compiler::sha256_hex(&bytes);
-                    if actual == pin.sha256 {
-                        report.push(Diagnostic::pass(
-                            "sas.pinned",
-                            format!(
-                                "{} matches revision {} ({}), sha256:{}",
+                Some(pin) if pin.source_set.is_some() => {}
+                Some(pin) => match repo.sas_document() {
+                    Err(err) => report.push(Diagnostic::error(
+                        "sas.document",
+                        repo.config.paths.sas.clone(),
+                        err.to_string(),
+                    )),
+                    Ok((path, bytes)) => {
+                        let actual = openwarrant_compiler::sha256_hex(&bytes);
+                        if actual == pin.sha256 {
+                            report.push(Diagnostic::pass(
+                                "sas.pinned",
+                                format!(
+                                    "{} matches revision {} ({}), sha256:{}",
+                                    repo.relative(&path),
+                                    pin.version,
+                                    pin.state,
+                                    &pin.sha256[..12]
+                                ),
+                            ));
+                        } else if let Some(proposed) = revisions
+                            .iter()
+                            .find(|r| r.sha256 == actual && r.version != pin.version)
+                        {
+                            // The remedy the error names, taken: the document IS a
+                            // recorded proposal awaiting a human. The accepted
+                            // revision stays normative until then (§101.2).
+                            report.push(Diagnostic::warn(
+                                "sas.proposed-unaccepted",
                                 repo.relative(&path),
-                                pin.version,
-                                pin.state,
-                                &pin.sha256[..12]
-                            ),
-                        ));
-                    } else if let Some(proposed) = revisions
-                        .iter()
-                        .find(|r| r.sha256 == actual && r.version != pin.version)
-                    {
-                        // The remedy the error names, taken: the document IS a
-                        // recorded proposal awaiting a human. The accepted
-                        // revision stays normative until then (§101.2).
-                        report.push(Diagnostic::warn(
-                            "sas.proposed-unaccepted",
-                            repo.relative(&path),
-                            format!(
-                                "the document is revision {} ({}), sha256:{}; the accepted \
+                                format!(
+                                    "the document is revision {} ({}), sha256:{}; the accepted \
                                  revision {} remains normative until `war sign {}` accepts it",
-                                proposed.version,
-                                proposed.state,
-                                &actual[..12],
-                                pin.version,
-                                proposed.version
-                            ),
-                        ));
-                    } else {
-                        report.push(Diagnostic::error(
-                            "sas.digest-drift",
-                            repo.relative(&path),
-                            format!(
-                                "the document is sha256:{actual} but revision {} ({}) records \
+                                    proposed.version,
+                                    proposed.state,
+                                    &actual[..12],
+                                    pin.version,
+                                    proposed.version
+                                ),
+                            ));
+                        } else {
+                            report.push(Diagnostic::error(
+                                "sas.digest-drift",
+                                repo.relative(&path),
+                                format!(
+                                    "the document is sha256:{actual} but revision {} ({}) records \
                                  sha256:{}. §101.6: the accepted revision is normative and mirrors \
                                  state its exact digest. Either restore the bytes or propose a \
                                  new revision — an edited document under an unchanged record is \
                                  the failure this check exists for",
-                                pin.version, pin.state, pin.sha256
-                            ),
-                        ));
+                                    pin.version, pin.state, pin.sha256
+                                ),
+                            ));
+                        }
                     }
-                }
-            },
-        },
+                },
+            }
+        }
     }
 
     // Both corpus-wide projections drift-check through the same function, so
@@ -280,7 +286,11 @@ pub fn run(
             &mut report,
         );
         // The SAS normative projection (E1), when there is a document.
-        if repo.sas_document().is_ok() {
+        if repo
+            .latest_sas_revision()?
+            .is_some_and(|r| r.source_set.is_some())
+            || repo.sas_document().is_ok()
+        {
             match crate::compile::sas_normative(repo) {
                 Ok(files) => {
                     for file in files {
@@ -783,11 +793,22 @@ fn check_traceability(repo: &Repository, one: &Loaded, alias: &str, report: &mut
     // §106 of the SAS as it stands: an `implements` ref must name a row that
     // exists. `None` when the document cannot be read — then nothing is
     // refused and nothing is vouched for (OW-WAR-0063).
-    let known_requirements: Option<std::collections::BTreeMap<String, String>> = repo
-        .sas_document()
-        .ok()
-        .map(|(_, bytes)| openwarrant_core::sas::section_106(&String::from_utf8_lossy(&bytes)))
-        .filter(|m| !m.is_empty());
+    let source_set_requirements = basis.sas.as_ref().and_then(|pin| {
+        repo.load_sas_revisions()
+            .ok()?
+            .into_iter()
+            .find(|r| r.version == pin.version && r.sha256 == pin.sha256 && r.source_set.is_some())
+            .map(|r| r.requirements)
+    });
+    let known_requirements: Option<std::collections::BTreeMap<String, String>> =
+        source_set_requirements.or_else(|| {
+            repo.sas_document()
+                .ok()
+                .map(|(_, bytes)| {
+                    openwarrant_core::sas::section_106(&String::from_utf8_lossy(&bytes))
+                })
+                .filter(|m| !m.is_empty())
+        });
     for i in &basis.manifest.implements {
         if let Err(err) = RequirementRef::parse(&i.r#ref) {
             report.push(Diagnostic::error(

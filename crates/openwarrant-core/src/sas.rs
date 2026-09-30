@@ -32,9 +32,41 @@ use crate::contract::ActorKind;
 use crate::traceability::RequirementRef;
 
 pub const SAS_REVISION_SCHEMA: &str = "oh.war/sas-revision/v1";
+pub const SAS_SOURCE_SET_REVISION_SCHEMA: &str = "oh.war/sas-revision/v2";
+pub const SAS_SOURCE_SET_SUBJECT_SCHEMA: &str = "oh.war/sas-source-set-subject/v1";
+
+/// A repository-relative source and its exact byte digest (unprefixed hex).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SasSourceIdentity {
+    pub path: String,
+    pub sha256: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SasPredecessorIdentity {
+    pub version: String,
+    pub sha256: String,
+}
+
+/// Complete acceptance subject. The manifest digest binds all member bytes.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SasSourceSetSubject {
+    pub schema: String,
+    pub edition: String,
+    pub main: SasSourceIdentity,
+    pub manifest: SasSourceIdentity,
+    pub decision: SasSourceIdentity,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub predecessor: Option<SasPredecessorIdentity>,
+}
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum SasError {
+    #[error("invalid SAS revision schema or inconsistent source-set subject")]
+    InvalidSourceSet,
     #[error("an accepted SAS revision is immutable (§101.2); {version} is already accepted")]
     Immutable { version: String },
     #[error("only a proposed revision may be accepted; {version} is {state}")]
@@ -122,6 +154,9 @@ pub struct SasRevision {
     pub architecture_changing: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub acceptance: Option<SasAcceptance>,
+    /// v2 only: `sha256` identifies this complete subject, not just `source`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_set: Option<SasSourceSetSubject>,
 }
 
 impl SasRevision {
@@ -145,10 +180,26 @@ impl SasRevision {
             requirements,
             architecture_changing,
             acceptance: None,
+            source_set: None,
         }
     }
 
     pub fn validate(&self) -> Result<(), SasError> {
+        match (self.schema.as_str(), &self.source_set) {
+            (SAS_REVISION_SCHEMA, None) => {}
+            (SAS_SOURCE_SET_REVISION_SCHEMA, Some(s))
+                if s.schema == SAS_SOURCE_SET_SUBJECT_SCHEMA
+                    && s.edition == self.version
+                    && s.main.path == self.source
+                    && s.predecessor.as_ref().map(|p| &p.version) == self.predecessor.as_ref()
+                    && [&s.main, &s.manifest, &s.decision]
+                        .iter()
+                        .all(|i| !i.path.is_empty() && valid_digest(&i.sha256))
+                    && s.predecessor
+                        .as_ref()
+                        .is_none_or(|p| !p.version.is_empty() && valid_digest(&p.sha256)) => {}
+            _ => return Err(SasError::InvalidSourceSet),
+        }
         if self.version.trim().is_empty() {
             return Err(SasError::MissingVersion);
         }
@@ -162,6 +213,12 @@ impl SasRevision {
                     state: self.state,
                 });
             };
+            if let Some(subject) = &self.source_set
+                && (a.adr_ref.as_deref() != Some(&subject.decision.path)
+                    || a.acting_role != "authorizer")
+            {
+                return Err(SasError::InvalidSourceSet);
+            }
             Self::check_acceptance(
                 &self.version,
                 self.architecture_changing,
@@ -215,17 +272,28 @@ impl SasRevision {
             &self.requirements,
             &acceptance,
         )?;
-        Ok(Self {
+        let accepted = Self {
             state: SasRevisionState::Accepted,
             acceptance: Some(acceptance),
             ..self
-        })
+        };
+        if accepted.source_set.is_some() {
+            accepted.validate()?;
+        }
+        Ok(accepted)
     }
 
     #[must_use]
     pub const fn is_accepted(&self) -> bool {
         matches!(self.state, SasRevisionState::Accepted)
     }
+}
+
+fn valid_digest(digest: &str) -> bool {
+    digest.len() == 64
+        && digest
+            .bytes()
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
 }
 
 /// §98's phases as the document states them: (number, title, Exit sentence).

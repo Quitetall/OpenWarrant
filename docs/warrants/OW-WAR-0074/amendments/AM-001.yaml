@@ -1,0 +1,30 @@
+schema: "oh.war/amendment/v1"
+id: "AM-001"
+band: "manual_revision"
+status: "proposed-contract-revision"
+reason: "The owner requested completing this amendment and implementing source-set acceptance before human verification, RC.2 acceptance, and Phase 1. Revision 1 covered adoption preparation but excluded the required acceptance-tool extension. This proposal adds that bounded implementation and its refusal cases while retaining revision 1 bytes."
+governing_adr_or_policy: "Owner instruction 2026-09-14; proposed decision docs/design/rc2-source-set-acceptance.adr.md; contract revision 2 still requires its own signature"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Retain preparation observations at their original scope. After authorization of revision 2, implement and test the source-set acceptance extension; submit required resolved-delivery corrections, independent verification, and RC.2 acceptance for human action."
+re_preflight_required: "true"
+# These identify the actual owner instruction requesting the amendment.
+# They are not a signed authorization of the resulting contract revision.
+authorizer: "Brian Lam"
+effective_time: "2026-09-14"
+affected_stages: ["STAGE-001", "STAGE-002", "STAGE-003"]
+affected_milestones: ["M1", "M2", "M3"]
+affected_attempts: []
+affected_gate_runs: []
+semantic_diff:
+  - element: "scope"
+    before: "Prepare exact RC.2 adoption; any needed tool extension is outside revision 1."
+    after: "Prepare and implement the opt-in v2 SAS source-set acceptance described by the local adoption decision; preserve legacy v1 semantics and all original signed bytes."
+  - element: "deliverables"
+    before: "Candidate documents, adoption plan, owner-identified adoption decision and acceptance record, preparation evidence."
+    after: "Those outputs plus source-set capture/subject types, explicit candidate proposal, acceptance/preview/status integration, refusal fixtures, compatibility evidence and human correction requests for affected resolved deliveries."
+  - element: "constraints"
+    before: "Tool changes require a separately reviewed scope amendment; main-document-only acceptance cannot be called RC.2 adoption."
+    after: "Use the reviewed decision's versioned record and digest domain; capture and verify every manifest member and adoption decision; keep source selection separate from revision history; current human-only acts and independent gates remain."
+  - element: "milestones"
+    before: "M1 preparation; M2 human review and acceptance."
+    after: "M1 exact decision and fixture preparation; M2 bounded implementation and observed checks; M3 human verification, corrections, and acceptance."

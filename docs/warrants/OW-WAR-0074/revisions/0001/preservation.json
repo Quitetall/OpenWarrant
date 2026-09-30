@@ -1,0 +1,58 @@
+{
+  "kind": "historical-byte-copy",
+  "contract_digest": "df700b5f1d82ad7ee4c36d61dc557de866b5d909e1009014d32d306556d6f64a",
+  "files": [
+    {
+      "path": "atoms/10-intent.md",
+      "sha256": "c58d6488a77e8f6b28b958abd4f4195b62e2648fe5ce1b479622072f88303717"
+    },
+    {
+      "path": "atoms/20-basis.md",
+      "sha256": "d6c2b6f27d0f2bbe2635442bdbf218157bbcceab6f92d09161a85b5c65e1bf38"
+    },
+    {
+      "path": "atoms/40-work-order.md",
+      "sha256": "e08a7250bc7c19571482de60f5e387ef472335cef5c4b9878c4b72c138b76e74"
+    },
+    {
+      "path": "atoms/45-milestones.yaml",
+      "sha256": "3420adc8ebb66edac94f4534d8a81ab6ff88b2b40f3614b539b44591651c2ba4"
+    },
+    {
+      "path": "atoms/60-assurance.md",
+      "sha256": "eefc64c1cf074761cf3b8d1340a857cf5f40332298f55e501fee0ba2912b47ce"
+    },
+    {
+      "path": "attestations/authorize-1.dsse.json",
+      "sha256": "b640329771baddce2b86a1812850a5133ff7702f9b8719470e58cbafd46fa209"
+    },
+    {
+      "path": "authorization.toml",
+      "sha256": "543430a4c861d1b3e3b7db2c73eb5a5b727d26f5ee689955e5aebd210148b63b"
+    },
+    {
+      "path": "generated/WAR.json",
+      "sha256": "59ada10ba43e872ecc45c8f010a90a9d4e2bba714839f201310a2606aa1a6631"
+    },
+    {
+      "path": "generated/WAR.md",
+      "sha256": "f3a3504e149a634dae9ddc87d868f3a07f407980f0bb6c8b5b48b2d4541d3971"
+    },
+    {
+      "path": "journal.jsonl",
+      "sha256": "c170000771d5f5781ff28c6c8c2585ec78d7c1ee7460952926794a203a13f49a"
+    },
+    {
+      "path": "manifest.toml",
+      "sha256": "5a99fb358dafe587f61ae3b596b94661079bfa94acc8cad699481dfff8463b75"
+    },
+    {
+      "path": "plan/proposal.json",
+      "sha256": "ece3c0385c9b5540618b9174e90fd21f8272017c2310f2b9d22fb9f8d49145b2"
+    },
+    {
+      "path": "rationale.toml",
+      "sha256": "167671b44e4536f128c95be74ab85b76ac1d6b80a4d2b6d73bb2678fcc1196c7"
+    }
+  ]
+}

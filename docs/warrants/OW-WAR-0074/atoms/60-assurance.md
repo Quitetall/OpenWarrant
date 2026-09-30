@@ -11,41 +11,36 @@ classification: internal
 
 ## Acceptance Obligations
 
-### OBL-001 — the bounded result is observed
-- **scope:** Candidate source-set review and the existing SAS acceptance boundary; Exact RC.2 adoption and compatibility basis.
-- **evidence:** Recompute all candidate manifest entries; demonstrate that the proposed adoption record binds the SAS, format contract, schemas and fixtures. Independently review the legacy-to-RC.2 mapping. The authorized human accepts the exact candidate and adoption ADR through the approved procedure.
+### OBL-001 — exact source-set proposal and acceptance
+- **scope:** new source-set proposal, preview, acceptance and status interfaces; main SAS, manifest, all members, adoption decision, edition and predecessor.
+- **evidence:** a valid fixture produces a captured v2 subject and request; a trusted human fixture response accepts that exact subject; preview exposes identities without writes; changed current sources remain distinct from accepted historical capture. The real RC.2 candidate is only proposed until the human acts.
 
-### OBL-002 — the controls reject their stated counterexamples
-- **scope:** the refusal cases within Candidate source-set review and the existing SAS acceptance boundary.
-- **evidence:** A changed companion contract or manifest must invalidate the reviewed basis. An old 1.0.0 signature must not count as RC.2 acceptance. A proposal over the currently configured legacy SAS must not be mislabeled RC.2.
+### OBL-002 — stale or incomplete subjects are refused
+- **scope:** changed main, normative companion, schema, reference fixture, manifest, decision or predecessor; missing/duplicate/escaping/symlink paths, oversized or inconsistent reads, destination collisions, wrong-actor and stale responses.
+- **evidence:** each named mutation produces its specific refusal through the public interfaces and no accepted record. A historical v1 signature cannot satisfy a new v2 subject. No fixture may succeed solely from constant-success output.
 
-### OBL-003 — independent evidence supports acceptance of the exact result
-- **scope:** this Warrant's final deliverable revision and the two obligations above.
-- **evidence:** a separate verifier reproduces required observations, reviews exact source/fixture/build digests and reports bounded findings; the authorized human accepts or resolves through the applicable process. Performer tests alone cannot establish this obligation.
+### OBL-003 — independent verification and human acceptance
+- **scope:** this Warrant's implementation revision, retained history, exact candidate subject and OBL-001/002/005 evidence.
+- **evidence:** a separate verifier or authorized human reproduces observations from exact fixtures/build/source identities and supplies bounded findings. Performer tests do not clear this obligation. Required human corrections, SAS acceptance, and final resolution remain separately recorded acts.
 
-### OBL-004 — the delivered Warrant records remain structurally valid
-- **scope:** this Warrant's authored records and their current repository references; no claim of runtime feature correctness.
+### OBL-004 — record integrity and required checks
+- **scope:** revised Warrant records, historical attestations, implementation and required repository checks.
 - **gate:** `gate://software.repo.war-check@1.0.0`
-- **evidence:** a recorded run of the qualified structural gate on the exact deliverable revision, with its existing planted controls retained. A named fixture/schema violation is refused in a disposable corpus; a structural pass cannot satisfy OBL-001 or OBL-002 by itself.
+- **evidence:** qualified structural receipt plus focused tests and aggregate repository check results on the pinned toolchain. Pending revision authorization or corrections remain explicit blockers; expected refusal fixtures do not stand in for a green real-corpus gate. Preserve all original planted controls.
+
+### OBL-005 — legacy compatibility and publication safety
+- **scope:** v1 proposal/acceptance/status, existing SAS pins, original revision-1 authorization/response/attestation bytes, and new snapshot publication.
+- **evidence:** existing v1 tests still pass, retained signatures verify, old Warrants keep their basis, and refusal/collision tests cannot overwrite an existing snapshot or revision. The current accepted historical 1.0.0 record is never relabeled in place.
 
 ## Gate Adequacy
 
-All observations above are required and currently NOT RUN for this new Warrant.
-No disposition is declared. `war check` checks draft structure, not feature
-correctness. `war check --generated` checks generated consistency, not runtime
-conformance. Functional commands must capture command, exit, exact inputs,
-observed output and revision; an expected refusal passes its test only when
-the named refusal is observed. Missing cases and unknown checks cannot pass.
+The source-set extension has not run. Earlier preparation observations retain
+their stated bounds and establish no runtime obligation here. No disposition is
+declared. Record commands, exit codes, inputs and build identities; unavailable
+checks are UNKNOWN, not PASS. Required evidence and independent judgment are
+needed in addition to a structurally valid record.
 
-For library slices, use the documented future rc2_probe --feature command and
-public-boundary integration tests. For phase exits, run the documented full
-inventory and cargo xtask gate on the pinned toolchain. Register/qualify any
-new executable gate before citing it as an authoritative gate result; this
-draft invents no gate qualification. Evidence admissibility and independent
-verification remain prerequisites for resolution in addition to the separately bounded structural gate above.
-
-**Adversarial question:** can constant success, a fixture lookup table, copied
-performer assertions, or an unobserved check satisfy these obligations? No:
-the named mutations/refusals, exact input identities and independent reproduction
-must establish the bounded behavior. Failures remain visible until repaired or
-properly dispositioned by an authorized independent actor.
+**Adversarial question:** can copied assertions, an unverified manifest, a forged
+human-kind field, or a main-document-only signature satisfy this contract? No.
+Verify all captured bytes, the full signature subject, actual authority, and
+observed refusal behavior at the same public seams used by callers.

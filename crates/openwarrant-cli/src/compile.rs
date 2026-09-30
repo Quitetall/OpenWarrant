@@ -77,7 +77,7 @@ pub fn adr_overview(repo: &Repository) -> Result<(camino::Utf8PathBuf, String), 
 /// digest of the document they came from. Agents read this, not the whole
 /// document; the drift check keeps it honest.
 pub fn sas_normative(repo: &Repository) -> Result<Vec<(camino::Utf8PathBuf, String)>, RepoError> {
-    let (path, bytes) = repo.sas_document()?;
+    let (path, bytes) = repo.selected_sas_document()?;
     let text = String::from_utf8_lossy(&bytes);
     let sentences = openwarrant_core::normative_sentences(&text);
     let digest = {
@@ -89,10 +89,15 @@ pub fn sas_normative(repo: &Repository) -> Result<Vec<(camino::Utf8PathBuf, Stri
             .map(|b| format!("{b:02x}"))
             .collect::<String>()
     };
-    let revision = repo.load_sas_revisions().ok().and_then(|revs| {
-        revs.into_iter()
-            .find(|r| r.sha256 == digest)
-            .map(|r| r.version)
+    let source_set_revision = repo
+        .latest_sas_revision()?
+        .filter(|r| r.source_set.is_some());
+    let revision = source_set_revision.map(|r| r.version).or_else(|| {
+        repo.load_sas_revisions().ok().and_then(|revs| {
+            revs.into_iter()
+                .find(|r| r.sha256 == digest)
+                .map(|r| r.version)
+        })
     });
     let source = repo.relative(&path);
     let dir = repo.root.join(&repo.config.paths.sas).join("generated");
@@ -330,7 +335,11 @@ pub fn run(repo: &Repository, only: Option<&str>) -> Result<(), RepoError> {
         ];
         // A repository with no SAS document has nothing to project; one with
         // an unreadable one is refused as it always was, by sas_document.
-        if repo.sas_document().is_ok() {
+        if repo
+            .latest_sas_revision()?
+            .is_some_and(|r| r.source_set.is_some())
+            || repo.sas_document().is_ok()
+        {
             projections.extend(sas_normative(repo)?);
         }
         for (path, contents) in projections {

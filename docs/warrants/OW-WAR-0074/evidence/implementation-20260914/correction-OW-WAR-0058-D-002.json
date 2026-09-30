@@ -1,0 +1,33 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "correct.request",
+  "diagnostics": [],
+  "notes": [],
+  "counts": {
+    "pass": 0,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0,
+  "result": {
+    "schema": "oh.war/correction-request/v1",
+    "warrant": "OW-WAR-0058",
+    "deliverable_id": "D-002",
+    "target_ref": "crates/openwarrant-cli/src/sas.rs",
+    "title": "war sas propose/accept/diff/status — the two-half acceptance seam",
+    "resolved": true,
+    "recorded_digest": "sha256:49edf603a8b196346de2fdd236d13a6102619b7713b555f2bc44bf3274d4651f",
+    "chain_head": "sha256:39eed738a2d95f3578d5d241689d22efbedf2936aaefd5bea58d09ff92597b12",
+    "current_digest": "sha256:60bfc8f3d01f0f08786eaeb3414d6f708637fdede7c91f89740c42364ad45408",
+    "drift": true,
+    "prior_corrections": 1,
+    "next_sequence": 2,
+    "eligible_correctors": [
+      "Brian Lam"
+    ]
+  }
+}

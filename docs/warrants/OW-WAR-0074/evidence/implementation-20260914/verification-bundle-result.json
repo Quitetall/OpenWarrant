@@ -1,0 +1,23 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "verify.bundle",
+  "diagnostics": [
+    {
+      "severity": "pass",
+      "rule": "verify.bundle",
+      "file": null,
+      "message": "OW-WAR-0074: bundle 6698973947df71bd1545adea85a2edbaa26222eb6741e71467bfb4a9ccb1240f written to docs/warrants/OW-WAR-0074/verifications/bundle-6698973947df71bd.json — 5 obligation(s), 5 atom(s), 51 deliverable(s) (4 truncated), 0 plant line(s), 1 gate run(s), 0 prior verification(s), ~178334 tokens (oh.war/token-estimate/bytes-div-4/v1)"
+    }
+  ],
+  "notes": [],
+  "counts": {
+    "pass": 1,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0
+}

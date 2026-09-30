@@ -526,6 +526,16 @@ impl Repository {
         }
     }
 
+    /// Main-document projection input. Legacy proposal still reads `sas_document`.
+    pub fn selected_sas_document(&self) -> Result<(Utf8PathBuf, Vec<u8>), RepoError> {
+        if let Some(record) = self.latest_sas_revision()?
+            && record.source_set.is_some()
+        {
+            return crate::sas_source_set::captured_main(self, &record);
+        }
+        self.sas_document()
+    }
+
     #[must_use]
     pub fn sas_revisions_dir(&self) -> Utf8PathBuf {
         self.root.join(&self.config.paths.sas).join("revisions")
@@ -598,6 +608,11 @@ impl Repository {
             Some(r) => Some(r),
             None => crate::sas::pin_of(&all).cloned(),
         };
+        if let Some(r) = &chosen
+            && r.source_set.is_some()
+        {
+            crate::sas_source_set::validate(self, r, false)?;
+        }
         Ok(chosen.map(|r| SasPin {
             version: r.version,
             sha256: r.sha256,

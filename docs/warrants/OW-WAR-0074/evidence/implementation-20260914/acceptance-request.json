@@ -1,0 +1,392 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "accept.accept.request",
+  "diagnostics": [],
+  "notes": [],
+  "counts": {
+    "pass": 0,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0,
+  "result": {
+    "schema": "oh.war/sas-acceptance-request/v2",
+    "version": "1.0.0-rc.2",
+    "source": "docs/sas/drafts/1.0.0-rc.2/WAR_Software_Architecture_Specification.md",
+    "sha256": "e003e0926b912793fa43c28b9b85cffb9f15ccaedcd99989973e2455022920d8",
+    "predecessor": "1.0.0",
+    "architecture_changing": true,
+    "adr_required": true,
+    "diff": {
+      "added": [
+        "WAR-SAS-RQ-090",
+        "WAR-SAS-RQ-091",
+        "WAR-SAS-RQ-092",
+        "WAR-SAS-RQ-093",
+        "WAR-SAS-RQ-094",
+        "WAR-SAS-RQ-095",
+        "WAR-SAS-RQ-096",
+        "WAR-SAS-RQ-097",
+        "WAR-SAS-RQ-098",
+        "WAR-SAS-RQ-099",
+        "WAR-SAS-RQ-100",
+        "WAR-SAS-RQ-101",
+        "WAR-SAS-RQ-102",
+        "WAR-SAS-RQ-103",
+        "WAR-SAS-RQ-104",
+        "WAR-SAS-RQ-105",
+        "WAR-SAS-RQ-106",
+        "WAR-SAS-RQ-107",
+        "WAR-SAS-RQ-108",
+        "WAR-SAS-RQ-110",
+        "WAR-SAS-RQ-111",
+        "WAR-SAS-RQ-112",
+        "WAR-SAS-RQ-113",
+        "WAR-SAS-RQ-114",
+        "WAR-SAS-RQ-115",
+        "WAR-SAS-RQ-116",
+        "WAR-SAS-RQ-117",
+        "WAR-SAS-RQ-118",
+        "WAR-SAS-RQ-119",
+        "WAR-SAS-RQ-120",
+        "WAR-SAS-RQ-121"
+      ],
+      "removed": [],
+      "retitled": [
+        [
+          "WAR-SAS-RQ-001",
+          "Every WAR has immutable UUIDv7 identity",
+          "Document identity is stable; legacy UUIDs are preserved and new shared identities should use UUIDv7"
+        ],
+        [
+          "WAR-SAS-RQ-002",
+          "Local aliases do not substitute for global identity",
+          "Local aliases do not substitute for source identity or authority"
+        ],
+        [
+          "WAR-SAS-RQ-003",
+          "KF allocates official enterprise identity",
+          "Selected federation authorities allocate their official enterprise identity"
+        ],
+        [
+          "WAR-SAS-RQ-004",
+          "Registration does not silently transfer Source Holder",
+          "Registration and import do not silently transfer source ownership"
+        ],
+        [
+          "WAR-SAS-RQ-005",
+          "Cross-repository relations resolve through KF federation",
+          "Federated cross-repository relations retain their issuing and local authorities"
+        ],
+        [
+          "WAR-SAS-RQ-010",
+          "Authored atoms are directly editable sources",
+          "New documents and legacy authored atoms remain editable sources before immutable approval"
+        ],
+        [
+          "WAR-SAS-RQ-011",
+          "Bound atoms are edited only through their owning authority",
+          "Bound source content changes through its owning authority"
+        ],
+        [
+          "WAR-SAS-RQ-012",
+          "Generated atoms and parents are not directly editable",
+          "Generated views are regenerated from sources rather than edited as authorities"
+        ],
+        [
+          "WAR-SAS-RQ-013",
+          "Composition is typed, ordered, and deterministic",
+          "Document composition is typed, ordered, and deterministic"
+        ],
+        [
+          "WAR-SAS-RQ-014",
+          "Full WAR Markdown and canonical JSON compile from one Basis",
+          "Human and canonical machine views derive from one captured source basis"
+        ],
+        [
+          "WAR-SAS-RQ-015",
+          "Required atom omission fails closed",
+          "Missing required source content prevents a complete task packet"
+        ],
+        [
+          "WAR-SAS-RQ-020",
+          "Every normative decision is a first-class ADR",
+          "Material governing architecture decisions remain first-class ADRs; in-scope advice is not a new decision"
+        ],
+        [
+          "WAR-SAS-RQ-021",
+          "ADR Overview is generated",
+          "Decision indexes are generated from source records"
+        ],
+        [
+          "WAR-SAS-RQ-022",
+          "WARs trace to SAS requirements and Roadmap",
+          "Work traces to applicable SAS requirements; no SAS or roadmap is required for every valid prototype draft"
+        ],
+        [
+          "WAR-SAS-RQ-023",
+          "Child WARs cite exact parent revision",
+          "Child Warrants cite their exact parent basis"
+        ],
+        [
+          "WAR-SAS-RQ-024",
+          "Childs do not rewrite parent rationale",
+          "Children do not rewrite parent rationale"
+        ],
+        [
+          "WAR-SAS-RQ-025",
+          "Supersession preserves old WAR and marks it non-current",
+          "Successor work preserves earlier Warrants and their historical standing"
+        ],
+        [
+          "WAR-SAS-RQ-030",
+          "Authorized Contract Revisions are immutable",
+          "Approved contract snapshots are immutable"
+        ],
+        [
+          "WAR-SAS-RQ-031",
+          "Progress cannot amend contract",
+          "Progress cannot amend a contract"
+        ],
+        [
+          "WAR-SAS-RQ-032",
+          "State is decomposed into phase, condition, outcome, currency, standing",
+          "State separates lifecycle, execution condition, result, currency, and acceptance or qualification standing"
+        ],
+        [
+          "WAR-SAS-RQ-033",
+          "Material amendment creates new revision",
+          "Material amendment creates a new contract revision"
+        ],
+        [
+          "WAR-SAS-RQ-034",
+          "Prior attempts retain original contract basis",
+          "Prior attempts retain their original basis"
+        ],
+        [
+          "WAR-SAS-RQ-035",
+          "Readiness requires Preflight",
+          "Workflow readiness checks its required inputs; document validity is separate"
+        ],
+        [
+          "WAR-SAS-RQ-036",
+          "A delivered artifact of a resolved WAR changes only through a recorded correction",
+          "Successor work preserves old delivered bytes and evidence without freezing a live pathname; corrections remain separate"
+        ],
+        [
+          "WAR-SAS-RQ-040",
+          "Milestones and stages are distinct",
+          "Milestones and execution stages are distinct"
+        ],
+        [
+          "WAR-SAS-RQ-041",
+          "Stages use named typed ports",
+          "Typed stage ports remain a selected orchestration adapter contract"
+        ],
+        [
+          "WAR-SAS-RQ-042",
+          "Stateless actors receive one Stage Dispatch",
+          "An executing actor receives an exact task dispatch basis"
+        ],
+        [
+          "WAR-SAS-RQ-043",
+          "Dispatch contains exact basis, capabilities, resources, outputs, stop conditions",
+          "Task context exposes basis, required outputs, constraints, limits, and stopping conditions"
+        ],
+        [
+          "WAR-SAS-RQ-044",
+          "Agent authority is explicit and bounded",
+          "Execution authority is explicit and bounded by human-approved effective policy"
+        ],
+        [
+          "WAR-SAS-RQ-045",
+          "Replay, repair, and restart are distinct",
+          "Replay, repair, and worker recovery retain distinct attempt history and limits"
+        ],
+        [
+          "WAR-SAS-RQ-046",
+          "A Dispatch declares its token estimate and budget; exceeding the budget is a refusal",
+          "Entry token estimates include rendering overhead; exceeding a required-content budget is a refusal"
+        ],
+        [
+          "WAR-SAS-RQ-050",
+          "Completion summary decomposes into obligations",
+          "Assurance qualification decomposes completion claims into bounded obligations"
+        ],
+        [
+          "WAR-SAS-RQ-051",
+          "Claims declare bounded scope",
+          "Claims declare scope bounded by their evidence"
+        ],
+        [
+          "WAR-SAS-RQ-052",
+          "Evidence, observation, inference, judgment, resolution remain distinct",
+          "Claim, evidence, observation, inference, judgment, acceptance, and qualification remain distinct"
+        ],
+        [
+          "WAR-SAS-RQ-053",
+          "Performer reports cannot satisfy independent gates",
+          "Performer reports cannot satisfy independent verification"
+        ],
+        [
+          "WAR-SAS-RQ-054",
+          "Required unknown gate results block resolution",
+          "Required unknown or failed checks block assurance qualification"
+        ],
+        [
+          "WAR-SAS-RQ-055",
+          "Controlled work requires adequacy review",
+          "Assurance requires adequacy evidence with applicable refusal and control cases"
+        ],
+        [
+          "WAR-SAS-RQ-056",
+          "Gate Definitions are separately governed and versioned",
+          "Required check definitions and expectations are versioned and protected from performer changes during verification"
+        ],
+        [
+          "WAR-SAS-RQ-057",
+          "Gate invalidation propagates to dependent resolutions",
+          "Invalidated evidence changes dependent qualification standing without rewriting history"
+        ],
+        [
+          "WAR-SAS-RQ-058",
+          "Residual risk requires sufficient judgment authority",
+          "Residual risk requires explicit authorized human acceptance and cannot waive a failed baseline requirement"
+        ],
+        [
+          "WAR-SAS-RQ-059",
+          "Resolution binds exact contract and assurance snapshot",
+          "Human acceptance binds exact contract, result, and assurance evidence"
+        ],
+        [
+          "WAR-SAS-RQ-060",
+          "KF owns authority and lifecycle",
+          "Knowledge Fabric owns authority and lifecycle for its selected federated workflow, not every standalone compiler use"
+        ],
+        [
+          "WAR-SAS-RQ-061",
+          "Liminal owns document semantics and Basis",
+          "OpenWarrant owns standalone standard and context compilation; Liminal is an optional adapter"
+        ],
+        [
+          "WAR-SAS-RQ-062",
+          "Katana owns agent runtime and PromptIR",
+          "Selected Katana adapters retain Katana runtime and PromptIR ownership"
+        ],
+        [
+          "WAR-SAS-RQ-063",
+          "BLUT owns typed computational execution",
+          "Selected BLUT adapters retain BLUT typed execution ownership"
+        ],
+        [
+          "WAR-SAS-RQ-064",
+          "OpenWarrant does not duplicate those kernels",
+          "OpenWarrant compiler does not require or duplicate sibling runtime kernels"
+        ],
+        [
+          "WAR-SAS-RQ-065",
+          "Native systems retain artifact authority",
+          "Native systems retain their artifact and source authority"
+        ],
+        [
+          "WAR-SAS-RQ-070",
+          "CLI works file-native and offline for drafts",
+          "Reference authoring and compilation work offline without a model"
+        ],
+        [
+          "WAR-SAS-RQ-071",
+          "`war plan` returns a structured proposal",
+          "Agent-assisted planning returns reviewable structured source proposals"
+        ],
+        [
+          "WAR-SAS-RQ-072",
+          "Agent proposals are validated before writes",
+          "Proposals are validated before source writes and cannot grant themselves authority"
+        ],
+        [
+          "WAR-SAS-RQ-073",
+          "Planner creates ADR drafts for normative decisions",
+          "Planning identifies material architecture decisions for ADR proposals"
+        ],
+        [
+          "WAR-SAS-RQ-074",
+          "`war check` is deterministic and agent-free",
+          "Document and compiler checks are deterministic and agent-free"
+        ],
+        [
+          "WAR-SAS-RQ-075",
+          "Generated views are drift-checked",
+          "Generated views are checked against their exact source basis"
+        ],
+        [
+          "WAR-SAS-RQ-076",
+          "KF commands use typed actions, not direct status edits",
+          "Federated controlled actions use the owning authority interface rather than direct status edits"
+        ],
+        [
+          "WAR-SAS-RQ-077",
+          "Work of three kinds — code, document, run — has a registered gate and a walked example",
+          "Selected code, document, and run workflows each require their own observed gates and examples"
+        ],
+        [
+          "WAR-SAS-RQ-080",
+          "Canonical portable WAR is RFC 8785 JSON",
+          "Canonical structured preservation uses RFC 8785 JSON"
+        ],
+        [
+          "WAR-SAS-RQ-081",
+          "Cross-system WAR digests use explicit algorithms and domains",
+          "Digests use explicit algorithms and versioned domains; original source bytes remain recoverable"
+        ],
+        [
+          "WAR-SAS-RQ-082",
+          "Export includes contract, sources, receipts, assurance, resolution",
+          "Preservation exports retain contract, sources, receipts, assurance and acceptance when present without inventing missing history"
+        ],
+        [
+          "WAR-SAS-RQ-083",
+          "Export-import-export preserves semantic identity",
+          "Export-import-export preserves semantic identity and original evidence bytes"
+        ],
+        [
+          "WAR-SAS-RQ-084",
+          "Historical superseded, disputed, and annulled records remain available",
+          "Historical superseded, disputed and annulled records remain available"
+        ],
+        [
+          "WAR-SAS-RQ-085",
+          "Every ssh-signed act leaves an attestation a foreign verifier can check",
+          "Existing SSH-signed acts retain their portable attestations and original subjects"
+        ]
+      ]
+    },
+    "requirement_count": 92,
+    "eligible_acceptors": [
+      "Brian Lam"
+    ],
+    "source_set": {
+      "schema": "oh.war/sas-source-set-subject/v1",
+      "edition": "1.0.0-rc.2",
+      "main": {
+        "path": "docs/sas/drafts/1.0.0-rc.2/WAR_Software_Architecture_Specification.md",
+        "sha256": "1559e21a72b4091bfa4c11b20d21b0b18dd1ad59d53efef6f22f05a0db44bc11"
+      },
+      "manifest": {
+        "path": "docs/sas/drafts/1.0.0-rc.2/source-set.json",
+        "sha256": "201b707e9657a3c6674ea113a018a34a54b5ab425f37c417c8968af9f4d2cf31"
+      },
+      "decision": {
+        "path": "docs/design/rc2-source-set-acceptance.adr.md",
+        "sha256": "7f93d7eb9826678880c6c8548c40cfdc29cec80e5bc91dd2c74ac91f4ace7dbc"
+      },
+      "predecessor": {
+        "version": "1.0.0",
+        "sha256": "b7105f5283052579f1ddfe1ab4e3ad5b1021515aeefd9fcfb21596d9a60d74e6"
+      }
+    }
+  }
+}

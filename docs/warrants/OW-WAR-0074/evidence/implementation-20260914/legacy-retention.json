@@ -1,0 +1,26 @@
+[
+  {
+    "warrant": "OW-WAR-0004",
+    "deliverable": "D-002",
+    "original_source": "crates/openwarrant-cli/src/compile.rs",
+    "archive": "docs/warrants/OW-WAR-0004/artifacts/sha256/abafe843b6a9683407b80cbb5be4bbc239118dd2db7b2f056148794b85a84e4d/compile.rs",
+    "digest": "abafe843b6a9683407b80cbb5be4bbc239118dd2db7b2f056148794b85a84e4d",
+    "source_commit": "16f0559db9a267c2123b334224c1b1ab5e645b03",
+    "contract_before": "e8b329d18814c638553a7f460b04b8efb3e7da074ea29867d631b484083d49ab",
+    "contract_after": "e8b329d18814c638553a7f460b04b8efb3e7da074ea29867d631b484083d49ab",
+    "state": "authorized",
+    "preserved_manifest": "docs/warrants/OW-WAR-0004/deliverables.before-0074.toml"
+  },
+  {
+    "warrant": "OW-WAR-0063",
+    "deliverable": "D-001",
+    "original_source": "crates/openwarrant-cli/src/check.rs",
+    "archive": "docs/warrants/OW-WAR-0063/artifacts/sha256/36b98eafc8ceee4eecedfaafc7de591dbe98419966924d670dbd39ba5d6993a6/check.rs",
+    "digest": "36b98eafc8ceee4eecedfaafc7de591dbe98419966924d670dbd39ba5d6993a6",
+    "source_commit": "16f0559db9a267c2123b334224c1b1ab5e645b03",
+    "contract_before": "ea6dfe4e55e0d364f95803ba7e176d83a7a08cca7bb6ca49e246971ca876c0ab",
+    "contract_after": "ea6dfe4e55e0d364f95803ba7e176d83a7a08cca7bb6ca49e246971ca876c0ab",
+    "state": "authorized",
+    "preserved_manifest": "docs/warrants/OW-WAR-0063/deliverables.before-0074.toml"
+  }
+]

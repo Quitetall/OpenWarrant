@@ -1,0 +1,5 @@
+PASS sign.verified                      OW-WAR-0074: signature verifies as brian (Brian Lam) under oh.war/response
+
+1 pass · 0 warn · 0 unknown · 0 error   (worst: PASS)
+
+WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)

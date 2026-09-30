@@ -47,6 +47,7 @@ mod resolution_cmd;
 mod resolve;
 mod run_cmd;
 mod sas;
+mod sas_source_set;
 #[cfg(feature = "schema")]
 mod schemas;
 mod show;
@@ -115,6 +116,15 @@ enum SasCommand {
     Propose {
         /// e.g. `0.1.0-draft.1`, `1.0.0`.
         version: String,
+        /// Main document in an explicit source-set candidate (repository relative).
+        #[arg(long, requires_all = ["source_set", "adr"])]
+        source: Option<String>,
+        /// Manifest listing every normative and reference member.
+        #[arg(long, requires_all = ["source", "adr"])]
+        source_set: Option<String>,
+        /// Adoption decision captured with the candidate.
+        #[arg(long, requires_all = ["source", "source_set"])]
+        adr: Option<String>,
     },
     /// Emit the acceptance request, or ingest a human's signed response.
     Accept {
@@ -1446,7 +1456,25 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             let repository = repo::Repository::discover(None)?;
             let ready = |report: diagnostic::Report| Ok(output::finish(mode, "sas", &report, None));
             match command {
-                SasCommand::Propose { version } => ready(sas::propose(&repository, &version)?),
+                SasCommand::Propose {
+                    version,
+                    source,
+                    source_set,
+                    adr,
+                } => match (source, source_set, adr) {
+                    (Some(source), Some(manifest), Some(adr)) => ready(sas_source_set::propose(
+                        &repository,
+                        &version,
+                        &source,
+                        &manifest,
+                        &adr,
+                    )?),
+                    (None, None, None) => ready(sas::propose(&repository, &version)?),
+                    _ => Err(repo::RepoError::Message(
+                        "--source, --source-set and --adr are required together".into(),
+                    )
+                    .into()),
+                },
                 SasCommand::Accept { version, response } => match response {
                     Some(path) => ready(sas::accept_ingest(&repository, &version, &path)?),
                     None => {

@@ -1,0 +1,28 @@
+{
+  "run_id": "GR-software.repo.war-check@1.0.0",
+  "gate_definition_digest": "sha256:719636ad60f447d590f1e3962849fd3c7ac7e9fe048519f5240a95450584cd1a",
+  "gate_binding_digest": "unbound:software.repo.war-check@1.0.0",
+  "subject_digests": [
+    "contract:sha256:0e1d8a130b1015e03d7f358334b7703bc08f0e5dfb7560ec6ae52c6ed8ec618d"
+  ],
+  "fixture_digests": [],
+  "runner": "war gate --run",
+  "runtime_environment": "linux x86_64 / rustc 1.97.1",
+  "arguments": [
+    "./target/debug/war",
+    "check",
+    "--generated"
+  ],
+  "working_directory": "/mnt/4tb/tmp/ow-war-0074-source-set",
+  "started_at": "2026-09-14T09:05:43Z",
+  "completed_at": "2026-09-14T09:05:48Z",
+  "exit_result": "fail",
+  "selected_test_count": 0,
+  "selected_test_manifest": [],
+  "raw_evidence_refs": [],
+  "stdout_ref": "docs/warrants/OW-WAR-0074/gate-runs/software_repo_war-check_1_0_0.stdout.txt",
+  "stderr_ref": "docs/warrants/OW-WAR-0074/gate-runs/software_repo_war-check_1_0_0.stderr.txt",
+  "resource_usage": "wall-clock only; 3 argv item(s)",
+  "verdict": "fail",
+  "receipt_digest": "sha256:bbf71657f45860c2977554be94fa52d9879bc5c10f3d68a8090e6e9b85624986"
+}

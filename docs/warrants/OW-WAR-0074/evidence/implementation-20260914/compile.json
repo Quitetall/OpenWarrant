@@ -1,0 +1,117 @@
+compiled OW-WAR-0001
+compiled OW-WAR-0002
+compiled OW-WAR-0003
+compiled OW-WAR-0004
+compiled OW-WAR-0005
+compiled OW-WAR-0006
+compiled OW-WAR-0007
+compiled OW-WAR-0008
+compiled OW-WAR-0009
+compiled OW-WAR-0010
+compiled OW-WAR-0011
+compiled OW-WAR-0012
+compiled OW-WAR-0013
+compiled OW-WAR-0014
+compiled OW-WAR-0015
+compiled OW-WAR-0016
+compiled OW-WAR-0017
+compiled OW-WAR-0018
+compiled OW-WAR-0019
+compiled OW-WAR-0020
+compiled OW-WAR-0021
+compiled OW-WAR-0022
+compiled OW-WAR-0023
+compiled OW-WAR-0024
+compiled OW-WAR-0025
+compiled OW-WAR-0026
+compiled OW-WAR-0027
+compiled OW-WAR-0028
+compiled OW-WAR-0029
+compiled OW-WAR-0030
+compiled OW-WAR-0031
+compiled OW-WAR-0032
+compiled OW-WAR-0033
+compiled OW-WAR-0034
+compiled OW-WAR-0035
+compiled OW-WAR-0036
+compiled OW-WAR-0037
+compiled OW-WAR-0038
+compiled OW-WAR-0039
+compiled OW-WAR-0040
+compiled OW-WAR-0041
+compiled OW-WAR-0042
+compiled OW-WAR-0043
+compiled OW-WAR-0044
+compiled OW-WAR-0045
+compiled OW-WAR-0046
+compiled OW-WAR-0047
+compiled OW-WAR-0048
+compiled OW-WAR-0049
+compiled OW-WAR-0050
+compiled OW-WAR-0055
+compiled OW-WAR-0056
+compiled OW-WAR-0057
+compiled OW-WAR-0058
+compiled OW-WAR-0059
+compiled OW-WAR-0060
+compiled OW-WAR-0061
+compiled OW-WAR-0062
+compiled OW-WAR-0063
+compiled OW-WAR-0064
+compiled OW-WAR-0065
+compiled OW-WAR-0066
+compiled OW-WAR-0067
+compiled OW-WAR-0068
+compiled OW-WAR-0069
+compiled OW-WAR-0070
+compiled OW-WAR-0071
+compiled OW-WAR-0072
+compiled OW-WAR-0073
+compiled OW-WAR-0074
+compiled OW-WAR-0075
+compiled OW-WAR-0076
+compiled OW-WAR-0077
+compiled OW-WAR-0078
+compiled OW-WAR-0079
+compiled OW-WAR-0080
+compiled OW-WAR-0081
+compiled OW-WAR-0082
+compiled OW-WAR-0083
+compiled OW-WAR-0084
+compiled OW-WAR-0085
+compiled OW-WAR-0086
+compiled OW-WAR-0087
+compiled OW-WAR-0088
+compiled OW-WAR-0089
+compiled OW-WAR-0090
+compiled OW-WAR-0091
+compiled WARRANT_OVERVIEW.md
+compiled ADR_OVERVIEW.md
+compiled CORPUS_STATUS.md
+compiled CORPUS_STATUS.json
+compiled CORPUS_STATUS.html
+compiled CORPUS_TIMELINE.json
+compiled CORPUS_PENDING.json
+compiled NORMATIVE.md
+compiled NORMATIVE.json
+
+2 file(s) written, 0 Warrant(s) skipped
+{
+  "schema": "oh.war/report/v1",
+  "command": "compile",
+  "diagnostics": [],
+  "notes": [],
+  "counts": {
+    "pass": 0,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0,
+  "result": {
+    "alias": null
+  }
+}

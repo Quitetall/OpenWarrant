@@ -44,6 +44,32 @@ control holds them; where it does not, the entry says so.
 
 ## How this document stays true
 
+### Source-set acceptance (OW-WAR-0074 AM-001)
+
+V2 acceptance binds the main document, exact manifest, every listed normative
+and reference member, the adoption decision, edition, and predecessor subject.
+The CLI captures regular files through descriptor-relative, no-follow opens;
+it refuses traversal, symlink components, duplicate paths, byte mismatches,
+inconsistent reads, excessive sizes, and existing publication destinations.
+The per-revision lock serializes this CLI's writers. It does not isolate an
+agent or prevent another process with repository write access from modifying
+records. Harness protections and human-owned authority files remain necessary.
+
+Direct v2 response ingestion verifies an SSH signature over the exact parsed
+response bytes. An existing human terminal confirmation remains available
+through `war sign`; a response merely claiming a human name is insufficient.
+V1 responses retain their previous semantics. SSH confirmation constraints
+remain the operator duty described in entry 1; the CLI cannot verify `ssh-add -c`.
+
+`crates/openwarrant-cli/tests/sas_source_set.rs` exercises positive capture and
+acceptance, altered inputs and records, wrong actors and signatures, symlinks,
+unsafe paths, publication collisions, immutable accepted history, and legacy
+pins. `conformance/fixtures/sas-source-set/check_changing_input.py` records a
+bounded concurrent-write observation. These checks do not prove a filesystem
+sandbox, adversarial-process isolation, power-loss recovery, or macOS runtime
+behavior from a Linux run. Retained locks and pending files require inspection
+before cleanup; they are never silently reused as a successful operation.
+
 Each "Exercised by" cell names a test or plant that exists, or an operator duty
 that cannot be one. When a control changes, the entry changes in the same
 commit; when a residual closes, the entry says which slice closed it. A row

@@ -1,0 +1,22 @@
+   Compiling openwarrant-cli v1.0.0 (/mnt/4tb/tmp/ow-war-0074-source-set/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.20s
+     Running tests/sas_source_set.rs (target/debug/deps/sas_source_set-6d3468e61733ae3c)
+
+running 14 tests
+test interrupted_publication_is_preserved_for_recovery ... ok
+test source_set_subject_matches_independent_canonical_vector ... ok
+test symlink_files_and_parent_directories_are_never_followed ... ok
+test existing_snapshot_and_retained_lock_are_never_overwritten ... ok
+test proposal_captures_the_complete_subject_and_refuses_overwrite ... ok
+test warrant_checks_use_the_complete_captured_subject ... ok
+test accepted_record_cannot_substitute_another_adoption_decision ... ok
+test retained_snapshot_tampering_and_reacceptance_are_refused ... ok
+test human_accepts_exact_capture_and_later_live_edits_preserve_history ... ok
+test changed_predecessor_and_main_only_signature_are_refused ... ok
+test invalid_manifests_publish_no_revision ... ok
+test forged_unsigned_and_legacy_responses_cannot_accept_v2 ... ok
+test legacy_acceptance_and_authorized_warrant_pins_remain_unchanged ... ok
+test every_changed_input_refuses_acceptance_without_changing_the_proposal ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+

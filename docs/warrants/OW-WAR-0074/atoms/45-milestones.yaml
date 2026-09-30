@@ -2,26 +2,38 @@ schema: "oh.war/milestones/v1"
 
 milestones:
   - id: "M1"
-    title: "Prepare the exact adoption and compatibility package"
+    title: "Prepare the exact adoption decision and fixtures"
     stage_refs: ["STAGE-001"]
     obligation_refs: ["OBL-001", "OBL-002"]
   - id: "M2"
-    title: "Review and accept the exact architecture basis"
-    stage_refs: ["STAGE-002"]
-    obligation_refs: ["OBL-003", "OBL-004"]
+    title: "Implement and observe source-set acceptance"
     depends_on: ["M1"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-004", "OBL-005"]
+  - id: "M3"
+    title: "Independently verify and accept the exact result"
+    depends_on: ["M2"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-003", "OBL-004", "OBL-005"]
 
 stages:
   - id: "STAGE-001"
-    title: "Prepare the exact adoption and compatibility package"
+    title: "Prepare adoption decision and fixtures"
     executor_kind: "agent"
     responsibility_tier: "T2"
-    context_sections: ["20-basis.md#Required context", "40-work-order.md#Premade Instructions", "60-assurance.md#Acceptance Obligations"]
-    budget_tokens: 24000
     executor_ref: "agent://codex"
+    context_sections: ["20-basis.md#Required context", "40-work-order.md#Exact implementation contract", "60-assurance.md#Acceptance Obligations"]
+    budget_tokens: 24000
+  - id: "STAGE-003"
+    title: "Implement source-set acceptance and report checks"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+    executor_ref: "agent://codex"
+    context_sections: ["20-basis.md#Required context", "40-work-order.md#Exact implementation contract", "60-assurance.md#Acceptance Obligations"]
+    budget_tokens: 32000
   - id: "STAGE-002"
-    title: "Review and accept the exact architecture basis"
+    title: "Verify implementation, review corrections and accept architecture"
     executor_kind: "human"
     responsibility_tier: "T2"
-    context_sections: ["20-basis.md#Required context", "40-work-order.md#Premade Instructions", "60-assurance.md#Acceptance Obligations"]
+    context_sections: ["40-work-order.md#Frozen surfaces and correction route", "60-assurance.md#Acceptance Obligations"]
     budget_tokens: 12000

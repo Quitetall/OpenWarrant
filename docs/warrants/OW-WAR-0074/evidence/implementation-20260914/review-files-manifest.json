@@ -1,0 +1,630 @@
+{
+  "base_commit": "16f0559db9a267c2123b334224c1b1ab5e645b03",
+  "files": [
+    {
+      "path": "Cargo.lock",
+      "bytes": 43460,
+      "sha256": "17dd435b46ca7228d53c11a8a2e6fa134e693dbe4062dc700dafee9c1c3f1687"
+    },
+    {
+      "path": "conformance/fixtures/sas-source-set/README.md",
+      "bytes": 789,
+      "sha256": "cd68b98278bfeac02e4914efe2ba3872f879de0d8f5c16e2b9fcb9e6a4a9a77b"
+    },
+    {
+      "path": "conformance/fixtures/sas-source-set/check_changing_input.py",
+      "bytes": 3295,
+      "sha256": "eb0c5627e7f565d7a2508b0887abf78bda3a449d833f594ea4c53db9bc82605a"
+    },
+    {
+      "path": "conformance/fixtures/sas-source-set/manifest.json",
+      "bytes": 648,
+      "sha256": "c49522f8f525b6ee9fcf34784a0559fefc2c4664af06c796400eab3db81b4319"
+    },
+    {
+      "path": "conformance/fixtures/sas-source-set/subject.json",
+      "bytes": 415,
+      "sha256": "c2c94aedba6eb5131e18b24c6d2a3837c7682adfd4f62583444f893b479c2b5d"
+    },
+    {
+      "path": "conformance/fixtures/sas-source-set/subject.sha256",
+      "bytes": 65,
+      "sha256": "5013361ba0937976d60f8eeb7a01a562c057c636d406b634a9019631f0add4d3"
+    },
+    {
+      "path": "crates/openwarrant-cli/Cargo.toml",
+      "bytes": 1480,
+      "sha256": "c554a794c238ed3acff0645ea8ead2a0877d7de55d0a95b93bd1c7cd50704be4"
+    },
+    {
+      "path": "crates/openwarrant-cli/src/check.rs",
+      "bytes": 68989,
+      "sha256": "55d1ad8b178e8d7c1c9306f689f5db675017bc6ecdc8767fda9e58f478296217"
+    },
+    {
+      "path": "crates/openwarrant-cli/src/compile.rs",
+      "bytes": 14862,
+      "sha256": "27075f1dce8718aa5dc67c0ceca3f4e2854346faf850788f416e50f965f2e88e"
+    },
+    {
+      "path": "crates/openwarrant-cli/src/main.rs",
+      "bytes": 86966,
+      "sha256": "03b86f26d490050a74fcf9861a0bbe7a38be313ff1e0f11b5f9667f7596d4b1e"
+    },
+    {
+      "path": "crates/openwarrant-cli/src/repo.rs",
+      "bytes": 36241,
+      "sha256": "9de89d7c68c902e4613dd17ba015c95e125caba688cca56305e06e8011e1af2a"
+    },
+    {
+      "path": "crates/openwarrant-cli/src/sas.rs",
+      "bytes": 20545,
+      "sha256": "60bfc8f3d01f0f08786eaeb3414d6f708637fdede7c91f89740c42364ad45408"
+    },
+    {
+      "path": "crates/openwarrant-cli/src/sas_source_set.rs",
+      "bytes": 19429,
+      "sha256": "54b3613be81d1c580545ed4ca08bdf71b0ee4786e21966a86c5d6d93565634cd"
+    },
+    {
+      "path": "crates/openwarrant-cli/src/sign.rs",
+      "bytes": 89265,
+      "sha256": "e5d1c97a25c51768012286fea885f68f801061a37fdbd871acba8031621994fc"
+    },
+    {
+      "path": "crates/openwarrant-cli/tests/sas_source_set.rs",
+      "bytes": 22964,
+      "sha256": "4281493fbcf7e60df6c90c6cdc9863dd8af208fe3b7ab2df80986da3e40a0865"
+    },
+    {
+      "path": "crates/openwarrant-core/src/sas.rs",
+      "bytes": 21686,
+      "sha256": "b13f2e3e7930900915f17580ffb42c47b8b9a6ffb0eed6d39e5c371de6ba1e8d"
+    },
+    {
+      "path": "docs/THREAT_MODEL.md",
+      "bytes": 10524,
+      "sha256": "641a21d7d67645ec319a2f3b1979f81c07e523bd5e2b346eb926790d15230e01"
+    },
+    {
+      "path": "docs/authority/responses/OW-WAR-0074.df700b5f.response.toml",
+      "bytes": 829,
+      "sha256": "db5decec5df198cdf513b891cce82e41719cfe01469345471cb9adb31ec0e80a"
+    },
+    {
+      "path": "docs/authority/responses/OW-WAR-0074.df700b5f.response.toml.sig",
+      "bytes": 310,
+      "sha256": "458f76df71077fe6e7b0203102e95353d6f8423f9f027197850bd873a737b239"
+    },
+    {
+      "path": "docs/authority/responses/OW-WAR-0074.response.toml",
+      "bytes": 829,
+      "sha256": "7d1673917d40b2e532abc86a1cab03837fa0c683d6638ec23432fde4899ddc99"
+    },
+    {
+      "path": "docs/authority/responses/OW-WAR-0074.response.toml.sig",
+      "bytes": 310,
+      "sha256": "6d1035d7e292a1ac6c183f838c60a11a81a07cf3c17752044dceb2c5e770ee24"
+    },
+    {
+      "path": "docs/design/autonomous-execution-policy.md",
+      "bytes": 2436,
+      "sha256": "62cfa9b2dcf2b561da32ef70efb78b602b7a38df7e11572a5912ce7a8e28c660"
+    },
+    {
+      "path": "docs/design/rc2-adoption-plan.md",
+      "bytes": 11400,
+      "sha256": "db9aafb3fe773ab0b9e264cafd87e838f8b49de259e8e57c12d4ca7eceb89cc9"
+    },
+    {
+      "path": "docs/design/rc2-source-set-acceptance-implementation.md",
+      "bytes": 4273,
+      "sha256": "e8a90e3b1d8ca4c2daf0fdd034679425fdfc5cd63dd1bb4131a1a5d04002a4cd"
+    },
+    {
+      "path": "docs/design/rc2-source-set-acceptance.adr.md",
+      "bytes": 4550,
+      "sha256": "7f93d7eb9826678880c6c8548c40cfdc29cec80e5bc91dd2c74ac91f4ace7dbc"
+    },
+    {
+      "path": "docs/sas/revisions/1.0.0-rc.2.toml",
+      "bytes": 10525,
+      "sha256": "1cd5a2edffb5765c6de8fe101d564a8dd42aec728296b5969c408231c1ca622e"
+    },
+    {
+      "path": "docs/sas/revisions/source-sets/1.0.0-rc.2/decision.md",
+      "bytes": 4550,
+      "sha256": "7f93d7eb9826678880c6c8548c40cfdc29cec80e5bc91dd2c74ac91f4ace7dbc"
+    },
+    {
+      "path": "docs/sas/revisions/source-sets/1.0.0-rc.2/manifest.json",
+      "bytes": 4114,
+      "sha256": "201b707e9657a3c6674ea113a018a34a54b5ab425f37c417c8968af9f4d2cf31"
+    },
+    {
+      "path": "docs/sas/revisions/source-sets/1.0.0-rc.2/members/README.md",
+      "bytes": 3555,
+      "sha256": "6bf667cc07feba54003804385c89d841742f312352f408bf1beb5aa1144b0638"
+    },
+    {
+      "path": "docs/sas/revisions/source-sets/1.0.0-rc.2/members/WAR_Software_Architecture_Specification.md",
+      "bytes": 55630,
+      "sha256": "1559e21a72b4091bfa4c11b20d21b0b18dd1ad59d53efef6f22f05a0db44bc11"
+    },
+    {
+      "path": "docs/sas/revisions/source-sets/1.0.0-rc.2/members/context-packets.adr.md",
+      "bytes": 5225,
+      "sha256": "159f38c59eef7ffebc34608403fe070a924885c642b11a6305043a59cd6e4b42"
+    },
+    {
+      "path": "docs/sas/revisions/source-sets/1.0.0-rc.2/members/decision-map.md",
+      "bytes": 14089,
+      "sha256": "36bcb254069e35da848d3c84ffca2958f4d1cc28ce72fd923c4bc19cc5b85a45"
+    },
+    {
+      "path": "docs/sas/revisions/source-sets/1.0.0-rc.2/members/examples/README.md",
+      "bytes": 3935,
+      "sha256": "f6ec801d03348d34d1c1cf658be2637a02252f83bbc7042c8036d24f13480f45"
+    },
+    {
+      "path": "docs/sas/revisions/source-sets/1.0.0-rc.2/members/examples/check_examples.py",
+      "bytes": 7239,
+      "sha256": "b61ee1beff2f47067a06a4cf5af34af8848162c8284acdc96f126e2a263494c8"
+    },
+    {
+      "path": "docs/sas/revisions/source-sets/1.0.0-rc.2/members/examples/expected/basis-preimage.json",
+      "bytes": 2164,
+      "sha256": "4682ed3dcdc1ba68190c4626624cd31255f02e990f6e0db937963c4df4125781"
+    },
+    {
+      "path": "docs/sas/revisions/source-sets/1.0.0-rc.2/members/examples/expected/cases.json",
+      "bytes": 2141,
+      "sha256": "4c9b3b9de49747d53f36156384c81ddc97fecc28b0c4cfd375bcea8cf87ce9e8"
+    },
+    {
+      "path": "docs/sas/revisions/source-sets/1.0.0-rc.2/members/examples/expected/package-root-preimage.json",
+      "bytes": 3011,
+      "sha256": "8b1baebb90330e43608566dd0a7e23a0710aef5d8452c9b4b4a1fc49fa7d91e9"
+    },
+    {
+      "path": "docs/sas/revisions/source-sets/1.0.0-rc.2/members/examples/expected/signup-packet/ENTRY.md",
+      "bytes": 4013,
+      "sha256": "a0cb609bad0f5bc078eddab5753f3aa953b5fe2904a5f8f61ef6d966f28a7596"
+    },
+    {
+      "path": "docs/sas/revisions/source-sets/1.0.0-rc.2/members/examples/expected/signup-packet/blobs/8f051a60f20b265a0c8962764edf4f533dbe3054585e6f0d6427b2aa021fc65d.bin",
+      "bytes": 2165,
+      "sha256": "8f051a60f20b265a0c8962764edf4f533dbe3054585e6f0d6427b2aa021fc65d"
+    },
+    {
+      "path": "docs/sas/revisions/source-sets/1.0.0-rc.2/members/examples/expected/signup-packet/blobs/c0654f491b78a4b66e5a9ce9236d49662446114a5bb5efebb87c13ffe0ef0f9b.bin",
+      "bytes": 505,
+      "sha256": "c0654f491b78a4b66e5a9ce9236d49662446114a5bb5efebb87c13ffe0ef0f9b"
+    },
+    {
+      "path": "docs/sas/revisions/source-sets/1.0.0-rc.2/members/examples/expected/signup-packet/blobs/c90c4ab63cf754ace400953f34441b6eada14a967cf40122b08880159cdb22b5.bin",
+      "bytes": 1172,
+      "sha256": "c90c4ab63cf754ace400953f34441b6eada14a967cf40122b08880159cdb22b5"
+    },
+    {
+      "path": "docs/sas/revisions/source-sets/1.0.0-rc.2/members/examples/expected/signup-packet/manifest.json",
+      "bytes": 3043,
+      "sha256": "cece0a00ceb1f72f460bafde5e20973d30c63bdeee0300c0c4ec19563c6adfa9"
+    },
+    {
+      "path": "docs/sas/revisions/source-sets/1.0.0-rc.2/members/examples/expected/signup-packet/packet.json",
+      "bytes": 7337,
+      "sha256": "a4b84db6dd27c46ade4a900c45b0466312b78087fbd29fdcab93dbe850ce9401"
+    },
+    {
+      "path": "docs/sas/revisions/source-sets/1.0.0-rc.2/members/examples/expected/source-unit-map.json",
+      "bytes": 2265,
+      "sha256": "c7a85403dd919e4a0d02c7cbf86f1ac9dc8115e237246389e0ad93d69850a6fd"
+    },
+    {
+      "path": "docs/sas/revisions/source-sets/1.0.0-rc.2/members/examples/sources/acceptance.json",
+      "bytes": 505,
+      "sha256": "c0654f491b78a4b66e5a9ce9236d49662446114a5bb5efebb87c13ffe0ef0f9b"
+    },
+    {
+      "path": "docs/sas/revisions/source-sets/1.0.0-rc.2/members/examples/sources/architecture.md",
+      "bytes": 1172,
+      "sha256": "c90c4ab63cf754ace400953f34441b6eada14a967cf40122b08880159cdb22b5"
+    },
+    {
+      "path": "docs/sas/revisions/source-sets/1.0.0-rc.2/members/examples/sources/minimal.md",
+      "bytes": 579,
+      "sha256": "f5bcafb923b6b5f31ec8f56fb06153d55106ba2cd739a3aa5f0e130bac84d3c1"
+    },
+    {
+      "path": "docs/sas/revisions/source-sets/1.0.0-rc.2/members/examples/sources/signup.md",
+      "bytes": 2165,
+      "sha256": "8f051a60f20b265a0c8962764edf4f533dbe3054585e6f0d6427b2aa021fc65d"
+    },
+    {
+      "path": "docs/sas/revisions/source-sets/1.0.0-rc.2/members/format-contract.md",
+      "bytes": 33771,
+      "sha256": "5752e987cd13e5f8ccd7d94594f475f46a3aa75f185d4cde3dc97595d41d1abf"
+    },
+    {
+      "path": "docs/sas/revisions/source-sets/1.0.0-rc.2/members/phase-1-build-scope.md",
+      "bytes": 19878,
+      "sha256": "2694953e9ea193e50b7d9a92dbff04baec36152a0d1401aee255255c87852d5f"
+    },
+    {
+      "path": "docs/sas/revisions/source-sets/1.0.0-rc.2/members/schemas/packet.schema.json",
+      "bytes": 11697,
+      "sha256": "9d049b107c4620d66253086078815e71e82f4682add308c362c0cfd0a982dda1"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0004/artifacts/sha256/abafe843b6a9683407b80cbb5be4bbc239118dd2db7b2f056148794b85a84e4d/compile.rs",
+      "bytes": 14541,
+      "sha256": "abafe843b6a9683407b80cbb5be4bbc239118dd2db7b2f056148794b85a84e4d"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0004/deliverables.before-0074.toml",
+      "bytes": 2032,
+      "sha256": "27e7b5282fc42ed13a817adc779b05255a489c53168a39f12314ea04a2f4380a"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0004/deliverables.toml",
+      "bytes": 2384,
+      "sha256": "978babe2cf244559e70acbcb3e8dbb475c3dcfba7467e112df018ef1d2e19273"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0063/artifacts/sha256/36b98eafc8ceee4eecedfaafc7de591dbe98419966924d670dbd39ba5d6993a6/check.rs",
+      "bytes": 67987,
+      "sha256": "36b98eafc8ceee4eecedfaafc7de591dbe98419966924d670dbd39ba5d6993a6"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0063/deliverables.before-0074.toml",
+      "bytes": 3449,
+      "sha256": "80b67178dfb1720b2b49b1c2ddf580ff2db1a04b6c5a8a1493dcafed347f3a1b"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0063/deliverables.toml",
+      "bytes": 3801,
+      "sha256": "a0d90d3a20c31cb4460ac795007d2eadd8f0272239c9d39f7201f8968a547ec5"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/amendments/AM-001.yaml",
+      "bytes": 2690,
+      "sha256": "917ccc154ad5fe84407038f96f286bc1970557580acef9aa135dd2b1caff4dfe"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/atoms/20-basis.md",
+      "bytes": 2499,
+      "sha256": "2a26bbd2958e10cd386fddf7d9d8461027d491b838f4f39da1042250a2ff666b"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/atoms/40-work-order.md",
+      "bytes": 4583,
+      "sha256": "e277b194f60bca9e082b12b89a63e3c0f785da27c551dd5cfe40db4c3ae77b96"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/atoms/45-milestones.yaml",
+      "bytes": 1558,
+      "sha256": "321011781b3f755af6e16751fc2b1880fc3c2edd656c64af4b2c0b1a6cc55210"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/atoms/60-assurance.md",
+      "bytes": 3448,
+      "sha256": "d9327da675b31f032102ce3f316e2cab2ed8597f9e861f5c85746181ffabf743"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/attestations/authorize-1.dsse.json",
+      "bytes": 2321,
+      "sha256": "b640329771baddce2b86a1812850a5133ff7702f9b8719470e58cbafd46fa209"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/attestations/authorize-2.dsse.json",
+      "bytes": 2321,
+      "sha256": "4368c14d1fff54fb7f58da4c6e9a5056020fa5c51bc2892195db0ecafb20e7cb"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/authorization.rev-1.toml",
+      "bytes": 1103,
+      "sha256": "543430a4c861d1b3e3b7db2c73eb5a5b727d26f5ee689955e5aebd210148b63b"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/authorization.toml",
+      "bytes": 1191,
+      "sha256": "7fccf5ec92858d8c0c6a567032cb1350fd57e5d89ce85a92d2b16f9f40e0bbe0"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/deliverables.toml",
+      "bytes": 45680,
+      "sha256": "ca07c7f8fdf1269d095557608d15249b01d9e6f2df939291fbeeabc449e3ded6"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/implementation-20260914/REVIEW.md",
+      "bytes": 6342,
+      "sha256": "2f0a4d51c52bc75937a1283d1f609aabd092616628acf4c670a4eded512e1990"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/implementation-20260914/acceptance-preview.txt",
+      "bytes": 1136,
+      "sha256": "31d365b5911fac3acbd193f6b6e74667f99e98ecd38025b7255680845ed51f25"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/implementation-20260914/acceptance-request.json",
+      "bytes": 14637,
+      "sha256": "5b682ace64aae7547e0304c5e74a16e9213fc3e42f3058bc8f2861df95dc8616"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/implementation-20260914/changing-input.json",
+      "bytes": 323,
+      "sha256": "1953f1f09d7522a8646834abff847d5ce28146abff3acadd9fce9657f78adc21"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/implementation-20260914/compile.json",
+      "bytes": 2506,
+      "sha256": "9f2b3afe545f5b71de0ac872db3b419e155a18dc5dcbf3d5aea0af95668fef4e"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/implementation-20260914/corpus-final.json",
+      "bytes": 194308,
+      "sha256": "ec69d11699487623c0146b4bb108495a21a57dba222621b269c64fbee1ce4c74"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/implementation-20260914/correction-OW-WAR-0005-D-001.json",
+      "bytes": 1038,
+      "sha256": "74e272c63183166274add345b577403932459af5a82b6f37ecbea713dcf1d329"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/implementation-20260914/correction-OW-WAR-0058-D-001.json",
+      "bytes": 1079,
+      "sha256": "53570eb5bfca88b7e4278213119765666176545a16f0d4f82d6273df53cab143"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/implementation-20260914/correction-OW-WAR-0058-D-002.json",
+      "bytes": 1067,
+      "sha256": "e70470afd50df35a264034131ad74ebce0a8957ecfb76ff390bccc703474ad45"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/implementation-20260914/correction-OW-WAR-0062-D-005.json",
+      "bytes": 1070,
+      "sha256": "7ab265ab28d65aa61727a1d648644979f9b867929a9e827c222a37a2e8e8fbc5"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/implementation-20260914/extra-all-features-clippy.log",
+      "bytes": 3928,
+      "sha256": "1defbaadc9bc3e893bea46d54973639e51e80b30777d5ef11511994f61478b49"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/implementation-20260914/gate-receipt-final.json",
+      "bytes": 1888,
+      "sha256": "7224e24125b14b0bc79a5e00b855551cedb3d541f8a232fa91b35319f3d2df51"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/implementation-20260914/gate-receipt-result.json",
+      "bytes": 1888,
+      "sha256": "7224e24125b14b0bc79a5e00b855551cedb3d541f8a232fa91b35319f3d2df51"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/implementation-20260914/gate.log",
+      "bytes": 198341,
+      "sha256": "bd768ffb86023539805779f60cc8d2f2371cd012a4a0eaa49b9097bc94a4913b"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/implementation-20260914/implementation.patch",
+      "bytes": 100624,
+      "sha256": "aa3e893dc82908460a68fdf77baf93951d9421eca4a62bec05c43c87ab8de609"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/implementation-20260914/launcher-preview.txt",
+      "bytes": 1125,
+      "sha256": "e3233653d66dde20864b2694c86a4566378f7ce1b9c61e80f738d17a3570c0a4"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/implementation-20260914/legacy-retention.json",
+      "bytes": 1413,
+      "sha256": "e8da6e623a60b7991c483e0b3b9534f8c7135571d72b78f2f2954475d42facea"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/implementation-20260914/observations.json",
+      "bytes": 14238,
+      "sha256": "3ea482b013c037e6dc813c4a8887a8ba71793c64861790376a1295827387ac46"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/implementation-20260914/proposal.json",
+      "bytes": 720,
+      "sha256": "1349f8c9d5094ad4f284e9587861359ab41068f04e6f3e7342b43312459bad9c"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/implementation-20260914/source-set-tests.log",
+      "bytes": 1335,
+      "sha256": "1f437ca10ee3dc7d3e81466a38a8fd52c31da2ea94cd8fd3aa58ced3ab09e42f"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/implementation-20260914/verification-bundle-result.json",
+      "bytes": 818,
+      "sha256": "32fd6ab7311172fa8edf915450da9b8d9f2652b1aa65552f10aaf7a1d0ee42f8"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/preparation-20260914/attestation.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/preparation-20260914/attestation.stdout",
+      "bytes": 358,
+      "sha256": "69c35fff200b4310091757c2e1b2ff20e1bd93e7e6359a788c6b7526c427b7d1"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/preparation-20260914/observations.json",
+      "bytes": 6935,
+      "sha256": "696c9a4315b9b104c505bf8b17f6c7d6882f9d512c56ac073668ddd5ac3cf5c5"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/preparation-20260914/reference-examples.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/preparation-20260914/reference-examples.stdout",
+      "bytes": 237,
+      "sha256": "9a58f1c8f698978656f0be878eff9a3f8dc89586b0ce3bfad3fd4a761aaaef4d"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/preparation-20260914/response-signature.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/preparation-20260914/response-signature.stdout",
+      "bytes": 269,
+      "sha256": "a86a5add6af9c7765b15a9da1f8a6afece51c30880d3c2c2be6b4cce392aa0ea"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/preparation-20260914/structure.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/evidence/preparation-20260914/structure.stdout",
+      "bytes": 4854,
+      "sha256": "a52d6510c69a304abcc81df4282852c913c1635e72c54b83224479c7e35686e7"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/gate-runs/software_repo_war-check_1_0_0.receipt.json",
+      "bytes": 1144,
+      "sha256": "a33d363bbbe8f4f59ad30794c4f074c4078e57a50cbea573dde0ed9ce20c489d"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/gate-runs/software_repo_war-check_1_0_0.run.toml",
+      "bytes": 173,
+      "sha256": "fe8200be4ddcb70d7128f9e3f03118fa303913dc9a627c74498389e312899ddc"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/gate-runs/software_repo_war-check_1_0_0.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/gate-runs/software_repo_war-check_1_0_0.stdout.txt",
+      "bytes": 130151,
+      "sha256": "976b78b19aec3b5486edb68d49cdc1e5323abb159959aef442538e25ae56377e"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/generated/WAR.json",
+      "bytes": 2155,
+      "sha256": "f0935e2e89c857bbd1f370afaf6005ce37c5c1d17faa0d2a2fb01594d8f0ea76"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/generated/WAR.md",
+      "bytes": 14207,
+      "sha256": "edae4a43ef34a1a5d3eebf4ef247778df686a074980f5af5480755e8c1a9c4e2"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/journal.jsonl",
+      "bytes": 3129,
+      "sha256": "befb1bd3fd438f73792aab90fa8856c72edca12ccb64351547d2ef80f9e72484"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/revisions/0001/atoms/10-intent.md",
+      "bytes": 1225,
+      "sha256": "c58d6488a77e8f6b28b958abd4f4195b62e2648fe5ce1b479622072f88303717"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/revisions/0001/atoms/20-basis.md",
+      "bytes": 2190,
+      "sha256": "d6c2b6f27d0f2bbe2635442bdbf218157bbcceab6f92d09161a85b5c65e1bf38"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/revisions/0001/atoms/40-work-order.md",
+      "bytes": 3860,
+      "sha256": "e08a7250bc7c19571482de60f5e387ef472335cef5c4b9878c4b72c138b76e74"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/revisions/0001/atoms/45-milestones.yaml",
+      "bytes": 1016,
+      "sha256": "3420adc8ebb66edac94f4534d8a81ab6ff88b2b40f3614b539b44591651c2ba4"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/revisions/0001/atoms/60-assurance.md",
+      "bytes": 3396,
+      "sha256": "eefc64c1cf074761cf3b8d1340a857cf5f40332298f55e501fee0ba2912b47ce"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/revisions/0001/attestations/authorize-1.dsse.json",
+      "bytes": 2321,
+      "sha256": "b640329771baddce2b86a1812850a5133ff7702f9b8719470e58cbafd46fa209"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/revisions/0001/authorization.toml",
+      "bytes": 1103,
+      "sha256": "543430a4c861d1b3e3b7db2c73eb5a5b727d26f5ee689955e5aebd210148b63b"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/revisions/0001/generated/WAR.json",
+      "bytes": 2155,
+      "sha256": "59ada10ba43e872ecc45c8f010a90a9d4e2bba714839f201310a2606aa1a6631"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/revisions/0001/generated/WAR.md",
+      "bytes": 12581,
+      "sha256": "f3a3504e149a634dae9ddc87d868f3a07f407980f0bb6c8b5b48b2d4541d3971"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/revisions/0001/journal.jsonl",
+      "bytes": 1264,
+      "sha256": "c170000771d5f5781ff28c6c8c2585ec78d7c1ee7460952926794a203a13f49a"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/revisions/0001/manifest.toml",
+      "bytes": 1126,
+      "sha256": "5a99fb358dafe587f61ae3b596b94661079bfa94acc8cad699481dfff8463b75"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/revisions/0001/plan/proposal.json",
+      "bytes": 12932,
+      "sha256": "ece3c0385c9b5540618b9174e90fd21f8272017c2310f2b9d22fb9f8d49145b2"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/revisions/0001/preservation.json",
+      "bytes": 1871,
+      "sha256": "fad6a06eea16bae95446932a6d62b0f52df4ad6d3fb68069981575af7135b6b2"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/revisions/0001/rationale.toml",
+      "bytes": 194,
+      "sha256": "167671b44e4536f128c95be74ab85b76ac1d6b80a4d2b6d73bb2678fcc1196c7"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0074/verifications/bundle-6698973947df71bd.json",
+      "bytes": 767943,
+      "sha256": "1b64392095e16c569b3f77d6f1bdc55ec8f9921f0ab98bbaf65937ba889c389d"
+    },
+    {
+      "path": "docs/warrants/generated/CORPUS_PENDING.json",
+      "bytes": 6027,
+      "sha256": "60a3b2aee3241f0cd0c0aba01dcf8f98be54e19946ab7ba281d67715c720e501"
+    },
+    {
+      "path": "docs/warrants/generated/CORPUS_STATUS.html",
+      "bytes": 708608,
+      "sha256": "517d6cefc0d39779e64635d007a8bb20521e4555f6d63f8967ee1bf4d78a9bfe"
+    },
+    {
+      "path": "docs/warrants/generated/CORPUS_STATUS.json",
+      "bytes": 418516,
+      "sha256": "de76f2eb8d04c77a9bd52856aeaccab1f546bd381f390401151fb21c0ecd9849"
+    },
+    {
+      "path": "docs/warrants/generated/CORPUS_STATUS.md",
+      "bytes": 23975,
+      "sha256": "f4a6bc4a3444dd2f58f0b1a85cf1e9f5c5967b91680d09979535e50c5d5e3b16"
+    },
+    {
+      "path": "docs/warrants/generated/CORPUS_TIMELINE.json",
+      "bytes": 250114,
+      "sha256": "43980e4fdbf30299ee9893950e5682e0430804a14f3c7fc8eb95a14f76c1862d"
+    },
+    {
+      "path": "docs/warrants/generated/WARRANT_OVERVIEW.md",
+      "bytes": 23546,
+      "sha256": "9415cfe2721caa03bead43b01032bbd1621caaa2ed4853cb20bc08239df80395"
+    }
+  ]
+}

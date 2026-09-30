@@ -1,0 +1,25 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "sas",
+  "diagnostics": [
+    {
+      "severity": "pass",
+      "rule": "sas.proposed",
+      "file": null,
+      "message": "1.0.0-rc.2 proposed; complete subject sha256:e003e0926b912793fa43c28b9b85cffb9f15ccaedcd99989973e2455022920d8; snapshot docs/sas/revisions/source-sets/1.0.0-rc.2"
+    }
+  ],
+  "notes": [
+    "Proposed, not accepted. The complete source-set subject requires human acceptance."
+  ],
+  "counts": {
+    "pass": 1,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0
+}

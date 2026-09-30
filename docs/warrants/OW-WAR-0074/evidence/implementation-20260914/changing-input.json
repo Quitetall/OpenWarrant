@@ -1,0 +1,17 @@
+{
+  "result": "PASS",
+  "observations": [
+    {
+      "attempt": 1,
+      "exit_code": 1,
+      "diagnostics": [
+        {
+          "severity": "error",
+          "rule": "cli.error",
+          "file": null,
+          "message": "sas.source-set: inconsistent read \"candidate/changing.bin\""
+        }
+      ]
+    }
+  ]
+}

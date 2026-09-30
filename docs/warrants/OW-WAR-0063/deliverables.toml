@@ -17,7 +17,10 @@ schema = "oh.war/deliverables/v1"
 id = "D-001"
 title = "traceability.unknown-requirement — implements refs held to §106"
 kind = "file"
-target_ref = "crates/openwarrant-cli/src/check.rs"
+# OW-WAR-0074 retained the exact originally delivered version from 16f0559db9a267c2123b334224c1b1ab5e645b03.
+# Its digest and original producer remain unchanged; the active source now belongs
+# to the newer delivery under OW-WAR-0074. This does not resolve this Warrant.
+target_ref = "docs/warrants/OW-WAR-0063/artifacts/sha256/36b98eafc8ceee4eecedfaafc7de591dbe98419966924d670dbd39ba5d6993a6/check.rs"
 required = true
 content_addressed = true
 provenance_required = true

@@ -63,14 +63,14 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | requirement | Warrants blocked |
 |---|---|
-| artifact digests verify | 33 |
-| required deliverables exist | 33 |
+| artifact digests verify | 32 |
+| required deliverables exist | 32 |
 | every required gate has admissible result | 31 |
 | no blocker remains | 30 |
 | no required unknown remains | 30 |
 | every required obligation is dispositioned | 28 |
 | independence requirements are met | 28 |
-| exact authorized Contract Revision | 18 |
+| exact authorized Contract Revision | 17 |
 | required judgments exist | 4 |
 | residual risks have sufficient authority | 4 |
 | runtime receipts match the basis | 3 |
@@ -224,7 +224,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0071` SAS 1.1.0: the batch act, and the dashboard as a rendering of the record | draft | unknown | 1 | — | required deliverables exist |
 | `OW-WAR-0072` The batch act: one human signature over many pending acts | draft | unknown | 1 | 0 of 3 | required deliverables exist |
 | `OW-WAR-0073` war tui: the dashboard in the terminal | draft | unknown | 1 | 0 of 4 | required deliverables exist |
-| `OW-WAR-0074` Adopt the exact RC.2 build basis without rewriting history | draft | unknown | 0 | 0 of 2 | exact authorized Contract Revision |
+| `OW-WAR-0074` Adopt the exact RC.2 build basis without rewriting history | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0075` Parse and validate a minimal OpenWarrant document | draft | unknown | 1 | 0 of 3 | exact authorized Contract Revision |
 | `OW-WAR-0076` Author valid documents from explicit fields | draft | unknown | 2 | 0 of 2 | exact authorized Contract Revision |
 | `OW-WAR-0077` Capture immutable sources and resolve exact references | draft | unknown | 2 | 0 of 2 | exact authorized Contract Revision |

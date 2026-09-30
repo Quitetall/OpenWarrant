@@ -371,7 +371,9 @@ pub fn line(p: &Pending) -> String {
         Pending::Accept { version, request } => format!(
             "SAS {version}  accept  {} requirement(s){}",
             request.requirement_count,
-            if request.adr_required {
+            if request.source_set.is_some() {
+                "  (adoption decision captured)"
+            } else if request.adr_required {
                 "  (architecture-changing: --adr required)"
             } else {
                 ""
@@ -492,6 +494,25 @@ fn screen(p: &Pending, actor: &str, role: &str, reason: Option<&str>) -> String 
                 request.diff.removed.len(),
                 request.diff.retitled.len()
             ));
+            if let Some(subject) = &request.source_set {
+                s.push_str(&format!("│ complete subject sha256:{}\n", request.sha256));
+                for (label, source) in [
+                    ("main", &subject.main),
+                    ("manifest", &subject.manifest),
+                    ("decision", &subject.decision),
+                ] {
+                    s.push_str(&format!(
+                        "│ {label}: {} · sha256:{}\n",
+                        source.path, source.sha256
+                    ));
+                }
+                if let Some(p) = &subject.predecessor {
+                    s.push_str(&format!(
+                        "│ predecessor subject: {} · sha256:{}\n",
+                        p.version, p.sha256
+                    ));
+                }
+            }
         }
         Pending::Correct {
             alias,
@@ -736,13 +757,27 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
             }))
         }
         Pending::Accept { version, request } => {
-            if request.adr_required && opts.adr_ref.is_none() {
+            let adr_ref = opts
+                .adr_ref
+                .clone()
+                .or_else(|| request.source_set.as_ref().map(|s| s.decision.path.clone()));
+            if let Some(subject) = &request.source_set
+                && adr_ref.as_deref() != Some(&subject.decision.path)
+            {
+                return Err("--adr differs from the captured adoption decision".into());
+            }
+            if request.adr_required && adr_ref.is_none() {
                 return Err(format!(
                     "SAS {version} is architecture-changing; §101.3 requires --adr <ref>"
                 ));
             }
             Ok(Drafted::Accept(AcceptResponse {
-                schema: sas::ACCEPT_RESPONSE_SCHEMA.to_owned(),
+                schema: if request.source_set.is_some() {
+                    sas::ACCEPT_RESPONSE_V2_SCHEMA
+                } else {
+                    sas::ACCEPT_RESPONSE_SCHEMA
+                }
+                .to_owned(),
                 version: version.clone(),
                 sha256: request.sha256.clone(),
                 accepted_by: actor.to_owned(),
@@ -760,7 +795,7 @@ pub fn draft(p: &Pending, actor: &str, opts: &Options, now: &str) -> Result<Draf
                     provenance()
                 ),
                 effective_time: now.to_owned(),
-                adr_ref: opts.adr_ref.clone(),
+                adr_ref,
             }))
         }
         Pending::Correct {
@@ -1127,17 +1162,38 @@ fn ssh_verify_file(
     principal: &str,
     file: &Utf8Path,
 ) -> Result<(), String> {
+    let bytes = std::fs::read(file).map_err(|e| format!("could not read {file}: {e}"))?;
+    ssh_verify_bytes(allowed_signers, principal, file, &bytes)
+}
+
+/// Verify the exact bytes parsed by the caller, avoiding a second response read.
+pub(crate) fn ssh_verify_bytes(
+    allowed_signers: &Utf8Path,
+    principal: &str,
+    file: &Utf8Path,
+    bytes: &[u8],
+) -> Result<(), String> {
+    use std::io::Write;
     let sig = sig_path(file);
-    let input = std::fs::File::open(file).map_err(|e| format!("could not open {file}: {e}"))?;
-    let out = std::process::Command::new("ssh-keygen")
+    let mut child = std::process::Command::new("ssh-keygen")
         .args(["-Y", "verify", "-f"])
         .arg(allowed_signers)
         .args(["-I", principal, "-n", SSH_NAMESPACE, "-s"])
         .arg(&sig)
-        .stdin(input)
-        .output()
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
         .map_err(|e| format!("could not run ssh-keygen: {e}"))?;
-    if out.status.success() {
+    let written = child
+        .stdin
+        .take()
+        .ok_or("ssh-keygen stdin unavailable")?
+        .write_all(bytes);
+    let out = child
+        .wait_with_output()
+        .map_err(|e| format!("could not wait for ssh-keygen: {e}"))?;
+    if out.status.success() && written.is_ok() {
         Ok(())
     } else {
         Err(format!(
@@ -1524,7 +1580,13 @@ pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Re
         let ingested = match (p, &drafted) {
             (Pending::Authorize { alias, .. }, _) => authorize::ingest(repo, alias, &path)?,
             (Pending::Resolve { alias, .. }, _) => resolution_cmd::ingest(repo, alias, &path)?,
-            (Pending::Accept { version, .. }, _) => sas::accept_ingest(repo, version, &path)?,
+            (Pending::Accept { version, .. }, _) => {
+                if opts.ssh_sign {
+                    sas::accept_ingest(repo, version, &path)?
+                } else {
+                    sas::accept_from_terminal(repo, version, &path, &actor)?
+                }
+            }
             (
                 Pending::Correct {
                     alias,

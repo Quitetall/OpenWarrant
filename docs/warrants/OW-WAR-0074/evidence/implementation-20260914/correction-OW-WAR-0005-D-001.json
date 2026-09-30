@@ -1,0 +1,33 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "correct.request",
+  "diagnostics": [],
+  "notes": [],
+  "counts": {
+    "pass": 0,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0,
+  "result": {
+    "schema": "oh.war/correction-request/v1",
+    "warrant": "OW-WAR-0005",
+    "deliverable_id": "D-001",
+    "target_ref": "crates/openwarrant-cli/src/check.rs",
+    "title": "Deterministic, agent-free validation",
+    "resolved": true,
+    "recorded_digest": "sha256:f200d0b46761c945f8d7eaf535f964d60e9c8e57ad19658958e2130d2d68d51a",
+    "chain_head": "sha256:36b98eafc8ceee4eecedfaafc7de591dbe98419966924d670dbd39ba5d6993a6",
+    "current_digest": "sha256:55d1ad8b178e8d7c1c9306f689f5db675017bc6ecdc8767fda9e58f478296217",
+    "drift": true,
+    "prior_corrections": 1,
+    "next_sequence": 2,
+    "eligible_correctors": [
+      "Brian Lam"
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+┌ SAS 1.0.0-rc.2 · accept · sha256:e003e0926b912793
+│ predecessor 1.0.0  ·  92 requirement(s)  ·  architecture-changing: true
+│ §106 diff: +31 −0 ~61
+│ complete subject sha256:e003e0926b912793fa43c28b9b85cffb9f15ccaedcd99989973e2455022920d8
+│ main: docs/sas/drafts/1.0.0-rc.2/WAR_Software_Architecture_Specification.md · sha256:1559e21a72b4091bfa4c11b20d21b0b18dd1ad59d53efef6f22f05a0db44bc11
+│ manifest: docs/sas/drafts/1.0.0-rc.2/source-set.json · sha256:201b707e9657a3c6674ea113a018a34a54b5ab425f37c417c8968af9f4d2cf31
+│ decision: docs/design/rc2-source-set-acceptance.adr.md · sha256:7f93d7eb9826678880c6c8548c40cfdc29cec80e5bc91dd2c74ac91f4ace7dbc
+│ predecessor subject: 1.0.0 · sha256:b7105f5283052579f1ddfe1ab4e3ad5b1021515aeefd9fcfb21596d9a60d74e6
+└ Sign as Brian Lam (authorizer)? 
+PASS sign.shown                         SAS 1.0.0-rc.2  accept  92 requirement(s)  (adoption decision captured) — shown, not signed; nothing written
+
+1 pass · 0 warn · 0 unknown · 0 error   (worst: PASS)
+
+WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)

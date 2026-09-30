@@ -39,7 +39,10 @@ source_holder = "git"
 id = "D-002"
 title = "Compilation and drift detection"
 kind = "file"
-target_ref = "crates/openwarrant-cli/src/compile.rs"
+# OW-WAR-0074 retained the exact originally delivered version from 16f0559db9a267c2123b334224c1b1ab5e645b03.
+# Its digest and original producer remain unchanged; the active source now belongs
+# to the newer delivery under OW-WAR-0074. This does not resolve this Warrant.
+target_ref = "docs/warrants/OW-WAR-0004/artifacts/sha256/abafe843b6a9683407b80cbb5be4bbc239118dd2db7b2f056148794b85a84e4d/compile.rs"
 required = true
 content_addressed = true
 provenance_required = true

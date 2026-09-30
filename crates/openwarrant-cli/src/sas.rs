@@ -31,6 +31,8 @@ use crate::repo::{RepoError, Repository};
 
 pub const ACCEPT_REQUEST_SCHEMA: &str = "oh.war/sas-acceptance-request/v1";
 pub const ACCEPT_RESPONSE_SCHEMA: &str = "oh.war/sas-acceptance-response/v1";
+pub const ACCEPT_REQUEST_V2_SCHEMA: &str = "oh.war/sas-acceptance-request/v2";
+pub const ACCEPT_RESPONSE_V2_SCHEMA: &str = "oh.war/sas-acceptance-response/v2";
 
 /// Propose the document as it stands, as `version`.
 pub fn propose(repo: &Repository, version: &str) -> Result<Report, RepoError> {
@@ -116,6 +118,8 @@ pub struct AcceptRequest {
     pub diff: Section106Diff,
     pub requirement_count: usize,
     pub eligible_acceptors: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_set: Option<openwarrant_core::sas::SasSourceSetSubject>,
 }
 
 /// What the acceptor returns.
@@ -135,6 +139,9 @@ pub struct AcceptResponse {
 
 pub fn accept_request(repo: &Repository, version: &str) -> Result<AcceptRequest, RepoError> {
     let record = find(repo, version)?;
+    if record.source_set.is_some() {
+        crate::sas_source_set::validate(repo, &record, true)?;
+    }
     let predecessor = record
         .predecessor
         .as_deref()
@@ -150,13 +157,18 @@ pub fn accept_request(repo: &Repository, version: &str) -> Result<AcceptRequest,
         .unwrap_or_default();
     let register = repo.load_authority_register()?;
     Ok(AcceptRequest {
-        schema: ACCEPT_REQUEST_SCHEMA.to_owned(),
+        schema: if record.source_set.is_some() {
+            ACCEPT_REQUEST_V2_SCHEMA
+        } else {
+            ACCEPT_REQUEST_SCHEMA
+        }
+        .to_owned(),
         version: record.version.clone(),
         source: record.source.clone(),
         sha256: record.sha256.clone(),
         predecessor: record.predecessor.clone(),
         architecture_changing: record.architecture_changing,
-        adr_required: record.architecture_changing,
+        adr_required: record.architecture_changing || record.source_set.is_some(),
         diff,
         requirement_count: record.requirements.len(),
         eligible_acceptors: register
@@ -164,6 +176,7 @@ pub fn accept_request(repo: &Repository, version: &str) -> Result<AcceptRequest,
             .filter(|a| a.may_authorize(&repo.performer()).is_ok())
             .map(|a| a.actor.clone())
             .collect(),
+        source_set: record.source_set.clone(),
     })
 }
 
@@ -172,8 +185,37 @@ pub fn accept_ingest(
     version: &str,
     response_path: &Utf8Path,
 ) -> Result<Report, RepoError> {
+    accept_inner(repo, version, response_path, None)
+}
+
+/// Called only after `war sign` obtains a real terminal confirmation.
+pub(crate) fn accept_from_terminal(
+    repo: &Repository,
+    version: &str,
+    response_path: &Utf8Path,
+    actor: &str,
+) -> Result<Report, RepoError> {
+    accept_inner(repo, version, response_path, Some(actor))
+}
+
+fn accept_inner(
+    repo: &Repository,
+    version: &str,
+    response_path: &Utf8Path,
+    terminal_actor: Option<&str>,
+) -> Result<Report, RepoError> {
     let mut report = Report::default();
-    let record = find(repo, version)?;
+    let initial = find(repo, version)?;
+    let _lock = if initial.source_set.is_some() {
+        Some(crate::sas_source_set::lock(repo, version)?)
+    } else {
+        None
+    };
+    let record = if _lock.is_some() {
+        find(repo, version)?
+    } else {
+        initial
+    };
     let text = fs::read_to_string(response_path).map_err(|source| RepoError::Io {
         context: format!("could not read {response_path}"),
         source,
@@ -192,7 +234,12 @@ pub fn accept_ingest(
     let refuse = |report: &mut Report, rule: &str, why: String| {
         report.push(Diagnostic::error(rule, response_path.to_string(), why));
     };
-    if response.schema != ACCEPT_RESPONSE_SCHEMA {
+    let expected_schema = if record.source_set.is_some() {
+        ACCEPT_RESPONSE_V2_SCHEMA
+    } else {
+        ACCEPT_RESPONSE_SCHEMA
+    };
+    if response.schema != expected_schema {
         refuse(
             &mut report,
             "sas.response-schema",
@@ -223,8 +270,16 @@ pub fn accept_ingest(
     // The signature is over a digest; it must match the record AND the bytes on
     // disk right now. A document edited between proposal and acceptance is a
     // different document.
-    let (_, bytes) = repo.sas_document()?;
-    let current = sha256_hex(&bytes);
+    let current = if record.source_set.is_some() {
+        if let Err(e) = crate::sas_source_set::validate(repo, &record, true) {
+            refuse(&mut report, "sas.stale-source-set", e.to_string());
+            return Ok(report);
+        }
+        record.sha256.clone()
+    } else {
+        let (_, bytes) = repo.sas_document()?;
+        sha256_hex(&bytes)
+    };
     if response.sha256 != record.sha256 || current != record.sha256 {
         refuse(
             &mut report,
@@ -253,6 +308,34 @@ pub fn accept_ingest(
         refuse(&mut report, "sas.not-permitted", e.to_string());
         return Ok(report);
     }
+    if let Some(subject) = &record.source_set {
+        if response.acting_role != "authorizer"
+            || response.adr_ref.as_deref() != Some(&subject.decision.path)
+        {
+            refuse(
+                &mut report,
+                "sas.response-subject",
+                "response must name the authorizer role and captured adoption decision".into(),
+            );
+            return Ok(report);
+        }
+        let authenticated = match terminal_actor {
+            Some(actor) if actor == response.accepted_by => Ok(()),
+            Some(_) => Err("response actor differs from the terminal signer".into()),
+            None => crate::sign::principal_of(repo, &response.accepted_by).and_then(|principal| {
+                crate::sign::ssh_verify_bytes(
+                    &crate::sign::allowed_signers_path(repo),
+                    &principal,
+                    response_path,
+                    text.as_bytes(),
+                )
+            }),
+        };
+        if let Err(why) = authenticated {
+            refuse(&mut report, "sas.response-signature", why);
+            return Ok(report);
+        }
+    }
     // §101.3's ADR, named either way a person would name it: the path to the
     // atom, or the local alias the atom declares. An alias is what `war sign
     // --adr` is given and what the ADR calls itself, so resolving it here is
@@ -279,6 +362,7 @@ pub fn accept_ingest(
         }
     }
     let accepted = record
+        .clone()
         .accept(SasAcceptance {
             accepted_by: response.accepted_by.clone(),
             actor_kind: assignment.actor_kind,
@@ -289,7 +373,11 @@ pub fn accept_ingest(
         })
         .map_err(|e| RepoError::Message(e.to_string()))?;
     let out = repo.sas_revision_path(version);
-    write_toml(&out, &accepted)?;
+    if record.source_set.is_some() {
+        crate::sas_source_set::publish_acceptance(repo, &record, &accepted)?;
+    } else {
+        write_toml(&out, &accepted)?;
+    }
     report.push(Diagnostic::pass(
         "sas.accepted",
         format!(
@@ -358,9 +446,32 @@ pub fn diff(repo: &Repository, candidate: &Utf8Path) -> Result<Report, RepoError
 /// Every revision on record, and which one the document currently matches.
 pub fn status(repo: &Repository) -> Result<Report, RepoError> {
     let mut report = Report::default();
+    let revisions = repo.load_sas_revisions()?;
+    if revisions.iter().any(|r| r.source_set.is_some()) {
+        for r in &revisions {
+            if r.source_set.is_some() {
+                source_set_status(repo, r, &mut report);
+            } else {
+                let (_, bytes) = repo.sas_document()?;
+                let matches = sha256_hex(&bytes) == r.sha256;
+                let line = format!(
+                    "{} · {} · sha256:{} · {} the legacy document",
+                    r.version,
+                    r.state,
+                    &r.sha256[..12],
+                    if matches { "matches" } else { "does not match" }
+                );
+                if matches {
+                    report.push(Diagnostic::pass("sas.revision", line));
+                } else {
+                    report.push(Diagnostic::warn("sas.revision", r.source.clone(), line));
+                }
+            }
+        }
+        return Ok(report);
+    }
     let (path, bytes) = repo.sas_document()?;
     let current = sha256_hex(&bytes);
-    let revisions = repo.load_sas_revisions()?;
     if revisions.is_empty() {
         report.push(Diagnostic::warn(
             "sas.unrecorded",
@@ -389,6 +500,39 @@ pub fn status(repo: &Repository) -> Result<Report, RepoError> {
         }
     }
     Ok(report)
+}
+
+pub(crate) fn source_set_status(repo: &Repository, r: &SasRevision, report: &mut Report) {
+    match crate::sas_source_set::validate(repo, r, false) {
+        Err(e) => report.push(Diagnostic::error(
+            "sas.capture-invalid",
+            r.source.clone(),
+            e.to_string(),
+        )),
+        Ok(()) => {
+            report.push(Diagnostic::pass(
+                "sas.capture-intact",
+                format!(
+                    "{} · {} · complete subject sha256:{} · retained capture intact",
+                    r.version, r.state, r.sha256
+                ),
+            ));
+            match crate::sas_source_set::validate(repo, r, true) {
+                Ok(()) => report.push(Diagnostic::pass(
+                    "sas.current-matches",
+                    format!("{}: current inputs match captured subject", r.version),
+                )),
+                Err(e) => report.push(Diagnostic::warn(
+                    "sas.current-differs",
+                    r.source.clone(),
+                    format!(
+                        "{}: current inputs differ; historical capture remains intact: {e}",
+                        r.version
+                    ),
+                )),
+            }
+        }
+    }
 }
 
 fn find(repo: &Repository, version: &str) -> Result<SasRevision, RepoError> {

@@ -1,0 +1,16 @@
+schema = "oh.war/correction/v1"
+warrant = "OW-WAR-0058"
+
+[correction]
+id = "01a0a083-949e-77c1-b60d-5f5ab6de7873"
+deliverable_id = "D-001"
+target_ref = "crates/openwarrant-core/src/sas.rs"
+sequence = 1
+superseded_digest = "sha256:e8b235cb87160bedb48fba7cdc941ff49c74885e4ab2f14c31289f55856a3116"
+new_digest = "sha256:b13f2e3e7930900915f17580ffb42c47b8b9a6ffb0eed6d39e5c371de6ba1e8d"
+reason = "crates/openwarrant-core/src/sas.rs moved after its resolution at 2026-09-03T03:30:00Z; the repository records no commit touching it since,              so the bytes changed without a commit message to cite. Presented on a terminal by `war sign 1.0.0` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+kind = "behaviour-change"
+authorized_by_ref = "person://Brian Lam"
+acting_role_ref = "role://authorizer"
+effective_at = "2026-09-14T15:22:52Z"
+recorded_at = "2026-09-14T15:22:52Z"
