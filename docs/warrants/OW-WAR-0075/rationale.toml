@@ -2,8 +2,8 @@ schema = "oh.war/rationale/v1"
 
 [[assumption]]
 id = "A-001"
-statement = "The exact RC.2 implementation basis is accepted and applicable."
+statement = "Formal RC.3 adoption for qualification is not established by this unsigned implementation plan."
 epistemic_status = "blocking_unknown"
-resolution_requirement = "The adopted candidate digest, governing revision and any required ADR/migration records are present and independently checked; an old 1.0.0 signature is insufficient."
-consequence_if_false = "Affected implementation or publication stays blocked; draft preparation may continue."
+resolution_requirement = "For a claim requiring adopted RC.3: retain exact candidate adoption and applicable independent authority evidence."
+consequence_if_false = "That qualification claim and legacy resolution remain blocked. Prompt-only unverified work and independent preparation may continue."
 judgment_ref = ""

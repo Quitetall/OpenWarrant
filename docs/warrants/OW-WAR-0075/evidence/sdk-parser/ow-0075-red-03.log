@@ -1,0 +1,13 @@
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-war-0075-sdk/crates/openwarrant-core)
+error[E0432]: unresolved imports `openwarrant_core::document::validate_document`, `openwarrant_core::document::Validity`, `openwarrant_core::document::ValidationOptions`, `openwarrant_core::document::Evaluation`
+  --> crates/openwarrant-core/tests/document.rs:31:38
+   |
+31 |     use openwarrant_core::document::{validate_document, Validity, ValidationOptions, Evaluation};
+   |                                      ^^^^^^^^^^^^^^^^^  ^^^^^^^^  ^^^^^^^^^^^^^^^^^  ^^^^^^^^^^ no `Evaluation` in `document`
+   |                                      |                  |         |
+   |                                      |                  |         no `ValidationOptions` in `document`
+   |                                      |                  no `Validity` in `document`
+   |                                      no `validate_document` in `document`
+
+For more information about this error, try `rustc --explain E0432`.
+error: could not compile `openwarrant-core` (test "document") due to 1 previous error

@@ -1,0 +1,12 @@
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-war-0075-sdk/crates/openwarrant-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.69s
+     Running tests/document.rs (target/debug/deps/document-b0fa1e91232fbf0d)
+
+running 4 tests
+test minimal_document_preserves_original_bytes_and_exact_units ... ok
+test metadata_subset_refuses_multiline_and_nonportable_values_before_producing_document ... ok
+test unknown_extensions_preserve_content_and_block_only_required_interpretation ... ok
+test validation_distinguishes_kind_requirements_from_external_readiness ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

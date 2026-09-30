@@ -15,7 +15,7 @@ and fixtures for these representations are Phase 1 SDK-19–SDK-24 deliverables.
 
 | Operation | Input and result | Responsibility boundary |
 | --- | --- | --- |
-| `parse_document` | Original byte slice plus limits → parsed document or located diagnostics | Preserve original bytes, metadata, unit IDs/kinds and UTF-8 byte spans |
+| `parse_document` | Original byte slice plus limits → parsed document or located diagnostics | RC.3 footer plus explicit RC.2 adapter; preserve original bytes, metadata, unit IDs/kinds and UTF-8 byte spans |
 | `validate_document` | Parsed document plus supported schema/extensions → validity report | Kind-specific required units, fields and local reference/condition syntax; external availability remains unresolved |
 | `author_document` / `edit_document` | Typed fields or explicit field edits → new valid source bytes | Preserve untouched units; no hand-maintained digest/index fields; no hidden save or execution |
 | `document.unit(id)` | Local stable unit ID → exact source slice or missing result | A heading rename does not rename the unit; no network resolution |

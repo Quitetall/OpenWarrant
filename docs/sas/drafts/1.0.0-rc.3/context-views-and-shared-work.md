@@ -118,6 +118,14 @@ meaning. Successor or revocation records change current applicability without
 rewriting the older act. Draft scratchpad edits remain mutable until a revision is
 promoted or cited as retained evidence. Project-lifetime retention remains default.
 
+Migration archives SHALL preserve each original relative path and directory
+structure within an identified source/revision root. Distinct source trees with
+colliding paths retain separate roots and provenance mappings. Archived content
+is excluded from default context selection, with exact-source retrieval available
+when required. Sequestration preserves original bytes and history; it does not
+mean deletion or revoke an active rule. Keep any live compatibility paths required
+by current tools until a validated migration supports their relocation.
+
 | Operation | Required behavior |
 | --- | --- |
 | Context suppression | Keep source bytes/history; omit optional records from default projections. On-request inclusion follows current access policy. |

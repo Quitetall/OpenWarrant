@@ -448,7 +448,12 @@
       "proposed_disposition": "revise unsigned basis; retain parser scope",
       "proposed_owner": "OpenWarrant SDK",
       "proposed_phase": 1,
-      "historical_state_changed": false
+      "historical_state_changed": false,
+      "current_title": "Parse and validate human-first OpenWarrant documents",
+      "scope_revision": "sdk-footer-rc3",
+      "sdk_first_subset": false,
+      "prerequisite_outputs": [],
+      "scope_applied_to_unsigned_contract": true
     },
     {
       "alias": "OW-WAR-0076",
@@ -464,7 +469,14 @@
       "proposed_disposition": "revise unsigned basis; retain field authoring",
       "proposed_owner": "OpenWarrant SDK",
       "proposed_phase": 1,
-      "historical_state_changed": false
+      "historical_state_changed": false,
+      "current_title": "Author and edit human-first OpenWarrant documents",
+      "scope_revision": "sdk-footer-rc3",
+      "sdk_first_subset": false,
+      "prerequisite_outputs": [
+        "OW-WAR-0075"
+      ],
+      "scope_applied_to_unsigned_contract": true
     },
     {
       "alias": "OW-WAR-0077",
@@ -482,7 +494,14 @@
       "proposed_disposition": "move capture/resolution implementation; keep SDK source types",
       "proposed_owner": "LAMU/provider; SDK boundary",
       "proposed_phase": 2,
-      "historical_state_changed": false
+      "historical_state_changed": false,
+      "current_title": "Define SDK source types and prove provider resolution integration",
+      "scope_revision": "sdk-footer-rc3",
+      "sdk_first_subset": true,
+      "prerequisite_outputs": [
+        "OW-WAR-0075"
+      ],
+      "scope_applied_to_unsigned_contract": true
     },
     {
       "alias": "OW-WAR-0078",
@@ -500,7 +519,14 @@
       "proposed_disposition": "move condition evaluation; retain SDK syntax validation",
       "proposed_owner": "LAMU/provider; SDK boundary",
       "proposed_phase": 2,
-      "historical_state_changed": false
+      "historical_state_changed": false,
+      "current_title": "Validate condition syntax and prove provider evaluation integration",
+      "scope_revision": "sdk-footer-rc3",
+      "sdk_first_subset": true,
+      "prerequisite_outputs": [
+        "OW-WAR-0075"
+      ],
+      "scope_applied_to_unsigned_contract": true
     },
     {
       "alias": "OW-WAR-0079",
@@ -519,7 +545,15 @@
       "proposed_disposition": "move selection/dependency closure implementation",
       "proposed_owner": "LAMU/provider",
       "proposed_phase": 2,
-      "historical_state_changed": false
+      "historical_state_changed": false,
+      "current_title": "Prove provider context selection and dependency closure",
+      "scope_revision": "sdk-footer-rc3",
+      "sdk_first_subset": false,
+      "prerequisite_outputs": [
+        "OW-WAR-0077",
+        "OW-WAR-0078"
+      ],
+      "scope_applied_to_unsigned_contract": true
     },
     {
       "alias": "OW-WAR-0080",
@@ -537,7 +571,14 @@
       "proposed_disposition": "move master/projection implementation",
       "proposed_owner": "LAMU/provider",
       "proposed_phase": 2,
-      "historical_state_changed": false
+      "historical_state_changed": false,
+      "current_title": "Prove provider master context and task projections",
+      "scope_revision": "sdk-footer-rc3",
+      "sdk_first_subset": false,
+      "prerequisite_outputs": [
+        "OW-WAR-0079"
+      ],
+      "scope_applied_to_unsigned_contract": true
     },
     {
       "alias": "OW-WAR-0081",
@@ -556,7 +597,15 @@
       "proposed_disposition": "move package production/semantic checking; retain SDK integrity inspection",
       "proposed_owner": "LAMU/provider; SDK boundary",
       "proposed_phase": 2,
-      "historical_state_changed": false
+      "historical_state_changed": false,
+      "current_title": "Inspect packet integrity and prove offline provider packages",
+      "scope_revision": "sdk-footer-rc3",
+      "sdk_first_subset": true,
+      "prerequisite_outputs": [
+        "OW-WAR-0075",
+        "OW-WAR-0077"
+      ],
+      "scope_applied_to_unsigned_contract": true
     },
     {
       "alias": "OW-WAR-0082",
@@ -573,7 +622,15 @@
       "proposed_disposition": "move context budget/cache implementation",
       "proposed_owner": "LAMU/provider",
       "proposed_phase": 2,
-      "historical_state_changed": false
+      "historical_state_changed": false,
+      "current_title": "Prove provider context budgets and cache invalidation",
+      "scope_revision": "sdk-footer-rc3",
+      "sdk_first_subset": false,
+      "prerequisite_outputs": [
+        "OW-WAR-0077",
+        "OW-WAR-0080"
+      ],
+      "scope_applied_to_unsigned_contract": true
     },
     {
       "alias": "OW-WAR-0083",
@@ -593,7 +650,15 @@
       "proposed_disposition": "revise record/agent-act/assurance scope; runtime acts stay Phase 3",
       "proposed_owner": "OpenWarrant SDK",
       "proposed_phase": 1,
-      "historical_state_changed": false
+      "historical_state_changed": false,
+      "current_title": "Evaluate supplied work and assurance records",
+      "scope_revision": "sdk-footer-rc3",
+      "sdk_first_subset": false,
+      "prerequisite_outputs": [
+        "OW-WAR-0075",
+        "OW-WAR-0077"
+      ],
+      "scope_applied_to_unsigned_contract": true
     },
     {
       "alias": "OW-WAR-0084",
@@ -611,7 +676,16 @@
       "proposed_disposition": "retain explicit legacy preservation and successor mapping",
       "proposed_owner": "OpenWarrant SDK",
       "proposed_phase": 1,
-      "historical_state_changed": false
+      "historical_state_changed": false,
+      "current_title": "Preserve legacy history and explicit successor lineage",
+      "scope_revision": "sdk-footer-rc3",
+      "sdk_first_subset": false,
+      "prerequisite_outputs": [
+        "OW-WAR-0075",
+        "OW-WAR-0077",
+        "OW-WAR-0083"
+      ],
+      "scope_applied_to_unsigned_contract": true
     },
     {
       "alias": "OW-WAR-0085",
@@ -690,7 +764,21 @@
       "proposed_disposition": "replace old eleven-feature exit with SDK and CLI exit",
       "proposed_owner": "OpenWarrant SDK",
       "proposed_phase": 1,
-      "historical_state_changed": false
+      "historical_state_changed": false,
+      "current_title": "Prove Phase 1 SDK, CLI and adapted skill scope",
+      "scope_revision": "sdk-footer-rc3",
+      "sdk_first_subset": false,
+      "prerequisite_outputs": [
+        "OW-WAR-0075",
+        "OW-WAR-0076",
+        "OW-WAR-0077",
+        "OW-WAR-0078",
+        "OW-WAR-0081",
+        "OW-WAR-0083",
+        "OW-WAR-0084",
+        "OW-WAR-0087"
+      ],
+      "scope_applied_to_unsigned_contract": true
     },
     {
       "alias": "OW-WAR-0086",
@@ -702,7 +790,18 @@
       "proposed_disposition": "replace compiler CLI build with provider integration contract",
       "proposed_owner": "OpenWarrant SDK + LAMU/provider",
       "proposed_phase": 2,
-      "historical_state_changed": false
+      "historical_state_changed": false,
+      "current_title": "Integrate SDK with LAMU and a second minimal consumer",
+      "scope_revision": "sdk-footer-rc3",
+      "sdk_first_subset": false,
+      "prerequisite_outputs": [
+        "OW-WAR-0085",
+        "OW-WAR-0079",
+        "OW-WAR-0080",
+        "OW-WAR-0081",
+        "OW-WAR-0082"
+      ],
+      "scope_applied_to_unsigned_contract": true
     },
     {
       "alias": "OW-WAR-0087",
@@ -716,7 +815,20 @@
       "proposed_disposition": "move document CLI parity into Phase 1",
       "proposed_owner": "OpenWarrant CLI",
       "proposed_phase": 1,
-      "historical_state_changed": false
+      "historical_state_changed": false,
+      "current_title": "Expose document and record primitives through CLI",
+      "scope_revision": "sdk-footer-rc3",
+      "sdk_first_subset": false,
+      "prerequisite_outputs": [
+        "OW-WAR-0075",
+        "OW-WAR-0076",
+        "OW-WAR-0077",
+        "OW-WAR-0078",
+        "OW-WAR-0081",
+        "OW-WAR-0083",
+        "OW-WAR-0084"
+      ],
+      "scope_applied_to_unsigned_contract": true
     },
     {
       "alias": "OW-WAR-0088",
@@ -728,7 +840,14 @@
       "proposed_disposition": "revise ergonomic authoring consumer scope; noninteractive parity already Phase 1",
       "proposed_owner": "OpenWarrant SDK consumers",
       "proposed_phase": 2,
-      "historical_state_changed": false
+      "historical_state_changed": false,
+      "current_title": "Make SDK document authoring interactive and recoverable",
+      "scope_revision": "sdk-footer-rc3",
+      "sdk_first_subset": false,
+      "prerequisite_outputs": [
+        "OW-WAR-0087"
+      ],
+      "scope_applied_to_unsigned_contract": true
     },
     {
       "alias": "OW-WAR-0089",
@@ -740,7 +859,15 @@
       "proposed_disposition": "revise packaging/version scope for four-phase release",
       "proposed_owner": "OpenWarrant release",
       "proposed_phase": 4,
-      "historical_state_changed": false
+      "historical_state_changed": false,
+      "current_title": "Prepare standard and SDK release artifacts",
+      "scope_revision": "sdk-footer-rc3",
+      "sdk_first_subset": false,
+      "prerequisite_outputs": [
+        "OW-WAR-0086",
+        "OW-WAR-0088"
+      ],
+      "scope_applied_to_unsigned_contract": true
     },
     {
       "alias": "OW-WAR-0090",
@@ -753,7 +880,14 @@
       "proposed_disposition": "replace Phase-2 Stable qualification with four-phase qualification",
       "proposed_owner": "OpenWarrant release + independent reviewers",
       "proposed_phase": 4,
-      "historical_state_changed": false
+      "historical_state_changed": false,
+      "current_title": "Qualify four-phase release and freeze Stable source set",
+      "scope_revision": "sdk-footer-rc3",
+      "sdk_first_subset": false,
+      "prerequisite_outputs": [
+        "OW-WAR-0089"
+      ],
+      "scope_applied_to_unsigned_contract": true
     },
     {
       "alias": "OW-WAR-0091",
@@ -765,7 +899,14 @@
       "proposed_disposition": "defer Stable publication until revised hardening gate and owner release act",
       "proposed_owner": "OpenWarrant owner",
       "proposed_phase": 4,
-      "historical_state_changed": false
+      "historical_state_changed": false,
+      "current_title": "Publish and verify OpenWarrant Stable 1.0",
+      "scope_revision": "sdk-footer-rc3",
+      "sdk_first_subset": false,
+      "prerequisite_outputs": [
+        "OW-WAR-0090"
+      ],
+      "scope_applied_to_unsigned_contract": true
     }
   ]
 }

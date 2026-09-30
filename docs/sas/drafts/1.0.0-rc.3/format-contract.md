@@ -1,70 +1,9 @@
-+++
-schema = "oh.war/document/1.0.0-rc.2"
-kind = "context"
-id = "openwarrant:format-contract"
-revision = 3
-title = "SDK document format and external compiler profile"
-state = "proposed"
-
-[[dependencies]]
-unit = "units"
-target = "#source"
-
-[[dependencies]]
-unit = "pointers"
-target = "#source"
-
-[[dependencies]]
-unit = "pointers"
-target = "#units"
-
-[[dependencies]]
-unit = "conditions"
-target = "#pointers"
-
-[[dependencies]]
-unit = "request"
-target = "#source"
-
-[[dependencies]]
-unit = "request"
-target = "#records"
-
-[[dependencies]]
-unit = "request"
-target = "#digests"
-
-[[dependencies]]
-unit = "selection"
-target = "#pointers"
-
-[[dependencies]]
-unit = "selection"
-target = "#conditions"
-
-[[dependencies]]
-unit = "package"
-target = "#request"
-
-[[dependencies]]
-unit = "package"
-target = "#selection"
-
-[[dependencies]]
-unit = "package"
-target = "#digests"
-
-[[dependencies]]
-unit = "records"
-target = "#digests"
-+++
-
 <!-- ow:unit context binding -->
 # SDK document format and external compiler profile
 
-Status: normative compatibility profile carried by [SAS 1.0.0-rc.3](WAR_Software_Architecture_Specification.md).
-Wire identifiers remain RC.2; the program SAS edition does not rename existing
-payloads or signatures. Source framing/types/units and F8/F9 record/digest codecs
+Status: normative document and compatibility profile carried by [SAS 1.0.0-rc.3](WAR_Software_Architecture_Specification.md).
+New documents use the RC.3 footer framing below. RC.2 header documents and
+existing packet/record identifiers retain their original meanings and signatures. Source framing/types/units and F8/F9 record/digest codecs
 are SDK responsibilities. F3/F4 syntax is validated by the SDK; cross-source
 resolution and condition evaluation belong to the compiler provider. F5–F7
 construction, selection, semantic coverage checking and budget/cache behavior
@@ -78,22 +17,79 @@ reinterpret this profile's existing `human-acceptance` records.
 <!-- ow:unit source binding -->
 ## F1. Source framing and metadata
 
-A new source is UTF-8 without BOM or NUL. It begins with a line containing exactly
-`+++`, followed by a TOML header, another exact `+++` line, then Markdown units.
-Both LF and CRLF are accepted and preserved in source blobs. A framing line is
-recognized after removing only its line terminator. An unterminated header fails.
-RC.2 forbids TOML multiline strings so a delimiter cannot occur inside one.
-Body Markdown can contain code and quotations; neither is executed.
+A new source is UTF-8 without BOM or NUL. Human-readable Markdown units come
+first; one machine metadata footer comes last. Both LF and CRLF are accepted and
+preserved. Framing lines are matched after removing only their line terminator.
+The exact footer form is:
 
-Header syntax follows [TOML 1.0.0](https://toml.io/en/v1.0.0), limited by the types
-below: strings, booleans, integers from 0 through 9007199254740991, arrays, and
-tables. Floats, dates/times, and null are not supported. A schema's nonempty array
-or positive-integer requirement narrows those general types. Duplicate keys fail.
-The parser SHALL preserve original bytes separately from parsed field values.
+````markdown
+<!-- ow:metadata -->
+```toml
+schema = "oh.war/document/1.0.0-rc.3"
+# remaining required fields
+```
+<!-- /ow:metadata -->
+````
+
+An author MAY wrap the fenced TOML inside these exact lines, immediately inside
+the metadata markers: `<details>` then
+`<summary>OpenWarrant metadata</summary>`, and `</details>` immediately after the
+closing code fence. One empty line MAY follow the summary and precede
+`</details>` so Markdown renderers can display the fenced payload. The wrapper
+is presentation only. No other lines occur between these delimiters; the TOML
+payload may contain blank lines. Parsing never
+depends on HTML rendering, highlighting or clickable editor links.
+
+The scanner recognizes an exact column-zero opening marker outside a body fence,
+then consumes this footer grammar. Missing, duplicated, malformed, mixed header
+and footer, or truncated framing fails. Only ASCII space, tab, CR and LF may
+follow the closing marker. Footer-looking text inside a body fence is ordinary
+unit text. The final unit ends at the opening footer marker, excluding all footer
+bytes. Metadata markers beginning `<!-- ow:metadata` or `<!-- /ow:metadata` outside
+fences must match the grammar exactly; otherwise they fail. An unclosed body fence
+fails rather than concealing the footer.
+
+The first unit starts with a level-one heading. Its text after `# ` SHALL equal
+`title` exactly, without Markdown rendering or case/Unicode normalization.
+This keeps the visible document title consistent with its machine identity.
+Edition/status may be described below it; machine state remains the authoritative
+parsed value and cannot imply approval. Subsequent headings may use levels 1–6.
+
+Metadata follows [TOML 1.0.0](https://toml.io/en/v1.0.0), limited to strings,
+booleans, integers from 0 through 9007199254740991, arrays and tables. Floats,
+dates/times, null and TOML multiline strings are unsupported. A schema's nonempty
+array or positive-integer requirement narrows those types. Duplicate keys fail.
+The parser SHALL preserve original bytes separately from parsed values. Source
+digests and approval subjects cover the whole original file, including its footer.
+Moving metadata or changing dependency syntax changes the source digest even
+when the parsed values are equal; no old signature follows the new bytes.
+
+Compact inline-table arrays are the preferred dependency layout:
+
+```toml
+dependencies = [
+  { unit = "integrations", target = "skill-adaptation.md" },
+  { unit = "phases", target = "phase-plan.md" },
+]
+```
+
+Repeated `[[dependencies]]` tables remain equivalent valid TOML. Repeating `unit`
+and `target` keys in one table is invalid. Array order identifies entries; no
+manual numerical index is required, and one unit may have several targets.
+Prose uses ordinary Markdown links. Renderers may derive navigation from metadata
+and map stable unit IDs to their view anchors; a metadata target is not itself a
+portable hyperlink. Native AGENTS.md/CLAUDE.md files retain their own format.
+
+**Legacy adapter:** `oh.war/document/1.0.0-rc.2` still means the exact `+++` header
+framing and unit rules in the retained [RC.2 contract](../1.0.0-rc.2/format-contract.md).
+Select that adapter explicitly from its declared version. Reject RC.2 in a footer,
+RC.3 in a header, and unsupported versions. Keep historical fixtures and signed
+sources byte-identical; conversion is new authoring and cannot carry acceptance.
+Packet and record schema versions do not change merely because a source uses RC.3.
 
 | Field | Type and meaning | Required/default |
 | --- | --- | --- |
-| `schema` | Exact string `oh.war/document/1.0.0-rc.2` | Required |
+| `schema` | Exact string `oh.war/document/1.0.0-rc.3` for this footer grammar | Required |
 | `kind` | `warrant`, `sas`, `adr`, or `context` | Required |
 | `id` | Stable document identity; ASCII namespace-qualified string | Required |
 | `revision` | Positive integer, author revision label | Required |
@@ -142,7 +138,7 @@ unit ID. Malformed marker-looking lines outside fences fail rather than silently
 turning a binding unit into background.
 
 A unit's exact text range starts immediately after its marker's line ending and
-ends at the next marker's first byte or EOF. It includes its heading, nested
+ends at the next unit marker or the opening metadata-footer marker, whichever comes first. It includes its heading, nested
 headings, Markdown, blank lines, and original line endings. The marker itself is
 metadata, not unit text. Source maps use zero-based UTF-8 byte offsets `[start,end)`;
 no Unicode or newline normalization is applied to binding slices.
@@ -154,7 +150,8 @@ info string may not contain backticks. Markers inside a fence are ordinary text.
 An unclosed fence is an error. Indented code, list items, blockquotes, and HTML
 rendering never activate a marker: only the exact column-zero line does. This is
 an explicit OpenWarrant structural scanner, not inference from rendered Markdown.
-Content before the first unit, after the header, must be whitespace only.
+Content before the first unit must be ASCII whitespace only. The final unit
+ends before the metadata footer. Header-adapter spans retain their RC.2 definition.
 
 | Kind | Required nonempty units | Meaning |
 | --- | --- | --- |
@@ -179,7 +176,7 @@ projection. A missing required target cannot yield a complete execution packet.
 <!-- ow:unit pointers binding -->
 ## F3. Pointers, dependencies, and captured references
 
-Example header entries:
+Example metadata entries:
 
 ```toml
 [[context]]
@@ -214,7 +211,7 @@ captured source. Cross-document dependency edges are explicitly allowed. Target
 existence is a resolution concern.
 
 Targets are `<path>#<unit-id>`, `<path>#*`, `#<unit-id>`, or `<path>` for a raw
-whole-file reference. `#*` means all units plus header semantics of a parsed
+whole-file reference. `#*` means all units plus metadata semantics of a parsed
 source. An omitted path means this source. Paths are capture-root-relative, not
 relative to each document's directory. They use `/`, contain nonempty segments,
 and must not start with `/`, contain `.` or `..` segments, `\\`, `:`, NUL, `#`,
@@ -339,7 +336,7 @@ is allowed only when context_complete is true. Compiler success never attests
 human identity, executed checks, or sandbox protection it did not observe.
 
 Default limits are 8 MiB per source, 256 MiB total input bytes, 4096 sources,
-65536 units, 262144 dependency edges, 1 MiB of header per source,
+65536 units, 262144 dependency edges, 1 MiB of metadata per source,
 64 MiB of rendered entry bytes, and 512 MiB of package bytes. Render/output limits
 are checked incrementally as well as at publication. Values are
 inclusive. Custom positive limits must be supplied, recorded, and checked before
@@ -597,3 +594,34 @@ unsupported-semantics diagnostics. Migration is a new output operation, never an
 in-place rewrite of authorized sources or signed payloads. Unsupported editions
 fail by name. Stable 1.0 may adopt an unchanged contract or a revised one only
 with explicit version and migration evidence; RC.2 is not already Stable.
+
+<!-- ow:metadata -->
+<details>
+<summary>OpenWarrant metadata</summary>
+
+```toml
+schema = "oh.war/document/1.0.0-rc.3"
+kind = "context"
+id = "openwarrant:format-contract"
+revision = 3
+title = "SDK document format and external compiler profile"
+state = "proposed"
+dependencies = [
+  { unit = "units", target = "#source" },
+  { unit = "pointers", target = "#source" },
+  { unit = "pointers", target = "#units" },
+  { unit = "conditions", target = "#pointers" },
+  { unit = "request", target = "#source" },
+  { unit = "request", target = "#records" },
+  { unit = "request", target = "#digests" },
+  { unit = "selection", target = "#pointers" },
+  { unit = "selection", target = "#conditions" },
+  { unit = "package", target = "#request" },
+  { unit = "package", target = "#selection" },
+  { unit = "package", target = "#digests" },
+  { unit = "records", target = "#digests" },
+]
+```
+
+</details>
+<!-- /ow:metadata -->

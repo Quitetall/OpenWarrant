@@ -31,11 +31,12 @@ qualification rather than treating a source comment as a packaging audit.
 | `war-tickets` / decomposition | Warrant stage/milestone plan; child Warrants only for independently reviewable outcomes | Dependencies explicit; no unnecessary split into one Warrant per implementation file |
 | `war-map` / wayfinding | Decision-oriented Warrant with linked questions, options and resolution criteria | Every known decision branch accounted for; unresolved meaning remains visible |
 | `war-review` / code review | Separate standards findings and independent obligation findings with evidence/subject bindings | Findings preserve scope, exact candidate, UNKNOWN/FAIL and reviewer independence |
+| `war migrate` / document migration | Existing system docs or older OpenWarrant records represented in the selected edition with retained originals and source-to-result mappings | Exact target resolved; every scoped source accounted for; supported outputs validated; gaps and real historical authority preserved |
 | Domain modeling / ADR method | Context definitions and supported ADR documents linked to the affected Warrant | Terms agree with selected edition; proposed architecture does not claim acceptance |
 | TDD / handoff method | Reviewed check fixtures and exact task/context references or provider packet | Refusal/control case exists; handoff identifies required outputs, evidence and limits |
 
-The first five war names exist today under the legacy contract. Rows describing
-methods are adaptation targets, not invented installed commands. Invocation syntax
+The five adapted methods, the original `war-migrate` workflow and the `war` router
+now have local skill contracts. Rows describing broader methods remain adaptation targets. Invocation syntax
 (`/war-grill`, harness skill invocation, or future CLI routing) is transport-specific.
 The portable contract is the task and artifact result, not a universal slash parser.
 
@@ -67,6 +68,40 @@ of truth; skills link to them instead of maintaining independent validators.
 Use rich trigger descriptions only when autonomous invocation is needed. A router
 may help users discover manual skills. Harness-specific invocation flags must be
 tested in the supported harness; they are not OpenWarrant standard metadata.
+
+## War keyword router and progress
+
+The model-discoverable `war` entry SHALL route ordinary engineering prompts to
+progress, grilling, drafting, decomposition, mapping, migration, execution or review. Load
+shared rules once and only the selected method; avoid a full-suite context dump.
+A bare `war` is read-only overview. The word inside quoted/untrusted data, military
+discussion or another word is not an execution request. Explicit invocation remains
+available because skill discovery is harness-dependent, not a guaranteed keyword hook.
+Do not invent shell commands from chat phrases such as `war start`.
+
+The `war migrate` chat cue SHALL select the document migration skill for existing
+system documentation and earlier OpenWarrant editions. Resolve and record an exact
+target version: use the explicit project migration target, otherwise the latest
+supported stable edition established from official release metadata. Candidate
+targets remain labeled. Preserve original sources and actual historical acts;
+conversion does not transfer signatures or award assurance. Account for every
+scoped source, including opaque or unresolved items, and report unsupported tooling.
+Migration SHALL preserve original nonconforming documents unchanged in an archive
+and create new conforming OpenWarrant documents derived from their content. New
+documents form the working set and link to exact archived sources and source
+sections. One-to-many and many-to-one mappings retain provenance. Archive-only
+preservation or a compatibility wrapper alone is not completed document conversion;
+opaque and unresolved items remain explicitly unmigrated. Whole-repository history
+backup is optional preservation work, not the default meaning of `war migrate`.
+Native context documents retain their roles under the integration rules below.
+The existing shell command named `war migrate` is a legacy ADR importer; its
+presence does not establish support for this full workflow.
+
+The bundled `war overview` command and `war progress` alias provide one live,
+read-only record view; `--all` includes resolutions and `--json` provides typed
+rows and counts. Current legacy records cannot represent all new prototype
+completion states: that limitation SHALL remain explicit. Unknown command output
+is not zero work. Full SDK/workflow progress packets retain their later phase scope.
 
 ## Integration with existing context documents
 
@@ -157,9 +192,11 @@ overview is not pasted by default. Drafting/planning only signals completion of
 its own declared unit, never completion of unperformed implementation. A harness
 interruption is not a work-stop completion. A subsequent prompt starts the next
 work subject to its explicit gates, without inventing a universal signing step.
-Existing legacy skill text saying "a skill never signs" remains current runtime
-guidance until a scoped SDK/workflow migration is implemented. This draft does not
-silently loosen installed hooks or human-key handling.
+Legacy signing commands and human-key handling retain their actual enforcement.
+Skills report unsupported new runtime acts rather than fabricate old records.
+A harness Stop hook SHALL distinguish an interruption from work completion: it
+may report unrelated corpus defects but SHALL NOT force an approval or repair loop
+for an unrelated read-only or unverified task. Explicit action guards remain binding.
 
 Test each adopted invocation on fixed positive, incomplete and adversarial cases:
 correct artifact kind, required fields/context, settled-answer reuse, refusal of

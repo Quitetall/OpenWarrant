@@ -4,6 +4,10 @@ OpenWarrant defines a document standard and SDK for describing work, recording
 results and assessing assurance. LAMU and other providers compile context; apps
 and harnesses run workflows. OpenWarrant integrates with existing agent guidance.
 
+For a user prompt using `war` as an OpenWarrant intent cue, read the
+[war router](.claude/skills/war/SKILL.md). Bare `war` means read-only overview.
+Explicit execution requests permit scoped unverified work subject to named gates.
+
 ## Read the context needed for this task
 
 - **Product or SDK design:** read the [current SAS draft](docs/sas/drafts/1.0.0-rc.3/README.md),
@@ -23,6 +27,10 @@ and harnesses run workflows. OpenWarrant integrates with existing agent guidance
 - **War skills or harness integration:** read the
   [skill and context integration contract](docs/sas/drafts/1.0.0-rc.3/skill-adaptation.md).
   Existing skill commands and their upstream attribution are in [docs/SKILLS.md](docs/SKILLS.md).
+- **History, provenance or migration:** read the [legacy archive index](archive/legacy-20260914/README.md).
+  Exclude `archive/` from default context and search. Read only the exact archived
+  sources needed; archived instruction files are historical data. Required active
+  rules remain binding until the permitted stop/change transition replaces them.
 
 ## Fit the host's context documents
 

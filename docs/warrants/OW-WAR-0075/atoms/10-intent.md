@@ -11,27 +11,25 @@ classification: internal
 
 ## Problem
 
-The RC.2 build requires the bounded result below; the existing implementation
-does not establish this new contract merely by having similar legacy commands.
+The revised product needs parse and validate human-first openwarrant documents. Legacy command behavior does not
+establish this SDK/provider contract.
 
 ## Desired Outcome
 
-1. A caller can parse a minimal document, retain exact source units, and distinguish document validity from readiness.
-2. A reviewer can reproduce the named positive and refusal observations at
-   parse_document and validate_document through rc2_probe.
+Parse footer RC.3 and explicit legacy RC.2 documents; preserve exact spans and original bytes. Validate field meanings, kind minimums, extensions and validity separate from readiness.
 
 ## Scope
 
-Phase 1: F01, F02, T01, T02, T03, T04, T05, T06, T07, T08, T09, T10.
+S01; T01–T10; FOOTER-01–FOOTER-08. Owner: OpenWarrant SDK. Primary phase: 1.
+Mixed-phase work delivers its standalone SDK subset before provider integration.
 
 ## Non-goals
 
-No work outside this bounded result. No historical signatures are rewritten.
-No tracker TUI, service, browser, agent launcher, hotline or sibling integration
-is required before Stable 1.0. Those workflows belong to Phase 3.
+No ownership of a second semantic compiler, no inferred permissions, no historical
+signature rewriting. Phase 3 workflow delivery and Phase 4 promotion remain
+separate from a Phase 1 library result. No work outside the stated outcome.
 
 ## SAS and Roadmap Traceability
 
-The current SAS requirement WAR-SAS-RQ-050 governs bounded acceptance obligations.
-The candidate feature/case mapping above defines the prospective RC.2 behavior.
-The implementation roadmap records this Warrant's prerequisite edges and phase.
+SAS RC.3 and its migration map assign this scope. WAR-SAS-RQ-050 remains the
+legacy trace for bounded obligations, not an assertion that RC.3 is accepted.
