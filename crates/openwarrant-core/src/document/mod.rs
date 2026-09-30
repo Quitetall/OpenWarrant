@@ -8,6 +8,12 @@ use std::ops::Range;
 
 pub use toml10::Value as MetadataValue;
 
+mod author;
+pub use author::{
+    AuthorOptions, AuthoredUnit, DocumentEdit, DocumentFields, LineEnding, author_document,
+    edit_document,
+};
+
 mod metadata;
 mod references;
 mod scan;
@@ -61,7 +67,9 @@ pub enum Severity {
     Info,
 }
 
-/// A diagnostic range always indexes the caller's original UTF-8 source bytes.
+/// Diagnostic byte offsets index the source being checked: original input for
+/// parsing, candidate output for author/edit validation. Construction errors use
+/// an empty range when no serialized source exists.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Diagnostic {
     pub code: &'static str,
