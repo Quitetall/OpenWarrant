@@ -34609,7 +34609,7 @@ this level requires. The author does not record them.
 | D-009 | The live demonstration gate, only if Q-002 selects the live corpus | `docs/gates/ops.exit-demo@1.0.0.yaml` | verified |
 | D-010 | The invalidate act's response schema and name, verified on the read path (AM-003; Q-001 a or b only) | `crates/openwarrant-cli/src/authority_check.rs` | not_content_addressed |
 | D-011 | war next names the invalidate act (AM-003; Q-001 a or b only) | `crates/openwarrant-cli/src/next.rs` | verified |
-| D-012 | The console names the invalidate act (AM-003; Q-001 a or b only) | `crates/openwarrant-cli/src/console.rs` | verified |
+| D-012 | The console names the invalidate act (AM-003; Q-001 a or b only) | `crates/openwarrant-cli/src/console.rs` | drift |
 | D-013 | The batch refuses an invalidation: it is signed alone (AM-003; Q-001 a or b only) | `crates/openwarrant-cli/src/batch_cmd.rs` | not_content_addressed |
 | D-014 | The human acts, gate invalidation among them (AM-003; Q-001 a or b only) | `AGENTS.md` | verified |
 | D-015 | Signing an invalidation (AM-003; Q-001 a or b only) | `docs/SIGNING.md` | verified |
@@ -37671,7 +37671,7 @@ once, at acceptance, after the blind verifier.
 | D-018 | cli: class-act attestations | `crates/openwarrant-cli/src/attest.rs` | verified |
 | D-019 | cli: a covered Warrant's policy-service resolution refused at ingest | `crates/openwarrant-cli/src/resolution_cmd.rs` | verified |
 | D-020 | cli: the class acts in war next | `crates/openwarrant-cli/src/next.rs` | verified |
-| D-021 | cli: the class acts in the console | `crates/openwarrant-cli/src/console.rs` | verified |
+| D-021 | cli: the class acts in the console | `crates/openwarrant-cli/src/console.rs` | drift |
 | D-022 | cli: war_standing_apply and war_standing_show | `crates/openwarrant-cli/src/mcp/tools.rs` | verified |
 | D-023 | cli: the refused MCP names | `crates/openwarrant-cli/src/mcp/mod.rs` | drift |
 | D-024 | cli: the pack's new member | `crates/openwarrant-cli/src/schemas.rs` | verified |
