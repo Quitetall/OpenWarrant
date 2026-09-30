@@ -1,0 +1,129 @@
+{
+  "expected": "8eb3041554c8471f70c79096cb5b7520dcb2f6344a58dbcf1c3196b715ab236f",
+  "observations": [
+    {
+      "archive": "archive/legacy-20260914/snapshots/01-OpenWarrant.tar.gz",
+      "member": "docs/warrants/OW-WAR-0030/verifications/OBL-003.toml",
+      "sha256": "7fac44be1b600c4846eebb2445233a7a0e027f3501533c85edfa85d153d480d0",
+      "match": false
+    },
+    {
+      "archive": "archive/legacy-20260914/snapshots/02-openwarrant-adr0186.tar.gz",
+      "member": "docs/warrants/OW-WAR-0030/verifications/OBL-003.toml",
+      "sha256": "9086a1f7c9c211b62cf0b30c0f6b6e2509e26446357504a78c9bf470b06201ef",
+      "match": false
+    },
+    {
+      "archive": "archive/legacy-20260914/snapshots/03-OpenWarrant-wmd.tar.gz",
+      "member": "docs/warrants/OW-WAR-0030/verifications/OBL-003.toml",
+      "sha256": "7fac44be1b600c4846eebb2445233a7a0e027f3501533c85edfa85d153d480d0",
+      "match": false
+    },
+    {
+      "archive": "archive/legacy-20260914/snapshots/04-openwarrant-liminal-phases.tar.gz",
+      "member": "docs/warrants/OW-WAR-0030/verifications/OBL-003.toml",
+      "sha256": "7fac44be1b600c4846eebb2445233a7a0e027f3501533c85edfa85d153d480d0",
+      "match": false
+    },
+    {
+      "archive": "archive/legacy-20260914/snapshots/05-openwarrant-sas-successor.tar.gz",
+      "member": "docs/warrants/OW-WAR-0030/verifications/OBL-003.toml",
+      "sha256": "7fac44be1b600c4846eebb2445233a7a0e027f3501533c85edfa85d153d480d0",
+      "match": false
+    },
+    {
+      "archive": "archive/legacy-20260914/snapshots/07-ow-bonsai-public-source.tar.gz",
+      "member": "docs/warrants/OW-WAR-0030/verifications/OBL-003.toml",
+      "sha256": "9086a1f7c9c211b62cf0b30c0f6b6e2509e26446357504a78c9bf470b06201ef",
+      "match": false
+    },
+    {
+      "archive": "archive/legacy-20260914/snapshots/08-ow-history-restore-20260914.tar.gz",
+      "member": "docs/warrants/OW-WAR-0030/verifications/OBL-003.toml",
+      "sha256": "7fac44be1b600c4846eebb2445233a7a0e027f3501533c85edfa85d153d480d0",
+      "match": false
+    },
+    {
+      "archive": "archive/legacy-20260914/snapshots/11-ow-rc2-roadmap.tar.gz",
+      "member": "docs/warrants/OW-WAR-0030/verifications/OBL-003.toml",
+      "sha256": "7fac44be1b600c4846eebb2445233a7a0e027f3501533c85edfa85d153d480d0",
+      "match": false
+    },
+    {
+      "archive": "archive/legacy-20260914/snapshots/12-ow-sas-rc3-main.tar.gz",
+      "member": "docs/warrants/OW-WAR-0030/verifications/OBL-003.toml",
+      "sha256": "7fac44be1b600c4846eebb2445233a7a0e027f3501533c85edfa85d153d480d0",
+      "match": false
+    },
+    {
+      "archive": "archive/legacy-20260914/snapshots/13-ow-sdk-standard-amendment.tar.gz",
+      "member": "docs/warrants/OW-WAR-0030/verifications/OBL-003.toml",
+      "sha256": "7fac44be1b600c4846eebb2445233a7a0e027f3501533c85edfa85d153d480d0",
+      "match": false
+    },
+    {
+      "archive": "archive/legacy-20260914/snapshots/15-ow-war-0074-source-set.tar.gz",
+      "member": "docs/warrants/OW-WAR-0030/verifications/OBL-003.toml",
+      "sha256": "7fac44be1b600c4846eebb2445233a7a0e027f3501533c85edfa85d153d480d0",
+      "match": false
+    },
+    {
+      "archive": "archive/legacy-20260914/snapshots/16-ow-war-0075-parser.tar.gz",
+      "member": "docs/warrants/OW-WAR-0030/verifications/OBL-003.toml",
+      "sha256": "7fac44be1b600c4846eebb2445233a7a0e027f3501533c85edfa85d153d480d0",
+      "match": false
+    }
+  ],
+  "all_local_refs": [
+    {
+      "commit": "1a7241e06a87fc47607bee9a00cbb8a859a8e3f1",
+      "sha256": "591f6e726a7428ffb966d9b2e90cf16d0b371b23bc3299c543f8aa62dcdadd95",
+      "match": false
+    },
+    {
+      "commit": "3de9e1f53c459088a1c672d01e7ce424276fc5da",
+      "sha256": "8eb3041554c8471f70c79096cb5b7520dcb2f6344a58dbcf1c3196b715ab236f",
+      "match": true
+    },
+    {
+      "commit": "4342b75d433a81d080d7634ae3acb62e79867c91",
+      "sha256": "9086a1f7c9c211b62cf0b30c0f6b6e2509e26446357504a78c9bf470b06201ef",
+      "match": false
+    },
+    {
+      "commit": "4f76c1f795a38238e0feef04187e31a4adbffa55",
+      "sha256": "591f6e726a7428ffb966d9b2e90cf16d0b371b23bc3299c543f8aa62dcdadd95",
+      "match": false
+    },
+    {
+      "commit": "5077264f43a4c2d61c67efd9eafc749400dfd75e",
+      "sha256": "7fac44be1b600c4846eebb2445233a7a0e027f3501533c85edfa85d153d480d0",
+      "match": false
+    },
+    {
+      "commit": "60b38d85d70fc19fde465e6dec69676239b097ae",
+      "sha256": "9da9e0e2ebe787e361d968b17a98571126c8bfb21cf75ba31fa2d2d097d56f3b",
+      "match": false
+    },
+    {
+      "commit": "615c6aa2bd62a680778c212a2bcb6b83a9a6e052",
+      "sha256": "9086a1f7c9c211b62cf0b30c0f6b6e2509e26446357504a78c9bf470b06201ef",
+      "match": false
+    },
+    {
+      "commit": "74c185e1c0229a4e07f5a23588e5628b738e13b0",
+      "sha256": "7fac44be1b600c4846eebb2445233a7a0e027f3501533c85edfa85d153d480d0",
+      "match": false
+    },
+    {
+      "commit": "8721be7fe3a31f0771eb35ae4fbd9b9fe622b271",
+      "sha256": "9da9e0e2ebe787e361d968b17a98571126c8bfb21cf75ba31fa2d2d097d56f3b",
+      "match": false
+    },
+    {
+      "commit": "a6e3e03ea93d0a242969e9ce13041fac05a29cce",
+      "sha256": "7fac44be1b600c4846eebb2445233a7a0e027f3501533c85edfa85d153d480d0",
+      "match": false
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+schema = "oh.war/judgments/v1"
+warrant = "OW-WAR-0059"
+
+[[judgment]]
+id = "J-001"
+kind = "residual_risk_acceptance"
+statement = "A receipt that seals its own fields but not the stdout and stderr files it references is sufficient evidence."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0059: if the assumption is false, the consequence is An edited stdout beside an untouched receipt reads as evidence until a reviewer diffs it; a stdout_digest field is a §44.6 amendment, not this Warrant. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02; the decision is the owner's, the wording is the agent's."
+basis_refs = ["assumption://A-001"]
+authority = "authorized"
+
+[[judgment]]
+id = "J-002"
+kind = "residual_risk_acceptance"
+statement = "Binding a recorded run to the contract digest, not the workspace basis digest, is the right strictness."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0059: if the assumption is false, the consequence is An edit to a non-contract atom keeps every run admissible; if §14 is later read to require workspace-basis binding, every recorded run is stale at once. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02; the decision is the owner's, the wording is the agent's."
+basis_refs = ["assumption://A-002"]
+authority = "authorized"
+
+[[judgment]]
+id = "J-003"
+kind = "residual_risk_acceptance"
+statement = "A resolution request an agent emits, signed by a human with wording the agent drafted, records a decision that is the human's."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0059: if the assumption is false, the consequence is The record says who drafted the wording and the projection cannot tell the difference; only the meaning field, read by a person, can. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02; the decision is the owner's, the wording is the agent's."
+basis_refs = ["assumption://A-003"]
+authority = "authorized"

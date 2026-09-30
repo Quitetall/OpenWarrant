@@ -1,0 +1,18 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0050",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "178dda4d486fa2a8abd0a22f152284213bb6e580",
+  "summary": "Report-phase Bonsai adapter delivered, with all four recorded obligations established and current adapter tests passing. No blocking rollout or Bonsai evidence for unscoped newer Warrants is claimed.",
+  "notes": "docs/warrants/OW-WAR-0050/implementation/completion-audit.md",
+  "evidence": [
+    "docs/design/completion-audit-20260915/audit.json",
+    "docs/warrants/OW-WAR-0077/evidence/source-sdk/gate.log",
+    "crates/openwarrant-cli/src/bonsai.rs",
+    ".github/workflows/ci.yml"
+  ],
+  "next_steps": [
+    "Human qualification/legacy resolution remains separate; this report changes no signed record."
+  ]
+}

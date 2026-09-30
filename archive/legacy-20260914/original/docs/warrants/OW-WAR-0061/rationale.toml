@@ -1,0 +1,8 @@
+schema = "oh.war/rationale/v1"
+
+[[assumption]]
+id = "A-001"
+statement = "The Phase 1 Exit is discharged by a corpus that exists, compiles, is authorized and can close through §56 — not by every commit citing a Warrant."
+epistemic_status = "accepted_residual_risk"
+consequence_if_false = "The Objective reads achieved on the weaker reading while 67 of 87 commits name no Warrant; the number is recorded so the stricter rule starts from a measurement."
+judgment_ref = ""

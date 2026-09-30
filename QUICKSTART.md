@@ -1,4 +1,34 @@
-# Quickstart — from an empty directory to a resolved Warrant
+# Quickstart — choose your workflow
+
+## Prompt-only work and records
+
+For ordinary implementation, ask your connected agent to draft and execute work
+and record its unverified result. An SSH key is not required for this path. Explicit
+verified-start requirements and repository access restrictions still apply.
+
+From an existing Git repository, initialize once:
+
+```bash
+war init --namespace APP --name "My project"
+war new "Describe the outcome"
+war compile
+war overview
+```
+
+These commands initialize records and show progress; they do not launch a coding
+agent or award verification. Your connected agent does the implementation. Existing
+`AGENTS.md` is preserved by initialization; integrate the work-path guidance into
+it instead of overwriting it with `war agents-md --force`.
+
+For legacy approvals, `war sign APP-WAR-0001` shows the exact pending act and asks
+for confirmation. `war console` supplies a terminal checklist. SSH signing is a
+separate option; terminal confirmation alone is not cryptographic human presence.
+A complete guided prototype-first setup flow is not yet shipped.
+
+## Governed legacy workflow
+
+Use the following sequence when you want signed governance and legacy resolution.
+It is not a prerequisite for the prompt-only path above.
 
 Every step is one command. Two of them are a human's and only a human's; they
 are marked. Times are what the tool takes; the human steps take as long as

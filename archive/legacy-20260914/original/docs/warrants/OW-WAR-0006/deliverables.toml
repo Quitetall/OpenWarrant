@@ -1,0 +1,80 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1. Declared by the performer — declaring a deliverable is a performer
+# statement (§51), which is permitted. It is the VERIFICATION of the obligations
+# these support that must be independent (§46), not the declaration itself.
+#
+# Every `content_digest` below was computed from the bytes on disk, and
+# `war resolve` RECOMPUTES it rather than trusting what is written here. A digest
+# that is merely present proves nothing.
+#
+# `contract_digest` is "unrecorded" because it is true: no authorized contract
+# revision exists for this Warrant yet (§28.4 needs a human). Writing today's
+# compiled digest here would assert these artifacts were produced under a
+# revision nobody has authorized.
+
+[[deliverable]]
+id = "D-001"
+title = "ADR records and status classification"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/adr.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0006/attempt-1"
+contract_digest = "unrecorded"
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:524bf5bed7267c5b9cc18ec800a952bcb09c3fa45b2bc52dc84a96dd23e2c739"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "Supersession, currency and retirement (§21)"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/lifecycle.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0006/attempt-1"
+contract_digest = "unrecorded"
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:6f432eb60cb5acab8fd8e064d105c147a74d5e5ba8f3d546dfed07ef8854281f"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-003"
+title = "Relation checks across the corpus"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/relations.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0006/attempt-1"
+contract_digest = "unrecorded"
+tool_or_runtime_identity = "rustc 1.97.1"
+creation_method = "authored"
+content_digest = "sha256:c671b969c2d6058404e337ef7e0bddbe4a8ec64340e708be1e9eb4c4fb63456e"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

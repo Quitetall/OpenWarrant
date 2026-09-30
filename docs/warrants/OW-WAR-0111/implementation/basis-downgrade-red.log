@@ -1,0 +1,22 @@
+   Compiling openwarrant-cli v1.0.0 (/mnt/4tb/tmp/ow-export-preservation/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.22s
+     Running tests/preservation.rs (/mnt/4tb/tmp/ow107-gate-lineage/target/debug/deps/preservation-46c2467d1ffd0ba6)
+
+running 1 test
+test warrant_subject_cannot_downgrade_to_unchecked_transport ... FAILED
+
+failures:
+
+---- warrant_subject_cannot_downgrade_to_unchecked_transport stdout ----
+
+thread 'warrant_subject_cannot_downgrade_to_unchecked_transport' (1639266) panicked at crates/openwarrant-cli/tests/preservation.rs:98:5:
+assertion failed: !out.status.success()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    warrant_subject_cannot_downgrade_to_unchecked_transport
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p openwarrant-cli --test preservation`

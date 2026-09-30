@@ -315,6 +315,56 @@ pub fn ingest(repo: &Repository, alias: &str, path: &Utf8Path) -> Result<Report,
         return Ok(report);
     }
     if dir.join("resolution.toml").is_file() {
+        // One narrow exception to "a resolution is written once": the recorded
+        // resolution binds this contract, says exactly what this response says,
+        // and carries no verified signature. Then this response is not a second
+        // resolution — it is the signature the first was recorded without, and
+        // the record is left byte-for-byte alone. Anything else is refused.
+        let existing = repo.load_resolution(&dir)?;
+        let supplies_signature = existing.as_ref().is_some_and(|r| {
+            r.resolution.contract_digest == response.contract_digest
+                && r.resolution.common_outcome == response.common_outcome
+                && r.resolution.profile_outcome == response.profile_outcome
+                && !crate::authority_check::verify_excluding(
+                    repo,
+                    crate::authority_check::Act::Resolve,
+                    alias,
+                    r.resolution.resolved_by_ref.trim_start_matches("person://"),
+                    Some(&r.resolution.contract_digest),
+                    Some(path),
+                )
+                .is_signed()
+        });
+        if supplies_signature {
+            // The signature belongs in the journal even though the record does
+            // not move: §66's point is that every material act leaves a trace.
+            if let Ok(one) = repo.load_warrant(&dir)
+                && let Some(v) = &one.validated
+            {
+                crate::journal_cmd::record(
+                    &dir,
+                    &v.uuid.to_string(),
+                    crate::journal_cmd::RESOLUTION_SIGNATURE_RECORDED,
+                    &format!("person://{}", response.resolved_by),
+                    &format!(
+                        "{{\"common_outcome\":\"{}\",\"contract_digest\":\"{}\",\"response\":\"{}\"}}",
+                        response.common_outcome,
+                        response.contract_digest,
+                        repo.relative(path)
+                    ),
+                )?;
+            }
+            report.push(Diagnostic::warn(
+                "resolution.signature-supplied",
+                path.to_string(),
+                format!(
+                    "{alias}: the recorded resolution carried no verified signature; this \
+                     signature supplies it. resolution.toml is unchanged — the outcome, the \
+                     evidence refs and the snapshot digests are the ones already recorded"
+                ),
+            ));
+            return Ok(report);
+        }
         refuse(
             &mut report,
             "resolution.exists",

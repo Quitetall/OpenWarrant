@@ -1,0 +1,26 @@
+schema = "oh.war/rationale/v1"
+
+# §36.2 — accepted residual risk. Transcribed from this Warrant's assurance atom.
+# `judgment_ref` is empty: nobody has accepted these, and §27.2 forbids an
+# agent accepting organizational residual risk.
+
+[[assumption]]
+id = "A-001"
+statement = "The roadmap:// grammar is an OpenWarrant convention that the SAS will not later bind to milestone ids."
+epistemic_status = "accepted_residual_risk"
+consequence_if_false = "Every topic slug in the corpus becomes a reference to nothing, and 49 manifests need a coordinated edit that moves every contract digest."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-002"
+statement = "Defining Objective achievement by the exit-slug Warrant is sufficient."
+epistemic_status = "accepted_residual_risk"
+consequence_if_false = "A phase whose exit Warrant is misnamed reports not_derivable rather than blocked, which is honest and easy to read past; Phase 1 does so today."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-003"
+statement = "A headline of zero satisfied will be read as the truth rather than as a broken tool."
+epistemic_status = "accepted_residual_risk"
+consequence_if_false = "A reader expecting a percentage dismisses the projection, and the one honest number in the system goes unread."
+judgment_ref = ""

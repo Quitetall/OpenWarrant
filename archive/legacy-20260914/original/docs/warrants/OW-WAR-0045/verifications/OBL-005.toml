@@ -1,0 +1,20 @@
+obligation = "OBL-005"
+disposition = "established"
+evidence = "The measured evidence lists all planted violations in conformance/plant.sh, each rejected by its named rule, with a total plant battery of 138 passed, including fourteen entries corresponding to §91.7 tests 43–51 and §91.9 tests 59–63, as indicated by the grouped plants from OW-WAR-0055, OW-WAR-0056, and OW-WAR-0057."
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

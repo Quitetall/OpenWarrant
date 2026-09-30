@@ -1,0 +1,18 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0092",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "0ecf17e97ea2495c793b458f765aafaa682239b3",
+  "summary": "Offline HTML export and read-only local refresh implemented; aggregate gate and independent reviews passed. Unverified result; direct offline visual inspection remains UNKNOWN because file-URL navigation was blocked.",
+  "notes": "docs/warrants/OW-WAR-0092/implementation/viewer-contract.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0092/evidence/completion.md",
+    "docs/warrants/OW-WAR-0092/evidence/gate.log",
+    "docs/warrants/OW-WAR-0092/evidence/review.md"
+  ],
+  "next_steps": [
+    "Start OW-WAR-0077 with I/O-free SDK source identity, snapshot and reference types.",
+    "Human qualification remains separate; direct offline visual inspection is still unconfirmed."
+  ]
+}

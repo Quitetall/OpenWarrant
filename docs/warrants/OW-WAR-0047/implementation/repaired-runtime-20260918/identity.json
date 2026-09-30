@@ -1,0 +1,23 @@
+{
+  "provider_base": "12d09c5d2f00ecf52394c11657c50b14bc04bb7c",
+  "source_diff_sha256": "18325effc036432d9c6ef56482f91e271581ee214bf29690ee61274533c349df",
+  "materializer_sha256": "15bff46affe0467b9a2bb1ff715d11de19e776c2677366197065b67806e3b547",
+  "binary_sha256": "2e532adc204fb561953a4e4ade55d73bde17807b6a809f74abb453c3ea04affa",
+  "binary_path": "/mnt/4tb/tmp/ow47-provider-target/debug/blut-standard",
+  "lock_sha256": "948a1d9702a0ec054efc542e546ad88eb100e22199119581b679eef370e0021d",
+  "qualified": false,
+  "provider_commit": "b10f46be930be8f2696a35941fe36a2d7c2ab7c7",
+  "commit_source_matches_run": true,
+  "engine_dependencies": [
+    {
+      "name": "blut",
+      "version": "0.2.0-alpha.1",
+      "source": "git+https://github.com/Quitetall/blut.git?rev=ffecee56abc87175a55dedc9f92d3537fa5a4227#ffecee56abc87175a55dedc9f92d3537fa5a4227"
+    },
+    {
+      "name": "blut-types",
+      "version": "0.2.0-alpha.1",
+      "source": "git+https://github.com/Quitetall/blut.git?rev=ffecee56abc87175a55dedc9f92d3537fa5a4227#ffecee56abc87175a55dedc9f92d3537fa5a4227"
+    }
+  ]
+}

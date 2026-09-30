@@ -1,0 +1,114 @@
+{
+  "schema": "oh.war/release-review-inventory/v1",
+  "snapshot_git_head": "189bf34c9fd169094d2b33b4fe99edd039e768bc",
+  "snapshot_git_tree": "287a481feec152eab80130e3d9b8314c2ac4bf94",
+  "inventory_only": true,
+  "qualification_established": false,
+  "publication_permitted": false,
+  "evidence_files": [
+    {
+      "path": "docs/sas/drafts/1.0.0-rc.3/source-set.json",
+      "bytes": 6626,
+      "sha256": "c5bca5fbe7df30de39d29370cca2ae6c078f94ad0af8be709f386d48164b8509"
+    },
+    {
+      "path": "docs/sas/drafts/1.0.0-rc.3/phase-plan.md",
+      "bytes": 7698,
+      "sha256": "674c85b72cee49f845bd1b149b0b95050b8292a2daa3789c70038f4b216d257f"
+    },
+    {
+      "path": "conformance/sdk/phase1.json",
+      "bytes": 23140,
+      "sha256": "4a495b43f0d71e9f888eea80c6a723e29248dd0eecb7c4f35a3592f7b967b60a"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0085/implementation/linux-observation-v2.json",
+      "bytes": 1454190,
+      "sha256": "723008a4f889c88e2359118299230f58f46b89d7087a909951b127b7e5a60723"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0085/implementation/gate.log",
+      "bytes": 232807,
+      "sha256": "d5cf1893dc8a78563c4299308726437ebf9b988519a94d8e0d716f2d2cbf555e"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0086/implementation/merged-exchange-observation.json",
+      "bytes": 2987912,
+      "sha256": "6841d1dac87b360b732086ddde787e8b052dd7cf28adac8323cdd0fe4a8c2171"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0086/implementation/lamu-merged-pr.json",
+      "bytes": 3136,
+      "sha256": "acebe993649ce96ef74dfd51ee101f5f6ee13646aef282472fbecac108693709"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0088/implementation/observation.json",
+      "bytes": 1543,
+      "sha256": "720a7293544c8313588ad8ac87eaff848b6cb44666cd2d172c026c37c33e4b25"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0088/implementation/gate.log",
+      "bytes": 234324,
+      "sha256": "e96a35f4c6f98654a1f9081de6691e692608ac12e13f61cf3b0ee386c2fdc5dd"
+    }
+  ],
+  "phases": [
+    {
+      "phase": 1,
+      "status": "incomplete",
+      "observed": [
+        "Linux scoped acceptance",
+        "Linux repository gate"
+      ],
+      "missing": [
+        "Native macOS acceptance at matching source identity",
+        "Exact final phase review"
+      ]
+    },
+    {
+      "phase": 2,
+      "status": "incomplete",
+      "observed": [
+        "Merged real LAMU provider",
+        "Current SDK package/record/legacy exchange",
+        "Independent SDK consumer"
+      ],
+      "missing": [
+        "Complete Phase 1 cross-platform evidence",
+        "Final frozen integration qualification"
+      ]
+    },
+    {
+      "phase": 3,
+      "status": "incomplete",
+      "observed": [
+        "Owner chose separate reference workflow package inside OpenWarrant"
+      ],
+      "missing": [
+        "Reference webapp implementation and work-stop/recovery scenarios",
+        "Frozen first-party app inventory and shared adapter contracts",
+        "Real adapter executions for required scenarios",
+        "Meaningful maintenance workflow",
+        "Consented actual-user sessions under predeclared sample and thresholds"
+      ]
+    },
+    {
+      "phase": 4,
+      "status": "incomplete",
+      "observed": [
+        "Candidate packaging implementation; Linux observation held by OW89"
+      ],
+      "missing": [
+        "Native macOS installation",
+        "Upgrade and fault recovery qualification",
+        "Declared stronger-profile evidence",
+        "Exact artifact/source build provenance",
+        "Independent final release review and owner permission",
+        "Migration/version policy qualification",
+        "Stable schema/fixture freeze and compatibility review",
+        "Interoperability documentation and maintainership procedures"
+      ]
+    }
+  ],
+  "scope_note": "Hashes freeze available evidence, not its truth or authority. This is an incomplete review inventory, not a signed review manifest. Later receipts require a new snapshot; never edit old evidence."
+}

@@ -1,0 +1,35 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "Full Warrant Markdown and WAR.json render from one Basis"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "Recompilation on an unchanged tree is a no-op"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002"]
+
+  - id: "M3"
+    title: "Planted drift is detected"
+    depends_on: ["M2"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-003"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Implement the full_warrant and canonical_json projections"
+    executor_kind: "human"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-002"
+    title: "Verify compilation purity across repeated runs"
+    executor_kind: "service"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-003"
+    title: "Plant drift in a committed parent and observe the refusal"
+    executor_kind: "service"
+    responsibility_tier: "T1"

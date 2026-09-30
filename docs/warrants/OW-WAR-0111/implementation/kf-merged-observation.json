@@ -1,0 +1,12 @@
+{
+  "pr": "https://github.com/Quitetall/openhuman-knowledge-fabric/pull/3",
+  "head": "267ce58f635aeec739e6056e973199e54e39f60e",
+  "merge": "876efc7fc1248bc1dab666375e18b634ebbd834e",
+  "state": "MERGED",
+  "ci_run": 35358816688,
+  "tests_passed": 1579,
+  "tests_skipped": 4,
+  "test_files_passed": 158,
+  "test_files_skipped": 1,
+  "scope": "KF preservation conformance fixture; not OW111 completion or independent assurance"
+}

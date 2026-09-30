@@ -1,0 +1,44 @@
+schema = "oh.war/manifest/v1"
+uuid = "01a01bd1-b0d3-7157-b2b2-9c2625d43897"
+local_alias = "OW-WAR-0011"
+enterprise_id = ""
+title = "Implement prerequisites and Preflight"
+profile = "delivery"
+assurance_level = "basic"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-035"
+contribution = "complete"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-5/preflight"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true

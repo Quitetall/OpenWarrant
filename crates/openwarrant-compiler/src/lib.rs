@@ -20,8 +20,10 @@ pub mod canonical;
 pub mod corpus_status;
 pub mod digest;
 pub mod dispatch;
+pub mod dispatch_bundle;
 pub mod ir;
 pub mod lower;
+pub mod preservation;
 pub mod render;
 pub mod warrant_overview;
 

@@ -1,0 +1,14 @@
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-war-0076-sdk/crates/openwarrant-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.32s
+     Running tests/document_author.rs (target/debug/deps/document_author-e45b25196f422844)
+
+running 6 tests
+test edit_batch_is_bounded_before_copying_values ... ok
+test title_edit_updates_heading_preserves_crlf_and_refuses_conflict ... ok
+test refuses_injection_duplicates_invalid_values_and_limits_without_partial_output ... ok
+test explicit_rc2_edits_keep_adapter_and_original_bytes ... ok
+test author_round_trip_and_edit_preserves_other_bytes ... ok
+test preserves_unknown_extensions_compact_dependencies_and_fenced_markers ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

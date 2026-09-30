@@ -1,0 +1,23 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0098",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "e2bfd5d0d1fbe0b940b26792855714beec8d8adf",
+  "summary": "Reference admission API and browser action complete, unverified. Shared Start checks and current-policy completion eligibility integrated through PR 112; exact-head CI passed and bounded public HTTP/reporting checks rerun on main.",
+  "notes": "docs/warrants/OW-WAR-0098/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0098/implementation/evidence/gate.log",
+    "docs/warrants/OW-WAR-0098/implementation/evidence/web-tests.log",
+    "docs/warrants/OW-WAR-0098/implementation/evidence/review.md",
+    "docs/warrants/OW-WAR-0098/implementation/policy-completion/red.log",
+    "docs/warrants/OW-WAR-0098/implementation/policy-completion/tests.log",
+    "docs/warrants/OW-WAR-0098/implementation/completion-audit/README.md",
+    "docs/warrants/OW-WAR-0098/implementation/completion-audit/pr112-observed.json",
+    "docs/warrants/OW-WAR-0098/implementation/completion-audit/bonsai-evidence.json"
+  ],
+  "next_steps": [
+    "Independent assurance and human acceptance remain separate",
+    "Continue global CLI admission convergence under its own scope"
+  ]
+}

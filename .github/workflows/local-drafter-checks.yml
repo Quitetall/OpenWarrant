@@ -1,0 +1,23 @@
+name: Local drafter checks
+on:
+  pull_request:
+    paths:
+      - 'tools/drafting/**'
+      - '.github/workflows/local-drafter-checks.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tools/drafting/**'
+      - '.github/workflows/local-drafter-checks.yml'
+permissions:
+  contents: read
+concurrency:
+  group: local-drafter-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  adapter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - run: python3 -m unittest discover -s tools/drafting -v

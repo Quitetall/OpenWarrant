@@ -1,0 +1,9 @@
+   Compiling openwarrant-cli v1.0.0 (/mnt/4tb/tmp/ow-admission-integrity/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.36s
+     Running tests/frontier_integrity_cli.rs (target/debug/deps/frontier_integrity_cli-7387818e4f136707)
+
+running 1 test
+test damaged_journal_never_becomes_open_work ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+

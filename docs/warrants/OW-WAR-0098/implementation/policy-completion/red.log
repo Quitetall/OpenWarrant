@@ -1,0 +1,17 @@
+F
+======================================================================
+FAIL: test_changed_dependency_checks_invalidate_completion_eligibility (__main__.ExecutionTests.test_changed_dependency_checks_invalidate_completion_eligibility)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow98-completion-admission/apps/openwarrant-web/test_execution.py", line 225, in test_changed_dependency_checks_invalidate_completion_eligibility
+    self.assertEqual(preview["state"], "blocked", preview)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'ready' != 'blocked'
+- ready
++ blocked
+ : {'schema': 'oh.war/start-preview/v1', 'subject': {'warrant_id': '84e4da24-0b15-438b-9046-4394a8161911', 'source_sha256': 'f22d46e2bf68a8c3466394801a32b5b87b56b5e500f9d618a70dc95b17113325'}, 'state': 'ready', 'reason': 'Configured start requirements satisfied', 'dispatch_permitted': False, 'qualified': False, 'remaining_checks': ['worktree identity', 'exclusive writer claim', 'harness launch']}
+
+----------------------------------------------------------------------
+Ran 1 test in 0.583s
+
+FAILED (failures=1)

@@ -1,0 +1,35 @@
+   Compiling openwarrant-cli v1.0.0 (/mnt/4tb/tmp/ow-war-0088-sdk/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.80s
+     Running tests/document_draft.rs (target/debug/deps/document_draft-b3c2e1b19ec2b783)
+
+running 10 tests
+test title_does_not_rewrite_scope_after_outcome_is_removed ... ok
+test output_and_snapshot_symlinks_refuse_without_changing_targets ... ok
+test aggregate_checkpoint_depth_refuses_before_publishing_unresumable_state ... ok
+test false_maturity_and_existing_output_refuse_without_losing_draft ... ok
+test duplicate_metadata_and_checkpoint_keys_refuse_without_silent_replacement ... ok
+test interactive_save_matches_noninteractive_sdk_author_bytes ... ok
+test malformed_resume_and_excessive_input_refuse ... ok
+test cancel_and_midunit_eof_retain_draft_and_resume_without_authority ... ok
+test concurrent_writer_refuses_and_lock_releases_when_process_ends ... ok
+test oversized_history_and_output_inside_session_refuse ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/sdk_cli.rs (target/debug/deps/sdk_cli-abea5405e3d72540)
+
+running 11 tests
+test parse_matches_library_outside_repository_and_refuses_bad_source ... ok
+test unknown_fields_and_wrong_schema_refuse ... ok
+test nested_unknown_requirement_fields_refuse ... ok
+test preservation_and_agent_records_match_public_sdk_without_authentication ... ok
+test local_unit_and_condition_syntax_never_claim_external_resolution ... ok
+test malformed_cli_arguments_return_one_envelope_without_changing_legacy_help ... ok
+test explicit_null_sdk_optionals_remain_valid_but_unknown_null_refuses ... ok
+test author_edit_digest_and_readiness_results_equal_public_sdk ... ok
+test file_io_is_explicit_and_never_replaces_existing_output ... ok
+test malformed_wire_and_resource_limits_refuse_before_work ... ok
+test file_backed_operations_and_named_refusals ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s
+

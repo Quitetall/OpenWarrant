@@ -1,0 +1,7 @@
+{
+  "deliverable": "D-005",
+  "reason": "Replace stale future-only SDK authoring claim with shipped SDK context pointer.",
+  "old_digest": "sha256:fd390b4e8c834bccd183987400fb5a77f6a57973299f1cf56b5c735c988d9021",
+  "new_digest": "sha256:00fd217340bb197d82cc04aa3da5a7c3162d0d14087d6d981115a5eb4d1c949c",
+  "qualified": false
+}

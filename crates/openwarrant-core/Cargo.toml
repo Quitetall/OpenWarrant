@@ -17,18 +17,28 @@ categories.workspace = true
 # compiler's. Keeping `std::fs` out of here is what makes the validators
 # testable against in-memory fixtures rather than against a scratch directory.
 [dependencies]
+toml = { workspace = true }
 serde = { workspace = true }
+serde_json = { workspace = true }
+serde_jcs = { workspace = true }
+sha2 = { workspace = true }
 thiserror = { workspace = true }
+# RC.3 names TOML 1.0; workspace toml accepts the newer 1.1 grammar.
+toml10 = { package = "toml", version = "=0.8.23", default-features = false, features = ["parse"] }
 uuid = { workspace = true }
 # Optional, behind `schema`: the JSON Schema pack (OW-WAR-0032) is generated
-# from these types by `war schemas`; the default surface stays serde, thiserror, uuid.
+# from these types by `war schemas`; document parsing additionally uses toml10.
 schemars = { workspace = true, optional = true }
 
-# Test-only. This crate's production dependency surface is deliberately serde,
-# thiserror, uuid and nothing else; a round-trip test must not widen it.
+# Schema generation remains optional. The document SDK additionally uses the
+# explicitly pinned TOML 1.0 parser above; legacy parsing semantics are unchanged.
 [features]
 schema = ["dep:schemars"]
 
 [dev-dependencies]
 serde_jcs = { workspace = true }
 serde_json = { workspace = true }
+
+[[example]]
+name = "record_schemas"
+required-features = ["schema"]

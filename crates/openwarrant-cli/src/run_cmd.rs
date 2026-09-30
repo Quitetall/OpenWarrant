@@ -113,7 +113,12 @@ fn record_submission(
 }
 
 /// `war run <alias> <stage>`.
-pub fn run(repo: &Repository, alias: &str, stage_id: &str) -> Result<Report, RepoError> {
+pub fn run(
+    repo: &Repository,
+    alias: &str,
+    stage_id: &str,
+    prototype: bool,
+) -> Result<Report, RepoError> {
     let mut report = Report::default();
     let dir = repo.warrant_dir(alias)?;
     let loaded = repo.load_warrant(&dir)?;
@@ -213,10 +218,13 @@ pub fn run(repo: &Repository, alias: &str, stage_id: &str) -> Result<Report, Rep
         repo,
         alias,
         stage_id,
-        AttemptKind::Initial,
-        &[],
-        Some(&scratch),
-        None,
+        crate::dispatch::Options {
+            attempt_kind: AttemptKind::Initial,
+            prior_failure_evidence: &[],
+            emit_to: Some(&scratch),
+            emit_context_to: None,
+            prototype,
+        },
     )?;
     if !dispatch_report.is_ready() {
         let _ = std::fs::remove_file(&scratch);
@@ -250,8 +258,20 @@ pub fn run(repo: &Repository, alias: &str, stage_id: &str) -> Result<Report, Rep
     let mut bounded = def.clone();
     bounded.timeout_secs = Some(bound);
     let started_at = now_rfc3339();
-    let gate_run = crate::gate_cmd::run_gate(&bounded, repo, &dir);
-    let runs_dir = dir.join("gate-runs");
+    // Each dispatch owns distinct evidence paths. Re-running the same gate
+    // must not replace the preceding attempt's streams, run record or receipt.
+    let runs_root = dir.join("gate-runs");
+    std::fs::create_dir_all(&runs_root).map_err(|source| RepoError::Io {
+        context: format!("could not create {runs_root}"),
+        source,
+    })?;
+    let runs_dir = runs_root.join(&dispatch.dispatch_id);
+    std::fs::create_dir(&runs_dir).map_err(|source| RepoError::Io {
+        context: format!("could not reserve new service attempt directory {runs_dir}"),
+        source,
+    })?;
+    let mut gate_run = crate::gate_cmd::run_gate(&bounded, repo, &runs_dir);
+    gate_run.id = format!("GR-{}", dispatch.dispatch_id);
     if let Err(e) = crate::gate_cmd::persist_run(&gate_run, &runs_dir) {
         report.push(Diagnostic::error(
             "gate-run.not-persisted",

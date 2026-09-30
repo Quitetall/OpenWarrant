@@ -1,0 +1,13 @@
+# oh.war/question/v1. Asked by an agent, answered by a human (§27.2). An answer
+# informs the work; it is never a disposition, a judgment, or an
+# authorization. `war questions --open` lists what awaits an answer.
+
+schema = "oh.war/question/v1"
+id = "Q-006"
+warrant = "OW-WAR-0069"
+stage = "STAGE-001"
+asked_by = "agent://claude"
+asked_at = "2026-09-12T07:49:07Z"
+question = "How many agent stages may run at once under war perform --all?"
+blocking = false
+recommended = "One in 1.0 ([perform] max_concurrent = 1). Nothing contains a performer (no cgroups, no sandbox), so concurrency would mean several unbounded processes in one tree; raise it when containment exists."

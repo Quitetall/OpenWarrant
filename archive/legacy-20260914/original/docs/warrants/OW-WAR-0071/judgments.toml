@@ -1,0 +1,22 @@
+schema = "oh.war/judgments/v1"
+warrant = "OW-WAR-0071"
+
+[[judgment]]
+id = "J-001"
+kind = "residual_risk_acceptance"
+statement = "One signature over a canonical list is the same human act as one signature over one record, provided the list is the signed subject and a moved digest invalidates the batch. This is the whole argument of §27.6 and it is an argument, not a measurement."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "Accepting residual risk A-002 for OW-WAR-0071: if the assumption is false, the consequence is: The batch act is withdrawn and the per-act dialogs stand; no record written under a withdrawn rule would exist, since nothing is implemented under this Warrant. Presented on a terminal by `war sign 1.0.0` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+basis_refs = ["assumption://A-002"]
+authority = "authorized"
+
+[[judgment]]
+id = "J-002"
+kind = "residual_risk_acceptance"
+statement = "1.1.0 adds requirements and therefore is not a patch release under §101.2, and it is architecture-changing under §101.3 because it changes what a signature may cover."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "Accepting residual risk A-003 for OW-WAR-0071: if the assumption is false, the consequence is: The revision is renumbered; no downstream record changes, since a revision's identity is its version and digest together. Presented on a terminal by `war sign 1.0.0` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+basis_refs = ["assumption://A-003"]
+authority = "authorized"

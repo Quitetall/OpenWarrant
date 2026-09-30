@@ -1,0 +1,11 @@
+T49-legacy-signed PASS (preserved inventory; no authority inferred)
+T53-new-roundtrip PASS (preserved inventory; no authority inferred)
+T53-rc2-roundtrip PASS (preserved inventory; no authority inferred)
+T51-same-path-successor PASS (preserved inventory; no authority inferred)
+T51-self-successor-refused PASS (legacy.lineage)
+T50-unsupported PASS (legacy.dialect)
+T50-escaping PASS (legacy.path)
+T50-future PASS (legacy.version)
+T50-corrupt PASS (legacy.integrity)
+T50-missing PASS (legacy.inventory)
+10 file-backed preservation/lineage cases passed; external historical closure and signature authenticity not established

@@ -1,0 +1,64 @@
+schema = "oh.war/manifest/v1"
+uuid = "01a060c6-64a5-71e1-b994-133d3c1e19d2"
+local_alias = "OW-WAR-0059"
+
+# Allocated only by Knowledge Fabric (SAS §12.4). Leave empty.
+enterprise_id = ""
+
+title = "Commit gate receipts as evidence and record the first resolutions"
+profile = "delivery"
+assurance_level = "controlled"
+
+# A resolution record now binds the exact contract digest and a computed
+# assurance-case snapshot digest, and `war check` refuses one whose contract
+# has moved. Complete: nothing produced a §56.2 record before this.
+[[implements]]
+ref = "sas://WAR-SAS-RQ-059"
+contribution = "complete"
+
+# A gate run counts only when its receipt reseals and is bound to the current
+# contract; anything else is an unknown that blocks. Partial: OW-WAR-0020
+# owns askability and invalidation.
+[[implements]]
+ref = "sas://WAR-SAS-RQ-054"
+contribution = "partial"
+
+# A receipt an agent edited after sealing is a performer report, and reads as
+# one. Partial: §51's rule is OW-WAR-0017's.
+[[implements]]
+ref = "sas://WAR-SAS-RQ-053"
+contribution = "partial"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-6/gate-runs"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true
+

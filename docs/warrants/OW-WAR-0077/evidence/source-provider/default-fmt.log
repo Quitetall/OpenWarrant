@@ -1,0 +1,799 @@
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu/src/clean.rs:767:
+         let doomed = collect_train_jobs(root.path(), 0, 7, true);
+         assert_eq!(
+             doomed_names(&doomed),
+-            ["recovery/warm_best.ckpt", "recovery/warm_best.ckpt", "weights/decoder.ckpt"],
++            [
++                "recovery/warm_best.ckpt",
++                "recovery/warm_best.ckpt",
++                "weights/decoder.ckpt"
++            ],
+             "both lose recovery; only the failed job loses its deliverable"
+         );
+         // 2 x 9000 scratch + 1 x 3000 failed deliverable.
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu/src/clean.rs:800:
+     /// "everything is stale" and pruned every running job.
+     #[test]
+     fn a_huge_stale_window_protects_rather_than_prunes() {
+-        assert!(!is_stale(SystemTime::now() - Duration::from_secs(86_400), u64::MAX));
++        assert!(!is_stale(
++            SystemTime::now() - Duration::from_secs(86_400),
++            u64::MAX
++        ));
+         assert!(!is_stale(SystemTime::UNIX_EPOCH, u64::MAX));
+         // A clock that moved backwards leaves mtime in the future;
+         // duration_since fails, and failing means protected.
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu/src/clean.rs:807:
+         assert!(!is_stale(SystemTime::now() + Duration::from_secs(3_600), 7));
+         // The ordinary cases still decide normally.
+-        assert!(is_stale(SystemTime::now() - Duration::from_secs(30 * 86_400), 7));
++        assert!(is_stale(
++            SystemTime::now() - Duration::from_secs(30 * 86_400),
++            7
++        ));
+         assert!(!is_stale(SystemTime::now(), 7));
+         assert!(!is_stale(SystemTime::UNIX_EPOCH, 0), "0 disables staleness");
+ 
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu/src/cloud_models.rs:241:
+     lamu_providers::load_or_seed()
+ }
+ 
+-
+ #[cfg(test)]
+ mod tests {
+     use super::*;
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu/src/init.rs:81:
+         keyed
+     );
+     if keyed == 0 {
+-        println!("          no cloud keys yet — `lamu login` stores them (optional; local models need none)");
++        println!(
++            "          no cloud keys yet — `lamu login` stores them (optional; local models need none)"
++        );
+     }
+ 
+     // 3. Registry: `ensure_registry()` already ran at process start. Report
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu/src/init.rs:88:
+     //    what it found so the next step is obvious.
+-    let registry = lamu_core::registry::load_registry(&lamu_core::config::registry_path())
+-        .unwrap_or_default();
++    let registry =
++        lamu_core::registry::load_registry(&lamu_core::config::registry_path()).unwrap_or_default();
+     if registry.is_empty() {
+         println!(
+             "  models  none registered — `lamu pull qwen35-4b` downloads a small starter (or drop GGUFs in the models dir and `lamu scan`)"
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu/src/init.rs:102:
+     println!();
+     match crate::doctor::report(false).await {
+         Ok(0) => {}
+-        Ok(n) => println!("  ({n} doctor failure(s) above — init continues; fix them before `lamu chat`)"),
++        Ok(n) => println!(
++            "  ({n} doctor failure(s) above — init continues; fix them before `lamu chat`)"
++        ),
+         Err(e) => eprintln!("  (doctor: {e})"),
+     }
+ 
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu/src/init.rs:112:
+     let mut did_something = false;
+     if opts.claude_code {
+         did_something = true;
+-        register_with("claude", &["mcp", "add", "--scope", "user", "lamu", "--"], &snippet);
++        register_with(
++            "claude",
++            &["mcp", "add", "--scope", "user", "lamu", "--"],
++            &snippet,
++        );
+     }
+     if opts.codex {
+         did_something = true;
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu/src/init.rs:129:
+         }
+     }
+     println!();
+-    println!("Next: `lamu pull qwen35-4b` then `lamu chat` — or point an OpenAI client at http://127.0.0.1:8020/v1 after `lamu serve`.");
++    println!(
++        "Next: `lamu pull qwen35-4b` then `lamu chat` — or point an OpenAI client at http://127.0.0.1:8020/v1 after `lamu serve`."
++    );
+     Ok(())
+ }
+ 
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu/src/init.rs:156:
+             args.join(" "),
+             serde_json::to_string_pretty(snippet).unwrap_or_default()
+         ),
+-        Err(e) => println!("  {client}: could not run it ({e}); register by hand:\n{}",
+-            serde_json::to_string_pretty(snippet).unwrap_or_default()),
++        Err(e) => println!(
++            "  {client}: could not run it ({e}); register by hand:\n{}",
++            serde_json::to_string_pretty(snippet).unwrap_or_default()
++        ),
+     }
+ }
+ 
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu/src/openai_oauth.rs:18:
+ //! REVIEW OWED: security-sensitive; committed with unit coverage while the MiMo
+ //! reviewer is offline this session.
+ 
+-use anyhow::{anyhow, bail, Context, Result};
++use anyhow::{Context, Result, anyhow, bail};
+ use base64::Engine as _;
+ use serde::{Deserialize, Serialize};
+ use sha2::{Digest, Sha256};
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu/src/openai_oauth.rs:76:
+     fn from_verifier_bytes(raw: &[u8]) -> Self {
+         let verifier = B64URL.encode(raw);
+         let challenge = B64URL.encode(Sha256::digest(verifier.as_bytes()));
+-        Self { verifier, challenge }
++        Self {
++            verifier,
++            challenge,
++        }
+     }
+ }
+ 
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu/src/openai_oauth.rs:165:
+     if !status.is_success() {
+         bail!("token refresh failed ({status}): {}", body.trim());
+     }
+-    let parsed: TokenResponse =
+-        serde_json::from_str(&body).context("refresh returned non-JSON")?;
++    let parsed: TokenResponse = serde_json::from_str(&body).context("refresh returned non-JSON")?;
+     // A refresh may omit fields that are unchanged — carry the prior values.
+     let merged = OpenAiTokens {
+-        id_token: parsed.id_token.or_else(|| Some(existing.id_token.clone())).unwrap(),
++        id_token: parsed
++            .id_token
++            .or_else(|| Some(existing.id_token.clone()))
++            .unwrap(),
+         access_token: parsed
+             .access_token
+             .unwrap_or_else(|| existing.access_token.clone()),
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu/src/openai_oauth.rs:200:
+ 
+ impl OpenAiTokens {
+     fn from_response(r: TokenResponse) -> Result<Self> {
+-        let id_token = r.id_token.ok_or_else(|| anyhow!("token response missing id_token"))?;
++        let id_token = r
++            .id_token
++            .ok_or_else(|| anyhow!("token response missing id_token"))?;
+         let access_token = r
+             .access_token
+             .ok_or_else(|| anyhow!("token response missing access_token"))?;
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu/src/openai_oauth.rs:207:
+-        let refresh_token = r
+-            .refresh_token
+-            .ok_or_else(|| anyhow!("token response missing refresh_token (need offline_access scope)"))?;
++        let refresh_token = r.refresh_token.ok_or_else(|| {
++            anyhow!("token response missing refresh_token (need offline_access scope)")
++        })?;
+         // account_id appears in both id_token and access_token; prefer id_token.
+         let account_id = parse_account_id(&id_token)
+             .or_else(|| parse_account_id(&access_token))
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu/src/openai_oauth.rs:231:
+     pub fn load() -> Result<Option<Self>> {
+         let path = Self::cache_path()?;
+         match std::fs::read_to_string(&path) {
+-            Ok(s) => Ok(Some(serde_json::from_str(&s).context("corrupt openai-oauth.json")?)),
++            Ok(s) => Ok(Some(
++                serde_json::from_str(&s).context("corrupt openai-oauth.json")?,
++            )),
+             Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
+             Err(e) => Err(e).context("reading openai-oauth.json"),
+         }
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu/src/openai_oauth.rs:484:
+ 
+     #[test]
+     fn callback_request_missing_fields_is_none() {
+-        assert_eq!(parse_callback_request("GET /auth/callback?code=only HTTP/1.1"), None);
++        assert_eq!(
++            parse_callback_request("GET /auth/callback?code=only HTTP/1.1"),
++            None
++        );
+         assert_eq!(parse_callback_request("GET /favicon.ico HTTP/1.1"), None);
+         assert_eq!(parse_callback_request("garbage"), None);
+     }
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-api/src/lib.rs:170:
+         .into_iter()
+         .filter(|(name, pid, _)| {
+             match lamu_core::backend_registry::owner_pid_of(*pid) {
+-                Some(owner)
+-                    if owner != own && lamu_core::scheduler_lock::pid_alive(owner) =>
+-                {
++                Some(owner) if owner != own && lamu_core::scheduler_lock::pid_alive(owner) => {
+                     tracing::info!(
+                         model = %name, pid, owner,
+                         "shutdown: NOT reaping backend owned by a live lamu instance"
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-api/src/lib.rs:193:
+         if e.owner_pid == own
+             && e.pid != own
+             && e.port != 0
+-            && !targets.iter().any(|(_, p, port)| *p == e.pid && *port == e.port)
++            && !targets
++                .iter()
++                .any(|(_, p, port)| *p == e.pid && *port == e.port)
+         {
+             tracing::info!(
+                 model = %e.model, pid = e.pid, port = e.port,
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-api/src/openai_compat.rs:478:
+                     "embeddings: input of {} tokens exceeds the embedder's window{}; \
+                      retrying with {:.0}% of the text (attempt {}/{})",
+                     overflow.actual,
+-                    overflow.window.map(|w| format!(" of {w}")).unwrap_or_default(),
++                    overflow
++                        .window
++                        .map(|w| format!(" of {w}"))
++                        .unwrap_or_default(),
+                     keep * 100.0,
+                     attempt + 1,
+                     EMBED_OVERFLOW_MAX_RETRIES
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-api/src/openai_compat.rs:553:
+     };
+ 
+     let url = format!("http://localhost:{port}/v1/embeddings");
+-    let (status, bytes) = match post_embeddings_with_overflow_retry(&state.client, &url, body).await {
++    let (status, bytes) = match post_embeddings_with_overflow_retry(&state.client, &url, body).await
++    {
+         Ok(sb) => sb,
+         Err(e) => {
+             return (
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-api/src/openai_compat.rs:564:
+         }
+     };
+     {
+-            // m1: meter embeddings — the quota was CHECKED at entry but never
+-            // CHARGED, so a metered key got unlimited embeddings. Charge the
+-            // backend-reported prompt_tokens (best-effort; 0 if absent/non-JSON).
+-            if status.is_success()
+-                && let Ok(v) = serde_json::from_slice::<Value>(&bytes)
+-            {
+-                let toks = v
+-                    .get("usage")
+-                    .and_then(|u| u.get("prompt_tokens"))
+-                    .and_then(|t| t.as_u64())
+-                    .unwrap_or(0);
+-                state.quota.charge(principal_ref, toks);
+-            }
+-            let mut resp = (status, bytes).into_response();
+-            resp.headers_mut().insert(
+-                axum::http::header::CONTENT_TYPE,
+-                axum::http::HeaderValue::from_static("application/json"),
+-            );
+-            resp
++        // m1: meter embeddings — the quota was CHECKED at entry but never
++        // CHARGED, so a metered key got unlimited embeddings. Charge the
++        // backend-reported prompt_tokens (best-effort; 0 if absent/non-JSON).
++        if status.is_success()
++            && let Ok(v) = serde_json::from_slice::<Value>(&bytes)
++        {
++            let toks = v
++                .get("usage")
++                .and_then(|u| u.get("prompt_tokens"))
++                .and_then(|t| t.as_u64())
++                .unwrap_or(0);
++            state.quota.charge(principal_ref, toks);
++        }
++        let mut resp = (status, bytes).into_response();
++        resp.headers_mut().insert(
++            axum::http::header::CONTENT_TYPE,
++            axum::http::HeaderValue::from_static("application/json"),
++        );
++        resp
+     }
+ }
+ 
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-api/src/openai_compat.rs:4400:
+         let body = br#"{"error":{"code":500,"message":"input (3794 tokens) is too large to process. increase the physical batch size (current batch size: 2048)","type":"server_error"}}"#;
+         assert_eq!(
+             embed_overflow(body),
+-            Some(EmbedOverflow { actual: 3794, window: Some(2048) })
++            Some(EmbedOverflow {
++                actual: 3794,
++                window: Some(2048)
++            })
+         );
+         // An older server that names no batch size still yields the count.
+         assert_eq!(
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-api/src/openai_compat.rs:4407:
+             embed_overflow(b"input (999 tokens) is too large to process"),
+-            Some(EmbedOverflow { actual: 999, window: None })
++            Some(EmbedOverflow {
++                actual: 999,
++                window: None
++            })
+         );
+-        assert_eq!(embed_overflow(br#"{"error":{"message":"model not loaded"}}"#), None);
++        assert_eq!(
++            embed_overflow(br#"{"error":{"message":"model not loaded"}}"#),
++            None
++        );
+         assert_eq!(embed_overflow(b"not json at all"), None);
+         assert_eq!(embed_overflow(b"input (abc tokens) is too large"), None);
+     }
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-api/src/openai_compat.rs:4418:
+     /// cut is exact in one step.
+     #[test]
+     fn shrink_factor_uses_the_exact_window_when_the_backend_names_it() {
+-        let huge = EmbedOverflow { actual: 100_000, window: Some(2048) };
++        let huge = EmbedOverflow {
++            actual: 100_000,
++            window: Some(2048),
++        };
+         let k = embed_shrink_factor(huge, 0);
+         assert!((k - 0.018432).abs() < 1e-4, "{k}");
+-        let barely = EmbedOverflow { actual: 2100, window: Some(2048) };
++        let barely = EmbedOverflow {
++            actual: 2100,
++            window: Some(2048),
++        };
+         let k = embed_shrink_factor(barely, 0);
+         assert!(k < 0.90 && k > 0.85, "{k}");
+         // Unknown window: attempt-scaled fallback, still bounded.
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-api/src/openai_compat.rs:4428:
+-        let unknown = EmbedOverflow { actual: 3794, window: None };
++        let unknown = EmbedOverflow {
++            actual: 3794,
++            window: None,
++        };
+         let f0 = embed_shrink_factor(unknown, 0);
+         let f2 = embed_shrink_factor(unknown, 2);
+         assert!(f0 > f2);
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-core/src/backends/dflash.rs:57:
+                 .map(std::path::PathBuf::from)
+                 .unwrap_or(default)
+         };
+-        let work_dir = env_path(
+-            "LAMU_DFLASH_DIR",
+-            home.join("local-llm/lucebox-hub/dflash"),
+-        );
++        let work_dir = env_path("LAMU_DFLASH_DIR", home.join("local-llm/lucebox-hub/dflash"));
+         Ok(Self {
+             python_bin: env_path(
+                 "LAMU_DFLASH_PYTHON",
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-core/src/config.rs:652:
+                  \x20   context_max: 32768\n\
+                  \x20   capabilities: [chat]\n\
+                  \x20   main: {}\n",
+-                if main && path == present { "kept-main" } else { "gone-main" },
++                if main && path == present {
++                    "kept-main"
++                } else {
++                    "gone-main"
++                },
+                 path.display(),
+                 main
+             )
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-core/src/config.rs:659:
+         };
+         std::fs::write(
+             &seed,
+-            format!(
+-                "models:\n{}{}",
+-                entry(&present, true),
+-                entry(&ghost, true)
+-            ),
++            format!("models:\n{}{}", entry(&present, true), entry(&ghost, true)),
+         )
+         .unwrap();
+ 
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-core/src/registry.rs:70:
+     // MoE variants share the dense arch's capabilities (qwen35moe == qwen35).
+     // llama.cpp emits the `…moe` spelling for MoE GGUFs; without this the main
+     // model would lose Code/Reasoning routing on every rescan.
+-    if let Some(caps) = arch.strip_suffix("moe").and_then(|b| ARCH_CAPABILITIES.get(b)) {
++    if let Some(caps) = arch
++        .strip_suffix("moe")
++        .and_then(|b| ARCH_CAPABILITIES.get(b))
++    {
+         return caps.clone();
+     }
+     vec![Capability::Chat]
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-core/src/registry.rs:550:
+                     // entry with a warning rather than abort a whole `lamu scan`
+                     // over one checkpoint under ~/models — the other models still
+                     // register, and the warning names the drift.
+-                    let Some(preset) = crate::backends::openai_server::engine_preset(engine)
+-                    else {
++                    let Some(preset) = crate::backends::openai_server::engine_preset(engine) else {
+                         tracing::warn!(
+                             "scan: no bundled preset for engine '{engine}' (needed by quantized \
+                              checkpoint at {}); skipping it — this is a lamu bug, please report",
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-core/src/registry.rs:909:
+                         && !is_non_chat_family(&e.name)
+                         && needs_external_engine(e) == external
+                 })
+-                .max_by(|(_, a), (_, b)| a.vram_mb.cmp(&b.vram_mb).then_with(|| b.name.cmp(&a.name)))
++                .max_by(|(_, a), (_, b)| {
++                    a.vram_mb.cmp(&b.vram_mb).then_with(|| b.name.cmp(&a.name))
++                })
+                 .map(|(i, _)| i)
+         };
+         // Prefer a model lamu can launch ITSELF (GGUF / in-process); only fall
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-core/src/registry.rs:1212:
+     fn caps_for_arch_tags_embedders_not_chat() {
+         // Encoder embedders — arch is the signal (ADR 0030: else serve won't
+         // register a local memory embedder). Real GGUF arch strings.
+-        assert_eq!(caps_for_arch("nomic-bert", "nomic-embed-text-v1.5"), vec![Capability::Embedding]);
++        assert_eq!(
++            caps_for_arch("nomic-bert", "nomic-embed-text-v1.5"),
++            vec![Capability::Embedding]
++        );
+         assert_eq!(caps_for_arch("bert", "bge-m3"), vec![Capability::Embedding]);
+         // Decoder-based embedders carry a CHAT-looking base arch — the NAME is
+         // the only signal (the sibling of the nomic-bert bug).
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-core/src/registry.rs:1219:
+-        assert_eq!(caps_for_arch("qwen2", "gte-Qwen2-7B-instruct"), vec![Capability::Embedding]);
+-        assert_eq!(caps_for_arch("qwen3", "Qwen3-Embedding-4B"), vec![Capability::Embedding]);
++        assert_eq!(
++            caps_for_arch("qwen2", "gte-Qwen2-7B-instruct"),
++            vec![Capability::Embedding]
++        );
++        assert_eq!(
++            caps_for_arch("qwen3", "Qwen3-Embedding-4B"),
++            vec![Capability::Embedding]
++        );
+         // MoE variants inherit the dense arch's caps (qwen35moe == qwen35).
+         assert!(caps_for_arch("qwen35moe", "qwen3.6-35b-a3b").contains(&Capability::Reasoning));
+         assert!(caps_for_arch("qwen3moe", "tongyi-deepresearch").contains(&Capability::Code));
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-core/src/registry.rs:1224:
+         // Plain chat archs unchanged.
+         assert!(caps_for_arch("qwen3", "qwen3-8b").contains(&Capability::Chat));
+-        assert_eq!(caps_for_arch("totally-unknown-llm", "mystery-7b"), vec![Capability::Chat]);
++        assert_eq!(
++            caps_for_arch("totally-unknown-llm", "mystery-7b"),
++            vec![Capability::Chat]
++        );
+     }
+ 
+     #[test]
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-core/src/registry.rs:1255:
+     fn auto_promote_skips_non_chat_model_families() {
+         // The scan does no modality inference, so a TTS/ASR GGUF is tagged
+         // Chat+Llm; it must never become the chat default.
+-        let mut entries = vec![chat_entry("outetts-1b", 20_000), chat_entry("qwen3-8b", 6_000)];
++        let mut entries = vec![
++            chat_entry("outetts-1b", 20_000),
++            chat_entry("qwen3-8b", 6_000),
++        ];
+         auto_promote_main(&mut entries);
+         let main: Vec<&str> = entries
+             .iter()
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-mcp/src/cloud.rs:1044:
+ /// plus a per-read idle timeout that turns a dead-stalled upstream into a fast
+ /// failure the fallback chain can act on. Separate from the `OnceLock` so the
+ /// stall behaviour is testable against a socket that never answers.
+-pub(crate) fn build_cloud_client(read_timeout: std::time::Duration) -> Result<reqwest::Client, String> {
++pub(crate) fn build_cloud_client(
++    read_timeout: std::time::Duration,
++) -> Result<reqwest::Client, String> {
+     reqwest::Client::builder()
+         .timeout(std::time::Duration::from_secs(300))
+         .read_timeout(read_timeout)
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-mcp/src/cloud.rs:1346:
+ /// Generated output, data and lockfiles: large, low-signal, and they sort
+ /// wherever their path happens to sort.
+ const LOW_SIGNAL_EXT: &[&str] = &[
+-    ".json", ".jsonl", ".lock", ".csv", ".tsv", ".sha256", ".svg", ".min.js",
+-    ".snap", ".golden", ".pb", ".bin",
++    ".json", ".jsonl", ".lock", ".csv", ".tsv", ".sha256", ".svg", ".min.js", ".snap", ".golden",
++    ".pb", ".bin",
+ ];
+ 
+ /// Reorder a unified diff so source files precede low-signal files.
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-mcp/src/cloud.rs:1387:
+         let low = LOW_SIGNAL_EXT
+             .iter()
+             .any(|e| path_line.trim_end().ends_with(e));
+-        if low { data.push(chunk) } else { source.push(chunk) }
++        if low {
++            data.push(chunk)
++        } else {
++            source.push(chunk)
++        }
+         last = end;
+     }
+     // Every byte between the first header and the end landed in exactly one
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-mcp/src/cloud.rs:2111:
+         git(&["config", "user.name", "t"]);
+ 
+         // Under both thresholds: 1 file, 3 added lines.
+-        std::fs::write(repo.join("a.rs"), "fn a() {}
++        std::fs::write(
++            repo.join("a.rs"),
++            "fn a() {}
+ fn b() {}
+ fn c() {}
+-").unwrap();
++",
++        )
++        .unwrap();
+         git(&["add", "-A"]);
+         git(&["commit", "-qm", "small"]);
+         let small = String::from_utf8(git(&["rev-parse", "HEAD"]).stdout).unwrap();
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-mcp/src/cloud.rs:2224:
+     /// test missed this because its explicit name was not in the defaults.
+     #[test]
+     fn prune_keeps_an_explicit_name_that_is_also_a_default() {
+-        let catalog = vec![catalog_row("mimo-v2.5-pro", Some("LAMU_TEST_PRUNE_UNSET2"), true)];
++        let catalog = vec![catalog_row(
++            "mimo-v2.5-pro",
++            Some("LAMU_TEST_PRUNE_UNSET2"),
++            true,
++        )];
+         let chain = reviewer_chain_from(None, Some("mimo-v2.5-pro"));
+         let explicit = explicit_reviewer_names(None, Some("mimo-v2.5-pro"));
+         let pruned = prune_unkeyed_defaults(chain, &explicit, &catalog);
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-mcp/src/cloud.rs:2238:
+     /// The same name, NOT named by the operator, is still pruned when unkeyed.
+     #[test]
+     fn prune_drops_the_same_name_when_it_is_only_a_default() {
+-        let catalog = vec![catalog_row("mimo-v2.5-pro", Some("LAMU_TEST_PRUNE_UNSET3"), true)];
++        let catalog = vec![catalog_row(
++            "mimo-v2.5-pro",
++            Some("LAMU_TEST_PRUNE_UNSET3"),
++            true,
++        )];
+         let chain = reviewer_chain_from(None, None);
+         let pruned = prune_unkeyed_defaults(chain, &[], &catalog);
+         assert!(!pruned.iter().any(|m| m == "mimo-v2.5-pro"));
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-mcp/src/tools.rs:1118:
+             if !terms.iter().all(|term| hay.contains(term.as_str())) {
+                 return None;
+             }
+-            let name_hits = terms.iter().filter(|term| name.contains(term.as_str())).count();
++            let name_hits = terms
++                .iter()
++                .filter(|term| name.contains(term.as_str()))
++                .count();
+             Some((name_hits, t))
+         })
+         .collect();
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-mcp/src/tools.rs:1169:
+         assert!(!names.iter().any(|n| n == "export_causal_graph"));
+         // Every CORE_TOOLS name must be a real tool, or the profile lies.
+         for n in CORE_TOOLS {
+-            assert!(find(n).is_some(), "CORE_TOOLS names a tool that does not exist: {n}");
++            assert!(
++                find(n).is_some(),
++                "CORE_TOOLS names a tool that does not exist: {n}"
++            );
+         }
+     }
+ 
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-mcp/src/tools.rs:1182:
+             .iter()
+             .map(|t| t["name"].as_str().unwrap())
+             .collect();
+-        assert!(names.contains(&"trace_causal") || names.contains(&"export_causal_graph"), "{names:?}");
++        assert!(
++            names.contains(&"trace_causal") || names.contains(&"export_causal_graph"),
++            "{names:?}"
++        );
+         let miss: Value =
+             serde_json::from_str(&search_first_party("zzqx-no-such-thing", 5)).unwrap();
+         assert!(miss["tools"].as_array().unwrap().is_empty());
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-mcp/src/tools.rs:1190:
+         // with an arbitrary slice of the catalog.
+         for blank in ["", "   "] {
+             let v: Value = serde_json::from_str(&search_first_party(blank, 5)).unwrap();
+-            assert!(v.get("tools").is_none(), "blank query must not return tools");
++            assert!(
++                v.get("tools").is_none(),
++                "blank query must not return tools"
++            );
+             assert!(v["error"].as_str().unwrap().contains("non-empty"));
+         }
+         // Name hits outrank description hits.
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-memory/src/embedder.rs:1099:
+         .or_else(|| url.strip_prefix("https://"))
+         .unwrap_or(url);
+     // Authority ends at the first '/', '?' or '#'.
+-    let authority = rest
+-        .split(['/', '?', '#'])
+-        .next()
+-        .unwrap_or_default();
++    let authority = rest.split(['/', '?', '#']).next().unwrap_or_default();
+     // Userinfo ends at the LAST '@', and the reason is agreement rather than
+     // strictness. This check has to predict where the HTTP CLIENT will
+     // connect, so it must split the way the client's parser does. Verified
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-memory/src/embedder.rs:1132:
+     host.eq_ignore_ascii_case("localhost")
+ }
+ 
+-
+ fn local_api_token() -> Option<String> {
+     if let Ok(token) = std::env::var("LAMU_API_TOKEN") {
+         let token = token.trim();
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-memory/src/embedder.rs:2704:
+             "http://[::1]",
+             "http://LOCALHOST:8020",
+         ] {
+-            assert!(serve_url_is_loopback(local), "{local} is loopback with userinfo/path/case");
++            assert!(
++                serve_url_is_loopback(local),
++                "{local} is loopback with userinfo/path/case"
++            );
+         }
+ 
+         // DELIBERATELY REFUSED, and this test exists so nobody "fixes" them.
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-memory/src/embedder.rs:2715:
+         // parser to decode octal, hex, decimal and short-form addresses would
+         // hand an attacker four new spellings of any host.
+         for exotic in [
+-            "http://2130706433:8020",        // decimal 127.0.0.1
+-            "http://0x7f000001:8020",        // hex
+-            "http://0177.0.0.1:8020",        // octal
+-            "http://127.1:8020",             // short form
+-            "http://[::ffff:127.0.0.1]",     // v4-mapped v6
++            "http://2130706433:8020",    // decimal 127.0.0.1
++            "http://0x7f000001:8020",    // hex
++            "http://0177.0.0.1:8020",    // octal
++            "http://127.1:8020",         // short form
++            "http://[::ffff:127.0.0.1]", // v4-mapped v6
+         ] {
+             assert!(
+                 !serve_url_is_loopback(exotic),
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-memory/src/embedder.rs:2744:
+             // treating a wildcard as proven-local is the permissive error.
+             "http://0.0.0.0:8020",
+         ] {
+-            assert!(!serve_url_is_loopback(remote), "{remote} must read as remote");
++            assert!(
++                !serve_url_is_loopback(remote),
++                "{remote} must read as remote"
++            );
+         }
+     }
+ 
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-memory/src/hyte.rs:18:
+ /// to the origin.
+ pub fn to_poincare(v: &[f32], c: f64) -> Vec<f64> {
+     let c = c.max(1e-9);
+-    let norm: f64 = v.iter().map(|&x| f64::from(x) * f64::from(x)).sum::<f64>().sqrt();
++    let norm: f64 = v
++        .iter()
++        .map(|&x| f64::from(x) * f64::from(x))
++        .sum::<f64>()
++        .sqrt();
+     if norm < 1e-12 {
+         return vec![0.0; v.len()];
+     }
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-memory/src/lib.rs:62:
+ #[cfg(feature = "consolidate")]
+ pub mod consolidate;
+ pub mod embedder;
++/// Entity-match recall arm (ADR 0070 R1) — feature-gated; feature-off builds
++/// don't compile it and recall keeps the byte-identical 2-leg RRF fusion.
++#[cfg(feature = "entities")]
++pub mod entity_store;
+ /// Per-query fusion weights (ADR 0075 S1, DAT-style): deterministic heuristic
+ /// fallback plus a validated trained predictor. Feature-gated (`learned_fusion`);
+ /// feature-off recall keeps exact static weights, byte-identical.
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-memory/src/lib.rs:68:
+ #[cfg(feature = "learned_fusion")]
+ pub mod fusion;
+-/// Entity-match recall arm (ADR 0070 R1) — feature-gated; feature-off builds
+-/// don't compile it and recall keeps the byte-identical 2-leg RRF fusion.
+-#[cfg(feature = "entities")]
+-pub mod entity_store;
+ pub mod hybrid;
+ pub mod hyper_store;
+ /// Legacy post-hoc Poincare diagnostic retained for historical comparison.
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-memory/src/query_expand.rs:125:
+     async fn no_expander_is_identity() {
+         let _g = guard();
+         clear_query_expander();
+-        assert_eq!(augment_query_for_embedding("how many kits").await, "how many kits");
++        assert_eq!(
++            augment_query_for_embedding("how many kits").await,
++            "how many kits"
++        );
+     }
+ 
+     #[tokio::test]
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-memory/src/query_expand.rs:135:
+         let out = augment_query_for_embedding("how many kits").await;
+         clear_query_expander();
+         assert_eq!(out, "how many kits\nmodel kit scale Revell Tamiya");
+-        assert!(out.starts_with("how many kits"), "raw query must anchor as prefix");
++        assert!(
++            out.starts_with("how many kits"),
++            "raw query must anchor as prefix"
++        );
+     }
+ 
+     #[tokio::test]
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-memory/src/rerank.rs:84:
+     if k < 2 {
+         return Ok(o);
+     }
+-    let candidates: Vec<(i64, String)> = o.hits[..k]
+-        .iter()
+-        .map(|h| (h.id, h.text.clone()))
+-        .collect();
++    let candidates: Vec<(i64, String)> =
++        o.hits[..k].iter().map(|h| (h.id, h.text.clone())).collect();
+     match reranker.rerank(query, &candidates).await {
+         Ok(order) if !order.is_empty() => {
+             apply_order(&mut o.hits[..k], &order);
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-memory/src/retrieval_engine.rs:39:
+     pub trace: RetrievalTrace,
+ }
+ 
+-
+ /// Candidate depth to request from recall for a mode. `fast` retrieves a shallow
+ /// pool (no rerank); `balanced`/`deep` retrieve at least the reranked-prefix
+ /// budget so the reranker has candidates to reorder, plus headroom for the fused
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-providers/src/cloud_config.rs:275:
+     models
+ }
+ 
+-
+ /// The seed catalog: every provider lamu ships wiring for. Written to disk the
+ /// first time any entry path loads the catalog (see [`load_or_seed`]) so a user
+ /// can edit it; keys are referenced by environment-variable NAME only.
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-providers/src/cloud_config.rs:724:
+     fn default_model_keeps_historical_when_its_key_is_present() {
+         // SAFETY: single-process test binary; the var name is unique to this test.
+         unsafe { std::env::set_var("LAMU_TEST_KEY_HIST", "k") };
+-        let cat = vec![keyed("first", "LAMU_TEST_KEY_HIST"), keyed("mimo-v2.5", "LAMU_TEST_KEY_HIST")];
+-        assert_eq!(default_cloud_model_from(None, &cat, "mimo-v2.5"), "mimo-v2.5");
++        let cat = vec![
++            keyed("first", "LAMU_TEST_KEY_HIST"),
++            keyed("mimo-v2.5", "LAMU_TEST_KEY_HIST"),
++        ];
++        assert_eq!(
++            default_cloud_model_from(None, &cat, "mimo-v2.5"),
++            "mimo-v2.5"
++        );
+         unsafe { std::env::remove_var("LAMU_TEST_KEY_HIST") };
+     }
+ 
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-providers/src/cloud_config.rs:749:
+         let cat = vec![gw];
+         // Nothing usable: name the historical default so the downstream error
+         // is concrete (a real model, a real env var) rather than empty.
+-        assert_eq!(default_cloud_model_from(None, &cat, "mimo-v2.5"), "mimo-v2.5");
++        assert_eq!(
++            default_cloud_model_from(None, &cat, "mimo-v2.5"),
++            "mimo-v2.5"
++        );
+         unsafe { std::env::remove_var("LAMU_TEST_KEY_NOBASE") };
+     }
+ 
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-providers/src/cloud_config.rs:762:
+             // Keys are referenced by env-var NAME only; a seed row must never
+             // carry an inline secret-shaped value anywhere.
+             for s in [&m.notes, &m.name, m.base_url.as_deref().unwrap_or("")] {
+-                assert!(!s.contains("sk-"), "secret-shaped text in seed row {}", m.name);
++                assert!(
++                    !s.contains("sk-"),
++                    "secret-shaped text in seed row {}",
++                    m.name
++                );
+             }
+         }
+     }
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-providers/src/lib.rs:17:
+ pub mod types;
+ 
+ pub use cloud_config::{
+-    CloudModel, CloudModelList, QuotaState, config_path, default_cloud_model,
+-    default_review_model, default_seed, load_or_empty, load_or_seed,
++    CloudModel, CloudModelList, QuotaState, config_path, default_cloud_model, default_review_model,
++    default_seed, load_or_empty, load_or_seed,
+ };
+ pub use headers::anthropic_beta_header;
+ pub use payload::{build_anthropic_payload, build_openai_payload};
+Diff in /mnt/4tb/tmp/lamu-ow77-source-provider/lamu-rs/lamu-providers/src/openai_subscription.rs:93:
+ ///   state to round-trip as encrypted blobs, so `include:
+ ///   ["reasoning.encrypted_content"]` is mandatory.
+ /// - `effort` (from [`split_effort`]) drives `reasoning.effort`.
+-pub fn build_responses_payload(
+-    model: &str,
+-    history: &[Message],
+-    tools: &[Value],
+-) -> Value {
++pub fn build_responses_payload(model: &str, history: &[Message], tools: &[Value]) -> Value {
+     let (base, effort) = split_effort(model);
+ 
+     let mut instructions = String::new();

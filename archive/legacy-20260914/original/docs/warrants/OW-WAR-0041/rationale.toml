@@ -1,0 +1,20 @@
+schema = "oh.war/rationale/v1"
+
+# §36.2 — accepted residual risk.
+#
+# Each entry transcribes this Warrant's own "## Residual Risk" section from its
+# assurance atom, which stated the risk in prose that nothing could read.
+#
+# `judgment_ref` is EMPTY, and deliberately. The status names the class of
+# assumption — a residual risk, to be accepted — while `judgment_ref` is where an
+# acceptance is recorded. Nobody has accepted these. §27.2 forbids an agent
+# accepting organizational residual risk, so the field stays empty until a human
+# signs a judgment through `war authorize`, and `war resolve` reports
+# requirements 9 and 11 unmet until one does.
+
+[[assumption]]
+id = "A-001"
+statement = "A single telemetry sample is a legitimate baseline."
+epistemic_status = "accepted_residual_risk"
+consequence_if_false = "Once a second sample exists the difference is reported as a reduction; §100's verbs make that tempting and only OBL-004 forbids it."
+judgment_ref = ""

@@ -1,0 +1,22 @@
+schema = "oh.war/rationale/v1"
+
+[[assumption]]
+id = "A-001"
+statement = "Citing the corpus gate for obligations whose evidence is the xtask step is acceptable until xtask has a Gate Definition."
+epistemic_status = "accepted_residual_risk"
+consequence_if_false = "Requirement 5 reads met on the strength of a gate that does not run the check the obligation names."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-002"
+statement = "A textual check that pages.yml contains a digest comparison is sufficient."
+epistemic_status = "accepted_residual_risk"
+consequence_if_false = "A comparison that stays in the text and stops being reached lets a rewritten page deploy."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-003"
+statement = "Serving the last successful deploy on a failed one is acceptable."
+epistemic_status = "accepted_residual_risk"
+consequence_if_false = "A reader sees a stale projection with nothing saying it is stale."
+judgment_ref = ""

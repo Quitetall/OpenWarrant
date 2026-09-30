@@ -1,0 +1,27 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0106",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "5e503d08c92a46b4ded912c31059da3c1f8426a5",
+  "summary": "Hotline, internal stage dispatch, browser selection and exact checkpoint answer reconfirmation implemented. Synthetic HTTP/process/browser evidence retained. Current full gate and integration pending.",
+  "notes": "docs/warrants/OW-WAR-0106/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0106/implementation/contracts-tests.log",
+    "docs/warrants/OW-WAR-0106/implementation/answer-http-tests.log",
+    "docs/warrants/OW-WAR-0106/implementation/resume-all-tests.log",
+    "docs/warrants/OW-WAR-0106/implementation/browser-observation.md",
+    "docs/warrants/OW-WAR-0106/implementation/browser-api-tests.log",
+    "docs/warrants/OW-WAR-0106/implementation/adviser-all-tests.log",
+    "docs/warrants/OW-WAR-0106/implementation/fault-tests.log",
+    "docs/warrants/OW-WAR-0106/implementation/stage-browser-observation.md",
+    "docs/warrants/OW-WAR-0106/implementation/reconfirmation-browser-observation.md",
+    "docs/warrants/OW-WAR-0106/implementation/reconfirmation-regression.log",
+    "docs/warrants/OW-WAR-0106/implementation/reconfirmation-focused.log"
+  ],
+  "next_steps": [
+    "Finish current full repository gate",
+    "Integrate exact reviewed candidate and audit completion",
+    "Keep real-provider and secure human qualification separate"
+  ]
+}

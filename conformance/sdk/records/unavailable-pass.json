@@ -1,0 +1,28 @@
+{
+  "schema": "oh.war/record/1.0.0-rc.2",
+  "id": "test:observation",
+  "kind": "observation",
+  "subject": {
+    "warrant": "test:work",
+    "contract_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "result_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "actor": {
+    "id": "test:agent",
+    "kind": "agent",
+    "role": "checker"
+  },
+  "policy_ref": null,
+  "evidence_refs": [],
+  "payload": {
+    "check_id": "test:check",
+    "check_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "execution": "unavailable",
+    "verdict": "PASS",
+    "artifact_refs": []
+  },
+  "provenance": {
+    "source": "test:fixture",
+    "authenticity": "externally-verified"
+  }
+}

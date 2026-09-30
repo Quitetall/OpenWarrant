@@ -1,0 +1,1301 @@
+{
+  "schema": "oh.war/reconciliation-inventory/v1",
+  "total": 89,
+  "input_digest": "2ea8785f080c480ecb1cb9b9f753953c63261f372fb5cdeae6a591d059ecbd41",
+  "source_revision": "746e773f5d7eac2653b16956e0f90af0115cec0a",
+  "work_report_inputs": [
+    {
+      "path": "docs/warrants/OW-WAR-0001/implementation/progress.json",
+      "sha256": "e843a9840a160fe1e33adefc8d26b53fbb5c8410b08683a6338b454cbea6843a"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0002/implementation/progress.json",
+      "sha256": "ae6dd99ec66f9bdfb5807a57114e2a571881d6360cfa11c9d6b6b85cdee2a9a3"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0003/implementation/progress.json",
+      "sha256": "e6b07819331d0b6914554776d80385befd1f856d74e1ff15c48ab29326555a5e"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0004/implementation/progress.json",
+      "sha256": "f8e55b16dbd864cd79f642854db396567f188e2eb5ac1180595c3f314879c63b"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0005/implementation/progress.json",
+      "sha256": "7867d039421ca18be225f25025b7b710268125f3c989e4608e0c5dca665638f9"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0007/implementation/progress.json",
+      "sha256": "1c349df193395626b5c2eb48ee5e97b89bb0e72d1cce665b4a5006bc8201706a"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0008/implementation/progress.json",
+      "sha256": "0f3b597985f3f94a41412852d182f7a6f19bb30674f1fbb55664ab56894495cc"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0009/implementation/progress.json",
+      "sha256": "57df558aa4e0d8f08d7b4950182e10c9b4db0a309bce1e6d0b194c33fed28836"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0010/implementation/progress.json",
+      "sha256": "db82689ee09b17301d0503186407ec236e6c029158fbd6cfb4d30def20da49f1"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0012/implementation/progress.json",
+      "sha256": "cdc9b8ab9d7d46ba1859cd5993895af63515ada368706eb04e3202b6a7fabcba"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0013/implementation/progress.json",
+      "sha256": "e30bd4e9200f8f56e18a4518b40779f96dee05b2ecd85caecf69d851fb425a45"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0014/implementation/progress.json",
+      "sha256": "0b208b5113ef8b458822d3667aeebfe0a57b12efba7c1d940fe8ff80e6c11537"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0015/implementation/progress.json",
+      "sha256": "f8584b12297e4a411a66924944ea4a95ec47915fb1389ea4bb09bbe4b94b15cc"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0016/implementation/progress.json",
+      "sha256": "212bb3347ea3e67a598b405acc5203471e2a0fdf7629771ee11d89e8a2a46280"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0017/implementation/progress.json",
+      "sha256": "bef1278ac45465f73e184c9ca5c714470152a81d6308a74f5cc662aac8838c09"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0018/implementation/progress.json",
+      "sha256": "1e7e63426b637f6bc938cab1519def55a40517ad1f91ab55e52f9555bb9f3ed9"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0019/implementation/progress.json",
+      "sha256": "f76d96842b2d0e55967209ec5f1667b3789ce92b22f4e7a6761a0965c1d2cea7"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0020/implementation/progress.json",
+      "sha256": "bb0f51ad1a225927103e4421cb078c8c81ed5f79111a13089a50c1ff29b621fc"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0021/implementation/progress.json",
+      "sha256": "d76428f95f0d1b13f9e1a2c385549465c52d54586f96f087eb05fa4502bf4559"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0022/implementation/progress.json",
+      "sha256": "a959c96e5d9ba71246b87d461ce52b73d25d5ce1f4dfd66bb3510a3d35858112"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0024/implementation/progress.json",
+      "sha256": "658939e09fae6db3b326bdb33068e00d520e5976e7e728d1406cc934c1403ab0"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0025/implementation/progress.json",
+      "sha256": "ac163f97ab1e87916a1cb31c2cab9ffa83d3f3a3edbf3e83d6a17041396c54d6"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0031/implementation/progress.json",
+      "sha256": "b21f6f07ed868b5df29742384adf20e4e53405a782cf05f146b4dc6341d155f1"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0033/implementation/progress.json",
+      "sha256": "bf0dfef7224cfc67eb7f4d68e611154bdfaa74c2090c435ce5c9f8f6638fedb5"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0034/implementation/progress.json",
+      "sha256": "bac356dcc0cdd82c1604dbadcad2110f6eae6dd9ddebe1a65f4688506f8dd717"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0038/implementation/progress.json",
+      "sha256": "2b65bea33f64f1b63c0471b488b3dabac393a9e4e77b307613c013ac4fbfe51e"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0046/implementation/progress.json",
+      "sha256": "038499ec63a1418ff101c3eaaaca84cb16bb1104b6a463f776dce5397d185b9e"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0050/implementation/progress.json",
+      "sha256": "470f9861693fd6ca1599b3448178988d21faa3a1886f54979d31d4cb3e4818d6"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0055/implementation/progress.json",
+      "sha256": "41c2bc094fc41a26a12d252b34ce0c0635f5c03f6bbd48e74a17c1d152441b9d"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0056/implementation/progress.json",
+      "sha256": "7bb47c04c8e5970420cd2fbff03a5e73bbc37641ba29261e5c715bf02e78fde9"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0057/implementation/progress.json",
+      "sha256": "c4d25b03f3bb267384770b98bf6f09c449a96ba79f0088d8454324575e188345"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0058/implementation/progress.json",
+      "sha256": "f7eb0bca21d4027693a0a1045f0241e540bcf32a84abc9170f9239836a3f0042"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0059/implementation/progress.json",
+      "sha256": "0bba0ae4a80c61fdafca4222d6c3651f6dc5b08e110f5c6f37fb27e7f9928799"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0060/implementation/progress.json",
+      "sha256": "1a080629f7e75a60fe08138dd1f31fd30b2a681cf851b2a93231aa4630aa4f3c"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0061/implementation/progress.json",
+      "sha256": "ce65f08bc1675f4dee35e18374554a5c7aeeaeb0fe33d3f292f1a91eb39d5b1f"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0062/implementation/progress.json",
+      "sha256": "7c127fd2b7f158aa0ee132ff43e978795172919b124921692b7df1f173f556cb"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0064/implementation/progress.json",
+      "sha256": "ba5f19bb4214b542ce5c8b2811175cd4dbe12ebf9c8c6b6fd0c301df38aa3877"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0075/implementation/progress.json",
+      "sha256": "c99f5497c13fcb72f6f610f80ab4a5d886b3dd5e99165adce5cd09ed4546c34b"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0076/implementation/progress.json",
+      "sha256": "50930043c5713acd6af617257eec9877afcddcfc7aa082010f46379355bc269a"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0077/implementation/progress.json",
+      "sha256": "4a491b082cb2785071af6aa68455d4acc53de411e357349428d10d959df3fea4"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0078/implementation/progress.json",
+      "sha256": "600d9ceeebb158c68ae33d3e5460a3d61bf1db999aadedc9d21de03b4ce8b9d3"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0079/implementation/progress.json",
+      "sha256": "708b9dae838736e1190520f3d38a381dfcf6714c0dfa44f91971ad0db7a01d7c"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0080/implementation/progress.json",
+      "sha256": "640112a2dbd30669c588406f8ff751996aaddd748a0482aa5d28a62963b78a3c"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0081/implementation/progress.json",
+      "sha256": "f9b4529e7a32afcfe6adbcc314caeae29d3f824a97799d324ba2e065b8fc6edd"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0082/implementation/progress.json",
+      "sha256": "9acb830b5681ff6fa67643f43c45a59bcd46d07bbaf5e83141f8719939207cc4"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0083/implementation/progress.json",
+      "sha256": "8a9b0fda6fd4faf9e5f3b2cd1516f1b19cdef3e1b2bac2665bbdb82714ea550d"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0084/implementation/progress.json",
+      "sha256": "1f2964c1d88056a80706aa5cf3b4a441fb7a18db43bc55dbcf90dab3a273f2e8"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0085/implementation/progress.json",
+      "sha256": "8d6eedc482aad4a57dc5548c11ea645842014ad1cae452e0c5594de3e0dc5134"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0086/implementation/progress.json",
+      "sha256": "3b0094a534d6a4e4326240b3929c526d87a9f30968e7c9550feef8547eb2b9d8"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0087/implementation/progress.json",
+      "sha256": "f405696ff010507aeb4ff233480dab9b6778aa50c6c2bc4ecbcd4c06686e80e2"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0088/implementation/progress.json",
+      "sha256": "1525618e2747f19d70d7de403285305b0d2828e9c98e3cc427338d8c16943bbd"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0089/implementation/progress.json",
+      "sha256": "bfec13295e35ac3fc368d96a189b0e6e3639c66a7bc514e5f2fb4da711eed54b"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0090/implementation/progress.json",
+      "sha256": "f6f0468482b8ca055bfbeba1e4d755a37db8bd122657ed99311313ca59756791"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0091/implementation/progress.json",
+      "sha256": "51fc42b4018f35e577a9ed39140351bbde3e65cc3aa1370bf8c2b8f34a82acd3"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0092/implementation/progress.json",
+      "sha256": "0c5a59a725f95379c2e876f557de89818ce90172fec2776814243a692b4cf267"
+    }
+  ],
+  "all_remaining_reconciled": false,
+  "qualification_assessed": false,
+  "note": "Routes are proposals. Current file observations are not an atomic Git snapshot or acceptance.",
+  "warrants": [
+    {
+      "alias": "OW-WAR-0001",
+      "title": "Establish the OpenWarrant repository and Rust workspace",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "ready_to_resolve",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Workspace bootstrap now has direct init/refusal observations alongside the passing aggregate gate. Later authorized licensing/publication decisions supersede the initial private/AGPL setup.",
+      "route": "review-completion-evidence",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0002",
+      "title": "Implement the file-native manifest and atom parser",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0003",
+      "title": "Implement the canonical WAR IR and RFC 8785 digesting",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "ready_to_resolve",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Accepted OW-ADR-0001 selects serde_jcs 0.2; dependency and license gate agree. Existing canonical/digest tests and established observations cover the implementation.",
+      "route": "review-completion-evidence",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0004",
+      "title": "Implement the generated parent document and drift checking",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "ready_to_resolve",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Generated parent rendering is delivered; the current battery observes generated.drift on a changed committed parent.",
+      "route": "review-completion-evidence",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0005",
+      "title": "Implement deterministic war check and close the Phase 1 bootstrap",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0006",
+      "title": "Complete ADR federation: relations, supersession, and currency",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "ready_to_resolve",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "human-legacy-closure-or-explicit-reconciliation",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0007",
+      "title": "Parse and validate milestones, stages, and named typed ports",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "ready_to_resolve",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Accepted OW-ADR-0003 names the structured reader. Current graph tests plus actual duplicate-stage probe cover the five declared malformed graph cases.",
+      "route": "review-completion-evidence",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0008",
+      "title": "Implement the state model: phase, condition, outcome, currency, standing",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0009",
+      "title": "Implement contract revisions and their immutability",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0010",
+      "title": "Implement the autonomy envelope and amendment records",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0011",
+      "title": "Implement prerequisites and Preflight",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "ready_to_resolve",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "human-legacy-closure-or-explicit-reconciliation",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0012",
+      "title": "Implement the context model, context manifest, and trust classes",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0013",
+      "title": "Validate SAS and Roadmap traceability",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "ready_to_resolve",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Current battery rejects an unknown RQ-999 requirement through traceability.unknown-requirement; existing typed traceability checks cover the positive case.",
+      "route": "review-completion-evidence",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0014",
+      "title": "Implement the rationale model, assumptions, and unknowns",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0015",
+      "title": "Implement deliverables, artifacts, and artifact provenance",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0016",
+      "title": "Implement acceptance obligations and bounded claims",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0017",
+      "title": "Implement the epistemic classes: evidence, observation, inference, judgment, resolution",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0018",
+      "title": "Implement contract-adequacy review, structurally checked",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0019",
+      "title": "Implement the Gate Registry: definitions, qualification, and bindings",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0020",
+      "title": "Implement Gate Run semantics, askability, and invalidation",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0021",
+      "title": "Implement verifier independence",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0022",
+      "title": "Implement resolution, dispute, and annulment",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0023",
+      "title": "Implement Stage Dispatch compilation and actor-specific projection",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "ready_to_resolve",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "human-legacy-closure-or-explicit-reconciliation",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0024",
+      "title": "Implement Stage Submission and attempt semantics",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0025",
+      "title": "Implement blockers, deviations, decision proposals, and discovered gaps",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0026",
+      "title": "Implement the Katana runtime seam, capabilities, and receipts",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "draft",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "inspect-and-complete-scope",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0027",
+      "title": "Implement the BLUT adapter: PlanSpec lowering and lineage receipt",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "ready_to_resolve",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "human-legacy-closure-or-explicit-reconciliation",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0028",
+      "title": "Implement Knowledge Fabric typed actions and the controlled-action envelope",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "ready_to_resolve",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "human-legacy-closure-or-explicit-reconciliation",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0029",
+      "title": "Implement KF registration, global identity allocation, and federation",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "ready_to_resolve",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "human-legacy-closure-or-explicit-reconciliation",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0030",
+      "title": "Implement portable preservation: one-file export and round trip",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "ready_to_resolve",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "human-legacy-closure-or-explicit-reconciliation",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0031",
+      "title": "Implement the local draft journal",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0032",
+      "title": "Generate the schema pack and implement protocol versioning",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "draft",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "inspect-and-complete-scope",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0033",
+      "title": "Implement the remaining read projections",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0034",
+      "title": "Implement the agent protocol and Draft Proposal validation",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0035",
+      "title": "Implement `war plan` and the interview loop",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "draft",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "inspect-and-complete-scope",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0036",
+      "title": "Implement normative-decision detection and proposed-ADR generation",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "ready_to_resolve",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "human-legacy-closure-or-explicit-reconciliation",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0037",
+      "title": "Implement `war diff`: semantic difference between revisions",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "ready_to_resolve",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "human-legacy-closure-or-explicit-reconciliation",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0038",
+      "title": "Implement the existing-ADR importer, preserving unknown classes",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0039",
+      "title": "Implement telemetry, unit economics, and untracked-work detection",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "ready_to_resolve",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "human-legacy-closure-or-explicit-reconciliation",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0040",
+      "title": "Implement the Liminal adapter and measured parity harness",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "draft",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "inspect-and-complete-scope",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0041",
+      "title": "Discharge the Phase 0 exit: real telemetry distributions, with a baseline",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "ready_to_resolve",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "human-legacy-closure-or-explicit-reconciliation",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0042",
+      "title": "Discharge the Phase 2 exit: a vague request becomes a reviewable draft",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "draft",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "inspect-and-complete-scope",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0043",
+      "title": "Discharge the Phase 3 exit: migrate the LamQuant ADR corpus, fabricating nothing",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "ready_to_resolve",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "human-legacy-closure-or-explicit-reconciliation",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0044",
+      "title": "Discharge the Phase 4 exit: KF is institutional authority, Git stays Source Holder",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "ready_to_resolve",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "human-legacy-closure-or-explicit-reconciliation",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0045",
+      "title": "Discharge the Phase 5 exit: a stateless actor executes one Dispatch",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "draft",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "inspect-and-complete-scope",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0046",
+      "title": "Discharge the Phase 6 exit: a delivery closes only through bounded proof",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0047",
+      "title": "Discharge the Phase 7 exit: compatible WARs execute without duplicating BLUT",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "draft",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "inspect-and-complete-scope",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0048",
+      "title": "Discharge the Phase 8 exit: measured adapter parity and the two-host canonical run",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "draft",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "inspect-and-complete-scope",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0049",
+      "title": "Close the alpha residue: the gaps alpha carried forward and one false claim",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "draft",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "inspect-and-complete-scope",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0050",
+      "title": "Governed Bonsai evidence for pull-request workflow",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "draft",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Report-phase Bonsai adapter delivered, with all four recorded obligations established and current adapter tests passing. No blocking rollout or Bonsai evidence for unscoped newer Warrants is claimed.",
+      "route": "review-completion-evidence",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0055",
+      "title": "Compute the goal hierarchy: war status and the corpus projection",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0056",
+      "title": "Compile a real Stage Dispatch (\u00a747)",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0057",
+      "title": "The viewer: a static page over the corpus projection",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0058",
+      "title": "Put the SAS under \u00a7101 governance: controlled revisions and the Release axis",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0059",
+      "title": "Commit gate receipts as evidence and record the first resolutions",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "ready_to_resolve",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Current battery observes agent-resolution refusal and receipt tampering/stale-binding refusals. Existing resolved Warrants retain admissible receipts; no new human act is inferred.",
+      "route": "review-completion-evidence",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0060",
+      "title": "Publish the corpus viewer: GitHub Pages from the committed projection",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0061",
+      "title": "Discharge the Phase 1 exit: OpenWarrant development uses WARs",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0062",
+      "title": "Lock down the levels: what a SAS, a Warrant, and every other object are",
+      "legacy_phase": "resolved",
+      "legacy_assessment": "resolved",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Historical delivered scope has a satisfied resolution binding the current contract, established obligations and an intact effective deliverable basis (including authorized corrections). This reports that recorded result, not a new qualification.",
+      "route": "preserve-resolved-history",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0063",
+      "title": "Complete the conformance battery: the plants and tests the verifier named as missing",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "draft",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "inspect-and-complete-scope",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0064",
+      "title": "Repair a delivered artifact: the correction act for a resolved Warrant",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "draft",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Correction request/ingest path, accepted ADR, append-only history and six named refusals are delivered and exercised by the current gate. Existing signed corrections remain unchanged.",
+      "route": "review-completion-evidence",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0065",
+      "title": "Research memo: which tokenizer approximation OpenWarrant uses for \u00a733.7 budgets",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "draft",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "inspect-and-complete-scope",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0066",
+      "title": "Run: the conformance battery as a service stage",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "draft",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "inspect-and-complete-scope",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0067",
+      "title": "Release 1.0: the seven acts that close the plan, deferred to the owner's signature",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "draft",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "inspect-and-complete-scope",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0068",
+      "title": "Skills: a strict superset of the Pocock set over the deterministic core",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "draft",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "inspect-and-complete-scope",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0069",
+      "title": "The board, the hotline, and the harness: one system from master record to running agents",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "draft",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "inspect-and-complete-scope",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0070",
+      "title": "Add `war inbox` to list Warrants awaiting a human act",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "draft",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "inspect-and-complete-scope",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0071",
+      "title": "SAS 1.1.0: the batch act, and the dashboard as a rendering of the record",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "draft",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "inspect-and-complete-scope",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0072",
+      "title": "The batch act: one human signature over many pending acts",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "draft",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "inspect-and-complete-scope",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0073",
+      "title": "war tui: the dashboard in the terminal",
+      "legacy_phase": "authorized",
+      "legacy_assessment": "draft",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "inspect-and-complete-scope",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0074",
+      "title": "Adopt the exact RC.2 build basis without rewriting history",
+      "legacy_phase": "draft",
+      "legacy_assessment": "draft",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "inspect-and-complete-scope",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0075",
+      "title": "Parse and validate human-first OpenWarrant documents",
+      "legacy_phase": "draft",
+      "legacy_assessment": "draft",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Parser and structural validation delivered; integrated and gated with PR #66. Human qualification not claimed.",
+      "route": "review-completion-evidence",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0076",
+      "title": "Author and edit human-first OpenWarrant documents",
+      "legacy_phase": "draft",
+      "legacy_assessment": "draft",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "SDK author/edit complete. 14-step gate, 747 Rust tests and 308 mutation checks passed; PR #67 merged.",
+      "route": "review-completion-evidence",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0077",
+      "title": "Define SDK source types and prove provider resolution integration",
+      "legacy_phase": "draft",
+      "legacy_assessment": "draft",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "SDK and real LAMU source provider implemented. Linux/macOS provider CI and independent reviews pass; OpenWarrant gate 14/14. Implementation complete, unverified. Merged LAMU provider retested through OW86; full-phase qualification remains separate.",
+      "route": "review-completion-evidence",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0078",
+      "title": "Validate condition syntax and prove provider evaluation integration",
+      "legacy_phase": "draft",
+      "legacy_assessment": "draft",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Bounded condition validation and real LAMU evaluation implemented and reviewed. Required UNKNOWN closure proven through selection integration. Implementation complete, unverified. Merged LAMU provider retested through OW86; full-phase qualification remains separate.",
+      "route": "review-completion-evidence",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0079",
+      "title": "Prove provider context selection and dependency closure",
+      "legacy_phase": "draft",
+      "legacy_assessment": "draft",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Required context closure implemented and reviewed, including UNKNOWN, cycles, conflicts and resource bounds. Implementation complete, unverified. Merged LAMU provider retested through OW86; full-phase qualification remains separate.",
+      "route": "review-completion-evidence",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0080",
+      "title": "Prove provider master context and task projections",
+      "legacy_phase": "draft",
+      "legacy_assessment": "draft",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Master and four-role task projections implemented and independently reviewed; exact rules and source labels retained. Implementation complete, unverified. Merged LAMU provider retested through OW86; full-phase qualification remains separate.",
+      "route": "review-completion-evidence",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0081",
+      "title": "Inspect packet integrity and prove offline provider packages",
+      "legacy_phase": "draft",
+      "legacy_assessment": "draft",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "SDK integrity plus actual LAMU portable package construction, offline semantic reconstruction and safe publication implemented and reviewed. Implementation complete, unverified. Merged LAMU provider retested through OW86; full-phase qualification remains separate.",
+      "route": "review-completion-evidence",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0082",
+      "title": "Prove provider context budgets and cache invalidation",
+      "legacy_phase": "draft",
+      "legacy_assessment": "draft",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Final-entry budgets and immutable bounded cache implemented and independently reviewed; source/policy changes invalidate reuse. Implementation complete, unverified. Merged LAMU provider retested through OW86; full-phase qualification remains separate.",
+      "route": "review-completion-evidence",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0083",
+      "title": "Evaluate supplied work and assurance records",
+      "legacy_phase": "draft",
+      "legacy_assessment": "draft",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Phase 1 dependency scheduling and supplied-record readiness/assurance SDK complete, unverified. 21 record/workflow tests, 10 codec fixtures and full 14-step gate passed; 308/308 planted controls. Revision identifies source inventory, not Git commit.",
+      "route": "review-completion-evidence",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0084",
+      "title": "Preserve legacy history and explicit successor lineage",
+      "legacy_phase": "draft",
+      "legacy_assessment": "draft",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Phase 1 preservation and successor SDK complete, unverified. Eight public tests, ten file-backed cases and full 14-step gate passed; 308/308 controls. Original bytes and history retained; no authority transferred. Revision identifies source inventory.",
+      "route": "review-completion-evidence",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0085",
+      "title": "Prove Phase 1 SDK, CLI and adapted skill scope",
+      "legacy_phase": "draft",
+      "legacy_assessment": "draft",
+      "work_state": "blocked",
+      "report_error": null,
+      "summary": "Linux Phase 1 acceptance and full repository gate pass: 14/14 steps, 308/308 controls. Full Phase 1 exit awaits native macOS evidence; unverified.",
+      "route": "complete-blocked-scope",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0086",
+      "title": "Integrate SDK with LAMU and a second minimal consumer",
+      "legacy_phase": "draft",
+      "legacy_assessment": "draft",
+      "work_state": "blocked",
+      "report_error": null,
+      "summary": "Merged LAMU provider and current SDK record/legacy exchange pass on Linux. All ten LAMU PR checks passed. Full Phase 2 exit awaits Phase 1 macOS evidence and final review; unverified.",
+      "route": "complete-blocked-scope",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0087",
+      "title": "Expose document and record primitives through CLI",
+      "legacy_phase": "draft",
+      "legacy_assessment": "draft",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Offline SDK CLI complete, unverified: 33 operations, 71 success/refusal cases, 11 public tests; full 14-step gate and 308/308 controls passed. Source inventory pinned.",
+      "route": "review-completion-evidence",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0088",
+      "title": "Make SDK document authoring interactive and recoverable",
+      "legacy_phase": "draft",
+      "legacy_assessment": "draft",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Interactive SDK authoring complete, unverified: 10 draft tests, 11 SDK tests, fixed transcript, terminal probe, independent reviews and full 14-step/308-control gate pass.",
+      "route": "review-completion-evidence",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0089",
+      "title": "Prepare standard and SDK release artifacts",
+      "legacy_phase": "draft",
+      "legacy_assessment": "draft",
+      "work_state": "blocked",
+      "report_error": null,
+      "summary": "Linux candidate packaging/install and six refusal tests pass; full gate 14/14, 308/308. Native macOS install remains missing; no release qualification or publication.",
+      "route": "complete-blocked-scope",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0090",
+      "title": "Qualify four-phase release and freeze Stable source set",
+      "legacy_phase": "draft",
+      "legacy_assessment": "draft",
+      "work_state": "blocked",
+      "report_error": null,
+      "summary": "Exact available evidence inventoried; all four phase exits remain incomplete. Reference webapp planned as separate package; real workflow/user and native macOS evidence missing.",
+      "route": "complete-blocked-scope",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0091",
+      "title": "Publish and verify OpenWarrant Stable 1.0",
+      "legacy_phase": "draft",
+      "legacy_assessment": "draft",
+      "work_state": "blocked",
+      "report_error": null,
+      "summary": "Publication runbook prepared; blocked by incomplete OW90 qualification and absent exact release permission. No tag or release published.",
+      "route": "complete-blocked-scope",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0092",
+      "title": "View project progress as offline HTML and a locally refreshed dashboard",
+      "legacy_phase": "draft",
+      "legacy_assessment": "draft",
+      "work_state": "completed",
+      "report_error": null,
+      "summary": "Offline HTML export and read-only local refresh implemented; aggregate gate and independent reviews passed. Unverified result; direct offline visual inspection remains UNKNOWN because file-URL navigation was blocked.",
+      "route": "review-completion-evidence",
+      "reconciled": false,
+      "qualification_assessed": false
+    },
+    {
+      "alias": "OW-WAR-0093",
+      "title": "Reference workflow package: local API and draft webapp",
+      "legacy_phase": "draft",
+      "legacy_assessment": "draft",
+      "work_state": "not-reported",
+      "report_error": null,
+      "summary": "",
+      "route": "inspect-and-complete-scope",
+      "reconciled": false,
+      "qualification_assessed": false
+    }
+  ]
+}

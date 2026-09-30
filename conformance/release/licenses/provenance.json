@@ -1,0 +1,14 @@
+{
+  "rmcp@3.3.0": {
+    "file": "rust-sdk-LICENSE",
+    "sha256": "0382b0057770ca05e9c350a50aa3b1c1fea84da0bc81d723bf00b9aa841be58a",
+    "source_commit": "3e636cab26c013eca5131103c03d20237f12c4df",
+    "url": "https://raw.githubusercontent.com/modelcontextprotocol/rust-sdk/3e636cab26c013eca5131103c03d20237f12c4df/LICENSE"
+  },
+  "rmcp-macros@3.3.0": {
+    "file": "rust-sdk-LICENSE",
+    "sha256": "0382b0057770ca05e9c350a50aa3b1c1fea84da0bc81d723bf00b9aa841be58a",
+    "source_commit": "3e636cab26c013eca5131103c03d20237f12c4df",
+    "url": "https://raw.githubusercontent.com/modelcontextprotocol/rust-sdk/3e636cab26c013eca5131103c03d20237f12c4df/LICENSE"
+  }
+}

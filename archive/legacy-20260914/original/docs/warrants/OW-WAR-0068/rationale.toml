@@ -1,0 +1,11 @@
+schema = "oh.war/rationale/v1"
+
+# §36.3 — the owner's provisional approval, honestly classed.
+
+[[assumption]]
+id = "A-001"
+statement = "The owner provisionally approved this Warrant in a remote message on 2026-09-12 ('Give them a provisional approval and build the warrants, defer the completion of the warrants to when I sign them'). A message is a decision on record; it is not a signature."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "The owner's ssh-signed authorization of this Warrant, then the signatures the stages name, each made at the workstation through `war sign --ssh-sign` (the key is loaded with `ssh-add -c`; an agent's attempt on 2026-09-12 was refused by the agent's confirm dialog, which is the control working)."
+consequence_if_false = "Nothing here is authorized; the stages stay unstarted and the record says so. No act is fabricated in the meantime."
+judgment_ref = ""

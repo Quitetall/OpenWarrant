@@ -1,0 +1,19 @@
+schema = "oh.war/authorization-response/v1"
+warrant = "OW-WAR-0013"
+contract_digest = "e82d467e4e4b5350f79ce6cc08b3028e56e6328ad467684387dec3c7cce9868f"
+authorizer = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0013 (Validate SAS and Roadmap traceability) at this contract digest means the signer accepts its intent, scope and 3 obligation(s) as the work to be done and judged, and accepts each of the 1 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.1` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-09-19T02:38:17Z"
+independence = "separate_role"
+signed_via = "ssh"
+
+[[judgment]]
+id = "J-001"
+kind = "residual_risk_acceptance"
+statement = "Parsing requirement identifiers out of prose is acceptable because breakage is loud."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "Accepting residual risk A-001 for OW-WAR-0013: if the assumption is false, the consequence is: A §106 table reformat breaks traceability resolution; loudly, but every claim citing a requirement id is unresolvable until it is fixed. Presented on a terminal by `war sign 1.0.0-alpha.1` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+basis_refs = ["assumption://A-001"]
+authority = "authorized"

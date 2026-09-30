@@ -1,0 +1,13 @@
+# oh.war/question/v1. Asked by an agent, answered by a human (§27.2). An answer
+# informs the work; it is never a disposition, a judgment, or an
+# authorization. `war questions --open` lists what awaits an answer.
+
+schema = "oh.war/question/v1"
+id = "Q-003"
+warrant = "OW-WAR-0069"
+stage = "STAGE-001"
+asked_by = "agent://claude"
+asked_at = "2026-09-12T07:49:07Z"
+question = "What does a tick on the numbered list actually do? A browser cannot hold your key, so the tick cannot be the signature itself."
+blocking = true
+recommended = "The tick is a keystroke at the workstation: the board prints rows numbered 1..n, each row the exact war sign command, and war sign --all --ssh-sign walks them one dialog at a time."

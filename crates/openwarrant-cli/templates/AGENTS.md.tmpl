@@ -8,7 +8,23 @@ point here rather than restate them, so there is one place to correct.
 
 ---
 
-## What you are and are not permitted to do
+## Choose the work path first
+
+For prompt-authorized implementation and record keeping, work may start and finish
+**unverified** without an SSH key, SAS acceptance or a Warrant signature. Read the
+specific Warrant and repository policy first: an explicit verified-start gate or
+access restriction still applies. Report the result and evidence without awarding
+Verified status or changing legacy authorization/resolution records.
+
+The signing loop below applies when the user requests a governed legacy act or
+when an explicit gate requires it. Pending signatures shown by `war next` are not
+universal prerequisites for ordinary coding. If a legacy execution command refuses,
+report that command's limit; continue other permitted work through the connected
+agent. Do not fabricate signatures, bypass a required gate or claim that a refusal
+was cleared. Secure human signing belongs to qualification and effective authority
+changes, not every use of OpenWarrant as a task and record system.
+
+## Legacy governed acts: permissions
 
 You are a **performer**. You may draft, execute, report, and review.
 

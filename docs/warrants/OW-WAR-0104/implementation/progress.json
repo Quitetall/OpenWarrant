@@ -1,0 +1,21 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0104",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "7e9b9752bdb0febfffe3c2b1a289b4f718de874a",
+  "summary": "Read-only board, configurable roadmap and next-work preview implemented and merged via PR129, unverified. Exact-head CI passed at 32a3d88a; roadmap offline controls observed by owner. Separate legacy-board offline observation remains pending.",
+  "notes": "docs/warrants/OW-WAR-0104/implementation/roadmap-progress.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0069/implementation/board-notes.md",
+    "docs/warrants/OW-WAR-0104/implementation/gate-7ba66ae.log.gz",
+    "docs/warrants/OW-WAR-0069/implementation/board-web-tests.log",
+    "docs/warrants/OW-WAR-0069/implementation/board-browser-qa.md",
+    "docs/warrants/OW-WAR-0104/implementation/roadmap-gate-9464101.log.gz",
+    "docs/warrants/OW-WAR-0104/implementation/offline-roadmap-human-observation.json"
+  ],
+  "next_steps": [
+    "Record separate legacy-board offline rendering observation; roadmap observation covers a different artifact",
+    "Keep OW69 historical reconciliation separate; independent assurance and human signatures remain separate"
+  ]
+}

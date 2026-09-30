@@ -1,0 +1,24 @@
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-war-0075-sdk/crates/openwarrant-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.12s
+     Running tests/document.rs (target/debug/deps/document-b0fa1e91232fbf0d)
+
+running 1 test
+test local_reference_syntax_is_checked_without_resolving_missing_sources ... FAILED
+
+failures:
+
+---- local_reference_syntax_is_checked_without_resolving_missing_sources stdout ----
+
+thread 'local_reference_syntax_is_checked_without_resolving_missing_sources' (1655265) panicked at crates/openwarrant-core/tests/document.rs:104:9:
+assertion `left == right` failed: ../outside.md#rule
+  left: Valid
+ right: Invalid
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    local_reference_syntax_is_checked_without_resolving_missing_sources
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p openwarrant-core --test document`

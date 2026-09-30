@@ -1,0 +1,20 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "The renderer source in `crates/openwarrant-compiler/src/corpus_status.rs` contains no division and uses rung counts (e.g., `l.invalid`, `l.draft`) with an explicit comment 'No ratio, anywhere in this file'; the test `status::tests::ladders_count_every_rung_and_nothing_else` verifies ladder display without percentages, and the provenance banner is placed before the title in the rendered output."
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

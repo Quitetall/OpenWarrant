@@ -1,0 +1,24 @@
+{
+  "provider_revision": "d7329b38c4e0793c0f1b584f1c2a4c47b1a1fd82",
+  "provider_pr": "https://github.com/Quitetall/openhuman-knowledge-fabric/pull/3",
+  "test": "tests/database/warrant-preservation.test.ts",
+  "result": "PASS",
+  "source_shutdown_before_import": true,
+  "database": "PostgreSQL 18 disposable Testcontainers",
+  "fixture_warrants": 4,
+  "contract_revisions": 6,
+  "preserved_states": [
+    "superseded",
+    "disputed",
+    "annulled"
+  ],
+  "comparison": "every manifest-listed section exact content plus database snapshot digest",
+  "refusal": "untrusted manifest key; target remains empty",
+  "remaining": [
+    "external artifact byte reconnection",
+    "OpenWarrant source/IR reconstruction joined to provider package",
+    "all required archive categories",
+    "format adoption",
+    "independent qualification"
+  ]
+}

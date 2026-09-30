@@ -1,0 +1,61 @@
+schema = "oh.war/manifest/v1"
+uuid = "01a06025-b26f-7950-be1c-c830b2a215af"
+local_alias = "OW-WAR-0056"
+
+# Allocated only by Knowledge Fabric (SAS §12.4). Leave empty.
+enterprise_id = ""
+
+title = "Compile a real Stage Dispatch (§47)"
+profile = "delivery"
+assurance_level = "controlled"
+
+# RQ-042 and RQ-043 are claimed complete by OW-WAR-0023 on the strength of the
+# TYPE existing. §47.2's compiler did not; this Warrant is it, and it supersedes
+# that claim (§34.2 `supersession`) rather than adding a second `complete`.
+[[implements]]
+ref = "sas://WAR-SAS-RQ-042"
+contribution = "supersession"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-043"
+contribution = "supersession"
+
+# A repair dispatch carries prior failure evidence. Partial: the distinctness of
+# replay/repair/restart is OW-WAR-0024's; this Warrant only honours it.
+[[implements]]
+ref = "sas://WAR-SAS-RQ-045"
+contribution = "partial"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-5/dispatch"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true
+

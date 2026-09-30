@@ -1,0 +1,40 @@
+schema: "oh.war/milestones/v1"
+
+# Milestones are acceptance checkpoints; stages are dispatchable execution nodes
+# (SAS §23.6, RQ-040). They are kept distinct here even though this Warrant is
+# small enough that the distinction looks like ceremony: the compiler that will
+# read this file must be exercised against the shape it will meet in real work.
+
+milestones:
+  - id: "M1"
+    title: "Workspace builds on the pinned toolchain"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "Aggregate gate exists and has been observed to fail"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002", "OBL-003"]
+
+  - id: "M3"
+    title: "war init initializes a repository end to end"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-004"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Create the workspace, crates, toolchain pin, and license policy"
+    executor_kind: "human"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-002"
+    title: "Implement cargo xtask gate and CI, then plant a failure"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-003"
+    title: "Implement war init and exercise the real binary"
+    executor_kind: "human"
+    responsibility_tier: "T2"

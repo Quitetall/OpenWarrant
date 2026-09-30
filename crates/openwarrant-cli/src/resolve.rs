@@ -174,8 +174,28 @@ fn evaluate(
         Err(_) => false,
     };
 
+    // Requirement 1 asks for the EXACT authorized revision, and "authorized"
+    // means a human signed it. A record that says `authorized` and carries no
+    // verifying signature satisfied this requirement until 2026-09-19, which is
+    // how a forged authorization.toml could carry a Warrant all the way to a
+    // resolution. The digest the signature must bind is the one the record
+    // carries, so a signature cannot be moved onto a revision it never saw.
+    let authorization_signed = authority.authorization.is_some_and(|record| {
+        record.revision.authorization.as_ref().is_some_and(|auth| {
+            crate::authority_check::verify(
+                repo,
+                crate::authority_check::Act::Authorize,
+                &one.alias(),
+                &auth.authorizer,
+                Some(&record.revision.contract_digest),
+            )
+            .is_signed()
+        })
+    });
+
     ResolutionChecks {
-        exact_authorized_contract_revision: authority.contract_is_authorized(),
+        exact_authorized_contract_revision: authority.contract_is_authorized()
+            && authorization_signed,
         required_deliverables_exist,
         artifact_digests_verify,
         every_required_obligation_dispositioned: obligations_dispositioned,

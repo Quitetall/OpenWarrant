@@ -1,0 +1,52 @@
+schema = "oh.war/manifest/v1"
+uuid = "01a01bda-15b7-7767-970e-1e270c168858"
+local_alias = "OW-WAR-0030"
+enterprise_id = ""
+title = "Implement portable preservation: one-file export and round trip"
+profile = "delivery"
+assurance_level = "basic"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-082"
+contribution = "complete"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-083"
+contribution = "complete"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-084"
+contribution = "complete"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-4/preservation"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true

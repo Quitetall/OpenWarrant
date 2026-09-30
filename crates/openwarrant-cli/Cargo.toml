@@ -1,7 +1,7 @@
 [package]
 name = "openwarrant-cli"
 description = "The `war` command line interface for Work Authorization Records."
-version.workspace = true
+version = "1.0.0-alpha.2"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -17,6 +17,7 @@ name = "war"
 path = "src/main.rs"
 
 [dependencies]
+chrono = { version = "=0.4.45", default-features = false, features = ["std"] }
 sha2 = { workspace = true }
 serde_jcs = { workspace = true }
 rmcp = { workspace = true }
@@ -38,3 +39,6 @@ toml = { workspace = true }
 # `war schemas`: the JSON Schema pack, generated from the record types.
 # Off in the shipped binary; `cargo xtask gate` builds it on.
 schema = ["openwarrant-core/schema", "openwarrant-compiler/schema"]
+
+[target.'cfg(unix)'.dependencies]
+rustix = { version = "=1.1.4", features = ["fs", "process"] }

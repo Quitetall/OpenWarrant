@@ -1,0 +1,33 @@
+   Compiling openwarrant-cli v1.0.0 (/mnt/4tb/tmp/ow70-inbox/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.25s
+     Running tests/inbox_cli.rs (target/debug/deps/inbox_cli-523e62aeaee7757a)
+
+running 6 tests
+test question_from_another_warrant_is_rejected ... ok
+test empty_inbox_is_success_and_readable ... ok
+test a_question_directory_replaced_by_a_file_is_not_an_empty_inbox ... FAILED
+test damaged_records_fail_instead_of_claiming_empty_inbox ... FAILED
+test fixtures_list_exact_human_rows_and_never_write ... ok
+test unknown_times_sort_last_and_other_events_do_not_reset_age ... ok
+
+failures:
+
+---- a_question_directory_replaced_by_a_file_is_not_an_empty_inbox stdout ----
+
+thread 'a_question_directory_replaced_by_a_file_is_not_an_empty_inbox' (2760006) panicked at crates/openwarrant-cli/tests/inbox_cli.rs:197:5:
+assertion failed: !war(&root, &["inbox"]).status.success()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- damaged_records_fail_instead_of_claiming_empty_inbox stdout ----
+
+thread 'damaged_records_fail_instead_of_claiming_empty_inbox' (2760007) panicked at crates/openwarrant-cli/tests/inbox_cli.rs:167:9:
+atoms/10-intent.md
+
+
+failures:
+    a_question_directory_replaced_by_a_file_is_not_an_empty_inbox
+    damaged_records_fail_instead_of_claiming_empty_inbox
+
+test result: FAILED. 4 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+
+error: test failed, to rerun pass `-p openwarrant-cli --test inbox_cli`

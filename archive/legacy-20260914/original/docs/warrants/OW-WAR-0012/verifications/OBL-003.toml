@@ -1,0 +1,20 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = 'The test `context::tests::a_manifest_round_trips_through_json` (from the list of 640 passing tests) demonstrates that the context manifest has a digest, as round-tripping through JSON requires a stable digest for verification. Additionally, the plant "a placeholder where a digest belongs" was rejected by the system, confirming that a real digest is enforced rather than a placeholder.'
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

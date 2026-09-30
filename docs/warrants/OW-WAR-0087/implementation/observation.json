@@ -1,0 +1,20 @@
+{
+  "scope": "OW-WAR-0087 offline SDK CLI parity",
+  "source_files": {
+    "conformance/sdk/cli/README.md": "f621b5c9be2b5c92f1f1e94ca1266d7c21038bf3a2da5eae89614651ac38da3a",
+    "conformance/sdk/cli/cases.json": "05fd4471ada83dd5f8a31d91ec26b8031335e7397c2a559178c62eeb717d4670",
+    "crates/openwarrant-cli/src/main.rs": "9719fc53ee8dc6bfc2eb3341e0dfb0f0dea014f151a8052c86c6171b73bfea3c",
+    "crates/openwarrant-cli/src/sdk/wire.rs": "d7916c4a95782e235472d34ee7bb470761fdb56904469d54903d24bb50c01e8a",
+    "crates/openwarrant-cli/src/sdk.rs": "b2cef8ab615be3afefa44060756196ea84c6df5962c918f48723431556d4d885",
+    "crates/openwarrant-cli/tests/sdk_cli.rs": "8d2e86c08d1d38b489964ee182b57d001ed6c1b6575fc9946c44b021e661995e",
+    "crates/openwarrant-core/src/document/records/workflow.rs": "bc7d9d2a691d0da0662747da72929e1b3dad70757bf6b86d53f3f298e82c18f0",
+    "crates/openwarrant-core/src/document/records.rs": "864da780831a698e6be24fcf3bc75876c39daff54689305c3582f875cd9b0bba",
+    "crates/openwarrant-core/src/document/schedule.rs": "77fd5b3c4671cccb84e4fd7762156300cfeec14479621257a5592934fd1cdd4d",
+    "docs/sas/drafts/1.0.0-rc.3/sdk-contract.md": "c3a48f4645c888a237df77eb9d2ed6a8524706408b7e514aba6ba492a98a0d4f"
+  },
+  "source_digest": "90a41edff46fa54db311be299b8acd60d3d10e751c32941daf406d6c64b8686c",
+  "public_tests": 11,
+  "driver_cases": 71,
+  "operations": 33,
+  "qualification_assessed": false
+}

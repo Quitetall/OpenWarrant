@@ -1,0 +1,25 @@
+{
+  "schema": "oh.war/manual-observation-draft/v1",
+  "observed_on": "2026-09-18",
+  "reported_by": "repository owner via conversation",
+  "artifact": "offline-roadmap-reviewed.html.gz",
+  "uncompressed_sha256": "d17112453f45ead79d7e70f6a1d927cff6125aaaf71c864a95e78efb140ccbd3",
+  "source_path_at_review": "/tmp/ow-roadmap-review.html",
+  "question": "Open the HTML directly with network disconnected: do roadmap, phase selector, search and collapse controls work?",
+  "answer": "All listed controls work offline",
+  "scope": [
+    "roadmap renders",
+    "phase selector works",
+    "search works",
+    "collapse controls work",
+    "network disconnected as requested"
+  ],
+  "observation_type": "human-reported, not independently reproduced by performer",
+  "signature": null,
+  "assurance_granted": false,
+  "limitations": [
+    "No claim about external source links without original repository",
+    "No signature, SAS acceptance or Warrant resolution",
+    "Not a whole-repository qualification"
+  ]
+}

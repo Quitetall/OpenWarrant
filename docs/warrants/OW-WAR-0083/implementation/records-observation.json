@@ -1,0 +1,28 @@
+{
+  "scope": "OW-WAR-0083 supplied-record SDK subset",
+  "source_digest": "f7c500abd45539d52768d7a4573532fd3c6d8d0c587778cb224af564b32a87f8",
+  "source_files": {
+    "conformance/sdk/records/agent-authorization-without-policy.json": "94aceff6b9f96a73917215209c2a12a0fc7348df193e3180405ce83d41a98271",
+    "conformance/sdk/records/agent-human-spoof.json": "a4878592f61527cbab4d82613c84bf80dc3e92bc00be2f3eefc898f56b6798ce",
+    "conformance/sdk/records/cases.json": "5c5b0572cb79a4b05ef972b700a0b0ad88d56edf9b05f43fc2a94c0c5f0c670e",
+    "conformance/sdk/records/complete-unverified-view.json": "255ebf4d37f32b51d7bb346b72c3770803b7f8ac266df2207a24ad4f119b2168",
+    "conformance/sdk/records/conflated-state.json": "5ecb890dc3770dd80c725637eac49e46e5a85e4a16498e65ed790c088c9e6c3c",
+    "conformance/sdk/records/contract.json": "6738c7f200d4def8f42cbf3d948bb8d151764a1ceaf318fb33bdd001f0d64959",
+    "conformance/sdk/records/observation-untrusted.json": "47055b911af26881413b0ae53f6e7380156a79e72774a6847738bd703b2edae4",
+    "conformance/sdk/records/schemas.json": "18eda343fbdc9185ae12e01f38aa441f0b61898c2f6fb0033fbdf02a61699678",
+    "conformance/sdk/records/unavailable-pass.json": "34787201095fe0b2b5779d693dedc7338ded37349b56ca75f20b811c04febe29",
+    "conformance/sdk/records/unknown-core-field.json": "f05c4820fffb9d6462a086a0c7b1cfa24dfd237e32b65983475684db01e27718",
+    "conformance/sdk/records/unknown-observation.json": "3584c7d105c41ea2b32986057ac27acdbdb36fba2089eba52be58f43902fbe9c",
+    "conformance/sdk/records/unsigned-completion.json": "8538632c2dee21fe93e4cc95c1e6ad2b6008134cef138b109b1d876929991d8b",
+    "conformance/sdk/records/wrong-result.json": "649aa2bfd5e98bdf8f8d1178b91b3d91d91fb07f82a6675bef511b70ba5ca7b1",
+    "crates/openwarrant-core/src/document/records/workflow.rs": "24c11a3b0a3a3fce9f7ac69ac9924772caa6703164fbf2a995b52c36dc7cee3e",
+    "crates/openwarrant-core/src/document/records.rs": "c600c37a92a4712dff2396a953042a0b37cfe9ba74aac6824c2f0e5dbb097102",
+    "crates/openwarrant-core/tests/document_records.rs": "a784ad6cca37302abcfea52f64c32c4409cb4227b0a168c361a98801562fe790",
+    "crates/openwarrant-core/tests/document_workflow_records.rs": "21099603f02110ed3e6670866760e921363d49fd3092465663ba28c958931093",
+    "docs/sas/drafts/1.0.0-rc.3/sdk-contract.md": "e80b74d87006f1b2bce66e909df2b8e222bcac8ed566efe90e7427e7f0f9d35a"
+  },
+  "public_tests": 21,
+  "codec_cases": 10,
+  "test_result": "PASS",
+  "qualification_assessed": false
+}

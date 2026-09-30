@@ -1,0 +1,28 @@
+schema = "oh.war/resolution/v1"
+warrant = "OW-WAR-0055"
+
+[resolution]
+id = "01a06513-1351-7913-a122-83b0a0eb65bc"
+common_outcome = "satisfied"
+profile_outcome = "delivered"
+contract_revision = 1
+contract_digest = "218d3d988671c88d80a79e51898f2dd1b045144e8d82b440fca1642eb95e0917"
+assurance_case_snapshot_digest = "sha256:19841f2547c9f8bab49b8abb05ae6835dbc870ad2183382ccaa7ed63a49de2fa"
+artifact_manifest_digest = "sha256:e859cb3b4abee0e18c15bdf941b00a549f41a36d046b4da20bb71d789276352f"
+gate_run_refs = ["docs/warrants/OW-WAR-0055/gate-runs/software_repo_war-check_1_0_0.receipt.json"]
+judgment_refs = [
+    "judgment://J-001",
+    "judgment://J-002",
+    "judgment://J-003",
+]
+residual_risk_refs = [
+    "assumption://A-001",
+    "assumption://A-002",
+    "assumption://A-003",
+]
+resolved_by_ref = "person://Brian Lam"
+acting_role_ref = "role-assignment://Brian Lam/resolver"
+meaning = """Resolving OW-WAR-0055 (Compute the goal hierarchy: war status and the corpus projection) as satisfied asserts that its declared deliverables exist at their recorded digests, that every declared obligation (OBL-001, OBL-002, OBL-003, OBL-004, OBL-005, OBL-006) was established by an admissible independent verification (lamu:mimo-v2.5-pro, blind to the performer, given the full plant battery, every passing test and the committed receipts, 2026-09-03), and that the cited gate ran against this exact contract and passed. It asserts nothing beyond those bounded obligations. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 ("Get them all done"); the decision is the owner's, the wording is the agent's."""
+effective_at = "2026-09-03T03:30:00Z"
+recorded_at = "2026-09-03T02:22:24Z"
+standing = "valid"

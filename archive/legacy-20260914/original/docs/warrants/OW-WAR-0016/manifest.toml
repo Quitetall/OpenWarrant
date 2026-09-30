@@ -1,0 +1,48 @@
+schema = "oh.war/manifest/v1"
+uuid = "01a01bd3-caf5-7161-9490-5d957bdf0d7d"
+local_alias = "OW-WAR-0016"
+enterprise_id = ""
+title = "Implement acceptance obligations and bounded claims"
+profile = "delivery"
+assurance_level = "controlled"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-050"
+contribution = "complete"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-051"
+contribution = "complete"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-6/obligations"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true

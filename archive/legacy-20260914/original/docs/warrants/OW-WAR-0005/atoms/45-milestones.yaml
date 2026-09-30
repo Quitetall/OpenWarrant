@@ -1,0 +1,46 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "Diagnostic model and war check produce the §71.7 shape"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "Every Phase 1 conformance item passes with its planted violation rejected"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002", "OBL-003"]
+
+  - id: "M3"
+    title: "war check is green over all five of this repository's Warrants"
+    depends_on: ["M2"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-004"]
+
+  - id: "M4"
+    title: "Phase 1 bootstrap closed — OpenWarrant develops through its own Warrants"
+    depends_on: ["M3"]
+    stage_refs: ["STAGE-004"]
+    obligation_refs: ["OBL-005"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Implement the diagnostic model and war check"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-002"
+    title: "Build conformance/ with paired positive and planted fixtures"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-003"
+    title: "Run war check over the acceptance corpus"
+    executor_kind: "service"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-004"
+    title: "Declare bootstrap closure and record the evidence"
+    executor_kind: "human"
+    responsibility_tier: "T1"

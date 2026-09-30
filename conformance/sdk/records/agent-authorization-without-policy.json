@@ -1,0 +1,19 @@
+{
+  "schema": "oh.war/agent-act/1.0.0-rc.3",
+  "id": "test:complete",
+  "act": "authorize",
+  "subject": {
+    "warrant": "test:work",
+    "contract_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "result_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "actor": {
+    "id": "test:agent",
+    "kind": "agent",
+    "role": "performer"
+  },
+  "policy_ref": null,
+  "meaning": "Fixture unverified completion",
+  "evidence_refs": [],
+  "signature_ref": null
+}

@@ -1,5 +1,8 @@
 # Over MCP
 
+Legacy transport reference. These commands retain their existing authority rules;
+use [execution](execution.md) for prompt-only unverified work.
+
 `war mcp` serves the same surface to any harness over stdio (`war mcp
 --describe` prints it). Every tool answers with the `oh.war/report/v1`
 envelope as structured content.

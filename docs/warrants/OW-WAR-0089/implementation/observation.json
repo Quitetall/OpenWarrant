@@ -1,0 +1,26 @@
+{
+  "schema": "oh.war/implementation-observation/v1",
+  "warrant": "OW-WAR-0089",
+  "source_git_head": "189bf34c9fd169094d2b33b4fe99edd039e768bc",
+  "source_files": {
+    "conformance/release/package.py": "f8a5b217807443267914aef93b9aaf5fb10d77c2f8f21cf310eccab9c85282e4",
+    "conformance/release/install_check.py": "0f815b28745b466a40e1901de146fcc9db2778a06c3dac5825d1f22a1b69c2b5",
+    "conformance/release/test_package.py": "747b9055dc6829d83755f8c6a320ac79518d83c64a6fc462021149097c220b59",
+    "conformance/release/licenses/provenance.json": "7079aa665fec00d3a2064af78640bc89e1813d9a0ccababfc18624b4e08ed4b9",
+    ".github/workflows/release.yml": "2b44124da2645ea1c7c7cccafe30743ba4f2f13f727d108fb4c6b34b9282ae76"
+  },
+  "source_digest": "9e99fbf26df2fc1c5cb3a1bfc2be39f5e4e57e8f64473d530614e4553093a159",
+  "linux_install_passed": true,
+  "refusal_tests": 6,
+  "gate_steps_passed": 14,
+  "gate_controls_passed": 308,
+  "macos_status": "not-observed",
+  "qualification_established": false,
+  "publication_performed": false,
+  "repeatability_observation": {
+    "source_git_head": "550194d",
+    "archive_sha256": "d183bc156a2b5442583c5e967ad7d44fb6a6132c35cf57e6ebeb5f3f427c33b5",
+    "same_inputs_two_runs_identical": true,
+    "scope": "Earlier candidate rehearsal; final committed install has its own manifest and hash."
+  }
+}

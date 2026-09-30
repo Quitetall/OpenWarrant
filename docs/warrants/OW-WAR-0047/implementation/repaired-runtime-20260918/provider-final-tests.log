@@ -1,0 +1,153 @@
+   Compiling blut-cookbook-standard v0.1.0 (/mnt/4tb/tmp/ow47-blut-standard-fix)
+   Compiling blut-cookbook-core v0.1.0 (/mnt/4tb/tmp/ow47-blut-standard-fix/crates/blut-cookbook-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.28s
+     Running unittests src/lib.rs (/mnt/4tb/tmp/ow47-provider-target/debug/deps/blut_cookbook_core-87851bdfb1250405)
+
+running 22 tests
+test recipes::train_from_dataset::tests::rejects_both_dataset_specifiers ... ok
+test recipes::finetune_pretrained::tests::rejects_empty_output_name ... ok
+test recipes::train_from_dataset::tests::rejects_neither_dataset_specifier ... ok
+test recipes::train_from_dataset::tests::rejects_zero_epochs ... ok
+test recipes::eval_only::tests::args_schema_is_valid ... ok
+test stages::evaluate_model::tests::schemas_are_valid ... ok
+test recipes::eval_only::tests::compiles_to_load_then_evaluate ... ok
+test stages::train_model::tests::ingredient_cfg_serde_roundtrip ... ok
+test recipes::train_from_dataset::tests::compiles_to_5_node_plan ... ok
+test stages::train_model::tests::parallel_strategy_defaults_to_ddp ... ok
+test stages::train_model::tests::parallel_strategy_fsdp_roundtrips ... ok
+test recipes::finetune_pretrained::tests::compiles_to_7_node_plan ... ok
+test stages::train_model::tests::parallel_strategy_rejects_unknown ... ok
+test tests::cookbook_name_is_core ... ok
+test stages::train_model::tests::args_schema_is_valid ... ok
+test tests::core_cookbook_registers_and_lists_recipes ... ok
+test tests::stages_erased_is_complete_unique_and_self_consistent ... ok
+test stages::load_dataset::tests::rejects_missing_path ... ok
+test stages::load_dataset::tests::rejects_neither_path_nor_name ... ok
+test stages::load_dataset::tests::rejects_both_path_and_name ... ok
+test stages::evaluate_model::tests::local_dataset_source_resolves ... ok
+test stages::load_dataset::tests::loads_dataset_from_path ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (/mnt/4tb/tmp/ow47-provider-target/debug/deps/blut_core-7463d81eb1e649d0)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/mnt/4tb/tmp/ow47-provider-target/debug/deps/blut_backends-a0d186ba53bc5861)
+
+running 62 tests
+test backends::hf_trainer::stages::hf_dpo_train::tests::deterministic_false ... ok
+test backends::hf_trainer::runner::tests::wrapper_path_resolves_in_dev_tree ... ok
+test backend::tests::artifact_round_trips ... ok
+test backends::hf_trainer::stages::hf_sft_train::tests::deterministic_false ... ok
+test backends::hf_trainer::runner::tests::job_round_trips_via_serde ... ok
+test backends::hf_trainer::runner::tests::status_lines_round_trip ... ok
+test backends::hf_trainer::venv::tests::python_path_layout_matches_unix_venv ... ok
+test backends::hf_trainer::venv::tests::default_path_is_under_data_local_dir ... ok
+test backends::hf_trainer::venv::tests::venv_root_honors_env_override ... ok
+test backends::tests::ids_are_stable_strings ... ok
+test backends::tests::backend_ids_are_unique ... ok
+test convert::tests::safe_filename_accepts_normal_names ... ok
+test stages::catalog::tests::every_listed_name_constructs ... ok
+test convert::tests::safe_filename_rejects_path_traversal ... ok
+test stages::compat_impls::tests::agnostic_compose_witnesses ... ok
+test stages::compat_impls::tests::lamu_witnesses ... ok
+test stages::catalog::tests::unknown_name_returns_none ... ok
+test conversations::tests::missing_db_errors_clean ... ok
+test backends::hf_trainer::stages::hf_sft_train::tests::rejects_invalid_method ... ok
+test backends::hf_trainer::stages::hf_sft_train::tests::rejects_zero_lr ... ok
+test stages::eval_judge::tests::rejects_empty_judge_model ... ok
+test backends::hf_trainer::stages::hf_dpo_train::tests::rejects_nonpositive_beta ... ok
+test stages::eval_lm_harness::tests::rejects_empty_tasks ... ok
+test stages::filter_dataset::tests::drops_oversize_messages ... ok
+test stages::eval_loss::tests::produces_a_report ... ok
+test stages::filter_dataset::tests::drop_errors_filters_tool_errors ... ok
+test stages::eval_lm_harness::tests::produces_per_task_scores ... ok
+test stages::eval_judge::tests::produces_mean_score ... ok
+test stages::materialize_dataset_path::tests::failed_publication_preserves_destination_and_removes_temporary_copy ... ok
+test stages::materialize_dataset_path::tests::rejects_both_path_and_name ... ok
+test stages::filter_dataset::tests::fails_when_all_filtered ... ok
+test stages::materialize_dataset_path::tests::unreadable_dataset_preserves_previous_output ... ok
+test conversations::tests::read_only_open_cannot_mutate_db ... ok
+test stages::filter_dataset::tests::drops_short_examples ... ok
+test stages::eval_loss::tests::loss_varies_with_checkpoint ... ok
+test conversations::tests::error_messages_filtered_out ... ok
+test stages::merge_lora::tests::already_merged_idempotent ... ok
+test conversations::tests::good_conversation_dumps_one_jsonl_line ... ok
+test stages::materialize_dataset_path::tests::rejects_missing_path ... ok
+test stages::materialize_dataset_path::tests::rejects_neither_path_nor_name ... ok
+test stages::materialize_dataset_path::tests::output_symlink_does_not_redirect_materialization ... ok
+test stages::materialize_dataset_path::tests::loads_dataset_from_path ... ok
+test conversations::tests::short_conversation_dropped ... ok
+test stages::materialize_for_eval::tests::rejects_missing_model ... ok
+test conversations::tests::count_with_db_does_not_persist_jsonl ... ok
+test stages::util::tests::write_report_creates_parent_and_writes_pretty_json ... ok
+test stages::split_train_eval::tests::fails_on_single_example_input ... ok
+test conversations::tests::cutoff_filters_old_conversations ... ok
+test stages::merge_lora::tests::qlora_gets_merged_suffix ... ok
+test stages::split_train_eval::tests::rejects_out_of_range_ratio ... ok
+test stages::register_dataset::tests::passthrough_returns_input_unchanged ... ok
+test stages::split_train_eval::tests::fails_on_empty_input ... ok
+test stages::merge_reports::tests::combines_three_reports ... ok
+test stages::split_train_eval::tests::different_seed_produces_different_split ... ok
+test stages::merge_lora::tests::full_method_passes_through_unchanged ... ok
+test stages::materialize_for_eval::tests::round_trips_ckpt_and_dataset ... ok
+test conversations::tests::oversize_message_filtered_out ... ok
+test stages::split_train_eval::tests::split_counts_sum_to_input ... ok
+test stages::take_train::tests::projects_train_half ... ok
+test stages::split_train_eval::tests::deterministic_under_same_seed ... ok
+test backends::lamu::python_backend::tests::liveness_watchdog_kills_a_silent_trainer ... ok
+test backends::lamu::python_backend::tests::heartbeating_trainer_survives_the_watchdog ... ok
+
+test result: ok. 62 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.52s
+
+     Running unittests src/main.rs (/mnt/4tb/tmp/ow47-provider-target/debug/deps/blut_standard-ad4c35f777bc6db9)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/convert_smoke.rs (/mnt/4tb/tmp/ow47-provider-target/debug/deps/convert_smoke-1223585232d58f02)
+
+running 5 tests
+test quantize_failure_keeps_f16_for_retry ... ok
+test missing_convert_tool_errors_with_env_var_hint ... ok
+test missing_checkpoint_dir_errors_clean ... ok
+test happy_path_writes_quantized_and_removes_f16 ... ok
+test f16_quant_skips_quantize_step ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/python_backend_smoke.rs (/mnt/4tb/tmp/ow47-provider-target/debug/deps/python_backend_smoke-dfeb50e6582905c3)
+
+running 4 tests
+test self_check_protocol_round_trip ... ok
+test build_optimizer_python_smoke ... ok
+test cancel_kills_long_running_subprocess ... ok
+test run_surfaces_trainer_failed_status ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.77s
+
+     Running tests/register_model_validation.rs (/mnt/4tb/tmp/ow47-provider-target/debug/deps/register_model_validation-ea7d9591444655c4)
+
+running 3 tests
+test empty_name_is_bad_input ... ok
+test name_with_backslash_is_bad_input ... ok
+test name_with_forward_slash_is_bad_input ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests blut_cookbook_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests blut_backends
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

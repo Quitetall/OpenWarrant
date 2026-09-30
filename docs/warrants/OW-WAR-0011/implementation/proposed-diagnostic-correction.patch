@@ -1,0 +1,11 @@
+--- a/crates/openwarrant-cli/src/diagnostic.rs
++++ b/crates/openwarrant-cli/src/diagnostic.rs
+@@ -201,7 +201,7 @@
+     #[must_use]
+     pub fn verdict_line(&self) -> String {
+         if self.is_ready() {
+-            "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)"
++            "WELL-FORMED (record only — `war preflight` is partial, and `war check` does not establish execution readiness or run gates)"
+                 .to_owned()
+         } else {
+             "NOT READY".to_owned()

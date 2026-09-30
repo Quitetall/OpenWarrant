@@ -1,0 +1,141 @@
+{
+  "schema": "oh.war/sdk-document-cases/v1",
+  "cases": [
+    {
+      "id": "T01-minimal-rc3",
+      "file": "minimal-rc3.md",
+      "dialect": "rc3",
+      "unit_ids": [
+        "outcome",
+        "scope",
+        "context"
+      ]
+    },
+    {
+      "id": "T01-legacy-explicit",
+      "file": "minimal-rc2.md",
+      "dialect": "rc2",
+      "unit_ids": [
+        "outcome",
+        "scope",
+        "context"
+      ]
+    },
+    {
+      "id": "T02-duplicate-key",
+      "file": "duplicate-key.md",
+      "dialect": "rc3",
+      "parse_error": "source-invalid"
+    },
+    {
+      "id": "T03-fenced-markers",
+      "file": "fenced-markers.md",
+      "dialect": "rc3",
+      "unit_ids": [
+        "outcome",
+        "scope",
+        "context"
+      ]
+    },
+    {
+      "id": "T04-duplicate-unit",
+      "file": "duplicate-unit.md",
+      "dialect": "rc3",
+      "parse_error": "unit-duplicate"
+    },
+    {
+      "id": "T05-crlf-unicode",
+      "file": "crlf-unicode.md",
+      "dialect": "rc3"
+    },
+    {
+      "id": "T06-invalid-utf8",
+      "file": "invalid-utf8.bin",
+      "dialect": "rc3",
+      "parse_error": "source-invalid"
+    },
+    {
+      "id": "T07-missing-outcome",
+      "file": "missing-outcome.md",
+      "dialect": "rc3",
+      "validation_error": "source-invalid"
+    },
+    {
+      "id": "T08-unknown-optional",
+      "file": "unknown-optional.md",
+      "dialect": "rc3"
+    },
+    {
+      "id": "T08-unknown-required",
+      "file": "unknown-required.md",
+      "dialect": "rc3",
+      "required_extension": true
+    },
+    {
+      "id": "T09-adr",
+      "file": "adr.md",
+      "dialect": "rc3"
+    },
+    {
+      "id": "T09-sas",
+      "file": "sas.md",
+      "dialect": "rc3"
+    },
+    {
+      "id": "T10-unresolved-required",
+      "file": "unresolved-required.md",
+      "dialect": "rc3"
+    },
+    {
+      "id": "FOOTER01-wrapped",
+      "file": "wrapped.md",
+      "dialect": "rc3"
+    },
+    {
+      "id": "FOOTER02-compact",
+      "file": "compact-deps.md",
+      "dialect": "rc3"
+    },
+    {
+      "id": "FOOTER04-malformed",
+      "file": "malformed-footer.md",
+      "dialect": "rc3",
+      "parse_error": "source-invalid"
+    },
+    {
+      "id": "FOOTER05-trailing",
+      "file": "trailing.md",
+      "dialect": "rc3",
+      "parse_error": "source-invalid"
+    },
+    {
+      "id": "FOOTER06-title",
+      "file": "wrong-title.md",
+      "dialect": "rc3",
+      "validation_error": "source-invalid"
+    },
+    {
+      "id": "FOOTER07-schema",
+      "file": "wrong-schema.md",
+      "dialect": "rc3",
+      "parse_error": "schema-unsupported"
+    },
+    {
+      "id": "T09-context-binding",
+      "file": "context-binding.md",
+      "dialect": "rc3"
+    },
+    {
+      "id": "T09-context-background-refusal",
+      "file": "context-background.md",
+      "dialect": "rc3",
+      "validation_error": "source-invalid"
+    },
+    {
+      "id": "T06-combined-depth-refusal",
+      "file": "combined-depth.md",
+      "dialect": "rc3",
+      "parse_error": "resource-limit"
+    }
+  ]
+}

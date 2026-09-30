@@ -1,0 +1,20 @@
+obligation = "OBL-002"
+disposition = "established"
+evidence = "The conformance suite's plant battery (134 passed, 0 failed) in conformance/plant.sh, where every planted violation is rejected by its named rule, and the §44.6 receipt for gate GR-software.repo.war-check@1.0.0 showing a pass verdict, demonstrate that all Phase 1 conformance items pass."
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

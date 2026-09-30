@@ -1,0 +1,36 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "A baseline exists for every measurable §94 measure"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "The unmeasurable measures are named, with reasons"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-002"]
+
+  - id: "M3"
+    title: "§95 runs against real history and reports real candidates"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-003"]
+
+  - id: "M4"
+    title: "No §100 reduction is claimed from a single sample"
+    depends_on: ['M2', 'M3']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-004"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Take the baseline"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-002"
+    title: "Run detection against real history"
+    executor_kind: "service"
+    responsibility_tier: "T1"

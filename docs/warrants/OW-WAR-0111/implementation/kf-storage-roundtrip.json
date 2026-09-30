@@ -1,0 +1,28 @@
+{
+  "provider_revision": "e6b3ca1c3191b30ac68ee4aa6bee7d2feafd7dac",
+  "provider_pr": "https://github.com/Quitetall/openhuman-knowledge-fabric/pull/3",
+  "result": "PASS",
+  "test": "tests/database/warrant-preservation.test.ts",
+  "runtime": "real PostgreSQL 18 and two isolated MinIO containers/volumes",
+  "observations": [
+    "Warrant artifact linked to immutable content version by dispatcher",
+    "source database stopped before import",
+    "source object store stopped and removed before restored service starts",
+    "restored database sections match exactly",
+    "SDK returns exact binary bytes and preserved storage version",
+    "wrong expected digest refused",
+    "new current object does not replace pinned version",
+    "deleted pinned version refused and no bytes served",
+    "fixture containers and volumes removed"
+  ],
+  "bounds": [
+    "single binary artifact in local MinIO data-directory restore",
+    "combined OpenWarrant source reconstruction remains open",
+    "complete category inventory and format adoption remain open"
+  ],
+  "validation": {
+    "integration_exit": 0,
+    "typescript_test_check_exit": 0,
+    "focused_eslint_exit": 0
+  }
+}

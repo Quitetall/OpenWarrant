@@ -1,0 +1,147 @@
+{
+  "runs": [
+    {
+      "schema": "oh.war/execution-attempt/v1",
+      "attempt_id": "dfe9bb84-e010-44b4-80a1-786992875a1d",
+      "sequence": 2,
+      "warrant_id": "c3b21c5a-dcce-4439-86a7-b353faf9d2b7",
+      "source_sha256": "3133e9f1b22fbf09f0abf86515d596ebf739ca218842bdf44ac27e92a20ef5e8",
+      "base_commit": "bfc48012593c736aba8339c8f76d9e01fbab45eb",
+      "input_revision": "ec689f6de879e0c50be37e07bbda46374625d1eb",
+      "worktree": "/tmp/tmpa9ah16af/state/.execution/worktree-c3b21c5a-dcce-4439-86a7-b353faf9d2b7",
+      "work_state": "completed",
+      "execution_state": "stopped",
+      "cause": "Work finished",
+      "qualified": false,
+      "cost_usd": 0,
+      "result_revision": "990df3bc9fa62d1f9845ebaf794162e680afd09b",
+      "notes": "Fixture implemented file.",
+      "next_steps": [
+        "Independent review"
+      ],
+      "checks": [
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "-c",
+            "from pathlib import Path; assert Path('result.txt').read_text() == 'implemented\\n'"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stdout_truncated": false,
+          "stderr": "",
+          "stderr_truncated": false,
+          "capture_incomplete": false
+        }
+      ],
+      "policy": {
+        "source_sha256": "3133e9f1b22fbf09f0abf86515d596ebf739ca218842bdf44ac27e92a20ef5e8",
+        "base_commit": "bfc48012593c736aba8339c8f76d9e01fbab45eb",
+        "verified_start": false,
+        "dependencies": [],
+        "checks": [
+          [
+            "/usr/bin/python3",
+            "-c",
+            "from pathlib import Path; assert Path('result.txt').read_text() == 'implemented\\n'"
+          ]
+        ]
+      },
+      "harness_argv": [
+        "/usr/bin/python3",
+        "/tmp/tmpa9ah16af/harness.py"
+      ],
+      "created_at_unix": 1789730085.1974704,
+      "execution_config_sha256": "d09ecf0bc0a77538ca25924a915712e946aa48b51fe9ad09c107727e21c1ad0c",
+      "remaining_seconds": 10,
+      "verification_repair": {
+        "verification_id": "5b4500df-c286-4e82-bb69-f07e05542394",
+        "observation_sha256": "31818b17de77925464bd45e9d53715203254786dadae4663d2522899e2c5e3a1",
+        "candidate_revision": "ec689f6de879e0c50be37e07bbda46374625d1eb",
+        "findings": [
+          {
+            "id": "F1",
+            "observation": "Required marker absent",
+            "scope": "fixed.txt fixture",
+            "evidence": [
+              "fixed.txt missing"
+            ],
+            "status": "violation",
+            "repairable": true
+          }
+        ],
+        "failed_checks": [],
+        "decision_sha256": "910038bb04f70fb6bc7e1f98bcad745b1dd9c88a4ec33d0c530d98229ecbc61f"
+      },
+      "stdout": "{\"schema\": \"oh.war/execution-result/v1\", \"attempt_id\": \"dfe9bb84-e010-44b4-80a1-786992875a1d\", \"source_sha256\": \"3133e9f1b22fbf09f0abf86515d596ebf739ca218842bdf44ac27e92a20ef5e8\", \"work_state\": \"completed\", \"notes\": \"Fixture implemented file.\", \"next_steps\": [\"Independent review\"]}\n",
+      "stdout_truncated": false,
+      "stderr": "",
+      "stderr_truncated": false,
+      "capture_incomplete": false,
+      "finished_at_unix": 1789730085.265307,
+      "active_seconds": 0.06763908200082369
+    },
+    {
+      "schema": "oh.war/execution-attempt/v1",
+      "attempt_id": "aef4458e-8422-4e96-846e-208047f14de1",
+      "sequence": 2,
+      "warrant_id": "c3b21c5a-dcce-4439-86a7-b353faf9d2b7",
+      "source_sha256": "3133e9f1b22fbf09f0abf86515d596ebf739ca218842bdf44ac27e92a20ef5e8",
+      "base_commit": "bfc48012593c736aba8339c8f76d9e01fbab45eb",
+      "input_revision": "bfc48012593c736aba8339c8f76d9e01fbab45eb",
+      "worktree": "/tmp/tmpa9ah16af/state/.execution/worktree-c3b21c5a-dcce-4439-86a7-b353faf9d2b7",
+      "work_state": "completed",
+      "execution_state": "stopped",
+      "cause": "Work finished",
+      "qualified": false,
+      "cost_usd": 0,
+      "result_revision": "ec689f6de879e0c50be37e07bbda46374625d1eb",
+      "notes": "Fixture implemented file.",
+      "next_steps": [
+        "Independent review"
+      ],
+      "checks": [
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "-c",
+            "from pathlib import Path; assert Path('result.txt').read_text() == 'implemented\\n'"
+          ],
+          "exit_code": 0,
+          "stdout": "",
+          "stdout_truncated": false,
+          "stderr": "",
+          "stderr_truncated": false,
+          "capture_incomplete": false
+        }
+      ],
+      "policy": {
+        "source_sha256": "3133e9f1b22fbf09f0abf86515d596ebf739ca218842bdf44ac27e92a20ef5e8",
+        "base_commit": "bfc48012593c736aba8339c8f76d9e01fbab45eb",
+        "verified_start": false,
+        "dependencies": [],
+        "checks": [
+          [
+            "/usr/bin/python3",
+            "-c",
+            "from pathlib import Path; assert Path('result.txt').read_text() == 'implemented\\n'"
+          ]
+        ]
+      },
+      "harness_argv": [
+        "/usr/bin/python3",
+        "/tmp/tmpa9ah16af/harness.py"
+      ],
+      "created_at_unix": 1789729999.9060204,
+      "execution_config_sha256": "a4ad763c7ee5aa37198c28a4247e5bd4b9185509cb231c6bd53d4ee75bb994ba",
+      "remaining_seconds": 5,
+      "stdout": "{\"schema\": \"oh.war/execution-result/v1\", \"attempt_id\": \"aef4458e-8422-4e96-846e-208047f14de1\", \"source_sha256\": \"3133e9f1b22fbf09f0abf86515d596ebf739ca218842bdf44ac27e92a20ef5e8\", \"work_state\": \"completed\", \"notes\": \"Fixture implemented file.\", \"next_steps\": [\"Independent review\"]}\n",
+      "stdout_truncated": false,
+      "stderr": "",
+      "stderr_truncated": false,
+      "capture_incomplete": false,
+      "finished_at_unix": 1789729999.9760716,
+      "active_seconds": 0.06981401500524953
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+schema = "oh.war/resolution/v1"
+warrant = "OW-WAR-0017"
+
+[resolution]
+id = "01a064c8-824d-7510-b5b2-ab2a605bd855"
+common_outcome = "satisfied"
+profile_outcome = "delivered"
+contract_revision = 1
+contract_digest = "44e6b1f4f9341df24e1a4baa592fe072ed947bf210c0c7c9c854755e173ea7a0"
+assurance_case_snapshot_digest = "sha256:1bd2dd16ad82c8a802d0bd6c7f27202d973a4be657b96ec741a7b386ca191d75"
+artifact_manifest_digest = "sha256:a101b3609259ed2194baebf5e6f4cdf39f3b48a47f50cd82d8c019800e8028db"
+gate_run_refs = ["docs/warrants/OW-WAR-0017/gate-runs/software_repo_war-check_1_0_0.receipt.json"]
+judgment_refs = ["judgment://J-001"]
+residual_risk_refs = ["assumption://A-001"]
+resolved_by_ref = "person://Brian Lam"
+acting_role_ref = "role-assignment://Brian Lam/resolver"
+meaning = """Resolving OW-WAR-0017 (Implement the epistemic classes: evidence, observation, inference, judgment, resolution) as satisfied asserts that its declared deliverables exist at their recorded digests, that every declared obligation (OBL-001, OBL-002, OBL-003, OBL-004) was established by an admissible independent verification (lamu:mimo-v2.5-pro, blind to the performer, given the full plant battery, every passing test and the committed receipts, 2026-09-03), and that the cited gate ran against this exact contract and passed. It asserts nothing beyond those bounded obligations. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 ("Get them all done"); the decision is the owner's, the wording is the agent's."""
+effective_at = "2026-09-03T03:30:00Z"
+recorded_at = "2026-09-03T01:00:57Z"
+standing = "valid"

@@ -1,0 +1,24 @@
+{
+  "schema": "oh.war/implementation-gate-observation/v1",
+  "repository": "Quitetall/openhuman-knowledge-fabric",
+  "revision": "e29bc18ad5fa589102422b6e2e3fcf528dd944b8",
+  "command": "pnpm gate",
+  "exit_code": 0,
+  "test_files_passed": 160,
+  "test_files_skipped": 1,
+  "tests_passed": 1588,
+  "tests_skipped": 4,
+  "dependency_audit": {
+    "moderate": 2,
+    "failure_threshold": "high"
+  },
+  "log_sha256": "a7a332cffd9e7a501251cdb3d602ae43931a300a67a9eafc673dc5ab7fddcd7a",
+  "hosted_ci_run": 35378231324,
+  "hosted_ci_status_at_recording": "queued",
+  "qualification_assessed": false,
+  "limitations": [
+    "Skipped tests were not established by this run.",
+    "Local gate excludes CI-only gitleaks full-history scan.",
+    "No independent verification, human acceptance or runtime execution coverage granted."
+  ]
+}

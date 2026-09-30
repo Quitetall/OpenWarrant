@@ -1,0 +1,63 @@
+{
+  "schema": "openwarrant.candidate-delivery-change/v1",
+  "warrant": "OW-WAR-0068",
+  "attempt": "attempt-2",
+  "actor": "codex",
+  "recorded_at": "2026-09-14T23:25:36.018901+00:00",
+  "status": "candidate-unverified",
+  "basis": "Owner-directed SDK-era skill refresh; no alteration of authorized contract, resolution, independent findings or original attempt evidence. Contract fit and qualification remain pending.",
+  "prior_manifest": "attempts/attempt-1/deliverables.toml",
+  "prior_manifest_sha256": "9497ed13bdf0b7834b92cbf12e742477b0250d7a80ac26a218d2cb2f8fda618b",
+  "changes": [
+    {
+      "id": "D-001",
+      "path": "CONTEXT.md",
+      "prior_digest": "sha256:9aabd28fc97c228aed886aefc7fe3231588cbf3d988745a9a252fcb32d430dc5",
+      "candidate_digest": "sha256:b752a92e017366d6ec948388b38ccf2c56536d3c78cf6350800195150d887710"
+    },
+    {
+      "id": "D-004",
+      "path": ".claude/skills/war-grill/SKILL.md",
+      "prior_digest": "sha256:3a68fdc09e4ced524a39fba754ed4f7cec548cae26cf751fb7ea75e0deb57c68",
+      "candidate_digest": "sha256:9e3552d7b304c20b38c2580b364fa98bf8c9ba747c49a046f25ca89c84fa9185"
+    },
+    {
+      "id": "D-005",
+      "path": ".claude/skills/war-spec/SKILL.md",
+      "prior_digest": "sha256:06349ea9693ae405afa1ada51020afd772b3e801087450657068487e7330e97b",
+      "candidate_digest": "sha256:fd390b4e8c834bccd183987400fb5a77f6a57973299f1cf56b5c735c988d9021"
+    },
+    {
+      "id": "D-006",
+      "path": ".claude/skills/war-tickets/SKILL.md",
+      "prior_digest": "sha256:7f22b1c96307d1116f23b6e86f2d0a814ac729422889cf6e776941d00a180e1f",
+      "candidate_digest": "sha256:9733b3f5b2fb329edac43fc89c337dad8c1461c0a388614539493c50381df308"
+    },
+    {
+      "id": "D-007",
+      "path": ".claude/skills/war-review/SKILL.md",
+      "prior_digest": "sha256:2333429c829645c50287c1f9373bc0e7367be945b491d5b5dfe6655a91de1ded",
+      "candidate_digest": "sha256:4903a460a0fda0c13b19a012562a35ebb25e445034f08066281c881e0f5a668c"
+    },
+    {
+      "id": "D-008",
+      "path": ".claude/skills/war-map/SKILL.md",
+      "prior_digest": "sha256:04d5e435181736ed0f7b23816c91dc67df9709915f0e868a782a96a70c3f2149",
+      "candidate_digest": "sha256:99d9c5f49e2a19ecc70c91eed362f2c906ba8a0f9e0682d6b68cf94e04cdd3a9"
+    },
+    {
+      "id": "D-009",
+      "path": "docs/SKILLS.md",
+      "prior_digest": "sha256:25d740ed65fc070d8d8363c91326839e3cc7c86b4646b3af899c75ba1e9a2a82",
+      "candidate_digest": "sha256:202b6ef30664690a076077314a88f06fd45fe3a06b3dfb5d4d341d9ef33733ee"
+    }
+  ],
+  "unchanged_delivery_ids": [
+    "D-002",
+    "D-003",
+    "D-010"
+  ],
+  "qualification_claimed": false,
+  "evaluation_contract_digest": "f77a07c9bee13fc2490a248e8e735bafe31ea3ab01399d9b45f5cdf53e115808",
+  "evaluation_contract_fit": "pending"
+}

@@ -1,0 +1,22 @@
+{
+  "binary": {
+    "path": "/mnt/4tb/LamQuant/training/cookbooks/lamquant/target/debug/lqt",
+    "sha256": "acf61eabf6fc86f8a72c28148210954c2cdc0eec0a0fac1f01e4a95ceea409c9"
+  },
+  "war": {
+    "path": "/mnt/4tb/tmp/ow-authority-receipts/target/debug/war",
+    "sha256": "89206131bed0055931ff07b974bd33a066080d254300965f159cc83d94678a20"
+  },
+  "plan": {
+    "path": "/tmp/ow47-plan-20260918.json",
+    "sha256": "3da3913aad7fd98a53621f21010848b187f232e77c596f865d3767c6d0bedbd5"
+  },
+  "corpus": {
+    "path": "/mnt/4tb/tmp/ow47-runtime-observation/conformance/fixtures/ow-war-0047-corpus.jsonl",
+    "sha256": "1d6818cd3e5dbe603f2040a5182dde23e69df9e1bf000e7f51f8d8903e052c4b"
+  },
+  "openwarrant_revision": "1c852b064ce20de9befb4724052bb9292c2f04a4",
+  "binary_source_revision": null,
+  "binary_version": "blut 0.2.0-alpha.1+unknown",
+  "qualification": false
+}

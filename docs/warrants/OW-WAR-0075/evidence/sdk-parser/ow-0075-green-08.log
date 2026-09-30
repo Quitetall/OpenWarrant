@@ -1,0 +1,23 @@
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-war-0075-sdk/crates/openwarrant-core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.21s
+     Running `target/debug/examples/sdk_probe --scope 75 --fixtures conformance/sdk`
+PASS T01-minimal-rc3
+PASS T01-legacy-explicit
+PASS T02-duplicate-key
+PASS T03-fenced-markers
+PASS T04-duplicate-unit
+PASS T05-crlf-unicode
+PASS T06-invalid-utf8
+PASS T07-missing-outcome
+PASS T08-unknown-optional
+PASS T08-unknown-required
+PASS T09-adr
+PASS T09-sas
+PASS T10-unresolved-required
+PASS FOOTER01-wrapped
+PASS FOOTER02-compact
+PASS FOOTER04-malformed
+PASS FOOTER05-trailing
+PASS FOOTER06-title
+PASS FOOTER07-schema
+19 document cases passed; context/readiness not evaluated; author/edit outside scope 75

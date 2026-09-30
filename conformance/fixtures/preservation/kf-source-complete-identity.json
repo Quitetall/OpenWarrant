@@ -1,0 +1,91 @@
+{
+  "producer_revision": "3441573fea9dc82fbd34a36fa71e88f689518db5",
+  "producer_binary_sha256": "782fa4fa76fedae4fc1e0fff3a76953aac838d906c261262643a01b02227ca89",
+  "archive_sha256": "b6318636c97fa0fbae729add05b13a5539e7c7388d5f37f2152a2fc3765e2fbb",
+  "subject": "war://01a0b53a-3315-7ed3-a369-35af9154f89d",
+  "canonical_ir": {
+    "api_version": "oh.war/v1",
+    "contract_coverage": {
+      "covered": [
+        "intent",
+        "scope",
+        "basis_requirements",
+        "assumptions",
+        "constraints",
+        "adr_references",
+        "milestones",
+        "stages"
+      ]
+    },
+    "contract_revision": 1,
+    "format_basis": {
+      "package_id": "openwarrant-schema-pack",
+      "profile_schema_id": "delivery",
+      "root_schema_id": "work_authorization_record",
+      "version": "0.2.0"
+    },
+    "identity": {
+      "assurance_level": "basic",
+      "local_alias": "OW-WAR-0002",
+      "profile": "delivery",
+      "title": "Preserve declared local sources through provider storage",
+      "uuid": "01a0b53a-3315-7ed3-a369-35af9154f89d"
+    },
+    "integrity": {
+      "algorithm": "sha256",
+      "composition_revision_digest": "fe9cb00e39b36b289d6cf4b744fcb88d8b9130e5c77b1661a1f716a92591fde8",
+      "workspace_basis_digest": "fd2955f6966c40a8690840aa9f5b0083a5398b66167f5c8d6bbcc68d7a73db36"
+    },
+    "kind": "work_authorization_record",
+    "relations": {},
+    "source_and_composition": {
+      "atoms": [
+        {
+          "atom_source_digest": "0ff1fc71a790e3939c1e84a479c9ca816ff866117f157b5cd14042e03c129b59",
+          "jurisdiction": "authored",
+          "ordinal": 10,
+          "required": true,
+          "role": "intent",
+          "source": "atoms/10-intent.md"
+        },
+        {
+          "atom_source_digest": "e072e98391e18ee355a44bed3b31ca7f49484b4157461b27906a69ffc9aae5de",
+          "jurisdiction": "authored",
+          "ordinal": 20,
+          "required": true,
+          "role": "basis",
+          "source": "atoms/20-basis.md"
+        },
+        {
+          "atom_source_digest": "d1377c5e1391fb8f974c2f8528f80782267d433adf90ee79e557902eb3ea5f2a",
+          "jurisdiction": "authored",
+          "ordinal": 40,
+          "required": true,
+          "role": "work_order",
+          "source": "atoms/40-work-order.md"
+        },
+        {
+          "atom_source_digest": "eaa2cf8489424e57b54a47b98f1cbbf9c4faeb4d5cdff3c5b90723b2dc74580d",
+          "jurisdiction": "authored",
+          "ordinal": 45,
+          "required": true,
+          "role": "milestones",
+          "source": "atoms/45-milestones.yaml"
+        },
+        {
+          "atom_source_digest": "e23d41b6134773739c91ef92dfd07d58b4a2715aaaebe2a0cea5e570bf9459d7",
+          "jurisdiction": "authored",
+          "ordinal": 60,
+          "required": true,
+          "role": "assurance",
+          "source": "atoms/60-assurance.md"
+        }
+      ],
+      "manifest_digest": "c0f448a353b22c1b3fe044d34286f95a687636fd5b1a8174b5c8255d73b315f5",
+      "manifest_source": "docs/warrants/OW-WAR-0002/manifest.toml"
+    }
+  },
+  "source_removed": true,
+  "completeness_scope": "selected-local-current-and-history",
+  "complete": true
+}

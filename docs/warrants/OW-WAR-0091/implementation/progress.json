@@ -1,0 +1,15 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0091",
+  "work_state": "blocked",
+  "reported_by": "agent://codex",
+  "revision": "9d005a1e08aafb60fd9b1ef0f11f2a300a1cf9fab2ebc9bd5dc519e7794fe9bc",
+  "summary": "Publication runbook prepared; blocked by incomplete OW90 qualification and absent exact release permission. No tag or release published.",
+  "notes": "docs/warrants/OW-WAR-0091/implementation/notes.md",
+  "evidence": [],
+  "next_steps": [
+    "Complete four-phase qualification under OW90.",
+    "Prepare exact release subject and owner permission request.",
+    "Publish only when permitted, then independently re-download and verify."
+  ]
+}

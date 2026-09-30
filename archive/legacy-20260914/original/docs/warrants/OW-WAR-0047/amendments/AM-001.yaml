@@ -1,0 +1,19 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-001"
+band: "manual_revision"
+reason: "STAGE-002 now declares the context its Dispatch carries. Slice C1 of the 1.0 plan made stage-relevant context selection real (SAS §47.2): a stage names the atoms, the sections and the external references its packet includes, and the compiler omits the rest with a stated reason. OW-WAR-0047 is the corpus's live example of a dispatchable stage, so the declaration was added there and the contract digest moved with it. Nothing about what the Warrant must deliver, what it must establish, or who may act changed; the drafter wrote this record, and the authorizer adopts it by signing revision 2."
+governing_adr_or_policy: "sas://WAR-SAS-43"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. No attempt is invalidated: the recorded receipts bind the revision they were minted under, and the Dispatch compiled for STAGE-002 after this amendment carries a narrower context than the one before it, which is the point."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-12"
+
+semantic_diff:
+  - element: "stages"
+    before: "STAGE-002 declared no context selection, so its Dispatch carried every required atom whole."
+    after: "STAGE-002 declares context_sections (the work order's Deliverables and Premade Instructions) and context_external (sas://§47.2, sas://§33), so its Dispatch carries those sections as selectors and records what it omitted."
+
+affected_stages: ["STAGE-002"]
+affected_milestones: ["M3"]

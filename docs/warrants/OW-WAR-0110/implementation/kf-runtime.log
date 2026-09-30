@@ -1,0 +1,12 @@
+
+ RUN  v4.1.10 /mnt/4tb/tmp/kf-ow110-generated-types
+
+ ✓ packages/warrants/src/generated-contract.test.ts (1 test) 3ms
+ ✓ packages/warrants/src/submission-contract.test.ts (15 tests) 3ms
+ ✓ tests/database/warrants.test.ts (8 tests) 3720ms
+
+ Test Files  3 passed (3)
+      Tests  24 passed (24)
+   Start at  09:28:12
+   Duration  4.22s (transform 263ms, setup 0ms, import 543ms, tests 3.73s, environment 0ms)
+

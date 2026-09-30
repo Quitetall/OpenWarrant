@@ -92,68 +92,92 @@ fn path_of(dir: &Utf8Path, id: &str) -> Utf8PathBuf {
 /// human who has to answer them. The unreadable paths come back beside the
 /// questions so a caller can report them.
 pub fn load_tolerant(repo: &Repository, alias: &str) -> (Vec<Question>, Vec<String>) {
-    match load(repo, alias) {
-        Ok(qs) => (qs, Vec::new()),
-        Err(_) => {
-            let Ok(dir) = dir_of(repo, alias) else {
-                return (Vec::new(), Vec::new());
-            };
-            let Ok(entries) = std::fs::read_dir(&dir) else {
-                return (Vec::new(), Vec::new());
-            };
-            let mut paths: Vec<Utf8PathBuf> = entries
-                .filter_map(Result::ok)
-                .filter_map(|e| Utf8PathBuf::from_path_buf(e.path()).ok())
-                .filter(|p| p.extension() == Some("toml"))
-                .collect();
-            paths.sort();
-            let (mut out, mut bad) = (Vec::new(), Vec::new());
-            for path in paths {
-                match std::fs::read_to_string(&path)
-                    .ok()
-                    .and_then(|t| toml::from_str::<Question>(&t).ok())
-                    .filter(|q| q.schema == SCHEMA)
-                {
-                    Some(q) => out.push(q),
-                    None => bad.push(path.to_string()),
-                }
-            }
-            (out, bad)
+    let dir = match dir_of(repo, alias) {
+        Ok(dir) => dir,
+        Err(e) => return (Vec::new(), vec![e.to_string()]),
+    };
+    let paths = match question_paths(&dir) {
+        Ok(paths) => paths,
+        Err(_) => return (Vec::new(), vec![dir.to_string()]),
+    };
+    let mut out = Vec::new();
+    let mut bad = Vec::new();
+    for path in paths {
+        match read_question(&path) {
+            Ok(q) => out.push(q),
+            Err(_) => bad.push(path.to_string()),
         }
     }
+    (out, bad)
 }
 
-/// Every question of one Warrant, by id. Strict: `ask` allocates the next id
-/// from this, so a file it cannot read is an error there rather than a silent
-/// gap in the sequence.
-pub fn load(repo: &Repository, alias: &str) -> Result<Vec<Question>, RepoError> {
-    let dir = dir_of(repo, alias)?;
-    let Ok(entries) = std::fs::read_dir(&dir) else {
-        return Ok(Vec::new());
+/// Missing storage means no questions. Every other enumeration error stays visible.
+fn question_paths(dir: &Utf8Path) -> Result<Vec<Utf8PathBuf>, RepoError> {
+    let metadata = match std::fs::symlink_metadata(dir) {
+        Ok(metadata) => metadata,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(source) => {
+            return Err(RepoError::Io {
+                context: format!("could not inspect {dir}"),
+                source,
+            });
+        }
     };
-    let mut paths: Vec<Utf8PathBuf> = entries
-        .filter_map(Result::ok)
-        .filter_map(|e| Utf8PathBuf::from_path_buf(e.path()).ok())
-        .filter(|p| p.extension() == Some("toml"))
-        .collect();
-    paths.sort();
-    let mut out = Vec::new();
-    for path in paths {
-        let text = std::fs::read_to_string(&path).map_err(|source| RepoError::Io {
-            context: format!("could not read {path}"),
+    if !metadata.is_dir() {
+        return Err(RepoError::Message(format!(
+            "{dir}: question store must be a real directory"
+        )));
+    }
+    let entries = std::fs::read_dir(dir).map_err(|source| RepoError::Io {
+        context: format!("could not list {dir}"),
+        source,
+    })?;
+    let mut paths = Vec::new();
+    for entry in entries {
+        let entry = entry.map_err(|source| RepoError::Io {
+            context: format!("could not read entry in {dir}"),
             source,
         })?;
-        let q: Question = toml::from_str(&text)
-            .map_err(|e| RepoError::Message(format!("{path}: not a question record: {e}")))?;
-        if q.schema != SCHEMA {
-            return Err(RepoError::Message(format!(
-                "{path}: schema is {}, not {SCHEMA}",
-                q.schema
-            )));
+        let path = Utf8PathBuf::from_path_buf(entry.path()).map_err(|_| RepoError::NonUtf8Path)?;
+        if path.extension() == Some("toml") {
+            paths.push(path);
         }
-        out.push(q);
     }
-    Ok(out)
+    paths.sort();
+    Ok(paths)
+}
+
+fn read_question(path: &Utf8Path) -> Result<Question, RepoError> {
+    let metadata = std::fs::symlink_metadata(path).map_err(|source| RepoError::Io {
+        context: format!("could not inspect {path}"),
+        source,
+    })?;
+    if !metadata.is_file() {
+        return Err(RepoError::Message(format!(
+            "{path}: question record must be a regular file"
+        )));
+    }
+    let text = std::fs::read_to_string(path).map_err(|source| RepoError::Io {
+        context: format!("could not read {path}"),
+        source,
+    })?;
+    let q: Question = toml::from_str(&text)
+        .map_err(|e| RepoError::Message(format!("{path}: not a question record: {e}")))?;
+    if q.schema != SCHEMA {
+        return Err(RepoError::Message(format!(
+            "{path}: schema is {}, not {SCHEMA}",
+            q.schema
+        )));
+    }
+    Ok(q)
+}
+
+/// Complete answer context and mutation callers must not skip damaged records.
+pub fn load(repo: &Repository, alias: &str) -> Result<Vec<Question>, RepoError> {
+    question_paths(&dir_of(repo, alias)?)?
+        .iter()
+        .map(|p| read_question(p))
+        .collect()
 }
 
 fn stage_exists(repo: &Repository, alias: &str, stage: &str) -> Result<bool, RepoError> {
@@ -401,7 +425,7 @@ pub fn list(
             report.push(Diagnostic::error(
                 "question.malformed",
                 path.clone(),
-                format!("{a}: this question record does not parse, so nobody can answer it; the rest are listed"),
+                format!("{a}: question storage is unreadable or invalid; displayed counts cover only readable records"),
             ));
         }
         for q in qs {
@@ -437,14 +461,24 @@ pub fn list(
     Ok((report, list))
 }
 
+/// Queue projections have no diagnostic field; do not project an incomplete queue.
+pub fn complete_list(repo: &Repository, open_only: bool) -> Result<QuestionList, RepoError> {
+    let (report, list) = list(repo, None, open_only)?;
+    if !report.is_ready() {
+        return Err(RepoError::Message(
+            "question store is incomplete; run war questions for diagnostics".to_owned(),
+        ));
+    }
+    Ok(list)
+}
+
 /// What the performer of a stage reads before it starts.
 pub fn answers_for(
     repo: &Repository,
     alias: &str,
     stage: Option<&str>,
 ) -> Result<Vec<Question>, RepoError> {
-    Ok(load_tolerant(repo, alias)
-        .0
+    Ok(load(repo, alias)?
         .into_iter()
         .filter(|q| stage.is_none_or(|s| q.stage == s))
         .filter(|q| !q.is_open())

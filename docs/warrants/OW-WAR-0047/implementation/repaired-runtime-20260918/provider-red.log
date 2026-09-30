@@ -1,0 +1,179 @@
+   Compiling proc-macro2 v1.0.106
+   Compiling unicode-ident v1.0.24
+   Compiling quote v1.0.46
+   Compiling cfg-if v1.0.4
+   Compiling libc v0.2.186
+   Compiling syn v2.0.118
+   Compiling serde_core v1.0.228
+   Compiling version_check v0.9.5
+   Compiling serde v1.0.228
+   Compiling serde_derive v1.0.228
+   Compiling once_cell v1.21.4
+   Compiling zerocopy v0.8.54
+   Compiling shlex v2.0.1
+   Compiling find-msvc-tools v0.1.9
+   Compiling cc v1.2.66
+   Compiling generic-array v0.14.7
+   Compiling pin-project-lite v0.2.17
+   Compiling typenum v1.20.1
+   Compiling smallvec v1.15.2
+   Compiling memchr v2.8.3
+   Compiling bitflags v2.13.0
+   Compiling crossbeam-utils v0.8.22
+   Compiling ahash v0.8.12
+   Compiling crossbeam-epoch v0.9.20
+   Compiling futures-core v0.3.32
+   Compiling autocfg v1.5.1
+   Compiling parking_lot_core v0.9.12
+   Compiling zmij v1.0.21
+   Compiling futures-sink v0.3.32
+   Compiling num-traits v0.2.19
+   Compiling byteorder v1.5.0
+   Compiling itoa v1.0.18
+   Compiling crossbeam-deque v0.8.7
+   Compiling utf8parse v0.2.2
+   Compiling heapless v0.8.0
+   Compiling vcpkg v0.2.15
+   Compiling equivalent v1.0.2
+   Compiling scopeguard v1.2.0
+   Compiling hashbrown v0.17.1
+   Compiling pkg-config v0.3.33
+   Compiling serde_json v1.0.150
+   Compiling getrandom v0.4.3
+   Compiling indexmap v2.14.0
+   Compiling libsqlite3-sys v0.30.1
+   Compiling lock_api v0.4.14
+   Compiling anstyle-parse v1.0.0
+   Compiling hash32 v0.3.1
+   Compiling futures-channel v0.3.32
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling tracing-core v0.1.36
+   Compiling futures-macro v0.3.32
+   Compiling serde_derive_internals v0.29.1
+   Compiling errno v0.3.14
+   Compiling getrandom v0.2.17
+   Compiling anstyle v1.0.14
+   Compiling cfg_aliases v0.2.1
+   Compiling anstyle-query v1.1.5
+   Compiling slab v0.4.12
+   Compiling futures-io v0.3.32
+   Compiling regex-syntax v0.8.11
+   Compiling rayon-core v1.13.0
+   Compiling futures-task v0.3.32
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling colorchoice v1.0.5
+   Compiling stable_deref_trait v1.2.1
+   Compiling rustix v1.1.4
+   Compiling schemars v0.8.22
+   Compiling rustix v0.38.44
+   Compiling regex-automata v0.4.15
+   Compiling anstream v1.0.0
+   Compiling futures-util v0.3.32
+   Compiling nix v0.29.0
+   Compiling schemars_derive v0.8.22
+   Compiling rand_core v0.6.4
+   Compiling signal-hook-registry v1.4.8
+   Compiling digest v0.10.7
+   Compiling parking_lot v0.12.5
+   Compiling hashbrown v0.14.5
+   Compiling ppv-lite86 v0.2.21
+   Compiling serde_spanned v0.6.9
+   Compiling toml_datetime v0.6.11
+   Compiling blake3 v1.8.2
+   Compiling tracing-attributes v0.1.31
+   Compiling tokio-macros v2.7.0
+   Compiling mio v1.2.1
+   Compiling socket2 v0.6.4
+   Compiling winnow v0.7.15
+   Compiling toml_write v0.1.2
+   Compiling linux-raw-sys v0.12.1
+   Compiling log v0.4.33
+   Compiling dyn-clone v1.0.20
+   Compiling clap_lex v1.1.0
+   Compiling either v1.16.0
+   Compiling option-ext v0.2.0
+   Compiling heck v0.5.0
+   Compiling thiserror v1.0.69
+   Compiling bytes v1.12.1
+   Compiling strsim v0.11.1
+   Compiling anyhow v1.0.103
+   Compiling lazy_static v1.5.0
+   Compiling cpufeatures v0.2.17
+   Compiling linux-raw-sys v0.4.15
+   Compiling iana-time-zone v0.1.65
+   Compiling chrono v0.4.45
+   Compiling sha2 v0.10.9
+   Compiling tokio v1.52.3
+   Compiling sharded-slab v0.1.7
+   Compiling clap_builder v4.6.0
+   Compiling clap_derive v4.6.1
+   Compiling toml_edit v0.22.27
+   Compiling dirs-sys v0.4.1
+   Compiling tracing-log v0.2.0
+   Compiling tracing v0.1.44
+   Compiling rand_chacha v0.3.1
+   Compiling hashlink v0.9.1
+   Compiling futures-executor v0.3.32
+   Compiling matchers v0.2.0
+   Compiling faster-hex v0.10.0
+   Compiling thiserror-impl v1.0.69
+   Compiling thread_local v1.1.9
+   Compiling arrayvec v0.7.8
+   Compiling blut v0.2.0-alpha.1 (https://github.com/Quitetall/blut.git?rev=ffecee56abc87175a55dedc9f92d3537fa5a4227#ffecee56)
+   Compiling unsafe-libyaml v0.2.11
+   Compiling fastrand v2.4.1
+   Compiling fallible-iterator v0.3.0
+   Compiling fallible-streaming-iterator v0.1.9
+   Compiling winnow v0.6.26
+   Compiling ryu v1.0.23
+   Compiling arrayref v0.3.9
+   Compiling home v0.5.12
+   Compiling nu-ansi-term v0.50.3
+   Compiling constant_time_eq v0.3.1
+   Compiling tracing-subscriber v0.3.23
+   Compiling cron v0.15.0
+   Compiling which v6.0.3
+   Compiling serde_yaml v0.9.34+deprecated
+   Compiling rusqlite v0.32.1
+   Compiling tempfile v3.27.0
+   Compiling blut-types v0.2.0-alpha.1 (https://github.com/Quitetall/blut.git?rev=ffecee56abc87175a55dedc9f92d3537fa5a4227#ffecee56)
+   Compiling rayon v1.12.0
+   Compiling futures v0.3.32
+   Compiling rand v0.8.6
+   Compiling toml v0.8.23
+   Compiling dirs v5.0.1
+   Compiling tokio-util v0.7.18
+   Compiling clap v4.6.1
+   Compiling uuid v1.23.4
+   Compiling bincode v1.3.3
+   Compiling async-trait v0.1.89
+   Compiling memmap2 v0.9.11
+   Compiling humantime v2.4.0
+   Compiling blut-cookbook-standard v0.1.0 (/mnt/4tb/tmp/ow47-blut-standard-fix)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 32.27s
+     Running unittests src/lib.rs (/mnt/4tb/tmp/ow47-provider-target/debug/deps/blut_backends-a0d186ba53bc5861)
+
+running 4 tests
+test stages::materialize_dataset_path::tests::rejects_neither_path_nor_name ... ok
+test stages::materialize_dataset_path::tests::rejects_missing_path ... ok
+test stages::materialize_dataset_path::tests::rejects_both_path_and_name ... ok
+test stages::materialize_dataset_path::tests::loads_dataset_from_path ... FAILED
+
+failures:
+
+---- stages::materialize_dataset_path::tests::loads_dataset_from_path stdout ----
+
+thread 'stages::materialize_dataset_path::tests::loads_dataset_from_path' (626334) panicked at src/stages/materialize_dataset_path.rs:156:9:
+assertion `left == right` failed
+  left: "/tmp/.tmpVsvBy9/ds.jsonl"
+ right: "/tmp/.tmpVsvBy9/stage/dataset.jsonl"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    stages::materialize_dataset_path::tests::loads_dataset_from_path
+
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 55 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p blut-cookbook-standard --lib`

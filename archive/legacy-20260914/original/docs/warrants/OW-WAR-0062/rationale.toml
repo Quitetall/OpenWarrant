@@ -1,0 +1,15 @@
+schema = "oh.war/rationale/v1"
+
+[[assumption]]
+id = "A-001"
+statement = "Adding §6.10 is a definitions change, not an architecture change, under §101.3."
+epistemic_status = "accepted_residual_risk"
+consequence_if_false = "0.1.0-draft.3 should have carried an ADR; the next revision adds one and nothing recorded is invalidated."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-002"
+statement = "A restatement that can drift from the controlled text is acceptable while the SAS wins by rule."
+epistemic_status = "accepted_residual_risk"
+consequence_if_false = "docs/DEFINITIONS.md says something §6.10 does not, and a reader who never opens the SAS acts on it."
+judgment_ref = ""

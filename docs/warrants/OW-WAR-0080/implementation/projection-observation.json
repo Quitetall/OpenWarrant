@@ -1,0 +1,75 @@
+{
+  "format": "openwarrant-projection-integration-observation/1",
+  "passed": true,
+  "profile": {
+    "id": "lamu.openwarrant.projections/1",
+    "provider": "lamu-openwarrant",
+    "version": "0.1.0",
+    "sdk_revision": "f5c7ac0ee1d71e43437b3def2ed75693d5804553",
+    "contract_sha256": "704548d927b9a641e4995ba767f7beedac9b08d590a5320fbff3e16805e42ecb"
+  },
+  "provider_git_head": "e6591a5b038224263973caea5930385c4d2151a7",
+  "provider_worktree_status": "",
+  "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "inputs_sha256": {
+    "lamu-openwarrant/CONTRACT.md": "1a4c2c9c85074a22abd2cb3282216b0b3a63a36c4bd479d171f2e21c02b4a57c",
+    "lamu-openwarrant/Cargo.toml": "edcb8a30eb3d1294bcb376990804b64a941016956ff4367ee7a3febd8b0054cb",
+    "lamu-openwarrant/examples/conditions_profile.rs": "70049a72568bdca8ec660f5e44aab476fccb27083d2f6c62bda643ddc4fc4c0e",
+    "lamu-openwarrant/examples/profile.rs": "8f6dd69af1b55c2a19587fb8ecd3c2e7306127374072dc6b91cbab4703a7625c",
+    "lamu-openwarrant/examples/projections_profile.rs": "2bdd54a1400023d3fa2b578ba5050dd0dfe2dba2e69fd1399cfa9324dbb62f47",
+    "lamu-openwarrant/examples/selection_profile.rs": "881627e7e1a3af5dcc3d27f97e550de9e82daf71e0cb1bf0178806b2513b91b8",
+    "lamu-openwarrant/src/conditions.rs": "aef65fdef69f22d3cc59dc3dc829aff0d33ebbaa1f11838887a2a20a9c465aaa",
+    "lamu-openwarrant/src/lib.rs": "57b215f68bd62f1d6bcf72431810b65df00182563d493f98a1148e9a253d82f7",
+    "lamu-openwarrant/src/projections.rs": "5b3dc72174d20c562349ccaaf046493e4d41b8ce1525c4d86612deb1ca77fe63",
+    "lamu-openwarrant/src/selection.rs": "12cb41a1e168ff8a8e873e75f82cbaa919a8f91f1eab1cbced8fd808f49a04ee",
+    "lamu-openwarrant/tests/conditions.rs": "034a7b6a7c090383cf815c36bbfa3c369aaa973bb6f53e18faeee1bcee3252a2",
+    "lamu-openwarrant/tests/fixtures/architecture.md": "df6856e5fa47d36f3e4b15e1452957051747edbe94a96d65533068b6567527fa",
+    "lamu-openwarrant/tests/fixtures/task.md": "16126178787a0ae75a6503ae225da07b428ae1c60d72498bdf0aa66284711fc8",
+    "lamu-openwarrant/tests/projection_allocations.rs": "ca0b33649e960ebcb4d7474f7cc279b26db05685e1908540d088c6b6507437a9",
+    "lamu-openwarrant/tests/projections.rs": "4e5dfe1e46e0509d6de0528f45f74f87b251e8c4f86c7f98d7d84ee6e64d3fd1",
+    "lamu-openwarrant/tests/selection.rs": "6464b6feb9f604cd30de515fd6c0eb08c444e4f3b1aa6e62ac8f29d9c70dc81b",
+    "lamu-openwarrant/tests/source.rs": "8cb7bc8fe612ab2dbbe5850f76558d491101a791dd46d6ac5422ed23bd1fd142",
+    "Cargo.lock": "ca24945fd5e118f3344cf6f28df8195adab25bba013fac5229a5419c27bd86bc",
+    "Cargo.toml": "8f9a06f230e95c09062338208d4b716c18a840c4055854138212fd50e05fe6a0"
+  },
+  "profile_process": {
+    "argv": [
+      "cargo",
+      "+1.97.1",
+      "run",
+      "--locked",
+      "--quiet",
+      "-p",
+      "lamu-openwarrant",
+      "--example",
+      "projections_profile"
+    ],
+    "exit_code": 0,
+    "stdout": "{\"id\":\"lamu.openwarrant.projections/1\",\"provider\":\"lamu-openwarrant\",\"version\":\"0.1.0\",\"sdk_revision\":\"f5c7ac0ee1d71e43437b3def2ed75693d5804553\",\"contract_sha256\":\"704548d927b9a641e4995ba767f7beedac9b08d590a5320fbff3e16805e42ecb\"}\n",
+    "stderr": ""
+  },
+  "tests": {
+    "argv": [
+      "cargo",
+      "+1.97.1",
+      "test",
+      "--locked",
+      "-p",
+      "lamu-openwarrant",
+      "--test",
+      "projections",
+      "--",
+      "--test-threads=1"
+    ],
+    "exit_code": 0,
+    "stdout": "\nrunning 3 tests\ntest four_roles_preserve_exact_subject_and_master_is_not_execution_readiness ... ok\ntest refusal_boundaries_preserve_previous_view_and_claims_never_grant_readiness ... ok\ntest summaries_preserve_parent_labels_and_cannot_replace_binding_rules ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n",
+    "stderr": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.09s\n     Running tests/projections.rs (target/debug/deps/projections-bcb647a3ba2b2fe4)\n"
+  },
+  "scope": "T27-T31 master/task projections, roles, exact text and summary provenance",
+  "limitations": [
+    "No human assurance",
+    "No portable package or semantic package verification",
+    "Task readiness blocked pending record evaluation",
+    "Host OS only"
+  ]
+}

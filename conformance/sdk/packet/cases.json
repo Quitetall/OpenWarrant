@@ -1,0 +1,40 @@
+{
+  "schema": "oh.war/sdk-packet-cases/v1",
+  "cases": [
+    {
+      "id": "valid",
+      "file": "valid.json",
+      "error": null
+    },
+    {
+      "id": "wrong-schema",
+      "file": "wrong-schema.json",
+      "error": "schema-unsupported"
+    },
+    {
+      "id": "duplicate-field",
+      "file": "duplicate-field.json",
+      "error": "package-invalid"
+    },
+    {
+      "id": "unknown-field",
+      "file": "unknown-field.json",
+      "error": "package-invalid"
+    },
+    {
+      "id": "invalid-role",
+      "file": "invalid-role.json",
+      "error": "package-invalid"
+    },
+    {
+      "id": "invalid-kind",
+      "file": "invalid-kind.json",
+      "error": "package-invalid"
+    },
+    {
+      "id": "noncanonical",
+      "file": "noncanonical.json",
+      "error": "package-invalid"
+    }
+  ]
+}

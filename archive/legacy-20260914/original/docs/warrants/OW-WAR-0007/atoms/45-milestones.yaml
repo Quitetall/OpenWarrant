@@ -1,0 +1,46 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M0"
+    title: "Structured-atom parser selected by ADR"
+    stage_refs: ["STAGE-000"]
+    obligation_refs: ["OBL-000"]
+
+  - id: "M1"
+    title: "Milestones and stages parse into typed values"
+    depends_on: ["M0"]
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "Dangling refs, duplicate ids, and dependency cycles are refused"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002"]
+
+  - id: "M3"
+    title: "All five Phase 1 Warrants' milestone graphs validate"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-003"]
+
+stages:
+  - id: "STAGE-000"
+    title: "Decide the structured-atom parser and record the ADR"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-001"
+    title: "Implement Milestone, Stage, ports, executor kinds, tiers"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-002"
+    title: "Plant each malformed graph and assert the specific refusal"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-003"
+    title: "Validate the existing corpus against the new rules"
+    executor_kind: "service"
+    responsibility_tier: "T2"

@@ -1,0 +1,236 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1. Declared by the performer; `war resolve` recomputes every digest.
+# Prior manifest remains byte-exact in attempts/attempt-1/deliverables.toml.
+# Changed entries are attempt-2 candidate deliveries, not independent verdicts.
+# See attempts/attempt-2/delivery-change.json for the exact old/new mapping.
+
+[[deliverable]]
+id = "D-001"
+title = "The glossary every Dispatch carries"
+kind = "file"
+target_ref = "CONTEXT.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "codex"
+producing_attempt = "OW-WAR-0068/attempt-2"
+contract_digest = "f77a07c9bee13fc2490a248e8e735bafe31ea3ab01399d9b45f5cdf53e115808"
+input_digests = ["sha256:9aabd28fc97c228aed886aefc7fe3231588cbf3d988745a9a252fcb32d430dc5"]
+tool_or_runtime_identity = "Codex; owner-directed RC.3 skill refresh; candidate delivery, qualification pending"
+creation_method = "authored"
+content_digest = "sha256:b752a92e017366d6ec948388b38ccf2c56536d3c78cf6350800195150d887710"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "war frontier: the stages that can start now"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/frontier.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "codex"
+producing_attempt = "OW-WAR-0068/frontier-integrity"
+contract_digest = "unrecorded"
+input_digests = ["sha256:490d90ae8c705016a54025488d918e9bc363b2a0f6dce70056ea98716ff65481", "sha256:9a861e450c21642ccd0b6bef65ed9fc811b8532a336c121e542e7cf4e057a792"]
+tool_or_runtime_identity = "Codex; Rust 1.97.1; frontier integrity hardening; unverified"
+creation_method = "authored"
+content_digest = "sha256:ef97cf630912a241973a39c7a80b48a642980fcde59a17ec3ef4593a75430fdd"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-003"
+title = "The selector carries the glossary"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/context_select.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0068/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "the performer, after mattpocock/skills 3cca18b (MIT)"
+creation_method = "authored"
+content_digest = "sha256:4fb52d6e759c9a30b8d76ad528ae41ad7337a14c1be2fda9efb3506d10bbdb11"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-004"
+title = "/war-grill"
+kind = "file"
+target_ref = ".claude/skills/war-grill/SKILL.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "codex"
+producing_attempt = "OW-WAR-0068/attempt-2"
+contract_digest = "f77a07c9bee13fc2490a248e8e735bafe31ea3ab01399d9b45f5cdf53e115808"
+input_digests = ["sha256:3a68fdc09e4ced524a39fba754ed4f7cec548cae26cf751fb7ea75e0deb57c68"]
+tool_or_runtime_identity = "Codex; owner-directed RC.3 skill refresh; candidate delivery, qualification pending"
+creation_method = "authored"
+content_digest = "sha256:9e3552d7b304c20b38c2580b364fa98bf8c9ba747c49a046f25ca89c84fa9185"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-005"
+title = "/war-spec"
+kind = "file"
+target_ref = ".claude/skills/war-spec/SKILL.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "codex"
+producing_attempt = "OW-WAR-0068/attempt-2"
+contract_digest = "f77a07c9bee13fc2490a248e8e735bafe31ea3ab01399d9b45f5cdf53e115808"
+input_digests = ["sha256:06349ea9693ae405afa1ada51020afd772b3e801087450657068487e7330e97b"]
+tool_or_runtime_identity = "Codex; owner-directed RC.3 skill refresh; candidate delivery, qualification pending"
+creation_method = "authored"
+content_digest = "sha256:fd390b4e8c834bccd183987400fb5a77f6a57973299f1cf56b5c735c988d9021"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-006"
+title = "/war-tickets"
+kind = "file"
+target_ref = ".claude/skills/war-tickets/SKILL.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "codex"
+producing_attempt = "OW-WAR-0068/attempt-2"
+contract_digest = "f77a07c9bee13fc2490a248e8e735bafe31ea3ab01399d9b45f5cdf53e115808"
+input_digests = ["sha256:7f22b1c96307d1116f23b6e86f2d0a814ac729422889cf6e776941d00a180e1f"]
+tool_or_runtime_identity = "Codex; owner-directed RC.3 skill refresh; candidate delivery, qualification pending"
+creation_method = "authored"
+content_digest = "sha256:9733b3f5b2fb329edac43fc89c337dad8c1461c0a388614539493c50381df308"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-007"
+title = "/war-review"
+kind = "file"
+target_ref = ".claude/skills/war-review/SKILL.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "codex"
+producing_attempt = "OW-WAR-0068/attempt-2"
+contract_digest = "f77a07c9bee13fc2490a248e8e735bafe31ea3ab01399d9b45f5cdf53e115808"
+input_digests = ["sha256:2333429c829645c50287c1f9373bc0e7367be945b491d5b5dfe6655a91de1ded"]
+tool_or_runtime_identity = "Codex; owner-directed RC.3 skill refresh; candidate delivery, qualification pending"
+creation_method = "authored"
+content_digest = "sha256:4903a460a0fda0c13b19a012562a35ebb25e445034f08066281c881e0f5a668c"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-008"
+title = "/war-map"
+kind = "file"
+target_ref = ".claude/skills/war-map/SKILL.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "codex"
+producing_attempt = "OW-WAR-0068/attempt-2"
+contract_digest = "f77a07c9bee13fc2490a248e8e735bafe31ea3ab01399d9b45f5cdf53e115808"
+input_digests = ["sha256:04d5e435181736ed0f7b23816c91dc67df9709915f0e868a782a96a70c3f2149"]
+tool_or_runtime_identity = "Codex; owner-directed RC.3 skill refresh; candidate delivery, qualification pending"
+creation_method = "authored"
+content_digest = "sha256:99d9c5f49e2a19ecc70c91eed362f2c906ba8a0f9e0682d6b68cf94e04cdd3a9"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-009"
+title = "docs/SKILLS.md: the mapping, his to ours"
+kind = "file"
+target_ref = "docs/SKILLS.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "codex"
+producing_attempt = "OW-WAR-0068/attempt-2"
+contract_digest = "f77a07c9bee13fc2490a248e8e735bafe31ea3ab01399d9b45f5cdf53e115808"
+input_digests = ["sha256:25d740ed65fc070d8d8363c91326839e3cc7c86b4646b3af899c75ba1e9a2a82"]
+tool_or_runtime_identity = "Codex; owner-directed RC.3 skill refresh; candidate delivery, qualification pending"
+creation_method = "authored"
+content_digest = "sha256:202b6ef30664690a076077314a88f06fd45fe3a06b3dfb5d4d341d9ef33733ee"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-010"
+title = "The plants for the frontier, the glossary and the em-dash rule"
+kind = "file"
+target_ref = "conformance/plants.d/90-skills.sh"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0068/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "the performer, after mattpocock/skills 3cca18b (MIT)"
+creation_method = "authored"
+content_digest = "sha256:2af2575d4593b751c449938d67c5c20a4b1cee532b69c1fcf579323bc923e332"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

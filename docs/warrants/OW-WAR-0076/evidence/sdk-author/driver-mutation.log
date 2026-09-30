@@ -1,0 +1,36 @@
+PASS T01-minimal-rc3
+PASS T01-legacy-explicit
+PASS T02-duplicate-key
+PASS T03-fenced-markers
+PASS T04-duplicate-unit
+PASS T05-crlf-unicode
+PASS T06-invalid-utf8
+PASS T07-missing-outcome
+PASS T08-unknown-optional
+PASS T08-unknown-required
+PASS T09-adr
+PASS T09-sas
+PASS T10-unresolved-required
+PASS FOOTER01-wrapped
+PASS FOOTER02-compact
+PASS FOOTER04-malformed
+PASS FOOTER05-trailing
+PASS FOOTER06-title
+PASS FOOTER07-schema
+PASS T09-context-binding
+PASS T09-context-background-refusal
+PASS T06-combined-depth-refusal
+22 document cases passed; context/readiness not evaluated; author/edit outside scope 75
+FAIL T54-minimum
+PASS T56-revision
+PASS FOOTER08-title-crlf
+PASS T55-duplicate-field
+PASS T55-unit-injection
+PASS T55-footer-injection
+PASS T56-false-assurance
+PASS FOOTER08-title-conflict
+PASS T56-duplicate-edit
+PASS T56-unit-edit
+Author cases failed: T54-minimum
+
+exit=1

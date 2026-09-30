@@ -1,0 +1,233 @@
+schema = "oh.war/deliverables/v1"
+
+# §37.1. Declared by the performer; `war resolve` recomputes every digest.
+
+[[deliverable]]
+id = "D-001"
+title = "The glossary every Dispatch carries"
+kind = "file"
+target_ref = "CONTEXT.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0068/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "the performer, after mattpocock/skills 3cca18b (MIT)"
+creation_method = "authored"
+content_digest = "sha256:9aabd28fc97c228aed886aefc7fe3231588cbf3d988745a9a252fcb32d430dc5"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "war frontier: the stages that can start now"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/frontier.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0068/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "the performer, after mattpocock/skills 3cca18b (MIT)"
+creation_method = "authored"
+content_digest = "sha256:490d90ae8c705016a54025488d918e9bc363b2a0f6dce70056ea98716ff65481"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-003"
+title = "The selector carries the glossary"
+kind = "file"
+target_ref = "crates/openwarrant-cli/src/context_select.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0068/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "the performer, after mattpocock/skills 3cca18b (MIT)"
+creation_method = "authored"
+content_digest = "sha256:4fb52d6e759c9a30b8d76ad528ae41ad7337a14c1be2fda9efb3506d10bbdb11"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-004"
+title = "/war-grill"
+kind = "file"
+target_ref = ".claude/skills/war-grill/SKILL.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0068/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "the performer, after mattpocock/skills 3cca18b (MIT)"
+creation_method = "authored"
+content_digest = "sha256:3a68fdc09e4ced524a39fba754ed4f7cec548cae26cf751fb7ea75e0deb57c68"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-005"
+title = "/war-spec"
+kind = "file"
+target_ref = ".claude/skills/war-spec/SKILL.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0068/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "the performer, after mattpocock/skills 3cca18b (MIT)"
+creation_method = "authored"
+content_digest = "sha256:06349ea9693ae405afa1ada51020afd772b3e801087450657068487e7330e97b"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-006"
+title = "/war-tickets"
+kind = "file"
+target_ref = ".claude/skills/war-tickets/SKILL.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0068/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "the performer, after mattpocock/skills 3cca18b (MIT)"
+creation_method = "authored"
+content_digest = "sha256:7f22b1c96307d1116f23b6e86f2d0a814ac729422889cf6e776941d00a180e1f"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-007"
+title = "/war-review"
+kind = "file"
+target_ref = ".claude/skills/war-review/SKILL.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0068/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "the performer, after mattpocock/skills 3cca18b (MIT)"
+creation_method = "authored"
+content_digest = "sha256:2333429c829645c50287c1f9373bc0e7367be945b491d5b5dfe6655a91de1ded"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-008"
+title = "/war-map"
+kind = "file"
+target_ref = ".claude/skills/war-map/SKILL.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-002"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0068/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "the performer, after mattpocock/skills 3cca18b (MIT)"
+creation_method = "authored"
+content_digest = "sha256:04d5e435181736ed0f7b23816c91dc67df9709915f0e868a782a96a70c3f2149"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-009"
+title = "docs/SKILLS.md: the mapping, his to ours"
+kind = "file"
+target_ref = "docs/SKILLS.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0068/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "the performer, after mattpocock/skills 3cca18b (MIT)"
+creation_method = "authored"
+content_digest = "sha256:25d740ed65fc070d8d8363c91326839e3cc7c86b4646b3af899c75ba1e9a2a82"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-010"
+title = "The plants for the frontier, the glossary and the em-dash rule"
+kind = "file"
+target_ref = "conformance/plants.d/90-skills.sh"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-003"]
+
+[deliverable.provenance]
+producer = "claude"
+producing_attempt = "OW-WAR-0068/attempt-1"
+contract_digest = "unrecorded"
+input_digests = []
+tool_or_runtime_identity = "the performer, after mattpocock/skills 3cca18b (MIT)"
+creation_method = "authored"
+content_digest = "sha256:2af2575d4593b751c449938d67c5c20a4b1cee532b69c1fcf579323bc923e332"
+media_type = "text/x-shellscript"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

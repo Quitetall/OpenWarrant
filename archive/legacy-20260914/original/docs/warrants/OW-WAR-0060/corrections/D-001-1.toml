@@ -1,0 +1,16 @@
+schema = "oh.war/correction/v1"
+warrant = "OW-WAR-0060"
+
+[correction]
+id = "01a0976e-17ee-7ab0-906c-bb2a250b5dd0"
+deliverable_id = "D-001"
+target_ref = ".github/workflows/pages.yml"
+sequence = 1
+superseded_digest = "sha256:49cc15d8441b3f193ba60cf8f6ad2b51714e7836dc229f09dc467baa7aa9fc5d"
+new_digest = "sha256:ecead719cc1dbe43ba56e8bde18220eb3e3d81b8f64ba918f48e3a26db149b90"
+reason = "Making it so the human approves only in ai workflows with low friction. Presented on a terminal by `war sign 1.0.0` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+kind = "behaviour-change"
+authorized_by_ref = "person://Brian Lam"
+acting_role_ref = "role://authorizer"
+effective_at = "2026-09-12T21:02:49Z"
+recorded_at = "2026-09-12T21:02:49Z"

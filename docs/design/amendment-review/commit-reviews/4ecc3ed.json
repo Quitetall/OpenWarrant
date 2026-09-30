@@ -1,0 +1,13 @@
+{
+  "id": 2,
+  "jsonrpc": "2.0",
+  "result": {
+    "content": [
+      {
+        "text": "=== Review of 4ecc3ed (MiMo V2.5 Pro) ===\n\nPASS\n\nRecommend: No changes needed; this is a historical data preservation commit with no code modifications to review.\n\n_(reviewed by local model 'qwen3.5-4b-q4_k_m' via lamu serve \u2014 all cloud reviewers were unavailable)_",
+        "type": "text"
+      }
+    ],
+    "isError": false
+  }
+}

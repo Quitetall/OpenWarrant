@@ -1,0 +1,1 @@
+PASS: CLI result and JSON roundtrip; 12 malformed schema controls refused

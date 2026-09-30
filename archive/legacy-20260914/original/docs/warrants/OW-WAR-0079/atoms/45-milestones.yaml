@@ -1,0 +1,28 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "Deliver closure and selection with explicit reasons"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-002"]
+  - id: "M2"
+    title: "Independently verify cycle, omission and conflict controls"
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-003", "OBL-004"]
+    depends_on: ["M1"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Deliver closure and selection with explicit reasons"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+    context_sections: ["20-basis.md#Required context", "40-work-order.md#Premade Instructions", "60-assurance.md#Acceptance Obligations"]
+    budget_tokens: 24000
+    executor_ref: "agent://codex"
+  - id: "STAGE-002"
+    title: "Independently verify cycle, omission and conflict controls"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+    context_sections: ["20-basis.md#Required context", "40-work-order.md#Premade Instructions", "60-assurance.md#Acceptance Obligations"]
+    budget_tokens: 24000
+    executor_ref: "agent://independent-verifier"

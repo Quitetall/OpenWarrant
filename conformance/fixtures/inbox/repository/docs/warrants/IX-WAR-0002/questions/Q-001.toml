@@ -1,0 +1,8 @@
+schema = "oh.war/question/v1"
+id = "Q-001"
+warrant = "IX-WAR-0002"
+stage = "STAGE-001"
+asked_by = "fixture-agent"
+asked_at = "2020-01-01T00:00:00Z"
+question = "Which contract applies?"
+blocking = true

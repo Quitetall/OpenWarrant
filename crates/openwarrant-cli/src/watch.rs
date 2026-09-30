@@ -89,24 +89,22 @@ pub fn snapshot(repo: &Repository) -> Result<Snapshot, RepoError> {
     let pending: Vec<String> = sign::pending(repo)?.iter().map(sign::line).collect();
     // An open question costs the owner a sentence and an agent its whole
     // stage, so it waits in the same place a signature does (OW-WAR-0069).
-    // A malformed record is reported by `war questions`, not here: the
-    // watcher's job is to raise what can be answered.
-    let questions: Vec<String> = crate::questions::list(repo, None, true)
-        .map(|(_, l)| {
-            l.questions
-                .iter()
-                .map(|q| {
-                    format!(
-                        "{} {}  {}{}",
-                        q.warrant,
-                        q.id,
-                        if q.blocking { "BLOCKING  " } else { "" },
-                        q.question
-                    )
-                })
-                .collect()
-        })
-        .unwrap_or_default();
+    // An incomplete store cannot become an apparently complete signing queue.
+    // `war questions` retains the individual diagnostics and readable records.
+    let questions: Vec<String> = crate::questions::complete_list(repo, true).map(|l| {
+        l.questions
+            .iter()
+            .map(|q| {
+                format!(
+                    "{} {}  {}{}",
+                    q.warrant,
+                    q.id,
+                    if q.blocking { "BLOCKING  " } else { "" },
+                    q.question
+                )
+            })
+            .collect()
+    })?;
     Ok(Snapshot {
         schema: SCHEMA.to_owned(),
         count: pending.len() + questions.len(),

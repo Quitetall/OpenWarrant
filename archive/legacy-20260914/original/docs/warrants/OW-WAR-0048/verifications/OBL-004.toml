@@ -1,0 +1,20 @@
+obligation = "OBL-004"
+disposition = "not_established"
+evidence = "The war-check receipt (GR-software.repo.war-check@1.0.0) does not demonstrate parity measurement across the whole corpus, and the basis atom identifies a blocking unknown regarding the Liminal compiler required for such measurement, with no artifact showing `compiled_by_both == corpus_size` or observables declared before the run."
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

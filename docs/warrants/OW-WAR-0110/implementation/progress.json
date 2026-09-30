@@ -1,0 +1,22 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0110",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "d3a4adb6a913d1b0fdacb39ac2c747a7e7e27beb",
+  "summary": "Structural TypeScript generation and actual KF consumption complete, unverified. Producer and consumer merged with required hosted checks passing; tuple-refusal fixture added and compiled during closeout. OW32 remaining scope is preserved separately.",
+  "notes": "docs/warrants/OW-WAR-0110/implementation/scope-audit.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0110/implementation/scope-audit.md",
+    "docs/warrants/OW-WAR-0110/implementation/producer-final-checks.json",
+    "docs/warrants/OW-WAR-0110/implementation/consumer-final-checks.json",
+    "docs/warrants/OW-WAR-0110/implementation/producer-bonsai-d3a4adb6.json",
+    "docs/warrants/OW-WAR-0110/implementation/hosted-gate-d3a4adb6.log.gz",
+    "docs/warrants/OW-WAR-0110/implementation/kf-hosted-tests-798094c6.log.gz",
+    "docs/warrants/OW-WAR-0110/implementation/ow32-scope-map.md"
+  ],
+  "next_steps": [
+    "Continue OW111 preservation and remaining open Warrants.",
+    "Independent verification, human acceptance and historical OW32 reconciliation remain separate."
+  ]
+}

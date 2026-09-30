@@ -1,0 +1,20 @@
+obligation = "OBL-001"
+disposition = "established"
+evidence = "The committed receipt file 'docs/warrants/OW-WAR-0046/gate-runs/software_repo_war-check_1_0_0.receipt.json' provides a §44.6 receipt, and the passing test 'resolve::tests::a_cited_gate_with_an_askable_completed_pass_is_admissible' demonstrates that a gate run with an askable, completed, and pass status is admissible, while tests like 'gate_run::tests::an_unaskable_run_cannot_record_a_verdict' ensure missing tools are reported as not_askable."
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

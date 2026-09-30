@@ -1,0 +1,82 @@
+schema = "oh.war/manifest/v1"
+uuid = "01a018db-19fc-72ba-87b3-c1bd1aec86a8"
+local_alias = "OW-WAR-0003"
+enterprise_id = ""
+title = "Implement the canonical WAR IR and RFC 8785 digesting"
+profile = "delivery"
+
+# `controlled`, not `basic`, and the reason is §25.4's risk-derived floor rather
+# than a preference. This Warrant fixes the exact bytes every cross-system WAR
+# digest is computed over. A defect here is not a bug that gets fixed — it
+# silently invalidates every digest minted before the fix, including those
+# already exported or signed. Controlled brings the adequacy review of §39 with
+# it (RQ-055).
+assurance_level = "controlled"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-014"
+contribution = "partial"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-080"
+contribution = "complete"
+
+[[implements]]
+ref = "sas://WAR-SAS-RQ-081"
+contribution = "complete"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-1/compiler"
+
+[[parents]]
+ref = "war://01a018db-19fc-7f2a-8e39-69730f255e33"
+contract_revision = 1
+# Pins the exact parent basis this child was authorized against (SAS §20.2).
+# `war check` recomputes it: if OW-WAR-0001 changes, this stops matching and the
+# child is reported as resting on a basis that no longer exists.
+#
+# Re-pinned 2026-08-19 (OW-WAR-0009). The contract digest moved because §28.5
+# coverage joined the preimage (OW-ADR-0004) — the parent's contract genuinely
+# became a different object, so the old pin was correctly reported stale by all
+# four children at once. That was the control working, not churn to be silenced.
+contract_digest = "sha256:f29c7d95baeb90a7bbad57a26b07846c724482c66a1e9ed7a2670af8d00b776d"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+# The decision this Warrant depends on, transcluded into its Decisions section
+# (§18.4, §19.4). Referenced by path rather than by `adr://<uuid>` because this
+# repository is file-native and offline; the UUID in the atom's frontmatter is
+# the identity, and the path is how it is resolved until federation exists.
+[[atoms]]
+ordinal = 30
+role = "adr"
+path = "../../adr/atoms/OW-ADR-0001-canonical-json-implementation.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true

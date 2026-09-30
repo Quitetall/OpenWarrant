@@ -1,0 +1,20 @@
+obligation = "OBL-005"
+disposition = "established"
+evidence = "gate_cmd.rs::askability_of - checks def.mutating first and returns Some(ReasonCode::Mutating) before any Command::new spawn; gate_run.rs::tests::a_mutating_gate_is_quarantined_even_when_fully_declared - MutationDeclaration::quarantine returns MutatingGateQuarantined error for both complete and partial declarations"
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

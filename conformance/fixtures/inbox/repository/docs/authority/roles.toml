@@ -1,0 +1,24 @@
+# SYNTHETIC FIXTURE. Never ingest into a real repository.
+#
+# The register exists here because an unsigned authorization is not an
+# authorization: `war inbox` lists a Warrant whose record carries no verified
+# human signature as still awaiting one. IX-WAR-0002, 0003 and 0004 carry real
+# SSHSIG signatures over their response bytes, made by a throwaway key whose
+# PUBLIC half is `allowed_signers` above. The private half was discarded; no
+# test needs it, because verification reads only the public key.
+[[assignment]]
+actor = "Fixture Human"
+actor_kind = "human"
+roles = ["authorizer", "resolver", "risk_acceptor", "judge"]
+assigned_by = "Fixture Human"
+effective_time = "2026-01-01T00:00:00Z"
+note = "Synthetic fixture signer."
+ssh_principal = "fixture-human"
+
+[[assignment]]
+actor = "claude"
+actor_kind = "agent"
+roles = ["performer"]
+assigned_by = "Fixture Human"
+effective_time = "2026-01-01T00:00:00Z"
+note = "Drafts and executes. Authorizes nothing, resolves nothing (§27.2)."

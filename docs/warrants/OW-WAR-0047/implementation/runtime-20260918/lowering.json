@@ -1,0 +1,43 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "blut",
+  "diagnostics": [
+    {
+      "severity": "pass",
+      "rule": "blut.ports-mapped",
+      "file": null,
+      "message": "OW-WAR-0047: 3 port(s) map to kinds BLUT declares at 33b3e047fd8e"
+    },
+    {
+      "severity": "pass",
+      "rule": "blut.lowered",
+      "file": null,
+      "message": "OW-WAR-0047: lowered 2 stage(s) against a pinned registry (blut@33b3e047fd8e)"
+    },
+    {
+      "severity": "pass",
+      "rule": "blut.emitted",
+      "file": null,
+      "message": "OW-WAR-0047: PlanSpec written to /tmp/ow47-plan-20260918.json"
+    },
+    {
+      "severity": "pass",
+      "rule": "blut.accepted",
+      "file": null,
+      "message": "OW-WAR-0047: BLUT accepted the lowering (fingerprint b69b886e4c9f, 8 recipes registered, exit 0) — reported by /mnt/4tb/LamQuant/training/cookbooks/lamquant/target/debug/lqt"
+    }
+  ],
+  "notes": [
+    "Verdict obtained from /mnt/4tb/LamQuant/training/cookbooks/lamquant/target/debug/lqt — a separate program this repository does not control, whose refusal messages it cannot author. That is what makes it `authoritative_external` (§40.2) rather than a self-report (§51.3).\n\nIt is NOT an execution. OW-WAR-0047's OBL-001 asks for status, artifact and lineage receipts from a real BLUT run; a typecheck produces none of those, so this does not discharge it.\n\nNote that every stage this repository names is a `STAGE-NNN` identifier that no cookbook compiles in, so a refusal naming an unknown stage is the expected and correct answer, not a defect in the lowering.\n\n{\n  \"name\": \"OW-WAR-0047\",\n  \"nodes\": [\n    {\n      \"stage\": \"materialize_dataset_path\",\n      \"args\": {\n        \"path\": \"conformance/fixtures/ow-war-0047-corpus.jsonl\"\n      }\n    },\n    {\n      \"stage\": \"filter_dataset\",\n      \"args\": {\n        \"min_turns\": 2,\n        \"drop_errors\": true\n      }\n    }\n  ],\n  \"edges\": [\n    [\n      0,\n      1\n    ]\n  ],\n  \"version\": 1\n}"
+  ],
+  "counts": {
+    "pass": 4,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0
+}

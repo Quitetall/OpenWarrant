@@ -1,0 +1,40 @@
+{
+  "source_revision": "43a3c2f2a3704e9d439b2e2a1f360c49b5191ac6",
+  "workflow_run": "https://github.com/Quitetall/OpenWarrant/actions/runs/35296289376",
+  "hosts": [
+    {
+      "target": "x86_64-unknown-linux-gnu",
+      "host": "Linux",
+      "archive": "openwarrant-main-linux-x86_64.tar.gz",
+      "archive_sha256": "99abd6a220101ef25302aff05e01c07ac399e588165a10da9afd6447cac8f6e9",
+      "receipt_sha256": "c15e682a2f85269afca2f0d1a2f47497b998b4463b842bc531e1b644bf80d561",
+      "observations": [
+        "installed-skill-links",
+        "version",
+        "sdk-example",
+        "interactive"
+      ],
+      "passed": true,
+      "binary_source_linkage": "caller-supplied-unestablished"
+    },
+    {
+      "target": "aarch64-apple-darwin",
+      "host": "Darwin",
+      "archive": "openwarrant-main-darwin-arm64.tar.gz",
+      "archive_sha256": "fdf03694a02ff514de523e988256fc5cc9e3038b15bc25251ebad06c64e6c793",
+      "receipt_sha256": "bbd1f9467784c998eb16a7f0dd9dab1f53b846a6baf107732c09f829b4583648",
+      "observations": [
+        "installed-skill-links",
+        "version",
+        "sdk-example",
+        "interactive"
+      ],
+      "passed": true,
+      "binary_source_linkage": "caller-supplied-unestablished"
+    }
+  ],
+  "ir_parity": true,
+  "qualified": false,
+  "published": false,
+  "provenance_limit": "Hosted workflow builds and installs at the stated checkout. This is not a signed build attestation; package manifest retains caller-supplied-unestablished linkage."
+}

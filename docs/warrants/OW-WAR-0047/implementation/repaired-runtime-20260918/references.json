@@ -1,0 +1,14 @@
+{
+  "job_id": "20260918-121422-409152626",
+  "lineage_ref": "/mnt/4tb/tmp/ow47-repaired-runtime-20260918/lineage-show.stdout.txt",
+  "lineage_response_sha256": "1eb434d906de0d5f4c9269f44706f8860f85fa18d319e7e3105361f66324acda",
+  "lineage_query_exit_code": 0,
+  "artifact_query_exit_code": 0,
+  "registry_sha256": "b8fbfbb1ca5c4e29bc820010ca2ab90e1fa67d508c868decc3c8c48fe77d0ecc",
+  "source_sha256": "1d6818cd3e5dbe603f2040a5182dde23e69df9e1bf000e7f51f8d8903e052c4b",
+  "owned_dataset_ref": "/mnt/4tb/tmp/ow47-repaired-runtime-20260918/jobs/20260918-121422-409152626/stages/0-materialize_dataset_path/dataset.jsonl",
+  "filtered_dataset_ref": "/mnt/4tb/tmp/ow47-repaired-runtime-20260918/jobs/20260918-121422-409152626/stages/1-filter_dataset/filtered.jsonl",
+  "owned_and_filtered_equal_original_fixture": true,
+  "example_count": 3,
+  "qualified": false
+}

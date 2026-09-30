@@ -1,0 +1,23 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "Bind scope and emit evidence"
+    stage_refs: ["STAGE-001", "STAGE-002"]
+  - id: "M2"
+    title: "Report-phase pull-request pilot"
+    stage_refs: ["STAGE-003"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Implement canonical machine-scope binding"
+    executor_kind: "agent"
+    responsibility_tier: "T3"
+  - id: "STAGE-002"
+    title: "Run negative and positive adapter plants"
+    executor_kind: "agent"
+    responsibility_tier: "T3"
+  - id: "STAGE-003"
+    title: "Configure report-only CI and request external verification"
+    executor_kind: "human"
+    responsibility_tier: "T2"

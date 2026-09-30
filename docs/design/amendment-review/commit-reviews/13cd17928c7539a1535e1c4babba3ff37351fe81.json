@@ -1,0 +1,13 @@
+{
+  "id": 2,
+  "jsonrpc": "2.0",
+  "result": {
+    "content": [
+      {
+        "text": "=== Review of 13cd17928c7539a1535e1c4babba3ff37351fe81 (MiMo V2.5 Pro) ===\n\nPASS\n\n_(reviewed by local model 'qwen3.5-4b-q4_k_m' via lamu serve \u2014 all cloud reviewers were unavailable)_",
+        "type": "text"
+      }
+    ],
+    "isError": false
+  }
+}

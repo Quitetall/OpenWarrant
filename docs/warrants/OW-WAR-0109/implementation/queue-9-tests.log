@@ -1,0 +1,14 @@
+test_queued_stages_wait_for_checked_predecessor_in_one_worktree (test_dispatch_queue.QueueExecutionTests.test_queued_stages_wait_for_checked_predecessor_in_one_worktree) ... ok
+test_real_admission_gates_remain_binding_for_queued_work (test_dispatch_queue.QueueExecutionTests.test_real_admission_gates_remain_binding_for_queued_work) ... ok
+test_real_executor_retains_queue_binding_and_runs_required_checks (test_dispatch_queue.QueueExecutionTests.test_real_executor_retains_queue_binding_and_runs_required_checks) ... ok
+test_cancel_survives_restart (test_dispatch_queue.QueueTests.test_cancel_survives_restart) ... ok
+test_consumed_crash_never_replays_with_or_without_attempt (test_dispatch_queue.QueueTests.test_consumed_crash_never_replays_with_or_without_attempt) ... ok
+test_current_admission_and_configuration_block (test_dispatch_queue.QueueTests.test_current_admission_and_configuration_block) ... ok
+test_one_probe_per_poll_rotates_waiting_work (test_dispatch_queue.QueueTests.test_one_probe_per_poll_rotates_waiting_work) ... ok
+test_unknown_and_corrupt_history_cannot_dispatch (test_dispatch_queue.QueueTests.test_unknown_and_corrupt_history_cannot_dispatch) ... ok
+test_wait_then_dispatch_once_and_restart (test_dispatch_queue.QueueTests.test_wait_then_dispatch_once_and_restart) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 1.369s
+
+OK

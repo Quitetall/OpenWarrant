@@ -1,0 +1,45 @@
+   Compiling openwarrant-cli v1.0.0 (/mnt/4tb/tmp/ow37-history/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.20s
+     Running tests/diff_target.rs (target/debug/deps/diff_target-7a15eceec255c800)
+
+running 1 test
+test retained_contracts_name_digest_inputs_and_refuse_missing_history ... FAILED
+
+failures:
+
+---- retained_contracts_name_digest_inputs_and_refuse_missing_history stdout ----
+
+thread 'retained_contracts_name_digest_inputs_and_refuse_missing_history' (2217688) panicked at crates/openwarrant-cli/tests/diff_target.rs:102:5:
+{
+  "schema": "oh.war/report/v1",
+  "command": "error",
+  "diagnostics": [
+    {
+      "severity": "error",
+      "rule": "cli.error",
+      "file": null,
+      "message": "cannot read contract:1: No such file or directory (os error 2)"
+    }
+  ],
+  "notes": [],
+  "counts": {
+    "pass": 0,
+    "warn": 0,
+    "unknown": 0,
+    "error": 1,
+    "worst": "error"
+  },
+  "verdict": "not_ready",
+  "verdict_line": "NOT READY",
+  "exit_code": 2
+}
+ 
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    retained_contracts_name_digest_inputs_and_refuse_missing_history
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p openwarrant-cli --test diff_target`

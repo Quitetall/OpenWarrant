@@ -1,0 +1,21 @@
+   Compiling ring v0.17.14
+   Compiling openwarrant-compiler v1.0.0 (/mnt/4tb/tmp/ow23-portable/crates/openwarrant-compiler)
+   Compiling rustls v0.23.43
+   Compiling rustls-webpki v0.103.15
+   Compiling ureq v3.4.0
+   Compiling openwarrant-cli v1.0.0 (/mnt/4tb/tmp/ow23-portable/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.43s
+     Running tests/dispatch_bundle_cli.rs (target/debug/deps/dispatch_bundle_cli-a191f0c176a69d62)
+
+running 8 tests
+test changed_context_and_escaping_source_refuse_before_writing_output ... ok
+test dispatch_support_references_resolve_inside_the_detached_bundle ... ok
+test selected_section_keeps_exact_provenance_and_rejects_deep_typed_metadata ... ok
+test resealing_optional_context_cannot_change_the_captured_contract ... ok
+test input_attachments_are_required_and_packaging_is_deterministic_and_non_overwriting ... ok
+test portable_context_survives_removal_of_source_repository_and_denies_unlisted_capability ... ok
+test listed_capability_requires_external_policy_trust_and_never_implies_sandbox ... ok
+test missing_or_changed_bytes_refuse_even_when_outer_digest_is_recomputed ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+

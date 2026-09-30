@@ -1,0 +1,47 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "A KF instance is reachable and named"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "A real enterprise identifier is allocated by KF"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002"]
+
+  - id: "M3"
+    title: "Git remained Source Holder"
+    depends_on: ['M2']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-003"]
+
+  - id: "M4"
+    title: "A §68 round trip preserves identity"
+    depends_on: ['M2']
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-004"]
+
+  - id: "M5"
+    title: "§91.3 and §91.13 are planted"
+    depends_on: ['M2']
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-005"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Stand up Knowledge Fabric"
+    executor_kind: "human"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-002"
+    title: "Register through typed actions"
+    executor_kind: "service"
+    responsibility_tier: "T2"
+
+  - id: "STAGE-003"
+    title: "Round trip and plant"
+    executor_kind: "service"
+    responsibility_tier: "T1"

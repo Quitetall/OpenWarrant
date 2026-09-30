@@ -1,0 +1,23 @@
+   Compiling openwarrant-cli v1.0.0 (/mnt/4tb/tmp/ow-export-preservation/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.22s
+     Running tests/preservation.rs (/mnt/4tb/tmp/ow107-gate-lineage/target/debug/deps/preservation-46c2467d1ffd0ba6)
+
+running 1 test
+test historical_artifact_versions_are_selected_by_digest_not_current_path ... FAILED
+
+failures:
+
+---- historical_artifact_versions_are_selected_by_digest_not_current_path stdout ----
+
+thread 'historical_artifact_versions_are_selected_by_digest_not_current_path' (1397833) panicked at crates/openwarrant-cli/tests/preservation.rs:90:5:
+ error: preservation: required local Git history unavailable
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    historical_artifact_versions_are_selected_by_digest_not_current_path
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 9 filtered out; finished in 2.56s
+
+error: test failed, to rerun pass `-p openwarrant-cli --test preservation`

@@ -42,9 +42,17 @@ plant_hook "edit to an unpinned file is silent" guard-pins.sh "$HKFX/edit-free.j
 # The stop check lets a stop through when it already blocked once this turn.
 plant_hook "stop after a block is allowed" stop-check.sh "$HKFX/stop-active.json" '' empty
 
-# The stop check blocks on a corpus `war check` refuses: plant a drift the
-# checker sees, ask to stop, restore.
+# A red corpus is reported, but it cannot block an unrelated harness stop.
+# The checker itself must still refuse the planted drift.
 sed -i 's/^order: 10$/order: 11/' docs/warrants/OW-WAR-0062/atoms/10-intent.md
 assert_present 'order: 11' docs/warrants/OW-WAR-0062/atoms/10-intent.md
-plant_hook "stop on a red corpus is blocked" stop-check.sh "$HKFX/stop.json" '"decision":"block"' present
+plant_hook "red corpus does not block a turn" stop-check.sh "$HKFX/stop.json" '' empty
+stop_diagnostic=$(PATH="$PWD/target/debug:$PATH" bash "$HOOKS/stop-check.sh" < "$HKFX/stop.json" 2>&1)
+if [[ "$stop_diagnostic" == *"OpenWarrant:"* ]]; then
+    printf 'ok    stop diagnostic retains corpus error\n'
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  stop diagnostic lost corpus error\n'
+    FAILED=$((FAILED + 1))
+fi
 restore

@@ -153,33 +153,27 @@ fn context_token_means(dirs: &[camino::Utf8PathBuf]) -> (Option<u64>, Option<u64
 fn unmeasurable(measure: &str) -> Option<&'static str> {
     Some(match measure {
         "human authoring minutes" | "wall time" | "time to first usable artifact" => {
-            "no instrumented authoring session; a git repository records commits, not elapsed \
-             human or wall time"
+            "this collector does not aggregate instrumented session durations; Git timestamps do not measure human or wall time"
         }
         "interview questions" | "clarification count" => {
-            "§74.6's interview has never run — `war plan` has no agent on the other side of \
-             the §75.2 seam, so no question has been asked to count"
+            "this collector does not aggregate interview questions or clarification events"
         }
         "escalation count and class" => {
-            "no §31 escalation has occurred; the count is unknown rather than zero because \
-             nothing records escalations even when they do"
+            "this collector does not aggregate escalation events and their classes"
         }
         "replay, repair, restart" => {
-            "no execution has been replayed, repaired or restarted, and no receipt store \
-             exists to have recorded one"
+            "this collector does not aggregate execution replay, repair or restart receipts"
         }
         "gate failure cause" => {
-            "gate runs mint receipts but nothing aggregates causes across them, so a cause \
-             distribution cannot be reported"
+            "this collector does not aggregate gate failure causes across receipts"
         }
-        "compute and model cost" => "no cost is metered for any run in this repository",
-        "reopenings" => {
-            "no Warrant has been resolved, so none can have been reopened. This is a \
-             consequence of §56.1 requirement 10, not of missing instrumentation"
-        }
+        "compute and model cost" => "this collector does not aggregate metered run costs",
+        "reopenings" => "this collector does not aggregate reopening events",
         "post-resolution escapes" => {
-            "no Warrant has been resolved; an escape after resolution is undefined while the \
-             count of resolutions is zero"
+            "this collector does not correlate defects with prior resolution subjects"
+        }
+        "auto-authorizable fraction" => {
+            "this collector does not evaluate per-Warrant authorization eligibility; a constant zero is not a measurement"
         }
         _ => return None,
     })
@@ -282,11 +276,6 @@ pub fn take(repo: &Repository, commit: &str) -> Result<Baseline, RepoError> {
             "gate library reuse" => Measure::taken(
                 gates_defined,
                 "gate definitions in the registry; reuse is citations over definitions",
-            ),
-            "auto-authorizable fraction" => Measure::taken(
-                0,
-                "Warrants authorizable without human action: zero, and MEASURED zero — \
-                 §56.1 requirement 10 is unmet for every Warrant, so none is auto-authorizable",
             ),
             other => match unmeasurable(other) {
                 Some(reason) => Measure::not_yet(reason),

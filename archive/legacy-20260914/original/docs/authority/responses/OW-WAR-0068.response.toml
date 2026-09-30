@@ -1,0 +1,10 @@
+schema = "oh.war/authorization-response/v1"
+warrant = "OW-WAR-0068"
+contract_digest = "f77a07c9bee13fc2490a248e8e735bafe31ea3ab01399d9b45f5cdf53e115808"
+authorizer = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0068 (Skills: a strict superset of the Pocock set over the deterministic core) at this contract digest means the signer accepts its intent, scope and 3 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 0.1.0` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-09-12T20:42:19Z"
+independence = "separate_role"
+judgment = []
+signed_via = "ssh"

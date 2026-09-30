@@ -1,0 +1,30 @@
+   Compiling openwarrant-cli v1.0.0 (/mnt/4tb/tmp/ow70-inbox/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.92s
+     Running tests/inbox_classify.rs (target/debug/deps/inbox_classify-d2d04d1d5e6a1b40)
+
+running 9 tests
+test ready_needs_agent ... ok
+test executing_needs_agent ... ok
+test verifying_waits_for_gate ... ok
+test proposed_without_valid_request_needs_agent ... ok
+test conformance_table_covers_every_phase ... ok
+test resolved_without_new_act_is_absent ... ok
+test authorized_needs_agent ... ok
+test draft_needs_agent_preparation ... ok
+test human_requests_win_in_every_phase_and_blocking_answers_win_over_signing ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/inbox_cli.rs (target/debug/deps/inbox_cli-523e62aeaee7757a)
+
+running 7 tests
+test a_question_directory_replaced_by_a_file_is_not_an_empty_inbox ... ok
+test question_from_another_warrant_is_rejected ... ok
+test damaged_repository_containers_refuse ... ok
+test empty_inbox_is_success_and_readable ... ok
+test damaged_records_fail_instead_of_claiming_empty_inbox ... ok
+test fixtures_list_exact_human_rows_and_never_write ... ok
+test unknown_times_sort_last_and_other_events_do_not_reset_age ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+

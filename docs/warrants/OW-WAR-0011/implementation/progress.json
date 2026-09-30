@@ -1,0 +1,20 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0011",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "1bb248699e38ac6de5f279380ab63a4943e1ba40",
+  "summary": "Partial preflight CLI delivered: all six dimensions; unknown checks block readiness. Live actor/gate/authority observations and signed checker wording correction remain. Unverified.",
+  "notes": "docs/warrants/OW-WAR-0011/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0011/implementation/evidence/focused-tests.log",
+    "docs/warrants/OW-WAR-0011/implementation/evidence/clippy.log",
+    "docs/warrants/OW-WAR-0011/implementation/evidence/independent-review.md",
+    "docs/warrants/OW-WAR-0011/implementation/evidence/gate-before-final-observation-fixes.log"
+  ],
+  "next_steps": [
+    "Establish remaining concrete execution observations; do not infer readiness from local checks.",
+    "Apply prepared OW5/D002 wording correction only through human-signed correction process.",
+    "Independent assurance and human acceptance remain separate."
+  ]
+}

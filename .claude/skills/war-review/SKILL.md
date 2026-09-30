@@ -1,52 +1,26 @@
 ---
 name: war-review
-description: Two-axis review of a Warrant's delivered work since a fixed point, Standards and Obligations, as two subagents whose findings are never merged; the Obligations axis is what a blind verifier would say. Use when the user asks to review a branch, a PR, a Warrant's delivery, or says review since X.
+description: "War review: inspect exact changes against repository standards and Warrant obligations while preserving independent verification."
 ---
 
 # war-review
 
-After mattpocock/skills `engineering/code-review` (3cca18b, MIT), with the
-Spec axis replaced by the Warrant's obligations and the verifier kept blind.
+Read [shared workflow](../openwarrant/SKILL.md) and
+[verification](../openwarrant/references/verification.md).
+Method: Matt Pocock's two-axis review; [provenance](../openwarrant/ADAPTATIONS.md).
 
-## 1. Pin the fixed point
-
-`git diff <fixed-point>...HEAD` and `git log <fixed-point>..HEAD --oneline`.
-Confirm the ref resolves and the diff is non-empty before spawning anything.
-
-## 2. The two axes
-
-**Standards** subagent: this repository's documented rules
-(`CONTRIBUTING.md`, `AGENTS.md`, `docs/PROJECTION_CONTRACT.md`, the
-programming standard) plus the Fowler smell baseline his skill carries
-(Mysterious Name, Duplicated Code, Feature Envy, Data Clumps, Primitive
-Obsession, Repeated Switches, Shotgun Surgery, Divergent Change, Speculative
-Generality, Message Chains, Middle Man, Refused Bequest). Documented rules are
-hard; smells are judgement calls; skip what tooling enforces. Under 400 words.
-
-**Obligations** subagent: the bundle only.
-
-```bash
-war verify <alias> --performer <performer> --bundle
-```
-
-Hand the subagent the bundle path and nothing else: no transcript, no
-rationale, no workspace. It reports per obligation: established, not
-established, or refuted, quoting the obligation and the evidence. It also
-reports scope creep (delivered, not asked) and what looks implemented but
-wrong. Under 400 words. If the user wants it recorded, the subagent's answer
-becomes a verification response with the nine independence fields set to
-what was true, ingested by `war verify --response`; the performer never
-writes that file.
-
-Both run in parallel; neither sees the other.
-
-## 3. Aggregate
-
-Present `## Standards` and `## Obligations` verbatim. Do not merge or
-rerank across axes: code that meets every standard and misses an obligation,
-and code that establishes every obligation and breaks a convention, are
-different failures. End with one line per axis: count and worst.
-
-## Never
-
-A skill never signs. A review that ends in `war resolve` is not a review.
+1. Pin base and candidate revisions. Inspect actual diff, contract and required
+   evidence. Include working-tree changes explicitly if those are the review subject.
+2. Standards axis: check applicable repository rules, correctness and maintainability.
+   Report actionable findings with file/line and reproduced evidence; tooling output
+   needs interpretation, not repetition. Filter false positives before requesting fixes.
+3. Obligations axis: an independent verifier gets exact approved constraints,
+   candidate code, protected fixtures and evidence in a separate context/workspace.
+   It must be able to inspect code and rerun checks. A bundle-only review without
+   executable access cannot claim observations it never made.
+4. Keep each axis separate. State PASS/FAIL/UNKNOWN and evidence for each bounded
+   obligation. If independent execution is unavailable, report that gap and continue
+   any permitted ordinary review; performer self-review is never independent proof.
+5. Return findings, exact subject and qualification gaps. Store a received verifier
+   response through the supported tool without altering actor identity or verdicts.
+   Human secure acceptance remains separate from an agent's review report.

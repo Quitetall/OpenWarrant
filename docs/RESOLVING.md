@@ -235,6 +235,47 @@ agent as signer, a Warrant that is not resolved, a file that has not drifted, a
 chain head, an empty reason, a bad `effective_time`. `war show <alias> --view
 status` lists every correction with the digest it superseded.
 
+## Step 6 — signing what is already recorded
+
+Every authority record is read as believed only when a human signature verifies
+over it: `war check` reports `authority.signed` per act, and
+`authority.unsigned`, `.signature-invalid`, `.actor-not-human` or
+`.verify-unavailable` when it cannot. §56.1 requirement 1 and `war dispatch`
+both depend on that verdict, so an unsigned authorization now stops the work it
+was supposed to authorize.
+
+A corpus written before that rule has records with no signature. They are not
+rewritten and nothing is back-dated: each is offered as an ordinary pending act
+that repeats what the record says.
+
+```bash
+war sign --list                  # "signature only, recorded satisfied" marks these
+war sign --all --ssh-sign        # signs every one it can, one agent dialog each
+```
+
+What the act may not do is decide anything new. The resolution's outcome, the
+correction's reason and kind, and the revision number come from the record, so
+the signature can only say what was already said. `war check` reports
+`authorize.signature-supplied`, `resolution.signature-supplied`,
+`correction.signature-supplied` or `sas.signature-supplied`, the record file is
+left byte-for-byte alone, and the journal gains a `*.signature_recorded` event
+rather than a second `*.recorded` — the act was recorded then and signed now.
+
+`--all` signs what is signable and stops for nothing else. An act that needs an
+answer the batch cannot give — which §38.6 outcome, which correction kind, which
+§101.3 ADR — is reported as `sign.needs-decision` with the command that asks for
+it, and the sweep carries on:
+
+```bash
+war sign OW-WAR-0007 --ssh-sign --outcome not_satisfied
+war sign OW-WAR-0005/D-001 --ssh-sign --kind behaviour-change --meaning "why this file moved"
+war sign 1.0.0 --ssh-sign --adr OW-ADR-0016
+```
+
+Run `war sign --all --ssh-sign` again afterwards: it is idempotent, and when it
+reports only `sign.needs-decision` rows there is nothing left it can sign.
+`war console` is the same queue as a checklist, with presets for the reasons.
+
 ## Step 4 — check what actually happened
 
 ```bash

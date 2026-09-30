@@ -1,0 +1,9 @@
+   Compiling openwarrant-cli v1.0.0 (/mnt/4tb/tmp/ow-authority-transition/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.19s
+     Running tests/authority_transition_cli.rs (target/debug/deps/authority_transition_cli-890f08c04b85bb07)
+
+running 1 test
+test unsigned_proposal_cannot_activate_and_signed_transition_survives_restart ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+

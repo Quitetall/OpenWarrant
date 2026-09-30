@@ -1,0 +1,33 @@
+   Compiling ring v0.17.14
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow70-inbox/crates/openwarrant-core)
+   Compiling rustls v0.23.43
+   Compiling rustls-webpki v0.103.15
+   Compiling ureq v3.4.0
+   Compiling openwarrant-compiler v1.0.0 (/mnt/4tb/tmp/ow70-inbox/crates/openwarrant-compiler)
+   Compiling openwarrant-cli v1.0.0 (/mnt/4tb/tmp/ow70-inbox/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 29.03s
+     Running tests/inbox_cli.rs (target/debug/deps/inbox_cli-4e160c0ac5de7d3a)
+
+running 1 test
+test empty_inbox_is_success_and_readable ... FAILED
+
+failures:
+
+---- empty_inbox_is_success_and_readable stdout ----
+
+thread 'empty_inbox_is_success_and_readable' (2523379) panicked at crates/openwarrant-cli/tests/inbox_cli.rs:12:5:
+error: unrecognized subcommand 'inbox'
+
+Usage: war [OPTIONS] <COMMAND>
+
+For more information, try '--help'.
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    empty_inbox_is_success_and_readable
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p openwarrant-cli --test inbox_cli`

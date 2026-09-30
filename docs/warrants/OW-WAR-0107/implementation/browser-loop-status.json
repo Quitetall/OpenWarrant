@@ -1,0 +1,23 @@
+{
+  "schema": "oh.war/verifier-loops/v1",
+  "qualified": false,
+  "loops": [
+    {
+      "attempt_id": "3da2b0ce-d692-4d43-8b75-bd451c716dd8",
+      "enabled": true,
+      "intent_sequence": 3,
+      "observation": {
+        "schema": "oh.war/verifier-loop/v1",
+        "root_attempt_id": "3da2b0ce-d692-4d43-8b75-bd451c716dd8",
+        "attempt_id": "ee1170bd-7017-4e79-a451-0e2f0fb9728e",
+        "warrant_id": "9b10fb21-5097-4b07-ae96-8c393245e99b",
+        "qualified": false,
+        "state": "checks_passed",
+        "reason": "Independent observations passed; acceptance remains separate",
+        "verification_id": "a084a952-c0fc-59b5-a3de-6a7e675075a9"
+      },
+      "qualified": false,
+      "state": "scheduled"
+    }
+  ]
+}

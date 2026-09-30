@@ -1,0 +1,16 @@
+{
+  "probe_checkout": "/mnt/4tb/tmp/ow47-port-refusal-probe",
+  "binary": "/mnt/4tb/tmp/ow107-gate-lineage/target/debug/war",
+  "binary_sha256": "76e247541d4e4fd399254bdce88f06b506f5b3ffd1f384ffbd59a3bfd04eb9a9",
+  "argv": [
+    "/mnt/4tb/tmp/ow107-gate-lineage/target/debug/war",
+    "blut",
+    "OW-WAR-0047",
+    "--json"
+  ],
+  "positive_exit_code": 0,
+  "negative_exit_code": 1,
+  "mutation": "STAGE-003 input corpus:war/corpus -> corpus:war/not-a-kind in disposable clone only",
+  "original_restored": true,
+  "qualified": false
+}

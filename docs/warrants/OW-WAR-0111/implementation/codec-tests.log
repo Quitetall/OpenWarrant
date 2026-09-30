@@ -1,0 +1,33 @@
+   Compiling serde_core v1.0.229
+   Compiling serde v1.0.229
+   Compiling libc v0.2.189
+   Compiling serde_json v1.0.151
+   Compiling memchr v2.8.3
+   Compiling indexmap v2.14.0
+   Compiling syn v3.0.3
+   Compiling getrandom v0.4.3
+   Compiling serde_derive v1.0.229
+   Compiling thiserror-impl v2.0.20
+   Compiling serde_spanned v1.1.1
+   Compiling toml_datetime v1.1.1+spec-1.1.0
+   Compiling uuid v1.25.0
+   Compiling thiserror v2.0.20
+   Compiling toml v1.1.4+spec-1.1.0
+   Compiling serde_spanned v0.6.9
+   Compiling toml_datetime v0.6.11
+   Compiling serde_jcs v0.2.0
+   Compiling toml_edit v0.22.27
+   Compiling toml v0.8.23
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-export-preservation/crates/openwarrant-core)
+   Compiling openwarrant-compiler v1.0.0 (/mnt/4tb/tmp/ow-export-preservation/crates/openwarrant-compiler)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 11.41s
+     Running unittests src/lib.rs (/mnt/4tb/tmp/ow107-gate-lineage/target/debug/deps/openwarrant_compiler-dfed2bc671feba88)
+
+running 4 tests
+test preservation::tests::missing_tampered_and_unavailable_content_cannot_reconnect ... ok
+test preservation::tests::refuses_duplicate_json_keys_and_record_collisions ... ok
+test preservation::tests::refuses_unsafe_paths_versions_omissions_and_limits ... ok
+test preservation::tests::canonical_codec_preserves_exact_bytes_and_extensions ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 57 filtered out; finished in 0.00s
+

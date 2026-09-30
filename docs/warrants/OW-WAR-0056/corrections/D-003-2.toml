@@ -1,0 +1,16 @@
+schema = "oh.war/correction/v1"
+warrant = "OW-WAR-0056"
+
+[correction]
+id = "01a0ba49-24e5-7913-8461-e48e03ed48f9"
+deliverable_id = "D-003"
+target_ref = "crates/openwarrant-cli/src/dispatch.rs"
+sequence = 2
+superseded_digest = "sha256:68dc643fe6abd038a262fe97f4a46cbafcd718ed73ded8b7aa8b395d1f2417d9"
+new_digest = "sha256:e999ffd9ed1637193f9bc76ad0549965bf58b4d11417740af4b09bd36c9ab3ea"
+reason = """crates/openwarrant-cli/src/dispatch.rs moved after its resolution at 2026-09-03T03:30:00Z: 4 commit(s) touched it, "authority: a Dispatch and a resolution both require the signature, not the claim"; "release: the relicense to Apache-2.0, and seven authorizations the owner signed (OW-ADR-0017, OW-WAR-0067 STAGE-001 and STAGE-004)"; "feat(dispatch): token accounting — every Dispatch carries its estimate and budget, and over budget is a refusal (C2)" and 1 more. Each states its own          change; this correction records that the delivered bytes moved with them. Presented on a terminal by `war sign 1.0.0-alpha.1` and confirmed by the signer; the decision is the signer's and the template is the tool's."""
+kind = "behaviour-change"
+authorized_by_ref = "person://Brian Lam"
+acting_role_ref = "role://authorizer"
+effective_at = "2026-09-19T15:29:10Z"
+recorded_at = "2026-09-19T15:29:10Z"

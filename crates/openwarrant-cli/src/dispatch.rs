@@ -33,18 +33,108 @@ use crate::diagnostic::{Diagnostic, Report};
 use crate::repo::{RepoError, Repository};
 
 /// Build and emit one dispatch.
+/// What the caller asks of a compilation, beyond which stage of which Warrant.
+///
+/// A struct rather than five more parameters: the two paths are both
+/// `Option<&Utf8Path>` and the two flags are both plain, so a positional list
+/// of them is a list of things a caller can silently transpose.
+#[derive(Debug, Clone, Copy)]
+pub struct Options<'a> {
+    /// §52: initial, replay, repair, restart.
+    pub attempt_kind: AttemptKind,
+    /// Required for a repair (§52.3).
+    pub prior_failure_evidence: &'a [String],
+    /// Write the packet here instead of stdout.
+    pub emit_to: Option<&'a Utf8Path>,
+    /// Write the §33 context manifest beside it.
+    pub emit_context_to: Option<&'a Utf8Path>,
+    /// Compile for a contract no human has signed, recording
+    /// `prototype://unauthorized` as the authority it acted under. The operator
+    /// types this; §27.2 leaves an agent no way to decide it.
+    pub prototype: bool,
+}
+
 pub fn run(
     repo: &Repository,
     alias: &str,
     stage_id: &str,
-    attempt_kind: AttemptKind,
-    prior_failure_evidence: &[String],
-    emit_to: Option<&Utf8Path>,
-    emit_context_to: Option<&Utf8Path>,
+    opts: Options<'_>,
 ) -> Result<Report, RepoError> {
+    let Options {
+        attempt_kind,
+        prior_failure_evidence,
+        emit_to,
+        emit_context_to,
+        prototype,
+    } = opts;
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
     let mut report = Report::default();
+
+    // A Dispatch is the instruction an actor works from, and §47 calls it a
+    // projection of an AUTHORIZED contract. Nothing here checked that: a packet
+    // for a Warrant nobody had signed compiled exactly like one for a Warrant
+    // the owner had, and an agent reading it could not tell the difference.
+    // Prototyping before authorization is legitimate — it is how most work
+    // starts — so it is admitted explicitly, named in the packet, and never the
+    // default.
+    let authority_ref = match repo.load_authorization(&dir) {
+        Ok(Some(record)) => {
+            let verdict = record.revision.authorization.as_ref().map(|auth| {
+                crate::authority_check::verify(
+                    repo,
+                    crate::authority_check::Act::Authorize,
+                    alias,
+                    &auth.authorizer,
+                    Some(&record.revision.contract_digest),
+                )
+            });
+            match verdict {
+                Some(v) if v.is_signed() => {
+                    format!("authorization://{}", record.revision.contract_digest)
+                }
+                other => {
+                    if !prototype {
+                        report.push(Diagnostic::error(
+                            "dispatch.unauthorized",
+                            repo.relative(&dir.join("authorization.toml")),
+                            format!(
+                                "{alias}: {} — a Dispatch projects an AUTHORIZED contract (§47). Sign it (`war sign {alias} --ssh-sign`), or pass --prototype for a packet that says it acted under none",
+                                other.map_or_else(
+                                    || "the record carries no authorization".to_owned(),
+                                    |v| v.why()
+                                )
+                            ),
+                        ));
+                        return Ok(report);
+                    }
+                    "prototype://unauthorized".to_owned()
+                }
+            }
+        }
+        _ => {
+            if !prototype {
+                report.push(Diagnostic::error(
+                    "dispatch.unauthorized",
+                    repo.relative(&dir),
+                    format!(
+                        "{alias} has no authorization record, so there is no authorized contract to project (§47). Sign it (`war sign {alias} --ssh-sign`), or pass --prototype for a packet that says it acted under none"
+                    ),
+                ));
+                return Ok(report);
+            }
+            "prototype://unauthorized".to_owned()
+        }
+    };
+    if authority_ref.starts_with("prototype://") {
+        report.push(Diagnostic::warn(
+            "dispatch.prototype",
+            repo.relative(&dir),
+            format!(
+                "{alias}: compiled for an UNAUTHORIZED contract at the operator's request. The packet records `prototype://unauthorized`; no work done from it is authorized work"
+            ),
+        ));
+    }
 
     let (Some(basis), Some(validated)) = (&one.basis, &one.validated) else {
         return Err(RepoError::Message(format!("{alias} could not be compiled")));
@@ -180,7 +270,7 @@ pub fn run(
         },
         prior_failure_evidence_refs: prior_failure_evidence.to_vec(),
         prior_work_product_ref: String::new(),
-        authorized_by: String::new(),
+        authorized_by: authority_ref,
     };
 
     let dispatch = compile_dispatch(DispatchInputs {

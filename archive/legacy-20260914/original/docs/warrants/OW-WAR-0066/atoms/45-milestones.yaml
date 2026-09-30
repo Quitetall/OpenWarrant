@@ -1,0 +1,29 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "The service seam runs and receipts a trivial gate"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "The battery runs as a stage"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Run ops.echo under the seam"
+    executor_kind: "service"
+    responsibility_tier: "T1"
+    executor_ref: "gate://ops.echo@1.0.0"
+    wall_time_seconds: 5
+    context_sections: ["40-work-order.md#Premade Instructions"]
+
+  - id: "STAGE-002"
+    title: "Run the conformance battery"
+    executor_kind: "service"
+    responsibility_tier: "T1"
+    executor_ref: "gate://ops.conformance.plants@1.0.0"
+    wall_time_seconds: 1800

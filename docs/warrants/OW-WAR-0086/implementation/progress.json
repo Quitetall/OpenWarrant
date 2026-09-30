@@ -1,0 +1,21 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0086",
+  "work_state": "blocked",
+  "reported_by": "agent://codex",
+  "revision": "b97db965681ea22372573881fc06478753608c31",
+  "summary": "Retained real LAMU/SDK exchange observations pass. Matching native Phase 1 Linux/macOS evidence is now available; final phase review and qualification remain open. Unverified.",
+  "notes": "docs/warrants/OW-WAR-0086/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0086/implementation/adapter-observation.json",
+    "docs/warrants/OW-WAR-0086/implementation/windows-isolation.json",
+    "docs/warrants/OW-WAR-0086/implementation/merged-exchange-observation.json",
+    "docs/warrants/OW-WAR-0086/implementation/lamu-merged-pr.json",
+    "docs/warrants/OW-WAR-0085/implementation/native-20260918/comparison.json",
+    "docs/warrants/OW-WAR-0089/implementation/native-20260918/comparison.json"
+  ],
+  "next_steps": [
+    "Complete final Phase 1 and Phase 2 review against exact retained subjects.",
+    "Retain actual provider/version limits; do not substitute native packaging for integration qualification."
+  ]
+}

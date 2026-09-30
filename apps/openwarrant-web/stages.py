@@ -1,0 +1,135 @@
+# SPDX-License-Identifier: Apache-2.0
+"""Workflow stage planning. No document parsing, authority grants or execution."""
+import re
+import json
+from harness import argv
+
+
+class StageError(ValueError):
+    pass
+
+
+def require(condition, message):
+    if not condition:
+        raise StageError(message)
+
+
+def validate(graph):
+    """Explicit workflow dependencies, distinct from milestone acceptance records."""
+    require(isinstance(graph, dict) and 1 <= len(graph) <= 64, "Expected 1-64 stages")
+    require(all(isinstance(k, str) and re.fullmatch(r"[A-Za-z0-9_-]{1,128}", k)
+                for k in graph), "Invalid stage identity")
+    for id, dependencies in graph.items():
+        require(isinstance(dependencies, list)
+                and all(isinstance(d, str) and d in graph for d in dependencies)
+                and len(dependencies) == len(set(dependencies)), "Unknown or duplicate stage dependency")
+        require(id not in dependencies, "Stage cannot depend on itself")
+    visiting, visited = set(), set()
+
+    def visit(id):
+        require(id not in visiting, "Stage dependency cycle")
+        if id in visited:
+            return
+        visiting.add(id)
+        for dep in graph[id]:
+            visit(dep)
+        visiting.remove(id)
+        visited.add(id)
+
+    for id in graph:
+        visit(id)
+    return {id: tuple(deps) for id, deps in graph.items()}
+
+
+def frontier(graph, completed=(), question_blocks=(), writer=None):
+    """Project current observations. Caller must recheck them when claiming writer."""
+    graph = validate(graph)
+    require(all(isinstance(items, (list, tuple, set, frozenset))
+                and all(isinstance(item, str) for item in items)
+                for items in (completed, question_blocks)), "Expected stage observation collections")
+    done, seeds = set(completed), set(question_blocks)
+    require(done <= graph.keys() and seeds <= graph.keys(), "Unknown stage observation")
+    require(writer is None or isinstance(writer, str) and writer in graph, "Unknown active writer stage")
+    require(writer not in done, "Completed stage cannot retain an active writer")
+    require(writer is None or set(graph[writer]) <= done, "Active stage has incomplete prerequisite")
+    require(all(set(graph[id]) <= done for id in done), "Completed stage has incomplete prerequisite")
+    blocked = set(seeds)
+    while True:
+        expanded = blocked | {id for id, deps in graph.items() if blocked.intersection(deps)}
+        if expanded == blocked:
+            break
+        blocked = expanded
+    require(not done.intersection(blocked), "Blocked work cannot also be current completion")
+    rows = []
+    for id in sorted(graph):
+        waiting = sorted(set(graph[id]) - done)
+        if id == writer:
+            state = "stop-required" if id in blocked else "running"
+        elif id in done:
+            state = "completed"
+        elif id in blocked:
+            state = "blocked"
+        elif waiting:
+            state = "waiting-for-prerequisite"
+        elif writer is not None:
+            state = "waiting-for-writer"
+        else:
+            state = "ready"
+        rows.append({"stage": id, "state": state, "waiting_on": waiting,
+                     "question_blocked": id in blocked, "dispatch_permitted": False})
+    return rows
+
+
+def plan(config):
+    """Validate an app-owned plan; it does not amend or parse a Warrant document."""
+    require(isinstance(config, dict) and set(config) == {"schema", "stages"}
+            and config["schema"] == "oh.war/execution-stage-plan/v1", "Invalid stage plan schema")
+    stages = config["stages"]
+    require(isinstance(stages, dict) and 1 <= len(stages) <= 64, "Expected 1-64 configured stages")
+    graph = {}
+    for id, stage in stages.items():
+        require(isinstance(stage, dict) and set(stage) == {"title", "outcome", "dependencies", "checks"},
+                "Invalid stage policy fields")
+        require(isinstance(stage["title"], str) and stage["title"].strip() and len(stage["title"].encode()) <= 180
+                and isinstance(stage["outcome"], str) and stage["outcome"].strip() and len(stage["outcome"].encode()) <= 16000,
+                "Bounded stage title and outcome required")
+        require(isinstance(stage["checks"], list) and 1 <= len(stage["checks"]) <= 16
+                and all(argv(check) for check in stage["checks"]), "Required stage checks missing or invalid")
+        graph[id] = stage["dependencies"]
+    validate(graph)
+    return json.loads(json.dumps(config))
+
+
+def completed_from_evidence(config, source_sha256, revision, record):
+    """Current-revision performer evidence only; never independent assurance."""
+    config = plan(config)
+    require(isinstance(source_sha256, str) and re.fullmatch(r"[0-9a-f]{64}", source_sha256),
+            "Exact source digest required")
+    require(isinstance(revision, str) and re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", revision),
+            "Exact current revision required")
+    if not isinstance(record, dict):
+        return set()
+    if (record.get("schema") != "oh.war/stage-checkpoint/v1"
+            or record.get("source_sha256") != source_sha256
+            or record.get("revision") != revision
+            or record.get("plan") != config
+            or record.get("execution_state") != "stopped"):
+        return set()
+    observed = record.get("stage_checks")
+    require(isinstance(observed, dict) and observed.keys() <= config["stages"].keys(),
+            "Unknown or malformed stage evidence")
+    passed = set()
+    for id, checks in observed.items():
+        expected = config["stages"][id]["checks"]
+        if (isinstance(checks, list) and len(checks) == len(expected)
+                and all(isinstance(check, dict) and check.get("argv") == command
+                        and type(check.get("exit_code")) is int and check["exit_code"] == 0
+                        for check, command in zip(checks, expected))):
+            passed.add(id)
+    # A passing leaf cannot make missing prerequisites disappear. Remove it
+    # conservatively; retained raw checks remain available to the caller.
+    while True:
+        valid = {id for id in passed if set(config["stages"][id]["dependencies"]) <= passed}
+        if valid == passed:
+            return valid
+        passed = valid

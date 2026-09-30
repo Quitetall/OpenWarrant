@@ -1,0 +1,39 @@
+{
+  "headRefOid": "dc22d6c2fdc1c1aacfbd5e903157c7ee2f8441ca",
+  "mergeCommit": {
+    "oid": "2dba896c055ccf3842c63d7e90005d88140210b0"
+  },
+  "state": "MERGED",
+  "statusCheckRollup": [
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-18T12:28:17Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/Quitetall/OpenWarrant/actions/runs/35343886812/job/105595831666",
+      "name": "gate",
+      "startedAt": "2026-09-18T12:17:35Z",
+      "status": "COMPLETED",
+      "workflowName": "CI"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-18T12:20:08Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/Quitetall/OpenWarrant/actions/runs/35343886779/job/105595830914",
+      "name": "workflow",
+      "startedAt": "2026-09-18T12:17:36Z",
+      "status": "COMPLETED",
+      "workflowName": "Reference web checks"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-18T12:20:42Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/Quitetall/OpenWarrant/actions/runs/35343886812/job/105595831980",
+      "name": "bonsai-report",
+      "startedAt": "2026-09-18T12:17:36Z",
+      "status": "COMPLETED",
+      "workflowName": "CI"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0103",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "summary": "Question-store integrity repair complete/unverified: 15 targeted tests, clippy, generated checks and full 14-step/308-control gate passed. No legacy disposition or runtime hotline claim.",
+  "notes": "docs/warrants/OW-WAR-0103/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0103/implementation/red.log",
+    "docs/warrants/OW-WAR-0103/implementation/tests.log",
+    "docs/warrants/OW-WAR-0103/implementation/gate-1f6ebd9d.log.gz"
+  ],
+  "next_steps": [
+    "Merge after exact-head CI; independent assurance remains separate.",
+    "Continue runtime hotline/pause/resume work."
+  ],
+  "revision": "1f6ebd9d97aae17a3bbb9816308d23801a94d64a"
+}

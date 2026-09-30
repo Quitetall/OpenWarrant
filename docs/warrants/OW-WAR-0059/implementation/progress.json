@@ -1,0 +1,17 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0059",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "178dda4d486fa2a8abd0a22f152284213bb6e580",
+  "summary": "Current battery observes agent-resolution refusal and receipt tampering/stale-binding refusals. Existing resolved Warrants retain admissible receipts; no new human act is inferred.",
+  "notes": "docs/warrants/OW-WAR-0059/implementation/completion-audit.md",
+  "evidence": [
+    "docs/design/completion-audit-20260915/audit.json",
+    "docs/warrants/OW-WAR-0077/evidence/source-sdk/gate.log",
+    "conformance/plants.d/00-corpus.sh"
+  ],
+  "next_steps": [
+    "Human qualification/legacy resolution remains separate; this report changes no signed record."
+  ]
+}

@@ -1,0 +1,20 @@
+schema = "oh.war/resolution/v1"
+warrant = "OW-WAR-0046"
+
+[resolution]
+id = "01a064c8-94c8-71f2-83de-5d1409f93867"
+common_outcome = "satisfied"
+profile_outcome = "delivered"
+contract_revision = 1
+contract_digest = "e82dbfbb60ac27d6a5aa1eed61b39864898506bf38b9fe2bede28da6a0881993"
+assurance_case_snapshot_digest = "sha256:97d0d7da6e0e6579438a6b8ea23dab3e8951b5ed86612e587a0af55379d3edd3"
+artifact_manifest_digest = "sha256:08d9ed4aa168d93f0cd84347cbc5ecf119337884700b3dd0651708b6879a28d5"
+gate_run_refs = ["docs/warrants/OW-WAR-0046/gate-runs/software_repo_war-check_1_0_0.receipt.json"]
+judgment_refs = ["judgment://J-001"]
+residual_risk_refs = ["assumption://A-001"]
+resolved_by_ref = "person://Brian Lam"
+acting_role_ref = "role-assignment://Brian Lam/resolver"
+meaning = """Resolving OW-WAR-0046 (Discharge the Phase 6 exit: a delivery closes only through bounded proof) as satisfied asserts that its declared deliverables exist at their recorded digests, that every declared obligation (OBL-001, OBL-002, OBL-003, OBL-004, OBL-005) was established by an admissible independent verification (lamu:mimo-v2.5-pro, blind to the performer, given the full plant battery, every passing test and the committed receipts, 2026-09-03), and that the cited gate ran against this exact contract and passed. It asserts nothing beyond those bounded obligations. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 ("Get them all done"); the decision is the owner's, the wording is the agent's."""
+effective_at = "2026-09-03T03:30:00Z"
+recorded_at = "2026-09-03T01:01:02Z"
+standing = "valid"

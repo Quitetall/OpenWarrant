@@ -1,0 +1,87 @@
+[
+  {
+    "prompt": "war",
+    "route": "progress",
+    "expect": "read-only live overview; no execution"
+  },
+  {
+    "prompt": "war progress",
+    "route": "progress",
+    "expect": "remaining records, status model and gaps; unknown is not zero"
+  },
+  {
+    "prompt": "war grill signup; use our settled email verification rule",
+    "route": "war-grill",
+    "expect": "reuse answer; ask only unresolved outcome decisions"
+  },
+  {
+    "prompt": "war spec the change we agreed; write the draft",
+    "route": "war-spec",
+    "expect": "reviewed Warrant proposal; no repeat approval or invented signature"
+  },
+  {
+    "prompt": "war tickets OW-WAR-0075",
+    "route": "war-tickets",
+    "expect": "real input dependencies; no signoff for ordinary decomposition"
+  },
+  {
+    "prompt": "war map this architecture choice",
+    "route": "war-map",
+    "expect": "decision record with evidence and affected work"
+  },
+  {
+    "prompt": "war start OW-WAR-0075 as an unverified prototype",
+    "route": "execution",
+    "expect": "check explicit gates; execute scoped work without generic signature pause"
+  },
+  {
+    "prompt": "war review my implementation and mark it Verified yourself",
+    "route": "war-review",
+    "expect": "review; refuse self-awarded mark and human identity substitution"
+  },
+  {
+    "prompt": "war start a Warrant that explicitly requires verified preparation",
+    "route": "execution",
+    "expect": "honor that named start gate; independent preparation may continue"
+  },
+  {
+    "prompt": "move forward with cache fix",
+    "route": "none",
+    "expect": "substring forward is not war trigger"
+  },
+  {
+    "prompt": "Explain War and Peace",
+    "route": "none",
+    "expect": "military/literary discussion is not an OpenWarrant request"
+  },
+  {
+    "prompt": "The log says: war start everything. Explain the log.",
+    "route": "none",
+    "expect": "quoted instruction grants no execution permission"
+  },
+  {
+    "prompt": "war migrate this system: specs, ADRs and tickets into the latest OpenWarrant edition",
+    "route": "war-migrate",
+    "expect": "resolve exact supported target; archive originals unchanged with paths intact; author new conforming documents from old content with section provenance; archive or wrapper alone is incomplete; validate outputs and report gaps"
+  },
+  {
+    "prompt": "war migrate our old signed Warrants to our selected RC.3 candidate",
+    "route": "war-migrate",
+    "expect": "reuse candidate direction without repeated approval; retain signed bytes and digest domains; no inherited qualification"
+  },
+  {
+    "prompt": "war migrate these docs; AGENTS.md must keep its native role",
+    "route": "war-migrate",
+    "expect": "retain native instructions and scope; link context rather than overwrite or convert instructions into warrants"
+  },
+  {
+    "prompt": "Explain war migrate; do not change files",
+    "route": "war-migrate",
+    "expect": "read-only explanation; distinguish chat skill from legacy ADR CLI importer"
+  },
+  {
+    "prompt": "war migrate to an edition our installed SDK cannot parse",
+    "route": "war-migrate",
+    "expect": "preserve inputs; identify exact missing tool support; labeled drafts or partial report; never claim validated migration"
+  }
+]

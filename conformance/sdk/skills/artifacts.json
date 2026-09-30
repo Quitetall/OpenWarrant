@@ -1,0 +1,363 @@
+{
+  "schema": "oh.war/fixed-skill-artifact-cases/v1",
+  "cases": [
+    {
+      "id": "grill",
+      "request": {
+        "schema": "oh.war/sdk-request/v1",
+        "operation": "author",
+        "metadata": [
+          [
+            "schema",
+            "oh.war/document/1.0.0-rc.3"
+          ],
+          [
+            "kind",
+            "context"
+          ],
+          [
+            "id",
+            "example:skill-grill"
+          ],
+          [
+            "revision",
+            1
+          ],
+          [
+            "title",
+            "Signup grill"
+          ],
+          [
+            "state",
+            "draft"
+          ]
+        ],
+        "units": [
+          {
+            "id": "decisions",
+            "kind": "binding",
+            "text": "# Signup grill\n\nEmail verification is required before account activation.\nSettled answer from owner: require email verification.\n"
+          },
+          {
+            "id": "questions",
+            "kind": "binding",
+            "text": "## Questions\n\nQ-002: Which optional signup fields may be removed?\nUnresolved; affects signup form scope.\n"
+          }
+        ]
+      },
+      "unit_expectations": {
+        "decisions": [
+          "Email verification is required before account activation."
+        ],
+        "questions": [
+          "Q-002:",
+          "Unresolved"
+        ]
+      }
+    },
+    {
+      "id": "spec",
+      "request": {
+        "schema": "oh.war/sdk-request/v1",
+        "operation": "author",
+        "metadata": [
+          [
+            "schema",
+            "oh.war/document/1.0.0-rc.3"
+          ],
+          [
+            "kind",
+            "warrant"
+          ],
+          [
+            "id",
+            "example:skill-spec"
+          ],
+          [
+            "revision",
+            1
+          ],
+          [
+            "title",
+            "Signup spec"
+          ],
+          [
+            "state",
+            "draft"
+          ]
+        ],
+        "units": [
+          {
+            "id": "outcome",
+            "kind": "binding",
+            "text": "# Signup spec\n\nReduce signup fields while retaining account activation safety.\n"
+          },
+          {
+            "id": "scope",
+            "kind": "binding",
+            "text": "## Scope\n\nSignup form and API validation only. Payment and deletion excluded.\n"
+          },
+          {
+            "id": "context",
+            "kind": "binding",
+            "text": "## Context\n\nExact governing source: example:email-policy revision 2.\nEmail verification is required before account activation.\n"
+          },
+          {
+            "id": "acceptance",
+            "kind": "binding",
+            "text": "## Acceptance\n\nValid signup reaches pending verification. Refuse activation before email verification.\n"
+          }
+        ]
+      },
+      "unit_expectations": {
+        "scope": [
+          "Payment and deletion excluded."
+        ],
+        "context": [
+          "Email verification is required before account activation.",
+          "revision 2"
+        ],
+        "acceptance": [
+          "Refuse activation"
+        ]
+      }
+    },
+    {
+      "id": "tickets",
+      "request": {
+        "schema": "oh.war/sdk-request/v1",
+        "operation": "author",
+        "metadata": [
+          [
+            "schema",
+            "oh.war/document/1.0.0-rc.3"
+          ],
+          [
+            "kind",
+            "context"
+          ],
+          [
+            "id",
+            "example:skill-tickets"
+          ],
+          [
+            "revision",
+            1
+          ],
+          [
+            "title",
+            "Signup tickets"
+          ],
+          [
+            "state",
+            "draft"
+          ]
+        ],
+        "units": [
+          {
+            "id": "outcome",
+            "kind": "binding",
+            "text": "# Signup tickets\n\nOne signup Warrant; implementation stages stay inside this outcome.\n"
+          },
+          {
+            "id": "stages",
+            "kind": "binding",
+            "text": "## Stages\n\nprepare: provide fixed acceptance cases.\nimplement: requires prepare output; deliver API and form together.\nverify: requires implement output; independent check and refusal case.\nWork stop: integrated signup feature, not one Warrant per file.\n"
+          }
+        ]
+      },
+      "unit_expectations": {
+        "stages": [
+          "requires prepare output",
+          "requires implement output",
+          "independent check"
+        ],
+        "outcome": [
+          "One signup Warrant"
+        ]
+      }
+    },
+    {
+      "id": "map",
+      "request": {
+        "schema": "oh.war/sdk-request/v1",
+        "operation": "author",
+        "metadata": [
+          [
+            "schema",
+            "oh.war/document/1.0.0-rc.3"
+          ],
+          [
+            "kind",
+            "context"
+          ],
+          [
+            "id",
+            "example:skill-map"
+          ],
+          [
+            "revision",
+            1
+          ],
+          [
+            "title",
+            "Signup map"
+          ],
+          [
+            "state",
+            "draft"
+          ]
+        ],
+        "units": [
+          {
+            "id": "decision",
+            "kind": "binding",
+            "text": "# Signup map\n\nUndecided: synchronous verification email or queued delivery.\n"
+          },
+          {
+            "id": "options",
+            "kind": "binding",
+            "text": "## Options\n\nOption A: synchronous delivery; lower queue complexity.\nOption B: queue delivery; retry isolation.\n"
+          },
+          {
+            "id": "criteria",
+            "kind": "binding",
+            "text": "## Criteria\n\nOwner decides delivery reliability target; agent measures existing queue support.\nEmail verification is required before account activation.\n"
+          }
+        ]
+      },
+      "unit_expectations": {
+        "decision": [
+          "Undecided:"
+        ],
+        "options": [
+          "Option A:",
+          "Option B:"
+        ],
+        "criteria": [
+          "Email verification is required before account activation.",
+          "Owner decides"
+        ]
+      }
+    },
+    {
+      "id": "adr",
+      "request": {
+        "schema": "oh.war/sdk-request/v1",
+        "operation": "author",
+        "metadata": [
+          [
+            "schema",
+            "oh.war/document/1.0.0-rc.3"
+          ],
+          [
+            "kind",
+            "adr"
+          ],
+          [
+            "id",
+            "example:skill-adr"
+          ],
+          [
+            "revision",
+            1
+          ],
+          [
+            "title",
+            "Signup adr"
+          ],
+          [
+            "state",
+            "draft"
+          ]
+        ],
+        "units": [
+          {
+            "id": "context",
+            "kind": "binding",
+            "text": "# Signup adr\n\nSignup delivery choice remains under review.\n"
+          },
+          {
+            "id": "decision",
+            "kind": "binding",
+            "text": "## Decision\n\nProposed: queue email delivery. No architecture acceptance recorded.\n"
+          },
+          {
+            "id": "consequences",
+            "kind": "binding",
+            "text": "## Consequences\n\nRequires queue availability; failure must retain pending verification state.\n"
+          }
+        ]
+      },
+      "unit_expectations": {
+        "decision": [
+          "Proposed:",
+          "No architecture acceptance recorded."
+        ],
+        "consequences": [
+          "failure must retain"
+        ]
+      }
+    },
+    {
+      "id": "migration",
+      "request": {
+        "schema": "oh.war/sdk-request/v1",
+        "operation": "author",
+        "metadata": [
+          [
+            "schema",
+            "oh.war/document/1.0.0-rc.3"
+          ],
+          [
+            "kind",
+            "warrant"
+          ],
+          [
+            "id",
+            "example:skill-migration"
+          ],
+          [
+            "revision",
+            1
+          ],
+          [
+            "title",
+            "Signup migration"
+          ],
+          [
+            "state",
+            "draft"
+          ]
+        ],
+        "units": [
+          {
+            "id": "outcome",
+            "kind": "binding",
+            "text": "# Signup migration\n\nConvert legacy signup plan to current draft format.\n"
+          },
+          {
+            "id": "scope",
+            "kind": "binding",
+            "text": "## Scope\n\nNew document only; retain original source bytes and directory structure.\n"
+          },
+          {
+            "id": "context",
+            "kind": "binding",
+            "text": "## Context\n\nOriginal: archive/legacy/signup.md, section Activation.\nEmail verification is required before account activation.\nOriginal authority is not inherited by converted bytes.\n"
+          }
+        ]
+      },
+      "unit_expectations": {
+        "scope": [
+          "retain original source bytes"
+        ],
+        "context": [
+          "Email verification is required before account activation.",
+          "archive/legacy/signup.md",
+          "not inherited"
+        ]
+      }
+    }
+  ]
+}

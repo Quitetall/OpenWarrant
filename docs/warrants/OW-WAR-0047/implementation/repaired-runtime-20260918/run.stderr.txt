@@ -1,0 +1,6 @@
+warning: no stage in 'OW-WAR-0047' declares a resource envelope — billing the 2G compatibility floor. Implement Stage::resource_envelope (ADR 0133) for real admission.
+recipe OW-WAR-0047
+job    20260918-121422-409152626
+dir    /mnt/4tb/tmp/ow47-repaired-runtime-20260918/jobs/20260918-121422-409152626
+lock   /home/brianklam/.local/share/lamu/scheduler.lock
+done — 2 ingredients, 0 cache hits, 2 misses, elapsed 13.87395ms

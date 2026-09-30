@@ -1,0 +1,20 @@
+obligation = "OBL-005"
+disposition = "established"
+evidence = "The diagnostic.rs file implements structured severities and the NOT READY verdict with all diagnostic tests passing (e.g., diagnostic::tests::severity_orders_pass_below_everything_that_matters), and `war check --generated` exits 0, confirming the system compiles and functions correctly."
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

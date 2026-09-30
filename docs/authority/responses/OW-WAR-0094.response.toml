@@ -1,0 +1,10 @@
+schema = "oh.war/authorization-response/v1"
+warrant = "OW-WAR-0094"
+contract_digest = "652eb95a4d84dc14c1a9611cd19f5a2eafda9159dbc735d270e1b6d825edf09d"
+authorizer = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0094 (Connected-agent execution workflow and model-neutral drafting roadmap) at this contract digest means the signer accepts its intent, scope and 3 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.1` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-09-19T02:38:18Z"
+independence = "separate_role"
+judgment = []
+signed_via = "ssh"

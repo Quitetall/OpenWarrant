@@ -1,0 +1,57 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "Askability is determined before any verdict exists"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "All ten execution statuses are distinct and none collapses"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002"]
+
+  - id: "M3"
+    title: "A required unknown blocks resolution"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-003"]
+
+  - id: "M4"
+    title: "Invalidation propagates to dependent resolutions"
+    depends_on: ['M3']
+    stage_refs: ["STAGE-004"]
+    obligation_refs: ["OBL-004"]
+
+  - id: "M5"
+    title: "A mutating gate is quarantined rather than run"
+    depends_on: ['M1']
+    stage_refs: ["STAGE-005"]
+    obligation_refs: ["OBL-005"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Implement §44.1 with verdict absent when unaskable"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-002"
+    title: "Plant each status"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-003"
+    title: "Plant an unaskable required gate at resolution"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-004"
+    title: "Invalidate a run, assert dependents invalidate"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-005"
+    title: "Plant a mutating gate"
+    executor_kind: "human"
+    responsibility_tier: "T1"

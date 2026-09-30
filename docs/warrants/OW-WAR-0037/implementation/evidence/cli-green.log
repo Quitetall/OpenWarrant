@@ -1,0 +1,9 @@
+   Compiling openwarrant-cli v1.0.0 (/mnt/4tb/tmp/ow-war-0037-diff/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.61s
+     Running tests/diff_target.rs (target/debug/deps/diff_target-7a15eceec255c800)
+
+running 1 test
+test explicit_target_reports_field_movement_and_ignores_json_layout ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

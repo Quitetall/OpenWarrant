@@ -1,0 +1,12 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "Bounded execution bridge and drafting roadmap"
+    stage_refs: ["STAGE-001"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Bounded execution bridge and drafting roadmap"
+    executor_kind: "agent"
+    responsibility_tier: "T2"

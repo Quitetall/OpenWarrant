@@ -16,6 +16,8 @@
 //! argv; one alias narrows it. A Warrant with no Markdown deliverable is not
 //! the document kind and is skipped, not failed.
 
+pub mod draft;
+
 use camino::Utf8Path;
 
 use crate::diagnostic::{Diagnostic, Report};

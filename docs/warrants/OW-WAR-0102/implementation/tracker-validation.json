@@ -1,0 +1,78 @@
+{
+  "command": "war progress --snapshot --json",
+  "report_count": 70,
+  "errors": {},
+  "corrected": {
+    "OW-WAR-0041": {
+      "report": {
+        "schema": "oh.war/viewer-work-report/v1",
+        "warrant": "OW-WAR-0041",
+        "work_state": "in-progress",
+        "reported_by": "agent://codex",
+        "revision": "1d44cc4dadb8bf66f3dc3b2e7e11017242c16753",
+        "summary": "Unsupported measurement claims repaired under OW100; isolated full gate passed 14/14 and 308 controls. Derived metrics and historical baseline reconciliation remain open.",
+        "notes": "docs/warrants/OW-WAR-0041/implementation/notes.md",
+        "evidence": [
+          "docs/warrants/OW-WAR-0041/implementation/observation.json",
+          "docs/warrants/OW-WAR-0041/implementation/regression.log",
+          "docs/warrants/OW-WAR-0100/implementation/gate.log"
+        ],
+        "next_steps": [
+          "Test measurement repair and collect corrected current observation.",
+          "Implement supported derived metrics with explicit denominator semantics.",
+          "Review historical before-tuning evidence without replacing signed records."
+        ]
+      },
+      "error": null,
+      "source": "docs/warrants/OW-WAR-0041/implementation/progress.json",
+      "source_digest": "e58ba1a19bdedcf90ae94c2685d441e88d29fbebc85bfb16bbabe1dc0e3426c8"
+    },
+    "OW-WAR-0101": {
+      "report": {
+        "schema": "oh.war/viewer-work-report/v1",
+        "warrant": "OW-WAR-0101",
+        "work_state": "in-progress",
+        "reported_by": "agent://codex",
+        "revision": "c40c9d9cba5adbf699dbfdad4a847e8be307971d",
+        "summary": "Local adapter transport and fixed milestone template exercised; two real-model outputs failed task-fidelity inspection. Candidate remains unverified and in progress.",
+        "notes": "docs/warrants/OW-WAR-0101/implementation/notes.md",
+        "evidence": [
+          "docs/warrants/OW-WAR-0101/implementation/tests.log",
+          "docs/warrants/OW-WAR-0101/implementation/local-model/inspection.md",
+          "docs/warrants/OW-WAR-0101/implementation/local-model/semantic-validation.json",
+          "docs/warrants/OW-WAR-0101/implementation/local-model-2/inspection.md"
+        ],
+        "next_steps": [
+          "Qualify a capable configured drafting backend with actual task-faithful output.",
+          "Complete full gate and keep automatic application disabled."
+        ]
+      },
+      "error": null,
+      "source": "docs/warrants/OW-WAR-0101/implementation/progress.json",
+      "source_digest": "0eb4e5a61b47cb584b632bc4484c6f8785f807dc204b4bef40777acd2d8bf738"
+    },
+    "OW-WAR-0102": {
+      "report": {
+        "schema": "oh.war/viewer-work-report/v1",
+        "warrant": "OW-WAR-0102",
+        "work_state": "in-progress",
+        "reported_by": "agent://codex",
+        "revision": "e6242505f612034435cc1847b95fb7530076c03d",
+        "summary": "Report API and HTML download implemented; 44 package tests and browser report/download pass. Initial full gate passed 14/14 and 308 controls; latest-head CI and offline rendering observation pending.",
+        "notes": "docs/warrants/OW-WAR-0102/implementation/notes.md",
+        "evidence": [
+          "docs/warrants/OW-WAR-0102/implementation/web-tests.log",
+          "docs/warrants/OW-WAR-0102/implementation/browser-qa.md",
+          "docs/warrants/OW-WAR-0102/implementation/gate-0541d640.log.gz"
+        ],
+        "next_steps": [
+          "Run package suite and browser QA.",
+          "Run repository gate; preserve distinct unverified completion."
+        ]
+      },
+      "error": null,
+      "source": "docs/warrants/OW-WAR-0102/implementation/progress.json",
+      "source_digest": "f7cb26742e1b08e31844a8ad272b900b6aee0da041b8ffb015751cec408bc189"
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "schema": "oh.war/workflow-record/1.0.0-rc.3",
+  "id": "test:view",
+  "payload": {
+    "kind": "context-view",
+    "value": {
+      "source_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "document_maturity": "draft",
+      "work_state": "complete",
+      "qualification": "unverified",
+      "contract_origin": "code-derived"
+    }
+  }
+}

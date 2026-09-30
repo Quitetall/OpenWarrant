@@ -1,0 +1,9 @@
+test_endpoint_refuses_remote_credentials_and_paths (test_local_drafter.AdapterTests.test_endpoint_refuses_remote_credentials_and_paths) ... ok
+test_exact_fields_refuse_the_observed_path_error (test_local_drafter.AdapterTests.test_exact_fields_refuse_the_observed_path_error) ... ok
+test_missing_extra_and_overlong_fields_refuse (test_local_drafter.AdapterTests.test_missing_extra_and_overlong_fields_refuse) ... ok
+test_public_process_emits_only_complete_conforming_response (test_local_drafter.AdapterTests.test_public_process_emits_only_complete_conforming_response) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 1.017s
+
+OK

@@ -1,0 +1,12 @@
+{
+  "outcome": "compiler_refused_atom_path",
+  "finish_reason": "stop",
+  "model_call_exit": 0,
+  "model_tokens": 578,
+  "max_output_tokens": 1200,
+  "timeout_seconds": 240,
+  "adapter_sha256": "dba8b76755a91310895dd011fbd5b1129ab6448c4fbda7940870dec34ffca90a",
+  "applied": false,
+  "qualification_established": false,
+  "limitation": "Role/ordinal/path shorthand was ambiguous to the model; raw response is retained without normalization."
+}

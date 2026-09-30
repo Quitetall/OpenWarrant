@@ -1,0 +1,9 @@
+schema = "oh.war/rationale/v1"
+
+[[assumption]]
+id = "A-001"
+statement = "The owner provisionally approved this Warrant in a remote message on 2026-09-12 ('That's my workflow. Ideally even the harness is integrated into this single system'). A message is a decision on record; it is not a signature."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "The owner's ssh-signed authorization at the workstation, after STAGE-001's grilling settles the branches the message left open (where the board lives; whether a performer may ask mid-run or only up front; what a tick renders)."
+consequence_if_false = "Nothing here is authorized; the stages stay unstarted and the record says so."
+judgment_ref = ""

@@ -1,0 +1,13 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.10s
+     Running tests/document_schedule.rs (target/debug/deps/document_schedule-9e55dd77c6925c74)
+
+running 6 tests
+test estimates_are_optional_advisory_metadata_with_provenance ... ok
+test dependent_stage_waits_while_independent_preparation_can_start ... ok
+test cycles_and_conflicting_facts_refuse_instead_of_returning_ready_work ... ok
+test future_output_can_be_unpinned_but_competing_results_need_selection ... ok
+test malformed_duplicate_and_over_limit_inputs_never_return_partial_readiness ... ok
+test facts_bind_exact_contract_stage_result_and_required_meaning ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -1,0 +1,20 @@
+schema = "oh.war/resolution/v1"
+warrant = "OW-WAR-0033"
+
+[resolution]
+id = "01a064c8-8cc7-7c32-a04d-4868e95b1405"
+common_outcome = "satisfied"
+profile_outcome = "delivered"
+contract_revision = 1
+contract_digest = "2c6f5d7fedf4ed9edba50e94816c8c483c425b3ea602d8382f626e060158591b"
+assurance_case_snapshot_digest = "sha256:dc9140c0511f16c02ee875d90d863c637aad6e0745535734618e4892ad630f61"
+artifact_manifest_digest = "sha256:7222c188e7fb7c77bfa7a2a80c590744d1f7498c34059e8771be57397b44f70a"
+gate_run_refs = ["docs/warrants/OW-WAR-0033/gate-runs/software_repo_war-check_1_0_0.receipt.json"]
+judgment_refs = ["judgment://J-001"]
+residual_risk_refs = ["assumption://A-001"]
+resolved_by_ref = "person://Brian Lam"
+acting_role_ref = "role-assignment://Brian Lam/resolver"
+meaning = """Resolving OW-WAR-0033 (Implement the remaining read projections) as satisfied asserts that its declared deliverables exist at their recorded digests, that every declared obligation (OBL-001, OBL-002, OBL-003) was established by an admissible independent verification (lamu:mimo-v2.5-pro, blind to the performer, given the full plant battery, every passing test and the committed receipts, 2026-09-03), and that the cited gate ran against this exact contract and passed. It asserts nothing beyond those bounded obligations. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 ("Get them all done"); the decision is the owner's, the wording is the agent's."""
+effective_at = "2026-09-03T03:30:00Z"
+recorded_at = "2026-09-03T01:00:59Z"
+standing = "valid"

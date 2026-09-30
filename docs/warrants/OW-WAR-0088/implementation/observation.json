@@ -1,0 +1,27 @@
+{
+  "schema": "oh.war/implementation-observation/v1",
+  "warrant": "OW-WAR-0088",
+  "source_files": {
+    "crates/openwarrant-cli/src/document.rs": "114aca4529887104fc2fe0f45a99130fcc82e74483757cd1d367c64226b077a6",
+    "crates/openwarrant-cli/src/document/draft.rs": "28200ab2d5dc60a740722b8f5ffb3cbeac795134357a6324d758e16cf39b13aa",
+    "crates/openwarrant-cli/src/main.rs": "1c9dbab47521534e3f956e6b159ca59b6b0cf25807a3ccfcdc9737397d0ee586",
+    "crates/openwarrant-cli/src/sdk.rs": "17a50e9b85ca96c0bd664bbaceda5b4f168c1b9e0174f1c5e87af594a474a0ef",
+    "crates/openwarrant-cli/src/sdk/wire.rs": "444045d49b15baae2b90e72ab0c8e32f74e6861d8b79fc7f15c7d5a1e425d8a9",
+    "crates/openwarrant-cli/tests/document_draft.rs": "9efe8b47303902953771f75bde8a2f4c7bae225063a151137540c9130e050ee2",
+    "conformance/integration/interactive/run.py": "41d9b103374b1278a8ddc00b9b036bfc5ce93eaa4824960789c87cdc2f547d2f",
+    "conformance/integration/interactive/author.stdin": "ef621bc6b3bcd6c8bf4268faf1257d8dcf8ffceed52c8e2cd43f5b0d44eb880f"
+  },
+  "source_digest": "4bd2994a76bf863a7b4e9b6b48cb791777016afd65cefa1fe600c0fc1deeb134",
+  "draft_tests": 10,
+  "sdk_cli_tests": 11,
+  "fixed_transcript_passed": true,
+  "terminal_probe": {
+    "directory": "/tmp/ow88-terminal.oOrcbw",
+    "input": "title\nTerminal proof\nid\nexample:terminal\npreview\nsave\n",
+    "exit_code": 0,
+    "source_sha256": "b9886e3d14f0c08564af2a5e1faa3d5fe3da81f4f4adb835af33499321419642",
+    "saved": true,
+    "qualified": false
+  },
+  "qualification_established": false
+}

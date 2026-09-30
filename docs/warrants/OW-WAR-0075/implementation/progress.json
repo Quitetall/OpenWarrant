@@ -1,0 +1,15 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0075",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "8280bb94b8bcfb921bb7a14000504a2b15faa41a",
+  "summary": "Parser and structural validation delivered; integrated and gated with PR #66. Human qualification not claimed.",
+  "notes": "docs/warrants/OW-WAR-0075/implementation/sdk-parser-notes.md",
+  "evidence": [
+    "docs/design/amendment-review/README.md"
+  ],
+  "next_steps": [
+    "Use parser through SDK author/edit and upcoming source/snapshot types."
+  ]
+}

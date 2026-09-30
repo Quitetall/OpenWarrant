@@ -1,0 +1,16 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0100",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "5959c573056c4c102cb2cfe11a2e07f38d31ac63",
+  "summary": "Unsupported telemetry claims repaired; isolated full gate passed 14/14 steps and 308 controls. Completed unverified; OW41 broader obligations remain open.",
+  "notes": "docs/warrants/OW-WAR-0100/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0100/implementation/gate.log",
+    "docs/warrants/OW-WAR-0100/implementation/corrected-measurement.json"
+  ],
+  "next_steps": [
+    "Complete OW41 derived metrics and historical baseline review."
+  ]
+}

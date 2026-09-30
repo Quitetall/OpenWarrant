@@ -1,0 +1,20 @@
+obligation = "OBL-003"
+disposition = "established"
+evidence = "The conformance/plant.sh battery contains 138 deliberate violations each rejected by its named rule (e.g., '[OW-WAR-0055] a roadmap ref past the last phase', '[OW-WAR-0059] a receipt edited after it was sealed', '[OW-WAR-0031] a journal line edited in place'), and the final step of `cargo xtask gate` is 'planted violations (conformance/plant.sh)' which exercises the gate's rejection path; the receipt for GR-software.repo.war-check@1.0.0 confirms the gate infrastructure is qualified against its declared fault model."
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

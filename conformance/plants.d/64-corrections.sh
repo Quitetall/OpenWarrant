@@ -119,8 +119,16 @@ plant "a second correction applied as an edit to the first" "correction.edited" 
     "$TARGET_ALIAS"
 restore_corrections
 
-# 7. Positive: after a valid correction, the check passes and names the supersession.
-plant "a corrected deliverable passes and names the superseded digest" "deliverable.corrected" "superseded" 0 \
+# 7. Positive: after a valid correction, the deliverable's digest check passes
+# and names the supersession — `deliverable.corrected`, not `digest-drift`.
+#
+# The run exits 2 rather than 0, and that is the second half of the positive: a
+# correction this battery wrote is one no human signed, so `authority.unsigned`
+# reports it. There is no key in a conformance run and there must not be — a
+# battery that could sign could sign anything. So the assertion is that the
+# CORRECTION is honoured and the MISSING SIGNATURE is still refused, which is
+# exactly the state a plant can reach.
+plant "a corrected deliverable passes and names the superseded digest" "deliverable.corrected" "superseded" 2 \
     "drift_target; write_response $RESP 'Brian Lam' \$(recorded_digest) \$(current_digest);
      \$WAR correct $TARGET_ALIAS $TARGET_DID --response $RESP > /dev/null 2>&1 || { echo 'setup: valid correction was refused' >&2; exit 9; }" \
     "$TARGET_ALIAS"
@@ -143,6 +151,16 @@ plant_cmd "war show names the superseded digest" "Corrections" "superseded" 0 \
 restore_corrections
 
 # 9. Before resolution the ordinary remedy applies: a correction is refused.
+#
+# This plant drifts a file in `conformance/` and restores it with `git checkout`,
+# which lib.sh's guard does not cover — so an uncommitted edit to that file is
+# destroyed without a word. It ate one on 2026-09-19. Refuse instead.
+if ! git diff --quiet -- conformance/plants.d/00-corpus.sh; then
+    echo "conformance/plants.d/00-corpus.sh has uncommitted changes." >&2
+    echo "This plant drifts and restores that file with 'git checkout', which" >&2
+    echo "would discard them. Commit or stash it first." >&2
+    exit 9
+fi
 plant_cmd "a correction on an unresolved warrant" "correction.not-resolved" "regenerate deliverables.toml" 2 \
     "printf '# planted\n' >> conformance/plants.d/00-corpus.sh; TARGET_ALIAS=OW-WAR-0063 TARGET_DID=D-003 write_response $RESP 'Brian Lam' sha256:$(printf '2%.0s' {1..64}) sha256:$(printf '3%.0s' {1..64})" \
     correct OW-WAR-0063 D-003 --response "$RESP"

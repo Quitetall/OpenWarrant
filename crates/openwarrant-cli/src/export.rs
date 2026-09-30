@@ -1,33 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 //! `war export` — §68's portable export and round trip.
 //!
-//! # This will refuse, and that is the finding
+//! This legacy metadata envelope does not carry a content-bearing archive or an
+//! importer. Its category labels and atom digest are insufficient preservation
+//! evidence. Missing categories remain explicit; `--force` does not write bytes.
 //!
-//! §68.2 names fifteen contents a portable export SHALL carry, fourteen of them
-//! required. OpenWarrant supplies TEN of the fourteen today. The absent four —
-//! audit receipts, runtime receipt refs, artifacts, and resolution and standing
-//! — do not exist in this repository because nothing has executed, the KF seam
-//! is not authorized to write, and no Warrant has resolved.
-//!
-//! (An earlier draft of this comment said "eight" and "six". The numbers come
-//! from `absent_reason` and were written before it was; they are now what the
-//! command prints.)
-//!
-//! So `PortableExport::validate` refuses, naming the first missing content. That
-//! is the correct answer to "can this repository produce a preservable export
-//! yet?", and it is a better answer than a package that omits six required
-//! contents silently and looks complete.
-//!
-//! `--force` writes the incomplete package anyway, because a package you can
-//! inspect is more useful than an error when you are trying to close the gap.
-//! It never reports the result as valid.
-//!
-//! # Why the round trip needs the bytes reconnected
-//!
-//! §68.3 compares an export against a re-export. `RoundTrip::verify` refuses
-//! when `evidence_reconnected` is false, because comparing two exports that both
-//! omit the same evidence proves they agree about nothing in particular. The
-//! vacuous comparison is the failure mode, not the differing one.
+//! OW111 adds a distinct experimental archive transport without changing this
+//! historical envelope or digest. A caller's `--reconnect` flag cannot establish
+//! an import, so the former false-success round-trip path now refuses. The new
+//! transport's positive import/re-export control observes actual retained bytes;
+//! full historical and KF preservation qualification remains separate.
 
 use std::collections::BTreeSet;
 
@@ -41,15 +23,12 @@ use crate::repo::{RepoError, Repository};
 fn absent_reason(content: &str) -> Option<&'static str> {
     Some(match content {
         "actions and relevant audit receipts" => {
-            "no §67 action has been recorded — the KF seam reads but has not been authorized \
-             to write"
+            "the legacy exporter does not collect action and audit receipt bytes"
         }
-        "runtime receipt refs" => {
-            "nothing has executed; BLUT accepted a lowering but no run produced receipts"
-        }
-        "artifacts" => "no §37 deliverable has been produced as a content-addressed artifact",
+        "runtime receipt refs" => "the legacy exporter does not collect runtime receipt references",
+        "artifacts" => "the legacy exporter does not collect content-addressed artifact bytes",
         "resolution and standing" => {
-            "no Warrant has resolved — §56.1 requirement 10 is unmet for every one of them"
+            "the legacy exporter does not collect resolution and standing records"
         }
         _ => return None,
     })
@@ -109,6 +88,11 @@ pub fn assemble(
 /// exactly what §68.3 warns about, and a function that could not express it
 /// could not refuse it.
 pub fn round_trip(repo: &Repository, alias: &str, reconnect: bool) -> Result<RoundTrip, RepoError> {
+    if reconnect {
+        return Err(RepoError::Message(
+            "legacy round-trip cannot verify preserved bytes: --reconnect is a claim, not an import; use the experimental archive transport for bounded byte-preservation checks".to_owned(),
+        ));
+    }
     let (first, _) = assemble(repo, alias)?;
     let (second, _) = assemble(repo, alias)?;
     Ok(RoundTrip {

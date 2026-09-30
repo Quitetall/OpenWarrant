@@ -1,0 +1,13 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "The rule is normative text, restated, pointed to, and guarded"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003"]
+
+stages:
+  - id: "STAGE-001"
+    title: "§6.10; DEFINITIONS.md; README; war new pointer; the guard test; draft.3"
+    executor_kind: "agent"
+    responsibility_tier: "T2"

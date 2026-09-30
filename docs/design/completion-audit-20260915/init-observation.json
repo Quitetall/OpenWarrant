@@ -1,0 +1,32 @@
+{
+  "binary": "/mnt/4tb/tmp/ow-war-0077-sdk/target/debug/war",
+  "binary_sha256": "4c13d8fc0ed748a7d8ff18341ad1e6f7118e13782601d0179bd7734fd8a97114",
+  "revision": "178dda4d486fa2a8abd0a22f152284213bb6e580",
+  "command": [
+    "/mnt/4tb/tmp/ow-war-0077-sdk/target/debug/war",
+    "init",
+    "--root",
+    "/tmp/ow0001-completion-proof-57hoi8tu",
+    "--namespace",
+    "AUDIT",
+    "--name",
+    "Completion audit"
+  ],
+  "first": {
+    "exit": 0,
+    "stdout": "initialized Completion audit (/tmp/ow0001-completion-proof-57hoi8tu/openwarrant.toml)\n",
+    "stderr": ""
+  },
+  "second": {
+    "exit": 1,
+    "stdout": "",
+    "stderr": "error: /tmp/ow0001-completion-proof-57hoi8tu/openwarrant.toml already exists; refusing to overwrite an initialized repository. Delete it deliberately if you intend to reinitialize.\n"
+  },
+  "preserved_config_sha256": "a2c6237265272a8138cb0ab12efbac14437519fad060a350de5f17dc6f4b4d76",
+  "directories_observed": [
+    "docs/sas",
+    "docs/roadmap",
+    "docs/adr",
+    "docs/warrants"
+  ]
+}

@@ -1,0 +1,1 @@
+{"accepted":false,"error":"PlanSpec does not typecheck: plan spec 'OW-WAR-0047': stage 'OW47_UNREGISTERED_REFUSAL' is not in any registered cookbook (see `blut registry export`)","recipes_registered":8,"spec":"/tmp/ow47-incompatible-20260918.json"}

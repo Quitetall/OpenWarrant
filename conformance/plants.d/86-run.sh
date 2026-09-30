@@ -16,7 +16,8 @@ plant_cmd "a service stage runs and submits verify" "run.passed" "ops.echo" 0 \
     "true" \
     run "$RUN_ALIAS" STAGE-001
 SUB=$(ls "$RUN_DIR"/submissions/*.json 2>/dev/null | head -1)
-if [[ -n "$SUB" ]] && grep -q '"requested_next_action": "verify"' "$SUB" && ls "$RUN_DIR"/gate-runs/*.receipt.json >/dev/null 2>&1 && grep -q 'dispatch:' "$RUN_DIR"/gate-runs/*.receipt.json; then
+RUN_RECEIPT=$(find "$RUN_DIR/gate-runs" -type f -name '*.receipt.json' -print -quit)
+if [[ -n "$SUB" && -n "$RUN_RECEIPT" ]] && grep -q '"requested_next_action": "verify"' "$SUB" && grep -q 'dispatch:' "$RUN_RECEIPT"; then
     printf 'ok    %-34s receipt subject is the dispatch digest; submission requests verify\n' "the run left its records"
     PASSED=$((PASSED + 1))
 else

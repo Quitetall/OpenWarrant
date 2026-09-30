@@ -1,0 +1,73 @@
+schema = "oh.war/rationale/v1"
+
+[[assumption]]
+id = "A-001"
+statement = "Formal RC.3 adoption for qualification is not established by this unsigned implementation plan."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "For a claim requiring adopted RC.3: retain exact candidate adoption and applicable independent authority evidence."
+consequence_if_false = "That qualification claim and legacy resolution remain blocked. Prompt-only unverified work and independent preparation may continue."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-002"
+statement = "The consumed interface/data from OW-WAR-0075 exists at an exact known revision."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "Inspect the needed output and its checks; record its actual revision. For a Phase 1 consumer, only the SDK subset is required."
+consequence_if_false = "Only stages consuming the missing output wait; preparation and independent stages continue."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-003"
+statement = "The consumed interface/data from OW-WAR-0076 exists at an exact known revision."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "Inspect the needed output and its checks; record its actual revision. For a Phase 1 consumer, only the SDK subset is required."
+consequence_if_false = "Only stages consuming the missing output wait; preparation and independent stages continue."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-004"
+statement = "The consumed interface/data from OW-WAR-0077 exists at an exact known revision."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "Inspect the needed output and its checks; record its actual revision. For a Phase 1 consumer, only the SDK subset is required."
+consequence_if_false = "Only stages consuming the missing output wait; preparation and independent stages continue."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-005"
+statement = "The consumed interface/data from OW-WAR-0078 exists at an exact known revision."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "Inspect the needed output and its checks; record its actual revision. For a Phase 1 consumer, only the SDK subset is required."
+consequence_if_false = "Only stages consuming the missing output wait; preparation and independent stages continue."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-006"
+statement = "The consumed interface/data from OW-WAR-0081 exists at an exact known revision."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "Inspect the needed output and its checks; record its actual revision. For a Phase 1 consumer, only the SDK subset is required."
+consequence_if_false = "Only stages consuming the missing output wait; preparation and independent stages continue."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-007"
+statement = "The consumed interface/data from OW-WAR-0083 exists at an exact known revision."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "Inspect the needed output and its checks; record its actual revision. For a Phase 1 consumer, only the SDK subset is required."
+consequence_if_false = "Only stages consuming the missing output wait; preparation and independent stages continue."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-008"
+statement = "The consumed interface/data from OW-WAR-0084 exists at an exact known revision."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "Inspect the needed output and its checks; record its actual revision. For a Phase 1 consumer, only the SDK subset is required."
+consequence_if_false = "Only stages consuming the missing output wait; preparation and independent stages continue."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-009"
+statement = "The consumed interface/data from OW-WAR-0087 exists at an exact known revision."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "Inspect the needed output and its checks; record its actual revision. For a Phase 1 consumer, only the SDK subset is required."
+consequence_if_false = "Only stages consuming the missing output wait; preparation and independent stages continue."
+judgment_ref = ""

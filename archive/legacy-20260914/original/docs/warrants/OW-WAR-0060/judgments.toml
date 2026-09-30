@@ -1,0 +1,32 @@
+schema = "oh.war/judgments/v1"
+warrant = "OW-WAR-0060"
+
+[[judgment]]
+id = "J-001"
+kind = "residual_risk_acceptance"
+statement = "Citing the corpus gate for obligations whose evidence is the xtask step is acceptable until xtask has a Gate Definition."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0060: if the assumption is false, the consequence is Requirement 5 reads met on the strength of a gate that does not run the check the obligation names. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02; the decision is the owner's, the wording is the agent's."
+basis_refs = ["assumption://A-001"]
+authority = "authorized"
+
+[[judgment]]
+id = "J-002"
+kind = "residual_risk_acceptance"
+statement = "A textual check that pages.yml contains a digest comparison is sufficient."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0060: if the assumption is false, the consequence is A comparison that stays in the text and stops being reached lets a rewritten page deploy. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02; the decision is the owner's, the wording is the agent's."
+basis_refs = ["assumption://A-002"]
+authority = "authorized"
+
+[[judgment]]
+id = "J-003"
+kind = "residual_risk_acceptance"
+statement = "Serving the last successful deploy on a failed one is acceptable."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "The owner accepts this residual risk for OW-WAR-0060: if the assumption is false, the consequence is A reader sees a stale projection with nothing saying it is stale. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02; the decision is the owner's, the wording is the agent's."
+basis_refs = ["assumption://A-003"]
+authority = "authorized"

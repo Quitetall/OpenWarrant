@@ -284,9 +284,9 @@ const ADOPT_ASSURANCE: &str = include_str!("../templates/adopt/60-assurance.md")
 
 /// The agent instructions this repository ships, parameterised by namespace.
 ///
-/// One source: this template is the file, and the repository's own `AGENTS.md`
-/// is asserted byte-identical to its rendering for `OW` by a test, so the
-/// rules an adopter's agents get are the rules this repository's agents get.
+/// This legacy template is also the repository's linked workflow reference.
+/// Root `AGENTS.md` adds project-specific routing and successor design guidance;
+/// installing an additive context pointer is a separate, planned operation.
 pub const AGENTS_MD_TEMPLATE: &str = include_str!("../templates/AGENTS.md.tmpl");
 
 #[must_use]
@@ -449,17 +449,18 @@ mod agents_md_tests {
         assert!(out.contains("Never verify your own work"));
     }
 
-    /// One source of rules: this repository's own AGENTS.md is the template
-    /// rendered for `OW`. If they differ, the adopter and this repository are
-    /// being told different things.
+    /// Keep the shipped legacy workflow equal to the linked reference, while
+    /// allowing the root instructions to retain project-specific context.
     #[test]
-    fn the_repositorys_agents_md_is_the_rendered_template() {
+    fn the_legacy_workflow_reference_is_the_rendered_template() {
         let repo = camino::Utf8PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
-        let committed = std::fs::read_to_string(repo.join("AGENTS.md")).expect("AGENTS.md");
-        assert_eq!(
-            committed,
-            render_agents_md("OW"),
-            "run `war agents-md --force`"
+        let reference = "docs/agents/legacy-warrant-workflow.md";
+        let committed = std::fs::read_to_string(repo.join(reference)).expect(reference);
+        assert_eq!(committed, render_agents_md("OW"));
+        let instructions = std::fs::read_to_string(repo.join("AGENTS.md")).expect("AGENTS.md");
+        assert!(
+            instructions.contains(reference),
+            "root must route legacy work"
         );
     }
 

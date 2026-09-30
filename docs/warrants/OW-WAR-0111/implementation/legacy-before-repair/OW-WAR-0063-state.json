@@ -1,0 +1,33 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "correct.request",
+  "diagnostics": [],
+  "notes": [],
+  "counts": {
+    "pass": 0,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0,
+  "result": {
+    "schema": "oh.war/correction-request/v1",
+    "warrant": "OW-WAR-0063",
+    "deliverable_id": "D-003",
+    "target_ref": "conformance/plants.d/00-corpus.sh",
+    "title": "The plants: unknown requirement, duplicate milestone id, contribution unstated, Markdown drift",
+    "resolved": false,
+    "recorded_digest": "sha256:95f4a8c570247483884b40dee7b890640491fd92abc3eb50bf8d9695f773d437",
+    "chain_head": "sha256:95f4a8c570247483884b40dee7b890640491fd92abc3eb50bf8d9695f773d437",
+    "current_digest": "sha256:cb1a0cbcda76d86c93fd884043a078b8e8999b1718d53b8a65cab3c64fbb527c",
+    "drift": true,
+    "prior_corrections": 0,
+    "next_sequence": 1,
+    "eligible_correctors": [
+      "Brian Lam"
+    ]
+  }
+}

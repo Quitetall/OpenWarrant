@@ -1,0 +1,9 @@
+    Checking linux-raw-sys v0.12.1
+    Checking bitflags v2.13.2
+    Checking openwarrant-agent v1.0.0 (/mnt/4tb/tmp/ow-progress-viewer/crates/openwarrant-agent)
+    Checking xtask v1.0.0 (/mnt/4tb/tmp/ow-progress-viewer/xtask)
+    Checking openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-progress-viewer/crates/openwarrant-core)
+    Checking rustix v1.1.4
+    Checking openwarrant-compiler v1.0.0 (/mnt/4tb/tmp/ow-progress-viewer/crates/openwarrant-compiler)
+    Checking openwarrant-cli v1.0.0 (/mnt/4tb/tmp/ow-progress-viewer/crates/openwarrant-cli)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 11.61s

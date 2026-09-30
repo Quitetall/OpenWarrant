@@ -1,0 +1,424 @@
+{
+  "schema": "oh.war/verification-inventory/v1",
+  "jobs": [
+    {
+      "verification_id": "217f656d-6f56-43ef-a1e1-3893093ec1dc",
+      "state": "finished",
+      "record": {
+        "schema": "oh.war/verifier-job/v1",
+        "verification_id": "217f656d-6f56-43ef-a1e1-3893093ec1dc",
+        "sequence": 3,
+        "previous_sha256": "89fd074d0d24641b9a0719fe96ac56707412309507361fdeb36b8f0270fcd017",
+        "observation": {
+          "schema": "oh.war/verifier-observation/v1",
+          "request_sha256": "9769c211671f013e057d142af9f6d30512f0e006c0c9c0d149b4e7e3237d3b00",
+          "execution_state": "stopped",
+          "verdict": "fail",
+          "checks": [
+            {
+              "argv": [
+                "/usr/bin/python3",
+                "-c",
+                "from pathlib import Path; assert Path('result.txt').read_text() == 'implemented\\n'"
+              ],
+              "exit_code": 0,
+              "stdout": "",
+              "stdout_truncated": false,
+              "stderr": "",
+              "stderr_truncated": false,
+              "capture_incomplete": false
+            }
+          ],
+          "result": {
+            "schema": "oh.war/verification-result/v1",
+            "verification_id": "217f656d-6f56-43ef-a1e1-3893093ec1dc",
+            "request_sha256": "9769c211671f013e057d142af9f6d30512f0e006c0c9c0d149b4e7e3237d3b00",
+            "verdict": "fail",
+            "summary": "Fixture checked marker",
+            "findings": [
+              {
+                "id": "F1",
+                "observation": "Required marker absent",
+                "scope": "fixed.txt fixture",
+                "evidence": [
+                  "fixed.txt missing"
+                ],
+                "status": "violation",
+                "repairable": true
+              }
+            ]
+          },
+          "cause": "Verifier observations retained for exact candidate",
+          "qualified": false,
+          "workspace": "/tmp/tmpa9ah16af/state/.execution/verification/workspace-217f656d-6f56-43ef-a1e1-3893093ec1dc",
+          "harness": {
+            "stdout": "{\"schema\": \"oh.war/verification-result/v1\", \"verification_id\": \"217f656d-6f56-43ef-a1e1-3893093ec1dc\", \"request_sha256\": \"9769c211671f013e057d142af9f6d30512f0e006c0c9c0d149b4e7e3237d3b00\", \"verdict\": \"fail\", \"summary\": \"Fixture checked marker\", \"findings\": [{\"id\": \"F1\", \"observation\": \"Required marker absent\", \"scope\": \"fixed.txt fixture\", \"evidence\": [\"fixed.txt missing\"], \"status\": \"violation\", \"repairable\": true}]}\n",
+            "stdout_truncated": false,
+            "stderr": "",
+            "stderr_truncated": false,
+            "capture_incomplete": false
+          },
+          "active_seconds": 0.07527958600257989,
+          "cost_usd": 0
+        }
+      },
+      "qualified": false,
+      "attempt_id": "aef4458e-8422-4e96-846e-208047f14de1",
+      "request": {
+        "schema": "oh.war/verification-request/v1",
+        "verification_id": "217f656d-6f56-43ef-a1e1-3893093ec1dc",
+        "warrant_id": "c3b21c5a-dcce-4439-86a7-b353faf9d2b7",
+        "source_sha256": "3133e9f1b22fbf09f0abf86515d596ebf739ca218842bdf44ac27e92a20ef5e8",
+        "candidate_revision": "ec689f6de879e0c50be37e07bbda46374625d1eb",
+        "policy_sha256": "ce38bf7c9efd655783e95c368bec7d3b8d75af70944ccef6e7bb2f3a28729bb6",
+        "performer": "worker",
+        "verifier": "reviewer",
+        "checks": [
+          [
+            "/usr/bin/python3",
+            "-c",
+            "from pathlib import Path; assert Path('result.txt').read_text() == 'implemented\\n'"
+          ]
+        ],
+        "source": "<!-- ow:unit outcome binding -->\n# Simpler signup\n\nAsk for less data.\n<!-- ow:unit scope binding -->\n## Scope\n\nSignup form only.\n<!-- ow:unit context binding -->\n## Context\n\nPreserve existing identity rules.\n<!-- ow:metadata -->\n```toml\n\"schema\" = \"oh.war/document/1.0.0-rc.3\"\n\"kind\" = \"warrant\"\n\"id\" = \"workflow:c3b21c5a-dcce-4439-86a7-b353faf9d2b7\"\n\"revision\" = 1\n\"title\" = \"Simpler signup\"\n\"state\" = \"draft\"\n```\n<!-- /ow:metadata -->\n"
+      },
+      "basis_sha256": "cf12092d62bd3c22cb50ab1392c747e7caeb66fe2dbe830ba85e253f3331f9a7",
+      "dispatch_permitted": false,
+      "evidence_state": "retained",
+      "effective_verdict": "fail",
+      "human_review_required": false
+    },
+    {
+      "verification_id": "5b4500df-c286-4e82-bb69-f07e05542394",
+      "state": "finished",
+      "record": {
+        "schema": "oh.war/verifier-job/v1",
+        "verification_id": "5b4500df-c286-4e82-bb69-f07e05542394",
+        "sequence": 3,
+        "previous_sha256": "b3f306b0d16ad10239ed0a6338fa66e80a2ad3a474500c083a260ca01e29a8b6",
+        "observation": {
+          "schema": "oh.war/verifier-observation/v1",
+          "request_sha256": "2cac6bcee5d0b76c770fe7551b323af0f58aa8324810eb5ce27c7dd3aa57eb36",
+          "execution_state": "stopped",
+          "verdict": "fail",
+          "checks": [
+            {
+              "argv": [
+                "/usr/bin/python3",
+                "-c",
+                "from pathlib import Path; assert Path('result.txt').read_text() == 'implemented\\n'"
+              ],
+              "exit_code": 0,
+              "stdout": "",
+              "stdout_truncated": false,
+              "stderr": "",
+              "stderr_truncated": false,
+              "capture_incomplete": false
+            }
+          ],
+          "result": {
+            "schema": "oh.war/verification-result/v1",
+            "verification_id": "5b4500df-c286-4e82-bb69-f07e05542394",
+            "request_sha256": "2cac6bcee5d0b76c770fe7551b323af0f58aa8324810eb5ce27c7dd3aa57eb36",
+            "verdict": "fail",
+            "summary": "Fixture checked marker",
+            "findings": [
+              {
+                "id": "F1",
+                "observation": "Required marker absent",
+                "scope": "fixed.txt fixture",
+                "evidence": [
+                  "fixed.txt missing"
+                ],
+                "status": "violation",
+                "repairable": true
+              }
+            ]
+          },
+          "cause": "Verifier observations retained for exact candidate",
+          "qualified": false,
+          "workspace": "/tmp/tmpa9ah16af/state/.execution/verification/workspace-5b4500df-c286-4e82-bb69-f07e05542394",
+          "harness": {
+            "stdout": "{\"schema\": \"oh.war/verification-result/v1\", \"verification_id\": \"5b4500df-c286-4e82-bb69-f07e05542394\", \"request_sha256\": \"2cac6bcee5d0b76c770fe7551b323af0f58aa8324810eb5ce27c7dd3aa57eb36\", \"verdict\": \"fail\", \"summary\": \"Fixture checked marker\", \"findings\": [{\"id\": \"F1\", \"observation\": \"Required marker absent\", \"scope\": \"fixed.txt fixture\", \"evidence\": [\"fixed.txt missing\"], \"status\": \"violation\", \"repairable\": true}]}\n",
+            "stdout_truncated": false,
+            "stderr": "",
+            "stderr_truncated": false,
+            "capture_incomplete": false
+          },
+          "active_seconds": 0.0769076289871009,
+          "cost_usd": 0
+        }
+      },
+      "qualified": false,
+      "attempt_id": "aef4458e-8422-4e96-846e-208047f14de1",
+      "request": {
+        "schema": "oh.war/verification-request/v3",
+        "verification_id": "5b4500df-c286-4e82-bb69-f07e05542394",
+        "warrant_id": "c3b21c5a-dcce-4439-86a7-b353faf9d2b7",
+        "source_sha256": "3133e9f1b22fbf09f0abf86515d596ebf739ca218842bdf44ac27e92a20ef5e8",
+        "candidate_revision": "ec689f6de879e0c50be37e07bbda46374625d1eb",
+        "policy_sha256": "ce38bf7c9efd655783e95c368bec7d3b8d75af70944ccef6e7bb2f3a28729bb6",
+        "performer": "worker",
+        "verifier": "reviewer",
+        "checks": [
+          [
+            "/usr/bin/python3",
+            "-c",
+            "from pathlib import Path; assert Path('result.txt').read_text() == 'implemented\\n'"
+          ]
+        ],
+        "source": "<!-- ow:unit outcome binding -->\n# Simpler signup\n\nAsk for less data.\n<!-- ow:unit scope binding -->\n## Scope\n\nSignup form only.\n<!-- ow:unit context binding -->\n## Context\n\nPreserve existing identity rules.\n<!-- ow:metadata -->\n```toml\n\"schema\" = \"oh.war/document/1.0.0-rc.3\"\n\"kind\" = \"warrant\"\n\"id\" = \"workflow:c3b21c5a-dcce-4439-86a7-b353faf9d2b7\"\n\"revision\" = 1\n\"title\" = \"Simpler signup\"\n\"state\" = \"draft\"\n```\n<!-- /ow:metadata -->\n",
+        "human_recheck": {
+          "decision": {
+            "schema": "oh.war/verifier-decision/v1",
+            "question": {
+              "schema": "oh.war/verifier-dispute/v1",
+              "verification_id": "75448b49-bb51-49da-b5ca-65e2bb4581d8",
+              "warrant_id": "c3b21c5a-dcce-4439-86a7-b353faf9d2b7",
+              "source_sha256": "3133e9f1b22fbf09f0abf86515d596ebf739ca218842bdf44ac27e92a20ef5e8",
+              "candidate_revision": "ec689f6de879e0c50be37e07bbda46374625d1eb",
+              "observation_sha256": "35a84a486b9da2050ebc2dc19b043222df769e65c77b032f6d81940ad5b6c54b",
+              "authorization_sha256": "71a493ebfcf8660866b126b9b5400d3171cbcae005acf5f31d027f23818ff9fa",
+              "question": {
+                "kind": "governing",
+                "direct_human": true,
+                "text": "Independent recheck did not settle this dispute. Choose the next action."
+              }
+            },
+            "response": {
+              "schema": "oh.war/hotline-answer/v1",
+              "question_sha256": "e549e16843ba030ff7582b1672aadf5bc6ea5ec0798b0096c78b68092a7923a4",
+              "respondent": "fixture-human",
+              "respondent_kind": "human",
+              "answer": "verify_again: Synthetic UI fixture recheck",
+              "evidence": [
+                "fixture://marker-contract"
+              ],
+              "qualified": false
+            },
+            "action": "verify_again",
+            "reason": "Synthetic UI fixture recheck",
+            "qualified": false,
+            "changes_verdict": false,
+            "dispatch_permitted": false
+          },
+          "prior_record": {
+            "schema": "oh.war/verifier-job/v1",
+            "verification_id": "75448b49-bb51-49da-b5ca-65e2bb4581d8",
+            "sequence": 3,
+            "previous_sha256": "b2b139357b83a54be44bba079aaebbdff4eab1dbc28219ec2a0372c835e7d95b",
+            "observation": {
+              "schema": "oh.war/verifier-observation/v1",
+              "request_sha256": "81e8a06f1634f3743e6c61c675784f3ef99d12f728d99f76d389a8f06c228529",
+              "execution_state": "stopped",
+              "verdict": "fail",
+              "checks": [
+                {
+                  "argv": [
+                    "/usr/bin/python3",
+                    "-c",
+                    "from pathlib import Path; assert Path('result.txt').read_text() == 'implemented\\n'"
+                  ],
+                  "exit_code": 0,
+                  "stdout": "",
+                  "stdout_truncated": false,
+                  "stderr": "",
+                  "stderr_truncated": false,
+                  "capture_incomplete": false
+                }
+              ],
+              "result": {
+                "schema": "oh.war/verification-result/v1",
+                "verification_id": "75448b49-bb51-49da-b5ca-65e2bb4581d8",
+                "request_sha256": "81e8a06f1634f3743e6c61c675784f3ef99d12f728d99f76d389a8f06c228529",
+                "verdict": "fail",
+                "summary": "Fixture checked marker",
+                "findings": [
+                  {
+                    "id": "F1",
+                    "observation": "Required marker absent",
+                    "scope": "fixed.txt fixture",
+                    "evidence": [
+                      "fixed.txt missing"
+                    ],
+                    "status": "violation",
+                    "repairable": true
+                  }
+                ]
+              },
+              "cause": "Verifier observations retained for exact candidate",
+              "qualified": false,
+              "workspace": "/tmp/tmpa9ah16af/state/.execution/verification/workspace-75448b49-bb51-49da-b5ca-65e2bb4581d8",
+              "harness": {
+                "stdout": "{\"schema\": \"oh.war/verification-result/v1\", \"verification_id\": \"75448b49-bb51-49da-b5ca-65e2bb4581d8\", \"request_sha256\": \"81e8a06f1634f3743e6c61c675784f3ef99d12f728d99f76d389a8f06c228529\", \"verdict\": \"fail\", \"summary\": \"Fixture checked marker\", \"findings\": [{\"id\": \"F1\", \"observation\": \"Required marker absent\", \"scope\": \"fixed.txt fixture\", \"evidence\": [\"fixed.txt missing\"], \"status\": \"violation\", \"repairable\": true}]}\n",
+                "stdout_truncated": false,
+                "stderr": "",
+                "stderr_truncated": false,
+                "capture_incomplete": false
+              },
+              "active_seconds": 0.07364202299504541,
+              "cost_usd": 0
+            }
+          }
+        }
+      },
+      "basis_sha256": "cf12092d62bd3c22cb50ab1392c747e7caeb66fe2dbe830ba85e253f3331f9a7",
+      "dispatch_permitted": false,
+      "evidence_state": "retained",
+      "effective_verdict": "fail",
+      "human_review_required": true
+    },
+    {
+      "verification_id": "75448b49-bb51-49da-b5ca-65e2bb4581d8",
+      "state": "finished",
+      "record": {
+        "schema": "oh.war/verifier-job/v1",
+        "verification_id": "75448b49-bb51-49da-b5ca-65e2bb4581d8",
+        "sequence": 3,
+        "previous_sha256": "b2b139357b83a54be44bba079aaebbdff4eab1dbc28219ec2a0372c835e7d95b",
+        "observation": {
+          "schema": "oh.war/verifier-observation/v1",
+          "request_sha256": "81e8a06f1634f3743e6c61c675784f3ef99d12f728d99f76d389a8f06c228529",
+          "execution_state": "stopped",
+          "verdict": "fail",
+          "checks": [
+            {
+              "argv": [
+                "/usr/bin/python3",
+                "-c",
+                "from pathlib import Path; assert Path('result.txt').read_text() == 'implemented\\n'"
+              ],
+              "exit_code": 0,
+              "stdout": "",
+              "stdout_truncated": false,
+              "stderr": "",
+              "stderr_truncated": false,
+              "capture_incomplete": false
+            }
+          ],
+          "result": {
+            "schema": "oh.war/verification-result/v1",
+            "verification_id": "75448b49-bb51-49da-b5ca-65e2bb4581d8",
+            "request_sha256": "81e8a06f1634f3743e6c61c675784f3ef99d12f728d99f76d389a8f06c228529",
+            "verdict": "fail",
+            "summary": "Fixture checked marker",
+            "findings": [
+              {
+                "id": "F1",
+                "observation": "Required marker absent",
+                "scope": "fixed.txt fixture",
+                "evidence": [
+                  "fixed.txt missing"
+                ],
+                "status": "violation",
+                "repairable": true
+              }
+            ]
+          },
+          "cause": "Verifier observations retained for exact candidate",
+          "qualified": false,
+          "workspace": "/tmp/tmpa9ah16af/state/.execution/verification/workspace-75448b49-bb51-49da-b5ca-65e2bb4581d8",
+          "harness": {
+            "stdout": "{\"schema\": \"oh.war/verification-result/v1\", \"verification_id\": \"75448b49-bb51-49da-b5ca-65e2bb4581d8\", \"request_sha256\": \"81e8a06f1634f3743e6c61c675784f3ef99d12f728d99f76d389a8f06c228529\", \"verdict\": \"fail\", \"summary\": \"Fixture checked marker\", \"findings\": [{\"id\": \"F1\", \"observation\": \"Required marker absent\", \"scope\": \"fixed.txt fixture\", \"evidence\": [\"fixed.txt missing\"], \"status\": \"violation\", \"repairable\": true}]}\n",
+            "stdout_truncated": false,
+            "stderr": "",
+            "stderr_truncated": false,
+            "capture_incomplete": false
+          },
+          "active_seconds": 0.07364202299504541,
+          "cost_usd": 0
+        }
+      },
+      "qualified": false,
+      "attempt_id": "aef4458e-8422-4e96-846e-208047f14de1",
+      "request": {
+        "schema": "oh.war/verification-request/v2",
+        "verification_id": "75448b49-bb51-49da-b5ca-65e2bb4581d8",
+        "warrant_id": "c3b21c5a-dcce-4439-86a7-b353faf9d2b7",
+        "source_sha256": "3133e9f1b22fbf09f0abf86515d596ebf739ca218842bdf44ac27e92a20ef5e8",
+        "candidate_revision": "ec689f6de879e0c50be37e07bbda46374625d1eb",
+        "policy_sha256": "ce38bf7c9efd655783e95c368bec7d3b8d75af70944ccef6e7bb2f3a28729bb6",
+        "performer": "worker",
+        "verifier": "reviewer",
+        "checks": [
+          [
+            "/usr/bin/python3",
+            "-c",
+            "from pathlib import Path; assert Path('result.txt').read_text() == 'implemented\\n'"
+          ]
+        ],
+        "source": "<!-- ow:unit outcome binding -->\n# Simpler signup\n\nAsk for less data.\n<!-- ow:unit scope binding -->\n## Scope\n\nSignup form only.\n<!-- ow:unit context binding -->\n## Context\n\nPreserve existing identity rules.\n<!-- ow:metadata -->\n```toml\n\"schema\" = \"oh.war/document/1.0.0-rc.3\"\n\"kind\" = \"warrant\"\n\"id\" = \"workflow:c3b21c5a-dcce-4439-86a7-b353faf9d2b7\"\n\"revision\" = 1\n\"title\" = \"Simpler signup\"\n\"state\" = \"draft\"\n```\n<!-- /ow:metadata -->\n",
+        "recheck": {
+          "verification_id": "217f656d-6f56-43ef-a1e1-3893093ec1dc",
+          "request_sha256": "9769c211671f013e057d142af9f6d30512f0e006c0c9c0d149b4e7e3237d3b00",
+          "observation_sha256": "89a9182515651c0c044ebeddbcc013a234ae8849917d141d65ad00b411cca6b3",
+          "observation": {
+            "schema": "oh.war/verifier-observation/v1",
+            "request_sha256": "9769c211671f013e057d142af9f6d30512f0e006c0c9c0d149b4e7e3237d3b00",
+            "execution_state": "stopped",
+            "verdict": "fail",
+            "checks": [
+              {
+                "argv": [
+                  "/usr/bin/python3",
+                  "-c",
+                  "from pathlib import Path; assert Path('result.txt').read_text() == 'implemented\\n'"
+                ],
+                "exit_code": 0,
+                "stdout": "",
+                "stdout_truncated": false,
+                "stderr": "",
+                "stderr_truncated": false,
+                "capture_incomplete": false
+              }
+            ],
+            "result": {
+              "schema": "oh.war/verification-result/v1",
+              "verification_id": "217f656d-6f56-43ef-a1e1-3893093ec1dc",
+              "request_sha256": "9769c211671f013e057d142af9f6d30512f0e006c0c9c0d149b4e7e3237d3b00",
+              "verdict": "fail",
+              "summary": "Fixture checked marker",
+              "findings": [
+                {
+                  "id": "F1",
+                  "observation": "Required marker absent",
+                  "scope": "fixed.txt fixture",
+                  "evidence": [
+                    "fixed.txt missing"
+                  ],
+                  "status": "violation",
+                  "repairable": true
+                }
+              ]
+            },
+            "cause": "Verifier observations retained for exact candidate",
+            "qualified": false,
+            "workspace": "/tmp/tmpa9ah16af/state/.execution/verification/workspace-217f656d-6f56-43ef-a1e1-3893093ec1dc",
+            "harness": {
+              "stdout": "{\"schema\": \"oh.war/verification-result/v1\", \"verification_id\": \"217f656d-6f56-43ef-a1e1-3893093ec1dc\", \"request_sha256\": \"9769c211671f013e057d142af9f6d30512f0e006c0c9c0d149b4e7e3237d3b00\", \"verdict\": \"fail\", \"summary\": \"Fixture checked marker\", \"findings\": [{\"id\": \"F1\", \"observation\": \"Required marker absent\", \"scope\": \"fixed.txt fixture\", \"evidence\": [\"fixed.txt missing\"], \"status\": \"violation\", \"repairable\": true}]}\n",
+              "stdout_truncated": false,
+              "stderr": "",
+              "stderr_truncated": false,
+              "capture_incomplete": false
+            },
+            "active_seconds": 0.07527958600257989,
+            "cost_usd": 0
+          },
+          "argument": "Fixture challenge: independently recheck marker requirement",
+          "evidence": [
+            "fixture://marker-contract"
+          ],
+          "finding_ids": [
+            "F1"
+          ]
+        }
+      },
+      "basis_sha256": "cf12092d62bd3c22cb50ab1392c747e7caeb66fe2dbe830ba85e253f3331f9a7",
+      "dispatch_permitted": false,
+      "evidence_state": "retained",
+      "effective_verdict": "fail",
+      "human_review_required": true
+    }
+  ],
+  "qualified": false
+}

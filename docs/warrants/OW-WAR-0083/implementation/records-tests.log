@@ -1,0 +1,35 @@
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-war-0083-sdk/crates/openwarrant-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.15s
+     Running tests/document_records.rs (target/debug/deps/document_records-50c46234c2e46a75)
+
+running 13 tests
+test claims_and_missing_contract_never_establish_assurance ... ok
+test agent_act_rejects_array_encoded_structs_without_panicking ... ok
+test explicit_action_gates_and_qualification_timing_stay_separate ... ok
+test exact_trust_binding_rejects_spoofed_actor_changed_bytes_and_duplicate_payload_keys ... ok
+test unverified_agent_completion_is_valid_but_cannot_be_human_acceptance ... ok
+test permission_constraints_do_not_disappear_under_a_human_signature ... ok
+test claimed_authenticity_is_not_trust_and_unavailable_is_not_pass ... ok
+test unsigned_payload_digest_preserves_absent_fields_and_excludes_attestation ... ok
+test delegated_adoption_needs_human_policy_and_cannot_edit_effective_policy ... ok
+test explicit_null_optional_source_fields_remain_valid ... ok
+test exact_qualification_requires_all_checks_independence_and_secure_human_act ... ok
+test unknown_and_failure_remain_distinct_and_artifact_quota_applies ... ok
+test independent_controls_reject_claims_self_review_missing_isolation_and_wrong_contract ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/document_workflow_records.rs (target/debug/deps/document_workflow_records-ae539be34056e974)
+
+running 8 tests
+test completion_and_qualification_are_separate_in_context_views ... ok
+test batch_acceptance_binds_exact_manifest_member_profile_and_evidence ... ok
+test resume_requires_fencing_for_work_changes_and_next_tool_boundary_for_harness ... ok
+test stale_overview_cannot_emit_safeword_or_undo_completed_work ... ok
+test shared_contract_mismatch_and_timeout_as_completion_refuse ... ok
+test evidence_loss_preserves_history_and_exact_duplicates_can_retain_support ... ok
+test stop_states_and_scalar_reference_limits_remain_explicit ... ok
+test confirmed_feature_handoff_uses_pointers_without_completing_parent ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

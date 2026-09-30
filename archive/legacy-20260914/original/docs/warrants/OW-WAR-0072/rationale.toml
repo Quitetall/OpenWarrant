@@ -1,0 +1,26 @@
+schema = "oh.war/rationale/v1"
+
+[[assumption]]
+id = "A-001"
+statement = "SAS 1.1.0 §27.6 is accepted before this Warrant is authorized. The owner chose batch signing on 2026-09-12, but the revision that makes it sayable is unsigned."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "OW-WAR-0071 resolved: the revision recorded, the ADR accepted, the owner's signature on 1.1.0."
+consequence_if_false = "This Warrant is withdrawn. No code written under an unaccepted rule."
+external_dependency = "OW-WAR-0071"
+judgment_ref = ""
+
+[[assumption]]
+id = "A-002"
+statement = "Reusing each act's existing ingest keeps every record byte-identical to the single-act case apart from `batch_ref`. Assumed from reading the ingests, not measured."
+epistemic_status = "accepted_residual_risk"
+resolution_requirement = "OBL-003's evidence: the same act signed alone and in a batch produces records that differ only in `batch_ref`."
+consequence_if_false = "The batch path is a second implementation of authorization and must be abandoned rather than maintained."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-003"
+statement = "`batch_ref` is additive under docs/COMPATIBILITY.md, so no `oh.war/*/v1` record schema moves to v2 and no migration is needed."
+epistemic_status = "accepted_residual_risk"
+resolution_requirement = "The schema pack regenerates with `batch_ref` optional and `war check` accepts every pre-batch record unchanged."
+consequence_if_false = "A v2 of four record schemas plus a migration — a larger Warrant, and the owner decides whether it is worth it."
+judgment_ref = ""

@@ -132,8 +132,31 @@ fn file_path(root: &Utf8Path, record: &str) -> Utf8PathBuf {
 pub fn run(repo: &Repository, check: bool) -> Result<Report, RepoError> {
     let mut report = Report::default();
     let (files, pack) = render_all()?;
+    let mut typescript = crate::schema_typescript::render(&files).map_err(RepoError::Message)?;
     let pack_path = repo.root.join(PACK_DIR).join("pack.json");
     let pack_body = pack_text(&pack)?;
+    let artifact_digests: BTreeMap<_, _> = typescript
+        .iter()
+        .map(|(name, text)| {
+            (
+                name.clone(),
+                openwarrant_compiler::sha256_hex(text.as_bytes()),
+            )
+        })
+        .collect();
+    let projection = serde_json::json!({
+        "schema": "oh.war/typescript-projection/v1",
+        "generator": "war schemas/typescript-v1",
+        "source_pack_sha256": openwarrant_compiler::sha256_hex(pack_body.as_bytes()),
+        "source_files": &pack.files,
+        "artifacts": artifact_digests,
+        "runtime_validation_required": true
+    });
+    let projection_text = serde_jcs::to_string(&projection).map_err(|error| {
+        RepoError::Message(format!("could not render TypeScript manifest: {error}"))
+    })?;
+    typescript.insert("manifest.json".into(), format!("{projection_text}\n"));
+
     let mut drift = 0usize;
     let mut compare = |path: &Utf8Path, want: &str, report: &mut Report| {
         match std::fs::read_to_string(path) {
@@ -161,11 +184,18 @@ pub fn run(repo: &Repository, check: bool) -> Result<Report, RepoError> {
             compare(&file_path(&repo.root, record), text, &mut report);
         }
         compare(&pack_path, &pack_body, &mut report);
+        for (name, text) in &typescript {
+            compare(
+                &repo.root.join(PACK_DIR).join("typescript").join(name),
+                text,
+                &mut report,
+            );
+        }
         if drift == 0 {
             report.push(Diagnostic::pass(
                 "schemas.current",
                 format!(
-                    "{} schema(s) and pack.json match the types; pack {} {} transitive {}",
+                    "{} schema(s), TypeScript projections and pack.json match the types; pack {} {} transitive {}",
                     files.len(),
                     pack.id,
                     pack.version,
@@ -192,6 +222,18 @@ pub fn run(repo: &Repository, check: bool) -> Result<Report, RepoError> {
         context: format!("could not write {pack_path}"),
         source,
     })?;
+    let type_dir = repo.root.join(PACK_DIR).join("typescript");
+    std::fs::create_dir_all(&type_dir).map_err(|source| RepoError::Io {
+        context: format!("could not create {type_dir}"),
+        source,
+    })?;
+    for (name, text) in &typescript {
+        let path = type_dir.join(name);
+        std::fs::write(&path, text).map_err(|source| RepoError::Io {
+            context: format!("could not write {path}"),
+            source,
+        })?;
+    }
     report.push(Diagnostic::pass(
         "schemas.written",
         format!(

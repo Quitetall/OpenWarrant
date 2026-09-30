@@ -1,0 +1,16 @@
+test_absent_evidence_cannot_create_dispute_decision_basis (test_verifier_decision.VerifierDecisionTests.test_absent_evidence_cannot_create_dispute_decision_basis) ... ok
+test_ai_wrong_scope_and_wrong_credential_refuse (test_verifier_decision.VerifierDecisionTests.test_ai_wrong_scope_and_wrong_credential_refuse) ... ok
+test_human_decision_binds_scope_without_clearing_verdict_or_dispatching (test_verifier_decision.VerifierDecisionTests.test_human_decision_binds_scope_without_clearing_verdict_or_dispatching) ... ok
+test_stale_basis_missing_evidence_and_injected_authority_refuse (test_verifier_decision.VerifierDecisionTests.test_stale_basis_missing_evidence_and_injected_authority_refuse) ... ok
+test_failure_repair_new_revision_and_independent_pass_preserve_history (test_verifier_repair_execution.RepairExecutionTests.test_failure_repair_new_revision_and_independent_pass_preserve_history) ... ok
+test_limit_budget_and_stale_candidate_refuse_before_repair_claim (test_verifier_repair_execution.RepairExecutionTests.test_limit_budget_and_stale_candidate_refuse_before_repair_claim) ... ok
+test_rebuttal_preserves_fail_and_unresolved_recheck_waits_for_human (test_verifier_repair_execution.RepairExecutionTests.test_rebuttal_preserves_fail_and_unresolved_recheck_waits_for_human) ... ok
+test_rebuttal_requires_existing_findings_and_evidence_without_authority_fields (test_verifier_repair_execution.RepairExecutionTests.test_rebuttal_requires_existing_findings_and_evidence_without_authority_fields) ... ok
+test_repair_hotline_resume_preserves_lineage_budget_and_single_cycle (test_verifier_repair_execution.RepairExecutionTests.test_repair_hotline_resume_preserves_lineage_budget_and_single_cycle) ... ok
+test_regressing_completed_stage_prevents_repair_completion (test_verifier_repair_execution.StagedRepairTests.test_regressing_completed_stage_prevents_repair_completion) ... ok
+test_repair_rechecks_every_stage_then_independently_verifies_new_commit (test_verifier_repair_execution.StagedRepairTests.test_repair_rechecks_every_stage_then_independently_verifies_new_commit) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 3.672s
+
+OK

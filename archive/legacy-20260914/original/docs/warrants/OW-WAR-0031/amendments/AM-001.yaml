@@ -1,0 +1,19 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-001"
+band: "manual_revision"
+reason: "Deliverable 4 placed the journal under `.openwarrant/state/` (§59), tracked or not by policy. This repository's policy commits every record beside its Warrant and drift-checks the projections built from them; a journal under a gitignored state path could not make a committed projection say `recorded`, which is deliverable 3's whole point. The journal is therefore one tracked file per Warrant, `docs/warrants/<alias>/journal.jsonl`. Authorized by the owner on the express instruction of 2026-09-02; wording drafted by the performer `claude`."
+governing_adr_or_policy: "sas://WAR-SAS-59"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. Nothing is invalidated: the envelope, the material events and append-only enforcement are as specified; only the file's location changed."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-09-02"
+
+semantic_diff:
+  - element: "deliverables"
+    before: "4. `.openwarrant/state/` per §59, tracked or not by repository policy."
+    after: "4. One tracked `journal.jsonl` per Warrant under `docs/warrants/<alias>/`, so the committed projections read recorded state and `war check` enforces append-only against the committed baseline."
+
+affected_stages: []
+affected_milestones: []

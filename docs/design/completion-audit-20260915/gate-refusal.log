@@ -1,0 +1,355 @@
+== spdx headers ==
+   125 file(s) carry an SPDX header (17 awaiting a correction)
+   ok
+== workflows ==
+   4 workflow(s): every `uses:` pinned by SHA; pages deploys the committed projection
+   ok
+== skill (SKILL.md frontmatter; every reference linked and present) ==
+   SKILL.md: frontmatter present, 6 reference(s) all linked and present
+   ok
+== agent-facing documents (no em-dash under .claude/skills/) ==
+   no em-dash in any agent-facing document
+   ok
+== build (plants run the shipped binary, so it must exist) ==
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.24
+   Compiling quote v1.0.47
+   Compiling serde_core v1.0.229
+   Compiling serde v1.0.229
+   Compiling libc v0.2.189
+   Compiling zmij v1.0.23
+   Compiling cfg-if v1.0.4
+   Compiling itoa v1.0.18
+   Compiling hashbrown v0.17.1
+   Compiling equivalent v1.0.2
+   Compiling memchr v2.8.3
+   Compiling find-msvc-tools v0.1.11
+   Compiling serde_json v1.0.151
+   Compiling shlex v2.0.1
+   Compiling strsim v0.11.1
+   Compiling typenum v1.20.1
+   Compiling pin-project-lite v0.2.17
+   Compiling bytes v1.12.1
+   Compiling futures-sink v0.3.34
+   Compiling autocfg v1.5.1
+   Compiling futures-core v0.3.34
+   Compiling getrandom v0.4.3
+   Compiling once_cell v1.21.4
+   Compiling zeroize v1.9.0
+   Compiling cc v1.4.4
+   Compiling thiserror v2.0.20
+   Compiling ident_case v1.0.1
+   Compiling futures-channel v0.3.34
+   Compiling untrusted v0.9.0
+   Compiling httparse v1.10.1
+   Compiling winnow v0.7.15
+   Compiling ref-cast v1.0.27
+   Compiling num-traits v0.2.19
+   Compiling const-oid v0.10.2
+   Compiling futures-task v0.3.34
+   Compiling slab v0.4.12
+   Compiling hybrid-array v0.4.14
+   Compiling utf8parse v0.2.2
+   Compiling rustls-pki-types v1.15.1
+   Compiling futures-io v0.3.34
+   Compiling cpufeatures v0.3.0
+   Compiling colorchoice v1.0.5
+   Compiling ryu-js v0.2.2
+   Compiling anstyle v1.0.14
+   Compiling ring v0.17.14
+   Compiling anstyle-parse v1.0.0
+   Compiling rustls v0.23.43
+   Compiling crypto-common v0.2.2
+   Compiling block-buffer v0.12.1
+   Compiling log v0.4.34
+   Compiling anstyle-query v1.1.5
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling tracing-core v0.1.36
+   Compiling http v1.5.0
+   Compiling dyn-clone v1.0.20
+   Compiling camino v1.2.5
+   Compiling clap_lex v1.1.0
+   Compiling rustix v1.1.4
+   Compiling rmcp v3.3.0
+   Compiling anstream v1.0.0
+   Compiling subtle v2.6.1
+   Compiling heck v0.5.0
+   Compiling digest v0.11.3
+   Compiling winnow v1.0.4
+   Compiling base64 v0.23.1
+   Compiling getrandom v0.2.17
+   Compiling webpki-roots v1.0.9
+   Compiling toml_writer v1.1.2+spec-1.1.0
+   Compiling linux-raw-sys v0.12.1
+   Compiling pastey v0.2.3
+   Compiling utf8-zero v0.8.1
+   Compiling clap_builder v4.6.6
+   Compiling percent-encoding v2.3.2
+   Compiling sha2 v0.11.0
+   Compiling ureq-proto v0.6.1
+   Compiling bitflags v2.13.2
+   Compiling xtask v1.0.0 (/tmp/ow-completion-refusals-d1c3cej5/xtask)
+   Compiling toml_parser v1.1.3+spec-1.1.0
+   Compiling syn v3.0.3
+   Compiling syn v2.0.119
+   Compiling tracing-attributes v0.1.31
+   Compiling darling_core v0.24.1
+   Compiling serde_derive_internals v0.30.0
+   Compiling serde_derive v1.0.229
+   Compiling thiserror-impl v2.0.20
+   Compiling futures-macro v0.3.34
+   Compiling ref-cast-impl v1.0.27
+   Compiling tokio-macros v2.7.2
+   Compiling clap_derive v4.6.4
+   Compiling schemars_derive v1.2.2
+   Compiling rustls-webpki v0.103.15
+   Compiling darling_macro v0.24.1
+   Compiling tokio v1.53.1
+   Compiling futures-util v0.3.34
+   Compiling darling v0.24.1
+   Compiling tracing v0.1.44
+   Compiling futures-executor v0.3.34
+   Compiling tokio-util v0.7.19
+   Compiling futures v0.3.34
+   Compiling clap v4.6.6
+   Compiling indexmap v2.14.0
+   Compiling uuid v1.25.0
+   Compiling serde_spanned v1.1.1
+   Compiling toml_datetime v1.1.1+spec-1.1.0
+   Compiling toml v1.1.4+spec-1.1.0
+   Compiling serde_spanned v0.6.9
+   Compiling toml_datetime v0.6.11
+   Compiling chrono v0.4.45
+   Compiling openwarrant-agent v1.0.0 (/tmp/ow-completion-refusals-d1c3cej5/crates/openwarrant-agent)
+   Compiling toml_edit v0.22.27
+   Compiling rmcp-macros v3.3.0
+   Compiling serde_jcs v0.2.0
+   Compiling schemars v1.2.2
+   Compiling ureq v3.4.0
+   Compiling toml v0.8.23
+   Compiling openwarrant-core v1.0.0 (/tmp/ow-completion-refusals-d1c3cej5/crates/openwarrant-core)
+   Compiling openwarrant-compiler v1.0.0 (/tmp/ow-completion-refusals-d1c3cej5/crates/openwarrant-compiler)
+   Compiling openwarrant-cli v1.0.0 (/tmp/ow-completion-refusals-d1c3cej5/crates/openwarrant-cli)
+error: this file contains an unclosed delimiter
+    --> crates/openwarrant-cli/src/main.rs:2152:27
+     |
+2152 | fn deliberately_unclosed(
+     |                         -^
+     |                         |
+     |                         unclosed delimiter
+
+error: could not compile `openwarrant-cli` (bin "war") due to 1 previous error
+   FAILED (exit status: 101)
+== format ==
+error: this file contains an unclosed delimiter
+    --> /tmp/ow-completion-refusals-d1c3cej5/crates/openwarrant-cli/src/main.rs:2152:27
+     |
+2152 | fn deliberately_unclosed(
+     |                         -^
+     |                         |
+     |                         unclosed delimiter
+
+   FAILED (exit status: 1)
+== clippy ==
+    Checking cfg-if v1.0.4
+    Checking hashbrown v0.17.1
+    Checking memchr v2.8.3
+    Checking equivalent v1.0.2
+    Checking itoa v1.0.18
+    Checking typenum v1.20.1
+    Checking winnow v0.7.15
+    Checking const-oid v0.10.2
+    Checking cpufeatures v0.3.0
+    Checking ryu-js v0.2.2
+    Checking serde_core v1.0.229
+    Checking libc v0.2.189
+    Checking zmij v1.0.23
+    Checking pin-project-lite v0.2.17
+    Checking futures-sink v0.3.34
+    Checking futures-core v0.3.34
+    Checking bytes v1.12.1
+    Checking thiserror v2.0.20
+   Compiling strsim v0.11.1
+    Checking zeroize v1.9.0
+    Checking once_cell v1.21.4
+    Checking futures-io v0.3.34
+    Checking untrusted v0.9.0
+    Checking futures-task v0.3.34
+    Checking futures-channel v0.3.34
+   Compiling darling_core v0.24.1
+    Checking slab v0.4.12
+    Checking utf8parse v0.2.2
+    Checking num-traits v0.2.19
+    Checking rustls-pki-types v1.15.1
+    Checking colorchoice v1.0.5
+    Checking log v0.4.34
+    Checking anstyle v1.0.14
+    Checking is_terminal_polyfill v1.70.2
+    Checking anstyle-query v1.1.5
+    Checking http v1.5.0
+    Checking tracing-core v0.1.36
+    Checking tokio v1.53.1
+    Checking anstyle-parse v1.0.0
+    Checking ref-cast v1.0.27
+    Checking httparse v1.10.1
+    Checking futures-util v0.3.34
+    Checking clap_lex v1.1.0
+    Checking base64 v0.23.1
+    Checking hybrid-array v0.4.14
+    Checking subtle v2.6.1
+    Checking winnow v1.0.4
+   Compiling serde_json v1.0.151
+    Checking dyn-clone v1.0.20
+    Checking webpki-roots v1.0.9
+    Checking utf8-zero v0.8.1
+    Checking percent-encoding v2.3.2
+    Checking anstream v1.0.0
+    Checking tracing v0.1.44
+    Checking linux-raw-sys v0.12.1
+    Checking bitflags v2.13.2
+    Checking toml_writer v1.1.2+spec-1.1.0
+    Checking camino v1.2.5
+    Checking xtask v1.0.0 (/tmp/ow-completion-refusals-d1c3cej5/xtask)
+    Checking ureq-proto v0.6.1
+    Checking block-buffer v0.12.1
+    Checking crypto-common v0.2.2
+    Checking toml_parser v1.1.3+spec-1.1.0
+    Checking getrandom v0.4.3
+    Checking getrandom v0.2.17
+    Checking clap_builder v4.6.6
+   Compiling darling_macro v0.24.1
+    Checking rustix v1.1.4
+    Checking digest v0.11.3
+    Checking ring v0.17.14
+    Checking sha2 v0.11.0
+    Checking tokio-util v0.7.19
+    Checking clap v4.6.6
+   Compiling darling v0.24.1
+    Checking futures-executor v0.3.34
+    Checking rustls-webpki v0.103.15
+    Checking futures v0.3.34
+    Checking rustls v0.23.43
+   Compiling rmcp-macros v3.3.0
+    Checking serde v1.0.229
+    Checking indexmap v2.14.0
+    Checking uuid v1.25.0
+    Checking serde_spanned v1.1.1
+    Checking toml_datetime v1.1.1+spec-1.1.0
+    Checking toml v1.1.4+spec-1.1.0
+    Checking serde_spanned v0.6.9
+    Checking toml_datetime v0.6.11
+    Checking chrono v0.4.45
+    Checking openwarrant-agent v1.0.0 (/tmp/ow-completion-refusals-d1c3cej5/crates/openwarrant-agent)
+    Checking toml_edit v0.22.27
+    Checking serde_jcs v0.2.0
+    Checking schemars v1.2.2
+    Checking ureq v3.4.0
+    Checking toml v0.8.23
+    Checking rmcp v3.3.0
+    Checking openwarrant-core v1.0.0 (/tmp/ow-completion-refusals-d1c3cej5/crates/openwarrant-core)
+    Checking openwarrant-compiler v1.0.0 (/tmp/ow-completion-refusals-d1c3cej5/crates/openwarrant-compiler)
+    Checking openwarrant-cli v1.0.0 (/tmp/ow-completion-refusals-d1c3cej5/crates/openwarrant-cli)
+error: this file contains an unclosed delimiter
+    --> crates/openwarrant-cli/src/main.rs:2152:27
+     |
+2152 | fn deliberately_unclosed(
+     |                         -^
+     |                         |
+     |                         unclosed delimiter
+
+error: could not compile `openwarrant-cli` (bin "war" test) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `openwarrant-cli` (bin "war") due to 1 previous error
+   FAILED (exit status: 101)
+== schemas (generated, drift-checked) ==
+error: this file contains an unclosed delimiter
+    --> crates/openwarrant-cli/src/main.rs:2152:27
+     |
+2152 | fn deliberately_unclosed(
+     |                         -^
+     |                         |
+     |                         unclosed delimiter
+
+error: could not compile `openwarrant-cli` (bin "war") due to 1 previous error
+   FAILED (exit status: 101)
+== rebuild the shipped binary without the schema feature ==
+   Compiling openwarrant-cli v1.0.0 (/tmp/ow-completion-refusals-d1c3cej5/crates/openwarrant-cli)
+error: this file contains an unclosed delimiter
+    --> crates/openwarrant-cli/src/main.rs:2152:27
+     |
+2152 | fn deliberately_unclosed(
+     |                         -^
+     |                         |
+     |                         unclosed delimiter
+
+error: could not compile `openwarrant-cli` (bin "war") due to 1 previous error
+   FAILED (exit status: 101)
+== tests (positive fixtures + planted violations) ==
+   Compiling openwarrant-agent v1.0.0 (/tmp/ow-completion-refusals-d1c3cej5/crates/openwarrant-agent)
+   Compiling xtask v1.0.0 (/tmp/ow-completion-refusals-d1c3cej5/xtask)
+   Compiling openwarrant-core v1.0.0 (/tmp/ow-completion-refusals-d1c3cej5/crates/openwarrant-core)
+   Compiling openwarrant-compiler v1.0.0 (/tmp/ow-completion-refusals-d1c3cej5/crates/openwarrant-compiler)
+   Compiling openwarrant-cli v1.0.0 (/tmp/ow-completion-refusals-d1c3cej5/crates/openwarrant-cli)
+error: this file contains an unclosed delimiter
+    --> crates/openwarrant-cli/src/main.rs:2152:27
+     |
+2152 | fn deliberately_unclosed(
+     |                         -^
+     |                         |
+     |                         unclosed delimiter
+
+error: could not compile `openwarrant-cli` (bin "war") due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `openwarrant-cli` (bin "war" test) due to 1 previous error
+   FAILED (exit status: 101)
+== licenses (permissive-only; protects the Apache-2.0 path) ==
+warning[license-exception-not-encountered]: license exception was not encountered
+   ┌─ /tmp/ow-completion-refusals-d1c3cej5/deny.toml:71:9
+   │
+71 │ name = "webpki-root-certs"
+   │         ━━━━━━━━━━━━━━━━━ unmatched license exception
+
+warning[license-exception-not-encountered]: license exception was not encountered
+   ┌─ /tmp/ow-completion-refusals-d1c3cej5/deny.toml:75:9
+   │
+75 │ name = "openwarrant-compiler"
+   │         ━━━━━━━━━━━━━━━━━━━━ unmatched license exception
+
+warning[license-exception-not-encountered]: license exception was not encountered
+   ┌─ /tmp/ow-completion-refusals-d1c3cej5/deny.toml:79:9
+   │
+79 │ name = "openwarrant-agent"
+   │         ━━━━━━━━━━━━━━━━━ unmatched license exception
+
+warning[license-exception-not-encountered]: license exception was not encountered
+   ┌─ /tmp/ow-completion-refusals-d1c3cej5/deny.toml:83:9
+   │
+83 │ name = "openwarrant-cli"
+   │         ━━━━━━━━━━━━━━━ unmatched license exception
+
+warning[license-exception-not-encountered]: license exception was not encountered
+   ┌─ /tmp/ow-completion-refusals-d1c3cej5/deny.toml:87:9
+   │
+87 │ name = "xtask"
+   │         ━━━━━ unmatched license exception
+
+licenses ok
+   ok
+== corpus (§37.2 digests and §17 view drift, on the committed tree) ==
+   COULD NOT RUN: No such file or directory (os error 2)
+== attestations (every DSSE envelope verifies; every subject digest holds) ==
+   COULD NOT RUN: No such file or directory (os error 2)
+== planted violations (§92 — each rejected by its intended control) ==
+build first: cargo build --workspace
+   FAILED (exit status: 1)
+
+gate: FAIL — 9/14 step(s) failed:
+  - build (plants run the shipped binary, so it must exist)
+  - format
+  - clippy
+  - schemas (generated, drift-checked)
+  - rebuild the shipped binary without the schema feature
+  - tests (positive fixtures + planted violations)
+  - corpus (§37.2 digests and §17 view drift, on the committed tree)
+  - attestations (every DSSE envelope verifies; every subject digest holds)
+  - planted violations (§92 — each rejected by its intended control)

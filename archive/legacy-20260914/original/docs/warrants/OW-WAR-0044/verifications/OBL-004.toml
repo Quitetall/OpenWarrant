@@ -1,0 +1,20 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "The passing tests 'export::tests::a_reconnected_round_trip_with_equal_digests_verifies' and 'export::tests::an_unreconnected_round_trip_is_refused_as_vacuous' demonstrate that round trips preserve semantic and digest identity and refuse vacuous comparisons, while the plants '[OW-WAR-0020] a round trip that never reconnected the bytes' and '[OW-WAR-0020] a round trip with the bytes reconnected' were correctly rejected, confirming the control."
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

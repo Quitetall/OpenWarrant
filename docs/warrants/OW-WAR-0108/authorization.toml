@@ -1,0 +1,29 @@
+schema = "oh.war/authorization/v1"
+warrant = "OW-WAR-0108"
+sas_revision = "1.0.0"
+
+[revision]
+revision = 1
+state = "authorized"
+contract_digest = "8126367c06b9dcdae6d62b51c630ba028ed65cdddb099e56c2ace684e9a12942"
+proposer = "claude"
+
+[revision.coverage]
+covered = [
+    "intent",
+    "scope",
+    "basis_requirements",
+    "assumptions",
+    "constraints",
+    "adr_references",
+    "milestones",
+    "stages",
+]
+
+[revision.authorization]
+authorizer = "Brian Lam"
+actor_kind = "human"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0108 (Integrate shared BLUT materialization repair and retained OW47 runtime evidence) at this contract digest means the signer accepts its intent, scope and 3 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.1` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-09-19T02:38:19Z"
+independence = "separate_role"

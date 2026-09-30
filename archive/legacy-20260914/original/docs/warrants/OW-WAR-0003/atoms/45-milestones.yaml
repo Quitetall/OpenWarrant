@@ -1,0 +1,46 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M0"
+    title: "RFC 8785 library selected by ADR and license-cleared"
+    stage_refs: ["STAGE-000"]
+    obligation_refs: ["OBL-000"]
+
+  - id: "M1"
+    title: "IR shape and format basis compile"
+    depends_on: ["M0"]
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001"]
+
+  - id: "M2"
+    title: "Canonical output matches RFC 8785 published vectors"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-002"]
+
+  - id: "M3"
+    title: "Digests are domain-separated and stable"
+    depends_on: ["M2"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-003", "OBL-004"]
+
+stages:
+  - id: "STAGE-000"
+    title: "Select and license-check the canonicalization library"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-001"
+    title: "Implement the canonical IR and format basis"
+    executor_kind: "human"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-002"
+    title: "Run canonicalization conformance against external vectors"
+    executor_kind: "service"
+    responsibility_tier: "T1"
+
+  - id: "STAGE-003"
+    title: "Implement and verify domain-separated digesting"
+    executor_kind: "human"
+    responsibility_tier: "T1"

@@ -1,0 +1,46 @@
+{
+  "api_version": "oh.war/draft-proposal/v2",
+  "proposed_identity": {
+    "title": "Changelog Draft",
+    "profile": "delivery",
+    "assurance": "basic"
+  },
+  "risk_assessment": "Request to add changelog entry without reviewing governing source contents; potential for unverified claims or missing context.",
+  "operations": [
+    {
+      "op": "create_atom",
+      "role": "intent",
+      "ordinal": 1,
+      "path": "intent/10/10-intent.md",
+      "body": "Intent: Add changelog entry documenting recent delivery updates. Requires verification against existing warrants and ADRs before finalization."
+    },
+    {
+      "op": "create_atom",
+      "role": "basis",
+      "ordinal": 2,
+      "path": "basis/20/20-basis.md",
+      "body": "Basis: Governing source contents require review. No binding source text is available or verified for this specific changelog addition."
+    },
+    {
+      "op": "create_atom",
+      "role": "work_order",
+      "ordinal": 3,
+      "path": "work_order/40/40-work-order.md",
+      "body": "Deliverables: Draft changelog text. Constraints: Must cite existing warrants. Rollback: Revert entry if source verification fails."
+    },
+    {
+      "op": "create_atom",
+      "role": "milestones",
+      "ordinal": 4,
+      "path": "milestones/45/45-milestones.yaml",
+      "body": "schema: oh.war/milestones/v1\nmilestones:\n  - id: M1\n    title: Changelog Draft\n    stage_refs:\n      - STAGE-001\n    obligation_refs:\n      - OBL-001\nstages:\n  - id: STAGE-001\n    title: Review\n    executor_kind: agent\n    responsibility_tier: T1"
+    },
+    {
+      "op": "create_atom",
+      "role": "assurance",
+      "ordinal": 5,
+      "path": "assurance/60/60-assurance.md",
+      "body": "### OBL-001 — outcome\n- **scope:** Changelog entry accuracy and source citation.\n- **evidence:** Positive: Source verified. Negative: Source missing or unverified."
+    }
+  ]
+}

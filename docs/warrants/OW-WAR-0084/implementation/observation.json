@@ -1,0 +1,25 @@
+{
+  "scope": "OW-WAR-0084 supplied-byte preservation and successor mapping",
+  "source_files": {
+    "conformance/sdk/legacy/README.md": "f650946505de229aebe90f4830ceb475f91506a4dec4d5e42ee4427c2dd1f985",
+    "conformance/sdk/legacy/cases.json": "4c711c0495949518444f1f910291bead0d3337b79ee86f3fbda3f246d239720f",
+    "conformance/sdk/legacy/corrupt.json": "adac9d3fe48954350ac1ad620766c2b15d9e34dd201fcb708736963122dec15d",
+    "conformance/sdk/legacy/current.json": "222fdad4d0e180c3eabf5d9bac65ef59fdd4dd3ac187751d2e35f3b031327b9f",
+    "conformance/sdk/legacy/escaping.json": "7df8aa14d0f08904407c1a207d396d6d15c3fb18a4e1cfabc0aff7ad5b2fbff3",
+    "conformance/sdk/legacy/future.json": "26a5be33ec72dc07ba8ef774e2ce98b2f2ea72561f6641fa84b9ec95deaf4038",
+    "conformance/sdk/legacy/missing.json": "7af0a699e553976741f85f8b27173fd54ab64dd17c4b38254b2dd01e14db2700",
+    "conformance/sdk/legacy/rc2.json": "5fc425014cd14ac3519c55a7294408c144888da92af0f20c170933a3933994cb",
+    "conformance/sdk/legacy/resolved.json": "573ee908b9e9385acc3298f89cc97757c3f202c4d39c0b9d22c2c0b97f569cee",
+    "conformance/sdk/legacy/successor.json": "c4c56f11799ef454f7078126437f4df8739abbc9bd5b17233b173e735e6a30e1",
+    "conformance/sdk/legacy/unsupported.json": "d5b40923f8c18c53f25ef115040eee09cb2b3f4d3564bae7f397dc082580f32d",
+    "crates/openwarrant-core/examples/sdk_probe/legacy.rs": "49f2aeb6a540f7ae88fb77ea1b805b6d8d1c9dea848d206cc8a1c2f195a7d256",
+    "crates/openwarrant-core/src/document/legacy/codec.rs": "2abfa138e14580fc5c252e33a3705212262c2b315bfa8f38db5987f5939f375a",
+    "crates/openwarrant-core/src/document/legacy.rs": "c9c0b96cfa48bbb7a7db799350bb6804357db7d3890bb5fcbf77987f9e3041f1",
+    "crates/openwarrant-core/tests/document_legacy.rs": "50c4ac565f3632f8608fc510baa3c827488d5ea402f6f50931c0a80ef3fa9057",
+    "docs/sas/drafts/1.0.0-rc.3/sdk-contract.md": "a7ea1d7316435601dc51d9dbd2db88472b73f93bbf3063bf84e566476e88d79e"
+  },
+  "source_digest": "6a963da5fb1cc64b0590a16b9e9557b1a477fb090ddef9cd2eac8b55e537717d",
+  "public_tests": 8,
+  "driver_cases": 10,
+  "qualification_assessed": false
+}

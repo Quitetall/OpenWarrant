@@ -1,0 +1,31 @@
+{
+  "base": "8280bb94b8bcfb921bb7a14000504a2b15faa41a",
+  "files": {
+    "conformance/sdk/author/FOOTER08-title-conflict.json": "d693212b9d7132b04ac1b7dfa60075bf8352e5efc3d3a806cff0875bd3d89f5c",
+    "conformance/sdk/author/FOOTER08-title-crlf.json": "b6410e5b365f078102e31dc49531aa2504d9070d250e8e51f95b9472fccc8e73",
+    "conformance/sdk/author/README.md": "95db95e0a9b70c6eb64d732bc8f8492609b5bc77634cc4156cc1c0d682b4a451",
+    "conformance/sdk/author/T54-minimum.json": "747741bc50809bfc31e80b4f21dbd0504f287824d2348a2de4006a63fc7ab779",
+    "conformance/sdk/author/T55-duplicate-field.json": "d1aa8b184e3950bec33eb53e1252540382bf87ca408bdc649fba8756420dbd10",
+    "conformance/sdk/author/T55-footer-injection.json": "0f18ea7eb759640f50d15934325aca2ba89fcdc45eff23f3d849c7ac596821aa",
+    "conformance/sdk/author/T55-unit-injection.json": "86648b83aa8cf49af5f5e7d922636a60a85c2cb15ddd5c05eb93c13ad0664869",
+    "conformance/sdk/author/T56-duplicate-edit.json": "4f6787e9788b5f5669d9a15599af74569b7182d617d03cfe10a7f2b052ae2c2c",
+    "conformance/sdk/author/T56-false-assurance.json": "7a315afcbcdc7718ee3ad5ac71d71ff58c38ff99757dd280cb83d9c7205a55da",
+    "conformance/sdk/author/T56-revision.json": "0b618cecd766375c5ad21ddda4f4f0b7e4b671e2a320ef07fdd2dd3322cfe55b",
+    "conformance/sdk/author/T56-unit-edit.json": "ea6ecf8244d6045878ed643c2d64a6b812db6dfa09c1d1f83a24df683034251a",
+    "conformance/sdk/author/body.md": "102e1c385c8df8fd2bbe0c22560097c8542803cfe22bdb221afcba00a23a078e",
+    "conformance/sdk/author/cases.json": "8beabe9c8ec076e9f7d47dea6fddd552103653b736851085762300ed2f085042",
+    "conformance/sdk/author/minimal.md": "0a05ba08419341339d04209a6834d39617e0ebe47c2f79e7e1d91e63fdf06b9a",
+    "conformance/sdk/author/revision.md": "89e0569d496f782bc03bdb4c821292f3b636a549d50f284b48266d790e454e33",
+    "conformance/sdk/author/title-crlf.md": "5b60f59be9dd2208081bf9ff5267ae1dbc7712f5d560e79ff2dfc92cbd52d0a9",
+    "crates/openwarrant-core/examples/sdk_probe.rs": "703d041455293a33d4eae2098d2588ff0c84222227e2a8473093f436dbf4bff9",
+    "crates/openwarrant-core/examples/sdk_probe/author.rs": "822375a15b8ace92456a86c63773e8f3a67fda24f4b1d3d909df51aa1a733c9d",
+    "crates/openwarrant-core/src/document/author.rs": "0cb660ab5ff841a3b8bb9027be559727b32b1cb5623af9b03bc055a92f8f0225",
+    "crates/openwarrant-core/src/document/metadata.rs": "7bb600a7592568b8f7d35d204a750e00b72e5ff8ac3d484aa370bcabe4061f2d",
+    "crates/openwarrant-core/src/document/mod.rs": "c37d80860f5a48928338063effc0a1e4986ed2a7c1fb4f12130847254bc59432",
+    "crates/openwarrant-core/src/document/references.rs": "bf7843db996ba6fcc61ea7ed8870ebc1a513d60e5dcd5fc5f826093fa0cf17bd",
+    "crates/openwarrant-core/src/document/scan.rs": "1d0af9a0ecc6d5ed6ce30a556c1668ffd993dd6cf2503579b349d4c75f8d968f",
+    "crates/openwarrant-core/src/document/validate.rs": "d4c69ba13bc686fe80b7016031d85050610d64c6d3205790c559f2ab793fd38e",
+    "crates/openwarrant-core/tests/document_author.rs": "802a124ebbeaba3ef7e46f9053c732c7152f2af7da5b32bbdcabea483b6457e2",
+    "crates/openwarrant-core/tests/document_author_resources.rs": "b1b97f5abdf8cabc5650198d6a4423336f6edbe43fae5b130f3cbfed965ed6b7"
+  }
+}

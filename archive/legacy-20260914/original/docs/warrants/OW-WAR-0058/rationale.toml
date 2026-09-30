@@ -1,0 +1,26 @@
+schema = "oh.war/rationale/v1"
+
+# §36.2 — accepted residual risk, transcribed from this Warrant's assurance atom.
+# `judgment_ref` is empty: §27.2 forbids an agent accepting organizational
+# residual risk, so nobody has.
+
+[[assumption]]
+id = "A-001"
+statement = "A revision record that is immutable by type and checked on load is sufficient until the SAS is a controlled Knowledge Fabric document."
+epistemic_status = "accepted_residual_risk"
+consequence_if_false = "An accepted record is edited by hand to a different digest in a single commit, and the only thing that notices is a reviewer reading the diff."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-002"
+statement = "Treating a retitled requirement as architecture-changing but not as a removal is the right boundary."
+epistemic_status = "accepted_residual_risk"
+consequence_if_false = "A retitle that inverts a requirement's meaning passes the stability check, and only the ADR the acceptance requires can catch it."
+judgment_ref = ""
+
+[[assumption]]
+id = "A-003"
+statement = "Moving every workspace basis digest once, on the first proposal, harms no consumer."
+epistemic_status = "accepted_residual_risk"
+consequence_if_false = "An out-of-tree consumer that cached a workspace basis digest is wrong from that commit on, and this repository cannot know who that is."
+judgment_ref = ""

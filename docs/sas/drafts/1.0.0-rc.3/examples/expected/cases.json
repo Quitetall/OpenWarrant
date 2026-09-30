@@ -1,0 +1,16 @@
+{
+  "status": "Reference expectations for future production conformance tests, not observed compiler results",
+  "cases": [
+    {"id":"minimal-valid", "input":"minimal.md", "validity":"valid", "permission":"not-established"},
+    {"id":"detailed-implementation", "input":"signup.md", "stage":"implementation", "subsystems":["identity"], "paths":["src/signup.rs"], "required_units":["architecture.md#decision","architecture.md#inactive","signup.md#outcome","signup.md#scope","signup.md#context","signup.md#constraints","signup.md#acceptance","signup.md#outputs","signup.md#stop","acceptance.json#*"], "omitted_units":["architecture.md#session","signup.md#approach"], "absent_optional":["unavailable-notes.txt"]},
+    {"id":"unknown-scope", "input":"signup.md", "remove_scope_metadata":true, "stage":"implementation", "required_units":["architecture.md#decision","architecture.md#inactive","architecture.md#session"], "diagnostic":"applicability-unknown", "permission":"not-established"},
+    {"id":"false-stage", "input":"signup.md", "stage":"preparation", "paths":["src/signup.rs"], "omitted_units":["architecture.md#decision","architecture.md#inactive","architecture.md#session"]},
+    {"id":"missing-required", "mutation":"remove architecture.md", "diagnostic":"target-missing", "context_complete":false},
+    {"id":"missing-unit", "mutation":"remove inactive unit", "diagnostic":"target-missing", "context_complete":false},
+    {"id":"duplicate-unit", "mutation":"rename inactive marker to decision", "diagnostic":"unit-duplicate"},
+    {"id":"bad-condition", "mutation":"replace subsystem condition key with arbitrary_code", "diagnostic":"condition-invalid"},
+    {"id":"insufficient-budget", "entry_token_budget":1, "diagnostic":"budget-exceeded", "context_complete":false},
+    {"id":"prototype-qualifies-later", "history":"fixtures prepared after implementation, protected before independent verification", "baseline":"eligible only with trusted evidence and human acceptance", "fixtures_before_work":"not established"},
+    {"id":"policy-only-finish", "human_acceptance":false, "signed_complete":false, "assurance_mark":false}
+  ]
+}

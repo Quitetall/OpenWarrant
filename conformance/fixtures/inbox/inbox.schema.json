@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Proposed oh.war/inbox/v1 (OW-ADR-0018, not adopted)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "namespace",
+    "generated_at",
+    "items"
+  ],
+  "properties": {
+    "api_version": {
+      "const": "oh.war/inbox/v1"
+    },
+    "namespace": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "alias",
+          "title",
+          "state",
+          "awaited_act",
+          "waiting_since"
+        ],
+        "properties": {
+          "alias": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "draft",
+              "proposed",
+              "authorized",
+              "ready",
+              "executing",
+              "verifying",
+              "resolved"
+            ]
+          },
+          "awaited_act": {
+            "enum": [
+              "answer",
+              "authorize",
+              "correct",
+              "resolve"
+            ]
+          },
+          "waiting_since": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

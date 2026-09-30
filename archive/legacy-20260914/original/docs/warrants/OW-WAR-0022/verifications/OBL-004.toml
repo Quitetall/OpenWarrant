@@ -1,0 +1,20 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "The test 'a_required_unknown_blocks_resolution' in the gate_run::tests module, which passed, directly verifies that a required unknown blocks resolution, as enforced by the 'no_required_unknown_remains' check in the ResolutionChecks struct in crates/openwarrant-core/src/resolution.rs."
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

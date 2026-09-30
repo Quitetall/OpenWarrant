@@ -1,0 +1,20 @@
+schema = "oh.war/resolution/v1"
+warrant = "OW-WAR-0010"
+
+[resolution]
+id = "01a060fd-326a-7d90-a6a7-df39ead974db"
+common_outcome = "satisfied"
+profile_outcome = "delivered"
+contract_revision = 1
+contract_digest = "789ae9f4627a82b1acadc9e56aa5dec9c92790a3e9c2edb610b818d7ef919ffa"
+assurance_case_snapshot_digest = "sha256:da7164328741553acb69192d96379e1713a3ce838c3671215cef1bf852fa2e19"
+artifact_manifest_digest = "sha256:96128c5ea947a8a9560957c5593ac64608fb00affbb21d05a572523173d885ae"
+gate_run_refs = ["docs/warrants/OW-WAR-0010/gate-runs/software_repo_war-check_1_0_0.receipt.json"]
+judgment_refs = ["judgment://J-001"]
+residual_risk_refs = ["assumption://A-001"]
+resolved_by_ref = "person://Brian Lam"
+acting_role_ref = "role-assignment://Brian Lam/resolver"
+meaning = """Resolving OW-WAR-0010 (Implement the autonomy envelope and amendment records) as satisfied asserts that its declared deliverables exist at their recorded digests, that every declared obligation (OBL-001, OBL-002, OBL-003) was established by an admissible independent verification, and that the cited gate ran against this exact contract and passed. It asserts nothing beyond those bounded obligations. Response drafted by the performer `claude` on the repository owner's express instruction of 2026-09-02 ("I give you my express permission to approve these things", and "Get it done" for making the headline nonzero); the decision is the owner's, the wording is the agent's."""
+effective_at = "2026-09-02T09:30:00Z"
+recorded_at = "2026-09-02T07:20:01Z"
+standing = "valid"

@@ -1,0 +1,19 @@
+   Compiling ring v0.17.14
+   Compiling openwarrant-compiler v1.0.0 (/mnt/4tb/tmp/ow11-preflight/crates/openwarrant-compiler)
+   Compiling rustls v0.23.43
+   Compiling rustls-webpki v0.103.15
+   Compiling ureq v3.4.0
+   Compiling openwarrant-cli v1.0.0 (/mnt/4tb/tmp/ow11-preflight/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.54s
+     Running tests/preflight_cli.rs (target/debug/deps/preflight_cli-366e9e94e90de1c5)
+
+running 6 tests
+test unknown_runtime_blocks_without_omitting_any_dimension ... ok
+test read_only_and_human_output_names_all_dimensions ... ok
+test later_graph_cannot_hide_an_earlier_failure ... ok
+test unavailable_authorization_is_not_reported_absent ... ok
+test reproduced_commitment_does_not_claim_authority_or_runtime ... ok
+test missing_atom_and_cyclic_graph_refuse_with_named_checks ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

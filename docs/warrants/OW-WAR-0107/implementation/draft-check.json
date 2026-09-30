@@ -1,0 +1,121 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "check",
+  "diagnostics": [
+    {
+      "severity": "pass",
+      "rule": "gate.registered",
+      "file": null,
+      "message": "document.review@1.0.0: local candidate, qualified against its declared fault model"
+    },
+    {
+      "severity": "pass",
+      "rule": "gate.registered",
+      "file": null,
+      "message": "ops.conformance.plants@1.0.0: local candidate, qualified against its declared fault model"
+    },
+    {
+      "severity": "pass",
+      "rule": "gate.registered",
+      "file": null,
+      "message": "ops.echo@1.0.0: local candidate, qualified against its declared fault model"
+    },
+    {
+      "severity": "pass",
+      "rule": "gate.registered",
+      "file": null,
+      "message": "software.repo.bonsai-evidence@1.0.0: local candidate, qualified against its declared fault model"
+    },
+    {
+      "severity": "pass",
+      "rule": "gate.registered",
+      "file": null,
+      "message": "software.repo.war-check@1.0.0: local candidate, qualified against its declared fault model"
+    },
+    {
+      "severity": "warn",
+      "rule": "independence.insufficient",
+      "file": "openwarrant.toml",
+      "message": "1 basic Warrant(s): basic assurance requires verifier_controlled_execution, and the declared independence does not provide it: cannot_modify_subject_artifacts, cannot_modify_gate_definition, cannot_modify_gate_fixtures, separate_writable_workspace. §27.4 — role separation by one person is not organizational independence"
+    },
+    {
+      "severity": "pass",
+      "rule": "relations.child-listed",
+      "file": null,
+      "message": "OW-WAR-0001: generated view lists all 4 child WAR(s)"
+    },
+    {
+      "severity": "pass",
+      "rule": "relations.parent-source",
+      "file": null,
+      "message": "OW-WAR-0001: authored atoms carry no child state; §20.4's list stays generated"
+    },
+    {
+      "severity": "pass",
+      "rule": "manifest.valid",
+      "file": null,
+      "message": "OW-WAR-0107: manifest and composition are well-formed"
+    },
+    {
+      "severity": "pass",
+      "rule": "journal.append-only",
+      "file": null,
+      "message": "OW-WAR-0107: 1 event(s), 0 backfilled, extends the committed journal"
+    },
+    {
+      "severity": "pass",
+      "rule": "milestones.valid",
+      "file": null,
+      "message": "OW-WAR-0107: 1 milestone(s), 1 stage(s), acyclic with no dangling refs"
+    },
+    {
+      "severity": "pass",
+      "rule": "obligations.valid",
+      "file": null,
+      "message": "OW-WAR-0107: 3 obligation(s), each with a bounded scope and evidence"
+    },
+    {
+      "severity": "pass",
+      "rule": "bonsai-scope.valid",
+      "file": null,
+      "message": "OW-WAR-0107: machine scope resolves to declared obligations"
+    },
+    {
+      "severity": "pass",
+      "rule": "composition.acyclic",
+      "file": null,
+      "message": "parent graph is acyclic across 1 Warrant(s)"
+    },
+    {
+      "severity": "pass",
+      "rule": "adr.parsed",
+      "file": null,
+      "message": "20 ADR(s) parsed"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.pinned",
+      "file": null,
+      "message": "docs/sas/WAR_Software_Architecture_Specification.md matches revision 1.0.0 (accepted), sha256:b7105f528305"
+    }
+  ],
+  "notes": [
+    "1 of 1 Warrant(s) have no disposed              obligations — §38.6 yields no resolution verdict for them, which is the              expected state of work that has not been assessed",
+    "contract digest covers 8 of 17 §28.5 elements — missing: deliverables, capabilities, autonomy, resources, gates, obligations, rollback, amendment_policy, assurance_requirements",
+    "gate execution — `war gate --run` executes a registered gate (§44), but `war check` does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run",
+    "Preflight readiness (§32.7) — 'well-formed' is a claim about the record only",
+    "bound-atom resolution — `ref =` atoms cannot be fetched offline",
+    "Source Holder ambiguity and classification propagation (§91.2 tests 14, 15) — narrowed by OW-ADR-0008: test 14 needs a `source_holder` on atoms, which §13 requires and none declares; test 15 needs a classification ordering, which the SAS does not give. Neither is undecided — both are undeclared",
+    "generated-view drift — pass --generated to compare committed projections"
+  ],
+  "counts": {
+    "pass": 15,
+    "warn": 1,
+    "unknown": 0,
+    "error": 0,
+    "worst": "warn"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0
+}

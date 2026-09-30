@@ -1,0 +1,15 @@
+schema = "oh.war/rationale/v1"
+
+# §36.3 — transcribed from this Warrant's assurance atom by the performer.
+# The atom says promotion to blocking enforcement needs an external human
+# review and administrator-owned GitHub settings, and that those records
+# remain outside the Warrant. That is a blocking unknown, not a residual risk:
+# nobody has accepted it, and nothing here can resolve it.
+
+[[assumption]]
+id = "A-001"
+statement = "The GitHub repository settings that make the Bonsai evidence check blocking (required status check, administrator-owned) are configured, and an independent human has reviewed the promotion."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "An administrator confirms the required-check setting for `bonsai-report` and an independent reviewer records the promotion; both are outside this repository's records today."
+consequence_if_false = "The Bonsai report runs on every pull request and blocks nothing; the Warrant's intent (governed evidence that can refuse a merge) is not met."
+judgment_ref = ""

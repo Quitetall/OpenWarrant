@@ -1,0 +1,10 @@
+schema = "oh.war/authorization-response/v1"
+warrant = "OW-WAR-0067"
+contract_digest = "b2242029428dcfefbf9083eca410f6df1e147e231ab964ae0262894af283f720"
+authorizer = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0067 (Release 1.0: the seven acts that close the plan, deferred to the owner's signature) at this contract digest means the signer accepts its intent, scope and 3 obligation(s) as the work to be done and judged, and accepts each of the 0 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 0.1.0` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-09-12T20:42:19Z"
+independence = "separate_role"
+judgment = []
+signed_via = "ssh"

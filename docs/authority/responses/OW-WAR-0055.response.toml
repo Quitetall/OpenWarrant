@@ -1,0 +1,39 @@
+schema = "oh.war/authorization-response/v1"
+warrant = "OW-WAR-0055"
+contract_digest = "218d3d988671c88d80a79e51898f2dd1b045144e8d82b440fca1642eb95e0917"
+authorizer = "Brian Lam"
+acting_role = "authorizer"
+meaning = "Authorizing OW-WAR-0055 (Compute the goal hierarchy: war status and the corpus projection) at this contract digest means the signer accepts its intent, scope and 6 obligation(s) as the work to be done and judged, and accepts each of the 3 residual risk(s) recorded below with its stated consequence. It does not resolve the Warrant; resolution still requires the §56.1 evidence. Presented on a terminal by `war sign 1.0.0-alpha.1` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+effective_time = "2026-09-19T02:38:18Z"
+independence = "separate_role"
+signed_via = "ssh"
+
+[[judgment]]
+id = "J-001"
+kind = "residual_risk_acceptance"
+statement = "The roadmap:// grammar is an OpenWarrant convention that the SAS will not later bind to milestone ids."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "Accepting residual risk A-001 for OW-WAR-0055: if the assumption is false, the consequence is: Every topic slug in the corpus becomes a reference to nothing, and 49 manifests need a coordinated edit that moves every contract digest. Presented on a terminal by `war sign 1.0.0-alpha.1` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+basis_refs = ["assumption://A-001"]
+authority = "authorized"
+
+[[judgment]]
+id = "J-002"
+kind = "residual_risk_acceptance"
+statement = "Defining Objective achievement by the exit-slug Warrant is sufficient."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "Accepting residual risk A-002 for OW-WAR-0055: if the assumption is false, the consequence is: A phase whose exit Warrant is misnamed reports not_derivable rather than blocked, which is honest and easy to read past; Phase 1 does so today. Presented on a terminal by `war sign 1.0.0-alpha.1` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+basis_refs = ["assumption://A-002"]
+authority = "authorized"
+
+[[judgment]]
+id = "J-003"
+kind = "residual_risk_acceptance"
+statement = "A headline of zero satisfied will be read as the truth rather than as a broken tool."
+actor = "Brian Lam"
+acting_role = "risk_acceptor"
+meaning = "Accepting residual risk A-003 for OW-WAR-0055: if the assumption is false, the consequence is: A reader expecting a percentage dismisses the projection, and the one honest number in the system goes unread. Presented on a terminal by `war sign 1.0.0-alpha.1` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+basis_refs = ["assumption://A-003"]
+authority = "authorized"

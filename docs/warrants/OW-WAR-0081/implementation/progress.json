@@ -1,0 +1,18 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0081",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "f4d968a9137a0edb5a4abc3c4538288a79559696",
+  "summary": "SDK integrity plus actual LAMU portable package construction, offline semantic reconstruction and safe publication implemented and reviewed. Implementation complete, unverified. Merged LAMU provider retested through OW86; full-phase qualification remains separate.",
+  "notes": "docs/warrants/OW-WAR-0081/implementation/notes.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0081/implementation/package-observation.json",
+    "docs/warrants/OW-WAR-0086/implementation/merged-exchange-observation.json",
+    "docs/warrants/OW-WAR-0086/implementation/lamu-merged-pr.json"
+  ],
+  "next_steps": [
+    "Retain exact historical evidence and unverified status.",
+    "Complete full Phase 1/2 qualification through OW85/86."
+  ]
+}

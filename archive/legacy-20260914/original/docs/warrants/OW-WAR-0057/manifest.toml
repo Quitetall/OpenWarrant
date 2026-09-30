@@ -1,0 +1,56 @@
+schema = "oh.war/manifest/v1"
+uuid = "01a0603f-d2c2-7ad1-a9f7-aa223a6d6559"
+local_alias = "OW-WAR-0057"
+
+# Allocated only by Knowledge Fabric (SAS §12.4). Leave empty.
+enterprise_id = ""
+
+title = "The viewer: a static page over the corpus projection"
+profile = "delivery"
+assurance_level = "basic"
+
+# One more drift-checked generated view. Partial: the drift check is
+# OW-WAR-0004's; this Warrant adds a page to it.
+[[implements]]
+ref = "sas://WAR-SAS-RQ-075"
+contribution = "partial"
+
+# The page is a generated parent — not directly editable (§13). Partial for
+# the same reason.
+[[implements]]
+ref = "sas://WAR-SAS-RQ-012"
+contribution = "partial"
+
+[[roadmap]]
+ref = "roadmap://OW-PHASE-1/projections"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+required = true
+
+[[atoms]]
+ordinal = 20
+role = "basis"
+path = "atoms/20-basis.md"
+required = true
+
+[[atoms]]
+ordinal = 40
+role = "work_order"
+path = "atoms/40-work-order.md"
+required = true
+
+[[atoms]]
+ordinal = 45
+role = "milestones"
+path = "atoms/45-milestones.yaml"
+required = true
+
+[[atoms]]
+ordinal = 60
+role = "assurance"
+path = "atoms/60-assurance.md"
+required = true
+

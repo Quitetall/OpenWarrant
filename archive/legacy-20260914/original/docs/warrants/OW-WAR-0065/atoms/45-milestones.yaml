@@ -1,0 +1,14 @@
+schema: "oh.war/milestones/v1"
+
+milestones:
+  - id: "M1"
+    title: "The memo is written and independently reviewed"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-002"]
+
+stages:
+  - id: "STAGE-001"
+    title: "Measure, decide, write"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+    context_sections: ["40-work-order.md#Deliverables"]

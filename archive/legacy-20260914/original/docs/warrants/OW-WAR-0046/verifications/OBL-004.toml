@@ -1,0 +1,20 @@
+obligation = "OBL-004"
+disposition = "established"
+evidence = "The passing tests in the resolution module—specifically 'a_dispute_moves_standing_without_touching_the_original', 'annulment_leaves_the_original_historical', and 'supersession_does_not_invalidate_the_superseded'—demonstrate that dispute and annulment preserve history byte-for-byte and that supersession does not invalidate the superseded record, as required by §56.4 and §56.5."
+performer = "claude"
+
+[verifier]
+actor = "lamu:mimo-v2.5-pro"
+kind = "agent"
+model = "mimo-v2.5-pro"
+
+[verifier.independence]
+performer_transcript_blind = true
+performer_rationale_blind = true
+separate_writable_workspace = true
+cannot_modify_subject_artifacts = true
+cannot_modify_gate_definition = true
+cannot_modify_gate_fixtures = true
+separate_context_compilation = true
+distinct_model_required = true
+distinct_human_required = false

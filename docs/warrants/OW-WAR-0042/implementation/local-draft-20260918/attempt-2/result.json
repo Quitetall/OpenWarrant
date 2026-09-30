@@ -1,0 +1,10 @@
+{
+  "outcome": "invalid_truncated_json",
+  "finish_reason": "length",
+  "model_call_exit": 0,
+  "proposal_applied": false,
+  "qualification_established": false,
+  "adapter_sha256": "ed12f55e98ec204c6ee4b3d067feedaa7a58cee0cb5c52765a0382ceaed16c18",
+  "max_output_tokens": 1000,
+  "timeout_seconds": 240
+}
