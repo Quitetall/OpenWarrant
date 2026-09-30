@@ -1,0 +1,22 @@
+{
+  "path": "architecture.md",
+  "source_digest": "sha256:df6856e5fa47d36f3e4b15e1452957051747edbe94a96d65533068b6567527fa",
+  "byte_length": 1266,
+  "holder": {
+    "kind": "example",
+    "locator": "example:fixture"
+  },
+  "metadata": {
+    "trust": "untrusted",
+    "classification": "internal",
+    "taints": [],
+    "authority": "unestablished",
+    "basis_refs": []
+  },
+  "document": {
+    "id": "example:activation-decision",
+    "revision": 3,
+    "schema": "oh.war/document/1.0.0-rc.3",
+    "kind": "adr"
+  }
+}
