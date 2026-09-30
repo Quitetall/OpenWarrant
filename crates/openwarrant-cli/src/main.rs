@@ -41,6 +41,7 @@ mod perform;
 mod pins;
 mod plan;
 mod progress;
+mod progress_viewer;
 mod questions;
 mod relations;
 mod repo;
@@ -768,9 +769,21 @@ enum Command {
     /// `progress` is an alias. Legacy resolution is not implementation completion.
     #[command(visible_alias = "progress")]
     Overview {
-        /// Include records with an existing resolution.
+        /// Include records with an existing resolution in text/JSON output.
         #[arg(long)]
         all: bool,
+        /// Write a self-contained HTML snapshot (all records), with no implicit server.
+        #[arg(long, num_args=0..=1, default_missing_value=".openwarrant/state/progress.html", conflicts_with="serve")]
+        html: Option<std::path::PathBuf>,
+        /// Serve a read-only, periodically refreshed view on 127.0.0.1.
+        #[arg(long)]
+        serve: bool,
+        /// Local server port; 0 selects an available port.
+        #[arg(long, default_value_t = 8765, requires = "serve")]
+        port: u16,
+        /// Refresh interval, in seconds (1..=3600).
+        #[arg(long, default_value_t=5, value_parser=clap::value_parser!(u64).range(1..=3600), requires="serve")]
+        refresh_secs: u64,
     },
     /// Where the corpus stands, from records (§17.5 `status`; §34.3; §98).
     ///
@@ -1742,8 +1755,28 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             );
             Ok(EXIT_OK)
         }
-        Command::Overview { all } => {
+        Command::Overview {
+            all,
+            html,
+            serve,
+            port,
+            refresh_secs,
+        } => {
             let repository = repo::Repository::discover(None)?;
+            if let Some(path) = html {
+                progress_viewer::export(&repository, &path)?;
+                output::emit(
+                    mode,
+                    "overview",
+                    &format!("Progress: {}", path.display()),
+                    serde_json::json!({"html":path}),
+                );
+                return Ok(EXIT_OK);
+            }
+            if serve {
+                progress_viewer::serve(repository, port, refresh_secs, mode)?;
+                return Ok(EXIT_OK);
+            }
             let view = overview::build(status::build(&repository)?, all);
             output::emit(
                 mode,

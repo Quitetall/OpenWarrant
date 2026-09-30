@@ -1,0 +1,12 @@
+schema: "oh.war/milestones/v1"
+milestones:
+  - id: "M1"
+    title: "Offline and live viewer tested"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
+stages:
+  - id: "STAGE-001"
+    title: "Implement and review progress viewer"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+    executor_ref: "agent://codex"
