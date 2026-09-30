@@ -17,11 +17,16 @@ categories.workspace = true
 # compiler's. Keeping `std::fs` out of here is what makes the validators
 # testable against in-memory fixtures rather than against a scratch directory.
 [dependencies]
+jstrict = { workspace = true }
 serde = { workspace = true }
+# Extension fields are JSON protocol data. `jstrict` supplies the mandatory
+# first admission phase: a lossless AST which preserves duplicate keys and
+# lexical numbers while keeping real objects distinct from Serde transports.
+# Accepted numbers are normalized through the workspace RFC 8785
+# implementation; values whose mathematical meaning would change fail closed.
+serde_jcs = { workspace = true }
 thiserror = { workspace = true }
 uuid = { workspace = true }
 
-# Test-only. This crate's production dependency surface is deliberately serde,
-# thiserror, uuid and nothing else; a round-trip test must not widen it.
 [dev-dependencies]
 serde_json = { workspace = true }

@@ -34,6 +34,7 @@ pub mod gate_run;
 pub mod identity;
 pub mod independence;
 pub mod journal;
+pub mod legacy_disposition;
 pub mod lifecycle;
 pub mod manifest;
 pub mod migration;
@@ -67,8 +68,10 @@ pub use gate::{
     GateLifecycle, GateProvenance, GateRef, GateRegistry, Qualification,
 };
 pub use gate_run::{
-    Askability, DependentResolution, ExecutionStatus, GateReceipt, GateRun, GateRunError,
-    Invocation, MIGRATION_CLASSES, MutationDeclaration, ReasonCode, Verdict,
+    Askability, DependentResolution, ExecutionStatus, GATE_RECEIPT_KIND, GATE_RECEIPT_SCHEMA,
+    GateExitResult, GateReceipt, GateReceiptExtensions, GateRun, GateRunError, Invocation,
+    MIGRATION_CLASSES, MutationDeclaration, ReasonCode, TEST_SELECTION_OBSERVATION_KIND,
+    TEST_SELECTION_OBSERVATION_SCHEMA, TestSelectionObservation, Verdict,
 };
 pub use identity::{IdentityError, LocalAlias, WarUuid};
 pub use manifest::{

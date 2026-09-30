@@ -11,7 +11,8 @@ implementation_ref: "artifact://openwarrant-cli/war-bonsai-verify-evidence"
 output_schema_ref: "schema://bonsai-evidence/v1"
 provenance: "local_candidate"
 input_kinds: ["bonsai-evidence"]
-argv: ["./target/debug/war", "bonsai", "verify-evidence", "--evidence", "bonsai-evidence.json"]
+argv: ["./target/debug/war", "bonsai", "verify-evidence", "--evidence", "-"]
+selection_manifest: ["check://bonsai-evidence-document"]
 mutating: "false"
 timeout_secs: "30"
 

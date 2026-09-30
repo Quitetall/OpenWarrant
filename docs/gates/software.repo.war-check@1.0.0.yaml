@@ -27,6 +27,7 @@ input_kinds: ["warrant-corpus"]
 # PATH here would make this gate permanently not_askable(missing_tool) in the one
 # environment it is supposed to run in.
 argv: ["./target/debug/war", "check", "--generated"]
+selection_manifest: ["check://warrant-corpus"]
 
 # §44.8 — this gate reads; it changes nothing.
 mutating: "false"

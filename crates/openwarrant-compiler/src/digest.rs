@@ -26,7 +26,7 @@ use sha2::{Digest, Sha256};
 
 /// The digest domains a conforming implementation must compute (§65).
 ///
-/// All fifteen are listed here even though Phase 1 computes only a few: the
+/// All sixteen are listed here even though Phase 1 computes only a few: the
 /// vocabulary is protocol surface, and a later phase adding a domain should be
 /// an edit to this enum rather than a new string literal invented at a call site.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -43,6 +43,7 @@ pub enum DigestDomain {
     Artifact,
     GateBinding,
     GateRun,
+    GateReceipt,
     AssuranceCaseSnapshot,
     Resolution,
     WarExport,
@@ -50,7 +51,7 @@ pub enum DigestDomain {
 
 impl DigestDomain {
     /// Every domain, in declaration order. Used by conformance tests.
-    pub const ALL: [Self; 15] = [
+    pub const ALL: [Self; 16] = [
         Self::AtomSource,
         Self::Manifest,
         Self::CompositionRevision,
@@ -63,6 +64,7 @@ impl DigestDomain {
         Self::Artifact,
         Self::GateBinding,
         Self::GateRun,
+        Self::GateReceipt,
         Self::AssuranceCaseSnapshot,
         Self::Resolution,
         Self::WarExport,
@@ -84,6 +86,7 @@ impl DigestDomain {
             Self::Artifact => "oh.war/artifact/v1",
             Self::GateBinding => "oh.war/gate-binding/v1",
             Self::GateRun => "oh.war/gate-run/v1",
+            Self::GateReceipt => "oh.war/gate-receipt/v1",
             Self::AssuranceCaseSnapshot => "oh.war/assurance-case-snapshot/v1",
             Self::Resolution => "oh.war/resolution/v1",
             Self::WarExport => "oh.war/war-export/v1",
@@ -113,11 +116,12 @@ mod tests {
     use super::*;
     use std::collections::BTreeSet;
 
-    /// §65 lists fifteen domains. If the SAS grows one, this fails and the
+    /// §65 lists sixteen domains. If the SAS grows one, this fails and the
     /// vocabulary gets updated deliberately rather than drifting.
     #[test]
-    fn all_fifteen_domains_are_present() {
-        assert_eq!(DigestDomain::ALL.len(), 15);
+    fn all_sixteen_domains_are_present() {
+        assert_eq!(DigestDomain::ALL.len(), 16);
+        assert_eq!(DigestDomain::GateReceipt.as_uri(), "oh.war/gate-receipt/v1");
     }
 
     /// §91.1 test 6: different digest domains produce different preimages.

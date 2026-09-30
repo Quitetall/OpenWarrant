@@ -17,6 +17,7 @@ name = "war"
 path = "src/main.rs"
 
 [dependencies]
+cap-std = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 # Removed in 811e0f3 as an unused dependency and restored here for its first
@@ -25,6 +26,19 @@ serde_json = { workspace = true }
 openwarrant-compiler = { path = "../openwarrant-compiler", version = "0.1.0" }
 openwarrant-core = { path = "../openwarrant-core", version = "0.1.0" }
 camino = { workspace = true }
+process-wrap = { workspace = true }
 ureq = { workspace = true }
 clap = { workspace = true }
+libc = "0.2"
 toml = { workspace = true }
+
+[target.'cfg(windows)'.dependencies]
+winapi-util = { workspace = true }
+windows-sys = { workspace = true }
+winx = { workspace = true }
+
+[target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
+rustix = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3"

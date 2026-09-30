@@ -50,8 +50,18 @@ pub enum AuthorityError {
     UnknownRole { found: String, known: String },
     #[error("a role assignment must name the actor it assigns (§27.4)")]
     MissingActor,
+    #[error(
+        "actor identity {actor:?} is not canonical; leading or trailing whitespace creates an alias"
+    )]
+    NonCanonicalActor { actor: String },
     #[error("a role assignment must record who assigned it (§27.4)")]
     MissingAssigner,
+    #[error(
+        "assigner identity {assigner:?} is not canonical; leading or trailing whitespace creates an alias"
+    )]
+    NonCanonicalAssigner { assigner: String },
+    #[error("a role assignment must record when it became effective (§27.4)")]
+    MissingEffectiveTime,
     #[error("a role assignment must grant at least one role")]
     NoRoles,
     #[error(
@@ -202,8 +212,21 @@ impl RoleAssignment {
         if self.actor.trim().is_empty() {
             return Err(AuthorityError::MissingActor);
         }
+        if self.actor.trim() != self.actor {
+            return Err(AuthorityError::NonCanonicalActor {
+                actor: self.actor.clone(),
+            });
+        }
         if self.assigned_by.trim().is_empty() {
             return Err(AuthorityError::MissingAssigner);
+        }
+        if self.assigned_by.trim() != self.assigned_by {
+            return Err(AuthorityError::NonCanonicalAssigner {
+                assigner: self.assigned_by.clone(),
+            });
+        }
+        if self.effective_time.trim().is_empty() {
+            return Err(AuthorityError::MissingEffectiveTime);
         }
         if self.roles.is_empty() {
             return Err(AuthorityError::NoRoles);
@@ -560,6 +583,30 @@ mod tests {
         a.roles.insert(ActorRole::Resolver);
         a.assigned_by = "  ".to_owned();
         assert!(matches!(a.validate(), Err(AuthorityError::MissingAssigner)));
+    }
+
+    #[test]
+    fn actor_and_assigner_identities_are_canonical_and_time_is_present() {
+        let mut a = assignment("brian", ActorKind::Human, &[ActorRole::Verifier]);
+        a.actor.push(' ');
+        assert!(
+            a.validate().is_err(),
+            "surrounding actor whitespace aliases identity"
+        );
+
+        let mut a = assignment("brian", ActorKind::Human, &[ActorRole::Verifier]);
+        a.assigned_by.insert(0, ' ');
+        assert!(
+            a.validate().is_err(),
+            "surrounding assigner whitespace aliases identity"
+        );
+
+        let mut a = assignment("brian", ActorKind::Human, &[ActorRole::Verifier]);
+        a.effective_time.clear();
+        assert!(
+            a.validate().is_err(),
+            "authority without an effective time is not effective"
+        );
     }
 
     #[test]

@@ -27,7 +27,7 @@
 use std::collections::BTreeMap;
 use std::fmt;
 use std::fs;
-use std::process::{Command, Output};
+use std::process::Output;
 
 use camino::{Utf8Path, Utf8PathBuf};
 use openwarrant_compiler::sha256_hex;
@@ -35,6 +35,12 @@ use openwarrant_core::migration::{
     HistoricalClaim, LegacyDeclaredUnqualified, LegacyMapping, MigratedAdr, map_legacy_heading,
 };
 use serde::{Deserialize, Serialize};
+
+const MAX_CORPUS_LISTING_BYTES: usize = 16 * 1024 * 1024;
+const MAX_ADR_SOURCE_BYTES: u64 = 16 * 1024 * 1024;
+const MAX_CORPUS_SOURCE_BYTES: u64 = 256 * 1024 * 1024;
+const MAX_CORPUS_ADRS: usize = 4096;
+const MAX_GIT_STDOUT_BYTES: usize = 64 * 1024 * 1024;
 
 /// Why an import stopped.
 ///
@@ -78,6 +84,10 @@ pub enum MigrateError {
     },
     CorpusEmpty {
         path: Utf8PathBuf,
+    },
+    ResourceLimit {
+        what: String,
+        limit: u64,
     },
     Read {
         path: Utf8PathBuf,
@@ -148,6 +158,12 @@ impl fmt::Display for MigrateError {
                  import is reported as an error rather than as a clean run of zero \
                  ADRs, which would satisfy every count while importing nothing"
             ),
+            Self::ResourceLimit { what, limit } => {
+                write!(
+                    f,
+                    "{what} exceeds the deterministic import limit of {limit}"
+                )
+            }
             Self::Read { path, source } => write!(f, "reading {path:?}: {source}"),
             Self::Write { path, source } => write!(f, "writing {path:?}: {source}"),
             Self::Serialise(source) => write!(f, "serialising the import artifact: {source}"),
@@ -218,14 +234,7 @@ fn git_output(
     operation: &'static str,
     args: &[&str],
 ) -> Result<Output, MigrateError> {
-    Command::new("git")
-        // Replacement refs are local overlays. Honouring one would make the
-        // literal SHA in the artifact name different bytes on different hosts.
-        .arg("--no-replace-objects")
-        .arg("-C")
-        .arg(cwd)
-        .args(args)
-        .output()
+    crate::git_cmd::output(cwd.as_std_path(), args, MAX_GIT_STDOUT_BYTES)
         .map_err(|source| MigrateError::GitInvocation { operation, source })
 }
 
@@ -283,7 +292,7 @@ fn repository_context(corpus: &Utf8Path) -> Result<(Utf8PathBuf, String), Migrat
     Ok((repository, relative_root))
 }
 
-fn committed_adr_paths(
+pub(crate) fn committed_adr_paths(
     repository: &Utf8Path,
     relative_root: &str,
     commit_sha: &str,
@@ -332,6 +341,12 @@ fn committed_adr_paths(
             detail: git_detail(&listing),
         });
     }
+    if listing.stdout.len() > MAX_CORPUS_LISTING_BYTES {
+        return Err(MigrateError::ResourceLimit {
+            what: "committed corpus path listing".to_owned(),
+            limit: MAX_CORPUS_LISTING_BYTES as u64,
+        });
+    }
 
     let mut paths = vec![];
     for raw in listing
@@ -357,6 +372,12 @@ fn committed_adr_paths(
             continue;
         };
         paths.push((filename.to_owned(), path.to_owned()));
+        if paths.len() > MAX_CORPUS_ADRS {
+            return Err(MigrateError::ResourceLimit {
+                what: "committed ADR count".to_owned(),
+                limit: MAX_CORPUS_ADRS as u64,
+            });
+        }
     }
     paths.sort_by(|left, right| left.1.cmp(&right.1));
     Ok(paths)
@@ -368,6 +389,29 @@ fn read_committed_text(
     path: &str,
 ) -> Result<String, MigrateError> {
     let object = format!("{commit_sha}:{path}");
+    let size = git_output(
+        repository,
+        "measure committed ADR",
+        &["cat-file", "-s", &object],
+    )?;
+    if !size.status.success() {
+        return Err(MigrateError::GitFailure {
+            operation: "measure committed ADR",
+            detail: git_detail(&size),
+        });
+    }
+    let size = trim_git_line(git_stdout_text(size, "measure committed ADR")?)
+        .parse::<u64>()
+        .map_err(|_| MigrateError::GitFailure {
+            operation: "measure committed ADR",
+            detail: format!("invalid blob size for {object}"),
+        })?;
+    if size > MAX_ADR_SOURCE_BYTES {
+        return Err(MigrateError::ResourceLimit {
+            what: format!("committed ADR {path}"),
+            limit: MAX_ADR_SOURCE_BYTES,
+        });
+    }
     let output = git_output(
         repository,
         "read committed ADR",
@@ -379,6 +423,12 @@ fn read_committed_text(
             detail: git_detail(&output),
         });
     }
+    if output.stdout.len() as u64 != size {
+        return Err(MigrateError::GitFailure {
+            operation: "read committed ADR",
+            detail: format!("blob size for {path} changed while read"),
+        });
+    }
     git_stdout_text(output, "read committed ADR")
 }
 
@@ -386,7 +436,7 @@ fn read_committed_text(
 ///
 /// The body is everything after the closing fence, VERBATIM. §96.1 is a claim
 /// about those bytes, so nothing here trims, re-wraps, or normalises them.
-fn split_frontmatter(text: &str) -> (&str, &str) {
+pub(crate) fn split_frontmatter(text: &str) -> (&str, &str) {
     let Some(rest) = text.strip_prefix("---\n") else {
         return ("", text);
     };
@@ -611,6 +661,26 @@ pub fn import(
     commit_sha: &str,
     attempt_promotion: bool,
 ) -> Result<ImportArtifact, MigrateError> {
+    if !corpus.is_dir() {
+        return Err(MigrateError::CorpusNotADirectory {
+            path: corpus.to_owned(),
+        });
+    }
+    let (repository, relative_root) = repository_context(corpus)?;
+    import_from_repository(&repository, &relative_root, commit_sha, attempt_promotion)
+}
+
+/// Import a logical corpus tree directly from a repository object database.
+///
+/// Unlike [`import`], this does not require the corpus path to exist in the
+/// current worktree. Frozen migration evidence therefore remains reproducible
+/// after a topology change removes or relocates the live directory.
+pub(crate) fn import_from_repository(
+    repository: &Utf8Path,
+    relative_root: &str,
+    commit_sha: &str,
+    attempt_promotion: bool,
+) -> Result<ImportArtifact, MigrateError> {
     if commit_sha.len() != 40 || !commit_sha.bytes().all(|b| b.is_ascii_hexdigit()) {
         return Err(MigrateError::UnpinnedCommit {
             found: commit_sha.to_owned(),
@@ -621,22 +691,26 @@ pub fn import(
             found: commit_sha.to_owned(),
         });
     }
-    if !corpus.is_dir() {
+    let logical_root = Utf8Path::new(relative_root);
+    if logical_root.is_absolute()
+        || logical_root
+            .components()
+            .any(|component| matches!(component.as_str(), "" | "." | ".."))
+    {
         return Err(MigrateError::CorpusNotADirectory {
-            path: corpus.to_owned(),
+            path: repository.join(logical_root),
         });
     }
 
-    let (repository, relative_root) = repository_context(corpus)?;
     let commit_check = git_output(
-        &repository,
+        repository,
         "resolve frozen commit",
         &["cat-file", "-t", commit_sha],
     )?;
     if !commit_check.status.success() {
         return Err(MigrateError::CommitUnavailable {
             commit: commit_sha.to_owned(),
-            repository,
+            repository: repository.to_owned(),
             detail: git_detail(&commit_check),
         });
     }
@@ -644,17 +718,17 @@ pub fn import(
     if object_type != "commit" {
         return Err(MigrateError::CommitUnavailable {
             commit: commit_sha.to_owned(),
-            repository,
+            repository: repository.to_owned(),
             detail: format!("object type is {object_type:?}, expected \"commit\""),
         });
     }
 
     // Sorted inside `committed_adr_paths`: the artifact must be byte-identical
     // on a re-run (OBL-001), independent of both directory order and worktree.
-    let files = committed_adr_paths(&repository, &relative_root, commit_sha)?;
+    let files = committed_adr_paths(repository, relative_root, commit_sha)?;
     if files.is_empty() {
         return Err(MigrateError::CorpusEmpty {
-            path: corpus.to_owned(),
+            path: repository.join(logical_root),
         });
     }
 
@@ -663,7 +737,7 @@ pub fn import(
         corpus_relative_root: if relative_root.is_empty() {
             ".".to_owned()
         } else {
-            relative_root
+            relative_root.to_owned()
         },
         adr_count: files.len(),
         promoted_resolutions: 0,
@@ -674,8 +748,21 @@ pub fn import(
         adrs: Vec::with_capacity(files.len()),
     };
 
+    let mut total_source_bytes = 0_u64;
     for (source, repository_path) in &files {
-        let text = read_committed_text(&repository, commit_sha, repository_path)?;
+        let text = read_committed_text(repository, commit_sha, repository_path)?;
+        total_source_bytes = total_source_bytes
+            .checked_add(text.len() as u64)
+            .ok_or_else(|| MigrateError::ResourceLimit {
+                what: "committed ADR corpus".to_owned(),
+                limit: MAX_CORPUS_SOURCE_BYTES,
+            })?;
+        if total_source_bytes > MAX_CORPUS_SOURCE_BYTES {
+            return Err(MigrateError::ResourceLimit {
+                what: "committed ADR corpus".to_owned(),
+                limit: MAX_CORPUS_SOURCE_BYTES,
+            });
+        }
         let (frontmatter, body) = split_frontmatter(&text);
 
         let mut mapped: BTreeMap<String, LegacyMapping> = BTreeMap::new();

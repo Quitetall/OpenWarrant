@@ -115,6 +115,85 @@ pub enum GateRunError {
     UnownedShellString { gate: String },
     #[error("receipt for run {run:?} omits {field}, which §44.6 requires")]
     ReceiptIncomplete { run: String, field: &'static str },
+    #[error(
+        "receipt for run {run:?} names noncanonical producer actor {actor:?}; leading or trailing whitespace creates an identity alias"
+    )]
+    ReceiptProducerNotCanonical { run: String, actor: String },
+    #[error("receipt for run {run:?} has a blank, duplicate, or noncanonical {field} inventory")]
+    ReceiptInventoryNotCanonical { run: String, field: &'static str },
+    #[error("receipt for run {run:?} has {observed} items in {field}; the maximum is {limit}")]
+    ReceiptInventoryTooLarge {
+        run: String,
+        field: &'static str,
+        observed: usize,
+        limit: usize,
+    },
+    #[error(
+        "receipt for run {run:?} declares {declared} selected tests but its canonical manifest contains {observed}"
+    )]
+    ReceiptSelectedTestCountMismatch {
+        run: String,
+        declared: u64,
+        observed: usize,
+    },
+    #[error(
+        "receipt for run {run:?} has noncanonical or nonmonotonic chronology {started_at:?} -> {completed_at:?}"
+    )]
+    ReceiptChronologyInvalid {
+        run: String,
+        started_at: String,
+        completed_at: String,
+    },
+    #[error("receipt for run {run:?} uses schema {found:?}; expected {expected:?}")]
+    ReceiptSchemaMismatch {
+        run: String,
+        found: String,
+        expected: &'static str,
+    },
+    #[error("receipt for run {run:?} uses kind {found:?}; expected {expected:?}")]
+    ReceiptKindMismatch {
+        run: String,
+        found: String,
+        expected: &'static str,
+    },
+    #[error(
+        "receipt for run {run:?} records exit result {exit_result:?} with verdict {verdict}; a zero exit code is pass and every nonzero code or signal is fail"
+    )]
+    ReceiptExitVerdictMismatch {
+        run: String,
+        exit_result: GateExitResult,
+        verdict: Verdict,
+    },
+    #[error("test-selection observation for run {run:?} omits {field}")]
+    SelectionObservationIncomplete { run: String, field: &'static str },
+    #[error(
+        "test-selection observation for run {run:?} uses schema {found:?}; expected {expected:?}"
+    )]
+    SelectionObservationSchemaMismatch {
+        run: String,
+        found: String,
+        expected: &'static str,
+    },
+    #[error(
+        "test-selection observation for run {run:?} uses kind {found:?}; expected {expected:?}"
+    )]
+    SelectionObservationKindMismatch {
+        run: String,
+        found: String,
+        expected: &'static str,
+    },
+    #[error(
+        "test-selection observation for run {run:?} has a blank, duplicate, or noncanonical manifest"
+    )]
+    SelectionObservationManifestNotCanonical { run: String },
+    #[error(
+        "test-selection observation for run {run:?} declares {declared} selected tests but contains {observed}"
+    )]
+    SelectionObservationCountMismatch {
+        run: String,
+        declared: u64,
+        observed: usize,
+    },
 }
 
 macro_rules! vocabulary {
@@ -307,6 +386,7 @@ impl ReasonCode {
 
 /// A Gate Run: §44's three separated results, plus §44.4's reason code.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct GateRun {
     pub id: String,
     /// The `<gate_id>@<version>` this run exercised.
@@ -407,6 +487,126 @@ impl GateRun {
     }
 }
 
+/// Versioned wire identity for §44.6 Gate receipts.
+pub const GATE_RECEIPT_SCHEMA: &str = "oh.war/gate-receipt/v1";
+pub const GATE_RECEIPT_KIND: &str = "gate_receipt";
+pub const TEST_SELECTION_OBSERVATION_SCHEMA: &str = "oh.war/test-selection-observation/v1";
+pub const TEST_SELECTION_OBSERVATION_KIND: &str = "test_selection_observation";
+
+/// Gate receipts summarize evidence; larger inventories belong in a referenced
+/// artifact rather than inline in the receipt. These ceilings bound the work
+/// performed by canonicality and duplicate validation while leaving room for
+/// large repositories and test suites.
+pub const GATE_RECEIPT_MAX_SUBJECT_DIGESTS: usize = 4_096;
+pub const GATE_RECEIPT_MAX_FIXTURE_DIGESTS: usize = 4_096;
+pub const GATE_RECEIPT_MAX_SELECTED_TESTS: usize = 4_096;
+pub const GATE_RECEIPT_MAX_RAW_EVIDENCE_REFS: usize = 4_096;
+
+/// Exact process outcome supporting a completed Gate verdict.
+///
+/// A verdict is a semantic conclusion; an exit result is an OS observation.
+/// Keeping them as separate typed fields prevents `"pass"` from masquerading
+/// as both facts and preserves signal termination on platforms that expose it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
+pub enum GateExitResult {
+    ExitCode { code: i32 },
+    Signal { signal: i32 },
+}
+
+/// Unknown optional fields preserved on a Gate receipt.
+///
+/// Receipt extensions follow the repository-wide evolution rule: keys must be
+/// namespaced with nonempty text on both sides of the first `.`. This keeps an
+/// older reader from silently accepting new required vocabulary while still
+/// allowing optional producer metadata to survive a read/write cycle.
+pub type GateReceiptExtensions = crate::legacy_disposition::NamespacedExtensions;
+
+impl GateExitResult {
+    #[must_use]
+    pub const fn passed(self) -> bool {
+        matches!(self, Self::ExitCode { code: 0 })
+    }
+}
+
+/// Runner-owned observation of tests selected by an exact execution adapter.
+///
+/// Gate Definition selection is planned policy. This object records what the
+/// qualified adapter selected for one completed process. A receipt duplicates
+/// the count and manifest required by §44.6, then binds these exact bytes so a
+/// resolver can require planned and observed selection to agree.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TestSelectionObservation {
+    pub schema: String,
+    pub kind: String,
+    pub run_id: String,
+    pub gate_definition_digest: String,
+    pub adapter: String,
+    pub selected_test_count: u64,
+    pub selected_test_manifest: Vec<String>,
+}
+
+impl TestSelectionObservation {
+    pub fn validate(&self) -> Result<(), GateRunError> {
+        if self.schema != TEST_SELECTION_OBSERVATION_SCHEMA {
+            return Err(GateRunError::SelectionObservationSchemaMismatch {
+                run: self.run_id.clone(),
+                found: self.schema.clone(),
+                expected: TEST_SELECTION_OBSERVATION_SCHEMA,
+            });
+        }
+        if self.kind != TEST_SELECTION_OBSERVATION_KIND {
+            return Err(GateRunError::SelectionObservationKindMismatch {
+                run: self.run_id.clone(),
+                found: self.kind.clone(),
+                expected: TEST_SELECTION_OBSERVATION_KIND,
+            });
+        }
+        for (field, value) in [
+            ("run_id", self.run_id.as_str()),
+            (
+                "gate_definition_digest",
+                self.gate_definition_digest.as_str(),
+            ),
+            ("adapter", self.adapter.as_str()),
+        ] {
+            if value.is_empty() || value.trim() != value {
+                return Err(GateRunError::SelectionObservationIncomplete {
+                    run: self.run_id.clone(),
+                    field,
+                });
+            }
+        }
+        let selected: BTreeSet<&str> = self
+            .selected_test_manifest
+            .iter()
+            .map(String::as_str)
+            .collect();
+        if self.selected_test_manifest.is_empty()
+            || self.selected_test_manifest.len() > GATE_RECEIPT_MAX_SELECTED_TESTS
+            || selected.len() != self.selected_test_manifest.len()
+            || self
+                .selected_test_manifest
+                .iter()
+                .any(|test| test.is_empty() || test.trim() != test)
+        {
+            return Err(GateRunError::SelectionObservationManifestNotCanonical {
+                run: self.run_id.clone(),
+            });
+        }
+        if usize::try_from(self.selected_test_count).ok() != Some(self.selected_test_manifest.len())
+        {
+            return Err(GateRunError::SelectionObservationCountMismatch {
+                run: self.run_id.clone(),
+                declared: self.selected_test_count,
+                observed: self.selected_test_manifest.len(),
+            });
+        }
+        Ok(())
+    }
+}
+
 /// §44.6's receipt. Every field the specification lists, none optional.
 ///
 /// Deliberately NOT `Default`: a receipt of empty strings and a zero test count
@@ -415,31 +615,42 @@ impl GateRun {
 /// field or not at all.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct GateReceipt {
+    pub schema: String,
+    pub kind: String,
     pub run_id: String,
+    /// SHA-256 of the exact serialized `.run.toml` bytes written beside this
+    /// receipt, not a second semantic serialization of the parsed object.
+    pub gate_run_digest: String,
     pub gate_definition_digest: String,
     pub gate_binding_digest: String,
-    #[serde(default)]
     pub subject_digests: Vec<String>,
-    #[serde(default)]
     pub fixture_digests: Vec<String>,
+    /// Runner tool or instrument identity.
     pub runner: String,
+    /// Stable actor identity that produced the gate evidence. This is separate
+    /// from `runner` so authorship checks never compare an actor to a binary or
+    /// command name.
+    pub producer_actor: String,
     pub runtime_environment: String,
-    #[serde(default)]
     pub arguments: Vec<String>,
     pub working_directory: String,
     pub started_at: String,
     pub completed_at: String,
-    pub exit_result: String,
+    pub exit_result: GateExitResult,
     pub selected_test_count: u64,
-    #[serde(default)]
     pub selected_test_manifest: Vec<String>,
-    #[serde(default)]
+    pub selection_observation_ref: String,
+    pub selection_observation_digest: String,
     pub raw_evidence_refs: Vec<String>,
     pub stdout_ref: String,
+    pub stdout_digest: String,
     pub stderr_ref: String,
+    pub stderr_digest: String,
     pub resource_usage: String,
     pub verdict: Verdict,
     pub receipt_digest: String,
+    #[serde(flatten, default)]
+    pub extensions: GateReceiptExtensions,
 }
 
 impl GateReceipt {
@@ -449,17 +660,39 @@ impl GateReceipt {
     /// fixtures has no fixture digests), and requiring them non-empty would push
     /// authors to invent entries, which is worse than an honest empty list.
     pub fn validate(&self) -> Result<(), GateRunError> {
-        let required: [(&'static str, &str); 12] = [
+        if self.schema != GATE_RECEIPT_SCHEMA {
+            return Err(GateRunError::ReceiptSchemaMismatch {
+                run: self.run_id.clone(),
+                found: self.schema.clone(),
+                expected: GATE_RECEIPT_SCHEMA,
+            });
+        }
+        if self.kind != GATE_RECEIPT_KIND {
+            return Err(GateRunError::ReceiptKindMismatch {
+                run: self.run_id.clone(),
+                found: self.kind.clone(),
+                expected: GATE_RECEIPT_KIND,
+            });
+        }
+        let required: [(&'static str, &str); 17] = [
+            ("gate_run_digest", &self.gate_run_digest),
             ("gate_definition_digest", &self.gate_definition_digest),
             ("gate_binding_digest", &self.gate_binding_digest),
             ("runner", &self.runner),
+            ("producer_actor", &self.producer_actor),
             ("runtime_environment", &self.runtime_environment),
             ("working_directory", &self.working_directory),
             ("started_at", &self.started_at),
             ("completed_at", &self.completed_at),
-            ("exit_result", &self.exit_result),
+            ("selection_observation_ref", &self.selection_observation_ref),
+            (
+                "selection_observation_digest",
+                &self.selection_observation_digest,
+            ),
             ("stdout_ref", &self.stdout_ref),
+            ("stdout_digest", &self.stdout_digest),
             ("stderr_ref", &self.stderr_ref),
+            ("stderr_digest", &self.stderr_digest),
             ("resource_usage", &self.resource_usage),
             ("receipt_digest", &self.receipt_digest),
         ];
@@ -470,6 +703,90 @@ impl GateReceipt {
                     field,
                 });
             }
+        }
+        if self.producer_actor.trim() != self.producer_actor {
+            return Err(GateRunError::ReceiptProducerNotCanonical {
+                run: self.run_id.clone(),
+                actor: self.producer_actor.clone(),
+            });
+        }
+        for (field, values, required, limit) in [
+            (
+                "subject_digests",
+                &self.subject_digests,
+                true,
+                GATE_RECEIPT_MAX_SUBJECT_DIGESTS,
+            ),
+            (
+                "fixture_digests",
+                &self.fixture_digests,
+                false,
+                GATE_RECEIPT_MAX_FIXTURE_DIGESTS,
+            ),
+            (
+                "selected_test_manifest",
+                &self.selected_test_manifest,
+                true,
+                GATE_RECEIPT_MAX_SELECTED_TESTS,
+            ),
+            (
+                "raw_evidence_refs",
+                &self.raw_evidence_refs,
+                false,
+                GATE_RECEIPT_MAX_RAW_EVIDENCE_REFS,
+            ),
+        ] {
+            if values.len() > limit {
+                return Err(GateRunError::ReceiptInventoryTooLarge {
+                    run: self.run_id.clone(),
+                    field,
+                    observed: values.len(),
+                    limit,
+                });
+            }
+            let canonical: BTreeSet<&str> = values.iter().map(String::as_str).collect();
+            if (required && values.is_empty())
+                || canonical.len() != values.len()
+                || values
+                    .iter()
+                    .any(|value| value.is_empty() || value.trim() != value)
+            {
+                return Err(GateRunError::ReceiptInventoryNotCanonical {
+                    run: self.run_id.clone(),
+                    field,
+                });
+            }
+        }
+        if usize::try_from(self.selected_test_count).ok() != Some(self.selected_test_manifest.len())
+        {
+            return Err(GateRunError::ReceiptSelectedTestCountMismatch {
+                run: self.run_id.clone(),
+                declared: self.selected_test_count,
+                observed: self.selected_test_manifest.len(),
+            });
+        }
+        if !crate::legacy_disposition::is_canonical_utc(&self.started_at)
+            || !crate::legacy_disposition::is_canonical_utc(&self.completed_at)
+            || self.started_at > self.completed_at
+        {
+            return Err(GateRunError::ReceiptChronologyInvalid {
+                run: self.run_id.clone(),
+                started_at: self.started_at.clone(),
+                completed_at: self.completed_at.clone(),
+            });
+        }
+        let exit_and_verdict_agree = match self.exit_result {
+            GateExitResult::ExitCode { code: 0 } => self.verdict == Verdict::Pass,
+            GateExitResult::ExitCode { .. } | GateExitResult::Signal { .. } => {
+                self.verdict == Verdict::Fail
+            }
+        };
+        if !exit_and_verdict_agree {
+            return Err(GateRunError::ReceiptExitVerdictMismatch {
+                run: self.run_id.clone(),
+                exit_result: self.exit_result,
+                verdict: self.verdict,
+            });
         }
         Ok(())
     }
@@ -877,26 +1194,35 @@ mod tests {
 
     fn full_receipt() -> GateReceipt {
         GateReceipt {
+            schema: GATE_RECEIPT_SCHEMA.into(),
+            kind: GATE_RECEIPT_KIND.into(),
             run_id: "GR-001".into(),
+            gate_run_digest: format!("sha256:{}", "f".repeat(64)),
             gate_definition_digest: "sha256:a".into(),
             gate_binding_digest: "sha256:b".into(),
             subject_digests: vec!["sha256:c".into()],
             fixture_digests: vec![],
             runner: "gate_runner".into(),
+            producer_actor: "service://gate-runner".into(),
             runtime_environment: "linux-x86_64 rustc 1.97.1".into(),
             arguments: vec!["cargo".into(), "test".into()],
             working_directory: "/repo".into(),
             started_at: "2026-08-19T00:00:00Z".into(),
             completed_at: "2026-08-19T00:00:04Z".into(),
-            exit_result: "0".into(),
-            selected_test_count: 12,
+            exit_result: GateExitResult::ExitCode { code: 0 },
+            selected_test_count: 1,
             selected_test_manifest: vec!["t1".into()],
+            selection_observation_ref: "artifact://selection".into(),
+            selection_observation_digest: format!("sha256:{}", "e".repeat(64)),
             raw_evidence_refs: vec![],
             stdout_ref: "artifact://out".into(),
+            stdout_digest: format!("sha256:{}", "a".repeat(64)),
             stderr_ref: "artifact://err".into(),
+            stderr_digest: format!("sha256:{}", "b".repeat(64)),
             resource_usage: "4s cpu".into(),
             verdict: Verdict::Pass,
             receipt_digest: "sha256:d".into(),
+            extensions: GateReceiptExtensions::default(),
         }
     }
 
@@ -908,19 +1234,28 @@ mod tests {
         // (field name, how to blank it), and a fn pointer says so without a
         // trait object.
         type Blank = (&'static str, fn(&mut GateReceipt));
-        let blanks: [Blank; 12] = [
+        let blanks: [Blank; 17] = [
+            ("gate_run_digest", |r| r.gate_run_digest.clear()),
             ("gate_definition_digest", |r| {
                 r.gate_definition_digest.clear()
             }),
             ("gate_binding_digest", |r| r.gate_binding_digest.clear()),
             ("runner", |r| r.runner.clear()),
+            ("producer_actor", |r| r.producer_actor.clear()),
             ("runtime_environment", |r| r.runtime_environment.clear()),
             ("working_directory", |r| r.working_directory.clear()),
             ("started_at", |r| r.started_at.clear()),
             ("completed_at", |r| r.completed_at.clear()),
-            ("exit_result", |r| r.exit_result.clear()),
+            ("selection_observation_ref", |r| {
+                r.selection_observation_ref.clear()
+            }),
+            ("selection_observation_digest", |r| {
+                r.selection_observation_digest.clear()
+            }),
             ("stdout_ref", |r| r.stdout_ref.clear()),
+            ("stdout_digest", |r| r.stdout_digest.clear()),
             ("stderr_ref", |r| r.stderr_ref.clear()),
+            ("stderr_digest", |r| r.stderr_digest.clear()),
             ("resource_usage", |r| r.resource_usage.clear()),
             ("receipt_digest", |r| r.receipt_digest.clear()),
         ];
@@ -934,6 +1269,304 @@ mod tests {
                 other => panic!("blanking {name} was accepted: {other:?}"),
             }
         }
+    }
+
+    #[test]
+    fn a_receipt_refuses_noncanonical_producer_identity() {
+        let mut receipt = full_receipt();
+        receipt.producer_actor.push(' ');
+        assert!(
+            receipt.validate().is_err(),
+            "surrounding whitespace must not create a second producer identity"
+        );
+    }
+
+    fn full_selection_observation() -> TestSelectionObservation {
+        TestSelectionObservation {
+            schema: TEST_SELECTION_OBSERVATION_SCHEMA.to_owned(),
+            kind: TEST_SELECTION_OBSERVATION_KIND.to_owned(),
+            run_id: "GR-001".to_owned(),
+            gate_definition_digest: format!("sha256:{}", "a".repeat(64)),
+            adapter: "adapter://openwarrant/war-check@1.0.0".to_owned(),
+            selected_test_count: 1,
+            selected_test_manifest: vec!["check://warrant-corpus".to_owned()],
+        }
+    }
+
+    #[test]
+    fn test_selection_observation_is_required_exact_and_nonempty() {
+        assert_eq!(full_selection_observation().validate(), Ok(()));
+
+        let mut duplicate = full_selection_observation();
+        duplicate
+            .selected_test_manifest
+            .push("check://warrant-corpus".to_owned());
+        duplicate.selected_test_count = 2;
+        assert!(matches!(
+            duplicate.validate(),
+            Err(GateRunError::SelectionObservationManifestNotCanonical { .. })
+        ));
+
+        let mut zero = full_selection_observation();
+        zero.selected_test_manifest.clear();
+        zero.selected_test_count = 0;
+        assert!(matches!(
+            zero.validate(),
+            Err(GateRunError::SelectionObservationManifestNotCanonical { .. })
+        ));
+
+        let mut miscounted = full_selection_observation();
+        miscounted.selected_test_count = 2;
+        assert!(matches!(
+            miscounted.validate(),
+            Err(GateRunError::SelectionObservationCountMismatch { .. })
+        ));
+
+        let mut unknown = serde_json::to_value(full_selection_observation())
+            .expect("serialize selection observation");
+        unknown
+            .as_object_mut()
+            .expect("selection observation object")
+            .insert("caller_claim".to_owned(), serde_json::json!(true));
+        assert!(
+            serde_json::from_value::<TestSelectionObservation>(unknown).is_err(),
+            "unknown observation semantics must fail closed"
+        );
+    }
+
+    #[test]
+    fn a_receipt_refuses_duplicate_or_blank_semantic_inventory_items() {
+        let plants: [fn(&mut GateReceipt); 6] = [
+            |receipt| {
+                receipt
+                    .subject_digests
+                    .push(receipt.subject_digests[0].clone())
+            },
+            |receipt| receipt.subject_digests.push(" ".to_owned()),
+            |receipt| receipt.raw_evidence_refs = vec!["artifact://DEL-1".to_owned(); 2],
+            |receipt| receipt.raw_evidence_refs.push(String::new()),
+            |receipt| receipt.selected_test_manifest.push("t1".to_owned()),
+            |receipt| receipt.selected_test_manifest.push(" ".to_owned()),
+        ];
+
+        for plant in plants {
+            let mut receipt = full_receipt();
+            plant(&mut receipt);
+            assert!(
+                receipt.validate().is_err(),
+                "noncanonical receipt inventory was accepted: {receipt:?}"
+            );
+        }
+    }
+
+    fn canonical_inventory(prefix: &str, len: usize) -> Vec<String> {
+        (0..len)
+            .map(|index| format!("{prefix}{index:04}"))
+            .collect()
+    }
+
+    #[test]
+    fn a_receipt_refuses_every_oversized_inventory_with_a_structured_error() {
+        type Plant = (&'static str, usize, fn(&mut GateReceipt));
+        let plants: [Plant; 4] = [
+            (
+                "subject_digests",
+                GATE_RECEIPT_MAX_SUBJECT_DIGESTS,
+                |receipt| {
+                    receipt.subject_digests = canonical_inventory(
+                        "sha256:subject-",
+                        GATE_RECEIPT_MAX_SUBJECT_DIGESTS + 1,
+                    );
+                },
+            ),
+            (
+                "fixture_digests",
+                GATE_RECEIPT_MAX_FIXTURE_DIGESTS,
+                |receipt| {
+                    receipt.fixture_digests = canonical_inventory(
+                        "sha256:fixture-",
+                        GATE_RECEIPT_MAX_FIXTURE_DIGESTS + 1,
+                    );
+                },
+            ),
+            (
+                "selected_test_manifest",
+                GATE_RECEIPT_MAX_SELECTED_TESTS,
+                |receipt| {
+                    receipt.selected_test_manifest =
+                        canonical_inventory("test://", GATE_RECEIPT_MAX_SELECTED_TESTS + 1);
+                    receipt.selected_test_count =
+                        u64::try_from(receipt.selected_test_manifest.len())
+                            .expect("test inventory length fits u64");
+                },
+            ),
+            (
+                "raw_evidence_refs",
+                GATE_RECEIPT_MAX_RAW_EVIDENCE_REFS,
+                |receipt| {
+                    receipt.raw_evidence_refs = canonical_inventory(
+                        "artifact://raw/",
+                        GATE_RECEIPT_MAX_RAW_EVIDENCE_REFS + 1,
+                    );
+                },
+            ),
+        ];
+
+        for (field, limit, plant) in plants {
+            let mut receipt = full_receipt();
+            plant(&mut receipt);
+            assert_eq!(
+                receipt.validate(),
+                Err(GateRunError::ReceiptInventoryTooLarge {
+                    run: receipt.run_id.clone(),
+                    field,
+                    observed: limit + 1,
+                    limit,
+                }),
+                "oversized {field} inventory was accepted"
+            );
+        }
+    }
+
+    #[test]
+    fn a_receipt_accepts_every_inventory_at_its_named_limit() {
+        let mut receipt = full_receipt();
+        receipt.subject_digests =
+            canonical_inventory("sha256:subject-", GATE_RECEIPT_MAX_SUBJECT_DIGESTS);
+        receipt.fixture_digests =
+            canonical_inventory("sha256:fixture-", GATE_RECEIPT_MAX_FIXTURE_DIGESTS);
+        receipt.selected_test_manifest =
+            canonical_inventory("test://", GATE_RECEIPT_MAX_SELECTED_TESTS);
+        receipt.selected_test_count = u64::try_from(receipt.selected_test_manifest.len())
+            .expect("test inventory length fits u64");
+        receipt.raw_evidence_refs =
+            canonical_inventory("artifact://raw/", GATE_RECEIPT_MAX_RAW_EVIDENCE_REFS);
+
+        assert_eq!(receipt.validate(), Ok(()));
+    }
+
+    #[test]
+    fn a_receipt_refuses_noncanonical_or_rollback_chronology() {
+        for (started_at, completed_at) in [
+            ("2026-08-19T00:00:04Z", "2026-08-19T00:00:03Z"),
+            ("2026-08-19T00:00:00+00:00", "2026-08-19T00:00:04Z"),
+            ("2026-08-19T00:00:00Z", "not-a-time"),
+        ] {
+            let mut receipt = full_receipt();
+            receipt.started_at = started_at.to_owned();
+            receipt.completed_at = completed_at.to_owned();
+            assert!(
+                receipt.validate().is_err(),
+                "invalid receipt chronology was accepted: {started_at} -> {completed_at}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_receipt_carries_exact_versioned_wire_identity() {
+        let receipt = full_receipt();
+        assert_eq!(receipt.schema, GATE_RECEIPT_SCHEMA);
+        assert_eq!(receipt.kind, GATE_RECEIPT_KIND);
+
+        let mut value = serde_json::to_value(&receipt).expect("serialize receipt");
+        value
+            .as_object_mut()
+            .expect("receipt object")
+            .remove("schema");
+        assert!(
+            serde_json::from_value::<GateReceipt>(value).is_err(),
+            "unversioned alpha receipt must not deserialize as v1 evidence"
+        );
+    }
+
+    #[test]
+    fn every_required_receipt_array_must_be_present_on_the_wire() {
+        for field in [
+            "subject_digests",
+            "fixture_digests",
+            "arguments",
+            "selected_test_manifest",
+            "raw_evidence_refs",
+        ] {
+            let mut value = serde_json::to_value(full_receipt()).expect("serialize receipt");
+            value.as_object_mut().expect("receipt object").remove(field);
+            assert!(
+                serde_json::from_value::<GateReceipt>(value).is_err(),
+                "omitted required array {field:?} deserialized as an explicit empty inventory"
+            );
+        }
+    }
+
+    #[test]
+    fn receipt_exit_result_is_typed_and_must_agree_with_verdict() {
+        let receipt = full_receipt();
+        let value = serde_json::to_value(&receipt).expect("serialize receipt");
+        assert_eq!(value["exit_result"]["kind"], "exit_code");
+        assert_eq!(value["exit_result"]["code"], 0);
+
+        let mut nonzero_pass = receipt.clone();
+        nonzero_pass.exit_result = GateExitResult::ExitCode { code: 7 };
+        assert!(matches!(
+            nonzero_pass.validate(),
+            Err(GateRunError::ReceiptExitVerdictMismatch { .. })
+        ));
+
+        let mut signal_pass = receipt.clone();
+        signal_pass.exit_result = GateExitResult::Signal { signal: 9 };
+        assert!(matches!(
+            signal_pass.validate(),
+            Err(GateRunError::ReceiptExitVerdictMismatch { .. })
+        ));
+
+        let mut nonzero_unknown = receipt.clone();
+        nonzero_unknown.exit_result = GateExitResult::ExitCode { code: 7 };
+        nonzero_unknown.verdict = Verdict::Unknown;
+        assert!(matches!(
+            nonzero_unknown.validate(),
+            Err(GateRunError::ReceiptExitVerdictMismatch { .. })
+        ));
+
+        let mut signal_unknown = receipt.clone();
+        signal_unknown.exit_result = GateExitResult::Signal { signal: 9 };
+        signal_unknown.verdict = Verdict::Unknown;
+        assert!(matches!(
+            signal_unknown.validate(),
+            Err(GateRunError::ReceiptExitVerdictMismatch { .. })
+        ));
+
+        let mut zero_fail = receipt;
+        zero_fail.verdict = Verdict::Fail;
+        assert!(matches!(
+            zero_fail.validate(),
+            Err(GateRunError::ReceiptExitVerdictMismatch { .. })
+        ));
+    }
+
+    #[test]
+    fn receipt_preserves_namespaced_extensions_and_refuses_other_unknown_fields() {
+        let mut value = serde_json::to_value(full_receipt()).expect("serialize receipt");
+        value.as_object_mut().expect("receipt object").insert(
+            "lab.trace".to_owned(),
+            serde_json::json!({"attempt": "second"}),
+        );
+
+        let parsed: GateReceipt =
+            serde_json::from_value(value).expect("namespaced extension is optional");
+        let round_trip = serde_json::to_value(parsed).expect("serialize extended receipt");
+        assert_eq!(
+            round_trip["lab.trace"],
+            serde_json::json!({"attempt": "second"})
+        );
+
+        let mut unknown = serde_json::to_value(full_receipt()).expect("serialize receipt");
+        unknown
+            .as_object_mut()
+            .expect("receipt object")
+            .insert("unexpected".to_owned(), serde_json::json!(true));
+        assert!(
+            serde_json::from_value::<GateReceipt>(unknown).is_err(),
+            "unknown non-namespaced fields must fail closed"
+        );
     }
 
     /// §44.7 — a raw shell string needs a gate that owns shell parsing.

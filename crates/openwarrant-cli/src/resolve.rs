@@ -72,16 +72,21 @@
 //! Neither error changed a verdict — both were `false` regardless — but each
 //! would have sent a reader to the wrong page.
 
-use openwarrant_core::GateRun;
+use openwarrant_compiler::{DigestDomain, sha256_digest};
 use openwarrant_core::authority::{AuthorityRegister, PolicyResolutionContext};
 use openwarrant_core::deliverable::Deliverable;
 use openwarrant_core::epistemic::Judgment;
 use openwarrant_core::rationale::Assumption;
 use openwarrant_core::resolution::{RESOLUTION_REQUIREMENTS, ResolutionChecks};
 use openwarrant_core::verification::Verification;
+use openwarrant_core::{GateBinding, GateDefinition, GateReceipt, GateRun};
+use serde::Serialize;
+#[cfg(test)]
+use std::collections::BTreeSet;
 
 use crate::authorize::AuthorizationRecord;
 use crate::diagnostic::{Diagnostic, Report};
+use crate::gate_evidence::AdmissibleGateRun;
 use crate::repo::{RepoError, Repository};
 
 /// Compute §56.1's thirteen from the corpus as it stands.
@@ -90,12 +95,11 @@ use crate::repo::{RepoError, Repository};
 /// because it is probably fine — an unanswerable requirement is unmet, which is
 /// the same fail-closed rule §32 applies to Preflight.
 fn evaluate(
-    repo: &Repository,
     one: &crate::repo::Loaded,
     verifications: &[Verification],
-    deliverables: &[Deliverable],
-    gate_runs: &[GateRun],
+    gate_runs: &[AdmissibleGateRun],
     authority: &Authority<'_>,
+    artifacts: ArtifactChecks,
 ) -> ResolutionChecks {
     let validated = one.validated.as_ref();
     let basis = one.basis.as_ref();
@@ -164,14 +168,10 @@ fn evaluate(
         .unwrap_or_default();
     let gates_ok = every_required_gate_has_admissible_result(&cited, gate_runs);
 
-    let required_deliverables_exist =
-        required_deliverables_exist(&repo.root, deliverables, &declared);
-    let artifact_digests_verify = artifact_digests_verify(&repo.root, deliverables);
-
     ResolutionChecks {
         exact_authorized_contract_revision: authority.contract_is_authorized(),
-        required_deliverables_exist,
-        artifact_digests_verify,
+        required_deliverables_exist: artifacts.required_deliverables_exist,
+        artifact_digests_verify: artifacts.artifact_digests_verify,
         every_required_obligation_dispositioned: obligations_dispositioned,
         every_required_gate_has_admissible_result: gates_ok,
         no_required_unknown_remains: authority.no_required_unknown_remains(),
@@ -195,6 +195,376 @@ fn evaluate(
         runtime_receipts_match_the_basis: runtime_receipts_match_the_basis(basis),
         resolver_holds_the_role: authority.a_resolver_is_eligible(&assurance, &declared),
     }
+}
+
+/// Resolver identity recorded by a persisted §56.2 Resolution.
+///
+/// Dry-run resolution asks whether *some* actor is eligible. Verification of an
+/// existing Resolution is stricter: the actor named by that record must have
+/// held Resolver authority when the Resolution became effective.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct RecordedResolver<'a> {
+    pub actor: &'a str,
+    pub effective_at: &'a str,
+}
+
+/// Artifact facts computed by the caller from one bounded evidence source.
+///
+/// The ordinary dry-run caller derives these from the worktree. A persisted
+/// Resolution caller derives them from a pinned Git tree, so the shared §56.1
+/// evaluator never reopens an attacker-controlled path after verification.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+pub(crate) struct ArtifactChecks {
+    pub required_deliverables_exist: bool,
+    pub artifact_digests_verify: bool,
+}
+
+/// Exact observed bytes for one deliverable in the artifact-manifest snapshot.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub(crate) struct ArtifactSnapshotEntry {
+    pub deliverable_id: String,
+    pub target_ref: String,
+    pub observed_sha256: String,
+}
+
+/// Exact Git provenance for one source consumed by the assurance snapshot.
+///
+/// The commit identity prevents an author-controlled wall-clock timestamp from
+/// being the sole chronology proof. The caller additionally proves this commit
+/// is a strict ancestor of the commit that first contains the Resolution.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub(crate) struct RecordedEvidenceCommit {
+    pub source_ref: String,
+    pub commit: String,
+    pub committed_unix_seconds: i64,
+}
+
+/// One validated Gate Definition loaded from the exact pinned repository blob.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub(crate) struct RecordedGateDefinition {
+    pub source_ref: String,
+    pub observed_sha256: String,
+    pub definition: GateDefinition,
+}
+
+/// One raw stream emitted by a Gate Run and bound by its receipt.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub(crate) struct RecordedGateOutput {
+    pub run_id: String,
+    pub stream: &'static str,
+    pub source_ref: String,
+    pub observed_sha256: String,
+}
+
+/// Repository-relative sources consumed to recompute a persisted Resolution.
+///
+/// Paths are part of the assurance snapshot because two records with identical
+/// bodies but different provenance are not the same evidence object.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct RecordedEvidenceSources<'a> {
+    pub verification_refs: &'a [String],
+    pub deliverables_ref: &'a str,
+    pub gate_run_source_refs: &'a [String],
+    pub gate_binding_source_refs: &'a [String],
+    pub gate_selection_source_refs: &'a [String],
+    pub gate_fixture_source_refs: &'a [String],
+    pub gate_raw_evidence_source_refs: &'a [String],
+    pub gate_receipt_source_refs: &'a [String],
+    pub evidence_commits: &'a [RecordedEvidenceCommit],
+    pub judgments_ref: Option<&'a str>,
+    pub rationale_ref: Option<&'a str>,
+}
+
+/// Already-opened, bounded inputs for verifying a persisted Resolution.
+///
+/// This is intentionally data-only. The ADR migration verifier owns the pinned
+/// Git snapshot and supplies objects parsed from that snapshot; this module
+/// owns the common §56.1 semantics. Keeping those responsibilities separate
+/// avoids both live-worktree TOCTOU and a second copy of the thirteen checks.
+pub(crate) struct RecordedResolutionInputs<'a> {
+    pub one: &'a crate::repo::Loaded,
+    pub verifications: &'a [Verification],
+    pub deliverables: &'a [Deliverable],
+    pub gate_runs: &'a [GateRun],
+    pub admissible_gate_runs: &'a [AdmissibleGateRun],
+    pub gate_definitions: &'a [RecordedGateDefinition],
+    pub gate_bindings: &'a [GateBinding],
+    pub gate_receipts: &'a [GateReceipt],
+    pub gate_outputs: &'a [RecordedGateOutput],
+    pub authorization: &'a AuthorizationRecord,
+    pub current_contract_digest: &'a str,
+    pub judgments: &'a [Judgment],
+    pub assumptions: Option<&'a [Assumption]>,
+    pub register: &'a AuthorityRegister,
+    pub policy_allows_automated_resolution: bool,
+    pub performer: &'a str,
+    pub resolver: RecordedResolver<'a>,
+    pub artifacts: ArtifactChecks,
+    pub artifact_entries: &'a [ArtifactSnapshotEntry],
+    pub sources: RecordedEvidenceSources<'a>,
+}
+
+/// Independently recomputed facts needed to accept a persisted Resolution.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct RecordedResolutionEvaluation {
+    pub checks: ResolutionChecks,
+    /// §38.6 outcome recomputed from admissible verification records. `None`
+    /// means at least one required obligation remains unknown.
+    pub outcome: Option<bool>,
+    pub assurance_case_snapshot_digest: String,
+    pub artifact_manifest_digest: String,
+    pub gate_run_refs: Vec<String>,
+    pub judgment_refs: Vec<String>,
+    pub residual_risk_refs: Vec<String>,
+}
+
+#[derive(Serialize)]
+struct AssuranceCaseSnapshot<'a> {
+    contract_digest: &'a str,
+    authorization: &'a AuthorizationRecord,
+    verification_refs: &'a [String],
+    verifications: &'a [Verification],
+    gate_run_source_refs: &'a [String],
+    gate_runs: &'a [GateRun],
+    gate_definitions: &'a [RecordedGateDefinition],
+    gate_binding_source_refs: &'a [String],
+    gate_bindings: &'a [GateBinding],
+    gate_selection_source_refs: &'a [String],
+    gate_fixture_source_refs: &'a [String],
+    gate_raw_evidence_source_refs: &'a [String],
+    gate_receipt_source_refs: &'a [String],
+    gate_receipts: &'a [GateReceipt],
+    gate_outputs: &'a [RecordedGateOutput],
+    evidence_commits: &'a [RecordedEvidenceCommit],
+    judgments_ref: Option<&'a str>,
+    judgments: &'a [Judgment],
+    rationale_ref: Option<&'a str>,
+    assumptions: Option<&'a [Assumption]>,
+    checks: ResolutionChecks,
+    outcome: Option<bool>,
+}
+
+#[derive(Serialize)]
+struct ArtifactManifestSnapshot<'a> {
+    deliverables_ref: &'a str,
+    deliverables: &'a [Deliverable],
+    artifacts: &'a [ArtifactSnapshotEntry],
+}
+
+fn record_ids<T>(records: &[T], id: impl Fn(&T) -> &str) -> Result<Vec<String>, RepoError> {
+    let mut refs: Vec<String> = records.iter().map(|record| id(record).to_owned()).collect();
+    if refs.iter().any(|reference| reference.trim().is_empty()) {
+        return Err(RepoError::Message(
+            "Resolution evidence contains a blank record identifier".to_owned(),
+        ));
+    }
+    refs.sort();
+    if refs.windows(2).any(|pair| pair[0] == pair[1]) {
+        return Err(RepoError::Message(format!(
+            "Resolution evidence contains duplicate record identifier {:?}",
+            refs.windows(2)
+                .find(|pair| pair[0] == pair[1])
+                .map(|pair| pair[0].as_str())
+                .unwrap_or_default()
+        )));
+    }
+    Ok(refs)
+}
+
+fn evidence_exists(
+    reference: &str,
+    gate_runs: &[AdmissibleGateRun],
+    artifacts: &[ArtifactSnapshotEntry],
+) -> bool {
+    if let Some(run_id) = reference.strip_prefix("gate-run://") {
+        return !run_id.is_empty() && gate_runs.iter().any(|run| run.id() == run_id);
+    }
+    if let Some(deliverable_id) = reference.strip_prefix("artifact://") {
+        return !deliverable_id.is_empty()
+            && artifacts
+                .iter()
+                .any(|artifact| artifact.deliverable_id == deliverable_id);
+    }
+    reference.starts_with("sha256:")
+        && artifacts
+            .iter()
+            .any(|artifact| artifact.observed_sha256 == reference)
+}
+
+/// Recompute §56.1, §38.6, and the exact evidence bindings for a persisted Resolution.
+///
+/// This deliberately accepts no serialized `ResolutionChecks`. A record cannot
+/// make itself valid by carrying thirteen `true` values; each value is derived
+/// from bounded snapshot objects through the same evaluator used by
+/// `war resolve --dry-run`. The returned digests and reference sets are the
+/// only bindings a persisted Resolution may claim.
+pub(crate) fn evaluate_recorded_resolution(
+    inputs: RecordedResolutionInputs<'_>,
+) -> Result<RecordedResolutionEvaluation, RepoError> {
+    if inputs.one.basis.is_none() || inputs.one.validated.is_none() || !inputs.one.report.is_ready()
+    {
+        return Err(RepoError::Message(format!(
+            "{} does not compile cleanly, so its Resolution evidence cannot be evaluated",
+            inputs.one.alias()
+        )));
+    }
+    if let Some(verification) = inputs
+        .verifications
+        .iter()
+        .find(|verification| verification.performer != inputs.performer)
+    {
+        return Err(RepoError::Message(format!(
+            "verification of {} names performer {:?}, expected exact performer {:?}",
+            verification.obligation, verification.performer, inputs.performer
+        )));
+    }
+
+    let declared = declared_obligations(inputs.one);
+    if let Some(verification) = inputs
+        .verifications
+        .iter()
+        .find(|verification| !declared.contains(&verification.obligation))
+    {
+        return Err(RepoError::Message(format!(
+            "verification names undeclared obligation {:?}",
+            verification.obligation
+        )));
+    }
+    if let Some(verification) = inputs.verifications.iter().find(|verification| {
+        !evidence_exists(
+            &verification.evidence,
+            inputs.admissible_gate_runs,
+            inputs.artifact_entries,
+        )
+    }) {
+        return Err(RepoError::Message(format!(
+            "verification of {} cites unresolved or unsupported evidence {:?}",
+            verification.obligation, verification.evidence
+        )));
+    }
+
+    let assurance = inputs
+        .one
+        .validated
+        .as_ref()
+        .map(|validated| validated.assurance_level.to_string())
+        .unwrap_or_else(|| "basic".to_owned());
+    for obligation in &declared {
+        let count = inputs
+            .verifications
+            .iter()
+            .filter(|verification| {
+                &verification.obligation == obligation
+                    && verification.admissible_for(&assurance).is_ok()
+            })
+            .count();
+        if count != 1 {
+            return Err(RepoError::Message(format!(
+                "obligation {obligation:?} has {count} admissible verification records; exactly one is required for a persisted Resolution"
+            )));
+        }
+    }
+
+    let authority = Authority {
+        register: inputs.register,
+        authorization: Some(inputs.authorization),
+        current_contract_digest: Some(inputs.current_contract_digest),
+        judgments: inputs.judgments,
+        assumptions: inputs.assumptions,
+        policy_allows_automated_resolution: inputs.policy_allows_automated_resolution,
+        performer: inputs.performer,
+        recorded_resolver: Some(inputs.resolver),
+    };
+    let checks = evaluate(
+        inputs.one,
+        inputs.verifications,
+        inputs.admissible_gate_runs,
+        &authority,
+        inputs.artifacts,
+    );
+
+    let admissible: Vec<&Verification> = inputs
+        .verifications
+        .iter()
+        .filter(|verification| verification.admissible_for(&assurance).is_ok())
+        .collect();
+    let outcome = would_resolve_satisfied(&declared, &admissible);
+
+    let gate_run_refs = record_ids(inputs.gate_runs, |run| run.id.as_str())?;
+    let admitted_gate_run_refs = record_ids(inputs.admissible_gate_runs, |run| run.id())?;
+    if gate_run_refs != admitted_gate_run_refs {
+        return Err(RepoError::Message(
+            "Resolution Gate Run snapshot differs from receipt-admitted Gate Runs".to_owned(),
+        ));
+    }
+    let judgment_refs = record_ids(inputs.judgments, |judgment| judgment.id.as_str())?;
+    let residual_risk_refs = record_ids(
+        &inputs
+            .assumptions
+            .unwrap_or_default()
+            .iter()
+            .filter(|assumption| {
+                assumption.epistemic_status
+                    == openwarrant_core::rationale::EpistemicStatus::AcceptedResidualRisk
+            })
+            .collect::<Vec<_>>(),
+        |assumption| assumption.id.as_str(),
+    )?;
+
+    let assurance_snapshot = AssuranceCaseSnapshot {
+        contract_digest: inputs.current_contract_digest,
+        authorization: inputs.authorization,
+        verification_refs: inputs.sources.verification_refs,
+        verifications: inputs.verifications,
+        gate_run_source_refs: inputs.sources.gate_run_source_refs,
+        gate_runs: inputs.gate_runs,
+        gate_definitions: inputs.gate_definitions,
+        gate_binding_source_refs: inputs.sources.gate_binding_source_refs,
+        gate_bindings: inputs.gate_bindings,
+        gate_selection_source_refs: inputs.sources.gate_selection_source_refs,
+        gate_fixture_source_refs: inputs.sources.gate_fixture_source_refs,
+        gate_raw_evidence_source_refs: inputs.sources.gate_raw_evidence_source_refs,
+        gate_receipt_source_refs: inputs.sources.gate_receipt_source_refs,
+        gate_receipts: inputs.gate_receipts,
+        gate_outputs: inputs.gate_outputs,
+        evidence_commits: inputs.sources.evidence_commits,
+        judgments_ref: inputs.sources.judgments_ref,
+        judgments: inputs.judgments,
+        rationale_ref: inputs.sources.rationale_ref,
+        assumptions: inputs.assumptions,
+        checks,
+        outcome,
+    };
+    let artifact_manifest = ArtifactManifestSnapshot {
+        deliverables_ref: inputs.sources.deliverables_ref,
+        deliverables: inputs.deliverables,
+        artifacts: inputs.artifact_entries,
+    };
+    let assurance_case_snapshot_digest =
+        sha256_digest(DigestDomain::AssuranceCaseSnapshot, &assurance_snapshot)
+            .map(|digest| format!("sha256:{digest}"))
+            .map_err(|error| {
+                RepoError::Message(format!(
+                    "cannot canonicalize Resolution assurance snapshot: {error}"
+                ))
+            })?;
+    let artifact_manifest_digest = sha256_digest(DigestDomain::Artifact, &artifact_manifest)
+        .map(|digest| format!("sha256:{digest}"))
+        .map_err(|error| {
+            RepoError::Message(format!(
+                "cannot canonicalize Resolution artifact manifest: {error}"
+            ))
+        })?;
+
+    Ok(RecordedResolutionEvaluation {
+        checks,
+        outcome,
+        assurance_case_snapshot_digest,
+        artifact_manifest_digest,
+        gate_run_refs,
+        judgment_refs,
+        residual_risk_refs,
+    })
 }
 
 /// Everything §27, §28.4, §42 and §36.2 need, read once from disk.
@@ -228,6 +598,9 @@ pub struct Authority<'a> {
     /// resolver against a name nobody uses any more, find them distinct, and
     /// let the real performer through.
     pub performer: &'a str,
+    /// Exact resolver named by a persisted Resolution. `None` preserves
+    /// dry-run behavior, which asks whether any eligible resolver exists.
+    pub recorded_resolver: Option<RecordedResolver<'a>>,
 }
 
 impl Authority<'_> {
@@ -337,23 +710,34 @@ impl Authority<'_> {
     /// register is empty, and is why an empty register grants nothing.
     #[must_use]
     pub fn a_resolver_is_eligible(&self, assurance: &str, declared: &[String]) -> bool {
+        let context = PolicyResolutionContext {
+            policy_allows: self.policy_allows_automated_resolution,
+            assurance_level: assurance,
+            // Conservative on purpose: an obligation is treated as
+            // non-mechanical unless the Warrant declares none at all.
+            // §27.3 lets a policy service close only mechanical work, and
+            // guessing in the permissive direction here would hand a
+            // machine exactly the Warrants it may not touch.
+            all_obligations_mechanical: declared.is_empty(),
+            residual_risk_judgment_required: self
+                .assumptions
+                .is_none_or(|a| !crate::authorize::residual_risks_in(a).is_empty()),
+        };
+        if let Some(recorded) = self.recorded_resolver {
+            return self
+                .register
+                .actor(recorded.actor)
+                .is_some_and(|assignment| {
+                    openwarrant_core::legacy_disposition::is_canonical_utc(
+                        &assignment.effective_time,
+                    ) && openwarrant_core::legacy_disposition::is_canonical_utc(
+                        recorded.effective_at,
+                    ) && assignment.effective_time.as_str() <= recorded.effective_at
+                        && assignment.may_resolve(self.performer, context).is_ok()
+                });
+        }
         self.register
-            .eligible_resolver(
-                self.performer,
-                PolicyResolutionContext {
-                    policy_allows: self.policy_allows_automated_resolution,
-                    assurance_level: assurance,
-                    // Conservative on purpose: an obligation is treated as
-                    // non-mechanical unless the Warrant declares none at all.
-                    // §27.3 lets a policy service close only mechanical work, and
-                    // guessing in the permissive direction here would hand a
-                    // machine exactly the Warrants it may not touch.
-                    all_obligations_mechanical: declared.is_empty(),
-                    residual_risk_judgment_required: self
-                        .assumptions
-                        .is_none_or(|a| !crate::authorize::residual_risks_in(a).is_empty()),
-                },
-            )
+            .eligible_resolver(self.performer, context)
             .is_some()
     }
 }
@@ -407,14 +791,16 @@ fn refers_to(judgment: &Judgment, risk: &crate::authorize::RequestedResidualRisk
 /// now would move the contract digest and would be editing a document to make a
 /// tool go green. It needs an amendment somebody authorizes, not a quiet edit.
 #[must_use]
-pub fn every_required_gate_has_admissible_result(cited_uris: &[String], runs: &[GateRun]) -> bool {
+pub(crate) fn every_required_gate_has_admissible_result(
+    cited_uris: &[String],
+    runs: &[AdmissibleGateRun],
+) -> bool {
     if cited_uris.is_empty() {
         return false;
     }
     cited_uris.iter().all(|uri| {
         let key = uri.trim_start_matches("gate://");
-        runs.iter()
-            .any(|r| r.gate == key && r.satisfies_required_pass())
+        runs.iter().any(|run| run.gate() == key)
     })
 }
 
@@ -582,6 +968,46 @@ pub fn artifact_digests_verify(root: &camino::Utf8Path, deliverables: &[Delivera
         })
 }
 
+const MAX_LIVE_RESOLUTION_ARTIFACT_BYTES: u64 = 64 * 1024 * 1024;
+
+fn live_artifact_entries(
+    repo: &Repository,
+    deliverables: &[Deliverable],
+) -> Vec<ArtifactSnapshotEntry> {
+    deliverables
+        .iter()
+        .filter(|deliverable| deliverable.required || deliverable.content_addressed)
+        .filter_map(|deliverable| {
+            crate::repo::read_repository_regular_bounded(
+                &repo.root.join(&deliverable.target_ref),
+                &repo.root,
+                "Resolution artifact",
+                MAX_LIVE_RESOLUTION_ARTIFACT_BYTES,
+            )
+            .ok()
+            .map(|bytes| ArtifactSnapshotEntry {
+                deliverable_id: deliverable.id.clone(),
+                target_ref: deliverable.target_ref.clone(),
+                observed_sha256: format!("sha256:{}", openwarrant_compiler::sha256_hex(&bytes)),
+            })
+        })
+        .collect()
+}
+
+#[cfg(test)]
+fn live_gate_subjects(
+    contract_digest: &str,
+    artifact_entries: &[ArtifactSnapshotEntry],
+) -> BTreeSet<String> {
+    std::iter::once(format!("contract:sha256:{contract_digest}"))
+        .chain(
+            artifact_entries
+                .iter()
+                .map(|artifact| artifact.observed_sha256.clone()),
+        )
+        .collect()
+}
+
 /// `war resolve <alias> --dry-run`.
 pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
     let dir = repo.warrant_dir(alias)?;
@@ -590,7 +1016,6 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
 
     let verifications = repo.load_verifications(&dir)?;
     let deliverables = repo.load_deliverables(&dir)?;
-    let gate_runs = repo.load_gate_runs();
 
     let performer = repo.performer();
     let register = repo.load_authority_register()?;
@@ -614,15 +1039,56 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
         assumptions: assumptions.as_deref(),
         policy_allows_automated_resolution: repo.config.policy.allow_automated_resolution,
         performer: &performer,
+        recorded_resolver: None,
+    };
+    let declared = declared_obligations(&one);
+    let artifacts = ArtifactChecks {
+        required_deliverables_exist: required_deliverables_exist(
+            &repo.root,
+            &deliverables.records,
+            &declared,
+        ),
+        artifact_digests_verify: artifact_digests_verify(&repo.root, &deliverables.records),
+    };
+    let artifact_entries = live_artifact_entries(repo, &deliverables.records);
+    let gate_evidence = if let Some(contract_digest) = current_contract_digest.as_ref() {
+        let basis = crate::gate_evidence::ResolutionEvidenceBasis::new(
+            contract_digest,
+            artifact_entries.iter().map(|artifact| {
+                crate::gate_evidence::ResolutionEvidenceArtifact {
+                    deliverable_id: artifact.deliverable_id.clone(),
+                    target_ref: artifact.target_ref.clone(),
+                    observed_sha256: artifact.observed_sha256.clone(),
+                }
+            }),
+            authorization
+                .as_ref()
+                .and_then(|record| {
+                    crate::authorize::gate_bindings_for_current(record, contract_digest)
+                })
+                .into_iter()
+                .flatten()
+                .cloned(),
+        );
+        match basis {
+            Ok(basis) => {
+                crate::gate_evidence::load_admissible_for_resolution(repo, &basis, &register)
+            }
+            Err(error) => crate::gate_evidence::GateEvidenceSet {
+                runs: Vec::new(),
+                failures: vec![("resolution-evidence-basis".to_owned(), error)],
+            },
+        }
+    } else {
+        crate::gate_evidence::GateEvidenceSet::default()
     };
 
     let checks = evaluate(
-        repo,
         &one,
         &verifications.records,
-        &deliverables.records,
-        &gate_runs,
+        &gate_evidence.runs,
         &authority,
+        artifacts,
     );
     for (path, why) in &deliverables.failures {
         report.push(Diagnostic::error(
@@ -636,6 +1102,13 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
             "verification.malformed",
             path.clone(),
             format!("{why} — an unreadable verification is not an absent one"),
+        ));
+    }
+    for (path, why) in &gate_evidence.failures {
+        report.push(Diagnostic::warn(
+            "gate-evidence.rejected-candidate",
+            path.clone(),
+            format!("{why} — rejected evidence is never promoted into Resolution"),
         ));
     }
 
@@ -718,7 +1191,7 @@ pub fn run(repo: &Repository, alias: &str) -> Result<Report, RepoError> {
 }
 
 /// The obligation ids a Warrant declares, as the parser reads them.
-fn declared_obligations(one: &crate::repo::Loaded) -> Vec<String> {
+pub(crate) fn declared_obligations(one: &crate::repo::Loaded) -> Vec<String> {
     one.basis
         .as_ref()
         .map(|b| {
@@ -807,46 +1280,39 @@ mod tests {
         }
     }
 
-    fn gate_run(gate: &str, askability: &str, status: &str, verdict: &str) -> GateRun {
-        toml::from_str(&format!(
-            "id = \"GR-1\"\ngate = \"{gate}\"\naskability = \"{askability}\"\n\
-             execution_status = \"{status}\"\nverdict = \"{verdict}\"\n"
-        ))
-        .expect("valid run")
+    fn admitted_gate_run(id: &str, gate: &str) -> AdmissibleGateRun {
+        crate::gate_evidence::admitted_for_test(GateRun {
+            id: id.to_owned(),
+            gate: gate.to_owned(),
+            askability: openwarrant_core::Askability::Askable,
+            execution_status: openwarrant_core::ExecutionStatus::Completed,
+            verdict: openwarrant_core::Verdict::Pass,
+            reason_code: Some(openwarrant_core::ReasonCode::Passed),
+        })
     }
 
     const GATE: &str = "software.repo.war-check@1.0.0";
 
     #[test]
+    fn live_gate_subjects_use_the_receipt_contract_identity() {
+        let contract_digest = "a".repeat(64);
+        let subjects = live_gate_subjects(&contract_digest, &[]);
+
+        assert_eq!(
+            subjects,
+            [format!("contract:sha256:{contract_digest}")]
+                .into_iter()
+                .collect()
+        );
+    }
+
+    #[test]
     fn a_cited_gate_with_an_askable_completed_pass_is_admissible() {
-        let runs = vec![gate_run(GATE, "askable", "completed", "pass")];
+        let runs = vec![admitted_gate_run("GR-1", GATE)];
         assert!(every_required_gate_has_admissible_result(
             &[format!("gate://{GATE}")],
             &runs
         ));
-    }
-
-    /// SAS §99 criterion 19: unaskable gates cannot pass. A run claiming
-    /// `not_askable` with verdict `pass` is incoherent and must not satisfy
-    /// anything — checking the verdict first is how such a run slips through.
-    #[test]
-    fn an_unaskable_gate_cannot_pass() {
-        let runs = vec![gate_run(GATE, "not_askable", "completed", "pass")];
-        assert!(!every_required_gate_has_admissible_result(
-            &[format!("gate://{GATE}")],
-            &runs
-        ));
-    }
-
-    #[test]
-    fn a_failing_or_unknown_verdict_is_not_admissible() {
-        for verdict in ["fail", "unknown"] {
-            let runs = vec![gate_run(GATE, "askable", "completed", verdict)];
-            assert!(
-                !every_required_gate_has_admissible_result(&[format!("gate://{GATE}")], &runs),
-                "verdict {verdict} must not satisfy a required pass"
-            );
-        }
     }
 
     /// A cited gate with NO recorded run is unmet, not vacuously satisfied.
@@ -862,12 +1328,7 @@ mod tests {
     /// A passing run for a DIFFERENT gate must not satisfy this citation.
     #[test]
     fn a_run_for_another_gate_does_not_count() {
-        let runs = vec![gate_run(
-            "some.other.gate@1.0.0",
-            "askable",
-            "completed",
-            "pass",
-        )];
+        let runs = vec![admitted_gate_run("GR-1", "some.other.gate@1.0.0")];
         assert!(!every_required_gate_has_admissible_result(
             &[format!("gate://{GATE}")],
             &runs
@@ -876,11 +1337,8 @@ mod tests {
 
     /// Every cited gate must pass, not merely one of them.
     #[test]
-    fn one_passing_gate_does_not_carry_a_failing_sibling() {
-        let runs = vec![
-            gate_run(GATE, "askable", "completed", "pass"),
-            gate_run("second.gate@1.0.0", "askable", "completed", "fail"),
-        ];
+    fn one_admitted_gate_does_not_carry_an_unadmitted_sibling() {
+        let runs = vec![admitted_gate_run("GR-1", GATE)];
         assert!(!every_required_gate_has_admissible_result(
             &[
                 format!("gate://{GATE}"),
@@ -973,6 +1431,24 @@ mod tests {
         checks.independence_requirements_met = false;
         let unmet = checks.unmet();
         assert_eq!(unmet, vec!["independence requirements are met"]);
+    }
+
+    #[test]
+    fn persisted_record_identifiers_must_be_nonblank_and_unique() {
+        #[derive(Clone)]
+        struct Record(&'static str);
+
+        let blank = record_ids(&[Record(" ")], |record| record.0)
+            .expect_err("blank persisted evidence id must fail");
+        assert!(blank.to_string().contains("blank record identifier"));
+
+        let duplicate = record_ids(&[Record("R-1"), Record("R-1")], |record| record.0)
+            .expect_err("duplicate persisted evidence id must fail");
+        assert!(
+            duplicate
+                .to_string()
+                .contains("duplicate record identifier")
+        );
     }
 
     fn basis_with_milestones(yaml: &str) -> openwarrant_compiler::CompilationBasis {
@@ -1092,6 +1568,7 @@ stages:
             assumptions,
             policy_allows_automated_resolution: false,
             performer: "claude",
+            recorded_resolver: None,
         }
     }
 
@@ -1151,5 +1628,75 @@ stages:
             RESOLUTION_REQUIREMENTS.len(),
             "a default ResolutionChecks must satisfy nothing"
         );
+    }
+
+    #[test]
+    fn persisted_resolution_checks_named_resolver_not_any_eligible_actor() {
+        use std::collections::BTreeSet;
+
+        use openwarrant_core::{ActorKind, ActorRole, RoleAssignment};
+
+        let assignment = |actor: &str, kind, effective_time: &str| RoleAssignment {
+            actor: actor.to_owned(),
+            actor_kind: kind,
+            roles: BTreeSet::from([ActorRole::Resolver]),
+            assigned_by: "human:owner".to_owned(),
+            effective_time: effective_time.to_owned(),
+            note: None,
+        };
+        let register = AuthorityRegister::new(vec![
+            assignment("OtherHuman", ActorKind::Human, "2026-08-20T00:00:00Z"),
+            assignment("Named", ActorKind::Agent, "2026-08-20T00:00:00Z"),
+        ]);
+        let authority = Authority {
+            register: &register,
+            authorization: None,
+            current_contract_digest: None,
+            judgments: &[],
+            assumptions: Some(&[]),
+            policy_allows_automated_resolution: false,
+            performer: "claude",
+            recorded_resolver: Some(RecordedResolver {
+                actor: "Named",
+                effective_at: "2026-08-27T00:00:00Z",
+            }),
+        };
+        assert!(
+            !authority.a_resolver_is_eligible("basic", &["OBL-001".to_owned()]),
+            "another eligible human cannot substitute for named agent"
+        );
+
+        let register = AuthorityRegister::new(vec![assignment(
+            "Named",
+            ActorKind::Human,
+            "2026-08-28T00:00:00Z",
+        )]);
+        let authority = Authority {
+            register: &register,
+            recorded_resolver: Some(RecordedResolver {
+                actor: "Named",
+                effective_at: "2026-08-27T00:00:00Z",
+            }),
+            ..authority
+        };
+        assert!(
+            !authority.a_resolver_is_eligible("basic", &["OBL-001".to_owned()]),
+            "role assignment effective after Resolution cannot authorize it"
+        );
+
+        let register = AuthorityRegister::new(vec![assignment(
+            "Named",
+            ActorKind::Human,
+            "2026-08-26T00:00:00Z",
+        )]);
+        let authority = Authority {
+            register: &register,
+            recorded_resolver: Some(RecordedResolver {
+                actor: "Named",
+                effective_at: "2026-08-27T00:00:00Z",
+            }),
+            ..authority
+        };
+        assert!(authority.a_resolver_is_eligible("basic", &["OBL-001".to_owned()]));
     }
 }

@@ -14,15 +14,21 @@ mod blut;
 mod bonsai;
 mod check;
 mod compile;
+mod contained_file;
 mod diagnostic;
 mod export;
+mod gate_adapter;
 mod gate_cmd;
+mod gate_evidence;
+mod git_cmd;
 mod init;
 mod kf;
+mod legacy_disposition;
 mod migrate;
 mod new;
 mod relations;
 mod repo;
+mod repo_error;
 mod resolve;
 mod show;
 mod telemetry;
@@ -162,6 +168,12 @@ enum Command {
         /// Immutable evidence references bound into a receipt. Requires --record.
         #[arg(long = "evidence-ref")]
         evidence_refs: Vec<String>,
+        /// Exact §43.5 Gate Binding JSON used by this recorded run.
+        #[arg(long, value_name = "PATH")]
+        binding: Option<Utf8PathBuf>,
+        /// Warrant whose current human authorization selected that Binding.
+        #[arg(long, value_name = "ALIAS")]
+        warrant: Option<String>,
     },
     /// Bind a Warrant's machine scope to Bonsai evidence.
     Bonsai {
@@ -247,6 +259,22 @@ enum Command {
         /// It must always fail; a build where this succeeds is the defect.
         #[arg(long)]
         attempt_promotion: bool,
+    },
+
+    /// Validate 1:1 terminal receipts for a frozen legacy ADR corpus.
+    LegacyDispositions {
+        /// Human-reviewed disposition manifest. Agent proposals are rejected by schema.
+        #[arg(long)]
+        manifest: Utf8PathBuf,
+        /// Git repository containing every source commit named by the receipts.
+        #[arg(long)]
+        source_repo: Utf8PathBuf,
+        /// Primary frozen-corpus import artifact bound by the manifest.
+        #[arg(long)]
+        source_import: Utf8PathBuf,
+        /// OpenWarrant repository containing current Warrant and authority records.
+        #[arg(long, default_value = ".")]
+        warrant_repo: Utf8PathBuf,
     },
 
     /// §68 portable export and round trip.
@@ -385,26 +413,56 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             })
         }
 
+        Command::LegacyDispositions {
+            manifest,
+            source_repo,
+            source_import,
+            warrant_repo,
+        } => {
+            let report =
+                legacy_disposition::run(&manifest, &source_repo, &source_import, &warrant_repo)?;
+            legacy_disposition::print(&report);
+            Ok(EXIT_OK)
+        }
+
         Command::Gate {
             run,
             gate,
             record,
             subject_digests,
             evidence_refs,
+            binding,
+            warrant,
         } => {
-            if !record && (!subject_digests.is_empty() || !evidence_refs.is_empty()) {
+            if !record
+                && (!subject_digests.is_empty()
+                    || !evidence_refs.is_empty()
+                    || binding.is_some()
+                    || warrant.is_some())
+            {
                 return Err(Box::new(repo::RepoError::Message(
-                    "--subject-digest and --evidence-ref require --record".to_owned(),
+                    "Warrant, Gate Binding, subject digests, and evidence refs require --record"
+                        .to_owned(),
+                )));
+            }
+            if record && (!run || gate.is_none() || binding.is_none() || warrant.is_none()) {
+                return Err(Box::new(repo::RepoError::Message(
+                    "--record requires --run, --gate, --binding, and --warrant; producer identity comes from the authorized Gate Binding and test selection comes from the exact runner-owned execution adapter"
+                        .to_owned(),
                 )));
             }
             let repository = repo::Repository::discover(None)?;
             let report = gate_cmd::run(
                 &repository,
-                run,
-                gate.as_deref(),
-                record,
-                &subject_digests,
-                &evidence_refs,
+                gate_cmd::RunRequest {
+                    execute: run,
+                    only: gate.as_deref(),
+                    record,
+                    subject_digests: &subject_digests,
+                    raw_evidence_refs: &evidence_refs,
+                    binding_path: binding.as_deref(),
+                    warrant_alias: warrant.as_deref(),
+                },
             )?;
             check::print(&report);
             // §44.1 and RQ-054: an unaskable gate is NOT a pass, and is not a
@@ -845,6 +903,33 @@ fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
             let repository = repo::Repository::discover(None)?;
             compile::run(&repository, alias.as_deref())?;
             Ok(EXIT_OK)
+        }
+    }
+}
+
+#[cfg(test)]
+mod cli_tests {
+    use super::*;
+
+    #[test]
+    fn recorded_gate_caller_cannot_supply_actor_or_test_selection() {
+        for flag in ["--producer-actor", "--selected-test"] {
+            let parsed = Cli::try_parse_from([
+                "war",
+                "gate",
+                "--run",
+                "--record",
+                "--gate",
+                "fixture.pass",
+                "--binding",
+                "receipts/input.binding.json",
+                flag,
+                "caller-controlled",
+            ]);
+            assert!(
+                parsed.is_err(),
+                "obsolete caller-controlled flag {flag} survived"
+            );
         }
     }
 }

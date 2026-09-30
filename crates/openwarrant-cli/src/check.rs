@@ -12,7 +12,7 @@
 
 use std::collections::BTreeMap;
 
-use openwarrant_compiler::{ChildRef, lower};
+use openwarrant_compiler::{ChildRef, lower, sha256_hex};
 use openwarrant_core::{ValidatedManifest, detect_parent_cycles, milestones, obligation, seam};
 
 use crate::compile::{adr_overview, projections, warrant_overview};
@@ -391,7 +391,12 @@ pub(crate) fn load_gate_registry(
             }
         };
         match openwarrant_core::gate::definition_from_structured(&doc) {
-            Ok(def) => {
+            Ok(mut def) => {
+                let source_digest = format!("sha256:{}", sha256_hex(text.as_bytes()));
+                if let Err(err) = def.bind_local_source_digest(&source_digest) {
+                    report.push(Diagnostic::error("gate.invalid", rel, format!("{err}")));
+                    continue;
+                }
                 let key = def.key();
                 let provenance = def.provenance;
                 match registry.insert(def) {

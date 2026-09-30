@@ -130,6 +130,28 @@ pub enum GateError {
     },
     #[error("duplicate gate definition {gate_id}@{version}; §43.3 definitions are immutable")]
     DuplicateDefinition { gate_id: String, version: String },
+    #[error("unknown Gate Definition field {field:?}; misspelled gate fields are not ignored")]
+    UnknownDefinitionField { field: String },
+    #[error(
+        "unknown Gate Definition detection-result field {field:?}; misspelled qualification evidence is not ignored"
+    )]
+    UnknownDetectionResultField { field: String },
+    #[error(
+        "Gate Definition field {field:?} has invalid boolean {found:?}; expected true or false"
+    )]
+    InvalidBooleanField { field: &'static str, found: String },
+    #[error(
+        "gate {gate_id}@{version} declares digest {found:?}, which is not sha256:<64 lowercase hex>"
+    )]
+    DefinitionDigestNotADigest {
+        gate_id: String,
+        version: String,
+        found: String,
+    },
+    #[error(
+        "gate {gate_id}@{version} declares a selected-test manifest containing a blank or duplicate identifier"
+    )]
+    InvalidSelectionManifest { gate_id: String, version: String },
 }
 
 /// §43.3's lifecycle, in order.
@@ -238,6 +260,7 @@ impl fmt::Display for GateProvenance {
 
 /// A recorded detection result from qualification (§43.4).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct DetectionResult {
     /// The fault class this exercised, matching an entry in `fault_model`.
     pub fault_class: String,
@@ -250,6 +273,7 @@ pub struct DetectionResult {
 /// §43.4's qualification record. Every field the SAS lists as SHALL is present
 /// and validated; none of them is optional.
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Qualification {
     /// Known-bad inputs the gate is expected to flag.
     #[serde(default)]
@@ -340,6 +364,7 @@ fn is_sha256(s: &str) -> bool {
 
 /// §43.2's Gate Definition.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct GateDefinition {
     pub gate_id: String,
     pub version: String,
@@ -369,6 +394,11 @@ pub struct GateDefinition {
     /// owns shell parsing.
     #[serde(default)]
     pub argv: Vec<String>,
+    /// Verifier-controlled test or check identifiers selected by this exact
+    /// invocation. The runner copies this immutable definition field into the
+    /// receipt; callers cannot assert after the fact what was selected.
+    #[serde(default)]
+    pub selection_manifest: Vec<String>,
     /// §44.8 — whether this gate changes state while measuring it. A mutating
     /// gate is quarantined from routine runs however completely it is declared.
     #[serde(default)]
@@ -398,6 +428,23 @@ impl GateDefinition {
                 gate_id: self.gate_id.clone(),
             });
         }
+        if !self.digest.is_empty() && !is_sha256(&self.digest) {
+            return Err(GateError::DefinitionDigestNotADigest {
+                gate_id: self.gate_id.clone(),
+                version: self.version.clone(),
+                found: self.digest.clone(),
+            });
+        }
+        let selection: BTreeSet<&str> =
+            self.selection_manifest.iter().map(String::as_str).collect();
+        if selection.len() != self.selection_manifest.len()
+            || selection.iter().any(|entry| entry.trim().is_empty())
+        {
+            return Err(GateError::InvalidSelectionManifest {
+                gate_id: self.gate_id.clone(),
+                version: self.version.clone(),
+            });
+        }
         match (&self.qualification, self.lifecycle.implies_qualification()) {
             (Some(q), _) => q.validate(&self.gate_id, &self.version, &self.fault_model)?,
             (None, true) => {
@@ -411,10 +458,29 @@ impl GateDefinition {
         }
         Ok(())
     }
+
+    /// Bind exact bytes for a definition loaded from a local repository.
+    ///
+    /// A local file cannot authenticate its own independent identity by placing
+    /// a different digest inside itself. Institutional registry identity needs
+    /// a separately authenticated projection; this local loader has no such
+    /// authority, so exact source bytes always win here.
+    pub fn bind_local_source_digest(&mut self, source_digest: &str) -> Result<(), GateError> {
+        if !is_sha256(source_digest) {
+            return Err(GateError::DefinitionDigestNotADigest {
+                gate_id: self.gate_id.clone(),
+                version: self.version.clone(),
+                found: source_digest.to_owned(),
+            });
+        }
+        self.digest = source_digest.to_owned();
+        self.validate()
+    }
 }
 
 /// A gate reference as pinned by a binding (§43.5).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct GateRef {
     pub id: String,
     pub version: String,
@@ -455,6 +521,7 @@ impl GateRef {
 
 /// §43.5's Gate Binding, digested under `oh.war/gate-binding/v1`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct GateBinding {
     pub id: String,
     pub gate: GateRef,
@@ -471,6 +538,7 @@ pub struct GateBinding {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Fixture {
     #[serde(rename = "ref")]
     pub reference: String,
@@ -480,6 +548,7 @@ pub struct Fixture {
 
 /// §43.5's evidence policy.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct EvidencePolicy {
     #[serde(default)]
     pub producer: String,
@@ -501,6 +570,7 @@ impl Default for EvidencePolicy {
 /// A local gate registry — §43.1's "local gate-candidate authoring" and "cached
 /// registry projections", never the authoritative institutional registry.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct GateRegistry {
     #[serde(default)]
     pub definitions: Vec<GateDefinition>,
@@ -600,6 +670,22 @@ impl GateRegistry {
 pub fn definition_from_structured(
     doc: &crate::structured::StructuredDoc,
 ) -> Result<GateDefinition, GateError> {
+    if let Some(field) = doc.keys().find(|field| !DEFINITION_KEYS.contains(field)) {
+        return Err(GateError::UnknownDefinitionField {
+            field: field.to_owned(),
+        });
+    }
+    if let Some(field) = doc
+        .records("detection_results")
+        .unwrap_or_default()
+        .iter()
+        .flat_map(|record| record.keys())
+        .find(|field| !DETECTION_RESULT_KEYS.contains(&field.as_str()))
+    {
+        return Err(GateError::UnknownDetectionResultField {
+            field: field.to_owned(),
+        });
+    }
     let scalar = |k: &str| doc.scalar(k).unwrap_or_default().to_owned();
     let list = |k: &str| {
         doc.get(k)
@@ -668,6 +754,26 @@ pub fn definition_from_structured(
         _ => GateProvenance::LocalCandidate,
     };
 
+    let mutating = match doc.get("mutating") {
+        None => false,
+        Some(value) => match value.as_scalar() {
+            Some(value) if value.eq_ignore_ascii_case("true") => true,
+            Some(value) if value.eq_ignore_ascii_case("false") => false,
+            Some(value) => {
+                return Err(GateError::InvalidBooleanField {
+                    field: "mutating",
+                    found: value.to_owned(),
+                });
+            }
+            None => {
+                return Err(GateError::InvalidBooleanField {
+                    field: "mutating",
+                    found: "<non-scalar>".to_owned(),
+                });
+            }
+        },
+    };
+
     let def = GateDefinition {
         gate_id,
         version,
@@ -681,9 +787,8 @@ pub fn definition_from_structured(
         qualification,
         provenance,
         argv: list("argv"),
-        mutating: doc
-            .scalar("mutating")
-            .is_some_and(|s| s.eq_ignore_ascii_case("true")),
+        selection_manifest: list("selection_manifest"),
+        mutating,
         timeout_secs: doc
             .scalar("timeout_secs")
             .and_then(|s| s.trim().parse().ok()),
@@ -705,6 +810,33 @@ const QUALIFICATION_KEYS: [&str; 8] = [
     "qualification_digest",
     "detection_results",
 ];
+
+const DEFINITION_KEYS: [&str; 22] = [
+    "gate_id",
+    "version",
+    "digest",
+    "lifecycle",
+    "implementation_ref",
+    "input_kinds",
+    "output_schema_ref",
+    "fault_model",
+    "known_blind_spots",
+    "provenance",
+    "argv",
+    "selection_manifest",
+    "mutating",
+    "timeout_secs",
+    "qualification_qualifier",
+    "qualification_positive_controls",
+    "qualification_negative_controls",
+    "qualification_mutation_classes",
+    "qualification_environments",
+    "qualification_limitations",
+    "qualification_digest",
+    "detection_results",
+];
+
+const DETECTION_RESULT_KEYS: [&str; 3] = ["fault_class", "mutation", "detected"];
 
 /// Small helper so `definition_from_structured` can ask a value for a list
 /// without importing the reader's whole surface.
@@ -787,7 +919,7 @@ mod tests {
         GateDefinition {
             gate_id: "software.codec.byte-identity".into(),
             version: "4.0.0".into(),
-            digest: "sha256:abc".into(),
+            digest: format!("sha256:{}", "a".repeat(64)),
             lifecycle: GateLifecycle::Active,
             implementation_ref: "artifact://byte-identity".into(),
             input_kinds: vec!["encoded-stream".into()],
@@ -797,6 +929,7 @@ mod tests {
             qualification: Some(good_qualification()),
             provenance: GateProvenance::LocalCandidate,
             argv: vec!["true".into()],
+            selection_manifest: vec!["check://byte-identity".into()],
             mutating: false,
             timeout_secs: None,
         }
@@ -1096,6 +1229,21 @@ mod tests {
         assert_eq!(def.lifecycle, GateLifecycle::Draft);
     }
 
+    #[test]
+    fn a_malformed_mutating_flag_is_refused_instead_of_becoming_nonmutating() {
+        for malformed in ["yes", "1", "disabled", ""] {
+            let doc = crate::structured::parse(&format!(
+                "gate_id: \"a.b\"\nversion: \"1.0.0\"\nlifecycle: \"draft\"\n\
+                 mutating: \"{malformed}\"\n"
+            ))
+            .expect("restricted Gate Definition parses");
+            assert!(
+                definition_from_structured(&doc).is_err(),
+                "malformed mutating value {malformed:?} became a safe-looking false"
+            );
+        }
+    }
+
     /// A placeholder in a digest field renders where a reader expects integrity.
     #[test]
     fn a_placeholder_qualification_digest_is_refused() {
@@ -1139,6 +1287,23 @@ mod tests {
         );
     }
 
+    #[test]
+    fn local_source_bytes_override_a_self_asserted_definition_digest() {
+        let mut definition = good_definition();
+        definition.provenance = GateProvenance::LocalCandidate;
+        definition.digest = format!("sha256:{}", "a".repeat(64));
+        let observed = format!("sha256:{}", "b".repeat(64));
+
+        definition
+            .bind_local_source_digest(&observed)
+            .expect("observed local source digest is valid");
+
+        assert_eq!(
+            definition.digest, observed,
+            "a local candidate cannot self-assert identity independent of its source bytes"
+        );
+    }
+
     /// §43.3's lifecycle, transcribed as an external expectation.
     #[test]
     fn the_lifecycle_matches_the_sas() {
@@ -1157,6 +1322,21 @@ mod tests {
         let p = EvidencePolicy::default();
         assert!(!p.performer_authored_report_admissible);
         assert_eq!(p.producer, "gate_runner");
+    }
+
+    #[test]
+    fn selection_manifest_refuses_blank_and_duplicate_identifiers() {
+        for manifest in [
+            vec!["check://one".to_owned(), "".to_owned()],
+            vec!["check://one".to_owned(), "check://one".to_owned()],
+        ] {
+            let mut definition = good_definition();
+            definition.selection_manifest = manifest;
+            assert!(matches!(
+                definition.validate(),
+                Err(GateError::InvalidSelectionManifest { .. })
+            ));
+        }
     }
 
     #[test]

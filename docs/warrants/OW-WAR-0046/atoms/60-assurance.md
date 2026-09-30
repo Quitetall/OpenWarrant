@@ -14,9 +14,12 @@ classification: internal
 ### OBL-001 — a real gate run produced a complete receipt
 - **scope:** one qualified gate, one run, against a named subject.
 - **gate:** `gate://software.repo.war-check@1.0.0`
-- **evidence:** a §44.6 receipt with all twelve required scalars
-  populated, whose triple is askable + completed + pass. Plus recorded runs
-  showing a missing tool reported as `not_askable`, NOT as a failure.
+- **evidence:** an `oh.war/gate-receipt/v1` §44.6 receipt with every required
+  field populated, a recomputable receipt digest under its own domain, exact
+  output-byte digests, effective producer authority, and a run whose triple is
+  askable + completed + pass. Plants must show that standalone runs, tampered
+  bundle members, unsupported Binding semantics, and performer substitution are
+  rejected; a missing tool remains `not_askable`, not failure.
 
 ### OBL-002 — an adequacy review executed attacks
 - **scope:** §39.3, for the Warrant being resolved.

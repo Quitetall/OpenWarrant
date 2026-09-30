@@ -26,6 +26,10 @@ OW-WAR-0016 through OW-WAR-0022 resolved. OW-WAR-0045 resolved, since a resoluti
   state — satisfies nothing, including `basic`.
   *Resolution requirement:* a verifier that did not author the work, with the
   independence dimensions recorded as achieved rather than asserted.
+- **Blocking decision.** OW-ADR-0012 proposes the first emitted, versioned
+  GateReceipt wire and makes receipt-first admission normative. Its required
+  producer identity, stream digests, and distinct digest domain are breaking
+  semantics under §69.3 and cannot govern until a human accepts that ADR.
 - **Accepted residual risk.** A gate can be askable, complete, return pass, and
   measure the wrong thing. §39's adequacy review is the only control that asks,
   and it is human.
@@ -40,3 +44,5 @@ OW-WAR-0016 through OW-WAR-0022 resolved. OW-WAR-0045 resolved, since a resoluti
   stay forbidden under the pressure of wanting to close.
 - **A required unknown blocks** (RQ-054). It is not a failure and it is not a
   pass, and it must not be resolved by reclassifying it.
+- **A raw Gate Run is history, not admissible evidence.** Resolution may consume
+  only a witness produced by complete receipt-bundle admission.

@@ -16,7 +16,10 @@ classification: internal
    2026-08-20: twenty of twenty sampled alpha types are referenced by no code in
    `openwarrant-cli` or `openwarrant-compiler`.
 2. A gate qualified against declared fault classes with BOTH control
-   directions, run for real, producing a §44.6 receipt with every required field.
+   directions, run for real, producing a versioned §44.6 receipt whose producer,
+   definition, binding, subjects, fixtures, selected tests, streams, chronology,
+   and verdict all bind exact evidence. This deliverable depends on human
+   acceptance of OW-ADR-0012.
 3. §56.1's thirteen requirements computed and reported for every Warrant, with
    each unmet requirement named. Recording a resolution is deferred to a Warrant
    that can satisfy requirement 10 — see `amendments/AM-001.yaml`.

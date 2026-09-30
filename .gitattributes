@@ -1,0 +1,2 @@
+# OpenWarrant digests bind exact bytes; checkout filters must never normalize them.
+* -text

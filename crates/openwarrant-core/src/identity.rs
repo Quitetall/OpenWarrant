@@ -16,8 +16,8 @@
 use std::fmt;
 use std::str::FromStr;
 
-use serde::{Deserialize, Serialize};
-use uuid::Uuid;
+use serde::{Deserialize, Deserializer, Serialize, de};
+use uuid::{Uuid, Variant};
 
 /// Errors from constructing identity values.
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
@@ -45,13 +45,15 @@ pub enum IdentityError {
         "UUID {value} is version {found}, but WAR identity requires UUIDv7 (SAS §12.2, RQ-001)"
     )]
     UuidNotV7 { value: Uuid, found: usize },
+    #[error("UUID {value} has variant {found:?}, but WAR identity requires the RFC 4122 variant")]
+    UuidNotRfc4122 { value: Uuid, found: String },
 }
 
 /// The immutable global identity of a WAR (§12.2, RQ-001).
 ///
 /// Minted offline at creation. Registration with Knowledge Fabric adds an
 /// enterprise identifier alongside this value; it never replaces it (§12.6).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize)]
 #[serde(transparent)]
 pub struct WarUuid(Uuid);
 
@@ -72,12 +74,19 @@ impl WarUuid {
         Self(Uuid::now_v7())
     }
 
-    /// Adopt an existing UUID, rejecting any version other than 7.
+    /// Adopt an existing UUID, requiring RFC 4122 variant and version 7.
     ///
     /// Fail-closed rather than accepting and normalising: a v4 UUID in a
     /// manifest means the record was minted by something that does not follow
     /// this protocol, and silently accepting it would lose that signal.
     pub fn from_uuid(value: Uuid) -> Result<Self, IdentityError> {
+        let variant = value.get_variant();
+        if variant != Variant::RFC4122 {
+            return Err(IdentityError::UuidNotRfc4122 {
+                value,
+                found: format!("{variant:?}"),
+            });
+        }
         match value.get_version_num() {
             7 => Ok(Self(value)),
             found => Err(IdentityError::UuidNotV7 { value, found }),
@@ -105,6 +114,16 @@ impl FromStr for WarUuid {
             source,
         })?;
         Self::from_uuid(parsed)
+    }
+}
+
+impl<'de> Deserialize<'de> for WarUuid {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = Uuid::deserialize(deserializer)?;
+        Self::from_uuid(value).map_err(de::Error::custom)
     }
 }
 
@@ -229,6 +248,39 @@ mod tests {
                 found: 4
             })
         );
+    }
+
+    #[test]
+    fn non_rfc4122_uuid_v7_variants_are_refused() {
+        for (text, expected) in [
+            ("018f22c2-7d00-7cc3-18c4-dc0c0c07398f", Variant::NCS),
+            ("018f22c2-7d00-7cc3-d8c4-dc0c0c07398f", Variant::Microsoft),
+        ] {
+            let uuid = Uuid::parse_str(text).expect("syntactically valid UUIDv7");
+            assert_eq!(uuid.get_version_num(), 7);
+            assert_eq!(
+                WarUuid::from_uuid(uuid),
+                Err(IdentityError::UuidNotRfc4122 {
+                    value: uuid,
+                    found: format!("{expected:?}"),
+                })
+            );
+        }
+    }
+
+    #[test]
+    fn serde_cannot_bypass_war_uuid_identity_admission() {
+        for text in [
+            "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+            "018f22c2-7d00-7cc3-18c4-dc0c0c07398f",
+            "018f22c2-7d00-7cc3-d8c4-dc0c0c07398f",
+        ] {
+            let json = format!("\"{text}\"");
+            assert!(
+                serde_json::from_str::<WarUuid>(&json).is_err(),
+                "Serde admitted invalid WAR identity {text}"
+            );
+        }
     }
 
     #[test]

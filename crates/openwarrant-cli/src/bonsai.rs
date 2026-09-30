@@ -6,6 +6,7 @@
 //! from its caller, never from authored Warrant text.
 
 use std::collections::BTreeSet;
+use std::io::Read;
 use std::process::Command;
 
 use camino::Utf8Path;
@@ -14,10 +15,11 @@ use openwarrant_core::obligation;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::repo::{RepoError, Repository};
+use crate::repo::{RepoError, Repository, read_repository_regular_bounded};
 
 const SCHEMA: &str = "oh.war/bonsai-evidence/v1";
 const SCOPE_SCHEMA: &str = "oh.war/bonsai-scope/v1";
+pub(crate) const MAX_BONSAI_EVIDENCE_BYTES: u64 = 16 * 1024 * 1024;
 const ARCHITECTURE_RULES: &[&str] = &[
     "contract-anchor",
     "contract-forbid",
@@ -138,6 +140,7 @@ fn safe_relative(path: &str) -> bool {
     !path.is_empty()
         && !path.starts_with('/')
         && !path.contains('\\')
+        && !path.contains(':')
         && path
             .split('/')
             .all(|part| !part.is_empty() && part != "." && part != "..")
@@ -630,15 +633,38 @@ pub(crate) fn verify_evidence_file(
     repo: &Repository,
     evidence_path: &Utf8Path,
 ) -> Result<(), RepoError> {
-    if evidence_path.is_absolute() || !safe_relative(evidence_path.as_str()) {
-        return Err(RepoError::Message(
-            "Bonsai evidence path must be a safe repository-relative path".to_owned(),
-        ));
-    }
-    let bytes = std::fs::read(repo.root.join(evidence_path)).map_err(|source| RepoError::Io {
-        context: format!("could not read Bonsai evidence {evidence_path}"),
-        source,
-    })?;
+    let bytes = if evidence_path == Utf8Path::new("-") {
+        let limit = MAX_BONSAI_EVIDENCE_BYTES.checked_add(1).ok_or_else(|| {
+            RepoError::Message("Bonsai evidence byte limit cannot be enforced".to_owned())
+        })?;
+        let mut bytes = Vec::new();
+        std::io::stdin()
+            .lock()
+            .take(limit)
+            .read_to_end(&mut bytes)
+            .map_err(|source| RepoError::Io {
+                context: "could not read Bonsai evidence from stdin".to_owned(),
+                source,
+            })?;
+        if bytes.len() as u64 > MAX_BONSAI_EVIDENCE_BYTES {
+            return Err(RepoError::Message(format!(
+                "Bonsai evidence from stdin exceeds {MAX_BONSAI_EVIDENCE_BYTES} byte limit"
+            )));
+        }
+        bytes
+    } else {
+        if evidence_path.is_absolute() || !safe_relative(evidence_path.as_str()) {
+            return Err(RepoError::Message(
+                "Bonsai evidence path must be '-' or a safe repository-relative path".to_owned(),
+            ));
+        }
+        read_repository_regular_bounded(
+            evidence_path,
+            &repo.root,
+            "Bonsai evidence",
+            MAX_BONSAI_EVIDENCE_BYTES,
+        )?
+    };
     validate_passing_evidence_bytes(&bytes)
         .map(|_| ())
         .map_err(RepoError::Message)

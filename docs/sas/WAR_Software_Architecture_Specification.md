@@ -2637,21 +2637,48 @@ verdict: "pass"
 
 The receipt SHALL record:
 
+- schema `oh.war/gate-receipt/v1` and kind `gate_receipt`;
+- exact Gate Run digest;
 - Gate Definition and Binding digests;
 - subject digests;
 - fixture digests;
-- runner;
+- exact runner-owned execution-adapter identity;
+- producer actor selected by the authorized Gate Binding;
 - runtime environment;
 - exact arguments;
 - working directory or physical setup;
 - start and completion;
 - exit result;
 - selected test count and manifest;
+- exact test-selection observation reference and SHA-256 digest;
 - raw evidence refs;
-- stdout and stderr refs;
+- stdout and stderr refs plus exact content digests;
 - resource usage;
 - verdict;
 - receipt digest.
+
+Recorded execution SHALL refuse before spawning when no exact execution adapter
+matches the qualified Gate Definition. The adapter match binds implementation,
+output schema, argument vector, and planned selection manifest. After the
+process completes, the adapter SHALL emit an
+`oh.war/test-selection-observation/v1` object with kind
+`test_selection_observation`, run identity, Gate Definition digest, adapter
+identity, selected-test count, and canonical nonempty selected-test manifest.
+Receipt, observation, adapter, and Gate Definition selection SHALL agree
+exactly. A Gate Definition's planned manifest alone is not observation that its
+tests executed.
+
+The producer actor SHALL equal `GateBinding.evidence_policy.producer` and hold
+an effective Verifier assignment no later than `started_at`. The caller cannot
+supply a substitute producer label. Raw evidence references are admissible only
+under an adapter that proves the referenced evidence was consumed by its exact
+invocation.
+
+Bundle publication SHALL write and durably synchronize supporting objects
+before publishing the receipt as commit marker. Resolver admission SHALL derive
+the exact sibling Run, Binding, selection observation, stdout, and stderr paths
+from one canonical run identity and verify their exact bytes. Missing,
+pre-existing, moved, colliding, or substituted members fail closed.
 
 ### 44.7 Shell strings
 
@@ -3554,6 +3581,7 @@ attempt_basis_digest
 artifact_digest
 gate_binding_digest
 gate_run_digest
+gate_receipt_digest
 assurance_case_snapshot_digest
 resolution_digest
 war_export_digest

@@ -41,8 +41,18 @@ categories = ["development-tools", "command-line-utilities"]
 # Apache-2.0 when it goes public. A GPL/AGPL/LGPL dependency adopted now could
 # not be relicensed later, so `cargo deny check licenses` gates it in CI.
 [workspace.dependencies]
+cap-std = "4.0.2"
 camino = "1"
 clap = { version = "4", features = ["derive"] }
+jstrict = { version = "0.14", default-features = false, features = ["serde"] }
+# Git plumbing must terminate helper processes as one tree on timeout. This
+# supplies POSIX process groups and Windows Job Objects behind one synchronous
+# API; default tracing/session features stay out of the CLI.
+process-wrap = { version = "9.1", default-features = false, features = ["std", "process-group", "job-object"] }
+# Linux repository reads use openat2 directly so containment can forbid both
+# path escape and nested mounts. The API is safe and returns owned descriptors;
+# no raw syscall or unsafe block enters the CLI.
+rustix = { version = "1.1", features = ["fs"] }
 serde = { version = "1", features = ["derive"] }
 # RFC 8785 canonical JSON. Selected by OW-ADR-0001 after both realistic
 # candidates were run against the official cyberphone/json-canonicalization
@@ -67,6 +77,9 @@ toml = "1.1"
 # in deny.toml, not here.
 ureq = { version = "3", default-features = false, features = ["rustls", "json"] }
 uuid = { version = "1", features = ["v7", "serde"] }
+winapi-util = "0.1"
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Storage_FileSystem"] }
+winx = "0.36"
 
 [profile.release]
 lto = "thin"
