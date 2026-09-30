@@ -9229,13 +9229,13 @@ the app shows a `human` remedy and stops.
 | D-013 | The ownership plants | `conformance/plants.d/98-ownership.sh` | verified |
 | D-014 | The authorization schema | `schemas/oh.war/authorization/v1.json` | verified |
 | D-015 | The threat-model row | `docs/THREAT_MODEL.md` | verified |
-| D-016 | Remedies | `crates/openwarrant-cli/src/remedy.rs` | verified |
+| D-016 | Remedies | `crates/openwarrant-cli/src/remedy.rs` | drift |
 | D-017 | A diagnostic carries its remedy | `crates/openwarrant-cli/src/diagnostic.rs` | verified |
 | D-018 | The remedy on the wire and in the REMEDIES block | `crates/openwarrant-cli/src/output.rs` | verified |
 | D-019 | The report schema | `schemas/oh.war/report/v1.json` | verified |
 | D-020 | The schema pack | `schemas/pack.json` | verified |
 | D-021 | init, unchanged in behaviour, as a module directory | `crates/openwarrant-cli/src/init/mod.rs` | verified |
-| D-022 | The guided init | `crates/openwarrant-cli/src/init/guided.rs` | verified |
+| D-022 | The guided init | `crates/openwarrant-cli/src/init/guided.rs` | drift |
 | D-023 | roles.toml.example states the rule | `docs/authority/roles.toml.example` | verified |
 | D-024 | allowed_signers.example states the rule | `docs/authority/allowed_signers.example` | verified |
 | D-025 | RESOLVING.md states the rule | `docs/RESOLVING.md` | verified |
@@ -9243,7 +9243,7 @@ the app shows a `human` remedy and stops.
 | D-027 | The init plants | `conformance/plants.d/99-init.sh` | verified |
 | D-028 | ratatui and crossterm, exact versions | `Cargo.toml` | verified |
 | D-029 | The lockfile | `Cargo.lock` | verified |
-| D-030 | The app | `crates/openwarrant-cli/src/tui/mod.rs` | verified |
+| D-030 | The app | `crates/openwarrant-cli/src/tui/mod.rs` | drift |
 | D-031 | The way in: no-args, tui.json, tui.no-tty | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-032 | The confinement test and NOT_YET | `crates/openwarrant-cli/src/main.rs` | verified |
 | D-033 | The poller opened to the app | `crates/openwarrant-cli/src/watch.rs` | verified |
@@ -9252,7 +9252,7 @@ the app shows a `human` remedy and stops.
 | D-036 | README: one line | `README.md` | verified |
 | D-037 | AGENTS.md: agents call war status and war next, never bare war | `AGENTS.md` | verified |
 | D-038 | OW-ADR-0020 accepted, governs this Warrant | `docs/adr/atoms/OW-ADR-0020-ratatui-for-the-terminal-dashboard.md` | verified |
-| D-039 | The re-pin act | `crates/openwarrant-cli/src/sas_repin.rs` | verified |
+| D-039 | The re-pin act | `crates/openwarrant-cli/src/sas_repin.rs` | drift |
 | D-040 | The re-pin plants | `conformance/plants.d/88-sas-repin.sh` | verified |
 | D-041 | The resolution schema: the optional locator | `schemas/oh.war/resolution/v1.json` | verified |
 | D-042 | The TypeScript projection of the authorization record | `schemas/typescript/authorization.ts` | verified |
@@ -9782,7 +9782,7 @@ Only by answering; presets ask, and an unanswered required heading is named.
 | D-013 | openwarrant.toml: history = true here | `openwarrant.toml` | verified |
 | D-014 | check.rs: atom.role-unprojected, atom.preset-unanswered | `crates/openwarrant-cli/src/check.rs` | verified |
 | D-015 | next.rs: judged actions | `crates/openwarrant-cli/src/next.rs` | verified |
-| D-016 | the app's Help pane shows the verdict | `crates/openwarrant-cli/src/tui/mod.rs` | verified |
+| D-016 | the app's Help pane shows the verdict | `crates/openwarrant-cli/src/tui/mod.rs` | drift |
 | D-017 | preset: feature, intent | `crates/openwarrant-cli/templates/presets/feature/10-intent.md` | verified |
 | D-018 | preset: feature, basis | `crates/openwarrant-cli/templates/presets/feature/20-basis.md` | verified |
 | D-019 | preset: feature, work order | `crates/openwarrant-cli/templates/presets/feature/40-work-order.md` | verified |
@@ -10509,8 +10509,8 @@ assert it with.
 | D-014 | cli: Objectives from the record | `crates/openwarrant-cli/src/status.rs` | not_content_addressed |
 | D-015 | cli: the acceptance act | `crates/openwarrant-cli/src/sign.rs` | not_content_addressed |
 | D-016 | cli: the command and module list | `crates/openwarrant-cli/src/lib.rs` | drift |
-| D-017 | cli: the remedies for the new rules | `crates/openwarrant-cli/src/remedy.rs` | verified |
-| D-018 | cli: the app's Roadmap pane | `crates/openwarrant-cli/src/tui/mod.rs` | verified |
+| D-017 | cli: the remedies for the new rules | `crates/openwarrant-cli/src/remedy.rs` | drift |
+| D-018 | cli: the app's Roadmap pane | `crates/openwarrant-cli/src/tui/mod.rs` | drift |
 | D-019 | cli: war progress reads the record | `crates/openwarrant-cli/src/progress_viewer.rs` | verified |
 | D-020 | cli: the progress roadmap reader | `crates/openwarrant-cli/src/progress_viewer/roadmap.rs` | verified |
 | D-021 | compiler: the Roadmap section of CURRENT.md | `crates/openwarrant-compiler/src/current.rs` | verified |
@@ -10765,7 +10765,7 @@ failure, rebuilt.
 |---|---|---|---|
 | D-001 | The per-user project list | `crates/openwarrant-cli/src/projects.rs` | verified |
 | D-002 | war projects; touch on use; war from anywhere | `crates/openwarrant-cli/src/lib.rs` | drift |
-| D-003 | The Projects pane, switching, the binary line | `crates/openwarrant-cli/src/tui/mod.rs` | verified |
+| D-003 | The Projects pane, switching, the binary line | `crates/openwarrant-cli/src/tui/mod.rs` | drift |
 | D-004 | docs/TUI.md: the hub | `docs/TUI.md` | verified |
 | D-005 | README.md: war from anywhere | `README.md` | verified |
 | D-006 | The hub plants | `conformance/plants.d/71-hub.sh` | verified |
@@ -18008,7 +18008,7 @@ negative controls.
 | D-002 | war init records the baseline, refuses a non-commit, points at existing ADRs | `crates/openwarrant-cli/src/init/mod.rs` | verified |
 | D-003 | The --baseline flag on war init | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-004 | The adopt Warrant's Basis names the baseline and what it does not claim | `crates/openwarrant-cli/templates/adopt/20-basis.md` | verified |
-| D-005 | The guided Baseline step | `crates/openwarrant-cli/src/init/guided.rs` | verified |
+| D-005 | The guided Baseline step | `crates/openwarrant-cli/src/init/guided.rs` | drift |
 | D-006 | Untracked work from the baseline, in the repository's namespace | `crates/openwarrant-cli/src/telemetry.rs` | verified |
 | D-007 | Adopting OpenWarrant in a repository with history | `docs/ADOPTING.md` | verified |
 | D-008 | The adoption plants | `conformance/plants.d/59-adoption.sh` | verified |
@@ -37201,7 +37201,7 @@ OBL-004's.
 | D-003 | install.rs: identity, precedence, default channel, verification before switching, update.unmanaged, remedy | `crates/openwarrant-cli/src/install.rs` | verified |
 | D-004 | notice.rs: the cached, detached, opt-out release notice | `crates/openwarrant-cli/src/notice.rs` | verified |
 | D-005 | lib.rs: the version string, version --probe, __release-check, the notice hook, update's default channel | `crates/openwarrant-cli/src/lib.rs` | drift |
-| D-006 | tui/mod.rs binary_row: compares identity, names the remedy | `crates/openwarrant-cli/src/tui/mod.rs` | verified |
+| D-006 | tui/mod.rs binary_row: compares identity, names the remedy | `crates/openwarrant-cli/src/tui/mod.rs` | drift |
 | D-007 | install.sh against the current release contract, into the managed layout | `install.sh` | verified |
 | D-008 | release.yml: OPENWARRANT_RELEASE_TAG at build, install.sh attached | `.github/workflows/release.yml` | verified |
 | D-009 | The install document | `docs/INSTALL.md` | verified |
