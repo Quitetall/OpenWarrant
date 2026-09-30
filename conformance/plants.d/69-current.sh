@@ -17,6 +17,13 @@ echo "== current by relation, the master document, judged acts, presets (OW-WAR-
 cu_ok()   { printf 'ok    %-34s %s\n' "$1" "$2"; PASSED=$((PASSED + 1)); }
 cu_fail() { printf 'FAIL  %-34s %s\n' "$1" "$2"; FAILED=$((FAILED + 1)); }
 
+# A failed or empty command must not satisfy this negative assertion.
+if python3 conformance/controls/current-signature.py; then
+    cu_ok "signature assertion controls" "failed command and missing report refused; successful report accepted"
+else
+    cu_fail "signature assertion controls" "the assertion accepted a failed command or missing report"
+fi
+
 PLANT_ROOT=$(scratch_corpus CU)
 [[ -d "${PLANT_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
 CU_TMP=$(mktemp -d)
@@ -99,13 +106,15 @@ if ! grep -q '^currency' docs/warrants/OW-WAR-0073/manifest.toml \
 else
     cu_fail "OW-WAR-0073 reads superseded" "$(grep -E 'OW-WAR-0073' <<<"$REPO_OUT" | grep -E 'currency' | head -2 | tr '\n' '|')"
 fi
-DRY_ALL=$("$WAR" sign --all --dry-run 2>&1)
+DRY_ALL=$("$WAR" sign --all --dry-run 2>&1); DRY_ALL_STATUS=$?
 AUTH_0073=$("$WAR" authorize OW-WAR-0073 2>&1)
-if ! line_has -E 'authorize.no-amendment' -G 'OW-WAR-0073' <<<"$DRY_ALL" \
+if [[ $DRY_ALL_STATUS -eq 0 ]] \
+    && grep -q '^WELL-FORMED' <<<"$DRY_ALL" \
+    && ! line_has -E 'authorize.no-amendment' -G 'OW-WAR-0073' <<<"$DRY_ALL" \
     && grep -q 'contract_digest = "691f51ce' <<<"$AUTH_0073"; then
-    cu_ok "OW-WAR-0073's signature stands" "no authorize.no-amendment; contract 691f51ce…"
+    cu_ok "OW-WAR-0073's signature stands" "successful report; no authorize.no-amendment; contract 691f51ce…"
 else
-    cu_fail "OW-WAR-0073's signature stands" "$(grep -E 'OW-WAR-0073' <<<"$DRY_ALL" | head -2 | tr '\n' '|') $(grep contract_digest <<<"$AUTH_0073")"
+    cu_fail "OW-WAR-0073's signature stands" "dry-run exit $DRY_ALL_STATUS: $(grep -E 'OW-WAR-0073' <<<"$DRY_ALL" | head -2 | tr '\n' '|') $(grep contract_digest <<<"$AUTH_0073")"
 fi
 
 # ---------------------------------------------------------------- OBL-002 --

@@ -1,0 +1,3 @@
+ok: dry-run exit 1: refused
+ok: dry-run exit 0: accepted
+ok: dry-run exit 0: refused

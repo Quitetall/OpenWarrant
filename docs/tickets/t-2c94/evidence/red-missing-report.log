@@ -1,0 +1,7 @@
+ok: dry-run exit 1: refused
+ok: dry-run exit 0: accepted
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/ow-signature-check-refusal/conformance/controls/current-signature.py", line 41, in <module>
+    assert passed == expected, f"exit {status}: expected pass={expected}, got {result.stdout!r}, stderr={result.stderr!r}"
+           ^^^^^^^^^^^^^^^^^^
+AssertionError: exit 0: expected pass=False, got 'CONTROL_PASS\n', stderr=''
