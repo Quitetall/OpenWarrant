@@ -1,0 +1,22 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0112",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "31c8a28338ab387cafd12201ee0f70892874dffa",
+  "summary": "Completed bounded implementation and draft PR publication, unverified. Program phase tables/headings drive corpus objectives without framework fallback. Parser and four CLI controls pass; full workspace 924 tests and 12 of 14 gate steps pass. Default plant battery completed 314 passes and six positive-control failures against unresolved source-pin drift. Four exact correction requests supplied; no signed records changed. PR 135 is draft, not merge-ready or accepted.",
+  "notes": "docs/warrants/OW-WAR-0112/implementation/notes.md",
+  "evidence": [
+    "crates/openwarrant-core/src/sas.rs",
+    "crates/openwarrant-cli/src/status.rs",
+    "crates/openwarrant-cli/tests/program_phases.rs",
+    "docs/warrants/OW-WAR-0112/implementation/correction-0055-D-003.json",
+    "docs/warrants/OW-WAR-0112/implementation/correction-0057-D-002.json",
+    "docs/warrants/OW-WAR-0112/implementation/correction-0058-D-001.json",
+    "docs/warrants/OW-WAR-0112/implementation/correction-0062-D-005.json"
+  ],
+  "next_steps": [
+    "Human review and signed corrections for the four resolved source pins; regenerate projections after ingestion.",
+    "Repeat the complete gate on the final candidate, including all positive controls and applicable slow controls; merge only after required review and checks."
+  ]
+}
