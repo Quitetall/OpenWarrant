@@ -278,19 +278,29 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
         .map(|(p, _)| p)
         .unwrap_or_else(|| repo.config.project.namespace.as_str().to_owned());
 
-    // §98 from the SAS as it stands; the compiled-in table is the fallback for
-    // a repository whose document cannot be read.
-    let phases: Vec<(u8, String, Option<String>)> = repo
+    // A projection cannot substitute another program's objectives when its
+    // configured SAS is unavailable, incomplete or uses a different phase count.
+    let mut phases: Vec<(u8, String, Option<String>)> = repo
         .sas_document()
         .ok()
         .map(|(_, bytes)| openwarrant_core::sas::section_98(&String::from_utf8_lossy(&bytes)))
-        .filter(|v| v.len() == openwarrant_core::status::PHASES.len())
-        .unwrap_or_else(|| {
-            openwarrant_core::status::PHASES
-                .iter()
-                .map(|(n, t, e)| (*n, (*t).to_owned(), e.map(str::to_owned)))
-                .collect()
-        });
+        .unwrap_or_default();
+    let declared: BTreeSet<u8> = phases.iter().map(|(n, _, _)| *n).collect();
+    if declared.len() != phases.len() {
+        phases.clear(); // Conflicting declarations supply no unambiguous objective.
+    }
+    let phases_unknown = phases.is_empty();
+    let declared: BTreeSet<u8> = phases.iter().map(|(n, _, _)| *n).collect();
+    let undeclared: BTreeSet<u8> = warrants
+        .iter()
+        .flat_map(|w| w.roadmap.iter())
+        .filter(|r| r.prefix == prefix && !declared.contains(&r.phase))
+        .map(|r| r.phase)
+        .collect();
+    for number in &undeclared {
+        phases.push((*number, format!("Phase {number}"), None));
+    }
+    phases.sort_by_key(|(number, _, _)| *number);
     let mut objectives: Vec<ObjectiveStatus> = Vec::new();
     for (n, title, exit) in phases {
         let (title, exit) = (title.as_str(), exit.as_deref());
@@ -429,6 +439,19 @@ pub fn build(repo: &Repository) -> Result<CorpusStatus, RepoError> {
          recorded a run, which is a true state, not a caveat."
             .to_owned(),
     ];
+    if phases_unknown {
+        caveats.push(
+            "SAS §98 could not supply unambiguous phase declarations; objective titles and \
+             exit criteria remain unknown. No framework objectives were substituted."
+                .to_owned(),
+        );
+    }
+    if !undeclared.is_empty() {
+        caveats.push(format!(
+            "Roadmap refs name phases {undeclared:?} not declared in the configured SAS §98. \
+             They remain visible with unknown exit criteria."
+        ));
+    }
     let roadmap_claims = hand_written_resolved_claims(repo);
     let recorded = warrants.iter().filter(|w| w.resolution.is_some()).count();
     if roadmap_claims > 0 {

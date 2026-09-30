@@ -234,7 +234,9 @@ impl SasRevision {
 /// adding an Exit (0.1.0-draft.2 gave Phases 9 and 10 theirs) changes what the
 /// projection reports without a code change. A phase with no `Exit:` block, or
 /// whose block has no bullet, yields `None` — the projection then says "no
-/// Exit" rather than inventing one.
+/// Exit" rather than inventing one. Section 98 may instead use a table with
+/// `Phase | Objective and exit` or `Phase | Objective | Exit` columns. The
+/// combined column separates the declared objective and exit with `: `.
 #[must_use]
 pub fn section_98(text: &str) -> Vec<(u8, String, Option<String>)> {
     let mut out: Vec<(u8, String, Option<String>)> = Vec::new();
@@ -243,7 +245,41 @@ pub fn section_98(text: &str) -> Vec<(u8, String, Option<String>)> {
     // attach its bullet to a phase (found by review).
     let mut in_phase = false;
     let mut in_exit = false;
+    let mut in_section = false;
+    let mut table_columns = 0;
     for line in text.lines() {
+        if let Some(heading) = line.strip_prefix("## ") {
+            in_section = heading.starts_with("98.");
+            table_columns = 0;
+        }
+        if in_section && line.trim_start().starts_with('|') {
+            let cells: Vec<&str> = line
+                .trim()
+                .trim_matches('|')
+                .split('|')
+                .map(str::trim)
+                .collect();
+            if cells.as_slice() == ["Phase", "Objective and exit"] {
+                table_columns = 2;
+            } else if cells.as_slice() == ["Phase", "Objective", "Exit"] {
+                table_columns = 3;
+            } else if cells.len() == table_columns
+                && let Ok(number) = cells[0].parse::<u8>()
+            {
+                let (title, exit) = if table_columns == 3 {
+                    (cells[1], cells[2])
+                } else {
+                    cells[1].split_once(": ").unwrap_or((cells[1], ""))
+                };
+                if !title.is_empty() {
+                    out.push((
+                        number,
+                        title.to_owned(),
+                        (!exit.is_empty()).then(|| exit.to_owned()),
+                    ));
+                }
+            }
+        }
         if let Some(rest) = line.strip_prefix("### Phase ") {
             let (num, title) = rest.split_once(" — ").unwrap_or((rest, ""));
             in_exit = false;
@@ -354,6 +390,43 @@ impl Section106Diff {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn section_98_reads_program_phase_table_without_importing_other_sections() {
+        let text = "## 98. Implementation phases and release axes\n\n\
+                    | Phase | Objective and exit |\n|---|---|\n\
+                    | 0 | Contract and evidence basis: source inventory established |\n\
+                    | 3 | Context and clients: scoped context works end to end |\n\
+                    ## 99. Other table\n| 8 | Do not import: unrelated exit |\n";
+        assert_eq!(
+            super::section_98(text),
+            vec![
+                (
+                    0,
+                    "Contract and evidence basis".into(),
+                    Some("source inventory established".into())
+                ),
+                (
+                    3,
+                    "Context and clients".into(),
+                    Some("scoped context works end to end".into())
+                ),
+            ]
+        );
+    }
+
+    #[test]
+    fn section_98_reads_separate_exit_columns_and_preserves_missing_exits() {
+        let text = "## 98. Phases\n| Phase | Objective | Exit |\n|---|---|---|\n\
+                    | 2 | Storage | durable capture |\n| 4 | Daily use | |\n";
+        assert_eq!(
+            super::section_98(text),
+            vec![
+                (2, "Storage".into(), Some("durable capture".into())),
+                (4, "Daily use".into(), None),
+            ]
+        );
+    }
+
     #[test]
     fn section_98_reads_titles_and_exit_bullets_and_says_none_when_absent() {
         let text = "### Phase 0 — Telemetry shim\n\nDeliver:\n\n- x;\n\nExit:\n\n- real distributions.\n\n### Phase 1 — Compiler\n\nDeliver:\n\n- y.\n\n## 99. Next\n";
