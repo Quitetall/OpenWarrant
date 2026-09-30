@@ -2117,7 +2117,19 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         } => {
             let repository = open_repo()?;
             if let Some(scope) = attach {
-                println!("{}", telemetry::attach(&scope, &warrant, &reviewer)?);
+                let human = telemetry::attach(&scope, &warrant, &reviewer)?;
+                output::emit(
+                    mode,
+                    "telemetry",
+                    &human,
+                    serde_json::json!({
+                        "operation": "attach",
+                        "scope": scope,
+                        "warrant": warrant,
+                        "reviewer": reviewer,
+                        "message": human,
+                    }),
+                );
                 return Ok(EXIT_OK);
             }
             let baseline = telemetry::take(&repository, &commit)?;
@@ -2128,9 +2140,20 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 // Compared EXACTLY. Trimming would let whitespace drift through
                 // while the doc claims byte-for-byte agreement.
                 if existing == rendered {
-                    println!(
+                    let human = format!(
                         "telemetry baseline at {commit} is unchanged (untracked work read from {})",
                         telemetry::history_read(&baseline)
+                    );
+                    output::emit(
+                        mode,
+                        "telemetry",
+                        &human,
+                        serde_json::json!({
+                            "operation": "verify",
+                            "commit": commit,
+                            "path": out.as_str(),
+                            "unchanged": true,
+                        }),
                     );
                     return Ok(EXIT_OK);
                 }
@@ -2152,7 +2175,7 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 .values()
                 .filter(|m| matches!(m, telemetry::Measure::NotYet { .. }))
                 .count();
-            println!(
+            let human = format!(
                 "telemetry baseline written to {out}\n  {} of {} §94 measures taken; {untaken} \
                  recorded `not_measurable_yet` with a reason\n  {} §95 untracked-work \
                  candidate(s), read from {}\n  {} §100 metrics, every one `no baseline` — one measurement \
@@ -2162,6 +2185,16 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 baseline.untracked_work_candidates.len(),
                 telemetry::history_read(&baseline),
                 baseline.success_metrics.len()
+            );
+            output::emit(
+                mode,
+                "telemetry",
+                &human,
+                serde_json::json!({
+                    "operation": "record",
+                    "path": out.as_str(),
+                    "baseline": baseline,
+                }),
             );
             Ok(EXIT_OK)
         }
