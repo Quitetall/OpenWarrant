@@ -1,0 +1,44 @@
+{
+  "metadata": [
+    [
+      "schema",
+      "oh.war/document/1.0.0-rc.3"
+    ],
+    [
+      "kind",
+      "context"
+    ],
+    [
+      "id",
+      "example:author"
+    ],
+    [
+      "revision",
+      1
+    ],
+    [
+      "title",
+      "Author é"
+    ],
+    [
+      "state",
+      "draft"
+    ]
+  ],
+  "units": [
+    {
+      "id": "context",
+      "kind": "binding",
+      "text": "# Author é\r\n\r\nKeep $(shell) and `text` literal.\r\n"
+    }
+  ],
+  "wrapped": true,
+  "crlf": true,
+  "edits": [
+    {
+      "type": "metadata",
+      "key": "title",
+      "value": "New title"
+    }
+  ]
+}
