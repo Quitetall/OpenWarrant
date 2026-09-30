@@ -15,6 +15,12 @@ PLANT_ROOT=$(scratch_corpus CT)
 [[ -d "${PLANT_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
 ct_ok() { printf 'ok    %-44s %s\n' "$1" "$2"; PASSED=$((PASSED + 1)); }
 ct_fail() { printf 'FAIL  %-44s %s\n' "$1" "$2"; FAILED=$((FAILED + 1)); }
+# Run the real copy block on a tiny repository, including on same-device CI.
+if python3 conformance/controls/contractor-copy.py; then
+    ct_ok "frozen-module copy controls" "all modules preserved; Git objects not hard-linked"
+else
+    ct_fail "frozen-module copy controls" "copy lost a module or hard-linked an object"
+fi
 ct_check() { "$WAR" --root "$PLANT_ROOT" check 2>&1; }
 ct_commit() {
     git -C "$PLANT_ROOT" add -A >/dev/null 2>&1
@@ -261,7 +267,7 @@ else
 fi
 # Refusal: an `invoice` field on a core struct, in a copy of this tree.
 CT_COPY=$(mktemp -d)
-git clone -q --local --no-checkout "$REPO_ROOT" "$CT_COPY/r" 2>/dev/null \
+git clone -q --local --no-hardlinks --no-checkout "$REPO_ROOT" "$CT_COPY/r" 2>/dev/null \
     && git -C "$CT_COPY/r" checkout -q HEAD -- "${CT_FROZEN[@]}" \
     || { printf 'PLANT SETUP FAILED: could not copy the frozen modules\n' >&2; exit 9; }
 sed -i '/^pub struct Identity {/a\    pub invoice: String,' "$CT_COPY/r/crates/openwarrant-compiler/src/ir.rs"
