@@ -1,0 +1,23 @@
+{
+  "schema": "oh.war/doctor-gate-process-observation/v1",
+  "kind": "performer_observation",
+  "environment": {
+    "system": "Linux",
+    "machine": "x86_64",
+    "python": "3.14.7"
+  },
+  "adapter_sha256": "5d5021d80495126d28e63bfd0f1be83f9090de9baa8f9e64ba1b6bac0dc051b9",
+  "fixture_sha256": "7b80430c481cccb24418fb7c9eec4adc386b82bd861b8a54f82e7f06ff03037a",
+  "log": "adapter-process-controls.log",
+  "log_sha256": "628820aca0aa7807ad6435514b42b738ddd475514c379b4d15dd4e29718e9678",
+  "cases": [
+    "exit 0 and exit 19 both propagate without being called timeouts",
+    "one-second deadline stops a TERM-ignoring member of the child group and leaves an unrelated session running",
+    "a successful parent cannot leave its background group member running"
+  ],
+  "limits": [
+    "Linux observation only",
+    "Processes deliberately leaving the group are not covered",
+    "Outer SIGKILL before the internal deadline is not covered"
+  ]
+}

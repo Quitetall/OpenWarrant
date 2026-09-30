@@ -1,13 +1,13 @@
 {
   "schema": "oh.war/doctor-gate-qualification-observation/v1",
   "kind": "performer_observation",
-  "source_revision": "73f32a7eca8ddb824d76dba52e5a73009beec0af",
-  "source_archive_sha256": "1b88bd1148d80906319f2b48b55b7c385b56c4571d6934be5431731fb727d98b",
+  "source_revision": "6b5ded0257295e29b7fbc9d3ebddd2bd877e1cae",
+  "source_archive_sha256": "46cdc50c8a5392d155e5f5533c5d2c4f91da2d60dc2c795355351806cd4a7bd1",
   "argv": [
     "python3",
     "/mnt/4tb/tmp/ow-war-0097-evidence/docs/design/ow-war-0097-assurance/doctor-gate.py"
   ],
-  "adapter_sha256": "dc5496f3597e35504e199414608839c4e90b39cb15dabfea02c7c28c69f966a0",
+  "adapter_sha256": "5d5021d80495126d28e63bfd0f1be83f9090de9baa8f9e64ba1b6bac0dc051b9",
   "cases": [
     {
       "name": "clean",
@@ -15,11 +15,11 @@
       "expected_result_observed": true,
       "suite_ran": true,
       "source_unchanged_by_execution": true,
-      "source_snapshot_sha256": "b2192ea262d354154ab942080b28f099b20c812daf726acb0df4747340aea7a3",
+      "source_snapshot_sha256": "828104cc06da3a8dd3de23cef32079659db40797d32daa82e1b0c6e9a731cba9",
       "mutation": null,
       "log": "clean.log.gz",
-      "log_sha256": "8383ab4015080958b258e3195920ce078ceab27fde26e0c7c2beff122ae41b62",
-      "uncompressed_log_sha256": "6c675ab2ade1f19b9e27672178bd59f54521ff0e4814457603239db63918dbf0"
+      "log_sha256": "2adee87fa217102ab6593f4629a2ceb2991efe15de1f94f85a4e2ce4030ec396",
+      "uncompressed_log_sha256": "b17fc1ffeff90cdc9ea5cab6962729667ad22e07bb9dadfd0fb23f268ab742cc"
     },
     {
       "name": "false-authorization",
@@ -27,15 +27,15 @@
       "expected_result_observed": true,
       "suite_ran": true,
       "source_unchanged_by_execution": true,
-      "source_snapshot_sha256": "28163c06c20417bd678fdfe8c01605e7b201f14ef8c2967757fddd9ba636b6d4",
+      "source_snapshot_sha256": "b09fc1195fc14a9acb22fb9403681d59ff955f471700fcf91f3ae290d987a7c4",
       "mutation": {
         "path": "crates/openwarrant-cli/src/doctor.rs",
         "before": "\"execution_authorized\": false",
         "after": "\"execution_authorized\": true"
       },
       "log": "false-authorization.log.gz",
-      "log_sha256": "69d993799525aeaf475d5bb64372f6aa2070611c0ee0b5cf8ff7697e0e09d128",
-      "uncompressed_log_sha256": "fec1be0d81f83d159055b7be54bf7e6da411c8d86156175d1321af6a2886bc94"
+      "log_sha256": "aeee6c74ac17d475add52edbd6117120432354c84b426f51a922f9adc3300491",
+      "uncompressed_log_sha256": "bebd6f0b58c162fbe6eb5b21ad8b9195db90aff0f88aa374b578965c01c0abee"
     },
     {
       "name": "subject-write",
@@ -43,15 +43,15 @@
       "expected_result_observed": true,
       "suite_ran": true,
       "source_unchanged_by_execution": true,
-      "source_snapshot_sha256": "72904c842641e67398aac69905b65729d63dc347bf48fb8a6fa09ae7a6513bca",
+      "source_snapshot_sha256": "ef1faefa04bac1f1907ce769eb4935c5dbac43f881f5b9412790342cabd0e560",
       "mutation": {
         "path": "crates/openwarrant-cli/src/doctor.rs",
         "before": "    match crate::check::run(&repo, alias, generated) {",
         "after": "    std::fs::write(repo.root.join(\"PLANTED_DOCTOR_WRITE\"), b\"plant\").unwrap();\n    match crate::check::run(&repo, alias, generated) {"
       },
       "log": "subject-write.log.gz",
-      "log_sha256": "5f3877f50caacf437a51803e5b8b31ec3cef2a320b0866bc964ba42e0c5e416a",
-      "uncompressed_log_sha256": "314607b4e7dad04a3f1da8ac75af46511c7c51d6076be9153278bc6803ed0d22"
+      "log_sha256": "9587b99851d08fda16a42394c4d1b7886cedbb0c982edbcd8ba1c2c8409dfbc7",
+      "uncompressed_log_sha256": "2b35bf0e4918567f0d4798922a053f6bd9520f1a7abf0e580e124dee7b825c22"
     },
     {
       "name": "hidden-authority-error",
@@ -59,15 +59,15 @@
       "expected_result_observed": true,
       "suite_ran": true,
       "source_unchanged_by_execution": true,
-      "source_snapshot_sha256": "c574b18da8602bd16c7d9a7019541fb6a68adc5cf6a69600d102631a118c21f7",
+      "source_snapshot_sha256": "ea4b870c41661941a172c25fe0fb7705d24a98e2e67d3dbfbd36b574195f9eef",
       "mutation": {
         "path": "crates/openwarrant-cli/src/doctor.rs",
         "before": "Err(error) => unavailable(&mut report, \"authority\", error),",
         "after": "Err(_error) => {},"
       },
       "log": "hidden-authority-error.log.gz",
-      "log_sha256": "1c5f673ae9fd03d06d92c1cf61a72570bf6f622662359d843685884cc9cb80dc",
-      "uncompressed_log_sha256": "779ee90f60db871aade9407e2dc50889d70657419186244d2b310c46366d894b"
+      "log_sha256": "419bb087273d6fa486d573b05f5101bb9fae61984cae3179f4cfce98b06604ef",
+      "uncompressed_log_sha256": "5f08f70d7af80b89a7a91efb9a564254e1c0e4e8a2ff76aa464e8a63ee157b9d"
     },
     {
       "name": "clean-after-mutations",
@@ -75,11 +75,11 @@
       "expected_result_observed": true,
       "suite_ran": true,
       "source_unchanged_by_execution": true,
-      "source_snapshot_sha256": "b2192ea262d354154ab942080b28f099b20c812daf726acb0df4747340aea7a3",
+      "source_snapshot_sha256": "828104cc06da3a8dd3de23cef32079659db40797d32daa82e1b0c6e9a731cba9",
       "mutation": null,
       "log": "clean-after-mutations.log.gz",
-      "log_sha256": "0ba00ecbc1ae71beda2e2ac5321f0eaf55dfc97e2b206296b70dadab1b23dc7f",
-      "uncompressed_log_sha256": "a31a01532de5e7098f9adcbb819f6d57f86b27331f877b447b46fffff04dba26"
+      "log_sha256": "ddf66f56a2ce07929cce444f47e91a546ed843b956134fd967460ea910abb9d3",
+      "uncompressed_log_sha256": "fffcb1e8bcc26b9b995f74ffe2a50be7a1da196371b8cb4db384dc1e4c6239e1"
     }
   ]
 }

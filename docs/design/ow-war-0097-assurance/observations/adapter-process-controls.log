@@ -1,0 +1,8 @@
+test_parent_success_does_not_leave_its_background_member_running (__main__.AdapterControls.test_parent_success_does_not_leave_its_background_member_running) ... ok
+test_pass_and_failure_propagate (__main__.AdapterControls.test_pass_and_failure_propagate) ... ok
+test_timeout_stops_term_ignoring_descendant_and_preserves_unrelated_process (__main__.AdapterControls.test_timeout_stops_term_ignoring_descendant_and_preserves_unrelated_process) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 1.103s
+
+OK

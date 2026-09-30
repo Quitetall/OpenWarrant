@@ -33,6 +33,21 @@ The fresh-build observation completed all five cases: two clean passes and
 three detected regressions. Every source snapshot remained identical during
 execution. The stored log hashes were checked against the observation manifest.
 
+The adapter also owns an internal 840-second deadline, before the proposed
+gate's 900-second deadline. It starts Cargo in a new session, sends TERM then
+KILL to that group, and bounds waiting for the leader. Cleanup also runs if a
+successful parent leaves group members behind. This does not cover descendants
+that deliberately leave the group or an outer SIGKILL before the internal deadline.
+
+Three bounded Linux process controls are recorded in
+`observations/adapter-process-controls.json`: success/failure propagation, a
+one-second timeout with a TERM-ignoring descendant and an unrelated sentinel,
+and a successful parent leaving a background member. Reproduce them with:
+
+```bash
+python3 docs/design/ow-war-0097-assurance/test_adapter.py -v
+```
+
 ## Two boundaries found during preparation
 
 1. **Shared build output can retain a planted binary.** The first experiment used
@@ -67,9 +82,9 @@ Do not weaken its obligations or mark this Warrant resolved to work around them.
 
 - Establish prerequisite/infra classification that preserves UNKNOWN through the
   actual gate runner. Keep this gate draft until then.
-- Establish a deadline control that stops the nested Cargo process tree; killing
-  only the Python adapter is not proof that the work stopped. No timeout
-  qualification is claimed by these observations.
+- Preserve the process-control limits above. An outer runner killing the adapter
+  before its internal deadline still needs supervision of the command group;
+  the local fixture observations do not establish that harness behavior.
 - Qualify and register the complete gate, including that unavailable-input control.
 - Prepare and approve revision 2 against its exact amended contract.
 - Record fresh behavioral and structural gate receipts with relevant source inputs.
