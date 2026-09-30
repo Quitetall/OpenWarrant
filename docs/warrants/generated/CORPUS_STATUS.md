@@ -67,7 +67,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | every required gate has admissible result | 114 |
 | no blocker remains | 86 |
 | no required unknown remains | 86 |
-| artifact digests verify | 68 |
+| artifact digests verify | 85 |
 | required judgments exist | 55 |
 | residual risks have sufficient authority | 55 |
 | required deliverables exist | 53 |
@@ -260,9 +260,9 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0110` Generate OpenWarrant TypeScript record types and integrate KF consumption | draft | NOT satisfied | 0 | 0 of 2 | required deliverables exist |
 | `OW-WAR-0111` Implement content-bearing preservation archives and honest import round trips | draft | NOT satisfied | 0 | 0 of 3 | required deliverables exist |
 | `OW-WAR-0112` war is the app: ownership, a guided start, and remedies | draft | NOT satisfied | 0 | 3 of 6 | exact authorized Contract Revision |
-| `OW-WAR-0113` Two projections from atoms by relation: the current master document, and the history | draft | NOT satisfied | 0 | 4 of 6 | every required gate has admissible result |
+| `OW-WAR-0113` Two projections from atoms by relation: the current master document, and the history | draft | NOT satisfied | 0 | 4 of 6 | artifact digests verify |
 | `OW-WAR-0114` The roadmap becomes a record: one per program, beside the SAS | draft | unknown | 0 | 0 of 6 | exact authorized Contract Revision |
-| `OW-WAR-0115` The hub: war opens from anywhere, with every project and its progress | draft | would satisfy | 0 | 3 of 3 | every required gate has admissible result |
+| `OW-WAR-0115` The hub: war opens from anywhere, with every project and its progress | draft | would satisfy | 0 | 3 of 3 | artifact digests verify |
 | `OW-WAR-0116` war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap | draft | NOT satisfied | 0 | 2 of 5 | exact authorized Contract Revision |
 | `OW-WAR-0117` An independent verifier: a blind, tool-less process that war verify --run hands each bundle to | draft | would satisfy | 0 | 2 of 2 | every required gate has admissible result |
 | `OW-WAR-0118` Measure the friction targets: setup in ten minutes, a routine act in sixty seconds | draft | would satisfy | 0 | 3 of 3 | every required gate has admissible result |
@@ -277,20 +277,20 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0127` Native systems keep artifact authority: OpenWarrant references, never re-owns, what another system holds | draft | unknown | 1 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0128` The Knowledge Fabric compiler interface: what OpenWarrant hands KF and what it gets back | draft | unknown | 3 | 0 of 1 | exact authorized Contract Revision |
 | `OW-WAR-0129` A Dispatch over its budget is refused, by name, before any agent starts | draft | would satisfy | 0 | 3 of 3 | every required gate has admissible result |
-| `OW-WAR-0130` Idempotent acts, all-or-nothing batches, and version negotiation between war and its records | draft | NOT satisfied | 0 | 2 of 4 | every required gate has admissible result |
+| `OW-WAR-0130` Idempotent acts, all-or-nothing batches, and version negotiation between war and its records | draft | NOT satisfied | 0 | 2 of 4 | artifact digests verify |
 | `OW-WAR-0131` Agent and harness adapters per OS: writer handoff and cancellation | draft | would satisfy | 0 | 3 of 3 | every required gate has admissible result |
 | `OW-WAR-0132` Hotline defaults: time and spend limits, repair accounting, and delivery when nobody answers | draft | would satisfy | 0 | 4 of 4 | every required gate has admissible result |
 | `OW-WAR-0133` Evidence reuse after a source change, and the compiler's source, conflict and omission rules | draft | would satisfy | 0 | 3 of 3 | exact authorized Contract Revision |
 | `OW-WAR-0134` Acceptance stays valid only for the candidate accepted: a change before merge is a finding | draft | would satisfy | 0 | 3 of 3 | exact authorized Contract Revision |
 | `OW-WAR-0135` The assurance mark: a baseline, its issuance, and what it binds | draft | NOT satisfied | 0 | 0 of 3 | exact authorized Contract Revision |
 | `OW-WAR-0136` Discharge the Phase 9 exit: signed resolutions, audited evidence custody, and invalidation that propagates | draft | NOT satisfied | 0 | 3 of 4 | exact authorized Contract Revision |
-| `OW-WAR-0137` Teams: review assignment and a queue shared by more than one person | draft | would satisfy | 0 | 5 of 5 | every required gate has admissible result |
+| `OW-WAR-0137` Teams: review assignment and a queue shared by more than one person | draft | would satisfy | 0 | 5 of 5 | artifact digests verify |
 | `OW-WAR-0138` Human and session authentication, and policy state protected from the performer | draft | would satisfy | 0 | 5 of 5 | exact authorized Contract Revision |
 | `OW-WAR-0139` The web UI beyond this machine: LAN and other devices, authenticated | draft | would satisfy | 0 | 5 of 5 | exact authorized Contract Revision |
 | `OW-WAR-0140` The Contractor Work Order profile: acceptance, invoicing and legal terms outside the technical core | draft | would satisfy | 0 | 5 of 5 | exact authorized Contract Revision |
-| `OW-WAR-0141` Work starts from a sentence or a ticket: a prompt or an issue becomes a drafted Warrant with no ceremony | draft | would satisfy | 0 | 3 of 3 | every required gate has admissible result |
+| `OW-WAR-0141` Work starts from a sentence or a ticket: a prompt or an issue becomes a drafted Warrant with no ceremony | draft | would satisfy | 0 | 3 of 3 | artifact digests verify |
 | `OW-WAR-0142` Standing authorization: one signature pre-authorizes a class of routine work, so each change costs only its acceptance | draft | NOT satisfied | 0 | 2 of 6 | exact authorized Contract Revision |
-| `OW-WAR-0143` war knows when it is old: build identity, a notice when a newer release exists, and an update that works from every version | draft | would satisfy | 0 | 4 of 4 | every required gate has admissible result |
+| `OW-WAR-0143` war knows when it is old: build identity, a notice when a newer release exists, and an update that works from every version | draft | would satisfy | 0 | 4 of 4 | artifact digests verify |
 | `OW-WAR-0144` Amending an authorization keeps the superseded one beside it, as a retired response is kept | draft | would satisfy | 0 | 2 of 2 | every required gate has admissible result |
 | `OW-WAR-0145` The battery as an askable gate: it runs in a disposable clone of the committed tree and mutates nothing | draft | would satisfy | 0 | 1 of 1 | exact authorized Contract Revision |
 | `OW-WAR-0146` A verification bundle carries what each gate printed, so a blind verifier can see the evidence | draft | would satisfy | 0 | 1 of 1 | exact authorized Contract Revision |
