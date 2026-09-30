@@ -18,6 +18,9 @@ categories.workspace = true
 # testable against in-memory fixtures rather than against a scratch directory.
 [dependencies]
 serde = { workspace = true }
+serde_json = { workspace = true }
+serde_jcs = { workspace = true }
+sha2 = { workspace = true }
 thiserror = { workspace = true }
 # RC.3 names TOML 1.0; workspace toml accepts the newer 1.1 grammar.
 toml10 = { package = "toml", version = "=0.8.23", default-features = false, features = ["parse"] }
