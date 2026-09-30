@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 //! `war init` as a conversation: the state machine (OW-WAR-0112 M4).
 //!
 //! Setup was ten commands and a flag nobody remembers. This module is the

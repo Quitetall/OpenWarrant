@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 //! The command that answers a diagnostic (§76.2, OW-WAR-0112).
 //!
 //! §76.2: "Errors SHALL identify … likely remediation." Before this module

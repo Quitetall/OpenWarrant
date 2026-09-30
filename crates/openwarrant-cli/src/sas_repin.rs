@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 //! `war sas repin` — the sixty-five warnings become one act (OW-WAR-0112 M5).
 //!
 //! A Warrant authorized against SAS 1.0.0 keeps that Basis after 1.1.0 is

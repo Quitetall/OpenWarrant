@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 //! `war` with no arguments: the app (OW-WAR-0112, absorbing OW-WAR-0073).
 //!
 //! A rendering under SAS §76.6 and OW-ADR-0019/0020: it issues commands and

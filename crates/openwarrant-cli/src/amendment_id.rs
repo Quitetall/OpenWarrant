@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 //! Amendment ids two branches cannot both mint (t-dc28).
 //!
 //! §31 amendment records live at `docs/warrants/<alias>/amendments/<id>.yaml`.
