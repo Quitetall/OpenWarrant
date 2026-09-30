@@ -1,0 +1,5 @@
+PASS attest.verified                    docs/warrants/OW-WAR-0074/attestations/authorize-1.dsse.json: authorize attested by brian (SHA256:rbQkmt00CyZdpZIB4TMr0dJ/I8N/ElwcfqgJM35leiE), 3 subject(s) intact
+
+1 pass · 0 warn · 0 unknown · 0 error   (worst: PASS)
+
+WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)

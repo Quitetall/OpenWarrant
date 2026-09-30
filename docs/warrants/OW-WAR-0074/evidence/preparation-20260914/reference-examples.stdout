@@ -1,0 +1,2 @@
+PASS reference audit: 3 Markdown sources; 10 selected units; 6 package files; exact text and digests intact.
+NOT RUN: production RC.2 parser/compiler conformance, condition cases, authority/assurance verification, or workflow execution.

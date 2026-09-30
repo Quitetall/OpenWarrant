@@ -24,6 +24,11 @@ or executed migration. Updated 2026-09-14.
 
 ## Adoption work
 
+For paid autonomous execution, apply the owner's
+[budget decision](autonomous-execution-policy.md): USD 10 per run by default,
+configurable or explicitly unset, with reliable cost tracking required for paid
+calls in every mode. This policy note is separate from source-set acceptance.
+
 1. Review the final RC.2 SAS, format contract, schema, build scope and reference
    examples using their source-set manifest. The current digest is recorded in
    the roadmap and Warrant basis; no earlier digest silently covers this edit.
@@ -46,6 +51,63 @@ or executed migration. Updated 2026-09-14.
    OW-WAR-0062/D-002. Inspect current pins before edits. Do not rewrite a resolved
    pin to make the banner cheap. AGENTS.md/template consistency and the separate
    README correction remain explicit integration checks, not hidden exceptions.
+
+## Exact adoption subject: implementation proposal
+
+Prepared under the owner's authorization of OW-WAR-0074 revision 1. Its response
+signature and three attestation subjects were verified on 2026-09-14. This
+authorizes preparation; it does not accept RC.2 or the following tool extension.
+
+The current `Repository::sas_document` selects exactly one immediate Markdown
+file under `paths.sas`. That directory also determines where revision history
+is read. `sas::propose` hashes that document alone, and `accept_ingest` compares
+that same configured document with the proposed digest. Merely naming a proposal
+`1.0.0-rc.2`, or pointing configuration at the multi-file draft directory, cannot
+establish acceptance of the candidate's complete source set.
+
+The proposed extension has one responsibility: bind acceptance to an explicit,
+immutable source-set subject while preserving existing single-document records.
+The design and exact wire schema require review before implementation; names in
+this table describe required meanings, not implemented API fields.
+
+| Subject component | Required meaning |
+| --- | --- |
+| Edition | The edition being accepted, distinct from historical `1.0.0`, its retained RC.1 designation, and future Stable. |
+| Main document | Exact source identity, byte length and digest, with the section 106 snapshot derived from those same bytes. |
+| Manifest | Exact manifest bytes and digest; it identifies all review-package members and their normative/reference roles. |
+| Members | All 23 currently listed members, each captured and checked against its declared path, length and digest. New candidates may have a different explicitly reviewed inventory. |
+| Predecessor | An explicit retained acceptance identity; source selection must not hide or rewrite revision history. |
+| Human act | Authorized signer, review meaning, adoption ADR and the complete subject identity covered by the signature. |
+
+Capture source bytes before requesting acceptance. Present the captured subject;
+acceptance must cover those immutable bytes, and changed input requires a fresh
+proposal. Use the existing canonicalization and signing boundaries. Keep the
+legacy digest domain and legacy records intact; any new domain/schema is an ADR
+decision, not an implementation detail. Checking a manifest's own hash without
+checking its members is insufficient.
+
+The first implementation slice must pair a valid captured subject with each of
+these refusals: changed main document, changed normative companion, changed
+schema, changed reference fixture, changed manifest, missing member, ambiguous
+or escaping member path, and inconsistent capture. Additional cases must refuse
+reuse of historical acceptance as RC.2 acceptance and a candidate edition bound
+to the configured legacy document. Signature refusal must leave no accepted
+record. Legacy records must remain readable with their original identities.
+
+Potential edit boundaries are `crates/openwarrant-core/src/sas.rs`,
+`crates/openwarrant-cli/src/sas.rs`, source selection in `repo.rs`, signing
+request/display handling, and focused fixtures. This is a proposed scope
+extension: OW-WAR-0074's signed atoms remain unchanged. Before coding, prepare
+the required reviewed amendment or separately authorized scope. The CLI SAS
+module is pinned by resolved OW-WAR-0058; core SAS is pinned by OW-WAR-0058 and
+OW-WAR-0062. Any change to those delivered paths requires the applicable
+correction procedure; this proposal does not perform it.
+
+The owner-allocated adoption ADR should record this subject contract, exact
+candidate manifest digest, historical edition mapping, required correction
+route, and activation rule. Implementation permission for downstream Warrants
+begins only after their stated prerequisites and authorization hold. Batch
+authorization and an in-app approval card remain separate workflow work.
 
 ## Cross-program requests retained from Knowledge Fabric
 
