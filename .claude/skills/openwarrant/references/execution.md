@@ -13,8 +13,8 @@
    legacy authorization/resolution to make those commands accept it. If legacy
    pins or explicit action gates block a write, preserve them and name that boundary.
 4. At the declared work stop, record actual completed scope, exact revision, tests,
-   implementation notes, document trail and next steps. Generate the progress view
-   with its tool. Return configured completion word first only when that scope is
+   implementation notes, document trail and next steps. Generate the human-facing HTML progress view with `war progress --html`;
+   use the [progress guide](progress.md) for attributed work reports and live refresh. Return configured completion word first only when that scope is
    complete, followed by concise pointers. If no word is configured, omit it.
    If tracker cannot represent prototype completion yet, disclose that limitation
    beside the notes; never turn a chat assertion into a fabricated tracker record.

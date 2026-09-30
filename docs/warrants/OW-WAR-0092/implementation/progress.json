@@ -1,0 +1,13 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0092",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "b0985fab9e3cc81c18b1cb9771f6f114750bf757",
+  "summary": "Progress viewer implementation underway on this base; browser, independent review and aggregate gate remain.",
+  "notes": "docs/warrants/OW-WAR-0092/implementation/viewer-contract.md",
+  "evidence": [],
+  "next_steps": [
+    "Verify offline/live browser scenarios, review and gate, then integrate."
+  ]
+}
