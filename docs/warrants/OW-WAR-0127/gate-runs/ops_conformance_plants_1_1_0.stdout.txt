@@ -144,31 +144,34 @@ ok    a duplicate milestone id           rejected by milestones.invalid (duplica
 ok    an implements entry with no contribution stated rejected by traceability.contribution-unstated (OW-WAR-0063)
 ok    the corpus status markdown edited by hand rejected by corpus-status.drift (CORPUS_STATUS.md)
 == amendment ids (t-dc28) ==
-ok    two branches, two amendment files  AM-002-d145 and AM-002-ce55 merge clean; order AM-001, AM-002-ce55 (09:00), AM-002-d145 (10:00)
+ok    two branches, two amendment files  AM-002-d9ea and AM-002-cd27 merge clean; order AM-001, AM-002-cd27 (09:00), AM-002-d9ea (10:00)
 ok    the next ordinal counts past both  AM-003-<hash>, nothing written by --dry-run
 ok    an amendment named AM-2x           rejected by amendment.id ("AM-2x" is not an amendment id)
 ok    an amendment hash in capitals      rejected by amendment.id ("AM-003-C07E" is not an amendment id)
 ok    an amendment whose id is not its name rejected by amendment.id (the record's id is "AM-003" and its file is AM-003-beef.yaml)
 ok    an unfilled war amend skeleton     rejected by amendment.invalid (omits reason)
 ok    war amend of a resolved Warrant    OW-WAR-0002 refused by name, nothing written
-ok    existing AM-<n> records unchanged  90 of 90 valid, none refused for its name, each Warrant's in number order
+ok    existing AM-<n> records unchanged  106 of 106 valid, none refused for its name, each Warrant's in number order
 == tickets (OW-WAR-0147) ==
-ok    create→ready→claim→done, unsigned t-5fcf done; nothing signed, the signing queue unchanged (1)
+ok    create→ready→claim→done, unsigned t-5570 done; nothing signed, the signing queue unchanged (1)
 ok    a held item refuses a second claim bob refused, naming alice and since when
 ok    done refuses unclaimed and unknown someone else's, unclaimed, unknown: three refusals, nothing ticked
+ok    done by the holder releases it     carol's lock held, then gone after done; war tickets: 'alice@t-e1b7/i-70b2,carol@t-e1b7/i-f22a' -> 'alice@t-e1b7/i-70b2'; one line ticked
 ok    concurrent claims: exactly one wins 8 processes, 1 claim, 1 journal event
 ok    a stale claim is stolen, journalled past the TTL: refused, then --steal took it from alice; fresh: refused
 ok    a hand-edited checklist is honoured reordered, reworded, added: read as written; done moved 2 lines (its own, the new id)
-ok    blockers keep items out of ready   walls waits on the foundation, roof on walls, a ticket on a ticket; claim refused, then taken once done
+ok    blockers keep items out of ready   same ticket (walls on foundation, roof on walls), another ticket's item (trim on t-cc2e/i-35c7), a whole ticket (grout on t-9a1a, second coat on t-cc2e): out of ready and claim refused while open; ready and taken once done, the item behind still out; an unknown t-x/i-y refused
 ok    done→claim never refuses, 200x   8 workers × 25: every unblocked item listed by ready and taken by claim
-ok    prime: undone items, old done compacted remaining items and notes; t-5c777e (2020) is one line; t-5fcf recent
+ok    prime: undone items, old done compacted remaining items and notes; t-4635df (2020) is one line; t-5570 recent
 ok    check: an unsigned ticket is sound exit 0; no ticket finding about authorization, evidence or verification
 ok    check: a malformed checklist is named malformed box, duplicate id, two unknown blockers; in the corpus check too
 ok    a Warrant naming profile ticket    refused: a working form is not a Warrant of the contract corpus
+ok    every malformed working form refused the shipped profile passes; 8 variants refused by check and by ready, each by name: no core role, compiler-produced, foreign, duplicate, unknown form, core_roles without form, acceptance role, core profile with a form
 ok    the loop over war mcp              claim, a second agent refused by name, done, prime
-ok    promote drafts a Warrant, opt-in   t-5fcf → TK-WAR-0002, a draft awaiting its human; twice refused
+ok    war mcp: still no authority tool   39 tools, 27 refused names absent; war_sign and war_verify_ingest refused as unknown, nothing signed
+ok    promote drafts a Warrant, opt-in   t-5570 → TK-WAR-0002, a draft awaiting its human; twice refused
 ok    --draft: the drafter's items, or none no drafter: refused, nothing created; a drafter: its two deliverables
-ok    each ticket command < 2 s here      create=13ms ready=7ms claim=10ms done=10ms add=13ms note=10ms prime=8ms prime=7ms show=7ms tickets=7ms check=6ms
+ok    each ticket command < 2 s here      create=13ms ready=9ms claim=11ms done=12ms add=12ms note=11ms prime=8ms prime=8ms show=9ms tickets=9ms check=8ms
 == web ui tickets (t-67ed) ==
 ok    the page opens on Tickets          1
 ok    the tickets view                   the ticket, its item, ready
@@ -197,14 +200,17 @@ ok    beside the records, it is refused  missing field obligation (exit 1)
 ok    the battery gate is askable        ran and passed
 ok    the working tree is untouched      files, index, HEAD and the uncommitted edit identical
 ok    the clone is removed               nothing left under the temp directory
-ok    it tests HEAD, not the working tree committed bytes, tested commit 7ce361e5ecb3efc5b961f418b9ceac40bbd76bd2
+ok    it tests HEAD, not the working tree committed bytes, tested commit 6c4ed431113aafc585ca301ca340a55035a31392
 ok    a failing battery fails the gate   verdict fail
 ok    a nested battery refuses           exit 2, refused-nested, no clone made
 ok    1.1.0 registered, 1.0.0 untouched  1.1.0 non-mutating; 1.0.0 still mutating
+ok    1.0.0 is byte-identical            sha256:467b90edd95a, as before 4c99de1c
+ok    a changed 1.0.0 is seen            one byte more is a different digest
+ok    war check reports no error         1845 pass · 333 warn · 0 unknown · 0 error
 == authorization retention (OW-WAR-0144) ==
 ok    a dry run keeps nothing            the Warrant directory is byte-identical
 ok    a colliding kept name refuses      authorize.retire-collision, revision 1 untouched
-ok    revision 1 is kept beside revision 2 authorization.ea5ddab0.toml, same bytes
+ok    revision 1 is kept beside revision 2 authorization.4e2e181e.toml, same bytes
 ok    the revision-1 envelope verifies   attest.subject-archived
 ok    without it, the envelope drifts    attest.subject-drift names authorization.toml
 ok    the kept file is not a record      check clean; no authorization pending
@@ -213,7 +219,7 @@ ok    every step timed or counted        tool steps in ms, human steps not_measu
 ok    a timed human step is refused      "time": 0 → refused
 ok    a timed human step is refused      "time": 4200 → refused
 ok    the repository tree is unchanged   git status --porcelain identical
-ok    its ssh-agent is gone, sock restored agent 490787 not running; SSH_AUTH_SOCK back to the sentinel
+ok    its ssh-agent is gone, sock restored agent 1361780 not running; SSH_AUTH_SOCK back to the sentinel
 ok    HOME holds nothing afterwards      no ~/.ssh, no config written
 ok    a failed authorize is unknown      step and setup total unknown, exit 1
 ok    an erroring resolve --dry-run      exit 1 is unknown, not a not-ready answer
@@ -282,13 +288,14 @@ ok    the repository tree is unchanged   git status --porcelain identical
 ok    the 1,000 record is a release record 1000 Warrants, >=500 resolved, by war status
 ok    RETENTION.md matches the record    every budget row, and the verdict
 ok    a doctored budget row is refused   check named
+ok    a brief against the record is refused the brief's verdict named
 == storage (OW-WAR-0121) ==
 ok    a clean program has no stray temp  storage.stray-temp silent
-ok    crash in sign: no partial record   authorization.toml absent, temp .authorization.toml.506106.1420699a2.war-tmp
+ok    crash in sign: no partial record   authorization.toml absent, temp .authorization.toml.1372480.096994342.war-tmp
 ok    the stopped sign is named          storage.stray-temp → docs/warrants/ST-WAR-0001/authorization.toml
 ok    no temp file, no stray-temp        storage.stray-temp silent
 ok    control: the edit moves the views  6 generated file(s) change
-ok    crash in compile: views byte-identical every file under docs/ unchanged; one temp .WAR.md.506292.21fd64110.war-tmp
+ok    crash in compile: views byte-identical every file under docs/ unchanged; one temp .WAR.md.1372579.0f879aae0.war-tmp
 ok    the stopped compile is named       storage.stray-temp → docs/warrants/ST-WAR-0001/generated/WAR.md; committed views intact
 ok    no partial generated file          every generated JSON parses; check --generated names no truncation
 ok    a moved record is not overwritten  storage.prestate-moved (exit 2); the plant's bytes stand
@@ -326,7 +333,9 @@ ok    --issue fetches once, a read       one call: gh issue view 12 --json numbe
 ok    a failed or hung fetch writes nothing intake.fetch-failed, intake.fetch-timeout; the tree is unchanged
 ok    a fetch_argv that writes never runs intake.fetch-not-a-read; no call recorded
 ok    the fake gh saw no tracker write   3 call(s), every one issue view
-ok    no planted token in the repository grep -r planted-token-0141: nothing, .git included
+ok    the planted token reached the fetch 3 gh call(s), each with GH_TOKEN and GITHUB_TOKEN=planted-token-0141
+ok    no planted token in the repository grep -r planted-token-0141 and git log --all -p: nothing, .git included
+ok    control: a written token is found  in the tree and in a deleted commit
 ok    MCP war_plan_* take an issue       request from issue-41.json; apply drafts IK-WAR-0006 with plan/intake.json #41, unauthorized
 ok    MCP refuses a bad or unreviewed issue intake.issue-missing-title; §74.4 step 6 without policy; the tree is unchanged
 ok    a resolution closes its issue      Closes #12, exactly once
@@ -338,6 +347,21 @@ ok    FRICTION.md's intake rows match    every row as baseline-2, a verdict for 
 ok    a timed human intake row is refused "time": 0 → refused
 ok    a timed human intake row is refused "time": 4200 → refused
 ok    an intake doc row off by 1 ms      plan-issue named
+== war deliver (t-39dc) ==
+ok    a missing file refuses all         deliver.missing names D-003; deliverables.toml unchanged
+ok    an undeclared id is refused        deliver.unknown-id names D-009; nothing written
+ok    one deliverable is delivered       D-001 content addressed at its bytes; D-002 untouched; comments kept
+ok    a second delivery writes nothing   deliver.current twice; deliverables.toml byte-identical
+ok    a later Warrant's path is not recorded deliver.governed names DL-WAR-0002/D-001; nothing written
+ok    the governing Warrant delivers it  DL-WAR-0002/D-001 content addressed at src/a.txt's bytes
+ok    a compiled projection is not pinned deliver.projection names D-004; nothing written
+== evidence record: the Bonsai gate (t-dec1) ==
+ok    bonsai: no reference, named        evidence.bonsai-evidence-ref-required, remedy given, nothing written
+ok    bonsai: reference not what it reads gate-run.bonsai-ref-not-read, nothing written
+ok    bonsai: a wrong digest             refused, nothing written
+ok    bonsai: another contract's report  refused, nothing written
+ok    bonsai: reference on another gate  refused, nothing written
+ok    bonsai: recorded and admissible    contract + deliverables + tree, the document by bytes
 ok    a clean receipt names its source   contract, tree = HEAD^{tree}, deliverables, inputs, fixture; seal recomputes
 ok    a dirty receipt says so            worktree:dirty named, seal recomputes; reuse-unknown (dirty tree has no name)
 ok    a receipt edited to a new tree     rejected by evidence.receipt-invalid (does not recompute)
@@ -345,7 +369,7 @@ ok    a committed run counts             evidence.admissible under the inputs ru
 ok    a changed deliverable              rejected by evidence.stale-binding naming inputs:sha256:c66fce50cd12ec53082684d840cbe8eb22bac9c28c5b5e113c7649864f2fe859; requirement 5 unmet
 ok    an unrelated commit leaves it      evidence.admissible; requirement 5 still met
 ok    a changed fixture                  rejected by evidence.stale-binding naming the fixture digest
-ok    the tree fallback                  admissible after its record commit; stale-binding naming tree:2a76f2b25affd18fa12d5493bab066ef0d781272 after any other
+ok    the tree fallback                  admissible after its record commit; stale-binding naming tree:ccd05b25c4a4e96ad3938afeece1632a3adab0c7 after any other
 ok    status: a moved source             labelled stale_binding
 ok    a contract-only receipt            evidence.reuse-unknown, a warning (check exits 0); requirement 5 unmet
 ok    status: a contract-only receipt    labelled reuse_unknown, not stale_binding
@@ -355,25 +379,39 @@ ok    a budget too small for the atoms   rejected by dispatch.over-budget naming
 ok    the same stage in budget           every required atom included, none omitted
 ok    the conflict field says what ran   same-source-two-versions checked, found []; semantic named unchecked
 ok    a bare conflicts: []               rejected: no statement that a check ran
-UNKNOWN OBL-005 conflict via war dispatch not reachable through the stage selector; unit-tested in the compiler and core
+ok    one path twice at one digest       compiles: two items, one version, conflict_check.found []
+ok    one path at two digests refuses    dispatch.source-conflict names notes/moving.txt at sha256:906ed25f555e… and sha256:dbcdb1f658e3…; nothing emitted
 == signing keeps evidence (t-22fd) ==
 ok    the sitting authorizes             one batch; authorization.toml, the batch and its response written, uncommitted
-ok    a signature leaves the receipt     evidence.admissible naming tree:a5ff94e2207dd8dc4a62d1fa18588aebcb2c6db2 after the authorization; all 13 met
-ok    a source change still stales it    evidence.stale-binding names tree:a5ff94e2207dd8dc4a62d1fa18588aebcb2c6db2 and src/SK-WAR-0001.txt only; requirement 5 unmet
+ok    a signature leaves the receipt     evidence.admissible naming tree:bded0ca3fb8d3a55bb5cc9c314eaf7696b47f1e6 after the authorization; all 13 met
+ok    a source change still stales it    evidence.stale-binding names tree:bded0ca3fb8d3a55bb5cc9c314eaf7696b47f1e6 and src/SK-WAR-0001.txt only; requirement 5 unmet
 ok    a trust-root edit stales it        evidence.stale-binding names docs/authority/roles.toml
 ok    the same sitting resolves          second batch: resolution.toml, satisfied, on the receipt recorded before the sitting
 == ticket work keeps evidence (t-5d82) ==
-ok    the receipt counts                 evidence.admissible naming tree:4dcf5529740ad9ff096ab91d07c61efd12334906
+ok    the receipt counts                 evidence.admissible naming tree:e611afc209cacae18942ebfd0d635367c19f0a53
 ok    ticket work leaves the receipt     claim/done/note/create moved journal, checklist, intent, a lock; still admissible
 ok    committed ticket work leaves it    a commit of ticket files after the receipt; requirement 5 met
-ok    a source change still stales it    evidence.stale-binding names tree:4dcf5529740ad9ff096ab91d07c61efd12334906 and src/lib.txt only; requirement 5 unmet
-ok    another ticket-dir file stales it  evidence.stale-binding names docs/tickets/t-2868/design.md
+ok    a source change still stales it    evidence.stale-binding names tree:e611afc209cacae18942ebfd0d635367c19f0a53 and src/lib.txt only; requirement 5 unmet
+ok    another ticket-dir file stales it  evidence.stale-binding names docs/tickets/t-2be9/design.md
 == verification keeps evidence (t-fed6) ==
-ok    the receipt counts                 evidence.admissible naming tree:2e69bdf1f8489bfebde460ec210ed270e629c225
+ok    the receipt counts                 evidence.admissible naming tree:6bce21dadbb093b5b3f219406998ec183934db63
 ok    verification leaves the receipt    --bundle, --response, --run wrote records, a bundle, a response; still admissible
 ok    committed verification leaves it   a commit of verifications/ after the receipt; requirement 5 met
-ok    a source change still stales it    evidence.stale-binding names tree:2e69bdf1f8489bfebde460ec210ed270e629c225 and src/lib.txt only; requirement 5 unmet
+ok    a source change still stales it    evidence.stale-binding names tree:6bce21dadbb093b5b3f219406998ec183934db63 and src/lib.txt only; requirement 5 unmet
 ok    another verifications/ file stales it evidence.stale-binding names docs/warrants/VR-WAR-0001/verifications/notes.md
+== war prepare (t-cee5) ==
+ok    unauthorized: stops before verify  delivered, committed, evidence recorded; STAGE-002 waits (§47); queue: authorize
+ok    a failing gate stops it, named     plant.tree@1.0.0 FAILED; war-check and the verifier not run; exit 0
+ok    prepare's commit reads no drift    a clone of 22852b11: stage records and projections committed together
+ok    delivered to ready, unattended     stage receipt, both gates admissible, 2/2 established, all 13 met; queue: resolve
+ok    a second run writes nothing        every step current; the tree byte-identical
+ok    a resolved Warrant is skipped      prepare.skipped and deliver.resolved by name; deliverables.toml unmoved
+== ticket work leaves the projections current (t-ca38) ==
+ok    the baseline is current            war check --generated: no drift
+ok    ticket acts leave no drift         create/add/claim/note/done moved 7 ticket file(s); no drift
+ok    committed, still no drift          war check --generated: no drift
+ok    a source change is drift           corpus-status.drift: the receipt went stale
+ok    a hand-edited projection is drift  corpus-status.drift
 == acceptance validity (OW-WAR-0134) ==
 ok    the accepted candidate is unchanged acceptance.unchanged (exit 0)
 ok    an out-of-scope change             unchanged; README.txt out of scope (exit 0)
@@ -385,6 +423,7 @@ ok    not re-established does not clear  still acceptance.candidate-moved (exit 
 ok    a re-verification clears it        acceptance.unchanged (re-verified), resolution untouched
 ok    it clears for that candidate only  a second commit moves it again: src/second.txt
 ok    a moved pin needs a human          src/core.txt (D-001), Q-001 (a); re-verification did not clear it
+ok    a signed correction clears the pin war sign AV-WAR-0001/D-001: acceptance.unchanged at the re-accepted candidate
 ok    no locator is UNKNOWN              acceptance.unknown (no locator), no error, not unchanged
 ok    an unreadable locator is UNKNOWN   acceptance.unknown (commit not readable), no error
 ok    an unreadable candidate is UNKNOWN acceptance.unknown, nothing reported unchanged
@@ -427,8 +466,8 @@ ok    an unfenced ## 999. is a section   rejected as new by sas.diff.section-add
 ok    the document against itself        no section named
 ok    one word in §62.3                 section 62 named (in 62.3), and no other
 ok    a §106 row removed                rejected by sas.diff.removed (WAR-SAS-RQ-001)
-ok    existing section citations resolve 88 of 88 pass sas.section-ref
-ok    existing section citations current 88 of 88 pass sas.section-current
+ok    existing section citations resolve 102 of 102 pass sas.section-ref
+ok    existing section citations current 102 of 102 pass sas.section-current
 ok    sas://WAR-SAS-999 cites nothing    rejected by ERROR sas.section-ref (has no section 999)
 ok    sas://WAR-SAS-43.9 cites nothing   rejected by ERROR sas.section-ref (has no subsection 43.9)
 ok    a malformed section citation       rejected by ERROR sas.section-ref (is not a section reference)
@@ -437,6 +476,11 @@ ok    the section index names its source sha256:85f5e7eff8de, revision 1.2.0
 ok    a hand-edited SECTIONS.json is drift rejected by ERROR sas-sections.drift (SECTIONS.json)
 ok    a hand-edited SECTIONS.md is drift rejected by ERROR sas-sections.drift (SECTIONS.md)
 ok    a shallow clone cannot say         UNKNOWN sas.section-current (sas://WAR-SAS-43.5, shallow)
+ok    OBL-006 OW-ADR-0028 is a proposal  status proposed; governs OW-WAR-0125; §105 text marked
+ok    OBL-006 an accepted ADR is seen    a copy with status accepted is reported
+ok    OBL-006 the SAS at delivery is 1.1.0 9c3c9150: sha256:321413359168 = revision 1.1.0, not 1.1.1
+ok    OBL-006 no deliverable is the SAS  10 deliverable(s); none is docs/sas/WAR_Software_Architecture_Specification.md
+ok    OBL-006 a SAS deliverable is seen  a planted D-999 naming the SAS is reported
 == assurance mark: decision and baseline (OW-WAR-0135) ==
 ok    the mark ADR is an ADR             1 ADR(s) parsed
 ok    a mangled mark ADR is refused      adr.malformed, at OW-ADR-0025
@@ -469,7 +513,7 @@ ok    a hand-edited mark                 mark.stale names `commit` (exit 2)
 == the document grammar (OW-WAR-0122) ==
 ok    G-H0 an untouched scaffold         accepted, no atom.header
 ok    G-H1 header role changed           rejected by atom.header (header's `role` is "intent", but the manifest's role is "basis")
-ok    G-H2 header warrant_uuid changed   rejected by atom.header (header's `warrant_uuid` is "01a0d04c-5ee5-7ba2-9dc3-b9c50dcc6ba1", but the manifest's `uuid` is "01a0dd2e-14f6-7a31-8e74-fdaad457ff32")
+ok    G-H2 header warrant_uuid changed   rejected by atom.header (header's `warrant_uuid` is "01a0d04c-5ee5-7ba2-9dc3-b9c50dcc6ba1", but the manifest's `uuid` is "01a0e5ac-f93a-7c21-9839-df465a9655a7")
 ok    G-H3 header order changed          rejected by atom.header (header's `order` is "21", but the manifest's ordinal is "20")
 ok    G-H4 header schema removed         rejected by atom.header (the header has no `schema`)
 ok    G-J1 an unknown jurisdiction       rejected by atom.unknown-jurisdiction (declares jurisdiction "whatever")
@@ -510,8 +554,12 @@ ok    G-O3 a duplicate obligation id     rejected by obligations.invalid (duplic
 ok    G-O4 a hyphen for the em dash      accepted, no obligations.invalid
 ok    G-G1 a gate not in the registry    rejected by gate.unresolved (gate://no.such.gate@9.9.9, which is not in the registry)
 ok    G-G2 §105 gate URI form           rejected by gate.unresolved (malformed gate URI "gate://software.repo.war-check/1.0.0")
+ok    G-D5 every standard cell quotes    46 row(s), each standard cell quotes or says unspecified
+ok    G-D6 the quotation control refuses a bare cell is reported: line 212: a namespaced role, required
 ok    G-D1 the document cites no drift   11 rule id(s), every one produced
 ok    G-D2 the drift control refuses     a planted citation is reported
+ok    G-D3 every divergence proposes     14 divergence(s), each with a proposed SAS text
+ok    G-D4 the proposal control refuses  a divergence without one is reported
 == teams: review assignment (OW-WAR-0137) ==
 ok    the request lists the assignment and digest  assignment + assignment_digest
 ok    a response signing another assignment        authorize.stale-assignment (exit 2)
@@ -669,13 +717,13 @@ ok    draft parent, revision 1: passes   pass relations.parent-digest ×1
 ok    draft parent, revision 1: no error no error relations.parent-revision
 ok    draft parent, revision 2: refused  error relations.parent-revision ×1
 == brownfield adoption (OW-WAR-0124) ==
-ok    init records HEAD as the baseline  5745eb86903183164b5e8845d5d56fdc9a0744f1
+ok    init records HEAD as the baseline  6af8f5fc1bd07fca93f6b8111179a8b0fcfee789
 ok    the adopted scaffold passes check  exit 0
 ok    --baseline 0000000 is refused      exit 1, nothing written
 ok    a commit off HEAD's history refused exit 1, nothing written
-ok    --baseline HEAD~1 records its full id 6eefddad8f012d440455be69c3fc08bb9a40bf54
+ok    --baseline HEAD~1 records its full id c3a2b941405a0e23abde42afd29c42ac939ccc9f
 ok    no commits, no [adoption] table    three lines, as before
-ok    0 candidates right after init      read from 5745eb86903183164b5e8845d5d56fdc9a0744f1..HEAD
+ok    0 candidates right after init      read from 6af8f5fc1bd07fca93f6b8111179a8b0fcfee789..HEAD
 ok    one uncited commit is 1 candidate  1
 ok    an ACME-WAR citation is tracked    still 1
 ok    an OW-WAR citation is not tracked  2
@@ -692,6 +740,9 @@ ok    plain init outside: git init too   said so
 ok    inside a work tree: no nested .git enclosing HEAD unchanged
 ok    no git: init continues, says so    exit 0, scaffold written
 ok    no git: identity.changed is UNKNOWN never a pass
+ok    this repository reads all history  688 candidates, recounted from git log; no adoption_baseline
+ok    0124 leaves the authority steps    1 commit(s): six regions byte-identical before and after
+ok    a touched authority step is seen   a line planted in render_roles is reported, and nothing else
 == web ui on the LAN (OW-WAR-0139) ==
 ok    OBL-001 --lan with no certificate        ui.lan-needs-tls, exit 1, nothing bound
 ok    OBL-001 --lan with a certificate, no key ui.lan-needs-tls, exit 1
@@ -702,7 +753,7 @@ ok    OBL-001 the loopback Host over TLS       421
 ok    OBL-001 a foreign Origin over TLS        403
 ok    OBL-001 an http:// Origin over TLS       403
 ok    OBL-001 HSTS and the CSP on every response 200, 401, 404, 421
-ok    OBL-001 bound only to the given address  127.0.0.2:46605 only
+ok    OBL-001 bound only to the given address  127.0.0.2:36863 only, of pid 1414824's listeners
 ok    OBL-004 y at the host pairs; names the device 200, a credential, prompt names 127.0.0.1 and its agent
 ok    OBL-002 a pairing code used twice        403 pair.code-used, no credential
 ok    OBL-004 n at the host                    403 pair.declined, no credential, no device recorded
@@ -730,11 +781,14 @@ ok    OBL-001 --self-signed is not the operator cert a client trusting only the 
 ok    OBL-005 loopback headers, no --lan       byte-identical to 269d3324
 ok    OBL-005 63-webui.sh unmodified           its 269d3324 bytes; the battery runs it
 ok    OBL-003 webui/ holds no signing authority no ssh key, agent socket or signing call
+ok    OBL-003 a planted signing call           refused: /mnt/4tb/tmp/battery-tmp/tmp.kKSlEfub0R/webui/mod.rs:2298:fn planted(repo: &Repo
+ok    OBL-003 a grep that cannot read          refused: grep exited 2/2 over /mnt/4tb/tmp/battery-tmp/tmp.kKSlEfub0R/unreadable
+ok    OBL-003 no webui/ to read                refused: /mnt/4tb/tmp/battery-tmp/tmp.kKSlEfub0R/absent: not a directory
 ok    SIGINT cancels performer+child     rejected by perform.cancelled (exit 2); performer 1->1, child 1->1, alive: none; no submission, Dispatch kept, record gone
 ok    SIGTERM cancels performer+child    rejected by perform.cancelled (exit 2); performer 1->1, child 1->1, alive: none; no submission, Dispatch kept, record gone
-ok    the check sees an orphan           negative control: setsid writer reported orphan (performer 2->11, child 2->11, alive: 551971 551974)
+ok    the check sees an orphan           negative control: setsid writer reported orphan (performer 2->11, child 2->11, alive: 1417734 1417744)
 ok    no switch disables the handler     perform.rs reads no environment; the handler is unconditional
-ok    a second writer is refused         rejected by perform.writer-alive (pid 552191); no marker, no new Dispatch
+ok    a second writer is refused         rejected by perform.writer-alive (pid 1417966); no marker, no new Dispatch
 ok    a mismatched writer is unknown     rejected by perform.writer-unknown (start time); nothing started, record kept
 ok    a gone writer is handed off        perform.writer-stopped; the record was removed and the performer started
 ok    Linux is admitted                  no perform.unsupported-os on this OS; the refusal is unit-tested
@@ -748,20 +802,38 @@ ok    war perform, adapter: other        rejected by perform.failed (dispatch-mi
 ok    war perform, adapter: resolve      rejected by perform.failed (self-completion); no submission
 ok    war perform, adapter: notjson      rejected by perform.failed (not-json); no submission
 ok    war perform, adapter: fail         rejected by perform.failed (claude-failed); no submission
+== native-held deliverables (OW-WAR-0127) ==
+UNKNOWN native with a non-git holder     OW-ADR-0026 not accepted (Q-001 unanswered), not counted; observed UNMET: exit 0; WARN deliverable.target-unreadable      NA-WAR-0001: D-001 names external://dataset-registry/ds-42 and it cannot be read: No such file or directory (os error 2)
+UNKNOWN native with no provenance        OW-ADR-0026 not accepted (Q-001 unanswered), not counted; observed UNMET: exit 0; no ERROR naming D-001 and /provenance/ ()
+UNKNOWN native with Source Holder git    OW-ADR-0026 not accepted (Q-001 unanswered), not counted; observed UNMET: exit 0; no ERROR naming D-001 and /holder/ (deliverable.target-unreadable)
+UNKNOWN native with an empty Source Holder OW-ADR-0026 not accepted (Q-001 unanswered), not counted; observed UNMET: exit 0; no ERROR naming D-001 and /holder/ (deliverable.target-unreadable)
+UNKNOWN content-addressed native, no digest OW-ADR-0026 not accepted (Q-001 unanswered), not counted; observed UNMET: exit 2; no ERROR naming D-001 and /no content digest/ (deliverable.unsupported-digest)
+UNKNOWN a repo path without provenance   OW-ADR-0026 not accepted (Q-001 unanswered), not counted; observed met: passes war check: the refusal above is specific to native references
+UNKNOWN pins --refresh skips the native  OW-ADR-0026 not accepted (Q-001 unanswered), not counted; observed UNMET: exit 0; D-001 sha256:4a629ad745618c2a6ce3dcfe9072d911a09fba7fb085816be69da318ce380d22 (recorded sha256:f4ff27c5c750…, planted file sha256:4a629ad74561…); D-002 sha256:5891b5b522d5df086d0ff0b110fbd9d21bb4fc7163af34d08286a2e846f6be03
+UNKNOWN pins lists the native as held    OW-ADR-0026 not accepted (Q-001 unanswered), not counted; observed UNMET: draft NA-WAR-0001 D-001 external://dataset-registry/ds-42
+UNKNOWN correct refuses the native       OW-ADR-0026 not accepted (Q-001 unanswered), not counted; observed UNMET: exit 2; tree moved: no; holder named outside the reference: no; joined file's digest in the output: yes
+UNKNOWN correct still reads a repo file  OW-ADR-0026 not accepted (Q-001 unanswered), not counted; observed met: D-002's request carries its bytes' digest
+UNKNOWN check finds no drift in the native OW-ADR-0026 not accepted (Q-001 unanswered), not counted; observed UNMET: deliverable.pin-stale; D-002 pin-stale: reported
+UNKNOWN joined-path bytes move nothing   OW-ADR-0026 not accepted (Q-001 unanswered), not counted; observed UNMET: D-001 moved: yes; D-002 moved: yes
+UNKNOWN requirements 2 and 3, native     OW-ADR-0026 not accepted (Q-001 unanswered), not counted; observed UNMET: req 2: PASS; req 3: UNKNOWN; UNKNOWN naming dataset-registry: no
+UNKNOWN a native never reads as missing  OW-ADR-0026 not accepted (Q-001 unanswered), not counted; observed UNMET: WARN deliverable.target-unreadable      NA-WAR-0001: D-001 names external://dataset-registry/ds-42 and it cannot be read: No such file or directory (os error 2)
+UNKNOWN status says held by its system   OW-ADR-0026 not accepted (Q-001 unanswered), not counted; observed UNMET: digest state with the joined file: drift|no; without: target_unreadable|no (state|holder named)
+UNKNOWN requirement 2 without a native   OW-ADR-0026 not accepted (Q-001 unanswered), not counted; observed met: met with D-001 not required and D-002 present
+UNKNOWN bundle carries the reference     OW-ADR-0026 not accepted (Q-001 unanswered), not counted; observed UNMET: exit 0; D-001 carries the joined file's bytes or digest; no recorded digest; no holder; not marked not read
 == war update, the notice, install.sh and build identity (OW-WAR-0143) ==
-ok    a clean checkout is unreleased               commit afde72292d08, dirty false
+ok    a clean checkout is unreleased               commit 800a338c5644, dirty false
 ok    the same tree, tagged v<version>, is a release line is exactly 'war 1.0.0-alpha.2'
 ok    a published crate's source is crate          sha1 from .cargo_vcs_info.json
 ok    neither source: unknown                      no commit claimed
 ok    a modified tracked file is dirty             dirty true
-ok    a release tag over a dirty tree is refused   exit 1: OPENWARRANT_RELEASE_TAG is v1.0.0-alpha.2, but the tree at commit afde72292d08 is dirty: t
+ok    a release tag over a dirty tree is refused   exit 1: OPENWARRANT_RELEASE_TAG is v1.0.0-alpha.2, but the tree at commit 800a338c5644 is dirty: t
 ok    a tag that is not v<version> is refused      names v9.9.9 and v1.0.0-alpha.2
 ok    unknown is never release                     a tag with no source is refused
-ok    the battery's war says what it is            war 1.0.0-alpha.2 (unreleased, commit 5ed1b8aba953, debug); build.class unreleased
+ok    the battery's war says what it is            war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug); build.class unreleased
 ok    no flags, prereleases only: found            update.available v99.0.0-alpha.1 (default channel preview)
 ok    §11's ordering is a unit test of precedes   precedence_follows_the_semver_example_ordering (cargo test runs it)
 ok    an older newest release is not offered       update.ahead; no archive GET; root unchanged
-ok    same version, not the release: unreleased    update.unreleased names commit 5ed1b8aba953; never update.current
+ok    same version, not the release: unreleased    update.unreleased names commit a4f5ee65af96; never update.current
 ok    a changed byte is refused                    exit 2, update.checksum-mismatch; root and link unchanged
 ok    no .sha256 is refused                        exit 2, update.no-checksum; root and link unchanged
 ok    a MANIFEST.json disagreement is refused      exit 2, update.manifest-mismatch; root and link unchanged
@@ -786,6 +858,9 @@ ok    install.sh names an older war earlier on PATH warns, naming it and 'war 1.
 ok    docs/INSTALL.md says what it must            URL, both opt-outs, not a signature, stranded line = remedy, 4 classes; linked twice
 ok    a renamed opt-out fails the document check   missing: OPENWARRANT_NO_UPDATE_CHECK; 
 ok    connection refused: nothing changes, UNKNOWN cached exit 0 and stdout as disabled; no notice
+== the battery ignores the caller's environment (t-354e) ==
+ok    exported or not, the same totals   32 0 (passed failed) both ways; no verifier log written
+ok    the model re-exported after lib.sh 62-verifier fails 'independence only where true' (31 1)
 == the blind verifier (OW-WAR-0117) ==
 ok    verdicts pass through              1 established, 1 refuted, evidence kept
 ok    the model cannot name itself       identity and flags identical with and without its claims
@@ -797,10 +872,27 @@ ok    a failing verifier records nothing verify.verifier-failed (exit 2), no rec
 ok    war verify --run ingests it        OBL-001 recorded under claude-verifier
 ok    the verifier holds no tool         --tools '', no MCP, restricted, no session, empty cwd
 ok    independence only where true       distinct model: unset no, same no, different yes; human never
+ok    independence is declared           independence.sufficient 1 basic;independence.sufficient 1 controlled
+ok    an undeclared independence is seen without [independence]: independence.undeclared
 == web ui refusals under load (t-26ca) ==
 ok    oversized headers under load       50 of 50 answered 431, closed cleanly
 ok    oversized bodies under load        50 of 50 answered 413, closed cleanly
+ok    a silent socket holds nothing      the page is 200 while it is still unanswered
+ok    a silent socket is 408, not 431    HTTP/1.1 408 Request Timeout
 ok    the server outlives the refusals   the page is still 200
+== web ui, what the verifier asked (OW-WAR-0116) ==
+ok    an act by PUT                      405
+ok    an act by DELETE                   405
+ok    the act state without the token    401
+ok    a GET on /api/act only reads       {"state":"idle"} 200, twice; no act started
+ok    a record change is seen            the version moved in 270 ms (< 4000)
+ok    the Queue row: verdict and id      authorize WV-WAR-0001: verdict 'would record', act_id sign-1459f90df80ae199
+ok    an act not on the allowlist        not an act this page may start 403; no act line, state idle, no act among its children (others seen: git cat-file --batch;git rev-parse --show-prefix;git rev-parse --verify;git show HEAD:docs/warrants/WV-WAR-0001/journal.jsonl;./target/debug/war --root /mnt/4tb/tmp/battery-tmp/tmp.0CuNA6SSLp;)
+ok    two acts at once: one runs         202 409 
+ok    control: the same observation      a started act is seen: 1494264: war --root <root> sign WV-WAR-0001 --as your-name-here --dry-run;1494293: war --root <root> sign WV-WAR-0001 --as your-name-here --ssh-sign; state {"state":"done"
+ok    the act's command, from its log    war ui: act sign-1459f90df80ae199: war --root <root> sign WV-WAR-0001 --as your-name-here --ssh-sign; nothing signed
+ok    progress on this corpus            11 phases in war roadmap's order (OW-PHASE-0 .. OW-PHASE-10); 143 members' rungs = status; 25 open slug(s); 0 unassigned; accepted revision 3
+ok    progress is not read from view.json no view.json under webui/
 == web ui (OW-WAR-0116) ==
 ok    the page is served                 200
 ok    an API call without the token      401
@@ -813,7 +905,7 @@ ok    an act not on the allowlist        403
 ok    an act that carries an argv        400
 ok    an oversized request               431
 ok    the CSP                            no unsafe-inline, frame-ancestors none
-ok    bound to loopback                  127.0.0.1:42659 only
+ok    bound to loopback                  127.0.0.1:45559 only
 ok    the progress view                  roadmap, phases, ladder
 ok    a record change is seen            the version moved
 ok    an allowlisted act                 ran sign WU-WAR-0001 --ssh-sign; nothing signed
@@ -846,9 +938,10 @@ ok    a replayed response signature is refused attest.failed (exit 2)
 ok    pins lists a resolved warrant's deliverable rejected by oh.war/pins/v1 (crates/openwarrant-cli/src/check.rs)
 ok    next hands signatures to humans    rejected by oh.war/next/v1 ("actor": "human")
 ok    next never hands an agent a signature no agent action is a signature
-ok    next answers this corpus in time   next/status CPU 2.52 (< 3.4; 3630/1442 ms; 4072 ms wall), no agent action is a signature
+ok    next answers this corpus in time   next/status CPU 1.85 (< 3.4; 4763/2579 ms; 4811 ms wall), no agent action is a signature
 ok    next lists ready tickets first     the claim before the first HUMAN act
 ok    next refuses a claimed ticket item a claimed item is no longer offered
+ok    a failing next is not 'not offered' war exited 1: refused
 ok    agents-md refuses to clobber without --force rejected by agents-md.exists (AGENTS.md)
 ok    agents-md template matches reference legacy reference is the rendered template
 ok    agents-md preserves root routing   root instructions link the legacy workflow
@@ -863,6 +956,7 @@ ok    OW-WAR-0073 reads superseded       derived from OW-WAR-0112; no field in i
 ok    OW-WAR-0073's signature stands     no authorize.no-amendment; contract 691f51ce…
 ok    a replaced subject is one line     CU-WAR-0001 once, as lineage; none of its text
 ok    history off writes no history      no HISTORY.md, nothing compared
+ok    a failing check is not 'no history' war exited 1: refused
 ok    a hand edit to CURRENT.md is drift rejected by generated.drift (CURRENT.md)
 ok    the history holds what was replaced CU-WAR-0001's intent verbatim, and its lineage
 ok    a hand edit to HISTORY.md is drift rejected by generated.drift (HISTORY.md)
@@ -885,8 +979,8 @@ ok    an extension role renders          x.review accepted; verbatim under CU-WA
 ok    a bare unknown role is refused     rejected by ERROR manifest.invalid (declares role "review")
 == idempotency, batch recovery, version negotiation (OW-WAR-0130) ==
 ok    no marker, no batch.interrupted    batch.interrupted silent
-ok    SIGKILL after 2 of 3 records       killed (137), marker B-20260926T100900Z-80a9e238, 2 of 3 recorded: a hole
-ok    war check names the interrupted batch ERROR batch.interrupted B-20260926T100900Z-80a9e238, its paths listed
+ok    SIGKILL after 2 of 3 records       killed (137), marker B-20260928T014733Z-f571d294, 2 of 3 recorded: a hole
+ok    war check names the interrupted batch ERROR batch.interrupted B-20260928T014733Z-f571d294, its paths listed
 ok    a new batch refuses while interrupted batch.interrupted (dry run, exit 2)
 ok    recovering an unknown batch refuses batch.nothing-to-recover; the marker stays
 ok    --recover with a target refuses    batch.recover-alone; the marker stays
@@ -901,7 +995,7 @@ ok    a signed act by another refuses    journal.idempotency-conflict, 3 line(s)
 ok    war ask retried replays            question.replayed, exit 0, IA-WAR-0001 byte-identical
 ok    war ask by another refuses         journal.idempotency-conflict, 4 line(s) unchanged
 ok    a different question is asked      question.asked, not replayed
-ok    war submit records once            dispatch 01a0dd30-8be6-7d32-b7a9-a095c2618274
+ok    war submit records once            dispatch 01a0e5b2-3036-77a1-9237-b64e9790befc
 ok    war submit retried replays         submission.replayed, exit 0, IA-WAR-0001 byte-identical
 ok    war submit by another refuses      journal.idempotency-conflict, 7 line(s) unchanged
 ok    war verify records once            OBL-001 established by plant-verifier
@@ -979,6 +1073,7 @@ ok    war progress reads the record      no view.json: phases from the record; n
 ok    the legacy roadmaps are lineage    four lines in CURRENT.md; three files one line; rc.3 draft PASS
 ok    §98 points at the record          1.1.1 accepted; the document matches a recorded revision
 ok    the SAS edited after its proposal  rejected by sas.digest-drift (revision 1.1.1 (accepted) records)
+ok    the roadmap schema holds the record accepted the committed record (40 placements, 4 retirements); refused 4 doctored: placement-status retires-no-lineage no-prefix members-list
 == the hub (OW-WAR-0115) ==
 ok    used projects are remembered       war status in two repositories lists both
 ok    a row's pending is sign --list's   1 == 1
@@ -988,6 +1083,7 @@ ok    forgetting an unlisted path        projects.unknown (exit 2)
 ok    the opt-out writes nothing         no projects.toml
 ok    an unwritable list changes nothing exit 0 either way
 ok    war from anywhere opens the hub    the Projects pane, listing the scratch project
+ok    Help's first row is this binary    WARN    this is war 1.0.0-alpha.2 (unreleased, commit a4f5ee65af96, debug) at /mnt/4tb/tmp/cargo-nvme/merge/debug/war; `war` on PATH is war 1.0.0-alpha.2 at /ho
 ok    no terminal, no hub                exit 2, tui.no-tty
 ok    every child names its project      2 child(ren), each with --root
 ok    apply without review is refused    rejected by 74.4 (semantic diff)
@@ -1068,16 +1164,32 @@ ok    run in budget mints a receipt      the gate ran: the refusal above is the 
 ok    bundle over budget is refused      rejected by bundle-over-budget; nothing at --emit
 ok    bundle with no tokens is refused   rejected by bundle-tokens-unrecorded; nothing at --emit
 ok    the unedited Dispatch is bundled   the refusals above are not blanket
-ok    the bundle is deterministic        two bundles, one digest, one file
+== bounded verification bundles (t-9f7e) ==
+ok    a large Warrant is split to fit    2 obligation bundles, each <= 6000 tokens
+ok    the named line is carried          line 15000 of src/big.txt, numbered, byte-exact
+ok    truncation is marked               truncated, whole-file sha256 f42cc3c9b59b04fec408f556cbec185a7e9cb0651a2892262ac46af634bfd414, 20000 lines, fewer carried
+ok    the bundle says where a term is    bundle-marker-term shown in D-001
+ok    split bundles are deterministic    two runs, the same 2 digests
+ok    absent named evidence is said      src/nowhere.rs absent; never-said-anywhere shown nowhere
+ok    a missing deliverable is not empty present false, error, no text
+ok    an unmeetable budget is said       verify.bundle-over-budget; over_budget true
+ok    an answer beyond the bundle is refused verify.outside-bundle x2 (exit 2), nothing recorded
+ok    each obligation's bundle is ingested one verifier call per bundle, 2 records
+ok    the bundle is deterministic        two runs, the same 6 digest(s), no new file
 ok    no verifier configured is said     rejected by verify.no-verifier (verifier_argv)
 ok    a configured verifier is ingested  rejected by verify.recorded (fixture-verifier)
 ok    a self-verifying verifier is refused rejected by verify.inadmissible (claude)
+== a Warrant-scoped gate names its Warrant ==
+ok    run for no Warrant: not run        exit 2, unaskable (not_run), no stream written
+ok    recorded for a Warrant: bound      ran `echo DS-WAR-0001`; stdout DS-WAR-0001; receipt arguments `echo DS-WAR-0001`
+ok    document.review@1.1.0, no Warrant  exit 2, unaskable (not_run)
+ok    the two argvs                      1.0.0 ["./target/debug/war", "document", "review"]; 1.1.0 ["./target/debug/war", "document", "review", "<warrant>"]
 ok    an unreviewed memo is refused only for its review rejected by document.review-absent (OBL-002)
 ok    the memo passes the other three rules digest holds, citations resolve, no placeholder
 ok    a TODO left in the memo is refused rejected by document.placeholder (TODO)
 ok    a byte moved after the digest is refused rejected by document.undigested (has moved)
 ok    a citation to a missing file is refused rejected by document.citation-missing (no/such/source.md)
-ok    the corpus review is scoped to its binders rejected by document.reviewed-warrants (8 Warrant(s))
+ok    the corpus review is scoped to its binders rejected by document.reviewed-warrants (7 Warrant(s))
 ok    a service stage runs and submits verify rejected by run.passed (ops.echo)
 ok    the run left its records           receipt subject is the dispatch digest; submission requests verify
 ok    a human stage is not run           rejected by run.not-a-service (human)
@@ -1133,7 +1245,7 @@ ok    the wizard resumes                 --from 4 preflights
 ok    the wizard resumes                 --from 8 preflights
 ok    an unknown wizard flag             rejected, not ignored
 ok    the board is the signing queue     3 acts, the same ones war sign lists
-ok    this corpus's board is its queue   7 acts; none is said, not shown blank
+ok    this corpus's board is its queue   21 acts; none is said, not shown blank
 ok    the console projection             schema named, every act via --ssh-sign
 ok    the presets are the repo's         none offered once the config has none
 ok    the console screen                 a checklist, and exit wrote nothing
@@ -1182,8 +1294,11 @@ ok    refreshing a resolved pin          rejected by pins.signed (war correct)
 == the app (OW-WAR-0112) ==
 ok    the app holds no authority         no key, no socket, no signing call under tui/
 ok    acts shell out                     every act is a child `war sign --ssh-sign`
-ok    no terminal, no app                exit 2, tui.no-tty, names war status --json
-ok    tui by name and --json             war tui refuses alike; war --json names the envelopes
+ok    no terminal, no app                exit 2, tui.no-tty, usage, names war status --json, no escape
+ok    war tui from a pipe                exit 2, tui.no-tty
+ok    war --json refuses by name         exit 2, tui.json, names war console/status --json
+ok    war tui --json refuses by name     exit 2, tui.json, names war console/status --json
+ok    war --json sdk --request -         an envelope (exit 1), not usage, not the app
 ok    the queue is war sign --list       board acts == sign --list rows
 ok    a panic restores the terminal      alternate screen entered and left, panic printed
 ok    docs/TUI.md names every pane       nine panes documented
@@ -1200,6 +1315,17 @@ ok    correction of a historical pin     refused, nothing written
 ok    path added after signing           declared, not owned; OW-WAR-0061 keeps its pin
 ok    a signed deliverable removed from the declaration rejected by deliverable.declared-then-removed (OW-WAR-0112: the authorization signed for D-001)
 ok    owned set edited after signing     attest.subject-drift (exit 2)
+== ownership, signed on a scratch program (OW-WAR-0112) ==
+ok    sign --show lists what it grants   Grants ownership of: D-001 ADOPTED.md; nothing written
+ok    a response over a moved set        authorize.stale-deliverables (exit 2), nothing written
+ok    the signed set is recorded         authorize.recorded; owned: ADOPTED.md
+ok    an authorization dated before owner authorize.time-before-owner naming OS-WAR-0001 (exit 2), nothing written
+ok    a resolution carries its locator   [locator] commit_sha = da2bd9b9fbc8… (40 lowercase hex, the resolved HEAD)
+ok    the hook denies a current pin      deny, names war correct OS-WAR-0001 D-001
+ok    check --json carries each remedy   drift: human war correct (signs with war sign OS-WAR-0001/D-001); stale: auto war compile; REMEDIES: block
+ok    a later owner is recorded          OS-WAR-0002 authorized after OS-WAR-0001
+ok    the hook permits a historical pin  superseded-by OS-WAR-0002; the edit it denied is let through
+ok    pins --history, oldest first       OS-WAR-0001 (historical) then OS-WAR-0002 (current)
 == plant files: no fixed /tmp path (t-0e4f) ==
 ok    mktemp scratch and the temp root run 50-clean.sh ran and passed; a template, ${TMPDIR:-…}, a nested tmp/, a comment
 ok    a fixed /tmp path is refused       51-fixed.sh FAILED at line 2 and never ran; totals 1 passed, 1 failed
@@ -1212,8 +1338,13 @@ ok    plain init leads with tickets      the first hint is the ticket start
 ok    scaffold output keeps its shape    no start line in the pinned three
 == plant files: prefixes group, order decides nothing (t-dc28) ==
 ok    two files share a prefix           57-a and 57-b both run, in byte order, then 58, 59
-ok    a file that leaks is named         58-leak.sh FAILED for docs/warrants/.plant-order-leak-321193, removed before 59 ran
+ok    a file that leaks is named         58-leak.sh FAILED for docs/warrants/.plant-order-leak-1206527, removed before 59 ran
 ok    reversed, the same result          TOTALS 4 1 either way
+== plant files: no pipe into a quiet grep (t-515e) ==
+ok    captured greps run                 50-clean.sh ran and passed; line_has, a here-string, <(…), -c/-v/-o pipes, ||, a comment
+ok    a pipe into a quiet grep is refused -q, -qF, -E -q, |& --quiet, a split pipe, the held file's name on other bytes: each FAILED at its line, none ran; totals 1 passed, 6 failed
+ok    one file held by its bytes         63-webui.sh at 0397209b runs (OW-WAR-0139 OBL-005); other bytes under its name do not
+ok    line_has reads a captured text     200/200 true over 9719 bytes; an empty filter and a -v over the filter's lines are false
 
-1167 passed, 0 failed
-tested commit 5ed1b8aba953e618d78febea79e2c398787b32e6
+1271 passed, 0 failed
+tested commit 1dcbfd796b25e3ad25e53eca08c6247df978e1df
