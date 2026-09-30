@@ -1,0 +1,26 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "resolve.dry_run",
+  "diagnostics": [
+    {
+      "severity": "pass",
+      "rule": "resolution.requirements",
+      "file": null,
+      "message": "OW-WAR-0063: all 13 §56.1 requirements are met"
+    }
+  ],
+  "notes": [
+    "All thirteen are met, but no resolution has been RECORDED. §56.2's record needs an authorizer, an acting role, and a stated meaning — none of which this command may invent.",
+    "§38.6: OW-WAR-0063 would resolve NOT SATISFIED even once the §56.1 requirements are met. 3 obligation(s) are on record as not established or refuted: OBL-001, OBL-002, OBL-003. A disposition is not an establishment — requirement 4 asks whether the question was answered, and §38.6 asks what the answer was."
+  ],
+  "counts": {
+    "pass": 1,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0
+}

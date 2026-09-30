@@ -1,0 +1,47 @@
+{
+  "schema": "oh.war/baseline-historical-observation/v1",
+  "kind": "performer_observation",
+  "artifact": "/mnt/4tb/tmp/ow-mvp-alpha1/artifacts/telemetry-baseline.json",
+  "artifact_sha256": "020600c49d437dc0fbd940256efa407ebc67e244c5dbf1ccabcbdffd54e49ef4",
+  "artifact_still_unchanged": true,
+  "historical_checkout_head": "6e08dd6e1315f9ab08e3dd1bec17b82d69c02509",
+  "cli_path": "/mnt/2tb/ow-closure-audit-target/debug/war",
+  "scope": "Current telemetry implementation compares the retained baseline to source/history at the exact recorded commit; no replacement baseline is written. This does not prove compatibility with the historical calculator.",
+  "argv": [
+    "/mnt/2tb/ow-closure-audit-target/debug/war",
+    "--root",
+    "/tmp/ow63-baseline-history-lnz5qhm1/repository",
+    "telemetry",
+    "--commit",
+    "6e08dd6",
+    "--verify",
+    "--out",
+    "/mnt/4tb/tmp/ow-mvp-alpha1/artifacts/telemetry-baseline.json",
+    "--json"
+  ],
+  "exit_code": 1,
+  "report": {
+    "schema": "oh.war/report/v1",
+    "command": "error",
+    "diagnostics": [
+      {
+        "severity": "error",
+        "rule": "cli.error",
+        "file": null,
+        "message": "the committed baseline differs from a fresh one at 6e08dd6. A baseline is a record of one moment; if the corpus moved, take a NEW one rather than overwriting the old."
+      }
+    ],
+    "notes": [],
+    "counts": {
+      "pass": 0,
+      "warn": 0,
+      "unknown": 0,
+      "error": 1,
+      "worst": "error"
+    },
+    "verdict": "not_ready",
+    "verdict_line": "NOT READY",
+    "exit_code": 2
+  },
+  "stderr": ""
+}

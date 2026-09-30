@@ -1,0 +1,28 @@
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/ow-mvp-alpha1/crates/openwarrant-core)
+   Compiling openwarrant-compiler v1.0.0 (/mnt/4tb/tmp/ow-mvp-alpha1/crates/openwarrant-compiler)
+   Compiling openwarrant-cli v1.0.0-alpha.2 (/mnt/4tb/tmp/ow-mvp-alpha1/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4m 11s
+     Running unittests src/lib.rs (/mnt/2tb/ow-closure-audit-target/debug/deps/openwarrant_cli-2fb49cd354e6fb79)
+
+running 2 tests
+test new::tests::allocation_preserves_the_uuid ... ok
+test diagnostic::tests::a_rendered_diagnostic_has_the_seventy_one_seven_shape ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 336 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/mnt/2tb/ow-closure-audit-target/debug/deps/openwarrant_compiler-936e13be8cb6d694)
+
+running 2 tests
+test corpus_status::tests::the_banner_precedes_the_title_and_the_renderer_divides_nothing ... ok
+test corpus_status::tests::every_committed_war_json_carries_the_sas_pin ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 74 filtered out; finished in 0.04s
+
+     Running unittests src/lib.rs (/mnt/2tb/ow-closure-audit-target/debug/deps/openwarrant_core-54163d8a4ca9a4fe)
+
+running 2 tests
+test contract::tests::a_prior_revision_keeps_its_digest_after_an_amendment_is_authorized ... ok
+test adr::tests::supersession_relations_are_read_in_both_directions ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 559 filtered out; finished in 0.00s
+

@@ -1,0 +1,379 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "sign",
+  "diagnostics": [
+    {
+      "severity": "warn",
+      "rule": "sign.needs-decision",
+      "file": "OW-WAR-0001  resolve  would resolve not satisfied  Establish the OpenWarrant repository and Rust workspace",
+      "message": "OW-WAR-0001: §38.6 does not permit `satisfied` (4 obligation(s) unestablished); pass --outcome not_satisfied|cancelled|blocked — not judged by this dry run; run it alone with that flag"
+    },
+    {
+      "severity": "warn",
+      "rule": "sign.needs-decision",
+      "file": "OW-WAR-0003  resolve  would resolve not satisfied  Implement the canonical WAR IR and RFC 8785 digesting",
+      "message": "OW-WAR-0003: §38.6 does not permit `satisfied` (5 obligation(s) unestablished); pass --outcome not_satisfied|cancelled|blocked — not judged by this dry run; run it alone with that flag"
+    },
+    {
+      "severity": "warn",
+      "rule": "sign.needs-decision",
+      "file": "OW-WAR-0004  resolve  would resolve not satisfied  Implement the generated parent document and drift checking",
+      "message": "OW-WAR-0004: §38.6 does not permit `satisfied` (2 obligation(s) unestablished); pass --outcome not_satisfied|cancelled|blocked — not judged by this dry run; run it alone with that flag"
+    },
+    {
+      "severity": "warn",
+      "rule": "sign.needs-decision",
+      "file": "OW-WAR-0006  resolve  would resolve not satisfied  Complete ADR federation: relations, supersession, and currency",
+      "message": "OW-WAR-0006: §38.6 does not permit `satisfied` (3 obligation(s) unestablished); pass --outcome not_satisfied|cancelled|blocked — not judged by this dry run; run it alone with that flag"
+    },
+    {
+      "severity": "warn",
+      "rule": "sign.needs-decision",
+      "file": "OW-WAR-0007  resolve  would resolve not satisfied  Parse and validate milestones, stages, and named typed ports",
+      "message": "OW-WAR-0007: §38.6 does not permit `satisfied` (2 obligation(s) unestablished); pass --outcome not_satisfied|cancelled|blocked — not judged by this dry run; run it alone with that flag"
+    },
+    {
+      "severity": "warn",
+      "rule": "sign.needs-decision",
+      "file": "OW-WAR-0011  resolve  would resolve not satisfied  Implement prerequisites and Preflight",
+      "message": "OW-WAR-0011: §38.6 does not permit `satisfied` (2 obligation(s) unestablished); pass --outcome not_satisfied|cancelled|blocked — not judged by this dry run; run it alone with that flag"
+    },
+    {
+      "severity": "warn",
+      "rule": "sign.needs-decision",
+      "file": "OW-WAR-0013  resolve  would resolve not satisfied  Validate SAS and Roadmap traceability",
+      "message": "OW-WAR-0013: §38.6 does not permit `satisfied` (3 obligation(s) unestablished); pass --outcome not_satisfied|cancelled|blocked — not judged by this dry run; run it alone with that flag"
+    },
+    {
+      "severity": "warn",
+      "rule": "sign.needs-decision",
+      "file": "OW-WAR-0023  resolve  would resolve not satisfied  Implement Stage Dispatch compilation and actor-specific projection",
+      "message": "OW-WAR-0023: §38.6 does not permit `satisfied` (2 obligation(s) unestablished); pass --outcome not_satisfied|cancelled|blocked — not judged by this dry run; run it alone with that flag"
+    },
+    {
+      "severity": "warn",
+      "rule": "sign.needs-decision",
+      "file": "OW-WAR-0027  resolve  would resolve not satisfied  Implement the BLUT adapter: PlanSpec lowering and lineage receipt",
+      "message": "OW-WAR-0027: §38.6 does not permit `satisfied` (1 obligation(s) unestablished); pass --outcome not_satisfied|cancelled|blocked — not judged by this dry run; run it alone with that flag"
+    },
+    {
+      "severity": "warn",
+      "rule": "sign.needs-decision",
+      "file": "OW-WAR-0028  resolve  would resolve not satisfied  Implement Knowledge Fabric typed actions and the controlled-action envelope",
+      "message": "OW-WAR-0028: §38.6 does not permit `satisfied` (3 obligation(s) unestablished); pass --outcome not_satisfied|cancelled|blocked — not judged by this dry run; run it alone with that flag"
+    },
+    {
+      "severity": "warn",
+      "rule": "sign.needs-decision",
+      "file": "OW-WAR-0029  resolve  would resolve not satisfied  Implement KF registration, global identity allocation, and federation",
+      "message": "OW-WAR-0029: §38.6 does not permit `satisfied` (4 obligation(s) unestablished); pass --outcome not_satisfied|cancelled|blocked — not judged by this dry run; run it alone with that flag"
+    },
+    {
+      "severity": "warn",
+      "rule": "sign.needs-decision",
+      "file": "OW-WAR-0030  resolve  would resolve not satisfied  Implement portable preservation: one-file export and round trip",
+      "message": "OW-WAR-0030: §38.6 does not permit `satisfied` (3 obligation(s) unestablished); pass --outcome not_satisfied|cancelled|blocked — not judged by this dry run; run it alone with that flag"
+    },
+    {
+      "severity": "warn",
+      "rule": "sign.needs-decision",
+      "file": "OW-WAR-0036  resolve  would resolve not satisfied  Implement normative-decision detection and proposed-ADR generation",
+      "message": "OW-WAR-0036: §38.6 does not permit `satisfied` (3 obligation(s) unestablished); pass --outcome not_satisfied|cancelled|blocked — not judged by this dry run; run it alone with that flag"
+    },
+    {
+      "severity": "warn",
+      "rule": "sign.needs-decision",
+      "file": "OW-WAR-0037  resolve  would resolve not satisfied  Implement `war diff`: semantic difference between revisions",
+      "message": "OW-WAR-0037: §38.6 does not permit `satisfied` (1 obligation(s) unestablished); pass --outcome not_satisfied|cancelled|blocked — not judged by this dry run; run it alone with that flag"
+    },
+    {
+      "severity": "warn",
+      "rule": "sign.needs-decision",
+      "file": "OW-WAR-0039  resolve  would resolve not satisfied  Implement telemetry, unit economics, and untracked-work detection",
+      "message": "OW-WAR-0039: §38.6 does not permit `satisfied` (3 obligation(s) unestablished); pass --outcome not_satisfied|cancelled|blocked — not judged by this dry run; run it alone with that flag"
+    },
+    {
+      "severity": "warn",
+      "rule": "sign.needs-decision",
+      "file": "OW-WAR-0041  resolve  would resolve not satisfied  Discharge the Phase 0 exit: real telemetry distributions, with a baseline",
+      "message": "OW-WAR-0041: §38.6 does not permit `satisfied` (1 obligation(s) unestablished); pass --outcome not_satisfied|cancelled|blocked — not judged by this dry run; run it alone with that flag"
+    },
+    {
+      "severity": "warn",
+      "rule": "sign.needs-decision",
+      "file": "OW-WAR-0043  resolve  would resolve not satisfied  Discharge the Phase 3 exit: migrate the LamQuant ADR corpus, fabricating nothing",
+      "message": "OW-WAR-0043: §38.6 does not permit `satisfied` (4 obligation(s) unestablished); pass --outcome not_satisfied|cancelled|blocked — not judged by this dry run; run it alone with that flag"
+    },
+    {
+      "severity": "warn",
+      "rule": "sign.needs-decision",
+      "file": "OW-WAR-0044  resolve  would resolve not satisfied  Discharge the Phase 4 exit: KF is institutional authority, Git stays Source Holder",
+      "message": "OW-WAR-0044: §38.6 does not permit `satisfied` (5 obligation(s) unestablished); pass --outcome not_satisfied|cancelled|blocked — not judged by this dry run; run it alone with that flag"
+    },
+    {
+      "severity": "warn",
+      "rule": "sign.needs-decision",
+      "file": "OW-WAR-0063  resolve  would resolve not satisfied  Complete the conformance battery: the plants and tests the verifier named as missing",
+      "message": "OW-WAR-0063: §38.6 does not permit `satisfied` (3 obligation(s) unestablished); pass --outcome not_satisfied|cancelled|blocked — not judged by this dry run; run it alone with that flag"
+    },
+    {
+      "severity": "pass",
+      "rule": "authorize.would-record",
+      "file": null,
+      "message": "OW-WAR-0112: revision 4 at contract 19a98376009590dfe18f21e6014f3332491462a3016fbeddd97ae14dca737c74 would be recorded, granting 44 path(s) under set sha256:7b494cba996231953cf857796da2a594ac5707633936d53a01221b8acc696ff4. Not written"
+    },
+    {
+      "severity": "pass",
+      "rule": "sign.would-record",
+      "file": null,
+      "message": "OW-WAR-0112  rev 4  authorize  war is the app: ownership, a guided start, and remedies  [AM-003-232f] — every refusal passed; the signature is the only thing missing. Nothing written"
+    },
+    {
+      "severity": "pass",
+      "rule": "authorize.would-record",
+      "file": null,
+      "message": "OW-WAR-0114: revision 4 at contract 28ba38500e6d3402666fdede56f02e6644cdcc8686fa1a495e358248aaf02dba would be recorded, granting 36 path(s) under set sha256:160dd3eab156a8acb1a84e4ff1409f0861a9cb63578ecdf7e5a112398c51c6ce. Not written"
+    },
+    {
+      "severity": "pass",
+      "rule": "sign.would-record",
+      "file": null,
+      "message": "OW-WAR-0114  rev 4  authorize  The roadmap becomes a record: one per program, beside the SAS  [AM-004-d7d9] — every refusal passed; the signature is the only thing missing. Nothing written"
+    },
+    {
+      "severity": "pass",
+      "rule": "authorize.would-record",
+      "file": null,
+      "message": "OW-WAR-0116: revision 4 at contract d0c959f72c2e26dc72737c73f6dba2372efe8ba42d6aace2db74b9cc3efc9388 would be recorded, granting 12 path(s) under set sha256:e397bf35aac567a7e852304238f4135509eca956e5c37d5f3ba4840711e1cc18. Not written"
+    },
+    {
+      "severity": "pass",
+      "rule": "sign.would-record",
+      "file": null,
+      "message": "OW-WAR-0116  rev 4  authorize  war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap  [AM-003-5fd3] — every refusal passed; the signature is the only thing missing. Nothing written"
+    },
+    {
+      "severity": "pass",
+      "rule": "authorize.would-record",
+      "file": null,
+      "message": "OW-WAR-0122: revision 4 at contract 285861a8c5717c7e44f224586d94e79a12b4eeba2e4d2c9c917436e20cfdc3d0 would be recorded, granting 4 path(s) under set sha256:5663c05547233d7759cf7c91c7c9c3cc60fc5fe057eb46f23de91ab47c916c25. Not written"
+    },
+    {
+      "severity": "pass",
+      "rule": "sign.would-record",
+      "file": null,
+      "message": "OW-WAR-0122  rev 4  authorize  The document grammar: a schema for atoms, headers and Markdown, and what a conforming tool must accept  [AM-003-af9f] — every refusal passed; the signature is the only thing missing. Nothing written"
+    },
+    {
+      "severity": "pass",
+      "rule": "authorize.would-record",
+      "file": null,
+      "message": "OW-WAR-0123: revision 4 at contract 0f0e07390b13b95fafab14f5a40db8066c92e4d991800d4479eef09cd5af2418 would be recorded, granting 4 path(s) under set sha256:4607c9e534e6195576abfd04799c7796fcb6d6dfa46a0ffb3a3057f4e8363493. Not written"
+    },
+    {
+      "severity": "pass",
+      "rule": "sign.would-record",
+      "file": null,
+      "message": "OW-WAR-0123  rev 4  authorize  A child cites the exact revision of its parent, and a moved parent is a finding  [AM-003-e752] — every refusal passed; the signature is the only thing missing. Nothing written"
+    },
+    {
+      "severity": "pass",
+      "rule": "authorize.would-record",
+      "file": null,
+      "message": "OW-WAR-0124: revision 4 at contract c08603d7452c7b629128e27bc87d32004b0cc1475f26f649537185f63f1c59de would be recorded, granting 8 path(s) under set sha256:495af7ad3fd20e88f53717ba1278be4d74bad89ba49c3ce6758288241ff96504. Not written"
+    },
+    {
+      "severity": "pass",
+      "rule": "sign.would-record",
+      "file": null,
+      "message": "OW-WAR-0124  rev 4  authorize  Brownfield adoption: a guided path into OpenWarrant for a repository with history and no Warrants  [AM-003-da78] — every refusal passed; the signature is the only thing missing. Nothing written"
+    },
+    {
+      "severity": "pass",
+      "rule": "authorize.would-record",
+      "file": null,
+      "message": "OW-WAR-0125: revision 5 at contract 018fea969160b2568321c11c209fb1ae59909e01eafffe163254b11db644426b would be recorded, granting 10 path(s) under set sha256:b2212b9dce075ccf0dc904c24c5bec38eaa9ae0376362aea0e2c3cec0f9d9b61. Not written"
+    },
+    {
+      "severity": "pass",
+      "rule": "sign.would-record",
+      "file": null,
+      "message": "OW-WAR-0125  rev 5  authorize  The SAS as atoms: sections as governed records with their own currency  [AM-004-22e6] — every refusal passed; the signature is the only thing missing. Nothing written"
+    },
+    {
+      "severity": "pass",
+      "rule": "authorize.would-record",
+      "file": null,
+      "message": "OW-WAR-0126: revision 2 at contract 48102456706603fd60d396283a9785024d7bf450fc415ac2b64c7e111d9f7bb4 would be recorded, granting 1 path(s) under set sha256:6748e200a153ade32cb98e288d4917b7d29b7b0e38c91585ecd2b2125b97aec9. Not written"
+    },
+    {
+      "severity": "pass",
+      "rule": "sign.would-record",
+      "file": null,
+      "message": "OW-WAR-0126  rev 2  authorize  Knowledge Fabric owns authority and lifecycle: the registration seam and what stays local  [AM-001-35da] — every refusal passed; the signature is the only thing missing. Nothing written"
+    },
+    {
+      "severity": "pass",
+      "rule": "authorize.would-record",
+      "file": null,
+      "message": "OW-WAR-0128: revision 2 at contract 4884725cb63b30a26e3dbadbf1c682aa65de101834c3fccf19e7f2f2850d6621 would be recorded, granting 2 path(s) under set sha256:f51b76b745e211c5ebfdd4ba057e9ece5e42a8e35b005f67a4ae57b0fc66d957. Not written"
+    },
+    {
+      "severity": "pass",
+      "rule": "sign.would-record",
+      "file": null,
+      "message": "OW-WAR-0128  rev 2  authorize  The Knowledge Fabric compiler interface: what OpenWarrant hands KF and what it gets back  [AM-001-aef0] — every refusal passed; the signature is the only thing missing. Nothing written"
+    },
+    {
+      "severity": "pass",
+      "rule": "authorize.would-record",
+      "file": null,
+      "message": "OW-WAR-0133: revision 6 at contract 04e932efe228615223a5f1d3bfad8a005cbf98db7ac063637d34f07ee2233013 would be recorded, granting 28 path(s) under set sha256:555c0b390fc80079cda082f378697a3cc5063eb18fae5e6f4813352c92a62d38. Not written"
+    },
+    {
+      "severity": "pass",
+      "rule": "sign.would-record",
+      "file": null,
+      "message": "OW-WAR-0133  rev 6  authorize  Evidence reuse after a source change, and the compiler's source, conflict and omission rules  [AM-005-58e8] — every refusal passed; the signature is the only thing missing. Nothing written"
+    },
+    {
+      "severity": "pass",
+      "rule": "authorize.would-record",
+      "file": null,
+      "message": "OW-WAR-0134: revision 4 at contract 96514c20005037f56220227bec281aca9674cba3a68746ea095a377902f453cd would be recorded, granting 6 path(s) under set sha256:272cbb93b52d12d6ab712304d9f26b0b409402e0fc87b6095a1798fb09ae6e15. Not written"
+    },
+    {
+      "severity": "pass",
+      "rule": "sign.would-record",
+      "file": null,
+      "message": "OW-WAR-0134  rev 4  authorize  Acceptance stays valid only for the candidate accepted: a change before merge is a finding  [AM-003-7737] — every refusal passed; the signature is the only thing missing. Nothing written"
+    },
+    {
+      "severity": "pass",
+      "rule": "authorize.would-record",
+      "file": null,
+      "message": "OW-WAR-0135: revision 4 at contract a871e182021c6d2237d126bb497a0f0506f0ea368a185c5cb8aa84494fbdfe24 would be recorded, granting 6 path(s) under set sha256:eb1083ae6a5704ca6def8748e3e25dcf14339a961abe8b968fc62fa6d8022439. Not written"
+    },
+    {
+      "severity": "pass",
+      "rule": "sign.would-record",
+      "file": null,
+      "message": "OW-WAR-0135  rev 4  authorize  The assurance mark: a baseline, its issuance, and what it binds  [AM-003-80b7] — every refusal passed; the signature is the only thing missing. Nothing written"
+    },
+    {
+      "severity": "pass",
+      "rule": "authorize.would-record",
+      "file": null,
+      "message": "OW-WAR-0136: revision 4 at contract ae20e6fb12b437135d7c000765d340f204c16f650b5e764a52f7d239cc8c8279 would be recorded, granting 18 path(s) under set sha256:2debe49ef35aaec8177c333663980a1f5ec99a4bcb3ee1e22bed76ec9799b507. Not written"
+    },
+    {
+      "severity": "pass",
+      "rule": "sign.would-record",
+      "file": null,
+      "message": "OW-WAR-0136  rev 4  authorize  Discharge the Phase 9 exit: signed resolutions, audited evidence custody, and invalidation that propagates  [AM-003] — every refusal passed; the signature is the only thing missing. Nothing written"
+    },
+    {
+      "severity": "pass",
+      "rule": "authorize.would-record",
+      "file": null,
+      "message": "OW-WAR-0138: revision 5 at contract fd5fcadb2c0492499449495f330de0f8ca81edbf192ef435275001bae2a5776f would be recorded, granting 17 path(s) under set sha256:1730bba7a0deabafc6b424862ef80ef7c89d7175b23c2d3eb203a5953be26957. Not written"
+    },
+    {
+      "severity": "pass",
+      "rule": "sign.would-record",
+      "file": null,
+      "message": "OW-WAR-0138  rev 5  authorize  Human and session authentication, and policy state protected from the performer  [AM-005-4ba4] — every refusal passed; the signature is the only thing missing. Nothing written"
+    },
+    {
+      "severity": "pass",
+      "rule": "authorize.would-record",
+      "file": null,
+      "message": "OW-WAR-0139: revision 4 at contract 207de5397850f5277ff75e4ddc1ef9da535899b6a7baa003eff62ec071e8350b would be recorded, granting 10 path(s) under set sha256:3f751f74517bd06505400df4deac09dc42e91e5d1ad56fd4f9e5074b39b161e4. Not written"
+    },
+    {
+      "severity": "pass",
+      "rule": "sign.would-record",
+      "file": null,
+      "message": "OW-WAR-0139  rev 4  authorize  The web UI beyond this machine: LAN and other devices, authenticated  [AM-003] — every refusal passed; the signature is the only thing missing. Nothing written"
+    },
+    {
+      "severity": "pass",
+      "rule": "authorize.would-record",
+      "file": null,
+      "message": "OW-WAR-0140: revision 4 at contract bde2a9a1eedd142370c9c0d80489723ac843d2476ba617a1d4d9995a4c62e169 would be recorded, granting 12 path(s) under set sha256:0fdc83ede723a07d66170adddf0d74b3b5f3daf2969537cfd68d1a152a5c7325. Not written"
+    },
+    {
+      "severity": "pass",
+      "rule": "sign.would-record",
+      "file": null,
+      "message": "OW-WAR-0140  rev 4  authorize  The Contractor Work Order profile: acceptance, invoicing and legal terms outside the technical core  [AM-003] — every refusal passed; the signature is the only thing missing. Nothing written"
+    },
+    {
+      "severity": "pass",
+      "rule": "authorize.would-record",
+      "file": null,
+      "message": "OW-WAR-0142: revision 3 at contract f0f63c2452c3972d90a7a3e4682491f5dcca430b145d62285a32a0fa166dd4a8 would be recorded, granting 27 path(s) under set sha256:566a102b447fff95484720ac65689b4b5a3a9f43c08a073dc135ea78ba05a967. Not written"
+    },
+    {
+      "severity": "pass",
+      "rule": "sign.would-record",
+      "file": null,
+      "message": "OW-WAR-0142  rev 3  authorize  Standing authorization: one signature pre-authorizes a class of routine work, so each change costs only its acceptance  [AM-003-ea19] — every refusal passed; the signature is the only thing missing. Nothing written"
+    },
+    {
+      "severity": "pass",
+      "rule": "authorize.would-record",
+      "file": null,
+      "message": "OW-WAR-0145: revision 2 at contract e7f6bd420a002f2a47499156c11c568ea23b276baf5d9161fd25daa04cfc9b42 would be recorded, granting 3 path(s) under set sha256:186c0a6dfe5193a92b55f0420911d7e1c40cc1693a0d6e7aac85578054d68368. Not written"
+    },
+    {
+      "severity": "pass",
+      "rule": "sign.would-record",
+      "file": null,
+      "message": "OW-WAR-0145  rev 2  authorize  The battery as an askable gate: it runs in a disposable clone of the committed tree and mutates nothing  [AM-001-57c5] — every refusal passed; the signature is the only thing missing. Nothing written"
+    },
+    {
+      "severity": "pass",
+      "rule": "authorize.would-record",
+      "file": null,
+      "message": "OW-WAR-0146: revision 2 at contract c3f517d5198217b651905a37826d2efd29b809a0fdd7f096c8f485a914ffad1e would be recorded, granting 2 path(s) under set sha256:719a81265cb72b4444c50e0fa569369ee9944f49cc562f50ddad7d021a67a122. Not written"
+    },
+    {
+      "severity": "pass",
+      "rule": "sign.would-record",
+      "file": null,
+      "message": "OW-WAR-0146  rev 2  authorize  A verification bundle carries what each gate printed, so a blind verifier can see the evidence  [AM-001-4610] — every refusal passed; the signature is the only thing missing. Nothing written"
+    },
+    {
+      "severity": "pass",
+      "rule": "authorize.would-record",
+      "file": null,
+      "message": "OW-WAR-0147: revision 1 at contract 83d9339ef63393f07d6a0630a439fc0013ff806faa97923ab2d9f386489090a0 would be recorded, granting 21 path(s) under set sha256:88135c10430d570d0f06110ef54ed137c418078c8387da6eb124bbef8a88099f. Not written"
+    },
+    {
+      "severity": "pass",
+      "rule": "sign.would-record",
+      "file": null,
+      "message": "OW-WAR-0147  rev 1  authorize  Tickets: a task-first loop to create, claim and finish work with no signature, the authority layer opt-in — every refusal passed; the signature is the only thing missing. Nothing written"
+    },
+    {
+      "severity": "warn",
+      "rule": "sign.needs-decision",
+      "file": "SAS 1.2.0  accept  63 requirement(s)  (architecture-changing: --adr required)",
+      "message": "SAS 1.2.0 is architecture-changing; §101.3 requires --adr <ref> — not judged by this dry run; run it alone with that flag"
+    }
+  ],
+  "notes": [
+    "Dry run: every act was drafted and judged as its ingest would judge it, and none was recorded, journalled or signed. A pass here says the paperwork is right, not that anyone agreed."
+  ],
+  "counts": {
+    "pass": 40,
+    "warn": 20,
+    "unknown": 0,
+    "error": 0,
+    "worst": "warn"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0
+}

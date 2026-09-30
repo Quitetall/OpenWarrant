@@ -1,0 +1,2009 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "overview",
+  "diagnostics": [],
+  "notes": [],
+  "counts": {
+    "pass": 0,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0,
+  "result": {
+    "schema": "oh.war/overview/v1",
+    "status_model": "legacy-records",
+    "qualification_assessed": false,
+    "total": 143,
+    "recorded_resolutions": 29,
+    "remaining": 114,
+    "includes_resolved": true,
+    "note": "Live legacy records. Remaining means unresolved, not necessarily unfinished implementation. Resolution is not a new Verified mark. No execution permission is inferred. Inspect a Warrant's current scope and input prerequisites before work.",
+    "warrants": [
+      {
+        "alias": "OW-WAR-0001",
+        "title": "Establish the OpenWarrant repository and Rust workspace",
+        "phase": "authorized",
+        "assessment": "ready_to_resolve",
+        "outcome": "none",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0002",
+        "title": "Implement the file-native manifest and atom parser",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [
+          "artifact digests verify"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0003",
+        "title": "Implement the canonical WAR IR and RFC 8785 digesting",
+        "phase": "authorized",
+        "assessment": "ready_to_resolve",
+        "outcome": "none",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0004",
+        "title": "Implement the generated parent document and drift checking",
+        "phase": "authorized",
+        "assessment": "ready_to_resolve",
+        "outcome": "none",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0005",
+        "title": "Implement deterministic war check and close the Phase 1 bootstrap",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [
+          "artifact digests verify"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0006",
+        "title": "Complete ADR federation: relations, supersession, and currency",
+        "phase": "authorized",
+        "assessment": "ready_to_resolve",
+        "outcome": "none",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0007",
+        "title": "Parse and validate milestones, stages, and named typed ports",
+        "phase": "authorized",
+        "assessment": "ready_to_resolve",
+        "outcome": "none",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0008",
+        "title": "Implement the state model: phase, condition, outcome, currency, standing",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0009",
+        "title": "Implement contract revisions and their immutability",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0010",
+        "title": "Implement the autonomy envelope and amendment records",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0011",
+        "title": "Implement prerequisites and Preflight",
+        "phase": "authorized",
+        "assessment": "ready_to_resolve",
+        "outcome": "none",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0012",
+        "title": "Implement the context model, context manifest, and trust classes",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [
+          "artifact digests verify"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0013",
+        "title": "Validate SAS and Roadmap traceability",
+        "phase": "authorized",
+        "assessment": "ready_to_resolve",
+        "outcome": "none",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0014",
+        "title": "Implement the rationale model, assumptions, and unknowns",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0015",
+        "title": "Implement deliverables, artifacts, and artifact provenance",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0016",
+        "title": "Implement acceptance obligations and bounded claims",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0017",
+        "title": "Implement the epistemic classes: evidence, observation, inference, judgment, resolution",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0018",
+        "title": "Implement contract-adequacy review, structurally checked",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0019",
+        "title": "Implement the Gate Registry: definitions, qualification, and bindings",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0020",
+        "title": "Implement Gate Run semantics, askability, and invalidation",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [
+          "artifact digests verify"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0021",
+        "title": "Implement verifier independence",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0022",
+        "title": "Implement resolution, dispute, and annulment",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0023",
+        "title": "Implement Stage Dispatch compilation and actor-specific projection",
+        "phase": "authorized",
+        "assessment": "ready_to_resolve",
+        "outcome": "none",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0024",
+        "title": "Implement Stage Submission and attempt semantics",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0025",
+        "title": "Implement blockers, deviations, decision proposals, and discovered gaps",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0026",
+        "title": "Implement the Katana runtime seam, capabilities, and receipts",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "A-001"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0027",
+        "title": "Implement the BLUT adapter: PlanSpec lowering and lineage receipt",
+        "phase": "authorized",
+        "assessment": "ready_to_resolve",
+        "outcome": "none",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0028",
+        "title": "Implement Knowledge Fabric typed actions and the controlled-action envelope",
+        "phase": "authorized",
+        "assessment": "ready_to_resolve",
+        "outcome": "none",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0029",
+        "title": "Implement KF registration, global identity allocation, and federation",
+        "phase": "authorized",
+        "assessment": "ready_to_resolve",
+        "outcome": "none",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0030",
+        "title": "Implement portable preservation: one-file export and round trip",
+        "phase": "authorized",
+        "assessment": "ready_to_resolve",
+        "outcome": "none",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0031",
+        "title": "Implement the local draft journal",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [
+          "artifact digests verify"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0032",
+        "title": "Generate the schema pack and implement protocol versioning",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0033",
+        "title": "Implement the remaining read projections",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [
+          "artifact digests verify"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0034",
+        "title": "Implement the agent protocol and Draft Proposal validation",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0035",
+        "title": "Implement `war plan` and the interview loop",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0036",
+        "title": "Implement normative-decision detection and proposed-ADR generation",
+        "phase": "authorized",
+        "assessment": "ready_to_resolve",
+        "outcome": "none",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0037",
+        "title": "Implement `war diff`: semantic difference between revisions",
+        "phase": "authorized",
+        "assessment": "ready_to_resolve",
+        "outcome": "none",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0038",
+        "title": "Implement the existing-ADR importer, preserving unknown classes",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0039",
+        "title": "Implement telemetry, unit economics, and untracked-work detection",
+        "phase": "authorized",
+        "assessment": "ready_to_resolve",
+        "outcome": "none",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0040",
+        "title": "Implement the Liminal adapter and measured parity harness",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "A-001"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0041",
+        "title": "Discharge the Phase 0 exit: real telemetry distributions, with a baseline",
+        "phase": "authorized",
+        "assessment": "ready_to_resolve",
+        "outcome": "none",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0042",
+        "title": "Discharge the Phase 2 exit: a vague request becomes a reviewable draft",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0043",
+        "title": "Discharge the Phase 3 exit: migrate the LamQuant ADR corpus, fabricating nothing",
+        "phase": "authorized",
+        "assessment": "ready_to_resolve",
+        "outcome": "none",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0044",
+        "title": "Discharge the Phase 4 exit: KF is institutional authority, Git stays Source Holder",
+        "phase": "authorized",
+        "assessment": "ready_to_resolve",
+        "outcome": "none",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0045",
+        "title": "Discharge the Phase 5 exit: a stateless actor executes one Dispatch",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "runtime receipts match the basis"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0046",
+        "title": "Discharge the Phase 6 exit: a delivery closes only through bounded proof",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [
+          "artifact digests verify"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0047",
+        "title": "Discharge the Phase 7 exit: compatible WARs execute without duplicating BLUT",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "runtime receipts match the basis"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0048",
+        "title": "Discharge the Phase 8 exit: measured adapter parity and the two-host canonical run",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0049",
+        "title": "Close the alpha residue: the gaps alpha carried forward and one false claim",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0050",
+        "title": "Governed Bonsai evidence for pull-request workflow",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "A-001"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0055",
+        "title": "Compute the goal hierarchy: war status and the corpus projection",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [
+          "artifact digests verify"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0056",
+        "title": "Compile a real Stage Dispatch (§47)",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [
+          "artifact digests verify"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0057",
+        "title": "The viewer: a static page over the corpus projection",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [
+          "artifact digests verify"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0058",
+        "title": "Put the SAS under §101 governance: controlled revisions and the Release axis",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [
+          "artifact digests verify"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0059",
+        "title": "Commit gate receipts as evidence and record the first resolutions",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "artifact digests verify"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0060",
+        "title": "Publish the corpus viewer: GitHub Pages from the committed projection",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0061",
+        "title": "Discharge the Phase 1 exit: OpenWarrant development uses WARs",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0062",
+        "title": "Lock down the levels: what a SAS, a Warrant, and every other object are",
+        "phase": "resolved",
+        "assessment": "resolved",
+        "outcome": "satisfied",
+        "unmet": [
+          "artifact digests verify"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0063",
+        "title": "Complete the conformance battery: the plants and tests the verifier named as missing",
+        "phase": "authorized",
+        "assessment": "ready_to_resolve",
+        "outcome": "none",
+        "unmet": [],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0064",
+        "title": "Repair a delivered artifact: the correction act for a resolved Warrant",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0065",
+        "title": "Research memo: which tokenizer approximation OpenWarrant uses for §33.7 budgets",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0066",
+        "title": "Run: the conformance battery as a service stage",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0067",
+        "title": "Release 1.0: the seven acts that close the plan, deferred to the owner's signature",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "A-001"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0068",
+        "title": "Skills: a strict superset of the Pocock set over the deterministic core",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "artifact digests verify",
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "A-001"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0069",
+        "title": "The board, the hotline, and the harness: one system from master record to running agents",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "A-001"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0070",
+        "title": "Add `war inbox` to list Warrants awaiting a human act",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0071",
+        "title": "SAS 1.1.0: the batch act, and the dashboard as a rendering of the record",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "runtime receipts match the basis"
+        ],
+        "blocking_unknowns": [
+          "A-001"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0072",
+        "title": "The batch act: one human signature over many pending acts",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "A-001"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0073",
+        "title": "war tui: the dashboard in the terminal",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "A-001"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0074",
+        "title": "Adopt the exact RC.2 build basis without rewriting history",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0075",
+        "title": "Parse and validate human-first OpenWarrant documents",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "A-001"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0076",
+        "title": "Author and edit human-first OpenWarrant documents",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "A-001",
+          "A-002"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0077",
+        "title": "Define SDK source types and prove provider resolution integration",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "A-001",
+          "A-002"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0078",
+        "title": "Validate condition syntax and prove provider evaluation integration",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "A-001",
+          "A-002"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0079",
+        "title": "Prove provider context selection and dependency closure",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "A-001",
+          "A-002",
+          "A-003"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0080",
+        "title": "Prove provider master context and task projections",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "A-001",
+          "A-002"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0081",
+        "title": "Inspect packet integrity and prove offline provider packages",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "A-001",
+          "A-002",
+          "A-003"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0082",
+        "title": "Prove provider context budgets and cache invalidation",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "A-001",
+          "A-002",
+          "A-003"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0083",
+        "title": "Evaluate supplied work and assurance records",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "A-001",
+          "A-002",
+          "A-003"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0084",
+        "title": "Preserve legacy history and explicit successor lineage",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "A-001",
+          "A-002",
+          "A-003",
+          "A-004"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0085",
+        "title": "Prove Phase 1 SDK, CLI and adapted skill scope",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "A-001",
+          "A-002",
+          "A-003",
+          "A-004",
+          "A-005",
+          "A-006",
+          "A-007",
+          "A-008",
+          "A-009"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0086",
+        "title": "Integrate SDK with LAMU and a second minimal consumer",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "A-001",
+          "A-002",
+          "A-003",
+          "A-004",
+          "A-005",
+          "A-006"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0087",
+        "title": "Expose document and record primitives through CLI",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "A-001",
+          "A-002",
+          "A-003",
+          "A-004",
+          "A-005",
+          "A-006",
+          "A-007",
+          "A-008"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0088",
+        "title": "Make SDK document authoring interactive and recoverable",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "A-001",
+          "A-002"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0089",
+        "title": "Prepare standard and SDK release artifacts",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "A-001",
+          "A-002",
+          "A-003"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0090",
+        "title": "Qualify four-phase release and freeze Stable source set",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "A-001",
+          "A-002"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0091",
+        "title": "Publish and verify OpenWarrant Stable 1.0",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "A-001",
+          "A-002"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0092",
+        "title": "View project progress as offline HTML and a locally refreshed dashboard",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0093",
+        "title": "Reference workflow package: local API and draft webapp",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0094",
+        "title": "Connected-agent execution workflow and model-neutral drafting roadmap",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0095",
+        "title": "Three-developer reference workflow qualification study",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0096",
+        "title": "Authenticate authority changes through signed transitions and protected activation",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0097",
+        "title": "Read-only repository doctor and actionable readiness diagnostics",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0098",
+        "title": "Share reference workflow start checks with read-only admission preview",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0099",
+        "title": "Preserve frontier integrity when stage history is damaged",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0100",
+        "title": "Report unsupported telemetry as unknown without changing historical baselines",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0101",
+        "title": "Constrain local drafting responses before semantic validation",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0102",
+        "title": "Generate deterministic execution work-stop reports",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0103",
+        "title": "Preserve question-store errors across hotline readers",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0104",
+        "title": "Complete read-only master board and batch question workflow",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0105",
+        "title": "Draft human-first Warrants through configured agent harnesses",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0106",
+        "title": "Route workflow questions and resume bounded work after answers",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0107",
+        "title": "Independently verify workflow results and repair within limits",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0108",
+        "title": "Integrate shared BLUT materialization repair and retained OW47 runtime evidence",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0109",
+        "title": "Durable agent availability queue and automatic bounded dispatch",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0110",
+        "title": "Generate OpenWarrant TypeScript record types and integrate KF consumption",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0111",
+        "title": "Implement content-bearing preservation archives and honest import round trips",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "required deliverables exist",
+          "artifact digests verify",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0112",
+        "title": "war is the app: ownership, a guided start, and remedies",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "exact authorized Contract Revision",
+          "artifact digests verify",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0113",
+        "title": "Two projections from atoms by relation: the current master document, and the history",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0114",
+        "title": "The roadmap becomes a record: one per program, beside the SAS",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "exact authorized Contract Revision",
+          "every required obligation is dispositioned",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "independence requirements are met",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0115",
+        "title": "The hub: war opens from anywhere, with every project and its progress",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0116",
+        "title": "war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "exact authorized Contract Revision",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0117",
+        "title": "An independent verifier: a blind, tool-less process that war verify --run hands each bundle to",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0118",
+        "title": "Measure the friction targets: setup in ten minutes, a routine act in sixty seconds",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0119",
+        "title": "Identity is the UUIDv7: immutable across revisions, and no alias ever stands in for it",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0120",
+        "title": "Retention: compact journals, archive resolved Warrants, and hold a budget at 1,000 Warrants",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0121",
+        "title": "Storage: atomic writes, crash recovery, and migration of retained artifacts",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0122",
+        "title": "The document grammar: a schema for atoms, headers and Markdown, and what a conforming tool must accept",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "exact authorized Contract Revision",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "U-001"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0123",
+        "title": "A child cites the exact revision of its parent, and a moved parent is a finding",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "exact authorized Contract Revision",
+          "no required unknown remains",
+          "no blocker remains"
+        ],
+        "blocking_unknowns": [
+          "U-001"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0124",
+        "title": "Brownfield adoption: a guided path into OpenWarrant for a repository with history and no Warrants",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "exact authorized Contract Revision",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0125",
+        "title": "The SAS as atoms: sections as governed records with their own currency",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "exact authorized Contract Revision",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0126",
+        "title": "Knowledge Fabric owns authority and lifecycle: the registration seam and what stays local",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "exact authorized Contract Revision",
+          "every required obligation is dispositioned",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "independence requirements are met"
+        ],
+        "blocking_unknowns": [
+          "A-001",
+          "A-002",
+          "A-003"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0127",
+        "title": "Native systems keep artifact authority: OpenWarrant references, never re-owns, what another system holds",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "every required obligation is dispositioned",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "independence requirements are met"
+        ],
+        "blocking_unknowns": [
+          "A-001"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0128",
+        "title": "The Knowledge Fabric compiler interface: what OpenWarrant hands KF and what it gets back",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "exact authorized Contract Revision",
+          "every required obligation is dispositioned",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "independence requirements are met"
+        ],
+        "blocking_unknowns": [
+          "A-001",
+          "A-002",
+          "A-003"
+        ]
+      },
+      {
+        "alias": "OW-WAR-0129",
+        "title": "A Dispatch over its budget is refused, by name, before any agent starts",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0130",
+        "title": "Idempotent acts, all-or-nothing batches, and version negotiation between war and its records",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0131",
+        "title": "Agent and harness adapters per OS: writer handoff and cancellation",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0132",
+        "title": "Hotline defaults: time and spend limits, repair accounting, and delivery when nobody answers",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0133",
+        "title": "Evidence reuse after a source change, and the compiler's source, conflict and omission rules",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "exact authorized Contract Revision",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0134",
+        "title": "Acceptance stays valid only for the candidate accepted: a change before merge is a finding",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "exact authorized Contract Revision",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0135",
+        "title": "The assurance mark: a baseline, its issuance, and what it binds",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "exact authorized Contract Revision",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0136",
+        "title": "Discharge the Phase 9 exit: signed resolutions, audited evidence custody, and invalidation that propagates",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "exact authorized Contract Revision",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0137",
+        "title": "Teams: review assignment and a queue shared by more than one person",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0138",
+        "title": "Human and session authentication, and policy state protected from the performer",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "exact authorized Contract Revision",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0139",
+        "title": "The web UI beyond this machine: LAN and other devices, authenticated",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "exact authorized Contract Revision",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0140",
+        "title": "The Contractor Work Order profile: acceptance, invoicing and legal terms outside the technical core",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "exact authorized Contract Revision",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0141",
+        "title": "Work starts from a sentence or a ticket: a prompt or an issue becomes a drafted Warrant with no ceremony",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0142",
+        "title": "Standing authorization: one signature pre-authorizes a class of routine work, so each change costs only its acceptance",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "exact authorized Contract Revision",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0143",
+        "title": "war knows when it is old: build identity, a notice when a newer release exists, and an update that works from every version",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0144",
+        "title": "Amending an authorization keeps the superseded one beside it, as a retired response is kept",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0145",
+        "title": "The battery as an askable gate: it runs in a disposable clone of the committed tree and mutates nothing",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "exact authorized Contract Revision",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0146",
+        "title": "A verification bundle carries what each gate printed, so a blind verifier can see the evidence",
+        "phase": "authorized",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "exact authorized Contract Revision",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      },
+      {
+        "alias": "OW-WAR-0147",
+        "title": "Tickets: a task-first loop to create, claim and finish work with no signature, the authority layer opt-in",
+        "phase": "draft",
+        "assessment": "draft",
+        "outcome": "none",
+        "unmet": [
+          "exact authorized Contract Revision",
+          "every required gate has admissible result",
+          "no required unknown remains",
+          "no blocker remains",
+          "required judgments exist",
+          "residual risks have sufficient authority"
+        ],
+        "blocking_unknowns": []
+      }
+    ]
+  }
+}

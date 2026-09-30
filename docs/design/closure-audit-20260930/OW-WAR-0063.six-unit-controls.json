@@ -1,0 +1,39 @@
+{
+  "kind": "performer_observation",
+  "source_checkout": "/mnt/4tb/tmp/ow-mvp-alpha1",
+  "checkout_head": "1dcbfd796b25e3ad25e53eca08c6247df978e1df",
+  "rust_toolchain": "1.97.1",
+  "cargo_target_dir": "/mnt/2tb/ow-closure-audit-target",
+  "argv": [
+    "cargo",
+    "+1.97.1",
+    "test",
+    "--locked",
+    "-p",
+    "openwarrant-core",
+    "-p",
+    "openwarrant-compiler",
+    "-p",
+    "openwarrant-cli",
+    "--lib",
+    "--",
+    "supersession_relations_are_read_in_both_directions",
+    "a_prior_revision_keeps_its_digest_after_an_amendment_is_authorized",
+    "the_banner_precedes_the_title_and_the_renderer_divides_nothing",
+    "every_committed_war_json_carries_the_sas_pin",
+    "a_rendered_diagnostic_has_the_seventy_one_seven_shape",
+    "allocation_preserves_the_uuid"
+  ],
+  "tests_observed": [
+    "supersession_relations_are_read_in_both_directions",
+    "a_prior_revision_keeps_its_digest_after_an_amendment_is_authorized",
+    "the_banner_precedes_the_title_and_the_renderer_divides_nothing",
+    "every_committed_war_json_carries_the_sas_pin",
+    "a_rendered_diagnostic_has_the_seventy_one_seven_shape",
+    "allocation_preserves_the_uuid"
+  ],
+  "result": "6 passed; no full workspace or plant-battery claim",
+  "exit_code": 0,
+  "log": "OW-WAR-0063.six-unit-controls.log",
+  "log_sha256": "396dcb5028a6290b2a50783b1edefe834d84531f94adef531c1d366c0b3bb089"
+}
