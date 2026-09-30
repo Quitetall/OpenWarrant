@@ -36271,7 +36271,7 @@ through `resolve`, which refuses an agent by kind whatever
 | D-006 | war new --profile contractor | `crates/openwarrant-cli/src/new.rs` | verified |
 | D-007 | the walked contractor example | `docs/EXAMPLES/04-contractor.md` | verified |
 | D-008 | docs/PROFILES.md | `docs/PROFILES.md` | verified |
-| D-009 | the plants | `conformance/plants.d/56-contractor.sh` | verified |
+| D-009 | the plants | `conformance/plants.d/56-contractor.sh` | drift |
 | D-010 | the repository loads profiles/ into the registry (AM-003) | `crates/openwarrant-cli/src/repo.rs` | verified |
 | D-011 | war new --profile resolves through the registry (AM-003) | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-012 | the non-binding contractor fixture (AM-003) | `conformance/fixtures/contractor/work-order.sh` | verified |
