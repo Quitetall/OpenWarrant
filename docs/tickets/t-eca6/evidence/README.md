@@ -28,3 +28,16 @@ working-tree initializer; it is not an exact-commit whole gate.
 
 Full plant/integration checks remain pending. No Warrant verification,
 authorization, resolution or assurance mark is claimed.
+
+## Scoped runtime result
+
+The complete 48-isolated-battery plant at 032630aa passed its eleven scoped
+checks, including the new preparation/refusal control, caller preservation,
+cleanup, HEAD-only execution and nested-run refusal. Its initial corpus
+freshness check failed, for overall exit 1. The raw output is retained.
+The compiler then regenerated all five affected projections on this branch;
+`war check --generated` has 2,001 passes, 365 warnings and zero errors.
+
+`debug-probe/` preserves the one-off measurement scripts with their original
+absolute checkout/output paths. They are evidence, not supported CLI tools.
+The retained controls are the portable regression seam.

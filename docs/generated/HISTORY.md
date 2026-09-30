@@ -38792,9 +38792,9 @@ would be exactly the misdeclaration §44.8 exists to prevent.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | Run the battery in a disposable clone of HEAD | `conformance/plant-isolated.sh` | verified |
+| D-001 | Run the battery in a disposable clone of HEAD | `conformance/plant-isolated.sh` | drift |
 | D-002 | ops.conformance.plants@1.1.0, askable | `docs/gates/ops.conformance.plants@1.1.0.yaml` | verified |
-| D-003 | The isolated-battery plants | `conformance/plants.d/48-isolated-battery.sh` | verified |
+| D-003 | The isolated-battery plants | `conformance/plants.d/48-isolated-battery.sh` | drift |
 
 ### OW-WAR-0146 — A verification bundle carries what each gate printed, so a blind verifier can see the evidence
 

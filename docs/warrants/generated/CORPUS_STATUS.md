@@ -65,9 +65,9 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | requirement | Warrants blocked |
 |---|---|
 | every required gate has admissible result | 114 |
+| artifact digests verify | 86 |
 | no blocker remains | 86 |
 | no required unknown remains | 86 |
-| artifact digests verify | 85 |
 | required judgments exist | 55 |
 | residual risks have sufficient authority | 55 |
 | required deliverables exist | 53 |

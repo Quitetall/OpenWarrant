@@ -1,0 +1,20 @@
+== positive fixture ==
+FAIL  corpus                             clean corpus does not pass
+
+== planted violations ==
+== the isolated battery gate (OW-WAR-0145) ==
+ok: clone index prepared once; caller index unchanged; clone removed
+ok: failed refresh refuses before battery; caller preserved; clone removed
+ok    clone-index preparation controls   prepared once; caller untouched; failed preparation refuses and cleans up
+ok    the battery gate is askable        ran and passed
+ok    the working tree is untouched      files, index, HEAD and the uncommitted edit identical
+ok    the clone is removed               nothing left under the temp directory
+ok    it tests HEAD, not the working tree committed bytes, tested commit bc962dbf87ada892e263a65c36be8eb84eb23847
+ok    a failing battery fails the gate   verdict fail
+ok    a nested battery refuses           exit 2, refused-nested, no clone made
+ok    1.1.0 registered, 1.0.0 untouched  1.1.0 non-mutating; 1.0.0 still mutating
+ok    1.0.0 is byte-identical            sha256:467b90edd95a, as before 4c99de1c
+ok    a changed 1.0.0 is seen            one byte more is a different digest
+ok    war check reports no error         1845 pass · 365 warn · 0 unknown · 0 error
+
+11 passed, 1 failed
