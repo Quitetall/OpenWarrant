@@ -22,3 +22,15 @@ record was changed to hide those findings. The whole plant is not qualified.
 
 The separate telemetry repository gate is still running. No independent
 verification, human signature, Warrant resolution or release claim is made.
+
+## Integrated rerun
+
+The combined branch regenerated the five stale projections through `war compile`
+at `7fbd202f`. A 5,699-file byte snapshot proves authored Warrant, SAS, ADR and
+authority files were unchanged. `war check --generated` then reported 2,001
+passes, 352 warnings, zero errors; live status equals the generated JSON.
+
+`69-current` was rerun in a clean detached worktree of `7fbd202f`, using the
+same copied binary recorded above. It finished **31 passed, zero failed**,
+exit 0. Its raw output is `runtime-integrated-69-current.log`. This establishes
+the scoped plant outcome, not the whole repository gate or a Verified mark.
