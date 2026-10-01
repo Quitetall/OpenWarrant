@@ -110,7 +110,7 @@ allowed = {"established", "refuted", "not_established"}
 def q(s):
     return '"' + str(s).replace("\\", "\\\\").replace('"', '\\"').replace("\n", " ") + '"'
 distinct = bool(performer_model) and performer_model != model
-print('schema = "oh.war/verification-response/v1"')
+print('schema = "oh.war/verification-response/v2"')
 print("warrant = %s" % q(bundle["warrant"]))
 import os
 for packet in json.loads(os.environ.get("OPENWARRANT_REVIEWED_PACKETS", "[]")):

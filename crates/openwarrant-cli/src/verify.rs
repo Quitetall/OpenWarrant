@@ -489,6 +489,9 @@ pub fn current_records(
                 return None;
             }
             let payload: serde_json::Value = serde_json::from_str(&event.payload).ok()?;
+            if payload["verification_protocol"] != RESPONSE_SCHEMA {
+                return None;
+            }
             let reviewed: ReviewedSubject =
                 serde_json::from_value(payload.get("reviewed_subject")?.clone()).ok()?;
             Some((event, payload, reviewed))
@@ -555,7 +558,7 @@ pub struct RequestedObligation {
     pub evidence: String,
 }
 
-pub const REQUEST_SCHEMA: &str = "oh.war/verification-request/v1";
+pub const REQUEST_SCHEMA: &str = "oh.war/verification-request/v2";
 
 /// What a verifier returns.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -602,8 +605,30 @@ pub(crate) fn packets_cover(
         {
             return Ok(false);
         }
-        let Some(bytes) = file_bytes(repo, &reference.path)? else {
-            return Ok(false);
+        let read = file_bytes(repo, &reference.path).map_err(|error| {
+            if matches!(
+                &error,
+                RepoError::Io { .. } | RepoError::ObservationUnavailable { .. }
+            ) {
+                RepoError::ObservationUnavailable {
+                    rule: "verify.packet-unavailable",
+                    message: format!(
+                        "could not inspect retained packet {}: {error}",
+                        reference.path
+                    ),
+                }
+            } else {
+                error
+            }
+        })?;
+        let Some(bytes) = read else {
+            return Err(RepoError::ObservationUnavailable {
+                rule: "verify.packet-unavailable",
+                message: format!(
+                    "retained packet {} is absent; history is unchanged",
+                    reference.path
+                ),
+            });
         };
         let Ok(packet) = serde_json::from_slice::<serde_json::Value>(&bytes) else {
             return Ok(false);
@@ -637,7 +662,8 @@ pub(crate) fn packets_cover(
     Ok(obligations.iter().all(|o| covered.contains(o)))
 }
 
-pub const RESPONSE_SCHEMA: &str = "oh.war/verification-response/v1";
+pub const RESPONSE_SCHEMA: &str = "oh.war/verification-response/v2";
+pub const LEGACY_RESPONSE_SCHEMA: &str = "oh.war/verification-response/v1";
 
 /// Build the request for one Warrant.
 pub fn request(
@@ -741,7 +767,7 @@ pub fn validate_envelope(
     response: &VerificationResponse,
     ingesting: &str,
 ) -> Result<(), EnvelopeRefusal> {
-    if response.schema != RESPONSE_SCHEMA {
+    if response.schema != RESPONSE_SCHEMA && response.schema != LEGACY_RESPONSE_SCHEMA {
         return Err(EnvelopeRefusal::UnknownSchema {
             found: response.schema.clone(),
         });
@@ -788,6 +814,19 @@ pub fn ingest(
     };
 
     if let Err(refusal) = validate_envelope(&response, alias) {
+        if let EnvelopeRefusal::UnknownSchema { found } = &refusal
+            && matches!((crate::repo::compat::parse_schema(found), crate::repo::compat::parse_schema(RESPONSE_SCHEMA)),
+                (Some((kind, major)), Some((known, supported))) if kind == known && major > supported)
+        {
+            report.push(Diagnostic::unknown(
+                "verify.response-schema",
+                response_path.to_string(),
+                format!(
+                    "unsupported newer protocol {found}; nothing was read as a verdict or written"
+                ),
+            ));
+            return Ok(report);
+        }
         let rule = match refusal {
             EnvelopeRefusal::UnknownSchema { .. } => "verify.response-schema",
             EnvelopeRefusal::WrongWarrant { .. } => "verify.response-warrant",
@@ -798,6 +837,21 @@ pub fn ingest(
             refusal.to_string(),
         ));
         return Ok(report);
+    }
+
+    if response.schema == RESPONSE_SCHEMA
+        && (response.reviewed_subject.is_none() || response.reviewed_packets.is_empty())
+    {
+        report.push(Diagnostic::error(
+            "verify.response-binding-required",
+            response_path.to_string(),
+            "v2 requires a reviewed subject and exact packet references; nothing was written",
+        ));
+        return Ok(report);
+    }
+    if response.schema == LEGACY_RESPONSE_SCHEMA {
+        report.push(Diagnostic::unknown("verify.protocol-legacy", response_path.to_string(),
+            "v1 observations remain history, even with newer fields; they do not establish v2 qualification"));
     }
 
     // A response may address only declared obligations. Check the entire set
@@ -986,7 +1040,7 @@ pub fn ingest(
         // reaching the same disposition on new evidence is a new event, not a
         // refused duplicate.
         let payload = match &response.reviewed_subject {
-            Some(reviewed) => serde_json::to_string(&serde_json::json!({"obligation":v.obligation,"disposition":v.disposition,"record_digest":format!("sha256:{record_digest}"),"reviewed_subject":reviewed,"reviewed_packets":response.reviewed_packets})).map_err(|e| RepoError::Message(e.to_string()))?,
+            Some(reviewed) => serde_json::to_string(&serde_json::json!({"obligation":v.obligation,"disposition":v.disposition,"record_digest":format!("sha256:{record_digest}"),"reviewed_subject":reviewed,"reviewed_packets":response.reviewed_packets,"verification_protocol":response.schema})).map_err(|e| RepoError::Message(e.to_string()))?,
             None => format!("{{\"obligation\":\"{}\",\"disposition\":\"{}\",\"record_digest\":\"sha256:{}\"}}", v.obligation, v.disposition, record_digest),
         };
         let replay = match crate::journal_cmd::already_recorded(
@@ -1162,11 +1216,11 @@ mod tests {
     fn an_unknown_response_schema_is_refused() {
         assert_eq!(
             validate_envelope(
-                &response("OW-WAR-0014", "oh.war/verification-response/v2"),
+                &response("OW-WAR-0014", "oh.war/verification-response/v3"),
                 "OW-WAR-0014"
             ),
             Err(EnvelopeRefusal::UnknownSchema {
-                found: "oh.war/verification-response/v2".to_owned()
+                found: "oh.war/verification-response/v3".to_owned()
             })
         );
     }

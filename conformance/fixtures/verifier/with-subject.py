@@ -15,7 +15,7 @@ body = open(sys.argv[2]).read()
 assert "reviewed_subject" not in tomllib.loads(body), "do not overwrite a review"
 head, separator, tail = body.partition("[[verifications]]")
 assert separator, "fixture response must contain verdicts"
-print(head)
+print(head.replace("oh.war/verification-response/v1", "oh.war/verification-response/v2"))
 for packet in request["result"]["packets"]:
     print("[[reviewed_packets]]")
     print("path = " + json.dumps(packet["path"]))

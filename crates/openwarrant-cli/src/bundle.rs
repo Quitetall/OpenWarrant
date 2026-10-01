@@ -1693,7 +1693,7 @@ pub fn run(repo: &Repository, alias: &str, performer: &str) -> Result<Report, Re
             "verify.no-verifier",
             "openwarrant.toml".to_owned(),
             "no verifier is configured: set `[verify] verifier_argv` to a command that reads a \
-             bundle path and prints an oh.war/verification-response/v1 document on stdout. A seam \
+             bundle path and prints an oh.war/verification-response/v2 document on stdout. A seam \
              with nothing on the other side says so (§75.2)"
                 .to_owned(),
         ));

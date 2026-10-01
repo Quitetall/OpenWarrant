@@ -80,6 +80,7 @@ impl Fixture {
         let path = self.0.with_extension("response.toml");
         let mut response: toml::Value =
             toml::from_str(&fs::read_to_string(&path).unwrap()).unwrap();
+        response["schema"] = toml::Value::String("oh.war/verification-response/v2".into());
         response.as_table_mut().unwrap().insert(
             "reviewed_subject".to_owned(),
             toml::Value::try_from(&request["result"]["reviewed_subject"]).unwrap(),
@@ -1068,4 +1069,143 @@ fn wrong_packet_digest_refuses_all_verdicts_before_writing() {
         "--json",
     ]);
     assert_eq!(accepted["exit_code"], 0, "{accepted}");
+}
+
+#[test]
+fn unavailable_retained_packet_reports_unknown_without_rewriting_history() {
+    let fixture = Fixture::new();
+    fixture.bound_response();
+    let first = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(first["exit_code"], 0, "{first}");
+    let before = fixture.review_state();
+    let response: toml::Value =
+        toml::from_str(&fs::read_to_string(fixture.0.with_extension("response.toml")).unwrap())
+            .unwrap();
+    let packet_path = fixture
+        .0
+        .join(response["reviewed_packets"][0]["path"].as_str().unwrap());
+    let packet = fs::read(&packet_path).unwrap();
+    fs::remove_file(&packet_path).unwrap();
+    let replay = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_ne!(replay["exit_code"], 0, "{replay}");
+    assert_eq!(replay["counts"]["error"], 0, "{replay}");
+    assert_eq!(replay["counts"]["unknown"], 1, "{replay}");
+    assert_eq!(
+        replay["diagnostics"][0]["rule"], "verify.packet-unavailable",
+        "{replay}"
+    );
+    assert_eq!(fixture.review_state(), before);
+    fs::write(&packet_path, packet).unwrap();
+    let restored = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(restored["exit_code"], 0, "{restored}");
+    assert_eq!(fixture.review_state(), before);
+}
+
+#[test]
+fn legacy_protocol_cannot_qualify_even_when_new_binding_fields_are_supplied() {
+    let fixture = Fixture::new();
+    fixture.bound_response();
+    let path = fixture.0.with_extension("response.toml");
+    let mut response: toml::Value = toml::from_str(&fs::read_to_string(&path).unwrap()).unwrap();
+    response["schema"] = toml::Value::String("oh.war/verification-response/v1".into());
+    fs::write(&path, toml::to_string(&response).unwrap()).unwrap();
+    let retained = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(retained["counts"]["error"], 0, "{retained}");
+    assert!(
+        retained["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "verify.protocol-legacy"),
+        "{retained}"
+    );
+    let progress = fixture.run(&["status", "--json"]);
+    let warrant = progress["result"]["warrants"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|w| w["alias"] == "IX-WAR-0003")
+        .unwrap();
+    assert_eq!(
+        warrant["review"]["verification_records"], 2,
+        "history remains available"
+    );
+    for obligation in warrant["obligations"].as_array().unwrap() {
+        assert_eq!(
+            obligation["disposition"], "unknown",
+            "legacy protocol is not current assurance: {obligation}"
+        );
+    }
+}
+
+#[test]
+fn unsupported_future_response_is_unknown_and_v2_missing_bindings_is_invalid() {
+    let fixture = Fixture::new();
+    fixture.response();
+    let path = fixture.0.with_extension("response.toml");
+    let mut response: toml::Value = toml::from_str(&fs::read_to_string(&path).unwrap()).unwrap();
+    response["schema"] = toml::Value::String("oh.war/verification-response/v3".into());
+    fs::write(&path, toml::to_string(&response).unwrap()).unwrap();
+    let future = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(future["counts"]["error"], 0, "{future}");
+    assert_eq!(future["counts"]["unknown"], 1, "{future}");
+    assert!(
+        !fixture
+            .0
+            .join("docs/warrants/IX-WAR-0003/verifications")
+            .exists()
+    );
+    response["schema"] = toml::Value::String("oh.war/verification-response/v2".into());
+    fs::write(&path, toml::to_string(&response).unwrap()).unwrap();
+    let incomplete = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert!(
+        incomplete["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "verify.response-binding-required"),
+        "{incomplete}"
+    );
+    assert!(
+        !fixture
+            .0
+            .join("docs/warrants/IX-WAR-0003/verifications")
+            .exists()
+    );
 }

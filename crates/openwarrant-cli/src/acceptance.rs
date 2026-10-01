@@ -358,6 +358,9 @@ fn reverified(
         else {
             continue;
         };
+        if payload["verification_protocol"] != crate::verify::RESPONSE_SCHEMA {
+            continue;
+        }
         // A later file write does not bind an old observation to a new
         // candidate. Legacy journal events remain history, never a re-review.
         let Some(reviewed) = payload
