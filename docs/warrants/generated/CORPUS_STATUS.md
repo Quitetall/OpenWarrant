@@ -65,7 +65,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | requirement | Warrants blocked |
 |---|---|
 | every required gate has admissible result | 114 |
-| artifact digests verify | 91 |
+| artifact digests verify | 92 |
 | no blocker remains | 86 |
 | no required unknown remains | 86 |
 | required judgments exist | 55 |
@@ -279,7 +279,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0129` A Dispatch over its budget is refused, by name, before any agent starts | draft | would satisfy | 0 | 3 of 3 | artifact digests verify |
 | `OW-WAR-0130` Idempotent acts, all-or-nothing batches, and version negotiation between war and its records | draft | NOT satisfied | 0 | 2 of 4 | artifact digests verify |
 | `OW-WAR-0131` Agent and harness adapters per OS: writer handoff and cancellation | draft | would satisfy | 0 | 3 of 3 | artifact digests verify |
-| `OW-WAR-0132` Hotline defaults: time and spend limits, repair accounting, and delivery when nobody answers | draft | would satisfy | 0 | 4 of 4 | every required gate has admissible result |
+| `OW-WAR-0132` Hotline defaults: time and spend limits, repair accounting, and delivery when nobody answers | draft | would satisfy | 0 | 4 of 4 | artifact digests verify |
 | `OW-WAR-0133` Evidence reuse after a source change, and the compiler's source, conflict and omission rules | draft | would satisfy | 0 | 3 of 3 | exact authorized Contract Revision |
 | `OW-WAR-0134` Acceptance stays valid only for the candidate accepted: a change before merge is a finding | draft | would satisfy | 0 | 3 of 3 | exact authorized Contract Revision |
 | `OW-WAR-0135` The assurance mark: a baseline, its issuance, and what it binds | draft | NOT satisfied | 0 | 0 of 3 | exact authorized Contract Revision |

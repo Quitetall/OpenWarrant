@@ -25416,7 +25416,7 @@ gate receipt of their own (U-002). Its gated evidence is the plant through
 | D-001 | compile_dispatch computes the estimate and refuses over budget or unrecorded | `crates/openwarrant-compiler/src/dispatch.rs` | verified |
 | D-002 | war dispatch delegates the budget rule to the compiler | `crates/openwarrant-cli/src/dispatch.rs` | drift |
 | D-003 | war dispatch-bundle create judges a Dispatch's tokens before bundling | `crates/openwarrant-cli/src/dispatch_bundle_cmd.rs` | verified |
-| D-004 | The budget plants: perform, perform --all, run, dispatch-bundle | `conformance/plants.d/83-tokens.sh` | verified |
+| D-004 | The budget plants: perform, perform --all, run, dispatch-bundle | `conformance/plants.d/83-tokens.sh` | drift |
 
 #### OW-WAR-0130 — Idempotent acts, all-or-nothing batches, and version negotiation between war and its records
 
@@ -26576,7 +26576,7 @@ responder must not read as "waiting normally".
 | D-005 | How the hotline blocks, who can answer, and the time, spend and attempt defaults | `docs/HOTLINE.md` | verified |
 | D-006 | The hotline-defaults plants | `conformance/plants.d/52-hotline-defaults.sh` | verified |
 | D-007 | The cancel plants state allow_unmetered for their scratch config (AM-002) | `conformance/plants.d/60-perform-cancel.sh` | verified |
-| D-008 | The token plants state allow_unmetered for their scratch config (AM-002) | `conformance/plants.d/83-tokens.sh` | verified |
+| D-008 | The token plants state allow_unmetered for their scratch config (AM-002) | `conformance/plants.d/83-tokens.sh` | drift |
 | D-009 | war next names no-responder and skips question-blocked stages (AM-002) | `crates/openwarrant-cli/src/next.rs` | verified |
 | D-010 | A new program states allow_unmetered = true (AM-002) | `crates/openwarrant-cli/src/init/mod.rs` | verified |
 

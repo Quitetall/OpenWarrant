@@ -71,6 +71,14 @@ jobs:
         with:
           tool: cargo-deny
 
+      # The roadmap plant uses draft-2020-12 local references. Ubuntu's older
+      # system jsonschema misresolves the schema's relative identity.
+      - name: Install schema-validation dependency
+        run: |
+          python3 -m venv "$RUNNER_TEMP/schema-validation"
+          "$RUNNER_TEMP/schema-validation/bin/python" -m pip install 'jsonschema==4.26.0'
+          echo "$RUNNER_TEMP/schema-validation/bin" >> "$GITHUB_PATH"
+
       # One command. The gate is defined in the repository, in Rust, and runs
       # identically here and on a developer machine -- so "green in CI" and
       # "green locally" cannot mean different things.

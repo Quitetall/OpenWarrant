@@ -111,6 +111,18 @@ stages:
     executor_ref: "gate://software.repo.war-check@1.0.0"
     budget_tokens: 10
 YAML
+# Use the binary under test for the scratch gate. An installed `war` on PATH
+# is neither guaranteed in CI nor proof about this candidate.
+python3 - "$TOK_ROOT/docs/gates/software.repo.war-check@1.0.0.yaml" "$(realpath "$WAR")" <<'GATE'
+import json, sys
+p, binary = sys.argv[1:]
+lines = open(p).read().splitlines(keepends=True)
+assert sum(line.startswith("argv: ") for line in lines) == 1
+open(p, "w").writelines(
+    "argv: " + json.dumps([binary, "check", "--generated"]) + "\n"
+    if line.startswith("argv: ") else line for line in lines
+)
+GATE
 # The fixture performer: writes its marker, then answers legally. `python3 -c`
 # so the Dispatch on stdin reaches it.
 cat > "$TOK_TMP/performer.sh" <<SH
