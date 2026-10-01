@@ -138,6 +138,7 @@ role = "adr"
 path = "../../adr/atoms/bound.md"
 required = true
 BOUND
+"$WAR" --root . sas propose 0.1.0 >/dev/null
 "$WAR" --root . compile >/dev/null
 g add -A; g commit -qm "a Warrant to accept"
 
@@ -332,6 +333,28 @@ if [[ $AV_STATUS -eq 0 ]] && grep -qE "PASS +acceptance\.unchanged +$AV_A: .*\(r
 else
     av_fail "a re-verification clears it" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
 fi
+# A newer source file does not erase the exact SAS this contract pins.
+AV_SAS=$(python3 - "$PLANT_ROOT" <<'PY_SAS'
+import sys, tomllib
+from pathlib import Path
+root = Path(sys.argv[1])
+revision = tomllib.loads((root / "docs/sas/revisions/0.1.0.toml").read_text())
+print(root / revision["source"])
+PY_SAS
+)
+printf '\nNew background in the current document, not the pinned revision.\n' >> "$AV_SAS"
+av_commit "current SAS advances after the bound review"
+AV_HISTORY_CANDIDATE=$(git -C "$PLANT_ROOT" rev-parse HEAD)
+AV_OUT=$(av_war pins --candidate "$AV_HISTORY_CANDIDATE" 2>&1); AV_STATUS=$?
+if [[ $AV_STATUS -eq 0 ]] && grep -qE "PASS +acceptance\.unchanged +$AV_A: .*\(re-verified\)" <<<"$AV_OUT"; then
+    av_ok "candidate retains its pinned SAS" "exact ancestor bytes; a newer source does not replace the pin"
+else
+    av_fail "candidate retains its pinned SAS" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
+fi
+# Restore only the disposable source, so later controls remain independent.
+git -C "$PLANT_ROOT" checkout "$AV_RESOLVED" -- "${AV_SAS#"$PLANT_ROOT/"}"
+av_commit "restore current SAS source"
+
 # Candidate facts come from Git, never from a dirty current checkout.
 AV_REVIEWED=$(git -C "$PLANT_ROOT" rev-parse HEAD)
 # Portable review retains the actual recorded evidence, not only its hash.

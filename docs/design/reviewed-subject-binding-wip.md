@@ -74,3 +74,6 @@ Candidate replacement follow-up: a real isolated CLI query passed for a valid co
 
 
 Validation checkpoint: scoped CLI Clippy with warnings denied passed on Rust 1.97.1 after the context and exact-candidate changes. Authored documentation was regenerated through war compile. The generated-file check passed with 2,006 PASS, 406 WARN, zero UNKNOWN and zero ERROR; this checks record shape and projection drift, not acceptance gates. The complete final workspace/release gate, transitive context closure, candidate historical source delivery, stored-reader rollout, budgets and custody/race qualification remain open.
+
+
+Candidate historical-SAS regression in progress: the disposable acceptance fixture now records a proposed SAS before its synthetic review. A new CLI control advances the current SAS file after re-review while retaining the contract's pin; the expected result is acceptance of the exact reviewed ancestor context, not substitution by the newer document. This setup and control are not yet qualified. The baseline conformance process is live in session 59181, currently executing its positive generated-file check; no red or green result is claimed. The disposable clone saved the fixture as 55df0cd2. No production signature, independent verdict or owner key was used.
