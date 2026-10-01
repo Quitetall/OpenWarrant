@@ -81,10 +81,10 @@ PY
     # submission must name. Run directly for the same reason.
     "$WAR" run "$RUN_ALIAS" STAGE-001 >/dev/null 2>&1
     RUN_DID=$(python3 -c "import json,sys,glob; print(json.load(open(glob.glob(sys.argv[1]+'/submissions/*.json')[0]))['dispatch_id'])" "$RUN_DIR")
-    python3 - "$RUN_TMP/sub.json" "$RUN_DID" "$RUN_TMP" <<'PY'
+    python3 - "$RUN_DIR/submissions/$RUN_DID.json" "$RUN_TMP" <<'PY'
 import json, sys
-s = json.load(open(sys.argv[1])); s["dispatch_id"] = sys.argv[2]; s["requested_next_action"] = "continue"
-json.dump(s, open(sys.argv[3] + "/good.json", "w"))
+s = json.load(open(sys.argv[1])); s["requested_next_action"] = "continue"
+json.dump(s, open(sys.argv[2] + "/good.json", "w"))
 PY
     GOOD_OUT=$("$WAR" submit "$RUN_ALIAS" "$RUN_TMP/good.json" 2>&1)
     if [[ $? -eq 0 ]] && grep -q 'submission.recorded' <<< "$GOOD_OUT" && grep -q 'continue' <<< "$GOOD_OUT"; then

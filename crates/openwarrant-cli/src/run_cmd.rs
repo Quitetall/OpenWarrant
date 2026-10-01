@@ -55,7 +55,7 @@ fn write_json<T: serde::Serialize>(path: &Utf8Path, v: &T) -> Result<(), RepoErr
     })
 }
 
-/// The dispatch ids this Warrant's journal says were compiled (§24). A
+/// The dispatch bindings this Warrant's journal says were compiled (§24). A
 /// journal that cannot be read is an error, not an empty set: a submission
 /// refused for "unknown dispatch" when the journal is corrupt would be
 /// refused for the wrong reason.
@@ -489,6 +489,46 @@ pub fn submit(repo: &Repository, alias: &str, file: &Utf8Path) -> Result<Report,
             "submission.dispatch-mismatch",
             file.to_string(),
             format!("{alias}: contract_digest {:?} does not match the compiled dispatch's {:?}. Nothing was written", submission.contract_digest, expected),
+        ));
+        return Ok(report);
+    }
+    let Some(expected_stage) = binding
+        .get("stage")
+        .and_then(|v| v.as_str())
+        .filter(|s| !s.is_empty())
+    else {
+        report.push(Diagnostic::unknown(
+            "submission.dispatch-unbound",
+            repo.relative(&dir.join(crate::journal_cmd::FILE)),
+            format!("{alias}: dispatch {} has no recorded stage binding. Its history is preserved, but this submission cannot be admitted from an id alone. Nothing was written", submission.dispatch_id),
+        ));
+        return Ok(report);
+    };
+    if submission.stage_id != expected_stage {
+        report.push(Diagnostic::error(
+            "submission.dispatch-mismatch",
+            file.to_string(),
+            format!("{alias}: stage_id {:?} does not match the compiled dispatch's stage {:?}. Nothing was written", submission.stage_id, binding.get("stage")),
+        ));
+        return Ok(report);
+    }
+    let Some(expected_attempt) = binding
+        .get("attempt_id")
+        .and_then(|v| v.as_str())
+        .filter(|s| !s.is_empty())
+    else {
+        report.push(Diagnostic::unknown(
+            "submission.dispatch-unbound",
+            repo.relative(&dir.join(crate::journal_cmd::FILE)),
+            format!("{alias}: dispatch {} has no recorded attempt binding. Its history is preserved, but this submission cannot be admitted from an id alone. Nothing was written", submission.dispatch_id),
+        ));
+        return Ok(report);
+    };
+    if submission.attempt_id != expected_attempt {
+        report.push(Diagnostic::error(
+            "submission.dispatch-mismatch",
+            file.to_string(),
+            format!("{alias}: attempt_id {:?} does not match the compiled dispatch's {:?}. Nothing was written", submission.attempt_id, expected_attempt),
         ));
         return Ok(report);
     }

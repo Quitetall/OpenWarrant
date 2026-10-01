@@ -138,3 +138,79 @@ fn a_known_dispatch_does_not_admit_a_different_contract() {
         serde_json::from_slice(&fs::read(fixture.recorded(&good)).unwrap()).unwrap();
     assert_eq!(stored["contract_digest"], good["contract_digest"]);
 }
+
+#[test]
+fn a_known_dispatch_does_not_admit_a_different_stage() {
+    let fixture = Fixture::new();
+    let good = fixture.submission();
+    let journal = fixture.journal();
+    let mut bad = good.clone();
+    bad["stage_id"] = "STAGE-002".into();
+    let out = fixture.submit(&bad);
+    assert!(
+        !out.status.success(),
+        "different stage was admitted: {}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+    let report: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert!(
+        report["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "submission.dispatch-mismatch")
+    );
+    assert!(!fixture.recorded(&bad).exists());
+    assert_eq!(
+        fixture.journal(),
+        journal,
+        "refusal must not append a submission event"
+    );
+    let out = fixture.submit(&good);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+    let stored: serde_json::Value =
+        serde_json::from_slice(&fs::read(fixture.recorded(&good)).unwrap()).unwrap();
+    assert_eq!(stored["stage_id"], good["stage_id"]);
+}
+
+#[test]
+fn a_known_dispatch_does_not_admit_a_different_attempt() {
+    let fixture = Fixture::new();
+    let good = fixture.submission();
+    let journal = fixture.journal();
+    let mut bad = good.clone();
+    bad["attempt_id"] = "unrelated-attempt".into();
+    let out = fixture.submit(&bad);
+    assert!(
+        !out.status.success(),
+        "different attempt was admitted: {}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+    let report: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert!(
+        report["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "submission.dispatch-mismatch")
+    );
+    assert!(!fixture.recorded(&bad).exists());
+    assert_eq!(
+        fixture.journal(),
+        journal,
+        "refusal must not append a submission event"
+    );
+    let out = fixture.submit(&good);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+    let stored: serde_json::Value =
+        serde_json::from_slice(&fs::read(fixture.recorded(&good)).unwrap()).unwrap();
+    assert_eq!(stored["attempt_id"], good["attempt_id"]);
+}

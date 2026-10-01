@@ -281,17 +281,15 @@ else
 fi
 
 # war submit, answering a dispatch this Warrant compiled.
-ia dispatch "$IA_A" STAGE-002 >/dev/null 2>&1
-IA_DID=$(python3 -c 'import json,sys
-for l in open(sys.argv[1]):
-    e = json.loads(l)
-    if e["type"] == "dispatch.compiled": d = json.loads(e["payload"])["dispatch_id"]
-print(d)' "$IA_J" 2>/dev/null)
-python3 - "$IA_DID" "$IP_TMP/submission.json" <<'PY'
+ia dispatch "$IA_A" STAGE-002 --emit "$IP_TMP/dispatch.json" >/dev/null 2>&1
+IA_DID=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["dispatch_id"])' "$IP_TMP/dispatch.json")
+python3 - "$IP_TMP/dispatch.json" "$IP_TMP/submission.json" <<'PY_PACKET'
 import json, sys
-json.dump({"dispatch_id": sys.argv[1], "attempt_id": "plant-attempt-1", "contract_digest": "sha256:plant",
-           "stage_id": "STAGE-002", "requested_next_action": "verify"}, open(sys.argv[2], "w"))
-PY
+packet = json.load(open(sys.argv[1]))
+submission = {key: packet[key] for key in ("dispatch_id", "attempt_id", "contract_digest", "stage_id")}
+submission["requested_next_action"] = "verify"
+json.dump(submission, open(sys.argv[2], "w"))
+PY_PACKET
 IA_OUT=$(ia submit "$IA_A" "$IP_TMP/submission.json" 2>&1)
 if grep -qE 'PASS +submission\.recorded' <<<"$IA_OUT"; then
     ip_ok "war submit records once" "dispatch $IA_DID"

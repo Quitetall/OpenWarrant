@@ -1,0 +1,45 @@
+   Compiling openwarrant-cli v1.0.0-alpha.2 (/mnt/4tb/tmp/ow-submission-dispatch-binding/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2m 00s
+     Running tests/submission_binding_cli.rs (/mnt/2tb/ow-submission-binding-target/debug/deps/submission_binding_cli-d8c5835dc89ac249)
+
+running 1 test
+test a_known_dispatch_does_not_admit_a_different_attempt ... FAILED
+
+failures:
+
+---- a_known_dispatch_does_not_admit_a_different_attempt stdout ----
+
+thread 'a_known_dispatch_does_not_admit_a_different_attempt' (2315873) panicked at crates/openwarrant-cli/tests/submission_binding_cli.rs:188:5:
+different attempt was admitted: {
+  "schema": "oh.war/report/v1",
+  "command": "submit",
+  "diagnostics": [
+    {
+      "severity": "pass",
+      "rule": "submission.recorded",
+      "file": null,
+      "message": "docs/warrants/IX-WAR-0003/submissions/01a0f4c0-1711-71ac-8b95-cceedf76fea0.json: submission for dispatch 01a0f4c0-1711-71ac-8b95-cceedf76fea0 requests `verify`"
+    }
+  ],
+  "notes": [],
+  "counts": {
+    "pass": 1,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+  "exit_code": 0
+}
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    a_known_dispatch_does_not_admit_a_different_attempt
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p openwarrant-cli --test submission_binding_cli`
