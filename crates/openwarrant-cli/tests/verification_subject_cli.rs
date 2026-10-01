@@ -837,3 +837,112 @@ fn gate_without_input_list_binds_tree_without_publishing_performer_rationale() {
     );
     assert_eq!(fixture.review_state(), before);
 }
+
+#[cfg(unix)]
+#[test]
+fn unavailable_symlink_source_is_unknown_and_writes_no_verdict() {
+    let fixture = Fixture::new();
+    fs::create_dir_all(fixture.0.join("docs/gates")).unwrap();
+    fs::copy(
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../docs/gates/software.repo.war-check@1.0.0.yaml"),
+        fixture
+            .0
+            .join("docs/gates/software.repo.war-check@1.0.0.yaml"),
+    )
+    .unwrap();
+    std::os::unix::fs::symlink("/outside-unavailable-source", fixture.0.join("unsafe-link"))
+        .unwrap();
+    let verdicts = fixture.0.join("docs/warrants/IX-WAR-0003/verifications");
+    assert!(!verdicts.exists());
+    let result = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--json",
+    ]);
+    assert_ne!(result["exit_code"], 0, "{result}");
+    assert_eq!(result["counts"]["error"], 0, "{result}");
+    assert_eq!(result["counts"]["unknown"], 1, "{result}");
+    assert_eq!(
+        result["diagnostics"][0]["rule"], "verify.subject-unavailable",
+        "{result}"
+    );
+    assert!(
+        !verdicts.exists(),
+        "an unavailable observation writes no verdict"
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn internal_link_binds_target_identity_and_selected_dependencies() {
+    let fixture = Fixture::new();
+    fs::create_dir_all(fixture.0.join("docs/gates")).unwrap();
+    let mut gate = fs::read_to_string(
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../docs/gates/software.repo.war-check@1.0.0.yaml"),
+    )
+    .unwrap();
+    gate.push_str("\ninputs:\n  - links/**\n");
+    fs::write(
+        fixture
+            .0
+            .join("docs/gates/software.repo.war-check@1.0.0.yaml"),
+        gate,
+    )
+    .unwrap();
+    fs::create_dir_all(fixture.0.join("src")).unwrap();
+    fs::create_dir_all(fixture.0.join("other")).unwrap();
+    fs::create_dir_all(fixture.0.join("links")).unwrap();
+    fs::write(fixture.0.join("src/api.txt"), "reviewed contract").unwrap();
+    fs::write(fixture.0.join("other/api.txt"), "reviewed contract").unwrap();
+    std::os::unix::fs::symlink("../src", fixture.0.join("links/context")).unwrap();
+    fixture.bound_response();
+    let accepted = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(accepted["exit_code"], 0, "{accepted}");
+    let before = fixture.review_state();
+    fs::write(fixture.0.join("src/api.txt"), "unreviewed contract").unwrap();
+    let changed = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert!(
+        changed["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "verify.subject-stale"),
+        "{changed}"
+    );
+    assert_eq!(fixture.review_state(), before);
+    fs::write(fixture.0.join("src/api.txt"), "reviewed contract").unwrap();
+    fs::remove_file(fixture.0.join("links/context")).unwrap();
+    std::os::unix::fs::symlink("../other", fixture.0.join("links/context")).unwrap();
+    let retargeted = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert!(
+        retargeted["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "verify.subject-stale"),
+        "{retargeted}"
+    );
+    assert_eq!(fixture.review_state(), before);
+}

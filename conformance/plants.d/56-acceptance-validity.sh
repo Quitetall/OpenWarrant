@@ -33,6 +33,9 @@ W="docs/warrants/$A"
 mkdir -p src
 printf 'accepted\n' > src/core.txt
 printf 'helper\n' > src/helper.txt
+mkdir -p support
+printf 'linked API context\n' > support/api.txt
+ln -s ../support src/linked
 printf 'notes\n' > README.txt
 cat > docs/gates/plant.acceptance@1.0.0.yaml <<'GATE'
 gate_id: "plant.acceptance"
@@ -341,12 +344,14 @@ folder = root / "docs/warrants" / alias
 packets = list((folder / "verifications").glob("bundle-*.json"))
 assert packets
 evidence = list((folder / "gate-runs").glob("*"))
-inputs = list((root / "src").glob("*"))
+inputs = [p for p in (root / "src").glob("*") if p.is_file()]
+inputs.append(root / "support/api.txt")
 assert len(evidence) >= 4 and len(inputs) >= 2
 expected = [(p, "gate-evidence", "gate_evidence") for p in evidence]
 for packet in packets:
     data = json.loads(packet.read_text())
     sources = {s["path"]: s for s in data["required_sources"]}
+    assert data["request"]["reviewed_subject"]["gate_links"]["src/linked"] == "../support"
     for file in inputs:
         path = str(file.relative_to(root))
         assert data["request"]["reviewed_subject"]["gate_inputs"][path] == "sha256:" + hashlib.sha256(file.read_bytes()).hexdigest()

@@ -114,6 +114,7 @@ impl Snapshot {
         let temporary = Temporary::create()?;
         let mut blobs = Blobs::open(root)?;
         let mut seen = std::collections::BTreeSet::new();
+        let mut source_links = std::collections::BTreeMap::new();
         for entry in listing.split(|b| *b == 0).filter(|e| !e.is_empty()) {
             let separator = entry
                 .iter()
@@ -141,10 +142,9 @@ impl Snapshot {
             if !seen.insert(relative.to_owned()) {
                 return Err("ambiguous duplicate candidate source path".to_owned());
             }
-            // Never create symlinks or submodule entries. Required symlinked
-            // sources were already refused by subject capture; omitting their
-            // unsafe nodes cannot match an earlier regular-file review.
-            if !matches!(fields[0], "100644" | "100755") || fields[1] != "blob" {
+            // Link targets are retained as data. Never create or follow a
+            // candidate symlink, and never materialize submodules.
+            if !matches!(fields[0], "100644" | "100755" | "120000") || fields[1] != "blob" {
                 continue;
             }
             if !fields[2].bytes().all(|b| b.is_ascii_hexdigit()) {
@@ -154,6 +154,11 @@ impl Snapshot {
             fs::create_dir_all(path.parent().ok_or("candidate source has no parent")?)
                 .map_err(|e| e.to_string())?;
             blobs.copy(fields[2], &path)?;
+            if fields[0] == "120000" {
+                let target = fs::read_to_string(&path).map_err(|e| e.to_string())?;
+                source_links.insert(relative.to_string(), target);
+                fs::remove_file(&path).map_err(|e| e.to_string())?;
+            }
         }
         // Candidate configuration is data. In particular, never activate a
         // protected authority store selected by an untrusted Git candidate.
@@ -180,6 +185,7 @@ impl Snapshot {
             config,
             profiles: crate::repo::load_profiles(&temporary.0).map_err(|e| e.to_string())?,
             source_inventory: Some(seen.into_iter().map(|p| p.to_string()).collect()),
+            source_links,
         };
         for dir in repository.warrant_dirs().map_err(|e| e.to_string())? {
             let manifest: openwarrant_core::Manifest = toml::from_str(

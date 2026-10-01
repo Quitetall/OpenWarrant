@@ -73,6 +73,9 @@ pub struct ReviewedSubject {
     pub gate_evidence: BTreeMap<String, String>,
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub gate_inputs: BTreeMap<String, String>,
+    /// Exact link target text also distinguishes a link from a regular file.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub gate_links: BTreeMap<String, String>,
 }
 
 pub fn subject(repo: &Repository, one: &crate::repo::Loaded) -> Result<ReviewedSubject, RepoError> {
@@ -175,19 +178,57 @@ pub fn subject(repo: &Repository, one: &crate::repo::Loaded) -> Result<ReviewedS
     }
     whole_tree |= cited.iter().any(|key| !found.contains(key));
     let mut gate_inputs = BTreeMap::new();
+    let mut gate_links = BTreeMap::new();
     if whole_tree || !input_patterns.is_empty() {
         let exclusions = crate::gate_cmd::source::Exclusions::of(repo);
-        for path in repo.source_paths()? {
-            if (whole_tree && !exclusions.excludes_from_tree(&path))
-                || (!exclusions.excludes(&path)
-                    && input_patterns
-                        .iter()
-                        .any(|p| crate::gate_cmd::source::glob_matches(p, &path)))
-            {
+        let inventory = repo.source_paths()?;
+        let mut selected: std::collections::BTreeSet<String> = inventory
+            .iter()
+            .filter(|path| {
+                (whole_tree && !exclusions.excludes_from_tree(path))
+                    || (!exclusions.excludes(path)
+                        && input_patterns
+                            .iter()
+                            .any(|p| crate::gate_cmd::source::glob_matches(p, path)))
+            })
+            .cloned()
+            .collect();
+        while let Some(path) = selected.pop_first() {
+            if gate_inputs.contains_key(&path) {
+                continue;
+            }
+            if let Some(target) = input_link(repo, &path)? {
+                let dependency = link_dependency(&path, &target)?;
+                // This check walks only normal source paths and refuses any
+                // further link: chained links and cycles remain unavailable.
+                let resolved = source_path(repo, &dependency)?.ok_or_else(|| {
+                    unavailable(format!(
+                        "link {path} has an unavailable target {dependency}"
+                    ))
+                })?;
+                let metadata = fs::symlink_metadata(&resolved).map_err(|e| {
+                    unavailable(format!("could not inspect link target {dependency}: {e}"))
+                })?;
+                if metadata.is_dir() {
+                    let prefix = format!("{dependency}/");
+                    selected.extend(
+                        inventory
+                            .iter()
+                            .filter(|p| p.starts_with(&prefix) && !exclusions.excludes(p))
+                            .cloned(),
+                    );
+                } else if metadata.is_file() {
+                    selected.insert(dependency);
+                } else {
+                    return Err(unavailable(format!("unsupported link target for {path}")));
+                }
+                gate_inputs.insert(path.clone(), bytes_digest(target.as_bytes()));
+                gate_links.insert(path, target);
+            } else {
                 let digest = file_digest(repo, &path)?;
                 if repo.source_inventory.is_some() && digest == "missing" {
-                    return Err(RepoError::Message(format!(
-                        "verify.subject-unavailable: candidate input {path} is an unsupported source node"
+                    return Err(unavailable(format!(
+                        "candidate input {path} is an unsupported source node"
                     )));
                 }
                 gate_inputs.insert(path, digest);
@@ -201,7 +242,83 @@ pub fn subject(repo: &Repository, one: &crate::repo::Loaded) -> Result<ReviewedS
         fixtures,
         gate_evidence: gate_evidence(repo, one)?,
         gate_inputs,
+        gate_links,
     })
+}
+
+fn unavailable(message: String) -> RepoError {
+    RepoError::ObservationUnavailable {
+        rule: "verify.subject-unavailable",
+        message,
+    }
+}
+
+/// Read link identity without following it. Candidate targets come only from
+/// the frozen Git blob map; ordinary targets come from read_link.
+fn input_link(repo: &Repository, path: &str) -> Result<Option<String>, RepoError> {
+    if repo.source_inventory.is_some() {
+        return Ok(repo.source_links.get(path).cloned());
+    }
+    let relative = camino::Utf8Path::new(path);
+    if relative.is_absolute()
+        || relative
+            .components()
+            .any(|c| matches!(c, camino::Utf8Component::ParentDir))
+    {
+        return Err(unavailable(format!("unsafe input path {path}")));
+    }
+    let parent = relative.parent().unwrap_or(camino::Utf8Path::new(""));
+    if source_path(repo, parent.as_str())?.is_none() {
+        return Ok(None);
+    }
+    let node = repo.root.join(relative);
+    match fs::symlink_metadata(&node) {
+        Ok(meta) if meta.file_type().is_symlink() => {
+            let target = fs::read_link(&node)
+                .map_err(|e| unavailable(format!("could not inspect link {path}: {e}")))?;
+            target
+                .into_os_string()
+                .into_string()
+                .map(Some)
+                .map_err(|_| unavailable(format!("non-UTF-8 link target for {path}")))
+        }
+        Ok(_) => Ok(None),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(e) => Err(unavailable(format!("could not inspect input {path}: {e}"))),
+    }
+}
+
+/// Lexical containment, without canonicalize or access to an external target.
+fn link_dependency(path: &str, target: &str) -> Result<String, RepoError> {
+    let target = camino::Utf8Path::new(target);
+    if target.is_absolute() {
+        return Err(unavailable(format!("external link target for {path}")));
+    }
+    let joined = camino::Utf8Path::new(path)
+        .parent()
+        .unwrap_or(camino::Utf8Path::new(""))
+        .join(target);
+    let mut parts = Vec::new();
+    for component in joined.components() {
+        match component {
+            camino::Utf8Component::Normal(part) => parts.push(part),
+            camino::Utf8Component::CurDir => {}
+            camino::Utf8Component::ParentDir if parts.pop().is_some() => {}
+            _ => {
+                return Err(unavailable(format!(
+                    "link target escapes source tree for {path}"
+                )));
+            }
+        }
+    }
+    if parts.is_empty() {
+        return Err(unavailable(format!("root/cyclic link target for {path}")));
+    }
+    let dependency = parts.join("/");
+    if path == dependency || path.starts_with(&format!("{dependency}/")) {
+        return Err(unavailable(format!("cyclic link target for {path}")));
+    }
+    Ok(dependency)
 }
 
 fn bytes_digest(bytes: &[u8]) -> String {
@@ -233,9 +350,10 @@ fn source_path(repo: &Repository, reference: &str) -> Result<Option<Utf8PathBuf>
         walked.push(component.as_str());
         match fs::symlink_metadata(&walked) {
             Ok(metadata) if metadata.file_type().is_symlink() => {
-                return Err(RepoError::Message(format!(
-                    "verify.subject-unavailable: symlink at {walked}"
-                )));
+                return Err(RepoError::ObservationUnavailable {
+                    rule: "verify.subject-unavailable",
+                    message: format!("symlink at {walked}"),
+                });
             }
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
             Err(source) => {
@@ -341,9 +459,10 @@ pub(crate) fn file_bytes(repo: &Repository, reference: &str) -> Result<Option<Ve
                 source,
             })
         }
-        Ok(_) => Err(RepoError::Message(format!(
-            "verify.subject-unavailable: {path} is not a regular file"
-        ))),
+        Ok(_) => Err(RepoError::ObservationUnavailable {
+            rule: "verify.subject-unavailable",
+            message: format!("{path} is not a regular file"),
+        }),
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
         Err(source) => Err(RepoError::Io {
             context: format!("could not inspect {path}"),

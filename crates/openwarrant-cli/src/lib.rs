@@ -1507,6 +1507,12 @@ pub fn entrypoint() -> ExitCode {
         Err(report) => {
             // §76.2: an explicit diagnostic naming what was wrong and where,
             // never a bare "error". Under --json, an envelope on stdout.
+            if let Some(repo::RepoError::ObservationUnavailable { rule, message }) =
+                report.downcast_ref::<repo::RepoError>()
+            {
+                output::unavailable(mode, rule, message);
+                return ExitCode::from(EXIT_NOT_READY);
+            }
             let message = report.to_string();
             output::error(mode, &message);
             // OW-WAR-0130: a `war` the repository does not admit is a refusal

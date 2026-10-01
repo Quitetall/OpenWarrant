@@ -58,6 +58,11 @@ impl IntakePolicy {
 
 #[derive(Debug)]
 pub enum RepoError {
+    /// An observation cannot be obtained. Distinct from malformed input.
+    ObservationUnavailable {
+        rule: &'static str,
+        message: String,
+    },
     /// A command-level failure that is not about locating or parsing the
     /// repository — an unknown view name, an uncompilable Warrant. Kept
     /// separate from the structured variants so it cannot absorb them.
@@ -97,6 +102,7 @@ impl fmt::Display for RepoError {
                  Run `war init --namespace <NS>` to create one."
             ),
             Self::Message(m) => write!(f, "{m}"),
+            Self::ObservationUnavailable { rule, message } => write!(f, "{rule}: {message}"),
             Self::NonUtf8Path => write!(f, "the current directory is not valid UTF-8"),
             Self::Io { context, source } => write!(f, "{context}: {source}"),
             Self::ConfigParse { path, source } => write!(f, "{path}: {source}"),
@@ -128,6 +134,8 @@ pub struct Repository {
     /// Exact Git-tree inventory for a read-only candidate snapshot. Ordinary
     /// repositories enumerate their own tracked/nonignored source paths.
     pub(crate) source_inventory: Option<Vec<String>>,
+    /// Candidate link blobs are data, never materialized filesystem links.
+    pub(crate) source_links: std::collections::BTreeMap<String, String>,
 }
 
 impl Repository {
@@ -190,6 +198,7 @@ impl Repository {
             config,
             profiles,
             source_inventory: None,
+            source_links: std::collections::BTreeMap::new(),
         })
     }
 

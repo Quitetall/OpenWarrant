@@ -3479,3 +3479,5 @@ Before writing any verdict, ingestion rejects a response about a stale subject o
 ## Adoption and remaining work
 
 This proposal does not weaken independent or human gates. Required fixture/context coverage, canonical bundle identity, candidate acceptance, path and race controls, conformance compatibility, and the full gate remain to be proved. Human acceptance is separate from this draft and its local tests.
+
+The experimental `gate_links` map records exact link target text, distinguishing a link from a regular file with the same bytes. Its input digest remains ordinary SHA-256 of the target text. Internal link targets add their file/subtree dependencies to the existing source selection; changing target identity or dependency bytes invalidates the review. Candidate link blobs remain private data, never filesystem links. External, dangling, chained or unsupported link targets remain unavailable observations, reported as UNKNOWN. This is not a completed race audit or support for all filesystem node types.
