@@ -20,6 +20,8 @@ parser.add_argument("--older", type=Path, required=True)
 parser.add_argument("--output", type=Path, required=True)
 parser.add_argument("--require-old-refusal", action="store_true",
                     help="fail if the older reader counts newly bound records as established")
+parser.add_argument("--require-history-retention", action="store_true",
+                    help="re-review changed work and require the previous record bytes to survive")
 args = parser.parse_args()
 source = Path(__file__).resolve().parents[3]
 base = Path(tempfile.mkdtemp(prefix="ow-stored-reader-probe-"))
@@ -87,6 +89,12 @@ report["ingest"] = run(readers["current"], "verify", "IX-WAR-0003",
 assert report["ingest"]["report"]["exit_code"] == 0, report["ingest"]
 
 
+initial_records = {
+    obligation: (root / "docs/warrants/IX-WAR-0003/verifications" / f"{obligation}.toml").read_bytes()
+    for obligation in ("OBL-001", "OBL-002")
+}
+
+
 def observe(phase):
     report["observations"][phase] = {
         name: {
@@ -116,16 +124,17 @@ observe("minimum_reader")
 print(args.output)
 print(base)
 
-if args.require_old_refusal:
-    def established(phase, reader):
-        status = report["observations"][phase][reader]["status"]["report"]
-        return sum(
-            obligation["disposition"] == "established"
-            for warrant in status.get("result", {}).get("warrants", [])
-            if warrant["alias"] == "IX-WAR-0003"
-            for obligation in warrant["obligations"]
-        )
+def established(phase, reader):
+    status = report["observations"][phase][reader]["status"]["report"]
+    return sum(
+        obligation["disposition"] == "established"
+        for warrant in status.get("result", {}).get("warrants", [])
+        if warrant["alias"] == "IX-WAR-0003"
+        for obligation in warrant["obligations"]
+    )
 
+
+if args.require_old_refusal:
     assert established("fresh", "current") == 2, "the new reader must admit fresh review"
     assert established("changed", "current") == 0, "the new reader must refuse stale review"
     for phase in ("fresh", "changed", "minimum_reader"):
@@ -133,3 +142,37 @@ if args.require_old_refusal:
         assert observed["process_exit"] != 0 and established(phase, "older") == 0, (
             f"older reader must refuse the new record boundary ({phase}): {observed}"
         )
+
+if args.require_history_retention:
+    # Undo only the setting this disposable probe just introduced. The changed
+    # outcome remains, so the next review must bind a genuinely new subject.
+    config.write_text(text)
+    request = run(readers["current"], "verify", "IX-WAR-0003", "--performer",
+                  "fixture-performer", "--bundle", "--json")
+    assert request["report"]["exit_code"] == 0, request
+    (base / "request-next.json").write_text(json.dumps(request["report"]))
+    rebound = subprocess.check_output([
+        "python3", str(Path(__file__).with_name("with-subject.py")),
+        str(base / "request-next.json"), str(base / "fixture.toml"),
+    ], timeout=60)
+    (base / "rebound.toml").write_bytes(rebound)
+    report["re_review"] = run(readers["current"], "verify", "IX-WAR-0003",
+                              "--response", str(base / "rebound.toml"), "--json")
+    assert report["re_review"]["report"]["exit_code"] == 0, report["re_review"]
+    report["retained_history"] = {}
+    for obligation, previous in initial_records.items():
+        digest = hashlib.sha256(previous).hexdigest()
+        history = root / "docs/warrants/IX-WAR-0003/verifications/history" / f"{digest}.toml"
+        report["retained_history"][obligation] = {
+            "path": str(history), "sha256": digest,
+            "exact_bytes_retained": history.is_file() and history.read_bytes() == previous,
+        }
+    observe("re_reviewed")
+    assert all(item["exact_bytes_retained"] for item in report["retained_history"].values()), (
+        "replacing a review must retain the exact earlier bytes", report["retained_history"]
+    )
+
+    assert established("re_reviewed", "current") == 2, "fresh replacement review must qualify"
+    for obligation, previous in initial_records.items():
+        active = root / "docs/warrants/IX-WAR-0003/verifications" / f"{obligation}.toml"
+        assert active.read_bytes() != previous, "a changed subject must have a distinct bound record"

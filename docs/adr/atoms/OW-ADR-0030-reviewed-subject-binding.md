@@ -80,6 +80,18 @@ that path and history retention are proved, this branch remains unreleasable.
 The regression probe's `--require-old-refusal` checks both fresh current-reader
 qualification and old-reader refusal, so rejecting all reviews cannot pass it.
 
+Before replacing an active verification, retain its exact bytes under
+`verifications/history/<raw-sha256>.toml`. The existing journal digest refers
+to these bytes; retaining them introduces no new digest domain or authority.
+History is outside the active-record enumeration. A no-overwrite publication
+must reuse identical bytes and refuse collisions, links or unavailable files.
+If retention fails, do not replace the active record. Unchanged replays must
+remain byte preserving. A changed subject needs distinct bound bytes and a
+fresh current observation; an archive alone is not qualification.
+`--require-history-retention` reproduces lost prior bytes at the public CLI
+seam and checks fresh re-review plus exact archival. This control is still red
+before the retention implementation.
+
 ## Portable packet binding
 
 Each `reviewed_packets` entry carries a retained repository-relative path and the full existing VerificationBundle digest. The path uses the existing shortened digest filename; qualification checks the full digest. Packet/request schema, exact subject, performer and covered obligations must match. Qualification reads the retained packet; it does not rebuild a different packet after prior verdicts changed.
