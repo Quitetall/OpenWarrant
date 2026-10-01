@@ -9225,7 +9225,7 @@ the app shows a `human` remedy and stops.
 | D-009 | The resolution locator | `crates/openwarrant-cli/src/resolution_cmd.rs` | verified |
 | D-010 | The pin guard reads ownership | `.claude/hooks/guard-pins.sh` | verified |
 | D-011 | The drift rule | `crates/openwarrant-cli/src/check.rs` | verified |
-| D-012 | Requirement 3's reason names a newer owner | `crates/openwarrant-cli/src/resolve.rs` | verified |
+| D-012 | Requirement 3's reason names a newer owner | `crates/openwarrant-cli/src/resolve.rs` | drift |
 | D-013 | The ownership plants | `conformance/plants.d/98-ownership.sh` | verified |
 | D-014 | The authorization schema | `schemas/oh.war/authorization/v1.json` | verified |
 | D-015 | The threat-model row | `docs/THREAT_MODEL.md` | verified |
@@ -20359,7 +20359,7 @@ joined path is what shows no reader does.
 |---|---|---|---|
 | D-001 | The native reference form, decided: OW-ADR-0026 | `docs/adr/atoms/OW-ADR-0026-native-held-deliverables.md` | verified |
 | D-002 | Classify a target_ref; refuse a native reference without a non-Git holder | `crates/openwarrant-core/src/deliverable.rs` | verified |
-| D-003 | §56.1 requirements 2 and 3 never read a native reference from disk | `crates/openwarrant-cli/src/resolve.rs` | verified |
+| D-003 | §56.1 requirements 2 and 3 never read a native reference from disk | `crates/openwarrant-cli/src/resolve.rs` | drift |
 | D-004 | Drift skips native references; validation surfaces the refusals | `crates/openwarrant-cli/src/check.rs` | verified |
 | D-005 | pins and pins --refresh leave a native reference alone | `crates/openwarrant-cli/src/pins.rs` | verified |
 | D-006 | A correction of a native reference is refused | `crates/openwarrant-cli/src/correct.rs` | verified |
@@ -36487,7 +36487,7 @@ once, at acceptance, after the blind verifier.
 | D-010 | cli: AcceptStanding and RevokeStanding, human-only | `crates/openwarrant-cli/src/sign.rs` | not_content_addressed |
 | D-011 | cli: the batch act carries class acts | `crates/openwarrant-cli/src/batch_cmd.rs` | not_content_addressed |
 | D-012 | cli: no covered path taken from work in flight | `crates/openwarrant-cli/src/ownership.rs` | verified |
-| D-013 | cli: a covered Warrant is never resolved by a policy service | `crates/openwarrant-cli/src/resolve.rs` | verified |
+| D-013 | cli: a covered Warrant is never resolved by a policy service | `crates/openwarrant-cli/src/resolve.rs` | drift |
 | D-014 | the plants | `conformance/plants.d/69-standing.sh` | verified |
 | D-015 | docs/SIGNING.md: routine work under a standing authorization | `docs/SIGNING.md` | verified |
 | D-016 | CONTEXT.md: the term | `CONTEXT.md` | verified |
