@@ -3453,6 +3453,7 @@ The request carries `reviewed_subject`. A response echoes the exact object it re
 | Field | Binding |
 |---|---|
 | `contract_digest` | Existing compiled contract digest. |
+| `context_sources` | Exact pinned SAS source path and ordinary SHA-256 of its retained bytes. |
 | `artifacts` | Declared delivered paths and ordinary SHA-256 of actual bytes. |
 | `gate_definitions` | Each cited gate key and the digest of its definition bytes. |
 | `fixtures` | Declared fixture paths and actual byte digests. |
@@ -3464,7 +3465,7 @@ Maps are sorted. Missing artifacts remain explicit and cannot satisfy existence.
 
 Cited gates with nonempty `inputs` use the existing glob and exclusion rules. Missing or empty input lists, missing gate definitions, and no cited gates use the existing conservative tree scope. Explicit selections are unioned with that scope: tree bookkeeping exclusions cannot remove a declared input.
 
-Internal links bind both target identity and selected file/subtree dependencies. A link differs from a regular file holding the same bytes. Candidate Git link blobs remain private data, rather than filesystem links. External, dangling, chained, cyclic and unsupported targets are unavailable observations, reported as UNKNOWN.
+Internal links bind both target identity and selected file/subtree dependencies. A link differs from a regular file holding the same bytes. Candidate Git link blobs remain private data, rather than filesystem links. Candidate Git queries and the batch blob reader disable replacement objects and lazy fetching; an unavailable object remains UNKNOWN instead of reading a substituted commit or fetching new data. External, dangling, chained, cyclic and unsupported targets are unavailable observations, reported as UNKNOWN.
 
 Input bindings identify the reviewed workspace. They do not grant permission to publish every source as blind context. Performer rationale and historical instructions remain excluded from reviewer context. Source selection and portable context closure are separate requirements.
 
@@ -3486,7 +3487,7 @@ Each `reviewed_packets` entry carries a retained repository-relative path and th
 
 Contract and packet digests retain their existing Rust canonicalizers and digest domains. No replacement canonicalizer, Python digest implementation or model-created digest is introduced. `verify --bundle --json` returns a machine-readable packet index; configured verifier calls receive its Rust-computed references as transport metadata.
 
-Packets carry exact required gate-definition, fixture and recorded-evidence bytes. UTF-8 stays readable; binary fixtures stay lossless byte arrays. Every obligation packet retains those fixed inputs. Budget pressure cannot silently remove or excerpt them. Assembly compares them against the captured subject and refuses required sources that change or disappear during capture. Complete governing-context closure remains open.
+Packets carry exact required pinned-SAS, gate-definition, fixture and recorded-evidence bytes. UTF-8 stays readable; binary fixtures stay lossless byte arrays. Every obligation packet retains those fixed inputs. Budget pressure cannot silently remove or excerpt them. Assembly compares them against the captured subject and refuses required sources that change or disappear during capture. The draft locates the captured SAS version/digest in retained revision records, uses descriptor-safe current reads, and recovers matching historical Git bytes locally when needed. Candidate snapshots cannot borrow mutable checkout history. An unavailable pinned source is UNKNOWN; a newer SAS cannot substitute. Packet qualification also checks the full carried source against its subject digest. Request and packet assembly reuse one loaded Warrant. This SAS slice is under test; complete transitive governing-context closure remains open.
 
 ## Retained packet storage
 
@@ -30743,7 +30744,7 @@ anything.
 | D-005 | The generated section index | `docs/sas/generated/SECTIONS.json` | not_content_addressed |
 | D-006 | The generated section index, for reading | `docs/sas/generated/SECTIONS.md` | not_content_addressed |
 | D-007 | sas.section-ref and sas.section-current | `crates/openwarrant-cli/src/check.rs` | verified |
-| D-008 | war sas diff names changed sections | `crates/openwarrant-cli/src/sas.rs` | verified |
+| D-008 | war sas diff names changed sections | `crates/openwarrant-cli/src/sas.rs` | drift |
 | D-009 | The SAS section plants | `conformance/plants.d/56-sas-sections.sh` | verified |
 | D-010 | The CI gate job fetches full history, so section currency is answered there (AM-002) | `.github/workflows/ci.yml` | verified |
 
@@ -39465,9 +39466,9 @@ Out of scope: rewriting provider conversations, copying BLUT lineage into a Warr
 - Relevant legacy SAS sections: §47, §48.1–48.5, §49.2–49.3 and §65; OW-WAR-0026, OW-WAR-0027, OW-WAR-0047 and OW-WAR-0108. Live `war sas status` reports 1.1.1 accepted and 1.2.0 proposed. The current generated normative projection reflects the proposed 1.2.0 document; generation does not accept that revision or replace an existing signed contract. This shared draft likewise does not activate new provider rules.
 - OpenWarrant cbe9a8a8: `crates/openwarrant-core/src/seam.rs` defines KatanaReceipt and BlutLineageReceipt. These validators check minimum fields and references, not a provider-authenticated seal. `resolve.rs::runtime_receipts_match_the_basis` has no connected store.
 - Katana checkout 0b0ac9dd1cbf69a2628ea214a4e841c5bd2888e1: `crates/katana/src/exec.rs` returns status, session path, answer, tool summaries and token usage. `crates/katana-mekugi/src/lib.rs` owns an append-only event log and BLAKE3 chain. These interfaces do not supply the complete OpenWarrant KatanaReceipt contract. The scoped Rust search found no dispatch_digest, prompt_ir_digest or receipt_digest producer.
-- BLUT checkout 2502a4dd6385b077f21dd500851a99a6ec1795c9: `src/framework/lineage.rs` provides read-only job lineage; job/status/artifact APIs own their observations. This checkout differs from the OW47 runtime engine pin. Do not silently attribute its behavior to the old run. No complete dispatch-bound provider receipt has been observed.
+- BLUT checkout 6eedf207d2c539f65ef5506028d2e0e25e002e50 (rechecked 2026-10-01): `src/framework/lineage.rs` provides read-only job lineage; job/status/artifact APIs own their observations. LineageNode now carries portable input/output content identities alongside preserved legacy hashes. A scoped Rust search under src found no dispatch_digest, receipt_digest or warrant_uuid producer. This checkout differs from the OW47 runtime engine pin. Do not silently attribute its behavior to the old run. No complete dispatch-bound provider receipt has been observed.
 - Retained OW47 successful run: job 20260918-121422-409152626, provider b10f46be930be8f2696a35941fe36a2d7c2ab7c7, engine ffecee56abc87175a55dedc9f92d3537fa5a4227. References and actual failures remain in `../OW-WAR-0047/implementation/`.
-- Provider PR Quitetall/blut-cookbooks#1 remains open at aebd937beb6fee46664ca7bdd691bec3e732a3d3 with unavailable hosted qualification. The old runtime binary path is now absent. Retained records do not prove a fresh rerun or merge.
+- Provider PR Quitetall/blut-cookbooks#1 remains open at aebd937beb6fee46664ca7bdd691bec3e732a3d3 with the latest visible hosted checks failed on 2026-09-18 (fmt/clippy/tests and secret-scan). Those historical failures do not establish their causes or qualify a newer checkout. The old runtime binary path is now absent. Retained records do not prove a fresh rerun or merge.
 
 ## Blocking unknowns for verified integration
 
