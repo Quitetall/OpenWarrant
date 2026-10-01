@@ -12,7 +12,7 @@ This is the master document (OW-ADR-0022): what is authoritative in this reposit
 - **Current by construction.** A Warrant is current unless an authorized Warrant declares `supersedes` → it, or its resolution is annulled. Currency is derived from those relations, never written.
 - **Fully expanded.** Every current Warrant's atoms appear below verbatim, in role order. Nothing is paraphrased.
 - **Replaced subjects are one line.** 1 replaced subject(s) appear under *Replaced* as lineage and nothing else; their text is in the history, when this repository keeps one.
-- **Records as of 2026-09-27** — the latest recorded event. 142 current Warrant(s).
+- **Records as of 2026-10-01** — the latest recorded event. 143 current Warrant(s).
 
 ## In force
 
@@ -2105,7 +2105,7 @@ Each earlier plan is one line of lineage; the record above replaces it.
 
 ## Warrants
 
-142 current Warrant(s), grouped by roadmap phase, each expanded atom by atom.
+143 current Warrant(s), grouped by roadmap phase, each expanded atom by atom.
 
 ### OW-PHASE-0 — Telemetry shim
 
@@ -37827,6 +37827,148 @@ through `resolve`, which refuses an agent by kind whatever
 | D-011 | war new --profile resolves through the registry (AM-003) | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-012 | the non-binding contractor fixture (AM-003) | `conformance/fixtures/contractor/work-order.sh` | verified |
 
+### No roadmap phase
+
+#### OW-WAR-0148 — Shared Katana and BLUT runtime receipt binding contract
+
+[manifest](../../docs/warrants/OW-WAR-0148/manifest.toml) · profile `delivery` · rung `draft` · currency `current`
+
+Not authorized; no Basis is fixed.
+
+##### Intent — [docs/warrants/OW-WAR-0148/atoms/10-intent.md](../../docs/warrants/OW-WAR-0148/atoms/10-intent.md)
+
+<!-- atom docs/warrants/OW-WAR-0148/atoms/10-intent.md begins -->
+# Intent
+
+Runtime work must return a real provider receipt that OpenWarrant can match to the exact work it sent. Today the resolver has no connected receipt store and cannot establish the runtime requirement for any Katana or BLUT stage.
+
+One shared Warrant governs the adapter boundary across OpenWarrant, Katana and BLUT. Each project implements its own side; no drifting copies of this contract. OpenWarrant owns dispatch bindings, import observations and resolution assessment. Providers own execution facts, receipt sealing and their authoritative logs or lineage.
+
+Outcome: an attributable receipt from an actual run can satisfy the matching requirement for its own dispatch, contract, stage and attempt. Wrong, stale, missing, unverifiable or incomplete records cannot. This does not itself establish independent assurance or human acceptance.
+
+Out of scope: rewriting provider conversations, copying BLUT lineage into a Warrant, changing signed legacy records, signing as a human, inventing a receipt digest or performing paid calls without reliable accounting.
+<!-- atom docs/warrants/OW-WAR-0148/atoms/10-intent.md ends -->
+
+##### Basis — [docs/warrants/OW-WAR-0148/atoms/20-basis.md](../../docs/warrants/OW-WAR-0148/atoms/20-basis.md)
+
+<!-- atom docs/warrants/OW-WAR-0148/atoms/20-basis.md begins -->
+# Basis
+
+## Shared sources and participant boundaries
+
+- OpenWarrant SAS §47, §48.1–48.5, §49.2–49.3, §65; OW-WAR-0026, OW-WAR-0027, OW-WAR-0047 and OW-WAR-0108. Exact binding text remains in the compiled normative projection.
+- OpenWarrant cbe9a8a8: `crates/openwarrant-core/src/seam.rs` defines KatanaReceipt and BlutLineageReceipt. These validators check minimum fields and references, not a provider-authenticated seal. `resolve.rs::runtime_receipts_match_the_basis` has no connected store.
+- Katana checkout 0b0ac9dd1cbf69a2628ea214a4e841c5bd2888e1: `crates/katana/src/exec.rs` returns status, session path, answer, tool summaries and token usage. `crates/katana-mekugi/src/lib.rs` owns an append-only event log and BLAKE3 chain. These interfaces do not supply the complete OpenWarrant KatanaReceipt contract. The scoped Rust search found no dispatch_digest, prompt_ir_digest or receipt_digest producer.
+- BLUT checkout 2502a4dd6385b077f21dd500851a99a6ec1795c9: `src/framework/lineage.rs` provides read-only job lineage; job/status/artifact APIs own their observations. This checkout differs from the OW47 runtime engine pin. Do not silently attribute its behavior to the old run. No complete dispatch-bound provider receipt has been observed.
+- Retained OW47 successful run: job 20260918-121422-409152626, provider b10f46be930be8f2696a35941fe36a2d7c2ab7c7, engine ffecee56abc87175a55dedc9f92d3537fa5a4227. References and actual failures remain in `../OW-WAR-0047/implementation/`.
+- Provider PR Quitetall/blut-cookbooks#1 remains open at aebd937beb6fee46664ca7bdd691bec3e732a3d3 with unavailable hosted qualification. The old runtime binary path is now absent. Retained records do not prove a fresh rerun or merge.
+
+## Blocking unknowns for verified integration
+
+1. Each provider must publish its receipt schema, exact digest/seal calculation and supported verification interface. An OpenWarrant checksum of stored bytes is not that provider seal.
+2. Katana must supply its own PromptIR identity, effective confinement/capabilities and terminal receipt. OpenWarrant must not reconstruct them from a transcript.
+3. BLUT must provide a stable job-to-dispatch binding and a way to check that status, artifacts and lineage references belong to that job. A matching path or ordinary JSON file is insufficient.
+4. Approval of the cross-project adapter version and source identities remains required where the participating Warrant or repository policy requires verified start.
+
+Preparation and prototype tests may proceed under the owner prompt. These unknowns block claims of provider qualification and verified integration, not ordinary drafting.
+<!-- atom docs/warrants/OW-WAR-0148/atoms/20-basis.md ends -->
+
+##### Work order — [docs/warrants/OW-WAR-0148/atoms/40-work-order.md](../../docs/warrants/OW-WAR-0148/atoms/40-work-order.md)
+
+<!-- atom docs/warrants/OW-WAR-0148/atoms/40-work-order.md begins -->
+# Work Order
+
+## Shared contract and ownership
+
+This directory is the single shared contract. Provider implementation Warrants and adapter specifications must point here by UUID/revision instead of restating it. Changes must preserve a reviewable shared revision and explicit participant responses. No participant is silently considered to have approved another project's change.
+
+### OpenWarrant
+
+1. Persist provider receipts and an attributable capture/import observation through the SDK and CLI. Record the actual provider interface version, binary/source identity, command or transport, exit/status and exact original receipt reference. Failures must leave prior records intact.
+2. Bind capture to the actual recorded dispatch: Warrant UUID, contract digest, dispatch digest, stage id and attempt id. Read these values from the dispatch record; do not accept an arbitrary caller assertion as proof.
+3. Keep provider receipt identity separate from local file-content identity. Consume the provider's defined receipt validation; do not invent a new canonical preimage or hash domain.
+4. Match every runtime stage in the current compilation basis to its eligible completed attempt and provider observation. Reject wrong provider, wrong contract, wrong dispatch, wrong stage, wrong attempt, altered receipt, stale source or mixed-job references. Missing provider support or unavailable observation is UNKNOWN.
+5. Assess Katana realized capabilities against the authorized set. An emitted receipt is not evidence of sandbox enforcement unless the provider actually establishes it. Unknown cost stays unknown; a mandatory hard spend cap refuses an unmetered run.
+6. Resolution uses this assessment, rather than counting all runtime stages as automatically unmet. No runtime stages is a genuine pass only for a valid required milestones atom. Missing or invalid milestones stays unmet.
+
+### Katana
+
+Emit the existing OpenWarrant minimum receipt from an actual terminal session: session identity, Dispatch digest, provider-owned PromptIR digest, provider/model identity, event-log head, realized capabilities, confinement, usage, artifact references, terminal runtime status, provider receipt digest and taint-label references. Define and expose receipt verification. Preserve cancellation, halt and failure as distinct states. Do not label a token count as a metered dollar spend.
+
+### BLUT
+
+Emit a receipt that binds the actual executed PlanSpec/job to the requested dispatch and exact registry identity. Supply terminal status, artifact references, lineage reference and provider receipt identity through its defined verification interface. Keep the lineage stream authoritative in BLUT; OpenWarrant stores references and permitted projections. An accepted typecheck is not an execution receipt.
+
+## Deliverables
+
+- One versioned shared adapter contract and participant implementation references.
+- SDK/CLI receipt capture, durable storage and basis assessment with precise refusal/UNKNOWN diagnostics.
+- Provider-owned Katana and BLUT receipt/verification surfaces at exact source revisions.
+- Real positive integration runs and public-seam negative controls; source manifests, local/hosted checks and honest progress records.
+
+## Start, limits and rollback
+
+Drafting, inspection and isolated prototype tests may start by prompt. Verified provider integration requires all relevant participants to accept the shared adapter revision and provider identity, plus any explicit local start requirements. A receipt import cannot authorize work, confer assurance or merge code.
+
+Use separate worktrees, serialized writers, the owner's configurable budget and protected fixtures. No paid model call without reliable cost tracking. Do not alter resolved pins or signed atoms; request successor/correction acts when needed. On interruption, retain capture history and partial progress. Revert unaccepted implementation through Git, retaining observations of failures.
+<!-- atom docs/warrants/OW-WAR-0148/atoms/40-work-order.md ends -->
+
+##### Milestones — [docs/warrants/OW-WAR-0148/atoms/45-milestones.yaml](../../docs/warrants/OW-WAR-0148/atoms/45-milestones.yaml)
+
+```yaml
+schema: "oh.war/milestones/v1"
+milestones:
+  - id: "M1"
+    title: "Shared receipt contract and provider interfaces defined"
+    stage_refs: ["STAGE-001"]
+    obligation_refs: ["OBL-001", "OBL-002"]
+  - id: "M2"
+    title: "Receipt capture and basis assessment implemented"
+    depends_on: ["M1"]
+    stage_refs: ["STAGE-002"]
+    obligation_refs: ["OBL-001", "OBL-002", "OBL-003"]
+  - id: "M3"
+    title: "Actual provider runs and refusal controls qualified"
+    depends_on: ["M2"]
+    stage_refs: ["STAGE-003"]
+    obligation_refs: ["OBL-004"]
+stages:
+  - id: "STAGE-001"
+    title: "Prepare shared contract and explicit participant responses"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+  - id: "STAGE-002"
+    title: "Implement each participant's declared receipt adapter side"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+  - id: "STAGE-003"
+    title: "Exercise actual provider integrations and independent checks"
+    executor_kind: "agent"
+    responsibility_tier: "T2"
+```
+
+##### Assurance — [docs/warrants/OW-WAR-0148/atoms/60-assurance.md](../../docs/warrants/OW-WAR-0148/atoms/60-assurance.md)
+
+<!-- atom docs/warrants/OW-WAR-0148/atoms/60-assurance.md begins -->
+# Assurance
+
+### OBL-001 — exact dispatch and provider binding
+- **scope:** shared adapter receipt capture and assessment for declared runtime stages.
+- **evidence:** actual provider receipt passes for its recorded dispatch; known but wrong contract, dispatch, stage, attempt, provider or registry is refused by the intended rule before writes. Exact replay changes no stored bytes. Missing historical binding is UNKNOWN.
+
+### OBL-002 — authentic provider facts and terminal outcomes
+- **scope:** declared Katana/BLUT receipt schemas and exact integration revisions.
+- **evidence:** positive actual execution plus altered seal, mixed-job artifacts, invalid lineage reference, nonterminal/halted/cancelled/failed run, missing provider verification and unsupported schema controls. Provider verification remains distinct from a local byte checksum. No synthesized PromptIR or copied BLUT lineage.
+
+### OBL-003 — retention, limits and basis changes
+- **scope:** SDK/CLI imports, current basis assessment and configured limits.
+- **evidence:** interrupted publication preserves previous receipt, stale contract/attempt refuses, one missing stage cannot satisfy the whole Warrant, unauthorized capability refuses, unmetered hard cap refuses, unknown cost never becomes zero. Missing/invalid milestones never exempts work.
+
+### OBL-004 — real cross-project qualification
+- **scope:** the shared contract's declared provider revisions and checked integration workflow.
+- **evidence:** actual Katana and BLUT runs at exact revisions, independent findings, full local/hosted checks and required authorized participant acceptance. Synthetic fixtures and retained historical observations remain labeled. Performer checks do not award assurance or authorize/resolve this Warrant.
+<!-- atom docs/warrants/OW-WAR-0148/atoms/60-assurance.md ends -->
+
 ## Replaced
 
 - OW-WAR-0073 → OW-WAR-0112
@@ -38127,4 +38269,5 @@ Every command here has been judged by the act's dry run (`war sign <target> --dr
 | authorize | OW-WAR-0145 | `war sign OW-WAR-0145` | would record | revision 2 awaits authorization under AM-001-57c5 |
 | authorize | OW-WAR-0146 | `war sign OW-WAR-0146` | would record | revision 2 awaits authorization under AM-001-4610 |
 | authorize | OW-WAR-0147 | `war sign OW-WAR-0147` | would record | revision 1 awaits authorization |
+| authorize | OW-WAR-0148 | `war sign OW-WAR-0148` | would record | revision 1 awaits authorization |
 | accept | SAS 1.2.0 | `war sign 1.2.0` | would refuse: sign.needs-decision | a proposed SAS revision awaits acceptance |
