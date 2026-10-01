@@ -3267,7 +3267,7 @@ OW-WAR-0002 is where it stops being true.
 | D-001 | Cargo workspace and crate split (§78) | `Cargo.toml` | drift |
 | D-002 | Toolchain pinned exactly | `rust-toolchain.toml` | verified |
 | D-003 | Permissive-only licence gate | `deny.toml` | verified |
-| D-004 | Single aggregate CI gate | `.github/workflows/ci.yml` | verified |
+| D-004 | Single aggregate CI gate | `.github/workflows/ci.yml` | drift |
 
 #### OW-WAR-0002 — Implement the file-native manifest and atom parser
 
@@ -18385,7 +18385,7 @@ anything.
 | D-007 | sas.section-ref and sas.section-current | `crates/openwarrant-cli/src/check.rs` | verified |
 | D-008 | war sas diff names changed sections | `crates/openwarrant-cli/src/sas.rs` | verified |
 | D-009 | The SAS section plants | `conformance/plants.d/56-sas-sections.sh` | verified |
-| D-010 | The CI gate job fetches full history, so section currency is answered there (AM-002) | `.github/workflows/ci.yml` | verified |
+| D-010 | The CI gate job fetches full history, so section currency is answered there (AM-002) | `.github/workflows/ci.yml` | drift |
 
 ### OW-PHASE-4 — Knowledge Fabric registration
 
@@ -30700,7 +30700,7 @@ this level requires. The author does not record them.
 | D-001 | What changed between the accepted candidate and this one | `crates/openwarrant-cli/src/acceptance.rs` | verified |
 | D-002 | war pins --candidate: the finding beside each resolved pin | `crates/openwarrant-cli/src/pins.rs` | verified |
 | D-003 | The --candidate flag | `crates/openwarrant-cli/src/lib.rs` | drift |
-| D-004 | The pull-request step that runs it against the merge candidate | `.github/workflows/ci.yml` | verified |
+| D-004 | The pull-request step that runs it against the merge candidate | `.github/workflows/ci.yml` | drift |
 | D-005 | The acceptance-validity plants | `conformance/plants.d/56-acceptance-validity.sh` | verified |
 | D-006 | After you sign: when the accepted candidate changes before merge | `docs/SIGNING.md` | verified |
 
