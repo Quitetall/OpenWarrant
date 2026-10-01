@@ -331,6 +331,27 @@ else
 fi
 # Candidate facts come from Git, never from a dirty current checkout.
 AV_REVIEWED=$(git -C "$PLANT_ROOT" rev-parse HEAD)
+# A bound review belongs to this Warrant and the verifier named by its record.
+for AV_IDENTITY in actor_ref warrant_uuid; do
+    python3 - "$PLANT_ROOT/docs/warrants/$AV_A/journal.jsonl" "$AV_IDENTITY" <<'PY_IDENTITY'
+import json, sys
+p, field = sys.argv[1:]
+rows = [json.loads(line) for line in open(p) if line.strip()]
+assert any(row.get("type") == "verification.recorded" for row in rows)
+for row in rows:
+    if row.get("type") == "verification.recorded":
+        row[field] = "agent://different-verifier" if field == "actor_ref" else "00000000-0000-0000-0000-000000000000"
+open(p, "w").write("".join(json.dumps(row) + "\n" for row in rows))
+PY_IDENTITY
+    av_commit "a reviewed event with wrong $AV_IDENTITY"
+    AV_OUT=$(av_war pins --candidate HEAD 2>&1); AV_STATUS=$?
+    if [[ $AV_STATUS -ne 0 ]] && av_names 'acceptance.candidate-moved' "$AV_OUT" 'src/helper.txt'; then
+        av_ok "wrong $AV_IDENTITY cannot clear review" "the journal identity does not bind this verdict"
+    else
+        av_fail "wrong $AV_IDENTITY cannot clear review" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
+    fi
+    git -C "$PLANT_ROOT" reset -q --hard "$AV_REVIEWED"
+done
 printf '\nOnly the working tree has this unreviewed contract change.\n' >> "$AV_INTENT"
 AV_OUT=$(av_war pins --candidate "$AV_REVIEWED" 2>&1); AV_STATUS=$?
 if [[ $AV_STATUS -eq 0 ]] && grep -qE "PASS +acceptance\.unchanged +$AV_A: .*\(re-verified\)" <<<"$AV_OUT"; then

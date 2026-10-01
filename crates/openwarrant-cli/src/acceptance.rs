@@ -329,8 +329,10 @@ fn reverified(
     // Recompile and capture with the SAME subject routine, over exact Git
     // candidate data. No contract digest is inferred from a generated view.
     let candidate_subject = crate::verify::subject(repo, one).ok()?;
-    // (obligation, record digest) ingested after the resolution was recorded.
-    let mut ingested: Vec<(String, String)> = Vec::new();
+    // (obligation, record digest, verifier) ingested for THIS Warrant after
+    // the resolution was recorded. Identity matches current qualification.
+    let mut ingested: Vec<(String, String, String)> = Vec::new();
+    let warrant_uuid = one.validated.as_ref()?.uuid.to_string();
     for line in String::from_utf8_lossy(&journal).lines() {
         let Ok(event) = serde_json::from_str::<serde_json::Value>(line) else {
             continue;
@@ -338,6 +340,9 @@ fn reverified(
         if event.get("type").and_then(|t| t.as_str())
             != Some(crate::journal_cmd::VERIFICATION_RECORDED)
         {
+            continue;
+        }
+        if event.get("warrant_uuid").and_then(|v| v.as_str()) != Some(&warrant_uuid) {
             continue;
         }
         let Some(at) = event.get("occurred_at").and_then(|t| t.as_str()) else {
@@ -364,11 +369,12 @@ fn reverified(
         if reviewed != candidate_subject {
             continue;
         }
-        if let (Some(o), Some(d)) = (
+        if let (Some(o), Some(d), Some(actor)) = (
             payload.get("obligation").and_then(|v| v.as_str()),
             payload.get("record_digest").and_then(|v| v.as_str()),
+            event.get("actor_ref").and_then(|v| v.as_str()),
         ) {
-            ingested.push((o.to_owned(), d.to_owned()));
+            ingested.push((o.to_owned(), d.to_owned(), actor.to_owned()));
         }
     }
     let mut parents: Vec<String> = Vec::new();
@@ -385,7 +391,11 @@ fn reverified(
             return None;
         }
         let digest = format!("sha256:{}", openwarrant_compiler::sha256_hex(&bytes));
-        if !ingested.iter().any(|(o, d)| o == id && *d == digest) {
+        let actor = format!("{}://{}", v.verifier.kind, v.verifier.actor);
+        if !ingested
+            .iter()
+            .any(|(o, d, a)| o == id && *d == digest && *a == actor)
+        {
             return None;
         }
         let wrote = git(root, &["log", "-1", "--format=%H", candidate, "--", &path])?;
