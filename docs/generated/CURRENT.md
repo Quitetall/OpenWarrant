@@ -20364,7 +20364,7 @@ joined path is what shows no reader does.
 | D-004 | Drift skips native references; validation surfaces the refusals | `crates/openwarrant-cli/src/check.rs` | verified |
 | D-005 | pins and pins --refresh leave a native reference alone | `crates/openwarrant-cli/src/pins.rs` | verified |
 | D-006 | A correction of a native reference is refused | `crates/openwarrant-cli/src/correct.rs` | verified |
-| D-007 | The verification bundle carries the reference, not bytes | `crates/openwarrant-cli/src/bundle.rs` | verified |
+| D-007 | The verification bundle carries the reference, not bytes | `crates/openwarrant-cli/src/bundle.rs` | drift |
 | D-008 | Digest state says held by its system | `crates/openwarrant-cli/src/status.rs` | not_content_addressed |
 | D-009 | The native-authority plants | `conformance/plants.d/61-native-authority.sh` | verified |
 

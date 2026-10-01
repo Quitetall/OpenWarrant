@@ -5,6 +5,16 @@ import json, sys
 b = json.load(open(sys.argv[1]))
 print('schema = "oh.war/verification-response/v1"')
 print('warrant = "%s"' % b["warrant"])
+# Echo only the snapshot actually carried to this fixture. Never recapture
+# repository state after the simulated review.
+subject = b["request"].get("reviewed_subject")
+if subject is not None:
+    print("[reviewed_subject]")
+    print("contract_digest = " + json.dumps(subject["contract_digest"]))
+    for field in ["artifacts", "gate_definitions", "fixtures"]:
+        print("[reviewed_subject." + field + "]")
+        for key, value in sorted(subject.get(field, {}).items()):
+            print(json.dumps(key) + " = " + json.dumps(value))
 for o in b["request"]["obligations"]:
     print("")
     print("[[verifications]]")

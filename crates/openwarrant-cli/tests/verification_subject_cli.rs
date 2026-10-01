@@ -621,3 +621,72 @@ fn changed_contract_refuses_a_bound_old_response_without_writes() {
     );
     assert_eq!(fixture.review_state(), before);
 }
+
+#[test]
+fn offline_bundle_carries_exact_gate_and_fixture_sources() {
+    let fixture = Fixture::new();
+    let config = fixture.0.join("openwarrant.toml");
+    let settings = fs::read_to_string(&config).unwrap();
+    fs::write(
+        config,
+        settings.replace("[verify]", "[verify]\nmax_bundle_tokens = 1"),
+    )
+    .unwrap();
+    let gates = fixture.0.join("docs/gates");
+    fs::create_dir_all(&gates).unwrap();
+    let mut gate = fs::read_to_string(
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../docs/gates/software.repo.war-check@1.0.0.yaml"),
+    )
+    .unwrap();
+    gate.push_str("\nfixtures: [\"fixtures/required.bin\"]\n");
+    fs::write(gates.join("software.repo.war-check@1.0.0.yaml"), &gate).unwrap();
+    fs::create_dir_all(fixture.0.join("fixtures")).unwrap();
+    fs::write(fixture.0.join("fixtures/required.bin"), [0, 255, 13, 10]).unwrap();
+    let emitted = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--json",
+    ]);
+    assert_eq!(emitted["exit_code"], 0, "{emitted}");
+    let files: Vec<_> = fs::read_dir(fixture.0.join("docs/warrants/IX-WAR-0003/verifications"))
+        .unwrap()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_name().to_string_lossy().starts_with("bundle-"))
+        .collect();
+    assert_eq!(
+        files.len(),
+        2,
+        "the forced budget must split two obligations"
+    );
+    for file in files {
+        let bundle: serde_json::Value =
+            serde_json::from_slice(&fs::read(file.path()).unwrap()).unwrap();
+        let sources = bundle["required_sources"]
+            .as_array()
+            .expect("offline review needs source bytes, not only hashes");
+        let definition = sources
+            .iter()
+            .find(|s| s["path"] == "docs/gates/software.repo.war-check@1.0.0.yaml")
+            .unwrap();
+        assert_eq!(definition["text"], gate);
+        assert_eq!(definition["kind"], "gate-definition");
+        let binary = sources
+            .iter()
+            .find(|s| s["path"] == "fixtures/required.bin")
+            .unwrap();
+        assert_eq!(binary["bytes"], serde_json::json!([0, 255, 13, 10]));
+        assert_eq!(binary["kind"], "fixture");
+        assert!(
+            binary.get("text").is_none(),
+            "binary content must not become lossy text"
+        );
+        assert_eq!(
+            binary["sha256"],
+            bundle["request"]["reviewed_subject"]["fixtures"]["fixtures/required.bin"]
+        );
+    }
+}

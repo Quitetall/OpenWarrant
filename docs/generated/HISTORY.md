@@ -3452,6 +3452,8 @@ Keep the existing core verification record bytes. The existing verification-reco
 
 This is an additive wire representation in the experimental CLI and therefore a documented decision, not replacement canonicalization. Contract and verification-bundle digests retain their existing canonicalizers and domains. The full portable review must also bind the existing canonical verification-bundle identity and the relevant source/evidence facts; that portion is not yet implemented. Do not present the initial contract/artifact map as complete context binding.
 
+The experimental portable bundle also carries exact required gate-definition and fixture contents. Readable UTF-8 stays text; binary fixtures stay exact byte arrays. Each source carries its path, kind, SHA-256 and presence. Every obligation packet retains these fixed inputs; budget pressure cannot silently remove or excerpt them. Assembly compares observed bytes with the subject already captured and refuses required gates that change or disappear during capture. This is not the remaining complete context/evidence closure or a proof of filesystem race isolation.
+
 The configured wrapper reads one private copy of the supplied bundle and echoes its request subject. It must not recapture a newer subject after review, ask a model to invent the binding, or infer it when a legacy request has none.
 
 Before writing any verdict, ingestion rejects a response about a stale subject or undeclared obligation. Current preparation, resolution, progress and assurance-mark evaluation use the same qualification rule. Git-candidate acceptance must use the subject at that exact candidate, not whatever is in the current worktree; that path remains unfinished.
@@ -31345,7 +31347,7 @@ joined path is what shows no reader does.
 | D-004 | Drift skips native references; validation surfaces the refusals | `crates/openwarrant-cli/src/check.rs` | verified |
 | D-005 | pins and pins --refresh leave a native reference alone | `crates/openwarrant-cli/src/pins.rs` | verified |
 | D-006 | A correction of a native reference is refused | `crates/openwarrant-cli/src/correct.rs` | verified |
-| D-007 | The verification bundle carries the reference, not bytes | `crates/openwarrant-cli/src/bundle.rs` | verified |
+| D-007 | The verification bundle carries the reference, not bytes | `crates/openwarrant-cli/src/bundle.rs` | drift |
 | D-008 | Digest state says held by its system | `crates/openwarrant-cli/src/status.rs` | not_content_addressed |
 | D-009 | The native-authority plants | `conformance/plants.d/61-native-authority.sh` | verified |
 

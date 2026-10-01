@@ -167,6 +167,20 @@ pub struct ObligationEvidence {
     pub terms: Vec<NamedTerm>,
 }
 
+/// Exact required review inputs. UTF-8 is readable; binary bytes remain lossless.
+/// Missing input stays explicit. These fixed inputs are never excerpted.
+#[derive(Debug, Clone, Serialize)]
+pub struct RequiredSource {
+    pub path: String,
+    pub kind: String,
+    pub sha256: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bytes: Option<Vec<u8>>,
+    pub present: bool,
+}
+
 #[derive(Debug, Clone, Serialize)]
 pub struct Bundle {
     pub schema: String,
@@ -177,6 +191,7 @@ pub struct Bundle {
     pub request: crate::verify::VerificationRequest,
     pub obligation_evidence: Vec<ObligationEvidence>,
     pub atoms: Vec<BundledAtom>,
+    pub required_sources: Vec<RequiredSource>,
     pub deliverables: Vec<BundledDeliverable>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub deliverables_not_carried: Vec<NotCarried>,
@@ -550,6 +565,7 @@ struct Sources {
     authorized_contract_digest: String,
     request: crate::verify::VerificationRequest,
     atoms: Vec<BundledAtom>,
+    required_sources: Vec<RequiredSource>,
     files: Vec<File>,
     runs: Vec<Run>,
     plants: Vec<BundledPlant>,
@@ -569,10 +585,95 @@ struct Sources {
     warrant_dir: Utf8PathBuf,
 }
 
+fn required_sources(
+    repo: &Repository,
+    subject: &crate::verify::ReviewedSubject,
+) -> Result<Vec<RequiredSource>, RepoError> {
+    let mut required = std::collections::BTreeMap::new();
+    let mut found = std::collections::BTreeSet::new();
+    for (path, digest) in &subject.fixtures {
+        required.insert(path.clone(), ("fixture", digest.clone()));
+    }
+    let directory = repo.root.join(&repo.config.paths.gates);
+    if directory.exists() {
+        for entry in directory
+            .read_dir_utf8()
+            .map_err(|e| RepoError::Message(e.to_string()))?
+        {
+            let path = entry
+                .map_err(|e| RepoError::Message(e.to_string()))?
+                .into_path();
+            if !matches!(path.extension(), Some("yaml" | "yml")) {
+                continue;
+            }
+            let relative = repo.relative(&path);
+            let Some(bytes) = crate::verify::file_bytes(repo, &relative)? else {
+                continue;
+            };
+            let Some(doc) = std::str::from_utf8(&bytes)
+                .ok()
+                .and_then(|s| openwarrant_core::structured::parse(s).ok())
+            else {
+                continue;
+            };
+            let key = format!(
+                "{}@{}",
+                doc.scalar("gate_id").unwrap_or_default(),
+                doc.scalar("version").unwrap_or_default()
+            );
+            if let Some(digest) = subject.gate_definitions.get(&key) {
+                if !found.insert(key.clone()) {
+                    return Err(RepoError::Message(format!(
+                        "verify.subject-stale: duplicate required gate {key} during bundle capture"
+                    )));
+                }
+                required.insert(relative, ("gate-definition", digest.clone()));
+            }
+        }
+    }
+    for (key, digest) in &subject.gate_definitions {
+        if digest != "missing" && !found.contains(key) {
+            return Err(RepoError::Message(format!(
+                "verify.subject-stale: required gate {key} disappeared during bundle capture"
+            )));
+        }
+    }
+    let mut out = Vec::new();
+    for (path, (kind, expected)) in required {
+        let read = crate::verify::file_bytes(repo, &path)?;
+        let actual = read
+            .as_ref()
+            .map(|b| format!("sha256:{}", sha256_hex(b)))
+            .unwrap_or_else(|| "missing".to_owned());
+        if actual != expected {
+            return Err(RepoError::Message(format!(
+                "verify.subject-stale: required source {path} changed during bundle capture"
+            )));
+        }
+        let (text, bytes) = match read {
+            Some(bytes) => match String::from_utf8(bytes) {
+                Ok(text) => (Some(text), None),
+                Err(e) => (None, Some(e.into_bytes())),
+            },
+            None => (None, None),
+        };
+        out.push(RequiredSource {
+            path,
+            kind: kind.to_owned(),
+            sha256: actual,
+            present: text.is_some() || bytes.is_some(),
+            text,
+            bytes,
+        });
+    }
+    Ok(out)
+}
+
 fn load(repo: &Repository, alias: &str, performer: &str) -> Result<Sources, RepoError> {
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
     let request = crate::verify::request(repo, alias, performer)?;
+    let required_sources = required_sources(repo, &request.reviewed_subject)?;
     let authorized_contract_digest = repo
         .load_authorization(&dir)
         .ok()
@@ -693,6 +794,7 @@ fn load(repo: &Repository, alias: &str, performer: &str) -> Result<Sources, Repo
         authorized_contract_digest,
         request,
         atoms,
+        required_sources,
         files,
         runs,
         plants: plants_naming(repo, alias),
@@ -1156,6 +1258,7 @@ fn warrant_bundle(src: &Sources) -> Result<Bundle, RepoError> {
         request: src.request.clone(),
         obligation_evidence,
         atoms: src.atoms.clone(),
+        required_sources: src.required_sources.clone(),
         deliverables,
         deliverables_not_carried: vec![],
         plants: src.plants.clone(),
@@ -1286,6 +1389,7 @@ fn obligation_bundle_at(
         request,
         obligation_evidence: vec![evidence],
         atoms: src.atoms.clone(),
+        required_sources: src.required_sources.clone(),
         deliverables,
         deliverables_not_carried,
         plants: src.plants.clone(),

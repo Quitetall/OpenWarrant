@@ -177,7 +177,7 @@ fn file_digest(repo: &Repository, reference: &str) -> Result<String, RepoError> 
 
 /// Read each observed source once, after refusing traversal, symlinks and
 /// nonregular files. Missing bytes are explicit and never satisfy existence.
-fn file_bytes(repo: &Repository, reference: &str) -> Result<Option<Vec<u8>>, RepoError> {
+pub(crate) fn file_bytes(repo: &Repository, reference: &str) -> Result<Option<Vec<u8>>, RepoError> {
     let relative = camino::Utf8Path::new(reference);
     if relative.is_absolute()
         || relative
