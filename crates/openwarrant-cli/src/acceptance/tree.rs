@@ -189,7 +189,7 @@ impl Snapshot {
                 .atoms
                 .iter()
                 .filter_map(|a| a.path.as_deref())
-                .any(|path| !within_tree(path))
+                .any(|path| !reference_within_tree(&temporary.0, &dir, path))
             {
                 return Err("candidate atom path escapes its source tree".to_owned());
             }
@@ -208,4 +208,25 @@ fn within_tree(path: &str) -> bool {
         && std::path::Path::new(path)
             .components()
             .all(|c| matches!(c, Component::Normal(_) | Component::CurDir))
+}
+
+/// Atom links are relative to their Warrant, and may reach shared ADRs in
+/// the same tree. Resolve traversal lexically, without following host paths.
+fn reference_within_tree(root: &Utf8Path, dir: &Utf8Path, path: &str) -> bool {
+    let Ok(base) = dir.strip_prefix(root) else {
+        return false;
+    };
+    if path.is_empty() {
+        return false;
+    }
+    let mut depth = base.components().count();
+    for component in std::path::Path::new(path).components() {
+        match component {
+            Component::Normal(_) => depth += 1,
+            Component::CurDir => {}
+            Component::ParentDir if depth > 0 => depth -= 1,
+            _ => return false,
+        }
+    }
+    true
 }

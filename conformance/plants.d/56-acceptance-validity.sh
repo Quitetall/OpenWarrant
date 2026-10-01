@@ -124,6 +124,17 @@ effective_time = "2026-01-01T00:00:00Z"
 note = "Exists only while the acceptance-validity plants run."
 ssh_principal = "plant"
 ROLES
+# Real manifests bind ADR atoms stored elsewhere inside the same repository.
+mkdir -p docs/adr/atoms
+printf '# Bound scratch decision\n\nThe scratch contract uses this decision.\n' > docs/adr/atoms/bound.md
+cat >> "$W/manifest.toml" <<'BOUND'
+
+[[atoms]]
+ordinal = 35
+role = "adr"
+path = "../../adr/atoms/bound.md"
+required = true
+BOUND
 "$WAR" --root . compile >/dev/null
 g add -A; g commit -qm "a Warrant to accept"
 
@@ -212,6 +223,18 @@ if [[ $AV_STATUS -eq 0 ]] && grep -qE "PASS +acceptance\.unchanged +$AV_A" <<<"$
 else
     av_fail "the accepted candidate is unchanged" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
 fi
+
+# The shared ADR link is allowed, but traversal beyond the candidate tree is not.
+AV_ACCEPTED=$(git -C "$PLANT_ROOT" rev-parse HEAD)
+sed -i 's|../../adr/atoms/bound.md|../../../../outside-candidate.md|' "$PLANT_ROOT/docs/warrants/$AV_A/manifest.toml"
+av_commit "an atom reference outside the candidate tree"
+AV_OUT=$(av_war pins --candidate HEAD 2>&1); AV_STATUS=$?
+if [[ $AV_STATUS -ne 0 ]] && grep -q 'acceptance.unknown' <<<"$AV_OUT" && grep -q 'atom path escapes' <<<"$AV_OUT" && ! grep -q 'acceptance.unchanged' <<<"$AV_OUT"; then
+    av_ok "escaping candidate atom is refused" "acceptance.unknown; no host file is read"
+else
+    av_fail "escaping candidate atom is refused" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
+fi
+git -C "$PLANT_ROOT" reset -q --hard "$AV_ACCEPTED"
 
 # ── OBL-002: an out-of-scope change leaves acceptance standing ──────────────
 printf 'more notes\n' >> "$PLANT_ROOT/README.txt"
