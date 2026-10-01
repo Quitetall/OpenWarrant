@@ -37,9 +37,23 @@ impl Fixture {
         Self(root)
     }
     fn run(&self, args: &[&str]) -> serde_json::Value {
+        // Transport responses are outside the source tree being reviewed.
+        let routed: Vec<String> = args
+            .iter()
+            .map(|arg| {
+                if *arg == "response.toml" {
+                    self.0
+                        .with_extension("response.toml")
+                        .to_string_lossy()
+                        .into_owned()
+                } else {
+                    (*arg).to_owned()
+                }
+            })
+            .collect();
         let output = Command::new(env!("CARGO_BIN_EXE_war"))
             .current_dir(&self.0)
-            .args(args)
+            .args(routed)
             .env("OPENWARRANT_NO_PROJECTS", "1")
             .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
             .env("CLAUDE_BIN", self.0.join("fixture-claude"))
@@ -63,7 +77,7 @@ impl Fixture {
             "--json",
         ]);
         assert_eq!(request["exit_code"], 0, "{request}");
-        let path = self.0.join("response.toml");
+        let path = self.0.with_extension("response.toml");
         let mut response: toml::Value =
             toml::from_str(&fs::read_to_string(&path).unwrap()).unwrap();
         response.as_table_mut().unwrap().insert(
@@ -110,12 +124,13 @@ distinct_human_required = false
 "#
             ));
         }
-        fs::write(self.0.join("response.toml"), text).unwrap();
+        fs::write(self.0.with_extension("response.toml"), text).unwrap();
     }
 }
 impl Drop for Fixture {
     fn drop(&mut self) {
         let _ = fs::remove_dir_all(&self.0);
+        let _ = fs::remove_file(self.0.with_extension("response.toml"));
     }
 }
 
@@ -310,7 +325,7 @@ obligation_refs = ["OBL-001"]
 fn unknown_obligation_refuses_the_whole_response_before_any_write() {
     let fixture = Fixture::new();
     fixture.bound_response();
-    let path = fixture.0.join("response.toml");
+    let path = fixture.0.with_extension("response.toml");
     let text = fs::read_to_string(&path)
         .unwrap()
         .replace("OBL-001", "../outside-verifications");
@@ -745,4 +760,80 @@ fn changed_declared_gate_input_refuses_old_review_without_writes() {
         before,
         "a stale replay writes nothing"
     );
+}
+
+#[test]
+fn gate_without_input_list_binds_tree_without_publishing_performer_rationale() {
+    let fixture = Fixture::new();
+    fs::create_dir_all(fixture.0.join("docs/gates")).unwrap();
+    let definition = fs::read_to_string(
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../docs/gates/software.repo.war-check@1.0.0.yaml"),
+    )
+    .unwrap();
+    fs::write(
+        fixture
+            .0
+            .join("docs/gates/software.repo.war-check@1.0.0.yaml"),
+        definition,
+    )
+    .unwrap();
+    fs::create_dir_all(fixture.0.join("src")).unwrap();
+    fs::write(fixture.0.join("src/helper.txt"), "reviewed tree input").unwrap();
+    fs::write(
+        fixture.0.join("docs/warrants/IX-WAR-0003/rationale.toml"),
+        "private_performer_story = 'must not enter the blind packet'",
+    )
+    .unwrap();
+    fixture.bound_response();
+    let first = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(first["exit_code"], 0, "{first}");
+    let packet = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--json",
+    ]);
+    assert_eq!(packet["exit_code"], 0, "{packet}");
+    for file in fs::read_dir(fixture.0.join("docs/warrants/IX-WAR-0003/verifications")).unwrap() {
+        let file = file.unwrap();
+        if !file.file_name().to_string_lossy().starts_with("bundle-") {
+            continue;
+        }
+        let text = fs::read_to_string(file.path()).unwrap();
+        assert!(
+            !text.contains("private_performer_story"),
+            "source bindings do not publish performer rationale"
+        );
+    }
+    let before = fixture.review_state();
+    fs::write(fixture.0.join("src/helper.txt"), "unreviewed tree input").unwrap();
+    let replay = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_ne!(
+        replay["exit_code"], 0,
+        "a gate with no input list still binds the source tree: {replay}"
+    );
+    assert!(
+        replay["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "verify.subject-stale"),
+        "{replay}"
+    );
+    assert_eq!(fixture.review_state(), before);
 }
