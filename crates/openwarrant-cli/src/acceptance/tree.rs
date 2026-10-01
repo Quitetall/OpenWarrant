@@ -62,7 +62,8 @@ impl Drop for Blobs {
 impl Blobs {
     fn open(root: &Utf8Path) -> Result<Self, String> {
         let mut child = Command::new("git")
-            .args(["cat-file", "--batch"])
+            .args(["--no-pager", "--no-replace-objects", "cat-file", "--batch"])
+            .env("GIT_NO_LAZY_FETCH", "1")
             .current_dir(root)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())

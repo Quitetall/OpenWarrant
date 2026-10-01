@@ -40,7 +40,7 @@ Maps are sorted. Missing artifacts remain explicit and cannot satisfy existence.
 
 Cited gates with nonempty `inputs` use the existing glob and exclusion rules. Missing or empty input lists, missing gate definitions, and no cited gates use the existing conservative tree scope. Explicit selections are unioned with that scope: tree bookkeeping exclusions cannot remove a declared input.
 
-Internal links bind both target identity and selected file/subtree dependencies. A link differs from a regular file holding the same bytes. Candidate Git link blobs remain private data, rather than filesystem links. External, dangling, chained, cyclic and unsupported targets are unavailable observations, reported as UNKNOWN.
+Internal links bind both target identity and selected file/subtree dependencies. A link differs from a regular file holding the same bytes. Candidate Git link blobs remain private data, rather than filesystem links. Candidate Git queries and the batch blob reader disable replacement objects and lazy fetching; an unavailable object remains UNKNOWN instead of reading a substituted commit or fetching new data. External, dangling, chained, cyclic and unsupported targets are unavailable observations, reported as UNKNOWN.
 
 Input bindings identify the reviewed workspace. They do not grant permission to publish every source as blind context. Performer rationale and historical instructions remain excluded from reviewer context. Source selection and portable context closure are separate requirements.
 

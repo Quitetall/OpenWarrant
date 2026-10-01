@@ -1459,7 +1459,7 @@ fn offline_review_carries_exact_pinned_architecture_rules() {
             .as_array()
             .unwrap()
             .iter()
-            .any(|d| d["rule"] == "verify.context-unavailable" && d["severity"] == "UNKNOWN"),
+            .any(|d| d["rule"] == "verify.context-unavailable" && d["severity"] == "unknown"),
         "{missing}"
     );
     fs::write(fixture.0.join("docs/sas/Inbox_SAS.md"), source).unwrap();
@@ -1471,5 +1471,73 @@ fn offline_review_carries_exact_pinned_architecture_rules() {
         "--bundle",
         "--json",
     ]);
+    assert_eq!(restored["exit_code"], 0, "{restored}");
+}
+
+#[test]
+fn candidate_reads_exact_objects_without_git_replacements() {
+    let fixture = Fixture::new();
+    let git = |args: &[&str]| {
+        let output = Command::new("git")
+            .current_dir(&fixture.0)
+            .env("GIT_CONFIG_GLOBAL", "/dev/null")
+            .env("GIT_CONFIG_NOSYSTEM", "1")
+            .args(args)
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        String::from_utf8(output.stdout).unwrap().trim().to_owned()
+    };
+    git(&["init", "-q", "--template=", "--initial-branch=fixture"]);
+    git(&["add", "."]);
+    let commit = |message: &str| {
+        git(&[
+            "-c",
+            "user.name=fixture",
+            "-c",
+            "user.email=fixture@example.invalid",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "commit",
+            "--no-gpg-sign",
+            "-qm",
+            message,
+        ]);
+        git(&["rev-parse", "HEAD"])
+    };
+    let candidate = commit("Exact candidate");
+    let config = fixture.0.join("openwarrant.toml");
+    let original = fs::read(&config).unwrap();
+    fs::write(&config, "not a valid repository TOML document\n").unwrap();
+    git(&["add", "openwarrant.toml"]);
+    let poison = commit("Replacement poison");
+    fs::write(&config, original).unwrap();
+    let before = fixture.run(&["pins", "--candidate", &candidate, "--json"]);
+    assert_eq!(before["exit_code"], 0, "{before}");
+    git(&["replace", &candidate, &poison]);
+    let replaced = fixture.run(&["pins", "--candidate", &candidate, "--json"]);
+    assert_eq!(
+        replaced["exit_code"], 0,
+        "replacement must not change exact candidate data: {replaced}"
+    );
+    assert_eq!(replaced["result"], before["result"]);
+    let invalid = fixture.run(&["pins", "--candidate", &poison, "--json"]);
+    assert_ne!(
+        invalid["exit_code"], 0,
+        "invalid candidate must still be inspected"
+    );
+    assert!(
+        invalid["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "acceptance.unknown")
+    );
+    git(&["replace", "-d", &candidate]);
+    let restored = fixture.run(&["pins", "--candidate", &candidate, "--json"]);
     assert_eq!(restored["exit_code"], 0, "{restored}");
 }

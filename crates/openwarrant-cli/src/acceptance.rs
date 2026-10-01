@@ -140,7 +140,9 @@ pub struct Candidate {
 /// Run git in `root`; stdout when it succeeded, `None` for anything else.
 fn git(root: &Utf8Path, args: &[&str]) -> Option<Vec<u8>> {
     std::process::Command::new("git")
+        .args(["--no-pager", "--no-replace-objects"])
         .args(args)
+        .env("GIT_NO_LAZY_FETCH", "1")
         .current_dir(root)
         .output()
         .ok()
