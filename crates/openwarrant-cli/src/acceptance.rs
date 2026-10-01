@@ -347,6 +347,18 @@ fn reverified(
         else {
             continue;
         };
+        // A later file write does not bind an old observation to a new
+        // candidate. Legacy journal events remain history, never a re-review.
+        // Exact candidate/source comparison is the next subject-binding slice.
+        let Some(reviewed) = payload
+            .get("reviewed_subject")
+            .and_then(|v| serde_json::from_value::<crate::verify::ReviewedSubject>(v.clone()).ok())
+        else {
+            continue;
+        };
+        if reviewed.contract_digest.is_empty() {
+            continue;
+        }
         if let (Some(o), Some(d)) = (
             payload.get("obligation").and_then(|v| v.as_str()),
             payload.get("record_digest").and_then(|v| v.as_str()),

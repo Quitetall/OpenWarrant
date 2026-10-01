@@ -25,6 +25,7 @@ AV_RES="$PLANT_ROOT/docs/warrants/$AV_A/resolution.toml"
 # half-built corpus. The agent lives only as long as the setup: nothing after
 # it signs anything.
 if ! WAR="$REPO_ROOT/$WAR" D="$PLANT_ROOT" T="$AV_TMP" A="$AV_A" \
+    BIND="$REPO_ROOT/conformance/fixtures/verifier/with-subject.py" \
     env -u SSH_AUTH_SOCK -u SSH_AGENT_PID bash -euo pipefail > "$AV_TMP/setup.log" 2>&1 <<'SETUP'
 cd "$D"
 g() { git -c user.email=plant@invalid -c user.name=plant "$@"; }
@@ -167,7 +168,10 @@ separate_context_compilation = true
 distinct_model_required = true
 distinct_human_required = false
 VERIFY
-"$WAR" --root . verify "$A" --response "$T/verified.toml"
+# Capture exactly the subject this synthetic fixture is about to inspect.
+"$WAR" --root . verify "$A" --performer claude --json > "$T/request.json"
+python3 "$BIND" "$T/request.json" "$T/verified.toml" > "$T/verified-bound.toml"
+"$WAR" --root . verify "$A" --response "$T/verified-bound.toml"
 g add -A; g commit -qm verified
 "$WAR" --root . sign "$A" --ssh-sign --as "Plant Signer" </dev/null
 test -f "$W/resolution.toml"
@@ -195,7 +199,10 @@ av_names() { line_has -F "$1" -F "$3" <<<"$2"; }
 av_verify() { # disposition, evidence
     sed -e "s/^disposition = .*/disposition = \"$1\"/" -e "s|^evidence = .*|evidence = \"$2\"|" \
         "$AV_TMP/verified.toml" > "$AV_TMP/reverify.toml"
-    av_war verify "$AV_A" --response "$AV_TMP/reverify.toml" >/dev/null 2>&1
+    av_war verify "$AV_A" --performer claude --json > "$AV_TMP/request.json"
+    python3 "$REPO_ROOT/conformance/fixtures/verifier/with-subject.py" \
+        "$AV_TMP/request.json" "$AV_TMP/reverify.toml" > "$AV_TMP/reverify-bound.toml"
+    av_war verify "$AV_A" --response "$AV_TMP/reverify-bound.toml" >/dev/null 2>&1
 }
 
 # ── Control: the resolution commit itself is not a move ─────────────────────
@@ -262,6 +269,22 @@ if [[ $AV_STATUS -ne 0 ]] && av_names 'acceptance.candidate-moved' "$AV_OUT" 'sr
 else
     av_fail "not re-established does not clear" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
 fi
+# A retained legacy verdict is history, not review of this candidate. It
+# must not clear the move merely because its file and event were committed later.
+sed 's|^evidence = .*|evidence = "legacy synthetic observation with no subject binding"|' \
+    "$AV_TMP/verified.toml" > "$AV_TMP/legacy.toml"
+AV_LEGACY=$(av_war verify "$AV_A" --response "$AV_TMP/legacy.toml" 2>&1)
+AV_LEGACY_STATUS=$?
+av_commit "retained legacy verdict, not candidate qualification"
+AV_OUT=$(av_war pins --candidate HEAD 2>&1); AV_STATUS=$?
+if [[ $AV_LEGACY_STATUS -ne 0 ]] && grep -q 'verify.subject-unbound' <<<"$AV_LEGACY" \
+    && [[ $AV_STATUS -ne 0 ]] && av_names 'acceptance.candidate-moved' "$AV_OUT" 'src/helper.txt' \
+    && [[ "$(av_sha)" == "$AV_BEFORE" ]]; then
+    av_ok "unbound history cannot clear a move" "legacy retained; acceptance.candidate-moved; resolution untouched"
+else
+    av_fail "unbound history cannot clear a move" "ingest $AV_LEGACY_STATUS; acceptance $AV_STATUS: $(av_lines "$AV_OUT")"
+fi
+
 av_verify established "src/core.txt and src/helper.txt read at $AV_MOVED"
 av_commit "re-verified on the moved candidate"
 AV_OUT=$(av_war pins --candidate HEAD 2>&1); AV_STATUS=$?
