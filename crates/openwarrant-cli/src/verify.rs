@@ -71,6 +71,8 @@ pub struct ReviewedSubject {
     pub fixtures: BTreeMap<String, String>,
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub gate_evidence: BTreeMap<String, String>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub gate_inputs: BTreeMap<String, String>,
 }
 
 pub fn subject(repo: &Repository, one: &crate::repo::Loaded) -> Result<ReviewedSubject, RepoError> {
@@ -103,6 +105,7 @@ pub fn subject(repo: &Repository, one: &crate::repo::Loaded) -> Result<ReviewedS
         .map(|key| (key.clone(), "missing".to_owned()))
         .collect();
     let mut fixtures = BTreeMap::new();
+    let mut input_patterns = std::collections::BTreeSet::new();
     let gate_dir = repo.root.join(&repo.config.paths.gates);
     let paths = match gate_dir.read_dir_utf8() {
         Ok(entries) => entries
@@ -149,6 +152,14 @@ pub fn subject(repo: &Repository, one: &crate::repo::Loaded) -> Result<ReviewedS
             )));
         }
         gate_definitions.insert(key, bytes_digest(&bytes));
+        if let Some(inputs) = definition.get("inputs") {
+            let patterns = inputs.as_list().ok_or_else(|| {
+                RepoError::Message(format!(
+                    "verify.subject-unavailable: {relative} inputs must be a list"
+                ))
+            })?;
+            input_patterns.extend(patterns.iter().cloned());
+        }
         if let Some(declared) = definition
             .get("fixtures")
             .and_then(openwarrant_core::StructuredValue::as_list)
@@ -158,12 +169,32 @@ pub fn subject(repo: &Repository, one: &crate::repo::Loaded) -> Result<ReviewedS
             }
         }
     }
+    let mut gate_inputs = BTreeMap::new();
+    if !input_patterns.is_empty() {
+        let exclusions = crate::gate_cmd::source::Exclusions::of(repo);
+        for path in repo.source_paths()? {
+            if !exclusions.excludes(&path)
+                && input_patterns
+                    .iter()
+                    .any(|p| crate::gate_cmd::source::glob_matches(p, &path))
+            {
+                let digest = file_digest(repo, &path)?;
+                if repo.source_inventory.is_some() && digest == "missing" {
+                    return Err(RepoError::Message(format!(
+                        "verify.subject-unavailable: candidate input {path} is an unsupported source node"
+                    )));
+                }
+                gate_inputs.insert(path, digest);
+            }
+        }
+    }
     Ok(ReviewedSubject {
         contract_digest,
         artifacts,
         gate_definitions,
         fixtures,
         gate_evidence: gate_evidence(repo, one)?,
+        gate_inputs,
     })
 }
 

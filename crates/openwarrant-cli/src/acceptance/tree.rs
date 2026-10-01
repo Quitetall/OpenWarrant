@@ -179,6 +179,7 @@ impl Snapshot {
             root: temporary.0.clone(),
             config,
             profiles: crate::repo::load_profiles(&temporary.0).map_err(|e| e.to_string())?,
+            source_inventory: Some(seen.into_iter().map(|p| p.to_string()).collect()),
         };
         for dir in repository.warrant_dirs().map_err(|e| e.to_string())? {
             let manifest: openwarrant_core::Manifest = toml::from_str(

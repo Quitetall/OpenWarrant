@@ -591,6 +591,9 @@ fn required_sources(
 ) -> Result<Vec<RequiredSource>, RepoError> {
     let mut required = std::collections::BTreeMap::new();
     let mut found = std::collections::BTreeSet::new();
+    for (path, digest) in &subject.gate_inputs {
+        required.insert(path.clone(), ("gate-input", digest.clone()));
+    }
     for (path, digest) in &subject.gate_evidence {
         required.insert(path.clone(), ("gate-evidence", digest.clone()));
     }

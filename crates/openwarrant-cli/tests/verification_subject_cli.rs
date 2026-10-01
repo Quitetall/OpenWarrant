@@ -690,3 +690,59 @@ fn offline_bundle_carries_exact_gate_and_fixture_sources() {
         );
     }
 }
+
+#[test]
+fn changed_declared_gate_input_refuses_old_review_without_writes() {
+    let fixture = Fixture::new();
+    fs::create_dir_all(fixture.0.join("docs/gates")).unwrap();
+    let mut definition = fs::read_to_string(
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../docs/gates/software.repo.war-check@1.0.0.yaml"),
+    )
+    .unwrap();
+    definition.push_str("\ninputs: [\"src/**\"]\n");
+    fs::write(
+        fixture
+            .0
+            .join("docs/gates/software.repo.war-check@1.0.0.yaml"),
+        definition,
+    )
+    .unwrap();
+    fs::create_dir_all(fixture.0.join("src")).unwrap();
+    fs::write(fixture.0.join("src/helper.txt"), "reviewed input").unwrap();
+    fixture.bound_response();
+    let first = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(first["exit_code"], 0, "{first}");
+    let before = fixture.review_state();
+    fs::write(fixture.0.join("src/helper.txt"), "different input").unwrap();
+    let replay = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_ne!(
+        replay["exit_code"], 0,
+        "an unlisted delivery is still a declared gate input: {replay}"
+    );
+    assert!(
+        replay["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "verify.subject-stale"),
+        "{replay}"
+    );
+    assert_eq!(
+        fixture.review_state(),
+        before,
+        "a stale replay writes nothing"
+    );
+}

@@ -11,7 +11,7 @@ subject = b["request"].get("reviewed_subject")
 if subject is not None:
     print("[reviewed_subject]")
     print("contract_digest = " + json.dumps(subject["contract_digest"]))
-    for field in ["artifacts", "gate_definitions", "fixtures", "gate_evidence"]:
+    for field in ["artifacts", "gate_definitions", "fixtures", "gate_evidence", "gate_inputs"]:
         print("[reviewed_subject." + field + "]")
         for key, value in sorted(subject.get(field, {}).items()):
             print(json.dumps(key) + " = " + json.dumps(value))

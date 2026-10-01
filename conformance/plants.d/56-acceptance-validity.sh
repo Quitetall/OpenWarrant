@@ -340,21 +340,24 @@ root, alias = Path(sys.argv[1]), sys.argv[2]
 folder = root / "docs/warrants" / alias
 packets = list((folder / "verifications").glob("bundle-*.json"))
 assert packets
-expected = list((folder / "gate-runs").glob("*"))
-assert len(expected) >= 4
+evidence = list((folder / "gate-runs").glob("*"))
+inputs = list((root / "src").glob("*"))
+assert len(evidence) >= 4 and len(inputs) >= 2
+expected = [(p, "gate-evidence", "gate_evidence") for p in evidence]
+expected += [(p, "gate-input", "gate_inputs") for p in inputs]
 for packet in packets:
     data = json.loads(packet.read_text())
     sources = {s["path"]: s for s in data["required_sources"]}
-    for file in expected:
+    for file, kind, binding in expected:
         path = str(file.relative_to(root))
         source = sources[path]
-        assert source["kind"] == "gate-evidence" and source["present"]
+        assert source["kind"] == kind and source["present"]
         carried = source["text"].encode() if "text" in source else bytes(source["bytes"])
         assert carried == file.read_bytes(), path
-        assert source["sha256"] == data["request"]["reviewed_subject"]["gate_evidence"][path]
+        assert source["sha256"] == data["request"]["reviewed_subject"][binding][path]
 PY_PACKET
 then
-    av_ok "portable packet retains gate evidence" "run, receipt and exact output bytes are carried"
+    av_ok "portable packet retains gate evidence" "run, receipt, output and declared input bytes are carried"
 else
     av_fail "portable packet retains gate evidence" "exit $AV_STATUS; required evidence bytes were not carried"
 fi
@@ -409,7 +412,11 @@ printf 'a second change\n' > "$PLANT_ROOT/src/second.txt"
 av_commit "a second in-scope change"
 AV_OUT=$(av_war pins --candidate HEAD 2>&1); AV_STATUS=$?
 AV_LINE=$(grep 'acceptance.candidate-moved' <<<"$AV_OUT")
-if [[ $AV_STATUS -ne 0 ]] && grep -qF 'src/second.txt' <<<"$AV_LINE" && ! grep -qF 'src/helper.txt' <<<"$AV_LINE"; then
+# A new selected input invalidates the whole earlier review snapshot. Its
+# old observations remain history; comparison may return to the resolution,
+# so the finding can also name the earlier helper change. The new move must
+# still be refused and explicitly named.
+if [[ $AV_STATUS -ne 0 ]] && grep -qF 'src/second.txt' <<<"$AV_LINE"; then
     av_ok "it clears for that candidate only" "a second commit moves it again: src/second.txt"
 else
     av_fail "it clears for that candidate only" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
