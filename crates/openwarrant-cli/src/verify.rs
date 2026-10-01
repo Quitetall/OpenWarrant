@@ -28,6 +28,7 @@
 //! independence it did not have is refused and NOT recorded — a rejected verdict
 //! must not become a file that later reads as a verification.
 
+use std::collections::BTreeMap;
 use std::fs;
 
 use camino::Utf8PathBuf;
@@ -51,6 +52,152 @@ pub struct VerificationRequest {
     pub performer: String,
     pub obligations: Vec<RequestedObligation>,
     pub inputs: BlindVerifierInput,
+    /// Exact subject facts to echo in the response; this is not an approval.
+    pub reviewed_subject: ReviewedSubject,
+}
+
+/// A review binds the compiled contract and actual delivered file bytes.
+/// Digests use existing contract canonicalization and ordinary file SHA-256;
+/// no new semantic digest domain or replacement canonicalizer is introduced.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReviewedSubject {
+    pub contract_digest: String,
+    pub artifacts: BTreeMap<String, String>,
+}
+
+pub fn subject(repo: &Repository, one: &crate::repo::Loaded) -> Result<ReviewedSubject, RepoError> {
+    let (Some(basis), Some(validated)) = (&one.basis, &one.validated) else {
+        return Err(RepoError::Message(
+            "verify.subject-unavailable: the Warrant does not compile".to_owned(),
+        ));
+    };
+    let contract_digest = openwarrant_compiler::lower(basis, validated)
+        .map_err(|e| RepoError::Message(format!("verify.subject-unavailable: {e}")))?
+        .contract_digest()
+        .map_err(|e| RepoError::Message(format!("verify.subject-unavailable: {e}")))?;
+    let mut artifacts = BTreeMap::new();
+    for delivery in repo.load_deliverables(&one.dir)?.records {
+        let relative = camino::Utf8Path::new(&delivery.target_ref);
+        if relative.is_absolute()
+            || relative
+                .components()
+                .any(|c| matches!(c, camino::Utf8Component::ParentDir))
+        {
+            return Err(RepoError::Message(format!(
+                "verify.subject-unavailable: artifact reference {:?} is not repository-relative",
+                delivery.target_ref
+            )));
+        }
+        let path = repo.root.join(relative);
+        let mut walked = repo.root.clone();
+        for component in relative.components() {
+            walked.push(component.as_str());
+            match fs::symlink_metadata(&walked) {
+                Ok(metadata) if metadata.file_type().is_symlink() => {
+                    return Err(RepoError::Message(format!(
+                        "verify.subject-unavailable: symlink at {walked}"
+                    )));
+                }
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound => break,
+                Err(source) => {
+                    return Err(RepoError::Io {
+                        context: format!("could not inspect {walked}"),
+                        source,
+                    });
+                }
+                _ => {}
+            }
+        }
+        let digest = match fs::symlink_metadata(&path) {
+            Ok(metadata) if metadata.is_file() => {
+                let bytes = fs::read(&path).map_err(|source| RepoError::Io {
+                    context: format!("could not read {path}"),
+                    source,
+                })?;
+                format!(
+                    "sha256:{}",
+                    openwarrant_compiler::digest::sha256_hex(&bytes)
+                )
+            }
+            Ok(_) => {
+                return Err(RepoError::Message(format!(
+                    "verify.subject-unavailable: {path} is not a regular file"
+                )));
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => "missing".to_owned(),
+            Err(source) => {
+                return Err(RepoError::Io {
+                    context: format!("could not inspect {path}"),
+                    source,
+                });
+            }
+        };
+        artifacts.insert(delivery.target_ref, digest);
+    }
+    Ok(ReviewedSubject {
+        contract_digest,
+        artifacts,
+    })
+}
+
+/// Historical verdicts remain readable. Only a matching observed review may
+/// qualify the current subject. Never infer review from a file's timestamp.
+pub fn current_records(
+    repo: &Repository,
+    one: &crate::repo::Loaded,
+    records: &[Verification],
+) -> Vec<Verification> {
+    let Ok(journal) = crate::journal_cmd::load(&one.dir) else {
+        return vec![];
+    };
+    let bound: Vec<_> = journal
+        .events
+        .iter()
+        .filter_map(|event| {
+            if event.event_type != crate::journal_cmd::VERIFICATION_RECORDED {
+                return None;
+            }
+            let payload: serde_json::Value = serde_json::from_str(&event.payload).ok()?;
+            let reviewed: ReviewedSubject =
+                serde_json::from_value(payload.get("reviewed_subject")?.clone()).ok()?;
+            Some((event, payload, reviewed))
+        })
+        .collect();
+    if bound.is_empty() {
+        return vec![];
+    }
+    let Ok(current) = subject(repo, one) else {
+        return vec![];
+    };
+    records
+        .iter()
+        .filter(|record| {
+            let path = one
+                .dir
+                .join("verifications")
+                .join(format!("{}.toml", record.obligation));
+            let Ok(bytes) = fs::read(path) else {
+                return false;
+            };
+            let digest = format!(
+                "sha256:{}",
+                openwarrant_compiler::digest::sha256_hex(&bytes)
+            );
+            let actor = format!("{}://{}", record.verifier.kind, record.verifier.actor);
+            bound.iter().any(|(event, payload, reviewed)| {
+                event.actor_ref == actor
+                    && one
+                        .validated
+                        .as_ref()
+                        .is_some_and(|v| event.warrant_uuid == v.uuid.to_string())
+                    && reviewed == &current
+                    && payload["obligation"] == record.obligation
+                    && payload["record_digest"] == digest
+            })
+        })
+        .cloned()
+        .collect()
 }
 
 /// One obligation put to the verifier.
@@ -72,6 +219,8 @@ pub struct VerificationResponse {
     pub schema: String,
     pub warrant: String,
     pub verifications: Vec<Verification>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reviewed_subject: Option<ReviewedSubject>,
 }
 
 pub const RESPONSE_SCHEMA: &str = "oh.war/verification-response/v1";
@@ -142,6 +291,7 @@ pub fn request(
             evidence_refs: vec![],
             required_context_refs: vec![],
         },
+        reviewed_subject: subject(repo, &one)?,
     })
 }
 
@@ -234,6 +384,16 @@ pub fn ingest(
             refusal.to_string(),
         ));
         return Ok(report);
+    }
+
+    if let Some(reviewed) = &response.reviewed_subject {
+        let current = subject(repo, &one)?;
+        if reviewed != &current {
+            report.push(Diagnostic::error("verify.subject-stale", response_path.to_string(), "the response reviewed a different contract or artifact snapshot; nothing was written".to_owned()));
+            return Ok(report);
+        }
+    } else {
+        report.push(Diagnostic::unknown("verify.subject-unbound", response_path.to_string(), "legacy verdicts are retained as historical records, but no reviewed subject was supplied; they cannot qualify current work".to_owned()));
     }
 
     // OW-WAR-0137: on a Warrant whose authorization signed an assignment,
@@ -350,10 +510,10 @@ pub fn ingest(
         // The record's own digest is in the payload so that a re-verification
         // reaching the same disposition on new evidence is a new event, not a
         // refused duplicate.
-        let payload = format!(
-            "{{\"obligation\":\"{}\",\"disposition\":\"{}\",\"record_digest\":\"sha256:{}\"}}",
-            v.obligation, v.disposition, record_digest
-        );
+        let payload = match &response.reviewed_subject {
+            Some(reviewed) => serde_json::to_string(&serde_json::json!({"obligation":v.obligation,"disposition":v.disposition,"record_digest":format!("sha256:{record_digest}"),"reviewed_subject":reviewed})).map_err(|e| RepoError::Message(e.to_string()))?,
+            None => format!("{{\"obligation\":\"{}\",\"disposition\":\"{}\",\"record_digest\":\"sha256:{}\"}}", v.obligation, v.disposition, record_digest),
+        };
         let replay = match crate::journal_cmd::already_recorded(
             &dir,
             crate::journal_cmd::VERIFICATION_RECORDED,
@@ -494,6 +654,7 @@ mod tests {
 
     fn response(warrant: &str, schema: &str) -> VerificationResponse {
         VerificationResponse {
+            reviewed_subject: None,
             schema: schema.to_owned(),
             warrant: warrant.to_owned(),
             verifications: vec![],
