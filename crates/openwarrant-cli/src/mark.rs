@@ -540,6 +540,12 @@ impl Subject<'_> {
                 "the Warrant declares no obligation, so nothing was independently established",
             );
         }
+        let records = match self.repo.load_verifications(&self.one.dir) {
+            Ok(records) => records,
+            Err(e) => return unknown(format!("verification records could not be read: {e}")),
+        };
+        let current = crate::verify::current_records(self.repo, &self.one, &records.records);
+        let mut unbound = Vec::new();
         let mut problems = Vec::new();
         let mut refs = Vec::new();
         for id in &declared {
@@ -571,6 +577,12 @@ impl Subject<'_> {
                 problems.push(format!("{id}: not admissible at {floor}: {e}"));
                 continue;
             }
+            if !current.contains(&v) {
+                unbound.push(format!(
+                    "{id}: no matching reviewed subject for current work"
+                ));
+                continue;
+            }
             refs.push(ObligationRef {
                 id: id.clone(),
                 verdict: rel,
@@ -579,7 +591,9 @@ impl Subject<'_> {
         }
         refs.sort_by(|a, b| a.id.cmp(&b.id));
         self.obligations = refs;
-        if problems.is_empty() {
+        if problems.is_empty() && !unbound.is_empty() {
+            unknown(unbound.join("; "))
+        } else if problems.is_empty() {
             met(format!(
                 "{} obligation(s) established by an independent verdict admissible at {floor}",
                 declared.len()

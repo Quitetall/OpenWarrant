@@ -5,3 +5,4 @@ Real public CLI reproduction on a disposable inbox fixture: ingest a synthetic i
 ## Notes
 
 - **2026-10-01 01:26 UTC, codex:** Public CLI reproduces stale current 2/2 verification after changing OBL-001 and accepts the old response again. Evidence under evidence/ is explicitly synthetic and isolated; no live dispositions written. Fix reviewed-subject binding before treating prepare --all as unattended-safe.
+- **2026-10-01 02:24 UTC, codex:** Nine public CLI checks pass for bound qualification, history retention, stale-artifact refusal, replay, progress/mark consistency, undeclared obligation paths, malformed declarations and the configured wrapper with a synthetic executable. Known independence failure remains inadmissible. Five verification units and three CLI binary tests pass. Proposed representation is ADR-0030; acceptance, complete source/bundle binding, conformance and full gate remain. No live dispositions or paid models used.

@@ -77,7 +77,14 @@ pub fn subject(repo: &Repository, one: &crate::repo::Loaded) -> Result<ReviewedS
         .contract_digest()
         .map_err(|e| RepoError::Message(format!("verify.subject-unavailable: {e}")))?;
     let mut artifacts = BTreeMap::new();
-    for delivery in repo.load_deliverables(&one.dir)?.records {
+    let deliveries = repo.load_deliverables(&one.dir)?;
+    if !deliveries.failures.is_empty() {
+        return Err(RepoError::Message(format!(
+            "verify.subject-unavailable: deliverable declarations did not parse: {:?}",
+            deliveries.failures
+        )));
+    }
+    for delivery in deliveries.records {
         let relative = camino::Utf8Path::new(&delivery.target_ref);
         if relative.is_absolute()
             || relative
@@ -383,6 +390,29 @@ pub fn ingest(
             response_path.to_string(),
             refusal.to_string(),
         ));
+        return Ok(report);
+    }
+
+    // A response may address only declared obligations. Check the entire set
+    // before constructing paths or writing any verdict, including valid peers.
+    let declared = crate::resolve::declared_obligations(&one);
+    for verdict in &response.verifications {
+        if !declared.contains(&verdict.obligation) {
+            report.push(Diagnostic::error(
+                "verify.unknown-obligation",
+                response_path.to_string(),
+                format!(
+                    "{:?} is not a declared obligation of {alias}; nothing was written",
+                    verdict.obligation
+                ),
+            ));
+        }
+    }
+    if report
+        .diagnostics
+        .iter()
+        .any(|d| d.rule == "verify.unknown-obligation")
+    {
         return Ok(report);
     }
 

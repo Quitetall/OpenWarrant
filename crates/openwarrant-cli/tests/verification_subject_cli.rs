@@ -42,6 +42,7 @@ impl Fixture {
             .args(args)
             .env("OPENWARRANT_NO_PROJECTS", "1")
             .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+            .env("CLAUDE_BIN", self.0.join("fixture-claude"))
             .output()
             .unwrap();
         serde_json::from_slice(&output.stdout).unwrap_or_else(|_| {
@@ -51,6 +52,35 @@ impl Fixture {
                 String::from_utf8_lossy(&output.stderr)
             )
         })
+    }
+    fn bound_response(&self) {
+        self.response();
+        let request = self.run(&[
+            "verify",
+            "IX-WAR-0003",
+            "--performer",
+            "fixture-performer",
+            "--json",
+        ]);
+        assert_eq!(request["exit_code"], 0, "{request}");
+        let path = self.0.join("response.toml");
+        let mut response: toml::Value =
+            toml::from_str(&fs::read_to_string(&path).unwrap()).unwrap();
+        response.as_table_mut().unwrap().insert(
+            "reviewed_subject".to_owned(),
+            toml::Value::try_from(&request["result"]["reviewed_subject"]).unwrap(),
+        );
+        fs::write(path, toml::to_string(&response).unwrap()).unwrap();
+    }
+    fn review_state(&self) -> Vec<Vec<u8>> {
+        [
+            "verifications/OBL-001.toml",
+            "verifications/OBL-002.toml",
+            "journal.jsonl",
+        ]
+        .iter()
+        .map(|p| fs::read(self.0.join("docs/warrants/IX-WAR-0003").join(p)).unwrap())
+        .collect()
     }
     fn response(&self) {
         let mut text = String::from(
@@ -126,5 +156,337 @@ fn changed_requirement_cannot_reuse_an_unbound_old_verdict() {
     assert_eq!(
         verify["outcome"], "planned",
         "old verification does not qualify a changed requirement: {report}"
+    );
+}
+
+#[test]
+fn progress_preserves_unbound_history_without_claiming_establishment() {
+    let fixture = Fixture::new();
+    fixture.response();
+    fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    let report = fixture.run(&["status", "--json"]);
+    let warrant = report["result"]["warrants"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|w| w["alias"] == "IX-WAR-0003")
+        .unwrap();
+    assert_eq!(
+        warrant["review"]["verification_records"], 2,
+        "history is retained"
+    );
+    for obligation in warrant["obligations"].as_array().unwrap() {
+        assert_eq!(
+            obligation["disposition"], "unknown",
+            "unbound history is not current assurance: {obligation}"
+        );
+        assert_eq!(obligation["verifier"], "fixture-independent-verifier");
+        assert!(
+            obligation["inadmissible_because"]
+                .as_str()
+                .unwrap()
+                .contains("reviewed subject")
+        );
+    }
+}
+
+#[test]
+fn fresh_bound_review_qualifies_and_exact_replay_preserves_records() {
+    let fixture = Fixture::new();
+    fixture.bound_response();
+    let result = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(result["exit_code"], 0, "{result}");
+    let before = fixture.review_state();
+    let progress = fixture.run(&["status", "--json"]);
+    let warrant = progress["result"]["warrants"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|w| w["alias"] == "IX-WAR-0003")
+        .unwrap();
+    for obligation in warrant["obligations"].as_array().unwrap() {
+        assert_eq!(obligation["disposition"], "established", "{obligation}");
+    }
+    let prepare = fixture.run(&["prepare", "IX-WAR-0003", "--dry-run", "--json"]);
+    let verify = prepare["result"]["warrants"][0]["steps"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|s| s["step"] == "verify")
+        .unwrap();
+    assert_eq!(verify["outcome"], "current", "{prepare}");
+    let replay = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(replay["exit_code"], 0, "{replay}");
+    assert_eq!(
+        fixture.review_state(),
+        before,
+        "exact replay must be byte preserving"
+    );
+}
+
+#[test]
+fn changed_artifact_refuses_old_bound_response_without_writes() {
+    let fixture = Fixture::new();
+    fs::write(fixture.0.join("feature.txt"), "original feature").unwrap();
+    fs::write(
+        fixture
+            .0
+            .join("docs/warrants/IX-WAR-0003/deliverables.toml"),
+        r#"
+schema = "oh.war/deliverables/v1"
+[[deliverable]]
+id = "D-001"
+title = "fixture feature"
+kind = "file"
+target_ref = "feature.txt"
+required = true
+content_addressed = false
+provenance_required = false
+obligation_refs = ["OBL-001"]
+"#,
+    )
+    .unwrap();
+    fixture.bound_response();
+    let result = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_eq!(result["exit_code"], 0, "{result}");
+    let before = fixture.review_state();
+    fs::write(fixture.0.join("feature.txt"), "changed feature").unwrap();
+    let stale = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_ne!(stale["exit_code"], 0, "{stale}");
+    assert!(
+        stale["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "verify.subject-stale"),
+        "{stale}"
+    );
+    assert_eq!(
+        fixture.review_state(),
+        before,
+        "stale import must not change history"
+    );
+    let progress = fixture.run(&["status", "--json"]);
+    let warrant = progress["result"]["warrants"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|w| w["alias"] == "IX-WAR-0003")
+        .unwrap();
+    assert_eq!(warrant["obligations"][0]["disposition"], "unknown");
+}
+
+#[test]
+fn unknown_obligation_refuses_the_whole_response_before_any_write() {
+    let fixture = Fixture::new();
+    fixture.bound_response();
+    let path = fixture.0.join("response.toml");
+    let text = fs::read_to_string(&path)
+        .unwrap()
+        .replace("OBL-001", "../outside-verifications");
+    fs::write(path, text).unwrap();
+    let before = fs::read(fixture.0.join("docs/warrants/IX-WAR-0003/journal.jsonl")).ok();
+    let report = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    assert_ne!(report["exit_code"], 0, "{report}");
+    assert!(
+        report["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "verify.unknown-obligation"),
+        "{report}"
+    );
+    assert!(
+        !fixture
+            .0
+            .join("docs/warrants/IX-WAR-0003/outside-verifications.toml")
+            .exists()
+    );
+    assert!(
+        !fixture
+            .0
+            .join("docs/warrants/IX-WAR-0003/verifications/OBL-002.toml")
+            .exists()
+    );
+    assert_eq!(
+        fs::read(fixture.0.join("docs/warrants/IX-WAR-0003/journal.jsonl")).ok(),
+        before
+    );
+}
+
+#[test]
+fn mark_requirement_does_not_treat_unbound_history_as_current_review() {
+    let fixture = Fixture::new();
+    fixture.response();
+    fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    let report = fixture.run(&["mark", "IX-WAR-0003", "--json"]);
+    let requirement = report["result"]["requirements"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["check"] == "obligations.independently_established")
+        .unwrap();
+    assert_eq!(requirement["result"], "unknown", "{report}");
+    assert!(
+        requirement["detail"]
+            .as_str()
+            .unwrap()
+            .contains("reviewed subject")
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn configured_verifier_echoes_the_subject_it_actually_reviewed() {
+    use std::os::unix::fs::PermissionsExt;
+    let fixture = Fixture::new();
+    let stub = fixture.0.join("fixture-claude");
+    fs::write(
+        &stub,
+        r#"#!/usr/bin/env python3
+import json, sys
+if "--version" in sys.argv:
+    print("synthetic-verifier-fixture")
+else:
+    bundle = json.load(sys.stdin)
+    print(json.dumps({"verdicts": [{"obligation": o["id"], "disposition": "established",
+        "evidence": "synthetic configured-verifier fixture, no real model qualification"}
+        for o in bundle["request"]["obligations"]]}))
+"#,
+    )
+    .unwrap();
+    fs::set_permissions(&stub, fs::Permissions::from_mode(0o700)).unwrap();
+    let config_path = fixture.0.join("openwarrant.toml");
+    let mut config: toml::Value =
+        toml::from_str(&fs::read_to_string(&config_path).unwrap()).unwrap();
+    let wrapper =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../tools/verifier/claude-verifier.sh");
+    config["verify"]["verifier_argv"] = toml::Value::Array(vec![
+        toml::Value::String("bash".to_owned()),
+        toml::Value::String(wrapper.to_str().unwrap().to_owned()),
+    ]);
+    fs::write(config_path, toml::to_string(&config).unwrap()).unwrap();
+    let report = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--run",
+        "--json",
+    ]);
+    assert_eq!(report["exit_code"], 0, "{report}");
+    let prepare = fixture.run(&["prepare", "IX-WAR-0003", "--dry-run", "--json"]);
+    let verify = prepare["result"]["warrants"][0]["steps"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|s| s["step"] == "verify")
+        .unwrap();
+    assert_eq!(verify["outcome"], "current", "{prepare}");
+}
+
+#[test]
+fn malformed_deliverables_cannot_be_bound_as_an_empty_artifact_set() {
+    let fixture = Fixture::new();
+    fs::write(
+        fixture
+            .0
+            .join("docs/warrants/IX-WAR-0003/deliverables.toml"),
+        "[[deliverable]]\nid = [malformed",
+    )
+    .unwrap();
+    let report = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--json",
+    ]);
+    assert_ne!(
+        report["exit_code"], 0,
+        "malformed declarations cannot produce a reviewed subject: {report}"
+    );
+}
+
+#[test]
+fn known_independence_failure_is_not_relabelled_as_unknown_binding() {
+    let fixture = Fixture::new();
+    fixture.response();
+    fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--response",
+        "response.toml",
+        "--json",
+    ]);
+    let path = fixture
+        .0
+        .join("docs/warrants/IX-WAR-0003/verifications/OBL-001.toml");
+    let text = fs::read_to_string(&path).unwrap().replace(
+        "cannot_modify_gate_fixtures = true",
+        "cannot_modify_gate_fixtures = false",
+    );
+    fs::write(path, text).unwrap();
+    let report = fixture.run(&["status", "--json"]);
+    let warrant = report["result"]["warrants"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|w| w["alias"] == "IX-WAR-0003")
+        .unwrap();
+    let obligation = warrant["obligations"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|o| o["id"] == "OBL-001")
+        .unwrap();
+    assert_eq!(obligation["disposition"], "inadmissible", "{obligation}");
+    assert!(
+        obligation["inadmissible_because"]
+            .as_str()
+            .unwrap()
+            .contains("cannot_modify_gate_fixtures")
     );
 }

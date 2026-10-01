@@ -958,7 +958,7 @@ SAS revision **1.1.1** (accepted), sha256:`230e2829d80d11e4ccaf8f893205994ce1631
 
 ## Decisions
 
-9 accepted decision(s), expanded; 19 proposed, one line each.
+9 accepted decision(s), expanded; 20 proposed, one line each.
 
 ### OW-ADR-0001 — ADR OW-0001: Adopt `serde_jcs` as the RFC 8785 canonical JSON implementation
 
@@ -1970,6 +1970,7 @@ are the evidence, recorded under OW-WAR-0073 OBL-001 rather than asserted here.
 - [OW-ADR-0027](../../docs/adr/atoms/OW-ADR-0027-kf-compiler-interface.md) — ADR OW-0027: The Knowledge Fabric compiler interface — who compiles, and the process contract between them
 - [OW-ADR-0028](../../docs/adr/atoms/OW-ADR-0028-sas-sections-are-atoms.md) — ADR OW-0028: SAS sections are atoms — identity now, authored source later
 - [OW-ADR-0029](../../docs/adr/atoms/OW-ADR-0029-standing-authorization.md) — ADR OW-0029: Standing authorization — one signature authorizes a bounded class of routine work
+- [OW-ADR-0030](../../docs/adr/atoms/OW-ADR-0030-reviewed-subject-binding.md) — ADR OW-0030: Bind a verdict to the subject that was reviewed
 
 ## Roadmap
 
@@ -12124,7 +12125,7 @@ truncates nothing.
 | D-001 | One atomic write path: temp, fsync, rename, prestate, no symlinks | `crates/openwarrant-cli/src/atomic.rs` | verified |
 | D-002 | Authorization and judgments written atomically | `crates/openwarrant-cli/src/authorize.rs` | verified |
 | D-003 | Resolution written atomically, against its prestate | `crates/openwarrant-cli/src/resolution_cmd.rs` | verified |
-| D-004 | Verification records written atomically | `crates/openwarrant-cli/src/verify.rs` | verified |
+| D-004 | Verification records written atomically | `crates/openwarrant-cli/src/verify.rs` | drift |
 | D-005 | Gate receipts written atomically | `crates/openwarrant-cli/src/gate_cmd.rs` | not_content_addressed |
 | D-006 | No partial generated parent: views and projections written atomically | `crates/openwarrant-cli/src/compile.rs` | verified |
 | D-007 | Response drafts written atomically before their rename | `crates/openwarrant-cli/src/sign.rs` | not_content_addressed |
@@ -25820,7 +25821,7 @@ nothing about concurrent writers on a shared filesystem.
 | D-002 | The journal replays an equivalent append and refuses a conflicting one | `crates/openwarrant-cli/src/journal_cmd.rs` | verified |
 | D-003a | war ask checks before its first write | `crates/openwarrant-cli/src/questions.rs` | verified |
 | D-003b | war submit checks before its first write | `crates/openwarrant-cli/src/run_cmd.rs` | drift |
-| D-003c | war verify --response checks before its first write | `crates/openwarrant-cli/src/verify.rs` | verified |
+| D-003c | war verify --response checks before its first write | `crates/openwarrant-cli/src/verify.rs` | drift |
 | D-003d | war evidence record checks before its first write | `crates/openwarrant-cli/src/evidence.rs` | not_content_addressed |
 | D-003e | The single-act authorization ingest checks before its first write | `crates/openwarrant-cli/src/authorize.rs` | verified |
 | D-004 | compat.rs: requires_war and schema-major recognition | `crates/openwarrant-cli/src/compat.rs` | verified |
@@ -29950,7 +29951,7 @@ performer's report under another name.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | The blind, tool-less verifier wrapper | `tools/verifier/claude-verifier.sh` | verified |
+| D-001 | The blind, tool-less verifier wrapper | `tools/verifier/claude-verifier.sh` | drift |
 | D-002 | [verify] verifier_argv and the declared [independence] | `openwarrant.toml` | verified |
 | D-003 | The verifier plants | `conformance/plants.d/62-verifier.sh` | verified |
 | D-004 | How to run the verifier and read what it says | `docs/VERIFICATION.md` | verified |
@@ -30345,7 +30346,7 @@ this level requires. The author does not record them.
 | D-006 | When recorded evidence still counts: the reuse rule and the compiler's three rules | `docs/RESOLVING.md` | verified |
 | D-007 | The context manifest says conflicts were unchecked (AM-002) | `crates/openwarrant-cli/src/dispatch.rs` | drift |
 | D-008 | The context manifest type carries the conflict state (AM-002) | `crates/openwarrant-core/src/context.rs` | verified |
-| D-009 | Status labels a reuse-unknown run as such (AM-002) | `crates/openwarrant-cli/src/status.rs` | verified |
+| D-009 | Status labels a reuse-unknown run as such (AM-002) | `crates/openwarrant-cli/src/status.rs` | drift |
 | D-010 | An eval scratch commits before recording evidence (AM-002) | `crates/openwarrant-cli/src/eval.rs` | verified |
 | D-011 | The eval baseline, re-recorded (AM-002) | `evals/baseline.json` | verified |
 | D-012 | Two resolution plants re-pointed at a scratch fixture (AM-002) | `conformance/plants.d/00-corpus.sh` | verified |
@@ -31051,7 +31052,7 @@ this level requires. The author does not record them.
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | The assurance mark decision: baseline v1, issuance, what it binds | `docs/adr/atoms/OW-ADR-0025-assurance-mark.md` | verified |
-| D-002 | Evaluate a resolved Warrant against a baseline; emit or refuse the mark | `crates/openwarrant-cli/src/mark.rs` | verified |
+| D-002 | Evaluate a resolved Warrant against a baseline; emit or refuse the mark | `crates/openwarrant-cli/src/mark.rs` | drift |
 | D-003 | The war mark command | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-004 | Baseline v1 as data, versioned | `docs/assurance/baseline-v1.toml` | verified |
 | D-005 | The mark plants | `conformance/plants.d/57-assurance-mark.sh` | verified |
@@ -34783,7 +34784,7 @@ resolver is refused by kind whatever the file says.
 | D-002 | the authorization request lists and echoes the assignment | `crates/openwarrant-cli/src/authorize.rs` | verified |
 | D-003 | eligibility narrowed by assignment; the per-actor list | `crates/openwarrant-cli/src/sign.rs` | not_content_addressed |
 | D-004 | war inbox --as | `crates/openwarrant-cli/src/inbox/mod.rs` | verified |
-| D-005 | verify ingest checks the assigned verifier and its role | `crates/openwarrant-cli/src/verify.rs` | verified |
+| D-005 | verify ingest checks the assigned verifier and its role | `crates/openwarrant-cli/src/verify.rs` | drift |
 | D-006 | docs/TEAMS.md | `docs/TEAMS.md` | verified |
 | D-007 | THREAT_MODEL row: assignment and verdict attribution | `docs/THREAT_MODEL.md` | not_content_addressed |
 | D-008 | the plants | `conformance/plants.d/57-teams.sh` | verified |
