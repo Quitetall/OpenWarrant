@@ -65,7 +65,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | requirement | Warrants blocked |
 |---|---|
 | every required gate has admissible result | 114 |
-| artifact digests verify | 87 |
+| artifact digests verify | 89 |
 | no blocker remains | 86 |
 | no required unknown remains | 86 |
 | required judgments exist | 55 |
@@ -276,7 +276,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0126` Knowledge Fabric owns authority and lifecycle: the registration seam and what stays local | draft | unknown | 3 | 0 of 1 | exact authorized Contract Revision |
 | `OW-WAR-0127` Native systems keep artifact authority: OpenWarrant references, never re-owns, what another system holds | draft | unknown | 1 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0128` The Knowledge Fabric compiler interface: what OpenWarrant hands KF and what it gets back | draft | unknown | 3 | 0 of 1 | exact authorized Contract Revision |
-| `OW-WAR-0129` A Dispatch over its budget is refused, by name, before any agent starts | draft | would satisfy | 0 | 3 of 3 | every required gate has admissible result |
+| `OW-WAR-0129` A Dispatch over its budget is refused, by name, before any agent starts | draft | would satisfy | 0 | 3 of 3 | artifact digests verify |
 | `OW-WAR-0130` Idempotent acts, all-or-nothing batches, and version negotiation between war and its records | draft | NOT satisfied | 0 | 2 of 4 | artifact digests verify |
 | `OW-WAR-0131` Agent and harness adapters per OS: writer handoff and cancellation | draft | would satisfy | 0 | 3 of 3 | artifact digests verify |
 | `OW-WAR-0132` Hotline defaults: time and spend limits, repair accounting, and delivery when nobody answers | draft | would satisfy | 0 | 4 of 4 | every required gate has admissible result |

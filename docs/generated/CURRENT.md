@@ -25414,7 +25414,7 @@ gate receipt of their own (U-002). Its gated evidence is the plant through
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | compile_dispatch computes the estimate and refuses over budget or unrecorded | `crates/openwarrant-compiler/src/dispatch.rs` | verified |
-| D-002 | war dispatch delegates the budget rule to the compiler | `crates/openwarrant-cli/src/dispatch.rs` | verified |
+| D-002 | war dispatch delegates the budget rule to the compiler | `crates/openwarrant-cli/src/dispatch.rs` | drift |
 | D-003 | war dispatch-bundle create judges a Dispatch's tokens before bundling | `crates/openwarrant-cli/src/dispatch_bundle_cmd.rs` | verified |
 | D-004 | The budget plants: perform, perform --all, run, dispatch-bundle | `conformance/plants.d/83-tokens.sh` | verified |
 
@@ -25819,7 +25819,7 @@ nothing about concurrent writers on a shared filesystem.
 | D-001 | Batch step 6: the durable .recording marker, batch.interrupted, --recover | `crates/openwarrant-cli/src/batch_cmd.rs` | not_content_addressed |
 | D-002 | The journal replays an equivalent append and refuses a conflicting one | `crates/openwarrant-cli/src/journal_cmd.rs` | verified |
 | D-003a | war ask checks before its first write | `crates/openwarrant-cli/src/questions.rs` | verified |
-| D-003b | war submit checks before its first write | `crates/openwarrant-cli/src/run_cmd.rs` | verified |
+| D-003b | war submit checks before its first write | `crates/openwarrant-cli/src/run_cmd.rs` | drift |
 | D-003c | war verify --response checks before its first write | `crates/openwarrant-cli/src/verify.rs` | verified |
 | D-003d | war evidence record checks before its first write | `crates/openwarrant-cli/src/evidence.rs` | not_content_addressed |
 | D-003e | The single-act authorization ingest checks before its first write | `crates/openwarrant-cli/src/authorize.rs` | verified |
@@ -25827,7 +25827,7 @@ nothing about concurrent writers on a shared filesystem.
 | D-005 | [project] requires_war | `crates/openwarrant-core/src/config.rs` | not_content_addressed |
 | D-006 | Repository::discover runs the compat check once | `crates/openwarrant-cli/src/repo.rs` | verified |
 | D-007 | Reading backward: what an older war does with newer records | `docs/COMPATIBILITY.md` | verified |
-| D-008 | The idempotency, batch-atomicity and version plants | `conformance/plants.d/69-idempotency.sh` | verified |
+| D-008 | The idempotency, batch-atomicity and version plants | `conformance/plants.d/69-idempotency.sh` | drift |
 | D-013 | `war sign --batch --recover <id>` as a flag, and exit 2 for compat.war-too-old (AM-002) | `crates/openwarrant-cli/src/lib.rs` | drift |
 
 #### OW-WAR-0131 — Agent and harness adapters per OS: writer handoff and cancellation
@@ -30343,7 +30343,7 @@ this level requires. The author does not record them.
 | D-004 | The context manifest's conflict field, compiled Dispatch | `crates/openwarrant-compiler/src/dispatch.rs` | verified |
 | D-005 | The evidence-reuse and context plants | `conformance/plants.d/55-evidence-reuse.sh` | verified |
 | D-006 | When recorded evidence still counts: the reuse rule and the compiler's three rules | `docs/RESOLVING.md` | verified |
-| D-007 | The context manifest says conflicts were unchecked (AM-002) | `crates/openwarrant-cli/src/dispatch.rs` | verified |
+| D-007 | The context manifest says conflicts were unchecked (AM-002) | `crates/openwarrant-cli/src/dispatch.rs` | drift |
 | D-008 | The context manifest type carries the conflict state (AM-002) | `crates/openwarrant-core/src/context.rs` | verified |
 | D-009 | Status labels a reuse-unknown run as such (AM-002) | `crates/openwarrant-cli/src/status.rs` | verified |
 | D-010 | An eval scratch commits before recording evidence (AM-002) | `crates/openwarrant-cli/src/eval.rs` | verified |
