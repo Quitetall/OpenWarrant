@@ -165,7 +165,14 @@ fn read_report(root: &Path, path: &str, alias: &str) -> Result<(WorkReport, Stri
 }
 fn capture(repo: &Repository, live: bool) -> Result<Snapshot, RepoError> {
     let root = repo.root.canonicalize().map_err(|e| err(e.to_string()))?;
-    let legacy = overview::build(status::build(repo)?, true);
+    let corpus = status::build(repo)?;
+    // OW-ADR-0023: use the same observed corpus for both views. Calling
+    // `view` would assess every Warrant a second time for the same snapshot.
+    let from_record = match crate::roadmap_cmd::view_with(repo, &corpus) {
+        Ok((_, v)) => Some(roadmap::from_record(&v)),
+        Err(_) => None,
+    };
+    let legacy = overview::build(corpus, true);
     let git = std::process::Command::new("git")
         .args(["rev-parse", "HEAD"])
         .current_dir(&root)
@@ -242,10 +249,6 @@ fn capture(repo: &Repository, live: bool) -> Result<Snapshot, RepoError> {
     }
     // OW-ADR-0023: the roadmap record when the program has one; the authored
     // `view.json` only for a program that has not adopted the record.
-    let from_record = match crate::roadmap_cmd::view(repo) {
-        Ok((_, v)) => Some(roadmap::from_record(&v)),
-        Err(_) => None,
-    };
     let path = root.join("docs/roadmap/view.json");
     if from_record.is_some() || path.try_exists().map_err(|e| err(e.to_string()))? {
         let roadmap = match from_record {

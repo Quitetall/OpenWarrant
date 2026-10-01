@@ -3241,6 +3241,9 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         } => {
             let repository = open_repo()?;
             if snapshot {
+                // One-shot read-only snapshot. Never enable this memo for the
+                // long-running server below: each refresh must observe edits.
+                gate_cmd::source::remember_tree_reads();
                 let view = progress_viewer::json_snapshot(&repository)?;
                 output::emit(
                     mode,
@@ -3264,6 +3267,9 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
                 progress_viewer::serve(repository, port, refresh_secs, mode)?;
                 return Ok(EXIT_OK);
             }
+            // Plain overview is also one-shot and read-only. Export and serve
+            // returned above without freezing their tree observations.
+            gate_cmd::source::remember_tree_reads();
             let view = overview::build(status::build(&repository)?, all);
             output::emit(
                 mode,
