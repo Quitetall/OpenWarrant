@@ -28,6 +28,8 @@
 //! independence it did not have is refused and NOT recorded — a rejected verdict
 //! must not become a file that later reads as a verification.
 
+pub(crate) mod context;
+
 use std::collections::BTreeMap;
 use std::fs;
 
@@ -64,6 +66,8 @@ pub struct VerificationRequest {
 #[serde(deny_unknown_fields)]
 pub struct ReviewedSubject {
     pub contract_digest: String,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub context_sources: BTreeMap<String, String>,
     pub artifacts: BTreeMap<String, String>,
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub gate_definitions: BTreeMap<String, String>,
@@ -235,8 +239,13 @@ pub fn subject(repo: &Repository, one: &crate::repo::Loaded) -> Result<ReviewedS
             }
         }
     }
+    let context_sources = context::capture(repo, one)?
+        .into_iter()
+        .map(|(path, bytes)| (path, bytes_digest(&bytes)))
+        .collect();
     Ok(ReviewedSubject {
         contract_digest,
+        context_sources,
         artifacts,
         gate_definitions,
         fixtures,
@@ -654,6 +663,39 @@ pub(crate) fn packets_cover(
         {
             return Ok(false);
         }
+        let context_refs: Vec<_> = reviewed.context_sources.keys().cloned().collect();
+        if request.inputs.required_context_refs != context_refs {
+            return Ok(false);
+        }
+        for (path, digest) in &reviewed.context_sources {
+            let Some(sources) = packet["required_sources"].as_array() else {
+                return Ok(false);
+            };
+            let matching: Vec<_> = sources
+                .iter()
+                .filter(|source| source["path"] == *path)
+                .collect();
+            let [source] = matching.as_slice() else {
+                return Ok(false);
+            };
+            let contents = match (source["text"].as_str(), source.get("bytes")) {
+                (Some(text), None) => text.as_bytes().to_vec(),
+                (None, Some(bytes)) => {
+                    let Ok(bytes) = serde_json::from_value::<Vec<u8>>(bytes.clone()) else {
+                        return Ok(false);
+                    };
+                    bytes
+                }
+                _ => return Ok(false),
+            };
+            if source["present"] != true
+                || source["kind"] != "governing-sas"
+                || source["sha256"] != *digest
+                || bytes_digest(&contents) != *digest
+            {
+                return Ok(false);
+            }
+        }
         covered.extend(request.obligations.into_iter().map(|o| o.id));
     }
     Ok(obligations.iter().all(|o| covered.contains(o)))
@@ -670,7 +712,16 @@ pub fn request(
 ) -> Result<VerificationRequest, RepoError> {
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
+    request_from_loaded(repo, &one, performer)
+}
 
+pub(crate) fn request_from_loaded(
+    repo: &Repository,
+    one: &crate::repo::Loaded,
+    performer: &str,
+) -> Result<VerificationRequest, RepoError> {
+    let alias = one.alias();
+    let dir = &one.dir;
     let assurance = one
         .validated
         .as_ref()
@@ -709,12 +760,14 @@ pub fn request(
         .as_ref()
         .map(|b| b.atoms.iter().map(|a| a.source.clone()).collect())
         .unwrap_or_default();
-    for deliverable in repo.load_deliverables(&dir)?.records {
+    for deliverable in repo.load_deliverables(dir)?.records {
         if !artifact_refs.contains(&deliverable.target_ref) {
             artifact_refs.push(deliverable.target_ref);
         }
     }
 
+    let reviewed_subject = subject(repo, one)?;
+    let required_context_refs = reviewed_subject.context_sources.keys().cloned().collect();
     Ok(VerificationRequest {
         schema: REQUEST_SCHEMA.to_owned(),
         warrant: alias.to_owned(),
@@ -726,9 +779,9 @@ pub fn request(
             artifact_refs,
             gate_binding_refs: vec![],
             evidence_refs: vec![],
-            required_context_refs: vec![],
+            required_context_refs,
         },
-        reviewed_subject: subject(repo, &one)?,
+        reviewed_subject,
     })
 }
 

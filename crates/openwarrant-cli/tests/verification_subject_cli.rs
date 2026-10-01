@@ -1402,3 +1402,74 @@ fn strict_packet_reader_preserves_large_required_binary_fixtures() {
     assert_eq!(ingested["exit_code"], 0, "{ingested}");
     assert_eq!(ingested["counts"]["pass"], 2, "{ingested}");
 }
+
+#[test]
+fn offline_review_carries_exact_pinned_architecture_rules() {
+    let fixture = Fixture::new();
+    let source = "# Inbox SAS\n\n## 106. Requirements\n\n| ID | Requirement |\n| --- | --- |\n| IX-SAS-RQ-001 | Email verification is required before account activation. |\n";
+    fs::create_dir_all(fixture.0.join("docs/sas")).unwrap();
+    fs::write(fixture.0.join("docs/sas/Inbox_SAS.md"), source).unwrap();
+    let proposal = fixture.run(&["sas", "propose", "0.1.0", "--json"]);
+    assert_eq!(proposal["exit_code"], 0, "{proposal}");
+    let emitted = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--json",
+    ]);
+    assert_eq!(emitted["exit_code"], 0, "{emitted}");
+    for reference in emitted["result"]["packets"].as_array().unwrap() {
+        let packet: serde_json::Value = serde_json::from_slice(
+            &fs::read(fixture.0.join(reference["path"].as_str().unwrap())).unwrap(),
+        )
+        .unwrap();
+        assert!(
+            packet["request"]["inputs"]["required_context_refs"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|r| r == "docs/sas/Inbox_SAS.md")
+        );
+        let rule = packet["required_sources"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|r| r["path"] == "docs/sas/Inbox_SAS.md")
+            .expect("offline packet must carry the pinned governing source");
+        assert_eq!(rule["text"], source);
+        assert_eq!(rule["kind"], "governing-sas");
+    }
+    fs::write(
+        fixture.0.join("docs/sas/Inbox_SAS.md"),
+        "# Different architecture\n",
+    )
+    .unwrap();
+    let missing = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--json",
+    ]);
+    assert!(
+        missing["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "verify.context-unavailable" && d["severity"] == "UNKNOWN"),
+        "{missing}"
+    );
+    fs::write(fixture.0.join("docs/sas/Inbox_SAS.md"), source).unwrap();
+    let restored = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--json",
+    ]);
+    assert_eq!(restored["exit_code"], 0, "{restored}");
+}

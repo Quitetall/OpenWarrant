@@ -590,9 +590,23 @@ struct Sources {
 fn required_sources(
     repo: &Repository,
     subject: &crate::verify::ReviewedSubject,
+    one: &crate::repo::Loaded,
 ) -> Result<Vec<RequiredSource>, RepoError> {
+    let context_sources = crate::verify::context::capture(repo, one)?;
+    let context_digests: std::collections::BTreeMap<_, _> = context_sources
+        .iter()
+        .map(|(path, bytes)| (path.clone(), format!("sha256:{}", sha256_hex(bytes))))
+        .collect();
+    if context_digests != subject.context_sources {
+        return Err(RepoError::Message(
+            "verify.subject-stale: governing context changed during bundle capture".into(),
+        ));
+    }
     let mut required = std::collections::BTreeMap::new();
     let mut found = std::collections::BTreeSet::new();
+    for (path, digest) in &subject.context_sources {
+        required.insert(path.clone(), ("governing-sas", digest.clone()));
+    }
     // Input bindings identify the reviewed workspace. They do not grant
     // permission to publish every source as blind reviewer context.
     // Artifacts and explicitly required context are collected separately.
@@ -648,7 +662,10 @@ fn required_sources(
     }
     let mut out = Vec::new();
     for (path, (kind, expected)) in required {
-        let read = crate::verify::file_bytes(repo, &path)?;
+        let read = match context_sources.get(&path) {
+            Some(bytes) => Some(bytes.clone()),
+            None => crate::verify::file_bytes(repo, &path)?,
+        };
         let actual = read
             .as_ref()
             .map(|b| format!("sha256:{}", sha256_hex(b)))
@@ -680,8 +697,8 @@ fn required_sources(
 fn load(repo: &Repository, alias: &str, performer: &str) -> Result<Sources, RepoError> {
     let dir = repo.warrant_dir(alias)?;
     let one = repo.load_warrant(&dir)?;
-    let request = crate::verify::request(repo, alias, performer)?;
-    let required_sources = required_sources(repo, &request.reviewed_subject)?;
+    let request = crate::verify::request_from_loaded(repo, &one, performer)?;
+    let required_sources = required_sources(repo, &request.reviewed_subject, &one)?;
     let authorized_contract_digest = repo
         .load_authorization(&dir)
         .ok()

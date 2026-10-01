@@ -28,6 +28,7 @@ The request carries `reviewed_subject`. A response echoes the exact object it re
 | Field | Binding |
 |---|---|
 | `contract_digest` | Existing compiled contract digest. |
+| `context_sources` | Exact pinned SAS source path and ordinary SHA-256 of its retained bytes. |
 | `artifacts` | Declared delivered paths and ordinary SHA-256 of actual bytes. |
 | `gate_definitions` | Each cited gate key and the digest of its definition bytes. |
 | `fixtures` | Declared fixture paths and actual byte digests. |
@@ -61,7 +62,7 @@ Each `reviewed_packets` entry carries a retained repository-relative path and th
 
 Contract and packet digests retain their existing Rust canonicalizers and digest domains. No replacement canonicalizer, Python digest implementation or model-created digest is introduced. `verify --bundle --json` returns a machine-readable packet index; configured verifier calls receive its Rust-computed references as transport metadata.
 
-Packets carry exact required gate-definition, fixture and recorded-evidence bytes. UTF-8 stays readable; binary fixtures stay lossless byte arrays. Every obligation packet retains those fixed inputs. Budget pressure cannot silently remove or excerpt them. Assembly compares them against the captured subject and refuses required sources that change or disappear during capture. Complete governing-context closure remains open.
+Packets carry exact required pinned-SAS, gate-definition, fixture and recorded-evidence bytes. UTF-8 stays readable; binary fixtures stay lossless byte arrays. Every obligation packet retains those fixed inputs. Budget pressure cannot silently remove or excerpt them. Assembly compares them against the captured subject and refuses required sources that change or disappear during capture. The draft locates the captured SAS version/digest in retained revision records, uses descriptor-safe current reads, and recovers matching historical Git bytes locally when needed. Candidate snapshots cannot borrow mutable checkout history. An unavailable pinned source is UNKNOWN; a newer SAS cannot substitute. Packet qualification also checks the full carried source against its subject digest. Request and packet assembly reuse one loaded Warrant. This SAS slice is under test; complete transitive governing-context closure remains open.
 
 ## Retained packet storage
 
