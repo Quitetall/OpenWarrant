@@ -605,31 +605,7 @@ pub(crate) fn packets_cover(
         {
             return Ok(false);
         }
-        let read = file_bytes(repo, &reference.path).map_err(|error| {
-            if matches!(
-                &error,
-                RepoError::Io { .. } | RepoError::ObservationUnavailable { .. }
-            ) {
-                RepoError::ObservationUnavailable {
-                    rule: "verify.packet-unavailable",
-                    message: format!(
-                        "could not inspect retained packet {}: {error}",
-                        reference.path
-                    ),
-                }
-            } else {
-                error
-            }
-        })?;
-        let Some(bytes) = read else {
-            return Err(RepoError::ObservationUnavailable {
-                rule: "verify.packet-unavailable",
-                message: format!(
-                    "retained packet {} is absent; history is unchanged",
-                    reference.path
-                ),
-            });
-        };
+        let bytes = crate::bundle::store::read(&repo.root, camino::Utf8Path::new(&reference.path))?;
         let Ok(packet) = serde_json::from_slice::<serde_json::Value>(&bytes) else {
             return Ok(false);
         };

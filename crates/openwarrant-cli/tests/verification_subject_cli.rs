@@ -1209,3 +1209,95 @@ fn unsupported_future_response_is_unknown_and_v2_missing_bindings_is_invalid() {
             .exists()
     );
 }
+
+#[test]
+fn emitting_again_never_replaces_a_retained_packet_with_different_bytes() {
+    let fixture = Fixture::new();
+    fixture.bound_response();
+    let response: toml::Value =
+        toml::from_str(&fs::read_to_string(fixture.0.with_extension("response.toml")).unwrap())
+            .unwrap();
+    let packet_path = fixture
+        .0
+        .join(response["reviewed_packets"][0]["path"].as_str().unwrap());
+    let original = fs::read(&packet_path).unwrap();
+    let args = [
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--json",
+    ];
+    let unchanged = fixture.run(&args);
+    assert_eq!(unchanged["exit_code"], 0, "{unchanged}");
+    assert_eq!(fs::read(&packet_path).unwrap(), original);
+    let occupied = b"different retained bytes: never silently repair or overwrite";
+    fs::write(&packet_path, occupied).unwrap();
+    let refused = fixture.run(&args);
+    assert_ne!(refused["exit_code"], 0, "{refused}");
+    assert!(
+        refused["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["message"]
+                .as_str()
+                .unwrap_or_default()
+                .contains("verify.packet-collision")),
+        "{refused}"
+    );
+    assert_eq!(fs::read(&packet_path).unwrap(), occupied);
+    fs::write(&packet_path, original).unwrap();
+    let restored = fixture.run(&args);
+    assert_eq!(restored["exit_code"], 0, "{restored}");
+}
+
+#[cfg(unix)]
+#[test]
+fn retained_packet_link_never_writes_its_external_target() {
+    let fixture = Fixture::new();
+    let external = Fixture::new();
+    let outside = external.0.join("outside-sentinel.txt");
+    let sentinel = b"outside bytes must remain unchanged";
+    fs::write(&outside, sentinel).unwrap();
+    fixture.bound_response();
+    let response: toml::Value =
+        toml::from_str(&fs::read_to_string(fixture.0.with_extension("response.toml")).unwrap())
+            .unwrap();
+    let packet_path = fixture
+        .0
+        .join(response["reviewed_packets"][0]["path"].as_str().unwrap());
+    let original = fs::read(&packet_path).unwrap();
+    fs::remove_file(&packet_path).unwrap();
+    std::os::unix::fs::symlink(&outside, &packet_path).unwrap();
+    let refused = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--json",
+    ]);
+    assert_ne!(refused["exit_code"], 0, "{refused}");
+    assert_eq!(refused["counts"]["error"], 0, "{refused}");
+    assert_eq!(refused["counts"]["unknown"], 1, "{refused}");
+    assert_eq!(
+        refused["diagnostics"][0]["rule"], "verify.packet-unavailable",
+        "{refused}"
+    );
+    assert_eq!(fs::read(&outside).unwrap(), sentinel);
+    assert!(packet_path.is_symlink());
+    fs::remove_file(&packet_path).unwrap();
+    fs::write(&packet_path, original).unwrap();
+    let restored = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--json",
+    ]);
+    assert_eq!(restored["exit_code"], 0, "{restored}");
+    assert_eq!(fs::read(&outside).unwrap(), sentinel);
+}

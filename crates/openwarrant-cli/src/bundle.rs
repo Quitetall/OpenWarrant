@@ -49,7 +49,9 @@
 //! configured verifier too. A response answering an obligation its bundle did
 //! not carry is refused unread.
 
-use camino::Utf8PathBuf;
+pub(crate) mod store;
+
+use camino::{Utf8Path, Utf8PathBuf};
 use openwarrant_compiler::digest::sha256_hex;
 use openwarrant_compiler::{DigestDomain, sha256_digest};
 use serde::Serialize;
@@ -1483,19 +1485,16 @@ pub fn write(
     // whether it exists is part of what the bundle says about it — a first
     // run must not describe a tree its own writing then changes.
     let dir = repo.warrant_dir(alias)?.join("verifications");
-    std::fs::create_dir_all(&dir).map_err(|source| RepoError::Io {
-        context: format!("could not create {dir}"),
-        source,
-    })?;
+    let retained = store::Directory::open(&repo.root, Utf8Path::new(&repo.relative(&dir)))?;
     let bundles = build_all(repo, alias, performer)?;
     let mut out = Vec::new();
     for bundle in bundles {
         let (text, digest) = canonical(&bundle)?;
         let path = dir.join(format!("bundle-{}.json", short(&digest)));
-        std::fs::write(&path, text + "\n").map_err(|source| RepoError::Io {
-            context: format!("could not write {path}"),
-            source,
-        })?;
+        retained.retain(
+            &format!("bundle-{}.json", short(&digest)),
+            (text + "\n").as_bytes(),
+        )?;
         out.push((path, bundle, digest));
     }
     Ok(out)

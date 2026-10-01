@@ -11,40 +11,70 @@ status: proposed
 
 # ADR OW-0030: Bind a verdict to the subject that was reviewed
 
-## Status
+## Status and scope
 
-Proposed implementation decision for [ticket t-b9610](../../tickets/t-b9610/atoms/10-intent.md). Not adopted. The implementation branch is experimental and unfinished; this document grants no authority and changes no signed historical record.
+Proposed experimental decision for [ticket t-b9610](../../tickets/t-b9610/atoms/10-intent.md). The branch is unfinished. This proposal grants no authority, changes no signed historical record, and does not adopt a new assurance baseline. Read the [implementation notes](../../design/reviewed-subject-binding-wip.md) for observed checks and remaining work.
 
-## Evidence and problem
+## Problem
 
-A public CLI reproduction on a disposable fixture ingested an independent response, changed the requirement, and still reported verification current. The old response could be ingested again. Historical observations cannot establish a different current subject.
+A public CLI reproduction ingested an independent response, changed the requirement, and still reported verification current. It also accepted the old response again. A historical observation cannot establish a different current subject.
 
-## Proposed representation
+Separate reproductions showed packet generation overwriting different retained bytes and following a packet filename link to overwrite a file outside the repository. Retained evidence must remain distinguishable from a newly generated projection.
 
-Add `reviewed_subject` to verification requests. A returned response can echo this exact object. The experimental snapshot contains the existing compiled contract digest, a sorted map of repository-relative delivered paths to the ordinary SHA-256 of their actual bytes, the bytes of each cited gate definition, and its declared fixture paths and byte digests. Missing gate definitions and missing files remain explicit. Duplicate definitions of a cited gate cannot produce one ambiguous binding. A missing artifact is recorded as missing; this does not satisfy the separate existence gate. Malformed declarations cannot produce an empty snapshot.
+## Reviewed subject
 
-The experimental snapshot also carries `gate_evidence`, a sorted map of recorded run paths, receipt paths and their referenced raw evidence (including stdout and stderr) to ordinary file SHA-256 values. Missing receipts or output remain explicitly missing. The map binds what was presented, not whether it is admissible or sufficient. Malformed run or receipt data refuses capture; an unparseable observation cannot silently become an absent one. Required evidence bytes travel in every offline packet and are not excerpted for a token budget. Candidate and current qualification compare this map along with the existing subject fields.
+The request carries `reviewed_subject`. A response echoes the exact object it reviewed. The draft captures:
 
-Keep the existing core verification record bytes. The existing verification-recorded journal event binds their exact file digest, actor, obligation and reviewed subject. Current qualification requires this event to match the current subject. A legacy response without the new field can be retained, but supplies no current subject binding: qualification is UNKNOWN. Never infer binding from timestamps or alter old dispositions.
+| Field | Binding |
+|---|---|
+| `contract_digest` | Existing compiled contract digest. |
+| `artifacts` | Declared delivered paths and ordinary SHA-256 of actual bytes. |
+| `gate_definitions` | Each cited gate key and the digest of its definition bytes. |
+| `fixtures` | Declared fixture paths and actual byte digests. |
+| `gate_evidence` | Recorded run, receipt, stdout, stderr and raw evidence paths and byte digests. |
+| `gate_inputs` | Selected input paths and actual byte digests. |
+| `gate_links` | Selected link paths and exact target text. |
 
-This is an additive wire representation in the experimental CLI and therefore a documented decision, not replacement canonicalization. Contract and verification-bundle digests retain their existing canonicalizers and domains. The full portable review must also bind the existing canonical verification-bundle identity and the relevant source/evidence facts; that portion is not yet implemented. Do not present the initial contract/artifact map as complete context binding.
+Maps are sorted. Missing artifacts remain explicit and cannot satisfy existence. Malformed deliverable declarations cannot become an empty artifact set. Duplicate definitions of a cited gate cannot produce one ambiguous binding. Malformed run or receipt data refuses capture instead of becoming an absent observation. Binding a receipt does not establish its admissibility or sufficiency.
 
-The experimental portable bundle also carries exact required gate-definition and fixture contents. Readable UTF-8 stays text; binary fixtures stay exact byte arrays. Each source carries its path, kind, SHA-256 and presence. Every obligation packet retains these fixed inputs; budget pressure cannot silently remove or excerpt them. Assembly compares observed bytes with the subject already captured and refuses required gates that change or disappear during capture. This is not the remaining complete context/evidence closure or a proof of filesystem race isolation.
+Cited gates with nonempty `inputs` use the existing glob and exclusion rules. Missing or empty input lists, missing gate definitions, and no cited gates use the existing conservative tree scope. Explicit selections are unioned with that scope: tree bookkeeping exclusions cannot remove a declared input.
 
-The experimental `gate_inputs` map binds paths selected by each cited gate's nonempty explicit `inputs` globs, using the existing matching and source-exclusion rules. Git checkouts enumerate tracked and nonignored paths; document-only repositories enumerate local data paths without following symlinks. Candidate snapshots use their exact Git-tree inventory, including unsupported nodes so a selected unsafe node cannot disappear silently. Changed bytes or selected path sets invalidate the prior full review snapshot. Missing or empty input lists, missing gate definitions, and no cited gates bind the whole source tree under the existing tree exclusions. Explicit input selections are unioned with that tree scope, so a declared input cannot be dropped merely because tree bookkeeping normally excludes it.
+Internal links bind both target identity and selected file/subtree dependencies. A link differs from a regular file holding the same bytes. Candidate Git link blobs remain private data, rather than filesystem links. External, dangling, chained, cyclic and unsupported targets are unavailable observations, reported as UNKNOWN.
 
-Source bindings identify the reviewed workspace; they do not authorize publishing each file as blind reviewer context. The input map remains in the packet manifest, while actual context comes from selected artifacts, governing rules, required fixtures and recorded evidence. Performer rationale and historical instructions must not be copied simply because a whole-tree gate reads the repository. The portable context package is distinct from the code workspace needed to execute work. Broader context closure, wire/downgrade compatibility and large-packet budget behavior remain to be completed; this slice does not claim them.
+Input bindings identify the reviewed workspace. They do not grant permission to publish every source as blind context. Performer rationale and historical instructions remain excluded from reviewer context. Source selection and portable context closure are separate requirements.
 
-The configured wrapper reads one private copy of the supplied bundle and echoes its request subject. It must not recapture a newer subject after review, ask a model to invent the binding, or infer it when a legacy request has none.
+## Transport and qualification
 
-Before writing any verdict, ingestion rejects a response about a stale subject or undeclared obligation. Current preparation, resolution, progress and assurance-mark evaluation use the same qualification rule. Acceptance must not count unbound legacy journal events as re-review merely because they were recorded later. Git-candidate acceptance uses the same subject capture and compiler against exact candidate Git blobs, including its inventory and declared gate scope. A private data snapshot carries regular source bytes without running candidate code or activating a candidate-selected authority store. Bound observations must match this candidate subject. Full context/declared-input closure and the final gate remain unfinished.
+The experimental request/response transport is v2. A v2 response requires the reviewed subject and exact packet references before any verdict write. V1 responses remain historical observations, including those containing optional newer fields. An unsupported future response version reports UNKNOWN; malformed current v2 data is refused.
 
-## Adoption and remaining work
+Existing core verification record bytes stay unchanged. The verification-recorded journal event binds the record digest, actor, Warrant identity, obligation, reviewed subject, packet references and explicit v2 protocol. Protocol labels and reviewed bindings are never inferred from timestamps or optional fields.
 
-This proposal does not weaken independent or human gates. Required fixture/context coverage, canonical bundle identity, candidate acceptance, path and race controls, conformance compatibility, and the full gate remain to be proved. Human acceptance is separate from this draft and its local tests.
+Ingestion preflights the whole response: current subject, declared obligation identifiers, packet identity, performer and obligation coverage. Qualification uses that same rule for preparation, resolution, progress and the assurance mark. Legacy or stale observations remain on disk and supply no current qualification. Known independence failures retain their inadmissibility reason.
 
-The experimental `gate_links` map records exact link target text, distinguishing a link from a regular file with the same bytes. Its input digest remains ordinary SHA-256 of the target text. Internal link targets add their file/subtree dependencies to the existing source selection; changing target identity or dependency bytes invalidates the review. Candidate link blobs remain private data, never filesystem links. External, dangling, chained or unsupported link targets remain unavailable observations, reported as UNKNOWN. This is not a completed race audit or support for all filesystem node types.
+Candidate acceptance compares against exact Git-tree data using the same subject/compiler routines. Its private snapshot does not run candidate code or activate candidate-selected authority. Unsupported selected nodes remain visible as unavailable observations.
 
-Experimental responses and journal events now name `reviewed_packets`, each with a retained repository-relative path and the full existing canonical VerificationBundle digest. Qualification checks retained packet identity, supported packet/request schema, exact subject, performer and obligation coverage; it does not reconstruct a different packet after the verdict changed prior history. Subject-only observations remain history without current qualification. `verify --bundle --json` returns a machine-readable packet index. Configured verifier calls receive this Rust-computed index as transport metadata; no Python canonicalizer or model-created digest is used. This does not yet complete broader context closure, race protection or older-tool negotiation.
+V1-only response readers refuse v2 envelopes. This does not protect stored records from older readers that ignore the new journal binding. A distinct reader rollout/version guard remains required before release.
 
-Experimental packet-bound request/response transport uses v2. V2 responses require the reviewed subject and packet references before any verdict write. V1 responses remain historical observations even if optional new fields are supplied; current qualification and candidate acceptance require a journal observation explicitly naming the v2 verification protocol. Protocol labels are never inferred from fields or timestamps. This changes transport, not existing core verification record bytes or canonicalization. Earlier v1-only response readers refuse v2 envelopes; older readers of stored records still require a distinct rollout/version guard, which remains open. Missing or unreadable retained packets report UNKNOWN rather than a binding error; malformed identities and observed content mismatches remain refusals.
+## Portable packet binding
+
+Each `reviewed_packets` entry carries a retained repository-relative path and the full existing VerificationBundle digest. The path uses the existing shortened digest filename; qualification checks the full digest. Packet/request schema, exact subject, performer and covered obligations must match. Qualification reads the retained packet; it does not rebuild a different packet after prior verdicts changed.
+
+Contract and packet digests retain their existing Rust canonicalizers and digest domains. No replacement canonicalizer, Python digest implementation or model-created digest is introduced. `verify --bundle --json` returns a machine-readable packet index; configured verifier calls receive its Rust-computed references as transport metadata.
+
+Packets carry exact required gate-definition, fixture and recorded-evidence bytes. UTF-8 stays readable; binary fixtures stay lossless byte arrays. Every obligation packet retains those fixed inputs. Budget pressure cannot silently remove or excerpt them. Assembly compares them against the captured subject and refuses required sources that change or disappear during capture. Complete governing-context closure remains open.
+
+## Retained packet storage
+
+The draft storage implementation reuses identical retained bytes and refuses different bytes at the same filename. New packets are staged and synced, then published without replacing an existing name. A competing publisher must supply identical bytes; it cannot truncate the winning packet. Directory-relative file handles refuse link traversal, and packet reads inspect regular files through the opened descriptor.
+
+Missing, unreadable or unsupported retained files report UNKNOWN. Observed identity/content mismatches remain refusals. History remains intact; regeneration is not permission to repair or overwrite retained evidence.
+
+These controls do not sandbox a same-uid writer, prove verifier private-copy custody, or complete the source-capture race audit. Those claims require separate evidence.
+
+## Configured verifier
+
+The wrapper reads a private copy of the supplied packet and echoes its request subject. It must not recapture a newer subject after review, infer a missing legacy binding, or ask a model to invent one. Rust transport metadata binds packet references. Complete copy/custody and harness-isolation qualification remains open.
+
+## Adoption requirements
+
+Before release, prove complete context/evidence closure, stored-record reader compatibility, large-packet budget behavior, unsafe-file and race controls, and the full gate. Independent verification and secure human acceptance remain separate acts. This draft and its local checks satisfy neither act.
