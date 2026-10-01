@@ -118,7 +118,7 @@ if subject is not None:
     # invent a binding or recaptures a fresh subject after work has changed.
     print("[reviewed_subject]")
     print("contract_digest = " + json.dumps(subject["contract_digest"]))
-    for field in ("artifacts", "gate_definitions", "fixtures"):
+    for field in ("artifacts", "gate_definitions", "fixtures", "gate_evidence"):
         print("[reviewed_subject." + field + "]")
         for path, digest in sorted(subject.get(field, {}).items()):
             print(json.dumps(path) + " = " + json.dumps(digest))

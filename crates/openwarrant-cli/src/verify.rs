@@ -69,6 +69,8 @@ pub struct ReviewedSubject {
     pub gate_definitions: BTreeMap<String, String>,
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub fixtures: BTreeMap<String, String>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub gate_evidence: BTreeMap<String, String>,
 }
 
 pub fn subject(repo: &Repository, one: &crate::repo::Loaded) -> Result<ReviewedSubject, RepoError> {
@@ -161,6 +163,7 @@ pub fn subject(repo: &Repository, one: &crate::repo::Loaded) -> Result<ReviewedS
         artifacts,
         gate_definitions,
         fixtures,
+        gate_evidence: gate_evidence(repo, one)?,
     })
 }
 
@@ -175,9 +178,8 @@ fn file_digest(repo: &Repository, reference: &str) -> Result<String, RepoError> 
         .unwrap_or_else(|| "missing".to_owned()))
 }
 
-/// Read each observed source once, after refusing traversal, symlinks and
-/// nonregular files. Missing bytes are explicit and never satisfy existence.
-pub(crate) fn file_bytes(repo: &Repository, reference: &str) -> Result<Option<Vec<u8>>, RepoError> {
+/// Check references before either reading a file or enumerating a directory.
+fn source_path(repo: &Repository, reference: &str) -> Result<Option<Utf8PathBuf>, RepoError> {
     let relative = camino::Utf8Path::new(reference);
     if relative.is_absolute()
         || relative
@@ -208,6 +210,93 @@ pub(crate) fn file_bytes(repo: &Repository, reference: &str) -> Result<Option<Ve
             _ => {}
         }
     }
+    Ok(Some(path))
+}
+
+/// Bind the exact records and output carried by the blind verifier bundle.
+/// Missing receipts/output remain named; binding does not make them admissible.
+fn gate_evidence(
+    repo: &Repository,
+    one: &crate::repo::Loaded,
+) -> Result<BTreeMap<String, String>, RepoError> {
+    let mut sources = BTreeMap::new();
+    let relative = repo.relative(&one.dir.join(crate::evidence::GATE_RUNS_DIR));
+    let Some(directory) = source_path(repo, &relative)? else {
+        return Ok(sources);
+    };
+    let entries = directory.read_dir_utf8().map_err(|source| RepoError::Io {
+        context: format!("could not inspect {directory}"),
+        source,
+    })?;
+    let mut paths = entries
+        .map(|entry| entry.map(|e| e.into_path()))
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|source| RepoError::Io {
+            context: format!("could not inspect {directory}"),
+            source,
+        })?;
+    paths.sort();
+    for path in paths
+        .into_iter()
+        .filter(|p| p.as_str().ends_with(".run.toml"))
+    {
+        let relative = repo.relative(&path);
+        let bytes = file_bytes(repo, &relative)?.ok_or_else(|| {
+            RepoError::Message(format!(
+                "verify.subject-unavailable: run {relative} disappeared"
+            ))
+        })?;
+        let text = std::str::from_utf8(&bytes).map_err(|e| RepoError::Message(e.to_string()))?;
+        let _: openwarrant_core::GateRun = toml::from_str(text).map_err(|e| {
+            RepoError::Message(format!("verify.subject-unavailable: {relative}: {e}"))
+        })?;
+        sources.insert(relative.clone(), bytes_digest(&bytes));
+        let stem = relative
+            .strip_suffix(".run.toml")
+            .expect("selected run suffix");
+        let receipt_path = format!("{stem}.receipt.json");
+        let receipt_bytes = file_bytes(repo, &receipt_path)?;
+        let receipt = receipt_bytes
+            .as_deref()
+            .map(serde_json::from_slice::<openwarrant_core::GateReceipt>)
+            .transpose()
+            .map_err(|e| {
+                RepoError::Message(format!("verify.subject-unavailable: {receipt_path}: {e}"))
+            })?;
+        sources.insert(
+            receipt_path,
+            receipt_bytes
+                .as_deref()
+                .map(bytes_digest)
+                .unwrap_or_else(|| "missing".to_owned()),
+        );
+        let mut referenced = match receipt {
+            Some(receipt) => {
+                let mut refs = receipt.raw_evidence_refs;
+                refs.push(receipt.stdout_ref);
+                refs.push(receipt.stderr_ref);
+                refs
+            }
+            None => vec![format!("{stem}.stdout.txt"), format!("{stem}.stderr.txt")],
+        };
+        referenced.sort();
+        referenced.dedup();
+        for reference in referenced {
+            if let std::collections::btree_map::Entry::Vacant(entry) = sources.entry(reference) {
+                let digest = file_digest(repo, entry.key())?;
+                entry.insert(digest);
+            }
+        }
+    }
+    Ok(sources)
+}
+
+/// Read bytes after refusing traversal, symlinks and nonregular files.
+/// Missing bytes are explicit and never satisfy existence.
+pub(crate) fn file_bytes(repo: &Repository, reference: &str) -> Result<Option<Vec<u8>>, RepoError> {
+    let Some(path) = source_path(repo, reference)? else {
+        return Ok(None);
+    };
     match fs::symlink_metadata(&path) {
         Ok(metadata) if metadata.is_file() => {
             fs::read(&path).map(Some).map_err(|source| RepoError::Io {

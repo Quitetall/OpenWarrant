@@ -331,6 +331,33 @@ else
 fi
 # Candidate facts come from Git, never from a dirty current checkout.
 AV_REVIEWED=$(git -C "$PLANT_ROOT" rev-parse HEAD)
+# Portable review retains the actual recorded evidence, not only its hash.
+AV_OUT=$(av_war verify "$AV_A" --performer claude --bundle --json 2>&1); AV_STATUS=$?
+if [[ $AV_STATUS -eq 0 ]] && python3 - "$PLANT_ROOT" "$AV_A" <<'PY_PACKET'
+import json, sys
+from pathlib import Path
+root, alias = Path(sys.argv[1]), sys.argv[2]
+folder = root / "docs/warrants" / alias
+packets = list((folder / "verifications").glob("bundle-*.json"))
+assert packets
+expected = list((folder / "gate-runs").glob("*"))
+assert len(expected) >= 4
+for packet in packets:
+    data = json.loads(packet.read_text())
+    sources = {s["path"]: s for s in data["required_sources"]}
+    for file in expected:
+        path = str(file.relative_to(root))
+        source = sources[path]
+        assert source["kind"] == "gate-evidence" and source["present"]
+        carried = source["text"].encode() if "text" in source else bytes(source["bytes"])
+        assert carried == file.read_bytes(), path
+        assert source["sha256"] == data["request"]["reviewed_subject"]["gate_evidence"][path]
+PY_PACKET
+then
+    av_ok "portable packet retains gate evidence" "run, receipt and exact output bytes are carried"
+else
+    av_fail "portable packet retains gate evidence" "exit $AV_STATUS; required evidence bytes were not carried"
+fi
 # A bound review belongs to this Warrant and the verifier named by its record.
 for AV_IDENTITY in actor_ref warrant_uuid; do
     python3 - "$PLANT_ROOT/docs/warrants/$AV_A/journal.jsonl" "$AV_IDENTITY" <<'PY_IDENTITY'
@@ -352,6 +379,23 @@ PY_IDENTITY
     fi
     git -C "$PLANT_ROOT" reset -q --hard "$AV_REVIEWED"
 done
+# The verifier observed gate output as well as code and definitions.
+python3 - "$PLANT_ROOT/docs/warrants/$AV_A/gate-runs" <<'PY_OUTPUT'
+from pathlib import Path
+import sys
+files = list(Path(sys.argv[1]).glob("*.stdout.txt"))
+assert len(files) == 1, files
+with files[0].open("ab") as stream:
+    stream.write(b"Changed evidence after independent review.\n")
+PY_OUTPUT
+av_commit "changed gate output after review"
+AV_OUT=$(av_war pins --candidate HEAD 2>&1); AV_STATUS=$?
+if [[ $AV_STATUS -ne 0 ]] && av_names 'acceptance.candidate-moved' "$AV_OUT" 'src/helper.txt'; then
+    av_ok "changed gate output cannot borrow review" "the raw evidence differs from the reviewed snapshot"
+else
+    av_fail "changed gate output cannot borrow review" "exit $AV_STATUS: $(av_lines "$AV_OUT")"
+fi
+git -C "$PLANT_ROOT" reset -q --hard "$AV_REVIEWED"
 printf '\nOnly the working tree has this unreviewed contract change.\n' >> "$AV_INTENT"
 AV_OUT=$(av_war pins --candidate "$AV_REVIEWED" 2>&1); AV_STATUS=$?
 if [[ $AV_STATUS -eq 0 ]] && grep -qE "PASS +acceptance\.unchanged +$AV_A: .*\(re-verified\)" <<<"$AV_OUT"; then
