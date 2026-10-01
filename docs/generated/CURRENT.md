@@ -9229,7 +9229,7 @@ the app shows a `human` remedy and stops.
 | D-012 | Requirement 3's reason names a newer owner | `crates/openwarrant-cli/src/resolve.rs` | drift |
 | D-013 | The ownership plants | `conformance/plants.d/98-ownership.sh` | verified |
 | D-014 | The authorization schema | `schemas/oh.war/authorization/v1.json` | verified |
-| D-015 | The threat-model row | `docs/THREAT_MODEL.md` | verified |
+| D-015 | The threat-model row | `docs/THREAT_MODEL.md` | drift |
 | D-016 | Remedies | `crates/openwarrant-cli/src/remedy.rs` | drift |
 | D-017 | A diagnostic carries its remedy | `crates/openwarrant-cli/src/diagnostic.rs` | verified |
 | D-018 | The remedy on the wire and in the REMEDIES block | `crates/openwarrant-cli/src/output.rs` | drift |
@@ -11132,7 +11132,7 @@ then the act is the one the server chose, and the key's dialog asks.
 | D-007 | the command | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-008 | docs/WEBUI.md | `docs/WEBUI.md` | verified |
 | D-009 | README.md: war ui | `README.md` | verified |
-| D-010 | THREAT_MODEL row | `docs/THREAT_MODEL.md` | verified |
+| D-010 | THREAT_MODEL row | `docs/THREAT_MODEL.md` | drift |
 | D-011 | the plants | `conformance/plants.d/63-webui.sh` | verified |
 | D-012 | the verifier's plants: /api/act by method, the act's command, one act at a time, progress on this corpus | `conformance/plants.d/63-webui-verified.sh` | verified |
 
@@ -35210,7 +35210,7 @@ test mode is labeled in every record it produces.
 | D-004 | sign records presence; refuses by policy and on actor-key mismatch | `crates/openwarrant-cli/src/sign.rs` | verified |
 | D-005 | revision v2: actor kind and protected policy | `crates/openwarrant-core/src/authority_transition.rs` | verified |
 | D-006 | protected policy keys resolved from the store | `crates/openwarrant-core/src/config.rs` | verified |
-| D-007 | THREAT_MODEL rows 1 and 6 narrowed | `docs/THREAT_MODEL.md` | verified |
+| D-007 | THREAT_MODEL rows 1 and 6 narrowed | `docs/THREAT_MODEL.md` | drift |
 | D-008 | authority.md: the cutover | `docs/cli/authority.md` | verified |
 | D-009 | the plants | `conformance/plants.d/58-authn.sh` | verified |
 | D-010 | core lib.rs declares the presence module (AM-003) | `crates/openwarrant-core/src/lib.rs` | verified |

@@ -3479,7 +3479,7 @@ Ingestion preflights the whole response: current subject, declared obligation id
 
 Candidate acceptance compares against exact Git-tree data using the same subject/compiler routines. Its private snapshot does not run candidate code or activate candidate-selected authority. Unsupported selected nodes remain visible as unavailable observations.
 
-V1-only response readers refuse v2 envelopes. This does not protect stored records from older readers that ignore the new journal binding. A distinct reader rollout/version guard remains required before release.
+V1-only response readers refuse v2 envelopes. This does not protect stored records from older readers that ignore the new journal binding. A direct synthetic CLI probe of the installed alpha.2 release reproduced stale observations counted as established, including passing the obligation and independence requirements in a resolution dry run. That reader also ignores `project.requires_war`; a minimum-version setting alone does not protect it. The current reader rejects those stale observations. Adoption therefore needs a record-level storage boundary that old bare-record readers cannot misread, alongside the frozen v1 reader and preserved history. Define the new envelope and schema-pack adoption before qualified release; do not silently alter the frozen v1 payload or claim a version setting covers readers that ignore it. The portable probe is `conformance/fixtures/verifier/probe-stored-reader.py`; its results apply to the exact recorded executable digests, not every old tool.
 
 ## Portable packet binding
 
@@ -3487,7 +3487,7 @@ Each `reviewed_packets` entry carries a retained repository-relative path and th
 
 Contract and packet digests retain their existing Rust canonicalizers and digest domains. No replacement canonicalizer, Python digest implementation or model-created digest is introduced. `verify --bundle --json` returns a machine-readable packet index; configured verifier calls receive its Rust-computed references as transport metadata.
 
-Packets carry exact required pinned-SAS, gate-definition, fixture and recorded-evidence bytes. UTF-8 stays readable; binary fixtures stay lossless byte arrays. Every obligation packet retains those fixed inputs. Budget pressure cannot silently remove or excerpt them. Assembly compares them against the captured subject and refuses required sources that change or disappear during capture. The draft locates the captured SAS version/digest in retained revision records, uses descriptor-safe current reads, and recovers matching historical Git bytes locally when needed. Candidate snapshots cannot borrow mutable checkout history. An unavailable pinned source is UNKNOWN; a newer SAS cannot substitute. Packet qualification also checks the full carried source against its subject digest. Request and packet assembly reuse one loaded Warrant. This SAS slice is under test; complete transitive governing-context closure remains open.
+Packets carry exact required pinned-SAS, gate-definition, fixture and recorded-evidence bytes. UTF-8 stays readable; binary fixtures stay lossless byte arrays. Every obligation packet retains those fixed inputs. Budget pressure cannot silently remove or excerpt them. Assembly compares them against the captured subject and refuses required sources that change or disappear during capture. The draft locates the captured SAS version/digest in retained revision records, uses descriptor-safe current reads, and recovers matching historical Git bytes locally when needed. Candidate snapshots cannot borrow mutable checkout history. The historical-source extension freezes the candidate commit and reads regular source blobs only from that commit’s retained ancestors, with replacement objects and lazy fetching disabled. Matching content must have the exact pinned SHA-256; a newer source file or unrelated branch cannot substitute. An unavailable pinned source is UNKNOWN. This extension has a reproduced CLI failure and is awaiting its green qualification run. Packet qualification also checks the full carried source against its subject digest. Request and packet assembly reuse one loaded Warrant. This SAS slice is under test; complete transitive governing-context closure remains open.
 
 ## Retained packet storage
 
@@ -25810,7 +25810,7 @@ the app shows a `human` remedy and stops.
 | D-012 | Requirement 3's reason names a newer owner | `crates/openwarrant-cli/src/resolve.rs` | drift |
 | D-013 | The ownership plants | `conformance/plants.d/98-ownership.sh` | verified |
 | D-014 | The authorization schema | `schemas/oh.war/authorization/v1.json` | verified |
-| D-015 | The threat-model row | `docs/THREAT_MODEL.md` | verified |
+| D-015 | The threat-model row | `docs/THREAT_MODEL.md` | drift |
 | D-016 | Remedies | `crates/openwarrant-cli/src/remedy.rs` | drift |
 | D-017 | A diagnostic carries its remedy | `crates/openwarrant-cli/src/diagnostic.rs` | verified |
 | D-018 | The remedy on the wire and in the REMEDIES block | `crates/openwarrant-cli/src/output.rs` | drift |
@@ -27713,7 +27713,7 @@ then the act is the one the server chose, and the key's dialog asks.
 | D-007 | the command | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-008 | docs/WEBUI.md | `docs/WEBUI.md` | verified |
 | D-009 | README.md: war ui | `README.md` | verified |
-| D-010 | THREAT_MODEL row | `docs/THREAT_MODEL.md` | verified |
+| D-010 | THREAT_MODEL row | `docs/THREAT_MODEL.md` | drift |
 | D-011 | the plants | `conformance/plants.d/63-webui.sh` | verified |
 | D-012 | the verifier's plants: /api/act by method, the act's command, one act at a time, progress on this corpus | `conformance/plants.d/63-webui-verified.sh` | verified |
 
@@ -35503,7 +35503,7 @@ test mode is labeled in every record it produces.
 | D-004 | sign records presence; refuses by policy and on actor-key mismatch | `crates/openwarrant-cli/src/sign.rs` | verified |
 | D-005 | revision v2: actor kind and protected policy | `crates/openwarrant-core/src/authority_transition.rs` | verified |
 | D-006 | protected policy keys resolved from the store | `crates/openwarrant-core/src/config.rs` | verified |
-| D-007 | THREAT_MODEL rows 1 and 6 narrowed | `docs/THREAT_MODEL.md` | verified |
+| D-007 | THREAT_MODEL rows 1 and 6 narrowed | `docs/THREAT_MODEL.md` | drift |
 | D-008 | authority.md: the cutover | `docs/cli/authority.md` | verified |
 | D-009 | the plants | `conformance/plants.d/58-authn.sh` | verified |
 | D-010 | core lib.rs declares the presence module (AM-003) | `crates/openwarrant-core/src/lib.rs` | verified |

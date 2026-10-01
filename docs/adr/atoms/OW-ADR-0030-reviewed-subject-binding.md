@@ -54,7 +54,7 @@ Ingestion preflights the whole response: current subject, declared obligation id
 
 Candidate acceptance compares against exact Git-tree data using the same subject/compiler routines. Its private snapshot does not run candidate code or activate candidate-selected authority. Unsupported selected nodes remain visible as unavailable observations.
 
-V1-only response readers refuse v2 envelopes. This does not protect stored records from older readers that ignore the new journal binding. A distinct reader rollout/version guard remains required before release.
+V1-only response readers refuse v2 envelopes. This does not protect stored records from older readers that ignore the new journal binding. A direct synthetic CLI probe of the installed alpha.2 release reproduced stale observations counted as established, including passing the obligation and independence requirements in a resolution dry run. That reader also ignores `project.requires_war`; a minimum-version setting alone does not protect it. The current reader rejects those stale observations. Adoption therefore needs a record-level storage boundary that old bare-record readers cannot misread, alongside the frozen v1 reader and preserved history. Define the new envelope and schema-pack adoption before qualified release; do not silently alter the frozen v1 payload or claim a version setting covers readers that ignore it. The portable probe is `conformance/fixtures/verifier/probe-stored-reader.py`; its results apply to the exact recorded executable digests, not every old tool.
 
 ## Portable packet binding
 
